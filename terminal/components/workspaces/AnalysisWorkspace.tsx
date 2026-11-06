@@ -105,7 +105,12 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   );
   const [page, setPage] = useState<FinPage>(seededPage);
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [marketOntologyContext, setMarketOntologyContext] = useState<MarketOntologyContext | null>(null);
+  // The first rendered link is already actionable, including before hydration.
+  // Seed its validated context now; a passive effect is too late to preserve
+  // the source-return URL when the user immediately opens their theses.
+  const [marketOntologyContext, setMarketOntologyContext] = useState<MarketOntologyContext | null>(
+    () => parseMarketOntologyContext(new URLSearchParams(searchParams.toString())),
+  );
   const routeQuery = searchParams.toString();
   const companySearchQuery = readCompanySearchQuery(new URLSearchParams(routeQuery));
   useLayoutEffect(() => {

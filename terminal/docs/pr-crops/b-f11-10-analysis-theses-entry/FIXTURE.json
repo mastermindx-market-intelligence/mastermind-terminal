@@ -1,0 +1,1956 @@
+{
+  "schema": "terminal.f11-source-component-fixture.v1",
+  "capturedAtHead": "de20960c3340cd79fc8bf92598e11d6aee41cab3",
+  "captureProfile": {
+    "server": {
+      "command": "next dev --webpack",
+      "mode": "development",
+      "reactDebugChannel": false,
+      "providerClosedChild": true,
+      "freshServerPerImage": true,
+      "distDir": ".next/f11",
+      "tsconfigPath": "tsconfig.f11.json"
+    },
+    "publicScriptObservation": {
+      "bodyAwaitBeforeFulfill": true,
+      "byteShaMimeEncoding": true,
+      "browserDeliveryEvents": true
+    },
+    "node": "v20.20.2",
+    "next": "16.2.9",
+    "playwright": "1.61.1",
+    "browser": {
+      "version": "149.0.7827.55",
+      "revision": "1228",
+      "launch": {
+        "headless": true
+      },
+      "serviceWorkers": "block",
+      "freshContextPerImage": true,
+      "freshBrowserPerImage": true
+    }
+  },
+  "serverSettlement": {
+    "cases": [
+      {
+        "file": "desktop-en.png",
+        "pid": 86513,
+        "closeObserved": true,
+        "processGroupAbsent": true,
+        "exitSuccess": "NOT_ASSERTED"
+      },
+      {
+        "file": "desktop-zh.png",
+        "pid": 88207,
+        "closeObserved": true,
+        "processGroupAbsent": true,
+        "exitSuccess": "NOT_ASSERTED"
+      },
+      {
+        "file": "tablet-en.png",
+        "pid": 90669,
+        "closeObserved": true,
+        "processGroupAbsent": true,
+        "exitSuccess": "NOT_ASSERTED"
+      },
+      {
+        "file": "tablet-zh.png",
+        "pid": 93427,
+        "closeObserved": true,
+        "processGroupAbsent": true,
+        "exitSuccess": "NOT_ASSERTED"
+      },
+      {
+        "file": "mobile-en.png",
+        "pid": 96557,
+        "closeObserved": true,
+        "processGroupAbsent": true,
+        "exitSuccess": "NOT_ASSERTED"
+      },
+      {
+        "file": "mobile-zh.png",
+        "pid": 99988,
+        "closeObserved": true,
+        "processGroupAbsent": true,
+        "exitSuccess": "NOT_ASSERTED"
+      }
+    ],
+    "allClosed": true,
+    "allGroupsAbsent": true
+  },
+  "generatedTypes": {
+    "cases": [
+      {
+        "file": "desktop-en.png",
+        "compilerNamespace": ".next/f11/dev",
+        "defaultCompilerNamespaceSelected": false,
+        "nextEnvPreimage": {
+          "bytes": 251,
+          "sha256": "7ad303e40d4fddf44f156129e397511953a71481c5cfd86b1862649aaaf240cc"
+        },
+        "nextEnvRestored": true,
+        "trackedTsconfigsUnchanged": true
+      },
+      {
+        "file": "desktop-zh.png",
+        "compilerNamespace": ".next/f11/dev",
+        "defaultCompilerNamespaceSelected": false,
+        "nextEnvPreimage": {
+          "bytes": 251,
+          "sha256": "7ad303e40d4fddf44f156129e397511953a71481c5cfd86b1862649aaaf240cc"
+        },
+        "nextEnvRestored": true,
+        "trackedTsconfigsUnchanged": true
+      },
+      {
+        "file": "tablet-en.png",
+        "compilerNamespace": ".next/f11/dev",
+        "defaultCompilerNamespaceSelected": false,
+        "nextEnvPreimage": {
+          "bytes": 251,
+          "sha256": "7ad303e40d4fddf44f156129e397511953a71481c5cfd86b1862649aaaf240cc"
+        },
+        "nextEnvRestored": true,
+        "trackedTsconfigsUnchanged": true
+      },
+      {
+        "file": "tablet-zh.png",
+        "compilerNamespace": ".next/f11/dev",
+        "defaultCompilerNamespaceSelected": false,
+        "nextEnvPreimage": {
+          "bytes": 251,
+          "sha256": "7ad303e40d4fddf44f156129e397511953a71481c5cfd86b1862649aaaf240cc"
+        },
+        "nextEnvRestored": true,
+        "trackedTsconfigsUnchanged": true
+      },
+      {
+        "file": "mobile-en.png",
+        "compilerNamespace": ".next/f11/dev",
+        "defaultCompilerNamespaceSelected": false,
+        "nextEnvPreimage": {
+          "bytes": 251,
+          "sha256": "7ad303e40d4fddf44f156129e397511953a71481c5cfd86b1862649aaaf240cc"
+        },
+        "nextEnvRestored": true,
+        "trackedTsconfigsUnchanged": true
+      },
+      {
+        "file": "mobile-zh.png",
+        "compilerNamespace": ".next/f11/dev",
+        "defaultCompilerNamespaceSelected": false,
+        "nextEnvPreimage": {
+          "bytes": 251,
+          "sha256": "7ad303e40d4fddf44f156129e397511953a71481c5cfd86b1862649aaaf240cc"
+        },
+        "nextEnvRestored": true,
+        "trackedTsconfigsUnchanged": true
+      }
+    ],
+    "allRestored": true
+  },
+  "caseLifecycle": [
+    {
+      "file": "desktop-en.png",
+      "serverSettlement": {
+        "pid": 86513,
+        "closeObserved": true,
+        "processGroupAbsent": true,
+        "exitSuccess": "NOT_ASSERTED"
+      },
+      "generatedTypes": {
+        "compilerNamespace": ".next/f11/dev",
+        "defaultCompilerNamespaceSelected": false,
+        "nextEnvPreimage": {
+          "bytes": 251,
+          "sha256": "7ad303e40d4fddf44f156129e397511953a71481c5cfd86b1862649aaaf240cc"
+        },
+        "nextEnvRestored": true,
+        "trackedTsconfigsUnchanged": true
+      }
+    },
+    {
+      "file": "desktop-zh.png",
+      "serverSettlement": {
+        "pid": 88207,
+        "closeObserved": true,
+        "processGroupAbsent": true,
+        "exitSuccess": "NOT_ASSERTED"
+      },
+      "generatedTypes": {
+        "compilerNamespace": ".next/f11/dev",
+        "defaultCompilerNamespaceSelected": false,
+        "nextEnvPreimage": {
+          "bytes": 251,
+          "sha256": "7ad303e40d4fddf44f156129e397511953a71481c5cfd86b1862649aaaf240cc"
+        },
+        "nextEnvRestored": true,
+        "trackedTsconfigsUnchanged": true
+      }
+    },
+    {
+      "file": "tablet-en.png",
+      "serverSettlement": {
+        "pid": 90669,
+        "closeObserved": true,
+        "processGroupAbsent": true,
+        "exitSuccess": "NOT_ASSERTED"
+      },
+      "generatedTypes": {
+        "compilerNamespace": ".next/f11/dev",
+        "defaultCompilerNamespaceSelected": false,
+        "nextEnvPreimage": {
+          "bytes": 251,
+          "sha256": "7ad303e40d4fddf44f156129e397511953a71481c5cfd86b1862649aaaf240cc"
+        },
+        "nextEnvRestored": true,
+        "trackedTsconfigsUnchanged": true
+      }
+    },
+    {
+      "file": "tablet-zh.png",
+      "serverSettlement": {
+        "pid": 93427,
+        "closeObserved": true,
+        "processGroupAbsent": true,
+        "exitSuccess": "NOT_ASSERTED"
+      },
+      "generatedTypes": {
+        "compilerNamespace": ".next/f11/dev",
+        "defaultCompilerNamespaceSelected": false,
+        "nextEnvPreimage": {
+          "bytes": 251,
+          "sha256": "7ad303e40d4fddf44f156129e397511953a71481c5cfd86b1862649aaaf240cc"
+        },
+        "nextEnvRestored": true,
+        "trackedTsconfigsUnchanged": true
+      }
+    },
+    {
+      "file": "mobile-en.png",
+      "serverSettlement": {
+        "pid": 96557,
+        "closeObserved": true,
+        "processGroupAbsent": true,
+        "exitSuccess": "NOT_ASSERTED"
+      },
+      "generatedTypes": {
+        "compilerNamespace": ".next/f11/dev",
+        "defaultCompilerNamespaceSelected": false,
+        "nextEnvPreimage": {
+          "bytes": 251,
+          "sha256": "7ad303e40d4fddf44f156129e397511953a71481c5cfd86b1862649aaaf240cc"
+        },
+        "nextEnvRestored": true,
+        "trackedTsconfigsUnchanged": true
+      }
+    },
+    {
+      "file": "mobile-zh.png",
+      "serverSettlement": {
+        "pid": 99988,
+        "closeObserved": true,
+        "processGroupAbsent": true,
+        "exitSuccess": "NOT_ASSERTED"
+      },
+      "generatedTypes": {
+        "compilerNamespace": ".next/f11/dev",
+        "defaultCompilerNamespaceSelected": false,
+        "nextEnvPreimage": {
+          "bytes": 251,
+          "sha256": "7ad303e40d4fddf44f156129e397511953a71481c5cfd86b1862649aaaf240cc"
+        },
+        "nextEnvRestored": true,
+        "trackedTsconfigsUnchanged": true
+      }
+    }
+  ],
+  "fixtureSources": {
+    "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs": "9f61e04a00928917ba44a906d16b32797573cdc03bfed821bcda79459b0c69c7",
+    "terminal/e2e/tools/f11_provider_closed_policy.cjs": "e2534e0a6575e0f1ba76d1e03645fb2fd1184f9029bad4b2fc2767aa3ebfa38c",
+    "terminal/e2e/tools/f11_owned_server.cjs": "229fd69538d3582083b98522423b25c2f7869473fe57582a9d501404ac7f60eb",
+    "terminal/e2e/tools/f11_script_metadata.cjs": "0a26c3ae13ed6242e0126465b794ce401f836e6cf44e8906b13a40ce817dec19",
+    "terminal/tsconfig.f11.json": "7bde30a1142628589810fb41bc40d9d2f805e829eaa10a7fb7c0c15c060a2c63",
+    "terminal/tsconfig.json": "be18523b23b78b6e1a876ddd107d330f0168bddf09d751b57e0b5edce69c66f3",
+    "terminal/next.config.ts": "2199c56ba4881c0238f23c98e88dde5739b72b2c794802464261f4bc1dcb6d39",
+    "terminal/package-lock.json": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9",
+    "terminal/app/(shell)/analysis/page.tsx": "d614e49e3f4bfc981d09c06cc8df5b10cff66901a6a7b4a2afd9ddf736e2629b",
+    "terminal/app/(shell)/layout.tsx": "4daf0325a82cadfb2223fbaa8bf0a26662463cccbfd9bdbced4ed9b511a85b2b",
+    "terminal/lib/supabase/middleware.ts": "0035a14c51a2c76f02744d8d5ff93192fd017edc84980a25d1f279bb91fe5e26",
+    ".github/workflows/ci.yml": "753fccd683facd3c5e97b3816832efd1ff90967564929fefa43b4943eac520fc",
+    "terminal/components/workspaces/AnalysisWorkspace.tsx": "80bc4d4018313e22edcd2144d7d2616b447c9d2c10cf775900ef3bd2f199860c",
+    "terminal/app/company-intelligence.css": "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34",
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
+  },
+  "scope": "Real source component, synthetic fixture identity and unavailable market inputs; no authenticated, provider, installed or account proof",
+  "entryObservations": [
+    {
+      "bootstrapState": {
+        "readyState": "complete",
+        "scriptCount": 25,
+        "nextRuntime": true,
+        "flightArray": true,
+        "flightConsumerInstalled": true,
+        "webpackRegistryPresent": true,
+        "webpackGroups": 9,
+        "registeredChunkIds": [
+          "app-pages-internals",
+          "app/error",
+          "app/global-error",
+          "app/not-found",
+          "app/layout",
+          "app/(shell)/analysis/page",
+          "app/(shell)/layout",
+          "main-app",
+          "_app-pages-browser_components_workspaces_AnalysisWorkspace_tsx"
+        ],
+        "scripts": [
+          {
+            "pathname": "/_next/static/chunks/main-app.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app-pages-internals.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/layout.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/error.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/not-found.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/global-error.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/(shell)/analysis/page.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/(shell)/layout.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/polyfills.js",
+            "async": false,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/webpack.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          }
+        ]
+      },
+      "file": "desktop-en.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "symbol": "NVDA",
+      "lang": "en",
+      "state": "context-bar-with-theses-control",
+      "href": "/analysis?view=theses&symbol=NVDA",
+      "entryBounds": {
+        "x": 1323.03125,
+        "y": 67.5,
+        "width": 102.96875,
+        "height": 32
+      },
+      "requestBoundary": {
+        "forwarded": 19,
+        "unavailable": 5,
+        "businessUnavailable": 5,
+        "componentFundUnavailable": 1,
+        "aborted": 1,
+        "webSocketsBlocked": 2,
+        "redirectOrBadStatus": 0,
+        "failedAllowedResponses": [],
+        "publicScripts": [
+          {
+            "pathname": "/_next/static/chunks/webpack.js",
+            "bytes": 145377,
+            "sha256": "1bc42dc19565efe3f35dc0d9c3e88789958319ad2601529528047f1fbd64e491",
+            "mime": "application/javascript",
+            "fetchMs": 12.503333000000566,
+            "bodyMs": 1.0732090000019525,
+            "fulfillMs": 6.973791000000347,
+            "encoding": "gzip",
+            "requestId": 1
+          },
+          {
+            "pathname": "/_next/static/chunks/app-pages-internals.js",
+            "bytes": 245068,
+            "sha256": "f262afa2e33a9c3b6903a7f74fd32bce1b278070abb18fa017739d7de57c72fb",
+            "mime": "application/javascript",
+            "fetchMs": 42.06187499999942,
+            "bodyMs": 0.7072919999991427,
+            "fulfillMs": 30.232707999999548,
+            "encoding": "gzip",
+            "requestId": 2
+          },
+          {
+            "pathname": "/_next/static/chunks/app/error.js",
+            "bytes": 919745,
+            "sha256": "8790e1ff7343226e5ee1eac46d470b1fc54a6700f79171e38ca75d6331169140",
+            "mime": "application/javascript",
+            "fetchMs": 101.51158299999952,
+            "bodyMs": 1.3010840000024473,
+            "fulfillMs": 65.46349999999802,
+            "encoding": "gzip",
+            "requestId": 3
+          },
+          {
+            "pathname": "/_next/static/chunks/app/global-error.js",
+            "bytes": 949486,
+            "sha256": "8740aebba71f0fbcde8d62c11ac7dc66694d3b5f3d6c0b5e40029fd8987ed669",
+            "mime": "application/javascript",
+            "fetchMs": 110.65370800000164,
+            "bodyMs": 0.9852920000012091,
+            "fulfillMs": 76.86908299999777,
+            "encoding": "gzip",
+            "requestId": 4
+          },
+          {
+            "pathname": "/_next/static/chunks/app/not-found.js",
+            "bytes": 961407,
+            "sha256": "229fecf9135b8d32c43635fb71e9d3fa662119df777d7bda7af98500cd5508a3",
+            "mime": "application/javascript",
+            "fetchMs": 111.5423750000009,
+            "bodyMs": 5.207916999999725,
+            "fulfillMs": 120.35116700000071,
+            "encoding": "gzip",
+            "requestId": 5
+          },
+          {
+            "pathname": "/_next/static/chunks/app/layout.js",
+            "bytes": 1014775,
+            "sha256": "d14ada19227646c83d1be85cf0ec13d1506890b9d5b2fe55b72b6de36eb0f53e",
+            "mime": "application/javascript",
+            "fetchMs": 118.00412500000311,
+            "bodyMs": 5.72925000000032,
+            "fulfillMs": 160.5659999999989,
+            "encoding": "gzip",
+            "requestId": 6
+          },
+          {
+            "pathname": "/_next/static/chunks/app/(shell)/analysis/page.js",
+            "bytes": 3929122,
+            "sha256": "e39c743a431c0f1aca3b02f976a4019d7fad17fe8209442180ef4eb3f7a05a32",
+            "mime": "application/javascript",
+            "fetchMs": 200.57158300000083,
+            "bodyMs": 2.054167000002053,
+            "fulfillMs": 153.51037499999802,
+            "encoding": "gzip",
+            "requestId": 7
+          },
+          {
+            "pathname": "/_next/static/chunks/app/(shell)/layout.js",
+            "bytes": 5135733,
+            "sha256": "56adee20c1bfed2b3bf355acc471d09a9b51d5b313bc008c4823f80ae4a77c92",
+            "mime": "application/javascript",
+            "fetchMs": 247.41733300000124,
+            "bodyMs": 0.8216249999968568,
+            "fulfillMs": 334.67316700000083,
+            "encoding": "gzip",
+            "requestId": 8
+          },
+          {
+            "pathname": "/_next/static/chunks/main-app.js",
+            "bytes": 11972375,
+            "sha256": "86c309b9a5896bd5c4bd6389ac6ef7836418631afed3bb0a2616d98216fb9b61",
+            "mime": "application/javascript",
+            "fetchMs": 514.7375829999983,
+            "bodyMs": 1.1709589999991294,
+            "fulfillMs": 241.4880830000002,
+            "encoding": "gzip",
+            "requestId": 9
+          },
+          {
+            "pathname": "/_next/static/chunks/_app-pages-browser_components_workspaces_AnalysisWorkspace_tsx.js",
+            "bytes": 21910965,
+            "sha256": "cc8dc1aa0595030a97b0b3f3221e6f78ab3d025fb750188765515dab9b64a148",
+            "mime": "application/javascript",
+            "fetchMs": 805.0747499999998,
+            "bodyMs": 0.6614169999993464,
+            "fulfillMs": 943.7344580000026,
+            "encoding": "gzip",
+            "requestId": 10
+          }
+        ],
+        "scriptDelivery": [
+          {
+            "requestId": 1,
+            "pathname": "/_next/static/chunks/webpack.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 2,
+            "pathname": "/_next/static/chunks/app-pages-internals.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 3,
+            "pathname": "/_next/static/chunks/app/error.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 4,
+            "pathname": "/_next/static/chunks/app/global-error.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 5,
+            "pathname": "/_next/static/chunks/app/not-found.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 6,
+            "pathname": "/_next/static/chunks/app/layout.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 7,
+            "pathname": "/_next/static/chunks/app/(shell)/analysis/page.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 8,
+            "pathname": "/_next/static/chunks/app/(shell)/layout.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 9,
+            "pathname": "/_next/static/chunks/main-app.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 10,
+            "pathname": "/_next/static/chunks/_app-pages-browser_components_workspaces_AnalysisWorkspace_tsx.js",
+            "event": "finished"
+          }
+        ]
+      },
+      "pageErrorNames": [],
+      "image": {
+        "bytes": 72706,
+        "sha256": "8714101725dfbb1e1715fd8edfe950020f3402199840e9f51091ea4b06d62b36"
+      }
+    },
+    {
+      "bootstrapState": {
+        "readyState": "complete",
+        "scriptCount": 25,
+        "nextRuntime": true,
+        "flightArray": true,
+        "flightConsumerInstalled": true,
+        "webpackRegistryPresent": true,
+        "webpackGroups": 9,
+        "registeredChunkIds": [
+          "app-pages-internals",
+          "app/global-error",
+          "app/error",
+          "app/not-found",
+          "app/layout",
+          "app/(shell)/analysis/page",
+          "app/(shell)/layout",
+          "main-app",
+          "_app-pages-browser_components_workspaces_AnalysisWorkspace_tsx"
+        ],
+        "scripts": [
+          {
+            "pathname": "/_next/static/chunks/main-app.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app-pages-internals.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/layout.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/error.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/not-found.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/global-error.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/(shell)/analysis/page.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/(shell)/layout.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/polyfills.js",
+            "async": false,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/webpack.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          }
+        ]
+      },
+      "file": "desktop-zh.png",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "symbol": "NVDA",
+      "lang": "zh",
+      "state": "context-bar-with-theses-control",
+      "href": "/analysis?view=theses&symbol=NVDA",
+      "entryBounds": {
+        "x": 1322,
+        "y": 67.5,
+        "width": 104,
+        "height": 32
+      },
+      "requestBoundary": {
+        "forwarded": 19,
+        "unavailable": 6,
+        "businessUnavailable": 6,
+        "componentFundUnavailable": 1,
+        "aborted": 1,
+        "webSocketsBlocked": 2,
+        "redirectOrBadStatus": 0,
+        "failedAllowedResponses": [],
+        "publicScripts": [
+          {
+            "pathname": "/_next/static/chunks/webpack.js",
+            "bytes": 145377,
+            "sha256": "969243b3872d49ca8c1c87601bc82ce8a8bc7a5970b1ed90ca7a4a408b1eecf6",
+            "mime": "application/javascript",
+            "fetchMs": 14.078459000003932,
+            "bodyMs": 0.29716699999698903,
+            "fulfillMs": 15.927292000000307,
+            "encoding": "gzip",
+            "requestId": 1
+          },
+          {
+            "pathname": "/_next/static/chunks/app-pages-internals.js",
+            "bytes": 245068,
+            "sha256": "f262afa2e33a9c3b6903a7f74fd32bce1b278070abb18fa017739d7de57c72fb",
+            "mime": "application/javascript",
+            "fetchMs": 35.77100000000064,
+            "bodyMs": 1.2188749999986612,
+            "fulfillMs": 51.126750000003085,
+            "encoding": "gzip",
+            "requestId": 2
+          },
+          {
+            "pathname": "/_next/static/chunks/app/global-error.js",
+            "bytes": 949486,
+            "sha256": "8740aebba71f0fbcde8d62c11ac7dc66694d3b5f3d6c0b5e40029fd8987ed669",
+            "mime": "application/javascript",
+            "fetchMs": 119.14962500000547,
+            "bodyMs": 0.9464159999988624,
+            "fulfillMs": 74.11262500000157,
+            "encoding": "gzip",
+            "requestId": 3
+          },
+          {
+            "pathname": "/_next/static/chunks/app/error.js",
+            "bytes": 919745,
+            "sha256": "8790e1ff7343226e5ee1eac46d470b1fc54a6700f79171e38ca75d6331169140",
+            "mime": "application/javascript",
+            "fetchMs": 126.19095799999923,
+            "bodyMs": 1.4898749999993015,
+            "fulfillMs": 98.17491700000392,
+            "encoding": "gzip",
+            "requestId": 4
+          },
+          {
+            "pathname": "/_next/static/chunks/app/not-found.js",
+            "bytes": 961407,
+            "sha256": "229fecf9135b8d32c43635fb71e9d3fa662119df777d7bda7af98500cd5508a3",
+            "mime": "application/javascript",
+            "fetchMs": 127.85250000000087,
+            "bodyMs": 5.461875000000873,
+            "fulfillMs": 113.29308300000412,
+            "encoding": "gzip",
+            "requestId": 5
+          },
+          {
+            "pathname": "/_next/static/chunks/app/layout.js",
+            "bytes": 1014775,
+            "sha256": "cb01d6844c380ae1fc3b1360baa6e5915ff4f24aae60dbd04841f8ec8d3d416b",
+            "mime": "application/javascript",
+            "fetchMs": 135.4282499999972,
+            "bodyMs": 8.39150000000518,
+            "fulfillMs": 159.29675000000134,
+            "encoding": "gzip",
+            "requestId": 6
+          },
+          {
+            "pathname": "/_next/static/chunks/app/(shell)/analysis/page.js",
+            "bytes": 3929122,
+            "sha256": "e39c743a431c0f1aca3b02f976a4019d7fad17fe8209442180ef4eb3f7a05a32",
+            "mime": "application/javascript",
+            "fetchMs": 267.89354099999764,
+            "bodyMs": 0.30045800000516465,
+            "fulfillMs": 181.22849999999744,
+            "encoding": "gzip",
+            "requestId": 7
+          },
+          {
+            "pathname": "/_next/static/chunks/app/(shell)/layout.js",
+            "bytes": 5135733,
+            "sha256": "56adee20c1bfed2b3bf355acc471d09a9b51d5b313bc008c4823f80ae4a77c92",
+            "mime": "application/javascript",
+            "fetchMs": 327.6412500000006,
+            "bodyMs": 0.29191699999501,
+            "fulfillMs": 266.9760000000024,
+            "encoding": "gzip",
+            "requestId": 8
+          },
+          {
+            "pathname": "/_next/static/chunks/main-app.js",
+            "bytes": 11972375,
+            "sha256": "86c309b9a5896bd5c4bd6389ac6ef7836418631afed3bb0a2616d98216fb9b61",
+            "mime": "application/javascript",
+            "fetchMs": 505.7418340000004,
+            "bodyMs": 0.37591700000484707,
+            "fulfillMs": 301.187125000004,
+            "encoding": "gzip",
+            "requestId": 9
+          },
+          {
+            "pathname": "/_next/static/chunks/_app-pages-browser_components_workspaces_AnalysisWorkspace_tsx.js",
+            "bytes": 21910965,
+            "sha256": "cc8dc1aa0595030a97b0b3f3221e6f78ab3d025fb750188765515dab9b64a148",
+            "mime": "application/javascript",
+            "fetchMs": 782.5412080000024,
+            "bodyMs": 0.9144579999992857,
+            "fulfillMs": 524.9411249999976,
+            "encoding": "gzip",
+            "requestId": 10
+          }
+        ],
+        "scriptDelivery": [
+          {
+            "requestId": 1,
+            "pathname": "/_next/static/chunks/webpack.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 2,
+            "pathname": "/_next/static/chunks/app-pages-internals.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 3,
+            "pathname": "/_next/static/chunks/app/global-error.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 4,
+            "pathname": "/_next/static/chunks/app/error.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 5,
+            "pathname": "/_next/static/chunks/app/not-found.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 6,
+            "pathname": "/_next/static/chunks/app/layout.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 7,
+            "pathname": "/_next/static/chunks/app/(shell)/analysis/page.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 8,
+            "pathname": "/_next/static/chunks/app/(shell)/layout.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 9,
+            "pathname": "/_next/static/chunks/main-app.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 10,
+            "pathname": "/_next/static/chunks/_app-pages-browser_components_workspaces_AnalysisWorkspace_tsx.js",
+            "event": "finished"
+          }
+        ]
+      },
+      "pageErrorNames": [],
+      "image": {
+        "bytes": 72736,
+        "sha256": "1533914daed23bfebd9d41d59c546de4251522d2071bffb74b2609b9435b1545"
+      }
+    },
+    {
+      "bootstrapState": {
+        "readyState": "complete",
+        "scriptCount": 25,
+        "nextRuntime": true,
+        "flightArray": true,
+        "flightConsumerInstalled": true,
+        "webpackRegistryPresent": true,
+        "webpackGroups": 9,
+        "registeredChunkIds": [
+          "app-pages-internals",
+          "app/error",
+          "app/global-error",
+          "app/not-found",
+          "app/layout",
+          "app/(shell)/analysis/page",
+          "app/(shell)/layout",
+          "main-app",
+          "_app-pages-browser_components_workspaces_AnalysisWorkspace_tsx"
+        ],
+        "scripts": [
+          {
+            "pathname": "/_next/static/chunks/main-app.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app-pages-internals.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/layout.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/error.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/not-found.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/global-error.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/(shell)/analysis/page.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/(shell)/layout.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/polyfills.js",
+            "async": false,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/webpack.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          }
+        ]
+      },
+      "file": "tablet-en.png",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "symbol": "NVDA",
+      "lang": "en",
+      "state": "context-bar-with-theses-control",
+      "href": "/analysis?view=theses&symbol=NVDA",
+      "entryBounds": {
+        "x": 703.03125,
+        "y": 60,
+        "width": 102.96875,
+        "height": 44
+      },
+      "requestBoundary": {
+        "forwarded": 19,
+        "unavailable": 5,
+        "businessUnavailable": 5,
+        "componentFundUnavailable": 1,
+        "aborted": 1,
+        "webSocketsBlocked": 1,
+        "redirectOrBadStatus": 0,
+        "failedAllowedResponses": [],
+        "publicScripts": [
+          {
+            "pathname": "/_next/static/chunks/webpack.js",
+            "bytes": 145377,
+            "sha256": "ab58c842ca8b3d7b5b9e6241c39cb56d5e3040f62d1d8404da95d4143e658f82",
+            "mime": "application/javascript",
+            "fetchMs": 14.800209000000905,
+            "bodyMs": 0.3634170000004815,
+            "fulfillMs": 15.532666999999492,
+            "encoding": "gzip",
+            "requestId": 1
+          },
+          {
+            "pathname": "/_next/static/chunks/app-pages-internals.js",
+            "bytes": 245068,
+            "sha256": "f262afa2e33a9c3b6903a7f74fd32bce1b278070abb18fa017739d7de57c72fb",
+            "mime": "application/javascript",
+            "fetchMs": 28.643457999998645,
+            "bodyMs": 0.7983750000057626,
+            "fulfillMs": 19.33912500000588,
+            "encoding": "gzip",
+            "requestId": 2
+          },
+          {
+            "pathname": "/_next/static/chunks/app/error.js",
+            "bytes": 919745,
+            "sha256": "8790e1ff7343226e5ee1eac46d470b1fc54a6700f79171e38ca75d6331169140",
+            "mime": "application/javascript",
+            "fetchMs": 112.68283299999894,
+            "bodyMs": 0.3077919999996084,
+            "fulfillMs": 68.98729199999798,
+            "encoding": "gzip",
+            "requestId": 3
+          },
+          {
+            "pathname": "/_next/static/chunks/app/global-error.js",
+            "bytes": 949486,
+            "sha256": "8740aebba71f0fbcde8d62c11ac7dc66694d3b5f3d6c0b5e40029fd8987ed669",
+            "mime": "application/javascript",
+            "fetchMs": 117.30841599999985,
+            "bodyMs": 0.1693329999980051,
+            "fulfillMs": 86.5737500000032,
+            "encoding": "gzip",
+            "requestId": 4
+          },
+          {
+            "pathname": "/_next/static/chunks/app/not-found.js",
+            "bytes": 961407,
+            "sha256": "229fecf9135b8d32c43635fb71e9d3fa662119df777d7bda7af98500cd5508a3",
+            "mime": "application/javascript",
+            "fetchMs": 125.34604099999706,
+            "bodyMs": 0.7211660000029951,
+            "fulfillMs": 105.3927079999994,
+            "encoding": "gzip",
+            "requestId": 5
+          },
+          {
+            "pathname": "/_next/static/chunks/app/layout.js",
+            "bytes": 1014775,
+            "sha256": "2ba9650ae455296877d12892f69dcaa59e334cb9344172b05237da76eeb212f3",
+            "mime": "application/javascript",
+            "fetchMs": 133.62654200000543,
+            "bodyMs": 0.7992920000033337,
+            "fulfillMs": 146.0846670000028,
+            "encoding": "gzip",
+            "requestId": 6
+          },
+          {
+            "pathname": "/_next/static/chunks/app/(shell)/analysis/page.js",
+            "bytes": 3929122,
+            "sha256": "e39c743a431c0f1aca3b02f976a4019d7fad17fe8209442180ef4eb3f7a05a32",
+            "mime": "application/javascript",
+            "fetchMs": 238.2154159999991,
+            "bodyMs": 0.7199170000021695,
+            "fulfillMs": 141.74037500000122,
+            "encoding": "gzip",
+            "requestId": 7
+          },
+          {
+            "pathname": "/_next/static/chunks/app/(shell)/layout.js",
+            "bytes": 5135733,
+            "sha256": "56adee20c1bfed2b3bf355acc471d09a9b51d5b313bc008c4823f80ae4a77c92",
+            "mime": "application/javascript",
+            "fetchMs": 293.5918329999986,
+            "bodyMs": 0.27145800000289455,
+            "fulfillMs": 234.52879199999734,
+            "encoding": "gzip",
+            "requestId": 8
+          },
+          {
+            "pathname": "/_next/static/chunks/main-app.js",
+            "bytes": 11972375,
+            "sha256": "86c309b9a5896bd5c4bd6389ac6ef7836418631afed3bb0a2616d98216fb9b61",
+            "mime": "application/javascript",
+            "fetchMs": 458.4907499999972,
+            "bodyMs": 0.28325000000040745,
+            "fulfillMs": 283.66412500000297,
+            "encoding": "gzip",
+            "requestId": 9
+          },
+          {
+            "pathname": "/_next/static/chunks/_app-pages-browser_components_workspaces_AnalysisWorkspace_tsx.js",
+            "bytes": 21910965,
+            "sha256": "cc8dc1aa0595030a97b0b3f3221e6f78ab3d025fb750188765515dab9b64a148",
+            "mime": "application/javascript",
+            "fetchMs": 795.4107919999951,
+            "bodyMs": 1.1277919999993173,
+            "fulfillMs": 602.3660830000008,
+            "encoding": "gzip",
+            "requestId": 10
+          }
+        ],
+        "scriptDelivery": [
+          {
+            "requestId": 1,
+            "pathname": "/_next/static/chunks/webpack.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 2,
+            "pathname": "/_next/static/chunks/app-pages-internals.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 3,
+            "pathname": "/_next/static/chunks/app/error.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 4,
+            "pathname": "/_next/static/chunks/app/global-error.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 5,
+            "pathname": "/_next/static/chunks/app/not-found.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 6,
+            "pathname": "/_next/static/chunks/app/layout.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 7,
+            "pathname": "/_next/static/chunks/app/(shell)/analysis/page.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 8,
+            "pathname": "/_next/static/chunks/app/(shell)/layout.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 9,
+            "pathname": "/_next/static/chunks/main-app.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 10,
+            "pathname": "/_next/static/chunks/_app-pages-browser_components_workspaces_AnalysisWorkspace_tsx.js",
+            "event": "finished"
+          }
+        ]
+      },
+      "pageErrorNames": [],
+      "image": {
+        "bytes": 35491,
+        "sha256": "06529df528cd4e5980ea4d18828fcfd0eab0e6f4ddc86dfec524a9f56bdc44de"
+      }
+    },
+    {
+      "bootstrapState": {
+        "readyState": "complete",
+        "scriptCount": 25,
+        "nextRuntime": true,
+        "flightArray": true,
+        "flightConsumerInstalled": true,
+        "webpackRegistryPresent": true,
+        "webpackGroups": 9,
+        "registeredChunkIds": [
+          "app-pages-internals",
+          "app/error",
+          "app/global-error",
+          "app/not-found",
+          "app/layout",
+          "app/(shell)/analysis/page",
+          "app/(shell)/layout",
+          "main-app",
+          "_app-pages-browser_components_workspaces_AnalysisWorkspace_tsx"
+        ],
+        "scripts": [
+          {
+            "pathname": "/_next/static/chunks/main-app.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app-pages-internals.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/layout.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/error.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/not-found.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/global-error.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/(shell)/analysis/page.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/(shell)/layout.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/polyfills.js",
+            "async": false,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/webpack.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          }
+        ]
+      },
+      "file": "tablet-zh.png",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "symbol": "NVDA",
+      "lang": "zh",
+      "state": "context-bar-with-theses-control",
+      "href": "/analysis?view=theses&symbol=NVDA",
+      "entryBounds": {
+        "x": 702,
+        "y": 60,
+        "width": 104,
+        "height": 44
+      },
+      "requestBoundary": {
+        "forwarded": 19,
+        "unavailable": 6,
+        "businessUnavailable": 6,
+        "componentFundUnavailable": 1,
+        "aborted": 1,
+        "webSocketsBlocked": 2,
+        "redirectOrBadStatus": 0,
+        "failedAllowedResponses": [],
+        "publicScripts": [
+          {
+            "pathname": "/_next/static/chunks/webpack.js",
+            "bytes": 145377,
+            "sha256": "1fcdccd6f2fa55a53ef8e818f531b8aab1cb0412f8602c9324cc1fc07d6c5720",
+            "mime": "application/javascript",
+            "fetchMs": 29.971040999997058,
+            "bodyMs": 0.33695799999986775,
+            "fulfillMs": 27.317125000001397,
+            "encoding": "gzip",
+            "requestId": 1
+          },
+          {
+            "pathname": "/_next/static/chunks/app-pages-internals.js",
+            "bytes": 245068,
+            "sha256": "f262afa2e33a9c3b6903a7f74fd32bce1b278070abb18fa017739d7de57c72fb",
+            "mime": "application/javascript",
+            "fetchMs": 42.338209000008646,
+            "bodyMs": 0.2561249999998836,
+            "fulfillMs": 26.54741699999431,
+            "encoding": "gzip",
+            "requestId": 2
+          },
+          {
+            "pathname": "/_next/static/chunks/app/error.js",
+            "bytes": 919745,
+            "sha256": "8790e1ff7343226e5ee1eac46d470b1fc54a6700f79171e38ca75d6331169140",
+            "mime": "application/javascript",
+            "fetchMs": 155.14795899999444,
+            "bodyMs": 0.7496660000033444,
+            "fulfillMs": 76.75766699999804,
+            "encoding": "gzip",
+            "requestId": 3
+          },
+          {
+            "pathname": "/_next/static/chunks/app/global-error.js",
+            "bytes": 949486,
+            "sha256": "8740aebba71f0fbcde8d62c11ac7dc66694d3b5f3d6c0b5e40029fd8987ed669",
+            "mime": "application/javascript",
+            "fetchMs": 167.00954099999217,
+            "bodyMs": 0.41862499999115244,
+            "fulfillMs": 105.92716700000165,
+            "encoding": "gzip",
+            "requestId": 4
+          },
+          {
+            "pathname": "/_next/static/chunks/app/not-found.js",
+            "bytes": 961407,
+            "sha256": "229fecf9135b8d32c43635fb71e9d3fa662119df777d7bda7af98500cd5508a3",
+            "mime": "application/javascript",
+            "fetchMs": 167.27804099999776,
+            "bodyMs": 0.9117499999993015,
+            "fulfillMs": 142.31479199999012,
+            "encoding": "gzip",
+            "requestId": 5
+          },
+          {
+            "pathname": "/_next/static/chunks/app/layout.js",
+            "bytes": 1014775,
+            "sha256": "93c1698bdb7eb79418952371c3be14320ec60068d86eb358b0636286fc34a530",
+            "mime": "application/javascript",
+            "fetchMs": 180.2994999999937,
+            "bodyMs": 0.4285000000090804,
+            "fulfillMs": 193.12987499999872,
+            "encoding": "gzip",
+            "requestId": 6
+          },
+          {
+            "pathname": "/_next/static/chunks/app/(shell)/analysis/page.js",
+            "bytes": 3929122,
+            "sha256": "e39c743a431c0f1aca3b02f976a4019d7fad17fe8209442180ef4eb3f7a05a32",
+            "mime": "application/javascript",
+            "fetchMs": 339.8912080000009,
+            "bodyMs": 0.5131249999976717,
+            "fulfillMs": 194.10166699999536,
+            "encoding": "gzip",
+            "requestId": 7
+          },
+          {
+            "pathname": "/_next/static/chunks/app/(shell)/layout.js",
+            "bytes": 5135733,
+            "sha256": "56adee20c1bfed2b3bf355acc471d09a9b51d5b313bc008c4823f80ae4a77c92",
+            "mime": "application/javascript",
+            "fetchMs": 424.29725000000326,
+            "bodyMs": 0.5774579999997513,
+            "fulfillMs": 460.59129199999734,
+            "encoding": "gzip",
+            "requestId": 8
+          },
+          {
+            "pathname": "/_next/static/chunks/main-app.js",
+            "bytes": 11972375,
+            "sha256": "86c309b9a5896bd5c4bd6389ac6ef7836418631afed3bb0a2616d98216fb9b61",
+            "mime": "application/javascript",
+            "fetchMs": 740.6176660000056,
+            "bodyMs": 0.48358400000142865,
+            "fulfillMs": 742.1109580000048,
+            "encoding": "gzip",
+            "requestId": 9
+          },
+          {
+            "pathname": "/_next/static/chunks/_app-pages-browser_components_workspaces_AnalysisWorkspace_tsx.js",
+            "bytes": 21910965,
+            "sha256": "cc8dc1aa0595030a97b0b3f3221e6f78ab3d025fb750188765515dab9b64a148",
+            "mime": "application/javascript",
+            "fetchMs": 1508.9601249999978,
+            "bodyMs": 0.8686659999948461,
+            "fulfillMs": 1169.3669170000067,
+            "encoding": "gzip",
+            "requestId": 10
+          }
+        ],
+        "scriptDelivery": [
+          {
+            "requestId": 1,
+            "pathname": "/_next/static/chunks/webpack.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 2,
+            "pathname": "/_next/static/chunks/app-pages-internals.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 3,
+            "pathname": "/_next/static/chunks/app/error.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 4,
+            "pathname": "/_next/static/chunks/app/global-error.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 5,
+            "pathname": "/_next/static/chunks/app/not-found.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 6,
+            "pathname": "/_next/static/chunks/app/layout.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 7,
+            "pathname": "/_next/static/chunks/app/(shell)/analysis/page.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 8,
+            "pathname": "/_next/static/chunks/app/(shell)/layout.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 9,
+            "pathname": "/_next/static/chunks/main-app.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 10,
+            "pathname": "/_next/static/chunks/_app-pages-browser_components_workspaces_AnalysisWorkspace_tsx.js",
+            "event": "finished"
+          }
+        ]
+      },
+      "pageErrorNames": [],
+      "image": {
+        "bytes": 34351,
+        "sha256": "fed093f7efa1b37fdfef75088771727f7bf50f4e8844a936855e3d670d1ea643"
+      }
+    },
+    {
+      "bootstrapState": {
+        "readyState": "complete",
+        "scriptCount": 25,
+        "nextRuntime": true,
+        "flightArray": true,
+        "flightConsumerInstalled": true,
+        "webpackRegistryPresent": true,
+        "webpackGroups": 9,
+        "registeredChunkIds": [
+          "app-pages-internals",
+          "app/error",
+          "app/global-error",
+          "app/not-found",
+          "app/layout",
+          "app/(shell)/analysis/page",
+          "app/(shell)/layout",
+          "main-app",
+          "_app-pages-browser_components_workspaces_AnalysisWorkspace_tsx"
+        ],
+        "scripts": [
+          {
+            "pathname": "/_next/static/chunks/main-app.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app-pages-internals.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/layout.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/error.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/not-found.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/global-error.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/(shell)/analysis/page.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/(shell)/layout.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/polyfills.js",
+            "async": false,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/webpack.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          }
+        ]
+      },
+      "file": "mobile-en.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "symbol": "NVDA",
+      "lang": "en",
+      "state": "context-bar-with-theses-control",
+      "href": "/analysis?view=theses&symbol=NVDA",
+      "entryBounds": {
+        "x": 198,
+        "y": 110,
+        "width": 182,
+        "height": 44
+      },
+      "requestBoundary": {
+        "forwarded": 19,
+        "unavailable": 5,
+        "businessUnavailable": 5,
+        "componentFundUnavailable": 1,
+        "aborted": 1,
+        "webSocketsBlocked": 1,
+        "redirectOrBadStatus": 0,
+        "failedAllowedResponses": [],
+        "publicScripts": [
+          {
+            "pathname": "/_next/static/chunks/webpack.js",
+            "bytes": 145377,
+            "sha256": "3890b30f0c9c9a1d3abaf4858a1f1f2b89eb8b28f83ae12e5c0b0f377ff68f1c",
+            "mime": "application/javascript",
+            "fetchMs": 49.80283299999428,
+            "bodyMs": 0.2646249999961583,
+            "fulfillMs": 51.50341600000684,
+            "encoding": "gzip",
+            "requestId": 1
+          },
+          {
+            "pathname": "/_next/static/chunks/app-pages-internals.js",
+            "bytes": 245068,
+            "sha256": "f262afa2e33a9c3b6903a7f74fd32bce1b278070abb18fa017739d7de57c72fb",
+            "mime": "application/javascript",
+            "fetchMs": 91.26574999999139,
+            "bodyMs": 9.261083000004874,
+            "fulfillMs": 33.445082999998704,
+            "encoding": "gzip",
+            "requestId": 2
+          },
+          {
+            "pathname": "/_next/static/chunks/app/error.js",
+            "bytes": 919745,
+            "sha256": "8790e1ff7343226e5ee1eac46d470b1fc54a6700f79171e38ca75d6331169140",
+            "mime": "application/javascript",
+            "fetchMs": 174.3059579999972,
+            "bodyMs": 0.5410830000037095,
+            "fulfillMs": 97.94599999999627,
+            "encoding": "gzip",
+            "requestId": 3
+          },
+          {
+            "pathname": "/_next/static/chunks/app/global-error.js",
+            "bytes": 949486,
+            "sha256": "8740aebba71f0fbcde8d62c11ac7dc66694d3b5f3d6c0b5e40029fd8987ed669",
+            "mime": "application/javascript",
+            "fetchMs": 180.53908299999603,
+            "bodyMs": 1.7448330000042915,
+            "fulfillMs": 124.32295800000429,
+            "encoding": "gzip",
+            "requestId": 4
+          },
+          {
+            "pathname": "/_next/static/chunks/app/not-found.js",
+            "bytes": 961407,
+            "sha256": "229fecf9135b8d32c43635fb71e9d3fa662119df777d7bda7af98500cd5508a3",
+            "mime": "application/javascript",
+            "fetchMs": 183.9328749999986,
+            "bodyMs": 4.848167000003741,
+            "fulfillMs": 157.5430830000114,
+            "encoding": "gzip",
+            "requestId": 5
+          },
+          {
+            "pathname": "/_next/static/chunks/app/layout.js",
+            "bytes": 1014775,
+            "sha256": "fd5ad1146d22fbf33ab51c0d111294113ff3c2aa7010dc3f1b31d8d4c4a4996b",
+            "mime": "application/javascript",
+            "fetchMs": 200.55120799998986,
+            "bodyMs": 0.9829579999932321,
+            "fulfillMs": 211.63904100000218,
+            "encoding": "gzip",
+            "requestId": 6
+          },
+          {
+            "pathname": "/_next/static/chunks/app/(shell)/analysis/page.js",
+            "bytes": 3929122,
+            "sha256": "e39c743a431c0f1aca3b02f976a4019d7fad17fe8209442180ef4eb3f7a05a32",
+            "mime": "application/javascript",
+            "fetchMs": 356.947542000009,
+            "bodyMs": 0.4282909999892581,
+            "fulfillMs": 248.76933300000383,
+            "encoding": "gzip",
+            "requestId": 7
+          },
+          {
+            "pathname": "/_next/static/chunks/app/(shell)/layout.js",
+            "bytes": 5135733,
+            "sha256": "56adee20c1bfed2b3bf355acc471d09a9b51d5b313bc008c4823f80ae4a77c92",
+            "mime": "application/javascript",
+            "fetchMs": 441.44174999999814,
+            "bodyMs": 0.27037499999278225,
+            "fulfillMs": 479.02879199999734,
+            "encoding": "gzip",
+            "requestId": 8
+          },
+          {
+            "pathname": "/_next/static/chunks/main-app.js",
+            "bytes": 11972375,
+            "sha256": "86c309b9a5896bd5c4bd6389ac6ef7836418631afed3bb0a2616d98216fb9b61",
+            "mime": "application/javascript",
+            "fetchMs": 765.1806669999933,
+            "bodyMs": 0.2763340000092285,
+            "fulfillMs": 730.9822500000009,
+            "encoding": "gzip",
+            "requestId": 9
+          },
+          {
+            "pathname": "/_next/static/chunks/_app-pages-browser_components_workspaces_AnalysisWorkspace_tsx.js",
+            "bytes": 21910965,
+            "sha256": "cc8dc1aa0595030a97b0b3f3221e6f78ab3d025fb750188765515dab9b64a148",
+            "mime": "application/javascript",
+            "fetchMs": 1487.0033750000002,
+            "bodyMs": 3.028874999989057,
+            "fulfillMs": 1114.286957999997,
+            "encoding": "gzip",
+            "requestId": 10
+          }
+        ],
+        "scriptDelivery": [
+          {
+            "requestId": 1,
+            "pathname": "/_next/static/chunks/webpack.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 2,
+            "pathname": "/_next/static/chunks/app-pages-internals.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 3,
+            "pathname": "/_next/static/chunks/app/error.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 4,
+            "pathname": "/_next/static/chunks/app/global-error.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 5,
+            "pathname": "/_next/static/chunks/app/not-found.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 6,
+            "pathname": "/_next/static/chunks/app/layout.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 7,
+            "pathname": "/_next/static/chunks/app/(shell)/analysis/page.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 8,
+            "pathname": "/_next/static/chunks/app/(shell)/layout.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 9,
+            "pathname": "/_next/static/chunks/main-app.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 10,
+            "pathname": "/_next/static/chunks/_app-pages-browser_components_workspaces_AnalysisWorkspace_tsx.js",
+            "event": "finished"
+          }
+        ]
+      },
+      "pageErrorNames": [],
+      "image": {
+        "bytes": 25154,
+        "sha256": "24c19e7d2b22630b92b9cb7ca7cfe44a60e3ae5efe5a2a33aaa44b06427cc879"
+      }
+    },
+    {
+      "bootstrapState": {
+        "readyState": "complete",
+        "scriptCount": 25,
+        "nextRuntime": true,
+        "flightArray": true,
+        "flightConsumerInstalled": true,
+        "webpackRegistryPresent": true,
+        "webpackGroups": 9,
+        "registeredChunkIds": [
+          "app-pages-internals",
+          "app/error",
+          "app/global-error",
+          "app/not-found",
+          "app/layout",
+          "app/(shell)/analysis/page",
+          "app/(shell)/layout",
+          "main-app",
+          "_app-pages-browser_components_workspaces_AnalysisWorkspace_tsx"
+        ],
+        "scripts": [
+          {
+            "pathname": "/_next/static/chunks/main-app.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app-pages-internals.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/layout.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/error.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/not-found.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/global-error.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/(shell)/analysis/page.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/app/(shell)/layout.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/polyfills.js",
+            "async": false,
+            "defer": false,
+            "type": "classic"
+          },
+          {
+            "pathname": "/_next/static/chunks/webpack.js",
+            "async": true,
+            "defer": false,
+            "type": "classic"
+          }
+        ]
+      },
+      "file": "mobile-zh.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "symbol": "NVDA",
+      "lang": "zh",
+      "state": "context-bar-with-theses-control",
+      "href": "/analysis?view=theses&symbol=NVDA",
+      "entryBounds": {
+        "x": 198,
+        "y": 110,
+        "width": 182,
+        "height": 44
+      },
+      "requestBoundary": {
+        "forwarded": 19,
+        "unavailable": 6,
+        "businessUnavailable": 6,
+        "componentFundUnavailable": 1,
+        "aborted": 1,
+        "webSocketsBlocked": 2,
+        "redirectOrBadStatus": 0,
+        "failedAllowedResponses": [],
+        "publicScripts": [
+          {
+            "pathname": "/_next/static/chunks/webpack.js",
+            "bytes": 145377,
+            "sha256": "cea2e7fd802946a9a32665e2f52445d0e439968b1626e93f72c2fcafe4c47c2e",
+            "mime": "application/javascript",
+            "fetchMs": 19.05312500000582,
+            "bodyMs": 0.30083300001570024,
+            "fulfillMs": 16.223916000017198,
+            "encoding": "gzip",
+            "requestId": 1
+          },
+          {
+            "pathname": "/_next/static/chunks/app-pages-internals.js",
+            "bytes": 245068,
+            "sha256": "f262afa2e33a9c3b6903a7f74fd32bce1b278070abb18fa017739d7de57c72fb",
+            "mime": "application/javascript",
+            "fetchMs": 26.3755410000158,
+            "bodyMs": 2.8782089999876916,
+            "fulfillMs": 45.31258399999933,
+            "encoding": "gzip",
+            "requestId": 2
+          },
+          {
+            "pathname": "/_next/static/chunks/app/error.js",
+            "bytes": 919745,
+            "sha256": "8790e1ff7343226e5ee1eac46d470b1fc54a6700f79171e38ca75d6331169140",
+            "mime": "application/javascript",
+            "fetchMs": 138.91883399998187,
+            "bodyMs": 1.0728330000129063,
+            "fulfillMs": 84.60541600000579,
+            "encoding": "gzip",
+            "requestId": 3
+          },
+          {
+            "pathname": "/_next/static/chunks/app/global-error.js",
+            "bytes": 949486,
+            "sha256": "8740aebba71f0fbcde8d62c11ac7dc66694d3b5f3d6c0b5e40029fd8987ed669",
+            "mime": "application/javascript",
+            "fetchMs": 137.64841699998942,
+            "bodyMs": 1.8599999999860302,
+            "fulfillMs": 125.54070900002262,
+            "encoding": "gzip",
+            "requestId": 4
+          },
+          {
+            "pathname": "/_next/static/chunks/app/not-found.js",
+            "bytes": 961407,
+            "sha256": "229fecf9135b8d32c43635fb71e9d3fa662119df777d7bda7af98500cd5508a3",
+            "mime": "application/javascript",
+            "fetchMs": 138.9129580000008,
+            "bodyMs": 2.720207999984268,
+            "fulfillMs": 168.51608300002408,
+            "encoding": "gzip",
+            "requestId": 5
+          },
+          {
+            "pathname": "/_next/static/chunks/app/layout.js",
+            "bytes": 1014775,
+            "sha256": "e6da366f96869ddae4e9ba26db07631e36cd6c2f881349c0fe1bdb4dde4be7ce",
+            "mime": "application/javascript",
+            "fetchMs": 167.48154099998646,
+            "bodyMs": 3.9764169999980368,
+            "fulfillMs": 235.67191600002116,
+            "encoding": "gzip",
+            "requestId": 6
+          },
+          {
+            "pathname": "/_next/static/chunks/app/(shell)/analysis/page.js",
+            "bytes": 3929122,
+            "sha256": "e39c743a431c0f1aca3b02f976a4019d7fad17fe8209442180ef4eb3f7a05a32",
+            "mime": "application/javascript",
+            "fetchMs": 332.9547500000044,
+            "bodyMs": 0.5964579999854323,
+            "fulfillMs": 333.4102079999866,
+            "encoding": "gzip",
+            "requestId": 7
+          },
+          {
+            "pathname": "/_next/static/chunks/app/(shell)/layout.js",
+            "bytes": 5135733,
+            "sha256": "56adee20c1bfed2b3bf355acc471d09a9b51d5b313bc008c4823f80ae4a77c92",
+            "mime": "application/javascript",
+            "fetchMs": 446.84700000000885,
+            "bodyMs": 0.2821249999979045,
+            "fulfillMs": 518.2222919999913,
+            "encoding": "gzip",
+            "requestId": 8
+          },
+          {
+            "pathname": "/_next/static/chunks/main-app.js",
+            "bytes": 11972375,
+            "sha256": "86c309b9a5896bd5c4bd6389ac6ef7836418631afed3bb0a2616d98216fb9b61",
+            "mime": "application/javascript",
+            "fetchMs": 737.9448339999944,
+            "bodyMs": 0.34241700000711717,
+            "fulfillMs": 1175.2461670000048,
+            "encoding": "gzip",
+            "requestId": 9
+          },
+          {
+            "pathname": "/_next/static/chunks/_app-pages-browser_components_workspaces_AnalysisWorkspace_tsx.js",
+            "bytes": 21910965,
+            "sha256": "cc8dc1aa0595030a97b0b3f3221e6f78ab3d025fb750188765515dab9b64a148",
+            "mime": "application/javascript",
+            "fetchMs": 1625.7705839999835,
+            "bodyMs": 0.7952919999952428,
+            "fulfillMs": 1302.5593750000116,
+            "encoding": "gzip",
+            "requestId": 10
+          }
+        ],
+        "scriptDelivery": [
+          {
+            "requestId": 1,
+            "pathname": "/_next/static/chunks/webpack.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 2,
+            "pathname": "/_next/static/chunks/app-pages-internals.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 3,
+            "pathname": "/_next/static/chunks/app/error.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 4,
+            "pathname": "/_next/static/chunks/app/global-error.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 5,
+            "pathname": "/_next/static/chunks/app/not-found.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 6,
+            "pathname": "/_next/static/chunks/app/layout.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 7,
+            "pathname": "/_next/static/chunks/app/(shell)/analysis/page.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 8,
+            "pathname": "/_next/static/chunks/app/(shell)/layout.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 9,
+            "pathname": "/_next/static/chunks/main-app.js",
+            "event": "finished"
+          },
+          {
+            "requestId": 10,
+            "pathname": "/_next/static/chunks/_app-pages-browser_components_workspaces_AnalysisWorkspace_tsx.js",
+            "event": "finished"
+          }
+        ]
+      },
+      "pageErrorNames": [],
+      "image": {
+        "bytes": 26577,
+        "sha256": "96fbcb7352d13878d59ddb81014c3264df3d24df933214d190834eb805cc74c3"
+      }
+    }
+  ]
+}

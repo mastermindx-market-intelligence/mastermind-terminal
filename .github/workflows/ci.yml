@@ -101,13 +101,18 @@ jobs:
       - run: npx tsc --noEmit
       - name: Check immutable evidence orchestration (synthetic)
         timeout-minutes: 1
-        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs
+        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs e2e/tools/f11_provider_closed_policy.test.cjs
       - name: Prepare Chromium for original mock captures
         timeout-minutes: 10
         run: npx playwright install --with-deps chromium
       - name: Capture and validate evidence on this checkout
         timeout-minutes: 55
         run: node e2e/tools/capture_ci_evidence.cjs
+      # F11 is a separate real-component contract, not an extra case in PL6/VI50.
+      # Business inputs are intercepted as unavailable before reaching API/provider code.
+      - name: Capture provider-closed F11 theses entry on this checkout
+        timeout-minutes: 8
+        run: node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs
       - run: npm test
         timeout-minutes: 20
       # Quarantined journeys are disclosed on EVERY run: a green matrix must never be read as
@@ -247,6 +252,7 @@ jobs:
           path: |
             ${{ runner.temp }}/terminal-ci-evidence/
             terminal/test-results/
+            terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/
             terminal/docs/pr-crops/b-pl-6-batch-1/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/terminal-visual-intelligence/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
           if-no-files-found: warn
@@ -328,13 +334,23 @@ jobs:
           - shard: mobile-3
             projects: "--project=mobile --shard=3/3"
           # The company-intelligence chain uses Playwright `dependencies`
-          # (playwright.config.ts:69-87) and MUST stay whole inside one shard, or the
-          # dependency projects re-run in every shard that touches them.
+          # (playwright.config.ts:69-87) and MUST stay whole inside one matrix row, or the
+          # dependency projects re-run in every row that touches them.
+          # Run 41861877738/job 126686460831 cancelled after about 60min; the exact cause
+          # remains unknown. Keep the dependency chain atomic and move only the two
+          # independent projects to a separate row, preserving the 60min cap.
           - shard: serial
             projects: >-
               --project=company-intelligence-desktop
               --project=company-intelligence-tablet
               --project=company-intelligence-mobile
+          # terminal-chrome-intermediate and w2a-workspaces declare no `dependencies`
+          # edge and are excluded from desktop/tablet/mobile by testIgnore, so no part
+          # of the chain above feeds them: they run once, whole and un-sharded, in their
+          # own row. Each of their specs manages its own viewport per case and must not
+          # run twice (playwright.config.ts).
+          - shard: serial-standalone
+            projects: >-
               --project=terminal-chrome-intermediate
               --project=w2a-workspaces
     defaults:
