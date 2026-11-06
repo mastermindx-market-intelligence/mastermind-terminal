@@ -1,0 +1,948 @@
+{
+  "created_utc": "2026-11-04T09:51:00.862120+00:00",
+  "source_parent": "f01a4ebf0924d53a448f1acb63a8ee235418d8b6",
+  "source_pin": "0f9043313069d90cc3e1629a04ff2455f0f0fe78",
+  "operation_id": "d06-terminal-reader-resilience-20261103-c4",
+  "paper": {
+    "file_id": "01M3NSZGE8JWN2EZCSF0DT05RM",
+    "page_id": "p-17-0",
+    "boards": [
+      "1WYN-0",
+      "1WYO-0"
+    ],
+    "state": "rendered inspected exported and finished"
+  },
+  "runs": {
+    "d06-final-browser": {
+      "stats": {
+        "startTime": "2026-11-04T09:49:32.143Z",
+        "duration": 41167.907,
+        "expected": 17,
+        "skipped": 1,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "tests": [
+        {
+          "title": "browser fullscreen retains chart, range, overlays and source date in en",
+          "project": "desktop",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "browser fullscreen retains chart, range, overlays and source date in zh",
+          "project": "desktop",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "browser fullscreen retains chart, range, overlays and source date in en",
+          "project": "mobile",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "browser fullscreen retains chart, range, overlays and source date in zh",
+          "project": "mobile",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "snapshot loads the actual image and preserves natural proportions in en",
+          "project": "desktop",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "snapshot image failure recovers only through explicit retry in en",
+          "project": "desktop",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "missing and unavailable snapshot reads stay distinct in en",
+          "project": "desktop",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "snapshot loads the actual image and preserves natural proportions in zh",
+          "project": "desktop",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "snapshot image failure recovers only through explicit retry in zh",
+          "project": "desktop",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "missing and unavailable snapshot reads stay distinct in zh",
+          "project": "desktop",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "portrait snapshot remains complete at 320 pixels with a reachable footer",
+          "project": "desktop",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "snapshot loads the actual image and preserves natural proportions in en",
+          "project": "mobile",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "snapshot image failure recovers only through explicit retry in en",
+          "project": "mobile",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "missing and unavailable snapshot reads stay distinct in en",
+          "project": "mobile",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "snapshot loads the actual image and preserves natural proportions in zh",
+          "project": "mobile",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "snapshot image failure recovers only through explicit retry in zh",
+          "project": "mobile",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "missing and unavailable snapshot reads stay distinct in zh",
+          "project": "mobile",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "portrait snapshot remains complete at 320 pixels with a reachable footer",
+          "project": "mobile",
+          "status": "skipped",
+          "attachments": []
+        }
+      ]
+    },
+    "d06-embed-browser-r2": {
+      "stats": {
+        "startTime": "2026-11-04T09:43:48.029Z",
+        "duration": 27357.285,
+        "expected": 16,
+        "skipped": 8,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "tests": [
+        {
+          "title": "preserves compact native variants in short and narrow frames",
+          "project": "desktop",
+          "status": "passed",
+          "attachments": [
+            {
+              "name": "geometry-normal",
+              "value": {
+                "viewport": {
+                  "width": 900,
+                  "height": 300
+                },
+                "documentWidth": 900,
+                "scrollWidth": 900,
+                "rootWidth": 900,
+                "rootScrollWidth": 900,
+                "rootScrollLeft": 0,
+                "coarsePointer": false,
+                "dateColor": "rgb(214, 218, 227)",
+                "background": "rgb(10, 11, 14)",
+                "chart": {
+                  "top": 54.4375,
+                  "bottom": 270,
+                  "height": 215.5625
+                },
+                "attribution": {
+                  "top": 272,
+                  "bottom": 296,
+                  "left": 10,
+                  "right": 138.53125,
+                  "height": 24
+                },
+                "date": {
+                  "left": 12,
+                  "right": 444.53125,
+                  "height": 14.6875
+                },
+                "dateContrast": 14.053766617886108
+              }
+            },
+            {
+              "name": "geometry-hidden-header",
+              "value": {
+                "viewport": {
+                  "width": 900,
+                  "height": 300
+                },
+                "documentWidth": 900,
+                "scrollWidth": 900,
+                "rootWidth": 900,
+                "rootScrollWidth": 900,
+                "rootScrollLeft": 0,
+                "coarsePointer": false,
+                "dateColor": "rgb(214, 218, 227)",
+                "background": "rgb(10, 11, 14)",
+                "chart": {
+                  "top": 38.9375,
+                  "bottom": 270,
+                  "height": 231.0625
+                },
+                "attribution": {
+                  "top": 272,
+                  "bottom": 296,
+                  "left": 10,
+                  "right": 138.53125,
+                  "height": 24
+                },
+                "date": {
+                  "left": 0,
+                  "right": 0,
+                  "height": 0
+                },
+                "dateContrast": 14.053766617886108
+              }
+            },
+            {
+              "name": "geometry-clean-header",
+              "value": {
+                "viewport": {
+                  "width": 900,
+                  "height": 300
+                },
+                "documentWidth": 900,
+                "scrollWidth": 900,
+                "rootWidth": 900,
+                "rootScrollWidth": 900,
+                "rootScrollLeft": 0,
+                "coarsePointer": false,
+                "dateColor": "rgb(214, 218, 227)",
+                "background": "rgb(10, 11, 14)",
+                "chart": {
+                  "top": 0,
+                  "bottom": 196.5625,
+                  "height": 196.5625
+                },
+                "attribution": {
+                  "top": 0,
+                  "bottom": 0,
+                  "left": 0,
+                  "right": 0,
+                  "height": 0
+                },
+                "date": {
+                  "left": 12,
+                  "right": 888,
+                  "height": 14.6875
+                },
+                "dateContrast": 14.053766617886108
+              }
+            },
+            {
+              "name": "geometry-clean-hidden",
+              "value": {
+                "viewport": {
+                  "width": 900,
+                  "height": 300
+                },
+                "documentWidth": 900,
+                "scrollWidth": 900,
+                "rootWidth": 900,
+                "rootScrollWidth": 900,
+                "rootScrollLeft": 0,
+                "coarsePointer": false,
+                "dateColor": "rgb(214, 218, 227)",
+                "background": "rgba(0, 0, 0, 0)",
+                "chart": {
+                  "top": 0,
+                  "bottom": 246,
+                  "height": 246
+                },
+                "attribution": {
+                  "top": 0,
+                  "bottom": 0,
+                  "left": 0,
+                  "right": 0,
+                  "height": 0
+                },
+                "date": {
+                  "left": 0,
+                  "right": 0,
+                  "height": 0
+                },
+                "dateContrast": null
+              }
+            },
+            {
+              "name": "unavailable-contrast",
+              "value": {
+                "foreground": "rgb(26, 29, 36)",
+                "background": "rgb(255, 255, 255)",
+                "contrast": 16.86552838951233
+              }
+            }
+          ]
+        },
+        {
+          "title": "preserves compact native variants in short and narrow frames",
+          "project": "mobile",
+          "status": "passed",
+          "attachments": [
+            {
+              "name": "geometry-normal",
+              "value": {
+                "viewport": {
+                  "width": 320,
+                  "height": 300
+                },
+                "documentWidth": 320,
+                "scrollWidth": 320,
+                "rootWidth": 320,
+                "rootScrollWidth": 320,
+                "rootScrollLeft": 0,
+                "coarsePointer": true,
+                "dateColor": "rgb(214, 218, 227)",
+                "background": "rgb(10, 11, 14)",
+                "chart": {
+                  "top": 112.140625,
+                  "bottom": 250,
+                  "height": 137.859375
+                },
+                "attribution": {
+                  "top": 252,
+                  "bottom": 296,
+                  "left": 10,
+                  "right": 138.53125,
+                  "height": 44
+                },
+                "date": {
+                  "left": 10,
+                  "right": 310,
+                  "height": 14.6875
+                },
+                "dateContrast": 14.053766617886108
+              }
+            },
+            {
+              "name": "geometry-hidden-header",
+              "value": {
+                "viewport": {
+                  "width": 320,
+                  "height": 300
+                },
+                "documentWidth": 320,
+                "scrollWidth": 320,
+                "rootWidth": 320,
+                "rootScrollWidth": 320,
+                "rootScrollLeft": 0,
+                "coarsePointer": true,
+                "dateColor": "rgb(214, 218, 227)",
+                "background": "rgb(10, 11, 14)",
+                "chart": {
+                  "top": 68.15625,
+                  "bottom": 250,
+                  "height": 181.84375
+                },
+                "attribution": {
+                  "top": 252,
+                  "bottom": 296,
+                  "left": 10,
+                  "right": 138.53125,
+                  "height": 44
+                },
+                "date": {
+                  "left": 0,
+                  "right": 0,
+                  "height": 0
+                },
+                "dateContrast": 14.053766617886108
+              }
+            },
+            {
+              "name": "geometry-clean-header",
+              "value": {
+                "viewport": {
+                  "width": 320,
+                  "height": 300
+                },
+                "documentWidth": 320,
+                "scrollWidth": 320,
+                "rootWidth": 320,
+                "rootScrollWidth": 320,
+                "rootScrollLeft": 0,
+                "coarsePointer": true,
+                "dateColor": "rgb(214, 218, 227)",
+                "background": "rgb(10, 11, 14)",
+                "chart": {
+                  "top": 0,
+                  "bottom": 202.015625,
+                  "height": 202.015625
+                },
+                "attribution": {
+                  "top": 0,
+                  "bottom": 0,
+                  "left": 0,
+                  "right": 0,
+                  "height": 0
+                },
+                "date": {
+                  "left": 12,
+                  "right": 308,
+                  "height": 14.6875
+                },
+                "dateContrast": 14.053766617886108
+              }
+            },
+            {
+              "name": "geometry-clean-hidden",
+              "value": {
+                "viewport": {
+                  "width": 320,
+                  "height": 300
+                },
+                "documentWidth": 320,
+                "scrollWidth": 320,
+                "rootWidth": 320,
+                "rootScrollWidth": 320,
+                "rootScrollLeft": 0,
+                "coarsePointer": true,
+                "dateColor": "rgb(214, 218, 227)",
+                "background": "rgba(0, 0, 0, 0)",
+                "chart": {
+                  "top": 0,
+                  "bottom": 246,
+                  "height": 246
+                },
+                "attribution": {
+                  "top": 0,
+                  "bottom": 0,
+                  "left": 0,
+                  "right": 0,
+                  "height": 0
+                },
+                "date": {
+                  "left": 0,
+                  "right": 0,
+                  "height": 0
+                },
+                "dateContrast": null
+              }
+            },
+            {
+              "name": "unavailable-contrast",
+              "value": {
+                "foreground": "rgb(26, 29, 36)",
+                "background": "rgb(255, 255, 255)",
+                "contrast": 16.86552838951233
+              }
+            }
+          ]
+        },
+        {
+          "title": "browser fullscreen retains chart, range, overlays and source date in en",
+          "project": "desktop",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "browser fullscreen retains chart, range, overlays and source date in zh",
+          "project": "desktop",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "native handler success has priority over browser fullscreen",
+          "project": "desktop",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "native handler failure has priority over browser fullscreen",
+          "project": "desktop",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "unsupported browser requests retain a usable chart",
+          "project": "desktop",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "rejected browser requests retain a usable chart",
+          "project": "desktop",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "a rejected exit keeps the observed fullscreen state and explains recovery",
+          "project": "desktop",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "ordinary web viewports permit zoom while both existing native signals retain their policy",
+          "project": "desktop",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "the ordinary browser permits page-scale zoom without a restrictive viewport",
+          "project": "desktop",
+          "status": "passed",
+          "attachments": [
+            {
+              "name": "page-scale-zoom",
+              "value": {
+                "kind": "Chromium emulated page-scale zoom",
+                "scale": 2,
+                "visualWidth": 720,
+                "layoutWidth": 1440,
+                "viewport": "width=device-width, initial-scale=1, viewport-fit=cover"
+              }
+            }
+          ]
+        },
+        {
+          "title": "browser fullscreen retains chart, range, overlays and source date in en",
+          "project": "mobile",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "browser fullscreen retains chart, range, overlays and source date in zh",
+          "project": "mobile",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "native handler success has priority over browser fullscreen",
+          "project": "mobile",
+          "status": "skipped",
+          "attachments": []
+        },
+        {
+          "title": "native handler failure has priority over browser fullscreen",
+          "project": "mobile",
+          "status": "skipped",
+          "attachments": []
+        },
+        {
+          "title": "unsupported browser requests retain a usable chart",
+          "project": "mobile",
+          "status": "skipped",
+          "attachments": []
+        },
+        {
+          "title": "rejected browser requests retain a usable chart",
+          "project": "mobile",
+          "status": "skipped",
+          "attachments": []
+        },
+        {
+          "title": "a rejected exit keeps the observed fullscreen state and explains recovery",
+          "project": "mobile",
+          "status": "skipped",
+          "attachments": []
+        },
+        {
+          "title": "ordinary web viewports permit zoom while both existing native signals retain their policy",
+          "project": "mobile",
+          "status": "skipped",
+          "attachments": []
+        },
+        {
+          "title": "the ordinary browser permits page-scale zoom without a restrictive viewport",
+          "project": "mobile",
+          "status": "skipped",
+          "attachments": []
+        },
+        {
+          "title": "trusted Macro fullscreen Escape does not close the iframe before returning inline",
+          "project": "desktop",
+          "status": "passed",
+          "attachments": [
+            {
+              "name": "fullscreen-bridge-proof",
+              "value": {
+                "protocolEscapeExited": false,
+                "parentOrigin": "http://127.0.0.1:51686",
+                "childOrigin": "http://127.0.0.1:50354",
+                "messages": [
+                  {
+                    "source": "mastermind-terminal",
+                    "type": "terminal:route",
+                    "path": "/embed/chart"
+                  },
+                  {
+                    "source": "mastermind-terminal",
+                    "type": "terminal:ready",
+                    "path": "/embed/chart",
+                    "symbol": "NVDA"
+                  },
+                  {
+                    "source": "d06-test-fence",
+                    "token": "after-first-escape"
+                  },
+                  {
+                    "source": "mastermind-terminal",
+                    "type": "terminal:close"
+                  }
+                ],
+                "scope": "real fullscreen and trusted parent; protocol keyboard, not physical Chrome UI"
+              }
+            }
+          ]
+        },
+        {
+          "title": "trusted Macro fullscreen Escape does not close the iframe before returning inline",
+          "project": "mobile",
+          "status": "skipped",
+          "attachments": []
+        },
+        {
+          "title": "embed clean=1 is candles-only with TV chips; fs=1 adds the fullscreen affordance",
+          "project": "desktop",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "embed clean=1 is candles-only with TV chips; fs=1 adds the fullscreen affordance",
+          "project": "mobile",
+          "status": "passed",
+          "attachments": []
+        }
+      ]
+    },
+    "d06-embed-browser-r3": {
+      "stats": {
+        "startTime": "2026-11-04T09:45:20.883Z",
+        "duration": 21436.754,
+        "expected": 3,
+        "skipped": 1,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "tests": [
+        {
+          "title": "native viewport policy releases on existing client navigation",
+          "project": "desktop",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "browser fullscreen restores source context for the compact clean widget",
+          "project": "desktop",
+          "status": "passed",
+          "attachments": []
+        },
+        {
+          "title": "native viewport policy releases on existing client navigation",
+          "project": "mobile",
+          "status": "skipped",
+          "attachments": []
+        },
+        {
+          "title": "browser fullscreen restores source context for the compact clean widget",
+          "project": "mobile",
+          "status": "passed",
+          "attachments": []
+        }
+      ]
+    }
+  },
+  "unit": {
+    "passed": 95,
+    "availability": 18,
+    "snapshot_ingress": 17,
+    "plain_label_call_sites": 60
+  },
+  "typegen_exit": 0,
+  "tsc_exit": 0,
+  "lint": {
+    "new_diagnostics": 0,
+    "unchanged_EmbedChart_errors": 5
+  },
+  "limits": [
+    "Synthetic browser bars and intercepted public-image responses; no production market/data claim.",
+    "Shared shell flag armed only in snapshot proof process; production rollout unchanged.",
+    "Headless protocol Escape did not exit browser fullscreen. Guard with actual fullscreen, explicit exit and subsequent trusted-parent close were proven. Physical Chrome Escape and native WKWebView gestures not claimed."
+  ],
+  "artifacts": [
+    {
+      "path": "d06-embed-lint.log",
+      "bytes": 6596,
+      "sha256": "ed270672250d721e65f8706768d9ca2ba5454efc5746cba48befe50019f001e0"
+    },
+    {
+      "path": "d06-final-tsc.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "d06-final-typegen.log",
+      "bytes": 59,
+      "sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a"
+    },
+    {
+      "path": "d06-snapshot-unit.log",
+      "bytes": 641,
+      "sha256": "6183c07e9b1a4b2fd870ccf9180a03374a2f32672232e662cabeabce3f1fa431"
+    },
+    {
+      "path": "paper/embed-dark-zh-phone.jpg",
+      "bytes": 53273,
+      "sha256": "09610d5c8cc56844d0ec5784770b5e0f8ea1951e6afa6dde8ef034560f5c1e17"
+    },
+    {
+      "path": "paper/embed-dark-zh-phone.jsx",
+      "bytes": 39822,
+      "sha256": "d9f91479afb4ff858c916a46fc73d72e06737f6aafffc4bbc0f2be954b4c0a5a"
+    },
+    {
+      "path": "paper/embed-light-en-desktop.jpg",
+      "bytes": 129000,
+      "sha256": "d48dfd8df6a94f814f9e88701c5c3d3fb72b645118f235826ab2eb3da9e1657b"
+    },
+    {
+      "path": "paper/embed-light-en-desktop.jsx",
+      "bytes": 28061,
+      "sha256": "9bde0a80badbf12159bca3091ee913e3a021861dd1095068f73254aa37063b28"
+    },
+    {
+      "path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/embed-data-desktop-clean-header.png",
+      "bytes": 18329,
+      "sha256": "3792703121c8ed887cfd86c2a0e3ec941626ffa65bd9d441e68019edd913aec0"
+    },
+    {
+      "path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/embed-data-desktop-clean-hidden.png",
+      "bytes": 12466,
+      "sha256": "325d0be2c08a28899705d94d0ae299b9da468a8fa53b3ca45ba6af6a07303107"
+    },
+    {
+      "path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/embed-data-desktop-clean-unavailable.png",
+      "bytes": 15028,
+      "sha256": "66c037605a64d7144d67bab94a40d585f1220fbdfddc53bf9fdff993359ea7b7"
+    },
+    {
+      "path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/embed-data-desktop-hidden-header.png",
+      "bytes": 23187,
+      "sha256": "f63f9d8fd3603f5523b3fbf48b2c30b59f107cab8fba129e2e207144f87aff32"
+    },
+    {
+      "path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/embed-data-desktop-normal.png",
+      "bytes": 29283,
+      "sha256": "423e1657530027c17747cc1b6a54649e7ec51f49a11de1f4d6deeece274aa628"
+    },
+    {
+      "path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/embed-data-mobile-clean-header.png",
+      "bytes": 13611,
+      "sha256": "f98570991dc6407c64878ce0d7f9d171d11665e3044a34826060eb3debb574c6"
+    },
+    {
+      "path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/embed-data-mobile-clean-hidden.png",
+      "bytes": 8454,
+      "sha256": "4c705c0378c5141dd8ce32593b5d8b02d2141e8f34830b296e5110c185a37652"
+    },
+    {
+      "path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/embed-data-mobile-clean-unavailable.png",
+      "bytes": 14167,
+      "sha256": "f42c9523930a76e5da92e6d45de4548de65646e016f5b9e8b802b1213046ab81"
+    },
+    {
+      "path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/embed-data-mobile-hidden-header.png",
+      "bytes": 14266,
+      "sha256": "0583edf8ba6e01458d00b04fb5258c030ce31e8e5f47f631959ba71658cd28f1"
+    },
+    {
+      "path": "runtime/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/embed-data-mobile-normal.png",
+      "bytes": 19240,
+      "sha256": "cfdb1a4737ea3ca6f4970f98f6390d37262939254c4f617740f3660b81698656"
+    },
+    {
+      "path": "runtime/embed-fullscreen-browser-f-2a33c-rlays-and-source-date-in-en-desktop/embed-fullscreen-en.png",
+      "bytes": 49317,
+      "sha256": "0bc58af624d8ddaa5c79a6f3c4ef80ae2674c2b64218d6b8d047d0db0c8f1385"
+    },
+    {
+      "path": "runtime/embed-fullscreen-browser-f-2a33c-rlays-and-source-date-in-en-mobile/embed-fullscreen-en.png",
+      "bytes": 33166,
+      "sha256": "3546f4f38bd265c540954bd7a7e944c9090c7885954868ec51ae2fd885e374fd"
+    },
+    {
+      "path": "runtime/embed-fullscreen-browser-f-84d66-or-the-compact-clean-widget-desktop/embed-compact-browser-fullscreen.png",
+      "bytes": 39897,
+      "sha256": "714299c154879e66922afb9c0f6564e863c0da978d1e387d3399502f06e90de0"
+    },
+    {
+      "path": "runtime/embed-fullscreen-browser-f-84d66-or-the-compact-clean-widget-mobile/embed-compact-browser-fullscreen.png",
+      "bytes": 26426,
+      "sha256": "be3e35fb9a2450f23b8b737f473fa6fc7d5cfb6584c327639d47c5b5f3cb45c1"
+    },
+    {
+      "path": "runtime/embed-fullscreen-browser-f-f5eb0-rlays-and-source-date-in-zh-desktop/embed-fullscreen-zh.png",
+      "bytes": 50708,
+      "sha256": "1ea94d9037b4d33ee8677593609417a83e57fb748ccf21d91f4a57a6a416a0ab"
+    },
+    {
+      "path": "runtime/embed-fullscreen-browser-f-f5eb0-rlays-and-source-date-in-zh-mobile/embed-fullscreen-zh.png",
+      "bytes": 34268,
+      "sha256": "79eed714d74721cc2de7030d6bdc4e9d49ca552dccd64361b38a84aaf5e84cfd"
+    },
+    {
+      "path": "runtime/embed-fullscreen-rejected--550ad-uests-retain-a-usable-chart-desktop/embed-fullscreen-rejected.png",
+      "bytes": 59004,
+      "sha256": "6f3d179c4e56b3432f19c25766c011e16fefb26630dcbbbe0b5b4f3987178f10"
+    },
+    {
+      "path": "runtime/embed-fullscreen-the-ordin-12c60-hout-a-restrictive-viewport-desktop/embed-page-scale-2.png",
+      "bytes": 27483,
+      "sha256": "9897c2e728c57913edf45cd8229c645e835c4e5662576a8b76c9b6708b6b24c5"
+    },
+    {
+      "path": "runtime/embed-fullscreen-unsupport-34125-uests-retain-a-usable-chart-desktop/embed-fullscreen-unsupported.png",
+      "bytes": 59512,
+      "sha256": "fbcabedf705dba019dbf10eadb93c8bab80219c2608c29337a86e0c06ef64fa5"
+    },
+    {
+      "path": "runtime/snapshot-recovery-missing--2a2fe-t-reads-stay-distinct-in-en-desktop/snapshot-missing-en.png",
+      "bytes": 36279,
+      "sha256": "1cfdbf16d1c8f020e77d9c9654706b232431a5ac4c814796a10ae8b711b6cd4a"
+    },
+    {
+      "path": "runtime/snapshot-recovery-missing--2a2fe-t-reads-stay-distinct-in-en-desktop/snapshot-upstream-error-en.png",
+      "bytes": 35975,
+      "sha256": "34254bbdd49e689c6f49fb7424f2cec1337307eb221b45a0dfa32e9b51d8c40f"
+    },
+    {
+      "path": "runtime/snapshot-recovery-missing--2a2fe-t-reads-stay-distinct-in-en-mobile/snapshot-missing-en.png",
+      "bytes": 31595,
+      "sha256": "663eb11cc2541b9762df0718799e1b6e096d2b2b8fa9195f3dce83f6da790fc4"
+    },
+    {
+      "path": "runtime/snapshot-recovery-missing--2a2fe-t-reads-stay-distinct-in-en-mobile/snapshot-upstream-error-en.png",
+      "bytes": 31569,
+      "sha256": "0a05077fda6b51d683478f193deac12bb46fdb7801cfc0b75619a58ac3fe54d2"
+    },
+    {
+      "path": "runtime/snapshot-recovery-missing--dcf9f-t-reads-stay-distinct-in-zh-desktop/snapshot-missing-zh.png",
+      "bytes": 36279,
+      "sha256": "1cfdbf16d1c8f020e77d9c9654706b232431a5ac4c814796a10ae8b711b6cd4a"
+    },
+    {
+      "path": "runtime/snapshot-recovery-missing--dcf9f-t-reads-stay-distinct-in-zh-desktop/snapshot-upstream-error-zh.png",
+      "bytes": 36511,
+      "sha256": "d5b7457029655846d875a33d919f2e5a02ceaafb5250c909b660ff123c50f768"
+    },
+    {
+      "path": "runtime/snapshot-recovery-missing--dcf9f-t-reads-stay-distinct-in-zh-mobile/snapshot-missing-zh.png",
+      "bytes": 31595,
+      "sha256": "663eb11cc2541b9762df0718799e1b6e096d2b2b8fa9195f3dce83f6da790fc4"
+    },
+    {
+      "path": "runtime/snapshot-recovery-missing--dcf9f-t-reads-stay-distinct-in-zh-mobile/snapshot-upstream-error-zh.png",
+      "bytes": 30433,
+      "sha256": "d4c01b80cc9106ca2e6274baaa9f3317b5c41cd6b37dec5d583571bc37d704b0"
+    },
+    {
+      "path": "runtime/snapshot-recovery-portrait-b882e-els-with-a-reachable-footer-desktop/snapshot-portrait-320.png",
+      "bytes": 24127,
+      "sha256": "a0a104ddab1ae6333c7f4cb02563dbade6a2163afb5229ff35f951861e0db8f7"
+    },
+    {
+      "path": "runtime/snapshot-recovery-snapshot-218d1-hrough-explicit-retry-in-en-desktop/snapshot-image-error-en.png",
+      "bytes": 38687,
+      "sha256": "977b08a7c269c8e4ecbd581a9a56558277b555b24eca5a3f81f7372ed6ca5fe4"
+    },
+    {
+      "path": "runtime/snapshot-recovery-snapshot-218d1-hrough-explicit-retry-in-en-mobile/snapshot-image-error-en.png",
+      "bytes": 32735,
+      "sha256": "95990ff4ac7f797f3c60309fcc7cdee96b881316c12a2cafa7a3ee4dbeea2905"
+    },
+    {
+      "path": "runtime/snapshot-recovery-snapshot-3ad0f-s-natural-proportions-in-zh-desktop/snapshot-loading-zh.png",
+      "bytes": 31065,
+      "sha256": "0937671ec403f8ce62422f5cb3d2082110096f362032969694ce48cf10454f24"
+    },
+    {
+      "path": "runtime/snapshot-recovery-snapshot-3ad0f-s-natural-proportions-in-zh-desktop/snapshot-ready-dark-zh.png",
+      "bytes": 337310,
+      "sha256": "8e139dd7aecbc4232081e9277eaa660c16fde96b507eaafa9b91d2b62b9e865d"
+    },
+    {
+      "path": "runtime/snapshot-recovery-snapshot-3ad0f-s-natural-proportions-in-zh-desktop/snapshot-ready-light-zh.png",
+      "bytes": 336013,
+      "sha256": "90db0d6867a4e81eb7f38b2523f59e9c68c457886fa64fa520e1380f92be4c7d"
+    },
+    {
+      "path": "runtime/snapshot-recovery-snapshot-3ad0f-s-natural-proportions-in-zh-mobile/snapshot-loading-zh.png",
+      "bytes": 26304,
+      "sha256": "028bb9d9f87288a1994927cd410a48a729285a28243f87e245cd960edf20c329"
+    },
+    {
+      "path": "runtime/snapshot-recovery-snapshot-3ad0f-s-natural-proportions-in-zh-mobile/snapshot-ready-dark-zh.png",
+      "bytes": 67837,
+      "sha256": "bd59a2a33841c61c9fb3e9d4bc28cf34a53c502703ff0c7a490819e1de0f4fad"
+    },
+    {
+      "path": "runtime/snapshot-recovery-snapshot-3ad0f-s-natural-proportions-in-zh-mobile/snapshot-ready-light-zh.png",
+      "bytes": 67606,
+      "sha256": "d6a5644ce5ce4fca4713239a65e1bef5262fc764f58147cd9cad633d81084937"
+    },
+    {
+      "path": "runtime/snapshot-recovery-snapshot-424fa-s-natural-proportions-in-en-desktop/snapshot-loading-en.png",
+      "bytes": 31065,
+      "sha256": "0937671ec403f8ce62422f5cb3d2082110096f362032969694ce48cf10454f24"
+    },
+    {
+      "path": "runtime/snapshot-recovery-snapshot-424fa-s-natural-proportions-in-en-desktop/snapshot-ready-dark-en.png",
+      "bytes": 336794,
+      "sha256": "f4d04012feee26a7f429a7a5452e0877de1a13a5e4b14e1e35a5e672a6d2c377"
+    },
+    {
+      "path": "runtime/snapshot-recovery-snapshot-424fa-s-natural-proportions-in-en-desktop/snapshot-ready-light-en.png",
+      "bytes": 335486,
+      "sha256": "0993964a5415ab9ed642c9f8afef61c92f1c30ccf4b2dedd832b0406be0a47e8"
+    },
+    {
+      "path": "runtime/snapshot-recovery-snapshot-424fa-s-natural-proportions-in-en-mobile/snapshot-loading-en.png",
+      "bytes": 27585,
+      "sha256": "4b698f05dcca8f88a3e69457839a19e141df0fd470eea5b4d1717e55210b2e0c"
+    },
+    {
+      "path": "runtime/snapshot-recovery-snapshot-424fa-s-natural-proportions-in-en-mobile/snapshot-ready-dark-en.png",
+      "bytes": 68628,
+      "sha256": "08b3d6043c7f5dc5bf09c7f090c890cc030fe9c4691511ad8ba6e5c5a1a9ef5a"
+    },
+    {
+      "path": "runtime/snapshot-recovery-snapshot-424fa-s-natural-proportions-in-en-mobile/snapshot-ready-light-en.png",
+      "bytes": 68169,
+      "sha256": "acdee920e4fb93f86ee0a3fe5b21f997a7e62246e7643d0d4a4df1ac2e1ebfa6"
+    },
+    {
+      "path": "runtime/snapshot-recovery-snapshot-aa1f7-hrough-explicit-retry-in-zh-desktop/snapshot-image-error-zh.png",
+      "bytes": 37439,
+      "sha256": "93a396a6fd686a0ea04f58c510232da71a2419307bbb45faef421533efda9a31"
+    },
+    {
+      "path": "runtime/snapshot-recovery-snapshot-aa1f7-hrough-explicit-retry-in-zh-mobile/snapshot-image-error-zh.png",
+      "bytes": 31455,
+      "sha256": "865cbade4b6e885dd7740ab3ed8f3177b7ca8f054c6ffa83201e8682117671fb"
+    }
+  ]
+}

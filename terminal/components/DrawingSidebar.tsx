@@ -771,8 +771,10 @@ export default function DrawingSidebar({
   const localizedDrawingCount = countLabel(drawingCount, t);
   const localizedUserDrawingCount = countLabel(userDrawingCount, t);
   const localizedDetectedDrawingCount = countLabel(detectedDrawingCount, t);
-  const floatingMobile = (node: ReactNode) => (
-    isMobile && floatingHost ? createPortal(node, floatingHost) : node
+  // Keep the style palette with the existing chart floating host while the
+  // vertical toolbar scrolls inside its available chart height.
+  const floatingStyle = (node: ReactNode) => (
+    floatingHost ? createPortal(node, floatingHost) : node
   );
   const floatingFlyout = (node: ReactNode) => (
     floatingHost ? createPortal(node, floatingHost) : node
@@ -1002,11 +1004,11 @@ export default function DrawingSidebar({
         );
       })}
 
-      {showStyle && selectedTool && (!isMobile || openMenu === "style") && floatingMobile(
+      {showStyle && selectedTool && (!isMobile || openMenu === "style") && floatingStyle(
         <div
           ref={isMobile ? menuRef : undefined}
           id={isMobile ? menuDomId("style") : undefined}
-          className={`ds-style${isMobile ? " ds-mobile-style" : ""}`}
+          className={`ds-style${isMobile ? " ds-mobile-style" : " ds-desktop-style"}`}
           role={isMobile ? "menu" : "group"}
           aria-label={interpolate(t("drawingStyleForTool"), { tool: toolLabel(selectedTool, t) })}
           aria-labelledby={isMobile ? `${menuDomId("style")}-trigger` : undefined}

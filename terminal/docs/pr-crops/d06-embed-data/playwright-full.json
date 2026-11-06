@@ -1,0 +1,2161 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/node_modules/.bin/playwright",
+      "test",
+      "e2e/embed-data-state.spec.ts",
+      "e2e/embed-content-language.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=2",
+      "--retries=0",
+      "--reporter=json",
+      "--output=d06-embed-data-final/results"
+    ],
+    "configFile": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 2,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 50354",
+      "url": "http://127.0.0.1:50354/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "embed-content-language.spec.ts",
+      "file": "embed-content-language.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "embed en keeps its own language from loading through ready",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3108,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T07:24:05.099Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-loading",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "language-ready",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "embed-ready",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-content-language-emb-53286--from-loading-through-ready-desktop/attachments/embed-ready-f5aff51bca29b7ee2f5b65422fd80720e1a78634.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-54d5fbb48917233e4af4",
+          "file": "embed-content-language.spec.ts",
+          "line": 43,
+          "column": 7
+        },
+        {
+          "title": "embed en keeps its own language with no price history",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 2660,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T07:24:05.100Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-empty",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "embed-empty",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-content-language-emb-3d09f-guage-with-no-price-history-desktop/attachments/embed-empty-7c6c7acfe6ad6f60539f03d69c55ac2c0dd652b9.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-f97a9d7f698d1787052d",
+          "file": "embed-content-language.spec.ts",
+          "line": 72,
+          "column": 7
+        },
+        {
+          "title": "embed en keeps its own language for missing and invalid symbols",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 1183,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T07:24:08.614Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-missing",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "language-invalid",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "embed-invalid",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-content-language-emb-71d9a-missing-and-invalid-symbols-desktop/attachments/embed-invalid-42ad5063db4747edca3eaf11db6aa74d9f5a4dd5.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-8958a38f30fa5f31fb81",
+          "file": "embed-content-language.spec.ts",
+          "line": 83,
+          "column": 7
+        },
+        {
+          "title": "embed zh keeps its own language from loading through ready",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1564,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T07:24:09.060Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-loading",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "language-ready",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "embed-ready",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-content-language-emb-39382--from-loading-through-ready-desktop/attachments/embed-ready-6e1f58f5fce8979ce269c10fe3d620cb30f7bb7a.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-f4ed12141aac2e085108",
+          "file": "embed-content-language.spec.ts",
+          "line": 43,
+          "column": 7
+        },
+        {
+          "title": "embed zh keeps its own language with no price history",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 979,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T07:24:09.819Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-empty",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "embed-empty",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-content-language-emb-fc54e-guage-with-no-price-history-desktop/attachments/embed-empty-66c1dc5855e71cedbde2a1fb65865556781812e3.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-c6241a34087f08234723",
+          "file": "embed-content-language.spec.ts",
+          "line": 72,
+          "column": 7
+        },
+        {
+          "title": "embed zh keeps its own language for missing and invalid symbols",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1458,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T07:24:10.642Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-missing",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "language-invalid",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "embed-invalid",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-content-language-emb-a2a50-missing-and-invalid-symbols-desktop/attachments/embed-invalid-d0018997d9dfa40b0b916ce04b658c47cf420610.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-680b8454e6fb051d9f01",
+          "file": "embed-content-language.spec.ts",
+          "line": 83,
+          "column": 7
+        },
+        {
+          "title": "embed en keeps its own language from loading through ready",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 1399,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T07:24:22.591Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-loading",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAKfQ=="
+                    },
+                    {
+                      "name": "language-ready",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAKfQ=="
+                    },
+                    {
+                      "name": "embed-ready",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-content-language-emb-53286--from-loading-through-ready-tablet/attachments/embed-ready-9dea3e774b08cfab118ab7004a7972268b884403.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-1b5ab4291f5afd9573fb",
+          "file": "embed-content-language.spec.ts",
+          "line": 43,
+          "column": 7
+        },
+        {
+          "title": "embed en keeps its own language with no price history",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1179,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T07:24:23.242Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-empty",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAKfQ=="
+                    },
+                    {
+                      "name": "embed-empty",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-content-language-emb-3d09f-guage-with-no-price-history-tablet/attachments/embed-empty-12e265f55905edc71567d6c1b5fbecadf4d5250a.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-e287bff42d3a0e0c1695",
+          "file": "embed-content-language.spec.ts",
+          "line": 72,
+          "column": 7
+        },
+        {
+          "title": "embed en keeps its own language for missing and invalid symbols",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 1147,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T07:24:24.434Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-missing",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAKfQ=="
+                    },
+                    {
+                      "name": "language-invalid",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAKfQ=="
+                    },
+                    {
+                      "name": "embed-invalid",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-content-language-emb-71d9a-missing-and-invalid-symbols-tablet/attachments/embed-invalid-8f90b14bcac6e4c09a19bcc702d00cb4f4fe34aa.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-231d9383c3920e50533c",
+          "file": "embed-content-language.spec.ts",
+          "line": 83,
+          "column": 7
+        },
+        {
+          "title": "embed zh keeps its own language from loading through ready",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1489,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T07:24:25.432Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-loading",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAKfQ=="
+                    },
+                    {
+                      "name": "language-ready",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAKfQ=="
+                    },
+                    {
+                      "name": "embed-ready",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-content-language-emb-39382--from-loading-through-ready-tablet/attachments/embed-ready-4bfdf019c4723721d4c86d21339e4c02c02dbfaa.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-ef17f13d9009f5200592",
+          "file": "embed-content-language.spec.ts",
+          "line": 43,
+          "column": 7
+        },
+        {
+          "title": "embed zh keeps its own language with no price history",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 1408,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T07:24:25.596Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-empty",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAKfQ=="
+                    },
+                    {
+                      "name": "embed-empty",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-content-language-emb-fc54e-guage-with-no-price-history-tablet/attachments/embed-empty-ba414a945b7581e534750e37faeefcc111fb3853.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-9062bfad7d4deff19495",
+          "file": "embed-content-language.spec.ts",
+          "line": 72,
+          "column": 7
+        },
+        {
+          "title": "embed zh keeps its own language for missing and invalid symbols",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2202,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T07:24:26.935Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-missing",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAKfQ=="
+                    },
+                    {
+                      "name": "language-invalid",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAKfQ=="
+                    },
+                    {
+                      "name": "embed-invalid",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-content-language-emb-a2a50-missing-and-invalid-symbols-tablet/attachments/embed-invalid-f21789a2944bc4a1bb13dba1b9fdd7dab03070a5.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-c3050f1e03e961052943",
+          "file": "embed-content-language.spec.ts",
+          "line": 83,
+          "column": 7
+        },
+        {
+          "title": "embed en keeps its own language from loading through ready",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 1138,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T07:24:41.234Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-loading",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDM5MCwKICAic2Nyb2xsV2lkdGgiOiAzOTAKfQ=="
+                    },
+                    {
+                      "name": "language-ready",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDM5MCwKICAic2Nyb2xsV2lkdGgiOiAzOTAKfQ=="
+                    },
+                    {
+                      "name": "embed-ready",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-content-language-emb-53286--from-loading-through-ready-mobile/attachments/embed-ready-57ab21cff01ec294b1a7f45f3c4c9e2b964e035b.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-3af84bb7f27f0dcdb6c4",
+          "file": "embed-content-language.spec.ts",
+          "line": 43,
+          "column": 7
+        },
+        {
+          "title": "embed en keeps its own language with no price history",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1125,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T07:24:42.794Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-empty",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDM5MCwKICAic2Nyb2xsV2lkdGgiOiAzOTAKfQ=="
+                    },
+                    {
+                      "name": "embed-empty",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-content-language-emb-3d09f-guage-with-no-price-history-mobile/attachments/embed-empty-d82b7e0a1f2005dbcbc41b1e0670701226d70831.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-e2978a1b71e9b18fad78",
+          "file": "embed-content-language.spec.ts",
+          "line": 72,
+          "column": 7
+        },
+        {
+          "title": "embed en keeps its own language for missing and invalid symbols",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 1126,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T07:24:43.408Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-missing",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDM5MCwKICAic2Nyb2xsV2lkdGgiOiAzOTAKfQ=="
+                    },
+                    {
+                      "name": "language-invalid",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDM5MCwKICAic2Nyb2xsV2lkdGgiOiAzOTAKfQ=="
+                    },
+                    {
+                      "name": "embed-invalid",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-content-language-emb-71d9a-missing-and-invalid-symbols-mobile/attachments/embed-invalid-9bc0311206d308e6c9719a19fb5c68508673e14d.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-41bb1a81982faafc7860",
+          "file": "embed-content-language.spec.ts",
+          "line": 83,
+          "column": 7
+        },
+        {
+          "title": "embed zh keeps its own language from loading through ready",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2271,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T07:24:44.434Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-loading",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDM5MCwKICAic2Nyb2xsV2lkdGgiOiAzOTAKfQ=="
+                    },
+                    {
+                      "name": "language-ready",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDM5MCwKICAic2Nyb2xsV2lkdGgiOiAzOTAKfQ=="
+                    },
+                    {
+                      "name": "embed-ready",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-content-language-emb-39382--from-loading-through-ready-mobile/attachments/embed-ready-feb74be3b83e5d0f333329d46aaa53dc97bdff8c.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-1034427dd963ebd1e637",
+          "file": "embed-content-language.spec.ts",
+          "line": 43,
+          "column": 7
+        },
+        {
+          "title": "embed zh keeps its own language with no price history",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 1333,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T07:24:44.550Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-empty",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDM5MCwKICAic2Nyb2xsV2lkdGgiOiAzOTAKfQ=="
+                    },
+                    {
+                      "name": "embed-empty",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-content-language-emb-fc54e-guage-with-no-price-history-mobile/attachments/embed-empty-ae6f26faca5b89656c811c5f7ff48b306902c5e6.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-a38f9924637f3fcc3934",
+          "file": "embed-content-language.spec.ts",
+          "line": 72,
+          "column": 7
+        },
+        {
+          "title": "embed zh keeps its own language for missing and invalid symbols",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 3649,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T07:24:45.910Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-missing",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDM5MCwKICAic2Nyb2xsV2lkdGgiOiAzOTAKfQ=="
+                    },
+                    {
+                      "name": "language-invalid",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDM5MCwKICAic2Nyb2xsV2lkdGgiOiAzOTAKfQ=="
+                    },
+                    {
+                      "name": "embed-invalid",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-content-language-emb-a2a50-missing-and-invalid-symbols-mobile/attachments/embed-invalid-9e6b21e9ed2215f22712e5f3d61afa4e12c77297.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-374e88e1385d82bce5ad",
+          "file": "embed-content-language.spec.ts",
+          "line": 83,
+          "column": 7
+        }
+      ]
+    },
+    {
+      "title": "embed-data-state.spec.ts",
+      "file": "embed-data-state.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "preserves compact native variants in short and narrow frames",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 3047,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T07:24:18.802Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "geometry-normal",
+                      "contentType": "application/json",
+                      "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDkwMCwKICAgICJoZWlnaHQiOiAzMDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogOTAwLAogICJzY3JvbGxXaWR0aCI6IDkwMCwKICAicm9vdFdpZHRoIjogOTAwLAogICJyb290U2Nyb2xsV2lkdGgiOiA5MDAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IGZhbHNlLAogICJjaGFydCI6IHsKICAgICJ0b3AiOiA1NC40Mzc1LAogICAgImJvdHRvbSI6IDI3MCwKICAgICJoZWlnaHQiOiAyMTUuNTYyNQogIH0sCiAgImF0dHJpYnV0aW9uIjogewogICAgInRvcCI6IDI3MiwKICAgICJib3R0b20iOiAyOTYsCiAgICAibGVmdCI6IDEwLAogICAgInJpZ2h0IjogMTM4LjUzMTI1LAogICAgImhlaWdodCI6IDI0CiAgfSwKICAiZGF0ZSI6IHsKICAgICJsZWZ0IjogMTIsCiAgICAicmlnaHQiOiA0NDQuNTMxMjUsCiAgICAiaGVpZ2h0IjogMTQuNjg3NQogIH0KfQ=="
+                    },
+                    {
+                      "name": "normal",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/attachments/normal-d97ca8632f59166fda16a98074404d590a51959d.png"
+                    },
+                    {
+                      "name": "geometry-hidden-header",
+                      "contentType": "application/json",
+                      "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDkwMCwKICAgICJoZWlnaHQiOiAzMDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogOTAwLAogICJzY3JvbGxXaWR0aCI6IDkwMCwKICAicm9vdFdpZHRoIjogOTAwLAogICJyb290U2Nyb2xsV2lkdGgiOiA5MDAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IGZhbHNlLAogICJjaGFydCI6IHsKICAgICJ0b3AiOiAzOC45Mzc1LAogICAgImJvdHRvbSI6IDI3MCwKICAgICJoZWlnaHQiOiAyMzEuMDYyNQogIH0sCiAgImF0dHJpYnV0aW9uIjogewogICAgInRvcCI6IDI3MiwKICAgICJib3R0b20iOiAyOTYsCiAgICAibGVmdCI6IDEwLAogICAgInJpZ2h0IjogMTM4LjUzMTI1LAogICAgImhlaWdodCI6IDI0CiAgfSwKICAiZGF0ZSI6IHsKICAgICJsZWZ0IjogMCwKICAgICJyaWdodCI6IDAsCiAgICAiaGVpZ2h0IjogMAogIH0KfQ=="
+                    },
+                    {
+                      "name": "hidden-header",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/attachments/hidden-header-8b9c886194212c5622ccd161d31fe86c91206278.png"
+                    },
+                    {
+                      "name": "geometry-clean-header",
+                      "contentType": "application/json",
+                      "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDkwMCwKICAgICJoZWlnaHQiOiAzMDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogOTAwLAogICJzY3JvbGxXaWR0aCI6IDkwMCwKICAicm9vdFdpZHRoIjogOTAwLAogICJyb290U2Nyb2xsV2lkdGgiOiA5MDAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IGZhbHNlLAogICJjaGFydCI6IHsKICAgICJ0b3AiOiAwLAogICAgImJvdHRvbSI6IDIwNi41NjI1LAogICAgImhlaWdodCI6IDIwNi41NjI1CiAgfSwKICAiYXR0cmlidXRpb24iOiB7CiAgICAidG9wIjogMCwKICAgICJib3R0b20iOiAwLAogICAgImxlZnQiOiAwLAogICAgInJpZ2h0IjogMCwKICAgICJoZWlnaHQiOiAwCiAgfSwKICAiZGF0ZSI6IHsKICAgICJsZWZ0IjogMTIsCiAgICAicmlnaHQiOiA4ODgsCiAgICAiaGVpZ2h0IjogMTQuNjg3NQogIH0KfQ=="
+                    },
+                    {
+                      "name": "clean-header",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/attachments/clean-header-e9643d438283d62a0d4eacc347ba3ef61bedf439.png"
+                    },
+                    {
+                      "name": "geometry-clean-hidden",
+                      "contentType": "application/json",
+                      "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDkwMCwKICAgICJoZWlnaHQiOiAzMDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogOTAwLAogICJzY3JvbGxXaWR0aCI6IDkwMCwKICAicm9vdFdpZHRoIjogOTAwLAogICJyb290U2Nyb2xsV2lkdGgiOiA5MDAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IGZhbHNlLAogICJjaGFydCI6IHsKICAgICJ0b3AiOiAwLAogICAgImJvdHRvbSI6IDI1NiwKICAgICJoZWlnaHQiOiAyNTYKICB9LAogICJhdHRyaWJ1dGlvbiI6IHsKICAgICJ0b3AiOiAwLAogICAgImJvdHRvbSI6IDAsCiAgICAibGVmdCI6IDAsCiAgICAicmlnaHQiOiAwLAogICAgImhlaWdodCI6IDAKICB9LAogICJkYXRlIjogewogICAgImxlZnQiOiAwLAogICAgInJpZ2h0IjogMCwKICAgICJoZWlnaHQiOiAwCiAgfQp9"
+                    },
+                    {
+                      "name": "clean-hidden",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/attachments/clean-hidden-40b50f5411f84dce675a9aa957845565cc6d41c4.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e7e3b37fbb022ea4b11a-7f8c9ace666f9022be16",
+          "file": "embed-data-state.spec.ts",
+          "line": 168,
+          "column": 5
+        },
+        {
+          "title": "preserves compact native variants in short and narrow frames",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 3214,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T07:24:36.925Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "geometry-normal",
+                      "contentType": "application/json",
+                      "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDM5MCwKICAgICJoZWlnaHQiOiAzMDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogMzkwLAogICJzY3JvbGxXaWR0aCI6IDM5MCwKICAicm9vdFdpZHRoIjogMzkwLAogICJyb290U2Nyb2xsV2lkdGgiOiAzOTAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IHRydWUsCiAgImNoYXJ0IjogewogICAgInRvcCI6IDExMi4xNDA2MjUsCiAgICAiYm90dG9tIjogMjUwLAogICAgImhlaWdodCI6IDEzNy44NTkzNzUKICB9LAogICJhdHRyaWJ1dGlvbiI6IHsKICAgICJ0b3AiOiAyNTIsCiAgICAiYm90dG9tIjogMjk2LAogICAgImxlZnQiOiAxMCwKICAgICJyaWdodCI6IDEzOC41MzEyNSwKICAgICJoZWlnaHQiOiA0NAogIH0sCiAgImRhdGUiOiB7CiAgICAibGVmdCI6IDEwLAogICAgInJpZ2h0IjogMzgwLAogICAgImhlaWdodCI6IDE0LjY4NzUKICB9Cn0="
+                    },
+                    {
+                      "name": "normal",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-tablet/attachments/normal-dbc29747d5fcb57923a7b3f567c61108c81f27b0.png"
+                    },
+                    {
+                      "name": "geometry-hidden-header",
+                      "contentType": "application/json",
+                      "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDM5MCwKICAgICJoZWlnaHQiOiAzMDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogMzkwLAogICJzY3JvbGxXaWR0aCI6IDM5MCwKICAicm9vdFdpZHRoIjogMzkwLAogICJyb290U2Nyb2xsV2lkdGgiOiAzOTAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IHRydWUsCiAgImNoYXJ0IjogewogICAgInRvcCI6IDY4LjE1NjI1LAogICAgImJvdHRvbSI6IDI1MCwKICAgICJoZWlnaHQiOiAxODEuODQzNzUKICB9LAogICJhdHRyaWJ1dGlvbiI6IHsKICAgICJ0b3AiOiAyNTIsCiAgICAiYm90dG9tIjogMjk2LAogICAgImxlZnQiOiAxMCwKICAgICJyaWdodCI6IDEzOC41MzEyNSwKICAgICJoZWlnaHQiOiA0NAogIH0sCiAgImRhdGUiOiB7CiAgICAibGVmdCI6IDAsCiAgICAicmlnaHQiOiAwLAogICAgImhlaWdodCI6IDAKICB9Cn0="
+                    },
+                    {
+                      "name": "hidden-header",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-tablet/attachments/hidden-header-871d493c18ddcdb7b80574406c7e3f924bf1c781.png"
+                    },
+                    {
+                      "name": "geometry-clean-header",
+                      "contentType": "application/json",
+                      "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDM5MCwKICAgICJoZWlnaHQiOiAzMDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogMzkwLAogICJzY3JvbGxXaWR0aCI6IDM5MCwKICAicm9vdFdpZHRoIjogMzkwLAogICJyb290U2Nyb2xsV2lkdGgiOiAzOTAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IHRydWUsCiAgImNoYXJ0IjogewogICAgInRvcCI6IDAsCiAgICAiYm90dG9tIjogMjEyLjAxNTYyNSwKICAgICJoZWlnaHQiOiAyMTIuMDE1NjI1CiAgfSwKICAiYXR0cmlidXRpb24iOiB7CiAgICAidG9wIjogMCwKICAgICJib3R0b20iOiAwLAogICAgImxlZnQiOiAwLAogICAgInJpZ2h0IjogMCwKICAgICJoZWlnaHQiOiAwCiAgfSwKICAiZGF0ZSI6IHsKICAgICJsZWZ0IjogMTIsCiAgICAicmlnaHQiOiAzNzgsCiAgICAiaGVpZ2h0IjogMTQuNjg3NQogIH0KfQ=="
+                    },
+                    {
+                      "name": "clean-header",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-tablet/attachments/clean-header-e64ec9df534846474938a5fe4405c43dc218f4b0.png"
+                    },
+                    {
+                      "name": "geometry-clean-hidden",
+                      "contentType": "application/json",
+                      "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDM5MCwKICAgICJoZWlnaHQiOiAzMDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogMzkwLAogICJzY3JvbGxXaWR0aCI6IDM5MCwKICAicm9vdFdpZHRoIjogMzkwLAogICJyb290U2Nyb2xsV2lkdGgiOiAzOTAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IHRydWUsCiAgImNoYXJ0IjogewogICAgInRvcCI6IDAsCiAgICAiYm90dG9tIjogMjU2LAogICAgImhlaWdodCI6IDI1NgogIH0sCiAgImF0dHJpYnV0aW9uIjogewogICAgInRvcCI6IDAsCiAgICAiYm90dG9tIjogMCwKICAgICJsZWZ0IjogMCwKICAgICJyaWdodCI6IDAsCiAgICAiaGVpZ2h0IjogMAogIH0sCiAgImRhdGUiOiB7CiAgICAibGVmdCI6IDAsCiAgICAicmlnaHQiOiAwLAogICAgImhlaWdodCI6IDAKICB9Cn0="
+                    },
+                    {
+                      "name": "clean-hidden",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-tablet/attachments/clean-hidden-26ee3d7b8083e5b6d822ebc19c53b3bc9fff1280.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e7e3b37fbb022ea4b11a-3273179186e573ca088e",
+          "file": "embed-data-state.spec.ts",
+          "line": 168,
+          "column": 5
+        },
+        {
+          "title": "preserves compact native variants in short and narrow frames",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4049,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T07:24:54.899Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "geometry-normal",
+                      "contentType": "application/json",
+                      "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDMyMCwKICAgICJoZWlnaHQiOiAzMDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogMzIwLAogICJzY3JvbGxXaWR0aCI6IDMyMCwKICAicm9vdFdpZHRoIjogMzIwLAogICJyb290U2Nyb2xsV2lkdGgiOiAzMjAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IHRydWUsCiAgImNoYXJ0IjogewogICAgInRvcCI6IDExMi4xNDA2MjUsCiAgICAiYm90dG9tIjogMjUwLAogICAgImhlaWdodCI6IDEzNy44NTkzNzUKICB9LAogICJhdHRyaWJ1dGlvbiI6IHsKICAgICJ0b3AiOiAyNTIsCiAgICAiYm90dG9tIjogMjk2LAogICAgImxlZnQiOiAxMCwKICAgICJyaWdodCI6IDEzOC41MzEyNSwKICAgICJoZWlnaHQiOiA0NAogIH0sCiAgImRhdGUiOiB7CiAgICAibGVmdCI6IDEwLAogICAgInJpZ2h0IjogMzEwLAogICAgImhlaWdodCI6IDE0LjY4NzUKICB9Cn0="
+                    },
+                    {
+                      "name": "normal",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/attachments/normal-a90931a3bb7c29c75b71d2caa9ac52d207ea2235.png"
+                    },
+                    {
+                      "name": "geometry-hidden-header",
+                      "contentType": "application/json",
+                      "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDMyMCwKICAgICJoZWlnaHQiOiAzMDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogMzIwLAogICJzY3JvbGxXaWR0aCI6IDMyMCwKICAicm9vdFdpZHRoIjogMzIwLAogICJyb290U2Nyb2xsV2lkdGgiOiAzMjAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IHRydWUsCiAgImNoYXJ0IjogewogICAgInRvcCI6IDY4LjE1NjI1LAogICAgImJvdHRvbSI6IDI1MCwKICAgICJoZWlnaHQiOiAxODEuODQzNzUKICB9LAogICJhdHRyaWJ1dGlvbiI6IHsKICAgICJ0b3AiOiAyNTIsCiAgICAiYm90dG9tIjogMjk2LAogICAgImxlZnQiOiAxMCwKICAgICJyaWdodCI6IDEzOC41MzEyNSwKICAgICJoZWlnaHQiOiA0NAogIH0sCiAgImRhdGUiOiB7CiAgICAibGVmdCI6IDAsCiAgICAicmlnaHQiOiAwLAogICAgImhlaWdodCI6IDAKICB9Cn0="
+                    },
+                    {
+                      "name": "hidden-header",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/attachments/hidden-header-e03a825105f1575ac47d8a5b0c6d07830fa42a5c.png"
+                    },
+                    {
+                      "name": "geometry-clean-header",
+                      "contentType": "application/json",
+                      "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDMyMCwKICAgICJoZWlnaHQiOiAzMDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogMzIwLAogICJzY3JvbGxXaWR0aCI6IDMyMCwKICAicm9vdFdpZHRoIjogMzIwLAogICJyb290U2Nyb2xsV2lkdGgiOiAzMjAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IHRydWUsCiAgImNoYXJ0IjogewogICAgInRvcCI6IDAsCiAgICAiYm90dG9tIjogMjEyLjAxNTYyNSwKICAgICJoZWlnaHQiOiAyMTIuMDE1NjI1CiAgfSwKICAiYXR0cmlidXRpb24iOiB7CiAgICAidG9wIjogMCwKICAgICJib3R0b20iOiAwLAogICAgImxlZnQiOiAwLAogICAgInJpZ2h0IjogMCwKICAgICJoZWlnaHQiOiAwCiAgfSwKICAiZGF0ZSI6IHsKICAgICJsZWZ0IjogMTIsCiAgICAicmlnaHQiOiAzMDgsCiAgICAiaGVpZ2h0IjogMTQuNjg3NQogIH0KfQ=="
+                    },
+                    {
+                      "name": "clean-header",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/attachments/clean-header-3b7d79937367e56dbf7eeda5c33c777b284f0a0d.png"
+                    },
+                    {
+                      "name": "geometry-clean-hidden",
+                      "contentType": "application/json",
+                      "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDMyMCwKICAgICJoZWlnaHQiOiAzMDAKICB9LAogICJkb2N1bWVudFdpZHRoIjogMzIwLAogICJzY3JvbGxXaWR0aCI6IDMyMCwKICAicm9vdFdpZHRoIjogMzIwLAogICJyb290U2Nyb2xsV2lkdGgiOiAzMjAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IHRydWUsCiAgImNoYXJ0IjogewogICAgInRvcCI6IDAsCiAgICAiYm90dG9tIjogMjU2LAogICAgImhlaWdodCI6IDI1NgogIH0sCiAgImF0dHJpYnV0aW9uIjogewogICAgInRvcCI6IDAsCiAgICAiYm90dG9tIjogMCwKICAgICJsZWZ0IjogMCwKICAgICJyaWdodCI6IDAsCiAgICAiaGVpZ2h0IjogMAogIH0sCiAgImRhdGUiOiB7CiAgICAibGVmdCI6IDAsCiAgICAicmlnaHQiOiAwLAogICAgImhlaWdodCI6IDAKICB9Cn0="
+                    },
+                    {
+                      "name": "clean-hidden",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/attachments/clean-hidden-6edbd2d23cc30bc0b2c72e2396012d749f484809.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e7e3b37fbb022ea4b11a-21f2e914b427b539e1ea",
+          "file": "embed-data-state.spec.ts",
+          "line": 168,
+          "column": 5
+        }
+      ],
+      "suites": [
+        {
+          "title": "daily data en",
+          "file": "embed-data-state.spec.ts",
+          "line": 60,
+          "column": 8,
+          "specs": [
+            {
+              "title": "dates the displayed bar and keeps attribution clear of the time axis",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2417,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:24:10.828Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "en-ready",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-daily-dat-827ef-tion-clear-of-the-time-axis-desktop/attachments/en-ready-3da26418b18624dfb03662cec606e5c1498c64c2.png"
+                        },
+                        {
+                          "name": "geometry-en-ready",
+                          "contentType": "application/json",
+                          "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDE0NDAsCiAgICAiaGVpZ2h0IjogOTAwCiAgfSwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MCwKICAicm9vdFdpZHRoIjogMTQ0MCwKICAicm9vdFNjcm9sbFdpZHRoIjogMTQ0MCwKICAicm9vdFNjcm9sbExlZnQiOiAwLAogICJjb2Fyc2VQb2ludGVyIjogZmFsc2UsCiAgImNoYXJ0IjogewogICAgInRvcCI6IDU0LjQzNzUsCiAgICAiYm90dG9tIjogODcwLAogICAgImhlaWdodCI6IDgxNS41NjI1CiAgfSwKICAiYXR0cmlidXRpb24iOiB7CiAgICAidG9wIjogODcyLAogICAgImJvdHRvbSI6IDg5NiwKICAgICJsZWZ0IjogMTAsCiAgICAicmlnaHQiOiAxMzguNTMxMjUsCiAgICAiaGVpZ2h0IjogMjQKICB9LAogICJkYXRlIjogewogICAgImxlZnQiOiAxMiwKICAgICJyaWdodCI6IDk4NC41MzEyNSwKICAgICJoZWlnaHQiOiAxNC42ODc1CiAgfQp9"
+                        },
+                        {
+                          "name": "en-attribution-focus",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-daily-dat-827ef-tion-clear-of-the-time-axis-desktop/attachments/en-attribution-focus-047fed426fa23d1f83b9d89b0d21544610b279ca.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-fc2c0b8f71e766102351",
+              "file": "embed-data-state.spec.ts",
+              "line": 69,
+              "column": 9
+            },
+            {
+              "title": "keeps confirmed absence distinct and stops loading indicators",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1842,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:24:12.118Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "en-empty",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-daily-dat-eb4a9-nd-stops-loading-indicators-desktop/attachments/en-empty-4fc70006e08021001941152c15c4ac942725883c.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-00bcfc0583697d5bb039",
+              "file": "embed-data-state.spec.ts",
+              "line": 123,
+              "column": 9
+            },
+            {
+              "title": "reports unavailable data without claiming the symbol has no history",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 5511,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:24:13.268Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "en-unavailable",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-daily-dat-567bf-g-the-symbol-has-no-history-desktop/attachments/en-unavailable-05be4d630476cba86b82ac3653120fb1ea5047d2.png"
+                        },
+                        {
+                          "name": "outcomes",
+                          "contentType": "application/json",
+                          "body": "eyJjYXNlcyI6WyI1MDMiLCJuZXR3b3JrIiwianNvbiIsImVudmVsb3BlIiwiYmFycyIsIm9obGMiLCJkYXRlIiwiZHVwbGljYXRlIl0sImVycm9ycyI6W119"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-649b76fdb37416fcb090",
+              "file": "embed-data-state.spec.ts",
+              "line": 138,
+              "column": 9
+            },
+            {
+              "title": "dates the displayed bar and keeps attribution clear of the time axis",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2517,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:24:27.032Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "en-ready",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-daily-dat-827ef-tion-clear-of-the-time-axis-tablet/attachments/en-ready-6a23b78b3dd7377aa10d2a278a49ea54fc1a2ffb.png"
+                        },
+                        {
+                          "name": "geometry-en-ready",
+                          "contentType": "application/json",
+                          "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDgyMCwKICAgICJoZWlnaHQiOiAxMTgwCiAgfSwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAsCiAgInJvb3RXaWR0aCI6IDgyMCwKICAicm9vdFNjcm9sbFdpZHRoIjogODIwLAogICJyb290U2Nyb2xsTGVmdCI6IDAsCiAgImNvYXJzZVBvaW50ZXIiOiB0cnVlLAogICJjaGFydCI6IHsKICAgICJ0b3AiOiA4OC4zNzUsCiAgICAiYm90dG9tIjogMTEzMCwKICAgICJoZWlnaHQiOiAxMDQxLjYyNQogIH0sCiAgImF0dHJpYnV0aW9uIjogewogICAgInRvcCI6IDExMzIsCiAgICAiYm90dG9tIjogMTE3NiwKICAgICJsZWZ0IjogMTAsCiAgICAicmlnaHQiOiAxMzguNTMxMjUsCiAgICAiaGVpZ2h0IjogNDQKICB9LAogICJkYXRlIjogewogICAgImxlZnQiOiAxMiwKICAgICJyaWdodCI6IDgwOCwKICAgICJoZWlnaHQiOiAxNC42ODc1CiAgfQp9"
+                        },
+                        {
+                          "name": "en-attribution-focus",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-daily-dat-827ef-tion-clear-of-the-time-axis-tablet/attachments/en-attribution-focus-6167c922a6eafeedeccbd094c0220acb35b8a942.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-f2809988fff801a1e855",
+              "file": "embed-data-state.spec.ts",
+              "line": 69,
+              "column": 9
+            },
+            {
+              "title": "keeps confirmed absence distinct and stops loading indicators",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2207,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:24:29.167Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "en-empty",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-daily-dat-eb4a9-nd-stops-loading-indicators-tablet/attachments/en-empty-c37e8cee1be687405845de655b530c8ebbb109fe.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-39176e9c0850354d7852",
+              "file": "embed-data-state.spec.ts",
+              "line": 123,
+              "column": 9
+            },
+            {
+              "title": "reports unavailable data without claiming the symbol has no history",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 7297,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:24:29.571Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "en-unavailable",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-daily-dat-567bf-g-the-symbol-has-no-history-tablet/attachments/en-unavailable-76cac5c8623f63e31d197fc4e100a28dfa90bde3.png"
+                        },
+                        {
+                          "name": "outcomes",
+                          "contentType": "application/json",
+                          "body": "eyJjYXNlcyI6WyI1MDMiLCJuZXR3b3JrIiwianNvbiIsImVudmVsb3BlIiwiYmFycyIsIm9obGMiLCJkYXRlIiwiZHVwbGljYXRlIl0sImVycm9ycyI6W119"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-a911218966ffde8f4c25",
+              "file": "embed-data-state.spec.ts",
+              "line": 138,
+              "column": 9
+            },
+            {
+              "title": "dates the displayed bar and keeps attribution clear of the time axis",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2532,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:24:46.729Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "en-ready",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-daily-dat-827ef-tion-clear-of-the-time-axis-mobile/attachments/en-ready-ccc9c8dc5fcf2bf33002c0e0b3114af6e491d18c.png"
+                        },
+                        {
+                          "name": "geometry-en-ready",
+                          "contentType": "application/json",
+                          "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDM5MCwKICAgICJoZWlnaHQiOiA4NDQKICB9LAogICJkb2N1bWVudFdpZHRoIjogMzkwLAogICJzY3JvbGxXaWR0aCI6IDM5MCwKICAicm9vdFdpZHRoIjogMzkwLAogICJyb290U2Nyb2xsV2lkdGgiOiAzOTAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IHRydWUsCiAgImNoYXJ0IjogewogICAgInRvcCI6IDExMi4xNDA2MjUsCiAgICAiYm90dG9tIjogNzk0LAogICAgImhlaWdodCI6IDY4MS44NTkzNzUKICB9LAogICJhdHRyaWJ1dGlvbiI6IHsKICAgICJ0b3AiOiA3OTYsCiAgICAiYm90dG9tIjogODQwLAogICAgImxlZnQiOiAxMCwKICAgICJyaWdodCI6IDEzOC41MzEyNSwKICAgICJoZWlnaHQiOiA0NAogIH0sCiAgImRhdGUiOiB7CiAgICAibGVmdCI6IDEwLAogICAgInJpZ2h0IjogMzgwLAogICAgImhlaWdodCI6IDE0LjY4NzUKICB9Cn0="
+                        },
+                        {
+                          "name": "en-attribution-focus",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-daily-dat-827ef-tion-clear-of-the-time-axis-mobile/attachments/en-attribution-focus-7d56743cfe94a7a2db93bfd73052c4b355b96620.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-adfccddf44b864fee95d",
+              "file": "embed-data-state.spec.ts",
+              "line": 69,
+              "column": 9
+            },
+            {
+              "title": "keeps confirmed absence distinct and stops loading indicators",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1877,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:24:49.286Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "en-empty",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-daily-dat-eb4a9-nd-stops-loading-indicators-mobile/attachments/en-empty-1ec46050ea0f474ff2f7cb374ee19ae4002d2c43.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-84ba4a060e48bd43707b",
+              "file": "embed-data-state.spec.ts",
+              "line": 123,
+              "column": 9
+            },
+            {
+              "title": "reports unavailable data without claiming the symbol has no history",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 5212,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:24:49.590Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "en-unavailable",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-daily-dat-567bf-g-the-symbol-has-no-history-mobile/attachments/en-unavailable-aed51feaf68569516d1b64d896b4b272eb48622b.png"
+                        },
+                        {
+                          "name": "outcomes",
+                          "contentType": "application/json",
+                          "body": "eyJjYXNlcyI6WyI1MDMiLCJuZXR3b3JrIiwianNvbiIsImVudmVsb3BlIiwiYmFycyIsIm9obGMiLCJkYXRlIiwiZHVwbGljYXRlIl0sImVycm9ycyI6W119"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-4ecec612c1699ce373ff",
+              "file": "embed-data-state.spec.ts",
+              "line": 138,
+              "column": 9
+            }
+          ]
+        },
+        {
+          "title": "daily data zh",
+          "file": "embed-data-state.spec.ts",
+          "line": 60,
+          "column": 8,
+          "specs": [
+            {
+              "title": "dates the displayed bar and keeps attribution clear of the time axis",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1627,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:24:13.975Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "zh-ready",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-daily-dat-473d1-tion-clear-of-the-time-axis-desktop/attachments/zh-ready-23aafcd119faf59b8c160d94eba6245cda9e1685.png"
+                        },
+                        {
+                          "name": "geometry-zh-ready",
+                          "contentType": "application/json",
+                          "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDE0NDAsCiAgICAiaGVpZ2h0IjogOTAwCiAgfSwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MCwKICAicm9vdFdpZHRoIjogMTQ0MCwKICAicm9vdFNjcm9sbFdpZHRoIjogMTQ0MCwKICAicm9vdFNjcm9sbExlZnQiOiAwLAogICJjb2Fyc2VQb2ludGVyIjogZmFsc2UsCiAgImNoYXJ0IjogewogICAgInRvcCI6IDU0LjQzNzUsCiAgICAiYm90dG9tIjogODcwLAogICAgImhlaWdodCI6IDgxNS41NjI1CiAgfSwKICAiYXR0cmlidXRpb24iOiB7CiAgICAidG9wIjogODcyLAogICAgImJvdHRvbSI6IDg5NiwKICAgICJsZWZ0IjogMTAsCiAgICAicmlnaHQiOiAxMzguNTMxMjUsCiAgICAiaGVpZ2h0IjogMjQKICB9LAogICJkYXRlIjogewogICAgImxlZnQiOiAxMiwKICAgICJyaWdodCI6IDk4NC41MzEyNSwKICAgICJoZWlnaHQiOiAxNC42ODc1CiAgfQp9"
+                        },
+                        {
+                          "name": "zh-attribution-focus",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-daily-dat-473d1-tion-clear-of-the-time-axis-desktop/attachments/zh-attribution-focus-921638abc3340bf8e20136395b32dac04b932c88.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-8d780b0d3296badf2a87",
+              "file": "embed-data-state.spec.ts",
+              "line": 69,
+              "column": 9
+            },
+            {
+              "title": "keeps confirmed absence distinct and stops loading indicators",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1709,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:24:15.633Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "zh-empty",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-daily-dat-125c5-nd-stops-loading-indicators-desktop/attachments/zh-empty-c2f6e521b6c39def8f43900eda54bce1722524d4.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-0651daacca04213fb834",
+              "file": "embed-data-state.spec.ts",
+              "line": 123,
+              "column": 9
+            },
+            {
+              "title": "reports unavailable data without claiming the symbol has no history",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5180,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:24:17.361Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "zh-unavailable",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-daily-dat-04420-g-the-symbol-has-no-history-desktop/attachments/zh-unavailable-9f3854d1ea9c237483ffb2f561f59020aa7e4ed3.png"
+                        },
+                        {
+                          "name": "outcomes",
+                          "contentType": "application/json",
+                          "body": "eyJjYXNlcyI6WyI1MDMiLCJuZXR3b3JrIiwianNvbiIsImVudmVsb3BlIiwiYmFycyIsIm9obGMiLCJkYXRlIiwiZHVwbGljYXRlIl0sImVycm9ycyI6W119"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-beb1a1b684a4ddfec3c6",
+              "file": "embed-data-state.spec.ts",
+              "line": 138,
+              "column": 9
+            },
+            {
+              "title": "dates the displayed bar and keeps attribution clear of the time axis",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2832,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:24:31.408Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "zh-ready",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-daily-dat-473d1-tion-clear-of-the-time-axis-tablet/attachments/zh-ready-3a734c5050f89f057df1e16b4beaa5f941b2a7bb.png"
+                        },
+                        {
+                          "name": "geometry-zh-ready",
+                          "contentType": "application/json",
+                          "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDgyMCwKICAgICJoZWlnaHQiOiAxMTgwCiAgfSwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAsCiAgInJvb3RXaWR0aCI6IDgyMCwKICAicm9vdFNjcm9sbFdpZHRoIjogODIwLAogICJyb290U2Nyb2xsTGVmdCI6IDAsCiAgImNvYXJzZVBvaW50ZXIiOiB0cnVlLAogICJjaGFydCI6IHsKICAgICJ0b3AiOiA1NC40Mzc1LAogICAgImJvdHRvbSI6IDExMzAsCiAgICAiaGVpZ2h0IjogMTA3NS41NjI1CiAgfSwKICAiYXR0cmlidXRpb24iOiB7CiAgICAidG9wIjogMTEzMiwKICAgICJib3R0b20iOiAxMTc2LAogICAgImxlZnQiOiAxMCwKICAgICJyaWdodCI6IDEzOC41MzEyNSwKICAgICJoZWlnaHQiOiA0NAogIH0sCiAgImRhdGUiOiB7CiAgICAibGVmdCI6IDEyLAogICAgInJpZ2h0IjogMzY0LjUzMTI1LAogICAgImhlaWdodCI6IDE0LjY4NzUKICB9Cn0="
+                        },
+                        {
+                          "name": "zh-attribution-focus",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-daily-dat-473d1-tion-clear-of-the-time-axis-tablet/attachments/zh-attribution-focus-c08e5ce24b09d091c31a7eebd1b9fddcfda6f341.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-08e9f87b2f5942f5898e",
+              "file": "embed-data-state.spec.ts",
+              "line": 69,
+              "column": 9
+            },
+            {
+              "title": "keeps confirmed absence distinct and stops loading indicators",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1794,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:24:34.267Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "zh-empty",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-daily-dat-125c5-nd-stops-loading-indicators-tablet/attachments/zh-empty-1816f6730e6942483d24a636c3baf8508ee794e4.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-7566e5c7e4841ae3c0dc",
+              "file": "embed-data-state.spec.ts",
+              "line": 123,
+              "column": 9
+            },
+            {
+              "title": "reports unavailable data without claiming the symbol has no history",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5930,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:24:36.082Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "zh-unavailable",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-daily-dat-04420-g-the-symbol-has-no-history-tablet/attachments/zh-unavailable-330c366e1099f19794d7a6fad185230b469d96fc.png"
+                        },
+                        {
+                          "name": "outcomes",
+                          "contentType": "application/json",
+                          "body": "eyJjYXNlcyI6WyI1MDMiLCJuZXR3b3JrIiwianNvbiIsImVudmVsb3BlIiwiYmFycyIsIm9obGMiLCJkYXRlIiwiZHVwbGljYXRlIl0sImVycm9ycyI6W119"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-761d4ce599e022a03ccc",
+              "file": "embed-data-state.spec.ts",
+              "line": 138,
+              "column": 9
+            },
+            {
+              "title": "dates the displayed bar and keeps attribution clear of the time axis",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2125,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:24:51.186Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "zh-ready",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-daily-dat-473d1-tion-clear-of-the-time-axis-mobile/attachments/zh-ready-77ebbaf6b8b207ee36d7f524826b1ee2e6fac1e8.png"
+                        },
+                        {
+                          "name": "geometry-zh-ready",
+                          "contentType": "application/json",
+                          "body": "ewogICJ2aWV3cG9ydCI6IHsKICAgICJ3aWR0aCI6IDM5MCwKICAgICJoZWlnaHQiOiA4NDQKICB9LAogICJkb2N1bWVudFdpZHRoIjogMzkwLAogICJzY3JvbGxXaWR0aCI6IDM5MCwKICAicm9vdFdpZHRoIjogMzkwLAogICJyb290U2Nyb2xsV2lkdGgiOiAzOTAsCiAgInJvb3RTY3JvbGxMZWZ0IjogMCwKICAiY29hcnNlUG9pbnRlciI6IHRydWUsCiAgImNoYXJ0IjogewogICAgInRvcCI6IDExMi4xNDA2MjUsCiAgICAiYm90dG9tIjogNzk0LAogICAgImhlaWdodCI6IDY4MS44NTkzNzUKICB9LAogICJhdHRyaWJ1dGlvbiI6IHsKICAgICJ0b3AiOiA3OTYsCiAgICAiYm90dG9tIjogODQwLAogICAgImxlZnQiOiAxMCwKICAgICJyaWdodCI6IDEzOC41MzEyNSwKICAgICJoZWlnaHQiOiA0NAogIH0sCiAgImRhdGUiOiB7CiAgICAibGVmdCI6IDEwLAogICAgInJpZ2h0IjogMzgwLAogICAgImhlaWdodCI6IDE0LjY4NzUKICB9Cn0="
+                        },
+                        {
+                          "name": "zh-attribution-focus",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-daily-dat-473d1-tion-clear-of-the-time-axis-mobile/attachments/zh-attribution-focus-7ca0efc32e6dc07b023003cb2a73bd631c1266f9.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-486f432011ce9d3eb8d0",
+              "file": "embed-data-state.spec.ts",
+              "line": 69,
+              "column": 9
+            },
+            {
+              "title": "keeps confirmed absence distinct and stops loading indicators",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1540,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:24:53.329Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "zh-empty",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-daily-dat-125c5-nd-stops-loading-indicators-mobile/attachments/zh-empty-680b28d036db066d25ded5f1420028ee0d82539d.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-9a2c19b5b25df7db115f",
+              "file": "embed-data-state.spec.ts",
+              "line": 123,
+              "column": 9
+            },
+            {
+              "title": "reports unavailable data without claiming the symbol has no history",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 6243,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-04T07:24:54.817Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "zh-unavailable",
+                          "contentType": "image/png",
+                          "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/d06-embed-data-final/results/embed-data-state-daily-dat-04420-g-the-symbol-has-no-history-mobile/attachments/zh-unavailable-fb7229489d7eeeadc2f746eaebf41c2bbcf28637.png"
+                        },
+                        {
+                          "name": "outcomes",
+                          "contentType": "application/json",
+                          "body": "eyJjYXNlcyI6WyI1MDMiLCJuZXR3b3JrIiwianNvbiIsImVudmVsb3BlIiwiYmFycyIsIm9obGMiLCJkYXRlIiwiZHVwbGljYXRlIl0sImVycm9ycyI6W119"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e7e3b37fbb022ea4b11a-7ef5aa8fae30b8bf253a",
+              "file": "embed-data-state.spec.ts",
+              "line": 138,
+              "column": 9
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-04T07:23:49.823Z",
+    "duration": 71458.092,
+    "expected": 39,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

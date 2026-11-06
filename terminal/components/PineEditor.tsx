@@ -1,10 +1,13 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLang, useT } from "@/lib/i18n";
 import { useRouter, useSearchParams } from "next/navigation";
 import { type Bar, type PineError } from "@/lib/pine-engine";
 import { createPineHost, type PineHost } from "@/lib/pine-engine/host";
-import { parseExpectedUpdatedAtMs } from "@/lib/savedScriptStamp";
+import { compareExpectedUpdatedAt } from "@/lib/savedScriptStamp";
+import { classifyScriptReadback, parseScriptVersion, sameScriptContent, scriptParamsEqual, verifyScriptSaveReceipt, type ConfirmedScriptSave, type ScriptSaveAttempt, type ScriptVersion } from "@/lib/scriptSaveOutcome";
+import { scriptEditorCopy } from "@/lib/scriptEditorCopy";
+import { useDialogFocus } from "@/components/studyTemplates/useDialogFocus";
 
 type Script = { id: string; name: string; source: string; lang: string; params: Record<string, any>; updated_at: string; locked?: boolean };
 
@@ -46,7 +49,7 @@ const SYNTH_BARS: Bar[] = (() => {
   return out;
 })();
 
-type Diag = { errors: PineError[]; warnings: string[] };
+type Diag = { errors: PineError[]; warnings: string[]; cancelled?: boolean };
 
 // The "edited <date>" stamp in the script list. A bare `toLocaleDateString()` resolves against the
 // SERVER's locale and timezone during SSR and the BROWSER's on hydration, so the two rendered
@@ -68,10 +71,10 @@ export function editedOn(iso: string, lang: "en" | "zh" = "en"): string {
 // wall budget preempts a runaway. SSR/no-Worker falls back to a synchronous host transparently.
 async function diagnose(host: PineHost, src: string, params: Record<string, any>): Promise<Diag> {
   const c = await host.compile(src);
-  if (c.cancelled) return { errors: [], warnings: [] };
+  if (c.cancelled) return { errors: [], warnings: [], cancelled: true };
   if (!c.ok) return { errors: c.errors, warnings: [] };
   const r = await host.run({ slot: DIAG_SLOT, source: src, astId: c.astId ?? undefined, bars: SYNTH_BARS, inputs: params, opts: { timeframe: "1D", symbol: "SYNTH" }, budgetMs: 1000 });
-  if (r.cancelled) return { errors: [], warnings: [] };
+  if (r.cancelled) return { errors: [], warnings: [], cancelled: true };
   return { errors: r.ok ? [] : r.errors, warnings: r.result?.warnings ?? [] };
 }
 const DIAG_SLOT = "@diag";   // shared supersession slot for editor diagnostics (compile + dry-run)
@@ -90,6 +93,7 @@ const COL_W = 12.5 * 0.6;          // px per mono char (JetBrains Mono advance �
 export default function PineEditor({ scripts, isPro, email, libraryUnavailable = false }: { scripts: Script[]; isPro: boolean; email: string; libraryUnavailable?: boolean }) {
   const t = useT();
   const { lang } = useLang();
+  const copy = scriptEditorCopy(lang);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -130,21 +134,58 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
   const [params, setParams] = useState<Record<string, any>>(active?.params || {});
   const srcRef = useRef(src);
   const paramsRef = useRef(params);
-  srcRef.current = src;
-  paramsRef.current = params;
-  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "compiling" | "err">("idle");
+  useLayoutEffect(() => { srcRef.current = src; paramsRef.current = params; }, [src, params]);
+
+  type SaveKind = "saving" | "saved" | "loaded" | "kept" | "matched" | "unknown" | "conflict" | "auth" | "denied" | "rejected" | "checking" | "unresolved" | "missing" | "invalid" | "unavailable" | "different";
+  type SaveState = { kind: SaveKind; attempt: ScriptSaveAttempt; fenced: boolean; version?: ScriptVersion };
+  const [saveStates, setSaveStates] = useState<Record<string, SaveState>>({});
+  const saveStatesRef = useRef(saveStates);
+  const saveSequenceRef = useRef(0);
+  const mountedRef = useRef(true);
+  const navigationRef = useRef(0);
+  const navigationBusyRef = useRef(false);
+  const activeRef = useRef(active);
+  const libraryRef = useRef(library);
+  useLayoutEffect(() => { activeRef.current = active; libraryRef.current = library; }, [active, library]);
+  const [replaceConfirmation, setReplaceConfirmation] = useState<{ id: string; sequence: number; revision: string; source: string; params: Record<string, unknown> } | null>(null);
+  const [libraryStatus, setLibraryStatus] = useState<"ready" | "unavailable" | "loading">(libraryUnavailable ? "unavailable" : "ready");
+  const libraryReadRef = useRef(false);
+  function publishSave(id: string, value: SaveState) {
+    if (!mountedRef.current) return;
+    saveStatesRef.current = { ...saveStatesRef.current, [id]: value };
+    setSaveStates(saveStatesRef.current);
+  }
+  const invalidateNavigation = useCallback((clearReplacement = true) => {
+    navigationRef.current += 1;
+    navigationBusyRef.current = false;
+    if (clearReplacement) setReplaceConfirmation(null);
+  }, []);
+  function adoptVersion(version: ScriptVersion) {
+    // A late read/receipt cannot move a verified baseline backward.
+    const current = libraryRef.current.find((row) => row.id === version.id);
+    if (current && (compareExpectedUpdatedAt(version.updated_at, current.updated_at) ?? -1) < 0) return false;
+    setLibrary((previous) => previous.map((row) => row.id === version.id ? { ...row, ...version } : row));
+    libraryRef.current = libraryRef.current.map((row) => row.id === version.id ? { ...row, ...version } : row);
+    return true;
+  }
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; navigationRef.current += 1; };
+  }, []);
+
   const [picker, setPicker] = useState(false);
   // D3a: the script a pending switch wants to reach, while the current buffer is dirty. Null = no
   // decision outstanding. The switch does not happen until the user makes one. Keyed by script ID
   // so a list reorder while the dialog is open cannot retarget the switch onto a different row.
   const [pendingTargetId, setPendingTargetId] = useState<string | null>(null);
   const pendingTargetIdRef = useRef<string | null>(null);
-  pendingTargetIdRef.current = pendingTargetId;
+  useLayoutEffect(() => { pendingTargetIdRef.current = pendingTargetId; }, [pendingTargetId]);
   const [switchErr, setSwitchErr] = useState("");
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const pickerTriggerRef = useRef<HTMLButtonElement>(null);
   // One in-flight save per script ID. A second click (or save-and-switch) joins the same request
   // rather than racing two CAS tokens against the same row.
-  const saveInflightRef = useRef<Map<string, Promise<string | null>>>(new Map());
+  const saveInflightRef = useRef<Map<string, Promise<ConfirmedScriptSave | null>>>(new Map());
   // A local selection changes `active` before the passive buffer-reset and URL-mirroring effects
   // settle. useSearchParams can therefore deliver the editor's own PREVIOUS mirrored id during
   // that transition. Suppress exactly that one stale echo; real later history changes still route
@@ -160,120 +201,175 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
   // the selected script ID, never on the library's contents or array index — so a save, which
   // rewrites the active row in `library`, or a server-list reorder of the same identities, does
   // not reset the buffer the user is still typing in.
-  useEffect(() => { setSrc(active?.source || ""); setParams(active?.params || {}); setStatus("idle"); setPicker(false); setBufferReady(true); }, [selectedId]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setSrc(active?.source || ""); setParams(active?.params || {}); setPicker(false); setBufferReady(true); }, [selectedId]); // eslint-disable-line react-hooks/exhaustive-deps
   // close the script picker on any outside click
   useEffect(() => { if (!picker) return; const close = () => setPicker(false); window.addEventListener("click", close); return () => window.removeEventListener("click", close); }, [picker]);
 
   const lines = useMemo(() => src.split("\n"), [src]);   // mirror the textarea 1:1 (incl. a trailing empty line)
   const inputs = Object.entries(params);
   const isLocked = !!active?.locked;   // proprietary indicator — viewable + runnable, never editable
-  const dirty = !isLocked && !!active && (src !== active.source || JSON.stringify(params) !== JSON.stringify(active.params));
+  const dirty = !isLocked && !!active && (src !== active.source || !scriptParamsEqual(params, active.params));
 
-  // Real compile diagnostics via the Pine engine (parse errors + dry-run runtime warnings, see
-  // diagnose() above), debounced ~300ms so we don't re-run on every keystroke.
-  const [diag, setDiag] = useState<PineError[]>([]);
-  const [warns, setWarns] = useState<string[]>([]);
-  useEffect(() => {
-    let alive = true;
-    const id = window.setTimeout(() => {
-      const host = hostRef.current; if (!host) return;
-      diagnose(host, src, params).then((d) => { if (alive) { setDiag(d.errors); setWarns(d.warnings); } });
-    }, 300);
-    return () => { alive = false; window.clearTimeout(id); };
-  }, [src, params]);
-  const hasErrors = diag.length > 0;
-  // First parse error, mapped to its 1-based line so the gutter/code layers can decorate it.
-  const errAt = diag.find((e) => e.phase === "parse" && e.line > 0) ?? (diag[0]?.line ? diag[0] : null);
-  const errLine = errAt?.line ?? 0;
 
-  // Run/compile button: kick an immediate (non-debounced) recompile with brief "Compiling…" feedback.
-  function compile() {
+  // A result belongs to the exact script/source/inputs that were checked. Editing
+  // invalidates the visible success immediately, before the debounce starts.
+  type Diagnostic = { input: string; kind: "running" | "done" | "cancelled" | "failed"; errors: PineError[]; warnings: string[] };
+  const [diagnosticRevision, setDiagnosticRevision] = useState(0);
+  const diagnosticInput = JSON.stringify([active?.id, src, params, diagnosticRevision]);
+  const diagnosticInputRef = useRef(diagnosticInput);
+  useLayoutEffect(() => { diagnosticInputRef.current = diagnosticInput; }, [diagnosticInput]);
+  const diagnosticGenerationRef = useRef(0);
+  const diagnosticTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [diagnostic, setDiagnostic] = useState<Diagnostic | null>(null);
+  const diagnosticRef = useRef(diagnostic);
+  useLayoutEffect(() => { diagnosticRef.current = diagnostic; }, [diagnostic]);
+  const invalidateDiagnostics = useCallback(() => {
+    diagnosticGenerationRef.current += 1;
+    setDiagnosticRevision((value) => value + 1);
+    diagnosticRef.current = null; setDiagnostic(null);
+  }, []);
+  const startDiagnostics = useCallback(() => {
+    // A check cancels pending navigation, but does not change the revision or
+    // editor contents covered by an explicit replacement confirmation.
+    invalidateNavigation(false);
+    if (diagnosticTimerRef.current !== null) clearTimeout(diagnosticTimerRef.current);
+    diagnosticTimerRef.current = null;
     const host = hostRef.current; if (!host) return;
-    setStatus("compiling");
-    diagnose(host, src, params).then((d) => { setDiag(d.errors); setWarns(d.warnings); window.setTimeout(() => setStatus("idle"), 300); });
+    const generation = ++diagnosticGenerationRef.current;
+    const input = diagnosticInput;
+    diagnosticRef.current = { input, kind: "running", errors: [], warnings: [] };
+    setDiagnostic(diagnosticRef.current);
+    diagnose(host, src, params).then((result) => {
+      if (!mountedRef.current || generation !== diagnosticGenerationRef.current || input !== diagnosticInputRef.current) return;
+      diagnosticRef.current = { input, kind: result.cancelled ? "cancelled" : "done", errors: result.errors, warnings: result.warnings };
+      setDiagnostic(diagnosticRef.current);
+    }).catch(() => {
+      if (mountedRef.current && generation === diagnosticGenerationRef.current && input === diagnosticInputRef.current) {
+        diagnosticRef.current = { input, kind: "failed", errors: [], warnings: [] }; setDiagnostic(diagnosticRef.current);
+      }
+    });
+  }, [diagnosticInput, src, params, invalidateNavigation]);
+  useEffect(() => {
+    diagnosticTimerRef.current = setTimeout(startDiagnostics, 300);
+    return () => {
+      if (diagnosticTimerRef.current !== null) clearTimeout(diagnosticTimerRef.current);
+      diagnosticGenerationRef.current += 1;
+    };
+  }, [startDiagnostics]);
+  const diagnosticsCurrent = diagnostic?.input === diagnosticInput;
+  const diagnosticsReady = diagnosticsCurrent && diagnostic?.kind === "done";
+  const diag = diagnosticsReady ? diagnostic.errors : [];
+  const warns = diagnosticsReady ? diagnostic.warnings : [];
+  const hasErrors = diag.length > 0;
+  const errAt = diag.find((error) => error.phase === "parse" && error.line > 0) ?? (diag[0]?.line ? diag[0] : null);
+  const errLine = errAt?.line ?? 0;
+  const compile = startDiagnostics;
+
+  async function save(): Promise<ConfirmedScriptSave | null> {
+    const current = activeRef.current;
+    if (!isPro || !current || current.locked) return null;
+    const existing = saveInflightRef.current.get(current.id);
+    if (existing) return existing;
+    if (saveStatesRef.current[current.id]?.fenced) return null;
+    const attempt: ScriptSaveAttempt = {
+      sequence: ++saveSequenceRef.current, id: current.id, name: current.name,
+      source: srcRef.current, params: paramsRef.current, expected_updated_at: current.updated_at,
+    };
+    const run = (async (): Promise<ConfirmedScriptSave | null> => {
+      publishSave(attempt.id, { kind: "saving", attempt, fenced: false });
+      let response: Response | null = null;
+      try {
+        response = await fetch("/api/scripts/save", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: attempt.id, name: attempt.name, source: attempt.source,
+            params: attempt.params, expected_updated_at: attempt.expected_updated_at }),
+        });
+      } catch { /* The request may have reached the server. Read back; never repeat it here. */ }
+      if (!mountedRef.current) return null;
+      if (!response?.ok) {
+        const kind: SaveKind = response?.status === 409 ? "conflict" : response?.status === 401 ? "auth"
+          : response?.status === 403 ? "denied" : response?.status === 400 ? "rejected" : "unknown";
+        publishSave(attempt.id, { kind, attempt, fenced: kind === "conflict" || kind === "unknown" });
+        return null;
+      }
+      let receipt: ConfirmedScriptSave | null = null;
+      try { receipt = verifyScriptSaveReceipt(await response.json(), attempt); } catch { /* unconfirmed */ }
+      if (!mountedRef.current) return null;
+      if (!receipt || !adoptVersion(receipt.version)) {
+        publishSave(attempt.id, { kind: "unknown", attempt, fenced: true }); return null;
+      }
+      publishSave(attempt.id, { kind: "saved", attempt, fenced: false, version: receipt.version });
+      return receipt;
+    })();
+    saveInflightRef.current.set(attempt.id, run);
+    try { return await run; }
+    finally { if (saveInflightRef.current.get(attempt.id) === run) saveInflightRef.current.delete(attempt.id); }
   }
 
-  // Save the current buffer. Returns the saved id (existing id on success, null on failure). Locked
-  // scripts and non-Pro users can't save — but the proprietary/locked script is still addable to the
-  // chart from its stable id (no save needed), handled in addToChart().
-  //
-  // The snapshot (id, source, params, expected_updated_at) is frozen at click time. The in-flight
-  // map is per script ID, so a reorder or a later selection cannot redirect this write, and a
-  // second click joins the same request. A receipt older than what the user typed must not mark
-  // the buffer clean: the library baseline moves to the snapshot + actual `updated_at`, and the
-  // live buffer stays dirty against that baseline.
-  async function save(): Promise<string | null> {
-    if (!isPro || !active || isLocked) return null;
-    const captured = {
-      id: active.id,
-      name: active.name,
-      source: src,
-      params,
-      expected_updated_at: active.updated_at,
-    };
-    const existing = saveInflightRef.current.get(captured.id);
-    if (existing) return existing;
-
-    const run = (async (): Promise<string | null> => {
-      setStatus("saving");
-      const r = await fetch("/api/scripts/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: captured.id,
-          name: captured.name,
-          source: captured.source,
-          params: captured.params,
-          expected_updated_at: captured.expected_updated_at,
-        }),
-      }).catch(() => null);
-      const ok = !!(r && r.ok);
-      if (!ok) {
-        setStatus("err");
-        setTimeout(() => setStatus("idle"), 2200);
-        return null;
-      }
-      let receiptId: string | null = null;
-      let receiptAt: string | null = null;
-      try {
-        const d = await r!.json();
-        if (typeof d?.id === "string" && d.id) receiptId = d.id;
-        if (typeof d?.updated_at === "string" && d.updated_at && parseExpectedUpdatedAtMs(d.updated_at) != null) {
-          receiptAt = d.updated_at;
-        }
-      } catch { /* malformed body is an unverified save */ }
-      // HTTP 200 is not enough: missing/malformed/wrong-id receipts must not invent a saved
-      // baseline, a clean buffer, or a CAS token. Keep the captured id/token and stay dirty.
-      if (!receiptId || receiptId !== captured.id || receiptAt == null) {
-        setStatus("err");
-        setTimeout(() => setStatus("idle"), 2200);
-        return null;
-      }
-      // D3b: the write landed, so make it the editor's stored baseline. Without this the next script
-      // switch rehydrates from the pre-save server snapshot and a successful save reads as lost.
-      // The next save must send the actual row receipt as expected_updated_at — never a client-clock
-      // guess, and never a token invented when the body omitted updated_at.
-      setLibrary((prev) => prev.map((s) => (s.id === captured.id
-        ? { ...s, source: captured.source, params: captured.params, updated_at: receiptAt }
-        : s)));
-      const stillSnap =
-        srcRef.current === captured.source &&
-        JSON.stringify(paramsRef.current) === JSON.stringify(captured.params);
-      if (stillSnap) {
-        setStatus("saved");
-        setTimeout(() => setStatus("idle"), 2200);
-      } else {
-        setStatus("idle");
-      }
-      return receiptId;
-    })();
-
-    saveInflightRef.current.set(captured.id, run);
-    try {
-      return await run;
-    } finally {
-      saveInflightRef.current.delete(captured.id);
+  async function checkSavedVersion() {
+    const current = activeRef.current; if (!current) return;
+    const previous = saveStatesRef.current[current.id];
+    if (!previous?.fenced || previous.kind === "checking") return;
+    const { attempt } = previous;
+    setReplaceConfirmation(null);
+    publishSave(attempt.id, { ...previous, kind: "checking" });
+    let response: Response | null = null;
+    try { response = await fetch("/api/scripts/list", { cache: "no-store" }); } catch { /* leave the fence */ }
+    if (!mountedRef.current || saveStatesRef.current[attempt.id]?.attempt.sequence !== attempt.sequence) return;
+    if (!response?.ok) {
+      publishSave(attempt.id, { ...previous, kind: response?.status === 401 ? "auth" : "unavailable" }); return;
     }
+    let result: ReturnType<typeof classifyScriptReadback>;
+    try { result = classifyScriptReadback(await response.json(), attempt); } catch { result = { kind: "invalid" }; }
+    if (!mountedRef.current || saveStatesRef.current[attempt.id]?.attempt.sequence !== attempt.sequence) return;
+    if (result.kind === "matched") {
+      if (!adoptVersion(result.version)) { publishSave(attempt.id, { ...previous, kind: "invalid" }); return; }
+      publishSave(attempt.id, { kind: "matched", attempt, fenced: false, version: result.version });
+    } else if (result.kind === "different") {
+      publishSave(attempt.id, { kind: "different", attempt, fenced: true, version: result.version });
+    } else publishSave(attempt.id, { ...previous, kind: result.kind });
+    // Reconciliation never consumes a previous navigation intent.
+  }
+
+  function acceptSavedVersion(replaceBuffer: boolean) {
+    const current = activeRef.current; if (!current) return;
+    const state = saveStatesRef.current[current.id];
+    if (state?.kind !== "different" || !state.version) return;
+    if (replaceBuffer && (!replaceConfirmation || replaceConfirmation.id !== current.id
+      || replaceConfirmation.sequence !== state.attempt.sequence || replaceConfirmation.revision !== state.version.updated_at
+      || replaceConfirmation.source !== srcRef.current || !scriptParamsEqual(replaceConfirmation.params, paramsRef.current))) {
+      setReplaceConfirmation({ id: current.id, sequence: state.attempt.sequence, revision: state.version.updated_at, source: srcRef.current, params: paramsRef.current }); return;
+    }
+    if (!adoptVersion(state.version)) { publishSave(current.id, { ...state, kind: "invalid" }); return; }
+    invalidateNavigation();
+    if (replaceBuffer) {
+      if (srcRef.current !== state.version.source || !scriptParamsEqual(paramsRef.current, state.version.params)) invalidateDiagnostics();
+      srcRef.current = state.version.source; paramsRef.current = state.version.params;
+      setSrc(state.version.source); setParams(state.version.params);
+    }
+    publishSave(current.id, { ...state, kind: replaceBuffer ? "loaded" : "kept", fenced: false });
+  }
+
+  async function retryLibrary() {
+    if (libraryReadRef.current) return;
+    libraryReadRef.current = true; setLibraryStatus("loading");
+    try {
+      const response = await fetch("/api/scripts/list", { cache: "no-store" });
+      if (!response.ok) throw new Error("unavailable");
+      const body = await response.json();
+      if (!Array.isArray(body?.scripts)) throw new Error("invalid");
+      const rows = body.scripts.map((row: unknown) => parseScriptVersion(row));
+      if (rows.some((row: ScriptVersion | null) => !row) || new Set(rows.map((row: ScriptVersion) => row.id)).size !== rows.length) throw new Error("invalid");
+      if (!mountedRef.current) return;
+      // Keep existing editor baselines/buffers. Explicit save reconciliation alone
+      // can replace a held row; the library retry only recovers previously absent rows.
+      setLibrary((previous) => {
+        const known = new Set(previous.map((row) => row.id));
+        return [...previous, ...rows.filter((row: ScriptVersion) => !known.has(row.id)).map((row: ScriptVersion) => ({ ...row, lang: "pine" }))];
+      });
+      setLibraryStatus("ready");
+    } catch { if (mountedRef.current) setLibraryStatus("unavailable"); }
+    finally { libraryReadRef.current = false; }
   }
 
   // ── D4: the visible script and the ?id= deep link are one identity ──
@@ -295,13 +391,14 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
   // target script, so edits to the script being left simply vanished. Every entry point (side list,
   // header picker, an external ?id= change) goes through here.
   const commitSelect = useCallback((id: string) => {
+    invalidateNavigation(); invalidateDiagnostics();
     staleMirroredIdRef.current = active?.id || null;
     pendingTargetIdRef.current = null;
     setPendingTargetId(null);
     setSwitchErr("");
     setPicker(false);
     setSelectedId(id);
-  }, [active?.id]);
+  }, [active?.id, invalidateNavigation, invalidateDiagnostics]);
 
   // The URL names whatever script is visible — from the FIRST paint, not only after a switch.
   // Arriving at bare `/scripts` used to leave the address bar silent about which script was open,
@@ -314,22 +411,25 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
   const requestSelect = useCallback((i: number) => {
     const target = library[i];
     if (!target || target.id === selectedId) { setPicker(false); return; }
-    if (dirty) { pendingTargetIdRef.current = target.id; setPendingTargetId(target.id); setSwitchErr(""); setPicker(false); return; }
+    if (dirty) { invalidateNavigation(); pendingTargetIdRef.current = target.id; setPendingTargetId(target.id); setSwitchErr(""); setPicker(false); return; }
     commitSelect(target.id);
-  }, [selectedId, library, dirty, commitSelect]);
+  }, [selectedId, library, dirty, commitSelect, invalidateNavigation]);
+
 
   async function saveAndSwitch() {
-    const targetId = pendingTargetIdRef.current;
-    if (targetId == null) return;
-    // Save the script whose buffer is captured now (the one on screen). After await, switch to the
-    // captured TARGET id — never the array index that was current when the dialog opened, which a
-    // server-list reorder would have pointed at a different row.
-    const savedId = await save();
-    // A Cancel (or retarget) while this save is in flight must not navigate away or drop newer
-    // dirty edits. The receipt is applied by save() itself when verified; staying put is required.
-    if (pendingTargetIdRef.current !== targetId) return;
-    // A failed save must not lose the edit and must not move: staying put IS the safe outcome.
-    if (!savedId) { setSwitchErr(t("peUnsavedSaveFailed").replace("{name}", active?.name || "")); return; }
+    const targetId = pendingTargetIdRef.current, current = activeRef.current;
+    if (!targetId || !current || navigationBusyRef.current) return;
+    const ticket = ++navigationRef.current;
+    navigationBusyRef.current = true;
+    const result = await save();
+    if (!mountedRef.current || ticket !== navigationRef.current || pendingTargetIdRef.current !== targetId || activeRef.current?.id !== current.id) return;
+    navigationBusyRef.current = false;
+    if (!result) { setSwitchErr(t("peUnsavedSaveFailed").replace("{name}", current.name)); return; }
+    if (!sameScriptContent(result.version, { name: activeRef.current.name, source: srcRef.current, params: paramsRef.current })) {
+      setSwitchErr(copy.changedDuringSave); return;
+    }
+    // Consume once; a cancelled/reopened dialog cannot revive an earlier promise.
+    navigationRef.current += 1;
     commitSelect(targetId);
   }
   function discardAndSwitch() {
@@ -337,6 +437,7 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
     commitSelect(pendingTargetIdRef.current);   // the switch effect rehydrates the buffers from the target script
   }
   function cancelSwitch() {
+    invalidateNavigation();
     pendingTargetIdRef.current = null;
     setPendingTargetId(null);
     setSwitchErr("");
@@ -361,14 +462,34 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
   // Disabled when the script has compile errors OR when the script is the locked/proprietary flagship:
   // that indicator lives only as a constant (never in saved_scripts / guest LS), so the terminal can't
   // resolve its id and would silently drop it from the chart — so we don't offer the action for it.
+
   async function addToChart() {
-    if (!active || hasErrors || isLocked) return;
-    let id = active.id;
-    if (dirty) { const saved = await save(); if (!saved) return; id = saved; }
+    const current = activeRef.current;
+    if (!current || !diagnosticsReady || hasErrors || current.locked || navigationBusyRef.current
+      || saveInflightRef.current.has(current.id) || saveStatesRef.current[current.id]?.fenced || (dirty && !isPro)) return;
+    const ticket = ++navigationRef.current;
+    navigationBusyRef.current = true;
+    const id = current.id;
+    const checkedGeneration = diagnosticGenerationRef.current;
+    if (dirty) {
+      const result = await save();
+      if (!mountedRef.current || ticket !== navigationRef.current || activeRef.current?.id !== id) return;
+      if (!result || !sameScriptContent(result.version, { name: activeRef.current.name, source: srcRef.current, params: paramsRef.current })) {
+        navigationBusyRef.current = false; return;
+      }
+    }
+    if (!mountedRef.current || ticket !== navigationRef.current || activeRef.current?.id !== id
+      || diagnosticInputRef.current !== diagnosticInput || checkedGeneration !== diagnosticGenerationRef.current
+      || diagnosticRef.current?.input !== diagnosticInput || diagnosticRef.current.kind !== "done"
+      || diagnosticRef.current.errors.length > 0) { navigationBusyRef.current = false; return; }
+    navigationRef.current += 1;
+    // Keep this intent consumed until the route leaves (or a new edit/selection).
     router.push(`/terminal?addScript=${encodeURIComponent(id)}`);
   }
 
   function step(k: string, dir: 1 | -1) {
+    if (typeof paramsRef.current[k] !== "boolean" && typeof paramsRef.current[k] !== "number") return;
+    invalidateNavigation(); invalidateDiagnostics();
     setParams((p) => {
       const v = p[k];
       if (typeof v === "boolean") return { ...p, [k]: dir > 0 };
@@ -382,10 +503,22 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
     if (e.key === "Tab") {
       e.preventDefault();
       const ta = e.currentTarget, s = ta.selectionStart, en = ta.selectionEnd;
+      invalidateNavigation(); invalidateDiagnostics();
       setSrc(src.slice(0, s) + "  " + src.slice(en));
       requestAnimationFrame(() => { ta.selectionStart = ta.selectionEnd = s + 2; });
     }
   }
+
+
+  const saveState = active ? saveStates[active.id] : undefined;
+  const saving = saveState?.kind === "saving";
+  const needsReadback = !!saveState?.fenced;
+  const savedCurrent = saveState?.version && sameScriptContent(saveState.version, { name: active?.name ?? "", source: src, params });
+  const saveMessage = !saveState ? "" : saveState.kind === "saved" ? (savedCurrent ? copy.saved : copy.savedOlder) : saveState.kind === "matched" && savedCurrent ? copy.matchedCurrent : copy[saveState.kind];
+  const saveBlockedReason = !active ? t("peNoScripts") : isLocked ? copy.lockedReason : !isPro ? copy.proReason
+    : needsReadback ? copy.reconcileFirst : saving ? copy.savingReason : !dirty ? copy.noChanges : "";
+  const addBlockedReason = !active ? t("peNoScripts") : isLocked ? copy.lockedReason : saving ? copy.savingReason : needsReadback ? copy.reconcileFirst
+    : dirty && !isPro ? copy.proReason : !diagnosticsReady ? copy.diagnosticsPending : hasErrors ? t("peFixErrorsTip") : "";
 
   // Content-only toolbar. The app chrome (BrandLockup / AppNav / MobileNav / lang
   // toggle) is now owned by AppShell (app/(shell)/layout.tsx); this bar keeps the
@@ -396,20 +529,20 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
       <header className="topbar pine-topbar">
         <span className="page-title">{t("peTitle")}</span>
         {active && (
-          <span className="pair pophost" style={{ marginLeft: 14, cursor: library.length > 1 ? "pointer" : "default" }}
-            onClick={(e) => { e.stopPropagation(); if (library.length > 1) setPicker((p) => !p); }}>
-            <b style={{ fontSize: 13 }}>{active.name}</b>
-            <svg className="car" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg>
-            {picker && (
-              <div className="pop show" style={{ top: 38, left: 0 }} onClick={(e) => e.stopPropagation()}>
-                {library.map((s, i) => (
-                  <div key={s.id} className="menu-row" onClick={() => requestSelect(i)}>
-                    {s.locked && <span style={{ marginRight: 6, color: "var(--brand-2)" }} title={t("peReadOnly")}>🔒</span>}{s.name}{s.id === active?.id && <span style={{ marginLeft: "auto", color: "var(--brand-2)" }}>●</span>}
-                  </div>
-                ))}
-              </div>
-            )}
-          </span>
+          <div className="pophost pine-script-picker">
+            <button ref={pickerTriggerRef} className="pair" type="button" aria-haspopup="true" aria-expanded={picker}
+              aria-controls={picker ? "pine-script-picker" : undefined} disabled={!bufferReady || library.length < 2}
+              onClick={(event) => { event.stopPropagation(); setPicker((open) => !open); }}
+              onKeyDown={(event) => { if (event.key === "Escape") setPicker(false); }}>
+              <b>{active.name}</b><svg className="car" viewBox="0 0 24 24" aria-hidden><path d="M6 9l6 6 6-6" /></svg>
+            </button>
+            {picker && <div id="pine-script-picker" className="pop show" onClick={(event) => event.stopPropagation()}
+              onKeyDown={(event) => { if (event.key === "Escape") { event.stopPropagation(); setPicker(false); event.currentTarget.parentElement?.querySelector("button")?.focus(); } }}>
+              {library.map((script, i) => <button type="button" key={script.id} className="menu-row" aria-current={script.id === active.id ? "true" : undefined} onClick={() => { pickerTriggerRef.current?.focus(); requestSelect(i); }}>
+                {script.locked && <span aria-label={t("peReadOnly")}>🔒</span>}{script.name}{script.id === active.id && <span aria-hidden>●</span>}
+              </button>)}
+            </div>}
+          </div>
         )}
         <div className="spacer" />
         {!isPro && !isLocked && <span className="lock"><svg width="11" height="11" viewBox="0 0 24 24" style={{ fill: "currentColor" }}><path d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5zm3 8H9V6a3 3 0 0 1 6 0z" /></svg>Pro</span>}
@@ -418,13 +551,14 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
             <svg width="11" height="11" viewBox="0 0 24 24" style={{ fill: "currentColor" }}><path d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5zm3 8H9V6a3 3 0 0 1 6 0z" /></svg>{t("peReadOnly")}
           </span>
         ) : (
-          <button className="btn btn-ghost" style={{ height: 32, marginLeft: 10 }} onClick={save} disabled={!isPro || !active}
-            title={!isPro ? t("peNeedsPro") : undefined}>
-            {status === "saving" ? t("peSaving") : status === "saved" ? t("peSaved") : status === "err" ? t("peError") : dirty ? t("peSaveChanges") : t("peSave")}
+          <button className="btn btn-ghost" data-script-save onClick={save} disabled={!!saveBlockedReason}
+            title={saveBlockedReason || undefined} aria-describedby={saveBlockedReason ? "pe-action-reason" : undefined}>
+            {saving ? t("peSaving") : saveState?.kind === "saved" && !dirty ? t("peSaved") : dirty ? t("peSaveChanges") : t("peSave")}
           </button>
         )}
-        <button className="ai" style={{ marginLeft: 6 }} onClick={addToChart} disabled={!active || hasErrors || isLocked}
-          title={isLocked ? t("peLockedAddTip") : hasErrors ? t("peFixErrorsTip") : t("peAddTip")}>{t("peAddToChart")}</button>
+        <button className="ai" data-script-add onClick={addToChart} disabled={!!addBlockedReason}
+          aria-describedby={addBlockedReason ? "pe-action-reason" : undefined} title={addBlockedReason || t("peAddTip")}>{t("peAddToChart")}</button>
+        {(saveBlockedReason || addBlockedReason) && <p className="pine-action-reason" id="pe-action-reason">{addBlockedReason || saveBlockedReason}</p>}
       </header>
     </>
   );
@@ -445,14 +579,40 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
   return (
     <main className="main2 pine">
       {head}
+
+      {!isLocked && saveState && (
+        <section className="pine-save-outcome" data-save-state={saveState.kind} aria-labelledby="pe-save-heading">
+          <div className="pine-outcome-copy">
+            <strong id="pe-save-heading">{copy.saveTitle}</strong>
+            <p role="status">{saveMessage}</p>
+            {saveState.version && <small>{copy.revision}: <time dateTime={saveState.version.updated_at}>{saveState.version.updated_at}</time></small>}
+          </div>
+          {saveState.fenced && <button className="btn btn-ghost" onClick={checkSavedVersion} disabled={saveState.kind === "checking"}>{copy.checkSaved}</button>}
+          {saveState.kind === "different" && saveState.version && (
+            <div className="pine-save-comparison">
+              <div className="pine-version-grid">
+                <section><h3>{copy.compareLocal}</h3><b>{active?.name}</b><pre>{src}</pre><small>{copy.inputs}</small><pre>{JSON.stringify(params, null, 2)}</pre></section>
+                <section><h3>{copy.compareSaved}</h3><b>{saveState.version.name}</b><pre>{saveState.version.source}</pre><small>{copy.inputs}</small><pre>{JSON.stringify(saveState.version.params, null, 2)}</pre></section>
+              </div>
+              <p>{replaceConfirmation ? copy.replacePrompt : copy.readbackNote}</p>
+              <div className="pine-outcome-actions">
+                <button className="btn btn-ghost" onClick={() => acceptSavedVersion(false)}>{copy.keepEdits}</button>
+                <button className="btn" onClick={() => acceptSavedVersion(true)}>{replaceConfirmation ? copy.replaceEdits : copy.loadSaved}</button>
+                {replaceConfirmation && <button className="btn btn-ghost" onClick={() => setReplaceConfirmation(null)}>{copy.cancelReplace}</button>}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
       <div className="pine-main" style={{ flex: 1 }}>
         <div className="editor-pane">
           <div className="editor-head">
+            <span className="pine-step">{copy.stepCode}</span>
             <span>{active.name.toLowerCase().replace(/[^a-z0-9]+/g, "_")}.pine</span>
             <span className="badge">PINE v6</span>
             {isLocked && <span className="badge" style={{ borderColor: "var(--brand-2)", color: "var(--brand-2)" }} title={t("peProtected")}>🔒 {t("peProprietaryBadge")}</span>}
             <div className="editor-actions">
-              <button className="tbtn" title={t("peRun")} onClick={compile}><svg viewBox="0 0 24 24" style={{ fill: "var(--up)", stroke: "none" }}><path d="M5 3l14 9-14 9V3z" /></svg></button>
+              <button className="tbtn" aria-label={copy.runDiagnostics} title={copy.runDiagnostics} onClick={compile}><svg viewBox="0 0 24 24" style={{ fill: "var(--up)", stroke: "none" }}><path d="M5 3l14 9-14 9V3z" /></svg></button>
             </div>
           </div>
           <div className="editor">
@@ -476,13 +636,15 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
                 </div>
               )}
               <div className="code">{lines.map((ln, i) => <div key={i} dangerouslySetInnerHTML={{ __html: hl(ln) || "&nbsp;" }} />)}</div>
-              <textarea ref={taRef} value={src} spellCheck={false} aria-label={`${active.name} source`} readOnly={isLocked} disabled={!bufferReady}
-                onChange={(e) => { if (!isLocked) setSrc(e.target.value); }} onKeyDown={onKeyDown} />
+              <textarea ref={taRef} value={src} spellCheck={false} aria-label={`${active.name} ${copy.sourceLabel}`} readOnly={isLocked} disabled={!bufferReady}
+                onChange={(event) => { if (!isLocked) { invalidateNavigation(); invalidateDiagnostics(); srcRef.current = event.target.value; setSrc(event.target.value); } }} onKeyDown={onKeyDown} />
             </div>
           </div>
-          <div className="console">
-            {status === "compiling" ? (
-              <div><span className="k">{t("peCompiling").replace("{name}", active.name)}</span></div>
+          <div className="console" data-diagnostics-state={diagnosticsCurrent ? diagnostic?.kind : "pending"} role="region" aria-label={copy.diagnosticsLabel}>
+            <div className="pine-console-heading"><b>{copy.stepChecks}</b>{dirty && <span className="pine-dirty">{t("peUnsavedChanges")}</span>}</div>
+            <p className="pine-diagnostic-scope">{copy.diagnosticsScope}</p>
+            {!diagnosticsReady ? (
+              <div role="status"><span className="k">{!diagnosticsCurrent ? copy.diagnosticsPending : diagnostic?.kind === "running" ? copy.diagnosticsRunning : diagnostic?.kind === "cancelled" ? copy.diagnosticsCancelled : copy.diagnosticsFailed}</span></div>
             ) : hasErrors ? (
               <>
                 <div><span style={{ color: "var(--down)" }}>✗ {diag.length === 1 ? t("peErrorCountOne") : t("peErrorCount").replace("{n}", String(diag.length))}</span> <span className="k">· {t("peLineCount").replace("{n}", String(lines.length))}</span></div>
@@ -495,15 +657,15 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
                 {warns.length > 0 ? (
                   // engine warnings (unsupported builtins etc.) — the script runs but affected series are na
                   <>
-                    <div><span style={{ color: "var(--warn)" }}>✓ {warns.length === 1 ? t("peCompiledWithOne") : t("peCompiledWith").replace("{n}", String(warns.length))}</span> <span className="k">· {t("peLineCount").replace("{n}", String(lines.length))}, {t("peZeroErrors")}{dirty ? ` · ${t("peUnsavedChanges")}` : ""}</span></div>
+                    <div><span style={{ color: "var(--warn)" }}>✓ {warns.length === 1 ? t("peCompiledWithOne") : t("peCompiledWith").replace("{n}", String(warns.length))}</span> <span className="k">· {t("peLineCount").replace("{n}", String(lines.length))}, {t("peZeroErrors")}</span></div>
                     {warns.map((w, i) => (
                       <div key={i}><span style={{ color: "var(--warn)" }}>warn</span> <span className="k">· {w}</span></div>
                     ))}
                   </>
                 ) : (
-                  <div><span className="ok">✓ {t("peCompiledOk")}</span> <span className="k">· {t("peLineCount").replace("{n}", String(lines.length))}, {t("peZeroErrors")}{dirty ? ` · ${t("peUnsavedChanges")}` : ""}</span></div>
+                  <div><span className="ok">✓ {t("peCompiledOk")}</span> <span className="k">· {t("peLineCount").replace("{n}", String(lines.length))}, {t("peZeroErrors")}</span></div>
                 )}
-                <div><span className="k">{active.name} · {inputs.length === 1 ? t("peInputCountOne") : t("peInputCount").replace("{n}", String(inputs.length))} · {t("peReadyToAdd")}</span></div>
+                <div><span className="k">{active.name} · {inputs.length === 1 ? t("peInputCountOne") : t("peInputCount").replace("{n}", String(inputs.length))} · {!addBlockedReason ? (dirty ? copy.readyToSaveAndAdd : copy.readyToAdd) : addBlockedReason}</span></div>
               </>
             )}
           </div>
@@ -511,27 +673,30 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
         <div className="pine-side">
           <div className="side-sec">
             <h4>{t("peMyScripts")}</h4>
-            {libraryUnavailable && (
-              <div className="gate" role="alert" data-scripts-status="unavailable">{t("scriptsUnavailable")}</div>
+            {libraryStatus !== "ready" && (
+              <div className="gate" role="status" data-scripts-status={libraryStatus}>
+                <p>{libraryStatus === "loading" ? copy.libraryLoading : t("scriptsUnavailable")}</p>
+                <button className="btn btn-ghost" onClick={retryLibrary} disabled={libraryStatus === "loading"}>{copy.libraryRetry}</button>
+              </div>
             )}
             {library.map((s, i) => (
-              <div key={s.id} className={`script-row${s.id === active?.id ? " on" : ""}`} onClick={() => requestSelect(i)}>
+              <button type="button" key={s.id} className={`script-row${s.id === active?.id ? " on" : ""}`} disabled={!bufferReady} aria-current={s.id === active?.id ? "true" : undefined} onClick={() => requestSelect(i)}>
                 <span className="si">{s.lang === "pine" ? "ƒ" : "λ"}</span>
                 <span className="meta"><span>{s.name}</span><small>{s.locked ? t("peReadOnly") : `${s.lang === "pine" ? t("peLangPine") : t("peLangScript")} · ${t("peLastEdited").replace("{date}", editedOn(s.updated_at, lang))}`}</small></span>
                 {s.locked && <svg width="11" height="11" viewBox="0 0 24 24" style={{ marginLeft: "auto", fill: "var(--brand-2)" }} aria-label="locked"><path d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5zm3 8H9V6a3 3 0 0 1 6 0z" /></svg>}
-              </div>
+              </button>
             ))}
           </div>
           {!isPro && <div className="gate"><b>{t("peProFeature")}</b> {t("peProGateBody")} <b>Pro</b>.</div>}
           <div className="side-sec">
-            <h4>{t("peInputsHeading")}</h4>
+            <h4>{copy.stepInputs}</h4>
             {inputs.length === 0 && <div style={{ color: "var(--muted)", fontSize: 12 }}>{t("peNoInputs")}</div>}
             {inputs.map(([k]) => (
               <div key={k} className="inp-row"><span>{k}</span>
                 <span className="stepper">
-                  <button onClick={() => step(k, -1)} aria-label={`decrease ${k}`}>−</button>
+                  <button onClick={() => step(k, -1)} aria-label={`${copy.decrease} ${k}`}>−</button>
                   <b>{String(params[k])}</b>
-                  <button onClick={() => step(k, 1)} aria-label={`increase ${k}`}>+</button>
+                  <button onClick={() => step(k, 1)} aria-label={`${copy.increase} ${k}`}>+</button>
                 </span></div>
             ))}
           </div>
@@ -541,28 +706,37 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
       {/* D3a — leaving a dirty script is an explicit decision, never a silent buffer reset.
           Cancel is the default action (focused, and what Escape does), because the safe outcome
           when someone is unsure about unsaved work is to keep it. */}
-      {pendingTargetId != null && (
-        <div className="scrim" role="presentation" onClick={cancelSwitch}
-          style={{ alignItems: "center", paddingTop: 0 }}>
-          <div className="imodal pine-unsaved" role="dialog" aria-modal="true" aria-labelledby="pe-unsaved-t"
-            onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => { if (e.key === "Escape") cancelSwitch(); }}>
-            <div className="pine-unsaved-body">
-              <b id="pe-unsaved-t">{t("peUnsavedTitle")}</b>
-              <p>{t("peUnsavedBody").replace("{name}", active?.name || "")}</p>
-              {switchErr && <p className="pine-unsaved-err">{switchErr}</p>}
-            </div>
-            <div className="pine-unsaved-acts">
-              <button className="btn btn-ghost" autoFocus onClick={cancelSwitch}>{t("peUnsavedCancel")}</button>
-              <div style={{ flex: 1 }} />
-              <button className="btn btn-ghost" onClick={discardAndSwitch}>{t("peUnsavedDiscard")}</button>
-              <button className="ai" disabled={!isPro || isLocked || status === "saving"} onClick={saveAndSwitch}>
-                {status === "saving" ? "Saving…" : t("peUnsavedSave")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {pendingTargetId != null && <UnsavedScriptDialog
+        title={t("peUnsavedTitle")} body={t("peUnsavedBody").replace("{name}", active?.name || "")}
+        error={switchErr} cancelLabel={t("peUnsavedCancel")} discardLabel={t("peUnsavedDiscard")}
+        saveLabel={saving ? t("peSaving") : t("peUnsavedSave")}
+        saveDisabled={!isPro || isLocked || saving || needsReadback}
+        onCancel={cancelSwitch} onDiscard={discardAndSwitch} onSave={saveAndSwitch}
+      />}
     </main>
+  );
+}
+
+function UnsavedScriptDialog({ title, body, error, cancelLabel, discardLabel, saveLabel, saveDisabled, onCancel, onDiscard, onSave }: {
+  title: string; body: string; error: string; cancelLabel: string; discardLabel: string; saveLabel: string;
+  saveDisabled: boolean; onCancel: () => void; onDiscard: () => void; onSave: () => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  useDialogFocus(ref, onCancel);
+  return (
+    <div className="scrim" role="presentation" onClick={onCancel} style={{ alignItems: "center", paddingTop: 0 }}>
+      <div ref={ref} className="imodal pine-unsaved" role="dialog" aria-modal="true" aria-labelledby="pe-unsaved-t" aria-describedby="pe-unsaved-body" tabIndex={-1} onClick={(event) => event.stopPropagation()}>
+        <div className="pine-unsaved-body">
+          <b id="pe-unsaved-t">{title}</b><p id="pe-unsaved-body">{body}</p>
+          {error && <p className="pine-unsaved-err" role="alert">{error}</p>}
+        </div>
+        <div className="pine-unsaved-acts">
+          <button className="btn btn-ghost" data-autofocus onClick={onCancel}>{cancelLabel}</button>
+          <div style={{ flex: 1 }} />
+          <button className="btn btn-ghost" onClick={onDiscard}>{discardLabel}</button>
+          <button className="ai" disabled={saveDisabled} onClick={onSave}>{saveLabel}</button>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -31,7 +31,7 @@ export default async function EmbedChartPage({
   }
 
   // ?clean=1 — the TV symbol-sheet mini chart (candles only, quiet canvas, TV palette).
-  // ?fs=1    — append the native "open full chart" affordance to the range row.
+  // ?fs=1    — browser fullscreen, or the actual native host’s open-full-chart handoff.
   // Both default OFF; without them the widget renders exactly as it always has.
   const clean = first(sp.clean) === "1";
   const fullscreenBtn = first(sp.fs) === "1";

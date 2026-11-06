@@ -1,0 +1,1099 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/node_modules/.bin/playwright",
+      "test",
+      "e2e/embed-content-language.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=2",
+      "--retries=0",
+      "--reporter=json",
+      "--output=test-results-d06-embed-language-final"
+    ],
+    "configFile": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 2,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 50354",
+      "url": "http://127.0.0.1:50354/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "embed-content-language.spec.ts",
+      "file": "embed-content-language.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "embed en keeps its own language from loading through ready",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1012,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:43:04.162Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-loading",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "language-ready",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "embed-ready",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final/embed-content-language-emb-53286--from-loading-through-ready-desktop/attachments/embed-ready-51791c93477d490fdb2644c63020af167bc7c1a1.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-54d5fbb48917233e4af4",
+          "file": "embed-content-language.spec.ts",
+          "line": 43,
+          "column": 7
+        },
+        {
+          "title": "embed en keeps its own language with no price history",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 790,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:43:04.166Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-empty",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "embed-empty",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final/embed-content-language-emb-3d09f-guage-with-no-price-history-desktop/attachments/embed-empty-2254b43fe4f30695ade4759f6ade53bfae71b366.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-f97a9d7f698d1787052d",
+          "file": "embed-content-language.spec.ts",
+          "line": 72,
+          "column": 7
+        },
+        {
+          "title": "embed en keeps its own language for missing and invalid symbols",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 575,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:43:05.385Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-missing",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "language-invalid",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "embed-invalid",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final/embed-content-language-emb-71d9a-missing-and-invalid-symbols-desktop/attachments/embed-invalid-611ae69c0d34483a26a4b9d684d449147f5f2f5b.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-8958a38f30fa5f31fb81",
+          "file": "embed-content-language.spec.ts",
+          "line": 83,
+          "column": 7
+        },
+        {
+          "title": "embed zh keeps its own language from loading through ready",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 688,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:43:05.606Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-loading",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "language-ready",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "embed-ready",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final/embed-content-language-emb-39382--from-loading-through-ready-desktop/attachments/embed-ready-9391e8e2dd2ee0c421037cb893c289a9dd252b7c.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-f4ed12141aac2e085108",
+          "file": "embed-content-language.spec.ts",
+          "line": 43,
+          "column": 7
+        },
+        {
+          "title": "embed zh keeps its own language with no price history",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 513,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:43:05.971Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-empty",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "embed-empty",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final/embed-content-language-emb-fc54e-guage-with-no-price-history-desktop/attachments/embed-empty-622b954bab6b5bdd146d21bf38cf046abddea311.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-c6241a34087f08234723",
+          "file": "embed-content-language.spec.ts",
+          "line": 72,
+          "column": 7
+        },
+        {
+          "title": "embed zh keeps its own language for missing and invalid symbols",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 558,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:43:06.303Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-missing",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "language-invalid",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDE0NDAsCiAgInNjcm9sbFdpZHRoIjogMTQ0MAp9"
+                    },
+                    {
+                      "name": "embed-invalid",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final/embed-content-language-emb-a2a50-missing-and-invalid-symbols-desktop/attachments/embed-invalid-57d7c36ff68c979a20854ee7f16e715c9c452ae4.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-680b8454e6fb051d9f01",
+          "file": "embed-content-language.spec.ts",
+          "line": 83,
+          "column": 7
+        },
+        {
+          "title": "embed en keeps its own language from loading through ready",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 756,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:43:06.808Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-loading",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAKfQ=="
+                    },
+                    {
+                      "name": "language-ready",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAKfQ=="
+                    },
+                    {
+                      "name": "embed-ready",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final/embed-content-language-emb-53286--from-loading-through-ready-tablet/attachments/embed-ready-aee886ca99dee83cafd5cf97baa2c78f1cb57f7b.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-1b5ab4291f5afd9573fb",
+          "file": "embed-content-language.spec.ts",
+          "line": 43,
+          "column": 7
+        },
+        {
+          "title": "embed en keeps its own language with no price history",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 567,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:43:07.170Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-empty",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAKfQ=="
+                    },
+                    {
+                      "name": "embed-empty",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final/embed-content-language-emb-3d09f-guage-with-no-price-history-tablet/attachments/embed-empty-f47cf277ce4ebdcb92738fa604960a627e998090.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-e287bff42d3a0e0c1695",
+          "file": "embed-content-language.spec.ts",
+          "line": 72,
+          "column": 7
+        },
+        {
+          "title": "embed en keeps its own language for missing and invalid symbols",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 613,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:43:07.755Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-missing",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAKfQ=="
+                    },
+                    {
+                      "name": "language-invalid",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAKfQ=="
+                    },
+                    {
+                      "name": "embed-invalid",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final/embed-content-language-emb-71d9a-missing-and-invalid-symbols-tablet/attachments/embed-invalid-69ba76a30b55d7c30a8f09ec6bd86b61ca4a69fa.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-231d9383c3920e50533c",
+          "file": "embed-content-language.spec.ts",
+          "line": 83,
+          "column": 7
+        },
+        {
+          "title": "embed zh keeps its own language from loading through ready",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 774,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:43:07.920Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-loading",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAKfQ=="
+                    },
+                    {
+                      "name": "language-ready",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAKfQ=="
+                    },
+                    {
+                      "name": "embed-ready",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final/embed-content-language-emb-39382--from-loading-through-ready-tablet/attachments/embed-ready-39e81f04beb415901b3c4633a1b83aa54f86c97a.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-ef17f13d9009f5200592",
+          "file": "embed-content-language.spec.ts",
+          "line": 43,
+          "column": 7
+        },
+        {
+          "title": "embed zh keeps its own language with no price history",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 575,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:43:08.377Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-empty",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAKfQ=="
+                    },
+                    {
+                      "name": "embed-empty",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final/embed-content-language-emb-fc54e-guage-with-no-price-history-tablet/attachments/embed-empty-217305f59b57d6a1479ef3c00877a29615a096cd.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-9062bfad7d4deff19495",
+          "file": "embed-content-language.spec.ts",
+          "line": 72,
+          "column": 7
+        },
+        {
+          "title": "embed zh keeps its own language for missing and invalid symbols",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 590,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:43:08.702Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-missing",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAKfQ=="
+                    },
+                    {
+                      "name": "language-invalid",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDgyMCwKICAic2Nyb2xsV2lkdGgiOiA4MjAKfQ=="
+                    },
+                    {
+                      "name": "embed-invalid",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final/embed-content-language-emb-a2a50-missing-and-invalid-symbols-tablet/attachments/embed-invalid-68856ac7fe38649ba270f526f8555dd866f59ea6.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-c3050f1e03e961052943",
+          "file": "embed-content-language.spec.ts",
+          "line": 83,
+          "column": 7
+        },
+        {
+          "title": "embed en keeps its own language from loading through ready",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 732,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:43:09.331Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-loading",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDM5MCwKICAic2Nyb2xsV2lkdGgiOiAzOTAKfQ=="
+                    },
+                    {
+                      "name": "language-ready",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDM5MCwKICAic2Nyb2xsV2lkdGgiOiAzOTAKfQ=="
+                    },
+                    {
+                      "name": "embed-ready",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final/embed-content-language-emb-53286--from-loading-through-ready-mobile/attachments/embed-ready-0745c8c7250c19ead998df860794b47deded7a0f.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-3af84bb7f27f0dcdb6c4",
+          "file": "embed-content-language.spec.ts",
+          "line": 43,
+          "column": 7
+        },
+        {
+          "title": "embed en keeps its own language with no price history",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 537,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:43:09.686Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-empty",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDM5MCwKICAic2Nyb2xsV2lkdGgiOiAzOTAKfQ=="
+                    },
+                    {
+                      "name": "embed-empty",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final/embed-content-language-emb-3d09f-guage-with-no-price-history-mobile/attachments/embed-empty-abca2036d34f0b888acfaf5dbc3fa3633b300614.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-e2978a1b71e9b18fad78",
+          "file": "embed-content-language.spec.ts",
+          "line": 72,
+          "column": 7
+        },
+        {
+          "title": "embed en keeps its own language for missing and invalid symbols",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 581,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:43:10.302Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-missing",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDM5MCwKICAic2Nyb2xsV2lkdGgiOiAzOTAKfQ=="
+                    },
+                    {
+                      "name": "language-invalid",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiZW4iLAogICJkb2N1bWVudExhbmd1YWdlIjogInpoLUNOIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJ6aCIsCiAgInN0b3JlZExhbmd1YWdlIjogInpoIiwKICAiZG9jdW1lbnRXaWR0aCI6IDM5MCwKICAic2Nyb2xsV2lkdGgiOiAzOTAKfQ=="
+                    },
+                    {
+                      "name": "embed-invalid",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final/embed-content-language-emb-71d9a-missing-and-invalid-symbols-mobile/attachments/embed-invalid-2597f87b4a4af76abaf6b557847612c2ad4d569f.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-41bb1a81982faafc7860",
+          "file": "embed-content-language.spec.ts",
+          "line": 83,
+          "column": 7
+        },
+        {
+          "title": "embed zh keeps its own language from loading through ready",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 705,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:43:10.434Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-loading",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDM5MCwKICAic2Nyb2xsV2lkdGgiOiAzOTAKfQ=="
+                    },
+                    {
+                      "name": "language-ready",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDM5MCwKICAic2Nyb2xsV2lkdGgiOiAzOTAKfQ=="
+                    },
+                    {
+                      "name": "embed-ready",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final/embed-content-language-emb-39382--from-loading-through-ready-mobile/attachments/embed-ready-1ed84dc9b6099408b183d1c21e3b599de6d94867.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-1034427dd963ebd1e637",
+          "file": "embed-content-language.spec.ts",
+          "line": 43,
+          "column": 7
+        },
+        {
+          "title": "embed zh keeps its own language with no price history",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 562,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:43:10.892Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-empty",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDM5MCwKICAic2Nyb2xsV2lkdGgiOiAzOTAKfQ=="
+                    },
+                    {
+                      "name": "embed-empty",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final/embed-content-language-emb-fc54e-guage-with-no-price-history-mobile/attachments/embed-empty-3e90569b2764c28b87aae4086451b577c3e79351.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-a38f9924637f3fcc3934",
+          "file": "embed-content-language.spec.ts",
+          "line": 72,
+          "column": 7
+        },
+        {
+          "title": "embed zh keeps its own language for missing and invalid symbols",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 628,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-04T06:43:11.146Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "language-missing",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDM5MCwKICAic2Nyb2xsV2lkdGgiOiAzOTAKfQ=="
+                    },
+                    {
+                      "name": "language-invalid",
+                      "contentType": "application/json",
+                      "body": "ewogICJjb250ZW50TGFuZ3VhZ2UiOiAiemgtQ04iLAogICJkb2N1bWVudExhbmd1YWdlIjogImVuIiwKICAiYXBwbGljYXRpb25MYW5ndWFnZSI6ICJlbiIsCiAgInN0b3JlZExhbmd1YWdlIjogImVuIiwKICAiZG9jdW1lbnRXaWR0aCI6IDM5MCwKICAic2Nyb2xsV2lkdGgiOiAzOTAKfQ=="
+                    },
+                    {
+                      "name": "embed-invalid",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/test-results-d06-embed-language-final/embed-content-language-emb-a2a50-missing-and-invalid-symbols-mobile/attachments/embed-invalid-856df7443fb4f43a66405a890b92dccb83a6068e.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9ad0462ad6c32686eea6-374e88e1385d82bce5ad",
+          "file": "embed-content-language.spec.ts",
+          "line": 83,
+          "column": 7
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-04T06:42:57.278Z",
+    "duration": 14625.68,
+    "expected": 18,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

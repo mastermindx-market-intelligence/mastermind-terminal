@@ -19,12 +19,10 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-// Full-bleed, non-zoomable — the iframe IS the widget.
+// Full-bleed web widget with browser zoom; native policy stays with the root NativeViewportPolicy owner.
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: "cover",
 };
 

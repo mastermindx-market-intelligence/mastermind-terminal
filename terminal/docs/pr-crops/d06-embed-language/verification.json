@@ -1,0 +1,215 @@
+{
+  "schema": "d06.embed-content-language.verification.v1",
+  "observed_at": "2026-11-04T06:48:49.561753+00:00",
+  "protected_source": "75a6540519cf519edfef7633e74f57b68aef9329",
+  "parent_source": "fed19d1ac3aa8a716f528c8205651ff60b7b413d",
+  "operation_id": "d06-terminal-reader-resilience-20261103-c4",
+  "source_sha256": {
+    "app/embed/chart/EmbedChart.tsx": "cda3175086645005476ad55b808dffa9588452b07d3634185305d5da02767ff1",
+    "e2e/embed-content-language.spec.ts": "abf404a7eb8dfe6a6880461881a8071144720ca4e26143f5017be3affddf9889"
+  },
+  "feedback_hashes_unchanged": true,
+  "parent_publication_readback": {
+    "compared_blobs": 28,
+    "mismatches": 0
+  },
+  "upstream_collision_check": {
+    "master": "3930ce93bb1ed6f3d66ba1ae4cac7e441995ba78",
+    "same_embed_blob": "2b98bc0ef392eddb4cf772a88b1d99d512480b98"
+  },
+  "baseline": {
+    "startTime": "2026-11-04T06:41:44.503Z",
+    "duration": 11891.186,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 6,
+    "flaky": 0
+  },
+  "browser": {
+    "startTime": "2026-11-04T06:42:57.278Z",
+    "duration": 14625.68,
+    "expected": 18,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "language_observations": 30,
+  "typescript": {
+    "exit_code": 0,
+    "pid": 13335,
+    "after_browser_exit": true
+  },
+  "lint": {
+    "runtime_exit_code": 1,
+    "preexisting_error_count": 5,
+    "current_error_count": 5,
+    "diagnostics_equal": true,
+    "new_test_error_count": 0,
+    "new_test_warning_count": 0
+  },
+  "visual": {
+    "captured_pngs": 18,
+    "inspected_samples": [
+      "embed-desktop-zh-ready.png",
+      "embed-mobile-en-ready.png",
+      "embed-tablet-en-empty.png",
+      "embed-mobile-zh-empty.png",
+      "embed-desktop-en-invalid.png",
+      "embed-tablet-zh-invalid.png"
+    ],
+    "viewports": [
+      [
+        1440,
+        900
+      ],
+      [
+        820,
+        1180
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "theme_coverage": "incumbent light/dark variants, not every state/theme pair"
+  },
+  "limits": [
+    "deterministic local daily-bar fixtures",
+    "no hosted or production acceptance",
+    "no physical device or screen-reader pronunciation proof",
+    "no shared language preference change",
+    "unchanged existing attribution/time-axis overlap, small targets and zoom policy",
+    "no upstream failure classification or native-host qualification"
+  ],
+  "migration_credit": "partial A11Y02 only; no full-case pass",
+  "release": {
+    "draft": true,
+    "merge": false,
+    "ready": false,
+    "enqueue": false,
+    "deployment": false,
+    "mission_complete": false
+  },
+  "evidence": [
+    {
+      "path": "baseline-report.json",
+      "bytes": 48548,
+      "sha256": "9cb46c7dda1e29b65c6275e877bc0331a1d42fa4aa83d715e11fe463e0f5b1db"
+    },
+    {
+      "path": "browser-report.json",
+      "bytes": 47861,
+      "sha256": "42152d6425bd67b59eb688d4630d9dea4b9d08dede700b0069c7746df8b813c8"
+    },
+    {
+      "path": "embed-desktop-en-empty.png",
+      "bytes": 19956,
+      "sha256": "2babec3f41eb75db191c964465f65de18f4260ef28c98d742e194b29bc91d859"
+    },
+    {
+      "path": "embed-desktop-en-invalid.png",
+      "bytes": 12566,
+      "sha256": "848080b9ef11382ed2788ab847cec6e553dfa390292907ec5ee52dd99e18bd3c"
+    },
+    {
+      "path": "embed-desktop-en-ready.png",
+      "bytes": 39770,
+      "sha256": "e6cd6041d6d250afaf685343fd9c37625e1e1d0c776a0234928c1b2e09344c46"
+    },
+    {
+      "path": "embed-desktop-zh-empty.png",
+      "bytes": 22060,
+      "sha256": "55d4d4611ab7a9c97653e6c68991bcc5d94e7ec0656e84996e657f693681cbd4"
+    },
+    {
+      "path": "embed-desktop-zh-invalid.png",
+      "bytes": 14804,
+      "sha256": "70448f65d76b66dfbdd31fce3887b64bd8b0ba2bcf6f0b5fa358f68cb4ac94dd"
+    },
+    {
+      "path": "embed-desktop-zh-ready.png",
+      "bytes": 39842,
+      "sha256": "02b1e74b7fda2f080205d4154f4064738d6adb4e2ed53f912b1559506ce1e282"
+    },
+    {
+      "path": "embed-mobile-en-empty.png",
+      "bytes": 15870,
+      "sha256": "7e48b72053bba4252707bd9df8e9444098b6c860dd0c30c5cdf8864014831841"
+    },
+    {
+      "path": "embed-mobile-en-invalid.png",
+      "bytes": 9224,
+      "sha256": "74a84f27ee4859fdc7a8281d62130c98b39f1b3808533a6906ed339437bf8328"
+    },
+    {
+      "path": "embed-mobile-en-ready.png",
+      "bytes": 29031,
+      "sha256": "1b035f46f6d92e236b6600fc4db159669730134cfc8a6bdc803cafd560a7158c"
+    },
+    {
+      "path": "embed-mobile-zh-empty.png",
+      "bytes": 17952,
+      "sha256": "d38a1c20948dca93e56bf3fd1c9af0a34ba28a4eb61c1583907a73c32dd256d2"
+    },
+    {
+      "path": "embed-mobile-zh-invalid.png",
+      "bytes": 11297,
+      "sha256": "9162ca6aa89f6c51875fdd5e50317bf2c6265831a17261ea52e8a1e5a27566cf"
+    },
+    {
+      "path": "embed-mobile-zh-ready.png",
+      "bytes": 29158,
+      "sha256": "fe7117646e06167e5ec24a39a9adf346e29147f1dcea4933f9b346ad7d5e45a0"
+    },
+    {
+      "path": "embed-tablet-en-empty.png",
+      "bytes": 19335,
+      "sha256": "61dd26a6c2822cf07e3d8aba567cd1e9fdf097fa7737d689351e030d3da10bf3"
+    },
+    {
+      "path": "embed-tablet-en-invalid.png",
+      "bytes": 12099,
+      "sha256": "fb49bf5189ccf1545183858732a8a7d4914392f6d4cb4514cd8363e6786c1738"
+    },
+    {
+      "path": "embed-tablet-en-ready.png",
+      "bytes": 49088,
+      "sha256": "0b2a4051dda54d9266db47959d1c5a8b232fdcf7a7fc9fd2c8dc194a2c787ed4"
+    },
+    {
+      "path": "embed-tablet-zh-empty.png",
+      "bytes": 21487,
+      "sha256": "2bf7a508e1e85a06b382fdf309a2d72c3b076aab462932d79a1061d5acdfed6b"
+    },
+    {
+      "path": "embed-tablet-zh-invalid.png",
+      "bytes": 14291,
+      "sha256": "9de607a18f307264c5fa252415829c0daad731912f15b51f8b17aa9018342165"
+    },
+    {
+      "path": "embed-tablet-zh-ready.png",
+      "bytes": 49484,
+      "sha256": "cf2ef4dcf5ca45bc7d88656bbab8809f9ccaffdd570527b24c5bf0dc3b69ec58"
+    },
+    {
+      "path": "language-observations.json",
+      "bytes": 11519,
+      "sha256": "2f2e713a6952d815f2fc9e745e6e767dfbd1aa36704569c699ce662b70849b02"
+    },
+    {
+      "path": "lint-baseline.json",
+      "bytes": 39014,
+      "sha256": "9bf338de47d6058ba9d578614dba5b083d39dc066c4d7a36c6e9033429dcda4a"
+    },
+    {
+      "path": "lint-final.json",
+      "bytes": 39422,
+      "sha256": "dd22b3a12c4ec21af5624549d4645bd4aaf22b59d2edc1e0a4a8b06c792518f6"
+    },
+    {
+      "path": "tested-source-sha256.json",
+      "bytes": 215,
+      "sha256": "9d38d0f8787315450ae917745f556fd5cd3d9a2ab6301de8d628737cddf795a7"
+    }
+  ]
+}

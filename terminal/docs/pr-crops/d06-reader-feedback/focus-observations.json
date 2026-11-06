@@ -1,0 +1,350 @@
+[
+  {
+    "project": "desktop",
+    "language": "en",
+    "choice": "useful",
+    "status": "expected",
+    "image": "feedback-desktop-en-useful.png",
+    "sha256": "2cc9c9a623d3419c47c5e85aad8f719d807d38694e72695a91fc63d35d9e37de",
+    "focus": {
+      "activeTag": "BUTTON",
+      "activeKey": "useful",
+      "readerOwnsFocus": true,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "scrollWidth": 1440,
+      "focusedBounds": {
+        "x": 1096,
+        "y": 754.046875,
+        "width": 132.28125,
+        "height": 26,
+        "top": 754.046875,
+        "right": 1228.28125,
+        "bottom": 780.046875,
+        "left": 1096
+      }
+    }
+  },
+  {
+    "project": "desktop",
+    "language": "en",
+    "choice": "unclear",
+    "status": "expected",
+    "image": "feedback-desktop-en-unclear.png",
+    "sha256": "10d47c1a4cae89607f22e15d4de1b25f23de44701058af3dd5835913273378d7",
+    "focus": {
+      "activeTag": "BUTTON",
+      "activeKey": "unclear",
+      "readerOwnsFocus": true,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "scrollWidth": 1440,
+      "focusedBounds": {
+        "x": 1096,
+        "y": 754.046875,
+        "width": 132.28125,
+        "height": 26,
+        "top": 754.046875,
+        "right": 1228.28125,
+        "bottom": 780.046875,
+        "left": 1096
+      }
+    }
+  },
+  {
+    "project": "desktop",
+    "language": "zh",
+    "choice": "useful",
+    "status": "expected",
+    "image": "feedback-desktop-zh-useful.png",
+    "sha256": "11a5d8fee3413f3c70a10874738dcae6ba915070a6867e728eac7004e8dd8619",
+    "focus": {
+      "activeTag": "BUTTON",
+      "activeKey": "useful",
+      "readerOwnsFocus": true,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "scrollWidth": 1440,
+      "focusedBounds": {
+        "x": 1096,
+        "y": 754.515625,
+        "width": 61.328125,
+        "height": 26,
+        "top": 754.515625,
+        "right": 1157.328125,
+        "bottom": 780.515625,
+        "left": 1096
+      }
+    }
+  },
+  {
+    "project": "desktop",
+    "language": "zh",
+    "choice": "unclear",
+    "status": "expected",
+    "image": "feedback-desktop-zh-unclear.png",
+    "sha256": "40028d526df3ef6936b70398a9533fdf8a840b7755dd1aa38116d0baee6792a4",
+    "focus": {
+      "activeTag": "BUTTON",
+      "activeKey": "unclear",
+      "readerOwnsFocus": true,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "scrollWidth": 1440,
+      "focusedBounds": {
+        "x": 1096,
+        "y": 754.515625,
+        "width": 61.328125,
+        "height": 26,
+        "top": 754.515625,
+        "right": 1157.328125,
+        "bottom": 780.515625,
+        "left": 1096
+      }
+    }
+  },
+  {
+    "project": "tablet",
+    "language": "en",
+    "choice": "useful",
+    "status": "expected",
+    "image": "feedback-tablet-en-useful.png",
+    "sha256": "53b0502b0242925da485c4700c1ca24e8f6dac93b5a3577b30665965af72fb82",
+    "focus": {
+      "activeTag": "BUTTON",
+      "activeKey": "useful",
+      "readerOwnsFocus": true,
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "documentWidth": 820,
+      "scrollWidth": 820,
+      "focusedBounds": {
+        "x": 16,
+        "y": 893.796875,
+        "width": 132.28125,
+        "height": 44,
+        "top": 893.796875,
+        "right": 148.28125,
+        "bottom": 937.796875,
+        "left": 16
+      }
+    }
+  },
+  {
+    "project": "tablet",
+    "language": "en",
+    "choice": "unclear",
+    "status": "expected",
+    "image": "feedback-tablet-en-unclear.png",
+    "sha256": "53b0502b0242925da485c4700c1ca24e8f6dac93b5a3577b30665965af72fb82",
+    "focus": {
+      "activeTag": "BUTTON",
+      "activeKey": "unclear",
+      "readerOwnsFocus": true,
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "documentWidth": 820,
+      "scrollWidth": 820,
+      "focusedBounds": {
+        "x": 16,
+        "y": 893.796875,
+        "width": 132.28125,
+        "height": 44,
+        "top": 893.796875,
+        "right": 148.28125,
+        "bottom": 937.796875,
+        "left": 16
+      }
+    }
+  },
+  {
+    "project": "tablet",
+    "language": "zh",
+    "choice": "useful",
+    "status": "expected",
+    "image": "feedback-tablet-zh-useful.png",
+    "sha256": "1e80c2b16a86788aba764dd3cab18156ab3f3ad5b6d0f590714e1c029d0c3fc2",
+    "focus": {
+      "activeTag": "BUTTON",
+      "activeKey": "useful",
+      "readerOwnsFocus": true,
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "documentWidth": 820,
+      "scrollWidth": 820,
+      "focusedBounds": {
+        "x": 16,
+        "y": 893.859375,
+        "width": 61.328125,
+        "height": 44,
+        "top": 893.859375,
+        "right": 77.328125,
+        "bottom": 937.859375,
+        "left": 16
+      }
+    }
+  },
+  {
+    "project": "tablet",
+    "language": "zh",
+    "choice": "unclear",
+    "status": "expected",
+    "image": "feedback-tablet-zh-unclear.png",
+    "sha256": "1e80c2b16a86788aba764dd3cab18156ab3f3ad5b6d0f590714e1c029d0c3fc2",
+    "focus": {
+      "activeTag": "BUTTON",
+      "activeKey": "unclear",
+      "readerOwnsFocus": true,
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "documentWidth": 820,
+      "scrollWidth": 820,
+      "focusedBounds": {
+        "x": 16,
+        "y": 893.859375,
+        "width": 61.328125,
+        "height": 44,
+        "top": 893.859375,
+        "right": 77.328125,
+        "bottom": 937.859375,
+        "left": 16
+      }
+    }
+  },
+  {
+    "project": "mobile",
+    "language": "en",
+    "choice": "useful",
+    "status": "expected",
+    "image": "feedback-mobile-en-useful.png",
+    "sha256": "661a9dfc6017974c56113d53c7282b0a553af849dc1fffa4ea33d55e06024acf",
+    "focus": {
+      "activeTag": "BUTTON",
+      "activeKey": "useful",
+      "readerOwnsFocus": true,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "scrollWidth": 390,
+      "focusedBounds": {
+        "x": 16,
+        "y": 791.734375,
+        "width": 132.28125,
+        "height": 44,
+        "top": 791.734375,
+        "right": 148.28125,
+        "bottom": 835.734375,
+        "left": 16
+      }
+    }
+  },
+  {
+    "project": "mobile",
+    "language": "en",
+    "choice": "unclear",
+    "status": "expected",
+    "image": "feedback-mobile-en-unclear.png",
+    "sha256": "661a9dfc6017974c56113d53c7282b0a553af849dc1fffa4ea33d55e06024acf",
+    "focus": {
+      "activeTag": "BUTTON",
+      "activeKey": "unclear",
+      "readerOwnsFocus": true,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "scrollWidth": 390,
+      "focusedBounds": {
+        "x": 16,
+        "y": 791.734375,
+        "width": 132.28125,
+        "height": 44,
+        "top": 791.734375,
+        "right": 148.28125,
+        "bottom": 835.734375,
+        "left": 16
+      }
+    }
+  },
+  {
+    "project": "mobile",
+    "language": "zh",
+    "choice": "useful",
+    "status": "expected",
+    "image": "feedback-mobile-zh-useful.png",
+    "sha256": "658c9f305f029732dc02a4dd6f954b404e64afaf9cea52c113833e199ebcb77e",
+    "focus": {
+      "activeTag": "BUTTON",
+      "activeKey": "useful",
+      "readerOwnsFocus": true,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "scrollWidth": 390,
+      "focusedBounds": {
+        "x": 16,
+        "y": 791.796875,
+        "width": 61.328125,
+        "height": 44,
+        "top": 791.796875,
+        "right": 77.328125,
+        "bottom": 835.796875,
+        "left": 16
+      }
+    }
+  },
+  {
+    "project": "mobile",
+    "language": "zh",
+    "choice": "unclear",
+    "status": "expected",
+    "image": "feedback-mobile-zh-unclear.png",
+    "sha256": "658c9f305f029732dc02a4dd6f954b404e64afaf9cea52c113833e199ebcb77e",
+    "focus": {
+      "activeTag": "BUTTON",
+      "activeKey": "unclear",
+      "readerOwnsFocus": true,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "scrollWidth": 390,
+      "focusedBounds": {
+        "x": 16,
+        "y": 791.796875,
+        "width": 61.328125,
+        "height": 44,
+        "top": 791.796875,
+        "right": 77.328125,
+        "bottom": 835.796875,
+        "left": 16
+      }
+    }
+  }
+]

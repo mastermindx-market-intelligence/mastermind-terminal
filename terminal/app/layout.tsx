@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import NativeViewportPolicy from "@/components/NativeViewportPolicy";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import "./fin.css";
@@ -21,12 +22,10 @@ const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "sw
 // no longer needs to preload on pages that never render a character cell.
 const jetbrainsMono = JetBrains_Mono({ variable: "--font-jetbrains-mono", subsets: ["latin"], display: "swap", preload: false });
 
-// Viewport config: device-width, no zoom (full-bleed chart UX), safe-area insets via viewportFit.
+// Ordinary web pages permit zoom. The existing native presentation policy is owned after hydration by NativeViewportPolicy.
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: "cover",
 };
 
@@ -55,7 +54,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" data-theme="dark" className={`${inter.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{ __html: LOCALE_INIT }} /></head>
-      <body><LangProvider>{children}</LangProvider><EmbeddedTerminalBridge /><Tracker /></body>
+      <body><LangProvider>{children}</LangProvider><NativeViewportPolicy /><EmbeddedTerminalBridge /><Tracker /></body>
     </html>
   );
 }

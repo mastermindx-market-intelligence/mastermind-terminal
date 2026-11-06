@@ -1,5 +1,5 @@
-import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
-// Preserve the raw capture pin; only unused onboarding copy has an AST dependency projection.
+import { assertD06CapturedLexProjection as assertCapturedLexProjection } from "./helpers/d06CaptureDependency";
+// Historical raw pins/crops remain; exact D06 deltas precede the unchanged onboarding-copy projection.
 // Round-4 review of PR #546 (B-F11-4), Meta-CEO B seat ruling R9.
 //
 // The round-3 body described the EVIDENCE.yml layout lock as if something

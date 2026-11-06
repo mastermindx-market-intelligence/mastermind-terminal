@@ -592,10 +592,11 @@ import { candleVolumeRank } from "@/lib/suites/trend/candlePainter";
 import { eodSnapshotKnown, replayAxisOf, replayChipAnchor, replayDayChangePct, replayEarlyDotAdmission, replayReceiptAdmission, replaySignalAdmission, replayVisibleCount, replayWarningAdmission, type ReplayAxis, type ReplayCutoff } from "@/lib/replayContract";
 import { detectGapZones, gapZonesAsOf, type GapZone } from "@/lib/gapZones";
 import { deriveDataOrigin, originComposite, originNotCovered, originUnavailable, type DataOrigin } from "@/lib/dataOrigin";
+import type { ChartPlotGeometry } from "@/lib/chartRailLayout";
 
 export default function ChartPanel({ symbol, contextDock, optionsLevel = null, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
   indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, onVisualReady, onCompareStudy, extHours = false, overnightHours = false, episodeId = null,
-  instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, onRenderedPriceSource, onNativeObservations, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin, onOvernightHistory }:
+  instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, onRenderedPriceSource, onNativeObservations, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin, onOvernightHistory, onPlotGeometry }:
   { symbol: string; contextDock?: ChartContextDock; optionsLevel?: OptionsChartLevel | null; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
     dataReady?: boolean;
@@ -609,6 +610,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     instrumentMarket?: string;
     instrumentColor?: string;
     onVisualReady?: (detail: TerminalVisualReadyDetail) => void;
+    onPlotGeometry?: (geometry: ChartPlotGeometry | null) => void;
     onChartApi?: (api: ChartEngine | null) => void; extHours?: boolean; overnightHours?: boolean; episodeId?: string | null;
     /** E08: the receipt of every completed compare build (anchors, bases, withheld legs, digest). */
     onCompareStudy?: (study: CompareStudy) => void;
@@ -635,6 +637,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     onOvernightHistory?: (history: BoatsChartHistory) => void;
   }) {
   const visualReadyCallbackRef = useRef(onVisualReady); visualReadyCallbackRef.current = onVisualReady;
+  const plotGeometryCallbackRef = useRef(onPlotGeometry); plotGeometryCallbackRef.current = onPlotGeometry;
   const t = useT();
   const { lang } = useLang();
   const chartLanguageRef = useRef(lang); chartLanguageRef.current = lang;
@@ -4078,6 +4081,12 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
           watermarkVisible: watermarkVisibleRef.current,
           rowCount: barsRef.current.length,
           leftScaleWidth: g(() => c.priceScale("left").width()),
+          pricePlotWidth: g(() => c.timeScale().width()),
+          plotGeometry: g(() => ({
+            engineWidth: c.timeScale().width() + c.priceScale("left").width() + c.priceScale("right").width(), hostWidth: el.clientWidth,
+            paneWidth: (wrapElRef.current?.closest<HTMLElement>(".pane") ?? el).getBoundingClientRect().width,
+            plotWidth: c.timeScale().width(), pricePane: priceIdx(),
+          })),
           timeBarSpacing: g(() => c.timeScale().options().barSpacing),
           // Bounded readback of the REAL canvas series for default-style integration tests.
           // Reuses the existing dev-only diagnostics; unavailable in production and never a writer.
@@ -7685,6 +7694,25 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     const measureImpl = () => {
       const ch = engineRef.current, w = wrapElRef.current; if (!ch || dead || !w) return;
       const wr = w.getBoundingClientRect();
+      // Reuse this existing, coalesced geometry read; no second engine resize loop.
+      // A hidden price pane is not evidence of a usable plot.
+      try {
+        const plotWidth = ch.timeScale().width();
+        // options().width is configuration, not the rendered size after resize().
+        // Read all horizontal engine geometry in one generation, then compare it
+        // with the host so an early measure cannot pair an old plot with new DOM.
+        const axisWidth = ch.priceScale("left").width() + ch.priceScale("right").width();
+        const engineWidth = plotWidth + axisWidth;
+        if (engineWidth > 0 && Math.abs(engineWidth - el.clientWidth) <= 1) {
+          const paneWidth = (w.closest<HTMLElement>(".pane") ?? w).getBoundingClientRect().width;
+          if (Number.isFinite(plotWidth) && plotWidth > 0 && Number.isFinite(paneWidth) && paneWidth >= plotWidth) {
+            // lightweight-charts floors its host size to an even number. Reserve
+            // that possible pixel once, rather than feeding parity back into layout.
+            const plotInset = Math.max(0, paneWidth - el.clientWidth) + axisWidth + 1;
+            plotGeometryCallbackRef.current?.({ paneWidth, plotWidth, plotInset });
+          }
+        }
+      } catch { /* A missing/transitioning pane supplies no geometry. */ }
       // match panes by current index, not object identity — lightweight-charts hands back fresh
       // Fresh pane handle wrappers each read, so series.pane() !== chart.panes()[i]; index() stays consistent
       // for the same underlying pane (and updates together after swapPanes reorders).
@@ -8976,6 +9004,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     // ── mount teardown (base line-416 logic + the new refs) ──
     return () => {
       dead = true; if (rafId != null) cancelAnimationFrame(rafId); if (measRaf != null) cancelAnimationFrame(measRaf);
+      plotGeometryCallbackRef.current?.(null);
       for (const entry of drawingReadinessUnsubs.values()) entry.unsub();
       drawingReadinessUnsubs.clear();
       drawingBridge.dispose();

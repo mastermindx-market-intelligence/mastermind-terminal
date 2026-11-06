@@ -1,0 +1,15 @@
+
+> terminal@0.1.0 test
+> vitest run lib/__tests__/pineEditorIdBuffer.test.tsx
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal
+
+ ✓ lib/__tests__/pineEditorIdBuffer.test.tsx (20 tests) 788ms
+
+ Test Files  1 passed (1)
+      Tests  20 passed (20)
+   Start at  04:14:40
+   Duration  2.48s (transform 135ms, setup 0ms, collect 181ms, tests 788ms, environment 791ms, prepare 95ms)
+

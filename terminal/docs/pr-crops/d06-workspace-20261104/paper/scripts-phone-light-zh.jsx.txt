@@ -1,0 +1,203 @@
+(
+    <div style={{ backgroundColor: 'var(--mx-light-bg)', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', fontSynthesis: 'none', MozOsxFontSmoothing: 'grayscale', overflow: 'clip', overflowWrap: 'anywhere', WebkitFontSmoothing: 'antialiased' }}>
+      <div style={{ backgroundColor: 'var(--mx-light-bg)', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '18px', paddingBlock: '20px', paddingInline: '16px', width: '390px' }}>
+        <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex' }}>
+          <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', fontFamily: '"Inter-Bold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 700, letterSpacing: '1.4px', lineHeight: '22px' }}>
+            MASTERMIND
+          </div>
+          <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '22px', marginLeft: 'auto' }}>
+            脚本
+          </div>
+        </div>
+        <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', fontFamily: '"Inter-Bold", "Inter", system-ui, sans-serif', fontSize: '25px', fontWeight: 700, lineHeight: '32px' }}>
+          Pine 编辑器
+        </div>
+        <div style={{ backgroundColor: 'var(--mx-light-panel)', borderColor: 'var(--mx-light-line)', borderRadius: '8px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', paddingBlock: '12px', paddingInline: '14px' }}>
+          <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '14px', fontWeight: 600, lineHeight: '22px' }}>
+            My Momentum ⌄
+          </div>
+        </div>
+        <div style={{ boxSizing: 'border-box', display: 'flex', gap: '8px' }}>
+          <div style={{ alignItems: 'center', backgroundColor: 'var(--mx-light-info)', borderColor: 'var(--mx-light-line)', borderRadius: '8px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '18px' }}>
+            <div style={{ boxSizing: 'border-box', color: '#FFFFFF', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '22px' }}>
+              保存更改
+            </div>
+          </div>
+          <div style={{ alignItems: 'center', backgroundColor: 'var(--mx-light-panel)', borderColor: 'var(--mx-light-line)', borderRadius: '8px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '18px' }}>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '22px' }}>
+              添加到图表
+            </div>
+          </div>
+        </div>
+        <div style={{ backgroundColor: 'var(--mx-light-panel)', borderColor: 'var(--mx-light-line)', borderRadius: '9px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '6px', padding: '16px' }}>
+          <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '14px', fontWeight: 600, lineHeight: '22px' }}>
+            较早版本已保存
+          </div>
+          <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '22px' }}>
+            你刚才输入的新内容尚未保存，仍保留在编辑器中。
+          </div>
+        </div>
+        <div style={{ backgroundColor: 'var(--mx-light-panel)', borderColor: 'var(--mx-light-line)', borderRadius: '9px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', overflow: 'clip', width: '358px' }}>
+          <div style={{ alignItems: 'center', borderBottomColor: 'var(--mx-light-line)', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', paddingBlock: '14px', paddingInline: '12px' }}>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '12px', fontWeight: 600, lineHeight: '22px' }}>
+              my_momentum.pine
+            </div>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '22px', marginLeft: 'auto' }}>
+              未保存
+            </div>
+          </div>
+          <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', minHeight: '310px', overflow: 'clip', paddingBlock: '18px', paddingInline: '10px', width: '358px' }}>
+            <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                1
+              </div>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '13px', lineHeight: '24px', width: 'max-content' }}>
+                //@version=6
+              </div>
+            </div>
+            <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                2
+              </div>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-link)', fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '13px', lineHeight: '24px', width: 'max-content' }}>
+                indicator("My Momentum", overlay=false)
+              </div>
+            </div>
+            <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                3
+              </div>
+              <div style={{ boxSizing: 'border-box' }} />
+            </div>
+            <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                4
+              </div>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-link)', fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '13px', lineHeight: '24px', width: 'max-content' }}>
+                length = input.int(14, "RSI length")
+              </div>
+            </div>
+            <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                5
+              </div>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-link)', fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '13px', lineHeight: '24px', width: 'max-content' }}>
+                source = input.source(close, "Source")
+              </div>
+            </div>
+            <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                6
+              </div>
+              <div style={{ boxSizing: 'border-box' }} />
+            </div>
+            <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                7
+              </div>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '13px', lineHeight: '24px', width: 'max-content' }}>
+                momentum = ta.rsi(source, length)
+              </div>
+            </div>
+            <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                8
+              </div>
+              <div style={{ boxSizing: 'border-box' }} />
+            </div>
+            <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                9
+              </div>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '13px', lineHeight: '24px', width: 'max-content' }}>
+                plot(momentum, color=color.blue)
+              </div>
+            </div>
+            <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                10
+              </div>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-link)', fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '13px', lineHeight: '24px', width: 'max-content' }}>
+                hline(60, "Upper guide")
+              </div>
+            </div>
+            <div style={{ boxSizing: 'border-box', display: 'flex', gap: '20px', minHeight: '24px' }}>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', flexShrink: 0, fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '12px', lineHeight: '22px', textAlign: 'right', width: '24px' }}>
+                11
+              </div>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-link)', fontFamily: 'ui-monospace, "SFMono-Regular", "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace', fontSize: '13px', lineHeight: '24px', width: 'max-content' }}>
+                hline(40, "Lower guide")
+              </div>
+            </div>
+          </div>
+          <div style={{ borderTopColor: 'var(--mx-light-line)', borderTopStyle: 'solid', borderTopWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '7px', padding: '16px' }}>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-ink-up)', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '22px' }}>
+              ✓ 诊断完成 · 没有错误
+            </div>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '22px' }}>
+              130 根模拟 K 线 · 1 秒运行预算
+            </div>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '22px' }}>
+              这项检查不使用真实行情，也不构成回测。
+            </div>
+            <div style={{ alignItems: 'center', backgroundColor: 'var(--mx-light-panel)', borderColor: 'var(--mx-light-line)', borderRadius: '8px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '18px' }}>
+              <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '22px' }}>
+                ▷ 运行诊断
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style={{ backgroundColor: 'var(--mx-light-panel)', borderColor: 'var(--mx-light-line)', borderRadius: '9px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px' }}>
+          <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '22px' }}>
+            我的脚本
+          </div>
+          <div style={{ backgroundColor: 'var(--mx-light-panel2)', borderRadius: '7px', boxSizing: 'border-box', display: 'flex', paddingBlock: '13px', paddingInline: '10px' }}>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '14px', fontWeight: 600, lineHeight: '22px' }}>
+              ƒ My Momentum
+            </div>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-link)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '22px', marginLeft: 'auto' }}>
+              当前
+            </div>
+          </div>
+          <div style={{ boxSizing: 'border-box', padding: '10px' }}>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '14px', lineHeight: '22px' }}>
+              My Reversion
+            </div>
+          </div>
+          <div style={{ boxSizing: 'border-box', padding: '10px' }}>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '22px' }}>
+              RM×ST · 源码只读
+            </div>
+          </div>
+        </div>
+        <div style={{ backgroundColor: 'var(--mx-light-panel)', borderColor: 'var(--mx-light-line)', borderRadius: '9px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px' }}>
+          <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '22px' }}>
+            参数
+          </div>
+          <div style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex' }}>
+            <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '22px' }}>
+              length
+            </div>
+            <div style={{ boxSizing: 'border-box', display: 'flex', gap: '4px', marginLeft: 'auto' }}>
+              <div style={{ alignItems: 'center', backgroundColor: 'var(--mx-light-panel)', borderColor: 'var(--mx-light-line)', borderRadius: '8px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '18px' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '22px' }}>
+                  −
+                </div>
+              </div>
+              <div style={{ alignSelf: 'center', boxSizing: 'border-box', color: 'var(--mx-light-text)', flexShrink: 0, fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '14px', lineHeight: '22px', textAlign: 'center', width: '30px' }}>
+                14
+              </div>
+              <div style={{ alignItems: 'center', backgroundColor: 'var(--mx-light-panel)', borderColor: 'var(--mx-light-line)', borderRadius: '8px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '18px' }}>
+                <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-text)', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '22px' }}>
+                  +
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style={{ boxSizing: 'border-box', color: 'var(--mx-light-muted)', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '22px' }}>
+          页面可以向下滚动；代码在编辑器内横向滚动。
+        </div>
+      </div>
+    </div>
+  )

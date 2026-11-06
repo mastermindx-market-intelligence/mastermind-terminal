@@ -1,0 +1,34 @@
+{
+  "schema": "d06.artifact_inventory.v1",
+  "member_count": 5,
+  "aggregate_sha256": "eb6cf4d6120514b2240884908d02a45771674ff42d2319b8aaa07f610e0f8510",
+  "aggregate_rule": "SHA256 of sorted lines: sha256 + space + relative path + LF",
+  "manifest_self_excluded": true,
+  "members": [
+    {
+      "path": "copy-lint.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "copy-parity.log",
+      "bytes": 169,
+      "sha256": "ebb9fe7e46130e99910065b6db5a7de9d0aa421997b4697a0eb4b47b8c3af86e"
+    },
+    {
+      "path": "pine-editor-unit.log",
+      "bytes": 600,
+      "sha256": "f4a0096f3e6811c55028d302d16165f22899037647f5628a7e5ada9ae463120a"
+    },
+    {
+      "path": "plain-language.log",
+      "bytes": 2283,
+      "sha256": "5b603fcdc21916cec00b5c747c473ac75e335b4d5937ed10f9c98184ad752479"
+    },
+    {
+      "path": "verification.json",
+      "bytes": 3182,
+      "sha256": "685cc7ad62f155fe940884ee92966b5a4d8edc5fb05e66ba31cf50cc40ad6568"
+    }
+  ]
+}

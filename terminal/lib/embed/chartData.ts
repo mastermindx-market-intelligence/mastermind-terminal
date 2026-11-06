@@ -87,10 +87,17 @@ export function parseRange(raw: string | null | undefined): RangeKey {
 
 // ── Bar normalisation ──────────────────────────────────────────────────────────
 
+/** Canonical calendar day only. UTC is used for validation, never for display conversion. */
+function isDailyDate(value: unknown): value is string {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const timestamp = Date.parse(`${value}T00:00:00Z`);
+  return Number.isFinite(timestamp) && new Date(timestamp).toISOString().slice(0, 10) === value;
+}
+
 /**
  * toBars — normalise the raw /data JSON into typed, sorted, finite Bars.
- * Drops any row that isn't a well-formed 6-tuple of finite numbers (defensive: the file is
- * static and trusted, but a single bad row must never blank the whole widget).
+ * Drops rows without a canonical calendar day or finite OHLC. Invalid volume retains the
+ * existing zero fallback. A single unusable row need not blank an otherwise usable series.
  */
 export function toBars(file: OhlcFile | null | undefined): Bar[] {
   const raw = file?.bars;
@@ -99,7 +106,7 @@ export function toBars(file: OhlcFile | null | undefined): Bar[] {
   for (const r of raw) {
     if (!Array.isArray(r) || r.length < 6) continue;
     const [time, o, h, l, c, v] = r;
-    if (typeof time !== "string" || !time) continue;
+    if (!isDailyDate(time)) continue;
     if (![o, h, l, c].every((n) => typeof n === "number" && Number.isFinite(n))) continue;
     out.push({
       time,
@@ -140,6 +147,29 @@ export function computeQuote(bars: Bar[]): Quote | null {
   const changePct = prev != null && prev !== 0 ? (change! / prev) * 100 : null;
   const dir: Quote["dir"] = change == null || change === 0 ? "flat" : change > 0 ? "up" : "down";
   return { last, prev, change, changePct, asOf: lastBar.time, dir };
+}
+
+/** Settled outcomes owned by this daily widget, independent of transport and live quotes. */
+export type DailyHistoryState =
+  | { kind: "empty" }
+  | { kind: "unavailable" }
+  | { kind: "ready"; bars: Bar[]; quote: Quote };
+
+/**
+ * Interpret a successful JSON response without treating malformed data as confirmed absence.
+ * Duplicate usable dates are ambiguous and unsafe for the chart; do not invent a winner.
+ */
+export function parseDailyHistory(file: unknown): DailyHistoryState {
+  if (!file || typeof file !== "object") return { kind: "unavailable" };
+  const source = file as OhlcFile;
+  if (!Array.isArray(source.bars)) return { kind: "unavailable" };
+  if (source.bars.length === 0) return { kind: "empty" };
+  const bars = toBars(source);
+  const quote = computeQuote(bars);
+  if (!quote || bars.some((bar, index) => index > 0 && bar.time === bars[index - 1].time)) {
+    return { kind: "unavailable" };
+  }
+  return { kind: "ready", bars, quote };
 }
 
 // ── SMA (simple moving average of closes) ──────────────────────────────────────

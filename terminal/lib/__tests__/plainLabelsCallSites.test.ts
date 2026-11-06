@@ -222,11 +222,11 @@ describe("plain-language call sites — batch 3", () => {
     expect(src).toContain('t("peLangPine")');
     expect(src).toContain('t("peLangScript")');
     expect(src).toContain('t("peLastEdited")');
-    expect(src).toContain('t("peNeedsPro")');
+    expect(src).toContain('copy.proReason');
     expect(src).toContain('t("peSaveChanges")');
     expect(src).toContain('t("peCompiledOk")');
     expect(src).toContain('t("peUnsavedChanges")');
-    expect(src).toContain('t("peReadyToAdd")');
+    expect(src).toContain('copy.readyToAdd');
   });
 
   it("FiltersPanel.tsx: caveats and reset route through pick()", () => {
@@ -340,8 +340,10 @@ describe("plain-language call sites — batch 3", () => {
     expect(src).toContain('t("optionEodTip")');
   });
 
-  it("x/[slug]/page.tsx: snapshot chrome routes through T / TImg", () => {
-    const src = readFileSync(join(__dirname, "../../app/x/[slug]/page.tsx"), "utf8");
+  it("snapshot chrome and image state route through the existing lexicon", () => {
+    const src = readFileSync(join(__dirname, "../../app/x/SnapshotFrame.tsx"), "utf8");
+    const image = readFileSync(join(__dirname, "../../app/x/[slug]/SnapshotImage.tsx"), "utf8");
+    expect(image).toContain('alt={t("xChartSnapshot")}');
     expect(src).not.toContain('alt="Chart snapshot"');
     expect(src).not.toContain("Created with");
     expect(src).toContain('k="xChartSnapshot"');
@@ -420,10 +422,10 @@ describe("plain-language call sites — batch 3 round 3", () => {
     expect(src).not.toContain("<h4>Inputs</h4>");
     expect(src).not.toContain("{lines.length} lines");
     expect(src).not.toContain('error{diag.length === 1 ? "" : "s"}');
-    expect(src).toContain('t("peCompiling")');
+    expect(src).toContain('copy.diagnosticsRunning');
     expect(src).toContain('t("peErrorCount")');
     expect(src).toContain('t("peErrorCountOne")');
-    expect(src).toContain('t("peInputsHeading")');
+    expect(src).toContain('copy.stepInputs');
     expect(src).toContain('t("peLineCount")');
   });
 

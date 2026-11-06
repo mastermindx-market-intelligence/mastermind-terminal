@@ -1,0 +1,143 @@
+{
+  "source_pin": "0f9043313069d90cc3e1629a04ff2455f0f0fe78",
+  "file_id": "01M3NSZGE8JWN2EZCSF0DT05RM",
+  "page_id": "p-17-0",
+  "page_name": "D06 · Terminal · Production workspace · R2",
+  "captured_at": "2026-11-04T08:23:34.624562+00:00",
+  "stage": "Paper visual self-QA complete; implementation proof recorded separately",
+  "data": "Illustrative; values are not live market evidence",
+  "boards": [
+    {
+      "node_id": "1U01-0",
+      "name": "desktop-dark-en",
+      "artifacts": [
+        {
+          "path": "docs/pr-crops/d06-workspace-20261104/paper/desktop-dark-en.jpg",
+          "bytes": 163136,
+          "sha256": "c950ea748b7108b5d76729c6a73c0373ce422de4de0b5ab007a2dc1efe5b9c12"
+        },
+        {
+          "path": "docs/pr-crops/d06-workspace-20261104/paper/desktop-dark-en.jsx.txt",
+          "bytes": 70374,
+          "sha256": "e18cf69cfc1c7dca154a3517d4a1f71017d036318b00cfc4c48c150edecd7d2f"
+        }
+      ]
+    },
+    {
+      "node_id": "1UEL-0",
+      "name": "phone-dark-en",
+      "artifacts": [
+        {
+          "path": "docs/pr-crops/d06-workspace-20261104/paper/phone-dark-en.jpg",
+          "bytes": 67836,
+          "sha256": "be01fada6f406c77a123a88fa7b6fd8c693f0963b0a11bbdfd7e762be8b9eb01"
+        },
+        {
+          "path": "docs/pr-crops/d06-workspace-20261104/paper/phone-dark-en.jsx.txt",
+          "bytes": 58336,
+          "sha256": "efd295a41ce2f433367fb859179315e70ba4ffc33ec4c8cfefadc9a0ce90cb5e"
+        }
+      ]
+    },
+    {
+      "node_id": "1US3-0",
+      "name": "constrained-light-en",
+      "artifacts": [
+        {
+          "path": "docs/pr-crops/d06-workspace-20261104/paper/constrained-light-en.jpg",
+          "bytes": 179419,
+          "sha256": "d13a4ed972e4534ae27782635e338e460fcdc50874209c546c47310d539d4613"
+        },
+        {
+          "path": "docs/pr-crops/d06-workspace-20261104/paper/constrained-light-en.jsx.txt",
+          "bytes": 70812,
+          "sha256": "793688cfca7bccef4e86a3d64a8fccd3cc18107e89b40a6c675154cadfbeffe0"
+        }
+      ]
+    },
+    {
+      "node_id": "1V6P-0",
+      "name": "phone-light-zh",
+      "artifacts": [
+        {
+          "path": "docs/pr-crops/d06-workspace-20261104/paper/phone-light-zh.jpg",
+          "bytes": 68785,
+          "sha256": "e80f05fa35d7d4d2d635e7d13c217fc3267f3c8d275b855f3d2c92b17d5562e4"
+        },
+        {
+          "path": "docs/pr-crops/d06-workspace-20261104/paper/phone-light-zh.jsx.txt",
+          "bytes": 58662,
+          "sha256": "411195b3b67ce3d7d4c544774295b4a6e8094e8379918910cb81898f9ff155f4"
+        }
+      ]
+    },
+    {
+      "node_id": "1W4S-0",
+      "name": "keyboard-focus-reference",
+      "artifacts": [
+        {
+          "path": "docs/pr-crops/d06-workspace-20261104/paper/keyboard-focus-reference.jpg",
+          "bytes": 175152,
+          "sha256": "37e91aa7ec3d30a63fd39be4d6974d2b0ea9a76e93cab26be28a003e6d03d80a"
+        },
+        {
+          "path": "docs/pr-crops/d06-workspace-20261104/paper/keyboard-focus-reference.jsx.txt",
+          "bytes": 60544,
+          "sha256": "23b4ea86e68a779f73369b73e58e3f568799a79e3803bc56e14ee90e03137e33"
+        }
+      ]
+    },
+    {
+      "node_id": "1WI8-0",
+      "name": "scripts-desktop-dark-en",
+      "stage": "Design only; runtime implementation is the following bounded slice",
+      "artifacts": [
+        {
+          "path": "docs/pr-crops/d06-workspace-20261104/paper/scripts-desktop-dark-en.jpg",
+          "bytes": 113399,
+          "sha256": "c73d6bfa244cf4c32b50395834a526759055008ccfc02aa213bf81c994430fab"
+        },
+        {
+          "path": "docs/pr-crops/d06-workspace-20261104/paper/scripts-desktop-dark-en.jsx.txt",
+          "bytes": 24874,
+          "sha256": "edad282cc099353a412cc2f23a7016460fc5859f5f2a54d55acfff76c76e0359"
+        }
+      ]
+    },
+    {
+      "node_id": "1WI9-0",
+      "name": "scripts-phone-light-zh",
+      "stage": "Design only; runtime implementation is the following bounded slice",
+      "artifacts": [
+        {
+          "path": "docs/pr-crops/d06-workspace-20261104/paper/scripts-phone-light-zh.jpg",
+          "bytes": 75076,
+          "sha256": "859596f4ac5e565a820edd3011dbe2bbafa2ca64007a3338892887db785f63c3"
+        },
+        {
+          "path": "docs/pr-crops/d06-workspace-20261104/paper/scripts-phone-light-zh.jsx.txt",
+          "bytes": 18975,
+          "sha256": "0c6d7f5b66c9d0abd70a0b84acfaa9784dddd8021622d5e460175b2ce6be774d"
+        }
+      ]
+    },
+    {
+      "node_id": "1WIA-0",
+      "name": "snapshot-light-en",
+      "stage": "Design only; runtime implementation is the following bounded slice",
+      "artifacts": [
+        {
+          "path": "docs/pr-crops/d06-workspace-20261104/paper/snapshot-light-en.jpg",
+          "bytes": 148631,
+          "sha256": "9bf46315ea611e16ba6105b9641b3b0b594b5f4184fed077c74db4d525f6a6ab"
+        },
+        {
+          "path": "docs/pr-crops/d06-workspace-20261104/paper/snapshot-light-en.jsx.txt",
+          "bytes": 43732,
+          "sha256": "7d992e19abeb23595572ef72ce6bdaf7aa4e1fb8578027664639daef6d1a34cc"
+        }
+      ]
+    }
+  ],
+  "updated_at": "2026-11-04T08:42:15.322046+00:00"
+}

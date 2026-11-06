@@ -330,7 +330,7 @@ test("a delayed save preserves newer typing and requires a second explicit save"
   await save.click();
   await expect.poll(() => requests.length).toBe(1);
   await setSource(page, "//@version=6\nindicator(\"My Momentum\")\nplot(close * 3) // NEWER-TYPING\n");
-  await save.click();
+  await expect(save).toBeDisabled();
   expect(requests).toHaveLength(1);
   expect(requests[0].source).toContain("CLICK-SNAPSHOT");
   await fulfillSaveReceipt(pending!);

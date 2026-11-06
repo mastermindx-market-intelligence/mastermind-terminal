@@ -1,0 +1,199 @@
+{
+  "source_parent": "efafc1176a2eb48834125c085615e94033fa1ae7",
+  "source_before": {
+    "terminal/app/embed/chart/EmbedChart.tsx": "ed5a57ab0f475bfd98da45272723eed6a8b5f4c17b3be7845664b42b2bd8a2cb",
+    "terminal/app/globals.css": "fbc2f2f636039a7c15328b508e1f8f70e13d81a6d8b6a8ab99f41e5862a85a0b",
+    "terminal/app/layout.tsx": "18ad4c49e52d9071944d489249e1547acefea252b0fd5d4775e242d773068f46",
+    "terminal/components/ChartPanel.tsx": "a9440cfa8a582408d8606de5fc0fcea912f04c0119abc7db07a9fd01fdca1c2f",
+    "terminal/components/NativeViewportPolicy.tsx": "511b4efe6f28c530c3f64195e397711c362fdac4fc0f4168309e31507cff055b",
+    "terminal/e2e/chart-link-groups.spec.ts": "26537e95ad11e93c63cd53f70fff4f09f37b21ab9d1d1761958c31b2113c7a9b",
+    "terminal/e2e/embed-data-state.spec.ts": "50a8f0353fa0cec6196cd38d1a3cc2a35842f089f8d625a46ea616a0fb4538e9",
+    "terminal/e2e/embed-fullscreen.spec.ts": "49ac57c8782b2e952dc35d549a674242b83db172309e7cf2827c4e4cc5db090a",
+    "terminal/lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts": "ff1b80a54b86ae576465273066c79051d5281e64cfb1fda7fd7c8312ed250ac9",
+    "terminal/lib/__tests__/b_f12_b5_3AccountCompletenessEvidence.test.ts": "798c8409d137d6f10854f54d1da8904aa8a7cd36fb6bd2645d7f3fe454ba7e91",
+    "terminal/lib/__tests__/b_pl_6Batch1Evidence.test.ts": "260476f1fb6971fd9dfcad2085426855b240f90a6cecf19ebfc4950280609f42",
+    "terminal/lib/__tests__/b_pl_6Batch2Evidence.test.ts": "993fd36801cf96dd225023f9afb53db8b506d5d2d20d3b857e9c6d8f9aacc5ab",
+    "terminal/lib/__tests__/conductorFitBadgeZhEvidence.test.ts": "468b73167e1a0ca6c016e87d824d91398a34c7557a3a83c787fca76b6233acab",
+    "terminal/lib/__tests__/d06CaptureDependency.test.ts": "a503ef0eba7cbe3715b84c3479ed84f36750e3850818d38bc35892d6972a0902",
+    "terminal/lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts": "87b61208c1f86dedc960c148027d8a0fcd844717970f871f8cbac9004a075c95",
+    "terminal/lib/__tests__/f11_4ResearchViewsEvidence.test.ts": "2692a46fa5393a3f86bfa2040cc7ba845d9f187ea8eb236cad1540c7181edc1b",
+    "terminal/lib/__tests__/f12_17InviteLinkEvidence.test.ts": "3dbab8d87c84537f2c8c9c1855afd96037db3d3c3c146242d161f02b23d34fff",
+    "terminal/lib/__tests__/f12_8TeamRolesEvidence.test.ts": "df9c414d62844445405c4c7ae17b446ec91b57ebc1bd273f2ac31990efc6c5f8",
+    "terminal/lib/__tests__/f12_9TeamOwnershipTransferEvidence.test.ts": "0825e7c120cc73ce24c6bbf578943fa95e1c59a193e7e9c3c460d1b55a5477c5",
+    "terminal/lib/__tests__/fixtures/d06CapturedDependencyDelta.json": "6058e5853eacdddfe3cf4a44b9a47eb07a80e50f2924e132d0af823ce81e3dd6",
+    "terminal/lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts": "a2e52bf96b1d7c366ee2c15f821f565fc50b3b8bf7846dd85ab75855546628fe",
+    "terminal/lib/__tests__/helpers/d06CaptureDependency.ts": "630095f3511932a66d9031452cc68f66a2fc76575b43c98412278deecc20689c",
+    "terminal/lib/__tests__/helpers/lexEvidenceProjection.ts": "58ed8af428b79461f53ca7d68e63cc978c5f720f2093eb116d7a054291543ea2",
+    "terminal/lib/__tests__/lexEvidenceProjection.test.ts": "43c8778fdd0d50d8fad0cbf41872cd7dffae82a89e879eb9ca66f9cc5fe1a461",
+    "terminal/lib/__tests__/nativeViewportPolicy.test.tsx": "619ad9664a88402fae10b222b7eeeb9b6454d141e38f972e6936324dab87bf44",
+    "terminal/lib/__tests__/optionsLevelAxisEvidence.test.ts": "7e0020494af1dcdc4491071b8fef013113d5769e9152ffc549d21ac39c67ee6e",
+    "terminal/lib/__tests__/personalAccuracyEvidence.test.ts": "65bffb09ab9a58463cf14b1076b9f11ff0e64dfb56a65d8e0303403bf0de3c7e",
+    "terminal/lib/__tests__/visualIntelligenceEvidence.test.ts": "953c44150d34e08cf6ea55199c6be7c7a7c66f5fc08c7a45fdbc20d22e7788f9",
+    "terminal/lib/i18n.tsx": "05c52c714ae7a7fcb5a14d44c0fb6eb5ccabe21b0eb2ed8a1608cd2dfbf1f4e8"
+  },
+  "source_after": {
+    "terminal/app/embed/chart/EmbedChart.tsx": "ed5a57ab0f475bfd98da45272723eed6a8b5f4c17b3be7845664b42b2bd8a2cb",
+    "terminal/app/globals.css": "fbc2f2f636039a7c15328b508e1f8f70e13d81a6d8b6a8ab99f41e5862a85a0b",
+    "terminal/app/layout.tsx": "18ad4c49e52d9071944d489249e1547acefea252b0fd5d4775e242d773068f46",
+    "terminal/components/ChartPanel.tsx": "a9440cfa8a582408d8606de5fc0fcea912f04c0119abc7db07a9fd01fdca1c2f",
+    "terminal/components/NativeViewportPolicy.tsx": "511b4efe6f28c530c3f64195e397711c362fdac4fc0f4168309e31507cff055b",
+    "terminal/e2e/chart-link-groups.spec.ts": "26537e95ad11e93c63cd53f70fff4f09f37b21ab9d1d1761958c31b2113c7a9b",
+    "terminal/e2e/embed-data-state.spec.ts": "50a8f0353fa0cec6196cd38d1a3cc2a35842f089f8d625a46ea616a0fb4538e9",
+    "terminal/e2e/embed-fullscreen.spec.ts": "49ac57c8782b2e952dc35d549a674242b83db172309e7cf2827c4e4cc5db090a",
+    "terminal/lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts": "ff1b80a54b86ae576465273066c79051d5281e64cfb1fda7fd7c8312ed250ac9",
+    "terminal/lib/__tests__/b_f12_b5_3AccountCompletenessEvidence.test.ts": "798c8409d137d6f10854f54d1da8904aa8a7cd36fb6bd2645d7f3fe454ba7e91",
+    "terminal/lib/__tests__/b_pl_6Batch1Evidence.test.ts": "260476f1fb6971fd9dfcad2085426855b240f90a6cecf19ebfc4950280609f42",
+    "terminal/lib/__tests__/b_pl_6Batch2Evidence.test.ts": "993fd36801cf96dd225023f9afb53db8b506d5d2d20d3b857e9c6d8f9aacc5ab",
+    "terminal/lib/__tests__/conductorFitBadgeZhEvidence.test.ts": "468b73167e1a0ca6c016e87d824d91398a34c7557a3a83c787fca76b6233acab",
+    "terminal/lib/__tests__/d06CaptureDependency.test.ts": "a503ef0eba7cbe3715b84c3479ed84f36750e3850818d38bc35892d6972a0902",
+    "terminal/lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts": "87b61208c1f86dedc960c148027d8a0fcd844717970f871f8cbac9004a075c95",
+    "terminal/lib/__tests__/f11_4ResearchViewsEvidence.test.ts": "2692a46fa5393a3f86bfa2040cc7ba845d9f187ea8eb236cad1540c7181edc1b",
+    "terminal/lib/__tests__/f12_17InviteLinkEvidence.test.ts": "3dbab8d87c84537f2c8c9c1855afd96037db3d3c3c146242d161f02b23d34fff",
+    "terminal/lib/__tests__/f12_8TeamRolesEvidence.test.ts": "df9c414d62844445405c4c7ae17b446ec91b57ebc1bd273f2ac31990efc6c5f8",
+    "terminal/lib/__tests__/f12_9TeamOwnershipTransferEvidence.test.ts": "0825e7c120cc73ce24c6bbf578943fa95e1c59a193e7e9c3c460d1b55a5477c5",
+    "terminal/lib/__tests__/fixtures/d06CapturedDependencyDelta.json": "6058e5853eacdddfe3cf4a44b9a47eb07a80e50f2924e132d0af823ce81e3dd6",
+    "terminal/lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts": "a2e52bf96b1d7c366ee2c15f821f565fc50b3b8bf7846dd85ab75855546628fe",
+    "terminal/lib/__tests__/helpers/d06CaptureDependency.ts": "630095f3511932a66d9031452cc68f66a2fc76575b43c98412278deecc20689c",
+    "terminal/lib/__tests__/helpers/lexEvidenceProjection.ts": "58ed8af428b79461f53ca7d68e63cc978c5f720f2093eb116d7a054291543ea2",
+    "terminal/lib/__tests__/lexEvidenceProjection.test.ts": "43c8778fdd0d50d8fad0cbf41872cd7dffae82a89e879eb9ca66f9cc5fe1a461",
+    "terminal/lib/__tests__/nativeViewportPolicy.test.tsx": "619ad9664a88402fae10b222b7eeeb9b6454d141e38f972e6936324dab87bf44",
+    "terminal/lib/__tests__/optionsLevelAxisEvidence.test.ts": "7e0020494af1dcdc4491071b8fef013113d5769e9152ffc549d21ac39c67ee6e",
+    "terminal/lib/__tests__/personalAccuracyEvidence.test.ts": "65bffb09ab9a58463cf14b1076b9f11ff0e64dfb56a65d8e0303403bf0de3c7e",
+    "terminal/lib/__tests__/visualIntelligenceEvidence.test.ts": "953c44150d34e08cf6ea55199c6be7c7a7c66f5fc08c7a45fdbc20d22e7788f9",
+    "terminal/lib/i18n.tsx": "05c52c714ae7a7fcb5a14d44c0fb6eb5ccabe21b0eb2ed8a1608cd2dfbf1f4e8"
+  },
+  "unchanged_during_validation": true,
+  "runs": [
+    {
+      "label": "typecheck",
+      "argv": [
+        "npx",
+        "tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "log": "terminal-ci-final-tsc.log",
+      "exit_code": 0,
+      "seconds": 63.76
+    },
+    {
+      "label": "lint",
+      "argv": [
+        "npx",
+        "eslint",
+        "app/layout.tsx",
+        "components/NativeViewportPolicy.tsx",
+        "e2e/chart-link-groups.spec.ts",
+        "e2e/embed-data-state.spec.ts",
+        "e2e/embed-fullscreen.spec.ts",
+        "lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts",
+        "lib/__tests__/b_f12_b5_3AccountCompletenessEvidence.test.ts",
+        "lib/__tests__/b_pl_6Batch2Evidence.test.ts",
+        "lib/__tests__/conductorFitBadgeZhEvidence.test.ts",
+        "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+        "lib/__tests__/f11_4ResearchViewsEvidence.test.ts",
+        "lib/__tests__/f12_17InviteLinkEvidence.test.ts",
+        "lib/__tests__/f12_8TeamRolesEvidence.test.ts",
+        "lib/__tests__/f12_9TeamOwnershipTransferEvidence.test.ts",
+        "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+        "lib/__tests__/lexEvidenceProjection.test.ts",
+        "lib/__tests__/optionsLevelAxisEvidence.test.ts",
+        "lib/__tests__/personalAccuracyEvidence.test.ts",
+        "lib/__tests__/d06CaptureDependency.test.ts",
+        "lib/__tests__/nativeViewportPolicy.test.tsx",
+        "lib/__tests__/helpers/d06CaptureDependency.ts"
+      ],
+      "log": "terminal-ci-final-lint.log",
+      "exit_code": 0,
+      "seconds": 5.832
+    },
+    {
+      "label": "diff_check",
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "log": "terminal-ci-final-diff.log",
+      "exit_code": 0,
+      "seconds": 0.178
+    }
+  ],
+  "embed_lint": {
+    "baseline": {
+      "exit_code": 1,
+      "source_sha256": "6426f70361a24eedf26b773c79ac8bfa673a340e0de8ac9a5b2858c1f4ba4615",
+      "diagnostics": [
+        {
+          "rule": "react-hooks/set-state-in-effect",
+          "severity": 2,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/app/embed/chart/EmbedChart.tsx:179:5\n  177 |   useEffect(() => {\n  178 |     let alive = true;\n> 179 |     setState({ kind: \"loading\" });\n      |     ^^^^^^^^ Avoid calling setState() directly within an effect\n  180 |     fetch(`/data/${encodeURIComponent(symbol)}.json`, { cache: \"force-cache\" })\n  181 |       .then(async (response): Promise<DailyHistoryState> => {\n  182 |         if (response.status === 404) return { kind: \"empty\" };",
+          "line_source": "setState({ kind: \"loading\" });"
+        },
+        {
+          "rule": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "message": "Unexpected any. Specify a different type.",
+          "line_source": "(window as any).__mmEmbedOpts = () => {"
+        },
+        {
+          "rule": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "message": "Unexpected any. Specify a different type.",
+          "line_source": "const o = chart.options() as any;"
+        },
+        {
+          "rule": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "message": "Unexpected any. Specify a different type.",
+          "line_source": "const c = candle.options() as any;"
+        },
+        {
+          "rule": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "message": "Unexpected any. Specify a different type.",
+          "line_source": "if (process.env.NODE_ENV !== \"production\") { try { delete (window as any).__mmEmbedOpts; } catch {} }"
+        }
+      ]
+    },
+    "current": {
+      "exit_code": 1,
+      "source_sha256": "ed5a57ab0f475bfd98da45272723eed6a8b5f4c17b3be7845664b42b2bd8a2cb",
+      "diagnostics": [
+        {
+          "rule": "react-hooks/set-state-in-effect",
+          "severity": 2,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/app/embed/chart/EmbedChart.tsx:179:5\n  177 |   useEffect(() => {\n  178 |     let alive = true;\n> 179 |     setState({ kind: \"loading\" });\n      |     ^^^^^^^^ Avoid calling setState() directly within an effect\n  180 |     fetch(`/data/${encodeURIComponent(symbol)}.json`, { cache: \"force-cache\" })\n  181 |       .then(async (response): Promise<DailyHistoryState> => {\n  182 |         if (response.status === 404) return { kind: \"empty\" };",
+          "line_source": "setState({ kind: \"loading\" });"
+        },
+        {
+          "rule": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "message": "Unexpected any. Specify a different type.",
+          "line_source": "(window as any).__mmEmbedOpts = () => {"
+        },
+        {
+          "rule": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "message": "Unexpected any. Specify a different type.",
+          "line_source": "const o = chart.options() as any;"
+        },
+        {
+          "rule": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "message": "Unexpected any. Specify a different type.",
+          "line_source": "const c = candle.options() as any;"
+        },
+        {
+          "rule": "@typescript-eslint/no-explicit-any",
+          "severity": 2,
+          "message": "Unexpected any. Specify a different type.",
+          "line_source": "if (process.env.NODE_ENV !== \"production\") { try { delete (window as any).__mmEmbedOpts; } catch {} }"
+        }
+      ]
+    }
+  },
+  "embed_lint_same_as_parent": true,
+  "all_requested_commands_passed": true
+}

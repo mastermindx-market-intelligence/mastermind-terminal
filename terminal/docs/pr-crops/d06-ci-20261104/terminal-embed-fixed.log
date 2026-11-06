@@ -1,0 +1,222 @@
+[warmup] /terminal?symbol=NVDA → 200 in 150ms
+[warmup] /options → 200 in 233ms
+[warmup] /portfolio → 200 in 135ms
+[warmup] /alerts → 200 in 172ms
+[warmup] /analysis → 200 in 270ms
+[warmup] /discover → 200 in 200ms
+[warmup] /admin → 200 in 144ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 78ms
+[warmup] /login → 200 in 172ms
+[warmup] /reset-password → 200 in 232ms
+[warmup] /api/me → 200 in 99ms
+[warmup] /api/watchlist → 200 in 63ms
+[warmup] /api/layouts → 200 in 77ms
+[warmup] /api/watchlist/annotations → 409 in 72ms
+[warmup] 14 routes compiled in 2s
+
+Running 54 tests using 1 worker
+
+  ✓   1 [desktop] › e2e/embed-data-state.spec.ts:86:9 › daily data en › dates the displayed bar and keeps attribution clear of the time axis (3.2s)
+  ✓   2 [desktop] › e2e/embed-data-state.spec.ts:140:9 › daily data en › keeps confirmed absence distinct and stops loading indicators (2.1s)
+  ✓   3 [desktop] › e2e/embed-data-state.spec.ts:155:9 › daily data en › reports unavailable data without claiming the symbol has no history (5.7s)
+  ✓   4 [desktop] › e2e/embed-data-state.spec.ts:86:9 › daily data zh › dates the displayed bar and keeps attribution clear of the time axis (2.1s)
+  ✓   5 [desktop] › e2e/embed-data-state.spec.ts:140:9 › daily data zh › keeps confirmed absence distinct and stops loading indicators (1.9s)
+  ✓   6 [desktop] › e2e/embed-data-state.spec.ts:155:9 › daily data zh › reports unavailable data without claiming the symbol has no history (3.8s)
+  ✘   7 [desktop] › e2e/embed-data-state.spec.ts:185:5 › preserves compact native variants in short and narrow frames (6.7s)
+  ✓   8 [desktop] › e2e/embed-fullscreen.spec.ts:22:6 › browser fullscreen retains chart, range, overlays and source date in en (1.2s)
+  ✓   9 [desktop] › e2e/embed-fullscreen.spec.ts:22:6 › browser fullscreen retains chart, range, overlays and source date in zh (1.4s)
+  ✓  10 [desktop] › e2e/embed-fullscreen.spec.ts:49:6 › native handler success has priority over browser fullscreen (887ms)
+  ✓  11 [desktop] › e2e/embed-fullscreen.spec.ts:49:6 › native handler failure has priority over browser fullscreen (823ms)
+  ✓  12 [desktop] › e2e/embed-fullscreen.spec.ts:66:6 › unsupported browser requests retain a usable chart (902ms)
+  ✓  13 [desktop] › e2e/embed-fullscreen.spec.ts:66:6 › rejected browser requests retain a usable chart (940ms)
+  ✓  14 [desktop] › e2e/embed-fullscreen.spec.ts:79:5 › a rejected exit keeps the observed fullscreen state and explains recovery (1.0s)
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  15 [desktop] › e2e/embed-fullscreen.spec.ts:94:5 › ordinary web viewports permit zoom while both existing native signals retain their policy (3.1s)
+  ✓  16 [desktop] › e2e/embed-fullscreen.spec.ts:111:5 › the ordinary browser permits page-scale zoom without a restrictive viewport (768ms)
+  ✓  17 [desktop] › e2e/embed-fullscreen.spec.ts:123:5 › native viewport policy releases on existing client navigation (1.7s)
+  ✓  18 [desktop] › e2e/embed-fullscreen.spec.ts:133:5 › browser fullscreen restores source context for the compact clean widget (1.1s)
+  ✓  19 [tablet] › e2e/embed-data-state.spec.ts:86:9 › daily data en › dates the displayed bar and keeps attribution clear of the time axis (1.2s)
+  ✓  20 [tablet] › e2e/embed-data-state.spec.ts:140:9 › daily data en › keeps confirmed absence distinct and stops loading indicators (1.0s)
+  ✓  21 [tablet] › e2e/embed-data-state.spec.ts:155:9 › daily data en › reports unavailable data without claiming the symbol has no history (3.5s)
+  ✓  22 [tablet] › e2e/embed-data-state.spec.ts:86:9 › daily data zh › dates the displayed bar and keeps attribution clear of the time axis (1.1s)
+  ✓  23 [tablet] › e2e/embed-data-state.spec.ts:140:9 › daily data zh › keeps confirmed absence distinct and stops loading indicators (968ms)
+  ✓  24 [tablet] › e2e/embed-data-state.spec.ts:155:9 › daily data zh › reports unavailable data without claiming the symbol has no history (3.3s)
+  ✘  25 [tablet] › e2e/embed-data-state.spec.ts:185:5 › preserves compact native variants in short and narrow frames (6.8s)
+  ✓  26 [tablet] › e2e/embed-fullscreen.spec.ts:22:6 › browser fullscreen retains chart, range, overlays and source date in en (1.3s)
+  ✓  27 [tablet] › e2e/embed-fullscreen.spec.ts:22:6 › browser fullscreen retains chart, range, overlays and source date in zh (1.4s)
+  -  28 [tablet] › e2e/embed-fullscreen.spec.ts:49:6 › native handler success has priority over browser fullscreen
+  -  29 [tablet] › e2e/embed-fullscreen.spec.ts:49:6 › native handler failure has priority over browser fullscreen
+  -  30 [tablet] › e2e/embed-fullscreen.spec.ts:66:6 › unsupported browser requests retain a usable chart
+  -  31 [tablet] › e2e/embed-fullscreen.spec.ts:66:6 › rejected browser requests retain a usable chart
+  -  32 [tablet] › e2e/embed-fullscreen.spec.ts:79:5 › a rejected exit keeps the observed fullscreen state and explains recovery
+  -  33 [tablet] › e2e/embed-fullscreen.spec.ts:94:5 › ordinary web viewports permit zoom while both existing native signals retain their policy
+  -  34 [tablet] › e2e/embed-fullscreen.spec.ts:111:5 › the ordinary browser permits page-scale zoom without a restrictive viewport
+  -  35 [tablet] › e2e/embed-fullscreen.spec.ts:123:5 › native viewport policy releases on existing client navigation
+  ✓  36 [tablet] › e2e/embed-fullscreen.spec.ts:133:5 › browser fullscreen restores source context for the compact clean widget (1.2s)
+  ✓  37 [mobile] › e2e/embed-data-state.spec.ts:86:9 › daily data en › dates the displayed bar and keeps attribution clear of the time axis (1.2s)
+  ✓  38 [mobile] › e2e/embed-data-state.spec.ts:140:9 › daily data en › keeps confirmed absence distinct and stops loading indicators (1.2s)
+  ✓  39 [mobile] › e2e/embed-data-state.spec.ts:155:9 › daily data en › reports unavailable data without claiming the symbol has no history (2.8s)
+  ✓  40 [mobile] › e2e/embed-data-state.spec.ts:86:9 › daily data zh › dates the displayed bar and keeps attribution clear of the time axis (1.0s)
+  ✓  41 [mobile] › e2e/embed-data-state.spec.ts:140:9 › daily data zh › keeps confirmed absence distinct and stops loading indicators (882ms)
+  ✓  42 [mobile] › e2e/embed-data-state.spec.ts:155:9 › daily data zh › reports unavailable data without claiming the symbol has no history (3.4s)
+  ✘  43 [mobile] › e2e/embed-data-state.spec.ts:185:5 › preserves compact native variants in short and narrow frames (7.1s)
+  ✓  44 [mobile] › e2e/embed-fullscreen.spec.ts:22:6 › browser fullscreen retains chart, range, overlays and source date in en (1.1s)
+  ✓  45 [mobile] › e2e/embed-fullscreen.spec.ts:22:6 › browser fullscreen retains chart, range, overlays and source date in zh (1.1s)
+  -  46 [mobile] › e2e/embed-fullscreen.spec.ts:49:6 › native handler success has priority over browser fullscreen
+  -  47 [mobile] › e2e/embed-fullscreen.spec.ts:49:6 › native handler failure has priority over browser fullscreen
+  -  48 [mobile] › e2e/embed-fullscreen.spec.ts:66:6 › unsupported browser requests retain a usable chart
+  -  49 [mobile] › e2e/embed-fullscreen.spec.ts:66:6 › rejected browser requests retain a usable chart
+  -  50 [mobile] › e2e/embed-fullscreen.spec.ts:79:5 › a rejected exit keeps the observed fullscreen state and explains recovery
+  -  51 [mobile] › e2e/embed-fullscreen.spec.ts:94:5 › ordinary web viewports permit zoom while both existing native signals retain their policy
+  -  52 [mobile] › e2e/embed-fullscreen.spec.ts:111:5 › the ordinary browser permits page-scale zoom without a restrictive viewport
+  -  53 [mobile] › e2e/embed-fullscreen.spec.ts:123:5 › native viewport policy releases on existing client navigation
+  ✓  54 [mobile] › e2e/embed-fullscreen.spec.ts:133:5 › browser fullscreen restores source context for the compact clean widget (849ms)
+
+
+  1) [desktop] › e2e/embed-data-state.spec.ts:185:5 › preserves compact native variants in short and narrow frames 
+
+    Error: expect(locator).toHaveAttribute(expected) failed
+
+    Locator:  locator('.embed-date time')
+    Expected: "2024-03-04"
+    Received: "2023-06-27"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveAttribute" with timeout 5000ms
+      - waiting for locator('.embed-date time')
+        14 × locator resolved to <time datetime="2023-06-27">2023-06-27</time>
+           - unexpected value "2023-06-27"
+
+
+      205 |     else {
+      206 |       await page.mouse.move(0, 0); // Read the latest header, not a pointer-selected historical bar.
+    > 207 |       await expect(page.locator(".embed-date time")).toHaveAttribute("datetime", latestDate);
+          |                                                      ^
+      208 |     }
+      209 |     if (variant.includes("clean=1")) {
+      210 |       await expect(page.locator(".embed-attr")).toBeHidden();
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-data-state.spec.ts:207:54
+
+    attachment #2: normal (image/png) ──────────────────────────────────────────────────────────────
+    ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-embed-fixed/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/attachments/normal-b78d105f1d82da427c594b64907045fd869d2553.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: hidden-header (image/png) ───────────────────────────────────────────────────────
+    ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-embed-fixed/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/attachments/hidden-header-485837944f01e9ac3062180279bf51ba74ff707d.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #5: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-embed-fixed/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-embed-fixed/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/error-context.md
+
+    attachment #7: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-embed-fixed/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-embed-fixed/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [tablet] › e2e/embed-data-state.spec.ts:185:5 › preserves compact native variants in short and narrow frames 
+
+    Error: expect(locator).toHaveAttribute(expected) failed
+
+    Locator:  locator('.embed-date time')
+    Expected: "2024-03-04"
+    Received: "2023-06-27"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveAttribute" with timeout 5000ms
+      - waiting for locator('.embed-date time')
+        14 × locator resolved to <time datetime="2023-06-27">2023-06-27</time>
+           - unexpected value "2023-06-27"
+
+
+      205 |     else {
+      206 |       await page.mouse.move(0, 0); // Read the latest header, not a pointer-selected historical bar.
+    > 207 |       await expect(page.locator(".embed-date time")).toHaveAttribute("datetime", latestDate);
+          |                                                      ^
+      208 |     }
+      209 |     if (variant.includes("clean=1")) {
+      210 |       await expect(page.locator(".embed-attr")).toBeHidden();
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-data-state.spec.ts:207:54
+
+    attachment #2: normal (image/png) ──────────────────────────────────────────────────────────────
+    ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-embed-fixed/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-tablet/attachments/normal-757eb58e35767348b6e97c24f51f28911279499c.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: hidden-header (image/png) ───────────────────────────────────────────────────────
+    ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-embed-fixed/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-tablet/attachments/hidden-header-53b05a377403faf62720b3f6ef9f4067f5e0ac0f.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #5: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-embed-fixed/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-embed-fixed/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-tablet/error-context.md
+
+    attachment #7: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-embed-fixed/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-embed-fixed/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [mobile] › e2e/embed-data-state.spec.ts:185:5 › preserves compact native variants in short and narrow frames 
+
+    Error: expect(locator).toHaveAttribute(expected) failed
+
+    Locator:  locator('.embed-date time')
+    Expected: "2024-03-04"
+    Received: "2023-06-27"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveAttribute" with timeout 5000ms
+      - waiting for locator('.embed-date time')
+        14 × locator resolved to <time datetime="2023-06-27">2023-06-27</time>
+           - unexpected value "2023-06-27"
+
+
+      205 |     else {
+      206 |       await page.mouse.move(0, 0); // Read the latest header, not a pointer-selected historical bar.
+    > 207 |       await expect(page.locator(".embed-date time")).toHaveAttribute("datetime", latestDate);
+          |                                                      ^
+      208 |     }
+      209 |     if (variant.includes("clean=1")) {
+      210 |       await expect(page.locator(".embed-attr")).toBeHidden();
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal/e2e/embed-data-state.spec.ts:207:54
+
+    attachment #2: normal (image/png) ──────────────────────────────────────────────────────────────
+    ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-embed-fixed/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/attachments/normal-a1e223645c2d684044c5025c6a8c3c6489a26df5.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: hidden-header (image/png) ───────────────────────────────────────────────────────
+    ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-embed-fixed/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/attachments/hidden-header-8d0c0f692311b6a4b869366aae8ef62f4b0792e8.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #5: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-embed-fixed/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-embed-fixed/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/error-context.md
+
+    attachment #7: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-embed-fixed/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../../../../../../tmp/d06-macro-c4-11l44i0i/terminal-embed-fixed/embed-data-state-preserves-9a5fe--in-short-and-narrow-frames-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3 failed
+    [desktop] › e2e/embed-data-state.spec.ts:185:5 › preserves compact native variants in short and narrow frames 
+    [tablet] › e2e/embed-data-state.spec.ts:185:5 › preserves compact native variants in short and narrow frames 
+    [mobile] › e2e/embed-data-state.spec.ts:185:5 › preserves compact native variants in short and narrow frames 
+  16 skipped
+  35 passed (1.7m)

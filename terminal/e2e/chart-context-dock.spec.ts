@@ -111,7 +111,8 @@ test("context follows the active pane through resize and fullscreen without cove
   await expect(panel.locator("[data-context-bar-time]")).toHaveText(selected);
   await page.locator(".chart-fs-float").click();
   await page.setViewportSize({ width: 1440, height: 900 });
-  await expect(page.locator('[data-context-dock="rail"] [data-context-reader]')).toHaveCount(1);
+  // Both chosen panes remain; the actual plot budget moves this same owner below.
+  await expect(page.locator('[data-context-dock="below"] [data-context-reader]')).toHaveCount(1);
   await panel.getByRole("button", { name: "Close chart context", exact: true }).click();
   await expect(page.locator(".rail-body")).toBeVisible();
 });

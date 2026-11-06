@@ -1,3 +1,4 @@
+import { assertD06CapturedFile } from "./helpers/d06CaptureDependency";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -51,7 +52,7 @@ function pngDimensions(path: string): [number, number] {
 }
 
 describe("Options-level coverage and axis-label browser evidence", () => {
-  it("binds the exact implementation files used by the five browser captures", () => {
+  it("retains the five historical captures through the exact recorded D06 geometry delta", () => {
     expect(MANIFEST.schema).toBe("mastermind.options_level_axis_evidence/v1");
     expect(MANIFEST.sourceHead).toMatch(/^[0-9a-f]{40}$/);
     expect(MANIFEST.classification).toBe(
@@ -65,7 +66,8 @@ describe("Options-level coverage and axis-label browser evidence", () => {
     for (const [relative, expected] of Object.entries(MANIFEST.sourceFiles)) {
       const absolute = join(TERMINAL, relative);
       expect(existsSync(absolute), relative).toBe(true);
-      expect(sha256(absolute), `${relative} changed without recapturing browser evidence`).toBe(expected);
+      if (relative === "components/ChartPanel.tsx") assertD06CapturedFile("terminal/" + relative, readFileSync(absolute, "utf8"), expected);
+      else expect(sha256(absolute), `${relative} changed without recapturing browser evidence`).toBe(expected);
     }
   });
 

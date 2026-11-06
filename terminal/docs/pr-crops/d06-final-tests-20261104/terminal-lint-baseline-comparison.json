@@ -1,0 +1,2698 @@
+{
+  "schema": "d06.lint_baseline_comparison.v1",
+  "base": "9d1d8549a3d5f77208de385631e10c31c7d16c4f",
+  "files": [
+    {
+      "path": "terminal/e2e/portfolio-event-refresh.spec.ts",
+      "baseline": {
+        "exit_code": 0,
+        "messages": [],
+        "source_sha256": "8ec12174c9c500da6f9979adc4108a3bc1a3a86506008ec52eeac2321052d7db"
+      },
+      "current": {
+        "exit_code": 0,
+        "messages": [],
+        "source_sha256": "d9b1102b2cd7f19b63202e5db2555b0a5cb2d7ded7ca929badea2047c30cd71d"
+      },
+      "identical_findings_ignoring_shifted_line_numbers": true
+    },
+    {
+      "path": "terminal/e2e/shell-mode.spec.ts",
+      "baseline": {
+        "exit_code": 1,
+        "messages": [
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 42,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 42,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    2302,
+                    2305
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    2302,
+                    2305
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 43,
+            "column": 42,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 43,
+            "endColumn": 45,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    2375,
+                    2378
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    2375,
+                    2378
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 45,
+            "column": 42,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 45,
+            "endColumn": 45,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    2518,
+                    2521
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    2518,
+                    2521
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 65,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 65,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    3559,
+                    3562
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    3559,
+                    3562
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 68,
+            "column": 30,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 68,
+            "endColumn": 33,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    3759,
+                    3762
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    3759,
+                    3762
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 75,
+            "column": 42,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 75,
+            "endColumn": 45,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    4066,
+                    4069
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    4066,
+                    4069
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 76,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 76,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    4149,
+                    4152
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    4149,
+                    4152
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 77,
+            "column": 42,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 77,
+            "endColumn": 45,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    4233,
+                    4236
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    4233,
+                    4236
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 78,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 78,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    4316,
+                    4319
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    4316,
+                    4319
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 238,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 238,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    13385,
+                    13388
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    13385,
+                    13388
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 239,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 239,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    13465,
+                    13468
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    13465,
+                    13468
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 264,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 264,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    14771,
+                    14774
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    14771,
+                    14774
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 268,
+            "column": 57,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 268,
+            "endColumn": 60,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    14994,
+                    14997
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    14994,
+                    14997
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 268,
+            "column": 75,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 268,
+            "endColumn": 78,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    15012,
+                    15015
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    15012,
+                    15015
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 273,
+            "column": 40,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 273,
+            "endColumn": 43,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    15325,
+                    15328
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    15325,
+                    15328
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 275,
+            "column": 51,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 275,
+            "endColumn": 54,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    15488,
+                    15491
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    15488,
+                    15491
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 279,
+            "column": 42,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 279,
+            "endColumn": 45,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    15725,
+                    15728
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    15725,
+                    15728
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 280,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 280,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    15808,
+                    15811
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    15808,
+                    15811
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 288,
+            "column": 50,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 288,
+            "endColumn": 53,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    16308,
+                    16311
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    16308,
+                    16311
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 294,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 294,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    16770,
+                    16773
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    16770,
+                    16773
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 297,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 297,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    16961,
+                    16964
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    16961,
+                    16964
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 298,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 298,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    17050,
+                    17053
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    17050,
+                    17053
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 301,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 301,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    17234,
+                    17237
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    17234,
+                    17237
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 305,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 305,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    17527,
+                    17530
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    17527,
+                    17530
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 308,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 308,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    17727,
+                    17730
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    17727,
+                    17730
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 318,
+            "column": 85,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 318,
+            "endColumn": 88,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    18292,
+                    18295
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    18292,
+                    18295
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 466,
+            "column": 57,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 466,
+            "endColumn": 60,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    26434,
+                    26437
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    26434,
+                    26437
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 469,
+            "column": 67,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 469,
+            "endColumn": 70,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    26600,
+                    26603
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    26600,
+                    26603
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 475,
+            "column": 57,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 475,
+            "endColumn": 60,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    26922,
+                    26925
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    26922,
+                    26925
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 575,
+            "column": 62,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 575,
+            "endColumn": 65,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    32742,
+                    32745
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    32742,
+                    32745
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 577,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 577,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    32867,
+                    32870
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    32867,
+                    32870
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 697,
+            "column": 63,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 697,
+            "endColumn": 66,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    40029,
+                    40032
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    40029,
+                    40032
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 702,
+            "column": 71,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 702,
+            "endColumn": 74,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    40363,
+                    40366
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    40363,
+                    40366
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 727,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 727,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    41756,
+                    41759
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    41756,
+                    41759
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 728,
+            "column": 42,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 728,
+            "endColumn": 45,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    41829,
+                    41832
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    41829,
+                    41832
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 729,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 729,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    41913,
+                    41916
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    41913,
+                    41916
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 755,
+            "column": 71,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 755,
+            "endColumn": 74,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    43369,
+                    43372
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    43369,
+                    43372
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 756,
+            "column": 48,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 756,
+            "endColumn": 51,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    43482,
+                    43485
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    43482,
+                    43485
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          }
+        ],
+        "source_sha256": "193ab0c5aaa7d80db887cf3da527672ce48a43922b5bace9e49db482a29a6238"
+      },
+      "current": {
+        "exit_code": 1,
+        "messages": [
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 42,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 42,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    2302,
+                    2305
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    2302,
+                    2305
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 43,
+            "column": 42,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 43,
+            "endColumn": 45,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    2375,
+                    2378
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    2375,
+                    2378
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 45,
+            "column": 42,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 45,
+            "endColumn": 45,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    2518,
+                    2521
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    2518,
+                    2521
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 65,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 65,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    3559,
+                    3562
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    3559,
+                    3562
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 68,
+            "column": 30,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 68,
+            "endColumn": 33,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    3759,
+                    3762
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    3759,
+                    3762
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 75,
+            "column": 42,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 75,
+            "endColumn": 45,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    4066,
+                    4069
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    4066,
+                    4069
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 76,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 76,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    4149,
+                    4152
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    4149,
+                    4152
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 77,
+            "column": 42,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 77,
+            "endColumn": 45,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    4233,
+                    4236
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    4233,
+                    4236
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 78,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 78,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    4316,
+                    4319
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    4316,
+                    4319
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 239,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 239,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    13419,
+                    13422
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    13419,
+                    13422
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 240,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 240,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    13499,
+                    13502
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    13499,
+                    13502
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 265,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 265,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    14805,
+                    14808
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    14805,
+                    14808
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 269,
+            "column": 57,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 269,
+            "endColumn": 60,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    15028,
+                    15031
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    15028,
+                    15031
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 269,
+            "column": 75,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 269,
+            "endColumn": 78,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    15046,
+                    15049
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    15046,
+                    15049
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 274,
+            "column": 40,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 274,
+            "endColumn": 43,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    15359,
+                    15362
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    15359,
+                    15362
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 276,
+            "column": 51,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 276,
+            "endColumn": 54,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    15522,
+                    15525
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    15522,
+                    15525
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 280,
+            "column": 42,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 280,
+            "endColumn": 45,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    15759,
+                    15762
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    15759,
+                    15762
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 281,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 281,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    15842,
+                    15845
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    15842,
+                    15845
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 289,
+            "column": 50,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 289,
+            "endColumn": 53,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    16342,
+                    16345
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    16342,
+                    16345
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 295,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 295,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    16804,
+                    16807
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    16804,
+                    16807
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 298,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 298,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    16995,
+                    16998
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    16995,
+                    16998
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 299,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 299,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    17084,
+                    17087
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    17084,
+                    17087
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 302,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 302,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    17268,
+                    17271
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    17268,
+                    17271
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 306,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 306,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    17561,
+                    17564
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    17561,
+                    17564
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 309,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 309,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    17761,
+                    17764
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    17761,
+                    17764
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 319,
+            "column": 85,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 319,
+            "endColumn": 88,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    18326,
+                    18329
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    18326,
+                    18329
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 467,
+            "column": 57,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 467,
+            "endColumn": 60,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    26468,
+                    26471
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    26468,
+                    26471
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 470,
+            "column": 67,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 470,
+            "endColumn": 70,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    26634,
+                    26637
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    26634,
+                    26637
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 476,
+            "column": 57,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 476,
+            "endColumn": 60,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    26956,
+                    26959
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    26956,
+                    26959
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 576,
+            "column": 62,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 576,
+            "endColumn": 65,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    32776,
+                    32779
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    32776,
+                    32779
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 578,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 578,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    32901,
+                    32904
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    32901,
+                    32904
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 698,
+            "column": 63,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 698,
+            "endColumn": 66,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    40063,
+                    40066
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    40063,
+                    40066
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 703,
+            "column": 71,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 703,
+            "endColumn": 74,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    40397,
+                    40400
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    40397,
+                    40400
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 728,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 728,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    41790,
+                    41793
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    41790,
+                    41793
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 729,
+            "column": 42,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 729,
+            "endColumn": 45,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    41863,
+                    41866
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    41863,
+                    41866
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 730,
+            "column": 49,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 730,
+            "endColumn": 52,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    41947,
+                    41950
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    41947,
+                    41950
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 756,
+            "column": 71,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 756,
+            "endColumn": 74,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    43403,
+                    43406
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    43403,
+                    43406
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          },
+          {
+            "ruleId": "@typescript-eslint/no-explicit-any",
+            "severity": 2,
+            "message": "Unexpected any. Specify a different type.",
+            "line": 757,
+            "column": 48,
+            "nodeType": "TSAnyKeyword",
+            "messageId": "unexpectedAny",
+            "endLine": 757,
+            "endColumn": 51,
+            "suggestions": [
+              {
+                "messageId": "suggestUnknown",
+                "fix": {
+                  "range": [
+                    43516,
+                    43519
+                  ],
+                  "text": "unknown"
+                },
+                "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+              },
+              {
+                "messageId": "suggestNever",
+                "fix": {
+                  "range": [
+                    43516,
+                    43519
+                  ],
+                  "text": "never"
+                },
+                "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+              }
+            ]
+          }
+        ],
+        "source_sha256": "c77439eb68958c3d4f753ab1793b843af37db74041c524514c8c7b71351b6213"
+      },
+      "identical_findings_ignoring_shifted_line_numbers": true
+    }
+  ],
+  "new_findings": 0,
+  "full_file_lint_clean": false
+}

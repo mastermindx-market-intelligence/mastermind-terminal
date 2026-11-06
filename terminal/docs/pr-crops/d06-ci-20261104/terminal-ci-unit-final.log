@@ -1,0 +1,73 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/d06-terminal-reader-resilience-20261103-c4/terminal
+
+ ✓ lib/__tests__/adminPageStatusContract.test.ts (7 tests) 12ms
+ ✓ lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts (5 tests) 227ms
+ ✓ lib/__tests__/optionsLevelAxisEvidence.test.ts (3 tests) 145ms
+ ✓ lib/__tests__/b_pl_6Batch2Evidence.test.ts (4 tests) 170ms
+ ✓ lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts (6 tests) 145ms
+ ✓ lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts (5 tests) 168ms
+ ✓ lib/__tests__/b_f12_b5_3AccountCompletenessEvidence.test.ts (5 tests) 195ms
+ ✓ lib/__tests__/f12_8TeamRolesEvidence.test.ts (10 tests) 259ms
+ ✓ lib/__tests__/sharedShellStatusContract.test.ts (9 tests) 210ms
+ ✓ lib/__tests__/f12_17InviteLinkEvidence.test.ts (7 tests) 345ms
+   ✓ W9T_F12_17 evidence lock is the sha256 of the invitation layout sources > layout file sha256 matches EVIDENCE.yml (RED when a layout file changes without a recapture) 301ms
+ ✓ lib/__tests__/f11_4ResearchViewsEvidence.test.ts (6 tests) 386ms
+   ✓ B-F11-4 evidence lock is the sha256 of the layout sources > layout file sha256 matches EVIDENCE.yml (RED when a layout file changes without a recapture) 365ms
+ ❯ lib/__tests__/b_pl_6Batch1Evidence.test.ts (4 tests | 1 failed) 69ms
+   × B-PL-6 batch 1 evidence lock is the sha256 of the layout sources > retains the original capture hashes through exact recorded D06 deltas 43ms
+     → terminal/components/ChartPanel.tsx changed without a recapture: expected 'a9440cfa8a582408d8606de5fc0fcea912f04…' to be '56457ac4fe11f5c4fcfe4ab0e14f487ac3b3e…' // Object.is equality
+ ✓ lib/__tests__/personalAccuracyEvidence.test.ts (5 tests) 373ms
+   ✓ B-F13-5 evidence lock is the sha256 of the layout sources > each layoutFiles sha256 matches the file on disk 360ms
+ ✓ lib/__tests__/lexEvidenceProjection.test.ts (6 tests) 296ms
+ ✓ lib/__tests__/d06CaptureDependency.test.ts (7 tests) 979ms
+ ✓ lib/__tests__/conductorFitBadgeZhEvidence.test.ts (7 tests) 590ms
+   ✓ conductor-fit-badge-zh evidence lock is the sha256 of the rail's sources > retains historical layout hashes through the exact recorded D06 dependency delta 386ms
+ ❯ lib/__tests__/visualIntelligenceEvidence.test.ts (10 tests | 1 failed) 1352ms
+   × Terminal Visual Intelligence browser evidence > retains the captured chart-context sources through exact recorded D06 deltas 59ms
+     → terminal/components/ChartPanel.tsx changed without a recapture: expected 'a9440cfa8a582408d8606de5fc0fcea912f04…' to be '56457ac4fe11f5c4fcfe4ab0e14f487ac3b3e…' // Object.is equality
+   ✓ Terminal Visual Intelligence browser evidence > locks six real EN/ZH responsive browser crops 1275ms
+ ✓ lib/__tests__/f12_9TeamOwnershipTransferEvidence.test.ts (10 tests) 1779ms
+   ✓ B-F12-9 evidence lock is the sha256 of the layout sources > capturedAtHead names the exact layout bytes, including after a squash merge 1728ms
+ ✓ lib/__tests__/nativeViewportPolicy.test.tsx (4 tests) 55ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/b_pl_6Batch1Evidence.test.ts > B-PL-6 batch 1 evidence lock is the sha256 of the layout sources > retains the original capture hashes through exact recorded D06 deltas
+AssertionError: terminal/components/ChartPanel.tsx changed without a recapture: expected 'a9440cfa8a582408d8606de5fc0fcea912f04…' to be '56457ac4fe11f5c4fcfe4ab0e14f487ac3b3e…' // Object.is equality
+
+Expected: "56457ac4fe11f5c4fcfe4ab0e14f487ac3b3eaa70d9daa81f21526ed1b47b871"
+Received: "a9440cfa8a582408d8606de5fc0fcea912f04c0119abc7db07a9fd01fdca1c2f"
+
+ ❯ lib/__tests__/b_pl_6Batch1Evidence.test.ts:89:69
+     87|         assertD06CapturedFile(rel, readFileSync(abs, "utf8"), expected…
+     88|       } else {
+     89|         expect(sha256Of(abs), `${rel} changed without a recapture`).to…
+       |                                                                     ^
+     90|       }
+     91|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  lib/__tests__/visualIntelligenceEvidence.test.ts > Terminal Visual Intelligence browser evidence > retains the captured chart-context sources through exact recorded D06 deltas
+AssertionError: terminal/components/ChartPanel.tsx changed without a recapture: expected 'a9440cfa8a582408d8606de5fc0fcea912f04…' to be '56457ac4fe11f5c4fcfe4ab0e14f487ac3b3e…' // Object.is equality
+
+Expected: "56457ac4fe11f5c4fcfe4ab0e14f487ac3b3eaa70d9daa81f21526ed1b47b871"
+Received: "a9440cfa8a582408d8606de5fc0fcea912f04c0119abc7db07a9fd01fdca1c2f"
+
+ ❯ lib/__tests__/visualIntelligenceEvidence.test.ts:125:77
+    123|         assertD06CapturedFile(relative, readFileSync(absolute, "utf8")…
+    124|       } else {
+    125|         expect(sha256(absolute), `${relative} changed without a recapt…
+       |                                                                             ^
+    126|       }
+    127|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  2 failed | 17 passed (19)
+      Tests  2 failed | 118 passed (120)
+   Start at  03:35:17
+   Duration  5.69s (transform 3.09s, setup 0ms, collect 22.97s, tests 7.75s, environment 3.84s, prepare 5.89s)
+

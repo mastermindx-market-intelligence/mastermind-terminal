@@ -15,3 +15,8 @@
   .paneGrid>:global(.pane) { display:none!important; }
   .paneGrid>:global(.pane.on) { display:flex!important; }
 }
+
+/* Reset is an explicit preference action, separate from the keyboard separator. */
+.railReset { margin-left:auto!important; min-width:32px; min-height:32px; flex:none; }
+.railReset:focus-visible { outline:2px solid var(--brand-2); outline-offset:2px; }
+@media(pointer:coarse) { .railReset { min-width:44px; min-height:44px; } }

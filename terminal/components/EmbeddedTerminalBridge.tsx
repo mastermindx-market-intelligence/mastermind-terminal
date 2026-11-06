@@ -128,6 +128,9 @@ export default function EmbeddedTerminalBridge() {
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
+      // Browser fullscreen consumes the first Escape; the following Escape can
+      // close the trusted Macro embed through its existing bridge.
+      if (document.fullscreenElement?.classList.contains("embed-root")) return;
       event.preventDefault();
       event.stopPropagation();
       postToMacroDashboard("terminal:close");
