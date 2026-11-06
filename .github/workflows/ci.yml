@@ -29,15 +29,16 @@ on:
 permissions:
   contents: read
 
-# A newer head makes every queued/running proof for the older head unusable. Drop
-# it immediately instead of spending the account-wide hosted-runner quota on a
-# SHA that can no longer merge.
-concurrency:
-  group: ci-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+# Supersede expensive jobs individually rather than locking the whole workflow.
+# The required always() aggregate must report cancelled/failed shards as red,
+# but an obsolete aggregate waiting for a runner must not block a newer head.
+# Keep its verdict strict; skipped required checks may be accepted by GitHub.
 
 jobs:
   hub:
+    concurrency:
+      group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-hub
+      cancel-in-progress: true
     name: Quote Hub tests
     runs-on: ubuntu-latest
     defaults:
@@ -63,6 +64,9 @@ jobs:
           python -m unittest discover -s tests -p 'test_futures_*.py' -v
 
   terminal-unit:
+    concurrency:
+      group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-terminal-unit
+      cancel-in-progress: true
     name: Terminal unit + typecheck (shard)
     runs-on: ubuntu-latest
     # Existing stages had20min. Add bounded10min browser setup +55min captures
@@ -111,7 +115,12 @@ jobs:
         # Missing/malformed source evidence fails closed to capture=true.
         if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
         timeout-minutes: 10
-        run: npx playwright install --with-deps chromium
+        run: |
+          # Leave time for a browser-only fallback when the Ubuntu apt mirror stalls.
+          # Missing browser/system dependencies still fail the real capture below.
+          timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium \
+            || { echo "::warning::Dependency installation stalled or failed; trying browser-only installation."; \
+                 timeout --signal=TERM --kill-after=15s 180s npx playwright install chromium; }
       - name: Capture and validate evidence on this checkout
         if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
         timeout-minutes: 55
@@ -260,6 +269,9 @@ jobs:
           if-no-files-found: warn
 
   terminal-e2e:
+    concurrency:
+      group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-terminal-e2e-${{ matrix.shard }}
+      cancel-in-progress: true
     name: Terminal e2e ${{ matrix.shard }} (shard)
     # The complete responsive matrix remains mandatory on pull_request and
     # workflow_dispatch. On merge_group, rerun only the fast integrated unit,
@@ -416,7 +428,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          # upload-artifact@v4 HARD-FAILS on duplicate names across a matrix. The shard
+          # upload-artifact@v4 HARD-FAILS on duplicate artifact names across a matrix. The shard
           # suffix is mandatory, not cosmetic.
           name: responsive-qa-${{ github.run_id }}-${{ matrix.shard }}
           path: terminal/test-results
@@ -458,6 +470,9 @@ jobs:
           echo "All event-required Terminal checks green."
 
   python:
+    concurrency:
+      group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-python
+      cancel-in-progress: true
     name: Ingest + signal-layer tests
     runs-on: ubuntu-latest
     steps:
@@ -522,6 +537,9 @@ jobs:
           GH_TOKEN: ${{ github.event_name == 'merge_group' && github.token || '' }}
 
   investigation-postgres:
+    concurrency:
+      group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-investigation-postgres
+      cancel-in-progress: true
     name: Investigation PostgreSQL invariants
     runs-on: ubuntu-latest
     timeout-minutes: 10

@@ -73,12 +73,16 @@ action; never an archived chat as the only actor.
 - Never create project work in `~/.codex/worktrees`, `/private/tmp`, or another
   Codex-only location. Never use a `codex/` branch for these repositories.
 - The primary checkout is shared and commonly dirty. Never change its files or git
-  state. Attended ChatGPT Web/Studio sessions acquire or reuse one exact source-pinned
-  operation workspace through the installed `mmx-workspace` owner, as authorized for
-  this repository. Native/harness sessions use their actual assigned source launcher
-  and workspace; only those with an approved direct-worktree contract may create one
-  under its designated root. Do not create an alternate worktree or force/re-home an
-  existing operation to bypass a refusal, exclusive writer, or uncertain effect.
+  state. **Host-local** ChatGPT Web/Studio edits acquire or reuse one source-pinned
+  operation workspace through the installed `mmx-workspace` owner; native/harness
+  sessions use their actual assigned workspace/launcher. **GitHub-native** source
+  authoring through an actually authorized GitHub connector requires no M2 worktree,
+  Studio Direct session or external SSD: pin current protected procedure, use the
+  original isolated branch or a new unstarted operation branch, and bind file edits
+  to blob-SHA and branch-head checks. Keep source-writer and effect fences on either
+  route. Only approved direct-worktree contracts may mint host-local trees under
+  their designated root. Never switch routes to bypass a refusal, exclusive writer,
+  or uncertain effect.
 - Never reuse a squash/merge-completed branch and never use the repo-global stash.
 
 ## `ingest/` runs as scripts, not modules
@@ -139,8 +143,13 @@ Do not wait for a separate request to commit, push, merge, or deploy.
 
 Do not stop at a local commit or open PR. Release holds include an explicit
 operator hold, required CI or independent review that is pending or failing,
-and a genuine deployment blocker. Never arm a protected merge while its required
-review or current-head checks remain unqualified.
+and a genuine deployment blocker. A source-complete, non-held, review-qualified
+Ready PR may request native **auto-merge enrollment while its required CI is
+still pending**, after verifying actual GitHub required-check protection, review
+requirements, source custody and conflicts. GitHub must hold the eventual merge
+until every enforced check succeeds. Pending is never PASS. Do not enroll a
+Draft, known-red, conflicting, explicitly held or incompletely qualified PR,
+or one with missing/ambiguous enforcement or a binding approval outstanding.
 
 Direct working-tree rsync/scp is not a deployment; production builds only
 merged master. A held release step blocks that effect, not the whole session.
@@ -148,8 +157,10 @@ Before finalizing an incomplete assignment, name and execute the next
 independent authorized source, test, integration, or real-path verification action.
 An issue, reviewer request, CI observation, or preserved branch is not completion.
 
-Preserve completed work in the original managed workspace; commit and push to its
-recoverable branch only through a lawful original publisher. If commit/push is
+Preserve host-local source in its original managed workspace and publish only
+through its lawful original publisher. GitHub-native work remains on its original
+isolated branch and connector, with exact file/head preimages and readback. A denied
+or uncertain publication must never be replayed on the other route. If commit/push is
 unavailable, distinguish a proven pre-effect technical failure from an explicit
 safety/permission denial or EFFECT_UNKNOWN. A technical failure may be requalified
 only on material same-carrier recovery evidence and the applicable typed preflight.
@@ -165,7 +176,7 @@ uncommitted changes when lawful publication is available.
 
 - After opening a non-draft pull request that is ready to ship, add the
   `merge-on-green` label and arm GitHub native auto-merge with
-  `gh pr merge --auto --squash --delete-branch`. `master` protects the exact three
+  `gh pr merge <PR> --repo mastermindx-market-intelligence/mastermind-terminal --auto --squash --match-head-commit <CURRENT_40_HEX_HEAD>`. GitHub merge queues reject `--delete-branch` at enrollment; branch cleanup is optional only after verifying the actual merge. `master` protects the exact three
   CI checks, so this is a real server-side wait. Use `hold` or `do-not-merge` as
   an explicit veto and never combine either with auto-merge.
 - `.github/workflows/merge-on-green.yml` is the repository fallback for sessions
