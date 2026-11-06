@@ -73,7 +73,7 @@ export default function ChartObjectTree({ symbol, entries, onEye, onRemove, onCl
   function clear() { setQuery(""); search.current?.focus(); }
   const visible = entries.filter((entry) => !entry.hidden).length;
   return <section ref={root} className={`ot-root ${styles.root}`} aria-labelledby={`${id}-title`} onKeyDown={(event) => {
-    if (event.key !== "Escape") return;
+    if (event.key !== "Escape" || event.nativeEvent.isComposing) return;
     event.preventDefault(); event.stopPropagation();
     if (query) clear(); else onClose();
   }}>
