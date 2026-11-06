@@ -58,10 +58,10 @@ const mcapSelect = (page: Page) => page.locator('select.scr2-select:has(option[v
 const control = (page: Page, id: "taxonomy" | "label" | "liq" | "ccy") => page.locator(`[data-cm-control="${id}"]`);
 const search = (page: Page, q: string) => page.locator(".scr2-search").fill(q);
 
-/** The Screener's selects are 30px, raised to 36px at the phone breakpoint (globals.css). */
+/** The Screener's selects are 30px, raised to 44px at the phone breakpoint (globals.css). */
 const selectFloor = (ti: TestInfo) => (ti.project.name === "mobile" ? 36 : 30);
 /** The strip's buttons are 28px, raised to 36px at ≤860px or under a coarse pointer. */
-const stripButtonFloor = (ti: TestInfo) => (ti.project.name === "desktop" ? 28 : 36);
+const stripButtonFloor = (ti: TestInfo) => (ti.project.name === "desktop" ? 28 : 44);
 
 /** Switch language the way the account-prefs store does (lib/i18n applyLang) — no reload. */
 async function switchLang(page: Page, l: "en" | "zh") {
