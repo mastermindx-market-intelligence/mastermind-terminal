@@ -212,7 +212,7 @@ test("mixed comparisons preserve producer order, missing identities and legitima
   await noOverflow(page);
 });
 
-test("an idle mounted workspace ages its received interval without another owner request", async ({ page }) => {
+test("an open workspace keeps repeated observations stale as their source clock ages", async ({ page }) => {
   const now = Date.now(), pulse = intradayPulse(now);
   await page.clock.install({ time: new Date(now) });
   let requests = 0;
@@ -226,6 +226,9 @@ test("an idle mounted workspace ages its received interval without another owner
   const source = await section.getByTestId("sector-intraday-clock").getAttribute("dateTime");
   expect(requests).toBe(1);
   await page.clock.fastForward("00:46:00");
+  // Fast-forward fires the visible-feed revalidation once. Receiving the same
+  // owner observation must not make its source clock or comparison current.
+  await expect.poll(() => requests).toBe(2);
   await expect(section.getByTestId("sector-intraday-basket")).toHaveCount(0);
   await expect(section.locator("[data-intraday-value]")).toHaveCount(0);
   const retained = section.locator('[data-basket="mag7"]');
@@ -233,7 +236,7 @@ test("an idle mounted workspace ages its received interval without another owner
   await retained.locator("summary").click();
   await expect(retained.locator("dl")).toContainText("Retained — same observation, not a new one");
   await expect(section.getByTestId("sector-intraday-clock")).toHaveAttribute("dateTime", source!);
-  expect(requests).toBe(1);
+  expect(requests).toBe(2);
   await noOverflow(page);
 });
 
