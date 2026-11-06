@@ -58,39 +58,40 @@ _TABLE_NAMES = ",".join("'" + name + "'" for name in TABLES)
 CATALOG_QUERY = """WITH declared_roles AS (
  SELECT oid,rolname FROM pg_roles WHERE rolname IN (""" + _ROLE_NAMES + """)
 ), role_scope AS (
- SELECT d.rolname AS origin,r.oid,r.rolname AS name,
+ SELECT d.rolname AS origin,r.oid::bigint AS oid,r.rolname AS name,
         encode(extensions.digest(convert_to(jsonb_build_object('oid',r.oid,'name',r.rolname,
           'superuser',r.rolsuper,'bypassrls',r.rolbypassrls,'login',r.rolcanlogin,'inherit',r.rolinherit)::text,'UTF8'),'sha256'),'hex') AS revision,
         r.rolsuper AS superuser,r.rolbypassrls AS bypassrls,r.rolcanlogin AS login,r.rolinherit AS inherit
  FROM declared_roles d CROSS JOIN pg_roles r
  WHERE r.oid=d.oid OR pg_has_role(d.oid,r.oid,'MEMBER')
 ), functions AS (
- SELECT p.oid,p.proname AS name,replace(oidvectortypes(p.proargtypes),' ','') AS arguments,
+ SELECT p.oid::bigint AS oid,p.proname AS name,replace(oidvectortypes(p.proargtypes),' ','') AS arguments,
         p.xmin::text AS revision,pg_get_userbyid(p.proowner) AS owner,p.prosecdef AS security_definer,
         l.lanname AS language,pg_get_function_result(p.oid) AS returns,p.proconfig AS config,
         encode(extensions.digest(convert_to(p.prosrc,'UTF8'),'sha256'),'hex') AS body_sha256,
         EXISTS(SELECT 1 FROM aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a
           WHERE a.grantee=0 AND a.privilege_type='EXECUTE') AS public_execute,
         (SELECT jsonb_agg(jsonb_build_object('origin',r.origin,'role_oid',r.oid,
-             'allowed',has_function_privilege(r.oid,p.oid,'EXECUTE')) ORDER BY r.origin,r.oid)
+             'allowed',has_function_privilege(r.oid::oid,p.oid,'EXECUTE')) ORDER BY r.origin,r.oid)
          FROM role_scope r) AS effective_execute
  FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace JOIN pg_language l ON l.oid=p.prolang
  WHERE n.nspname='public' AND p.proname IN (""" + _NAMES + """)
 ), relations AS (
- SELECT c.oid,c.relname AS name,c.xmin::text AS revision,pg_get_userbyid(c.relowner) AS owner,
+ SELECT c.oid::bigint AS oid,c.relname AS name,c.xmin::text AS revision,pg_get_userbyid(c.relowner) AS owner,
         c.relrowsecurity AS rls,c.relforcerowsecurity AS force_rls,
         (SELECT coalesce(jsonb_agg(jsonb_build_object('number',a.attnum,'revision',a.xmin::text,
-           'type_oid',a.atttypid,'acl',a.attacl::text) ORDER BY a.attnum),'[]'::jsonb)
+           'type_oid',a.atttypid::bigint,'acl',a.attacl::text) ORDER BY a.attnum),'[]'::jsonb)
          FROM pg_attribute a WHERE a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped) AS attributes,
         (SELECT jsonb_agg(jsonb_build_object('origin',r.origin,'role_oid',r.oid,
-           'allowed',(has_table_privilege(r.oid,c.oid,'INSERT,UPDATE,DELETE,TRUNCATE') OR
-                      has_any_column_privilege(r.oid,c.oid,'INSERT,UPDATE'))) ORDER BY r.origin,r.oid)
+           'allowed',(has_table_privilege(r.oid::oid,c.oid,'INSERT,UPDATE,DELETE,TRUNCATE') OR
+                      has_any_column_privilege(r.oid::oid,c.oid,'INSERT,UPDATE'))) ORDER BY r.origin,r.oid)
          FROM role_scope r) AS effective_write
  FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
  WHERE n.nspname='public' AND c.relname IN (""" + _TABLE_NAMES + """) AND c.relkind='r'
 ), memberships AS (
- SELECT m.roleid,m.member,m.grantor,m.admin_option,m.xmin::text AS revision
- FROM pg_auth_members m WHERE m.member IN (SELECT oid FROM role_scope)
+ SELECT m.roleid::bigint AS roleid,m.member::bigint AS member,m.grantor::bigint AS grantor,
+        m.admin_option,m.xmin::text AS revision
+ FROM pg_auth_members m WHERE m.member::bigint IN (SELECT oid FROM role_scope)
 ), native_rows AS (
  SELECT user_id::text AS principal,operation_id::text AS operation,native_generation::text AS generation,
         native_phase,native_claimed_at,native_completed_at,result->>'status' AS canonical_status,
@@ -110,7 +111,7 @@ CATALOG_QUERY = """WITH declared_roles AS (
  WHERE t.tgrelid='public.investigation_mutation_receipts'::regclass AND NOT t.tgisinternal
 )
 SELECT jsonb_build_object(
- 'database',current_database(),'database_oid',(SELECT oid FROM pg_database WHERE datname=current_database()),
+ 'database',current_database(),'database_oid',(SELECT oid::bigint FROM pg_database WHERE datname=current_database()),
  'schema','public','current_role',current_user,'session_role',session_user,
  'observer_bypassrls',(SELECT rolsuper OR rolbypassrls FROM pg_roles WHERE rolname=current_user),
  'server_version_num',current_setting('server_version_num'),'server_started_at',pg_postmaster_start_time(),
