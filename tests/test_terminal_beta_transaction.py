@@ -445,4 +445,39 @@ register(_case_post_commit_enable_failure_preserves_B_and_does_not_attempt_rollb
 register(_case_complete_orphan_provision_record_is_reusable_without_overwriting_it)
 register(_case_production_generation_library_and_restart_branch_are_unchanged,fixture=False)
 
+def _case_fixture_source_alias_routing_is_normalized_without_weakening_refusals():
+ # Deterministic local fixture root: a real source tree, a symlink alias that
+ # paths.json stores as 'src', and a contained but unrelated directory. The
+ # existing pure stub is executed as a git-named script through sys.executable,
+ # so no real git, systemctl, curl, npm or owner script is ever invoked.
+ import sys
+ with tempfile.TemporaryDirectory(prefix='mmx-beta-alias-') as tmp:
+  root=pathlib.Path(tmp).resolve()
+  real=root/'real-src';real.mkdir()
+  alias=root/'alias-src';alias.symlink_to(real,target_is_directory=True)
+  wrong=root/'other-src';wrong.mkdir()
+  (root/'paths.json').write_text(json.dumps({'app':str(root/'app'),'target':str(root/'target'),
+                                             'src':str(alias),'mapped':[]}))
+  (root/'effects.log').write_text('')
+  script=root/'bin'/'git';script.parent.mkdir(parents=True,exist_ok=True)
+  script.write_bytes(FIXTURE_HELPER.read_bytes());script.chmod(0o755)
+  env=dict(os.environ,TXN_FIXTURE_ROOT=str(root))
+  def git(*args):
+   return subprocess.run([sys.executable,str(script),*args],env=env,text=True,capture_output=True,timeout=20)
+  # The alias is the stored source, so routing must be admitted.
+  out=git('-C',str(alias),'for-each-ref')
+  assert out.returncode==0,'alias routing refused: rc=%s stderr=%s'%(out.returncode,out.stderr.strip())
+  # A contained but wrong source is still refused.
+  out=git('-C',str(wrong),'for-each-ref')
+  assert out.returncode==71 and 'unexpected git routing' in out.stderr,out.stdout+'\n'+out.stderr
+  # A source outside the fixture root is still refused.
+  with tempfile.TemporaryDirectory(prefix='mmx-beta-alias-outside-') as outside:
+   out=git('-C',str(pathlib.Path(outside).resolve()),'for-each-ref')
+   assert out.returncode==71 and 'unconfined fixture path' in out.stderr,out.stdout+'\n'+out.stderr
+  # The unknown Git configuration refusal stays reachable behind normalization.
+  out=git('-C',str(alias),'-c','user.name=fixture','for-each-ref')
+  assert out.returncode==71 and 'unexpected git config' in out.stderr,out.stdout+'\n'+out.stderr
+
+register(_case_fixture_source_alias_routing_is_normalized_without_weakening_refusals,fixture=False)
+
 if __name__=='__main__': unittest.main(verbosity=2)

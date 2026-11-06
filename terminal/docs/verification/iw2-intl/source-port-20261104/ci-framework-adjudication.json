@@ -1,0 +1,24 @@
+{
+  "schema": "iw2.browser_discovery_repair.v1",
+  "updated": "2026-11-04T16:51:19.059521+00:00",
+  "patch_sha256": "bd3337b7cab99782617e20a54be82725fb4a2c09cfd7102a9b03825c1bf1c355",
+  "decision": "PASS_SCOPED_SOURCE",
+  "browser_selection": "all262 actual definition files .spec.ts;4095 discovered DTM cases;four Node test files excluded from browser framework",
+  "checks_reused": {
+    "node_controls": 77,
+    "shard_guards": 22
+  },
+  "scheduling_repair": "existing two-file1min Node step unchanged;dedicated visualEvidence.test.cjs step3min",
+  "budget_basis_seconds": {
+    "heavy_case": 76.223,
+    "prior_combined": 98.948
+  },
+  "hosted_attribution": "local cross-test collection defect proven; individual hosted failures not attributed without logs",
+  "hosted_ci": "FAILED_RETIRED41862229652;no newCI during current provider hold",
+  "root_nonauthor_review": {
+    "verdict": "PASS_SCOPED",
+    "source": "actual Website root return in IW2 current conversation",
+    "reported_pointer": "H/iw2-browser-discovery-root-review.json",
+    "absolute_path": "NOT_INDEPENDENTLY_RESOLVED"
+  }
+}

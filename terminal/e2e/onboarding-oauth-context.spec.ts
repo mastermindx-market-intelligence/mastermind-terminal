@@ -15,7 +15,12 @@ for (const lang of ["en", "zh"] as const) {
         mo_channel: "long_duration_valuation", mo_asof: "2026-10-16",
         mo_security: "SEC:US-XNYS-A",
       });
-      await page.route("http://127.0.0.1:54321/auth/v1/authorize?**", (route) =>
+      // The dev fixture serves Supabase behind the app origin, so the auth
+      // endpoints are a qualified path on the configured fixture origin
+      // rather than a separate Supabase origin.
+      const authOrigin = new URL(info.project.use.baseURL!).origin;
+      const authPathPrefix = "/api/__e2e__/supabase/auth/v1";
+      await page.route(`${authOrigin}${authPathPrefix}/authorize?**`, (route) =>
         route.fulfill({ contentType: "text/html", body: "<p>Local OAuth handoff fixture</p>" }));
       await page.goto("/analysis?" + query);
       const origin = new URL(page.url()).origin;
@@ -25,11 +30,14 @@ for (const lang of ["en", "zh"] as const) {
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
       await sheet.screenshot({ path: info.outputPath(`${info.project.name}-${lang}-${theme}-oauth.png`) });
 
-      const authorizeRequest = page.waitForRequest((request) =>
-        new URL(request.url()).pathname === "/auth/v1/authorize");
+      const authorizeRequest = page.waitForRequest((request) => {
+        const url = new URL(request.url());
+        return url.origin === authOrigin && url.pathname === `${authPathPrefix}/authorize`;
+      });
       await sheet.getByRole("button", { name: lang === "zh" ? "使用 Google 继续" : "Continue with Google", exact: true }).click();
       const authorize = new URL((await authorizeRequest).url());
-      expect(authorize.origin).toBe("http://127.0.0.1:54321");
+      expect(authorize.origin).toBe(authOrigin);
+      expect(authorize.pathname).toBe(`${authPathPrefix}/authorize`);
       expect(authorize.searchParams.get("provider")).toBe("google");
       const callback = new URL(authorize.searchParams.get("redirect_to")!);
       expect(callback.origin + callback.pathname).toBe(origin + "/auth/callback");

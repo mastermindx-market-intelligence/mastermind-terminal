@@ -11,30 +11,46 @@ const { rpc, getUser, createClient, rateLimit, fetchMock } = vi.hoisted(() => ({
 vi.mock("@/lib/supabase/server", () => ({ createClient }));
 vi.mock("@/lib/rateLimit", () => ({ rateLimit, tooMany: vi.fn() }));
 
-// The collaborators behind the handlers are irrelevant to the admission gate:
-// stubbing them lets the closed-mode assertions prove that the handler returned
-// before any collaborator — or network — was reached. The main route's
-// investigations lib is stubbed for the same reason; the open-path tests below
-// still drive the routes' OWN auth and selector validation.
+// The collaborators behind the four read-only sub-routes are irrelevant to the
+// admission gate: stubbing them lets the closed-mode assertions prove that the
+// handler returned before any collaborator — or network — was reached. The
+// main route's investigations lib is stubbed for the same reason; the open-path
+// tests below still drive the routes' OWN auth and selector validation.
 vi.mock("@/lib/upstreams", () => ({ R2_BASE: "https://r2.fixture.invalid" }));
 vi.mock("@/lib/investigations", () => ({
   INVESTIGATION_ADMISSION: { surface: "investigation" },
+  isInvestigationId: vi.fn(() => true),
   listInvestigations: vi.fn(),
   parseInvestigationCommand: vi.fn(),
   readInvestigation: vi.fn(),
   readInvestigationOperation: vi.fn(),
+  reconcileInvestigationOperation: vi.fn(),
   applyInvestigationRevision: vi.fn(),
 }));
-vi.mock("@/lib/investigationScenarioServer", () => ({ qualifyScenarioCaptureSave: vi.fn() }));
 vi.mock("@/lib/eventWorkspace", () => ({
   normalizeCompanyIntelligenceSymbol: (symbol: string) => symbol,
   resolveCurrentEventWorkspaceFromR2: vi.fn(),
   resolveRetainedEventWorkspaceFromR2: vi.fn(),
+  resolveRetainedEventWorkspaceAtCutoff: vi.fn(),
   authorizeRetainedPublicEventContext: vi.fn(),
 }));
+vi.mock("@/lib/investigationIssuerRelease", () => ({
+  resolveInvestigationIssuerRelease: vi.fn(),
+  resolveInvestigationIssuerReleaseAtCutoff: vi.fn(),
+}));
+vi.mock("@/lib/investigationContracts", () => ({ validateStoredInvestigationManifest: vi.fn() }));
+vi.mock("@/lib/investigationEarningsReview", () => ({
+  reviewRetainedEarnings: vi.fn(),
+  reviewSelectedIssuerRelease: vi.fn(),
+}));
+vi.mock("@/lib/theses", () => ({ readThesisVersion: vi.fn() }));
 
-import { GET as mainGET, POST as mainPOST } from "@/app/api/investigations/route";
+import { GET as mainGET, POST as mainPOST, PUT as mainPUT } from "@/app/api/investigations/route";
 import { GET as baselineGET } from "@/app/api/investigations/baseline/route";
+import { GET as reviewGET } from "@/app/api/investigations/review/route";
+import { POST as policyPreviewPOST } from "@/app/api/investigations/policy-preview/route";
+import { GET as replayGET } from "@/app/api/investigations/replay/route";
+import { GET as thesesGET } from "@/app/api/investigations/theses/route";
 import { investigationApiAdmission, investigationApiUnavailable } from "@/lib/investigationApiAdmission";
 import { readInvestigation } from "@/lib/investigations";
 
@@ -44,7 +60,13 @@ const url = (path: string) => `https://terminal.test/api/investigations${path}`;
 const handlerTable = [
   { name: "main GET", run: mainGET, request: () => new Request(url("")) },
   { name: "main POST", run: mainPOST, request: () => new Request(url(""), { method: "POST", body: "{}" }) },
+  { name: "main PUT", run: mainPUT, request: () => new Request(url(""), { method: "PUT", body: "{}" }) },
   { name: "baseline GET", run: baselineGET, request: () => new Request(url("/baseline?event_id=e&generation_id=g&company_id=c&fingerprint=f")) },
+  { name: "Company baseline GET", run: baselineGET, request: () => new Request(url("/baseline?scope=company_context&event_id=e&generation_id=g&company_id=c&fingerprint=f")) },
+  { name: "policy preview POST", run: policyPreviewPOST, request: () => new Request(url("/policy-preview"), { method: "POST", body: "{}" }) },
+  { name: "review GET", run: reviewGET, request: () => new Request(url(`/review?id=${id}&revision=1`)) },
+  { name: "replay GET", run: replayGET, request: () => new Request(url(`/replay?id=${id}&revision=1&policy=public_known&cutoff=2026-01-01T00:00:00Z`)) },
+  { name: "theses GET", run: thesesGET, request: () => new Request(url(`/theses?id=${id}&revision=1`)) },
 ];
 
 // The vitest config opts the whole fixture runtime into "open"; every closed
@@ -113,13 +135,13 @@ describe.each(closedValues)("INVESTIGATION_API_ADMISSION=%j closes every handler
     fetchMock.mockClear();
   });
 
-  it.each(handlerTable)("$name refuses closed mode before any dependency", async ({ run, request }) => {
+  it.each(handlerTable)("$name refuses closed mode before any dependency", async ({ name, run, request }) => {
     const input = request();
     const response = await run(input);
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ status: "unavailable" });
     expect(response.headers.get("cache-control")).toBe("private, no-store");
-    expect(response.headers.get("vary")).toBe("Cookie");
+    expect(response.headers.get("vary")).toBe(name==="policy preview POST"?"Cookie, Authorization":"Cookie");
     expect(input.bodyUsed).toBe(false);
     expect(createClient).not.toHaveBeenCalled();
     expect(getUser).not.toHaveBeenCalled();
@@ -183,7 +205,8 @@ describe("with the fixture-open value the existing contracts still hold", () => 
     getUser.mockResolvedValue({ data: { user: null }, error: null });
     expect((await mainGET(new Request(url(`?id=${id}`)))).status).toBe(401);
     expect((await mainPOST(new Request(url(""), { method: "POST", body: "{}" }))).status).toBe(401);
-    expect((await baselineGET(new Request(url("/baseline?event_id=e&generation_id=g&company_id=c&fingerprint=f")))).status).toBe(401);
+    expect((await mainPUT(new Request(url(""), { method: "PUT", body: "{}" }))).status).toBe(401);
+    expect((await reviewGET(new Request(url(`/review?id=${id}&revision=1`)))).status).toBe(401);
     expect(rpc).not.toHaveBeenCalled();
   });
 

@@ -173,6 +173,11 @@ jobs:
       - name: Plan current-source evidence capture
         id: evidence_plan
         run: node scripts/ci/plan-evidence-capture.cjs
+      - name: Check immutable evidence writer-reader contract (synthetic)
+        # The real two-packet source-lock control takes about 77 seconds locally.
+        # Keep it separate from the existing one-minute orchestration checks.
+        timeout-minutes: 3
+        run: node --test e2e/tools/visualEvidence.test.cjs
       - name: Prepare Chromium for original mock captures
         # PRs always capture. Merge groups recapture only when the actual
         # integrated source no longer matches BOTH checked-in evidence locks.

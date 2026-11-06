@@ -1,0 +1,17 @@
+{
+  "run_id": "iw2-scenario-reconcile-consumer-review-20261104-r1",
+  "reviewer": "Grok4.7/ubuntu0",
+  "source_reviewed": "parent intermediate facb0bd6 component, immutable source packet",
+  "raw_verdict": "FINDING: not_applied fence stranded",
+  "adjudication": "ACCEPTED_USEFUL_FINDING_RESOLVED",
+  "final_source": "byte-identical accepted e90ec466 component SHA256 8ec7b34ab28efffeb7c83b2e5072e26071d925be76ff7d3049ee1d69a0542fb5",
+  "resolution": "original onRetry calls same-principal retryInvestigationSave only from rejected/not_applied, starts pending new operation, retains journal with previous fence; current unknown phase has no retry POST",
+  "validation": "35 mounted PASS, including restored explicit matching fence/new operation test and two duplicate-alias ownerRecheck controls; whole TS0",
+  "limits": [
+    "reviewer did not test locally",
+    "no final-source blanket PASS",
+    "no GitHub approval",
+    "no SQL/live qualification"
+  ],
+  "result_sha256": "f9b16dc52b471084805ba823e7884f85cf9a0efd559f5a174453558a6c151278"
+}
