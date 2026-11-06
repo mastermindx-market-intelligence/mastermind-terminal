@@ -21,6 +21,8 @@ import { exposureSurfaceT } from "../components/exposure-map/exposureSurfaceStri
 // (never pauseAt — the charts need RAF). The projection's source session is 2026-10-19, observed
 // 20:00Z, available 20:01Z, so every qualified projection clock gate passes against frozen now.
 
+// Explicit local acceptance mode; inherited dark captures remain separate.
+const LIGHT_ACCEPTANCE = process.env.TERMINAL_EXPOSURE_LIGHT_ACCEPTANCE === "1";
 const SESSION = "2026-10-19";
 const SPOT = 100;
 const EXPIRIES = ["2026-10-23", "2026-10-30"] as const;
@@ -368,6 +370,27 @@ async function expectReferenceBadgeClear(page: Page, stage: string) {
   await retainSyntheticJson(`synthetic-reference-badge-${stage}.json`, { text: await badge.textContent(), badge: b, control: c, readout });
 }
 
+async function selectActualLight(page: Page, lang: "en" | "zh", stage: string, requested: "light" | "dark" = "light") {
+  const before = await page.locator("html").getAttribute("data-theme");
+  const topbar = page.locator("header.topbar");
+  const host = await topbar.isVisible() ? topbar : page.locator(".mobilebar");
+  await host.getByRole("button", { name: lang === "en" ? "Settings" : "设置", exact: true }).click({ timeout: 5_000 });
+  await page.getByRole("tab", { name: lang === "en" ? "Preferences" : "偏好", exact: true }).click();
+  const choice = page.getByRole("group", { name: lang === "en" ? "Appearance" : "外观", exact: true })
+    .getByRole("button", { name: requested === "light" ? (lang === "en" ? "Light" : "浅色") : (lang === "en" ? "Dark" : "深色"), exact: true });
+  await choice.click();
+  await expect(choice).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: lang === "en" ? "Close" : "关闭", exact: true }).first().click();
+  await expect(page.locator(".acs-overlay")).toBeHidden();
+  const observed = await page.evaluate(() => ({ theme: document.documentElement.dataset.theme,
+    presentationOwner: document.documentElement.dataset.mmxSharedShell ?? null,
+    chartAppearanceOwner: document.documentElement.dataset.terminalAppearance ?? null,
+    researchAppearanceOwner: document.documentElement.dataset.researchAppearance ?? null,
+    bodyBackground: getComputedStyle(document.body).backgroundColor,
+    sourceRoot: document.querySelector('[data-testid="exposure-map"]')?.getAttribute("data-source-root") ?? null }));
+  await retainSyntheticJson(`synthetic-light-control-${stage}.json`, { requested, before, ...observed });
+}
+
 async function runSurfaceJourney(page: Page, lang: "en" | "zh", theme: "dark" | "light",
   screenshot: (stage: string) => Promise<void>, touch: boolean, keyboard: boolean) {
   const mt = exposureMapT(lang);
@@ -388,12 +411,7 @@ async function runSurfaceJourney(page: Page, lang: "en" | "zh", theme: "dark" | 
     if (theme === "light") {
       // This route consumes the existing account preference owner, not the
       // Shared Shell cache key. Exercise its real control on the local fixture identity.
-      const settingsHost = touch ? page.locator(".mobilebar") : page.getByRole("banner");
-      await settingsHost.getByRole("button", { name: "设置", exact: true }).click({ timeout: 5000 });
-      await page.getByRole("tab", { name: "偏好", exact: true }).click();
-      await page.getByRole("group", { name: "外观", exact: true }).getByRole("button", { name: "浅色", exact: true }).click();
-      await page.getByRole("button", { name: "关闭", exact: true }).first().click();
-      await expect(page.locator(".acs-overlay")).toBeHidden();
+      await selectActualLight(page, lang, "overview");
     }
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     await expect(map.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 30_000 });
@@ -571,6 +589,11 @@ async function runSurfaceJourney(page: Page, lang: "en" | "zh", theme: "dark" | 
     expect(request!.fingerprint).toMatch(/^[a-f0-9]{64}$/);
     const reference = page.getByTestId("exposure-chart-reference");
     await expect(reference).toHaveAttribute("data-state", "ready", { timeout: 30_000 });
+    if (LIGHT_ACCEPTANCE) {
+      await selectActualLight(page, lang, "main-chart");
+      await screenshot("main-chart-light-control");
+      await expect(page.locator("html"), "the joined main-chart leg honors explicit Light intent").toHaveAttribute("data-theme", "light");
+    }
     await expect(reference).toHaveAttribute("data-chart-state", "offscreen");
     const readNativeOwner = () => page.evaluate(() => {
       const owner = window as unknown as { __mmChartAxisOpts?: () => {
@@ -691,9 +714,20 @@ async function runSurfaceJourney(page: Page, lang: "en" | "zh", theme: "dark" | 
 }
 
 for (const lang of ["en", "zh"] as const) {
-  const theme = lang === "en" ? "dark" : "light";
-  test(`synthetic exposure surface journey ${lang}`, async ({ page, baseURL }, info) => {
+  const theme = LIGHT_ACCEPTANCE ? "light" : lang === "en" ? "dark" : "light";
+  test(`synthetic exposure surface journey ${lang}${LIGHT_ACCEPTANCE ? " light acceptance" : ""}`, async ({ page, baseURL }, info) => {
       test.setTimeout(90_000);
+      const blockedExternal: { origin: string; path: string }[] = [];
+      const localOrigin = new URL(baseURL!).origin;
+      // Lowest-precedence browser fence. Explicit synthetic auth handlers below
+      // fulfill their loopback requests; everything else stays on this exact server.
+      await page.context().route("**/*", route => {
+        const url = new URL(route.request().url());
+        if (url.origin === localOrigin) return route.continue();
+        blockedExternal.push({ origin: url.origin, path: url.pathname });
+        return route.abort("blockedbyclient");
+      });
+      if (LIGHT_ACCEPTANCE) await page.emulateMedia({ colorScheme: "light" });
       const pageErrors: string[] = [];
       page.on("pageerror", (error) => pageErrors.push(error.message));
       // Frozen browser clock (RAF still runs) + the incumbent no-SSE polling fallback.
@@ -742,12 +776,18 @@ for (const lang of ["en", "zh"] as const) {
       const stages: Record<string, string> = {};
       const actualThemes: Record<string, string | null> = {};
       const screenshot = async (stage: string) => {
-        const path = `test-results/synthetic-exposure-surface-${info.project.name}-${lang}-${stage}.png`;
+        const path = `test-results/synthetic-exposure-surface-${info.project.name}-${lang}${LIGHT_ACCEPTANCE ? "-light" : ""}-${stage}.png`;
         stages[stage] = path;
         actualThemes[stage] = await page.locator("html").getAttribute("data-theme");
         await page.screenshot({ path });
       };
-      await runSurfaceJourney(page, lang, theme, screenshot, info.project.name !== "desktop", info.project.name === "desktop" && lang === "en");
+      try {
+        await runSurfaceJourney(page, lang, theme, screenshot, info.project.name !== "desktop", info.project.name === "desktop" && lang === "en");
+      } finally {
+        await retainSyntheticJson("synthetic-network-isolation.json", { localOrigin, blockedExternal,
+          server_fence: LIGHT_ACCEPTANCE ? "launcher must provide unchanged loopback-only OS profile; see command/preflight receipt" : "fixture server + browser route fence",
+          browser_zoom_200_percent: "NOT PROVED", cached_selection_latency_p95: "TARGET <100ms; NOT MEASURED" });
+      }
       await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
       expect(pageErrors, "a synthetic journey must not trip page errors").toEqual([]);
       await retainSyntheticJson("synthetic-exposure-surface-context.json", {
@@ -759,6 +799,208 @@ for (const lang of ["en", "zh"] as const) {
           viewport: page.viewportSize(),
           screenshots: stages,
           actual_theme_by_stage: actualThemes,
+          blocked_external_requests: blockedExternal,
+          browser_zoom_200_percent: "NOT PROVED — no CSS zoom or DPR substitute",
+          cached_selection_latency_p95: "TARGET <100ms; NOT MEASURED",
       });
     });
 }
+
+
+if (LIGHT_ACCEPTANCE) for (const lang of ["en", "zh"] as const) {
+  test(`synthetic direct terminal light intent ${lang}`, async ({ page, baseURL }, info) => {
+    test.setTimeout(90_000);
+    const localOrigin = new URL(baseURL!).origin;
+    const blockedExternal: { origin: string; path: string }[] = [];
+    await page.context().route("**/*", route => {
+      const url = new URL(route.request().url());
+      if (url.origin === localOrigin) return route.continue();
+      blockedExternal.push({ origin: url.origin, path: url.pathname });
+      return route.abort("blockedbyclient");
+    });
+    await page.context().addCookies([{ name: "mm_e2e_rs30", value: "1", url: baseURL! }]);
+    await page.emulateMedia({ colorScheme: "light" });
+    await page.clock.install({ time: new Date(FIXED_NOW) });
+    await page.addInitScript(locale => { localStorage.setItem("mm.lang", locale); Reflect.deleteProperty(window, "EventSource"); }, lang);
+    await installSyntheticRoutes(page);
+    expectFixtureInvariants();
+    try {
+      // One direct route and one unchanged synthetic owner. This does NOT use the
+      // Options route's different fixture actor as evidence of a preference defect.
+      await page.goto("/terminal?symbol=SPY");
+      await expect(page.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 30_000 });
+      const beforeUrl = page.url();
+      const readFinancialView = () => page.evaluate(() => {
+        const owner = window as unknown as { __mmChartAxisOpts?: () => { timeframe: string; contextProof: { priceRows: unknown[] }; priceVisibleRange: unknown; appearanceSettings: unknown };
+          __s7Renderer?: { receipt: unknown; canvas: Element | null } };
+        if (!owner.__s7Renderer) owner.__s7Renderer = { receipt: owner.__mmChartAxisOpts, canvas: document.querySelector(".chart-wrap canvas") };
+        const native = owner.__mmChartAxisOpts?.();
+        // Engine row styles may repaint; retain every non-style field as financial evidence.
+        const rows = native?.contextProof.priceRows.map(row => Object.fromEntries(Object.entries(row as Record<string, unknown>)
+          .filter(([key]) => !["color", "borderColor", "wickColor"].includes(key))));
+        return native ? { timeframe: native.timeframe, priceRows: rows, priceVisibleRange: native.priceVisibleRange,
+          storedSettings: native.appearanceSettings, sameRenderer: owner.__s7Renderer.receipt === owner.__mmChartAxisOpts,
+          sameCanvas: owner.__s7Renderer.canvas === document.querySelector(".chart-wrap canvas") } : null;
+      });
+      const beforeFinancial = await readFinancialView();
+      await selectActualLight(page, lang, "direct-terminal");
+      expect(page.url()).toBe(beforeUrl);
+      await page.screenshot({ path: `test-results/synthetic-direct-terminal-${info.project.name}-${lang}-light-intent.png` });
+      await retainSyntheticJson("synthetic-direct-terminal-identity.json", {
+        declared_fixture_owner: "e2e-user-default", fixture_store_cookie: "default", account_switches: 0,
+        entry_and_after_url: beforeUrl, source_snapshot_ref: SOURCE_REF, session: SESSION, spot: SPOT,
+        compiler: "installed Nextdev --webpack", typography: "fallback fonts — NOT full visual/typography acceptance",
+        actual_theme: await page.locator("html").getAttribute("data-theme"),
+      });
+      await expect(page.locator("html"), "stable-owner Terminal honors actual explicit Light intent").toHaveAttribute("data-theme", "light");
+      await expect(page.locator("html")).toHaveAttribute("data-terminal-appearance", "1");
+      await expect(page.locator("html")).not.toHaveAttribute("data-mmx-shared-shell", "1");
+      const readPaint = () => page.evaluate(() => {
+        const body = getComputedStyle(document.body), root = getComputedStyle(document.documentElement);
+        const header = document.querySelector<HTMLElement>(".statusline");
+        const wrap = document.querySelector<HTMLElement>(".chart-wrap")!, bounds = wrap.getBoundingClientRect();
+        const rgba = (value: string) => { const n = value.match(/[\d.]+/g)?.map(Number) ?? [0, 0, 0, 0]; return [n[0]!, n[1]!, n[2]!, n[3] ?? 1]; };
+        const over = (base: number[], color: number[]) => base.map((v, i) => v * (1 - color[3]!) + color[i]! * color[3]!);
+        const ancestors: HTMLElement[] = []; for (let n: HTMLElement | null = wrap; n; n = n.parentElement) ancestors.unshift(n);
+        let material = [0, 0, 0]; for (const n of ancestors) material = over(material, rgba(getComputedStyle(n).backgroundColor));
+        const canvases = [...wrap.querySelectorAll<HTMLCanvasElement>("canvas")].map(canvas => ({ canvas, rect: canvas.getBoundingClientRect(), ctx: canvas.getContext("2d"), z: parseFloat(getComputedStyle(canvas).zIndex) || 0 }))
+          .sort((a, b) => a.z - b.z);
+        const colors = new Map<string, number>();
+        // Read the actual layered canvas pixels composited over the painted DOM
+        // material. Transparent canvas is not opaque axis ink or a made-up background.
+        for (let row = 0; row < 7; row++) for (let col = 0; col < 9; col++) {
+          const x = bounds.left + 20 + col * Math.max(1, bounds.width - 100) / 9;
+          const y = bounds.top + bounds.height * (.24 + row * .045);
+          let pixel = material.slice();
+          for (const layer of canvases) {
+            if (!layer.ctx || x < layer.rect.left || x >= layer.rect.right || y < layer.rect.top || y >= layer.rect.bottom) continue;
+            const px = Math.floor((x - layer.rect.left) * layer.canvas.width / layer.rect.width), py = Math.floor((y - layer.rect.top) * layer.canvas.height / layer.rect.height);
+            const d = layer.ctx.getImageData(px, py, 1, 1).data;
+            pixel = over(pixel, [d[0]!, d[1]!, d[2]!, d[3]! / 255]);
+          }
+          const key = pixel.map(Math.round).join(","); colors.set(key, (colors.get(key) ?? 0) + 1);
+        }
+        const dominant = [...colors].sort((a, b) => b[1] - a[1])[0]?.[0].split(",").map(Number) ?? null;
+        const legends = [...wrap.querySelectorAll<HTMLElement>(".lg-row")].filter(row => row.getBoundingClientRect().width > 0 && row.getBoundingClientRect().height > 0)
+          .map(row => { const name = row.querySelector<HTMLElement>(".lg-name")!;
+            return { label: name.textContent, ink: rgba(getComputedStyle(name).color).slice(0, 3), background: over(dominant ?? material, rgba(getComputedStyle(row).backgroundColor)) }; });
+        return { canvasDominantRgb: dominant, legends, bodyBackground: body.backgroundColor, bodyForeground: body.color,
+          headerForeground: header ? getComputedStyle(header).color : null,
+          chartAxis: root.getPropertyValue("--chart-axis-text").trim(), chartGrid: root.getPropertyValue("--chart-grid").trim(),
+          up: root.getPropertyValue("--up").trim(), down: root.getPropertyValue("--down").trim(),
+          sharedShellMarker: document.documentElement.dataset.mmxSharedShell ?? null };
+      });
+      const paint = await readPaint();
+      const rgb = paint.bodyBackground.match(/[\d.]+/g)!.slice(0, 3).map(Number);
+      expect(Math.min(...rgb), "Light must paint a light material, not only change an attribute").toBeGreaterThan(200);
+      await retainSyntheticJson("synthetic-direct-terminal-light-paint.json", paint);
+      expect(paint.canvasDominantRgb, "inspect actual native canvas background, not only outer chrome").not.toBeNull();
+      const linear = (value: number) => value / 255 <= .04045 ? value / 255 / 12.92 : ((value / 255 + .055) / 1.055) ** 2.4;
+      const luminance = (rgb: number[]) => .2126 * linear(rgb[0]!) + .7152 * linear(rgb[1]!) + .0722 * linear(rgb[2]!);
+      const ink = paint.headerForeground!.match(/[\d.]+/g)!.slice(0, 3).map(Number);
+      const bg = luminance(paint.canvasDominantRgb!), fg = luminance(ink);
+      const contrast = (Math.max(bg, fg) + .05) / (Math.min(bg, fg) + .05);
+      await retainSyntheticJson("synthetic-native-readout-contrast.json", { foreground: ink, actual_canvas_background: paint.canvasDominantRgb, contrast });
+      expect(Math.min(...paint.canvasDominantRgb!), "Light must paint the actual chart light").toBeGreaterThan(200);
+      expect(contrast, "native readout is legible against its actual painted canvas").toBeGreaterThanOrEqual(4.5);
+      for (const label of paint.legends) {
+        const a = luminance(label.ink), b = luminance(label.background);
+        expect((Math.max(a, b) + .05) / (Math.min(a, b) + .05), `${label.label} legible on its composited row`).toBeGreaterThanOrEqual(4.5);
+      }
+      const afterFinancial = await readFinancialView();
+      expect(afterFinancial).toEqual(beforeFinancial);
+      await retainSyntheticJson("synthetic-theme-financial-invariants.json", { before: beforeFinancial, after: afterFinancial });
+      if (info.project.name === "mobile") {
+        const contract = page.viewportSize()!;
+        await page.setViewportSize({ width: 320, height: contract.height });
+        await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+        await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+        await page.screenshot({ path: `test-results/synthetic-direct-terminal-mobile-${lang}-light-320.png` });
+        await page.setViewportSize(contract);
+      }
+      if (info.project.name === "desktop" && lang === "en") {
+        const host = page.locator("header.topbar");
+        await host.getByRole("button", { name: "Settings", exact: true }).click();
+        await page.getByRole("tab", { name: "Preferences", exact: true }).click();
+        await page.getByRole("group", { name: "Appearance", exact: true }).getByRole("button", { name: "Auto", exact: true }).click();
+        await page.getByRole("button", { name: "Close", exact: true }).first().click();
+        await expect(page.locator(".acs-overlay")).toBeHidden();
+        await page.emulateMedia({ colorScheme: "dark" });
+        await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+        await expect.poll(async () => (await readPaint()).canvasDominantRgb).toEqual([19, 23, 34]);
+        const darkPaint = await readPaint();
+        await page.emulateMedia({ colorScheme: "light" });
+        await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+        await selectActualLight(page, lang, "direct-explicit-after-auto");
+        await page.emulateMedia({ colorScheme: "dark" });
+        await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+        await retainSyntheticJson("synthetic-direct-terminal-auto.json", { auto_media_dark: "dark", darkPaint, auto_media_light: "light", explicit_light_after_dark_media: "light", owner: "e2e-user-default" });
+        // Save a nondefault dark frame through the real settings controls, then
+        // prove changing appearance preserves that saved choice and native view.
+        await page.locator(".cfb-gear").first().click();
+        await page.locator(".qsg-menu .qsg-item").last().click();
+        const dialog = page.locator("dialog.sm-backdrop");
+        await expect(dialog).toBeVisible();
+        await dialog.locator('[data-settings-tab="canvas"]').click();
+        await dialog.getByLabel("Background colors (1)", { exact: true }).fill("#101521");
+        await dialog.locator(".sm-ok").click();
+        await expect(dialog).toHaveCount(0);
+        await selectActualLight(page, lang, "saved-custom-dark-before", "dark");
+        const saved = await readFinancialView();
+        await selectActualLight(page, lang, "saved-custom-dark-light");
+        const customPaint = await readPaint();
+        const customAfter = await readFinancialView();
+        expect(customAfter).toEqual(saved);
+        expect(customPaint.canvasDominantRgb).toEqual([16, 21, 33]);
+        const customInk = customPaint.headerForeground!.match(/[\d.]+/g)!.slice(0, 3).map(Number);
+        const customBg = luminance(customPaint.canvasDominantRgb!), customFg = luminance(customInk);
+        expect((Math.max(customBg, customFg) + .05) / (Math.min(customBg, customFg) + .05)).toBeGreaterThanOrEqual(4.5);
+        expect(customPaint.legends.length).toBeGreaterThan(0);
+        for (const label of customPaint.legends) {
+          const a = luminance(label.ink), b = luminance(label.background);
+          expect((Math.max(a, b) + .05) / (Math.min(a, b) + .05), `${label.label} remains legible on saved custom frame`).toBeGreaterThanOrEqual(4.5);
+        }
+        await retainSyntheticJson("synthetic-custom-frame-invariants.json", { saved, after: customAfter, paint: customPaint });
+        await page.screenshot({ path: "test-results/synthetic-direct-terminal-desktop-en-custom-dark-frame-light.png" });
+      }
+    } finally {
+      await retainSyntheticJson("synthetic-network-isolation.json", { localOrigin, blockedExternal,
+        external_io_fence: "unchanged launcher loopback-only.sb; command receipt required",
+        browser_zoom_200_percent: "NOT PROVED", cached_selection_latency_p95: "TARGET <100ms; NOT MEASURED" });
+    }
+  });
+}
+
+
+if (LIGHT_ACCEPTANCE) test("synthetic light chart control contrast", async ({ page, baseURL }, info) => {
+  test.skip(info.project.name !== "tablet", "one discriminating local control/hover case");
+  test.setTimeout(90_000);
+  const origin = new URL(baseURL!).origin;
+  await page.context().route("**/*", route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort("blockedbyclient"));
+  await page.context().addCookies([{ name: "mm_e2e_rs30", value: "1", url: baseURL! }]);
+  await page.addInitScript(() => { localStorage.setItem("mm.lang", "en"); Reflect.deleteProperty(window, "EventSource"); });
+  await page.clock.install({ time: new Date(FIXED_NOW) });
+  await installSyntheticRoutes(page);
+  await page.goto("/terminal?symbol=SPY");
+  await expect(page.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 30_000 });
+  await selectActualLight(page, "en", "control-contrast");
+  const contrastOf = async (selector: string) => page.locator(selector).evaluate(el => {
+    const c = getComputedStyle(el), rgb = (s: string) => s.match(/[\d.]+/g)!.slice(0,3).map(Number);
+    const lin = (n: number) => n/255 <= .04045 ? n/255/12.92 : ((n/255+.055)/1.055)**2.4;
+    const lum = (s: string) => rgb(s).reduce((a,n,i) => a+lin(n)*[.2126,.7152,.0722][i]!,0);
+    const a=lum(c.color), b=lum(c.backgroundColor);
+    return { foreground:c.color, background:c.backgroundColor, contrast:(Math.max(a,b)+.05)/(Math.min(a,b)+.05) };
+  });
+  const button = page.locator(".chart-fs-float");
+  await expect(button).toBeVisible();
+  const ordinary = await contrastOf(".chart-fs-float"); expect(ordinary.contrast).toBeGreaterThanOrEqual(3);
+  await button.tap(); await expect(page.locator(".app.fs")).toBeVisible();
+  const expanded = await contrastOf(".chart-fs-float"); expect(expanded.contrast).toBeGreaterThanOrEqual(3);
+  const wrap = await page.locator(".chart-wrap").first().boundingBox();
+  await page.mouse.move(wrap!.x+wrap!.width*.45,wrap!.y+wrap!.height*.25);
+  const hover = page.locator(".mm-hovertag"); await expect(hover).toBeVisible();
+  const hoverPaint = await contrastOf(".mm-hovertag"); expect(hoverPaint.contrast).toBeGreaterThanOrEqual(4.5);
+  await page.screenshot({ path:"test-results/synthetic-light-tablet-controls-hover.png" });
+  await button.tap(); await expect(page.locator(".app.fs")).toHaveCount(0);
+  await retainSyntheticJson("synthetic-light-control-contrast.json", { ordinary,expanded,hoverPaint,compiler:"Nextdev webpack under unchanged loopback guard",typography:"fallback; not full visual acceptance" });
+});

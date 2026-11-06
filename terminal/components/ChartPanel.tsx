@@ -1,6 +1,7 @@
 "use client";
 import { boatsChartHistoryBars, type BoatsChartHistory } from "@/lib/extQuoteCopy";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
+import { resolveChartAppearance } from "@/lib/chartSettingsUi";
 import { syncOptionsPricePin, removeOptionsPricePin, layoutOptionsReferenceBadges, optionsPinVisibility, optionsPinRevealRange, type OptionsPinViewport, type OptionsPricePin } from "@/lib/optionsChartPin";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
@@ -515,7 +516,18 @@ const shellAxisFontSize = () => (shellAxis() && shellWide() ? 13 : 12);
 // `axis`/`grid` resolve through the --chart-axis-text / --chart-grid indirection whose :root
 // defaults reproduce --muted / --grid exactly; only the native shell retunes them (D6).
 type Tokens = { up: string; down: string; grid: string; axis: string; line: string; p3: string; link: string; warn: string; signal: string; buy: string; sell: string; mut: string; brand2: string };
-const readTokens = (): Tokens => ({ up: css("--up"), down: css("--down"), grid: css("--chart-grid") || css("--grid"), axis: css("--chart-axis-text") || css("--muted"), line: css("--line"), p3: css("--chart-crosshair-label-bg") || css("--panel-3"), link: css("--link"), warn: css("--warn"), signal: css("--signal"), buy: css("--buy"), sell: css("--sell"), mut: css("--muted"), brand2: css("--brand-2") });
+const chartLight = () => typeof document !== "undefined" && document.documentElement.dataset.terminalAppearance === "1" && document.documentElement.dataset.theme === "light";
+const chartAppearance = (settings: Partial<ChartSettings>) => {
+  const token = typeof document === "undefined" ? () => "" : css;
+  return resolveChartAppearance(settings, chartLight(), {
+    panel: token("--panel"), chartBackground: token("--chart-bg"), axis: token("--chart-axis-text") || token("--muted"),
+    grid: token("--chart-grid") || token("--grid"), line: token("--line"), text: token("--text-2"),
+  });
+};
+const readTokens = (settings: Partial<ChartSettings>): Tokens => {
+  const appearance = chartAppearance(settings);
+  return { up: css("--up"), down: css("--down"), grid: appearance.grid, axis: appearance.axis, line: css("--line"), p3: css("--chart-crosshair-label-bg") || css("--panel-3"), link: css("--link"), warn: css("--warn"), signal: css("--signal"), buy: css("--buy"), sell: css("--sell"), mut: css("--muted"), brand2: css("--brand-2") };
+};
 
 // Directional tint. LWC paints to canvas and cannot resolve var(--up)/var(--down), so every shaded
 // directional band has to be built in JS from the LIVE token — hardcoding the green/red rgba is what
@@ -4083,6 +4095,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
             return sm?.top ?? null;
           }) ?? null,
           watermarkVisible: watermarkVisibleRef.current,
+          appearanceSettings: { ...chartSettingsRef.current },
+          nativeBackground: g(() => c.options().layout?.background),
           rowCount: barsRef.current.length,
           leftScaleWidth: g(() => c.priceScale("left").width()),
           timeBarSpacing: g(() => c.timeScale().options().barSpacing),
@@ -4244,7 +4258,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
     // ── create the ONE chart (the hard invariant — exactly one renderer instance — now
     // lives behind createEngine; docs/CHART_ENGINE_MASTERPLAN.md P1) ──
     cpMark(`chart-create[${symbol}]`);
-    tokensRef.current = readTokens();
+    tokensRef.current = readTokens(chartSettingsRef.current);
     const t = tokensRef.current;
     const engineOptions = {
       width: el.clientWidth || 900, height: el.clientHeight || 600,
@@ -5005,6 +5019,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
       if (paint === "keep" || y == null || value == null || !s) return;
       tag.textContent = scalePriceText(s, value);
       tag.style.background = tokensRef.current.p3;
+      tag.style.color = chartLight() ? readablePriceTagTextColor(tokensRef.current.p3) : "#fff";
       const axisFontSize = (() => { try { return Number((chart.options() as any).layout?.fontSize) || 12; } catch { return 12; } })();
       // LWC: font + price-label padding (2 x 2.5/12fs) + crosshair padding (2 x 2/12fs).
       const hoverHeight = Math.ceil(axisFontSize * 7 / 4);
@@ -9368,7 +9383,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
         const closes = onChart.map((r) => r.c);
         closesRef.current = closes;
         precRef.current = closes.length && closes[closes.length - 1] < 10 ? 4 : 2;
-        tokensRef.current = readTokens();
+        tokensRef.current = readTokens(chartSettingsRef.current);
         // Prefetch daily OHLC for slevels/pivots (fire-and-forget; miss is graceful — empty daily = no lines).
         // Also used by DayStatsStrip for gap% and range-used% computations.
         // Only re-fetch when the symbol changed or cache is empty. Uses the same getOhlc cache path as daily branch.
@@ -9542,7 +9557,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
       const closes = onChart.map((r) => r.c);
       closesRef.current = closes;
       precRef.current = closes.length && closes[closes.length - 1] < 10 ? 4 : 2;
-      tokensRef.current = readTokens();
+      tokensRef.current = readTokens(chartSettingsRef.current);
 
       // ── Lab signal markers (TLT-R4): fetch tech events from cached intel when _lab active ──
       // Fire-and-forget: does NOT block chart render. On 404/absent the ref stays empty.
@@ -10383,7 +10398,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
   // ────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     const engine = engineRef.current; const priceHandle = priceSeriesHandleRef.current; if (!engine) return;
-    const t = readTokens(); tokensRef.current = t;
+    const t = readTokens(chartSettingsRef.current); tokensRef.current = t;
     const settings = chartSettingsRef.current;
     try {
       engine.applyOptions({
@@ -10469,8 +10484,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
         engine.priceScale(scaleId).applyOptions(opts);
       }
       const tokens = tokensRef.current;
-      const backgroundTop = chartSettings.backgroundTop || "transparent";
-      const backgroundBottom = chartSettings.backgroundBottom || backgroundTop;
+      const { backgroundTop, backgroundBottom } = chartAppearance(chartSettings);
       const background = chartSettings.backgroundType === "gradient"
         ? { type: EngineColorType.VerticalGradient, topColor: backgroundTop, bottomColor: backgroundBottom }
         : { type: EngineColorType.Solid, color: backgroundTop };
@@ -10719,6 +10733,19 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
     // eslint-disable-next-line
   }, [cmpDep]);
 
+  // Keep the existing pane/frame-bar material in the chart's selected Light
+  // direction. The native background still preserves explicit saved colours.
+  useEffect(() => {
+    if (!chartLight()) return;
+    const pane = wrapElRef.current?.closest<HTMLElement>(".pane");
+    if (!pane) return;
+    const previous = pane.style.getPropertyValue("--chart-bg");
+    pane.style.setProperty("--chart-bg", css("--panel"));
+    return () => { if (previous) pane.style.setProperty("--chart-bg", previous); else pane.style.removeProperty("--chart-bg"); };
+  }, [csNonce]);
+  const appearance = chartAppearance(chartSettings ?? {});
+  const readoutInk = appearance.headerInk;
+
   // Golden Oracle Confluence is a toggleable/removable study now: its verdict badge + detail chip only
   // show while it's active AND not hidden via the legend eye. (Kept mounted with display:none so the
   // imperative verdict painter can keep verdictRef current in the background — no remount staleness.)
@@ -10734,7 +10761,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
           dailyBars={stripDailyBars}
         />
       )}
-      <div className="statusline">
+      <div className="statusline" style={readoutInk ? { "--text": readoutInk, "--text-2": readoutInk, "--muted": readoutInk } as React.CSSProperties : undefined}>
         <span ref={statusRef} />
         <span className="mm" style={{ display: oracleVisible ? undefined : "none" }}><i style={{ background: "currentColor" }} /><span ref={verdictRef}>{t("goldenOracleLbl")}</span></span>
         {replayCutoff != null && <span className="mm" style={{ background: "rgba(232,179,57,.14)", borderColor: "rgba(232,179,57,.35)", color: "var(--signal)" }}><i style={{ background: "var(--signal)" }} />REPLAY</span>}
@@ -10797,6 +10824,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
         panes={paneLayout} hoveredKey={hoveredKey} legendOpen={legendOpen} onToggleLegend={() => setLegendOpen((o) => !o)}
         showTitles={chartSettings?.showIndicatorTitles !== false}
         backgroundOpacity={chartSettings?.indicatorBackgroundOpacity ?? 70}
+        frameBackground={chartLight() ? appearance.frameBackground : undefined}
         paneButtons={chartSettings?.paneButtons ?? "hover"}
         onEye={(k) => onToggleHidden?.(k)} onSettings={(k) => onOpenSettings?.(k)} onSource={(k) => onOpenSource?.(k)} onRemove={(k) => onRemoveInd?.(k)}
         onMoveUp={(pi) => doMove(pi, -1)} onMoveDown={(pi) => doMove(pi, 1)} onCollapse={doCollapse} onMaximize={doMaximize}

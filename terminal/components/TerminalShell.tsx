@@ -174,6 +174,8 @@ import { SHELL_DRAW_TOOLS } from "@/lib/drawingTaxonomy";
 import { type ShellPanelId } from "@/lib/platform/contract";
 import SettingsButton from "@/components/settings/SettingsButton";
 import { SettingsProvider } from "@/components/settings/SettingsProvider";
+import { SharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
+import "@/components/chrome/shared-shell/shared-shell.css";
 import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import DrawingSidebar from "@/components/DrawingSidebar";
 import DayRange from "@/components/DayRange";
@@ -5973,6 +5975,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         can call useOnboarding() directly. Note this provider is a DESCENDANT of
         TerminalShell, so useSettings() *here* would be the no-op — the buttons
         below are children of it, which is what matters. */}
+    <SharedShellPresentation enabled={!shellMode} identity={identity} appearanceOnly>
     <SettingsProvider identity={identity} defaultSection="terminal">
     <div className={`app${fullChart ? " fs" : ""}${shellMode ? " shell-app" : ""}`} data-shell={shellMode ? "app" : undefined} data-tray={shellMode && shellTray ? "1" : undefined} data-dossier={dossierMode ? "1" : undefined} style={{ ["--rail-w" as any]: `${railW}px` }}>
       {!shellMode && <RetainedInvestigationLayout search={urlSearch} owner={wlOwner} onOpen={(config,name)=>{
@@ -7397,6 +7400,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
 
     </div>
     </SettingsProvider>
+    </SharedShellPresentation>
     </OnboardingProvider>
   );
 }
