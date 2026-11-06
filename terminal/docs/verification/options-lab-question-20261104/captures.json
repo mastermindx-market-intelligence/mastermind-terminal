@@ -1,0 +1,54 @@
+{
+  "scope": "Local inert Matrix and widget bridge; actual GexDesk/Lab; EN/ZH x dark/light x1440/820/390. Staging/withdrawal, one Matrix GET, zero POST. No authenticated production/model access proof.",
+  "production": false,
+  "captures": [
+    {
+      "file": "question-zh-dark-desktop.png",
+      "sha256": "b7b4e9681e80f6ea431124021e13ecf5cbeb4f11f4e9f77343ab89bbddab941e"
+    },
+    {
+      "file": "question-zh-dark-mobile.png",
+      "sha256": "495e3555fef189aa6e63809326f96b4a1f90aee34979f7396d8959aa8f43ca59"
+    },
+    {
+      "file": "question-zh-dark-tablet.png",
+      "sha256": "44339feedb3b178567845bde5b2c280f4e010757c849d17f905387fef9207454"
+    },
+    {
+      "file": "question-en-light-desktop.png",
+      "sha256": "cc55fd2a5dd914719f2b214b2afc0faa37b6f4ab9414e1a5dfed0838fe0d45c6"
+    },
+    {
+      "file": "question-en-light-mobile.png",
+      "sha256": "c4e6cbb2755d34a0219acd04bce21897f0759ba618c8d4b3a23325b367e4c24d"
+    },
+    {
+      "file": "question-en-light-tablet.png",
+      "sha256": "cb154150a00623a7e00fae1c9fd5ba29afccd197492f987637938024ee69edc6"
+    },
+    {
+      "file": "question-zh-light-desktop.png",
+      "sha256": "847511dbe21e33b5530b741c6acfb1ee4bfae6f743f6e0d1e8e40674ff6010de"
+    },
+    {
+      "file": "question-zh-light-mobile.png",
+      "sha256": "cea03325c5cb009bd8c57623ec517ff233810939ea6ff9a6a8e375c1779d0a3e"
+    },
+    {
+      "file": "question-zh-light-tablet.png",
+      "sha256": "ae39e76d857aa618389cf09b1d746fa075c36d46baaa704c59cdf28aaa544073"
+    },
+    {
+      "file": "question-en-dark-desktop.png",
+      "sha256": "b2dc70f917c84a63395c36d0375d10fb0703c1c4b544a5a9be6189f8e0e32a6d"
+    },
+    {
+      "file": "question-en-dark-mobile.png",
+      "sha256": "83311cf33f46e80954395540c25cb2acf9068a1b929e41cf51db6dc1e44665c0"
+    },
+    {
+      "file": "question-en-dark-tablet.png",
+      "sha256": "bd89e4f2a211301ed4312566e53ddf920e5bb629a002675dc233fd7e0e1bdf54"
+    }
+  ]
+}

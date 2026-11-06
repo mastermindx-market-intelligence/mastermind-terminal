@@ -8,9 +8,12 @@ same-repository, non-draft pull requests carrying the
 ``merge-on-green`` label; requires the latest trusted instance of all three CI jobs
 to have completed successfully; and pins every state-changing action to the head SHA
 it evaluated. When GitHub's native merge queue is enabled for master, the controller
-enqueues every eligible green head (including a head that is merely behind master)
-and leaves integration ordering/revalidation to that queue. Without a merge queue it
-retains the historical refresh-then-SHA-pinned-squash fallback.
+verifies every eligible green head (including a head that is merely behind master)
+against the queue and reports it ready, but never enqueues: this workflow holds
+the repository GITHUB_TOKEN, whose enqueue return cannot establish downstream
+merge-group event delivery. Admission is left to the already-supported native-user
+route, with an expected-head pin. Without
+a merge queue it retains the historical refresh-then-SHA-pinned-squash fallback.
 
 The controller is deliberately label-gated. ``hold`` and ``do-not-merge`` are hard
 vetoes. A genuine trusted red or conflict is labelled ``merge-blocked`` with one
@@ -191,6 +194,9 @@ class GitHubApi:
         return str(entry_id) if entry_id else None
 
     def enqueue(self, pull_request_id: str, head_sha: str) -> str:
+        # Kept as a primitive for compatibility and tested directly; the sweep's
+        # native-queue branch never calls it -- admission there is a maintainer's
+        # native `gh pr merge --auto`, not a token enqueue (see sweep()).
         data = self.graphql_request(
             """
             mutation($pullRequestId: ID!, $expectedHeadOid: GitObjectID!) {
@@ -603,17 +609,16 @@ def sweep(
             if existing_entry is not None:
                 actions.append(f"#{number}: already queued ({existing_entry})")
                 continue
-            try:
-                entry_id = api.enqueue(pull_request_id, head_sha)
-            except ApiError as error:
-                if not (400 <= error.status < 500):
-                    raise
-                actions.append(f"#{number}: declined: {error}")
-                continue
-            actions.append(f"#{number}: enqueued in merge queue ({entry_id})")
-            # Enqueueing does not advance master. Keep evaluating other green
-            # candidates so GitHub can build up to the queue's configured
-            # concurrent-candidate limit in this same sweep.
+            # A GITHUB_TOKEN enqueue return does not prove downstream merge_group
+            # event delivery. Keep this workflow read-only at the admission seam;
+            # a maintainer uses the existing native-user path with the verified
+            # head pinned. This is not a finding about every missing event.
+            # Admission, ordering and revalidation then belong to the queue.
+            actions.append(
+                f"#{number}: ready for the merge queue; native user admission required "
+                f"(gh pr merge {number} --auto --match-head-commit {head_sha}); "
+                f"head {head_sha} verified green by this sweep"
+            )
             continue
         if mergeable_state == "behind":
             branch = str(pull["head"]["ref"])

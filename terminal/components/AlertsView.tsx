@@ -21,6 +21,7 @@ import {
 } from "@/lib/suiteAlerts";
 import { SUITE_DEFS } from "@/lib/suites/registry";
 import { useGateEntitlement } from "@/lib/entitlementStore";
+import { entitlementVisualState } from "@/lib/entitlementVisualState";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { ALERTS_CHANGED_EVENT, conditionText, firedEventTextZh } from "@/lib/alertsView";
 import { identityOwnerKey } from "@/lib/accountIdentity";
@@ -281,6 +282,10 @@ function AlertsViewBody({ email, panelOnly, listOnly }: AlertsViewProps) {
   // unverified same-owner last-good all read as free, so the picker fails CLOSED by
   // construction. The route re-checks server-side against the billing authority.
   const ent = useGateEntitlement(useShellIdentity());
+  const accessState = entitlementVisualState(ent);
+  const accessCopy = accessState === "checking"
+    ? (lang === "zh" ? "正在验证账户权限…" : "Checking account access…")
+    : (lang === "zh" ? "暂时无法验证账户权限" : "Account access unavailable");
   // ent.tier is already normalized by the store (legacy `insider` → `essential`).
   const userTier: Tier = ent.tier === "essential" || ent.tier === "pro" ? ent.tier : "free";
   const isLockedEvt = (e: CatalogEvt) => TIER_RANK[userTier] < TIER_RANK[evtTier(e)];
@@ -666,7 +671,7 @@ function AlertsViewBody({ email, panelOnly, listOnly }: AlertsViewProps) {
     const label = t(e.tkey, e.en);
     return (
       <option key={e.event} value={e.event} disabled={locked}>
-        {locked ? `${label} · ${evtTier(e) === "pro" ? "PRO" : "INSIDER"}` : label}
+        {locked ? `${label} · ${accessState !== "verified" ? accessCopy : evtTier(e) === "pro" ? "PRO" : "INSIDER"}` : label}
       </option>
     );
   });
@@ -727,7 +732,7 @@ function AlertsViewBody({ email, panelOnly, listOnly }: AlertsViewProps) {
                     <label className="opt-field">{t("suiteSeqWithin")}<input aria-label={`${t("suiteSeqWithin")} ${t("suiteSeqBars")}`} type="number" step="1" min="2" max="50" value={seqMaxBars} onChange={(ev) => setSeqMaxBars(ev.target.value)} style={numStyle} />{t("suiteSeqBars")}</label>
                   </>
                 )}
-                {suiteHasLocked && (
+                {suiteHasLocked && accessState === "verified" && (
                   <span className="opt-field" style={{ color: "var(--muted)", fontSize: 11.5, gap: 5 }} title={t("suiteLockedHint")}>
                     <svg viewBox="0 0 24 24" aria-hidden="true" style={{ width: 12, height: 12, stroke: "currentColor", fill: "none", strokeWidth: 1.8 }}>
                       <rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" />
@@ -735,6 +740,7 @@ function AlertsViewBody({ email, panelOnly, listOnly }: AlertsViewProps) {
                     {t("suiteLockedHint")}
                   </span>
                 )}
+                {accessState !== "verified" && <span className="opt-field" role="status" aria-live="polite" style={{ color: "var(--muted)", fontSize: 11.5 }}>{accessCopy}</span>}
               </>
             ) : cat === "signal" ? (
               <>
@@ -819,7 +825,10 @@ function AlertsViewBody({ email, panelOnly, listOnly }: AlertsViewProps) {
             </div>
           )}
           {/* E17: read-only "would it trigger right now?" for this exact unsaved condition */}
-          {cat === "suite" && (
+          {cat === "suite" && accessState !== "verified" && (
+            <div role="status" aria-live="polite" className="opt-preview">{accessCopy}</div>
+          )}
+          {cat === "suite" && accessState === "verified" && (
             <AlertDryRunPanel
               symbol={sym}
               condition={suiteMode === "seq" ? seqCondition : suiteCondition}
