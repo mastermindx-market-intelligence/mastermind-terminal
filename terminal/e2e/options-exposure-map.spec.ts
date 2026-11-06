@@ -254,7 +254,17 @@ for (const lang of ["en", "zh"] as const) {
       await expect(surface).toHaveAttribute("data-surface-status", "ready");
       // Select an actual rendered cell, not a replacement button or a tolerated
       // empty/unqualified Surface state.
-      await surface.locator('[data-surface-cell][data-strike="100"][data-expiry="2026-10-23"]').locator("polygon").last().click();
+      const face = surface.locator('[data-surface-cell][data-strike="100"][data-expiry="2026-10-23"]').locator("polygon").last();
+      await expect(face).toBeInViewport();
+      await expect.poll(async () => {
+        const cellBounds = await face.boundingBox();
+        const fieldBounds = await surface.getByTestId("surface-field").boundingBox();
+        return cellBounds !== null && fieldBounds !== null
+          && cellBounds.x >= fieldBounds.x && cellBounds.y >= fieldBounds.y
+          && cellBounds.x + cellBounds.width <= fieldBounds.x + fieldBounds.width
+          && cellBounds.y + cellBounds.height <= fieldBounds.y + fieldBounds.height;
+      }).toBe(true);
+      await face.click();
       const cellInspector = surface.getByTestId("surface-inspector");
       const button = cellInspector.getByRole("button", {
         name: action === "open" ? (lang === "en" ? "Open in Exposure ↗" : "在 Exposure 中打开 ↗")

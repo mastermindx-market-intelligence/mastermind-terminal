@@ -16,10 +16,15 @@ Only when an actually binding native/security requirement or an explicit eligibl
 
 The assigned session owns the original PR through qualified source/tests, failing-CI repair, Ready when reviewable, genuinely required technical/formal review, authorized protected merge-on-green, exact merge readback, git-gated deployment and owed live browser proof. An open Draft, PR, pending CI, review request, label or handoff is **not done**. Do not open another PR to bypass failing checks, an inactive reviewer account or a held original; preserve the source carrier and get the next real release step done this turn. Continue safe unblocked work while any real external wait proceeds through the existing verified observer. Branch protection, review findings, recorded HOLD, source custody, denied/unknown effects, no self-approval and no self-merge remain binding.
 
-## Required context at the start of every task
+## Required context for the current scope
 
 1. Read `terminal/AGENTS.md` and `terminal/CLAUDE.md` in full before changing the
-   Next.js application.
+   Next.js application. Reuse instructions already read in full in this session
+   at the same applicable source revision across commands and subsequent tasks.
+   Refresh affected instructions when scope or their governing source changes;
+   read any unseen or newly applicable instructions before the work they govern.
+   This reuse preserves the nested guides' specialized contracts and required
+   framework documentation.
 2. Treat local Claude project memory as optional context, not a startup or
    delivery gate. The historical index at
    `~/.claude/projects/-Users-chriswong-Documents-Cluade-charting-app/memory/MEMORY.md`
@@ -68,6 +73,23 @@ exact source/effect checks, real CI/review/release gates and a reachable next
 action; never an archived chat as the only actor.
 
 ## Workspace and git
+
+**Authoring-surface boundary (conditional on accepted Mastermind source):** The
+`mmx-workspace` and local checkout constraints below govern sessions that actually
+edit, commit or publish using an M2 host filesystem/process. Once Mastermind PR
+#2118 has **merged to protected `master`**, and the current protected
+`docs/DELIVERY_WORKFLOW.md` explicitly admits it, a separately authorized Web,
+Claude or Codex session using GitHub-native source APIs may create/update an
+isolated branch, commit and open its own PR without acquiring an M2 worktree
+for that remote-only operation. An open policy PR is not installed authority.
+
+Preserve exact repository/source pin, original operation branch/carrier,
+preimage or expected-head CAS, competing writers and denied/unknown effects.
+A pre-existing local uncommitted change cannot be moved to GitHub API as a
+workaround for a refused host publication. All M2-local work still obeys the
+installed launcher, occupied-checkout restrictions and source-storage guards;
+neither route permits direct `master` writes, review/CI bypass, self-approval,
+self-merge or bypass of Terminal's `merge-on-green` release contract.
 
 - The canonical project home is `/Users/chriswong/Documents/Cluade`.
 - Never create project work in `~/.codex/worktrees`, `/private/tmp`, or another
@@ -164,10 +186,14 @@ uncommitted changes when lawful publication is available.
 ## Merge-on-green controller
 
 - After opening a non-draft pull request that is ready to ship, add the
-  `merge-on-green` label and arm GitHub native auto-merge with
-  `gh pr merge --auto --squash --delete-branch`. `master` protects the exact three
-  CI checks, so this is a real server-side wait. Use `hold` or `do-not-merge` as
-  an explicit veto and never combine either with auto-merge.
+  `merge-on-green` label and arm GitHub native auto-merge with a full-head lease:
+  `gh pr merge <PR> --repo mastermindx-market-intelligence/mastermind-terminal --auto --squash --match-head-commit <CURRENT_40_HEX_HEAD>`.
+  **Do not add `--delete-branch`: GitHub CLI rejects it when the active native
+  merge queue is enabled (ruleset 24411653).** Remote-branch deletion is a
+  separate optional post-merge cleanup after reading the actual merged PR SHA
+  and reconciling live writers. `master` protects the exact three CI checks;
+  these and native `merge_group` integrated checks still gate the merge. Use
+  `hold` or `do-not-merge` as explicit vetoes; never combine with auto-merge.
 - `.github/workflows/merge-on-green.yml` is the repository fallback for sessions
   interrupted while CI runs. It requires the latest instance of all three CI jobs
   to succeed, refreshes stale heads onto current `master` and waits for fresh CI,
