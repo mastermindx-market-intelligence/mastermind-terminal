@@ -552,10 +552,11 @@ def sweep(api: MergeApi, trigger_number: int | None = None, *, wait=time.sleep) 
     queue_enabled = api.merge_queue_enabled("master") if pulls else False
     merged_this_sweep = False
     first_pass_size = len(pulls)
+    pending_mergeability = False
     for position, listed in enumerate(pulls):
-        if position == first_pass_size:
-            # Revisit only the fixed first-pass pending set, once, after one
-            # shared short wait. Every proof below is read again; no prior
+        if position == first_pass_size and pending_mergeability:
+            # Revisit the fixed first-pass pending/refresh set once. Only pending
+            # mergeability needs the shared short wait. Every proof is read again; no prior
             # mutation or refused API request is queued for retry.
             wait(2)
         number = int(listed["number"])
@@ -569,6 +570,7 @@ def sweep(api: MergeApi, trigger_number: int | None = None, *, wait=time.sleep) 
             continue
         if pull.get("mergeable") is None:
             if position < first_pass_size:
+                pending_mergeability = True
                 pulls.append(listed)
             else:
                 actions.append(f"#{number}: mergeability pending")
@@ -624,6 +626,11 @@ def sweep(api: MergeApi, trigger_number: int | None = None, *, wait=time.sleep) 
             )
             continue
         if mergeable_state == "behind":
+            if position < first_pass_size:
+                # Give already-ready heads their turn before spending this
+                # sweep's refresh. Re-read every gate on the deferred visit.
+                pulls.append(listed)
+                continue
             branch = str(pull["head"]["ref"])
             api.update_branch(number, head_sha)
             # This GITHUB_TOKEN write leaves the new head's pull_request run held.
