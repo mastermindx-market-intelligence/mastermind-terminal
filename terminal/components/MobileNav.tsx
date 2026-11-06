@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useId, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { BrandLockup, BrandMark } from "@/components/BrandMark";
@@ -26,19 +26,18 @@ const SHARED_SHELL_BREAKPOINT_PX = 860;
  * globals.css so no new visual idiom is introduced. The drawer items derive from
  * AppNav's TOP export (single source of truth) — the five workspaces.
  *
- * Beta path (sharedShell=true, boolean supplied by AppShell from the exact
- * MMX_SHARED_SHELL=1): while drawer=true the scrim+drawer pair is replaced by
- * PR697's MobileNavModal (commit 0023bffa7c6c0370f15ec1e3a16398d82fe2cf33) — a real
- * <dialog> mounted ONLY while open, so a closed drawer contains no hidden
- * keyboard-focusable links. Beta nav derives from SHARED_SHELL_NAV plus
- * SHARED_SHELL_MARKETS; exactly one mobile primary-nav owner is ever mounted — no
- * second drawer, no second directory, no hand-written modal. The non-beta branch
- * keeps the original markup, classes and behavior (fromMacro included) intact.
+ * Both public and Shared Shell beta drawers use the existing PR697 MobileNavModal
+ * (commit 0023bffa7c6c0370f15ec1e3a16398d82fe2cf33), mounted ONLY while open so a
+ * closed drawer contains no hidden keyboard-focusable links. The beta flag is
+ * supplied by AppShell from MMX_SHARED_SHELL=1 and retains SHARED_SHELL_NAV plus
+ * SHARED_SHELL_MARKETS; the public path retains TOP and its symbol-preserving
+ * routes. Exactly one mobile primary-nav owner is mounted, with the existing
+ * modal owning focus, scroll lock, dismissal and action handoff for both paths.
  *
  * Props
  * -----
  * email           — passed to SettingsButton (cosmetic; guest = "")
- * sharedShell     — Shared Shell beta flag; selects the modal-drawer path
+ * sharedShell     — Shared Shell beta flag; selects the beta navigation content
  * onOpenDirectory — beta "All tools" callback only; no directory is mounted here
  * onOpenSearch    — search callback kept in the current topbar
  * fromMacro       — when true, shows a prominent "back" pill in the left slot
@@ -88,25 +87,11 @@ export default function MobileNav({
   // is the surface the gap was reported on: tapping Analysis while charting SMR opened NVDA.
   const activeSymbol = useActiveSymbol();
 
-  // Stable identity for the beta modal (PR697 integration): one dialog id, one opener
+  // Stable identity for the existing modal: one dialog id, one opener
   // hit target for focus restore, one stable onClose.
   const dialogId = useId();
   const openerRef = useRef<HTMLButtonElement | null>(null);
   const closeDrawer = useCallback(() => setDrawer(false), []);
-
-  // The ordinary drawer keeps its incumbent layout and gets the same Escape exit
-  // as the beta dialog. This listener exists only while that drawer is open.
-  useEffect(() => {
-    if (sharedShell || !drawer) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key !== "Escape" || event.defaultPrevented) return;
-      event.preventDefault();
-      closeDrawer();
-      openerRef.current?.focus();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [sharedShell, drawer, closeDrawer]);
 
   // Active key = path prefix per workspace, mirroring AppNav. Chart is the default/center.
   const derivedKey = activeKeyProp ?? (sharedShell ? sharedShellActiveKey(navPath) : (
@@ -133,19 +118,19 @@ export default function MobileNav({
   return (
     <>
       {/* ── mobile top bar ── */}
-      {/* Beta adds ONLY the module .header hit-area styling; the default path is untouched. */}
-      <div className={`mobilebar${fromMacro ? " from-macro" : ""}${sharedShell ? ` ${styles.header}` : ""}`}>
+      <div className={`mobilebar${fromMacro ? " from-macro" : ""} ${styles.header}`}>
         {fromMacro
           ? <DashboardBackButton onClick={onBack} variant="mobile" returnHref={returnHref} />
           : (
             <button
+              type="button"
               className="m-ic"
               onClick={() => setDrawer(true)}
               ref={openerRef}
               aria-label={sharedShell ? t("shellMenu") : "Menu"}
-              aria-haspopup={sharedShell ? "dialog" : undefined}
-              aria-expanded={sharedShell ? drawer : undefined}
-              aria-controls={sharedShell ? dialogId : undefined}
+              aria-haspopup="dialog"
+              aria-expanded={drawer}
+              aria-controls={dialogId}
             >
               <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18" /></svg>
             </button>
@@ -154,13 +139,14 @@ export default function MobileNav({
         <div className="m-right">
           {fromMacro && (
             <button
+              type="button"
               className="m-ic"
               onClick={() => setDrawer(true)}
               ref={openerRef}
               aria-label={sharedShell ? t("shellMenu") : "Menu"}
-              aria-haspopup={sharedShell ? "dialog" : undefined}
-              aria-expanded={sharedShell ? drawer : undefined}
-              aria-controls={sharedShell ? dialogId : undefined}
+              aria-haspopup="dialog"
+              aria-expanded={drawer}
+              aria-controls={dialogId}
             >
               <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18" /></svg>
             </button>
@@ -179,13 +165,9 @@ export default function MobileNav({
               <path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z" />
             </svg>
           </button>
-          {/* SettingsButton stays the ONLY account/settings owner; the beta wrapper only
-              adds the module .account hit-area styling, never a second control. */}
-          {sharedShell ? (
-            <span className={styles.account}><SettingsButton email={email} /></span>
-          ) : (
-            <SettingsButton email={email} />
-          )}
+          {/* SettingsButton stays the only account/settings owner; this wrapper
+              provides its existing centered 44px hit area on both header paths. */}
+          <span className={styles.account}><SettingsButton email={email} /></span>
         </div>
       </div>
 
@@ -252,16 +234,14 @@ export default function MobileNav({
             <div className="m-drawer-ft"><SettingsButton email={email} /></div>
           </MobileNavModal>
         ) : null
-      ) : (
-        <>
-          {/* ── drawer scrim ── */}
-          <div
-            className={`m-drawer-scrim${drawer ? " open" : ""}`}
-            onClick={() => setDrawer(false)}
-          />
-
-          {/* ── slide-in drawer ── */}
-          <div className={`m-drawer${drawer ? " open" : ""}`}>
+      ) : drawer ? (
+          <MobileNavModal
+            id={dialogId}
+            label={t("layouts")}
+            closeLabel={t("sheetClose")}
+            openerRef={openerRef}
+            onClose={closeDrawer}
+          >
             <div className="m-drawer-h"><BrandLockup /></div>
             <nav className="m-nav">
               {TOP.map((it) => {
@@ -271,7 +251,8 @@ export default function MobileNav({
                     key={it.k}
                     href={navHref(it, activeSymbol, navPath)}
                     className={on ? "on" : ""}
-                    onClick={() => setDrawer(false)}
+                    aria-current={on ? "page" : undefined}
+                    onClick={closeDrawer}
                   >
                     <NavGlyph k={it.k} />
                     {t(it.k, it.label)}
@@ -286,9 +267,8 @@ export default function MobileNav({
               </button>
             </nav>
             <div className="m-drawer-ft"><SettingsButton email={email} /></div>
-          </div>
-        </>
-      )}
+          </MobileNavModal>
+      ) : null}
     </>
   );
 }
