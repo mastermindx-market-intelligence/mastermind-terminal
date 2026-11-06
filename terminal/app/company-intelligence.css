@@ -300,6 +300,16 @@
 @media (max-width:640px){
   /* One full-width tap target, ≥44px tall: on the phone this bar IS the symbol switcher. */
   .analysis-context-bar{min-height:52px;padding:7px 10px;gap:8px;flex-wrap:wrap}.analysis-context-freshness{display:none}
+  /* Analysis-only override of shared workspace chrome. Do not mutate global chrome
+     or invalidate unrelated chart-context visual-evidence source locks. */
+  .analysis-shell .analysis-context-bar.analysis-context-bar{
+    display:flex;flex-wrap:nowrap;position:relative;z-index:40;padding:6px 10px;gap:6px
+  }
+  .analysis-shell .analysis-context-bar>.analysis-context-back{flex:0 0 44px;width:44px}
+  .analysis-shell .analysis-context-bar>.sym-pick.sym-pick{flex:1 1 0;min-width:0;width:auto}
+  .analysis-shell .analysis-context-bar>.analysis-context-theses,
+  .analysis-shell .analysis-context-bar>.analysis-context-chart{display:none}
+  .analysis-shell .analysis-context-bar>.analysis-context-actions{display:block}
   .analysis-context-back{width:44px;min-width:44px;padding:0;justify-content:center;font-size:0}.analysis-context-back svg{width:15px;height:15px}
   .sym-pick{flex:1 1 150px;min-width:0;min-height:44px;border-color:var(--line-3);background:var(--panel-2)}
   .sym-pick-mark{width:34px;height:34px}
