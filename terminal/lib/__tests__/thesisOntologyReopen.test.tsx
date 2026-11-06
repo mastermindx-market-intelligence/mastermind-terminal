@@ -237,6 +237,45 @@ afterEach(() => {
 });
 
 describe("ThesisWorkspace reopen with MarketOntology context", () => {
+  it.each(["symbol", "thesis"] as const)(
+    "does not repeat mount context hydration when the initial %s prop changes",
+    async (changedProp) => {
+      const nvda = summary(NVDA_ID, listingSubject("NVDA"), "NVDA thesis");
+      let refreshing = false;
+      let settleRefresh!: (response: Response) => void;
+      const refresh = new Promise<Response>((resolve) => { settleRefresh = resolve; });
+      installFetch({
+        theses: [nvda],
+        detailFor: () => refreshing ? refresh : jsonResponse({ thesis: detailFor(nvda) }),
+      });
+      const el = await mountAt(`/analysis?view=theses&symbol=NVDA&thesis=${NVDA_ID}&${MO_QUERY}`, {
+        initialSymbol: "NVDA", initialThesisId: NVDA_ID,
+      });
+      expect(strip(el)).not.toBeNull();
+      const entry = structuredClone(window.history.state);
+      const url = window.location.href;
+      refreshing = true;
+      await act(async () => {
+        root!.render(<ThesisWorkspace
+          ownerKey={OWNER}
+          initialSymbol={changedProp === "symbol" ? "MSFT" : "NVDA"}
+          initialThesisId={changedProp === "thesis" ? MSFT_ID : NVDA_ID}
+        />);
+      });
+      await flush();
+      // The current URL still selects the canonically confirmed NVDA thesis.
+      // Prop synchronization may read it again, but mount initialization must not
+      // replace that validated context with the unvalidated deep-link state.
+      expect(strip(el)).not.toBeNull();
+      expect(window.history.state).toEqual(entry);
+      expect(window.location.href).toBe(url);
+      await act(async () => { settleRefresh(jsonResponse({ thesis: detailFor(nvda) })); });
+      await flush();
+      expect(strip(el)).not.toBeNull();
+      expect(el.textContent).toContain("NVDA thesis");
+    },
+  );
+
   it.each(["response", "decoded body", "401", "500", "network error", "owner A returns"] as const)(
     "ignores the previous owner's late list %s after the current owner's list answers",
     async (lateKind) => {
