@@ -518,6 +518,7 @@ def check_open_pr_state_for_present_files(
     doc: dict,
     strict_master: bool = False,
     pr_number: "int | None" = None,
+    verified_group_prs: "frozenset[int] | None" = None,
 ) -> list[Finding]:
     """Cross-check `pr_state` against what is actually on disk.
 
@@ -585,6 +586,20 @@ def check_open_pr_state_for_present_files(
                         "unmerged PR as merged to bypass this refusal",
                     )
                 )
+            elif verified_group_prs is not None:
+                # The parallel native group has a proof-bound set of source PRs.
+                # The ledger alone cannot add a new member or inherit a stale
+                # open migration from a PR absent from the exact queue chain.
+                if type(entry_pr) is not int or entry_pr not in verified_group_prs:
+                    findings.append(
+                        Finding(
+                            "OPEN_PR_STATE_STALE",
+                            prefix,
+                            f"prefix {prefix}'s present open migration names PR "
+                            f"{entry_pr!r}, which is not in the authenticated "
+                            "native merge-group owner set",
+                        )
+                    )
             elif pr_number is not None:
                 if not owned_by_this_pr:
                     findings.append(
@@ -843,6 +858,7 @@ def check_all(
     sibling_texts: "Mapping[str, str] | None" = None,
     strict_master: bool = False,
     pr_number: "int | None" = None,
+    verified_group_prs: "frozenset[int] | None" = None,
 ) -> list[Finding]:
     findings: list[Finding] = []
 
@@ -864,7 +880,8 @@ def check_all(
     findings.extend(check_files_are_reserved(filenames, doc))
     findings.extend(
         check_open_pr_state_for_present_files(
-            filenames, doc, strict_master=strict_master, pr_number=pr_number
+            filenames, doc, strict_master=strict_master, pr_number=pr_number,
+            verified_group_prs=verified_group_prs,
         )
     )
     findings.extend(check_applied_fields_for_present_files(filenames, doc))
@@ -1067,6 +1084,7 @@ def collect_for_event(
     env = os.environ if env is None else env
     strict, number, mode = resolve_run_mode(env, force_strict=force_strict)
     qualification_findings: list[Finding] = []
+    verified_group_prs: frozenset[int] | None = None
     if env.get("GITHUB_EVENT_NAME") == "merge_group" and not force_strict:
         if __package__:
             from .migration_merge_group import OwnershipUnqualified, qualify_owner
@@ -1079,12 +1097,25 @@ def collect_for_event(
                 if (doc.get("prefixes", {}).get(parse_prefix(p.name)) or {}).get("pr_state") == "open"
             }
             if open_files:
-                number = qualify_owner(REPO_ROOT, env, doc, open_files)
+                qualified = qualify_owner(REPO_ROOT, env, doc, open_files)
                 strict = False
-                mode = f"MERGE_GROUP_SINGLE_PR (#{number}; native candidate/tree/source bytes verified)"
+                if isinstance(qualified, frozenset) and qualified:
+                    verified_group_prs = qualified
+                    mode = (
+                        "MERGE_GROUP_PARALLEL (verified native predecessor chain, "
+                        f"owners={sorted(qualified)}; source ledger/file/base bytes verified)"
+                    )
+                elif type(qualified) is int and qualified > 0:
+                    number = qualified
+                    mode = f"MERGE_GROUP_SINGLE_PR (#{number}; native candidate/tree/source bytes verified)"
+                else:
+                    raise OwnershipUnqualified("qualified group owner set is invalid")
         except (OwnershipUnqualified, OSError, ValueError, TypeError, AttributeError) as exc:
             qualification_findings.append(Finding("MERGE_GROUP_OWNERSHIP_UNQUALIFIED", None, str(exc)))
-    findings, notes = collect(migrations_dir, reservations, strict_master=strict, pr_number=number)
+    findings, notes = collect(
+        migrations_dir, reservations, strict_master=strict, pr_number=number,
+        verified_group_prs=verified_group_prs,
+    )
     return qualification_findings + findings, notes, mode
 
 
