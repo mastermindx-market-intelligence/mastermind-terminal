@@ -18,7 +18,7 @@
 
 const { spawn, execFileSync } = require("node:child_process");
 const { createHash } = require("node:crypto");
-const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
+const { existsSync, mkdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
 const { chromium } = require("@playwright/test");
 
@@ -151,7 +151,7 @@ async function openAnalysis(page, lang, viewport) {
   // Keep the capture of the closed, single-row toolbar rather than opening an overlay.
   const entry = (page.viewportSize()?.width ?? 1440) <= 640
     ? page.locator(".analysis-context-actions > summary")
-    : page.getByLabel(lang === "zh" ? "你的研究论点：NVDA" : "Your theses on NVDA");
+    : page.locator(".analysis-context-bar > .analysis-context-theses[aria-label]");
   await entry.waitFor({ state: "visible", timeout: 45_000 });
   await stripDevOverlay(page);
 }
@@ -228,7 +228,17 @@ async function main() {
     "files:",
     ...SHOTS.map((s) => `  - ${s.file}`),
   ];
-  writeFileSync(join(OUT, "EVIDENCE.yml"), `${evidence.join("\n")}\n`);
+  // Subsequent accepted recaptures append provenance after the generated file list.
+  // A new capture must retain those historical receipts rather than erase them.
+  const evidencePath = join(OUT, "EVIDENCE.yml");
+  const previous = existsSync(evidencePath) ? readFileSync(evidencePath, "utf8") : "";
+  const appendixBoundary = `  - ${SHOTS[SHOTS.length - 1].file}\n`;
+  const appendixStart = previous.indexOf(appendixBoundary);
+  if (previous && appendixStart < 0) {
+    throw new Error("Existing evidence appendix boundary is missing; refusing to overwrite historical receipts");
+  }
+  const appendix = previous ? previous.slice(appendixStart + appendixBoundary.length) : "";
+  writeFileSync(evidencePath, `${evidence.join("\n")}\n${appendix}`);
   console.log(`wrote ${files.length} crops + EVIDENCE.yml at ${capturedAtHead}`);
 }
 
