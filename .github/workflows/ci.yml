@@ -37,6 +37,76 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Exact signed PR/base source from GitHub, evaluated with the protected
+  # PR-base copy of the selector. A missing first-install selector => FULL.
+  pr_scope:
+    name: Terminal PR risk scope
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      mode: ${{ steps.scope.outputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Qualify passive/visual diff from protected base
+        id: scope
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          trusted="$RUNNER_TEMP/terminal-ci-trusted"
+          mkdir -p "$trusted"
+          if git cat-file -e "$PR_BASE_SHA:scripts/ci_terminal_pr_scope.py" 2>/dev/null; then
+            git archive "$PR_BASE_SHA" scripts/ci_terminal_pr_scope.py | tar -x -C "$trusted"
+            python "$trusted/scripts/ci_terminal_pr_scope.py" \
+              --repo "$GITHUB_WORKSPACE" --event "$GITHUB_EVENT_PATH" \
+              --output "$GITHUB_OUTPUT"
+          else
+            printf 'mode=full\n' >> "$GITHUB_OUTPUT"
+            echo "Selector not in protected PR base: full E2E is mandatory"
+          fi
+
+  # A changed stylesheet still exercises the canonical shell at desktop,
+  # tablet and mobile. Pure passive PRs do not need any Playwright browser.
+  pr_visual_smoke:
+    name: Terminal visual responsive smoke
+    needs: [pr_scope]
+    if: ${{ github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'visual' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: terminal
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: terminal/package-lock.json
+      - run: npm ci
+      - run: npx next typegen
+      - run: npx playwright install --with-deps chromium
+        timeout-minutes: 8
+      - name: Require responsive shell across all supported widths
+        run: >-
+          npm run test:e2e:responsive -- e2e/responsive.spec.ts
+          --project=desktop --project=tablet --project=mobile
+          --grep="the canonical Terminal shell works at its supported responsive widths"
+          --workers=3 --retries=0
+      - name: Upload scoped visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: responsive-fast-${{ github.run_id }}
+          path: terminal/test-results
+          if-no-files-found: warn
+
   hub:
     name: Quote Hub tests
     runs-on: ubuntu-latest
@@ -64,6 +134,8 @@ jobs:
 
   terminal-unit:
     name: Terminal unit + typecheck (shard)
+    needs: [pr_scope]
+    if: ${{ always() && (github.event_name != 'pull_request' || needs.pr_scope.result == 'success') }}
     runs-on: ubuntu-latest
     # Existing stages had20min. Add bounded10min browser setup +55min captures
     # +5min retention margin. Original30-case M2 report took1,018,995ms (~17min)
@@ -103,9 +175,11 @@ jobs:
         timeout-minutes: 1
         run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs
       - name: Prepare Chromium for original mock captures
+        if: ${{ github.event_name != 'pull_request' || needs.pr_scope.outputs.mode == 'full' }}
         timeout-minutes: 10
         run: npx playwright install --with-deps chromium
       - name: Capture and validate evidence on this checkout
+        if: ${{ github.event_name != 'pull_request' || needs.pr_scope.outputs.mode == 'full' }}
         timeout-minutes: 55
         run: node e2e/tools/capture_ci_evidence.cjs
       - run: npm test
@@ -253,6 +327,8 @@ jobs:
 
   terminal-e2e:
     name: Terminal e2e ${{ matrix.shard }} (shard)
+    needs: [pr_scope]
+    if: ${{ always() && (github.event_name != 'pull_request' || (needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'full')) }}
     runs-on: ubuntu-latest
     # 6h default masked a 70-min job. Bound it. On 2026-10-04 the slowest shards measured
     # tablet ~35-36 min and each desktop half ~28-31 min (from the old whole-desktop runs).
@@ -409,49 +485,91 @@ jobs:
           if-no-files-found: ignore
 
   terminal:
-    # FROZEN NAME. master's branch protection keys on this exact string. Do not edit it,
-    # do not add a matrix to this job, do not let it become a `${{ }}` expression.
+    # FROZEN required branch-protection context. PASSIVE/visual exemptions
+    # require the exact trusted PR-base source qualifier; all other events
+    # and all unqualified paths require the complete E2E matrix.
     name: Terminal typecheck + tests
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [terminal-unit, terminal-e2e]
-    # `always()` so a failed/cancelled/skipped dependency still REPORTS this check as red
-    # rather than leaving it "expected — waiting" forever and wedging every armed PR.
+    needs: [pr_scope, pr_visual_smoke, terminal-unit, terminal-e2e]
     if: always()
     steps:
-      - name: Assert every terminal shard succeeded
+      - name: Bind required gate to full or trusted short-path proof
         env:
+          EVENT: ${{ github.event_name }}
+          SCOPE: ${{ needs.pr_scope.result }}
+          MODE: ${{ needs.pr_scope.outputs.mode }}
           UNIT: ${{ needs.terminal-unit.result }}
           E2E: ${{ needs.terminal-e2e.result }}
+          VISUAL: ${{ needs.pr_visual_smoke.result }}
         run: |
-          echo "terminal-unit=$UNIT terminal-e2e=$E2E"
-          fail=0
-          for pair in "terminal-unit:$UNIT" "terminal-e2e:$E2E"; do
-            job=${pair%%:*}; res=${pair#*:}
-            if [ "$res" != "success" ]; then
-              echo "::error title=terminal-ci::$job concluded '$res' (expected 'success')"
-              fail=1
+          set -euo pipefail
+          if [ "$EVENT" = "pull_request" ]; then
+            if [ "$SCOPE" != success ]; then
+              echo "Untrusted PR source scope"; exit 1
             fi
-          done
-          [ "$fail" -eq 0 ] || exit 1
-          echo "All terminal shards green."
+            case "$MODE" in
+              passive)
+                if [ "$UNIT" != success ] || [ "$E2E" != skipped ] || [ "$VISUAL" != skipped ]; then
+                  echo "Passive PR must prove unit success and no browser jobs"; exit 1
+                fi
+                ;;
+              visual)
+                if [ "$UNIT" != success ] || [ "$E2E" != skipped ] || [ "$VISUAL" != success ]; then
+                  echo "Visual PR needs real three-viewport responsive smoke"; exit 1
+                fi
+                ;;
+              full)
+                if [ "$UNIT" != success ] || [ "$E2E" != success ] || [ "$VISUAL" != skipped ]; then
+                  echo "Behavioral/unknown PR needs all original E2E shards"; exit 1
+                fi
+                ;;
+              *)
+                echo "Unknown or missing PR mode"; exit 1
+                ;;
+            esac
+          else
+            if [ "$SCOPE" != skipped ] || [ "$VISUAL" != skipped ] || [ "$UNIT" != success ] || [ "$E2E" != success ]; then
+              echo "Merge-group or dispatch needs complete original E2E coverage"; exit 1
+            fi
+          fi
+          echo "Required Terminal CI gate passed with proven scope"
 
   python:
     name: Ingest + signal-layer tests
+    needs: [pr_scope]
+    if: ${{ always() && (github.event_name != 'pull_request' || needs.pr_scope.result == 'success') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Verify scoped PR has no ingest/contract changes
+        if: ${{ github.event_name == 'pull_request' && needs.pr_scope.outputs.mode != 'full' }}
+        env:
+          PR_SCOPE_MODE: ${{ needs.pr_scope.outputs.mode }}
+        run: |
+          case "$PR_SCOPE_MODE" in
+            passive|visual)
+              echo "Risk-scoped PR changes no executable ingest or backend logic"
+              ;;
+            *)
+              echo "Invalid source scope for abbreviated ingest qualification"
+              exit 1
+              ;;
+          esac
       # The Scenario PostgreSQL qualification drives the actual TypeScript HTTP
       # consumer in this same job. Python and PostgreSQL alone cannot run it.
       - uses: actions/setup-node@v4
+        if: ${{ github.event_name != 'pull_request' || needs.pr_scope.outputs.mode == 'full' }}
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: terminal/package-lock.json
       - name: Install Terminal consumer test dependencies
+        if: ${{ github.event_name != 'pull_request' || needs.pr_scope.outputs.mode == 'full' }}
         run: npm ci
         working-directory: terminal
       - uses: actions/setup-python@v5
+        if: ${{ github.event_name != 'pull_request' || needs.pr_scope.outputs.mode == 'full' }}
         with:
           python-version: "3.12"
           cache: pip
@@ -469,11 +587,14 @@ jobs:
       # requirements.txt additionally carries fastapi/uvicorn, which nothing under tests/
       # imports — installing them would only slow the job down.
       - run: pip install numpy pandas pyarrow jsonschema pyyaml requests yfinance==1.4.1 pytest
+        if: ${{ github.event_name != 'pull_request' || needs.pr_scope.outputs.mode == 'full' }}
       # Keep the broad ingest suite fail-closed when PostgreSQL binaries are missing.
       # The dedicated upstream Investigation job remains an additional gate.
       - name: Put PostgreSQL binaries on PATH
+        if: ${{ github.event_name != 'pull_request' || needs.pr_scope.outputs.mode == 'full' }}
         run: echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
       - name: Require PostgreSQL rather than silently skip
+        if: ${{ github.event_name != 'pull_request' || needs.pr_scope.outputs.mode == 'full' }}
         run: |
           command -v initdb
           command -v pg_ctl
@@ -494,6 +615,7 @@ jobs:
       # on that trigger github.event.pull_request.number is empty, and that
       # dispatched run is then the only CI run for the sha that merges.
       - run: python -m pytest tests/ -q
+        if: ${{ github.event_name != 'pull_request' || needs.pr_scope.outputs.mode == 'full' }}
         env:
           PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
           # Read-only native membership qualification for present open migrations
@@ -502,6 +624,8 @@ jobs:
 
   investigation-postgres:
     name: Investigation PostgreSQL invariants
+    needs: [pr_scope]
+    if: ${{ always() && (github.event_name != 'pull_request' || (needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'full')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
