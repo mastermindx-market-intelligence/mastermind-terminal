@@ -987,6 +987,7 @@ def collect(
     reservations: Path = RESERVATIONS_PATH,
     strict_master: bool = False,
     pr_number: "int | None" = None,
+    verified_group_prs: "frozenset[int] | None" = None,
 ) -> "tuple[list[Finding], list[Disclosure]]":
     try:
         doc = load_reservations(reservations)
@@ -1011,7 +1012,9 @@ def collect(
                 sibling_texts[path.name] = ""
 
     findings = check_all(
-        sql_files, texts, doc, sibling_texts, strict_master=strict_master, pr_number=pr_number
+        sql_files, texts, doc, sibling_texts,
+        strict_master=strict_master, pr_number=pr_number,
+        verified_group_prs=verified_group_prs,
     )
     notes = disclosures(sql_files, doc)
     return findings, notes
