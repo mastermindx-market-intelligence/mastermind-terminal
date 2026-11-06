@@ -1934,3 +1934,122 @@ def test_systemd_environment_file_supported_single_line_declaration(verifier, tm
     app.mkdir()
     host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_beta_unit(str(env_file)))
     assert _decide(verifier, host, app=app, profile="beta", unit_name="terminal-beta", env_dir=str(tmp_path)) == 0
+
+# Prospective production safety-hook contract. All host readers are fake;
+# these tests neither retry original44380 nor execute a hook or installer.
+SAFETY_GUARD = '''#!/bin/bash
+set -euo pipefail
+if [[ "${1:-}" != --service && -e /etc/terminal-storage-maintenance ]]; then exit 75; fi
+check_mount() {
+ local rec uuid kind root extra
+ rec=$(findmnt -rn --mountpoint "$1" -o UUID,FSTYPE,FSROOT) || return 1
+ [[ -n "$rec" && "$rec" != *$'\\n'* ]] || return 1
+ read -r uuid kind root extra <<< "$rec"
+ [[ "$uuid" == 71dc6155-3f93-4370-a971-b89a6d87a203 && "$kind" == ext4 && "$root" == "$2" && -z "$extra" ]]
+}
+check_mount /mnt/terminal_storage /
+check_mount /opt/terminal /live-terminal
+[[ "$(stat -Lc '%d' /opt/terminal)" == "$(stat -Lc '%d' /mnt/terminal_storage)" ]]
+'''
+
+
+def safety_host(verifier, *, extra_props=None):
+    script = verifier["BUILD_ID_SAFETY_SCRIPT"]
+    guard = verifier["VOLUME_SAFETY_PATH"]
+    pre = ("{ path=/bin/sh ; argv[]=/bin/sh -c " + script
+           + " ; ignore_errors=no ; } "
+           + "{ path=" + guard + " ; argv[]=" + guard
+           + " --service ; ignore_errors=no ; }")
+    props = closed_prod_unit(ExecStartPre=pre, ExecSearchPath="",
+        FragmentPath="/etc/systemd/system/terminal.service",
+        DropInPaths=" ".join(p for p, _ in verifier["SAFETY_HOOK_ASSIGNMENTS"]))
+    props.update(extra_props or {})
+    host = FakeGitHost(tree_listing=primitive_entry(), unit=props).install(verifier)
+    files = {props["FragmentPath"]: "[Service]\nExecStart=/usr/bin/npm run start\n",
+             guard: SAFETY_GUARD}
+    files.update({p: "[Service]\n" + assignment + "\n"
+                  for p, assignment in verifier["SAFETY_HOOK_ASSIGNMENTS"]})
+    reads = []
+    def read(path, limit):
+        reads.append(path)
+        if path not in files:
+            raise verifier["Refused"]("safety-hook-unreadable")
+        return files[path]
+    verifier["trusted_safety_file"] = read
+    return host, files, reads
+
+
+def test_two_exact_production_safety_predicates_are_source_qualified(verifier):
+    host, files, reads = safety_host(verifier)
+    assert len(SAFETY_GUARD.encode()) == 600
+    assert hashlib.sha256(SAFETY_GUARD.encode()).hexdigest() == verifier["VOLUME_SAFETY_SHA256"]
+    verifier["main"](["/app", NEW_SHA, "prestart", "/app", "terminal", "/app", "production"])
+    assert reads.count(verifier["VOLUME_SAFETY_PATH"]) == 2
+    assert host.unit_calls.count("ExecStartPre") == 2
+
+
+@pytest.mark.parametrize("change", [
+    lambda s: s.replace("--service", "--service --bypass"),
+    lambda s: s.replace("ignore_errors=no", "ignore_errors=yes"),
+    lambda s: s.replace("exit 1;", "exit 0;"),
+    lambda s: s.replace("test -f", "touch"),
+    lambda s: s.replace("/bin/sh", "/tmp/sh"),
+    lambda s: s + " { path=/bin/evil ; argv[]=/bin/evil ; ignore_errors=no ; }",
+    lambda s: s.replace(" --service", ""),
+    lambda s: s.replace("BUILD_ID ||", "BUILD_ID; env > /tmp/leak ||"),
+])
+def test_safety_hook_projection_does_not_allow_changed_or_additional_command(verifier, change):
+    host, _, _ = safety_host(verifier)
+    host.unit["ExecStartPre"] = change(host.unit["ExecStartPre"])
+    with pytest.raises(verifier["Refused"], match="unsupported-service-launch-hook"):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+
+
+@pytest.mark.parametrize("profile,unit", [("beta", "terminal-beta"), ("production", "other")])
+def test_production_safety_contract_cannot_be_transferred(verifier, profile, unit):
+    safety_host(verifier)
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_production_safety_hooks"](profile, unit)
+
+
+@pytest.mark.parametrize("mutation", ["reset", "duplicate", "outside_service", "continuation", "guard_bytes", "missing"])
+def test_loaded_safety_source_must_match_projection(verifier, mutation):
+    _, files, _ = safety_host(verifier)
+    path = verifier["SAFETY_HOOK_ASSIGNMENTS"][0][0]
+    if mutation == "reset": files[path] += "ExecStartPre=\n"
+    elif mutation == "duplicate": files[path] += verifier["SAFETY_HOOK_ASSIGNMENTS"][0][1] + "\n"
+    elif mutation == "outside_service": files[path] = files[path].replace("[Service]", "[Unit]")
+    elif mutation == "continuation": files[path] += "Environment=SAFE=1\\\n"
+    elif mutation == "guard_bytes": files[verifier["VOLUME_SAFETY_PATH"]] += "exit 0\n"
+    else: del files[path]
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+
+
+@pytest.mark.parametrize("env", ["BASH_ENV=/tmp/load", "ENV=/tmp/load", "PATH=/tmp", "IFS=x", "SHELLOPTS=x", "BASHOPTS=x", "BASH_FUNC_test%%=evil"])
+def test_safety_shell_environment_cannot_inject_effects(verifier, env):
+    host, _, _ = safety_host(verifier)
+    host.manager = env
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+
+
+def test_loaded_safety_sources_changing_during_admission_refuse(verifier):
+    _, files, reads = safety_host(verifier)
+    original = verifier["trusted_safety_file"]
+    guard = verifier["VOLUME_SAFETY_PATH"]
+    def moving(path, limit):
+        value = original(path, limit)
+        if path == guard: files[guard] += "# changed\n"
+        return value
+    verifier["trusted_safety_file"] = moving
+    with pytest.raises(verifier["Refused"], match="safety-hook-changed-during-verification"):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+
+
+def test_safety_parent_symlink_or_writable_directory_refuses(verifier, monkeypatch):
+    # Exercise the real provenance collector rather than the fake reader above.
+    for mode in (0o120777, 0o040777):
+        monkeypatch.setattr(os, "lstat", lambda path, mode=mode: SimpleNamespace(st_mode=mode, st_uid=0))
+        with pytest.raises(verifier["Refused"], match="safety-hook-parent-untrusted"):
+            verifier["trusted_safety_file"]("/etc/systemd/system/x.conf", 1024)
