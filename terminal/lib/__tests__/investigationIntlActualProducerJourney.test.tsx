@@ -1,7 +1,18 @@
 // @vitest-environment jsdom
 import React,{act} from "react";
 import {createRoot} from "react-dom/client";
-import {expect,it,vi} from "vitest";
+import {afterEach,beforeEach,expect,it,vi} from "vitest";
+// Explicit synthetic process/realm for these real BFF tests. The production
+// Linux boot reader and irreversible realm latch remain unchanged. A fresh
+// fixture realm per case is not a product latch-reset or OPEN mechanism.
+const bootFixture=vi.hoisted(()=>({bornOpen:true,closed:false}));
+vi.mock("@/lib/investigationBootAdmission",()=>({
+ readInvestigationBootAdmission:()=>bootFixture.bornOpen,
+ hasObservedInvestigationClosure:()=>bootFixture.closed,
+ observeInvestigationClosure:()=>{bootFixture.closed=true;}
+}));
+beforeEach(()=>{bootFixture.bornOpen=true;bootFixture.closed=false;vi.stubEnv("INVESTIGATION_API_ADMISSION","open");});
+afterEach(()=>{vi.unstubAllEnvs();vi.unstubAllGlobals();});
 import {readFileSync,readdirSync} from "node:fs";
 import {join} from "node:path";
 import InvestigationWorkspace from "@/components/workspaces/InvestigationWorkspace";
@@ -71,3 +82,15 @@ it.each(["jp_focus","no_focus"])("actual producer GB href %s joins native blank 
 });
 function documentGlobal(){const host=globalThis.document.createElement("div");globalThis.document.body.append(host);return host;}
 function json(value:unknown){return new Response(JSON.stringify(value),{headers:{"content-type":"application/json"}});}
+
+it.each(["born-closed","observed-closed"])("synthetic %s runtime cannot reopen before auth/body/RPC/source",async mode=>{
+ getUser.mockClear();rpc.mockClear();const source=vi.fn();vi.stubGlobal("fetch",source);
+ bootFixture.bornOpen=mode!=="born-closed";vi.resetModules();
+ const {POST:guardedPOST}=await import("@/app/api/investigations/route");
+ if(mode==="observed-closed"){
+  vi.stubEnv("INVESTIGATION_API_ADMISSION","closed");expect((await guardedPOST(new Request("https://terminal.test/api/investigations",{method:"POST",body:"{}"}))).status).toBe(503);
+  vi.stubEnv("INVESTIGATION_API_ADMISSION","open");
+ }
+ const r=new Request("https://terminal.test/api/investigations",{method:"POST",body:"{}"}),read=vi.spyOn(r.body!,"getReader");
+ expect((await guardedPOST(r)).status).toBe(503);expect(getUser).not.toHaveBeenCalled();expect(read).not.toHaveBeenCalled();expect(rpc).not.toHaveBeenCalled();expect(source).not.toHaveBeenCalled();
+});

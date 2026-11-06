@@ -1,4 +1,15 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+// Explicit synthetic process/realm for these real BFF tests. The production
+// Linux boot reader and irreversible realm latch remain unchanged. A fresh
+// fixture realm per case is not a product latch-reset or OPEN mechanism.
+const bootFixture=vi.hoisted(()=>({bornOpen:true,closed:false}));
+vi.mock("@/lib/investigationBootAdmission",()=>({
+ readInvestigationBootAdmission:()=>bootFixture.bornOpen,
+ hasObservedInvestigationClosure:()=>bootFixture.closed,
+ observeInvestigationClosure:()=>{bootFixture.closed=true;}
+}));
+beforeEach(()=>{bootFixture.bornOpen=true;bootFixture.closed=false;vi.stubEnv("INVESTIGATION_API_ADMISSION","open");});
+afterEach(()=>{vi.unstubAllEnvs();vi.unstubAllGlobals();});
 import type { InvestigationCommand } from "../investigations";
 import { beginInvestigationSave, investigationCommandToReconcile, retryInvestigationSave, settleInvestigationSave } from "../investigationSave";
 
@@ -182,7 +193,10 @@ describe("Investigation API operation recovery", () => {
     const legacy = { status: "committed", id, revision: 1, lifecycle: "active", manifest, committed_at: stamp };
     rpc.mockResolvedValue({ data: legacy, error: null });
     const read = await GET(new Request(`${url}?operation_id=${operation}`));
-    expect(read.status).toBe(200); expect(await read.json()).toEqual(legacy);
+    expect(read.status).toBe(200);
+    // Factual owner/key binding authenticates this read, without fabricating
+    // kernel revision/author/epoch lineage on the pre-kernel stored receipt.
+    expect(await read.json()).toEqual({...legacy,read_binding:"legacy_recorded_completion",read_principal:principal,read_operation_id:operation});
     const recovered = await PUT(request("PUT", input));
     expect(recovered.status).toBe(200); expect(await recovered.json()).toEqual(legacy);
     rpc.mockResolvedValue({ data: { ...legacy, operation_id: otherOperation }, error: null });
@@ -216,4 +230,16 @@ describe("Investigation API operation recovery", () => {
     expect(rpc).toHaveBeenCalledTimes(1);
     expect(rpc.mock.calls[0][0]).toBe("reconcile_investigation_operation_v2");
   });
+});
+
+it.each(["born-closed","observed-closed"])("synthetic %s runtime cannot reopen before auth/body/RPC/source",async mode=>{
+ const source=vi.fn();vi.stubGlobal("fetch",source);
+ bootFixture.bornOpen=mode!=="born-closed";vi.resetModules();
+ const {POST:guardedPOST}=await import("@/app/api/investigations/route");
+ if(mode==="observed-closed"){
+  vi.stubEnv("INVESTIGATION_API_ADMISSION","closed");expect((await guardedPOST(request("POST",command()))).status).toBe(503);
+  vi.stubEnv("INVESTIGATION_API_ADMISSION","open");
+ }
+ const r=request("POST",command()),read=vi.spyOn(r.body!,"getReader");
+ expect((await guardedPOST(r)).status).toBe(503);expect(getUser).not.toHaveBeenCalled();expect(read).not.toHaveBeenCalled();expect(rpc).not.toHaveBeenCalled();expect(source).not.toHaveBeenCalled();
 });

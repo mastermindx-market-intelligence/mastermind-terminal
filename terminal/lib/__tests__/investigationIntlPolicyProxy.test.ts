@@ -1,4 +1,14 @@
 import {afterEach,beforeEach,describe,expect,it,vi} from "vitest";
+// Explicit synthetic process/realm for these real BFF tests. The production
+// Linux boot reader and irreversible realm latch remain unchanged. A fresh
+// fixture realm per case is not a product latch-reset or OPEN mechanism.
+const bootFixture=vi.hoisted(()=>({bornOpen:true,closed:false}));
+vi.mock("@/lib/investigationBootAdmission",()=>({
+ readInvestigationBootAdmission:()=>bootFixture.bornOpen,
+ hasObservedInvestigationClosure:()=>bootFixture.closed,
+ observeInvestigationClosure:()=>{bootFixture.closed=true;}
+}));
+beforeEach(()=>{bootFixture.bornOpen=true;bootFixture.closed=false;vi.stubEnv("INVESTIGATION_API_ADMISSION","open");});
 const {auth,config}=vi.hoisted(()=>({auth:vi.fn(),config:{base:"https://www.mastermind-x.com"}}));
 vi.mock("@/app/api/billing/gateway",()=>({billingAuthResult:auth}));
 vi.mock("@/lib/upstreams",()=>({get ISSUE_DESK_API_BASE(){return config.base;}}));
@@ -14,7 +24,7 @@ beforeEach(()=>{vi.stubEnv("INVESTIGATION_API_ADMISSION","open");auth.mockReset(
 afterEach(()=>{vi.unstubAllGlobals();vi.unstubAllEnvs();});
 describe("native read-only Intl policy proxy",()=>{
  it("closes before auth, body or network",async()=>{vi.stubEnv("INVESTIGATION_API_ADMISSION","");const r=request();const read=vi.spyOn(r.body!,"getReader");expect((await POST(r)).status).toBe(503);expect(auth).not.toHaveBeenCalled();expect(read).not.toHaveBeenCalled();expect(fetcher).not.toHaveBeenCalled();});
- it.each([["denied",401],["unavailable",503]])("preserves verifier %s before body/network",async(status,code)=>{auth.mockResolvedValue({status});const r=request();const read=vi.spyOn(r.body!,"getReader");expect((await POST(r)).status).toBe(code);expect(read).not.toHaveBeenCalled();expect(fetcher).not.toHaveBeenCalled();});
+ it.each([["denied",401],["unavailable",503]])("preserves verifier %s before body/network",async(status,code)=>{auth.mockResolvedValue({status});const r=request();const read=vi.spyOn(r.body!,"getReader");expect((await POST(r)).status).toBe(code);expect(auth).toHaveBeenCalledTimes(1);expect(read).not.toHaveBeenCalled();expect(fetcher).not.toHaveBeenCalled();});
  it("forwards only verified bearer to fixed owner and returns unchanged actual helper data",async()=>{const r=request(),response=await POST(r);expect(response.status).toBe(200);expect(await response.json()).toEqual(preview);expect(fetcher).toHaveBeenCalledTimes(1);const [url,init]=fetcher.mock.calls[0];expect(String(url)).toBe("https://www.mastermind-x.com/api/macro/policy-preview");expect(init).toMatchObject({method:"POST",cache:"no-store",credentials:"omit",redirect:"error",signal:r.signal});expect(init?.headers).toEqual({Authorization:"Bearer synthetic-verified-session","Content-Type":"application/json",Accept:"application/json"});expect(JSON.parse(String(init?.body))).toEqual(payload());expect(response.headers.get("cache-control")).toBe("private, no-store");expect(response.headers.get("vary")).toBe("Cookie, Authorization");expect(response.headers.get("x-content-type-options")).toBe("nosniff");expect(response.headers.get("x-robots-tag")).toBe("noindex, noarchive");});
  it.each(["http://www.mastermind-x.com","https://evil.test","https://www.mastermind-x.com@evil.test","https://u:p@www.mastermind-x.com","https://www.mastermind-x.com/path","https://www.mastermind-x.com?x=1","https://www.mastermind-x.com/#x"])("never sends the token to misconfigured base %s",async(base)=>{config.base=base;expect((await POST(request())).status).toBe(503);expect(fetcher).not.toHaveBeenCalled();});
  it.each(["?id=private","?generation=override","#fragment"])("rejects extra request selector %s",async(q)=>{expect((await POST(request(payload(),"https://terminal.test/api/investigations/policy-preview"+q))).status).toBe(400);expect(fetcher).not.toHaveBeenCalled();});
@@ -28,4 +38,11 @@ describe("native read-only Intl policy proxy",()=>{
  it("bounds streamed response and refuses HTML/redirected data",async()=>{for(const r of [new Response("x".repeat(256*1024+1),{headers:{"content-type":"application/json"}}),new Response("<h1>oops</h1>",{headers:{"content-type":"text/html"}}),json({bad:"invalidJSON"},200,{"content-length":"9999999"})]){fetcher.mockResolvedValue(r);expect((await POST(request())).status).toBe(502);}const redirected=json();Object.defineProperty(redirected,"redirected",{value:true});fetcher.mockResolvedValue(redirected);expect((await POST(request())).status).toBe(502);});
  it.each([400,401,403,413,422,429,502,503])("preserves status %i without provider/private details or cookies",async code=>{fetcher.mockResolvedValue(json({detail:"private provider text"},code,{"Set-Cookie":"forbidden","WWW-Authenticate":"Bearer realm=macro"}));const r=await POST(request());expect(r.status).toBe(code);expect(await r.json()).toEqual({status:code===401?"unauthenticated":"unavailable"});expect(r.headers.get("set-cookie")).toBeNull();expect(r.headers.get("www-authenticate")).toBe(code===401?"Bearer realm=macro":null);});
  it("does not retry failed, aborted or unexpected upstream responses",async()=>{fetcher.mockRejectedValueOnce(Error("offline"));expect((await POST(request())).status).toBe(503);expect(fetcher).toHaveBeenCalledTimes(1);fetcher.mockClear();const controller=new AbortController();controller.abort();const r=new Request("https://terminal.test/api/investigations/policy-preview",{method:"POST",body:JSON.stringify(payload()),signal:controller.signal});expect((await POST(r)).status).toBe(503);expect(fetcher).not.toHaveBeenCalled();fetcher.mockResolvedValue(json({},201));expect((await POST(request())).status).toBe(502);});
+});
+
+it("synthetic born-CLOSED ceiling blocks current OPEN before auth/body/network",async()=>{
+ bootFixture.bornOpen=false;vi.resetModules();
+ const {POST:closedPOST}=await import("@/app/api/investigations/policy-preview/route");
+ const r=request(),read=vi.spyOn(r.body!,"getReader");
+ expect((await closedPOST(r)).status).toBe(503);expect(auth).not.toHaveBeenCalled();expect(read).not.toHaveBeenCalled();expect(fetcher).not.toHaveBeenCalled();
 });
