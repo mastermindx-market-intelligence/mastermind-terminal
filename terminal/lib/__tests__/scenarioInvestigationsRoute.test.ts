@@ -1,3 +1,9 @@
+// Fixture process born OPEN; kernel-reader behavior is tested separately with mocked IO.
+const bootFixture=vi.hoisted(()=>({closed:false}));
+vi.mock("@/lib/investigationBootAdmission",()=>({readInvestigationBootAdmission:()=>true,
+ hasObservedInvestigationClosure:()=>bootFixture.closed,observeInvestigationClosure:()=>{bootFixture.closed=true}}));
+// Fresh controlled request realm per case, never a production latch reset.
+beforeEach(()=>{bootFixture.closed=false});
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // Focused route tests for the scenario owner binding AND the real source-preflight boundary:
 // the actual exported Investigation route over controlled db/auth/source doubles, with the REAL

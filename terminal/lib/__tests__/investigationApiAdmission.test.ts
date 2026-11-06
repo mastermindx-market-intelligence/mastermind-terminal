@@ -1,3 +1,9 @@
+// Fixture process born OPEN; kernel-reader behavior is tested separately with mocked IO.
+const bootFixture=vi.hoisted(()=>({closed:false}));
+vi.mock("@/lib/investigationBootAdmission",()=>({readInvestigationBootAdmission:()=>true,
+ hasObservedInvestigationClosure:()=>bootFixture.closed,observeInvestigationClosure:()=>{bootFixture.closed=true}}));
+// Fresh controlled request realm per case, never a production latch reset.
+beforeEach(()=>{bootFixture.closed=false});
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { rpc, getUser, createClient, rateLimit, fetchMock } = vi.hoisted(() => ({
@@ -25,6 +31,7 @@ vi.mock("@/lib/investigations", () => ({
   readInvestigation: vi.fn(),
   readInvestigationOperation: vi.fn(),
   reconcileInvestigationOperation: vi.fn(),
+  readInvestigationNativeOperation: vi.fn(),
   applyInvestigationRevision: vi.fn(),
 }));
 vi.mock("@/lib/eventWorkspace", () => ({
@@ -45,28 +52,44 @@ vi.mock("@/lib/investigationEarningsReview", () => ({
 }));
 vi.mock("@/lib/theses", () => ({ readThesisVersion: vi.fn() }));
 
-import { GET as mainGET, POST as mainPOST, PUT as mainPUT } from "@/app/api/investigations/route";
-import { GET as baselineGET } from "@/app/api/investigations/baseline/route";
-import { GET as reviewGET } from "@/app/api/investigations/review/route";
-import { POST as policyPreviewPOST } from "@/app/api/investigations/policy-preview/route";
-import { GET as replayGET } from "@/app/api/investigations/replay/route";
-import { GET as thesesGET } from "@/app/api/investigations/theses/route";
-import { investigationApiAdmission, investigationApiUnavailable } from "@/lib/investigationApiAdmission";
+let mainGET:typeof import("@/app/api/investigations/route").GET;
+let mainPOST:typeof import("@/app/api/investigations/route").POST;
+let mainPUT:typeof import("@/app/api/investigations/route").PUT;
+let nativePOST:typeof import("@/app/api/investigations/operation-read/route").POST;
+let baselineGET:typeof import("@/app/api/investigations/baseline/route").GET;
+let reviewGET:typeof import("@/app/api/investigations/review/route").GET;
+let policyPreviewPOST:typeof import("@/app/api/investigations/policy-preview/route").POST;
+let replayGET:typeof import("@/app/api/investigations/replay/route").GET;
+let thesesGET:typeof import("@/app/api/investigations/theses/route").GET;
+let investigationApiAdmission:typeof import("@/lib/investigationApiAdmission").investigationApiAdmission;
+let investigationApiUnavailable:typeof import("@/lib/investigationApiAdmission").investigationApiUnavailable;
+beforeEach(async()=>{
+ vi.resetModules();
+ ({GET:mainGET,POST:mainPOST,PUT:mainPUT}=await import("@/app/api/investigations/route"));
+ ({POST:nativePOST}=await import("@/app/api/investigations/operation-read/route"));
+ ({GET:baselineGET}=await import("@/app/api/investigations/baseline/route"));
+ ({GET:reviewGET}=await import("@/app/api/investigations/review/route"));
+ ({POST:policyPreviewPOST}=await import("@/app/api/investigations/policy-preview/route"));
+ ({GET:replayGET}=await import("@/app/api/investigations/replay/route"));
+ ({GET:thesesGET}=await import("@/app/api/investigations/theses/route"));
+ ({investigationApiAdmission,investigationApiUnavailable}=await import("@/lib/investigationApiAdmission"));
+});
 import { readInvestigation } from "@/lib/investigations";
 
 const id = "10000000-0000-4000-8000-000000000001";
 const url = (path: string) => `https://terminal.test/api/investigations${path}`;
 
 const handlerTable = [
-  { name: "main GET", run: mainGET, request: () => new Request(url("")) },
-  { name: "main POST", run: mainPOST, request: () => new Request(url(""), { method: "POST", body: "{}" }) },
-  { name: "main PUT", run: mainPUT, request: () => new Request(url(""), { method: "PUT", body: "{}" }) },
-  { name: "baseline GET", run: baselineGET, request: () => new Request(url("/baseline?event_id=e&generation_id=g&company_id=c&fingerprint=f")) },
-  { name: "Company baseline GET", run: baselineGET, request: () => new Request(url("/baseline?scope=company_context&event_id=e&generation_id=g&company_id=c&fingerprint=f")) },
-  { name: "policy preview POST", run: policyPreviewPOST, request: () => new Request(url("/policy-preview"), { method: "POST", body: "{}" }) },
-  { name: "review GET", run: reviewGET, request: () => new Request(url(`/review?id=${id}&revision=1`)) },
-  { name: "replay GET", run: replayGET, request: () => new Request(url(`/replay?id=${id}&revision=1&policy=public_known&cutoff=2026-01-01T00:00:00Z`)) },
-  { name: "theses GET", run: thesesGET, request: () => new Request(url(`/theses?id=${id}&revision=1`)) },
+  { name: "main GET", run: (r:Request)=>mainGET(r), request: () => new Request(url("")) },
+  { name: "main POST", run: (r:Request)=>mainPOST(r), request: () => new Request(url(""), { method: "POST", body: "{}" }) },
+  { name: "main PUT", run: (r:Request)=>mainPUT(r), request: () => new Request(url(""), { method: "PUT", body: "{}" }) },
+  { name: "baseline GET", run: (r:Request)=>baselineGET(r), request: () => new Request(url("/baseline?event_id=e&generation_id=g&company_id=c&fingerprint=f")) },
+  { name: "Company baseline GET", run: (r:Request)=>baselineGET(r), request: () => new Request(url("/baseline?scope=company_context&event_id=e&generation_id=g&company_id=c&fingerprint=f")) },
+  { name: "policy preview POST", run: (r:Request)=>policyPreviewPOST(r), request: () => new Request(url("/policy-preview"), { method: "POST", body: "{}" }) },
+  { name: "review GET", run: (r:Request)=>reviewGET(r), request: () => new Request(url(`/review?id=${id}&revision=1`)) },
+  { name: "replay GET", run: (r:Request)=>replayGET(r), request: () => new Request(url(`/replay?id=${id}&revision=1&policy=public_known&cutoff=2026-01-01T00:00:00Z`)) },
+  { name: "theses GET", run: (r:Request)=>thesesGET(r), request: () => new Request(url(`/theses?id=${id}&revision=1`)) },
+  { name: "native body READ", run:(r:Request)=>nativePOST(r), request:()=>new Request(url("/operation-read"),{method:"POST",body:"{}"}) },
 ];
 
 // The vitest config opts the whole fixture runtime into "open"; every closed
@@ -178,7 +201,7 @@ describe("admission is observed per request", () => {
     expect(readInvestigation).toHaveBeenCalledOnce();
   });
 
-  it("flips open -> closed -> open without reimport or restore", async () => {
+  it("refuses dynamic reopen after an observed closed request", async () => {
     vi.stubEnv("INVESTIGATION_API_ADMISSION", "open");
     getUser.mockResolvedValue({ data: { user: { id } }, error: null });
     vi.mocked(readInvestigation).mockResolvedValue({ status: "found" } as never);
@@ -191,7 +214,7 @@ describe("admission is observed per request", () => {
     expect(post.bodyUsed).toBe(false);
 
     vi.stubEnv("INVESTIGATION_API_ADMISSION", "open");
-    expect((await mainGET(new Request(url(`?id=${id}&revision=1`)))).status).toBe(200);
+    expect((await mainGET(new Request(url(`?id=${id}&revision=1`)))).status).toBe(503);
   });
 });
 

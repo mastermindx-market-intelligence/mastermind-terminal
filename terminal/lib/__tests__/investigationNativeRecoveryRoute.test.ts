@@ -1,8 +1,15 @@
+// Fixture process born OPEN; kernel-reader behavior is tested separately with mocked IO.
+const bootFixture=vi.hoisted(()=>({closed:false}));
+vi.mock("@/lib/investigationBootAdmission",()=>({readInvestigationBootAdmission:()=>true,
+ hasObservedInvestigationClosure:()=>bootFixture.closed,observeInvestigationClosure:()=>{bootFixture.closed=true}}));
+// Fresh controlled process per case, never a production latch reset.
+beforeEach(()=>{bootFixture.closed=false});
 import { beforeEach,expect,it,vi } from "vitest";
 const {rpc,getUser,rateLimit,tooMany}=vi.hoisted(()=>({rpc:vi.fn(),getUser:vi.fn(),rateLimit:vi.fn(),tooMany:vi.fn()}));
 vi.mock("@/lib/supabase/server",()=>({createClient:async()=>({rpc,auth:{getUser}})}));
 vi.mock("@/lib/rateLimit",()=>({rateLimit,tooMany}));
-import { POST } from "@/app/api/investigations/operation-read/route";
+let POST:typeof import("@/app/api/investigations/operation-read/route").POST;
+beforeEach(async()=>{vi.unstubAllEnvs();vi.resetModules();({POST}=await import("@/app/api/investigations/operation-read/route"))});
 import {command,principal,native,fence} from "./investigationNativeRecovery.fixture";
 import {investigationCanonicalRequest} from "../investigations";
 const request=(body:unknown=command,headers:Record<string,string>={},suffix="")=>new Request("https://terminal.test/api/investigations/operation-read"+suffix,{method:"POST",headers:{"x-mm-scenario-owner":principal,...headers},body:typeof body==="string"?body:JSON.stringify(body)});

@@ -1,4 +1,10 @@
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+// Fixture process born OPEN; kernel-reader behavior is tested separately with mocked IO.
+const bootFixture=vi.hoisted(()=>({closed:false}));
+vi.mock("@/lib/investigationBootAdmission",()=>({readInvestigationBootAdmission:()=>true,
+ hasObservedInvestigationClosure:()=>bootFixture.closed,observeInvestigationClosure:()=>{bootFixture.closed=true}}));
+// Fresh controlled request realm per case, never a production latch reset.
+beforeEach(()=>{bootFixture.closed=false});
+import { afterAll, beforeEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
