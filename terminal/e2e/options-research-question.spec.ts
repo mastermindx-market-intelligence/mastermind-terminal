@@ -1,4 +1,6 @@
 import { expect, test } from "@playwright/test";
+import { fixtureUserId } from "../lib/watchlistsFixtureDb";
+import { selectAppearance } from "./presentationControls";
 
 // Local inert consumer fixtures, never an authenticated production proof.
 const snapshot = { schema: "options_structure.matrix/v1", root: "SPY", asof: "2026-11-04T01:00:00Z", _build_meta: { asof_date: "2026-11-03" }, spot: 600,
@@ -20,16 +22,16 @@ for (const lang of ["en", "zh"] as const) for (const theme of ["dark", "light"] 
     await page.goto("/options?tab=gex&view=research");
     const lab = page.getByRole("region", { name: lang === "en" ? "3D Research Lab" : "3D 期权研究室", exact: true });
     await expect(lab).toBeVisible({timeout:30000});
-    await page.evaluate(theme => {
-      document.documentElement.dataset.theme = theme;
+    await selectAppearance(page, lang, theme);
+    await page.evaluate(principal => {
       const target = window as unknown as { MMBrain: object; MM_BRAIN_CFG?: { principal?: string | null }; __questionTest: { staged: unknown[]; cleared: unknown[] } };
       target.__questionTest = { staged: [], cleared: [] };
-      target.MM_BRAIN_CFG = { ...target.MM_BRAIN_CFG, principal: "terminal-responsive-fixture" };
+      target.MM_BRAIN_CFG = { ...target.MM_BRAIN_CFG, principal };
       target.MMBrain = {
         submitOptionsQuestion: (ref: unknown) => { target.__questionTest.staged.push(ref); return true; },
         clearOptionsQuestion: (ref: unknown) => { target.__questionTest.cleared.push(ref); return true; },
       };
-    }, theme);
+    }, fixtureUserId("default"));
     const action = lab.getByTestId("research-question-action"), button = action.getByRole("button");
     await expect(button).toBeDisabled();
     await lab.getByRole("button", {name: lang === "en" ? "600 Call · 2026-11-20" : "600 看涨 · 2026-11-20", exact:true}).click();

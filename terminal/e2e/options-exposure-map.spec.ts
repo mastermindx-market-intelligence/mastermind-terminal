@@ -1,9 +1,13 @@
 import { expect, test } from "@playwright/test";
 import qualifiedFixture from "../lib/__tests__/fixtures/exposure-projection.json";
+import { selectAppearance } from "./presentationControls";
 
 for (const lang of ["en", "zh"] as const) {
-  test(`Exposure chart ${lang}: common chart, source selection, inspector and responsive layout`, async ({ page }, info) => {
+  test(`Exposure chart ${lang}: common chart, source selection, inspector and responsive layout`, async ({ page, baseURL }, info) => {
     const errors: string[] = []; page.on("pageerror", (e) => errors.push(e.message));
+    // Synthetic member fixture: real account Settings requires the incumbent
+    // development opt-in. Guest/no-cookie/production guards are tested separately.
+    await page.context().addCookies([{ name: "mm_e2e_rs30", value: "1", url: baseURL! }]);
     await page.addInitScript((locale) => localStorage.setItem("mm.lang", locale), lang);
     await page.goto("/options?tab=prism&symbol=SPY&view=chart");
     const map = page.getByTestId("exposure-map");
@@ -13,10 +17,18 @@ for (const lang of ["en", "zh"] as const) {
     await expect(map).toHaveAttribute("data-chart-ready", "true", { timeout: 30_000 });
     const canvas = await map.locator(".chart-wrap canvas").first().elementHandle();
     const leader = map.getByRole("button", { name: lang === "en" ? /Largest covered net node/ : /覆盖范围最大净节点/ });
-    await expect(leader).toBeEnabled(); await leader.click();
+    await expect(leader).toBeEnabled();
+    const selectedStrike = await leader.locator("strong").textContent();
+    await leader.click();
     const inspector = page.getByTestId("exposure-node-inspector");
-    if ((page.viewportSize()?.width ?? 1440) <= 640) await expect(page.getByRole("dialog")).toBeFocused();
-    else await expect(inspector).toBeFocused();
+    const heading = inspector.getByRole("heading", { level: 3, name: `${lang === "en" ? "Selected strike" : "所选行权价"} ${selectedStrike}`, exact: true });
+    await expect(heading).toBeFocused();
+    await expect(heading).toBeInViewport();
+    await expect.poll(() => heading.evaluate(node => {
+      const r = node.getBoundingClientRect();
+      return r.width > 0 && r.height > 0 && r.top >= 0 && r.bottom <= innerHeight
+        && [r.top + 1, (r.top + r.bottom) / 2, r.bottom - 1].every(y => node.contains(document.elementFromPoint(r.x + r.width / 2, y)));
+    })).toBe(true);
     const pin = inspector.getByRole("button", { name: lang === "en" ? "Pin reference on chart" : "在图表固定参考线", exact: true });
     await pin.click();
     if (info.project.name === "mobile") await page.screenshot({path:`test-results/exposure-inspector-mobile-${lang}.png`});
@@ -30,7 +42,7 @@ for (const lang of ["en", "zh"] as const) {
     await expect(map.getByTestId("exposure-divergence")).toBeVisible();
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     for (const theme of ["dark", "light"]) {
-      await page.evaluate((value) => document.documentElement.setAttribute("data-theme", value), theme);
+      await selectAppearance(page, lang, theme as "dark" | "light");
       await expect(map).toHaveCSS("background-color", theme === "light" ? "rgb(247, 248, 250)" : "rgb(10, 11, 14)");
       expect(await canvas!.evaluate((el) => el.isConnected)).toBe(true);
       await page.screenshot({ path: `test-results/exposure-map-${info.project.name}-${lang}-${theme}.png` });
@@ -276,8 +288,16 @@ for (const lang of ["en", "zh"] as const) {
       await expect(surface).toHaveCount(0);
       const inspector = page.getByTestId("exposure-node-inspector");
       const dialog = page.getByRole("dialog");
-      await expect(phone ? dialog : inspector).toBeFocused();
-      await expect(phone ? dialog : inspector).toBeInViewport();
+      const heading = inspector.getByRole("heading", { level: 3, name: lang === "en" ? "Selected strike 100" : "所选行权价 100", exact: true });
+      await expect(heading).toBeFocused();
+      await expect(heading).toBeInViewport();
+      await expect.poll(() => heading.evaluate(node => {
+        const r = node.getBoundingClientRect();
+        return r.width > 0 && r.height > 0 && r.top >= 0 && r.bottom <= innerHeight
+          && [r.top + 1, (r.top + r.bottom) / 2, r.bottom - 1].every(y => node.contains(document.elementFromPoint(r.x + r.width / 2, y)));
+      })).toBe(true);
+      await expect(map).toHaveAttribute("data-source-root", "SPY");
+      await expect(map).toHaveAttribute("data-source-session", session);
       await expect(map.getByLabel(lang === "en" ? "Expiration scope" : "到期范围", { exact: true })).toHaveValue("2026-10-23");
       await expect(inspector).toContainText("+200M");
       await expect(inspector).toContainText("400M");
