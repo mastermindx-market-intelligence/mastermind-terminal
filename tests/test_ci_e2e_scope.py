@@ -49,6 +49,10 @@ def test_only_reviewed_existing_paths_qualify(path):
     "terminal/components/screener/SmartScreensPanel.tsx",
     "terminal/components/screener/UNKNOWN.module.css",
     "terminal/e2e/brand-new.spec.ts", "terminal/lib/auth.ts",
+    # These real crop-generation specs intentionally test.skip without special
+    # CI env; a changed but skipped spec must never qualify as focused-green.
+    "terminal/e2e/screener-fundamental-crops.spec.ts",
+    "terminal/e2e/screener-cross-market-crops.spec.ts",
     "ingest/gen_fund_us.py", "hub/src/index.ts",
 ])
 def test_unknown_or_high_risk_path_always_runs_full(path):
@@ -95,7 +99,7 @@ def test_exact_pr_merge_diff_enables_focused_and_tracks_renames(monkeypatch):
         commands.append(args)
         if args[0] == "rev-list":
             return f"{SHA_A} {SHA_B} {SHA_C}\n".encode()
-        return b"terminal/e2e/screener-cross-market-crops.spec.ts\0"
+        return b"terminal/e2e/screener-cross-market.spec.ts\0"
     monkeypatch.setattr(scope, "git", git)
     assert scope.select("pull_request", MERGE_REF, SHA_A, SHA_C)[0] == "focused"
     assert "--no-renames" in commands[1] and "-z" in commands[1]

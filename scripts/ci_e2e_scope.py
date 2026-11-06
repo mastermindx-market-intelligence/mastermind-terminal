@@ -39,8 +39,8 @@ FULL_MATRIX = [
 # Existing, known mock/browser specs only. An unrecognized new spec or source
 # path falls back to the full matrix until reviewed and explicitly enrolled.
 SCREENER_SPECS = (
-    "e2e/screener-fundamental-crops.spec.ts",
-    "e2e/screener-cross-market-crops.spec.ts",
+    # Crop generators are skipped in normal CI; changing one cannot earn a
+    # focused pass that never actually exercises the modified test.
     "e2e/screener-fundamental.spec.ts",
     "e2e/screener-cross-market.spec.ts",
     "e2e/screener-technical-scan.spec.ts",
