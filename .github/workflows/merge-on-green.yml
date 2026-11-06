@@ -38,6 +38,9 @@ concurrency:
 
 jobs:
   sweep:
+    # Refuse nondefault dispatch/tag and foreign-base PR-target events before
+    # checkout or any secret-bearing step. Immutable SHA alone is not source trust.
+    if: ${{ github.repository == 'mastermindx-market-intelligence/mastermind-terminal' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
     name: sweep
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -46,13 +49,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: master
+          # Bind executable code to this trusted event, never a moving branch.
+          ref: ${{ github.sha }}
           sparse-checkout: scripts/merge_on_green.py
           sparse-checkout-cone-mode: false
       - name: reconcile armed pull requests
         env:
           GH_REPO: ${{ github.repository }}
           MERGE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # This sweep reports queue readiness, never native-user admission.
+          # Keep user enqueue credentials out of its environment.
           TRIGGER_PR_NUMBER: ${{ github.event.pull_request.number }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           TARGET_PR: ${{ inputs.target_pr }}
