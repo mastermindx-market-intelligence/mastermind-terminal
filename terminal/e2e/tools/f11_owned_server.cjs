@@ -9,7 +9,7 @@ const typeTemplate = '/// <reference types="next" />\n/// <reference types="next
 // The child object is the actual detached spawn receipt, never a discovered PID.
 // Dependencies permit pure tests; the capture owner always uses these defaults.
 function trackOwnedServer(child, { signal = process.kill.bind(process), timeoutMs = 10000,
-  schedule = setTimeout, cancel = clearTimeout } = {}) {
+  schedule = setTimeout, cancel = clearTimeout, now = () => performance.now() } = {}) {
   const pid = child?.pid;
   if (!child?.on) throw new Error("F11_SERVER_IDENTITY");
   let closed = false, failed = false, closeResolve, stopPromise, settled = false;
@@ -23,21 +23,35 @@ function trackOwnedServer(child, { signal = process.kill.bind(process), timeoutM
   const stop = () => {
     if (stopPromise) return stopPromise;
     stopPromise = (async () => {
+      const deadline = now() + timeoutMs;
+      if (child.pid !== pid) throw new Error("F11_SERVER_IDENTITY_CHANGED");
       if (!closed && child.exitCode === null && child.signalCode === null) {
         try { signal(-pid, "SIGTERM"); }
         catch (error) { if (error.code !== "ESRCH") throw new Error("F11_SERVER_STOP_REFUSED"); }
       }
       let timer;
       try {
-        await Promise.race([close, new Promise((_, reject) => { timer = schedule(() => reject(new Error("F11_SERVER_CLOSE_TIMEOUT")), timeoutMs); })]);
+        await Promise.race([close, new Promise((_, reject) => { timer = schedule(() => reject(new Error("F11_SERVER_CLOSE_TIMEOUT")), Math.max(0, deadline - now())); })]);
       } finally { if (timer !== undefined) cancel(timer); }
       if (failed) throw new Error("F11_SERVER_ERROR");
-      try { signal(-pid, 0); }
-      catch (error) {
-        if (error.code === "ESRCH") { settled = true; return; }
-        throw new Error("F11_SERVER_GROUP_UNKNOWN");
+      // npm's stdio close can precede disappearance of its owned process group.
+      // Observe that same group within the original stop deadline; presence is
+      // never treated as harmless, and no additional termination signal is sent.
+      while (true) {
+        if (child.pid !== pid) throw new Error("F11_SERVER_IDENTITY_CHANGED");
+        if (now() >= deadline) throw new Error("F11_SERVER_GROUP_STILL_PRESENT");
+        try { signal(-pid, 0); }
+        catch (error) {
+          if (child.pid !== pid) throw new Error("F11_SERVER_IDENTITY_CHANGED");
+          if (error.code === "ESRCH") { settled = true; return; }
+          throw new Error("F11_SERVER_GROUP_UNKNOWN");
+        }
+        const remaining = deadline - now();
+        if (remaining <= 0) throw new Error("F11_SERVER_GROUP_STILL_PRESENT");
+        let groupTimer;
+        try { await new Promise(resolve => { groupTimer = schedule(resolve, Math.min(25, remaining)); }); }
+        finally { if (groupTimer !== undefined) cancel(groupTimer); }
       }
-      throw new Error("F11_SERVER_GROUP_STILL_PRESENT");
     })();
     return stopPromise;
   };

@@ -7,6 +7,30 @@ const os = require("node:os");
 const path = require("node:path");
 const { assertNoCaptureDotenv, captureServerEnv } = require("./capture_b_f11_10_analysis_theses_entry.cjs");
 
+test("owned runtime startup or cleanup error leaves only a sanitized failure outcome",async()=>{
+  const {captureCaseWithFailureArtifact}=require("./capture_b_f11_10_analysis_theses_entry.cjs");
+  const out=fs.mkdtempSync(path.join(os.tmpdir(),"f11-runtime-failure-"));
+  try{
+    const error=new Error("F11_SERVER_GROUP_STILL_PRESENT");
+    await assert.rejects(captureCaseWithFailureArtifact({file:"tablet-en.png"},out,"frozen-head",async()=>{throw error;}),e=>e===error);
+    const result=JSON.parse(fs.readFileSync(path.join(out,"FAILURE.json"),"utf8"));
+    assert.equal(result.status,"FAILURE");assert.equal(result.phase,"owned-runtime");assert.equal(result.errorCode,error.message);
+    assert.equal(fs.existsSync(path.join(out,"FIXTURE.json")),false);
+    const original=fs.readFileSync(path.join(out,"FAILURE.json"));
+    await assert.rejects(captureCaseWithFailureArtifact({file:"tablet-en.png"},out,"frozen-head",async()=>{throw new Error("private unretained error");}));
+    assert.deepEqual(fs.readFileSync(path.join(out,"FAILURE.json")),original);
+  }finally{fs.rmSync(out,{recursive:true,force:true});}
+});
+test("runtime failure recorder preserves unexpected outcome objects and does not follow them",async()=>{
+  const {captureCaseWithFailureArtifact}=require("./capture_b_f11_10_analysis_theses_entry.cjs");
+  const out=fs.mkdtempSync(path.join(os.tmpdir(),"f11-runtime-link-"));
+  try{
+    const target=path.join(out,"retained");fs.writeFileSync(target,"retained bytes");fs.symlinkSync(target,path.join(out,"FAILURE.json"));
+    await assert.rejects(captureCaseWithFailureArtifact({file:"tablet-en.png"},out,"head",async()=>{throw new Error("F11_SERVER_GROUP_STILL_PRESENT");}),/UNEXPECTED_OUTCOME_OBJECT/);
+    assert.equal(fs.readFileSync(target,"utf8"),"retained bytes");assert.equal(fs.existsSync(path.join(out,"FIXTURE.json")),false);
+  }finally{fs.rmSync(out,{recursive:true,force:true});}
+});
+
 test("fixture child never inherits provider credentials, auth controls, NODE_OPTIONS or host flags", () => {
   const env = captureServerEnv({ PATH: "/bin", HOME: "/fixture", TIINGO_TOKEN: "not-a-real-token", BRAIN_GATEWAY_URL: "https://unexpected.invalid", NEXT_PUBLIC_SUPABASE_URL: "https://unexpected.invalid", NODE_OPTIONS: "--require /unexpected", MMX_SHARED_SHELL: "1", TERMINAL_REQUIRE_AUTH: "1" });
   assert.equal(env.PATH, "/bin");
@@ -445,7 +469,7 @@ test("exact six cases use serial fully-settled independent runtime invocations",
   const result=await captureIsolatedCases(shots,async shot=>{assert.equal(active,0);active++;calls.push(shot.file);await Promise.resolve();active--;return isolatedReceipt(shot);});
   assert.deepEqual(calls,SIX_FILES);assert.equal(result.length,6);
   const source=fs.readFileSync(path.join(__dirname,"capture_b_f11_10_analysis_theses_entry.cjs"),"utf8");
-  assert.match(source,/captureIsolatedCases\(shots, shot => captureInOwnedRuntime\(\[shot\], out, capturedAtHead, chromium\)\)/);
+  assert.match(source,/captureIsolatedCases\(shots, shot => captureCaseWithFailureArtifact\(shot, out, capturedAtHead,\s*\(\) => captureInOwnedRuntime\(\[shot\], out, capturedAtHead, chromium\)\)\)/);
 });
 test("a pending first-case settlement prevents even starting the second runtime",async()=>{
   const {captureIsolatedCases}=require("./capture_b_f11_10_analysis_theses_entry.cjs");let release;const done=new Promise(resolve=>{release=resolve;});const calls=[];

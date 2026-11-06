@@ -526,6 +526,20 @@ async function captureIsolatedCases(shots, capture) {
   return results;
 }
 
+async function captureCaseWithFailureArtifact(shot, out, capturedAtHead, capture) {
+  try { return await capture(); }
+  catch (error) {
+    // The inner image catch already owns its richer diagnostic. Startup and
+    // cleanup errors must also leave a failure-only outcome, never a success.
+    let existing;
+    try { existing = lstatSync(join(out, "FAILURE.json")); }
+    catch (readError) { if (readError.code !== "ENOENT") throw readError; }
+    if (existing && !existing.isFile()) throw new Error("F11_UNEXPECTED_OUTCOME_OBJECT");
+    if (!existing) writeFailureArtifact(out, capturedAtHead, { file: shot.file, phase: "owned-runtime" }, error);
+    throw error;
+  }
+}
+
 async function runCapture(mode) {
   if (!["canonical-six", "diagnostic-mobile-zh"].includes(mode)) throw new Error("F11_CAPTURE_MODE");
   const diagnosticOnly = mode === "diagnostic-mobile-zh";
@@ -546,7 +560,8 @@ async function runCapture(mode) {
   assertNoCaptureDotenv();
   const capturedAtHead = currentGitHead();
   const shots = diagnosticOnly ? SHOTS.filter(shot => shot.file === "mobile-zh.png") : SHOTS;
-  const caseResults = await captureIsolatedCases(shots, shot => captureInOwnedRuntime([shot], out, capturedAtHead, chromium));
+  const caseResults = await captureIsolatedCases(shots, shot => captureCaseWithFailureArtifact(shot, out, capturedAtHead,
+    () => captureInOwnedRuntime([shot], out, capturedAtHead, chromium)));
   const files = caseResults.flatMap(result => result.files);
   const entryObservations = caseResults.flatMap(result => result.entryObservations);
   const captureProfile = caseResults[0].captureProfile;
@@ -621,7 +636,7 @@ async function runCapture(mode) {
 function main() { return runCapture("canonical-six"); }
 function diagnoseMobileZh() { return runCapture("diagnostic-mobile-zh"); }
 
-module.exports = { captureIsolatedCases, observeBootstrap, diagnoseMobileZh, writeDiagnosticArtifact, assertAllSixObserved, assertNoCaptureDotenv, captureServerEnv, installCaptureBoundary, invalidateStaleOutcomeArtifacts, staticScriptPath, consoleErrorKind, writeFailureArtifact, writeSuccessArtifact, FIXTURE_TEMP };
+module.exports = { captureCaseWithFailureArtifact, captureIsolatedCases, observeBootstrap, diagnoseMobileZh, writeDiagnosticArtifact, assertAllSixObserved, assertNoCaptureDotenv, captureServerEnv, installCaptureBoundary, invalidateStaleOutcomeArtifacts, staticScriptPath, consoleErrorKind, writeFailureArtifact, writeSuccessArtifact, FIXTURE_TEMP };
 
 if (require.main === module) main().catch((err) => {
   console.error(err);

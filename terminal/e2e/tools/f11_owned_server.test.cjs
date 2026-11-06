@@ -33,8 +33,36 @@ test("ESRCH termination alone does not prove close", async () => {
 });
 for (const condition of ["alive", "EPERM", "unknown"]) test(`postclose group ${condition} prevents success`, async () => {
   const c = child();
-  const owner = trackOwnedServer(c, { signal(pid,sig) { if (sig === "SIGTERM") {queueMicrotask(()=>c.emit("close"));return;} if(condition!=="alive") throw Object.assign(new Error("not printed"),{code:condition}); } });
+  const owner = trackOwnedServer(c, { timeoutMs: 5, signal(pid,sig) { if (sig === "SIGTERM") {queueMicrotask(()=>c.emit("close"));return;} if(condition!=="alive") throw Object.assign(new Error("not printed"),{code:condition}); } });
   await assert.rejects(owner.stop(), condition === "alive" ? /STILL_PRESENT/ : /GROUP_UNKNOWN/);
+  assert.throws(()=>owner.settlement(),/NOT_SETTLED/);
+});
+test("child close may precede group disappearance, but success still requires actual ESRCH", async () => {
+  const c=child(), calls=[];let probes=0;
+  const owner=trackOwnedServer(c,{timeoutMs:200,signal(pid,sig){calls.push([pid,sig]);if(sig==="SIGTERM")queueMicrotask(()=>c.emit("close"));else if(++probes===2)gone();}});
+  await owner.stop();assert.equal(probes,2);assert.equal(owner.settlement().processGroupAbsent,true);
+  assert.equal(calls.filter(([,sig])=>sig==="SIGTERM").length,1);
+});
+test("group settlement uses only the original stop deadline remaining after close", async () => {
+  const c=child();let clock=0,probes=0;
+  const owner=trackOwnedServer(c,{timeoutMs:10,now:()=>clock,schedule(fn,ms){return setTimeout(()=>{clock+=ms;fn();},ms);},signal(pid,sig){if(sig==="SIGTERM"){clock=9;queueMicrotask(()=>c.emit("close"));}else probes++;}});
+  const started=Date.now();await assert.rejects(owner.stop(),/GROUP_STILL_PRESENT/);
+  assert.ok(Date.now()-started<100);assert.equal(probes,1);assert.throws(()=>owner.settlement(),/NOT_SETTLED/);
+});
+test("changed child identity is refused before a delayed group probe", async()=>{
+  const c=child();let probes=0;
+  const owner=trackOwnedServer(c,{timeoutMs:200,signal(pid,sig){if(sig==="SIGTERM")queueMicrotask(()=>c.emit("close"));else{probes++;c.pid=9922;}}});
+  await assert.rejects(owner.stop(),/SERVER_IDENTITY_CHANGED/);assert.equal(probes,1);
+  assert.throws(()=>owner.settlement(),/NOT_SETTLED/);
+});
+test("group probing never retries permission errors and releases every own timer",async()=>{
+  const c=child(),pending=new Set();let probes=0,signals=0;
+  const owner=trackOwnedServer(c,{timeoutMs:200,
+    schedule(fn,ms){const timer=setTimeout(()=>{pending.delete(timer);fn();},ms);pending.add(timer);return timer;},
+    cancel(timer){clearTimeout(timer);pending.delete(timer);},
+    signal(pid,sig){if(sig==="SIGTERM"){signals++;queueMicrotask(()=>c.emit("close"));}else if(++probes===2)throw Object.assign(new Error("not retained"),{code:"EPERM"});}});
+  const first=owner.stop();assert.equal(first,owner.stop());await assert.rejects(first,/GROUP_UNKNOWN/);
+  assert.equal(signals,1);assert.equal(probes,2);assert.equal(pending.size,0);
   assert.throws(()=>owner.settlement(),/NOT_SETTLED/);
 });
 test("signal refusal stops without a fallback or repeated signal", async () => {
