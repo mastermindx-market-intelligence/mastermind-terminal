@@ -215,7 +215,7 @@ function SurfaceField({ surface, geo, width, t, zh, mode, spotPlane, focus, onSe
 }) {
   const { frame, h, cols, rows } = geo;
   const cx = (cols - 1) / 2, cy = (rows - 1) / 2;
-  const pt = (c: number, r: number, height: number) => projectSurfacePoint(c - cx, r - cy, height, frame);
+  const project = (c: number, r: number, height: number) => projectSurfacePoint(c - cx, r - cy, height, frame);
   const colOf = new Map(surface.expiries.map((e, i) => [e, i] as const));
   const rowOf = new Map(surface.strikes.map((s, i) => [s, i] as const));
   const poly = (ps: { x: number; y: number }[]) => ps.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
@@ -226,10 +226,6 @@ function SurfaceField({ surface, geo, width, t, zh, mode, spotPlane, focus, onSe
     const hgt = surface.bookMaxAbsMn > 0 && cell.valueMn != null ? Math.abs(cell.valueMn) / surface.bookMaxAbsMn * frame.heightPx : 0;
     return { cell, c, r, hgt, depth: projectSurfacePoint(c - cx + 0.5, r - cy + 0.5, 0, frame).depth };
   }).sort((a, b) => a.depth - b.depth);
-  // Grid floor: light lines along both axes.
-  const floorLines: { x: number; y: number }[][] = [];
-  for (let r = 0; r <= rows; r++) floorLines.push([pt(0, r, 0), pt(cols, r, 0)]);
-  for (let c = 0; c <= cols; c++) floorLines.push([pt(c, 0, 0), pt(c, rows, 0)]);
   // Reference-spot plane between the two surrounding strike rows.
   const spot = surface.referenceSpot;
   let rSpot: number | null = null;
@@ -240,6 +236,30 @@ function SurfaceField({ surface, geo, width, t, zh, mode, spotPlane, focus, onSe
       if (spot <= hi && spot >= lo) { rSpot = i + (hi - spot) / (hi - lo || 1); break; }
     }
   }
+  // Projection coordinates are centred on the grid, not the SVG viewport.
+  // Fit one common pixel coordinate system for the floor, columns and labels.
+  // Keep the value ratios and painter depth unchanged; text and strokes retain
+  // their CSS-pixel sizes because no SVG scale/viewBox stretch is applied.
+  const planeRow = spotPlane && rSpot != null ? rSpot - cy : null;
+  const lowRow = Math.min(0, planeRow ?? 0), highRow = Math.max(rows, planeRow ?? rows);
+  const maxHeight = Math.max(frame.heightPx, ...painted.map(({ hgt }) => hgt));
+  const extents = [0, cols].flatMap((c) => [lowRow, highRow].flatMap((r) =>
+    [0, maxHeight].map((height) => project(c, r, height))));
+  const minX = Math.min(...extents.map((p) => p.x)), maxX = Math.max(...extents.map((p) => p.x));
+  const minY = Math.min(...extents.map((p) => p.y)), maxY = Math.max(...extents.map((p) => p.y));
+  const top = 44, bottom = 24, side = 24;
+  const scale = Math.min(1, (width - 2 * side) / Math.max(1, maxX - minX),
+    (h - top - bottom) / Math.max(1, maxY - minY));
+  const originX = (width - (maxX - minX) * scale) / 2 - minX * scale;
+  const originY = top + (h - top - bottom - (maxY - minY) * scale) / 2 - minY * scale;
+  const pt = (c: number, r: number, height: number) => {
+    const point = project(c, r, height);
+    return { ...point, x: originX + point.x * scale, y: originY + point.y * scale };
+  };
+  // Grid floor: light lines along both axes.
+  const floorLines: { x: number; y: number }[][] = [];
+  for (let r = 0; r <= rows; r++) floorLines.push([pt(0, r, 0), pt(cols, r, 0)]);
+  for (let c = 0; c <= cols; c++) floorLines.push([pt(c, 0, 0), pt(c, rows, 0)]);
   const plane = spotPlane && rSpot != null ? (() => {
     const r = rSpot - cy;
     const corners = [pt(0, r, 0), pt(cols, r, 0), pt(cols, r, frame.heightPx), pt(0, r, frame.heightPx)];
@@ -259,10 +279,11 @@ function SurfaceField({ surface, geo, width, t, zh, mode, spotPlane, focus, onSe
     const p = pt(c + 0.5, r + 0.5, hgt);
     const label = `${strikeLabel(focus.strike)} × ${shortDate(focus.expiry, zh)} · ${mode === "gross" ? unsignedMn(focus.grossMn) : signedMn(focus.netMn)}`;
     const w = label.length * 6.4 + 12;
+    const labelX = Math.max(w / 2 + 8, Math.min(width - w / 2 - 8, p.x));
     focusLabel = (
       <g className={styles.focusLabel} data-testid="surface-focus-label">
-        <rect x={p.x - w / 2} y={p.y - 26} width={w} height={18} rx={4} />
-        <text x={p.x} y={p.y - 13} textAnchor="middle">{label}</text>
+        <rect x={labelX - w / 2} y={p.y - 26} width={w} height={18} rx={4} />
+        <text x={labelX} y={p.y - 13} textAnchor="middle">{label}</text>
       </g>
     );
   }

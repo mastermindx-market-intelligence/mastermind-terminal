@@ -5,7 +5,7 @@
  * heatmapCapDisclosure.test.tsx), so elements are queried and events
  * dispatched directly, like the repo's other component tests.
  */
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import producer from "./fixtures/exposure-projection.json";
@@ -48,6 +48,7 @@ afterEach(() => {
   act(() => root.unmount());
   container.remove();
   document.body.innerHTML = "";
+  vi.restoreAllMocks();
 });
 const mount = (props: Partial<Parameters<typeof ExposureSurface>[0]> = {}) => {
   act(() => {
@@ -124,4 +125,75 @@ describe("ExposureSurface view", () => {
       expect(text).not.toContain("provider_approximation");
     }
   });
+});
+
+describe("ExposureSurface viewport placement", () => {
+  it.each([240, 390, 720])("keeps real plotted faces inside a measured %ipx field", (width) => {
+    // The exact two-expiry/one-strike shape that failed the real handoff
+    // browser cases. Width measurement is supplied here; hit testing remains
+    // the responsibility of the unforced Playwright interaction.
+    vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(width);
+    const source = raw();
+    source.cells = source.cells.filter((cell) => cell.strike === 100);
+    source.cell_count = source.cells.length;
+    mount({ projection: parse(source) });
+    const assertContained = () => {
+      const svg = document.querySelector<SVGSVGElement>("[data-testid=surface-field]")!;
+      const [x, y, w, h] = svg.getAttribute("viewBox")!.split(" ").map(Number);
+      expect([x, y, w]).toEqual([0, 0, width]);
+      expect(Number(svg.getAttribute("width"))).toBe(width);
+      expect(Number(svg.getAttribute("height"))).toBe(h);
+      const points = [...svg.querySelectorAll("polygon")].flatMap((polygon) =>
+        polygon.getAttribute("points")!.trim().split(/\s+/).map((pair) => pair.split(",").map(Number)));
+      for (const line of svg.querySelectorAll("line")) {
+        points.push([Number(line.getAttribute("x1")), Number(line.getAttribute("y1"))],
+          [Number(line.getAttribute("x2")), Number(line.getAttribute("y2"))]);
+      }
+      expect(svg.querySelectorAll("[data-surface-cell]")).toHaveLength(2);
+      expect(points.length).toBeGreaterThan(24);
+      for (const [px, py] of points) {
+        expect(Number.isFinite(px) && Number.isFinite(py)).toBe(true);
+        expect(px).toBeGreaterThanOrEqual(0);
+        expect(px).toBeLessThanOrEqual(w!);
+        expect(py).toBeGreaterThan(16); // clear of the fixed corner caption
+        expect(py).toBeLessThan(h! - 14); // room for the axis ticks
+      }
+      const label = svg.querySelector("[data-testid=surface-focus-label] rect")!;
+      expect(Number(label.getAttribute("y"))).toBeGreaterThanOrEqual(0);
+      expect(document.querySelector("[data-testid=surface-inspector]")?.textContent).toContain("+200M");
+      expect(document.querySelector("[data-testid=surface-inspector]")?.textContent).toContain("400M");
+    };
+    for (const mode of ["Net", "Gross", "|Net|"]) {
+      click(button(mode));
+      for (let rotation = 0; rotation < 4; rotation++) {
+        for (let elevation = 0; elevation < 4; elevation++) {
+          assertContained();
+          click([...document.querySelectorAll("button")].find((item) => item.textContent?.includes("°"))!);
+        }
+        click(button("Rotate ⟳"));
+      }
+    }
+  });
+});
+
+it("keeps the selected edge-cell label visible without shifting the plotted values", () => {
+  vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(240);
+  const source = raw();
+  const proto = source.cells[0]!;
+  source.cells = EXPIRIES.flatMap((expiry, e) => Array.from({ length: 9 }, (_, s) => {
+    const strike = 96 + s, net = strike * 1e6 * (e + 1);
+    return { ...structuredClone(proto), expiry, strike, economic_expiry_at: `${expiry}T20:00:00Z`,
+      gamma: { ...proto.gamma, net, gross: net * 2, known_net: net, known_gross: net * 2 } };
+  }));
+  source.cell_count = source.cells.length;
+  mount({ projection: parse(source) });
+  const face = document.querySelector('[data-surface-cell][data-strike="96"][data-expiry="2026-10-16"]')!;
+  const before = face.querySelector("polygon")!.getAttribute("points");
+  click(face);
+  expect(face.querySelector("polygon")!.getAttribute("points")).toBe(before);
+  const label = document.querySelector("[data-testid=surface-focus-label] rect")!;
+  const x = Number(label.getAttribute("x")), width = Number(label.getAttribute("width"));
+  expect(x).toBeGreaterThanOrEqual(0);
+  expect(x + width).toBeLessThanOrEqual(240);
+  expect(document.querySelector("[data-testid=surface-focus-label]")?.textContent).toContain("96 × Oct 16 · +96M");
 });
