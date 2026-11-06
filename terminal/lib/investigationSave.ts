@@ -2,9 +2,10 @@
 import { isInvestigationId, isInvestigationCommitted, isLegacyInvestigationCommitted, parseInvestigationCommand, type InvestigationCommand, type InvestigationCommitted } from "./investigations";
 import { classifyInvestigationOperationReceipt } from "./investigationOperationReceipt";
 import { ownerUserId } from "./accountIdentity";
+export type CaptureOutcome = "unknown_after_canonical_not_applied" | "unknown_after_canonical_refusal";
 export type InvestigationSaveState =
   | { phase: "idle" }
-  | { phase: "pending" | "uncertain"; principal: string; command: InvestigationCommand; captureOutcome?: "unknown_after_canonical_not_applied"; canonicalResult?: InvestigationCommitted }
+  | { phase: "pending" | "uncertain"; principal: string; command: InvestigationCommand; captureOutcome?: CaptureOutcome; canonicalResult?: InvestigationCommitted; canonicalRefusal?: string }
   | { phase: "committed"; principal: string; result: InvestigationCommitted; receiptBinding?: "native_lineage" | "legacy_recorded_completion" }
   | { phase: "rejected"; principal: string; command: InvestigationCommand; reason: string };
 function sameJson(a: unknown, b: unknown): boolean {
@@ -30,11 +31,12 @@ export function recoverInvestigationSave(principal: string, raw: unknown): Inves
   const command = parseInvestigationCommand(saved.command);
   if (!command) return null;
   if (saved.phase === "rejected" && typeof saved.reason === "string" && definitive.has(saved.reason)) {
+    if (mayHaveNativeCapture(command)) return { phase: "uncertain", principal, command, captureOutcome: "unknown_after_canonical_refusal" };
     return { phase: "rejected", principal, command, reason: saved.reason };
   }
   return { phase: "uncertain", principal, command,
-    ...(saved.capture_outcome === "unknown_after_canonical_not_applied" && mayHaveNativeCapture(command)
-      ? { captureOutcome: "unknown_after_canonical_not_applied" as const } : {}) };
+    ...((saved.capture_outcome === "unknown_after_canonical_not_applied" || saved.capture_outcome === "unknown_after_canonical_refusal") && mayHaveNativeCapture(command)
+      ? { captureOutcome: saved.capture_outcome } : {}) };
 }
 export function beginInvestigationSave(principal: string, raw: unknown, previous: InvestigationSaveState): InvestigationSaveState {
   previous = partitionInvestigationSave(previous, principal || null);
@@ -59,8 +61,14 @@ export function settleInvestigationSave(state: InvestigationSaveState, principal
   // A late canonical refusal cannot settle the already-observed independent
   // native capture. Keep the original command and conservative retry fence.
   if (state.captureOutcome) return { phase: "uncertain", principal, command: state.command, captureOutcome: state.captureOutcome,
-    ...(state.canonicalResult ? { canonicalResult: state.canonicalResult } : {}) };
-  if (typeof status === "string" && definitive.has(status)) return { phase: "rejected", principal, command: state.command, reason: status };
+    ...(state.canonicalResult ? { canonicalResult: state.canonicalResult } : {}),
+    ...(state.canonicalRefusal ? { canonicalRefusal: state.canonicalRefusal } : {}) };
+  if (typeof status === "string" && definitive.has(status)) {
+    // An unqualified canonical failure can arrive AFTER initial private capture
+    // even with no earlier outcome GET. It carries no pre-effect stage proof.
+    if (mayHaveNativeCapture(state.command)) return { phase: "uncertain", principal, command: state.command, captureOutcome: "unknown_after_canonical_refusal", canonicalRefusal: status };
+    return { phase: "rejected", principal, command: state.command, reason: status };
+  }
   // not_found on receipt lookup, auth expiry, timeout and malformed replies are all inconclusive.
   return { phase: "uncertain", principal, command: state.command,
     ...(state.captureOutcome ? { captureOutcome: state.captureOutcome } : {}) };

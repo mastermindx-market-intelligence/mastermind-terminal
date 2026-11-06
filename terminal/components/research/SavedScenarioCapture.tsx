@@ -92,6 +92,7 @@ const COPY = {
     check: "Check original outcome",
     retry: "Retry original save",
     conflict: "This revision was not committed. The original request is retained.",
+    captureRejected: "Canonical save was rejected. The private source capture outcome is still unknown. Your draft and original request are retained; no retry was sent.",
     captureCommitted: "Canonical save recorded",
     captureUnknownAfterCommit: "The private source capture outcome is still unknown. Your draft and original request are retained; no retry was sent.",
     captureUnknown: "The canonical save was recorded as not applied. The private source capture outcome is still unknown. Your draft and original request are retained; no retry was sent.",
@@ -126,6 +127,7 @@ const COPY = {
     check: "检查原请求结果",
     retry: "重试原保存请求",
     conflict: "本修订未提交，原请求已保留。",
+    captureRejected: "规范保存被拒绝，但私有来源捕获结果仍未知。草稿和原请求已保留，未发送重试。",
     captureCommitted: "规范保存已记录",
     captureUnknownAfterCommit: "私有来源捕获结果仍未知。草稿和原请求已保留，未发送重试。",
     captureUnknown: "规范保存已记录为未执行，但私有来源捕获结果仍未知。草稿和原请求已保留，未发送重试。",
@@ -149,7 +151,7 @@ const exactJson = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSO
 type Phase =
   | { kind: "idle" }
   | { kind: "pending" }
-  | { kind: "uncertain"; captureUnknown?: true; canonicalRevision?: number }
+  | { kind: "uncertain"; captureUnknown?: true; canonicalRevision?: number; canonicalRejected?: true }
   | { kind: "rejected"; reason?: string }
   | { kind: "blocked" }
   | { kind: "occupied" }
@@ -303,7 +305,7 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
       if (next.captureOutcome) {
         try { retainInvestigationCaptureUnknown(sessionStorage, owner, next); } catch { /* still UNKNOWN, never clear */ }
       }
-      setPhase({ kind: "uncertain", ...(next.captureOutcome ? { captureUnknown: true as const } : {}), ...(next.canonicalResult ? { canonicalRevision: next.canonicalResult.revision } : {}) });
+      setPhase({ kind: "uncertain", ...(next.captureOutcome ? { captureUnknown: true as const } : {}), ...(next.canonicalResult ? { canonicalRevision: next.canonicalResult.revision } : {}), ...(next.canonicalRefusal ? { canonicalRejected: true as const } : {}) });
     }
   }
 
@@ -458,7 +460,7 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
           )}
           {phase.kind === "uncertain" && (
             <>
-              <p className={styles.status} role="status">{phase.captureUnknown ? (phase.canonicalRevision ? `${c.captureCommitted} · ${c.revision} ${phase.canonicalRevision}. ${c.captureUnknownAfterCommit}` : c.captureUnknown) : c.uncertain}</p>
+              <p className={styles.status} role="status">{phase.captureUnknown ? (phase.canonicalRevision ? `${c.captureCommitted} · ${c.revision} ${phase.canonicalRevision}. ${c.captureUnknownAfterCommit}` : phase.canonicalRejected ? c.captureRejected : c.captureUnknown) : c.uncertain}</p>
               <div className={styles.actions}>
                 <button type="button" onClick={() => void onCheck()}>{c.check}</button>
                 {!phase.captureUnknown && <button type="button" disabled={busy} onClick={onRetry}>{c.retry}</button>}

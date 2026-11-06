@@ -6,10 +6,10 @@
 import { ownerKeyFor, ownerUserId } from "./accountIdentity";
 import { isInvestigationId, type InvestigationCommand } from "./investigations";
 import { parseScenarioCapture } from "./investigationScenario";
-import { recoverInvestigationSave, type InvestigationSaveState } from "./investigationSave";
+import { recoverInvestigationSave, type CaptureOutcome, type InvestigationSaveState } from "./investigationSave";
 type Store = Pick<Storage,"getItem"|"setItem"|"removeItem">;
 type Entry = { key:string; owner:string; text:string };
-type Retained = {phase:"uncertain";principal:string;command:InvestigationCommand;captureOutcome?:"unknown_after_canonical_not_applied"} | Extract<InvestigationSaveState,{phase:"rejected"}>;
+type Retained = {phase:"uncertain";principal:string;command:InvestigationCommand;captureOutcome?:CaptureOutcome} | Extract<InvestigationSaveState,{phase:"rejected"}>;
 export type JournalRead = {status:"empty";entries:Entry[]}
  | {status:"retained";entries:Entry[];state:Retained}
  | {status:"conflict"|"invalid"|"legacy";entries:Entry[]};
@@ -51,7 +51,7 @@ export function readInvestigationJournal(store:Store,principal:string):JournalRe
  * Native capture settlement remains UNKNOWN; the original command stays exact.
  */
 export function retainInvestigationCaptureUnknown(store:Store,principal:string,state:InvestigationSaveState){
- if(state.phase!=="uncertain"||state.principal!==principal||state.captureOutcome!=="unknown_after_canonical_not_applied")throw Error("capture outcome unavailable");
+ if(state.phase!=="uncertain"||state.principal!==principal||!state.captureOutcome)throw Error("capture outcome unavailable");
  const found=readInvestigationJournal(store,principal);
  if(found.status!=="retained"||!same(found.state.command,state.command))throw Error("journal changed");
  for(const entry of found.entries)store.setItem(entry.key,JSON.stringify({owner:entry.owner,command:state.command,capture_outcome:state.captureOutcome}));

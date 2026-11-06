@@ -44,3 +44,15 @@ it("retains the exact journal, denies new-draft authority and keeps conservative
  expect(()=>clearRejectedInvestigationJournal(storage,owner,staleLocal)).toThrow();
  expect(()=>retainInvestigationJournal(storage,owner,{...command,operation_id:command.id},staleLocal)).toThrow();
 });
+
+it.each(["version_conflict","idempotency_conflict","limit_reached","invalid_payload","reference_unavailable"])("keeps a direct post-capture canonical %s UNKNOWN without any fence GET",status=>{
+ const state=settleInvestigationSave(pending(),owner,{status,current_revision:9});
+ expect(state).toMatchObject({phase:"uncertain",captureOutcome:"unknown_after_canonical_refusal",canonicalRefusal:status,command});
+ expect(retryInvestigationSave(state,owner)).toBeNull();
+ const storage=store();retainInvestigationJournal(storage,owner,command);retainInvestigationCaptureUnknown(storage,owner,state);
+ const restored=readInvestigationJournal(storage,owner);
+ expect(restored).toMatchObject({status:"retained",state:{phase:"uncertain",captureOutcome:"unknown_after_canonical_refusal",command}});
+ expect(()=>clearRejectedInvestigationJournal(storage,owner,state)).toThrow();
+ if(restored.status!=="retained")throw Error("retained fixture required");
+ expect(retryInvestigationSave(restored.state,owner)).toBeNull();
+});

@@ -107,6 +107,24 @@ it("shows the native original-operation fence without retrying or trusting a per
   expect(conservative.capture_outcome).toBe("unknown_after_canonical_not_applied");
   expect(fetcher.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
 });
+
+it.each(["version_conflict","idempotency_conflict","limit_reached"])("retains external capture UNKNOWN after a direct canonical %s with NO outcome GET",async status=>{
+ fetcher.mockResolvedValue(response({status,current_revision:9}));
+ await startSave();
+ expect(el.textContent).toContain("Canonical save was rejected");
+ expect(el.textContent).toContain("private source capture outcome is still unknown");
+ expect(el.textContent).not.toContain("Retry original save");
+ expect(fetcher.mock.calls).toHaveLength(1);
+ expect(fetcher.mock.calls[0][1].method).toBe("POST");
+ expect(fetcher.mock.calls[0][1].headers["x-mm-scenario-capture"]).toBe("initial");
+ const retained=JSON.parse(sessionStorage.getItem(key)!);
+ expect(retained.capture_outcome).toBe("unknown_after_canonical_refusal");
+ expect(retained.command.operation_id).toBe(JSON.parse(fetcher.mock.calls[0][1].body).operation_id);
+ await mount(<InvestigationWorkspace ownerKey={`account:${user}`}/>);
+ expect(fetcher.mock.calls.filter(([,init])=>init?.method==="POST")).toHaveLength(1);
+ const start=[...el.querySelectorAll<HTMLButtonElement>("button")].find(b=>b.textContent==="Start new research");
+ expect(start?.disabled).toBe(true);
+});
 it("clears private legacy content on account change and never sends a legacy full-value journal", async () => {
   sessionStorage.setItem(key, JSON.stringify({ owner: `account:${user}`, command: { manifest: { scenario_capture: { basis: { gexMn: 55 }, result: { totalMn: 4 } } } } }));
   await mount(<SavedScenarioCapture {...sourceProps} />);
