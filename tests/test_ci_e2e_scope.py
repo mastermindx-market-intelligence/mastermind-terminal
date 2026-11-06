@@ -99,10 +99,11 @@ def test_exact_pr_merge_diff_enables_focused_and_tracks_renames(monkeypatch):
         commands.append(args)
         if args[0] == "rev-list":
             return f"{SHA_A} {SHA_B} {SHA_C}\n".encode()
-        return b"terminal/e2e/screener-cross-market.spec.ts\0"
+        return b"M\0terminal/e2e/screener-cross-market.spec.ts\0"
     monkeypatch.setattr(scope, "git", git)
     assert scope.select("pull_request", MERGE_REF, SHA_A, SHA_C)[0] == "focused"
     assert "--no-renames" in commands[1] and "-z" in commands[1]
+    assert "--name-status" in commands[1] and "--name-only" not in commands[1]
     assert commands[1][-1] == "--"
     assert f"{SHA_B}^{{tree}}" in commands[1]
     assert f"{SHA_A}^{{tree}}" in commands[1]
@@ -207,7 +208,7 @@ def test_real_synthetic_pr_merge_uses_exact_parent_and_source_diff(tmp_path, mon
 
 
 def _run_workflow_selector_in_git_checkout(tmp_path, *, install_base_selector,
-                                           tamper_with_selector=False):
+                                           tamper_with_selector=False, delete_css=False):
     """Run actual GitHub Actions shell after a synthetic two-parent PR merge."""
     import os
 
@@ -233,7 +234,10 @@ def _run_workflow_selector_in_git_checkout(tmp_path, *, install_base_selector,
     git("add", ".")
     git("commit", "-m", "protected master")
     git("checkout", "-b", "scoped-pr")
-    css.write_text(".x { padding: 2px; }\n")
+    if delete_css:
+        css.unlink()
+    else:
+        css.write_text(".x { padding: 2px; }\n")
     if tamper_with_selector:
         assert install_base_selector
         # Candidate script deliberately lies; immutable protected script must
@@ -314,3 +318,24 @@ def test_real_workflow_merge_group_always_bootstraps_full(tmp_path, monkeypatch)
     fields = dict(line.split("=", 1) for line in output.read_text().splitlines())
     assert fields["mode"] == "full"
     assert json.loads(fields["matrix"]) == {"include": scope.FULL_MATRIX}
+
+
+@pytest.mark.parametrize("status", ["A", "D", "T", "R100", "M100"])
+def test_allowlisted_path_with_nonmodification_status_stays_full(monkeypatch, status):
+    def fake_git(*args):
+        if args[0] == "rev-list":
+            return f"{SHA_A} {SHA_B} {SHA_C}\n".encode()
+        return status.encode("ascii") + b"\0terminal/e2e/screener-cross-market.spec.ts\0"
+    monkeypatch.setattr(scope, "git", fake_git)
+    assert scope.select("pull_request", MERGE_REF, SHA_A, SHA_C) == (
+        "full", "non_modification_change"
+    )
+
+
+def test_deleted_allowlisted_css_really_runs_full_through_workflow(tmp_path):
+    mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, delete_css=True,
+    )
+    assert mode == "full"
+    assert matrix == scope.FULL_MATRIX
+    assert "non_modification_change" in stdout

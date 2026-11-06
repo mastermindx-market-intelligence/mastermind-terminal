@@ -95,15 +95,23 @@ def select(event: str, github_ref: str, github_sha: str,
         if (len(parents) != 3 or parents[0] != github_sha
                 or parents[2] != pr_head_sha):
             return "full", "unexpected_merge_checkout"
-        # --no-renames ensures both removed and added paths are visible. -z
-        # handles adversarial names without shell/newline parsing.
+        # --name-status (not --name-only) rejects deleted/added/test-skipped
+        # source. A removed allowlisted test must never count as covered.
+        # --no-renames exposes both endpoints; -z preserves adversarial names.
         changed = git(
-            "diff", "--no-ext-diff", "--no-renames", "--name-only", "-z",
+            "diff", "--no-ext-diff", "--no-renames", "--name-status", "-z",
             f"{parents[1]}^{{tree}}", f"{parents[0]}^{{tree}}", "--"
         )
         if not changed.endswith(b"\0"):
             return "full", "unqualified_diff"
-        paths = [part.decode("utf-8", "strict") for part in changed[:-1].split(b"\0")]
+        parts = changed[:-1].split(b"\0")
+        if len(parts) % 2:
+            return "full", "unqualified_diff"
+        paths: list[str] = []
+        for status, path in zip(parts[::2], parts[1::2]):
+            if status != b"M":
+                return "full", "non_modification_change"
+            paths.append(path.decode("utf-8", "strict"))
         return classify_paths(paths)
     except (subprocess.SubprocessError, UnicodeError, OSError, ValueError):
         return "full", "git_observation_failed"
