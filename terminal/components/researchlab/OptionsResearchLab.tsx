@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo, useRef, useState } from "react";
+import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import type { Lang } from "@/lib/i18n";
 import { adaptResearchMatrix, buildResearchDomain, buildResearchMarks, filterResearchRows, reconcileResearchSelection, toggleComparison,
@@ -113,6 +113,17 @@ export function OptionsResearchLab({
   if (safeSelection.selected !== selection.selected || safeSelection.comparisons.length !== selection.comparisons.length) setSelection(safeSelection);
   const focusOrigin = useRef<HTMLElement | null>(null);
   const backRef = useRef<HTMLButtonElement>(null);
+  const focusedControl = useRef<HTMLElement | null>(null);
+  // A source refresh can remove the keyboard user's row or inspector action.
+  // Restore a stable in-Lab target only when that removal left focus on body;
+  // never take focus from a surviving control or another part of the shell.
+  useLayoutEffect(() => {
+    const previous = focusedControl.current;
+    if (previous && !previous.isConnected) {
+      focusedControl.current = null;
+      if (previous.ownerDocument.activeElement === previous.ownerDocument.body) backRef.current?.focus();
+    }
+  });
   const rows = useMemo(() => filterResearchRows(data.rows, { side, expiry }), [data.rows, side, expiry]);
   const marks = useMemo(() => buildResearchMarks(rows, metric), [rows, metric]);
   const domain = useMemo(() => buildResearchDomain(data.rows, metric), [data.rows, metric]);
@@ -145,7 +156,11 @@ export function OptionsResearchLab({
           originMs={originMs} selected={selected ?? null} lang={lang} />} />
     : null;
   const unavailable = <p className={styles.notice} role="status">{t("rendererFailed")}</p>;
-  return <section className={styles.lab} aria-label={t("title")}>
+  return <section className={styles.lab} aria-label={t("title")}
+    onFocusCapture={event => { focusedControl.current = event.target as HTMLElement; }}
+    onBlurCapture={event => {
+      if (event.relatedTarget instanceof Node && !event.currentTarget.contains(event.relatedTarget)) focusedControl.current = null;
+    }}>
     <header className={styles.header}>
       <div><button ref={backRef} className={styles.back} onClick={onClose}>{t("back")}</button><h2>{t("title")} <span>{root}</span></h2></div>
       <div className={styles.context}><span>{t("session")}: {data.session ?? t("unknown")}</span><span>{t("oi")}</span><a href="#research-sources">{t("sources")}</a></div>
