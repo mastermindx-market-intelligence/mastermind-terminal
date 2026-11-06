@@ -97,7 +97,7 @@ def test_effective_execute_acl_is_private_server_only_and_owner_read_only():
     revoke = "from public,anon,authenticated,service_role;"
     assert revoke in sql
     assert "grant execute on function public.claim_investigation_native_capture_v1(jsonb,jsonb),public.complete_investigation_native_capture_v1(jsonb,uuid,text) to service_role;" in sql
-    assert "grant execute on function public.read_investigation_native_capture_v1(uuid) to authenticated;" in sql
-    assert "where user_id=auth.uid() and operation_id=p_operation_id" in sql
+    assert "grant execute on function public.read_investigation_native_capture_v1(uuid,jsonb) to authenticated;" in sql
+    assert "where user_id=auth.uid() and operation_id=p_operation_id and request=p_request" in sql
     assert "has_function_privilege(role_name,function_name,'EXECUTE')" in sql
     assert "current_user=" not in sql and "current_user =" not in sql

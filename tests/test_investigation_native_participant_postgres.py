@@ -141,7 +141,7 @@ def test_canonical_fence_does_not_clear_native_unknown_and_original_late_complet
     b, request = inputs(); first = claim(pg, b, request)
     fence = canonical(pg, b, request, reconcile=True)
     assert fence == {"status":"not_applied", "id":request["target"], "operation_id":b["operation_id"]}
-    read = lambda who: rpc(pg, "read_investigation_native_capture_v1", base.quote(b["operation_id"])+"::uuid", who=who)
+    read = lambda who: rpc(pg, "read_investigation_native_capture_v1", base.quote(b["operation_id"])+"::uuid,"+base.manifest_like(request), who=who)
     assert read(A)["native_phase"] == "started" and read(A)["canonical_status"] == "not_applied"
     assert read(B) == {"status":"not_found"}
     assert complete(pg, b, first["generation"])["native_phase"] == "retained"
@@ -188,7 +188,7 @@ def test_concurrent_canonical_fence_and_native_claim_share_original_lock(pg):
     assert canonical_result["status"] == "not_applied"
     assert canonical(pg, b, request) == canonical_result
     assert native["status"] in ("claimed", "conflict")
-    observed = rpc(pg, "read_investigation_native_capture_v1", base.quote(b["operation_id"])+"::uuid", who=A)
+    observed = rpc(pg, "read_investigation_native_capture_v1", base.quote(b["operation_id"])+"::uuid,"+base.manifest_like(request), who=A)
     if native["status"] == "claimed":
         assert observed["native_phase"] == "started"
         assert complete(pg, b, native["generation"])["native_phase"] == "retained"
@@ -208,7 +208,7 @@ def test_actual_canonical_failure_rolls_back_head_revision_but_preserves_native_
             canonical(pg, b, request)
         for table, column in (("investigations", "id"), ("investigation_revisions", "investigation_id")):
             assert pg("select count(*) from "+table+" where "+column+"="+base.quote(request["target"])+"::uuid") == "0"
-        observed = rpc(pg, "read_investigation_native_capture_v1", base.quote(b["operation_id"])+"::uuid", who=A)
+        observed = rpc(pg, "read_investigation_native_capture_v1", base.quote(b["operation_id"])+"::uuid,"+base.manifest_like(request), who=A)
         assert observed["native_phase"] == "retained" and observed["canonical_status"] == "pending"
         assert claim(pg, b, request)["status"] == "existing"
     finally:
@@ -269,8 +269,11 @@ def test_reauthenticated_owner_read_preserves_original_epoch_without_new_capture
     complete(pg,b,first['generation'])
     fresh_epoch=str(uuid4())
     observed=json.loads(pg("set request.jwt.claim.role='authenticated';set request.jwt.claim.session_id="+base.quote(fresh_epoch)
-        +";select public.read_investigation_native_capture_v1("+base.quote(b['operation_id'])+"::uuid)",who=A))
+        +";select public.read_investigation_native_capture_v1("+base.quote(b['operation_id'])+"::uuid,"+base.manifest_like(request)+")",who=A))
     assert observed['binding']['auth_epoch']==EPOCH and observed['generation']==first['generation']
+    assert observed['request']==request
+    changed=copy.deepcopy(request);changed['manifest']['intent']['question']='different original request'
+    assert rpc(pg,'read_investigation_native_capture_v1',base.quote(b['operation_id'])+'::uuid,'+base.manifest_like(changed),who=A)=={'status':'not_found'}
     assert observed['native_phase']=='retained' and fresh_epoch!=observed['binding']['auth_epoch']
     assert claim(pg,{**b,'auth_epoch':fresh_epoch},request)['status']=='conflict'
     denied=complete(pg,b,first['generation'],role='authenticated',check=False)

@@ -109,8 +109,10 @@ operation lock serializes canonical apply/reconcile against the reservation.
 Canonical apply waits for the stored retained phase; canonical reconciliation
 may permanently fence save without claiming the native phase ended. A factual
 original completion may arrive later without reopening rights or issuing PUTs.
-The owner-only `read_investigation_native_capture_v1` exposes this distinction;
-its result is not an ingress/drain or cutover attestation. The current UI keeps
+The owner-only `read_investigation_native_capture_v1(original_key, exact_request)` exposes this distinction;
+its result is not an ingress/drain or cutover attestation. A freshly authenticated
+owner read must match the original key and full request; the returned producer
+epoch stays historical and is never replaced with the current reader session. The current UI keeps
 capture uncertainty until its own authenticated, bound consumer contract can
 establish closure; neither local journal bytes nor canonical not-applied alone
 can unlock a potentially active producer.

@@ -109,12 +109,12 @@ begin
  return jsonb_build_object('schema','investigation.native_capture.v1','status','recorded','generation',p_generation,'binding',p_binding,'native_phase','retained');
 end $fn$;
 
-create or replace function public.read_investigation_native_capture_v1(p_operation_id uuid)
+create or replace function public.read_investigation_native_capture_v1(p_operation_id uuid,p_request jsonb)
 returns jsonb language sql stable security invoker set search_path=pg_catalog,public,auth as $fn$
  select coalesce((select jsonb_build_object('status','found','schema','investigation.native_capture.v1',
  'binding',native_binding,'generation',native_generation,'native_phase',native_phase,
- 'canonical_status',result->>'status','id',request->>'target')
- from public.investigation_mutation_receipts where user_id=auth.uid() and operation_id=p_operation_id and native_binding is not null),jsonb_build_object('status','not_found'))
+ 'canonical_status',result->>'status','id',request->>'target','request',request)
+ from public.investigation_mutation_receipts where user_id=auth.uid() and operation_id=p_operation_id and request=p_request and native_binding is not null),jsonb_build_object('status','not_found'))
 $fn$;
 
 -- Guard only newly enrolled native rows; no historical operation is backfilled.
@@ -155,11 +155,11 @@ create trigger investigation_native_receipt_guard before update or delete on pub
 
 alter function public.claim_investigation_native_capture_v1(jsonb,jsonb) owner to postgres;
 alter function public.complete_investigation_native_capture_v1(jsonb,uuid,text) owner to postgres;
-alter function public.read_investigation_native_capture_v1(uuid) owner to postgres;
+alter function public.read_investigation_native_capture_v1(uuid,jsonb) owner to postgres;
 alter function public.investigation_native_receipt_guard_v1() owner to postgres;
-revoke all on function public.claim_investigation_native_capture_v1(jsonb,jsonb),public.complete_investigation_native_capture_v1(jsonb,uuid,text),public.read_investigation_native_capture_v1(uuid),public.investigation_native_receipt_guard_v1() from public,anon,authenticated,service_role;
+revoke all on function public.claim_investigation_native_capture_v1(jsonb,jsonb),public.complete_investigation_native_capture_v1(jsonb,uuid,text),public.read_investigation_native_capture_v1(uuid,jsonb),public.investigation_native_receipt_guard_v1() from public,anon,authenticated,service_role;
 grant execute on function public.claim_investigation_native_capture_v1(jsonb,jsonb),public.complete_investigation_native_capture_v1(jsonb,uuid,text) to service_role;
-grant execute on function public.read_investigation_native_capture_v1(uuid) to authenticated;
+grant execute on function public.read_investigation_native_capture_v1(uuid,jsonb) to authenticated;
 
 create or replace function public.apply_investigation_revision_v2(
  p_id uuid,p_expected_revision integer,p_action text,p_operation_id uuid,p_manifest jsonb,p_layout_capture jsonb default null,p_screen_capture jsonb default null
