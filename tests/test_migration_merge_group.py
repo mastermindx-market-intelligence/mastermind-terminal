@@ -367,6 +367,27 @@ def test_parallel_migrations_require_each_original_source_head_and_base_absence(
             )
 
 
+def test_a_later_queue_candidate_may_include_only_predecessors_open_migration():
+    """The #970-type group retains the earlier #1084 SQL, but its own source
+    PR has none. The native predecessor must be authenticated, not discarded."""
+    data, event, env = parallel_fixture()
+    owners, tip = group.validate_parallel_snapshot(data, event, env, SECOND_HEAD)
+    doc, source = migration_fixture()
+    calls = []
+
+    def reader(query, variables):
+        calls.append((query, variables))
+        return {"repository": source}
+
+    qualified = group.validate_parallel_migrations(
+        owners, tip, doc, {NAME: RAW}, reader,
+        {"owner": "example", "name": "terminal"},
+    )
+    assert qualified == frozenset({582})
+    assert len(calls) == 1
+    assert calls[0][1]["ledger"] == SOURCE + ":supabase/migrations/RESERVATIONS.json"
+
+
 def test_parallel_migration_attestation_reuses_existing_provenance_for_each_owner():
     owners, doc, files, read, calls = parallel_migration_fixture()
     proven = group.validate_parallel_migrations(
@@ -405,6 +426,25 @@ def test_parallel_source_query_uses_immutable_membership_not_environment_hint(tm
     assert group.qualify_owner(tmp_path, env, doc, files) == frozenset({582, 583})
     assert len(calls) == 3
     assert "9999" not in str(calls) and "synthetic-token" not in str(calls)
+
+
+def test_ingest_merge_group_membership_reads_are_minimal_privilege():
+    """Migration owner proofs may read PR/queue metadata but never write
+    source, approvals, actions, permissions or queue membership."""
+    import yaml
+
+    workflow = yaml.safe_load(
+        (Path(__file__).resolve().parents[1] / ".github/workflows/ci.yml").read_text()
+    )
+    ingest = workflow["jobs"]["ingest"]
+    assert ingest["name"] == "Ingest + signal-layer tests"
+    assert ingest["permissions"] == {"contents": "read", "pull-requests": "read"}
+    step = next(
+        s for s in ingest["steps"]
+        if s.get("run") == "python -m pytest tests/ -q"
+    )
+    assert "github.event_name == 'merge_group'" in step["env"]["GH_TOKEN"]
+    assert "github.token" in step["env"]["GH_TOKEN"]
 
 
 def test_namespace_accepts_only_verified_parallel_owner_set(tmp_path, monkeypatch):
