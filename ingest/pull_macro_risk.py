@@ -37,10 +37,16 @@ def _dict(value) -> dict:
 
 
 def _date(value) -> date | None:
-    try:
-        return date.fromisoformat(str(value)[:10])
-    except (TypeError, ValueError):
+    """Read an exact settled-session date, never a truncated quote timestamp."""
+    if type(value) is date:
+        return value
+    if not isinstance(value, str):
         return None
+    try:
+        parsed = date.fromisoformat(value)
+    except ValueError:
+        return None
+    return parsed if parsed.isoformat() == value else None
 
 
 def _timestamp(value) -> datetime | None:
@@ -139,7 +145,8 @@ def build_market_risk(src: dict, today: date | None = None, *,
         asof = src.get("asof")
         event_time = src.get("source_event_time")
         components = [
-            {key: c.get(key) for key in ("key", "label_en", "label_zh", "score", "tone", "weight", "degraded")
+            {key: _num(c.get(key)) if key == "score" else c.get(key)
+             for key in ("key", "label_en", "label_zh", "score", "tone", "weight", "degraded")
              if key in c}
             for c in (src.get("components") or []) if isinstance(c, dict)
         ] or None
@@ -161,11 +168,11 @@ def build_market_risk(src: dict, today: date | None = None, *,
         source_date = _date(asof)
         reasons.append("missing_or_invalid_asof" if source_date is None else
                        "future_asof" if source_date > today else "expired_asof")
-    if source_fresh.get("stale") is True:
+    if "stale" in source_fresh and source_fresh["stale"] is not False:
         reasons.append("owner_stale")
     # A stale quote plane after market close does not invalidate the chosen
     # settled view. Its original stale reason remains preserved below.
-    if src.get("stale") is True and (live_active or legacy or not wrapped):
+    if "stale" in src and src["stale"] is not False and (live_active or legacy or not wrapped):
         reasons.append("source_stale")
 
     built = src.get("built") or src.get("produced_at")
