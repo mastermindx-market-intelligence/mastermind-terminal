@@ -5,12 +5,64 @@
 // 403s, so this replaces the would-be-empty workspace with a clear upgrade prompt.
 // Matches the locked v5 idiom — panel/line tokens + the brand-blue accent
 // (--brand / --brand-2, the app's primary action colour). Bilingual via LEX t().
+import { useCallback, useEffect, useState } from "react";
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
-import { useT } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
+import { pick } from "@/lib/finFormat";
+import { createClient } from "@/lib/supabase/client";
+import { recoverMemberSession, type RecoveryResult } from "@/lib/supabase/sessionRecovery";
 
-export default function OptionsPaywall() {
+export default function OptionsPaywall({ verifySession = false }: { verifySession?: boolean }) {
   const t = useT();
+  const { lang } = useLang();
   const onboarding = useOnboarding();
+  const [recovery, setRecovery] = useState<RecoveryResult | "checking">(verifySession ? "checking" : "guest");
+  const checkSession = useCallback(async (manualRetry = false) => {
+    if (!verifySession) return;
+    if (manualRetry) setRecovery("checking");
+    let storage: Storage | undefined;
+    try { storage = window.sessionStorage; } catch { /* privacy-restricted browser */ }
+    const status = await recoverMemberSession({
+      cookieHeader: document.cookie,
+      verify: async () => {
+        const { data, error } = await createClient().auth.getUser();
+        return { user: !!data.user, error };
+      },
+      navigate: () => window.location.reload(),
+      storage,
+      manualRetry,
+    });
+    setRecovery(status);
+  }, [verifySession]);
+  useEffect(() => {
+    if (verifySession) void Promise.resolve().then(() => checkSession());
+  }, [checkSession, verifySession]);
+
+  // Only an actual guest or server-confirmed non-entitlement sees plans. A
+  // cookie-bearing account being restored never gets a temporary upgrade pitch.
+  if (verifySession && recovery !== "guest") {
+    const unavailable = recovery === "unavailable";
+    return (
+      <main id="shared-shell-content" tabIndex={-1} style={{ display: "flex", minHeight: "100%", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <div role="status" aria-live="polite" style={{ maxWidth: 420, textAlign: "center" }}>
+          <h1 style={{ fontSize: 19, marginBottom: 10 }}>
+            {unavailable
+              ? pick(lang === "zh", "Unable to verify account access", "暂时无法验证账户权限")
+              : pick(lang === "zh", "Restoring account access…", "正在恢复账户权限…")}
+          </h1>
+          <p style={{ fontSize: 13, opacity: .75, lineHeight: 1.6 }}>
+            {pick(lang === "zh", "Protected features remain unavailable until your session is verified.", "账户验证完成前，受保护的功能保持关闭。")}
+          </p>
+          {unavailable && (
+            <button type="button" onClick={() => { void checkSession(true); }}
+              style={{ padding: "10px 16px", background: "var(--brand)", border: 0, borderRadius: 6, color: "white", cursor: "pointer" }}>
+              {t("errTryAgain")}
+            </button>
+          )}
+        </div>
+      </main>
+    );
+  }
   const features = [t("opwF1"), t("opwF2"), t("opwF3"), t("opwF4")];
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100%", padding: "48px 20px" }}>
