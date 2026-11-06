@@ -115,3 +115,23 @@ def test_a_late_completion_after_miss_is_not_polled_or_inferred():
     result, _ = observe({}, rpc=rpc)
     assert result["observation"] == "unresolved" and len(calls) == 1
     assert next(replies)["status"] == "committed"
+
+
+def test_first_revision_cannot_have_a_parent():
+    data = committed()
+    data["parent_revision_id"] = "50000000-0000-4000-8000-000000000001"
+    assert observe(data)[0]["observation"] == "unresolved"
+
+
+def test_later_revision_requires_a_parent():
+    data = committed()
+    data.update(revision=2, sequence=2)
+    assert observe(data, expected_revision=1)[0]["observation"] == "unresolved"
+
+
+def test_native_first_and_later_revision_parent_controls():
+    assert observe(committed())[0]["observation"] == "recorded_commit"
+    data = committed()
+    data.update(revision=2, sequence=2,
+                parent_revision_id="50000000-0000-4000-8000-000000000001")
+    assert observe(data, expected_revision=1)[0]["observation"] == "recorded_commit"

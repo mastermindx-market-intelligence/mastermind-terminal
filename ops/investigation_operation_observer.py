@@ -77,6 +77,7 @@ def observe_original_operation(*, principal, operation_id, investigation_id,
                 or type(data.get("sequence")) is not int or data["sequence"] != data["revision"]
                 or "parent_revision_id" not in data
                 or (data["parent_revision_id"] is not None and not _valid(_UUID, data["parent_revision_id"]))
+                or ((data["revision"] == 1) != (data["parent_revision_id"] is None))
                 or data.get("lifecycle") not in ("active", "removed")
                 or type(data.get("manifest")) is not dict
                 or data["manifest"].get("schema") != "investigation_manifest.v2"
