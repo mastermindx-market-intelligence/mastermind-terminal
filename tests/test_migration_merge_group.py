@@ -262,7 +262,9 @@ def parallel_fixture():
     }
     data["repository"]["mergeQueue"]["entries"]["nodes"].append(second)
     event["merge_group"]["head_sha"] = SECOND_HEAD
-    event["merge_group"]["base_sha"] = HEAD
+    # GitHub's event base_sha points at protected master (BASE); the
+    # predictive predecessor is HEAD and is proved by the queue entry itself.
+    event["merge_group"]["base_sha"] = BASE
     env["GITHUB_SHA"] = SECOND_HEAD
     return data, event, env
 
@@ -291,6 +293,18 @@ def parallel_migration_fixture():
     return owners, doc, files, read, reads
 
 
+def test_event_base_is_protected_tip_not_predictive_predecessor():
+    data, event, env = parallel_fixture()
+    assert event["merge_group"]["base_sha"] == BASE
+    assert data["repository"]["mergeQueue"]["entries"]["nodes"][1]["baseCommit"]["oid"] == HEAD
+    assert group.validate_parallel_snapshot(data, event, env, SECOND_HEAD)[0] == {
+        582: SOURCE, 583: SECOND_SOURCE
+    }
+    event["merge_group"]["base_sha"] = HEAD
+    with pytest.raises(group.OwnershipUnqualified):
+        group.validate_parallel_snapshot(data, event, env, SECOND_HEAD)
+
+
 def test_parallel_candidate_is_bound_to_all_native_predecessor_owners():
     data, event, env = parallel_fixture()
     env["PR_NUMBER"] = "9999"  # never an independent membership proof
@@ -316,6 +330,7 @@ def test_parallel_candidate_is_bound_to_all_native_predecessor_owners():
     ("mergeQueue.entries.nodes.1.pullRequest.state", "MERGED"),
     ("mergeQueue.entries.nodes.1.headCommit.tree.oid", "bogus"),
     ("defaultBranchRef.target.oid", "0" * 40),
+    ("mergeQueue.entries.nodes.1.headCommit.oid", "8" * 40),
 ])
 def test_parallel_group_refuses_non_native_or_incomplete_membership(path, value):
     data, event, env = parallel_fixture()
