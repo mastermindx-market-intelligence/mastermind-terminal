@@ -2996,3 +2996,37 @@ def test_conjoined_hook_qualifiers_require_one_observed_projection(verifier, tra
     verifier["unit_property"] = moving_property
     with pytest.raises(verifier["Refused"], match="safety-hook-changed-during-verification"):
         verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
+
+
+@pytest.mark.parametrize("code", ["exited", "(null)"])
+@pytest.mark.parametrize("suffix", [" ; ", " "])
+def test_safety_hook_known_systemd_metadata_schema(verifier, code, suffix):
+    host, _, _ = safety_host(verifier)
+    metadata = ("start_time=[] ; stop_time=[] ; pid=0 ; code=" + code
+                + " ; status=0/0" + suffix)
+    host.unit["ExecStartPre"] = host.unit["ExecStartPre"].replace(
+        "ignore_errors=no ; }", "ignore_errors=no ; " + metadata + "}")
+    verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
+
+
+@pytest.mark.parametrize("change", [
+    lambda s: s.replace("pid=0 ;", "pid=0 ; extra=value ;"),
+    lambda s: s.replace("start_time=[] ; stop_time=[]", "stop_time=[] ; start_time=[]"),
+    lambda s: s.replace("code=(null)", "code=(NULL)"),
+    lambda s: s.replace("code=(null)", "code=(null)junk"),
+    lambda s: s.replace("code=(null)", "code=()"),
+    lambda s: s.replace("status=0/0", "status=0/0 ; unknown=value"),
+    lambda s: s.replace("--service", "--service --bypass"),
+    lambda s: s.replace("ignore_errors=no", "ignore_errors=yes"),
+    lambda s: s.replace("stop_time=[] ; ", ""),
+    lambda s: s[:-1],
+    lambda s: s + " unexpected",
+])
+def test_safety_hook_metadata_refuses_unknown_or_changed_structure(verifier, change):
+    host, _, _ = safety_host(verifier)
+    metadata = "start_time=[] ; stop_time=[] ; pid=0 ; code=(null) ; status=0/0 "
+    projection = host.unit["ExecStartPre"].replace(
+        "ignore_errors=no ; }", "ignore_errors=no ; " + metadata + "}")
+    host.unit["ExecStartPre"] = change(projection)
+    with pytest.raises(verifier["Refused"], match="unsupported-service-launch-hook"):
+        verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
