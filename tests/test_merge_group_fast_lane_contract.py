@@ -39,12 +39,15 @@ def test_full_browser_matrix_only_skips_on_native_merge_group() -> None:
 def test_only_original_browser_capture_steps_skip_on_merge_group() -> None:
     steps = jobs()["terminal-unit"]["steps"]
     by_name = {s["name"]: s for s in steps if "name" in s}
-    assert by_name["Prepare Chromium for original mock captures"]["if"] == (
-        "github.event_name != 'merge_group'"
+    condition = "github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'"
+    assert by_name["Prepare Chromium for original mock captures"]["if"] == condition
+    assert by_name["Capture and validate evidence on this checkout"]["if"] == condition
+    assert by_name["Plan current-source evidence capture"]["id"] == "evidence_plan"
+    assert by_name["Plan current-source evidence capture"]["run"] == (
+        "node scripts/ci/plan-evidence-capture.cjs"
     )
-    assert by_name["Capture and validate evidence on this checkout"]["if"] == (
-        "github.event_name != 'merge_group'"
-    )
+    synthetic = by_name["Check immutable evidence orchestration (synthetic)"]["run"]
+    assert "scripts/ci/plan-evidence-capture.test.cjs" in synthetic
     for step in steps:
         command = str(step.get("run", ""))
         if "npx tsc --noEmit" in command or command.strip() == "npm test":
