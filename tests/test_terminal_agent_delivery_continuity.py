@@ -30,7 +30,7 @@ NESTED_GUARDS = (
     "never retry an explicit safety/permission denial",
     "reconcile EFFECT_UNKNOWN on the same carrier",
     "Do not claim a pushed remote branch when publication did not occur",
-    "fresh incognito end-to-end pass",
+    "Incognito E2E, screenshot dossiers for every state, and blanket EN/ZH/light/dark captures",
     "merge-on-green",
 )
 WORKSPACE_GUARDS = (
@@ -89,3 +89,13 @@ def test_nested_workspace_instruction_does_not_order_raw_git_worktree():
     guide = _read("terminal/AGENTS.md")
     assert "ALWAYS `git worktree add`" not in guide
     assert "Do not create a second worktree" in guide
+
+
+def test_routine_ui_proof_is_scoped_without_removing_high_risk_user_path_checks():
+    root, nested = _read("AGENTS.md"), _read("terminal/AGENTS.md")
+    assert "risk- and blast-radius-scoped UI proof" in nested
+    assert "NOT required for each routine UI change" in nested
+    assert "Authentication, entitlement, financial execution, shared shell" in nested
+    assert "Preserve the real" in root and "required GitHub checks" in root
+    assert "unknown scope or material cross-device behavior" in root
+

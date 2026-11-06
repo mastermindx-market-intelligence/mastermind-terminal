@@ -26,7 +26,12 @@ def preview_step():
 def test_serial_shard_only_runs_preview_after_ordinary_e2e():
     all_steps, _ = steps()
     step = preview_step()
-    assert step.get("if") == "matrix.shard == 'serial'"
+    # The default-off preview must still run for a full/merge-group qualification.
+    # A focused Screener-only PR deliberately omits unrelated feature previews.
+    assert step.get("if") == "needs.ci-scope.outputs.mode == 'full' && matrix.shard == 'serial'"
+    _, workflow = steps()
+    assert "ci-scope" in workflow["jobs"]
+    assert "ci-scope" in workflow["jobs"]["terminal-e2e"]["needs"]
     index = all_steps.index(step)
     ordinary = [i for i, s in enumerate(all_steps) if "test:e2e:responsive -- ${{ matrix.projects }}" in str(s.get("run", ""))]
     uploads = [i for i, s in enumerate(all_steps) if s.get("name") == "Upload responsive QA screenshots"]
