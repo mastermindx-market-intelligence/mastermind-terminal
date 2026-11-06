@@ -103,7 +103,12 @@ export default function LegacyPageHost({
 
   useEffect(() => {
     const changed = () => setRevision(value => value + 1);
-    const back = () => { traversal.current = true; changed(); };
+    const back = () => {
+      // Next can commit the target entry before this popstate listener runs.
+      // A late event must not arm an unrelated subsequent push.
+      traversal.current = previousEntry.current?.key !== window.history.state?.[ENTRY_KEY];
+      changed();
+    };
     window.addEventListener("popstate", back);
     window.addEventListener("hashchange", changed);
     window.addEventListener(LOCATION_EVENT, changed);
@@ -154,7 +159,10 @@ export default function LegacyPageHost({
       key = crypto.randomUUID();
       window.history.replaceState({ ...(state || {}), [ENTRY_KEY]: key }, "", window.location.href);
     }
-    const restoring = traversal.current;
+    // Next can render the traversed route before its popstate callback runs.
+    // A saved, distinct history-entry ID independently establishes a return.
+    // A fresh push has no saved ID and must not inherit prior scroll or focus.
+    const restoring = traversal.current || (!!previous && previous.key !== key && views.current.has(key));
     traversal.current = false;
     previousEntry.current = { key, canonical };
     if (sameDocument.current === canonical && live.current) {

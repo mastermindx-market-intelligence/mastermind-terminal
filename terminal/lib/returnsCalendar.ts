@@ -68,9 +68,7 @@ export function buildDailyReturnRecords(bars: readonly Bar[]): DailyReturnRecord
     const prev = index > 0 ? ordered[index - 1] : null;
     const previousDate = prev ? prev[0] : null;
     const previousClose = prev ? prev[1].c : null;
-    const returnPct = previousClose && previousClose > 0
-      ? (bar.c / previousClose - 1) * 100
-      : null;
+    const returnPct = finiteReturnPercent(bar.c, previousClose);
     const gapCalendarDays = previousDate
       ? Math.max(0, Math.round((Date.parse(date + "T00:00:00Z") - Date.parse(previousDate + "T00:00:00Z")) / 86400000) - 1)
       : 0;
@@ -84,7 +82,7 @@ export function summarizeReturnMonth(records: readonly DailyReturnRecord[], mont
   const end = inMonth[inMonth.length - 1] ?? null;
   const firstIndex = first ? records.findIndex((record) => record.date === first.date) : -1;
   const reference = firstIndex > 0 ? records[firstIndex - 1] : null;
-  const usable = inMonth.filter((record) => record.returnPct !== null);
+  const usable = inMonth.filter((record) => finite(record.returnPct));
   const best = usable.length
     ? usable.reduce((winner, record) => (record.returnPct! > winner.returnPct! ? record : winner))
     : null;
@@ -99,7 +97,7 @@ export function summarizeReturnMonth(records: readonly DailyReturnRecord[], mont
     referenceDate: reference?.date ?? null,
     referenceClose: reference?.bar.c ?? null,
     endClose: end?.bar.c ?? null,
-    returnPct: reference && end ? (end.bar.c / reference.bar.c - 1) * 100 : null,
+    returnPct: reference && end ? finiteReturnPercent(end.bar.c, reference.bar.c) : null,
     observedDays: inMonth.length,
     upDays: usable.filter((record) => record.returnPct! > 0).length,
     downDays: usable.filter((record) => record.returnPct! < 0).length,
@@ -107,6 +105,18 @@ export function summarizeReturnMonth(records: readonly DailyReturnRecord[], mont
     best,
     worst,
   };
+}
+
+/** Finite inputs may still overflow the ratio or its percentage conversion. */
+export function finiteReturnPercent(close: number, reference: number | null): number | null {
+  if (!finite(close) || !finite(reference) || close <= 0 || reference <= 0) return null;
+  const value = (close / reference - 1) * 100;
+  return finite(value) ? value : null;
+}
+
+/** Withheld values have no gain/loss styling; an observed zero stays valid. */
+export function returnDirection(value: number | null): "up" | "down" | "" {
+  return finite(value) ? (value >= 0 ? "up" : "down") : "";
 }
 
 export function returnHeatBand(value: number | null): "flat" | "soft" | "mid" | "strong" {
@@ -185,7 +195,8 @@ function aggregateSession(
   const close = clean[clean.length - 1][4];
   const low = Math.min(...clean.map((b) => b[3]));
   const high = Math.max(...clean.map((b) => b[2]));
-  const ret = open !== 0 ? ((close - open) / open) * 100 : null;
+  const calculatedReturn = open !== 0 ? ((close - open) / open) * 100 : null;
+  const ret = finite(calculatedReturn) ? calculatedReturn : null;
   return { key, hours, low, high, open, close, ret, barCount: clean.length };
 }
 
@@ -288,13 +299,14 @@ export function returnCalendarMonthFocus(
 }
 
 export function dailyReturnQuality(record: DailyReturnRecord): string {
-  if (record.previousClose === null || record.returnPct === null) return "missing_prior_reference";
+  if (record.previousClose === null) return "missing_prior_reference";
+  if (!finite(record.returnPct)) return "unavailable_return";
   return record.gapCalendarDays > 0 ? "observed_return_with_calendar_gap" : "observed_return";
 }
 
 export function serializeReturnsMonth(records: readonly DailyReturnRecord[], month: string): string {
   const cell = (value: unknown) => {
-    const text = value == null ? "" : String(value);
+    const text = value == null || (typeof value === "number" && !finite(value)) ? "" : String(value);
     return /[",\r\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
   };
   const rows = [

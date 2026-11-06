@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 from copy import deepcopy
 from pathlib import Path
@@ -489,7 +490,16 @@ def test_green_current_head_is_sha_pinned_merged_and_deleted():
     assert result[0] == "#7: merged and deleted claude/pr-7"
 
 
-def test_green_heads_enqueue_concurrently_when_native_queue_is_enabled():
+READY_REPORT = (
+    "#{n}: ready for the merge queue; native user admission required "
+    "(gh pr merge {n} --auto --match-head-commit head-{n}); head head-{n} verified green by this sweep"
+)
+
+
+def test_queue_mode_reports_green_heads_ready_and_never_enqueues():
+    # A successful workflow-token enqueue does not establish downstream event
+    # delivery. Green heads remain eligible, but this sweep only reports them;
+    # the native user path pins the exact verified head at admission.
     api = FakeApi(
         [pull(1), pull(2, mergeable_state="behind")],
         queue_enabled=True,
@@ -497,16 +507,10 @@ def test_green_heads_enqueue_concurrently_when_native_queue_is_enabled():
 
     result = sweep(api)
 
-    assert ("enqueue", "PR-node-1", "head-1") in api.actions
-    assert ("enqueue", "PR-node-2", "head-2") in api.actions
-    assert not any(action[0] == "merge" for action in api.actions)
-    assert not any(action[0] == "update" for action in api.actions)
-    assert not any(action[0] == "dispatch_ci" for action in api.actions)
-    assert not any(action[0] == "delete" for action in api.actions)
-    assert result == [
-        "#1: enqueued in merge queue (MQE-PR-node-1)",
-        "#2: enqueued in merge queue (MQE-PR-node-2)",
-    ]
+    assert api.actions == []
+    assert api.queue_entries == {}
+    assert api.dispatched == []
+    assert result == [READY_REPORT.format(n=1), READY_REPORT.format(n=2)]
 
 
 def test_queue_mode_is_idempotent_for_an_already_enqueued_head():
@@ -522,21 +526,84 @@ def test_queue_mode_is_idempotent_for_an_already_enqueued_head():
     assert not any(action[0] in {"enqueue", "merge", "update", "delete"} for action in api.actions)
 
 
-def test_queue_enqueue_4xx_is_a_per_pr_decline_and_does_not_hide_the_next_candidate():
+def test_queue_mode_reports_an_existing_entry_read_only_and_still_sees_the_next_head():
+    # A head already holding a queue entry is reported exactly as before --
+    # read-only, no mutation -- and its outcome must not hide the next armed
+    # head, which (holding no entry) is reported ready rather than enqueued.
     api = FakeApi(
         [pull(1), pull(2)],
         queue_enabled=True,
-        enqueue_errors={1: (422, "expected head changed")},
+        queue_entries={"PR-node-1": "MQE-existing"},
     )
 
     result = sweep(api)
 
-    assert result == [
-        "#1: declined: GitHub API 422: expected head changed",
-        "#2: enqueued in merge queue (MQE-PR-node-2)",
-    ]
-    assert ("enqueue", "PR-node-2", "head-2") in api.actions
+    assert result == ["#1: already queued (MQE-existing)", READY_REPORT.format(n=2)]
+    assert api.actions == []
+    assert api.queue_entries == {"PR-node-1": "MQE-existing"}
 
+
+# --- native queue admission is a user action (2026-11-05) ----------------------
+#
+# The workflow-token enqueue result is not downstream event-delivery proof.
+# This sweep therefore never enqueues. A red, pending,
+# foreign-App or held head is refused exactly as before, and a fully green head
+# with no entry is reported ready for `gh pr merge --auto` instead.
+
+
+def test_queue_mode_red_head_is_quarantined_and_never_enqueued():
+    api = FakeApi([pull()], queue_enabled=True, runs={"head-7": checks(conclusion="failure")})
+
+    result = sweep(api)
+
+    assert result == ["#7: red"]
+    assert ("add_labels", 7, (BLOCK_LABEL,)) in api.actions
+    assert not any(action[0] == "enqueue" for action in api.actions)
+    assert api.queue_entries == {}
+
+
+def test_queue_mode_pending_head_waits_and_never_enqueues():
+    runs = checks()
+    runs.append(
+        {
+            "id": 999,
+            "name": REQUIRED_CHECKS[0],
+            "status": "in_progress",
+            "conclusion": None,
+            "app": {"id": REQUIRED_CHECK_APP_ID},
+        }
+    )
+    api = FakeApi([pull()], queue_enabled=True, runs={"head-7": runs})
+
+    result = sweep(api)
+
+    assert result == [f"#7: pending: {REQUIRED_CHECKS[0]}"]
+    assert api.actions == []
+    assert api.queue_entries == {}
+
+
+def test_queue_mode_foreign_app_green_waits_and_never_enqueues():
+    api = FakeApi([pull()], queue_enabled=True, runs={"head-7": checks(app_id=999999)})
+
+    result = sweep(api)
+
+    assert result == [
+        f"#7: missing trusted App {REQUIRED_CHECK_APP_ID} checks: " + ", ".join(REQUIRED_CHECKS)
+    ]
+    assert api.actions == []
+    assert api.queue_entries == {}
+
+
+def test_queue_mode_held_run_is_released_and_never_enqueues():
+    # A held pull_request run is still released (it is the only way checks can
+    # ever arrive) -- and the sweep still performs no queue admission itself.
+    api = FakeApi([pull()], queue_enabled=True, runs={"head-7": []}, ci_runs={"head-7": [ci_run()]})
+
+    result = sweep(api)
+
+    assert result == ["#7: re-ran held pull_request CI run 9001 for head-7; awaiting PR-linked CI"]
+    assert api.actions == [("rerun", 9001)]
+    assert api.queue_entries == {}
 
 
 def test_wrong_app_green_never_reaches_merge_or_quarantine():
@@ -729,6 +796,72 @@ def test_after_one_merge_the_next_stale_green_is_refreshed_not_merged():
     ]
 
 
+def test_older_behind_head_does_not_hide_a_later_ready_head():
+    api = FakeApi([pull(1, mergeable_state="behind"), pull(2)])
+    waits = []
+
+    result = sweep(api, wait=waits.append)
+
+    assert api.actions == [
+        ("merge", 2, "head-2"),
+        ("delete", "claude/pr-2"),
+        ("update", 1, "head-1"),
+        ("rerun", 9101),
+    ]
+    assert result == ["#2: merged and deleted claude/pr-2", "#1: " + REFRESHED.format(n=1)]
+    assert waits == []
+
+
+def test_ready_heads_keep_their_order_before_one_deferred_refresh():
+    class MovingBaseApi(FakeApi):
+        def merge(self, number, head_sha):
+            result = super().merge(number, head_sha)
+            for other in self.pulls.values():
+                if other["number"] != number:
+                    other["mergeable_state"] = "behind"
+            return result
+
+    api = MovingBaseApi([
+        pull(1, mergeable_state="behind"), pull(2), pull(3),
+        pull(4, mergeable_state="behind"),
+    ])
+
+    sweep(api, wait=lambda _: None)
+
+    assert [action[1] for action in api.actions if action[0] == "merge"] == [2]
+    assert [action[1] for action in api.actions if action[0] == "update"] == [1]
+
+
+@pytest.mark.parametrize("change", ["hold", "draft", "new_head", "conflict", "pending"])
+def test_deferred_refresh_rechecks_current_release_gates(change):
+    class ChangedDeferredApi(FakeApi):
+        reads = 0
+
+        def pull(self, number):
+            item = super().pull(number)
+            if number == 1:
+                self.reads += 1
+                if self.reads == 2:
+                    if change == "hold":
+                        item["labels"].append({"name": "hold"})
+                    elif change == "draft":
+                        item["draft"] = True
+                    elif change == "new_head":
+                        item["head"]["sha"] = "unqualified-new-head"
+                    elif change == "conflict":
+                        item["mergeable"] = False
+                    else:
+                        item["mergeable"] = None
+            return item
+
+    api = ChangedDeferredApi([pull(1, mergeable_state="behind"), pull(2)])
+
+    sweep(api, wait=lambda _: None)
+
+    assert ("merge", 2, "head-2") in api.actions
+    assert not any(action[0] in {"update", "rerun", "dispatch_ci"} for action in api.actions)
+
+
 # --- review round 4, MAJOR 2 -------------------------------------------------
 #
 # When no pull_request run appears for a GITHUB_TOKEN-refreshed head, the run this
@@ -766,11 +899,13 @@ def test_merge_queue_probe_is_bound_to_the_exact_repository_and_base():
     }
 
 
-def test_enqueue_mutation_pins_the_exact_pull_request_and_head():
+def test_enqueue_mutation_pins_the_exact_pull_request_and_head(monkeypatch):
     api = RecordingGraphQLApi(
         [{"enqueuePullRequest": {"mergeQueueEntry": {"id": "MQE-7"}}}]
     )
 
+    # This existing test isolates mutation shape; issuer tests exercise the real preflight.
+    monkeypatch.setattr(api, "native_enqueue_api", lambda: api)
     assert api.enqueue("PR-node-7", "head-7") == "MQE-7"
     assert api.calls[0][1] == {
         "pullRequestId": "PR-node-7",
@@ -1122,3 +1257,670 @@ def test_re_run_posts_to_the_exact_run():
     api.rerun_workflow_run(38370600573)
 
     assert api.calls == [("POST", "/actions/runs/38370600573/rerun", None)]
+
+
+# --- optional target_pr workflow_dispatch input --------------------------------
+#
+# A manually dispatched run may name exactly one pull request. The input is
+# validated before any API client is built, and a targeted run reconciles only
+# that pull request: every incumbent guard still applies to it, and no other
+# pull request is ever considered, merged, refreshed or enqueued as a fallback.
+#
+# Every test here drives a stub in place of the HTTP layer: nothing touches the
+# network.
+
+
+def mog_workflow_text() -> str:
+    return (
+        Path(__file__).resolve().parents[1]
+        / ".github"
+        / "workflows"
+        / "merge-on-green.yml"
+    ).read_text(encoding="utf-8")
+
+
+def mog_workflow() -> dict[str, Any]:
+    return yaml.safe_load(mog_workflow_text())
+
+
+def workflow_triggers(workflow: dict[str, Any]) -> dict[str, Any]:
+    # PyYAML resolves the bare key `on` to the boolean True (YAML 1.1), so the
+    # trigger map may be stored under either spelling.
+    triggers = workflow.get("on")
+    if not isinstance(triggers, dict):
+        triggers = workflow.get(True)
+    return triggers or {}
+
+
+def test_the_dispatch_trigger_gains_an_optional_string_target_pr_input():
+    triggers = workflow_triggers(mog_workflow())
+
+    # The incumbent triggers are untouched; only workflow_dispatch gains an input.
+    assert set(triggers) == {
+        "workflow_run",
+        "pull_request_target",
+        "schedule",
+        "workflow_dispatch",
+    }
+    inputs = triggers["workflow_dispatch"]["inputs"]
+    assert inputs["target_pr"]["required"] is False
+    assert inputs["target_pr"]["default"] == ""
+    assert inputs["target_pr"]["type"] == "string"
+
+
+def test_target_pr_reaches_the_script_through_env_never_the_shell():
+    workflow = mog_workflow()
+
+    step = workflow["jobs"]["sweep"]["steps"][1]
+    env = step["env"]
+    # Routed as workflow-context expressions through the step environment, so the
+    # shell never interpolates the value.
+    assert env["TARGET_PR"] == "${{ inputs.target_pr }}"
+    assert env["GITHUB_EVENT_NAME"] == "${{ github.event_name }}"
+    assert env["TRIGGER_PR_NUMBER"] == "${{ github.event.pull_request.number }}"
+    assert "${{" not in step["run"]
+    assert "target_pr" not in step["run"]
+    assert "TARGET_PR" not in step["run"]
+
+
+@pytest.mark.parametrize(
+    "raw",
+    ["7", "861", "2147483647"],
+)
+def test_target_pr_accepts_exactly_a_canonical_ascii_positive_number(raw):
+    assert mog.parse_target_pr(raw) == int(raw)
+
+
+def test_an_omitted_or_empty_target_pr_means_no_target():
+    assert mog.parse_target_pr(None) is None
+    assert mog.parse_target_pr("") is None
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        pytest.param(" 7", id="leading-space"),
+        pytest.param("7 ", id="trailing-space"),
+        pytest.param("7\n", id="newline"),
+        pytest.param("+7", id="plus-sign"),
+        pytest.param("-7", id="minus-sign"),
+        pytest.param("0", id="zero"),
+        pytest.param("00", id="double-zero"),
+        pytest.param("1_000", id="underscore"),
+        pytest.param("0x10", id="hex-prefix"),
+        pytest.param("7.0", id="decimal-point"),
+        pytest.param("seven", id="word"),
+        pytest.param("١٢", id="arabic-indic-digits"),
+        pytest.param("７", id="fullwidth-digit"),
+        pytest.param("²", id="superscript-two"),
+        pytest.param("2147483648", id="just-past-2^31-1"),
+        pytest.param("99999999999", id="far-overflow"),
+    ],
+)
+def test_target_pr_rejects_anything_but_a_plain_positive_number(raw):
+    with pytest.raises(ValueError):
+        mog.parse_target_pr(raw)
+
+
+def main_env(monkeypatch, *, event="workflow_dispatch", trigger=None, target=None):
+    monkeypatch.setenv("GH_REPO", "owner/repo")
+    monkeypatch.setenv("MERGE_TOKEN", "token")
+    if event is None:
+        monkeypatch.delenv("GITHUB_EVENT_NAME", raising=False)
+    else:
+        monkeypatch.setenv("GITHUB_EVENT_NAME", event)
+    if trigger is None:
+        monkeypatch.delenv("TRIGGER_PR_NUMBER", raising=False)
+    else:
+        monkeypatch.setenv("TRIGGER_PR_NUMBER", str(trigger))
+    if target is None:
+        monkeypatch.delenv("TARGET_PR", raising=False)
+    else:
+        monkeypatch.setenv("TARGET_PR", str(target))
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [" 7", "+7", "-7", "0", "７", "2147483648", "seven"],
+)
+def test_an_invalid_target_pr_fails_before_any_api_client_exists(monkeypatch, capsys, raw):
+    main_env(monkeypatch, event="workflow_dispatch", target=raw)
+    constructed = []
+
+    def forbidden(repo, token):
+        constructed.append((repo, token))
+        raise AssertionError("GitHubApi must not be constructed for an invalid target_pr")
+
+    monkeypatch.setattr(mog, "GitHubApi", forbidden)
+    monkeypatch.setattr(mog, "sweep", forbidden)
+
+    assert mog.main() == 2
+    assert "target_pr" in capsys.readouterr().err
+    assert constructed == []
+
+
+@pytest.mark.parametrize(
+    "event",
+    ["schedule", "workflow_run", "pull_request_target", None],
+    ids=["schedule", "workflow_run", "pull_request_target", "event-unset"],
+)
+def test_a_target_pr_is_rejected_on_any_non_dispatch_event_before_api_construction(
+    monkeypatch, capsys, event
+):
+    main_env(monkeypatch, event=event, target="861")
+    constructed = []
+    monkeypatch.setattr(mog, "GitHubApi", lambda repo, token: constructed.append((repo, token)))
+
+    assert mog.main() == 2
+    assert constructed == []
+    assert "workflow_dispatch" in capsys.readouterr().err
+
+
+def test_a_target_pr_conflicting_with_the_event_trigger_is_rejected(monkeypatch, capsys):
+    main_env(monkeypatch, event="workflow_dispatch", trigger=5, target="861")
+    constructed = []
+    monkeypatch.setattr(mog, "GitHubApi", lambda repo, token: constructed.append((repo, token)))
+
+    assert mog.main() == 2
+    assert constructed == []
+    assert "conflicts" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("target", [None, ""], ids=["unset", "empty"])
+def test_an_omitted_or_empty_target_pr_preserves_the_untargeted_sweep(monkeypatch, target):
+    main_env(monkeypatch, event="workflow_dispatch", target=target)
+    calls = []
+
+    def recording_sweep(api, trigger_number=None, **kwargs):
+        calls.append((api, trigger_number, kwargs))
+        return []
+
+    monkeypatch.setattr(mog, "sweep", recording_sweep)
+
+    assert mog.main() == 0
+    assert len(calls) == 1
+    api, trigger_number, kwargs = calls[0]
+    assert isinstance(api, mog.GitHubApi)
+    assert trigger_number is None
+    # No target argument at all: the incumbent sweep entry point is unchanged.
+    assert kwargs == {}
+
+
+def test_an_explicit_target_pr_is_routed_into_the_sweep(monkeypatch, capsys):
+    main_env(monkeypatch, event="workflow_dispatch", target="861")
+    calls = []
+
+    def recording_sweep(api, trigger_number=None, **kwargs):
+        calls.append((api, trigger_number, kwargs))
+        return ["#861: merged and deleted claude/pr-861"]
+
+    monkeypatch.setattr(mog, "sweep", recording_sweep)
+
+    assert mog.main() == 0
+    assert calls[0][2] == {"target_number": 861}
+    assert "#861: merged and deleted claude/pr-861" in capsys.readouterr().out
+
+
+def test_a_targeted_sweep_considers_only_the_named_pull_request():
+    api = FakeApi([pull(7), pull(8)])
+
+    result = sweep(api, target_number=8)
+
+    assert ("merge", 8, "head-8") in api.actions
+    assert ("delete", "claude/pr-8") in api.actions
+    # The other armed green pull request was never evaluated, let alone acted on.
+    assert not any(len(action) > 1 and action[1] == 7 for action in api.actions)
+    assert result == [
+        "#8: merged and deleted claude/pr-8",
+        "no additional armed green branch required a base refresh",
+    ]
+
+
+@pytest.mark.parametrize(
+    "candidate",
+    [
+        pytest.param(dict(labels=[]), id="unarmed"),
+        pytest.param(dict(labels=[ARM_LABEL, "hold"]), id="hold"),
+        pytest.param(dict(labels=[ARM_LABEL, "do-not-merge"]), id="do-not-merge"),
+        pytest.param(dict(draft=True), id="draft"),
+        pytest.param(dict(fork=True), id="fork"),
+    ],
+)
+def test_a_targeted_sweep_never_falls_back_when_the_target_is_not_a_candidate(candidate):
+    # Pull request #9 is armed and green: a fallback sweep would merge it.
+    api = FakeApi([pull(8, **candidate), pull(9)])
+
+    assert sweep(api, target_number=8) == []
+    assert api.actions == []
+
+
+def test_a_targeted_sweep_keeps_the_red_ci_quarantine_for_the_target_alone():
+    api = FakeApi(
+        [pull(7), pull(8)],
+        runs={"head-7": checks(conclusion="failure")},
+    )
+
+    result = sweep(api, target_number=7)
+
+    assert result == ["#7: red"]
+    assert ("add_labels", 7, (BLOCK_LABEL,)) in api.actions
+    assert sum(action[0] == "comment" for action in api.actions) == 1
+    assert not any(action[0] == "merge" for action in api.actions)
+    assert not any(len(action) > 1 and action[1] == 8 for action in api.actions)
+
+
+def test_a_targeted_sweep_quarantines_a_conflicting_target_without_admin_merge():
+    api = FakeApi([pull(7, mergeable=False), pull(8)])
+
+    result = sweep(api, target_number=7)
+
+    assert result[0] == "#7: conflict"
+    assert ("add_labels", 7, (BLOCK_LABEL,)) in api.actions
+    assert not any(action[0] == "merge" for action in api.actions)
+    assert not any(len(action) > 1 and action[1] == 8 for action in api.actions)
+
+
+def test_a_targeted_sweep_refreshes_a_stale_head_instead_of_merging_it():
+    api = FakeApi([pull(7, mergeable_state="behind"), pull(8)])
+
+    result = sweep(api, target_number=7)
+
+    assert ("update", 7, "head-7") in api.actions
+    assert ("rerun", 9101) in api.actions
+    assert not any(action[0] == "merge" for action in api.actions)
+    assert not any(len(action) > 1 and action[1] == 8 for action in api.actions)
+    assert result == ["#7: " + REFRESHED.format(n=7)]
+
+
+def test_a_targeted_sweep_merges_a_current_clean_base_and_touches_nothing_else():
+    api = FakeApi([pull(7, mergeable_state="clean"), pull(8, mergeable_state="behind")])
+
+    result = sweep(api, target_number=7)
+
+    assert ("merge", 7, "head-7") in api.actions
+    assert not any(action[0] == "update" for action in api.actions)
+    assert not any(len(action) > 1 and action[1] == 8 for action in api.actions)
+
+
+def test_a_targeted_sweep_waits_on_a_blocked_state_without_a_held_run():
+    api = FakeApi([pull(7, mergeable_state="blocked"), pull(8)])
+
+    result = sweep(api, target_number=7)
+
+    assert result == ["#7: waiting (mergeable_state=blocked)"]
+    assert api.actions == []
+
+
+def test_a_targeted_sweep_releases_only_the_targets_held_run():
+    api = FakeApi(
+        [pull(7, mergeable_state="blocked"), pull(8, mergeable_state="blocked")],
+        ci_runs={"head-7": [ci_run(38370600573, sha="head-7")]},
+    )
+
+    result = sweep(api, target_number=7)
+
+    assert api.actions == [("rerun", 38370600573)]
+    assert result == [
+        "#7: re-ran held pull_request CI run 38370600573 for head-7; awaiting PR-linked CI"
+    ]
+
+
+@pytest.mark.parametrize("mergeable_state", ["clean", "behind"])
+@pytest.mark.parametrize(
+    "queue_entries, expected",
+    [
+        ({}, READY_REPORT.format(n=7)),
+        ({"PR-node-7": "MQE-existing"}, "#7: already queued (MQE-existing)"),
+    ],
+    ids=["ready", "already-queued"],
+)
+def test_a_targeted_sweep_only_reports_the_target_when_the_queue_is_enabled(
+    mergeable_state, queue_entries, expected
+):
+    reads = []
+
+    class TargetReadApi(FakeApi):
+        def pull(self, number):
+            reads.append(("pull", number))
+            return super().pull(number)
+
+        def check_runs(self, sha):
+            reads.append(("check_runs", sha))
+            return super().check_runs(sha)
+
+        def queue_entry(self, pull_request_id):
+            reads.append(("queue_entry", pull_request_id))
+            return super().queue_entry(pull_request_id)
+
+    api = TargetReadApi(
+        [pull(7, mergeable_state=mergeable_state), pull(8)],
+        queue_enabled=True,
+        queue_entries=dict(queue_entries),
+    )
+
+    result = sweep(api, target_number=7)
+
+    # Workflow-token admission cannot establish merge_group event delivery.
+    # Targeting narrows observation; it never mutates or falls back to PR #8.
+    assert api.actions == []
+    assert api.queue_entries == queue_entries
+    assert api.dispatched == []
+    assert result == [expected]
+    assert set(reads) == {
+        ("pull", 7),
+        ("check_runs", "head-7"),
+        ("queue_entry", "PR-node-7"),
+    }
+
+
+def test_a_main_run_with_a_target_merges_only_that_pull_request(monkeypatch, capsys):
+    main_env(monkeypatch, event="workflow_dispatch", target="7")
+    api = FakeApi([pull(7), pull(8)])
+    monkeypatch.setattr(mog, "GitHubApi", lambda repo, token: api)
+
+    assert mog.main() == 0
+
+    assert ("merge", 7, "head-7") in api.actions
+    assert not any(action[0] == "merge" and action[1] == 8 for action in api.actions)
+    out = capsys.readouterr().out
+    assert "#7: merged and deleted claude/pr-7" in out
+    assert "#8" not in out
+
+
+def test_a_main_run_with_an_untargetable_target_considers_nothing_else(monkeypatch, capsys):
+    main_env(monkeypatch, event="workflow_dispatch", target="8")
+    api = FakeApi([pull(8, labels=[]), pull(9)])  # only #9 is armed and green
+    monkeypatch.setattr(mog, "GitHubApi", lambda repo, token: api)
+
+    assert mog.main() == 0
+
+    assert api.actions == []
+    out = capsys.readouterr().out
+    assert "no other pull request was considered" in out
+    assert "#9" not in out
+
+
+def test_a_missing_explicit_target_never_sweeps_an_armed_neighbor():
+    api = FakeApi([pull(9)])
+    assert sweep(api, target_number=8) == []
+    assert api.actions == []
+
+
+def test_a_target_for_another_base_never_reaches_release():
+    target = pull(8)
+    target["base"]["ref"] = "other-branch"
+    api = FakeApi([target, pull(9)])
+    assert sweep(api, target_number=8) == []
+    assert api.actions == []
+
+
+def test_a_targeted_run_proves_the_refreshed_head_instead_of_the_listed_head():
+    class AdvancedHeadApi(FakeApi):
+        def pull(self, number):
+            current = super().pull(number)
+            current["head"]["sha"] = "new-head-without-checks"
+            return current
+
+    api = AdvancedHeadApi([pull(8), pull(9)])
+    result = sweep(api, target_number=8)
+    assert "missing trusted App" in result[0]
+    assert api.actions == []
+
+
+# Native enqueue must use an authenticated event-generating user credential.
+# All network boundaries below are replaced; token strings are test-owned sentinels.
+@pytest.fixture
+def native_issuer_transport(monkeypatch):
+    monkeypatch.setenv("NATIVE_ENQUEUE_TOKEN", "test-native-user-credential")
+    monkeypatch.setenv("NATIVE_ENQUEUE_ISSUER_LOGIN", "release-user")
+    monkeypatch.setenv("NATIVE_ENQUEUE_ISSUER_ID", "42")
+    monkeypatch.setenv("GITHUB_REPOSITORY_ID", "71")
+    monkeypatch.setenv("GITHUB_TOKEN", "test-job-credential")
+    identity = {
+        "viewer": {"__typename": "User", "login": "release-user", "databaseId": 42},
+        "repository": {"nameWithOwner": "mastermindx-market-intelligence/mastermind-terminal",
+                       "databaseId": 71, "viewerPermission": "WRITE"},
+    }
+    calls = []
+    def transport(api, query, variables):
+        calls.append((api.token, query, deepcopy(variables)))
+        if "mutation" in query:
+            return {"enqueuePullRequest": {"mergeQueueEntry": {"id": "MQE-test"}}}
+        return deepcopy(identity)
+    monkeypatch.setattr(mog.GitHubApi, "graphql_request", transport)
+    def no_http(*args, **kwargs):
+        raise AssertionError("no provider transport allowed")
+    monkeypatch.setattr(mog.urllib.request, "urlopen", no_http)
+    api = mog.GitHubApi("mastermindx-market-intelligence/mastermind-terminal", "test-job-credential")
+    return api, identity, calls
+
+
+def test_native_enqueue_uses_only_qualified_user_credential(native_issuer_transport):
+    api, _, calls = native_issuer_transport
+    assert api.enqueue("PR-exact", "head-exact") == "MQE-test"
+    assert len(calls) == 2
+    assert all(row[0] == "test-native-user-credential" for row in calls)
+    assert "viewer" in calls[0][1] and "repository" in calls[0][1]
+    assert calls[0][2] == {"owner": "mastermindx-market-intelligence", "name": "mastermind-terminal"}
+    assert calls[1][2] == {"pullRequestId": "PR-exact", "expectedHeadOid": "head-exact"}
+    assert api.token == "test-job-credential"  # Other incumbent operations are unchanged.
+
+
+@pytest.mark.parametrize("field,value", [
+    ("NATIVE_ENQUEUE_TOKEN", ""),
+    ("NATIVE_ENQUEUE_TOKEN", "test-job-credential"),
+    ("NATIVE_ENQUEUE_ISSUER_LOGIN", ""),
+    ("NATIVE_ENQUEUE_ISSUER_ID", ""),
+    ("NATIVE_ENQUEUE_ISSUER_ID", "not-an-id"),
+    ("GITHUB_REPOSITORY_ID", ""),
+])
+def test_native_enqueue_missing_or_job_token_never_mutates(native_issuer_transport, monkeypatch, field, value):
+    api, _, calls = native_issuer_transport
+    monkeypatch.setenv(field, value)
+    with pytest.raises(ApiError):
+        api.enqueue("PR-exact", "head-exact")
+    assert calls == []
+
+
+@pytest.mark.parametrize("section,field,value", [
+    ("viewer", "__typename", "Bot"),
+    ("viewer", "login", "github-actions[bot]"),
+    ("viewer", "login", "different-user"),
+    ("viewer", "databaseId", 43),
+    ("viewer", "databaseId", True),
+    ("repository", "nameWithOwner", "other/repository"),
+    ("repository", "databaseId", 72),
+    ("repository", "viewerPermission", "READ"),
+    ("repository", "viewerPermission", None),
+])
+def test_native_enqueue_wrong_identity_or_repository_never_mutates(native_issuer_transport, section, field, value):
+    api, identity, calls = native_issuer_transport
+    identity[section][field] = value
+    with pytest.raises(ApiError):
+        api.enqueue("PR-exact", "head-exact")
+    assert len(calls) == 1 and "mutation" not in calls[0][1]
+
+
+def test_native_enqueue_wrong_configured_repository_never_reads(native_issuer_transport):
+    api, _, calls = native_issuer_transport
+    api.repo = "foreign/repository"
+    with pytest.raises(ApiError):
+        api.enqueue("PR-exact", "head-exact")
+    assert calls == []
+
+
+@pytest.mark.parametrize("response", [None, {}, {"viewer": None, "repository": None}])
+def test_native_enqueue_incomplete_identity_never_mutates(native_issuer_transport, monkeypatch, response):
+    api, _, calls = native_issuer_transport
+    def incomplete(client, query, variables):
+        calls.append((client.token, query, variables))
+        return response
+    monkeypatch.setattr(mog.GitHubApi, "graphql_request", incomplete)
+    with pytest.raises(ApiError):
+        api.enqueue("PR-exact", "head-exact")
+    assert len(calls) == 1 and "mutation" not in calls[0][1]
+
+
+def test_native_enqueue_identity_failure_is_not_retried(native_issuer_transport, monkeypatch):
+    api, _, calls = native_issuer_transport
+    def denied(client, query, variables):
+        calls.append((client.token, query, variables))
+        raise ApiError(403, "test refusal")
+    monkeypatch.setattr(mog.GitHubApi, "graphql_request", denied)
+    with pytest.raises(ApiError):
+        api.enqueue("PR-exact", "head-exact")
+    assert len(calls) == 1
+
+
+def test_native_enqueue_requalifies_each_original_attempt(native_issuer_transport):
+    api, identity, calls = native_issuer_transport
+    assert api.enqueue("PR-first", "head-first") == "MQE-test"
+    identity["viewer"]["databaseId"] = 99
+    with pytest.raises(ApiError):
+        api.enqueue("PR-second", "head-second")
+    assert len(calls) == 3
+    assert sum("mutation" in row[1] for row in calls) == 1
+
+
+
+def test_native_enqueue_lost_response_has_one_mutation_and_no_fallback(native_issuer_transport, monkeypatch):
+    api, identity, calls = native_issuer_transport
+    def lost(client, query, variables):
+        calls.append((client.token, query, deepcopy(variables)))
+        if "mutation" in query:
+            raise TimeoutError("test-owned lost response")
+        return deepcopy(identity)
+    monkeypatch.setattr(mog.GitHubApi, "graphql_request", lost)
+    with pytest.raises(TimeoutError):
+        api.enqueue("PR-exact", "head-exact")
+    assert len(calls) == 2
+    assert sum("mutation" in row[1] for row in calls) == 1
+    assert all(row[0] == "test-native-user-credential" for row in calls)
+
+
+def test_reporting_workflow_does_not_receive_native_user_credentials():
+    document = yaml.safe_load((Path(__file__).resolve().parents[1] / ".github/workflows/merge-on-green.yml").read_text())
+    steps = document["jobs"]["sweep"]["steps"]
+    step = next(s for s in steps if s.get("name") == "reconcile armed pull requests")
+    assert step["env"]["MERGE_TOKEN"] == "${{ secrets.GITHUB_TOKEN }}"
+    assert not any(name.startswith("NATIVE_ENQUEUE_") for name in step["env"])
+    assert "GITHUB_REPOSITORY_ID" not in step["env"]
+    assert "ADMIN_GH_TOKEN" not in json.dumps(document)
+    assert document["concurrency"]["cancel-in-progress"] is False
+    assert document["jobs"]["sweep"]["timeout-minutes"] == 10
+
+
+def test_configured_user_enrollment_does_not_enable_workflow_queue_admission(monkeypatch):
+    for name, value in {
+        "NATIVE_ENQUEUE_TOKEN": "test-explicit-user-credential",
+        "NATIVE_ENQUEUE_ISSUER_LOGIN": "test-user",
+        "NATIVE_ENQUEUE_ISSUER_ID": "123",
+        "GITHUB_REPOSITORY_ID": "456",
+    }.items():
+        monkeypatch.setenv(name, value)
+    api = FakeApi([pull(1)], queue_enabled=True)
+
+    def forbidden_enqueue(*args):
+        raise AssertionError("configured credentials must not activate sweep admission")
+
+    monkeypatch.setattr(api, "enqueue", forbidden_enqueue)
+    assert sweep(api) == [READY_REPORT.format(n=1)]
+    assert api.actions == []
+    assert api.queue_entries == {}
+
+
+
+def assert_privileged_controller_source(document):
+    events = document.get("on", document.get(True))
+    assert set(events) == {"workflow_run", "pull_request_target", "schedule", "workflow_dispatch"}
+    assert events["workflow_run"] == {"workflows": ["CI"], "types": ["completed"]}
+    assert events["pull_request_target"] == {"types": ["labeled", "reopened", "ready_for_review"]}
+    assert events["schedule"] == [{"cron": "*/10 * * * *"}]
+    checkout = document["jobs"]["sweep"]["steps"][0]
+    assert checkout["uses"] == "actions/checkout@v4"
+    assert checkout["with"]["ref"] == "${{ github.sha }}"
+    assert checkout["with"]["sparse-checkout"] == "scripts/merge_on_green.py"
+    assert checkout["with"]["sparse-checkout-cone-mode"] is False
+
+
+def controller_source_document():
+    return yaml.safe_load((Path(__file__).resolve().parents[1] / ".github/workflows/merge-on-green.yml").read_text())
+
+
+def test_privileged_controller_pins_immutable_event_source():
+    assert_privileged_controller_source(controller_source_document())
+
+
+@pytest.mark.parametrize("ref", ["master", "${{ github.event.pull_request.head.sha }}", "${{ github.event.workflow_run.head_sha }}", ""])
+def test_privileged_controller_rejects_mutable_or_untrusted_source(ref):
+    document = controller_source_document()
+    document["jobs"]["sweep"]["steps"][0]["with"]["ref"] = ref
+    with pytest.raises(AssertionError):
+        assert_privileged_controller_source(document)
+
+
+def test_privileged_controller_rejects_candidate_event_and_sparse_expansion():
+    document = controller_source_document()
+    events = document.get("on", document.get(True))
+    events["pull_request"] = events.pop("pull_request_target")
+    with pytest.raises(AssertionError):
+        assert_privileged_controller_source(document)
+    document = controller_source_document()
+    document["jobs"]["sweep"]["steps"][0]["with"]["sparse-checkout"] = "."
+    with pytest.raises(AssertionError):
+        assert_privileged_controller_source(document)
+
+
+
+def evaluate_controller_job_gate(document, *, repository, ref, default_branch):
+    # Evaluate the actual YAML expression over test-owned event context. This
+    # small harness supports only the operators/functions used by this gate.
+    expression = document["jobs"]["sweep"].get("if")
+    assert isinstance(expression, str), "privileged job has no source gate"
+    expression = expression.strip()
+    assert expression.startswith("${{") and expression.endswith("}}")
+    expression = expression[3:-2].strip()
+    for name, value in {
+        "github.event.repository.default_branch": default_branch,
+        "github.repository": repository,
+        "github.ref": ref,
+    }.items():
+        expression = expression.replace(name, repr(value))
+    expression = expression.replace("&&", " and ").replace("||", " or ")
+    return eval(expression, {"__builtins__": {}, "format": lambda pattern, value: pattern.format(value)})
+
+
+@pytest.mark.parametrize("event,ref", [
+    ("schedule", "refs/heads/master"),
+    ("workflow_run", "refs/heads/master"),
+    ("pull_request_target", "refs/heads/master"),
+    ("workflow_dispatch", "refs/heads/master"),
+])
+def test_controller_job_gate_accepts_default_branch_events(event, ref):
+    document = controller_source_document()
+    events = document.get("on", document.get(True))
+    assert event in events
+    assert evaluate_controller_job_gate(document, repository="mastermindx-market-intelligence/mastermind-terminal", ref=ref, default_branch="master") is True
+    assert document["jobs"]["sweep"]["steps"][0]["with"]["ref"] == "${{ github.sha }}"
+
+
+@pytest.mark.parametrize("event,repository,ref,default_branch", [
+    ("workflow_dispatch", "mastermindx-market-intelligence/mastermind-terminal", "refs/heads/feature", "master"),
+    ("workflow_dispatch", "mastermindx-market-intelligence/mastermind-terminal", "refs/tags/master", "master"),
+    ("pull_request_target", "mastermindx-market-intelligence/mastermind-terminal", "refs/heads/release", "master"),
+    ("workflow_run", "mastermindx-market-intelligence/mastermind-terminal", "refs/heads/feature", "master"),
+    ("schedule", "foreign/mastermind-terminal", "refs/heads/master", "master"),
+    ("workflow_dispatch", "mastermindx-market-intelligence/mastermind-terminal", "refs/heads/master", "main"),
+])
+def test_controller_job_gate_rejects_untrusted_event_source(event, repository, ref, default_branch):
+    document = controller_source_document()
+    assert event in document.get("on", document.get(True))
+    assert evaluate_controller_job_gate(document, repository=repository, ref=ref, default_branch=default_branch) is False
+
+
+def test_controller_source_gate_cannot_be_moved_after_checkout():
+    document = controller_source_document()
+    expression = document["jobs"]["sweep"].pop("if", None)
+    document["jobs"]["sweep"]["steps"][1]["if"] = expression
+    with pytest.raises(AssertionError, match="no source gate"):
+        evaluate_controller_job_gate(document, repository="mastermindx-market-intelligence/mastermind-terminal", ref="refs/heads/master", default_branch="master")

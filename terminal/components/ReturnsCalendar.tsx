@@ -5,6 +5,8 @@ import type { Bar } from "@/lib/fund";
 import { isMacroSymbol, isDailyOnlySymbol } from "@/lib/macroSymbols";
 import {
   buildDailyReturnRecords,
+  finiteReturnPercent,
+  returnDirection,
   buildReturnCalendarSlots,
   returnCalendarFocusTarget,
   returnCalendarMonthFocus,
@@ -163,8 +165,8 @@ export default function ReturnsCalendar({
     if (next) { event.preventDefault(); focusDay(next); }
     // Native click/Enter/Space activation alone changes selectedDate and the study request.
   };
-  const openingGap = selected?.previousClose ? (selected.bar.o / selected.previousClose - 1) * 100 : null;
-  const openToClose = selected ? (selected.bar.c / selected.bar.o - 1) * 100 : null;
+  const openingGap = selected ? finiteReturnPercent(selected.bar.o, selected.previousClose) : null;
+  const openToClose = selected ? finiteReturnPercent(selected.bar.c, selected.bar.o) : null;
   const openPos = selected ? rangePercent(selected.bar.o, selected.bar.l, selected.bar.h) : null;
   const closePos = selected ? rangePercent(selected.bar.c, selected.bar.l, selected.bar.h) : null;
 
@@ -218,9 +220,11 @@ export default function ReturnsCalendar({
       <div className={returnsClassNames("returns-month-summary")}>
         <div className={returnsClassNames("primary")}>
           <span>{monthLabel}</span>
-          <strong className={returnsClassNames((summary.returnPct ?? 0) >= 0 ? "up" : "down")}>{pct(summary.returnPct)}</strong>
+          <strong className={returnsClassNames(returnDirection(summary.returnPct))}>{pct(summary.returnPct)}</strong>
           <small>{summary.referenceDate && summary.endDate
-            ? pick("Price return", "价格收益") + " · " + summary.referenceDate + " → " + summary.endDate
+            ? (finite(summary.returnPct) ? pick("Price return", "价格收益")
+              : pick("Monthly return calculation unavailable", "月度收益计算不可用"))
+              + " · " + summary.referenceDate + " → " + summary.endDate
             : pick("Prior observed close unavailable; monthly return withheld.", "缺少此前观察收盘价；月度收益保持为空。")}</small>
         </div>
         <div className={returnsClassNames("stats")}>
@@ -252,7 +256,7 @@ export default function ReturnsCalendar({
               if (!slot) return <div key={"blank-" + index} className={returnsClassNames("returns-day blank")} />;
               const record = slot.record;
               if (!record) return <div key={slot.date} className={returnsClassNames("returns-day empty")}><span className={returnsClassNames("date")}>{Number(slot.date.slice(8))}</span></div>;
-              const direction = (record.returnPct ?? 0) >= 0 ? "up" : "down";
+              const direction = returnDirection(record.returnPct);
               const heat = returnHeatBand(record.returnPct);
               const active = record.date === selectedDate;
               return (
@@ -265,7 +269,9 @@ export default function ReturnsCalendar({
                   type="button"
                   className={returnsClassNames("returns-day " + direction + " heat-" + heat + (active ? " selected" : ""))}
                   aria-pressed={active}
-                  aria-label={record.date + " " + pct(record.returnPct) + (record.returnPct === null ? " " + pick("Previous observed close unavailable", "此前观察收盘价不可用") : "")}
+                  aria-label={record.date + " " + pct(record.returnPct) + (!finite(record.returnPct) ? " " + (record.previousClose === null
+                    ? pick("Previous observed close unavailable", "此前观察收盘价不可用")
+                    : pick("Return calculation unavailable", "收益计算不可用")) : "")}
                   onClick={() => setRequestedDate(record.date)}
                   onKeyDown={(event) => handleDayKey(event, record.date)}
                 >
@@ -287,9 +293,13 @@ export default function ReturnsCalendar({
             <div className={returnsClassNames("returns-inspector-head")}>
               <div>
                 <span>{selected.date}</span>
-                <strong className={returnsClassNames((selected.returnPct ?? 0) >= 0 ? "up" : "down")}>{pct(selected.returnPct)}</strong>
+                <strong className={returnsClassNames(returnDirection(selected.returnPct))}>{pct(selected.returnPct)}</strong>
               </div>
-              <small>{pick("Close to previous observed close", "相对前一观察日收盘")}</small>
+              <small>{finite(selected.returnPct)
+                ? pick("Close to previous observed close", "相对前一观察日收盘")
+                : selected.previousClose === null
+                  ? pick("Previous observed close unavailable", "此前观察收盘价不可用")
+                  : pick("Return calculation unavailable", "收益计算不可用")}</small>
             </div>
 
             <div className={returnsClassNames("returns-ohlc")}>
@@ -307,8 +317,8 @@ export default function ReturnsCalendar({
                 {closePos !== null && <span className={returnsClassNames("marker close")} style={{ left: closePos + "%" }}><i>C</i></span>}
               </div>
               <div className={returnsClassNames("returns-range-factors")}>
-                <span>{pick("Opening gap", "开盘缺口")} <b className={returnsClassNames((openingGap ?? 0) >= 0 ? "up" : "down")}>{pct(openingGap)}</b></span>
-                <span>{pick("Open → close", "开盘 → 收盘")} <b className={returnsClassNames((openToClose ?? 0) >= 0 ? "up" : "down")}>{pct(openToClose)}</b></span>
+                <span>{pick("Opening gap", "开盘缺口")} <b className={returnsClassNames(returnDirection(openingGap))}>{pct(openingGap)}</b></span>
+                <span>{pick("Open → close", "开盘 → 收盘")} <b className={returnsClassNames(returnDirection(openToClose))}>{pct(openToClose)}</b></span>
               </div>
             </div>
 
@@ -330,7 +340,7 @@ export default function ReturnsCalendar({
                 return (
                   <div key={spec.key} className={returnsClassNames("returns-session")}>
                     <div><b>{pick(spec.en, spec.cn)}</b><span>{session?.hours || "—"} ET</span></div>
-                    <strong className={returnsClassNames(sessionReturn !== null ? (sessionReturn >= 0 ? "up" : "down") : "")}>{pct(sessionReturn)}</strong>
+                    <strong className={returnsClassNames(returnDirection(sessionReturn))}>{pct(sessionReturn)}</strong>
                     <span>O {px(session?.open ?? null)} · C {px(session?.close ?? null)}</span>
                     <span>L {px(session?.low ?? null)} · H {px(session?.high ?? null)}</span>
                     <small>{session?.barCount ?? 0} {pick("bars observed", "根K线")}</small>

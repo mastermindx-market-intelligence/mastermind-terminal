@@ -56,13 +56,22 @@ SPARK_BATCH = 18
 # Minimum daily bars for a macro series to be worth publishing. Every instrument in the catalog
 # is decades old, so anything thinner is Yahoo failing to serve history, not a young symbol.
 MIN_OHLC_BARS = 30
-# This benchmark underpins multi-decade Shanghai Composite charts. Yahoo's daily series
-# begins around 1997, but range=max silently returns 1mo bars even with interval=1d.
-# Owner staging verified 7107 non-null daily candles from 7279 timestamps
-# (1997-07-02 to 2026-11-04); other symbols remain on the cheaper rolling 5y leg.
-FULL_HISTORY_SYMBOLS = frozenset({"000001.SS"})
+# Yahoo silently substitutes monthly candles for range=max&interval=1d. Index history
+# instead uses explicit daily period bounds; non-index macro instruments retain 5y.
+# The exceptions currently return a SINGLE Yahoo daily candle (verified 2026-11-04),
+# so publishing an ETF as a mislabeled index, or replacing a sound file with a stub,
+# is not permitted. They stay on the existing guarded leg until an authentic index
+# feed becomes available.
+INDEX_WITHOUT_DAILY_HISTORY = frozenset({"000300.SS", "000905.SS", "399006.SZ"})
+FULL_HISTORY_SYMBOLS = frozenset(
+    row.sym for row in CATALOG
+    if row.sec == "Indices" and row.sym not in INDEX_WITHOUT_DAILY_HISTORY
+)
+# Preserve Shanghai's existing epoch; its backfill starts in 1997.
 FULL_HISTORY_START_TS = int(dt.datetime(1990, 1, 1, tzinfo=dt.timezone.utc).timestamp())
-# A 353-point monthly series must never be published as three decades of daily candles.
+# Other index archives start much earlier (S&P 500 1927, Nikkei 1965, TSX 1979).
+INDEX_ARCHIVE_START_TS = int(dt.datetime(1900, 1, 1, tzinfo=dt.timezone.utc).timestamp())
+# A 353-point monthly series must never be published as decades of daily candles.
 MIN_DEEP_DAILY_BARS = 1000
 
 
@@ -71,7 +80,8 @@ def ohlc_history_query(sym: str, now_ts: int | None = None) -> str:
     if sym in FULL_HISTORY_SYMBOLS:
         # period2 is exclusive. Include the current session even during UTC/CN date rollover.
         end = (int(time.time()) if now_ts is None else now_ts) + 86400
-        return f"period1={FULL_HISTORY_START_TS}&period2={end}&interval=1d"
+        start = FULL_HISTORY_START_TS if sym == "000001.SS" else INDEX_ARCHIVE_START_TS
+        return f"period1={start}&period2={end}&interval=1d"
     return "range=5y&interval=1d"
 
 
@@ -126,7 +136,7 @@ def publish_decision(fetched: int, have: int) -> str:
 
 
 def _valid_deep_bar(row: object) -> bool:
-    """Qualify a stored or provider Shanghai candle before counting or retaining it."""
+    """Qualify a stored or provider index candle before counting or retaining it."""
     if not isinstance(row, list) or len(row) != 6 or not isinstance(row[0], str):
         return False
     try:
@@ -147,7 +157,7 @@ def _valid_deep_bar(row: object) -> bool:
 
 
 def existing_bar_count(path: Path, *, deep_history: bool = False) -> int:
-    """Published depth, counting only qualified unique dates for the deep-history index."""
+    """Published depth, counting only qualified unique dates for deep-history indices."""
     try:
         bars = json.loads(path.read_text()).get("bars") or []
         if deep_history:

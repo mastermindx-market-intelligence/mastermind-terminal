@@ -1,4 +1,4 @@
--- Ledger row: 0047_investigation_options_selection_evidence / PR #1222 (packet OPT006-V3-SAVE-ADMISSION); unapplied at authoring
+-- Ledger row: 0047_investigation_options_selection_evidence / PR #1222 (merged 3cc8da8432d8d2d4e4cb597f49c4eaa95f1980c9, packet OPT006-V3-SAVE-ADMISSION); not applied
 -- Rollback: restore only valid_investigation_manifest_v2(jsonb) to the installed 0042 body (evidence owner allow-list terminal.options_exposure / exposure_chart_request, sector_origin, rotation_measurement); drop function public.investigation_evidence_admitted_v2(text,text)
 -- Requires 0042 applied and 0043 (#804) NOT applied; if 0043 is installed, recompose this widening over it in a new prefix. Until this file is applied, every save carrying object_type options_matrix_selection answers invalid_payload (0039 pattern).
 -- Apply this file explicitly, never the entire migration directory.

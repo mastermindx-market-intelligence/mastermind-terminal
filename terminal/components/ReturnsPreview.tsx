@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { returnsClassNames } from "./returnsStyles";
 import type { Bar } from "@/lib/fund";
-import { buildDailyReturnRecords, summarizeReturnMonth } from "@/lib/returnsCalendar";
+import { buildDailyReturnRecords, returnDirection, summarizeReturnMonth } from "@/lib/returnsCalendar";
 
 type Pick = (en?: string | null, cn?: string | null) => string;
 
@@ -52,9 +52,11 @@ export default function ReturnsPreview({
       <div className={returnsClassNames("returns-preview-main")}>
         <div>
           <span>{pick("Observed month", "本月已观察")}</span>
-          <strong className={returnsClassNames((summary.returnPct ?? 0) >= 0 ? "up" : "down")}>{pct(summary.returnPct)}</strong>
+          <strong className={returnsClassNames(returnDirection(summary.returnPct))}>{pct(summary.returnPct)}</strong>
           <small>{summary.referenceDate && summary.endDate
-            ? summary.referenceDate + " → " + summary.endDate
+            ? (finite(summary.returnPct) ? ""
+              : pick("Monthly return calculation unavailable", "月度收益计算不可用") + " · ")
+              + summary.referenceDate + " → " + summary.endDate
             : pick("Reference close unavailable", "缺少参考收盘价")}</small>
         </div>
         <div className={returnsClassNames("returns-preview-counts")}>
@@ -65,9 +67,12 @@ export default function ReturnsPreview({
       </div>
       <div className={returnsClassNames("returns-preview-strip")} aria-label={pick("Last five observed daily moves", "最近五个观察日")}>
         {recent.map((record) => (
-          <div key={record.date} className={returnsClassNames((record.returnPct ?? 0) >= 0 ? "up" : "down")}>
+          <div key={record.date} className={returnsClassNames(returnDirection(record.returnPct))}>
             <span>{record.date.slice(5)}</span>
             <strong>{pct(record.returnPct)}</strong>
+            {!finite(record.returnPct) && <small>{record.previousClose === null
+              ? pick("Reference close unavailable", "缺少参考收盘价")
+              : pick("Return calculation unavailable", "收益计算不可用")}</small>}
             <small>O {px(record.bar.o)} · C {px(record.bar.c)}</small>
           </div>
         ))}
