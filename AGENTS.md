@@ -73,12 +73,16 @@ action; never an archived chat as the only actor.
 - Never create project work in `~/.codex/worktrees`, `/private/tmp`, or another
   Codex-only location. Never use a `codex/` branch for these repositories.
 - The primary checkout is shared and commonly dirty. Never change its files or git
-  state. Attended ChatGPT Web/Studio sessions acquire or reuse one exact source-pinned
-  operation workspace through the installed `mmx-workspace` owner, as authorized for
-  this repository. Native/harness sessions use their actual assigned source launcher
-  and workspace; only those with an approved direct-worktree contract may create one
-  under its designated root. Do not create an alternate worktree or force/re-home an
-  existing operation to bypass a refusal, exclusive writer, or uncertain effect.
+  state. **Host-local** ChatGPT Web/Studio edits acquire or reuse one source-pinned
+  operation workspace through the installed `mmx-workspace` owner; native/harness
+  sessions use their actual assigned workspace/launcher. **GitHub-native** source
+  authoring through an actually authorized GitHub connector requires no M2 worktree,
+  Studio Direct session or external SSD: pin current protected procedure, use the
+  original isolated branch or a new unstarted operation branch, and bind file edits
+  to blob-SHA and branch-head checks. Keep source-writer and effect fences on either
+  route. Only approved direct-worktree contracts may mint host-local trees under
+  their designated root. Never switch routes to bypass a refusal, exclusive writer,
+  or uncertain effect.
 - Never reuse a squash/merge-completed branch and never use the repo-global stash.
 
 ## `ingest/` runs as scripts, not modules
@@ -148,8 +152,10 @@ Before finalizing an incomplete assignment, name and execute the next
 independent authorized source, test, integration, or real-path verification action.
 An issue, reviewer request, CI observation, or preserved branch is not completion.
 
-Preserve completed work in the original managed workspace; commit and push to its
-recoverable branch only through a lawful original publisher. If commit/push is
+Preserve host-local source in its original managed workspace and publish only
+through its lawful original publisher. GitHub-native work remains on its original
+isolated branch and connector, with exact file/head preimages and readback. A denied
+or uncertain publication must never be replayed on the other route. If commit/push is
 unavailable, distinguish a proven pre-effect technical failure from an explicit
 safety/permission denial or EFFECT_UNKNOWN. A technical failure may be requalified
 only on material same-carrier recovery evidence and the applicable typed preflight.
