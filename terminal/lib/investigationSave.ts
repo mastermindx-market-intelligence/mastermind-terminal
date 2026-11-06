@@ -28,12 +28,14 @@ export function recoverInvestigationSave(principal: string, raw: unknown): Inves
   if (!command) return null;
   // Before the legacy POST cutover the route refused a retried legacy request with invalid_payload before it
   // asked the owner, so that stored refusal never proved the original failed: it may already have committed.
-  if (saved.phase === "rejected" && saved.reason === "invalid_payload") return { phase: "uncertain", principal, command, ownerRecheck: true };
+  if (saved.phase === "rejected" && saved.reason === "invalid_payload") return { phase: "uncertain", principal, command, ownerRecheck: true,
+    ...(mayHaveNativeCapture(command)?{captureOutcome:"unknown_after_canonical_refusal" as const}:{}) };
   if (saved.phase === "rejected" && typeof saved.reason === "string" && definitive.has(saved.reason)) {
     if (mayHaveNativeCapture(command)) return { phase: "uncertain", principal, command, captureOutcome: "unknown_after_canonical_refusal" };
     return { phase: "rejected", principal, command, reason: saved.reason };
   }
   return { phase: "uncertain", principal, command,
+    ...(saved.owner_recheck===true?{ownerRecheck:true as const}:{}),
     ...((saved.capture_outcome === "unknown_after_canonical_not_applied" || saved.capture_outcome === "unknown_after_canonical_refusal" || saved.capture_outcome === "native_participant_unresolved") && mayHaveNativeCapture(command)
       ? { captureOutcome: saved.capture_outcome } : {}) };
 }
@@ -44,15 +46,27 @@ export function beginInvestigationSave(principal: string, raw: unknown, previous
   // Detach caller memory: an edited draft must never change an already-sent operation.
   return command ? { phase: "pending", principal, command: JSON.parse(JSON.stringify(command)) } : previous;
 }
+/** Only a matching full-command owner answer discharges the legacy recheck.
+ * Its canonical observation cannot discharge an orthogonal native capture. */
+function afterOriginalOwnerCheck(state:Extract<InvestigationSaveState,{phase:"pending"|"uncertain"}>) {
+  if(state.phase!=="uncertain"||!state.ownerRecheck)return state;
+  const {ownerRecheck: observed,...remaining}=state;void observed;return remaining;
+}
 export function settleInvestigationSave(state: InvestigationSaveState, principal: string, response: unknown): InvestigationSaveState {
   if (state.phase !== "pending" && state.phase !== "uncertain") return state;
   if (state.principal !== principal) return { phase: "idle" };
   if (matchesInvestigationCommand(response,state.command)) {
-    if (state.captureOutcome) return {...state,phase:"uncertain",canonicalResult:response};
+    if (state.captureOutcome) return {...afterOriginalOwnerCheck(state),phase:"uncertain",canonicalResult:response};
     return { phase: "committed", principal, result: response };
   }
   const status = response !== null && typeof response === "object" ? (response as { status?: unknown }).status : null;
-  if (state.captureOutcome) return {...state,phase:"uncertain"};
+  if (state.captureOutcome) {
+    const answer=response as {id?:unknown;operation_id?:unknown;reason?:unknown}|null;
+    if(state.phase==="uncertain"&&state.ownerRecheck&&status==="not_applied"&&answer?.id===state.command.id
+      &&answer.operation_id===state.command.operation_id&&(answer.reason===undefined||answer.reason==="limit_reached"))
+      return {...afterOriginalOwnerCheck(state),phase:"uncertain",canonicalRefusal:"not_applied"};
+    return {...state,phase:"uncertain"};
+  }
   if (status === "not_applied" && (response as {id?:unknown}).id === state.command.id && (response as {operation_id?:unknown}).operation_id === state.command.operation_id) {
     // A stored fence permits a new operation. The receipt-cap answer is just as final for the
     // original, but it permits nothing new, so it keeps its own reason. Unknown reasons stay uncertain.
@@ -137,12 +151,14 @@ export function investigationNativeObservationLabel(state: InvestigationSaveStat
   return `${phase} · ${canonical}. ${lang === "zh" ? "这不是当前私有来源访问权限。" : "This does not grant current private-source access."}`;
 }
 /**
- * True when a result-only receipt read would settle an owner recheck. The receipt does not carry the action or
+ * True when a result-only receipt would satisfy the canonical side of an owner recheck. The receipt does not carry the action or
  * the layout capture, so only the full-request owner may confirm that it answers this exact request.
  */
 export function receiptRequiresOwnerCheck(state: InvestigationSaveState, principal: string, response: unknown): boolean {
-  return state.phase === "uncertain" && state.ownerRecheck === true && state.principal === principal
-    && settleInvestigationSave(state, principal, response).phase !== "uncertain";
+  if(state.phase!=="uncertain"||state.ownerRecheck!==true||state.principal!==principal)return false;
+  const observed=settleInvestigationSave(state,principal,response);
+  // A Scenario may remain uncertain for its independent native obligation.
+  return observed.phase!=="uncertain"||observed.ownerRecheck!==true;
 }
 export function retryInvestigationSave(state: InvestigationSaveState, principal: string): InvestigationCommand | null {
   // A persisted local rejection is never proof of a fence; recovery rechecks the owner.

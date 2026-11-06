@@ -1,5 +1,5 @@
 import { expect,it } from "vitest";
-import { beginInvestigationSave,settleInvestigationOperationRead,settleInvestigationSave,retryInvestigationSave,investigationOperationReadRequest,investigationNativeObservationLabel } from "../investigationSave";
+import { beginInvestigationSave,recoverInvestigationSave,settleInvestigationOperationRead,settleInvestigationSave,retryInvestigationSave,investigationOperationReadRequest,investigationNativeObservationLabel } from "../investigationSave";
 import { investigationCanonicalRequest, parseInvestigationCommand, parseInvestigationNativeReceipt, readInvestigationNativeOperation } from "../investigations";
 import { readInvestigationJournal,retainInvestigationJournal,retainInvestigationCaptureUnknown,clearRejectedInvestigationJournal } from "../investigationJournal";
 import { principal,owner,command,native,bound,fence,committed } from "./investigationNativeRecovery.fixture";
@@ -93,4 +93,23 @@ it("binds a supported screen capture without allowing partial native receipts to
  const unresolved=settleInvestigationOperationRead(pendingScreen,owner,bound());
  expect(()=>clearRejectedInvestigationJournal(storage,owner,unresolved)).toThrow();
  expect(readInvestigationJournal(storage,owner)).toMatchObject({status:"retained",state:{command:selected}});
+});
+
+it("preserves both legacy owner and native obligations across failed checks/reload; only exact canonical answers advance to native read",()=>{
+ const state=recoverInvestigationSave(owner,{owner,command,phase:"rejected",reason:"invalid_payload"})!;
+ expect(state).toMatchObject({phase:"uncertain",ownerRecheck:true,captureOutcome:"unknown_after_canonical_refusal"});
+ const storage=store();retainInvestigationJournal(storage,owner,command);
+ for(const reply of [{status:"unavailable"},{...committed,id:command.operation_id},{status:"invalid_payload"},{status:"not_applied",id:command.operation_id,operation_id:command.operation_id}]){
+  const next=settleInvestigationSave(state,owner,reply);
+  expect(next).toMatchObject({phase:"uncertain",ownerRecheck:true});
+  retainInvestigationCaptureUnknown(storage,owner,next);
+  expect(readInvestigationJournal(storage,owner)).toMatchObject({status:"retained",state:{ownerRecheck:true,captureOutcome:"unknown_after_canonical_refusal"}});
+  expect(retryInvestigationSave(next,owner)).toBeNull();expect(()=>clearRejectedInvestigationJournal(storage,owner,next)).toThrow();
+ }
+ for(const reply of [committed,{status:"not_applied",id:command.id,operation_id:command.operation_id}]){
+  const next=settleInvestigationSave(state,owner,reply);
+  expect(next).toMatchObject({phase:"uncertain",captureOutcome:"unknown_after_canonical_refusal"});
+  expect(next).not.toHaveProperty("ownerRecheck");expect(retryInvestigationSave(next,owner)).toBeNull();
+  expect(()=>clearRejectedInvestigationJournal(storage,owner,next)).toThrow();
+ }
 });

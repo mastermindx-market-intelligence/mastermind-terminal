@@ -59,7 +59,7 @@ export function retainInvestigationCaptureUnknown(store:Store,principal:string,s
  if(state.phase!=="uncertain"||state.principal!==principal||!state.captureOutcome)throw Error("capture outcome unavailable");
  const found=readInvestigationJournal(store,principal);
  if(found.status!=="retained"||!same(found.state.command,state.command))throw Error("journal changed");
- for(const entry of found.entries)store.setItem(entry.key,JSON.stringify({owner:entry.owner,command:state.command,capture_outcome:state.captureOutcome}));
+ for(const entry of found.entries)store.setItem(entry.key,JSON.stringify({owner:entry.owner,command:state.command,capture_outcome:state.captureOutcome,...(state.ownerRecheck?{owner_recheck:true}:{})}));
 }
 /** A persisted no-effect word cannot prove a fence on reload. Only the current
  * canonical state machine's matching, same-principal owner-confirmed state may

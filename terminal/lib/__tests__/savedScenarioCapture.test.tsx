@@ -370,5 +370,7 @@ it.each(["raw","prefixed"] as const)("duplicate-alias %s owner recheck forces th
  expect(fetcher.mock.calls.filter(([,init])=>init?.method==="PUT").map(([,init])=>JSON.parse(init.body))).toEqual([pending.command]);
  expect(fetcher.mock.calls.filter(([u,init])=>u==="/api/investigations"&&init?.method==="POST")).toHaveLength(0);
  expect(fetcher.mock.calls.some(([url])=>String(url).includes(`id=${pending.command.id}`))).toBe(false);
- expect(el.textContent).toContain("not confirmed");expect(sessionStorage.getItem(rawKey)).toBe(raw);expect(sessionStorage.getItem(key)).toBe(prefixed);
+ expect(el.textContent).toContain("still unknown");
+ expect(JSON.parse(sessionStorage.getItem(rawKey)!)).toEqual({owner:user,command:pending.command,capture_outcome:"unknown_after_canonical_refusal",owner_recheck:true});
+ expect(JSON.parse(sessionStorage.getItem(key)!)).toEqual({owner:pending.owner,command:pending.command,capture_outcome:"unknown_after_canonical_refusal",owner_recheck:true});
 });

@@ -4,7 +4,7 @@ import {act} from "react";
 import {createRoot,type Root} from "react-dom/client";
 import InvestigationWorkspace from "@/components/workspaces/InvestigationWorkspace";
 import SavedScenarioCapture from "@/components/research/SavedScenarioCapture";
-import {owner,principal,command,bound,native} from "./investigationNativeRecovery.fixture";
+import {owner,principal,command,bound,native,committed,fence} from "./investigationNativeRecovery.fixture";
 const locale=vi.hoisted(()=>({lang:"en"}));
 const identity=vi.hoisted(()=>({kind:"account",userId:"10000000-0000-4000-8000-000000000001",email:"fixture@test"}));
 vi.mock("@/lib/i18n",()=>({useLang:()=>locale}));
@@ -114,4 +114,35 @@ it("Intl entry and canonical return remain present but cannot start policy/evide
  expect(fetcher.mock.calls.filter(([u])=>u==="/api/investigations/operation-read")).toHaveLength(1);
  expect(fetcher.mock.calls.some(([u,init])=>u==="/api/investigations/policy-preview"||(u==="/api/investigations"&&["POST","PUT"].includes(init?.method)))).toBe(false);
  expect(sessionStorage.getItem(key)).not.toBeNull();
+});
+
+it.each([["workspace","committed"],["standalone","committed"],["workspace","not_applied"],["standalone","not_applied"]] as const)("old Scenario invalid_payload keeps native UNKNOWN after full-owner observation, then reaches native read (%s/%s)",async(surface,status)=>{
+ sessionStorage.setItem(key,JSON.stringify({owner,command,phase:"rejected",reason:"invalid_payload"}));
+ const canonical=status==="committed"?{...committed,read_binding:"native_lineage",read_principal:principal,read_operation_id:command.operation_id}:{...fence,read_binding:"stored_no_effect",read_principal:principal,read_operation_id:command.operation_id};
+ const originalAnswer=status==="committed"?committed:{status:"not_applied",id:command.id,operation_id:command.operation_id};
+ fetcher.mockImplementation(async(u:string,init?:RequestInit)=>{
+  if(u==="/api/investigations/operation-read")return response(bound(native("retained",status),canonical));
+  if(u==="/api/investigations"&&init?.method==="PUT")return response(originalAnswer);
+  if(u.startsWith("/api/investigations?operation_id="))return response(originalAnswer);
+  return metadata(u);
+ });
+ const capture=command.manifest.scenario_capture!;
+ await act(async()=>{root.render(surface==="workspace"?<InvestigationWorkspace ownerKey={owner}/>:<SavedScenarioCapture inputs={capture.inputs} sourceReference={capture.source} lang="en"/>);await flush()});
+ if(surface==="standalone")await act(async()=>{button("Check original outcome").click();await flush()});
+ const puts=fetcher.mock.calls.filter(([u,init])=>u==="/api/investigations"&&init?.method==="PUT");
+ expect(puts).toHaveLength(1);expect(JSON.parse(puts[0][1].body)).toEqual(command);
+ expect(fetcher.mock.calls.filter(([u])=>u==="/api/investigations/operation-read")).toHaveLength(0);
+ expect(sessionStorage.getItem(key)).not.toBeNull();
+ expect(button("Retry original save")).toBeUndefined();
+ if(surface==="workspace")expect(button("Start new research").disabled).toBe(true);
+ else expect(button("Start a new scenario draft")).toBeUndefined();
+ expect(fetcher.mock.calls.some(([u,init])=>u==="/api/investigations"&&init?.method==="POST")).toBe(false);
+ await act(async()=>{button("Check original outcome").click();await flush()});
+ expect(fetcher.mock.calls.filter(([u])=>u==="/api/investigations/operation-read")).toHaveLength(1);
+ expect(fetcher.mock.calls.filter(([u,init])=>u==="/api/investigations"&&init?.method==="PUT")).toHaveLength(1);
+ if(status==="not_applied"){
+  expect(sessionStorage.getItem(key)).not.toBeNull();
+  await act(async()=>{button(surface==="workspace"?"Start new research":"Start a new scenario draft").click();await flush()});
+ }
+ expect(sessionStorage.getItem(key)).toBeNull();
 });
