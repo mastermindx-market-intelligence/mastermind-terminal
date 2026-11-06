@@ -45,3 +45,17 @@ def test_github_native_source_authoring_has_no_host_worktree_prerequisite():
     assert "blob" in root and "blob" in nested
     assert "Never switch" in root and "Never switch" in nested
     assert "Attended Web/Studio sessions must reuse or acquire" not in nested
+
+
+
+def test_pending_ci_blocks_actual_merge_not_protected_enrollment():
+    root = (ROOT / GUIDES[0]).read_text(encoding="utf-8")
+    nested = (ROOT / GUIDES[1]).read_text(encoding="utf-8")
+    assert "auto-merge enrollment while its required CI is" in root
+    assert "still pending" in root
+    assert "arm native auto-merge while required CI is pending" in nested
+    assert "GitHub must hold the eventual merge" in root
+    assert "Pending is never PASS" in root
+    assert "Pending is never PASS" in nested
+    assert "enforcement-unknown PR" in nested
+    assert "binding approval outstanding" in root
