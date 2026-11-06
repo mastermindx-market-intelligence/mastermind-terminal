@@ -4915,19 +4915,16 @@ def loaded_safety_hook_sources(unit):
     return fragment, dropins, sources
 
 
-def classify_production_safety_hooks(profile, unit):
-    before = unit_property(unit, "ExecStartPre")
-    if not before:
-        return
-    if profile != "production" or unit not in ("terminal", "terminal.service"):
-        raise Refused("unsupported-service-launch-hook")
-    safety_exec_projection(before)
-    # Shell startup/function imports and command search must not turn the two
-    # pinned predicates into arbitrary code. Existing environment-file and
-    # Pass/UnsetEnvironment checks below still apply independently.
-    if unit_property(unit, "ExecSearchPath"):
+def safety_hook_environment(unit):
+    # Bind every consumer to the same observed environment. Re-reading only a
+    # subset later could admit a different generation than the safety policy.
+    snapshot = (unit_property(unit, "Environment"), manager_environment(),
+                unit_property(unit, "ExecSearchPath"),
+                unit_property(unit, "PassEnvironment"),
+                unit_property(unit, "UnsetEnvironment"))
+    if snapshot[2]:
         raise Refused("safety-hook-search-path-unsupported")
-    for text in (unit_property(unit, "Environment"), manager_environment()):
+    for text in (snapshot[0], snapshot[1], snapshot[3], snapshot[4]):
         try:
             tokens = shlex.split(text)
         except ValueError:
@@ -4938,6 +4935,17 @@ def classify_production_safety_hooks(profile, unit):
             if (key.upper() in ("IFS", "SHELLOPTS", "BASHOPTS", "CDPATH", "GLOBIGNORE")
                     or key.startswith("BASH_FUNC_")):
                 raise Refused("safety-hook-environment-unsupported")
+    return snapshot
+
+
+def classify_production_safety_hooks(profile, unit):
+    before = unit_property(unit, "ExecStartPre")
+    if not before:
+        return None
+    if profile != "production" or unit not in ("terminal", "terminal.service"):
+        raise Refused("unsupported-service-launch-hook")
+    safety_exec_projection(before)
+    environment = safety_hook_environment(unit)
     sources = loaded_safety_hook_sources(unit)
     import hashlib
     guard = trusted_safety_file(VOLUME_SAFETY_PATH, 4096)
@@ -4949,8 +4957,10 @@ def classify_production_safety_hooks(profile, unit):
     if (unit_property(unit, "NeedDaemonReload") != "no"
             or unit_property(unit, "ExecStartPre") != before
             or loaded_safety_hook_sources(unit) != sources
-            or trusted_safety_file(VOLUME_SAFETY_PATH, 4096) != guard):
+            or trusted_safety_file(VOLUME_SAFETY_PATH, 4096) != guard
+            or safety_hook_environment(unit) != environment):
         raise Refused("safety-hook-changed-during-verification")
+    return environment
 
 
 def classify_environment_topology(profile, unit, app_root, env_source_dir):
@@ -4965,7 +4975,7 @@ def classify_environment_topology(profile, unit, app_root, env_source_dir):
                  "RootDirectory", "RootImage", "PAMName"):
         if unit_property(unit, prop):
             raise Refused("unsupported-service-launch-hook")
-    classify_production_safety_hooks(profile, unit)
+    safety_environment = classify_production_safety_hooks(profile, unit)
     files = unit_property(unit, "EnvironmentFiles")
     entries = ENVFILE_ENTRY.findall(files)
     if ENVFILE_ENTRY.sub("", files).strip():
@@ -4980,20 +4990,23 @@ def classify_environment_topology(profile, unit, app_root, env_source_dir):
             raise Refused("unsupported-env-file-topology")
         declared.append(read_bounded_regular_file(
             entries[0][0], MAX_ENV_FILE_BYTES, "env-file"))
-    for token in shlex.split(unit_property(unit, "PassEnvironment")):
+    for token in shlex.split(safety_environment[3] if safety_environment is not None
+                             else unit_property(unit, "PassEnvironment")):
         refuse_selected_launch_overrides([token])
         if token.split("=", 1)[0] == ADMISSION_KEY:
             raise Refused("admission-key-in-indirect-unit-environment")
-    for token in shlex.split(unit_property(unit, "UnsetEnvironment")):
+    for token in shlex.split(safety_environment[4] if safety_environment is not None
+                             else unit_property(unit, "UnsetEnvironment")):
         refuse_selected_launch_overrides([token])
         if token.split("=", 1)[0] == ADMISSION_KEY:
             raise Refused("admission-key-in-indirect-unit-environment")
-    manager = manager_environment()
+    manager = safety_environment[1] if safety_environment is not None else manager_environment()
     refuse_file_launch_overrides(manager)
     if KEY_ASSIGNMENT.search(manager):
         raise Refused("admission-key-in-manager-environment")
     values = admission_values_in_unit_environment(
-        unit_property(unit, "Environment"))
+        safety_environment[0] if safety_environment is not None
+        else unit_property(unit, "Environment"))
     for text in declared:
         values.extend(admission_values_in_systemd_file(text))
     if not values:
@@ -5010,6 +5023,9 @@ def classify_environment_topology(profile, unit, app_root, env_source_dir):
         refuse_file_launch_overrides(text, selected=True)
         if admission_values_in_text(text):
             raise Refused("dotenv-admission-conflict")
+    if (safety_environment is not None
+            and safety_hook_environment(unit) != safety_environment):
+        raise Refused("safety-hook-changed-during-verification")
 
 
 def installed_package_json(app_root):

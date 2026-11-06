@@ -2053,3 +2053,62 @@ def test_safety_parent_symlink_or_writable_directory_refuses(verifier, monkeypat
         monkeypatch.setattr(os, "lstat", lambda path, mode=mode: SimpleNamespace(st_mode=mode, st_uid=0))
         with pytest.raises(verifier["Refused"], match="safety-hook-parent-untrusted"):
             verifier["trusted_safety_file"]("/etc/systemd/system/x.conf", 1024)
+
+@pytest.mark.parametrize("change_at", [2, 3])
+@pytest.mark.parametrize("source", ["unit", "manager"])
+@pytest.mark.parametrize("late", [
+    'BASH_FUNC_findmnt%%="() { :; }"',
+    'SHELLOPTS=x',
+    'UNRELATED_DIAGNOSTIC=changed',
+])
+def test_deferred_safety_environment_change_refuses_full_topology(verifier, source, late, change_at):
+    host, _, _ = safety_host(verifier)
+    original_unit = verifier["unit_property"]
+    original_manager = verifier["manager_environment"]
+    reads = 0
+    def moving_unit(unit, prop):
+        nonlocal reads
+        value = original_unit(unit, prop)
+        if source == "unit" and prop == "Environment":
+            reads += 1
+            if reads >= change_at:
+                return value + " " + late
+        return value
+    def moving_manager():
+        nonlocal reads
+        value = original_manager()
+        if source == "manager":
+            reads += 1
+            if reads >= change_at:
+                return value + "\n" + late
+        return value
+    verifier["unit_property"] = moving_unit
+    verifier["manager_environment"] = moving_manager
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_environment_topology"](
+            "production", "terminal", "/app", "/app")
+
+
+@pytest.mark.parametrize("prop,late", [
+    ("ExecSearchPath", "/tmp/other-bin"),
+    ("PassEnvironment", "BASH_FUNC_findmnt%%"),
+    ("UnsetEnvironment", "UNRELATED_DIAGNOSTIC"),
+])
+@pytest.mark.parametrize("change_at", [2, 3])
+def test_deferred_safety_search_and_indirect_environment_refused(verifier, prop, late, change_at):
+    safety_host(verifier)
+    original = verifier["unit_property"]
+    reads = 0
+
+    def moving_property(unit, name):
+        nonlocal reads
+        value = original(unit, name)
+        if name == prop:
+            reads += 1
+            if reads >= change_at:
+                return late
+        return value
+
+    verifier["unit_property"] = moving_property
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
