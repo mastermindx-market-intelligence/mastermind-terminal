@@ -97,7 +97,7 @@ export function parseMarketTideEventResponse(value: unknown): TideResponseView |
     eventIds.add(item.event_id);
     if (item.status === "admitted") activeIds.add(item.event_id);
     events.push({
-      eventId: item.event_id, eventType: item.event_type, sourceRef: item.source_ref,
+      eventId: item.event_id, eventType: item.event_type as string | null, sourceRef: item.source_ref,
       revision: item.revision, knownAt: item.known_at,
       resolutionState: item.resolution_state as TideEvent["resolutionState"],
       status: item.status as TideEvent["status"],
