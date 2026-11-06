@@ -1,8 +1,8 @@
 # Conductor fit chip in zh — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 15adac5fbece4208fcb45f7315c585d2b854206c
-# capturedAt: 2026-11-05T11:04:14.534Z
+# capturedAtHead: 952f7d5cbc0fc44bb5ef0eb3ba22d69c7af15ecc
+# capturedAt: 2026-11-06T13:26:31.411Z
 # capturedAtHead is informational. The lock is layoutFiles.
 # before/ holds the same crops at the commit before the fix (before/BEFORE.yml); this tool never rewrites it.
 layoutFiles:
@@ -42,11 +42,11 @@ files:
   - rail-820-zh.png
   - rail-820.png
 
-integrationRecapture:
-  originalCarrier: "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/649"
-  originalParent: "15adac5fbece4208fcb45f7315c585d2b854206c"
-  mergedMaster: "acd173eae60e1559c87603aee8fa70e35e661b65"
-  captureTree: "Working tree integrating both parents plus the GuidePanel localization repair; layoutFiles records the exact captured source bytes."
-  scope: "Native development fixture evidence, not a production deployment or merge approval."
-  priorEvidence:
-    - "history/master-20261105-before-pr649.yml"
+# Actual fixture capture of the combined source; historical packets are preserved byte-for-byte.
+integrationRecapture20261106:
+  sourceHead: "952f7d5cbc0fc44bb5ef0eb3ba22d69c7af15ecc"
+  integratedProtectedCommit: "31cf16be61c252682ecd3624306c1980b499bba2"
+  qualification: "Captured from the uncommitted original-carrier merge tree; layoutFiles locks identify the actual source bytes. No production account tested."
+  historicalManifests:
+    - "history/before-integration-20261106-pr649-952f7d5c.yml"
+    - "history/before-integration-20261106-master-31cf16be.yml"

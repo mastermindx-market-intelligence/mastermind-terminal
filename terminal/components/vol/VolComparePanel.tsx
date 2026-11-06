@@ -473,7 +473,7 @@ export function VolComparePanel({
                     <dd style={DD}>{t("cmpMoveEstimatorValue").replace("{iv}", move.ivPct.toFixed(1))}</dd>
                     <dt style={DT}>{t("cmpMoveHorizonLabel")}</dt>
                     <dd style={DD}>
-                      {t("cmpMoveHorizonValue")
+                      {t(move.horizonDays === 1 ? "cmpMoveHorizonValueSingular" : "cmpMoveHorizonValue")
                         .replace("{n}", String(move.horizonDays))
                         .replace("{from}", dayShort(todayIso, lang))
                         .replace("{to}", dayShort(selectedExpiry, lang))}
