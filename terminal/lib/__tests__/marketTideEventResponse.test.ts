@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { parseMarketTideEventResponse } from "../marketTideEventResponse";
 
+const windowRef = "synthetic:2026-11-04T14:20Z..14:29Z";
+const receipt = (source_ref: string) => ({
+  source_ref, revision: "1", rights_ref: "synthetic:no-license", status: "complete",
+  observed_at: "2026-11-04T14:29:00Z", usable_at: "2026-11-04T14:29:30Z",
+  return_window_ref: windowRef,
+});
 const valid = () => ({
   schema: "market_tide.event_response/v1",
   evidence_class: "OBSERVATION",
@@ -35,7 +41,7 @@ const valid = () => ({
         source_ref: "synthetic:bar", revision: "1",
         rights_ref: "synthetic:no-license", status: "partial",
         observed_at: "2026-11-04T14:29:00Z",
-        usable_at: "2026-11-04T14:29:30Z",
+        usable_at: "2026-11-04T14:29:30Z", return_window_ref: windowRef,
       },
       event_links: [
         {
@@ -52,6 +58,11 @@ const valid = () => ({
       decomposition: {
         market_pct: 2, sector_excess_pct: 1, unexplained_pct: 3,
         method: "market_plus_sector_excess/v1", causal_attribution: false,
+      },
+      factor_receipts: {
+        market: receipt("synthetic:SPY"),
+        sector: receipt("synthetic:XLP"),
+        return_window_ref: windowRef,
       },
     },
     {
@@ -96,6 +107,20 @@ describe("Market Tide observed-response consumer", () => {
 
   it("rejects later information by microsecond, not millisecond", () => {
     const x = mutate(v => { v.events[0].known_at = "2026-11-04T14:30:00.000002Z"; });
+    expect(parseMarketTideEventResponse(x)).toBeNull();
+  });
+
+  it("rejects late sector evidence in a claimed factor decomposition", () => {
+    const x = mutate(v => {
+      v.securities[0].factor_receipts!.sector.usable_at = "2026-11-04T14:31:00Z";
+    });
+    expect(parseMarketTideEventResponse(x)).toBeNull();
+  });
+
+  it("rejects mismatched return windows", () => {
+    const x = mutate(v => {
+      v.securities[0].factor_receipts!.sector.return_window_ref = "synthetic:different";
+    });
     expect(parseMarketTideEventResponse(x)).toBeNull();
   });
 
@@ -178,7 +203,8 @@ describe("Market Tide observed-response consumer", () => {
       market_reason: "MISSING_MARKET_RETURN" };
     // This only validates the producer's report. It cannot independently
     // authenticate an unseen market source or imply fresh browser data.
-    expect(parseMarketTideEventResponse(x)?.marketStatus).toBe("unavailable");
+    // A market-unavailable status cannot coexist with a valid decomposition.
+    expect(parseMarketTideEventResponse(x)).toBeNull();
   });
 
   it("rejects mutation of source into an impossible chronology", () => {
