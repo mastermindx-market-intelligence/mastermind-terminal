@@ -10,6 +10,11 @@ import type {InvestigationManifest} from "../investigationContracts";
 const {rpc,getUser,principal}=vi.hoisted(()=>({rpc:vi.fn(),getUser:vi.fn(),principal:"90000000-0000-4000-8000-000000000009"}));
 vi.mock("@/lib/supabase/server",()=>({createClient:async()=>({rpc,auth:{getUser}})}));
 vi.mock("@/lib/rateLimit",()=>({rateLimit:()=>({ok:true})}));
+// Controlled born-OPEN API realm only; this source journey exercises the real
+// retained owner/API composition, never the Linux installer or OPEN admission.
+const boot=vi.hoisted(()=>({closed:false}));
+vi.mock("@/lib/investigationBootAdmission",()=>({readInvestigationBootAdmission:()=>true,
+ hasObservedInvestigationClosure:()=>boot.closed,observeInvestigationClosure:()=>{boot.closed=true;}}));
 vi.mock("@/lib/i18n",()=>({useLang:()=>({lang:"en"})}));
 vi.mock("@/lib/useInvestigationTheme",()=>({useInvestigationTheme:()=>"dark"}));
 vi.mock("next/link",()=>({default:({children,href}:React.PropsWithChildren<{href:string}>)=><a href={href}>{children}</a>}));

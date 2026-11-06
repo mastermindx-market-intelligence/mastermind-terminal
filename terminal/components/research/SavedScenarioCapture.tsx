@@ -47,7 +47,8 @@
 //
 // This section gates saving only; source display remains subject to its native access rules.
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { identityOwnerKey, identityUserId } from "@/lib/accountIdentity";
 import { readInvestigationJournal, retainInvestigationJournal, retainInvestigationCaptureUnknown, rejectInvestigationJournal, clearCommittedInvestigationJournal, clearRejectedInvestigationJournal } from "@/lib/investigationJournal";
@@ -166,12 +167,17 @@ type Phase =
   | { kind: "legacy" }
   | { kind: "committed"; verify: "checking" | "ok" | "failed" | "mismatch" };
 
-export default function SavedScenarioCapture({ inputs, sourceReference = null, lang }: Props) {
-  const c = COPY[lang];
+export default function SavedScenarioCapture(props: Props) {
   const identity = useShellIdentity();
   const ownerKey = identityOwnerKey(identity);
-  const userId = identityUserId(identity);
-  const isAccount = identity.kind === "account";
+  return <OwnerScenarioCapture key={ownerKey} {...props} ownerKey={ownerKey}
+    userId={identityUserId(identity)} isAccount={identity.kind === "account"}/>;
+}
+
+function OwnerScenarioCapture({ inputs, sourceReference = null, lang, ownerKey, userId, isAccount }: Props & {
+  ownerKey: string; userId: string; isAccount: boolean;
+}) {
+  const c = COPY[lang];
 
   // The one gate on this panel: the strict native constructor. It validates the descriptor's
   // shape and the user's inputs and detaches them; its result is a candidate, never an
@@ -204,15 +210,15 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
     setQuestion("");
   }, []);
 
-  // An owner change clears painted private content in the same commit; the previous owner's
-  // journal buffer is untouched — it stays partitioned under its own key.
-  useEffect(() => {
-    reset();
-    return () => {
-      genRef.current += 1;
-      abortRef.current?.abort();
-    };
-  }, [ownerKey, reset]);
+  // Owner identity keys the entire state lifetime: the new owner never commits
+  // the old draft while waiting for a reset effect. Layout cleanup invalidates
+  // late answers before the replacement owner's layout observers can run.
+  const invalidate = useCallback(() => {
+    genRef.current += 1;
+    operationReadSeq.current += 1;
+    abortRef.current?.abort();
+  }, []);
+  useLayoutEffect(() => invalidate, [invalidate]);
 
   // Reload recovery adopts only this exact reference/input capture for this owner.
   // Another retained operation remains occupied and unchanged. No mutation or
@@ -437,21 +443,21 @@ export default function SavedScenarioCapture({ inputs, sourceReference = null, l
             </details>
           )}
           <div className={styles.actions}>
-            <a className={styles.action} href={`/analysis?view=investigations&investigation=${encodeURIComponent(saved?.id ?? "")}&revision=${saved?.revision ?? ""}`}>{c.open}</a>
+            <Link className={styles.action} prefetch={false} href={`/analysis?view=investigations&investigation=${encodeURIComponent(saved?.id ?? "")}&revision=${saved?.revision ?? ""}`} onNavigate={event=>{event.preventDefault();window.location.assign(`/analysis?view=investigations&investigation=${encodeURIComponent(saved?.id ?? "")}&revision=${saved?.revision ?? ""}`);}}>{c.open}</Link>
           </div>
         </>
       ) : phase.kind === "legacy" ? (
         <>
           <p className={styles.status} role="status" data-testid="scenario-capture-refusal">{c.legacy}</p>
           <div className={styles.actions}>
-            <a className={styles.action} href="/analysis?view=investigations">{c.occupiedAction}</a>
+            <Link className={styles.action} href="/analysis?view=investigations" prefetch={false} onNavigate={event=>{event.preventDefault();window.location.assign("/analysis?view=investigations");}}>{c.occupiedAction}</Link>
           </div>
         </>
       ) : phase.kind === "occupied" ? (
         <>
           <p className={styles.status} role="status" data-testid="scenario-capture-status">{c.occupied}</p>
           <div className={styles.actions}>
-            <a className={styles.action} href="/analysis?view=investigations">{c.occupiedAction}</a>
+            <Link className={styles.action} href="/analysis?view=investigations" prefetch={false} onNavigate={event=>{event.preventDefault();window.location.assign("/analysis?view=investigations");}}>{c.occupiedAction}</Link>
           </div>
         </>
       ) : (

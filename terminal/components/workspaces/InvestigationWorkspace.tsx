@@ -106,7 +106,14 @@ function contextLabel(value:string,lang:"en"|"zh") {
 }
 const optionsTypeLabel=(type:string,c:(typeof COPY)[keyof typeof COPY])=>type==="exposure_chart_request"?c.typeExposure:type==="sector_origin"?c.typeOrigin:type==="rotation_measurement"?c.typeRotation:c.options;
 
-export default function InvestigationWorkspace({ownerKey,initialSymbol,initialInvestigationId,initialRevision,historyMode="route",savedPlanControls,readIntlEvidence,initialIntlEntry,intlReturnTo,onOptionPlanAdmissionReady,onOptionPlanRevisionReady}:Props) {
+export default function InvestigationWorkspace(props:Props) {
+ // A new owner or authored entry owns new React state, refs and async scope
+ // before its first commit, rather than repainting the prior private state.
+ const lifetimeKey=JSON.stringify([props.ownerKey,props.initialInvestigationId,props.initialRevision,props.initialIntlEntry??null]);
+ return <InvestigationWorkspaceLifetime key={lifetimeKey} {...props}/>;
+}
+
+function InvestigationWorkspaceLifetime({ownerKey,initialSymbol,initialInvestigationId,initialRevision,historyMode="route",savedPlanControls,readIntlEvidence,initialIntlEntry,intlReturnTo,onOptionPlanAdmissionReady,onOptionPlanRevisionReady}:Props) {
  const {lang}=useLang(), c=COPY[lang], sc=SCENARIO_COPY[lang];
  const pick=(en:string,zh:string)=>lang==="zh"?zh:en;
  const intlEntryKey=JSON.stringify(initialIntlEntry??null);
@@ -170,7 +177,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  const optionsSeq=useRef(0),alertsSeq=useRef(0);
  const invalidateOptionsReads=()=>{++optionsSeq.current;++alertsSeq.current;};
  const detailTitle=useRef<HTMLHeadingElement>(null),draftTitle=useRef<HTMLInputElement>(null);
- useEffect(()=>{if(editing)draftTitle.current?.focus();else if(detail)detailTitle.current?.focus();},[editing,detail?.id,detail?.revision]);
+ useEffect(()=>{if(editing)draftTitle.current?.focus();else if(detail)detailTitle.current?.focus();},[editing,detail]);
  const locked=saveState.phase==="pending"||saveState.phase==="uncertain";
  const setSave=(s:InvestigationSaveState)=>{stateRef.current=s;setSaveState(s);};
  const planEntryToken=useRef<object|null>(null);
@@ -457,14 +464,16 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   if(receiptRequiresOwnerCheck(stateRef.current,ownerKey,response)){await checkOutcome();return;}
   await settle(command,response);
  }
- useEffect(()=>{
+ // This callback belongs to one keyed owner/entry lifetime. It synchronizes
+ // external journal/auth/request owners on the real DOM mount and returns their
+ // actual cleanup. It never resets another identity's rendered React state.
+ // A stable callback avoids restarting reads on ordinary draft/locale renders.
+ const [mountLifetime]=useState(()=> (node:HTMLElement|null)=>{
+  if(!node)return;
   const controller=new AbortController();scope.current=controller;
-  acknowledgeDetail(null);setDraft(emptyDraft(initialSymbol));setEditing(false);setAuthEnded(false);setItems(null);setListError(false);setDetail(null);setBaseline(null);setIntlProjection(null);setSave({phase:"idle"});setStorageBlocked(false);setRetainedCapture(null);setDuplicate(null);setLegacyScenario(false);setIntlEntryLoading(false);setIntlPolicyUndo(null);
-  setAlertRows(null);setOutbox(null);setAlertLoad("loading");
   void inventory();
   void loadLayouts();
   let recovery=false;
-  ++optionsSeq.current;setOptionsRefs([]);setOptionsStatus(null);setOptionsChecking(false);
   try {
    const journal=readInvestigationJournal(sessionStorage,ownerKey);
    if(journal.status==="conflict"){recovery=true;setEditing(false);setStorageBlocked(true);setMessage(sc.conflict);}
@@ -490,7 +499,6 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   }
   let active=true;
   let auth:AuthLifecycleSubscription|null=null;
-  setBoundAuth(null);
   const getSnapshot=()=>active&&auth?auth.getSnapshot():null;
   const publish=(snapshot:AuthLifecycleSnapshot)=>{
    if(!active)return;
@@ -506,10 +514,8 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
    else {setAuthEnded(true);controller.abort();}
   }catch{setAuthEnded(true);controller.abort();}
   setEntryActive(true);
-  return()=>{active=false;setBoundAuth(null);controller.abort();++detailSeq.current;++baselineSeq.current;invalidateOptionsReads();auth?.unsubscribe();};
-  // Owner changes are remounted by the authenticated server page; every request also has a scope fence.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
- },[ownerKey,initialInvestigationId,initialRevision,intlEntryKey]);
+  return()=>{active=false;controller.abort();++operationReadSeq.current;++detailSeq.current;++baselineSeq.current;invalidateOptionsReads();auth?.unsubscribe();};
+ });
  function beginEdit(fresh=false) {
   // Async selection must consult current admission, never the render that
   // started its GET. The boolean return pairs baseline installation with edit.
@@ -695,12 +701,11 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  const duplicateReady=ownerKey==="local-preview"||!!authProjection&&authProjection.snapshot.availability==="ready"&&authProjection.snapshot.principal_partition===ownerKey&&!!authProjection.snapshot.auth_epoch;
  // The canonical Scenario reader uses this owner's actual getter and scope;
  // it never observes the SDK or creates a second authentication lifetime.
- const scenarioGetter=authProjection?.getSnapshot??null,scenarioController=scope.current,scenarioTicket=detailSeq.current,scenarioDetail=detail;
+ const scenarioGetter=authProjection?.getSnapshot??null,scenarioDetail=detail;
  const scenarioResolveGuard={
   getSnapshot:()=>scenarioGetter?.()??null,
-  isCurrent:()=>!!scenarioGetter&&authGetterRef.current===scenarioGetter&&!!scenarioController
-   &&scope.current===scenarioController&&!scenarioController.signal.aborted
-   &&detailSeq.current===scenarioTicket&&acknowledgedDetailRef.current===scenarioDetail,
+  isCurrent:()=>!!scenarioGetter&&authGetterRef.current===scenarioGetter&&!!scope.current
+   &&!scope.current.signal.aborted&&acknowledgedDetailRef.current===scenarioDetail,
  };
  const scenarioIdentity=ownerKey!=="local-preview"&&duplicateReady?accountIdentity(investigationSubject(ownerKey)):accountIdentity();
  // This source owns no authentication, source admission, cache or Save command.
@@ -716,7 +721,11 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  };
  const intlSource=readIntlEvidence??(()=>intlProjection&&intlProjection.getter===scenarioGetter&&intlProjection.lang===lang
   &&intlProjection.guard.principal===intlGuard?.principal&&intlProjection.guard.epoch===intlGuard?.epoch?intlProjection.value:null);
- const intlRead:InvestigationIntlRead|null=intlSelection&&intlCurrent()?()=>{
+ // Rendering uses reactive owner/selection state. The supplied synchronous
+ // reader still checks live scope/auth before AND after any owner read.
+ const intlVisible=!!intlGuard&&entryActive&&!authEnded&&!editing&&!detailLoading&&!frozen
+  &&!!detail&&detail===acknowledgedDetail;
+ const intlRead:InvestigationIntlRead|null=intlSelection&&intlVisible?()=>{
   if(!intlCurrent())return null;
   const value=intlSource({...intlSelection});
   // A synchronous reader can revoke its source/owner before returning.
@@ -754,8 +763,8 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   setIntlPolicyUndo(null);await save("revise",before,true);
  }
 
- if(authEnded)return <InvestigationAuthContext.Provider value={authProjection}><main className={`main2 ws-shell ${styles.root}`} data-investigation-theme={investigationTheme}><h1>{c.title}</h1><p role="status">{c.auth}</p><Link href="/login">{c.signIn}</Link></main></InvestigationAuthContext.Provider>;
- return <InvestigationAuthContext.Provider value={authProjection}><main className={`main2 ws-shell ${styles.root}`} data-investigation-theme={investigationTheme}>
+ if(authEnded)return <InvestigationAuthContext.Provider value={authProjection}><main ref={mountLifetime} className={`main2 ws-shell ${styles.root}`} data-investigation-theme={investigationTheme}><h1>{c.title}</h1><p role="status">{c.auth}</p><Link href="/login">{c.signIn}</Link></main></InvestigationAuthContext.Provider>;
+ return <InvestigationAuthContext.Provider value={authProjection}><main ref={mountLifetime} className={`main2 ws-shell ${styles.root}`} data-investigation-theme={investigationTheme}>
   <Link className={styles.back} href={`/analysis${symbol?`?symbol=${encodeURIComponent(symbol)}`:""}`}>← {c.back}</Link>
   <header className={styles.heading}><div><h1>{c.title}</h1><p>{c.intro}</p></div><button disabled={!entryActive||frozen} onClick={()=>beginEdit(true)}>{c.start}</button></header>
   {intlReturnHref&&<Link className={styles.back} href={intlReturnHref} prefetch={false}>{pick("Return to International Markets","返回国际市场")}</Link>}
