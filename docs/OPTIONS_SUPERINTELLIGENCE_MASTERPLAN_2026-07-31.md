@@ -38,6 +38,7 @@ are fair game; claimed lanes are not.
 
 | Wave / item | Status (verified 2026-08-12) |
 |---|---|
+| K2 VolRegimeChip keyboard focus (#1203) | IN FLIGHT — `sol/web-terminal-vol-regime-k2-20261102-c2`: remove only inline outline suppression; preserve shared ring, present/unavailable EN/ZH states and real Tip. Five actual-source DOM/style regressions pass in isolated runtime; native host dependencies absent. Draft only; actual responsive keyboard/contrast/browser acceptance remains pending. |
 | Prophet OptionCard finite live-mark render guard | IN FLIGHT — ChatGPT2, `sol/web-terminal-optioncard-mark-admission-20261104-c2`; bounded numeric bid/ask/mid admission before the existing freshness/fixture gate. Actual-component static-render fixtures pass 56/56; native CI and fresh browser acceptance remain open. No producer, ProphetView, source-vintage, pricing policy, or existing #668/#1150 ownership change. |
 | Volatility complete weekday horizon (#1202) | IN FLIGHT — `sol/web-terminal-vol-weekday-horizon-20261103-c2`: preserve weekday-only semantics without 800-day truncation; native source qualification 94/94 plus independent Gregorian/timezone checks. Draft; actual three-pack crop reconciliation and release acceptance remain outstanding. |
 | R0.1 chain-heat relight | ✅ DONE 07-31 — relit on M1, artifact verified current on public R2 |
