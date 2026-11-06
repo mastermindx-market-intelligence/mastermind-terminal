@@ -1,0 +1,202 @@
+"""Fail-closed scoped responsive CI and required-check retention tests."""
+from __future__ import annotations
+
+import json
+import subprocess
+from pathlib import Path
+
+import pytest
+import yaml
+
+from scripts import ci_e2e_scope as scope
+
+ROOT = Path(__file__).resolve().parents[1]
+CI = ROOT / ".github" / "workflows" / "ci.yml"
+SHA_A, SHA_B, SHA_C = "a" * 40, "b" * 40, "c" * 40
+MERGE_REF = "refs/pull/123/merge"
+
+
+def test_full_and_focused_shard_contracts():
+    assert len(scope.FULL_MATRIX) == 12
+    assert {x["shard"] for x in scope.FULL_MATRIX} == {
+        *(f"desktop-{i}" for i in range(1, 6)),
+        *(f"tablet-{i}" for i in range(1, 4)),
+        *(f"mobile-{i}" for i in range(1, 4)),
+        "serial",
+    }
+    assert all(item["specs"] == "" for item in scope.FULL_MATRIX)
+    assert [x["shard"] for x in scope.FOCUSED_MATRIX] == [
+        "screener-desktop", "screener-mobile"
+    ]
+    for item in scope.FOCUSED_MATRIX:
+        assert item["projects"] in ("--project=desktop", "--project=mobile")
+        for name in scope.SCREENER_SPECS:
+            assert name in item["specs"].split()
+            assert (ROOT / "terminal" / name).is_file(), name
+
+
+@pytest.mark.parametrize("path", sorted(scope.SCOPED_PATHS))
+def test_only_reviewed_existing_paths_qualify(path):
+    assert (ROOT / path).is_file(), path
+    assert scope.classify_paths([path])[0] == "focused"
+
+
+@pytest.mark.parametrize("path", [
+    "AGENTS.md", "CLAUDE.md", "terminal/AGENTS.md",
+    ".github/workflows/ci.yml", "scripts/ci_e2e_scope.py",
+    "tests/test_ci_e2e_scope.py", "terminal/app/globals.css",
+    "terminal/app/layout.tsx", "terminal/lib/screenerScan.ts",
+    "terminal/components/screener/SmartScreensPanel.tsx",
+    "terminal/components/screener/UNKNOWN.module.css",
+    "terminal/e2e/brand-new.spec.ts", "terminal/lib/auth.ts",
+    "ingest/gen_fund_us.py", "hub/src/index.ts",
+])
+def test_unknown_or_high_risk_path_always_runs_full(path):
+    assert scope.classify_paths([path])[0] == "full"
+    assert scope.classify_paths([next(iter(scope.SCOPED_PATHS)), path])[0] == "full"
+
+
+def test_empty_duplicate_and_large_change_sets_fail_closed():
+    assert scope.classify_paths([])[0] == "full"
+    one = next(iter(scope.SCOPED_PATHS))
+    assert scope.classify_paths([one, one])[0] == "full"
+    assert scope.classify_paths([one] * 21)[0] == "full"
+
+
+@pytest.mark.parametrize("event", [
+    "", "merge_group", "workflow_dispatch", "push", "schedule", "pull_request_target"
+])
+def test_every_non_pr_event_is_full_without_git(monkeypatch, event):
+    monkeypatch.setattr(scope, "git", lambda *args: 1 / 0)
+    assert scope.select(event, MERGE_REF, SHA_A, SHA_C)[0] == "full"
+
+
+@pytest.mark.parametrize("ref,sha,head", [
+    ("refs/heads/master", SHA_A, SHA_C), ("refs/pull/123/head", SHA_A, SHA_C),
+    ("refs/pull/0/merge", SHA_A, SHA_C), (MERGE_REF, "", SHA_C),
+    (MERGE_REF, SHA_A, ""), (MERGE_REF, "bad-sha", SHA_C),
+])
+def test_untrusted_checkout_identity_is_full(ref, sha, head):
+    assert scope.select("pull_request", ref, sha, head)[0] == "full"
+
+
+@pytest.mark.parametrize("parents", [
+    f"{SHA_A} {SHA_B}\n", f"{SHA_A} {SHA_B} {SHA_B}\n",
+    f"{SHA_B} {SHA_B} {SHA_C}\n", f"{SHA_A} {SHA_B} {SHA_C} {SHA_B}\n",
+])
+def test_unexpected_pr_parents_are_full(monkeypatch, parents):
+    monkeypatch.setattr(scope, "git", lambda *args: parents.encode())
+    assert scope.select("pull_request", MERGE_REF, SHA_A, SHA_C)[0] == "full"
+
+
+def test_exact_pr_merge_diff_enables_focused_and_tracks_renames(monkeypatch):
+    commands = []
+    def git(*args):
+        commands.append(args)
+        if args[0] == "rev-list":
+            return f"{SHA_A} {SHA_B} {SHA_C}\n".encode()
+        return b"terminal/e2e/screener-cross-market-crops.spec.ts\0"
+    monkeypatch.setattr(scope, "git", git)
+    assert scope.select("pull_request", MERGE_REF, SHA_A, SHA_C)[0] == "focused"
+    assert "--no-renames" in commands[1] and "-z" in commands[1]
+    assert commands[1][-1] == "--"
+    assert f"{SHA_B}^{{tree}}" in commands[1]
+    assert f"{SHA_A}^{{tree}}" in commands[1]
+
+
+@pytest.mark.parametrize("diff", [
+    b"", b"bad-unterminated", b"\xff\0",
+    b"terminal/app/layout.tsx\0terminal/e2e/screener-cross-market-crops.spec.ts\0",
+])
+def test_invalid_git_diff_and_unsafe_rename_are_full(monkeypatch, diff):
+    monkeypatch.setattr(scope, "git", lambda *args:
+        f"{SHA_A} {SHA_B} {SHA_C}\n".encode() if args[0] == "rev-list" else diff)
+    assert scope.select("pull_request", MERGE_REF, SHA_A, SHA_C)[0] == "full"
+
+
+def test_git_observation_error_is_full(monkeypatch):
+    def broken(*args):
+        raise subprocess.CalledProcessError(128, ["git"])
+    monkeypatch.setattr(scope, "git", broken)
+    assert scope.select("pull_request", MERGE_REF, SHA_A, SHA_C)[0] == "full"
+
+
+def test_dynamic_matrix_output_can_be_parsed(monkeypatch, tmp_path):
+    output = tmp_path / "output"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(output))
+    monkeypatch.setenv("GITHUB_EVENT_NAME", "merge_group")
+    scope.main()
+    fields = dict(line.split("=", 1) for line in output.read_text().splitlines())
+    assert fields["mode"] == "full"
+    assert json.loads(fields["matrix"]) == {"include": scope.FULL_MATRIX}
+
+
+def test_required_check_never_launders_skipped_or_failed_scope():
+    jobs = yaml.safe_load(CI.read_text())["jobs"]
+    aggregate = jobs["terminal"]
+    assert aggregate["name"] == "Terminal typecheck + tests"
+    assert aggregate["if"] == "always()"
+    assert set(aggregate["needs"]) == {"e2e-scope", "terminal-unit", "terminal-e2e"}
+    run = aggregate["steps"][0]["run"]
+    for dep in ["e2e-scope:$SCOPE", "terminal-unit:$UNIT", "terminal-e2e:$E2E"]:
+        assert dep in run
+    assert '[ "$fail" -eq 0 ] || exit 1' in run
+    assert jobs["terminal-unit"]["needs"] == ["e2e-scope"]
+    assert jobs["terminal-e2e"]["needs"] == ["e2e-scope"]
+    assert jobs["terminal-e2e"]["strategy"]["fail-fast"] is False
+    assert jobs["terminal-e2e"]["strategy"]["matrix"] == (
+        "${{ fromJSON(needs.e2e-scope.outputs.matrix) }}"
+    )
+    assert jobs["e2e-scope"]["steps"][0]["with"]["fetch-depth"] == 2
+    assert "ci_e2e_scope.py" in jobs["e2e-scope"]["steps"][-1]["run"]
+    for step in jobs["terminal-unit"]["steps"]:
+        if step.get("name") in ("Prepare Chromium for original mock captures",
+                                "Capture and validate evidence on this checkout"):
+            assert step["if"] == "needs.e2e-scope.outputs.mode == 'full'"
+    command = next(step["run"] for step in jobs["terminal-e2e"]["steps"]
+                   if "test:e2e:responsive" in step.get("run", ""))
+    assert "${{ matrix.projects }}" in command
+    assert "${{ matrix.specs }}" in command
+
+
+def test_protected_default_branch_has_nightly_full_matrix():
+    # PyYAML 1.1 interprets the GitHub key "on" as True.
+    config = yaml.safe_load(CI.read_text())
+    triggers = config.get("on", config.get(True))
+    assert triggers["schedule"] == [{"cron": "17 9 * * *"}]
+    assert scope.select("schedule", "refs/heads/master", SHA_A, "")[0] == "full"
+
+
+def test_real_synthetic_pr_merge_uses_exact_parent_and_source_diff(tmp_path, monkeypatch):
+    # Exercise real git, not only the mocked selector arguments. No network.
+    repo = tmp_path / "repository"
+    repo.mkdir()
+
+    def call(*args):
+        return subprocess.check_output(
+            ["git", "-C", str(repo), *args], stderr=subprocess.PIPE
+        ).decode().strip()
+
+    call("init", "-b", "master")
+    call("config", "user.name", "Scoped CI Test")
+    call("config", "user.email", "scoped-ci-test@example.invalid")
+    local = repo / "terminal" / "components" / "screener"
+    local.mkdir(parents=True)
+    css = local / "CrossMarketStrip.module.css"
+    css.write_text(".a { color: black; }\n")
+    (repo / "README.md").write_text("source\n")
+    call("add", ".")
+    call("commit", "-m", "base")
+    call("checkout", "-b", "local-ui")
+    css.write_text(".a { color: white; }\n")
+    call("add", ".")
+    call("commit", "-m", "local CSS")
+    head_sha = call("rev-parse", "HEAD")
+    call("checkout", "master")
+    call("merge", "--no-ff", "--no-edit", "local-ui")
+    merge_sha = call("rev-parse", "HEAD")
+    monkeypatch.chdir(repo)
+    assert scope.select("pull_request", MERGE_REF, merge_sha, head_sha) == (
+        "focused", "reviewed_screener_presentation_or_tests"
+    )
+    assert scope.select("merge_group", MERGE_REF, merge_sha, head_sha)[0] == "full"

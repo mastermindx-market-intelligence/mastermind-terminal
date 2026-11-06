@@ -101,9 +101,24 @@ action; never an archived chat as the only actor.
   business-logic implementations.
 - `feat/mobile-terminal-redesign` and the historical `charting-app-mobile` worktree are retired
   development artifacts, not delivery targets. New work starts from `origin/master`.
-- Every user-facing Terminal change must be verified at 1440×900 desktop, 820×1180 tablet, and
-  390×844 mobile. Run `npm run test:e2e:responsive` from `terminal/`; update the shared responsive
-  shell and test together when behavior intentionally changes.
+- Verify user-facing changes in proportion to the affected interaction and source risk, not with an
+  unconditional three-viewport/incognito/screenshot sweep on every routine PR. Desktop 1440×900,
+  tablet 820×1180 and mobile 390×844 remain the canonical responsive contract viewports.
+- Localized cosmetic changes: affected typecheck/lint/unit or static checks and one focused visual
+  proof at the changed viewport. A new incognito session is required only when auth/session
+  behavior is affected. Do not require unrelated screens, languages or a nonexistent light mode.
+- Localized interactive changes (for example a mobile Screener filter sheet): run the targeted
+  browser/interaction test at the affected viewport and one desktop non-regression smoke; include
+  tablet if the shared layout changes. Prove state preservation, visible results, keyboard/focus
+  and usable touch targets where relevant.
+- Shared shell, global styles/navigation, critical data/signals, auth/entitlements/security,
+  financial execution, irreversible state, CI/release configuration and uncertain blast radius:
+  retain the appropriate full desktop/tablet/mobile regression and security/financial-path proof.
+  Capture changed visual states; English/Chinese pairs only when localized strings change.
+- GitHub's protected CI contexts, branch rules, formal approvals where actually enforced, exact
+  source custody and production proof remain mandatory. The protected-base scope selector may
+  narrow routine PR browser work; merge_group and unknown paths run the full matrix. Never
+  equate a scoped test pass with deployed or user-accepted behavior.
 
 ## Native app shells (`apps/`)
 
