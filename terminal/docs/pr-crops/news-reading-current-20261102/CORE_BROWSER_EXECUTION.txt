@@ -1,0 +1,98 @@
+[Reading 95 new lines (total: 95 lines)]
+
+{"action": "NEWS_RESPONSIVE_STARTED", "head": "a1881e7274e8215f72c7a0d85a75d559f3204afb", "port": 47327, "report": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/test-results/news-recovery-core-a1881e727.json", "crops": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/docs/pr-crops/news-reading-current-20261102/reading"}
+[warmup] /terminal?symbol=NVDA → 200 in 100ms
+[warmup] /options → 200 in 2277ms
+[warmup] /portfolio → 200 in 870ms
+[warmup] /alerts → 200 in 786ms
+[warmup] /analysis → 200 in 2090ms
+[warmup] /discover → 200 in 1708ms
+[warmup] /admin → 200 in 675ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 642ms
+[warmup] /login → 200 in 90ms
+[warmup] /reset-password → 200 in 687ms
+[warmup] /api/me → 200 in 732ms
+[warmup] /api/watchlist → 200 in 339ms
+[warmup] /api/layouts → 200 in 395ms
+[warmup] /api/watchlist/annotations → 409 in 268ms
+[warmup] 14 routes compiled in 12s
+
+Running 39 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   1 [desktop] › e2e/news-catchup.spec.ts:173:5 › a returning user sees new and updated company stories, private to their account (33.8s)
+  ✓   2 [desktop] › e2e/news-catchup.spec.ts:263:5 › news catch-up is readable across the EN/ZH desktop/tablet/mobile matrix (47.3s)
+[proof] runA desktop basis.afterMark={"report_key":"benzinga:105","sequence":5,"item_count":3,"view_revision":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","rights":{"receipt_id":"rr_corr_0001","source":"benzinga","provider":"fixture-provider","effective_at":"2026-10-01T00:00:00Z","expires_at":"2027-10-01T00:00:00Z"},"at":"2026-10-05T19:31:01+00:00"}
+[proof] runA desktop basis.afterReopen={"report_key":"benzinga:105","sequence":5,"item_count":3,"view_revision":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","rights":{"receipt_id":"rr_corr_0001","source":"benzinga","provider":"fixture-provider","effective_at":"2026-10-01T00:00:00Z","expires_at":"2027-10-01T00:00:00Z"},"at":"2026-10-05T19:31:01+00:00"}
+[proof] runA desktop basis.deepEqual=true
+[proof] runA desktop note.en="Updated since you savedOpen currentSaved basis: revision 5 · 3 reports · received Oct 5, 03:31 PM · report benzinga:105 · rights receipt …r_0001"
+[proof] runA desktop openCurrent.aria.en="Open the current version of this story"
+[proof] runA desktop ladder.requests=["http://127.0.0.1:47327/api/news/stories/ev2_nvda_basis?ticker=NVDA&view=news&view_revision=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"]
+  ✓   3 [desktop] › e2e/news-corrected-save.spec.ts:207:5 › Run A — a corrected save keeps the original basis and opens the current revision (13.6s)
+[proof] runB desktop basis.afterReopen={"report_key":"benzinga:105","sequence":5,"item_count":3,"view_revision":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","rights":{"receipt_id":"rr_corr_0001","source":"benzinga","provider":"fixture-provider","effective_at":"2026-10-01T00:00:00Z","expires_at":"2027-10-01T00:00:00Z"},"at":"2026-10-05T19:31:01+00:00"}
+[proof] runB desktop basis.deepEqual=true
+[proof] runB desktop savedBasis.count=0
+[proof] runB desktop classicChange.count=1 text="Revised since your review"
+  ✓   4 [desktop] › e2e/news-corrected-save.spec.ts:314:5 › Run B — an out-of-order older presentation is never an update (15.3s)
+  ✓   5 [desktop] › e2e/news-reading-slice.spec.ts:209:7 › News reading slice › the panel owns the rail column while News is the active source (5.5s)
+  ✓   6 [desktop] › e2e/news-reading-slice.spec.ts:236:7 › News reading slice › the company card comes back when News is left (6.9s)
+  -   7 [desktop] › e2e/news-reading-slice.spec.ts:271:7 › News reading slice › the phone's Symbol details leaves News and reveals the dossier
+  ✓   8 [desktop] › e2e/ticker-news.spec.ts:339:5 › ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix (1.4m)
+  ✓   9 [desktop] › e2e/ticker-news.spec.ts:426:5 › unavailable snapshot renders without rail overflow (11.7s)
+  ✓  10 [desktop] › e2e/ticker-news.spec.ts:461:5 › unavailable snapshot retries inside the rail across EN/ZH and theme specimens (19.6s)
+  ✓  11 [desktop] › e2e/ticker-news.spec.ts:531:5 › grouped reports expand inside the real rail without leaving ticker context (8.1s)
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  12 [desktop] › e2e/ticker-news.spec.ts:542:5 › MSFT grouped detail starts while an Apple story response is still held (12.2s)
+  ✓  13 [desktop] › e2e/ticker-news.spec.ts:588:5 › editorial views filter before display and keep grouped details in the selected context (4.9s)
+  ✓  14 [tablet] › e2e/news-catchup.spec.ts:173:5 › a returning user sees new and updated company stories, private to their account (43.9s)
+  -  15 [tablet] › e2e/news-catchup.spec.ts:263:5 › news catch-up is readable across the EN/ZH desktop/tablet/mobile matrix
+[proof] runA tablet basis.afterMark={"report_key":"benzinga:105","sequence":5,"item_count":3,"view_revision":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","rights":{"receipt_id":"rr_corr_0001","source":"benzinga","provider":"fixture-provider","effective_at":"2026-10-01T00:00:00Z","expires_at":"2027-10-01T00:00:00Z"},"at":"2026-10-05T19:31:01+00:00"}
+[proof] runA tablet basis.afterReopen={"report_key":"benzinga:105","sequence":5,"item_count":3,"view_revision":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","rights":{"receipt_id":"rr_corr_0001","source":"benzinga","provider":"fixture-provider","effective_at":"2026-10-01T00:00:00Z","expires_at":"2027-10-01T00:00:00Z"},"at":"2026-10-05T19:31:01+00:00"}
+[proof] runA tablet basis.deepEqual=true
+[proof] runA tablet note.en="Updated since you savedOpen currentSaved basis: revision 5 · 3 reports · received Oct 5, 03:31 PM · report benzinga:105 · rights receipt …r_0001"
+[proof] runA tablet openCurrent.aria.en="Open the current version of this story"
+[proof] runA tablet ladder.requests=["http://127.0.0.1:47327/api/news/stories/ev2_nvda_basis?ticker=NVDA&view=news&view_revision=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"]
+  ✓  16 [tablet] › e2e/news-corrected-save.spec.ts:207:5 › Run A — a corrected save keeps the original basis and opens the current revision (15.8s)
+[proof] runB tablet basis.afterReopen={"report_key":"benzinga:105","sequence":5,"item_count":3,"view_revision":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","rights":{"receipt_id":"rr_corr_0001","source":"benzinga","provider":"fixture-provider","effective_at":"2026-10-01T00:00:00Z","expires_at":"2027-10-01T00:00:00Z"},"at":"2026-10-05T19:31:01+00:00"}
+[proof] runB tablet basis.deepEqual=true
+[proof] runB tablet savedBasis.count=0
+[proof] runB tablet classicChange.count=1 text="Revised since your review"
+  ✓  17 [tablet] › e2e/news-corrected-save.spec.ts:314:5 › Run B — an out-of-order older presentation is never an update (18.5s)
+  -  18 [tablet] › e2e/news-reading-slice.spec.ts:209:7 › News reading slice › the panel owns the rail column while News is the active source
+  ✓  19 [tablet] › e2e/news-reading-slice.spec.ts:236:7 › News reading slice › the company card comes back when News is left (8.4s)
+  -  20 [tablet] › e2e/news-reading-slice.spec.ts:271:7 › News reading slice › the phone's Symbol details leaves News and reveals the dossier
+  -  21 [tablet] › e2e/ticker-news.spec.ts:339:5 › ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix
+  -  22 [tablet] › e2e/ticker-news.spec.ts:426:5 › unavailable snapshot renders without rail overflow
+  ✓  23 [tablet] › e2e/ticker-news.spec.ts:461:5 › unavailable snapshot retries inside the rail across EN/ZH and theme specimens (34.2s)
+  -  24 [tablet] › e2e/ticker-news.spec.ts:531:5 › grouped reports expand inside the real rail without leaving ticker context
+  -  25 [tablet] › e2e/ticker-news.spec.ts:542:5 › MSFT grouped detail starts while an Apple story response is still held
+  ✓  26 [tablet] › e2e/ticker-news.spec.ts:588:5 › editorial views filter before display and keep grouped details in the selected context (8.0s)
+  ✓  27 [mobile] › e2e/news-catchup.spec.ts:173:5 › a returning user sees new and updated company stories, private to their account (47.4s)
+  -  28 [mobile] › e2e/news-catchup.spec.ts:263:5 › news catch-up is readable across the EN/ZH desktop/tablet/mobile matrix
+[proof] runA mobile basis.afterMark={"report_key":"benzinga:105","sequence":5,"item_count":3,"view_revision":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","rights":{"receipt_id":"rr_corr_0001","source":"benzinga","provider":"fixture-provider","effective_at":"2026-10-01T00:00:00Z","expires_at":"2027-10-01T00:00:00Z"},"at":"2026-10-05T19:31:01+00:00"}
+[proof] runA mobile basis.afterReopen={"report_key":"benzinga:105","sequence":5,"item_count":3,"view_revision":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","rights":{"receipt_id":"rr_corr_0001","source":"benzinga","provider":"fixture-provider","effective_at":"2026-10-01T00:00:00Z","expires_at":"2027-10-01T00:00:00Z"},"at":"2026-10-05T19:31:01+00:00"}
+[proof] runA mobile basis.deepEqual=true
+[proof] runA mobile note.en="Updated since you savedOpen currentSaved basis: revision 5 · 3 reports · received Oct 5, 03:31 PM · report benzinga:105 · rights receipt …r_0001"
+[proof] runA mobile openCurrent.aria.en="Open the current version of this story"
+[proof] runA mobile ladder.requests=["http://127.0.0.1:47327/api/news/stories/ev2_nvda_basis?ticker=NVDA&view=news&view_revision=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"]
+  ✓  29 [mobile] › e2e/news-corrected-save.spec.ts:207:5 › Run A — a corrected save keeps the original basis and opens the current revision (20.9s)
+[proof] runB mobile basis.afterReopen={"report_key":"benzinga:105","sequence":5,"item_count":3,"view_revision":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","rights":{"receipt_id":"rr_corr_0001","source":"benzinga","provider":"fixture-provider","effective_at":"2026-10-01T00:00:00Z","expires_at":"2027-10-01T00:00:00Z"},"at":"2026-10-05T19:31:01+00:00"}
+[proof] runB mobile basis.deepEqual=true
+[proof] runB mobile savedBasis.count=0
+[proof] runB mobile classicChange.count=1 text="Revised since your review"
+  ✓  30 [mobile] › e2e/news-corrected-save.spec.ts:314:5 › Run B — an out-of-order older presentation is never an update (20.0s)
+  -  31 [mobile] › e2e/news-reading-slice.spec.ts:209:7 › News reading slice › the panel owns the rail column while News is the active source
+  ✓  32 [mobile] › e2e/news-reading-slice.spec.ts:236:7 › News reading slice › the company card comes back when News is left (7.3s)
+  ✓  33 [mobile] › e2e/news-reading-slice.spec.ts:271:7 › News reading slice › the phone's Symbol details leaves News and reveals the dossier (5.1s)
+  -  34 [mobile] › e2e/ticker-news.spec.ts:339:5 › ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix
+  ✓  35 [mobile] › e2e/ticker-news.spec.ts:426:5 › unavailable snapshot renders without rail overflow (12.9s)
+  ✓  36 [mobile] › e2e/ticker-news.spec.ts:461:5 › unavailable snapshot retries inside the rail across EN/ZH and theme specimens (22.4s)
+  -  37 [mobile] › e2e/ticker-news.spec.ts:531:5 › grouped reports expand inside the real rail without leaving ticker context
+  -  38 [mobile] › e2e/ticker-news.spec.ts:542:5 › MSFT grouped detail starts while an Apple story response is still held
+  ✓  39 [mobile] › e2e/ticker-news.spec.ts:588:5 › editorial views filter before display and keep grouped details in the selected context (4.9s)
+
+  13 skipped
+  26 passed (9.5m)
+{"action": "NEWS_RESPONSIVE_FINISHED", "rc": 0, "seconds": 569.39, "report_exists": true}
+
+✅ Process completed with exit code 0 (runtime: 569.56s)

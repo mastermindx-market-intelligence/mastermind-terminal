@@ -1,4 +1,4 @@
-.board{height:52%;flex:none;min-height:0;--flow-muted:color-mix(in srgb,var(--muted) 75%,var(--text-2))}
+.board{height:auto;flex:1;min-height:0;--flow-muted:color-mix(in srgb,var(--muted) 75%,var(--text-2))}
 .bar{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:40px;padding:8px 11px;border-bottom:1px solid var(--line);flex:none}
 .heading{display:flex;align-items:baseline;gap:7px;min-width:0}
 .title{font:700 11.5px/1 var(--font-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--text)}
