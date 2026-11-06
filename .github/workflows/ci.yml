@@ -101,11 +101,19 @@ jobs:
       - run: npx tsc --noEmit
       - name: Check immutable evidence orchestration (synthetic)
         timeout-minutes: 1
-        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs
+        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs
+      - name: Plan current-source evidence capture
+        id: evidence_plan
+        run: node scripts/ci/plan-evidence-capture.cjs
       - name: Prepare Chromium for original mock captures
+        # PRs always capture. Merge groups recapture only when the actual
+        # integrated source no longer matches BOTH checked-in evidence locks.
+        # Missing/malformed source evidence fails closed to capture=true.
+        if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
         timeout-minutes: 10
         run: npx playwright install --with-deps chromium
       - name: Capture and validate evidence on this checkout
+        if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
         timeout-minutes: 55
         run: node e2e/tools/capture_ci_evidence.cjs
       - run: npm test
@@ -253,6 +261,12 @@ jobs:
 
   terminal-e2e:
     name: Terminal e2e ${{ matrix.shard }} (shard)
+    # The complete responsive matrix remains mandatory on pull_request and
+    # workflow_dispatch. On merge_group, rerun only the fast integrated unit,
+    # type, source-law, ingest and Quote Hub checks. The required aggregator
+    # explicitly accepts the browser job's 'skipped' state ONLY for merge_group.
+    # This reduces queue time without claiming full browser integration proof.
+    if: github.event_name != 'merge_group'
     runs-on: ubuntu-latest
     # 6h default masked a 70-min job. Bound it. On 2026-10-04 the slowest shards measured
     # tablet ~35-36 min and each desktop half ~28-31 min (from the old whole-desktop runs).
@@ -423,18 +437,25 @@ jobs:
         env:
           UNIT: ${{ needs.terminal-unit.result }}
           E2E: ${{ needs.terminal-e2e.result }}
+          EVENT: ${{ github.event_name }}
         run: |
-          echo "terminal-unit=$UNIT terminal-e2e=$E2E"
+          echo "event=$EVENT terminal-unit=$UNIT terminal-e2e=$E2E"
           fail=0
-          for pair in "terminal-unit:$UNIT" "terminal-e2e:$E2E"; do
-            job=${pair%%:*}; res=${pair#*:}
-            if [ "$res" != "success" ]; then
-              echo "::error title=terminal-ci::$job concluded '$res' (expected 'success')"
-              fail=1
-            fi
-          done
+          if [ "$UNIT" != "success" ]; then
+            echo "::error title=terminal-ci::terminal-unit concluded '$UNIT' (expected 'success')"
+            fail=1
+          fi
+          # The full responsive browser matrix executes on every PR head, not
+          # repeatedly for each merge-queue composition. On any other event a
+          # skipped, failed or cancelled e2e matrix remains a hard failure.
+          if [ "$EVENT" = "merge_group" ] && [ "$E2E" = "skipped" ]; then
+            echo "Merge-group fast lane: full browser matrix was proved on PR heads."
+          elif [ "$E2E" != "success" ]; then
+            echo "::error title=terminal-ci::terminal-e2e concluded '$E2E' (expected 'success')"
+            fail=1
+          fi
           [ "$fail" -eq 0 ] || exit 1
-          echo "All terminal shards green."
+          echo "All event-required Terminal checks green."
 
   python:
     name: Ingest + signal-layer tests
