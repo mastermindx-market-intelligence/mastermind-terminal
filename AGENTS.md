@@ -165,7 +165,7 @@ uncommitted changes when lawful publication is available.
 
 - After opening a non-draft pull request that is ready to ship, add the
   `merge-on-green` label and arm GitHub native auto-merge with
-  `gh pr merge --auto --squash --delete-branch`. `master` protects the exact three
+  `gh pr merge <PR> --repo mastermindx-market-intelligence/mastermind-terminal --auto --squash --match-head-commit <CURRENT_40_HEX_HEAD>`. GitHub merge queues reject `--delete-branch` at enrollment; branch cleanup is optional only after verifying the actual merge. `master` protects the exact three
   CI checks, so this is a real server-side wait. Use `hold` or `do-not-merge` as
   an explicit veto and never combine either with auto-merge.
 - `.github/workflows/merge-on-green.yml` is the repository fallback for sessions
