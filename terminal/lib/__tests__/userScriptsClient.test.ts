@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { listScripts } from "@/lib/userScripts";
+import { listScripts, enabledScriptIds, pineParamStore, mergedParams } from "@/lib/userScripts";
 
 // C7 client half: `listScripts` used to return `[]` for a non-OK response AND for a thrown fetch,
 // which is the shape that let a storage outage render as "No custom scripts yet".
@@ -53,5 +53,44 @@ describe("listScripts", () => {
     const result = await listScripts(false);
     expect(result).toEqual({ status: "ok", scripts: [{ id: "g1", name: "Local", source: "", lang: "pine", params: {}, updated_at: "2026-08-01" }] });
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe("Pine device preference envelopes", () => {
+  it.each(["null", "{}", "42", "true", '"id"', '[null,3,{},["id"]]', "{bad"])(
+    "keeps enabled iteration safe for %s", (raw) => {
+      store.set("mm.pineOn", raw);
+      expect(enabledScriptIds().map((id) => id)).toEqual([]);
+      expect(store.get("mm.pineOn")).toBe(raw);
+    },
+  );
+  it("retains arbitrary string IDs, order and duplicates", () => {
+    store.set("mm.pineOn", JSON.stringify(["custom:α", "", "custom:α", null, 17, "constructor", "__proto__"]));
+    expect(enabledScriptIds()).toEqual(["custom:α", "", "custom:α", "constructor", "__proto__"]);
+  });
+  it.each(["null", "[]", "42", "true", '"value"', "{bad"])(
+    "merges declared defaults safely for parameter envelope %s", (raw) => {
+      store.set("mm.pineParams", raw);
+      const script = { id: "s", name: "Advanced", source: "", lang: "pine", params: { len: 14 }, updated_at: "2026-08-01" };
+      expect(mergedParams(script, pineParamStore())).toEqual({ len: 14 });
+      expect(pineParamStore()).toEqual({});
+      expect(store.get("mm.pineParams")).toBe(raw);
+    },
+  );
+  it("validates only override envelopes and preserves literal own keys", () => {
+    const raw = '{"s":{"len":0,"flag":false,"text":"","array":[1,null],"nested":{"x":2}},"bad":null,"array":[],"scalar":5,"__proto__":{"n":7},"constructor":{"n":8}}';
+    store.set("mm.pineParams", raw);
+    const params = pineParamStore();
+    expect(Object.keys(params)).toEqual(["s", "__proto__", "constructor"]);
+    expect(Object.getPrototypeOf(params)).toBe(Object.prototype);
+    expect(params.s).toEqual({ len: 0, flag: false, text: "", array: [1, null], nested: { x: 2 } });
+    expect(params.__proto__).toEqual({ n: 7 });
+    expect(params.constructor).toEqual({ n: 8 });
+    expect(store.get("mm.pineParams")).toBe(raw);
+  });
+  it("retains safe defaults when preference storage is unavailable", () => {
+    vi.stubGlobal("localStorage", { getItem: () => { throw new Error("blocked"); } });
+    expect(enabledScriptIds()).toEqual([]);
+    expect(pineParamStore()).toEqual({});
   });
 });
