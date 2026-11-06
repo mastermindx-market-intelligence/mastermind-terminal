@@ -101,9 +101,17 @@ action; never an archived chat as the only actor.
   business-logic implementations.
 - `feat/mobile-terminal-redesign` and the historical `charting-app-mobile` worktree are retired
   development artifacts, not delivery targets. New work starts from `origin/master`.
-- Every user-facing Terminal change must be verified at 1440×900 desktop, 820×1180 tablet, and
-  390×844 mobile. Run `npm run test:e2e:responsive` from `terminal/`; update the shared responsive
-  shell and test together when behavior intentionally changes.
+- Verify user-facing Terminal changes in proportion to their actual impact rather than requiring
+  a product-wide responsive browser run for every localized adjustment. A reversible, cosmetic
+  STANDARD change needs affected static/type checks and a meaningful visual inspection on its
+  changed viewport; an interactive STANDARD change needs focused interaction/browser checks
+  at that viewport plus a neighboring viewport smoke where shared layout may regress.
+  For shared navigation/shell or global CSS, authentication, payments, entitlement, financial
+  execution, privileged CI/release, unknown scope or material cross-device behavior, run the
+  relevant full desktop (1440×900), tablet (820×1180), and mobile (390×844) coverage.
+  An uncertain test-selection signal always falls back to full coverage. Preserve the real
+  required GitHub checks, protection and native merge queue; do not convert absent evidence
+  into a passing required check.
 
 ## Native app shells (`apps/`)
 
@@ -132,6 +140,13 @@ asking the operator to finish it:
 6. deploy the merged `origin/master` through the git-gated
    `/opt/terminal/terminal-build.sh`;
 7. verify the expected marker and behavior on `https://app.mastermind-x.com`.
+
+The verification burden for routine UI source changes is impact-scoped. A focused post-deploy
+check of the affected live view is sufficient for a localized cosmetic change; fresh-incognito
+and multi-language/theme screenshot dossiers are not universal. Interactive changes need a
+real affected user interaction. Auth, permissions, trading and financial-data changes require
+the corresponding complete consumer and negative-state proof. Do not infer production
+acceptance from tests alone.
 
 The operator granted standing authorization on 2026-07-30 for this entire
 commit → push → PR → CI → merge → production deploy → live verification chain.

@@ -50,8 +50,16 @@ precision from the step so two ticks can't render identically. The v7b wave fixe
 that each violated several of these — do not hand-roll a sixth way.
 
 ## Verification law (what "done" means)
-- A user-facing flow is NOT done until a fresh incognito end-to-end pass succeeds with zero manual workarounds — no reload-to-recover. If you hit a race and work around it, the bug is yours to fix, not to route around.
-- Every UI PR carries its verification artifact in the body: screenshots/crops of each step and state (light + dark + zh via the LEX i18n tuples — zh strings must never leak into the EN view, and vice versa).
+- Use risk- and blast-radius-scoped UI proof. Localized cosmetic work needs a focused visual
+  check plus affected static/type checks. Interactive work needs keyboard/touch/interaction
+  regression of the changed behavior, including a neighboring responsive viewport when relevant.
+  Never workaround or hide an actual reproducible failure for a green test.
+- Incognito E2E, screenshot dossiers for every state, and blanket EN/ZH/light/dark captures
+  are NOT required for each routine UI change. Capture the changed visual state; verify both
+  languages when localized strings change. Terminal has no working light mode: do not demand
+  fictional light-mode evidence. Authentication, entitlement, financial execution, shared shell,
+  changed data semantics and other high-impact work retain stronger real-path proof.
+  Keep mandatory hosted checks, protected merge rules and source custody intact.
 - A spawned child builder does not self-merge a flagship first pass; it returns the PR and artifacts to the commissioning main session. The main session reviews them and completes the merge plus git-gated live deployment in the same task unless the operator explicitly requests a hold or a genuine check is red.
 - The operator's standing authorization (2026-07-30) is to commit, push, open a PR, qualify CI and required review, merge to `master`, run the git-gated VPS deployment, and verify live without a separate deployment request. A CI/review/deployment hold stops that release effect, not the whole assigned session: complete the next genuinely independent authorized source, test, integration or browser-proof action. An issue, reviewer request, green local tests or blocker report is not completion. Preserve finished source on the original managed branch through its authorized publisher when available. A refused commit/push is held on its exact original operation, not a reason to create a replacement branch or change tools/accounts; preserve local custody, never retry an explicit safety/permission denial, reconcile EFFECT_UNKNOWN on the same carrier, and continue other independent permitted work. Do not claim a pushed remote branch when publication did not occur; retain the exact recovery action.
 - A ready, non-draft PR must carry `merge-on-green` and be armed with `gh pr merge --auto --squash --delete-branch`. `master` protects the exact 3/3 CI contexts, so native auto-merge is the server-side fast path; the controller is the fail-closed orphan fallback (current-master ancestry, same-repo head, no hold/conflict, SHA-pinned squash). Neither path permits the commissioning session to skip deployment and live verification. Never use an admin bypass.
@@ -66,9 +74,12 @@ Durable org memory — workstreams `WS-*`, decisions `DEC-*`, discoveries `DSC-*
 - This directory is one responsive Next.js application. Desktop, tablet, and mobile share routes,
   data fetching, chart logic, indicator logic, and settings; breakpoint-specific chrome is allowed,
   a separate mobile implementation is not.
-- A user-facing change is incomplete until `npm run test:e2e:responsive` passes at the repository's
-  three contract viewports (1440×900, 820×1180, 390×844). Preserve safe-area handling, mobile
-  navigation/sheets, usable touch targets, and zero horizontal document overflow.
+- Use affected responsive coverage, not a blanket product-wide E2E run for every change.
+  Mobile-local changes need mobile 390×844 interaction proof and desktop non-regression when
+  shared behavior may shift; include tablet 820×1180 or the full three-viewport matrix for
+  shared shell, global styles/navigation, high-risk, cross-device or uncertain changes.
+  Scheduled full coverage complements (and never replaces) meaningful PR checks.
+  Preserve safe-area handling, usable touch targets, keyboard focus and no horizontal overflow.
 - Never target the retired `feat/mobile-terminal-redesign` branch or `charting-app-mobile`
   worktree. They are historical recovery references only; canonical work starts from
   `origin/master`.

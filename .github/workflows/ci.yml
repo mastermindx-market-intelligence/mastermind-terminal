@@ -37,6 +37,36 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # This job plans browser test coverage only; it never authorizes a merge or lowers risk.
+  # A PR does not get to supply its own test-reduction selector.
+  ci-scope:
+    name: Plan Terminal browser coverage
+    runs-on: ubuntu-latest
+    outputs:
+      mode: ${{ steps.scope.outputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Check scope selector regressions
+        run: node --test terminal/scripts/ci/plan-e2e-scope.test.mjs
+      - name: Classify verified merge diff with protected-base selector
+        id: scope
+        shell: bash
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ] \
+              && git cat-file -e 'HEAD^1:terminal/scripts/ci/plan-e2e-scope.mjs' 2>/dev/null; then
+            git show 'HEAD^1:terminal/scripts/ci/plan-e2e-scope.mjs' > "$RUNNER_TEMP/mmx-plan-e2e-scope.mjs"
+            node "$RUNNER_TEMP/mmx-plan-e2e-scope.mjs"
+          else
+            printf 'mode=full\n' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Fail closed on invalid coverage result
+        env:
+          MODE: ${{ steps.scope.outputs.mode }}
+        run: |
+          case "$MODE" in full|screener) ;; *) exit 1 ;; esac
+
   hub:
     name: Quote Hub tests
     runs-on: ubuntu-latest
@@ -64,6 +94,7 @@ jobs:
 
   terminal-unit:
     name: Terminal unit + typecheck (shard)
+    needs: ci-scope
     runs-on: ubuntu-latest
     # Existing stages had20min. Add bounded10min browser setup +55min captures
     # +5min retention margin. Original30-case M2 report took1,018,995ms (~17min)
@@ -103,9 +134,11 @@ jobs:
         timeout-minutes: 1
         run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs
       - name: Prepare Chromium for original mock captures
+        if: needs.ci-scope.outputs.mode == 'full'
         timeout-minutes: 10
         run: npx playwright install --with-deps chromium
       - name: Capture and validate evidence on this checkout
+        if: needs.ci-scope.outputs.mode == 'full'
         timeout-minutes: 55
         run: node e2e/tools/capture_ci_evidence.cjs
       - run: npm test
@@ -253,6 +286,7 @@ jobs:
 
   terminal-e2e:
     name: Terminal e2e ${{ matrix.shard }} (shard)
+    needs: ci-scope
     runs-on: ubuntu-latest
     # 6h default masked a 70-min job. Bound it. On 2026-10-04 the slowest shards measured
     # tablet ~35-36 min and each desktop half ~28-31 min (from the old whole-desktop runs).
@@ -337,24 +371,32 @@ jobs:
               --project=company-intelligence-mobile
               --project=terminal-chrome-intermediate
               --project=w2a-workspaces
+    env:
+      E2E_ACTIVE: ${{ needs.ci-scope.outputs.mode == 'full' || (needs.ci-scope.outputs.mode == 'screener' && (matrix.shard == 'desktop-1' || matrix.shard == 'mobile-1')) }}
     defaults:
       run:
         working-directory: terminal
     steps:
       - uses: actions/checkout@v4
+        if: env.E2E_ACTIVE == 'true'
       - uses: actions/setup-node@v4
+        if: env.E2E_ACTIVE == 'true'
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: terminal/package-lock.json
       - run: npm ci
+        if: env.E2E_ACTIVE == 'true'
       - run: npx next typegen
+        if: env.E2E_ACTIVE == 'true'
       # Resolve the exact Playwright version so the browser cache key can never serve a
       # binary that does not match the client. A miss just reinstalls (23s) — never a false green.
       - name: Resolve Playwright version
+        if: env.E2E_ACTIVE == 'true'
         id: pw
         run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
       - name: Cache Playwright browsers
+        if: env.E2E_ACTIVE == 'true'
         id: pwcache
         uses: actions/cache@v4
         with:
@@ -363,7 +405,7 @@ jobs:
       # `--with-deps` shells out to apt, and the runner's Ubuntu mirror stalls often enough to
       # matter (see #438). Bound it, then fall back to a browser-only install.
       - name: Install Playwright browsers (apt bounded, browser-only fallback)
-        if: steps.pwcache.outputs.cache-hit != 'true'
+        if: env.E2E_ACTIVE == 'true' && steps.pwcache.outputs.cache-hit != 'true'
         timeout-minutes: 12
         run: |
           timeout 480 npx playwright install --with-deps chromium \
@@ -371,13 +413,21 @@ jobs:
                  npx playwright install chromium; }
       # A cache hit still needs the system libs check to be cheap and non-fatal.
       - name: Ensure browser present on cache hit
-        if: steps.pwcache.outputs.cache-hit == 'true'
+        if: env.E2E_ACTIVE == 'true' && steps.pwcache.outputs.cache-hit == 'true'
         run: npx playwright install chromium
       - run: npm run test:e2e:responsive -- ${{ matrix.projects }}
+        if: needs.ci-scope.outputs.mode == 'full'
+      - name: Focused Stock Screener responsive regression
+        if: needs.ci-scope.outputs.mode == 'screener' && env.E2E_ACTIVE == 'true'
+        env:
+          PROJECT: ${{ matrix.shard == 'mobile-1' && 'mobile' || 'desktop' }}
+        run: >-
+          npm run test:e2e:responsive -- e2e/screener- e2e/smart-screens
+          --project=$PROJECT --workers=1 --retries=0
       # This feature is default-off; the ordinary matrix skips its browser tests.
       # Exercise it with the SAME harness, without altering production flags.
       - name: Qualify investor shell opt-in
-        if: matrix.shard == 'serial'
+        if: needs.ci-scope.outputs.mode == 'full' && matrix.shard == 'serial'
         env:
           MMX_INVESTOR_SHELL_PREVIEW: '1'
           CI: '1'
@@ -388,7 +438,7 @@ jobs:
           --workers=1 --retries=0
           --output=test-results/investor-shell-preview
       - name: Qualify Shared Shell beta presentation
-        if: matrix.shard == 'serial'
+        if: needs.ci-scope.outputs.mode == 'full' && matrix.shard == 'serial'
         env:
           MMX_SHARED_SHELL: '1'
           CI: '1'
@@ -399,7 +449,7 @@ jobs:
           --workers=1 --retries=0
           --output=test-results/shared-shell-refinement
       - name: Upload responsive QA screenshots
-        if: always()
+        if: always() && env.E2E_ACTIVE == 'true'
         uses: actions/upload-artifact@v4
         with:
           # upload-artifact@v4 HARD-FAILS on duplicate names across a matrix. The shard
