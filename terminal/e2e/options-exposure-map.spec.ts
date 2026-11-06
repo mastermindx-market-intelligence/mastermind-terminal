@@ -212,3 +212,102 @@ test("Discover board mounts the scan table beside the glance scanner", async ({ 
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   expect(errors).toEqual([]);
 });
+
+for (const lang of ["en", "zh"] as const) {
+  test(`Exposure Surface ${lang}: real keyboard handoff and connected focus return`, async ({ page }) => {
+    const errors: string[] = []; page.on("pageerror", error => errors.push(error.message));
+    await page.clock.install({ time: new Date("2026-10-14T20:00:00Z") });
+    await page.addInitScript(locale => {
+      localStorage.setItem("mm.lang", locale);
+      Reflect.deleteProperty(window, "EventSource");
+    }, lang);
+    await page.route(url => url.pathname === "/api/flow/stream", route => route.abort("failed"));
+    const projection = structuredClone(qualifiedFixture);
+    const session = "2026-10-13", expiries = ["2026-10-16", "2026-10-23"];
+    projection.clocks = { ...projection.clocks, source_session: session, oi_report_date: session,
+      oi_available_at: `${session}T12:00:00Z`, option_observed_at: `${session}T19:00:00Z`,
+      underlying_observed_at: `${session}T19:00:00Z`, greeks_available_at: `${session}T19:01:00Z`,
+      available_at: `${session}T20:00:00Z` };
+    const proto = projection.cells[0]!;
+    projection.cells = expiries.map((expiry, index) => ({
+      ...structuredClone(proto), expiry, strike: 100, economic_expiry_at: `${expiry}T20:00:00Z`,
+      gamma: { ...proto.gamma, net: 100e6 * (index + 1), gross: 200e6 * (index + 1),
+        known_net: 100e6 * (index + 1), known_gross: 200e6 * (index + 1),
+        call: 150e6 * (index + 1), put: -50e6 * (index + 1) },
+    }));
+    projection.cell_count = projection.cells.length;
+    await page.route(url => url.pathname === "/api/flow" && url.searchParams.get("f") === "gex:SPY", route =>
+      route.fulfill({ json: { schema: "options_hub.gex/v1", root: "SPY", asof: session, spot_ref: 100,
+        by_strike: [{ strike: 100, gamma_net: 300e6 }], by_expiry: expiries.map(exp => ({ exp })),
+        exposure_projection: projection } }));
+    await page.goto("/options?tab=prism&symbol=SPY&view=chart");
+    const map = page.getByTestId("exposure-map");
+    await expect(map).toBeVisible({ timeout: 30_000 });
+    const surfaceTab = map.getByRole("button", { name: lang === "en" ? "Surface" : "曲面", exact: true });
+    const phone = (page.viewportSize()?.width ?? 1440) <= 640;
+    for (const [action, activation, dismissal] of [
+      ["open", "Enter", "escape"], ["pin", "Space", "close"],
+      ["open", "Space", "close"], ["pin", "Enter", "escape"],
+    ] as const) {
+      await surfaceTab.focus(); await surfaceTab.press("Enter");
+      const surface = map.locator("[data-surface-status]");
+      await expect(surface).toHaveAttribute("data-surface-status", "ready");
+      // Select an actual rendered cell, not a replacement button or a tolerated
+      // empty/unqualified Surface state.
+      const face = surface.locator('[data-surface-cell][data-strike="100"][data-expiry="2026-10-23"]').locator("polygon").last();
+      await expect(face).toBeInViewport();
+      await expect.poll(async () => {
+        const cellBounds = await face.boundingBox();
+        const fieldBounds = await surface.getByTestId("surface-field").boundingBox();
+        return cellBounds !== null && fieldBounds !== null
+          && cellBounds.x >= fieldBounds.x && cellBounds.y >= fieldBounds.y
+          && cellBounds.x + cellBounds.width <= fieldBounds.x + fieldBounds.width
+          && cellBounds.y + cellBounds.height <= fieldBounds.y + fieldBounds.height;
+      }).toBe(true);
+      await face.click();
+      const cellInspector = surface.getByTestId("surface-inspector");
+      const button = cellInspector.getByRole("button", {
+        name: action === "open" ? (lang === "en" ? "Open in Exposure ↗" : "在 Exposure 中打开 ↗")
+          : (lang === "en" ? /^Pin / : /^固定 /),
+        exact: action === "open",
+      });
+      await button.focus(); await expect(button).toBeFocused();
+      await button.press(activation);
+      await expect(surface).toHaveCount(0);
+      const inspector = page.getByTestId("exposure-node-inspector");
+      const dialog = page.getByRole("dialog");
+      await expect(phone ? dialog : inspector).toBeFocused();
+      await expect(phone ? dialog : inspector).toBeInViewport();
+      await expect(map.getByLabel(lang === "en" ? "Expiration scope" : "到期范围", { exact: true })).toHaveValue("2026-10-23");
+      await expect(inspector).toContainText("+200M");
+      await expect(inspector).toContainText("400M");
+      await expect(inspector).not.toContainText("+300M");
+      if (action === "pin") await expect(inspector.getByRole("button", {
+        name: lang === "en" ? "Remove reference" : "移除参考线", exact: true,
+      })).toHaveAttribute("aria-pressed", "true");
+      if (phone) {
+        await page.keyboard.press("Shift+Tab");
+        const last = await page.evaluateHandle(() => document.activeElement);
+        expect(await dialog.evaluate((node, active) => node.contains(active), last)).toBe(true);
+        await page.keyboard.press("Tab");
+        const first = await page.evaluateHandle(() => document.activeElement);
+        expect(await dialog.evaluate((node, active) => node.contains(active), first)).toBe(true);
+        expect(await first.evaluate((node, other) => node !== other, last)).toBe(true);
+        await page.keyboard.press("Shift+Tab");
+        expect(await last.evaluate(node => node === document.activeElement)).toBe(true);
+        await first.dispose(); await last.dispose();
+      } else {
+        await page.keyboard.press("Tab");
+        expect(await inspector.evaluate(node => node.contains(document.activeElement))).toBe(true);
+      }
+      if (dismissal === "escape") await page.keyboard.press("Escape");
+      else await inspector.getByRole("button", {
+        name: lang === "en" ? "Close inspector" : "关闭详情", exact: true,
+      }).click();
+      await expect(surfaceTab).toBeFocused();
+      expect(await surfaceTab.evaluate(node => node.isConnected)).toBe(true);
+      if (phone) await expect(dialog).toHaveCount(0);
+    }
+    expect(errors).toEqual([]);
+  });
+}

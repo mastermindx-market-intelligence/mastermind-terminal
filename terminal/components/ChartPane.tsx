@@ -27,6 +27,7 @@ import { classify, isIntradayTf } from "@/lib/intradaySources";
 import { isMacroSymbol } from "@/lib/macroSymbols";
 import type { ReplayAxis, ReplayCutoff } from "@/lib/replayContract";
 import type { DataOrigin } from "@/lib/dataOrigin";
+import { useChartTradingCurrency } from "@/lib/useChartTradingCurrency";
 
 const f = (n: number | null | undefined, d = 2) => (n == null || !isFinite(n) ? "—" : n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }));
 
@@ -72,6 +73,10 @@ export default function ChartPane({ idx, symbol, contextDock, optionsLevel = nul
   // per accepted data generation, ChartFrameBar renders it beside the clock.
   const [dataOrigin, setDataOrigin] = useState<DataOrigin | null>(null);
   const [overnightHistory, setOvernightHistory] = useState<BoatsChartHistory | null>(null);
+  // B1: this pane's trading currency, read through the incumbent fund cache once the
+  // pane's data is ready. Null until an exact-symbol read settles — the frame-bar chip
+  // then says "unavailable" rather than guessing from a suffix or statement currency.
+  const tradingCurrency = useChartTradingCurrency(symbol, dataReady);
 
   // Resolve this pane-local owner before child passive data work can become visually current.
   // `dataReady && chartSettingsReady` below also covers a fast child generation that was already
@@ -321,6 +326,7 @@ export default function ChartPane({ idx, symbol, contextDock, optionsLevel = nul
         openGotoRequest={gotoRequest}
         symbol={symbol}
         dataOrigin={dataOrigin}
+        tradingCurrency={tradingCurrency}
       />
       <ChartSettingsModal
         open={settingsModalOpen}

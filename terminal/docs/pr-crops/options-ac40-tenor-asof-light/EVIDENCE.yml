@@ -1,4 +1,4 @@
-capturedAtHead: 60769a1e5d310cdaa95b39d4c7874f014bd9730a
+capturedAtHead: 0f03615e86ed63f00ad9b294c7a5c909bad7b70a
 capturedAtHeadSource: CAPTURE_HEAD (the commit the captured working tree is built on)
 command: "MMX_SHARED_SHELL=1 OPTIONS_AC40_THEME=light OPTIONS_AC40_CROPS=1 npx playwright test e2e/options-ac40-tenor-asof-crops.spec.ts --project=desktop --workers=1"
 theme: light — Shared Shell beta only (MMX_SHARED_SHELL=1, localStorage mmx.shell.theme=light).
@@ -12,15 +12,15 @@ layoutFiles:
   - path: terminal/app/globals.css
     sha256: b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517
   - path: terminal/components/vol/VolComparePanel.tsx
-    sha256: 328fae04ab780530e2f7af18ce23dbb033e30885b197b42d8413ad39cba4e772
+    sha256: d63aa4113c3ea361195e7b087de3b5090ea9bab03a941320103a418bbd54e5ee
   - path: terminal/components/vol/VolView.tsx
     sha256: 167729cef3c6a64d419355e49c15f9d4ede068fd2a9dbe74f31d6c202d6ff9e3
   - path: terminal/components/vol/volShared.tsx
     sha256: e77a4159b46c9670201a03ab22e0408ec5eeb03725dc9e7dad54b49a07cfdd50
   - path: terminal/components/vol/volStrings.ts
-    sha256: 23f9b84cd166fd28155eee15122ff0774744e445208a6345bdaabe270c9a33ff
+    sha256: 19615ec660380f750066188249e6271163eafb0f99d770869c06890da87f6572
   - path: terminal/lib/volTenorComparison.ts
-    sha256: ba5e924630df32cf91c5e8c64880e91a2e5e4a241f19a0451f514283c180c3ac
+    sha256: f17d28146e1ac70f735d8c56d865780ea719300290c25a56612c45c56facc68a
 crops:
   - file: old-read-on-today-1440.png
     viewport: 1440x2667
@@ -125,7 +125,7 @@ crops:
     clock: 2026-10-22T15:00:00Z
     htmlTheme: light
     sharedShell: 1
-    sha256: 337939c314f8b27e7f48e4e2a41cbbe094b242b190b24d6fd9f17dfccb2140b9
+    sha256: efc12d3416e83575add93dba85647785915f83219f3c9099198c778a9a82b7ef
   - file: asof-missing-820.png
     viewport: 820x3237
     lang: en
@@ -133,7 +133,7 @@ crops:
     clock: 2026-10-22T15:00:00Z
     htmlTheme: light
     sharedShell: 1
-    sha256: 6c3d6811f11504e25282a30435cdd535364fb0db99da98ba7cb90d0bc296f9f3
+    sha256: 4450fb525492fa1712be9e13316793e74b4bfe004543beb3a0cd9574e49ba62e
   - file: asof-missing-390.png
     viewport: 390x3838
     lang: en
@@ -141,7 +141,7 @@ crops:
     clock: 2026-10-22T15:00:00Z
     htmlTheme: light
     sharedShell: 1
-    sha256: 275389b73a1f4ff0c1d3b11edfde8421371e708ddce09a916bf37f977b39e359
+    sha256: 05985a2aeb9f4e70fe2b207b2aae7cc87d18fb2d13c54be23a788574be457fd4
   - file: asof-missing-1440-zh.png
     viewport: 1440x2887
     lang: zh

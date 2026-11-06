@@ -1193,10 +1193,12 @@ if (LIGHT_ACCEPTANCE) for (const lang of ["en", "zh"] as const) test(`synthetic 
   }));
   const values=await paint('[data-testid="exposure-node-inspector"] b[data-sign]');
   const bias=await paint('[data-testid="exposure-divergence"] strong[data-sign]');
+  const kpi=await paint('[class*="leaders"] strong[data-sign]');expect(kpi).toHaveLength(1);
   await inspector.scrollIntoViewIfNeeded();
   await page.screenshot({path:`test-results/synthetic-light-map-signed-${lang}.png`});
-  await retainSyntheticJson("synthetic-light-map-signed-text.json", {source:SOURCE_REF,session:SESSION,expiry:SELECTED_EXPIRY,metric:"gamma",values,momentum:bias,nonColor:"explicit signed numbers and unchanged bullish/bearish words; exposure face/swatch palette unchanged",typography:"fallback; no full typography/production acceptance"});
-  for(const row of [...values,...bias]) expect(row.contrast,`${row.text}: ${row.foreground} on ${row.background}`).toBeGreaterThanOrEqual(4.5);
+  await retainSyntheticJson("synthetic-light-map-signed-text.json", {source:SOURCE_REF,session:SESSION,expiry:SELECTED_EXPIRY,metric:"gamma",values,kpi,momentum:bias,nonColor:"explicit signed numbers and unchanged bullish/bearish words; exposure face/swatch palette unchanged",typography:"fallback; no full typography/production acceptance"});
+  await map.locator('[class*="leaders"]').screenshot({path:`test-results/synthetic-light-topnet-${lang}.png`});
+  for(const row of [...values,...bias,...kpi]) expect(row.contrast,`${row.text}: ${row.foreground} on ${row.background}`).toBeGreaterThanOrEqual(4.5);
 });
 
 const ACCESS_ACCEPTANCE = process.env.TERMINAL_EXPOSURE_ACCESS_ACCEPTANCE === "1";

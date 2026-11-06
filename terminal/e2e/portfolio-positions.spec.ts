@@ -133,7 +133,8 @@ test("live values come from the quote hub, and an unresolved symbol dashes inste
   const nvda = row(page, "NVDA").locator("td");
   await expect(nvda.nth(3)).toHaveText("180.00USD", { timeout: 20_000 });
   await expect(nvda.nth(4)).toHaveText("USD 1,800.00");
-  await expect(nvda.nth(5)).toHaveText("+20.00%");
+  await expect(nvda.nth(5).locator("span")).toHaveText("+20.00%");
+  await expect(nvda.nth(5).locator("small")).toHaveText("USD +300.00");
   await expect(row(page, "AAPL").locator("td").nth(3)).toHaveText("228.10USD");
   for (const index of [3, 4, 5]) await expect(row(page, "ZZUNKNOWN").locator("td").nth(index)).toHaveText("—");
   const detail = await coverage(page);

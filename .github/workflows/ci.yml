@@ -4,6 +4,10 @@ on:
   pull_request:
   merge_group:
     types: [checks_requested]
+  # Scheduled default-branch runs retain the complete responsive matrix even
+  # when most routine localized pull requests qualify for the narrow lane.
+  schedule:
+    - cron: '17 9 * * *'
   # merge-on-green refreshes stale branches with GITHUB_TOKEN. GitHub records
   # the refreshed head's pull_request run as held (action_required, no jobs),
   # and the controller re-runs that held run: it is the run the pull request's
@@ -62,7 +66,71 @@ jobs:
           python -m pip install -r requirements-futures.txt
           python -m unittest discover -s tests -p 'test_futures_*.py' -v
 
+  e2e-scope:
+    name: Terminal browser scope selection
+    runs-on: ubuntu-latest
+    outputs:
+      mode: ${{ steps.select.outputs.mode }}
+      matrix: ${{ steps.select.outputs.matrix }}
+    steps:
+      # The pull_request checkout is the immutable synthetic merge commit.
+      # Its first parent is exactly the base that this CI candidate received.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Fail-closed source-bound scope selection
+        id: select
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          # Pull requests cannot modify their own selector to claim a narrower
+          # proof. Execute the selector from the synthetic merge commit's
+          # immutable first parent (the protected base for this exact run).
+          # Bootstrap, other events, unknown Git state or absent base script
+          # always run the canonical FULL matrix without executing PR code.
+          TRUSTED=""
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ] &&
+             [ "$(git rev-parse HEAD)" = "${GITHUB_SHA}" ] &&
+             [ "$(git rev-list --parents -n 1 HEAD | wc -w | tr -d ' ')" = "3" ]; then
+            BASE=$(git rev-parse HEAD^1)
+            if [ "$(git cat-file -t "${BASE}:scripts/ci_e2e_scope.py" 2>/dev/null || true)" = "blob" ]; then
+              TRUSTED="${RUNNER_TEMP}/trusted_ci_e2e_scope.py"
+              git show "${BASE}:scripts/ci_e2e_scope.py" > "${TRUSTED}"
+            fi
+          fi
+          if [ -n "${TRUSTED}" ]; then
+            python3 "${TRUSTED}"
+          else
+            python3 - <<'PY'
+          import json
+          import os
+
+          matrix = [
+              {"shard": f"{name}-{i}",
+               "projects": f"--project={name} --shard={i}/{total}",
+               "specs": ""}
+              for name, total in (("desktop", 5), ("tablet", 3), ("mobile", 3))
+              for i in range(1, total + 1)
+          ]
+          matrix.append({
+              "shard": "serial",
+              "projects": " ".join(f"--project={project}" for project in (
+                  "company-intelligence-desktop", "company-intelligence-tablet",
+                  "company-intelligence-mobile", "terminal-chrome-intermediate",
+                  "w2a-workspaces",
+              )),
+              "specs": "",
+          })
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write("mode=full\n")
+              output.write("matrix=" + json.dumps({"include": matrix}, separators=(",", ":")) + "\n")
+          print("e2e-scope: full (immutable protected selector unavailable or non-PR)")
+          PY
+          fi
+
   terminal-unit:
+    needs: [e2e-scope]
     name: Terminal unit + typecheck (shard)
     runs-on: ubuntu-latest
     # Existing stages had20min. Add bounded10min browser setup +55min captures
@@ -101,11 +169,19 @@ jobs:
       - run: npx tsc --noEmit
       - name: Check immutable evidence orchestration (synthetic)
         timeout-minutes: 1
-        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs
+        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs
+      - name: Plan current-source evidence capture
+        id: evidence_plan
+        run: node scripts/ci/plan-evidence-capture.cjs
       - name: Prepare Chromium for original mock captures
+        # PRs always capture. Merge groups recapture only when the actual
+        # integrated source no longer matches BOTH checked-in evidence locks.
+        # Missing/malformed source evidence fails closed to capture=true.
+        if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
         timeout-minutes: 10
         run: npx playwright install --with-deps chromium
       - name: Capture and validate evidence on this checkout
+        if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
         timeout-minutes: 55
         run: node e2e/tools/capture_ci_evidence.cjs
       - run: npm test
@@ -249,10 +325,18 @@ jobs:
             terminal/test-results/
             terminal/docs/pr-crops/b-pl-6-batch-1/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/terminal-visual-intelligence/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
+            terminal/docs/pr-crops/options-level-axis-labels/manifest.json
+            terminal/docs/pr-crops/options-level-axis-labels/*.png
           if-no-files-found: warn
 
   terminal-e2e:
     name: Terminal e2e ${{ matrix.shard }} (shard)
+    # The complete responsive matrix remains mandatory on pull_request and
+    # workflow_dispatch. On merge_group, rerun only the fast integrated unit,
+    # type, source-law, ingest and Quote Hub checks. The required aggregator
+    # explicitly accepts the browser job's 'skipped' state ONLY for merge_group.
+    # This reduces queue time without claiming full browser integration proof.
+    if: github.event_name != 'merge_group'
     runs-on: ubuntu-latest
     # 6h default masked a 70-min job. Bound it. On 2026-10-04 the slowest shards measured
     # tablet ~35-36 min and each desktop half ~28-31 min (from the old whole-desktop runs).
@@ -267,76 +351,13 @@ jobs:
     # This cap is a hang detector, not a budget to grow into: when a shard creeps toward it,
     # split that shard (as desktop, tablet and mobile are below), never just raise the number.
     timeout-minutes: 60
+    needs: [e2e-scope]
     strategy:
-      # NEVER fail-fast. One red shard must not delete the other shards' evidence — the
-      # aggregator below already turns any red into a red required check.
+      # Full shards and focused specs are owned by scripts/ci_e2e_scope.py.
+      # tests/test_ci_e2e_shards.py validates project/shard coverage.
+      # Unknown, high-risk, CI/config and merge-group changes always select FULL.
       fail-fast: false
-      matrix:
-        include:
-          # Desktop first split after PR #677 reached the 60-minute cap. By 2026-10-18,
-          # desktop-1 alone carried 415 tests and again reached the cap (run 39121850650),
-          # so it ran in thirds. A THIRD still reached the unchanged cap on 2026-10-20
-          # (#1090): run 39415184138, job 118602371043 started 11:28:26 UTC and was still
-          # passing with no assertion failure when the host cancelled it at 12:28:40
-          # (60m14s), while the run's other desktop, tablet, mobile, serial, unit and
-          # ingest jobs finished green, so desktop ran in quarters. A QUARTER still
-          # reached the unchanged cap on 2026-10-21: required run 39655439015,
-          # job 119414325187 (desktop-1) reported a drawing recovery assertion at
-          # 19:37:52 and seven subsequent passes at 19:39:49 before cancellation
-          # at 19:45:28. That assertion has its own test-precondition repair;
-          # partitioning preserves the hang cap and does not fix assertions. Green
-          # predecessor heads 7579 (desktop-1 PASS 58m50) and 60c2 (PASS 57m17) sat
-          # about a minute under the cap while every other quarter ran 26-44 min.
-          # Five Playwright shards retain the complete project with less work per
-          # runner. tests/test_ci_e2e_shards.py rejects missing, duplicate or
-          # inconsistent shards.
-          - shard: desktop-1
-            projects: "--project=desktop --shard=1/5"
-          - shard: desktop-2
-            projects: "--project=desktop --shard=2/5"
-          - shard: desktop-3
-            projects: "--project=desktop --shard=3/5"
-          - shard: desktop-4
-            projects: "--project=desktop --shard=4/5"
-          - shard: desktop-5
-            projects: "--project=desktop --shard=5/5"
-          # tablet and mobile outgrew one job the same way. On 2026-10-12 the last eight green
-          # runs measured tablet 47-59 min and mobile 44-56 min, and train 3 (#960, head
-          # 1dc6c48e9) lost both at the 60-min cap: jobs 114632507605 (tablet) and
-          # 114632507580 (mobile) were cancelled after 60m17s with the orphan
-          # `npm run test:e2e:responsive --project=tablet` process terminated and no test
-          # failure (#954 and #959 heads lost tablet the same way). Same contiguous
-          # `--shard` coverage contract as desktop; tests/test_ci_e2e_shards.py guards these too.
-          # Tablet halves now approach the same cap: #1061 run 39416005343
-          # tablet-1 passed in 56m47s, and #1090 run 39415184138 in 55m40s.
-          # Three complete shards preserve coverage and leave runner margin.
-          - shard: tablet-1
-            projects: "--project=tablet --shard=1/3"
-          - shard: tablet-2
-            projects: "--project=tablet --shard=2/3"
-          - shard: tablet-3
-            projects: "--project=tablet --shard=3/3"
-          # A mobile HALF still reached the cap: on 2026-10-20 run 39403170318
-          # job 118563127930 started 09:48:07 UTC, selected 513 tests with the single CI
-          # worker at 09:49:29, and was still passing with no assertion failure when the
-          # host cancelled it at 10:48:24 — 60m17s, the unchanged cap (#1061). Three
-          # contiguous Playwright shards, same coverage contract as desktop above.
-          - shard: mobile-1
-            projects: "--project=mobile --shard=1/3"
-          - shard: mobile-2
-            projects: "--project=mobile --shard=2/3"
-          - shard: mobile-3
-            projects: "--project=mobile --shard=3/3"
-          # The company-intelligence chain uses Playwright `dependencies`
-          # (playwright.config.ts:69-87) and MUST stay whole inside one shard, or the
-          # dependency projects re-run in every shard that touches them.
-          - shard: serial
-            projects: >-
-              --project=company-intelligence-desktop
-              --project=company-intelligence-tablet
-              --project=company-intelligence-mobile
-              --project=terminal-chrome-intermediate
-              --project=w2a-workspaces
+      matrix: ${{ fromJSON(needs.e2e-scope.outputs.matrix) }}
     defaults:
       run:
         working-directory: terminal
@@ -373,7 +394,7 @@ jobs:
       - name: Ensure browser present on cache hit
         if: steps.pwcache.outputs.cache-hit == 'true'
         run: npx playwright install chromium
-      - run: npm run test:e2e:responsive -- ${{ matrix.projects }}
+      - run: npm run test:e2e:responsive -- ${{ matrix.projects }} ${{ matrix.specs }}
       # This feature is default-off; the ordinary matrix skips its browser tests.
       # Exercise it with the SAME harness, without altering production flags.
       - name: Qualify investor shell opt-in
@@ -414,31 +435,52 @@ jobs:
     name: Terminal typecheck + tests
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [terminal-unit, terminal-e2e]
+    needs: [e2e-scope, terminal-unit, terminal-e2e]
     # `always()` so a failed/cancelled/skipped dependency still REPORTS this check as red
     # rather than leaving it "expected — waiting" forever and wedging every armed PR.
     if: always()
     steps:
       - name: Assert every terminal shard succeeded
         env:
+          SCOPE: ${{ needs.e2e-scope.result }}
           UNIT: ${{ needs.terminal-unit.result }}
           E2E: ${{ needs.terminal-e2e.result }}
+          EVENT: ${{ github.event_name }}
         run: |
-          echo "terminal-unit=$UNIT terminal-e2e=$E2E"
+          echo "event=$EVENT e2e-scope:$SCOPE terminal-unit:$UNIT terminal-e2e:$E2E"
           fail=0
-          for pair in "terminal-unit:$UNIT" "terminal-e2e:$E2E"; do
-            job=${pair%%:*}; res=${pair#*:}
-            if [ "$res" != "success" ]; then
-              echo "::error title=terminal-ci::$job concluded '$res' (expected 'success')"
-              fail=1
-            fi
-          done
+          # Selector selection and unit qualification are mandatory on every
+          # event, including native merge_group. A skipped or failed selector
+          # must never give a dynamically narrowed browser plan a green gate.
+          if [ "$SCOPE" != "success" ]; then
+            echo "::error title=terminal-ci::e2e-scope concluded '$SCOPE' (expected 'success')"
+            fail=1
+          fi
+          if [ "$UNIT" != "success" ]; then
+            echo "::error title=terminal-ci::terminal-unit concluded '$UNIT' (expected 'success')"
+            fail=1
+          fi
+          # The original 12-shard full browser proof remains required on PRs.
+          # The native queue skips only this expensive duplicate matrix while
+          # keeping current-source evidence and all integrated tests in unit.
+          if [ "$EVENT" = "merge_group" ] && [ "$E2E" = "skipped" ]; then
+            echo "Merge-group fast lane: full browser matrix was proved on PR heads."
+          elif [ "$E2E" != "success" ]; then
+            echo "::error title=terminal-ci::terminal-e2e concluded '$E2E' (expected 'success')"
+            fail=1
+          fi
           [ "$fail" -eq 0 ] || exit 1
-          echo "All terminal shards green."
+          echo "All event-required Terminal checks green."
 
   python:
     name: Ingest + signal-layer tests
     runs-on: ubuntu-latest
+    # GitHub GraphQL native mergeQueue and source PR membership are read-only;
+    # contents:read alone cannot authenticate the queue's pull-request objects.
+    # Keep write privileges absent on the candidate-controlled merge_group path.
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v4
       # The Scenario PostgreSQL qualification drives the actual TypeScript HTTP

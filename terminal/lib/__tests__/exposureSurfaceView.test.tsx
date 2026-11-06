@@ -5,7 +5,7 @@
  * heatmapCapDisclosure.test.tsx), so elements are queried and events
  * dispatched directly, like the repo's other component tests.
  */
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { act } from "react";
@@ -51,6 +51,7 @@ afterEach(() => {
   act(() => root.unmount());
   container.remove();
   document.body.innerHTML = "";
+  vi.restoreAllMocks();
 });
 const mount = (props: Partial<Parameters<typeof ExposureSurface>[0]> = {}) => {
   act(() => {
@@ -303,4 +304,128 @@ describe("ExposureSurface view", () => {
     expect(css).toContain(".prism:focus-visible polygon");
     expect(css).not.toContain(".focusLabel{display:none");
   });
+});
+
+describe("ExposureSurface viewport placement", () => {
+  it.each([240, 390, 720])("keeps real plotted faces inside a measured %ipx field", (width) => {
+    // The exact two-expiry/one-strike shape that failed the real handoff
+    // browser cases. Width measurement is supplied here; hit testing remains
+    // the responsibility of the unforced Playwright interaction.
+    vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(width);
+    const source = raw();
+    source.cells = source.cells.filter((cell) => cell.strike === 100);
+    source.cell_count = source.cells.length;
+    mount({ projection: parse(source) });
+    const assertContained = () => {
+      const svg = document.querySelector<SVGSVGElement>("[data-testid=surface-field]")!;
+      const [x, y, w, h] = svg.getAttribute("viewBox")!.split(" ").map(Number);
+      expect([x, y, w]).toEqual([0, 0, width]);
+      expect(Number(svg.getAttribute("width"))).toBe(width);
+      expect(Number(svg.getAttribute("height"))).toBe(h);
+      const points = [...svg.querySelectorAll("polygon")].flatMap((polygon) =>
+        polygon.getAttribute("points")!.trim().split(/\s+/).map((pair) => pair.split(",").map(Number)));
+      for (const line of svg.querySelectorAll("line")) {
+        points.push([Number(line.getAttribute("x1")), Number(line.getAttribute("y1"))],
+          [Number(line.getAttribute("x2")), Number(line.getAttribute("y2"))]);
+      }
+      expect(svg.querySelectorAll("[data-surface-cell]")).toHaveLength(2);
+      expect(points.length).toBeGreaterThan(24);
+      for (const [px, py] of points) {
+        expect(Number.isFinite(px) && Number.isFinite(py)).toBe(true);
+        expect(px).toBeGreaterThanOrEqual(0);
+        expect(px).toBeLessThanOrEqual(w!);
+        expect(py).toBeGreaterThanOrEqual(16); // inclusive camera padding above the floor
+        expect(py).toBeLessThan(h! - 14); // room for the axis ticks
+      }
+      const label = svg.querySelector("[data-testid=surface-focus-label] rect")!;
+      expect(Number(label.getAttribute("y"))).toBeGreaterThanOrEqual(0);
+      expect(document.querySelector("[data-testid=surface-inspector]")?.textContent).toContain("+200M");
+      expect(document.querySelector("[data-testid=surface-inspector]")?.textContent).toContain("400M");
+    };
+    for (const mode of ["Net", "Gross", "|Net|"]) {
+      click(button(mode));
+      for (let rotation = 0; rotation < 4; rotation++) {
+        for (let elevation = 0; elevation < 4; elevation++) {
+          assertContained();
+          click([...document.querySelectorAll("button")].find((item) => item.textContent?.includes("°"))!);
+        }
+        click(button("Rotate ⟳"));
+      }
+    }
+  });
+});
+
+it("keeps the selected edge-cell label visible with one value-preserving camera", () => {
+  vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(240);
+  const source = raw();
+  const proto = source.cells[0]!;
+  source.cells = EXPIRIES.flatMap((expiry, e) => Array.from({ length: 9 }, (_, s) => {
+    const strike = 96 + s, net = strike * 1e6 * (e + 1);
+    return { ...structuredClone(proto), expiry, strike, economic_expiry_at: `${expiry}T20:00:00Z`,
+      gamma: { ...proto.gamma, net, gross: net * 2, known_net: net, known_gross: net * 2 } };
+  }));
+  source.cell_count = source.cells.length;
+  mount({ projection: parse(source) });
+  const face = document.querySelector('[data-surface-cell][data-strike="96"][data-expiry="2026-10-16"]')!;
+  const svg = document.querySelector<SVGSVGElement>("[data-testid=surface-field]")!;
+  const points = (node: Element) => node.getAttribute("points")!.split(/\s+/).map(pair => {
+    const [x, y] = pair.split(",").map(Number); return { x: x!, y: y! };
+  });
+  const capture = () => {
+    const floor = [...svg.querySelectorAll('g[class*="floor"] line')].map(line => ({
+      a: { x: Number(line.getAttribute("x1")), y: Number(line.getAttribute("y1")) },
+      b: { x: Number(line.getAttribute("x2")), y: Number(line.getAttribute("y2")) },
+    }));
+    const strikes = [...new Set(source.cells.map(cell => cell.strike))].sort((a,b)=>b-a);
+    const middle = (a: {x:number;y:number}, b: {x:number;y:number}) => ({x:(a.x+b.x)/2,y:(a.y+b.y)/2});
+    const ticks = [...svg.querySelectorAll('g[class*="ticks"] text')].map(text => {
+      const label=text.textContent!, strikeIndex=strikes.findIndex(strike=>String(strike)===label);
+      const expiryIndex=EXPIRIES.findIndex(expiry=>`Oct ${Number(expiry.slice(-2))}`===label);
+      // The floor supplies each label's world anchor independently of the
+      // camera implementation. Fixed-size label offsets must remain fixed.
+      const anchor=strikeIndex>=0 ? middle(floor[strikeIndex]!.b,floor[strikeIndex+1]!.b)
+        : middle(floor[strikes.length+1+expiryIndex]!.b,floor[strikes.length+2+expiryIndex]!.b);
+      expect(strikeIndex>=0||expiryIndex>=0).toBe(true);
+      return {label,anchor,dx:Number(text.getAttribute("x"))-anchor.x,dy:Number(text.getAttribute("y"))-anchor.y};
+    });
+    const plane=svg.querySelector('[data-testid="surface-spot-plane"]')!;
+    const spot=points(plane.querySelector("polygon")!)[2]!,spotText=plane.querySelector("text")!;
+    return {floor:floor.flatMap(line=>[line.a,line.b]), polygons:[...svg.querySelectorAll("polygon")].flatMap(points),ticks,
+      spot:{anchor:spot,dx:Number(spotText.getAttribute("x"))-spot.x,dy:Number(spotText.getAttribute("y"))-spot.y},
+      labels:[...svg.querySelectorAll("[data-surface-cell]")].map(cell=>cell.getAttribute("aria-label")),
+      labelHeight:Number(svg.querySelector('[data-testid="surface-focus-label"] rect')!.getAttribute("height"))};
+  };
+  const before=capture();
+  click(face);
+  const after=capture();
+  expect(after.labels).toEqual(before.labels);
+  expect(after.labelHeight).toBe(before.labelHeight);
+  const lo=before.floor.reduce((best,p,i)=>p.x<before.floor[best]!.x?i:best,0);
+  const hi=before.floor.reduce((best,p,i)=>p.x>before.floor[best]!.x?i:best,0);
+  const scale=(after.floor[hi]!.x-after.floor[lo]!.x)/(before.floor[hi]!.x-before.floor[lo]!.x);
+  const dx=after.floor[lo]!.x-scale*before.floor[lo]!.x,dy=after.floor[lo]!.y-scale*before.floor[lo]!.y;
+  expect(scale).toBeGreaterThan(0);
+  const transformed=(a:{x:number;y:number},b:{x:number;y:number},epsilon:number)=>{
+    expect(Math.abs(b.x-(scale*a.x+dx))).toBeLessThanOrEqual(epsilon);
+    expect(Math.abs(b.y-(scale*a.y+dy))).toBeLessThanOrEqual(epsilon);
+  };
+  expect(after.floor).toHaveLength(before.floor.length);
+  before.floor.forEach((point,i)=>transformed(point,after.floor[i]!,1e-8));
+  // poly() serializes to one decimal place: each coordinate rounds by at
+  // most .05px, hence .05*(1+scale) bounds the before/after residual.
+  const serializedEpsilon=.05*(1+Math.abs(scale))+1e-8;
+  expect(after.polygons).toHaveLength(before.polygons.length);
+  before.polygons.forEach((point,i)=>transformed(point,after.polygons[i]!,serializedEpsilon));
+  transformed(before.spot.anchor,after.spot.anchor,serializedEpsilon);
+  expect(Math.abs(after.spot.dx-before.spot.dx)).toBeLessThanOrEqual(.1+1e-8);
+  expect(Math.abs(after.spot.dy-before.spot.dy)).toBeLessThanOrEqual(.1+1e-8);
+  const sharedTicks=after.ticks.filter(tick=>before.ticks.some(old=>old.label===tick.label));
+  expect(sharedTicks.length).toBeGreaterThan(0);
+  for(const tick of sharedTicks){const old=before.ticks.find(old=>old.label===tick.label)!;
+    transformed(old.anchor,tick.anchor,1e-8);expect(tick.dx).toBeCloseTo(old.dx,8);expect(tick.dy).toBeCloseTo(old.dy,8);}
+  const label = document.querySelector("[data-testid=surface-focus-label] rect")!;
+  const x = Number(label.getAttribute("x")), width = Number(label.getAttribute("width"));
+  expect(x).toBeGreaterThanOrEqual(0);
+  expect(x + width).toBeLessThanOrEqual(240);
+  expect(document.querySelector("[data-testid=surface-focus-label]")?.textContent).toContain("96 × Oct 16 · +96M");
 });

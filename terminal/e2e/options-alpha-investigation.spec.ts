@@ -300,3 +300,54 @@ test("impossible clocks and empty-set quote contradictions never become inspecta
   await expect(page.getByTestId("options-alpha-investigation")).toContainText("No measured events match");
   await expect(page.getByTestId("options-alpha-fires-section")).toBeVisible();
 });
+
+for (const lang of ["en", "zh"] as const) {
+  test(`unresolved target survives list changes and independent save (${lang})`, async ({ page }, info) => {
+    await routeFeed(page);
+    let originalPresent = false;
+    let otherPresent = false;
+    const writes: string[] = [];
+    await page.route("**/api/watchlist", async route => {
+      if (route.request().method() === "POST") {
+        const target = route.request().postDataJSON().listId;
+        writes.push(target);
+        if (target === "owned-one") return route.abort("failed");
+        otherPresent = true;
+        return route.fulfill({ json: { ok: true, added: ["NVDA"] } });
+      }
+      return route.fulfill({ json: { lists: [
+        { id: "owned-one", name: "Default", symbols: originalPresent ? [{ symbol: "NVDA" }] : [] },
+        { id: "owned-two", name: "Research", symbols: otherPresent ? [{ symbol: "NVDA" }] : [] },
+      ] } });
+    });
+    await openAlpha(page);
+    // Existing locale fixture seam: this checks rendered language behavior, not
+    // account preference persistence or a separate shell's language controls.
+    if (lang === "zh") await page.evaluate(() => {
+      document.documentElement.setAttribute("data-lang", "zh");
+      window.dispatchEvent(new CustomEvent("mm:lang"));
+    });
+    await page.getByRole("button", { name: lang === "en" ? "Inspect NVDA event" : "查看 NVDA 事件" }).click();
+    const dialog = page.getByRole("dialog");
+    const save = lang === "en" ? "Add underlying to watchlist" : "加入标的自选股";
+    const check = lang === "en" ? "Check watchlist" : "核对自选股";
+    const select = dialog.locator("select");
+    await dialog.getByRole("button", { name: save }).click();
+    await expect(dialog.getByRole("button", { name: check })).toBeVisible();
+    await select.selectOption("owned-two");
+    await dialog.getByRole("button", { name: save }).click();
+    await expect(dialog.getByRole("status")).toContainText(lang === "en" ? "Saved to Research" : "已保存至 Research");
+    await select.selectOption("owned-one");
+    await expect(dialog.getByRole("button", { name: check })).toBeVisible();
+    await expect(dialog.getByRole("button", { name: save })).toHaveCount(0);
+    await dialog.getByRole("button", { name: check }).click();
+    await expect(dialog.getByRole("status")).toContainText(lang === "en" ? "Save not confirmed" : "保存未获确认");
+    expect(writes).toEqual(["owned-one", "owned-two"]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await dialog.screenshot({ path: info.outputPath(`watchlist-uncertain-${lang}.png`) });
+    originalPresent = true;
+    await dialog.getByRole("button", { name: check }).click();
+    await expect(dialog.getByRole("button", { name: lang === "en" ? "Already on this watchlist" : "已在此自选股列表" })).toBeDisabled();
+    expect(writes).toEqual(["owned-one", "owned-two"]);
+  });
+}

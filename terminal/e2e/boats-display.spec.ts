@@ -45,13 +45,16 @@ for(const lang of ["en","zh"] as const){
  });
 }
 
-test("a late positive response cannot undo a newer authoritative empty snapshot",async({page},info)=>{
+test("coalesced trailing null clears BOATS and a later failure cannot revive it",async({page},info)=>{
  test.setTimeout(60_000);
  const q=boatsQuote(100,1);
- let phase:"initial"|"hold"|"empty"="initial";
+ let phase:"initial"|"hold"|"empty"|"failure"="initial";
  let held:import("@playwright/test").Route|null=null;
+ let requests=0;
  await page.route("**/api/ext-quote?**",async route=>{
+  requests++;
   if(phase==="hold"){held=route;return;}
+  if(phase==="failure"){await route.fulfill({status:503,json:{error:"quote_hub_unavailable"}});return;}
   await route.fulfill({json:{quotes:{NVDA:phase==="empty"?null:q}}});
  });
  // Deliberate poison in the unrelated quote namespace also cannot revive BOATS.
@@ -63,10 +66,29 @@ test("a late positive response cannot undo a newer authoritative empty snapshot"
  await expect(surface).toContainText("100.00",{timeout:30_000});
  phase="hold";await page.evaluate(()=>document.dispatchEvent(new Event("visibilitychange")));
  await expect.poll(()=>held!==null).toBe(true);
- phase="empty";await page.evaluate(()=>document.dispatchEvent(new Event("visibilitychange")));
- await expect(surface).toHaveCount(0);
- expect(await page.evaluate(()=>Date.now()/1000)-q.extTs).toBeLessThan(25); // freshness alone would still admit it
+ const heldRequestCount=requests;
+ phase="empty";
+ await page.evaluate(()=>{
+  for(let i=0;i<3;i++)document.dispatchEvent(new Event("visibilitychange"));
+ });
+ await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
+ // A trigger cannot manufacture an authoritative empty result while the sole request is held.
+ expect(requests).toBe(heldRequestCount);
+ await expect(surface).toContainText("100.00");
+ const emptyResponse=page.waitForResponse(async response=>{
+  if(!response.url().includes("/api/ext-quote?")||response.status()!==200)return false;
+  const body=await response.json().catch(()=>null);
+  return body?.quotes?.NVDA===null;
+ });
  await held!.fulfill({json:{quotes:{NVDA:q}}});
+ await emptyResponse;
+ await expect(surface).toHaveCount(0);
+ expect(requests).toBe(heldRequestCount+1); // exactly one coalesced catch-up
+ expect(await page.evaluate(()=>Date.now()/1000)-q.extTs).toBeLessThan(25); // not freshness expiry
+ phase="failure";
+ const failedResponse=page.waitForResponse(response=>response.url().includes("/api/ext-quote?")&&response.status()===503);
+ await page.evaluate(()=>document.dispatchEvent(new Event("visibilitychange")));
+ await failedResponse;
  await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
  await expect(surface).toHaveCount(0);
 });

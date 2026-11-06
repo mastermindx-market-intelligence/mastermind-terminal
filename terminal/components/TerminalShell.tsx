@@ -8,6 +8,7 @@ import { optionsT } from "@/components/options-companion/optionsStrings";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import type { OptionsPinViewport } from "@/lib/optionsChartPin";
 import replayStyles from "./ReplayTransport.module.css";
+import compactCsvStyles from "./WatchlistCsvCompact.module.css";
 import contextStyles from "./ChartContextPlacement.module.css";
 import rollerSlotStyles from "./mobile/RollerStripSlot.module.css";
 import searchStyles from "./SearchModal.module.css";
@@ -37,7 +38,7 @@ import { isMacroSymbol } from "@/lib/macroSymbols";
 import { freshnessLabel } from "@/lib/feedFreshness";
 import { boatsLatestTradeLabel } from "@/lib/extQuoteCopy";
 import { isExtQuoteCurrent, isPublicBoatsQuote, extQuotePollMs, type ExtProvenance } from "@/lib/extQuoteFreshness";
-import { flowGet } from "@/lib/flowClientCache";
+import { flowGet, flowInvalidate } from "@/lib/flowClientCache";
 // R3.2 glance layer: the rail block's per-root gexstate read. Entitlement-gated at
 // /api/flow — a 403 nulls out and the rail renders exactly as before (free UX unchanged).
 // NOTE (R3.3 deferred): the watchlist regime dot was built and then pulled — its index
@@ -54,7 +55,8 @@ import { portfolioRailOwner, usePortfolioRailRead } from "@/lib/usePortfolioRail
 // entire graph (14 fundamentals pages + statement/intelligence/transcript libs, ~709 KB of
 // source) into the /terminal first-paint chunk. See components/fin/finPages.ts.
 import { FIN_PAGES, type FinPage } from "@/components/fin/finPages";
-import { getFund, getOpts, getBars, type Fund, type Bar } from "@/lib/fund";
+import { getStockVolatility, type StockVolatility } from "@/lib/stockVolatility";
+import { getFund, getBars, type Fund, type Bar } from "@/lib/fund";
 import { allDefaults, indDefaults, withDefaults, IND_ORDER, IND_DEFS, isIndKey } from "@/lib/indicators";
 import { addStudyInstance, isAdditionalStudyId, studyParamsWithDefaults, studyTypeOf, supportsMultipleInstances } from "@/lib/studyInstances";
 import { isRenderableStudyInstance, studyInstanceMeta, withStudyInstanceParams } from "@/lib/studyInstanceView";
@@ -81,6 +83,7 @@ import {
   planWatchlistMigration,
   type ServerWatchlist,
 } from "@/lib/watchlists";
+import { parseWatchlistCsv, planWatchlistCsvImport, serializeWatchlistCsv } from "@/lib/watchlistCsv";
 import {
   adoptLegacyWatchlistState,
   clearWatchlistTombstones,
@@ -100,6 +103,7 @@ import {
   WL_NOTES_KEY,
 } from "@/lib/watchlistOwner";
 import { useGateEntitlement } from "@/lib/entitlementStore";
+import { entitlementVisualState } from "@/lib/entitlementVisualState";
 import { normalizeDevTierOverride } from "@/lib/subscriptionTier";
 import { CHART_PANE_CONTEXT_SCHEMA, useChartBus } from "@/lib/useChartBus";
 import { isV2Envelope, type IndicatorSpec } from "@/lib/chartBus";
@@ -1023,6 +1027,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const [wlSectionContext, setWlSectionContext] = useState<WlSectionContextPoint | null>(null);
   const [wlDragId, setWlDragId] = useState<string | null>(null);
   const [wlSyncFailed, setWlSyncFailed] = useState(false);
+  // CSV read runs after the picker closes. Preserve the picked list/owner and cancel
+  // stale imports before any optimistic or server mutation.
+  const wlCsvImportEpochRef = useRef(0);
+  const [wlCsvFeedback, setWlCsvFeedback] = useState<{ kind: "error" | "info"; en: string; zh: string } | null>(null);
   const wlAnchorRef = useRef<string | null>(null);
   const wlContextFocusRef = useRef<HTMLElement | null>(null);
   const wlSectionContextFocusRef = useRef<HTMLElement | null>(null);
@@ -1116,6 +1124,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // on `loggedIn` alone, so a symbol edit mid-migration cannot restart the whole run.
   const listsRef = useRef(lists);
   listsRef.current = lists;
+  const wlCsvMountedRef = useRef(true);
+  useEffect(() => {
+    wlCsvMountedRef.current = true;
+    return () => { wlCsvMountedRef.current = false; wlCsvImportEpochRef.current++; };
+  }, []);
   // Memoized so its identity is stable: `lists[activeList] || []` allocated a fresh [] on every
   // render whenever the list was missing, which re-ran every useMemo downstream of `wl`.
   const wl = useMemo(() => lists[activeList] || [], [lists, activeList]);
@@ -1149,6 +1162,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // unreachable authority, or a same-owner last-good nobody re-checked — never unlocks a paid
   // surface, however good the cached news was.
   const ent = useGateEntitlement(identity);
+  const accessState = entitlementVisualState(ent);
   // dev-only tier override (localStorage mm.devTier = "essential" | "pro") — read post-mount to
   // avoid a hydration mismatch; the whole branch constant-folds away in production builds.
   // `insider` is the pre-rename name and is still ACCEPTED on read: a dev machine's localStorage
@@ -1501,7 +1515,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const [slice, setSlice] = useState<any>(null);
   const [fund, setFund] = useState<Fund | null>(null);
   const [fundLoading, setFundLoading] = useState(true);   // true from symbol reset until getFund settles — MegaPane/ForecastPage skeleton gate
-  const [opts, setOpts] = useState<any>(null);
+  const volOwner = useRef(identity);
+  const [opts, setOpts] = useState<(StockVolatility & { owner: typeof identity }) | null>(null);
   const [bars, setBars] = useState<Bar[]>([]);
   const [barsSymbol, setBarsSymbol] = useState<string | null>(null);
   // MegaPane (in-shell fundamentals overlay) + OracleDash (Golden Oracle history) overlays
@@ -3075,6 +3090,22 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     getBars(active).then((b) => { if (alive) { setBars(b); setBarsSymbol(active); } }).catch(() => {});
     // deferred: intel (~30-80KB), fund (~100-200KB), opts (~50-100KB) — not visible until user opens
     // the rail cards or MegaPane; deferring avoids competing with the chart's OHLC fetch on cold load.
+    // The Hub publishes after the close. A chart left open overnight must
+    // eventually consume the next publication even when its symbol never changes.
+    if (volOwner.current !== identity) {
+      flowInvalidate(`vol:${active.toUpperCase()}`);
+      volOwner.current = identity;
+    }
+    const refreshVolatility = () => {
+      if (!alive || document.visibilityState !== "visible") return;
+      getStockVolatility(active).then(read => {
+        if (alive) setOpts({ ...read, owner: identity });
+      }).catch(() => {
+        if (alive) setOpts({ root: active, status: "unavailable", owner: identity });
+      });
+    };
+    const volTimer = window.setInterval(refreshVolatility, 30 * 60_000);
+    document.addEventListener("visibilitychange", refreshVolatility);
     const useNativeRic = typeof requestIdleCallback !== "undefined";
     let cancelDeferred: () => void;
     if (useNativeRic) {
@@ -3082,7 +3113,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         if (!alive) return;
         getJSON(`/data/${active}.intel.json`).then((d) => { if (alive) setIntel(d); });
         getFund(active).then((d) => { if (alive) setFund(d); }).catch(() => {}).finally(() => { if (alive) setFundLoading(false); });
-        getOpts(active).then((d) => { if (alive) setOpts(d); }).catch(() => {});
+        refreshVolatility();
         // R3.2: positioning block data — US options names only; 403/absence nulls out silently
         if (classify(active) === "us" && !isMacroSymbol(active)) {
           flowGet(`gexstate:${active.toUpperCase()}`).then((d) => { if (alive) setRailGex(d); }).catch(() => {});
@@ -3094,7 +3125,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         if (!alive) return;
         getJSON(`/data/${active}.intel.json`).then((d) => { if (alive) setIntel(d); });
         getFund(active).then((d) => { if (alive) setFund(d); }).catch(() => {}).finally(() => { if (alive) setFundLoading(false); });
-        getOpts(active).then((d) => { if (alive) setOpts(d); }).catch(() => {});
+        refreshVolatility();
         if (classify(active) === "us" && !isMacroSymbol(active)) {
           flowGet(`gexstate:${active.toUpperCase()}`).then((d) => { if (alive) setRailGex(d); }).catch(() => {});
         }
@@ -3104,8 +3135,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     return () => {
       alive = false;
       cancelDeferred();
+      window.clearInterval(volTimer);
+      document.removeEventListener("visibilitychange", refreshVolatility);
     };
-  }, [active]);
+  }, [active, identity]);
 
   // ONE batched live-quote poll for the active symbol + every watchlist row. Symbol-keyed results
   // merge into `quotes`, so switching tickers never bleeds a stale quote and the header + watchlist
@@ -3168,6 +3201,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // re-fire the interval (which bursts /api/quote). The interval is mounted ONCE and reads them;
   // key changes only schedule a single debounced fresh poll so back-to-back edits coalesce.
   const quoteAliveRef = useRef(true);
+  // Hold one flight through JSON settlement and coalesce refresh triggers.
+  // Cleanup fences publication but leaves that flight owned until it settles.
+  const quoteGenerationRef = useRef(0);
+  const quoteInFlightRef = useRef(false);
+  const quoteTrailingRef = useRef(false);
+  const quoteTrailingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Consecutive null polls per symbol. A null only evicts a previously-good quote after 3 misses
   // in a row: one aborted upstream chunk nulls every CN/HK symbol at once, and hard-deleting on the
   // first null flipped the whole board (header + watchlist + pane cards) to Historical until the
@@ -3176,42 +3215,69 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // simply isn't judged on a poll it sat out — its eviction window stretches to 3 full cycles,
   // which is strictly less flap-prone than the ~18s it used to be, never more.
   const quoteMissRef = useRef<Record<string, number>>({});
-  const pollQuotes = useCallback(() => {
+  const pollQuotes = useCallback(async () => {
+    if (!quoteAliveRef.current) return;
     if (typeof document !== "undefined" && document.hidden) return; // (b) don't poll a backgrounded tab
-    // Plan this poll: priority always, then as much of the rotation as still fits under the cap.
-    const plan = planQuoteBatch({
-      priority: quotePriorityRef.current,
-      rotating: quoteRotatingRef.current,
-      cursor: quoteCursorRef.current,
-    });
-    quoteCursorRef.current = plan.nextCursor;
-    if (!plan.symbols.length) return;
-    const key = plan.symbols.join(",");
-    fetch(`/api/quote?view=regular&syms=${encodeURIComponent(key)}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (!quoteAliveRef.current || !d || !d.quotes) return;
-        const misses = quoteMissRef.current;
-        const drop = new Set<string>();
+    if (!quotePriorityRef.current.some((g) => g.symbols.some(Boolean)) &&
+        !quoteRotatingRef.current.some((g) => g.symbols.some(Boolean))) return;
+    if (quoteInFlightRef.current) {
+      quoteTrailingRef.current = true;
+      return;
+    }
+    // A direct trigger may consume the refresh before its queued catch-up timer.
+    if (quoteTrailingTimerRef.current != null) {
+      clearTimeout(quoteTrailingTimerRef.current);
+      quoteTrailingTimerRef.current = null;
+    }
+    quoteTrailingRef.current = false;
+    quoteInFlightRef.current = true;
+    const generation = quoteGenerationRef.current;
+    try {
+      // Plan only an actual flight; suppressed triggers never consume rotation.
+      const plan = planQuoteBatch({
+        priority: quotePriorityRef.current,
+        rotating: quoteRotatingRef.current,
+        cursor: quoteCursorRef.current,
+      });
+      if (!plan.symbols.length) return;
+      const key = plan.symbols.join(",");
+      const response = fetch(`/api/quote?view=regular&syms=${encodeURIComponent(key)}`);
+      quoteCursorRef.current = plan.nextCursor;
+      const r = await response;
+      const d = r.ok ? await r.json() : null;
+      if (!quoteAliveRef.current || quoteGenerationRef.current !== generation || !d || !d.quotes) return;
+      const misses = quoteMissRef.current;
+      const drop = new Set<string>();
+      for (const k of Object.keys(d.quotes)) {
+        if (d.quotes[k]) delete misses[k];
+        else if ((misses[k] = (misses[k] ?? 0) + 1) >= 3) { drop.add(k); delete misses[k]; }
+      }
+      updateQuotes((prev) => {
+        if (!quoteAliveRef.current || quoteGenerationRef.current !== generation) return prev;
+        // (a) Unchanged-value suppression: only touch symbols whose quote actually changed,
+        // reusing the prior object reference otherwise. updateQuotes rejects that no-op
+        // before it can interrupt an unrelated pending chart/preferences render.
+        let changed = false;
+        const n: Record<string, any> = { ...prev };
         for (const k of Object.keys(d.quotes)) {
-          if (d.quotes[k]) delete misses[k];
-          else if ((misses[k] = (misses[k] ?? 0) + 1) >= 3) { drop.add(k); delete misses[k]; }
+          const q = d.quotes[k];
+          if (q) { const merged = mergeFormingQuote(prev[k], q); if (!quoteEq(prev[k], merged)) { n[k] = merged; changed = true; } }
+          else if (drop.has(k) && k in n) { delete n[k]; changed = true; }
         }
-        updateQuotes((prev) => {
-          // (a) Unchanged-value suppression: only touch symbols whose quote actually changed,
-          // reusing the prior object reference otherwise. updateQuotes rejects that no-op
-          // before it can interrupt an unrelated pending chart/preferences render.
-          let changed = false;
-          const n: Record<string, any> = { ...prev };
-          for (const k of Object.keys(d.quotes)) {
-            const q = d.quotes[k];
-            if (q) { const merged = mergeFormingQuote(prev[k], q); if (!quoteEq(prev[k], merged)) { n[k] = merged; changed = true; } }
-            else if (drop.has(k) && k in n) { delete n[k]; changed = true; }
-          }
-          return changed ? n : prev;
-        });
-      })
-      .catch(() => {});
+        return changed ? n : prev;
+      });
+    } catch {
+      // Request/parse failure retains the last-known quotes and miss counters.
+    } finally {
+      quoteInFlightRef.current = false;
+      if (quoteAliveRef.current && quoteTrailingRef.current) {
+        quoteTrailingRef.current = false;
+        quoteTrailingTimerRef.current = setTimeout(() => {
+          quoteTrailingTimerRef.current = null;
+          pollQuotes();
+        }, 0);
+      }
+    }
   }, [updateQuotes]);
   // stable 6s interval, mounted once. Pauses while the tab is hidden and fires an immediate
   // catch-up poll on re-show so a returning user sees fresh prices without waiting a full cycle.
@@ -3220,7 +3286,17 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     const id = setInterval(pollQuotes, 6000);
     const onVis = () => { if (!document.hidden) pollQuotes(); };
     document.addEventListener("visibilitychange", onVis);
-    return () => { quoteAliveRef.current = false; clearInterval(id); document.removeEventListener("visibilitychange", onVis); };
+    return () => {
+      quoteAliveRef.current = false;
+      quoteGenerationRef.current += 1;
+      quoteTrailingRef.current = false;
+      if (quoteTrailingTimerRef.current != null) {
+        clearTimeout(quoteTrailingTimerRef.current);
+        quoteTrailingTimerRef.current = null;
+      }
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, [pollQuotes]);
   // debounced fresh poll whenever the demand SET changes (rapid edits collapse to one fetch);
   // also prune miss counters for symbols that left the set so a re-added one starts at zero.
@@ -3330,7 +3406,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
 
   // item-26/27: extended/overnight poll — US equities only. Always includes the active symbol
   // (pane-card secondary block, item-25) plus all watchlist US singles when the Ext column is on.
-  // Runs at 30 s cadence (ext prints move slowly). Separate from main quote poll so the hub
+  // Uses the existing overnight/day cadence. Separate from main quote polling so the hub
   // lane surface (/api/quote route) stays untouched.
   const extSymsKey = useMemo(() => {
     const syms: string[] = [];
@@ -3351,32 +3427,63 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const extSymsKeyRef = useRef(extSymsKey);
   extSymsKeyRef.current = extSymsKey;
   const extAliveRef = useRef(true);
+  const extGenerationRef = useRef(0);
+  const extInFlightRef = useRef(false);
+  const extTrailingRef = useRef(false);
+  const extTrailingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const extRequestSequence = useRef(0);
   const extAcceptedSequence = useRef(0);
-  const pollExtQuotes = useCallback(() => {
+  const pollExtQuotes = useCallback(async () => {
+    if (!extAliveRef.current) return;
     if (typeof document !== "undefined" && document.hidden) return; // don't poll a backgrounded tab
     const key = extSymsKeyRef.current;
     if (!key) return;
-    const requestSequence = ++extRequestSequence.current;
-    fetch(`/api/ext-quote?syms=${encodeURIComponent(key)}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (!extAliveRef.current || !d?.quotes || requestSequence < extAcceptedSequence.current) return;
-        // Only authoritative successful responses advance this barrier. A 503
-        // retains last-good until expiry but cannot undo a newer null snapshot.
-        extAcceptedSequence.current = requestSequence;
-        setExtQuotes((prev) => {
-          // reuse prior reference when every incoming ext quote is byte-identical
-          let changed = false;
-          const n: Record<string, ExtQuote | null> = { ...prev };
-          for (const k of Object.keys(d.quotes)) {
-            const incoming = isPublicBoatsQuote(d.quotes[k]) ? d.quotes[k] : null;
-            if (!quoteEq(prev[k], incoming)) { n[k] = incoming; changed = true; }
-          }
-          return changed ? n : prev;
-        });
-      })
-      .catch(() => {});
+    if (extInFlightRef.current) {
+      extTrailingRef.current = true;
+      return;
+    }
+    if (extTrailingTimerRef.current != null) {
+      clearTimeout(extTrailingTimerRef.current);
+      extTrailingTimerRef.current = null;
+    }
+    extTrailingRef.current = false;
+    extInFlightRef.current = true;
+    const generation = extGenerationRef.current;
+    try {
+      const requestSequence = ++extRequestSequence.current;
+      const r = await fetch(`/api/ext-quote?syms=${encodeURIComponent(key)}`);
+      const d = r.ok ? await r.json() : null;
+      if (!extAliveRef.current || extGenerationRef.current !== generation || !d?.quotes ||
+          requestSequence < extAcceptedSequence.current) return;
+      // Only authoritative successful responses advance this barrier. A 503
+      // retains last-good until expiry but cannot undo a newer null snapshot.
+      extAcceptedSequence.current = requestSequence;
+      setExtQuotes((prev) => {
+        if (!extAliveRef.current || extGenerationRef.current !== generation) return prev;
+        // Accepted maps retain React's update order: a newer response for another
+        // demand set must not discard an already accepted null for this symbol.
+        // Keep public BOATS validation at the actual state-update boundary: a
+        // packet can expire while React's functional updater is deferred.
+        let changed = false;
+        const n: Record<string, ExtQuote | null> = { ...prev };
+        for (const k of Object.keys(d.quotes)) {
+          const incoming = isPublicBoatsQuote(d.quotes[k]) ? d.quotes[k] : null;
+          if (!quoteEq(prev[k], incoming)) { n[k] = incoming; changed = true; }
+        }
+        return changed ? n : prev;
+      });
+    } catch {
+      // Failure is not an authoritative null and does not advance the barrier.
+    } finally {
+      extInFlightRef.current = false;
+      if (extAliveRef.current && extTrailingRef.current) {
+        extTrailingRef.current = false;
+        extTrailingTimerRef.current = setTimeout(() => {
+          extTrailingTimerRef.current = null;
+          pollExtQuotes();
+        }, 0);
+      }
+    }
   }, []);
   useEffect(() => {
     extAliveRef.current = true;
@@ -3385,7 +3492,17 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     schedule();
     const onVis = () => { if (!document.hidden) pollExtQuotes(); };
     document.addEventListener("visibilitychange", onVis);
-    return () => { extAliveRef.current = false; clearTimeout(id); document.removeEventListener("visibilitychange", onVis); };
+    return () => {
+      extAliveRef.current = false;
+      extGenerationRef.current += 1;
+      extTrailingRef.current = false;
+      if (extTrailingTimerRef.current != null) {
+        clearTimeout(extTrailingTimerRef.current);
+        extTrailingTimerRef.current = null;
+      }
+      clearTimeout(id);
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, [pollExtQuotes]);
   const hasBoatsDisplay = Object.values(extQuotes).some(q => q?.extSource === "tiingo_boats");
   useEffect(() => {
@@ -4158,6 +4275,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   function renameList(name: string) {
     const next = (typeof window !== "undefined" ? window.prompt(t("renameWatchlistPrompt"), name) : "")?.trim();
     if (!next || next === name || lists[next]) return;
+    wlCsvImportEpochRef.current++;
     setLists((l) => { const n: Record<string, { symbol: string; section: string }[]> = {}; for (const k of Object.keys(l)) n[k === name ? next : k] = l[k]; return n; });
     setListMeta((m) => {
       if (!m[name]) return m;
@@ -4183,6 +4301,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   function deleteList(name: string) {
     if (Object.keys(lists).length <= 1) return;
     if (typeof window !== "undefined" && !window.confirm(t("deleteWatchlistConfirm"))) return;
+    wlCsvImportEpochRef.current++;
     setLists((l) => { const n = { ...l }; delete n[name]; return n; });
     setListMeta((m) => { const n = { ...m }; delete n[name]; return n; });
     if (activeList === name) { setActiveList(Object.keys(lists).filter((k) => k !== name)[0] || "Default"); clearWlSelection(); }
@@ -4235,15 +4354,23 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   }
 
   // ── import / export ────────────────────────────────────────────────────────────────────
-  // CSV carries the SECTION alongside the symbol, so a list survives a round-trip with its
-  // organisation intact rather than arriving as one flat block.
+  // A hazardous field refuses the ENTIRE export before any Blob, object URL or click exists.
+  // Labels (including genuine apostrophes) are never rewritten for spreadsheet consumption.
   function exportList(name: string) {
     setWlMenuOpen(false);
     const source = lists[name] || [];
     const rows = orderWatchlistRowsBySections(source, watchlistSectionOrder(source, listMeta[name]?.sections ?? []));
-    const esc = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
-    const csv = ["symbol,section", ...rows.map((r) => `${esc(r.symbol)},${esc(r.section || "")}`)].join("\n");
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const result = serializeWatchlistCsv(rows);
+    if (!result.ok) {
+      setWlCsvFeedback({
+        kind: "error",
+        en: `CSV export blocked: row ${result.row} has unsafe ${result.column} text. No file was downloaded.`,
+        zh: `CSV 导出已阻止：第 ${result.row} 行的${result.column === "symbol" ? "代码" : "分类"}包含不安全文本。未下载文件。`,
+      });
+      return;
+    }
+    setWlCsvFeedback(null);
+    const url = URL.createObjectURL(new Blob([result.csv], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
     a.href = url;
     a.download = `${name.replace(/[^\w.-]+/g, "_")}.csv`;
@@ -4251,10 +4378,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     URL.revokeObjectURL(url);
   }
 
-  // Import appends into the ACTIVE list, skipping duplicates. Accepts a bare symbol list too
-  // (one per line, no header) because that is what most exports elsewhere actually produce.
+  // Snapshot the chosen list and owner BEFORE the native picker opens. Switching list tabs
+  // while File.text() is pending does not redirect the import to the newly visible list.
+  // A rename/delete, owner change or unmount cancels pending file reads before mutation/sync.
   function importList() {
     setWlMenuOpen(false);
+    const targetList = activeList;
+    const ownerAtPick = wlOwnerRef.current;
+    const importEpoch = wlCsvImportEpochRef.current;
     const input = document.createElement("input");
     input.type = "file";
     input.accept = ".csv,.txt,text/csv,text/plain";
@@ -4262,29 +4393,63 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       const file = input.files?.[0];
       if (!file) return;
       file.text().then((text) => {
-        const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-        if (!lines.length) return;
-        if (/^symbol\s*(,|$)/i.test(lines[0])) lines.shift();     // drop a header row if present
-        const parsed: { symbol: string; section: string }[] = [];
-        for (const line of lines) {
-          const [rawSym, rawSec] = line.split(",");
-          const symbol = (rawSym || "").trim().replace(/^"|"$/g, "").toUpperCase();
-          if (!symbol) continue;
-          parsed.push({ symbol, section: (rawSec || "").trim().replace(/^"|"$/g, "") });
+        if (!wlCsvMountedRef.current) return;
+        if (ownerAtPick !== wlOwnerRef.current || importEpoch !== wlCsvImportEpochRef.current
+          || !Object.prototype.hasOwnProperty.call(listsRef.current, targetList)) {
+          setWlCsvFeedback({
+            kind: "error",
+            en: "CSV import cancelled: the target watchlist or account changed. No changes were made.",
+            zh: "CSV 导入已取消：目标自选列表或账户已变更。未修改任何数据。",
+          });
+          return;
         }
-        if (!parsed.length) return;
-        setWl((prev: { symbol: string; section: string }[]) => {
-          const have = new Set(prev.map((r) => r.symbol));
-          const add = parsed.filter((r) => !have.has(r.symbol));
-          if (!add.length) return prev;
-          // One batched add carrying each row's own section, chunked at the API cap so a large
-          // CSV is no longer dropped whole.
-          void syncWatchlistSymbols(activeList, "add", add.map((r) => r.symbol), add[0].section,
-            Object.fromEntries(add.map((r) => [r.symbol, r.section])));
-          const merged = [...prev, ...add];
-          return orderWatchlistRowsBySections(merged, watchlistSectionOrder(merged, sectionOrder));
+        const parsed = parseWatchlistCsv(text);
+        if (!parsed.ok) {
+          setWlCsvFeedback({
+            kind: "error",
+            en: `CSV import rejected: ${parsed.reason === "malformed" ? "malformed quoting" : "extra columns"} at record ${parsed.row}. No changes were made.`,
+            zh: `CSV 导入被拒绝：第 ${parsed.row} 条记录${parsed.reason === "malformed" ? "引号格式错误" : "字段过多"}。未修改任何数据。`,
+          });
+          return;
+        }
+        const existing = listsRef.current[targetList];
+        const plan = planWatchlistCsvImport(existing, parsed.rows);
+        const skipped = parsed.invalid + plan.duplicate;
+        if (!plan.accepted.length) {
+          setWlCsvFeedback({
+            kind: "info",
+            en: `No new symbols imported (${parsed.invalid} invalid, ${plan.duplicate} existing or duplicate).`,
+            zh: `没有可导入的新代码（${parsed.invalid} 条无效，${plan.duplicate} 条已存在或重复）。`,
+          });
+          return;
+        }
+        // The exact accepted plan is used by both the local list and the section-aware server
+        // payload. Never call setWl(): it writes whichever list is ACTIVE at React commit time.
+        const merged = [...existing, ...plan.accepted];
+        const ordered = orderWatchlistRowsBySections(merged,
+          watchlistSectionOrder(merged, listMeta[targetList]?.sections ?? []));
+        listsRef.current = { ...listsRef.current, [targetList]: ordered };
+        setLists((current) => {
+          if (!Object.prototype.hasOwnProperty.call(current, targetList)) return current;
+          // A pending local add may have committed between the file-read snapshot and
+          // this React updater. Preserve those edits instead of replacing the whole list.
+          const stillNew = planWatchlistCsvImport(current[targetList], plan.accepted).accepted;
+          if (!stillNew.length) return current;
+          const latest = [...current[targetList], ...stillNew];
+          return { ...current, [targetList]: orderWatchlistRowsBySections(latest,
+            watchlistSectionOrder(latest, listMeta[targetList]?.sections ?? [])) };
         });
-      }).catch(() => {});
+        void syncWatchlistSymbols(targetList, "add", plan.symbols, plan.accepted[0].section, plan.sections);
+        setWlCsvFeedback({
+          kind: "info",
+          en: `Imported ${plan.accepted.length} symbols into ${targetList} (${skipped} skipped: ${parsed.invalid} invalid, ${plan.duplicate} duplicates).`,
+          zh: `已向 ${targetList} 导入 ${plan.accepted.length} 个代码（跳过 ${skipped} 条：${parsed.invalid} 条无效，${plan.duplicate} 条重复）。`,
+        });
+      }).catch(() => {
+        if (!wlCsvMountedRef.current) return;
+        setWlCsvFeedback({ kind: "error", en: "Could not read the selected CSV file. No changes were made.",
+          zh: "无法读取所选 CSV 文件。未修改任何数据。" });
+      });
     };
     input.click();
   }
@@ -7121,9 +7286,24 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               </div>
               {/* E16 on a phone: the idle review control follows the oracle row so the row keeps the fold (R2.3). */}
               {!dossierMode && <WatchlistReviewBar slot="phone-foot" review={wlReview} activeSymbol={active} activeList={activeList} activeListCount={lists[activeList]?.length ?? 0} manifestSymbols={man?.symbols ?? null} />}
+              {/* Keep touch CSV controls after the oracle/Trend rows so they retain the phone fold.
+                  Reuse the desktop owner-bound handlers and selected list; no second watchlist state. */}
+              {!shellMode && (
+                <section className={compactCsvStyles.root} data-testid="compact-wl-csv" aria-label={t("watchlists")}>
+                  <label>
+                    <span>{t("watchlists")}</span>
+                    <select aria-label={t("watchlists")} value={activeList}
+                      onChange={(event) => switchList(event.currentTarget.value)}>
+                      {Object.keys(lists).map((name) => <option value={name} key={name}>{name}</option>)}
+                    </select>
+                  </label>
+                  <button type="button" onClick={() => importList()}>{t("importCsv")}</button>
+                  <button type="button" onClick={() => exportList(activeList)}>{t("exportCsv")}</button>
+                </section>
+              )}
               {/* Seasonality is injected via beforeIv so it renders BETWEEN the Analyst gauge and Implied
                   Volatility (order: analysis → Seasonality → IV) rather than after the whole card. */}
-              <StockAnalysis intel={intel} row={m} fund={fund} opts={opts} bars={bars} glance={parseGlanceState(railGex, active)} onOpenPane={(p) => setPaneOpen(p)} onOpenSignals={() => setSignalsOpen(true)}
+              <StockAnalysis intel={intel} row={m} fund={fund} opts={opts?.root === active && opts.owner === identity ? opts : null} bars={bars} glance={parseGlanceState(railGex, active)} onOpenPane={(p) => setPaneOpen(p)} onOpenSignals={() => setSignalsOpen(true)}
                 beforeIv={<div key="linked-seasonality" style={{ padding: 12 }}><LinkedSeasonalityCard context={chartBus.context} activeSymbol={active} onOpenCurrent={() => setPaneOpen("seasonals")} /></div>} />
               {/* ── bottom button group (after Seasonality): full analysis + Ask AI ── */}
               <div className="sa-btn-group">
@@ -7219,7 +7399,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       )}
       {indOpen && (
         <IndicatorsModal open suspended={!!guide} active={inds} onClose={() => setIndOpen(false)} onToggle={toggleInd} onAddInstance={addIndInstance}
-          onApplyPreset={applySuitePreset} suiteParams={indParams} userTier={userTier}
+          onApplyPreset={applySuitePreset} suiteParams={indParams} userTier={userTier} accessState={accessState}
           activeModules={activeSuiteModuleIds} onToggleModule={toggleSuiteModule} onOpenModuleSettings={openSettings}
           onOpenGuide={(id) => {
             const entry = getSuiteModuleCatalogEntry(id);
@@ -7236,7 +7416,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               pine={{ name: scriptById[settingsKey].name, params: mergedParams(scriptById[settingsKey], pineParams) }}
               onPineChange={(patch) => setPineParam(settingsKey, patch)}
               onClose={() => setSettingsKey(null)} />
-          : <IndicatorSettings key={settingsKey} indKey={settingsKey} title={studyInstanceMeta(settingsKey, inds, indParams[settingsKey])?.label} params={indParams[parseSuiteModuleId(settingsKey)?.suiteKey ?? settingsKey] || {}} onChange={(patch) => setIndParam(settingsKey, patch)} onClose={() => setSettingsKey(null)} onReset={() => resetIndParam(settingsKey)} userTier={userTier} onOpenGuide={(sk, mk, ml) => {
+          : <IndicatorSettings key={settingsKey} indKey={settingsKey} title={studyInstanceMeta(settingsKey, inds, indParams[settingsKey])?.label} params={indParams[parseSuiteModuleId(settingsKey)?.suiteKey ?? settingsKey] || {}} onChange={(patch) => setIndParam(settingsKey, patch)} onClose={() => setSettingsKey(null)} onReset={() => resetIndParam(settingsKey)} userTier={userTier} accessState={accessState} onOpenGuide={(sk, mk, ml) => {
               setSettingsKey(null);
               setGuide({ suite: sk, mod: mk, label: ml });
             }} />)}
@@ -7247,7 +7427,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           moduleKey={guide.mod}
           moduleLabel={guide.label}
           activeModules={activeSuiteModuleIds}
-          userTier={userTier}
+          userTier={userTier} accessState={accessState}
           onToggleModule={toggleSuiteModule}
           onConfigureModule={(id) => {
             setGuide(null);
@@ -7330,6 +7510,15 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         </div>
       )}
 
+      {wlCsvFeedback && (
+        <div className="undo-toast" role={wlCsvFeedback.kind === "error" ? "alert" : "status"}
+          style={{ position: "fixed", bottom: 174, left: "50%", transform: "translateX(-50%)",
+            background: "var(--panel-3)", border: "1px solid var(--warn)", borderRadius: "var(--r-md)",
+            padding: "8px 16px", fontSize: 12.5, color: "var(--text)", maxWidth: "min(92vw, 560px)",
+            boxShadow: "0 8px 24px -8px rgba(0,0,0,.7)", zIndex: 53 }}>
+          {lang === "zh" ? wlCsvFeedback.zh : wlCsvFeedback.en}
+        </div>
+      )}
       {wlSyncFailed && (
         <div className="undo-toast" role="alert" style={{ position: "fixed", bottom: 136, left: "50%", transform: "translateX(-50%)", background: "var(--panel-3)", border: "1px solid var(--warn)", borderRadius: "var(--r-md)", padding: "8px 16px", fontSize: 12.5, color: "var(--text)", boxShadow: "0 8px 24px -8px rgba(0,0,0,.7)", zIndex: 52 }}>
           {t("wlSyncFailed")}
