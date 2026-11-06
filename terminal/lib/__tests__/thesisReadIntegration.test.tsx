@@ -103,6 +103,7 @@ function installFetch(theses: ThesisSummary[], details: Map<string, ThesisDetail
   return { fetchMock, idsCalls };
 }
 
+const scrollInspection = vi.fn();
 let root: Root | null = null;
 let container: HTMLDivElement | null = null;
 
@@ -124,6 +125,8 @@ async function mount(props: { ownerKey: string; initialSymbol?: string; initialT
 }
 
 beforeEach(() => {
+  scrollInspection.mockClear();
+  Object.defineProperty(HTMLElement.prototype, "scrollIntoView", { configurable: true, value: scrollInspection });
   // Node 26 registers its OWN experimental global `localStorage`/`sessionStorage`
   // getters (which throw/warn without --localstorage-file). Vitest's jsdom
   // environment only overwrites a global key that already exists on Node's
@@ -210,4 +213,51 @@ it("owner replacement cannot forward the prior owner's detail while its read fai
   installFetch([], new Map());
   await act(async () => root!.render(<><AnalysisBrainHost active="NVDA" onCommand={() => {}} onAnnotate={() => {}} onAuthRequired={() => {}} /><ThesisWorkspace ownerKey="synthetic-owner-b" initialThesisId={T} /></>));
   expect(readTurn()?.ambient.thesis_read).toBeUndefined();
+});
+
+
+it("restores the historical AI read reference only after a fresh canonical detail read", async () => {
+  fixture();
+  const el = await mount({ ownerKey: "synthetic-owner", initialThesisId: T });
+  const inspect = el.querySelector<HTMLButtonElement>('button[aria-label="Inspect version 1"]');
+  expect(inspect).not.toBeNull();
+  await act(async () => inspect!.click());
+  expect(readTurn()?.ambient.thesis_read?.version_id).toBe(V1);
+  act(() => root!.unmount());
+  root = null;
+  container?.remove();
+  container = null;
+
+  const canonicalFetch = globalThis.fetch;
+  let releaseRead!: () => void;
+  const delayedRead = new Promise<void>(resolve => { releaseRead = resolve; });
+  vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+    if (String(input) === `/api/theses?id=${T}`) await delayedRead;
+    return canonicalFetch(input, init);
+  }));
+  const restored = await mount({ ownerKey: "synthetic-owner", initialThesisId: T });
+  expect(restored.querySelector('[data-testid="thesis-version-inspector"]')).toBeNull();
+  expect(readTurn()?.ambient.thesis_read).toBeUndefined();
+  expect(scrollInspection).not.toHaveBeenCalled();
+  await act(async () => releaseRead());
+  await flush();
+  expect(restored.querySelector('[data-testid="thesis-version-inspector"]')?.getAttribute("data-posture")).toBe("historical");
+  expect(readTurn()?.ambient.thesis_read).toEqual({ thesis_id: T, version_id: V1 });
+  expect(scrollInspection).toHaveBeenCalledTimes(1);
+  expect(scrollInspection).toHaveBeenCalledWith({ block: "center", behavior: "instant" });
+});
+
+it("does not restore another owner's historical selection even when the new detail read succeeds", async () => {
+  fixture();
+  const el = await mount({ ownerKey: "synthetic-owner-a", initialThesisId: T });
+  const inspect = el.querySelector<HTMLButtonElement>('button[aria-label="Inspect version 1"]');
+  await act(async () => inspect!.click());
+  expect(readTurn()?.ambient.thesis_read?.version_id).toBe(V1);
+  act(() => root!.unmount());
+  root = null;
+  container?.remove();
+  container = null;
+  const replacement = await mount({ ownerKey: "synthetic-owner-b", initialThesisId: T });
+  expect(replacement.querySelector('[data-testid="thesis-version-inspector"]')).toBeNull();
+  expect(readTurn()?.ambient.thesis_read).toEqual({ thesis_id: T, version_id: V2 });
 });

@@ -6,6 +6,8 @@ import type { OptionsAlphaMeasuredEvent, OptionsAlphaMeasuredFeed } from "./opti
 import styles from "./OptionsAlphaInvestigation.module.css";
 
 type OwnedList = { id: string; name: string; symbols: string[] };
+type SaveState = "idle" | "saving" | "saved" | "uncertain" | "rejected";
+const saveKey = (listId: string, symbol: string) => JSON.stringify([listId, symbol]);
 type Snapshot = { event: OptionsAlphaMeasuredEvent; sourceAt: string | null; stale: boolean };
 const PAGE_SIZE = 6;
 
@@ -20,7 +22,7 @@ function copy(lang: Lang) {
     identity: "来源事件编号", boundary: "并非交易建议", boundaryBody: "成交位置不代表买方身份、开平仓或组合意图。这是调查证据，不是候选信号、入场价或期权收益。",
     frozen: "打开时保留的来源快照；后续刷新不会改写此观察。", stale: "来源已陈旧或刷新不可用；请勿将此快照视为当前报价。",
     saveTo: "将标的保存至", add: "加入标的自选股", already: "已在此自选股列表", saving: "保存中…",
-    saved: "已保存至", uncertain: "保存未获确认。请核对自选股；不会自动重复提交。", check: "核对自选股",
+    rejected: "保存请求已被拒绝。请核对自选股后再操作。", saved: "已保存至", uncertain: "保存未获确认。请核对自选股；不会自动重复提交。", check: "核对自选股",
     login: "登录后保存", listsLoading: "正在读取自选股…", listsFailed: "暂时无法读取自选股。", retry: "重试读取",
     noLists: "尚无可写入的自选股列表。", manage: "打开自选股", watchNote: "仅保存标的股票；不会创建信号、交易、提醒或组合持仓。",
     quoteSummary: "笔成交拥有有效报价。覆盖率与样本量同时展示；成交于卖价不等于看涨。", missing: "未提供",
@@ -34,7 +36,7 @@ function copy(lang: Lang) {
     identity: "Source event ID", boundary: "Not a trade recommendation", boundaryBody: "Execution location is not buyer identity, opening/closing activity or package intent. This is evidence to investigate, not a candidate signal, entry price or option return.",
     frozen: "Source snapshot retained when opened; subsequent refreshes do not rewrite this observation.", stale: "Source is stale or refresh is unavailable; this snapshot is not a current quote.",
     saveTo: "Save underlying to", add: "Add underlying to watchlist", already: "Already on this watchlist", saving: "Saving…",
-    saved: "Saved to", uncertain: "Save not confirmed. Check the watchlist; this request will not be repeated automatically.", check: "Check watchlist",
+    rejected: "Save request was declined. Check the watchlist before trying again.", saved: "Saved to", uncertain: "Save not confirmed. Check the watchlist; this request will not be repeated automatically.", check: "Check watchlist",
     login: "Sign in to save", listsLoading: "Loading your watchlists…", listsFailed: "Watchlists are unavailable.", retry: "Retry read",
     noLists: "No writable watchlist exists yet.", manage: "Open watchlists", watchNote: "Saves the underlying only. No signal, trade, alert or portfolio position is created.",
     quoteSummary: "prints had a valid quote. Coverage and sample size stay visible; execution at the ask does not establish a bullish trade.", missing: "Not supplied",
@@ -79,7 +81,16 @@ function SaveUnderlying({ symbol, lang }: { symbol: string; lang: Lang }) {
   const [lists, setLists] = useState<OwnedList[]>([]);
   const [listId, setListId] = useState("");
   const [inventory, setInventory] = useState<"loading" | "ready" | "signed-out" | "unavailable">("loading");
-  const [save, setSave] = useState<"idle" | "saving" | "saved" | "uncertain">("idle");
+  // Certainty belongs to the target, not the selected dropdown option. Mount-local
+  // only: closing this investigation does not provide cross-session exactly-once delivery.
+  const [saves, setSaves] = useState<Record<string, SaveState>>({});
+  const save = saves[saveKey(listId, symbol)] ?? "idle";
+  const setTargetSave = (targetId: string, state: SaveState) => {
+    setSaves(previous => {
+      const key = saveKey(targetId, symbol);
+      return { ...previous, [key]: state === "uncertain" && previous[key] === "rejected" ? "rejected" : state };
+    });
+  };
   const mounted = useRef(false);
   const busy = useRef(false);
   // Reject stale inventory responses after a newer read, selection, or verified write.
@@ -95,12 +106,21 @@ function SaveUnderlying({ symbol, lang }: { symbol: string; lang: Lang }) {
       setInventory(result.kind);
       if (result.kind === "ready") {
         setLists(result.lists);
+        // Presence settles membership; absence cannot disprove an earlier write.
+        setSaves(previous => {
+          const next = { ...previous };
+          for (const list of result.lists) {
+            const key = saveKey(list.id, symbol);
+            if (previous[key] && list.symbols.includes(symbol)) next[key] = "saved";
+          }
+          return next;
+        });
         setListId(previous => result.lists.some(list => list.id === previous) ? previous : result.lists[0]?.id ?? "");
       }
     } catch {
       if (mounted.current && version === readVersion.current) setInventory("unavailable");
     }
-  }, []);
+  }, [symbol]);
 
   useEffect(() => {
     mounted.current = true;
@@ -119,24 +139,37 @@ function SaveUnderlying({ symbol, lang }: { symbol: string; lang: Lang }) {
       if (result.kind === "ready") {
         setLists(result.lists);
         const exists = result.lists.find(list => list.id === targetId)?.symbols.includes(symbol);
-        setSave(exists ? "saved" : "uncertain");
-      } else setSave("uncertain");
+        setSaves(previous => ({
+          ...previous,
+          [saveKey(targetId, symbol)]: exists ? "saved" : previous[saveKey(targetId, symbol)] === "rejected" ? "idle" : "uncertain",
+        }));
+      } else setTargetSave(targetId, "uncertain");
     } catch {
-      if (mounted.current && version === readVersion.current) setSave("uncertain");
+      if (mounted.current && version === readVersion.current) setTargetSave(targetId, "uncertain");
     }
   };
 
   const add = async () => {
-    if (busy.current || !selected || present || save === "uncertain") return;
+    if (busy.current || inventory !== "ready" || !selected || present || save === "uncertain" || save === "rejected") return;
     const targetId = selected.id;
     busy.current = true;
-    setSave("saving");
+    readVersion.current += 1;
+    setTargetSave(targetId, "saving");
     try {
       // A user click is the write. Never perform this POST from an effect or retry loop.
-      await fetch("/api/watchlist", {
+      const response = await fetch("/api/watchlist", {
         method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "add", symbol, listId: targetId, section: "" }),
       });
+      // These API responses reject before addSymbols; they are not lost effects.
+      if ([400, 401].includes(response.status)) {
+        if (mounted.current) {
+          setTargetSave(targetId, "rejected");
+          if (response.status === 401) setInventory("signed-out");
+        }
+        busy.current = false;
+        return;
+      }
     } catch {
       // A lost response may still have committed. Read the same owner; never repeat the write.
     }
@@ -153,10 +186,10 @@ function SaveUnderlying({ symbol, lang }: { symbol: string; lang: Lang }) {
       {inventory === "ready" && lists.length === 0 && <p>{c.noLists} <a href="/terminal">{c.manage}</a></p>}
       {inventory === "ready" && lists.length > 0 && (
         <div className={styles.saveControls}>
-          <select aria-label={c.saveTo} value={listId} disabled={save === "saving"} onChange={e => { readVersion.current += 1; setListId(e.target.value); setSave("idle"); }}>
+          <select aria-label={c.saveTo} value={listId} disabled={save === "saving"} onChange={e => { readVersion.current += 1; setListId(e.target.value); }}>
             {lists.map(list => <option key={list.id} value={list.id}>{list.name}</option>)}
           </select>
-          {save === "uncertain"
+          {(save === "uncertain" || save === "rejected")
             ? <button className={styles.action} onClick={() => void reconcile(listId)}>{c.check}</button>
             : <button className={styles.primary} disabled={!selected || present || save === "saving"} onClick={() => void add()}>
                 {save === "saving" ? c.saving : present ? c.already : c.add}
@@ -164,7 +197,7 @@ function SaveUnderlying({ symbol, lang }: { symbol: string; lang: Lang }) {
         </div>
       )}
       <p role="status" aria-live="polite" className={styles.saveStatus}>
-        {save === "saved" && selected ? `${c.saved} ${selected.name}` : save === "uncertain" ? c.uncertain : ""}
+        {save === "saved" && selected ? `${c.saved} ${selected.name}` : save === "uncertain" ? c.uncertain : save === "rejected" ? c.rejected : ""}
       </p>
       <p className={styles.caption}>{c.watchNote}</p>
     </section>

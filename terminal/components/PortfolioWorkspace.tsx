@@ -6,7 +6,7 @@ import { companyHref } from "@/lib/sectorIntelligence";
 import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
 import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
 import { useLang, useT } from "@/lib/i18n";
-import { marketValue, sinceEntryPct, type BookTotals, type Position } from "@/lib/portfolio";
+import { marketValue, sinceEntryPct, sinceEntryValue, type BookTotals, type Position } from "@/lib/portfolio";
 import { finite, nativePrice } from "@/lib/portfolioMoney";
 import type { PortfolioRisk } from "@/lib/portfolioRisk";
 import {
@@ -123,6 +123,7 @@ export default function PortfolioWorkspace(p: Props) {
         const quote = nativePrice(p.quotes[position.ticker], p.manifest[position.ticker]);
         const value = marketValue(position, quote?.last ?? null, quote?.currency);
         const change = sinceEntryPct(position, quote?.last ?? null, quote?.currency);
+        const monetaryChange = sinceEntryValue(position, quote?.last ?? null, quote?.currency);
         return <tr key={position.id} data-position-id={position.id} data-ticker={position.ticker} data-status={position.status}
           className={`pf-row ${p.busyId === position.id ? s.busy : ""}`}>
           <td className={s.securityCell}>
@@ -137,7 +138,10 @@ export default function PortfolioWorkspace(p: Props) {
           {!preview && <td data-label={c("last")}>{number(quote?.last, quote && quote.last < 10 ? 4 : 2)}
             {quote && <small>{quote.currency || c("currencyUnknown")}</small>}</td>}
           <td data-label={c("value")}>{amount(value, quote?.currency)}</td>
-          <td data-label={c("change")} className={change === null ? "" : change >= 0 ? s.positive : s.negative}>{percent(change)}</td>
+          <td data-label={c("change")}>
+            <span className={change === null ? "" : change >= 0 ? s.positive : s.negative}>{percent(change)}</span>
+            {monetaryChange !== null && <small className={monetaryChange >= 0 ? s.positive : s.negative}>{amount(monetaryChange, quote?.currency, true)}</small>}
+          </td>
           <td className={s.rowActions}><button type="button" className={s.reviewButton}
             aria-label={`${c("inspect")} ${position.ticker}`} onClick={() => setSelectedId(position.id)}>
             <span>{c("inspect")}</span><Icon name="arrow" /></button></td>

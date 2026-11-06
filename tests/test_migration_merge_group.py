@@ -230,3 +230,241 @@ def test_api_failure_keeps_credentials_out_of_guard_error(monkeypatch):
     with pytest.raises(group.OwnershipUnqualified) as result:
         group.graphql_reader("synthetic-token")("query {}", {})
     assert str(result.value) == "GitHub ownership read failed"
+
+
+# Parallel native queue profile: the live ruleset builds eight candidates and
+# permits four to merge. It still emits single-parent candidate commits chained
+# through GitHub's authenticated entry sequence, not a PR_NUMBER supplied to CI.
+SECOND_HEAD, SECOND_SOURCE, SECOND_TREE = ("e" * 40, "f" * 40, "1" * 40)
+SECOND_NAME = "0100_parallel.sql"
+SECOND_RAW = b"-- Ledger row: second\n-- Rollback: drop table if exists parallel;\ncreate table if not exists parallel(id int);\n"
+
+
+def parallel_fixture():
+    data, event, env = fixture()
+    config = data["repository"]["mergeQueue"]["configuration"]
+    config.update(
+        mergingStrategy="ALLGREEN", maximumEntriesToBuild=8, maximumEntriesToMerge=4
+    )
+    first = data["repository"]["mergeQueue"]["entries"]["nodes"][0]
+    second = copy.deepcopy(first)
+    second["id"] = "MQE-2"
+    second["position"] = 2
+    second["baseCommit"]["oid"] = HEAD
+    second["headCommit"] = {
+        "oid": SECOND_HEAD, "tree": {"oid": SECOND_TREE},
+        "parents": {"nodes": [{"oid": HEAD}]},
+    }
+    second["pullRequest"].update(number=583, headRefOid=SECOND_SOURCE)
+    second["pullRequest"]["potentialMergeCommit"] = {
+        "tree": {"oid": SECOND_TREE},
+        "parents": {"nodes": [{"oid": HEAD}, {"oid": SECOND_SOURCE}]},
+    }
+    data["repository"]["mergeQueue"]["entries"]["nodes"].append(second)
+    event["merge_group"]["head_sha"] = SECOND_HEAD
+    # GitHub's event base_sha points at protected master (BASE); the
+    # predictive predecessor is HEAD and is proved by the queue entry itself.
+    event["merge_group"]["base_sha"] = BASE
+    env["GITHUB_SHA"] = SECOND_HEAD
+    return data, event, env
+
+
+def parallel_migration_fixture():
+    doc = {"prefixes": {
+        "0099": copy.deepcopy(ROW),
+        "0100": dict(ROW, pr=583, file=SECOND_NAME),
+    }}
+    files = {NAME: RAW, SECOND_NAME: SECOND_RAW}
+    owners = {582: SOURCE, 583: SECOND_SOURCE}
+    reads = []
+
+    def read(query, variables):
+        reads.append((query, variables))
+        owner = 582 if variables["ledger"].startswith(SOURCE + ":") else 583
+        file_raw = RAW if owner == 582 else SECOND_RAW
+        return {"repository": {
+            "ledger": {"__typename": "Blob", "text": json.dumps(doc)},
+            "base_tree": {"__typename": "Tree", "entries": [
+                {"name": "0030_prior.sql", "type": "blob"},
+            ]},
+            "file0": {"__typename": "Blob", "oid": group.git_blob(file_raw)},
+            "base0": None,
+        }}
+    return owners, doc, files, read, reads
+
+
+def test_event_base_is_protected_tip_not_predictive_predecessor():
+    data, event, env = parallel_fixture()
+    assert event["merge_group"]["base_sha"] == BASE
+    assert data["repository"]["mergeQueue"]["entries"]["nodes"][1]["baseCommit"]["oid"] == HEAD
+    assert group.validate_parallel_snapshot(data, event, env, SECOND_HEAD)[0] == {
+        582: SOURCE, 583: SECOND_SOURCE
+    }
+    event["merge_group"]["base_sha"] = HEAD
+    with pytest.raises(group.OwnershipUnqualified):
+        group.validate_parallel_snapshot(data, event, env, SECOND_HEAD)
+
+
+def test_parallel_candidate_is_bound_to_all_native_predecessor_owners():
+    data, event, env = parallel_fixture()
+    env["PR_NUMBER"] = "9999"  # never an independent membership proof
+    owners, protected_tip = group.validate_parallel_snapshot(
+        data, event, env, SECOND_HEAD
+    )
+    assert owners == {582: SOURCE, 583: SECOND_SOURCE}
+    assert protected_tip == BASE
+
+
+@pytest.mark.parametrize("path,value", [
+    ("mergeQueue.configuration.maximumEntriesToBuild", 9),
+    ("mergeQueue.configuration.maximumEntriesToMerge", 5),
+    ("mergeQueue.configuration.mergingStrategy", "HEADGREEN"),
+    ("mergeQueue.configuration.mergeMethod", "MERGE"),
+    ("mergeQueue.entries.pageInfo.hasNextPage", True),
+    ("mergeQueue.entries.nodes.0.headCommit.parents.nodes", []),
+    ("mergeQueue.entries.nodes.1.position", 3),
+    ("mergeQueue.entries.nodes.1.baseCommit.oid", BASE),
+    ("mergeQueue.entries.nodes.1.headCommit.parents.nodes", [{"oid": BASE}]),
+    ("mergeQueue.entries.nodes.1.pullRequest.number", 582),
+    ("mergeQueue.entries.nodes.1.pullRequest.headRepository.nameWithOwner", "other/repo"),
+    ("mergeQueue.entries.nodes.1.pullRequest.state", "MERGED"),
+    ("mergeQueue.entries.nodes.1.headCommit.tree.oid", "bogus"),
+    ("defaultBranchRef.target.oid", "0" * 40),
+    ("mergeQueue.entries.nodes.1.headCommit.oid", "8" * 40),
+])
+def test_parallel_group_refuses_non_native_or_incomplete_membership(path, value):
+    data, event, env = parallel_fixture()
+    set_path(data["repository"], path, value)
+    with pytest.raises(group.OwnershipUnqualified):
+        group.validate_parallel_snapshot(data, event, env, SECOND_HEAD)
+
+
+@pytest.mark.parametrize("change", ["missing-owner", "foreign-owner", "ledger-row", "file-bytes", "base-present"])
+def test_parallel_migrations_require_each_original_source_head_and_base_absence(change):
+    owners, doc, files, read, calls = parallel_migration_fixture()
+    if change == "missing-owner":
+        del owners[583]
+    elif change == "foreign-owner":
+        doc["prefixes"]["0100"]["pr"] = 999
+    original_read = read
+
+    def modified_reader(query, variables):
+        result = original_read(query, variables)
+        if variables["ledger"].startswith(SECOND_SOURCE + ":"):
+            if change == "ledger-row":
+                result["repository"]["ledger"]["text"] = '{"prefixes":{}}'
+            elif change == "file-bytes":
+                result["repository"]["file0"]["oid"] = "0" * 40
+            elif change == "base-present":
+                result["repository"]["base0"] = {"__typename": "Blob", "oid": "0" * 40}
+        return result
+
+    if change:
+        with pytest.raises(group.OwnershipUnqualified):
+            group.validate_parallel_migrations(
+                owners, BASE, doc, files, modified_reader,
+                {"owner": "example", "name": "terminal"},
+            )
+
+
+def test_a_later_queue_candidate_may_include_only_predecessors_open_migration():
+    """The #970-type group retains the earlier #1084 SQL, but its own source
+    PR has none. The native predecessor must be authenticated, not discarded."""
+    data, event, env = parallel_fixture()
+    owners, tip = group.validate_parallel_snapshot(data, event, env, SECOND_HEAD)
+    doc, source = migration_fixture()
+    calls = []
+
+    def reader(query, variables):
+        calls.append((query, variables))
+        return {"repository": source}
+
+    qualified = group.validate_parallel_migrations(
+        owners, tip, doc, {NAME: RAW}, reader,
+        {"owner": "example", "name": "terminal"},
+    )
+    assert qualified == frozenset({582})
+    assert len(calls) == 1
+    assert calls[0][1]["ledger"] == SOURCE + ":supabase/migrations/RESERVATIONS.json"
+
+
+def test_parallel_migration_attestation_reuses_existing_provenance_for_each_owner():
+    owners, doc, files, read, calls = parallel_migration_fixture()
+    proven = group.validate_parallel_migrations(
+        owners, BASE, doc, files, read, {"owner": "example", "name": "terminal"}
+    )
+    assert proven == frozenset({582, 583})
+    assert len(calls) == 2
+    assert {v["ledger"] for _, v in calls} == {
+        SOURCE + ":supabase/migrations/RESERVATIONS.json",
+        SECOND_SOURCE + ":supabase/migrations/RESERVATIONS.json",
+    }
+    assert all(v["base_tree"] == BASE + ":supabase/migrations" for _, v in calls)
+    assert all("... on Tree { entries { name type } }" in query for query, _ in calls)
+
+
+def test_parallel_source_query_uses_immutable_membership_not_environment_hint(tmp_path, monkeypatch):
+    data, event, env = parallel_fixture()
+    owners, doc, files, read, source_calls = parallel_migration_fixture()
+    event_path = tmp_path / "event.json"
+    event_path.write_text(json.dumps(event))
+    env.update(
+        GITHUB_EVENT_PATH=str(event_path), GH_TOKEN="synthetic-token", PR_NUMBER="9999"
+    )
+    calls = []
+
+    def reader(query, variables):
+        calls.append((query, variables))
+        if len(calls) == 1:
+            return data
+        return read(query, variables)
+
+    monkeypatch.setattr(group, "graphql_reader", lambda token: reader)
+    monkeypatch.setattr(
+        group.subprocess, "check_output", lambda *args, **kwargs: SECOND_HEAD + "\n"
+    )
+    assert group.qualify_owner(tmp_path, env, doc, files) == frozenset({582, 583})
+    assert len(calls) == 3
+    assert "9999" not in str(calls) and "synthetic-token" not in str(calls)
+
+
+def test_ingest_merge_group_membership_reads_are_minimal_privilege():
+    """Migration owner proofs may read PR/queue metadata but never write
+    source, approvals, actions, permissions or queue membership."""
+    import yaml
+
+    workflow = yaml.safe_load(
+        (Path(__file__).resolve().parents[1] / ".github/workflows/ci.yml").read_text()
+    )
+    ingest = workflow["jobs"]["python"]
+    assert ingest["name"] == "Ingest + signal-layer tests"
+    assert ingest["permissions"] == {"contents": "read", "pull-requests": "read"}
+    step = next(
+        s for s in ingest["steps"]
+        if s.get("run") == "python -m pytest tests/ -q"
+    )
+    assert "github.event_name == 'merge_group'" in step["env"]["GH_TOKEN"]
+    assert "github.token" in step["env"]["GH_TOKEN"]
+
+
+def test_namespace_accepts_only_verified_parallel_owner_set(tmp_path, monkeypatch):
+    directory, ledger = repo_fixture(tmp_path)
+    (directory / SECOND_NAME).write_bytes(SECOND_RAW)
+    doc = json.loads(ledger.read_text())
+    doc["prefixes"]["0100"] = dict(ROW, pr=583, file=SECOND_NAME)
+    ledger.write_text(json.dumps(doc))
+    env = {"GITHUB_EVENT_NAME": "merge_group", "PR_NUMBER": "9999"}
+    monkeypatch.setattr(group, "qualify_owner", lambda *args: frozenset({582, 583}))
+    findings, _, mode = collect_for_event(
+        env, migrations_dir=directory, reservations=ledger
+    )
+    assert not any(f.code.startswith("OPEN_PR_STATE") for f in findings)
+    assert "MERGE_GROUP_PARALLEL" in mode
+    monkeypatch.setattr(group, "qualify_owner", lambda *args: frozenset({582}))
+    findings, _, _ = collect_for_event(env, migrations_dir=directory, reservations=ledger)
+    assert any(f.code == "OPEN_PR_STATE_STALE" and f.prefix == "0100" for f in findings)
+    findings, _, _ = collect_for_event(
+        env, force_strict=True, migrations_dir=directory, reservations=ledger
+    )
+    assert sum(f.code == "OPEN_PR_STATE_WITH_FILE_PRESENT" for f in findings) == 2
+
