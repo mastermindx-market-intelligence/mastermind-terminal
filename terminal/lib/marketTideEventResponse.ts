@@ -81,7 +81,7 @@ function parseReceipt(value: unknown, decision: bigint): TideSourceReceipt | nul
   const observed = micros(value.observed_at), usable = micros(value.usable_at);
   if (!str(value.source_ref) || !str(value.revision) || !str(value.rights_ref) ||
       observed === null || usable === null || observed > usable || usable > decision ||
-      !["complete", "partial"].includes(String(value.status)) ||
+      !(typeof value.status === "string" && ["complete", "partial"].includes(value.status)) ||
       !(value.return_window_ref === undefined || str(value.return_window_ref))) return null;
   return {
     sourceRef: value.source_ref, revision: value.revision,
@@ -112,8 +112,8 @@ export function parseMarketTideEventResponse(value: unknown): TideResponseView |
     if (!obj(item) || !str(item.event_id) || eventIds.has(item.event_id) ||
         !nullableString(item.event_type) || !str(item.source_ref) || !str(item.revision) ||
         micros(item.known_at) === null || micros(item.known_at)! > decision ||
-        !["admitted", "resolution_unverified"].includes(String(item.status)) ||
-        !["scheduled", "unresolved", "resolved", "cancelled", "unverified"].includes(String(item.resolution_state)) ||
+        !(typeof item.status === "string" && ["admitted", "resolution_unverified"].includes(item.status)) ||
+        !(typeof item.resolution_state === "string" && ["scheduled", "unresolved", "resolved", "cancelled", "unverified"].includes(item.resolution_state)) ||
         (item.status === "resolution_unverified" && item.resolution_state !== "unverified") ||
         (item.status === "admitted" && item.resolution_state === "unverified")) return null;
     eventIds.add(item.event_id);
@@ -130,7 +130,7 @@ export function parseMarketTideEventResponse(value: unknown): TideResponseView |
   let observed = 0, modeled = 0, withheldCount = 0;
   for (const item of v.securities) {
     if (!obj(item) || !str(item.security_id) || securities.has(item.security_id) ||
-        !nullableString(item.ticker) || !["observed", "unavailable"].includes(String(item.status)) ||
+        !nullableString(item.ticker) || !(typeof item.status === "string" && ["observed", "unavailable"].includes(item.status)) ||
         !Array.isArray(item.event_links) || item.event_links.length > 128) return null;
     securities.add(item.security_id);
     const available = item.status === "observed";
@@ -147,7 +147,7 @@ export function parseMarketTideEventResponse(value: unknown): TideResponseView |
     for (const link of item.event_links) {
       if (!obj(link) || !str(link.event_id) || !activeIds.has(link.event_id) ||
           !str(link.channel) || !str(link.source_ref) ||
-          !["verified_fact", "scenario", "hypothesis"].includes(String(link.evidence_class)) ||
+          !(typeof link.evidence_class === "string" && ["verified_fact", "scenario", "hypothesis"].includes(link.evidence_class)) ||
           !nullableString(link.scenario_direction) || link.causality_established !== false) return null;
       eventLinks.push({ eventId: link.event_id, channel: link.channel,
         evidenceClass: link.evidence_class as TideEventLink["evidenceClass"],
@@ -188,7 +188,7 @@ export function parseMarketTideEventResponse(value: unknown): TideResponseView |
       !count(c.unavailable) || !count(c.event_links_withheld) ||
       c.eligible !== rows.length || c.observed !== observed ||
       c.modeled !== modeled || c.unavailable !== rows.length - observed ||
-      modeled > observed || !["admitted", "unavailable"].includes(String(v.market_status)) ||
+      modeled > observed || !(typeof v.market_status === "string" && ["admitted", "unavailable"].includes(v.market_status)) ||
       !(v.market_status === "admitted" ? v.market_reason === null : str(v.market_reason))) return null;
 
   return {

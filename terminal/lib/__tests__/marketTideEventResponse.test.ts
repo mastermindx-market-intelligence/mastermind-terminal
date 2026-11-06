@@ -212,3 +212,86 @@ describe("Market Tide observed-response consumer", () => {
     expect(parseMarketTideEventResponse(x)).toBeNull();
   });
 });
+
+// Added after the complete unchanged original 19-test file: strict
+// actual-string membership at the six enum guard regions.
+
+type Parsed = ReturnType<typeof parseMarketTideEventResponse>;
+type X = Omit<ReturnType<typeof valid>, "market_reason"> & { market_reason: string | null };
+
+const fresh = (): X => structuredClone(valid());
+const dropLink = (x: X) => {
+  x.securities[0].event_links.splice(0, 1);
+  x.coverage.event_links_withheld = 1;
+};
+const unmodeled = (): X => {
+  const x = fresh();
+  x.market_status = "unavailable";
+  x.market_reason = "MISSING_MARKET_RETURN";
+  x.securities[0].decomposition = null;
+  x.securities[0].factor_receipts = null as never;
+  x.coverage.modeled = 0;
+  return x;
+};
+const observedSource = {
+  source_ref: "synthetic:bar2", revision: "1", rights_ref: "synthetic:no-license",
+  status: "complete", observed_at: "2026-11-04T14:29:00Z",
+  usable_at: "2026-11-04T14:29:30Z", return_window_ref: windowRef,
+};
+const coercing = (literal: string, hook: { count: number }) => ({
+  toString: () => { hook.count += 1; return literal; },
+});
+
+const controls: Array<[string, string, (x: X) => void, (p: Parsed) => unknown]> = [
+  ["receipt status", "complete", x => { x.securities[0].source!.status = "complete"; }, p => p?.rows[0].source?.status],
+  ["receipt status", "partial", x => { x.securities[0].source!.status = "partial"; }, p => p?.rows[0].source?.status],
+  ["event status", "admitted", x => { x.events[0].status = "admitted"; }, p => p?.events[0].status],
+  ["event status", "resolution_unverified", x => { x.events[0].status = "resolution_unverified"; x.events[0].resolution_state = "unverified"; dropLink(x); }, p => p?.events[0].status],
+  ["event resolution_state", "scheduled", x => { x.events[0].resolution_state = "scheduled"; }, p => p?.events[0].resolutionState],
+  ["event resolution_state", "unresolved", x => { x.events[0].resolution_state = "unresolved"; }, p => p?.events[0].resolutionState],
+  ["event resolution_state", "resolved", x => { x.events[0].resolution_state = "resolved"; }, p => p?.events[0].resolutionState],
+  ["event resolution_state", "cancelled", x => { x.events[0].resolution_state = "cancelled"; }, p => p?.events[0].resolutionState],
+  ["event resolution_state", "unverified", x => { x.events[0].status = "resolution_unverified"; x.events[0].resolution_state = "unverified"; dropLink(x); }, p => p?.events[0].resolutionState],
+  ["security status", "observed", x => { const s = x.securities[1]; s.status = "observed"; s.reason = null; s.return_pct = 2.5; s.source = observedSource as never; s.decomposition = null; s.factor_receipts = null as never; x.coverage.observed = 2; x.coverage.unavailable = 0; }, p => p?.rows[1].status],
+  ["security status", "unavailable", x => { x.securities[1].status = "unavailable"; }, p => p?.rows[1].status],
+  ["link evidence_class", "verified_fact", x => { x.securities[0].event_links[0].evidence_class = "verified_fact"; }, p => p?.rows[0].eventLinks[0].evidenceClass],
+  ["link evidence_class", "scenario", x => { x.securities[0].event_links[0].evidence_class = "scenario"; }, p => p?.rows[0].eventLinks[0].evidenceClass],
+  ["link evidence_class", "hypothesis", x => { x.securities[0].event_links[0].evidence_class = "hypothesis"; }, p => p?.rows[0].eventLinks[0].evidenceClass],
+  ["market status", "admitted", x => { x.market_status = "admitted"; }, p => p?.marketStatus],
+  ["market status", "unavailable", x => { x.market_status = "unavailable"; x.market_reason = "MISSING_MARKET_RETURN"; x.securities[0].decomposition = null; x.securities[0].factor_receipts = null as never; x.coverage.modeled = 0; }, p => p?.marketStatus],
+];
+
+const malformed: Array<[string, string, (v: unknown) => X, (p: Parsed) => unknown]> = [
+  ["receipt status", "partial", v => { const x = fresh(); x.securities[0].source!.status = v as never; return x; }, p => p?.rows[0].source?.status],
+  ["event status", "admitted", v => { const x = fresh(); x.events[0].status = v as never; dropLink(x); return x; }, p => p?.events[0].status],
+  ["event resolution_state", "resolved", v => { const x = fresh(); x.events[0].resolution_state = v as never; return x; }, p => p?.events[0].resolutionState],
+  ["security status", "unavailable", v => { const x = fresh(); x.securities[1].status = v as never; return x; }, p => p?.rows[1].status],
+  ["link evidence_class", "verified_fact", v => { const x = fresh(); x.securities[0].event_links[0].evidence_class = v as never; return x; }, p => p?.rows[0].eventLinks[0].evidenceClass],
+  ["market status", "unavailable", v => { const x = unmodeled(); x.market_status = v as never; return x; }, p => p?.marketStatus],
+];
+
+describe("Market Tide strict actual-string enum membership", () => {
+  it.each(controls)("admits the valid literal at the %s guard", (name, literal, norm, pick) => {
+    const x = fresh();
+    norm(x);
+    const p = parseMarketTideEventResponse(x);
+    expect(p, `${name}: expected a parsed view`).not.toBeNull();
+    expect(typeof pick(p!), `${name}: projected value must be a primitive string`).toBe("string");
+    expect(pick(p!), `${name}: projected value`).toBe(literal);
+    expect(p).toMatchObject({ forecastAvailable: false, hedgeFlowAvailable: false, tradingAllowed: false, publishingAllowed: false });
+  });
+
+  it.each(malformed)("rejects a singleton array at the %s guard", (name, literal, build, pick) => {
+    const p = parseMarketTideEventResponse(build([literal]));
+    expect(p, `${name}: parser must reject the complete malformed input`).toBeNull();
+    expect(pick(p) ?? null, `${name}: singleton array [${literal}] was admitted`).toBeNull();
+  });
+
+  it.each(malformed)("rejects a coercing object at the %s guard", (name, literal, build, pick) => {
+    const hook = { count: 0 };
+    const p = parseMarketTideEventResponse(build(coercing(literal, hook)));
+    expect(p, `${name}: parser must reject the complete malformed input`).toBeNull();
+    expect(pick(p) ?? null, `${name}: coercing object was admitted`).toBeNull();
+    expect(hook.count, `${name}: coercion hook must not be invoked`).toBe(0);
+  });
+});
