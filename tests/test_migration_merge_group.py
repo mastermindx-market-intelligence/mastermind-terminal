@@ -436,7 +436,7 @@ def test_ingest_merge_group_membership_reads_are_minimal_privilege():
     workflow = yaml.safe_load(
         (Path(__file__).resolve().parents[1] / ".github/workflows/ci.yml").read_text()
     )
-    ingest = workflow["jobs"]["ingest"]
+    ingest = workflow["jobs"]["python"]
     assert ingest["name"] == "Ingest + signal-layer tests"
     assert ingest["permissions"] == {"contents": "read", "pull-requests": "read"}
     step = next(
