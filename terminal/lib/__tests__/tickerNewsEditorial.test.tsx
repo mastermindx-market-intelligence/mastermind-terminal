@@ -124,6 +124,24 @@ describe("editorial view contract", () => {
 });
 
 describe("editorial views in the mounted Terminal", () => {
+  it.each(["en", "zh"] as const)("puts the actual news feed immediately under the header in %s", async (lang) => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json(snapshot())));
+    await mount(lang);
+    const rail = panel();
+
+    // The old explainer, news-flow help widget and all catch-up filters/controls
+    // are removed from the render tree, not merely visually collapsed.
+    expect(rail.children).toHaveLength(2);
+    expect(rail.children[1].firstElementChild?.tagName).toBe("ARTICLE");
+    expect(rail.querySelectorAll("[data-news-headline]")).toHaveLength(1);
+    expect(rail.querySelector("select[data-news-view-select]")).not.toBeNull();
+    expect(rail.querySelectorAll(
+      "[data-flow-state], [data-news-catchup], [data-news-filter], [data-news-source-filter], [data-news-mark-shown]",
+    )).toHaveLength(0);
+    expect(rail.textContent).not.toContain("Curated reports and announcements");
+    expect(rail.textContent).not.toContain("No reports in 24h");
+  });
+
   it.each(["en", "zh"] as const)("recovers a failed first read through an explicit localized retry in %s", async (lang) => {
     const pending = deferred();
     const fetcher = vi.fn()
@@ -220,7 +238,8 @@ describe("editorial views in the mounted Terminal", () => {
     expect(panel().dataset.newsView).toBe("news");
     expect(Events.instances[0].url).toContain("after_sequence=29");
     expect(Events.instances[0].url).toContain("view_revision=" + "a".repeat(64));
-    expect(host.textContent).toContain("Identified roundups");
+    expect(host.querySelectorAll("[data-news-headline]")).toHaveLength(1);
+    expect(host.textContent).not.toContain("Identified roundups");
   });
 
   it.each([undefined, editorialView("all")])("fails closed without the requested server acknowledgement", async (ack) => {
@@ -311,7 +330,7 @@ describe("editorial views in the mounted Terminal", () => {
     const marks = localStorage.getItem(NEWS_REVIEW_KEY);
     expect(marks).toBeTruthy();
     await select("company");
-    expect(host.textContent).toContain("Company-name coverage is limited");
+    expect(host.textContent).not.toContain("Company-name coverage is limited");
     expect(host.textContent).toContain("No matching company mentions");
     expect(host.querySelector("select[data-news-view-select]")).not.toBeNull();
     await select("all");
@@ -346,7 +365,7 @@ it.each(["view", "ticker"] as const)("requires a fresh acknowledgement when retu
   vi.stubGlobal("fetch", fetcher);
   await mount();
   expect(host.querySelector("[data-news-headline]")).not.toBeNull();
-  expect(host.querySelector('[data-flow-state]')).not.toBeNull();
+  expect(host.querySelector('[data-flow-state]')).toBeNull();
   const oldStream = Events.instances[0];
   if (transition === "view") {
     await select("company");

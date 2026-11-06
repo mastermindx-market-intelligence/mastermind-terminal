@@ -4,14 +4,11 @@ import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 
 
 import styles from "@/components/news/TickerNewsPanel.module.css";
 import {
-  NewsCatchupBar,
-  NewsFilterEmpty,
   NewsMarkReviewed,
   NewsReviewChange,
   NewsReviewTag,
   NewsSavedBasis,
 } from "@/components/news/NewsCatchup";
-import NewsFlowStrip from "@/components/news/NewsFlowStrip";
 import NewsLiveDot from "@/components/news/NewsLiveDot";
 import { useNewsCatchup } from "@/components/news/useNewsCatchup";
 
@@ -139,12 +136,8 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
   // Journey 6: the snapshot's rights receipt rides along so marks capture it as seen.
   const catchup = useNewsCatchup({ userId, ticker: snapshot?.ticker ?? symbol, presented, rights: snapshot?.rights_basis ?? null });
 
-  // Wave B3: the news-flow strip rides on page one of a ready snapshot only. It is
-  // hidden for a null flow (old API, cursor page), no_accessible_sources, an empty
-  // feed (the empty state already speaks), restricted/unavailable panel states, and
-  // while the snapshot describes a different symbol than the one on screen — a stale
-  // strip describes the wrong security.
-  const flow = loadState === "ready" && snapshot ? snapshot.flow : null;
+  // Keep ticker identity fencing for grouped-report details even though the
+  // activity strip and review toolbar no longer occupy the reading viewport.
   const symbolsMatch = (() => {
     if (!snapshot) return false;
     try {
@@ -153,14 +146,6 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
       return false; // an odd symbol never throws the panel; the strip is simply hidden
     }
   })();
-  const showFlow =
-    flow !== null &&
-    flow.reason !== "no_accessible_sources" &&
-    presented.length > 0 &&
-    state !== "restricted" &&
-    state !== "unavailable" &&
-    symbolsMatch;
-
   // Group sequence changes when any member changes. Policy also belongs to the
   // detail identity: a rolling deployment must not retain pre-curation members.
   const detailTokens = useMemo(() => new Map(
@@ -271,25 +256,15 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
         </label>
         {state === "live" && <NewsLiveDot lang={lang} />}
         {state === "catching_up" && <span className={styles.stateChip}>{copy.catchingUp}</span>}
+        {presented.length > 0 && (
+          <span className={styles.srOnly} role="status" aria-atomic="true">
+            {lang === "zh" ? `${presented.length} 条新闻可阅读` : `${presented.length} stories available`}
+          </span>
+        )}
       </div>
 
-      {curated && loadState === "ready" && (
-        <div className={styles.sourceNote}>
-          {newsEditorialText(`description.${view}`, lang)}
-          {view === "company" && snapshot?.editorial_view?.name_coverage !== "names_and_symbols" && (
-            <span className={styles.coverageNote}>{newsEditorialText("limitedNames", lang)}</span>
-          )}
-        </div>
-      )}
-
-      {showFlow && flow && snapshot ? (
-        <NewsFlowStrip key={snapshot.ticker} flow={flow} lang={lang} />
-      ) : null}
-
-      {presented.length > 0 && (
-        <NewsCatchupBar catchup={catchup} lang={lang} labelForSource={sourceLabel} curated={curated} />
-      )}
-
+      {/* News starts immediately below the compact header: no editorial explainer,
+          activity/quietness strip, review counters, bulk marks or source filters. */}
       <div className={styles.scroll}>
         <EmptyState state={loadState} copy={copy} onRetry={refresh} />
         {loadState === "ready" && state === "degraded" && (
@@ -302,9 +277,7 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
           <div className={styles.empty} role="status">{view === "company" ? newsEditorialText("companyQuiet", lang) : curated ? copy.curatedQuiet : copy.quiet}</div>
         )}
 
-        {presented.length > 0 && catchup.visible.length === 0 && <NewsFilterEmpty lang={lang} />}
-
-        {presented.length > 0 && catchup.visible.map((row) => {
+        {presented.map((row) => {
           const cached = details[row.story_id];
           const detail = cached && cached.token === detailTokens.get(row.story_id) ? cached.story : null;
           const timeRaw = row.updated_at || row.published_at || row.received_at;

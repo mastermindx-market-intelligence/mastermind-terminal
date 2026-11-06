@@ -68,3 +68,10 @@ a.headline:hover{color:var(--brand-2);text-decoration:underline;text-underline-o
   .ladder,.ladderStatic{min-height:40px;font:600 13px/18px var(--font-ui)}
   .moreReports{min-height:44px}
 }
+
+/* News alone owns the desktop rail. The symbol details remain mounted for
+   other tabs; tablet/phone keep natural document flow and visible details. */
+@media (min-width:861px){
+  .board{height:auto;flex:1;min-height:0}
+  .board ~ :global(.detail-board){display:none}
+}
