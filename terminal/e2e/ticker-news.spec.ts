@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { editorialView } from "../lib/__tests__/fixtures/newsEditorial";
 import type { TickerNewsViewMode } from "../lib/newsTypes";
 import { isolateWatchlistStore } from "./watchlistStore";
+import { selectAppearance } from "./presentationControls";
 
 test.setTimeout(120_000);
 
@@ -306,8 +307,7 @@ async function setPresentation(page: Page, lang: "en" | "zh", theme: "light" | "
   await page.reload();
   await expect(page.locator("#rail-tab-news")).toBeAttached({ timeout: 60_000 });
   await expect(page.locator("html")).toHaveAttribute("data-lang", lang);
-  await page.evaluate((t) => document.documentElement.setAttribute("data-theme", t), theme);
-  await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+  await selectAppearance(page, lang, theme);
 }
 
 async function openNews(page: Page, expectedState = "live") {

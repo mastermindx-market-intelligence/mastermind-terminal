@@ -4,6 +4,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import ExposureMap from "@/components/exposure-map/ExposureMap";
 import producer from "./fixtures/exposure-projection.json";
+import * as chartLinks from "@/lib/exposureChartLink";
 
 const locale = vi.hoisted(() => ({ lang: "en" }));
 const viewport = vi.hoisted(() => ({ phone: false }));
@@ -213,19 +214,19 @@ it("withdraws a handoff whose exact cell has no data instead of broadening", () 
 it.each(["surface-open-oct23", "surface-pin-oct23"])("hands %s focus to the desktop inspector and returns to the connected tab", action => {
   mount();
   const opener = openFromSurface(action);
-  expect(document.activeElement).toBe(inspector());
+  expect(document.activeElement).toBe(inspector().querySelector("h3"));
   expect(document.activeElement?.isConnected).toBe(true);
   flushFrames();
-  expect(document.activeElement).toBe(inspector());
+  expect(document.activeElement).toBe(inspector().querySelector("h3"));
   click(closeButton(inspector()));
   expect(document.activeElement).toBe(opener);
   expect(selectedRows().length).toBe(0);
 
   // A second activation of the same cell must not be suppressed by strike/identity equality.
   openFromSurface(action);
-  expect(document.activeElement).toBe(inspector());
+  expect(document.activeElement).toBe(inspector().querySelector("h3"));
   openFromSurface(action);
-  expect(document.activeElement).toBe(inspector());
+  expect(document.activeElement).toBe(inspector().querySelector("h3"));
   key(inspector(), "Escape");
   flushFrames();
   expect(document.activeElement).toBe(opener);
@@ -241,7 +242,7 @@ it("does not steal focus on an unchanged read, locale render or phone-to-desktop
   expect(document.activeElement).toBe(opener);
   viewport.phone = true; mount(); flushFrames();
   viewport.phone = false; mount(); flushFrames();
-  expect(document.activeElement).not.toBe(inspector());
+  expect(document.activeElement).not.toBe(inspector().querySelector("h3"));
 });
 
 it.each([
@@ -287,7 +288,7 @@ it.each(["surface-open-oct23", "surface-pin-oct23"])("lets the real phone sheet 
   expect(document.activeElement).toBe(opener);
   flushFrames();
   const dialog = document.querySelector<HTMLElement>('[role="dialog"]')!;
-  expect(document.activeElement).toBe(dialog);
+  expect(document.activeElement).toBe(phoneInspector().querySelector("h3"));
   expect(document.activeElement).not.toBe(phoneInspector());
   key(dialog, "Tab", true);
   const last = document.activeElement!;
@@ -329,4 +330,33 @@ it.each(["root", "source", "close", "unmount"] as const)("cancels the phone shee
   expect(document.querySelector('[role="dialog"]')).toBeNull();
   expect(document.activeElement).toBe(opener);
   expect(level()).toBeNull();
+});
+
+
+const RETURN_REQUEST: chartLinks.ExposureChartRequest = { v: 1, root: "SPY", session: SESSION,
+  strike: 100, archived: false, metric: "gamma", lens: { kind: "one", exp: "2026-10-23" },
+  shock: { spotPercent: 0, ivPoints: 0, calendarDays: 0 }, fingerprint: "a".repeat(64) };
+it("focuses only the source-validated returned inspector and escapes to its selected row", async () => {
+  vi.spyOn(chartLinks, "exposureChartFingerprint").mockResolvedValue(RETURN_REQUEST.fingerprint);
+  await act(async () => view.render(<ExposureMap root="SPY" source={book} matrix={null} initialRequest={RETURN_REQUEST} />));
+  expect(host.querySelector('[data-testid="exposure-return-check"]')?.getAttribute("data-state")).toBe("ready");
+  expect(document.activeElement).toBe(inspector().querySelector("h3"));
+  expect(inspector().textContent).toContain("+200M");
+  act(() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })));
+  expect(document.activeElement).toBe(host.querySelector("tbody tr th button"));
+});
+it("does not move focus for a returned selection whose source digest changed", async () => {
+  vi.spyOn(chartLinks, "exposureChartFingerprint").mockResolvedValue("b".repeat(64));
+  const before = document.activeElement;
+  await act(async () => view.render(<ExposureMap root="SPY" source={book} matrix={null} initialRequest={RETURN_REQUEST} />));
+  expect(host.querySelector('[data-testid="exposure-return-check"]')?.getAttribute("data-state")).toBe("changed");
+  expect(document.activeElement).toBe(before);
+  expect(selectedRows()).toHaveLength(0);
+});
+it("does not move focus when a returned source is unavailable", async () => {
+  const before = document.activeElement;
+  await act(async () => view.render(<ExposureMap root="SPY" source={null} sourceStatus="unavailable" matrix={null} initialRequest={RETURN_REQUEST} />));
+  expect(host.querySelector('[data-testid="exposure-return-check"]')?.getAttribute("data-state")).toBe("unavailable");
+  expect(document.activeElement).toBe(before);
+  expect(selectedRows()).toHaveLength(0);
 });
