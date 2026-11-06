@@ -1,0 +1,46 @@
+{
+  "schema": "medtech.local_gateway_qualification/v1",
+  "qualified_at": "2026-10-20T03:34:00.240787Z",
+  "base_commit": "b822c63ac7e749d328552745584dbe19b95aec45",
+  "candidate_file_sha256": {
+    "terminal/lib/medtechServer.ts": "0b293130d9cf3decb81ee4f28fd50301c31950255f56ba5f220e06b14c36732f",
+    "terminal/lib/medtechWatches.ts": "307086674e41ac641dcb95520f189882b5a555cb81b211ddb8c58260869656e7",
+    "terminal/lib/__tests__/medtechServer.test.ts": "1cdc50f443a60817a6e16f42af72d27821501d406e364d82bacce8784e57ae72",
+    "terminal/lib/__tests__/medtechWatches.test.ts": "88309861d88631bd2427609fc39266be214427205eb0fb12b9c3d431a916f26a"
+  },
+  "regression_control": {
+    "prior_server_commit": "b822c63ac7e749d328552745584dbe19b95aec45",
+    "test_file": "terminal/lib/__tests__/medtechServer.test.ts",
+    "failed": 5,
+    "passed": 9,
+    "failure_cases": [
+      "legacy apex canonicalization",
+      "default canonical gateway",
+      "canonical browser origin behind internal bind URL",
+      "request and forwarded hosts cannot expand trusted origins",
+      "loopback origins refused in production"
+    ]
+  },
+  "focused_tests": {
+    "command": "node node_modules/vitest/vitest.mjs run lib/__tests__/medtechServer.test.ts lib/__tests__/medtechWatches.test.ts",
+    "cwd": "terminal",
+    "passed": 28,
+    "failed": 0,
+    "exit_code": 0
+  },
+  "typescript": {
+    "command": "node node_modules/typescript/bin/tsc --noEmit",
+    "cwd": "terminal",
+    "exit_code": 0
+  },
+  "namespace_suite": {
+    "command": "python3 -m pytest tests/test_supabase_migration_namespace.py -q",
+    "event": "pull_request",
+    "pr_number": 1084,
+    "passed": 97,
+    "failed": 0
+  },
+  "canonical_host_source": "https://github.com/mastermindx-market-intelligence/macro/blob/b939c32a2c98880f9f57b646f99e4243182d3e64/app/deploy/Caddyfile",
+  "production_deployed": false,
+  "live_account_proven": false
+}

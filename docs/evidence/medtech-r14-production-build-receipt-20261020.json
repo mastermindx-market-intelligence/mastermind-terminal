@@ -1,0 +1,26 @@
+{
+  "schema": "medtech.r14.production-build-qualification/v1",
+  "observed_at": "2026-10-20T17:52:39.080535+00:00",
+  "source_head": "4b569630c1711323063427cdf5b49876c80986dc",
+  "command": "GIT_SHA=4b569630c1711323063427cdf5b49876c80986dc npm run build",
+  "next_version": "16.2.9",
+  "builder": "Turbopack",
+  "build_id": "build-TfctsWXpff2fKS",
+  "compile_seconds": 7.1,
+  "typescript_seconds": 37.4,
+  "static_pages": 66,
+  "complete_build_markers_verified": true,
+  "process_session_finished": true,
+  "exit_code_captured": true,
+  "source_worktree_clean": true,
+  "log_sha256": "b57a222fb2c36d81e91dce4adf725fbe498bf212933b75eef0d3cf5eec84a3eb",
+  "explicit_fixture_or_font_override": false,
+  "warnings": [
+    "Existing next.config.ts trace through lib/flowSource.ts reaches broad project files; build completed."
+  ],
+  "scope": "Local production build; does not assert production deployment or real paid-account access.",
+  "log_bytes": 5513,
+  "exit_code": 0,
+  "runtime_seconds": 47.64,
+  "retained_log": "medtech-r14-production-build-20261020.txt"
+}

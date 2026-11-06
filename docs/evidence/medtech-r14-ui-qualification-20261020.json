@@ -1,0 +1,75 @@
+{
+  "schema": "medtech.r14_ui_qualification/v1",
+  "observed_at": "2026-10-20T15:44:01.445170+00:00",
+  "status": "accepted_with_release_gates",
+  "base_head": "54caaf9a6fd586144c733ca7b68189ffbb0d5d94",
+  "route": "/discover?tab=medtech",
+  "design": "https://app.paper.design/file/01M2WGNCX9475G79JRKJTCM08P/p-1K-0",
+  "candidate_file_sha256": {
+    "terminal/components/workspaces/DiscoverWorkspace.tsx": "6e4a8f614d7f3e0ecb52d3b65c43452236d70fdffa01d59e03f0e163d9364824",
+    "terminal/components/medtech/MedTechWatchdesk.tsx": "f1d1c812d35f228926fbd469d4fe6228fb8d8809acb3c48a3bde3880bf321944",
+    "terminal/components/medtech/medtech.module.css": "5115d30da14f81f8eec0bc979d564196d643152ca5d1aef3327f79c9983c92b2",
+    "terminal/lib/medtechClient.ts": "e2ac67aee11e9e4cd6a1c8b6ebc63663827942555e6d9742dd1464c5338e04ae",
+    "terminal/lib/medtechLex.ts": "ddf4e7a2707a9b8b54d7c5d833df2226a09f520cfa27e08b5cf69b90b9fb9bd9",
+    "terminal/e2e/medtech-watchdesk.spec.ts": "10c02beb088d127c5ecd16941f92369343d4e499485e2a955d2c9efee99a4463"
+  },
+  "tests": {
+    "command": "TERMINAL_E2E_PORT=3184 npx playwright test e2e/medtech-watchdesk.spec.ts --workers=2",
+    "passed": 39,
+    "viewports": [
+      "1440x900 desktop",
+      "820x1180 tablet",
+      "390x844 mobile"
+    ],
+    "seconds": 48.2,
+    "exit_code": 0,
+    "log": "/tmp/medtech-r14-ui-post-refresh-review-20261020.log",
+    "typecheck": {
+      "command": "npx tsc --noEmit",
+      "exit_code": 0,
+      "log": "/tmp/medtech-r14-ui-typecheck-post-review-20261020.log"
+    }
+  },
+  "review": {
+    "reviewer": "native principal medtech_product_release_review",
+    "verdict": "ACCEPT_WITH_GATES",
+    "source_hash": "f1d1c812d35f228926fbd469d4fe6228fb8d8809acb3c48a3bde3880bf321944",
+    "behavior": "Post-refresh review is retained after record navigation and Back, backed by a fresh updates GET; exactly one revision reviewed and original watch baseline unchanged.",
+    "visual": "Actual desktop/mobile list/detail/review and retained-state captures inspected. Repeated global heading removed on detail views; native titles promoted to h1."
+  },
+  "captures": {
+    "docs/evidence/medtech-r14-ui-20261020/desktop-watchdesk-dark.png": "d0ce019d9c9a769bf7b28324c80778af7f8a73844334f1db096017b643be7063",
+    "docs/evidence/medtech-r14-ui-20261020/desktop-record-dark.png": "c9c5a9e0e5e5581687d0eef96cadafaac59fd20477ebd7c1972e0fb24f165046",
+    "docs/evidence/medtech-r14-ui-20261020/desktop-change-review.png": "badc0f63022744e5af5d25bf996b3e90917879edebc6abd7a5d564bee2e6c020",
+    "docs/evidence/medtech-r14-ui-20261020/desktop-review-after-refresh-and-back.png": "430534fa475f1913c44ef26dc81044c50ab6a8bbe2e621f19eb54224ab17f477",
+    "docs/evidence/medtech-r14-ui-20261020/desktop-saved-watches-retained.png": "a7dd20475b9f6e1803a909b0c5b8dab556e27e403a2cb55be6ebc375a63c8842",
+    "docs/evidence/medtech-r14-ui-20261020/mobile-watchdesk-dark.png": "23d4f4053e7098b4980e804cc8f6b913eec2eddcf980fe7d3df7146a213aa357",
+    "docs/evidence/medtech-r14-ui-20261020/mobile-record-dark.png": "009bfe2647d841f436a639d4a3df0eceb88bdd3825bd3f16174ed6e64042fe8a",
+    "docs/evidence/medtech-r14-ui-20261020/mobile-change-review.png": "168a4de497e8ebf2c34259533f27dec6d020010dee249545810dd60c9bc82b8c",
+    "docs/evidence/medtech-r14-ui-20261020/mobile-review-after-refresh-and-back.png": "dc458c9cffac547e4faa90e992a34ecf0b2567e0ca59d87ac3c08e1938f23770",
+    "docs/evidence/medtech-r14-ui-20261020/mobile-saved-watches-retained.png": "725dd5301b401b9fa9330d61fca7f4af756a5d52d1d02e6ec02d44763c4f9e6f"
+  },
+  "coverage": [
+    "native DEN detail and exact source URL",
+    "filter and browser Back navigation",
+    "save and reload watch with exact baseline",
+    "exact revision review and later revision unread",
+    "watch version conflict and deletion",
+    "unconfirmed save does not claim success",
+    "coherent staged refresh retains old screen on source/detail failure",
+    "failed account reconciliation retains saved rows and disables edits",
+    "access loss clears displayed account source data",
+    "signed-out shell does not load account data",
+    "English and Chinese in existing supported dark shell"
+  ],
+  "direct_execution_reason": [
+    "CRITICAL_PATH_SHORTCUT",
+    "LOWER_TOTAL_OVERHEAD"
+  ],
+  "limits": [
+    "Browser records and account writes are explicit synthetic route fixtures; this is not production paid-account proof.",
+    "Current master integration and all binding release-head CI remain required.",
+    "Production0037 catalog/application receipt, compatible Macro deployment and signed-in paid-account workflow remain open.",
+    "No font mocks, TLS bypass or shared style workaround used; normal Turbopack browser verification passed."
+  ]
+}

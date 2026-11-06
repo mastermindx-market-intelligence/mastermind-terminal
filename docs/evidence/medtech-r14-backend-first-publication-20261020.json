@@ -1,0 +1,121 @@
+{
+  "observed_at": "2026-10-20T19:36:49.355359+00:00",
+  "generation": "d89737a8d53a56d13688c23947758e8a1c4a1da3aaa833e64e9e807c2f6c190f",
+  "payload_keys": [
+    "capabilities",
+    "events",
+    "generated_at",
+    "schema",
+    "sources"
+  ],
+  "payload_summary": {
+    "capabilities": {
+      "company_economic_rights": false,
+      "coverage_decisions": false,
+      "decision_history": true,
+      "delivered_notifications": false,
+      "prospective_calendar": false,
+      "safety_alerts": false
+    },
+    "events": {
+      "type": "list",
+      "count": 4323,
+      "sample": [
+        {
+          "applicant": {
+            "name": "Boston Scientific"
+          },
+          "commercial_evidence": {
+            "status": "not_assessed"
+          },
+          "company_link": {
+            "status": "not_joined"
+          },
+          "decision": {
+            "code": "OK30",
+            "date": "2026-10-03",
+            "date_precision": "day",
+            "label": "Decision recorded",
+            "source_description": null,
+            "status": "unmapped"
+          },
+          "device": {
+            "generic_name": "Implantable pulse generator, pacemaker (non-CRT)",
+            "name": "ESSENTIO MRI (Model L131); PROPONENT MRI (Model L231); ACCOLADE MRI (Model L331); ESSENTIO\u0099 MRI (Models L110, L111); PRO",
+            "product_code": "LWP"
+          },
+          "event_id": "fda-pma-P150012-S191",
+          "first_observed_at": "2026-10-20T19:35:47.807098Z",
+          "history": [
+            {
+              "changes": [],
+              "decision_date": "2026-10-03",
+              "device_name": "ESSENTIO MRI (Model L131); PROPONENT MRI (Model L231); ACCOLADE MRI (Model L331); ESSENTIO\u0099 MRI (Models L110, L111); PRO",
+              "kind": "first_observed",
+              "observed_at": "2026-10-20T19:35:47.807098Z",
+              "revision_id": "aae58db4e6a27c067babafba5fe862e5613bd2bc6f0cfa7fdb72153c18236a4f"
+            }
+          ],
+          "last_changed_at": "2026-10-20T19:35:47.807098Z",
+          "last_observed_at": "2026-10-20T19:35:47.807098Z",
+          "next_milestone": null,
+          "parent_submission_id": "P150012",
+          "pathway": "pma_supplement",
+          "pathway_label": "PMA supplement",
+          "received_on": "2026-09-15",
+          "revision_id": "aae58db4e6a27c067babafba5fe862e5613bd2bc6f0cfa7fdb72153c18236a4f",
+          "schema": "medtech.event/v1",
+          "source": {
+            "dataset": "pma",
+            "publisher": "FDA",
+            "record_id": "P150012S191",
+            "source_published_at": null,
+            "url": "https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfpma/pma.cfm?id=P150012S191"
+          },
+          "submission_id": "P150012",
+          "supplement": {
+            "number": "S191",
+            "reason": "Process Change - Manufacturer/Sterilizer/Packager/Supplier",
+            "type": "30-Day Notice"
+          }
+        }
+      ]
+    },
+    "generated_at": "2026-10-20T19:35:50.114717Z",
+    "schema": "medtech.watchdesk/v1",
+    "sources": {
+      "type": "list",
+      "count": 2,
+      "sample": [
+        {
+          "cadence": "monthly",
+          "coverage": {
+            "complete_for_query": true,
+            "end": "2026-10-20",
+            "kind": "decision_date_range",
+            "records": 2571,
+            "start": "2026-01-01"
+          },
+          "dataset": "510k",
+          "dataset_updated_at": "2026-10-05",
+          "last_checked_at": "2026-10-20T19:35:33.874717Z",
+          "timely_alert_source": false
+        }
+      ]
+    }
+  },
+  "pointer": {
+    "generated_at": "2026-10-20T19:35:50.114717Z",
+    "generation": "d89737a8d53a56d13688c23947758e8a1c4a1da3aaa833e64e9e807c2f6c190f",
+    "schema": "medtech.pointer/v1"
+  },
+  "last_attempt": {
+    "code": null,
+    "observed_at": "2026-10-20T19:35:50.114717Z",
+    "status": "succeeded"
+  },
+  "generation_file_sha256": "d89737a8d53a56d13688c23947758e8a1c4a1da3aaa833e64e9e807c2f6c190f",
+  "service": "Result=success\nExecMainStartTimestamp=\nExecMainExitTimestamp=\nExecMainStatus=0\nActiveState=inactive\nSubState=dead\n",
+  "timer": "ActiveState=inactive\nUnitFileState=disabled\n",
+  "proof_scope": "Public projection verified by production read_snapshot; authenticated consumer still pending."
+}

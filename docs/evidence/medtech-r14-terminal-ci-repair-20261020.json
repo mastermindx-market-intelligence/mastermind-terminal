@@ -1,0 +1,87 @@
+{
+  "schema": "medtech.r14_terminal_ci_repair/v1",
+  "recorded_at": "2026-10-20T16:43:16.074Z",
+  "parent": "d4b4949c227c7eddfaccdb2570b0bd8c44b689d7",
+  "reason": "Normal CI39456788820 unit+typecheck job passed full typecheck and14,446tests, then failed added-line copy enforcement on two UI lines. Source-level copy and stable language-key repair clears existing guard.",
+  "copy_changes": [
+    "Label an unmapped native code using translated FDA decision code label.",
+    "Keep saved/removed notice keys in state and translate at render, preserving notice meaning across language change."
+  ],
+  "files": {
+    "terminal/components/medtech/MedTechWatchdesk.tsx": "453a52b94cfa391babf81314df96c42077287a717611b660180bd04a7ad05369",
+    "supabase/migrations/0037_medtech_watches.sql": "b5d642dc7da65eceddedd24062d621c7efc481cd62a05e891eaaf6a12ff4a628",
+    "supabase/migrations/RESERVATIONS.json": "c2dc59f7b9d48d4fc519c07c1480704a97597c27ee9ea1e41ccd65f1cd25c0d7",
+    "supabase/migrations/README.md": "c8e64d75de29fb807a5a2a3638726c37301092bfe6a21deddac07d72b9e5e3c6",
+    "terminal/e2e/medtech-watchdesk.spec.ts": "10c02beb088d127c5ecd16941f92369343d4e499485e2a955d2c9efee99a4463",
+    "terminal/e2e/large-trades.spec.ts": "cd7a556517f447cc397f6f2b2245b6d026daaae5d85d8397b7cf79720b3e48ec"
+  },
+  "verification": {
+    "plain_language_guard_selftest": "PASS",
+    "actual_pr_added_line_enforcement": "PASS against86e8290 master; no baseline,guard,waiver or skip change",
+    "namespace_tests": "97 passed",
+    "medtech_unit_tests": "52 passed",
+    "full_typescript": "PASS",
+    "medtech_browser": "39 passed in50.7s; desktop1440x900,tablet820x1180,mobile390x844",
+    "native_png": "Unchanged11-line scene setup accepted independently on d4b4949;3 tablet exact-equality repeats passed earlier."
+  },
+  "namespace": {
+    "census": "medtech-r14-namespace-census-20261020.json",
+    "scope": "158 open PRs,4463 changed-file entries,7 migration carriers,all158 heads rechecked;1084 mid-census advance disclosed;0037 unique.",
+    "correction": "d4b4949 is a true two-parent merge, not a rebase; worker terminology corrected by parent.",
+    "0036": "Copied entire current #1044 applied row verbatim from7322e548c1f693123081e75c75b3851908271c66. Applied2026-10-19T01:13:16Z at75eaabd1ebc4af3bf7e43b8488d519da9024dd45. Current SQL hash9c09540e7b4e451e55a39d8229b3a73eb93c997578f3dadfdc3f24b47a7f7f4c and4419-byte receipt SHA511faa4788ca35b8946070bdc8420057fcd0bd62be96fa289c058609e3fe3ff1 independently verified. No reapplication.",
+    "0037": "Unchanged SQL b5d642dc7da65eceddedd24062d621c7efc481cd62a05e891eaaf6a12ff4a628 remains unapplied; application date not recorded. All shared master rows and0035 unchanged.",
+    "freshness": "Point-in-time census; refresh material PR/master/namespace state before application."
+  },
+  "logs": {
+    "medtech-r14-copy-self-20261020.log": {
+      "sha256": "24cda5f8f3b651c996f217787394bdaeed8d89c8d2deb739191fc0fc7eacb83f",
+      "bytes": 74
+    },
+    "medtech-r14-copy-added-20261020.log": {
+      "sha256": "e1861b1c847d5ec7f7349e0fabcf60295202f0b08e45524228a03c1671615538",
+      "bytes": 5178
+    },
+    "medtech-r14-namespace-reconciled-fixed-20261020.log": {
+      "sha256": "d8801dd39557b8ef5e16916e5697a9ddcb4b40c0f184b9cdb3708f896cd36982",
+      "bytes": 5324
+    },
+    "medtech-r14-unit-copy-20261020.log": {
+      "sha256": "8d3158126256717bdf09a093f934b2dd16d57970248ddf1a54f2181b73a5119a",
+      "bytes": 558
+    },
+    "medtech-r14-typecheck-copy-20261020.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "medtech-r14-browser-copy-20261020.log": {
+      "sha256": "c25d6e142e74eb571d91a9c3956021467d6709f658b05b0acf5cede37cea560e",
+      "bytes": 5943
+    }
+  },
+  "limits": [
+    "Fixture-backed browser tests are not live paid-account proof.",
+    "Actual release head requires concluded binding CI before0037 application.",
+    "Canonical scoped policy acceptance, fresh catalog/namespace check,exact per-file application receipt,solo merge and follow-up remain required."
+  ],
+  "direct_execution_reason": [
+    "CRITICAL_PATH_SHORTCUT",
+    "LOWER_TOTAL_OVERHEAD"
+  ],
+  "current_browser_capture_hashes": {
+    "terminal/test-results/medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-desktop/change-review.png": "5d38b5a7207f76cd03857c963bd117fbdb836455a7318fc5f37777f8a1e8aac5",
+    "terminal/test-results/medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-mobile/change-review.png": "168a4de497e8ebf2c34259533f27dec6d020010dee249545810dd60c9bc82b8c",
+    "terminal/test-results/medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-tablet/change-review.png": "e9e379389743610dd85e7631f6027d993d6c147817dec73c7f0c3a763a29c442",
+    "terminal/test-results/medtech-watchdesk-failed-w-f0a16-ved-rows-and-disables-edits-desktop/saved-watches-retained.png": "a7dd20475b9f6e1803a909b0c5b8dab556e27e403a2cb55be6ebc375a63c8842",
+    "terminal/test-results/medtech-watchdesk-failed-w-f0a16-ved-rows-and-disables-edits-mobile/saved-watches-retained.png": "725dd5301b401b9fa9330d61fca7f4af756a5d52d1d02e6ec02d44763c4f9e6f",
+    "terminal/test-results/medtech-watchdesk-failed-w-f0a16-ved-rows-and-disables-edits-tablet/saved-watches-retained.png": "446de3d06747e5f75d615d7c05026107ed5832c94cd54f3caa04042f6fbeaefa",
+    "terminal/test-results/medtech-watchdesk-records--5813d-et-filters-and-browser-Back-desktop/record-dark.png": "c9c5a9e0e5e5581687d0eef96cadafaac59fd20477ebd7c1972e0fb24f165046",
+    "terminal/test-results/medtech-watchdesk-records--5813d-et-filters-and-browser-Back-desktop/watchdesk-dark.png": "711688c70ae88895f613b19bd6348f9e9ea39226674690a24461d41ce763a5eb",
+    "terminal/test-results/medtech-watchdesk-records--5813d-et-filters-and-browser-Back-mobile/record-dark.png": "009bfe2647d841f436a639d4a3df0eceb88bdd3825bd3f16174ed6e64042fe8a",
+    "terminal/test-results/medtech-watchdesk-records--5813d-et-filters-and-browser-Back-mobile/watchdesk-dark.png": "23d4f4053e7098b4980e804cc8f6b913eec2eddcf980fe7d3df7146a213aa357",
+    "terminal/test-results/medtech-watchdesk-records--5813d-et-filters-and-browser-Back-tablet/record-dark.png": "c259e6fdcf334295d1ebc1f615e59798e564dfde9f5689007a680d141ff351ef",
+    "terminal/test-results/medtech-watchdesk-records--5813d-et-filters-and-browser-Back-tablet/watchdesk-dark.png": "fd431b5caa23a5358d5d3e0f210ebc74876b1268d2dcd91387d7bbae2a48969d",
+    "terminal/test-results/medtech-watchdesk-review-a-363d5-les-after-record-navigation-desktop/review-after-refresh-and-back.png": "a531d9cc22e84284aecd2d1de2ea897bdf45fd3954370cd68f524d98656699e7",
+    "terminal/test-results/medtech-watchdesk-review-a-363d5-les-after-record-navigation-mobile/review-after-refresh-and-back.png": "8ce912ef289e8944a6d8966b3caef22bc629dfda3d34b449b52fbcb5a5f571a6",
+    "terminal/test-results/medtech-watchdesk-review-a-363d5-les-after-record-navigation-tablet/review-after-refresh-and-back.png": "fafd2512538b2d163f8730e72f41851fa72282a3000d247fccd07a28d5299e2f"
+  }
+}

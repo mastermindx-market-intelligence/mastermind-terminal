@@ -6,6 +6,7 @@ import DiscoverLanding from "./DiscoverLanding";
 import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
 const SectorIntelligenceWorkspace = dynamic(() => import("@/components/sector-intelligence/SectorIntelligenceWorkspace"));
 const RSPivotStudy = dynamic(() => import("@/components/workspaces/RSPivotStudy"));
+const MedTechWatchdesk = dynamic(() => import("@/components/medtech/MedTechWatchdesk"), { ssr: false });
 import WorkspaceTabs, { type WorkspaceTab } from "@/components/chrome/WorkspaceTabs";
 import ScreenerView from "@/components/ScreenerView";
 import HeatmapPageRoot from "@/components/heatmap/HeatmapPageRoot";
@@ -40,12 +41,13 @@ const TABS: WorkspaceTab[] = [
   { key: "screener", labelKey: "wtStockScreener" },
   { key: "heatmap", labelKey: "wtHeatmap" },
   { key: "sectors", labelKey: SECTOR_INTELLIGENCE_LEX.siTab[0], zhLabel: SECTOR_INTELLIGENCE_LEX.siTab[1] },
+  { key: "medtech", labelKey: "MedTech", zhLabel: "医疗科技" },
   { key: "leaders", labelKey: "wtLeaders" },
   { key: "radar", labelKey: "wtRadar" },
   { key: "rs-pivot", labelKey: "RS · 30m Pivot", zhLabel: "相对强度·30分钟枢轴" },
 ];
 
-const KEYS = new Set(["screener", "heatmap", "sectors", "leaders", "radar", "rs-pivot"]);
+const KEYS = new Set(["screener", "heatmap", "sectors", "medtech", "leaders", "radar", "rs-pivot"]);
 const DEFAULT_TAB = "screener";
 
 export default function DiscoverWorkspace() {
@@ -98,6 +100,7 @@ export default function DiscoverWorkspace() {
         {tab === "screener" && <ScreenerView identity={identity} />}
         {tab === "heatmap" && <HeatmapPageRoot />}
         {tab === "sectors" && <SectorIntelligenceWorkspace />}
+        {tab === "medtech" && <MedTechWatchdesk />}
         {tab === "leaders" && <DiscoverLeadersMount key={`leaders-${nonce}`} />}
         {tab === "radar" && <DiscoverRadarMount key={`radar-${nonce}`} />}
         {tab === "rs-pivot" && <RSPivotStudy />}
