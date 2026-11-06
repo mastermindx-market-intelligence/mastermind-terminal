@@ -1093,3 +1093,108 @@ if (LIGHT_ACCEPTANCE) for (const lang of ["en", "zh"] as const) test(`synthetic 
   }
   await retainSyntheticJson("synthetic-light-signed-ink.json",{source:SOURCE_REF,session:SESSION,values,nonColor:"explicit + and minus signs, strike/expiry/metric text and button semantics retained; prism palette unchanged",typography:"fallback — not full visual acceptance"});
 });
+
+// S8 capability probe only: the incumbent main-world fixture clock replaces
+// Performance and Event timestamps. A read-only isolated world may expose the
+// browser's native interaction timeline without changing the source/session clock.
+if (process.env.TERMINAL_EXPOSURE_PAINT_PROBE === "1") test("synthetic cached Surface native paint cohort", async ({ page, baseURL, browser }, info) => {
+  test.skip(info.project.name !== "desktop", "one bounded native-clock cohort, not a responsive benchmark");
+  test.setTimeout(90_000);
+  const origin = new URL(baseURL!).origin;
+  await page.context().route("**/*", route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort("blockedbyclient"));
+  await page.context().addCookies([{ name: "mm_e2e_rs30", value: "1", url: baseURL! }]);
+  await page.addInitScript(() => { localStorage.setItem("mm.lang", "en"); Reflect.deleteProperty(window, "EventSource"); });
+  await page.clock.install({ time: new Date(FIXED_NOW) });
+  await installSyntheticRoutes(page);
+  let sourceReads = 0;
+  page.on("request", request => { if (new URL(request.url()).pathname === "/api/flow") sourceReads++; });
+  await page.goto("/options?tab=prism&symbol=SPY&view=chart");
+  const map = page.getByTestId("exposure-map"), mt = exposureMapT("en");
+  await expect(map).toHaveAttribute("data-chart-ready", "true", { timeout: 30_000 });
+  await map.getByRole("button", { name: mt("surfaceTab"), exact: true }).click();
+  const surface = map.locator('section[data-surface-status="ready"]');
+  await expect(surface).toHaveAttribute("data-surface-mode", "net");
+  await expect(surface.locator("[data-surface-cell]")).toHaveCount(4);
+  const mainClock = await page.evaluate(() => { performance.mark("s8-main-start"); performance.mark("s8-main-end"); return { measure: performance.measure("s8-main", "s8-main-start", "s8-main-end").duration, entryTypes: PerformanceObserver.supportedEntryTypes }; });
+  const session = await page.context().newCDPSession(page);
+  const tree = await session.send("Page.getFrameTree");
+  const world = await session.send("Page.createIsolatedWorld", { frameId: tree.frameTree.frame.id, worldName: "s8-read-only-native-observer" });
+  const evaluate = async <T,>(expression: string): Promise<T> => {
+    const result = await session.send("Runtime.evaluate", { expression, contextId: world.executionContextId, returnByValue: true, awaitPromise: true });
+    if (result.exceptionDetails) throw new Error(result.exceptionDetails.text);
+    return result.result.value as T;
+  };
+  const capability = await evaluate<Record<string, unknown>>(`(() => {
+    const state = { inputs: [], matches: [], entries: [], sample: -1 }; globalThis.__s8 = state;
+    const inspect = () => { const el=document.querySelector('[data-testid="surface-inspector"]'); return { heading:el?.querySelector('h3')?.textContent, value:el?.querySelector('strong')?.textContent, text:el?.textContent }; };
+    for (const type of ['pointerdown','click','keydown']) document.addEventListener(type, event => {
+      const cell=event.target.closest?.('[data-surface-cell]'); if(!cell)return;
+      state.inputs.push({ sample:state.sample, type, now:performance.now(), timeStamp:event.timeStamp, strike:cell.dataset.strike, expiry:cell.dataset.expiry, trusted:event.isTrusted });
+    }, true);
+    const observer = new MutationObserver(() => state.matches.push({ sample:state.sample, now:performance.now(), ...inspect() }));
+    observer.observe(document.querySelector('[data-testid="surface-inspector"]'), { subtree:true, childList:true, characterData:true });
+    if (PerformanceObserver.supportedEntryTypes.includes('event')) {
+      const events=new PerformanceObserver(list => { for(const entry of list.getEntries()) state.entries.push({name:entry.name,startTime:entry.startTime,duration:entry.duration,processingStart:entry.processingStart,processingEnd:entry.processingEnd,interactionId:entry.interactionId,deliveredAt:performance.now(),inspectorAtDelivery:inspect(),targetStrike:entry.target?.closest?.('[data-surface-cell]')?.dataset.strike,targetExpiry:entry.target?.closest?.('[data-surface-cell]')?.dataset.expiry}); });
+      events.observe({type:'event',buffered:true,durationThreshold:16});
+    }
+    performance.mark('s8-native-start');
+    return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => { performance.mark('s8-native-end'); const measure=performance.measure('s8-native','s8-native-start','s8-native-end'); resolve({nativeMeasure:measure.duration, supportedEntryTypes:PerformanceObserver.supportedEntryTypes, userAgent:navigator.userAgent, hardwareConcurrency:navigator.hardwareConcurrency, deviceMemory:navigator.deviceMemory, timeOrigin:performance.timeOrigin}); })));
+  })()`);
+  const readsBefore = sourceReads;
+  for (let sample = 0; sample < 60; sample++) {
+    const strike = sample % 2 === 0 ? 98 : 103;
+    await evaluate(`globalThis.__s8.sample = ${sample}`);
+    const cell = surface.locator(`[data-surface-cell][data-strike="${strike}"][data-expiry="${SELECTED_EXPIRY}"]`);
+    await cell.locator('polygon[class*="faceTop"]').click();
+    await expect(surface.getByTestId("surface-inspector").locator("h3")).toContainText(`${strike} × OCT 30`);
+    await expect(surface.getByTestId("surface-inspector").locator("strong").first()).toHaveText(strike === 103 ? "+200M" : "−60M");
+    // Drain native EventTiming between inputs. This is not a timing endpoint;
+    // the entry itself owns presentation timing, and absent entries stay absent.
+    await evaluate("new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(resolve, 100))))");
+  }
+  // Screenshot completion proves the final matching frame exists, separately
+  // from whether native EventTiming can bind every intermediate presentation.
+  await surface.getByTestId("surface-inspector").scrollIntoViewIfNeeded();
+  await page.screenshot({ path: "test-results/synthetic-s8-final-matching-inspector.png" });
+  const observation = await evaluate<Record<string, unknown>>("({ ...globalThis.__s8, screenshotCompletedAt:performance.now() })");
+  expect(sourceReads).toBe(readsBefore);
+  await expect(map).toHaveAttribute("data-source-root", "SPY");
+  await expect(map).toHaveAttribute("data-source-session", SESSION);
+  await retainSyntheticJson("synthetic-s8-native-paint-cohort.json", { sourceCommit: "d9a4cda46f25904ef2a7fb30058b8f170686f584 plus probe only", compiler: "Nextdev webpack; fallback fonts; isolated synthetic loopback", browser: browser.version(), viewport: page.viewportSize(), source: SOURCE_REF, sourceSha256:createHash("sha256").update(JSON.stringify(envelope)).digest("hex"), sourceSize:4, session:SESSION, expiry:SELECTED_EXPIRY, metric:"gamma", mode:"net", sourceReadsBefore:readsBefore, sourceReadsAfter:sourceReads, returnToCell:103, mainClock, capability, observation, cohort:60, quantization:"Native EventTiming duration rounded to 8ms; threshold16ms; retain all inputs, including absent entries", result:"RAW COHORT — adjudicate matching DOM before presentation, missing entries and rounding; no production equivalence" });
+  await session.detach();
+});
+
+if (LIGHT_ACCEPTANCE) for (const lang of ["en", "zh"] as const) test(`synthetic light Map signed text ${lang}`, async ({ page, baseURL }, info) => {
+  test.skip(info.project.name !== "desktop", "one focused ENZH text-contrast check; responsive journey evidence reused");
+  test.setTimeout(90_000);
+  const origin = new URL(baseURL!).origin;
+  await page.context().route("**/*", route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort("blockedbyclient"));
+  await page.context().addCookies([{ name: "mm_e2e_rs30", value: "1", url: baseURL! }]);
+  await page.addInitScript(locale => { localStorage.setItem("mm.lang", locale); Reflect.deleteProperty(window, "EventSource"); }, lang);
+  await page.clock.install({ time: new Date(FIXED_NOW) });
+  await installSyntheticRoutes(page);
+  await page.goto("/options?tab=prism&symbol=SPY&view=chart");
+  const map=page.getByTestId("exposure-map"), mt=exposureMapT(lang);
+  await expect(map).toHaveAttribute("data-chart-ready", "true", {timeout:30_000});
+  await selectActualLight(page,lang,"map-small-signed-text");
+  await map.getByLabel(mt("scope"),{exact:true}).selectOption(SELECTED_EXPIRY);
+  const inspector=map.getByTestId("exposure-node-inspector");
+  const signed=inspector.locator('b[data-sign]'); await expect(signed).toHaveCount(2);
+  await expect(signed).toContainText(["+200M", "-60M"]);
+  const momentum=map.getByTestId("exposure-divergence").locator('strong[data-sign]');
+  await expect(momentum.first()).toBeVisible();
+  const paint = async (selector: string) => map.locator(selector).evaluateAll(elements=>elements.map(el=>{
+    const rgb=(s:string)=>s.match(/[\d.]+/g)!.slice(0,3).map(Number),lin=(n:number)=>n/255<=.04045?n/255/12.92:((n/255+.055)/1.055)**2.4;
+    const lum=(s:string)=>rgb(s).reduce((a,n,i)=>a+lin(n)*[.2126,.7152,.0722][i]!,0);
+    let parent:Element|null=el,bg="";
+    while(parent){const c=getComputedStyle(parent).backgroundColor;if(c!=="rgba(0, 0, 0, 0)"&&c!=="transparent"){bg=c;break;}parent=parent.parentElement;}
+    const css=getComputedStyle(el),a=lum(css.color),b=lum(bg);
+    return{text:el.textContent,sign:el.getAttribute("data-sign"),foreground:css.color,background:bg,fontSize:css.fontSize,contrast:(Math.max(a,b)+.05)/(Math.min(a,b)+.05)};
+  }));
+  const values=await paint('[data-testid="exposure-node-inspector"] b[data-sign]');
+  const bias=await paint('[data-testid="exposure-divergence"] strong[data-sign]');
+  await inspector.scrollIntoViewIfNeeded();
+  await page.screenshot({path:`test-results/synthetic-light-map-signed-${lang}.png`});
+  await retainSyntheticJson("synthetic-light-map-signed-text.json", {source:SOURCE_REF,session:SESSION,expiry:SELECTED_EXPIRY,metric:"gamma",values,momentum:bias,nonColor:"explicit signed numbers and unchanged bullish/bearish words; exposure face/swatch palette unchanged",typography:"fallback; no full typography/production acceptance"});
+  for(const row of [...values,...bias]) expect(row.contrast,`${row.text}: ${row.foreground} on ${row.background}`).toBeGreaterThanOrEqual(4.5);
+});

@@ -369,3 +369,8 @@
 }
 @media(max-width:540px) { .instrument h2 { font-size:28px; } .leaders>* { padding:10px 11px; } }
 @media(max-width:640px){.sectionHead{flex-wrap:wrap}.segment{flex-wrap:wrap}}
+
+/* Light numeric/bias ink must read on the research surface. Signs and bias
+   words carry meaning; the fixed exposure palette stays on chart marks. */
+:global(html[data-theme="light"]) .map .rankedNodes b[data-sign],
+:global(html[data-theme="light"]) .map .momentumGrid strong[data-sign] { color:var(--text); }
