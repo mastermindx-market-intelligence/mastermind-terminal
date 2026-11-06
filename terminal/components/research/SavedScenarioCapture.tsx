@@ -160,7 +160,7 @@ const exactJson = (a: unknown, b: unknown): boolean => canonicalInvestigationJso
 type Phase =
   | { kind: "idle" }
   | { kind: "pending" }
-  | { kind: "uncertain"; captureUnknown?: true; canonicalRevision?: number; canonicalRejected?: true; nativeObserved?: true }
+  | { kind: "uncertain"; captureUnknown?: true; canonicalRevision?: number; canonicalNotApplied?: true; canonicalRejected?: true; nativeObserved?: true }
   | { kind: "rejected"; reason?: string }
   | { kind: "blocked" }
   | { kind: "occupied" }
@@ -352,7 +352,7 @@ function OwnerScenarioCapture({ inputs, sourceReference = null, lang, ownerKey, 
       if (next.captureOutcome) {
         try { retainInvestigationCaptureUnknown(sessionStorage, owner, next); } catch { /* still UNKNOWN, never clear */ }
       }
-      setPhase({ kind: "uncertain", ...(next.nativeObservation ? {nativeObserved:true as const} : {}), ...(next.captureOutcome ? { captureUnknown: true as const } : {}), ...(next.canonicalResult ? { canonicalRevision: next.canonicalResult.revision } : {}), ...(next.canonicalRefusal ? { canonicalRejected: true as const } : {}) });
+      setPhase({ kind: "uncertain", ...(next.nativeObservation ? {nativeObserved:true as const} : {}), ...(next.captureOutcome ? { captureUnknown: true as const } : {}), ...(next.canonicalResult ? { canonicalRevision: next.canonicalResult.revision } : {}), ...(next.canonicalRefusal === "not_applied" ? { canonicalNotApplied: true as const } : next.canonicalRefusal ? { canonicalRejected: true as const } : {}) });
     }
   }
 
@@ -513,7 +513,7 @@ function OwnerScenarioCapture({ inputs, sourceReference = null, lang, ownerKey, 
           )}
           {phase.kind === "uncertain" && (
             <>
-              <p className={styles.status} role="status">{phase.nativeObserved ? c.uncertain : phase.captureUnknown ? (phase.canonicalRevision ? `${c.captureCommitted} · ${c.revision} ${phase.canonicalRevision}. ${c.captureUnknownAfterCommit}` : phase.canonicalRejected ? c.captureRejected : c.captureUnknown) : c.uncertain}</p>
+              <p className={styles.status} role="status">{phase.nativeObserved ? c.uncertain : phase.captureUnknown ? (phase.canonicalRevision ? `${c.captureCommitted} · ${c.revision} ${phase.canonicalRevision}. ${c.captureUnknownAfterCommit}` : phase.canonicalNotApplied ? c.captureUnknown : phase.canonicalRejected ? c.captureRejected : c.captureUnknownAfterCommit) : c.uncertain}</p>
               <div className={styles.actions}>
                 <button type="button" onClick={() => void onCheck()}>{c.check}</button>
 

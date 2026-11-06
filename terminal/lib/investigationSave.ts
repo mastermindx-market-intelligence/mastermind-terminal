@@ -64,14 +64,17 @@ export function settleInvestigationSave(state: InvestigationSaveState, principal
     const answer=response as {id?:unknown;operation_id?:unknown;reason?:unknown}|null;
     if(state.phase==="uncertain"&&state.ownerRecheck&&status==="not_applied"&&answer?.id===state.command.id
       &&answer.operation_id===state.command.operation_id&&(answer.reason===undefined||answer.reason==="limit_reached"))
-      return {...afterOriginalOwnerCheck(state),phase:"uncertain",canonicalRefusal:"not_applied"};
+      return {...afterOriginalOwnerCheck(state),phase:"uncertain",canonicalRefusal:answer.reason==="limit_reached"?"limit_reached":"not_applied"};
     return {...state,phase:"uncertain"};
   }
   if (status === "not_applied" && (response as {id?:unknown}).id === state.command.id && (response as {operation_id?:unknown}).operation_id === state.command.operation_id) {
     // A stored fence permits a new operation. The receipt-cap answer is just as final for the
     // original, but it permits nothing new, so it keeps its own reason. Unknown reasons stay uncertain.
     const reason = (response as {reason?:unknown}).reason;
-    if (mayHaveNativeCapture(state.command)) return {...state,phase:"uncertain",captureOutcome:"unknown_after_canonical_not_applied"};
+    if (mayHaveNativeCapture(state.command)) return {...state,phase:"uncertain",captureOutcome:"unknown_after_canonical_not_applied",
+      // This fact came from this matching current owner reply, never a local
+      // capture_outcome marker. It remains separate from native settlement.
+      ...(reason===undefined?{canonicalRefusal:"not_applied"}:reason==="limit_reached"?{canonicalRefusal:"limit_reached"}:{})};
     if (reason === undefined) return {phase:"rejected",principal,command:state.command,reason:"not_applied"};
     if (reason === "limit_reached") return {phase:"rejected",principal,command:state.command,reason:"limit_reached"};
   }
@@ -130,7 +133,7 @@ export function settleInvestigationOperationRead(state: InvestigationSaveState, 
     // A canonical DB fence cannot settle a private retention PUT that precedes
     // the DB lock. Suppress retries without granting new-draft/clear authority.
     if (mayHaveNativeCapture(state.command)) return { phase: "uncertain", principal, command: state.command, captureOutcome: "unknown_after_canonical_not_applied",
-      ...(state.canonicalResult ? { canonicalResult: state.canonicalResult } : {}) };
+      ...(state.canonicalResult ? { canonicalResult: state.canonicalResult } : { canonicalRefusal: "not_applied" }) };
     return { phase: "rejected", principal, command: state.command, reason: "not_applied" };
   }
   return unresolved();
