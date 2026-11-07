@@ -6,7 +6,7 @@ promises or “memory” recorded only inside one chat do not carry to another s
 
 ## Reuse-first engineering
 
-Before building substantial commodity machinery (trading charts, agent interfaces, UI primitives, telemetry, jobs or storage), inspect the existing Terminal/Macro/Mastermind implementation and suitable maintained open-source solutions. Prefer an adapter/composition/extension over unnecessary rebuilding; keep proprietary quant/signal intelligence, point-in-time semantics and scientific validity independently owned and tested. Confirm licenses, maintenance, security, data rights, compatibility and real consumer evidence. Apply the protected [Mastermind engineering policy](https://github.com/mastermindx-market-intelligence/Mastermind/blob/master/docs/REUSE_FIRST_ENGINEERING.md) once accepted. Do not create a second control plane or mandatory research/approval ceremony.
+Before building substantial commodity machinery (trading charts, agent interfaces, UI primitives, telemetry, jobs or storage), inspect the existing Terminal/Macro/Mastermind implementation and suitable maintained open-source solutions. Prefer an adapter/composition/extension over unnecessary rebuilding; keep proprietary quant/signal intelligence, point-in-time semantics and scientific validity independently owned and tested. Confirm maintenance, compatibility and real consumer evidence; retain existing security/data boundaries without adding a sign-off. Apply the protected [Mastermind engineering policy](https://github.com/mastermindx-market-intelligence/Mastermind/blob/master/docs/REUSE_FIRST_ENGINEERING.md) once accepted. Do not create a second control plane or mandatory research/approval ceremony.
 
 ## Session-owned PR/source review (Chairman 2026-11-03)
 
