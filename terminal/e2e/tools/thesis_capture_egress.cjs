@@ -18,13 +18,19 @@ function install(port) {
     if (!permitted(options, port)) return denied();
     return connect.apply(this, args);
   };
+  const listen = net.Server.prototype.listen;
+  net.Server.prototype.listen = function (...args) {
+    const options = args[0] && typeof args[0] === "object" ? args[0] : {port:args[0],host:args[1]};
+    if (!permitted(options,port)) return denied();
+    return listen.apply(this,args);
+  };
   const dns = require("node:dns");
   // Node Server.listen(host) uses lookup even for a literal IP. Returning that
   // same literal performs no resolver/network operation; socket.connect still
   // restricts every outbound connection to the one owned HTTP port.
   const literal = (host,options) => {
-    if (host !== "127.0.0.1" && host !== "::1") return denied();
-    const family=host === "127.0.0.1" ? 4 : 6;
+    if (host !== "127.0.0.1") return denied();
+    const family=4;
     const selected=typeof options === "number" ? options : options?.family;
     if(selected && selected!==family)throw Error("THESIS_CAPTURE_LITERAL_FAMILY");
     const value={address:host,family};return options?.all ? [value] : value;

@@ -19,9 +19,9 @@ test("browser policy permits actual Analysis and static transport, denies provid
  assert.equal(d(base+"/_next/webpack-hmr","GET","websocket"),"abort");
 });
 test("Node preload refuses before actual DNS/socket/fetch and scopes exact localport",()=>{
- const script=`const n=require('node:net'),d=require('node:dns');let results=0;for(const run of [()=>n.connect({host:'example.invalid',port:443}),()=>n.connect({host:'127.0.0.1',port:54321}),()=>d.lookup('example.invalid')]){try{run();throw Error('unexpected');}catch(e){if(e.message!=='THESIS_CAPTURE_EXTERNAL_EGRESS_DENIED')throw e;results++;}}globalThis.fetch('https://example.invalid').then(()=>process.exit(1),e=>{if(e.message!=='THESIS_CAPTURE_EXTERNAL_EGRESS_DENIED')throw e;console.log(results+1)});`;
+ const script=`const n=require('node:net'),d=require('node:dns');let results=0;for(const run of [()=>n.connect({host:'example.invalid',port:443}),()=>n.connect({host:'127.0.0.1',port:54321}),()=>d.lookup('example.invalid'),()=>d.lookup('::1'),()=>n.createServer().listen(41912,'127.0.0.1')]){try{run();throw Error('unexpected');}catch(e){if(e.message!=='THESIS_CAPTURE_EXTERNAL_EGRESS_DENIED')throw e;results++;}}globalThis.fetch('https://example.invalid').then(()=>process.exit(1),e=>{if(e.message!=='THESIS_CAPTURE_EXTERNAL_EGRESS_DENIED')throw e;console.log(results+1)});`;
  const out=cp.execFileSync(process.execPath,["--require",path.join(__dirname,"thesis_capture_egress.cjs"),"-e",script],{env:{PATH:process.env.PATH,THESIS_CAPTURE_SERVER:"1",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1",THESIS_CAPTURE_PORT:"41911"},encoding:"utf8"});
- assert.equal(out.trim(),"4");
+ assert.equal(out.trim(),"6");
 });
 test("incomplete or unsettled records preserve all old outputs",()=>{
  const temp=fs.mkdtempSync(path.join(os.tmpdir(),"thesis-capture-check-"));
@@ -87,6 +87,6 @@ test("generic namespace absent-to-absent is a no-write only after custody/source
 test("literal lookup supports Node listener setup with no DNS or bind in the discriminator",()=>{
  const probe=`const net=require('node:net'),dns=require('node:dns');const calls=[];dns.lookup=(host,options,callback)=>{calls.push(host);callback(Object.assign(new Error('CONTROLLED_BEFORE_BIND'),{code:'CONTROLLED_BEFORE_BIND'}));};const s=net.createServer();s.once('error',e=>console.log(JSON.stringify({calls,error:e.code,listening:s.listening})));s.listen(41911,'127.0.0.1');`;
  const result=JSON.parse(cp.execFileSync(process.execPath,["-e",probe],{encoding:"utf8"}));assert.deepEqual(result,{calls:["127.0.0.1"],error:"CONTROLLED_BEFORE_BIND",listening:false});
- const script=`const dns=require('node:dns');Promise.all([new Promise((resolve,reject)=>dns.lookup('127.0.0.1',{all:true},(e,v)=>e?reject(e):resolve(v))),dns.promises.lookup('::1')]).then(v=>console.log(JSON.stringify(v)));`;
- const out=cp.execFileSync(process.execPath,["--require",path.join(__dirname,"thesis_capture_egress.cjs"),"-e",script],{env:{PATH:process.env.PATH,THESIS_CAPTURE_SERVER:"1",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1",THESIS_CAPTURE_PORT:"41911"},encoding:"utf8"});assert.deepEqual(JSON.parse(out),[[{address:"127.0.0.1",family:4}],{address:"::1",family:6}]);
+ const script=`const dns=require('node:dns');Promise.all([new Promise((resolve,reject)=>dns.lookup('127.0.0.1',{all:true},(e,v)=>e?reject(e):resolve(v))),dns.promises.lookup('127.0.0.1')]).then(v=>console.log(JSON.stringify(v)));`;
+ const out=cp.execFileSync(process.execPath,["--require",path.join(__dirname,"thesis_capture_egress.cjs"),"-e",script],{env:{PATH:process.env.PATH,THESIS_CAPTURE_SERVER:"1",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1",THESIS_CAPTURE_PORT:"41911"},encoding:"utf8"});assert.deepEqual(JSON.parse(out),[[{address:"127.0.0.1",family:4}],{address:"127.0.0.1",family:4}]);
 });
