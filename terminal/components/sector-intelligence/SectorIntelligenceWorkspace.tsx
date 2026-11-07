@@ -7,7 +7,7 @@ import { useLang } from "@/lib/i18n";
 import { useSectorT } from "@/lib/sectorIntelligenceLex";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { SECTOR_FEEDS, FINVIZ_FEEDS, SECTOR_VIEWS, DEFAULT_SECTOR_STATE, object, text, number, sectorRows,
-  groupRows, themeRows, themeEntryReady, themeStaleLegs, sectorRotationHistory, sectorRotationEpisodes, sectorMeasuredRead, members, concentration, sortMembers, parseSectorState, writeSectorState,
+  groupRows, themeRows, themeEntryReady, themeStaleLegs, sectorRotationEpisodes, sectorMeasuredRead, members, concentration, sortMembers, parseSectorState, writeSectorState,
   formatValue, type FeedMap, type FeedPayload, type FeedStatus,
   type SectorFeed, type SectorState, type SectorView, type Row } from "@/lib/sectorIntelligence";
 import SectorGroupBrowser from "./SectorGroupBrowser";
@@ -18,6 +18,7 @@ import styles from "./SectorIntelligenceWorkspace.module.css";
 import SectorCompanyComparison from "./SectorCompanyComparison";
 import SectorIntradayComparison, { useSectorPresentationClock } from "./SectorIntradayComparison";
 import SectorLeadershipDossier from "./SectorLeadershipDossier";
+import SectorGenerationQualification from "./SectorGenerationQualification";
 import SectorConstituentEvidence from "./SectorConstituentEvidence";
 import { sectorOriginFromState, withExposureOrigin } from "@/lib/exposureOrigin";
 import { sectorRotationRelativeTrend } from "@/lib/rotationRelativeTrend";
@@ -25,6 +26,7 @@ import { holdingsCoverageFor, sectorHoldingsCoverage } from "@/lib/sectorHolding
 import { encodeSectorDepthReturn, resolveSectorDepthReturn, sectorDepthReturnQuery,
   SECTOR_DEPTH_RETURN_PARAM, SECTOR_DEPTH_RETURN_HISTORY_KEY } from "@/lib/sectorDepthReturn";
 import { sectorPortfolioCopy, sectorPortfolioHref } from "@/lib/sectorPortfolioContext";
+import { nativeSectorEvidence } from "@/lib/sectorNativeGeneration";
 
 const VIEW_KEYS: Record<SectorView, string> = {
   intelligence: "siOverview", companies: "siCompaniesTab", signals: "siSignals", drivers: "siDrivers", history: "siHistory",
@@ -38,7 +40,7 @@ const RETURN_KEYS: Record<OuterWorkspace, string> = {
   rotation: "siReturnToRotation", discover: "siReturnToDiscover", breadth: "siReturnToBreadth",
 };
 const FEED_KEYS: Record<SectorFeed, string> = {
-  sector: "siFeedSector", confluence: "siFeedConfluence", themes: "siFeedThemes", finviz: "siFeedFinviz",
+  sector: "siFeedSector", generation: "siFeedGeneration", confluence: "siFeedConfluence", themes: "siFeedThemes", finviz: "siFeedFinviz",
   heatmap: "siFeedHeatmap", risk: "siFeedRisk", history: "siFeedHistory", events: "siFeedEvents",
   relative_trend: "siFeedRelativeTrend", holdings: "siFeedHoldings", intraday: "siFeedIntraday",
 };
@@ -163,6 +165,9 @@ export default function SectorIntelligenceWorkspace() {
             qualificationReasons: Array.isArray(receipt.qualificationReasons)
               ? receipt.qualificationReasons.filter((value): value is string => typeof value === "string") : undefined,
           } };
+          if (source === "generation" && status === "ready" && !nativeSectorEvidence(payload).generation) {
+            payload = emptyFeed(source, "invalid");
+          }
         }
       } catch {
         if (controller.signal.aborted) return;
@@ -204,15 +209,34 @@ export default function SectorIntelligenceWorkspace() {
   }, [requestOwner]);
 
   const sectors = useMemo(() => sectorRows(feeds.sector?.data), [feeds.sector]);
+  // Native PSL evidence has its own explicit source. Never relabel the narrower
+  // native core as the legacy artifact or revive legacy figures on native refusal.
+  const nativeEvidence = useMemo(() => nativeSectorEvidence(feeds.generation), [feeds.generation]);
+  const nativeGeneration = nativeEvidence.generation;
+  const nativeStatus = nativeEvidence.feed?.receipt.status || "loading";
+  const selectedNative = nativeGeneration?.sectors.find(row => row.id === state.sector);
+  const selectionSectors = useMemo(() => {
+    const native = nativeGeneration?.sectors || [];
+    return [...sectors.filter(row => !native.some(value => value.id === row.id)), ...native];
+  }, [sectors, nativeGeneration]);
   const groups = useMemo(() => groupRows(feeds.confluence?.data), [feeds.confluence]);
   const themes = useMemo(() => themeRows(feeds.themes?.data), [feeds.themes]);
-  const rotationHistory = useMemo(() => sectorRotationHistory(feeds.history?.data), [feeds.history]);
+  const rotationHistory = nativeGeneration?.history || null;
   const rotationEpisodes = useMemo(() => sectorRotationEpisodes(feeds.events?.data), [feeds.events]);
-  const measuredRead = useMemo(() => feeds.sector?.receipt.status === "ready" ? sectorMeasuredRead(feeds.sector.data) : null, [feeds.sector]);
+  const measuredRead = useMemo(() => nativeEvidence.feed?.receipt.status === "ready"
+    ? sectorMeasuredRead(nativeEvidence.feed.data) : null, [nativeEvidence]);
   // Options R1 W2: the weekly relative trend feed and the fund holdings coverage are owner feeds read strictly; a rejected payload stays absent.
   const relativeTrend = useMemo(() => feeds.relative_trend?.receipt.status === "ready" ? sectorRotationRelativeTrend(feeds.relative_trend.data) : null, [feeds.relative_trend]);
   const holdingsCoverage = useMemo(() => feeds.holdings?.receipt.status === "ready" ? sectorHoldingsCoverage(feeds.holdings.data) : null, [feeds.holdings]);
-  const sector = useMemo(() => sectors.find(r => r.id === state.sector) || {}, [sectors, state.sector]);
+  const sector = useMemo(() => {
+    const legacy = sectors.find(row => row.id === state.sector);
+    if (!selectedNative) return legacy || {};
+    if (legacy && legacy.ticker === selectedNative.ticker) return legacy;
+    // Native-only identities remain reachable. Do not fill missing legacy
+    // metrics from a different representation or a mismatched legacy identity.
+    const { id, ticker, name, name_zh, kind } = selectedNative;
+    return { id, ticker, name, name_zh, kind };
+  }, [sectors, state.sector, selectedNative]);
   const group = useMemo(() => groups.find(r => r.key === state.group) || {}, [groups, state.group]);
   const roster = useMemo(() => members(group), [group]);
   const visibleMembers = useMemo(() => sortMembers(roster, state.sort, state.query), [roster, state.sort, state.query]);
@@ -352,7 +376,13 @@ export default function SectorIntelligenceWorkspace() {
           {activeFeeds.map(source => { const receipt = feeds[source]?.receipt; return <Card key={source} title={t(FEED_KEYS[source])} action={<span className={styles.badge}>{t(STATUS_KEYS[receipt?.status || "loading"])}</span>}>
             <dl className={styles.pairs}><div><dt>{t("siSnapshotDate")}</dt><dd>{receipt?.asOf || t("siUnknownDate")}</dd></div><div><dt>{t("siFetched")}</dt><dd>{receipt?.observedAt || "—"}</dd></div></dl>
             {receipt?.stale && <p className={styles.note}>{t("siStale")}</p>}
-            <details className={styles.explanation}><summary>{t("siReceipt")}</summary><p>{t("siSourcePath")}</p><code>{receipt?.path || "—"}</code><p>{t("siHash")}</p><code>{receipt?.contentHash || "—"}</code></details>
+            <details className={styles.explanation}><summary>{t("siReceipt")}</summary><p>{t("siSourcePath")}</p><code>{receipt?.path || "—"}</code><p>{t("siHash")}</p><code>{receipt?.contentHash || "—"}</code>
+              {source === "generation" && nativeGeneration && <>
+                <p>{t("siDossierGeneration")}</p><code>{nativeGeneration.receipt.generation_id}</code>
+                <p>{t("siGenerationPublished")}</p><code>{nativeGeneration.receipt.published_at}</code>
+                <p>{t("siGenerationHash")}</p><code>{nativeGeneration.receipt.content_sha256}</code>
+              </>}
+            </details>
           </Card>; })}</div>
       </div>
     </MobileSheet>
@@ -360,8 +390,8 @@ export default function SectorIntelligenceWorkspace() {
       <header className={styles.header}><div><p className={styles.eyebrow}>{t("siEyebrow")}</p><h1>{t("siTitle")}</h1><p className={styles.subtitle}>{t("siSubtitle")}</p></div>
         <div className={`${styles.controls} ${state.workspace === "detail" ? styles.detailControls : styles.utilityControls}`}>
           {state.workspace === "detail" && <><label>{t("siSector")}<select aria-label={t("siSector")} value={state.sector} onChange={e => change({ sector: e.target.value, group: "", query: "", company: "", expanded: false })}>
-            {!sectors.some(r => r.id === state.sector) && <option value={state.sector}>{state.sector.toUpperCase()}</option>}
-            {sectors.map(r => <option key={text(r.id)} value={text(r.id)}>{localName(r)} · {text(r.ticker)}</option>)}
+            {!selectionSectors.some(r => r.id === state.sector) && <option value={state.sector}>{state.sector.toUpperCase()}</option>}
+            {selectionSectors.map(r => <option key={text(r.id)} value={text(r.id)}>{localName(r)} · {text(r.ticker)}</option>)}
           </select></label>
           <label>{t("siGroup")}<button type="button" className={styles.button}
             aria-label={t("siBrowseGroups")} aria-haspopup="dialog" aria-expanded={groupBrowserOpen}
@@ -385,10 +415,15 @@ export default function SectorIntelligenceWorkspace() {
         <button type="button" aria-pressed={state.sourceFamily === "sectors"} onClick={() => change({ sourceFamily: "sectors" }, true)}>{t("siFinvizSectors")}</button>
         <button type="button" aria-pressed={state.sourceFamily === "finviz"} onClick={() => change({ sourceFamily: "finviz" }, true)}>{t("siFeedFinviz")}</button>
       </nav>}
-      {state.workspace === "discover" && state.sourceFamily === "finviz" ? <FinvizDiscovery feed={feeds.finviz} state={state} onChange={patch => change(patch, !Object.hasOwn(patch, "discoveryQuery"))} /> : state.workspace === "rotation" ? <SectorRotationMap rows={sectors} status={status} risk={feeds.risk}
-        asOf={feeds.sector?.receipt.asOf || null} measured={measuredRead} selected={state.sector} mode={state.rotationMode} query={state.rotationQuery}
-        history={rotationHistory} historyStatus={feeds.history?.receipt.status || "loading"}
-        historyRevision={feeds.history?.receipt.contentHash || null}
+      {state.workspace === "rotation" && state.rotationMethod !== "relative_trend_ema" &&
+        <SectorGenerationQualification qualification={nativeGeneration?.receipt.qualification} />}
+      {state.workspace === "discover" && state.sourceFamily === "finviz" ? <FinvizDiscovery feed={feeds.finviz} state={state} onChange={patch => change(patch, !Object.hasOwn(patch, "discoveryQuery"))} /> : state.workspace === "rotation" ? <SectorRotationMap
+        rows={state.rotationMethod === "relative_trend_ema" ? sectors : nativeGeneration?.sectors || []}
+        status={state.rotationMethod === "relative_trend_ema" ? status : nativeStatus} risk={feeds.risk}
+        asOf={state.rotationMethod === "relative_trend_ema" ? feeds.sector?.receipt.asOf || null : nativeGeneration?.receipt.source_session || null}
+        measured={state.rotationMethod === "relative_trend_ema" ? null : measuredRead} selected={state.sector} mode={state.rotationMode} query={state.rotationQuery}
+        history={rotationHistory} historyStatus={nativeStatus}
+        historyRevision={nativeGeneration?.key || null}
         method={state.rotationMethod} relativeTrend={relativeTrend}
         relativeTrendStatus={feeds.relative_trend?.receipt.status === "ready" && !relativeTrend ? "invalid" : feeds.relative_trend?.receipt.status || "loading"}
         onMethod={rotationMethod => change({ rotationMethod })}
@@ -454,10 +489,10 @@ export default function SectorIntelligenceWorkspace() {
               <Metric label={t("siTop5")} value={formatValue(cap ? cap.share * 100 : null, 1, "%")} foot={cap ? `${cap.count} ${t("siTiles")}` : t("siNotConnected")} />
             </div>
           </section>}
-          {/* Persistent Sector Leadership: the owner's measured relative wealth, rendered from the
-              same sector feed the overview already reads. It owns no snapshot, no fetch and no
-              state, and it never falls back to another sector's numbers. */}
-          <SectorLeadershipDossier feed={feeds.sector} selectedTicker={text(sector.ticker)} onSources={() => openSources()} />
+          {/* Evidence and reconstructed rotation history share one admitted native
+              generation; the surrounding legacy panels retain their own sources. */}
+          <SectorGenerationQualification qualification={nativeGeneration?.receipt.qualification} />
+          <SectorLeadershipDossier feed={nativeEvidence.feed} selectedTicker={text(selectedNative?.ticker)} onSources={() => openSources()} />
           {comparison}
           <SectorConstituentEvidence fund={text(sector.ticker) || null}
             coverage={holdingsCoverage ? holdingsCoverageFor(holdingsCoverage, text(sector.ticker)) : null}

@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Synthetic authentication exists only inside this unit test. No account/session
@@ -22,6 +23,8 @@ import { MARKET_RISK_NOW, riskEnvelopeFixture } from "./marketRiskFixture";
 import relativeTrendFixture from "./fixtures/sector-rotation-relative-trend.v1.json";
 import holdingsCoverageFixture from "./fixtures/sector-holdings-coverage.v1.json";
 import { basket, basketPulse, mixedPulse, observedComparison } from "./sectorIntradayFixture";
+import capturedGeneration from "./fixtures/sector_generation.captured.preview.v1.json";
+import { nativeSectorEvidence, SECTOR_GENERATION_PATH } from "../sectorNativeGeneration";
 
 const AUTH_COOKIE = "sb-fsldfzlxyavsuwqbceod-auth-token.0=base64-part-0; theme=dark; sb-fsldfzlxyavsuwqbceod-auth-token.1=part-1";
 const FILTERED_COOKIE = "sb-fsldfzlxyavsuwqbceod-auth-token.0=base64-part-0; sb-fsldfzlxyavsuwqbceod-auth-token.1=part-1";
@@ -46,6 +49,57 @@ beforeEach(() => {
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
 describe("sector gateway owner-envelope admission", () => {
+  it("forwards the actual selected preview generation through the existing auth and transport owner", async () => {
+    const raw = readFileSync(new URL("./fixtures/sector_generation.captured.preview.v1.json", import.meta.url), "utf8").trimEnd();
+    expect(createHash("sha256").update(raw).digest("hex")).toBe("3e275fc69d22e990f81261c8a803576a832be9332484c7a99b2dddd165a5d425");
+    upstream.mockResolvedValue(new Response(raw, { headers: { "Content-Type": "application/json" } }));
+    const response = await GET(request("generation&audience=entitled&url=https://untrusted.test"));
+    const result = await response.json();
+    expect(response.status).toBe(200);
+    expect(String(upstream.mock.calls[0][0])).toBe("https://www.mastermind-x.com" + SECTOR_GENERATION_PATH);
+    expect(new Headers(upstream.mock.calls[0][1].headers).get("cookie")).toBe(FILTERED_COOKIE);
+    expect(new Headers(upstream.mock.calls[0][1].headers).has("authorization")).toBe(false);
+    expect(result.data).toEqual(capturedGeneration);
+    expect(result.receipt).toMatchObject({ source: "generation", path: SECTOR_GENERATION_PATH,
+      asOf: capturedGeneration.source_session, stale: false, contentHash: createHash("sha256").update(raw).digest("hex") });
+    expect(nativeSectorEvidence(result).generation?.sectors).toHaveLength(11);
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(response.headers.get("vary")).toBe("Cookie");
+  });
+
+  it.each(["accepted", "stale", "degraded"])("keeps the native %s verdict without inferring temporal staleness", async qualification => {
+    const data = structuredClone(capturedGeneration);
+    data.qualification = data.projection.receipt.qualification = qualification;
+    upstream.mockResolvedValue(Response.json(data));
+    const response = await GET(request("generation"));
+    const result = await response.json();
+    expect(response.status).toBe(200);
+    expect(result.data.qualification).toBe(qualification);
+    expect(result.receipt.stale).toBe(qualification === "stale");
+    expect(nativeSectorEvidence(result).generation?.receipt.qualification).toBe(qualification);
+  });
+
+  it.each([401, 403, 404, 502])("withdraws the native wire on owner HTTP %i with one request and no legacy fallback", async status => {
+    upstream.mockResolvedValue(new Response(null, { status }));
+    const response = await GET(request("generation"));
+    expect(response.status).toBe(status);
+    expect((await response.json()).data).toBeNull();
+    expect(upstream).toHaveBeenCalledTimes(1);
+  });
+
+  it("refuses an entitled representation mislabeled as a ready native feed", async () => {
+    const data = structuredClone(capturedGeneration); data.projection.data.audience = "entitled";
+    upstream.mockResolvedValue(Response.json(data));
+    const response = await GET(request("generation"));
+    expect(response.status).toBe(502); expect((await response.json()).receipt.status).toBe("invalid");
+    expect(upstream).toHaveBeenCalledTimes(1);
+  });
+
+  it("requires the existing caller credential before reading a native generation", async () => {
+    expect((await GET(request("generation", null))).status).toBe(401);
+    expect(upstream).not.toHaveBeenCalled();
+  });
+
   it("filters the incoming jar to exact Supabase auth-cookie chunks", () => {
     expect(filteredSupabaseCookieHeader(request("sector"))).toBe(FILTERED_COOKIE);
     expect(filteredSupabaseCookieHeader(request("sector", "theme=dark; mm_aid=visitor"))).toBeNull();
