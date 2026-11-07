@@ -10,6 +10,7 @@ import { describe, expect, it } from "vitest";
 import {
   compareTape,
   flowCoverage,
+  printAttributable,
   projectFlowPrint,
   type FlowPrintInput,
 } from "@/lib/flowPrintInspector";
@@ -181,6 +182,47 @@ describe("flowCoverage", () => {
     expect(noPremium.total).toBe(0);
     expect(noPremium.classifiedShare).toBeNull();
     expect(noPremium.unknownShare).toBeNull();
+  });
+
+  it("counts missing prints with the session gauge's own predicate", () => {
+    // A loaded row the gauge cannot attribute — no finite, non-negative premium, or no
+    // call/put right — is counted once; every other field keeps its meaning.
+    const rows: FlowPrintInput[] = [
+      E1,
+      { ...E1, id: "m-null", premium: null },
+      { ...E1, id: "m-nan", premium: Number.NaN },
+      { ...E1, id: "m-negative", premium: -1 },
+      { ...E1, id: "m-no-right", right: undefined },
+      { ...E1, id: "m-bad-right", right: "X" },
+    ];
+    const cov = flowCoverage(rows);
+    expect(cov.rows).toBe(6);
+    expect(cov.missing).toBe(5);
+    expect(cov.missing).toBe(rows.filter((r) => !printAttributable(r)).length);
+    expect(flowCoverage(TAPE).missing).toBe(0);
+    expect(flowCoverage([]).missing).toBe(0);
+    expect(flowCoverage([{ ...E1, premium: Number.NaN }, {}]).missing).toBe(2);
+  });
+
+  it("counts every loaded entry as a row and only a finite, non-negative premium as eligible", () => {
+    // The gauge's m is every loaded entry (null included); its eligible premium is the
+    // premium half of printAttributable. A negative premium is not eligible anywhere; a
+    // valid premium with no call/put right stays in the side split, out of the C/P totals.
+    const validCall: FlowPrintInput = E1; // $504K, right C, side ~buy
+    const negPremiumPut: FlowPrintInput = { ...E1, id: "c-neg-put", right: "P", premium: -250_000 };
+    const noRightValidPremium: FlowPrintInput = { ...E1, id: "c-no-right", right: undefined, side: "unclassified", premium: 120_000 };
+    const cov = flowCoverage([null, validCall, negPremiumPut, noRightValidPremium]);
+    expect(cov.rows).toBe(4);
+    expect(cov.missing).toBe(3);
+    expect(cov.total).toBe(504_000 + 120_000);
+    expect(cov.classified).toBe(504_000);
+    expect(cov.unknown).toBe(120_000);
+    expect(cov.classifiedShare! + cov.unknownShare!).toBeCloseTo(1, 10);
+    expect(cov.callPremium).toBe(504_000);
+    expect(cov.putPremium).toBe(0);
+    // Non-object entries are rows the gauge cannot attribute, never skipped.
+    const junk = flowCoverage([null, 7, "x", undefined]);
+    expect([junk.rows, junk.missing, junk.total]).toEqual([4, 4, 0]);
   });
 });
 

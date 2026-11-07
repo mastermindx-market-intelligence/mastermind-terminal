@@ -1,7 +1,9 @@
 import { describe, it, expect } from "vitest";
 import producer from "./fixtures/exposure-projection.json";
 import { qualifiedExposureProjection, type QualifiedProjection } from "../exposureMapProjection";
-import { buildExposureSurface, daysToExpiry, projectSurfacePoint, surfaceTier, tierBoundsMn } from "../exposureSurface";
+import { applySurfaceCamera, buildExposureSurface, daysToExpiry, fitSurfaceCamera, projectSurfacePoint,
+  surfaceSpotRow, surfaceTier, tierBoundsMn, SURFACE_NO_BOX,
+  type SurfaceSceneItem } from "../exposureSurface";
 
 const now = Date.parse("2026-10-19T20:00:00Z");
 const SESSION = "2026-10-15";
@@ -188,5 +190,169 @@ describe("daysToExpiry and the dated identity", () => {
     // The one withheld gamma member stays a labelled absence, never a zero.
     expect(surface.cells.filter((c) => c.netMn == null)).toHaveLength(1);
     expect(surface.cells.find((c) => c.netMn == null)!.tier).toBe("u");
+  });
+});
+
+describe("mode-matched book normalisation", () => {
+  // Every cell gets one valid complete gamma (the first cell's) with the
+  // values swapped, so the nulled fixture cell stays contract-valid.
+  const swapGamma = (p: LooseRaw, net: number, gross: number) => {
+    const proto = structuredClone((p.cells[0] as { gamma: Record<string, unknown> }).gamma);
+    for (const c of p.cells as { gamma: Record<string, unknown> }[]) {
+      c.gamma = { ...proto, net, known_net: net, gross, known_gross: gross };
+    }
+  };
+  it("gross mode normalises against gross gamma so a cancelled book still draws", () => {
+    const cancelled = parse(raw((p) => swapGamma(p, 0, 4e8)));
+    const gross = buildExposureSurface(cancelled, opts({ mode: "gross" }));
+    expect(gross.bookMaxAbsMn).toBe(400);
+    const cell = find(gross, 106, "2026-11-20");
+    expect(cell.valueMn).toBe(400);
+    expect(cell.tier).toBe(5);
+    // Same book in net mode is honestly flat — a known zero, not unknown.
+    const net = buildExposureSurface(cancelled, opts({ mode: "net" }));
+    expect(net.bookMaxAbsMn).toBe(0);
+    expect(find(net, 106, "2026-11-20").tier).toBe(0);
+    expect(find(net, 106, "2026-11-20").valueMn).toBe(0);
+  });
+  it("net and abs stay on |net| while gross follows gross gamma", () => {
+    const mixed = parse(raw((p) => {
+      swapGamma(p, 0, 3e8);
+      for (const c of p.cells as { strike: number; gamma: Record<string, unknown> }[]) {
+        const net = c.strike >= 100 ? 2e8 : -2e8;
+        c.gamma = { ...c.gamma, net, known_net: net };
+      }
+    }));
+    expect(buildExposureSurface(mixed, opts({ mode: "net" })).bookMaxAbsMn).toBe(200);
+    expect(buildExposureSurface(mixed, opts({ mode: "abs" })).bookMaxAbsMn).toBe(200);
+    const gross = buildExposureSurface(mixed, opts({ mode: "gross" }));
+    expect(gross.bookMaxAbsMn).toBe(300);
+    expect(find(gross, 94, "2026-10-16").tier).toBe(surfaceTier(300, 300));
+  });
+  it("window clipping still never moves a tier in gross mode", () => {
+    const wide = buildExposureSurface(parse(raw()), opts({ mode: "gross" }));
+    const narrow = buildExposureSurface(parse(raw()), opts({ mode: "gross", windowPct: 2 }));
+    expect(narrow.bookMaxAbsMn).toBe(wide.bookMaxAbsMn);
+    for (const cell of narrow.cells) expect(cell.tier).toBe(find(wide, cell.strike, cell.expiry).tier);
+  });
+});
+
+describe("surfaceSpotRow — the cell-centre row of the reference spot", () => {
+  it("lands on i+0.5 at exact strikes and interpolates between centres", () => {
+    expect(surfaceSpotRow([103, 98], 103)).toBe(0.5);
+    expect(surfaceSpotRow([103, 98], 98)).toBe(1.5);
+    // Descending 103,98 with spot 100: 0.5 + (103−100)/(103−98) = 1.1 — the
+    // centre convention, not a cell-edge count.
+    expect(surfaceSpotRow([103, 98], 100)).toBeCloseTo(1.1, 12);
+  });
+  it("clamps outside covered centres without inventing a price-to-row slope", () => {
+    expect(surfaceSpotRow([103, 98], 104)).toBe(0.5);
+    expect(surfaceSpotRow([103, 98], 97)).toBe(1.5);
+    expect(surfaceSpotRow([1000], 1030)).toBe(0.5);
+    expect(surfaceSpotRow([1000], 970)).toBe(0.5);
+  });
+  it("uses each actual interval for nonuniform strike spacing", () => {
+    expect(surfaceSpotRow([110, 103, 98], 105)).toBeCloseTo(0.5 + 5 / 7, 12);
+    expect(surfaceSpotRow([110, 103, 98], 100)).toBeCloseTo(2.1, 12);
+    expect(surfaceSpotRow([110, 103, 98], 120)).toBe(0.5);
+    expect(surfaceSpotRow([110, 103, 98], 90)).toBe(2.5);
+  });
+  it("keeps single-strike books and refuses unusable input", () => {
+    expect(surfaceSpotRow([103], 103)).toBe(0.5);
+    expect(surfaceSpotRow([], 100)).toBeNull();
+    expect(surfaceSpotRow([103, 98], NaN)).toBeNull();
+    expect(surfaceSpotRow([103, 98], Infinity)).toBeNull();
+  });
+});
+
+describe("fitSurfaceCamera — one uniform camera for geometry and label boxes", () => {
+  const box = (dxMin: number, dyMin: number, dxMax: number, dyMax: number) => ({ dxMin, dyMin, dxMax, dyMax });
+  const at = (x: number, y: number, b = SURFACE_NO_BOX): SurfaceSceneItem => ({ p: { x, y }, box: b });
+  const extentOf = (items: SurfaceSceneItem[], cam: ReturnType<typeof fitSurfaceCamera>) => {
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (const it of items) {
+      const p = applySurfaceCamera(it.p, cam);
+      minX = Math.min(minX, p.x + it.box.dxMin); maxX = Math.max(maxX, p.x + it.box.dxMax);
+      minY = Math.min(minY, p.y + it.box.dyMin); maxY = Math.max(maxY, p.y + it.box.dyMax);
+    }
+    return { minX, maxX, minY, maxY };
+  };
+  const expectFitted = (items: SurfaceSceneItem[], w: number, h: number, pad = 20) => {
+    const cam = fitSurfaceCamera(items, w, h);
+    const e = extentOf(items, cam);
+    for (const v of [cam.scale, cam.tx, cam.ty, e.minX, e.maxX, e.minY, e.maxY]) expect(Number.isFinite(v)).toBe(true);
+    expect(e.minX).toBeGreaterThanOrEqual(pad - 0.01);
+    expect(e.maxX).toBeLessThanOrEqual(w - pad + 0.01);
+    expect(e.minY).toBeGreaterThanOrEqual(pad - 0.01);
+    expect(e.maxY).toBeLessThanOrEqual(h - pad + 0.01);
+    return cam;
+  };
+  const scene = [at(-300, -80), at(300, 40), at(0, 0, box(-60, -26, 60, -8))];
+  it("fits width and height with padding across realistic and tight viewports", () => {
+    for (const [w, h] of [[1024, 560], [720, 446], [360, 260], [300, 240]] as const) expectFitted(scene, w, h);
+  });
+  it("keeps the label union whole at narrow widths instead of hiding it", () => {
+    const cam = expectFitted(scene, 240, 220);
+    expect(cam.scale).toBeGreaterThan(0);
+    const e = extentOf(scene, cam);
+    expect(e.maxX - e.minX).toBeLessThanOrEqual(200.01);
+  });
+  it("fits real projected surfaces across rotations, elevations and narrow fields", () => {
+    for (const rotation of [0, 90, 180, 270] as const) {
+      for (const elevationDeg of [20, 60]) {
+        const frame = { rotation, elevationDeg, cellW: 34, cellD: 12, heightPx: 280 };
+        const items: SurfaceSceneItem[] = [];
+        for (const [c, r, height] of [[-1.5, -1.5, 0], [1.5, 1.5, 0], [-1.5, 1.5, 280], [1.5, -1.5, 280],
+          [0, 0, 280], [0, 0, 0]] as const) items.push(at(projectSurfacePoint(c, r, height, frame).x, projectSurfacePoint(c, r, height, frame).y));
+        items.push(at(0, 200, box(-90, -26, 90, -8))); // a wide focus chip
+        for (const w of [1024, 320]) expectFitted(items, w, 420);
+      }
+    }
+  });
+  it("keeps nonzero geometry in the actual 252px field at a 320px viewport", () => {
+    // Fixed focus + spot labels exceed the nominal 212px inner width. They
+    // must not collapse the real columns to a point; use a compact gutter.
+    const items = [at(-59, 130), at(59, 0),
+      at(29.4, -100, box(-70, -26, 70, -8)),
+      at(26.5, -70, box(6, -16, 146, -4))];
+    const cam = fitSurfaceCamera(items, 252, 260);
+    expect(cam.scale).toBeGreaterThan(0.1);
+    const e = extentOf(items, cam);
+    expect(e.minX).toBeGreaterThanOrEqual(8 - 0.01);
+    expect(e.maxX).toBeLessThanOrEqual(252 - 8 + 0.01);
+    expect(e.minY).toBeGreaterThanOrEqual(8 - 0.01);
+    expect(e.maxY).toBeLessThanOrEqual(260 - 8 + 0.01);
+  });
+  it("finds a positive feasible interval even when the zero-scale label union fails", () => {
+    const items = [at(0, 0, box(0, 0, 140, 10)), at(100, 0, box(-140, 0, 0, 10))];
+    const cam = fitSurfaceCamera(items, 200, 200);
+    expect(cam.scale).toBeGreaterThan(0);
+    const e = extentOf(items, cam);
+    expect(e.minX).toBeGreaterThanOrEqual(20 - 0.01);
+    expect(e.maxX).toBeLessThanOrEqual(180 + 0.01);
+  });
+  it("degrades without NaN on unusable dimensions", () => {
+    for (const [w, h] of [[0, 0], [10, 4], [NaN, 300], [720, NaN], [-40, 200]] as const) {
+      const cam = fitSurfaceCamera(scene, w, h);
+      const p = applySurfaceCamera({ x: 3, y: -4 }, cam);
+      for (const v of [cam.scale, cam.tx, cam.ty, p.x, p.y]) expect(Number.isFinite(v)).toBe(true);
+    }
+  });
+  it("drops non-finite anchors instead of poisoning the fit", () => {
+    const cam = fitSurfaceCamera([at(-100, -50), at(100, 50), at(NaN, 5)], 720, 400);
+    const e = extentOf([at(-100, -50), at(100, 50)], cam);
+    expect(Number.isFinite(e.minX)).toBe(true);
+  });
+  it("centres an empty scene at rest", () => {
+    const p = applySurfaceCamera({ x: 0, y: 0 }, fitSurfaceCamera([], 720, 400));
+    expect(p.x).toBe(360);
+    expect(p.y).toBe(200);
+  });
+  it("never scales the pure projection itself — the camera maps, the lib stays raw", () => {
+    const frame = { rotation: 90 as const, elevationDeg: 30, cellW: 10, cellD: 8, heightPx: 100 };
+    // A quarter turn maps (2,3) to (−3,2), so the painter's key follows.
+    expect(projectSurfacePoint(2, 3, 40, frame).depth).toBe(-1);
+    const cam = { scale: 2, tx: 10, ty: 20 };
+    expect(applySurfaceCamera({ x: 1, y: -2 }, cam)).toEqual({ x: 12, y: 16 });
   });
 });

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ChartEngine } from "@/lib/chart-engine/api";
 import { EnginePriceScaleMode } from "@/lib/chart-engine";
 import { DEFAULT_CHART_RIGHT_OFFSET, withChartFutureOffset } from "@/lib/chart-engine/viewReset";
@@ -8,6 +8,7 @@ import { isIntradayTf } from "@/lib/intradaySources";
 import { VISUAL_INTELLIGENCE_DEFAULTS, type VisualIntelligenceSettings } from "@/lib/visualIntelligence";
 import { useLang, useT } from "@/lib/i18n";
 import { boatsChartCopy } from "@/lib/extQuoteCopy";
+import { pick } from "@/lib/finFormat";
 import overnightStyles from "./ChartOvernight.module.css";
 import DataOriginChip from "@/components/DataOriginChip";
 import type { DataOrigin } from "@/lib/dataOrigin";
@@ -223,6 +224,7 @@ export default function ChartFrameBar({
   openGotoRequest = 0,
   symbol,
   dataOrigin,
+  tradingCurrency,
 }: {
   timeframe: string;
   chartApi: ChartEngine | null;
@@ -236,14 +238,18 @@ export default function ChartFrameBar({
   /** Data OS U02: the mounted chart's symbol + its derived origin readout (drives the origin chip). */
   symbol?: string;
   dataOrigin?: DataOrigin | null;
+  /** B1: this listing's trading currency from the fund document (exact ticker + explicit
+   *  3-letter quote_currency), or null while unknown — the chip then says so explicitly
+   *  instead of guessing from the ticker suffix or the statement currency. */
+  tradingCurrency?: string | null;
 }) {
   const t = useT();
   const { lang } = useLang();
   // Client-only clock: render nothing until mounted to avoid SSR/hydration mismatch.
   // The server renders at server-local time; the client's timezone may differ completely.
   const [mounted, setMounted] = useState(false);
-  const [clock, setClock] = useState("");
-  const [tzLabel, setTzLabel] = useState("");
+  const clockRef = useRef<HTMLSpanElement>(null);
+  const tzRef = useRef<HTMLSpanElement>(null);
   const [gearOpen, setGearOpen] = useState(false);
   const [subMenu, setSubMenu] = useState<SubMenu>(null);
   const [gotoOpen, setGotoOpen] = useState(false);
@@ -257,19 +263,28 @@ export default function ChartFrameBar({
 
   const isIntraday = isIntradayTf(timeframe);
 
-  // Client-only mount gate: set initial clock + tz label, then tick every second.
-  // Nothing is rendered until mounted=true, preventing SSR time from leaking in.
+  // Client-only mount gate: nothing is rendered until mounted=true, preventing SSR time from
+  // leaking in.
   useEffect(() => {
-    setClock(fmtHHMMSS(new Date()));
-    setTzLabel(utcOffsetLabel());
     setMounted(true);
     setShellMode(document.documentElement.getAttribute("data-shell") === "app");
-    const id = setInterval(() => {
-      setClock(fmtHHMMSS(new Date()));
-      setTzLabel(utcOffsetLabel());
-    }, 1000);
-    return () => clearInterval(id);
   }, []);
+  // The once-a-second tick writes the clock text straight into its spans instead of React state.
+  // A 1 Hz setState re-renders at Default priority, and in an English boot the /terminal route
+  // boundary hydrates at Offscreen priority, so its mount effects queue Idle-lane updates that a
+  // ~1 s TerminalShell render must finish to clear. Every tick interrupted that render and React
+  // restarted it, which kept the main thread busy with one long task per second indefinitely.
+  // Layout effect: the first paint after mount already shows the time.
+  useLayoutEffect(() => {
+    if (!mounted) return;
+    const paint = () => {
+      if (clockRef.current) clockRef.current.textContent = fmtHHMMSS(new Date());
+      if (tzRef.current) tzRef.current.textContent = utcOffsetLabel();
+    };
+    paint();
+    const id = setInterval(paint, 1000);
+    return () => clearInterval(id);
+  }, [mounted]);
 
   // Close gear popup when clicking outside
   useEffect(() => {
@@ -457,7 +472,7 @@ export default function ChartFrameBar({
       <div className="cfb-right">
         {mounted && (
           <span className="cfb-clock num">
-            {clock} <span className="cfb-tz">{tzLabel}</span>
+            <span ref={clockRef} /> <span ref={tzRef} className="cfb-tz" />
           </span>
         )}
         {/* ETH chip — active when on; muted+non-interactive on daily TFs (no tooltip per spec) */}
@@ -474,6 +489,16 @@ export default function ChartFrameBar({
         {/* Data OS U02 — the origin chip replaces the static ADJ span: label and explanation are
             derived from the OHLC file's view contract, never a hardcoded claim. */}
         <DataOriginChip symbol={symbol} origin={dataOrigin ?? null} />
+        {/* B1 — the trading-currency chip sits beside origin: the fund document's quote_currency
+            for THIS exact listing, or an explicit "CCY?" while unknown. A neutral cfb-chip span
+            reuses the frame bar's existing styling — no new CSS, colors or design system. */}
+        <span
+          className="cfb-chip"
+          data-testid="cfb-currency"
+          aria-label={tradingCurrency
+            ? pick(lang === "zh", `Trading currency: ${tradingCurrency}`, `交易币种：${tradingCurrency}`)
+            : pick(lang === "zh", "Trading currency unavailable", "交易币种不可用")}
+        >{tradingCurrency ?? pick(lang === "zh", "CCY?", "币种?")}</span>
         {/* Gear: quick settings */}
         <div className="cfb-gear-host" ref={gearRef}>
           <button

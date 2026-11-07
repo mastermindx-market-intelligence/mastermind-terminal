@@ -7,6 +7,17 @@ This version has breaking changes — APIs, conventions, and file structure may 
 <!-- BEGIN:mastermind-agent-laws (added 2026-07-23 after the onboarding-flow postmortem) -->
 # Mastermind Terminal — agent laws
 
+## Review without another session
+
+Use the root [session-owned review rule](../AGENTS.md#session-owned-prsource-review-chairman-2026-11-03). For assigned attended CEO Web source work, **FAST, STANDARD, and CRITICAL each have no blanket independent reviewer requirement**: self-check the immutable diff, run focused tests and required CI, and prove the relevant security and real user path. Neither ordinary executable/non-T0 source nor an elevated tier alone creates a reviewer Job, separate ChatGPT chat, Fabric commission, native child or new formal GitHub approval. Only actual native GitHub/CODEOWNERS requirements, explicit security/release holds or a separately authorized manual review request can require external review. Preserve the distinct default-OFF signed automatic GitHub/Executive machine reviewer policy; no attended-Web waiver authorizes machine review bypass.
+
+Mastermind #2018/#2026/#2030 and Terminal #1251 have their own protected and installed acceptance gates: do not assume a proposed PR is live, and do not treat an author's `routine` label or T0 classifier as GitHub authorization. Codex/Claude builders should likewise finish assigned work within their session, without another top-level chat; apply any actually binding technical/native review gate. If distinct scrutiny is truly owed, use a read-only, independently qualified in-session native Codex/Claude/Web child or admitted Fabric, verify exact head and findings, and adjudicate in the parent. `SELF_REVIEWED` is not independent proof and a child is not GitHub non-author `APPROVED`. No account switching, denied/EFFECT_UNKNOWN reroute, self-approval, self-merge, CI weakening or held-release shortcut.
+
+
+## Original-PR delivery ownership
+
+This application session must complete the existing PR's verification and authorized release path; a source commit, Draft, PR, CI wait or review request is not a terminal result. Repair CI on its original carrier, make stable PRs Ready, meet actual formal approval/hold checks, and verify final merge and required responsive/browser proof. See the root [finish-to-release rule](../AGENTS.md#finish-the-existing-release-not-the-draft). Do not invent review recipients or bypass protected merge.
+
 ## Model routing
 Opus builds and reviews code. Design choices are judgment work — made in the session's main loop (or an Opus designer agent), never delegated to Sonnet; builders only implement fully-specified designs (exact markup/classes handed to them). Sonnet = mechanical non-code sweeps only; Haiku = trivial extraction.
 
@@ -39,14 +50,14 @@ precision from the step so two ticks can't render identically. The v7b wave fixe
 that each violated several of these — do not hand-roll a sixth way.
 
 ## Verification law (what "done" means)
-- A user-facing flow is NOT done until a fresh incognito end-to-end pass succeeds with zero manual workarounds — no reload-to-recover. If you hit a race and work around it, the bug is yours to fix, not to route around.
-- Every UI PR carries its verification artifact in the body: screenshots/crops of each step and state (light + dark + zh via the LEX i18n tuples — zh strings must never leak into the EN view, and vice versa).
+- Scope verification by changed behavior, blast radius and actual risk. Localized visual-only work needs relevant type/static/unit checks and one affected-viewport crop; interactive UI requires a targeted browser interaction at the affected contract viewport and a desktop non-regression smoke. Include tablet when shared layout changes. Never accept a reload-to-recover workaround as a pass: a reproduced race must be repaired.
+- Auth/session paths require a fresh authenticated/incognito journey; unrelated cosmetic edits do not. Shared-shell/navigation/global CSS, critical market data, finance/execution, permissions/security, CI and unknown impact retain the relevant full responsive regression and real source/consumer proof. Screenshots document only changed states. EN/ZH crops are needed when localized strings change; do not require an unsupported light theme. Existing accessibility and source-truth invariants remain enforced.
 - A spawned child builder does not self-merge a flagship first pass; it returns the PR and artifacts to the commissioning main session. The main session reviews them and completes the merge plus git-gated live deployment in the same task unless the operator explicitly requests a hold or a genuine check is red.
-- The operator's standing authorization (2026-07-30) is to commit, push, open a PR, wait for CI, merge to `master`, run the git-gated VPS deployment, and verify live without waiting for a separate deployment request. If blocked, preserve the work in a pushed remote branch before reporting the blocker; never leave completed work only in a session.
+- The operator's standing authorization (2026-07-30) is to commit, push, open a PR, qualify CI and required review, merge to `master`, run the git-gated VPS deployment, and verify live without a separate deployment request. A CI/review/deployment hold stops that release effect, not the whole assigned session: complete the next genuinely independent authorized source, test, integration or browser-proof action. An issue, reviewer request, green local tests or blocker report is not completion. Preserve finished source on the original managed branch through its authorized publisher when available. A refused commit/push is held on its exact original operation, not a reason to create a replacement branch or change tools/accounts; preserve local custody, never retry an explicit safety/permission denial, reconcile EFFECT_UNKNOWN on the same carrier, and continue other independent permitted work. Do not claim a pushed remote branch when publication did not occur; retain the exact recovery action.
 - A ready, non-draft PR must carry `merge-on-green` and be armed with `gh pr merge --auto --squash --delete-branch`. `master` protects the exact 3/3 CI contexts, so native auto-merge is the server-side fast path; the controller is the fail-closed orphan fallback (current-master ancestry, same-repo head, no hold/conflict, SHA-pinned squash). Neither path permits the commissioning session to skip deployment and live verification. Never use an admin bypass.
 
 ## Repo facts
-Next.js 16 + Supabase; entitlements authority = macro-api (`profiles.is_pro` is a UI hint only); i18n via LEX `[en, zh]` tuples in `lib/i18n.tsx`; tests = vitest, golden fixtures in `lib/__tests__/fixtures/`. The main checkout is often on another agent's branch — ALWAYS `git worktree add` off `origin/master`; never touch the main checkout's git state.
+Next.js 16 + Supabase; entitlements authority = macro-api (`profiles.is_pro` is a UI hint only); i18n via LEX `[en, zh]` tuples in `lib/i18n.tsx`; tests = vitest, golden fixtures in `lib/__tests__/fixtures/`. The main checkout is often on another agent's branch — never touch its git state. Attended Web/Studio sessions must reuse or acquire the one operation-bound managed workspace through the installed `mmx-workspace` owner; approved native/harness sessions use their existing assigned workspace/launcher. Do not create a second worktree to route around any existing writer, permission refusal, or EFFECT_UNKNOWN.
 
 ## Agent OS (organizational memory)
 Durable org memory — workstreams `WS-*`, decisions `DEC-*`, discoveries `DSC-*`, session handoffs — lives in the Macro repo's `agentos/` (`/Users/chriswong/Documents/Cluade/Macro Dashboard`; rules: `agentos/README.md` there). A task on an existing Mastermind workstream starts by reading its `WS-*` record and latest handoff; `do_not_redo` is binding unless refuted with new evidence. Durable choices, verified non-obvious facts, and transfers of claimed work get a `DEC-*`/`DSC-*`/handoff record via a normal Macro PR — chat memory is not company memory. Knowledge plane only: nothing in it gates execution, ranks priorities, or proves liveness, and no Terminal-local copy of the store may exist. Full section: root `AGENTS.md` § "Agent OS knowledge plane".
@@ -55,9 +66,12 @@ Durable org memory — workstreams `WS-*`, decisions `DEC-*`, discoveries `DSC-*
 - This directory is one responsive Next.js application. Desktop, tablet, and mobile share routes,
   data fetching, chart logic, indicator logic, and settings; breakpoint-specific chrome is allowed,
   a separate mobile implementation is not.
-- A user-facing change is incomplete until `npm run test:e2e:responsive` passes at the repository's
-  three contract viewports (1440×900, 820×1180, 390×844). Preserve safe-area handling, mobile
-  navigation/sheets, usable touch targets, and zero horizontal document overflow.
+- Use `npm run test:e2e:responsive` with the relevant configured project and affected specs
+  for localized changes; the protected-base CI selector admits only strictly enumerated Screener
+  presentation/test paths to the focused desktop/mobile subset. Run the full desktop/tablet/mobile
+  matrix for shared layout, auth, critical data, elevated risk, unknown paths and merge_group.
+  Preserve safe areas, mobile navigation/sheets, touch targets and zero horizontal overflow.
+  Narrow source qualification is not a claim of deployed responsive acceptance.
 - Never target the retired `feat/mobile-terminal-redesign` branch or `charting-app-mobile`
   worktree. They are historical recovery references only; canonical work starts from
   `origin/master`.

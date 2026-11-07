@@ -250,8 +250,8 @@ export default function ChartConductor({ queue, count }: ChartConductorProps) {
           type="button"
           className={`cmx-orb ${orbPhase}${dockCls}`}
           key={pulsing ? `pulse-${pulseKey}` : "orb"}
-          title="Mastermind AI"
-          aria-label="Mastermind AI"
+          title={railOpen ? t("cmxHideSteps") : t("cmxToggleSteps")}
+          aria-label={railOpen ? t("cmxHideSteps") : t("cmxToggleSteps")}
           aria-expanded={railOpen}
           onClick={() => setRailOpen((o) => !o)}
         />

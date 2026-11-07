@@ -38,6 +38,7 @@ import RevenuePage from "./RevenuePage";
 import ForecastPage from "./ForecastPage";
 // Sibling dashboards land from FE2c in parallel; imports resolve at integration.
 import TechnicalsPage from "./TechnicalsPage";
+import BottomPivotContextCard from "./BottomPivotContextCard";
 import SeasonalsPage from "./SeasonalsPage";
 import OwnershipPage from "./OwnershipPage";
 import InsiderPage from "./InsiderPage";
@@ -373,7 +374,10 @@ export default function MegaPane({
           {page === "earnings" && <EarningsPage fund={fund} zh={zh} sym={sym} />}
           {page === "revenue" && <RevenuePage fund={fund} zh={zh} sym={sym} />}
           {page === "forecast" && <ForecastPage sym={sym} fund={fund} bars={bars} zh={zh} loading={fundLoading} />}
-          {page === "technicals" && <TechnicalsPage sym={sym} bars={bars} zh={zh} />}
+          {page === "technicals" && <>
+            <BottomPivotContextCard sym={sym} zh={zh} />
+            <TechnicalsPage sym={sym} bars={bars} zh={zh} />
+          </>}
           {page === "seasonals" && <SeasonalsPage sym={sym} bars={bars} zh={zh} />}
           {page === "ownership" && <OwnershipPage sym={sym} fund={fund} fundLoading={fundLoading} />}
           {page === "insider" && <InsiderPage sym={sym} bars={bars} zh={zh} />}

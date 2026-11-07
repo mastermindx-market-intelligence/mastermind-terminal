@@ -113,6 +113,10 @@ export function VolComparePanel({
   const rootRef = useRef<HTMLElement | null>(null);
   const asofDate = (asof ?? "").slice(0, 10);
   const todayIso = today ?? etToday();
+  // AC40 Option B: the producer's clock. Interpolated tenors are calendar days after `asof`
+  // (engine/options_hub.py dte = exp - asof), so their dates and the skew's calendar fallback
+  // run on it. `null` when the source states no valid day: then no interpolated date is shown.
+  const asofIso = volIsoDay(asofDate);
 
   const admission = useMemo(() => admitVolTermRows(term), [term]);
   const admitted = useMemo(() => admission.rows.filter((row) => Number.isFinite(row.v)), [admission.rows]);
@@ -144,7 +148,7 @@ export function VolComparePanel({
       .filter((p) => p.basis === "interpolated" && !supplied.some((s) => s.tenorDays === p.tenorDays))
       .map((p) => ({
         key: `i:${p.tenorDays}`, tenorDays: p.tenorDays,
-        exp: addDays(todayIso, p.tenorDays), iv: p.iv, basis: "interpolated",
+        exp: asofIso ? addDays(asofIso, p.tenorDays) : null, iv: p.iv, basis: "interpolated",
         between: p.between ? { lo: p.between.lo.dte, hi: p.between.hi.dte } : null, selected: false,
       }));
     const unsupported: TableRow[] = std
@@ -159,7 +163,7 @@ export function VolComparePanel({
       suppliedCount: supplied.length,
       interpolatedCount: interpolated.length,
     };
-  }, [admitted, selectedExpiry, term, todayIso]);
+  }, [admitted, asofIso, selectedExpiry, term]);
 
   const [levelLo, levelHi] = useMemo(() => {
     if (!admitted.length) return [0, 1];
@@ -205,15 +209,19 @@ export function VolComparePanel({
   const skew = useMemo(() => {
     const expiries = (smile ?? []).filter((s) => volIsoDay(s?.exp));
     if (expiries.length === 0) return null;
-    const calDte = (exp: string) => Math.round((Date.parse(`${exp}T00:00:00Z`) - Date.parse(`${todayIso}T00:00:00Z`)) / 86400000);
+    // One comparator, one clock: the fallback sits beside producer dte values, so it counts
+    // from `asof`; it falls back to the viewer's today only when `asof` is absent, and says so.
+    const clockIso = asofIso ?? todayIso;
+    const calDte = (exp: string) => Math.round((Date.parse(`${exp}T00:00:00Z`) - Date.parse(`${clockIso}T00:00:00Z`)) / 86400000);
     const dteOfExp = (exp: string) => dteAt.get(exp) ?? calDte(exp);
     const onSelected = selectedExpiry != null && expiries.some((s) => s.exp === selectedExpiry);
     const chosen = onSelected
       ? expiries.find((s) => s.exp === selectedExpiry)!
       : expiries.reduce((a, b) => (Math.abs(dteOfExp(b.exp) - 30) < Math.abs(dteOfExp(a.exp) - 30) ? b : a));
     const rows = skewInStrikeSpace(chosen, atmProxyStrike(chosen), SKEW_PCTS, "auto");
-    return { chosen, dte: dteOfExp(chosen.exp), onSelected, rows };
-  }, [dteAt, selectedExpiry, smile, todayIso]);
+    const usedCalendar = onSelected ? !dteAt.has(chosen.exp) : expiries.some((s) => !dteAt.has(s.exp));
+    return { chosen, dte: dteOfExp(chosen.exp), onSelected, rows, todayFallback: asofIso == null && usedCalendar };
+  }, [asofIso, dteAt, selectedExpiry, smile, todayIso]);
 
   // ── Events inside the curve ──────────────────────────────────────────────────
   const eventRows = useMemo(() => {
@@ -229,6 +237,9 @@ export function VolComparePanel({
   }, [admitted, events, selectedExpiry, todayIso]);
 
   const stale = sessionsOld != null && Number.isFinite(sessionsOld) && sessionsOld > STALE_SESSIONS;
+  // The published band's clock takes the same validated day as every other source clock: a
+  // malformed band asof is no clock, never a rolled-over date (V8 reads 2026-02-30 as 2 Mar).
+  const bandIso = volIsoDay((publishedBand?.asof ?? "").slice(0, 10));
 
   const openAllExpiries = () => {
     if (onOpenResearch) {
@@ -241,12 +252,47 @@ export function VolComparePanel({
     if (card && typeof card.scrollIntoView === "function") card.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const basisCell = (row: TableRow) => {
+  // Same text as before. A narrow panel may wrap the cell once, after its separator: the label
+  // and its separator stay together, the range stays whole, a reason wraps between its words.
+  const basisCell = (row: TableRow): React.ReactNode => {
     if (row.basis === "supplied") return t("cmpBasisSupplied");
     if (row.basis === "interpolated" && row.between) {
-      return t("cmpBasisBetween").replace("{lo}", String(row.between.lo)).replace("{hi}", String(row.between.hi));
+      return splitAtSeparator(
+        t("cmpBasisBetween").replace("{lo}", String(row.between.lo)).replace("{hi}", String(row.between.hi)),
+        true,
+      );
     }
-    return t("cmpUnsupportedRange");
+    return splitAtSeparator(t("cmpUnsupportedRange"), false);
+  };
+
+  // Supplied rows carry the exchange expiry and render exactly as before. An interpolated row
+  // is dated on the producer clock: with no stated asof it shows no date plus the reason; a date
+  // on or before the viewer's ET today is no longer ahead and names the read it comes from.
+  // The date (with the selected mark) is the cell's first line; the qualifier, when there is one,
+  // is a separate second element that wraps, so it never widens the column past its date line.
+  // The read's date inside the qualifier is held on one line, so a wrap never splits it.
+  const expiryCell = (row: TableRow): { date: string; note: React.ReactNode } => {
+    const selected = row.selected ? ` · ${t("cmpSelected")}` : "";
+    if (row.basis !== "interpolated") return { date: `${dayShort(row.exp, lang)}${selected}`, note: null };
+    if (!row.exp || !asofIso) return { date: `${dayShort(null, lang)}${selected}`, note: t("cmpClockUnstated") };
+    if (row.exp <= todayIso) {
+      const [before, after = ""] = t("cmpRowPastRead").split("{asof}");
+      return {
+        date: `${dayShort(row.exp, lang)}${selected}`,
+        note: <>{before}<span style={HOLD}>{dayShort(asofIso, lang)}</span>{after}</>,
+      };
+    }
+    return { date: `${dayShort(row.exp, lang)}${selected}`, note: null };
+  };
+
+  const renderExpiry = (row: TableRow) => {
+    const { date, note } = expiryCell(row);
+    return (
+      <>
+        <span data-testid="vol-term-exp-date" style={EXP_DATE}>{date}</span>
+        {note ? <>{" "}<span data-testid="vol-term-exp-note" style={EXP_NOTE}>{note}</span></> : null}
+      </>
+    );
   };
 
   const eventCell = (row: TableRow) => {
@@ -290,7 +336,7 @@ export function VolComparePanel({
               {strip.nearest && ` · ${t("cmpStripNearest")}`}
             </span>
             <span style={STRIP_META}>
-              {t("cmpStripBasis").replace("{date}", asofDate ? dayShort(asofDate, lang) : t("cmpClockUnstated"))}
+              {asofIso ? t("cmpStripBasis").replace("{date}", dayShort(asofIso, lang)) : t("cmpStripBasisNoClock")}
             </span>
             <span style={STRIP_META}>{t("cmpDeltaAxis")}</span>
           </>
@@ -299,7 +345,7 @@ export function VolComparePanel({
         )}
         {stale && (
           <span style={STALE_NOTE}>
-            {t("cmpStale").replace("{date}", asofDate ? dayShort(asofDate, lang) : "—").replace("{n}", String(sessionsOld))}
+            {t("cmpStale").replace("{date}", asofIso ? dayShort(asofIso, lang) : "—").replace("{n}", String(sessionsOld))}
           </span>
         )}
       </div>
@@ -336,10 +382,9 @@ export function VolComparePanel({
             <h3 style={H3}>
               {t("cmpTermTitle")}
               <span style={H3_SUB}>
-                {" "}{t("cmpTermSub")
+                {" "}{(asofIso ? t("cmpTermSub").replace("{date}", dayShort(asofIso, lang)) : t("cmpTermSubNoClock"))
                   .replace("{n}", String(table.suppliedCount))
-                  .replace("{m}", String(table.interpolatedCount))
-                  .replace("{date}", asofDate ? dayShort(asofDate, lang) : t("cmpClockUnstated"))}
+                  .replace("{m}", String(table.interpolatedCount))}
               </span>
             </h3>
             <div style={SCROLL_X}>
@@ -360,9 +405,9 @@ export function VolComparePanel({
                   {table.main.map((row) => (
                     <tr key={row.key}>
                       <td style={{ ...TD, fontWeight: row.selected ? 700 : 500 }}>{row.tenorDays}D</td>
-                      <td style={TD}>{dayShort(row.exp, lang)}{row.selected && ` · ${t("cmpSelected")}`}</td>
+                      <td style={TD}>{renderExpiry(row)}</td>
                       <td style={TD_NUM}>{fmtIv(row.iv)}</td>
-                      <td style={TD}>{basisCell(row)}</td>
+                      <td style={TD}><span style={BASIS_TEXT}>{basisCell(row)}</span></td>
                       <td style={TD}>{eventCell(row)}</td>
                       <td style={TD}>
                         <span style={LEVEL_TRACK} aria-hidden="true">
@@ -376,7 +421,9 @@ export function VolComparePanel({
                       <td style={{ ...TD, color: "var(--muted)" }}>{row.tenorDays}D</td>
                       <td style={{ ...TD, color: "var(--muted)" }}>—</td>
                       <td style={{ ...TD_NUM, color: "var(--muted)" }}>—</td>
-                      <td style={{ ...TD, color: "var(--muted)" }}>{t("cmpUnsupportedRange")}</td>
+                      <td style={{ ...TD, color: "var(--muted)" }}>
+                        <span style={BASIS_TEXT}>{splitAtSeparator(t("cmpUnsupportedRange"), false)}</span>
+                      </td>
                       <td style={{ ...TD, color: "var(--muted)" }}>—</td>
                       <td style={TD} />
                     </tr>
@@ -426,7 +473,7 @@ export function VolComparePanel({
                     <dd style={DD}>{t("cmpMoveEstimatorValue").replace("{iv}", move.ivPct.toFixed(1))}</dd>
                     <dt style={DT}>{t("cmpMoveHorizonLabel")}</dt>
                     <dd style={DD}>
-                      {t("cmpMoveHorizonValue")
+                      {t(move.horizonDays === 1 ? "cmpMoveHorizonValueSingular" : "cmpMoveHorizonValue")
                         .replace("{n}", String(move.horizonDays))
                         .replace("{from}", dayShort(todayIso, lang))
                         .replace("{to}", dayShort(selectedExpiry, lang))}
@@ -434,8 +481,10 @@ export function VolComparePanel({
                     </dd>
                     <dt style={DT}>{t("cmpMoveVolClockLabel")}</dt>
                     <dd style={DD}>
-                      {asofDate
-                        ? t("cmpMoveVolClockValue").replace("{date}", dayShort(asofDate, lang))
+                      {/* The validated asof day (volIsoDay), as the rows and the strip read it:
+                          a malformed asof states no clock, never "— nightly EOD". */}
+                      {asofIso
+                        ? t("cmpMoveVolClockValue").replace("{date}", dayShort(asofIso, lang))
                         : t("cmpClockUnstated")}
                     </dd>
                     <dt style={DT}>{t("cmpMoveSpotClockLabel")}</dt>
@@ -458,8 +507,8 @@ export function VolComparePanel({
                     <dl style={DEFS}>
                       <dt style={DT}>{t("cmpBandMethod")}</dt>
                       <dd style={DD}>
-                        {publishedBand.asof
-                          ? t("cmpBandClock").replace("{date}", dayShort(publishedBand.asof.slice(0, 10), lang))
+                        {bandIso
+                          ? t("cmpBandClock").replace("{date}", dayShort(bandIso, lang))
                           : t("cmpClockUnstated")}
                       </dd>
                       <dt style={DT}>{t("cmpBandStraddle")}</dt>
@@ -485,6 +534,7 @@ export function VolComparePanel({
                 {skew.onSelected
                   ? t("cmpSkewOnSelected").replace("{exp}", skew.chosen.exp)
                   : t("cmpSkewOnNearest").replace("{exp}", skew.chosen.exp)}
+                {skew.todayFallback && ` · ${t("cmpSkewDteFromToday")}`}
               </div>
               <div style={SCROLL_X}>
                 <table style={TABLE}>
@@ -667,6 +717,50 @@ const TD: React.CSSProperties = {
   borderBottom: "1px solid var(--line)",
   whiteSpace: "nowrap",
 };
+
+// The expiry cell's two lines: the date keeps the cell's no-wrap line; the qualifier is the
+// panel's muted secondary line (STRIP_META), sized to the column (min-content contributes only its
+// longest word to the column width; min-width 100% then fills the cell) and wrapping inside it.
+const EXP_DATE: React.CSSProperties = {
+  display: "block",
+};
+
+const EXP_NOTE: React.CSSProperties = {
+  ...STRIP_META,
+  display: "block",
+  width: "min-content",
+  minWidth: "100%",
+  marginTop: 1,
+  lineHeight: 1.35,
+  whiteSpace: "normal",
+};
+
+// The basis column is the term table's only long text column. It may wrap (see splitAtSeparator)
+// so the table fits a narrower panel instead of scrolling the LEVEL column out of view; CJK text
+// breaks only at its spaces (keep-all), never between two characters of a word.
+const BASIS_TEXT: React.CSSProperties = {
+  display: "block",
+  whiteSpace: "normal",
+  wordBreak: "keep-all",
+};
+
+const HOLD: React.CSSProperties = {
+  whiteSpace: "nowrap",
+};
+
+// "<label> · <rest>" with its preferred break after the separator. The label keeps its separator;
+// the rest is held whole (a range such as "7D → 10D") or wraps between its words (a reason).
+function splitAtSeparator(text: string, holdRest: boolean): React.ReactNode {
+  const at = text.indexOf(" · ");
+  if (at < 0) return text;
+  const rest = text.slice(at + 3);
+  return (
+    <>
+      <span style={HOLD}>{text.slice(0, at + 2)}</span>{" "}
+      {holdRest ? <span style={HOLD}>{rest}</span> : rest}
+    </>
+  );
+}
 
 const TD_NUM: React.CSSProperties = {
   ...TD,

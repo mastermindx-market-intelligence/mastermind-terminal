@@ -1,7 +1,8 @@
 "use client";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
-import { getJSONResult } from "@/lib/dataCache";
+import { getJSONResult, invalidate } from "@/lib/dataCache";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { useMarketPrefs } from "@/lib/useMarketPrefs";
 
@@ -39,7 +40,20 @@ import { useMarketPrefs } from "@/lib/useMarketPrefs";
 const SearchModal = dynamic(() => import("@/components/SearchModal"), { ssr: false });
 
 type Row = { name: string; col: string; verdict: string | null; vts?: string | null; mkt?: string; zh?: string; sec?: string; last?: number | null; chg?: number | null };
-type Manifest = { as_of: string | null; symbols: Record<string, Row> };
+// Validate only what this consumer reads. Plain search rows from build_universe.py
+// intentionally omit verdict/vts; unknown producer metadata must remain untouched.
+function readManifestSymbols(value: unknown): Record<string, Row> | null {
+  const record = (v: unknown): v is Record<string, unknown> =>
+    v !== null && typeof v === "object" && !Array.isArray(v);
+  if (!record(value) || !record(value.symbols)) return null;
+  const textFields = ["name", "col", "verdict", "vts", "mkt", "zh", "sec"];
+  for (const row of Object.values(value.symbols)) {
+    if (!record(row) || textFields.some((key) => row[key] != null && typeof row[key] !== "string")) return null;
+  }
+  // Empty maps are genuine ready universes, not transport failures. The dialog already
+  // tolerates missing/null optional wire fields and supplies its existing display fallbacks.
+  return value.symbols as Record<string, Row>;
+}
 
 const MANIFEST_URL = "/data/manifest.json";
 
@@ -56,6 +70,10 @@ export interface SymbolPickerProps {
   scope?: "symbols" | "companies";
   /** Commit a new company. The host owns what that means (URL, cursor, refetch). */
   onPick: (symbol: string) => void;
+  /** A company search retains the typed query separately from the listing identity. */
+  onCompanyPick?: (symbol: string, query: string) => void;
+  searchSeed?: string;
+  initialSelection?: string;
   /** Controlled, so a host can also open the picker from elsewhere (e.g. a recovery button). */
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -69,11 +87,13 @@ export interface SymbolPickerProps {
   mark?: ReactNode;
   /** Names this desk in the /admin Search Log. */
   trackSource?: string;
+  /** A responsive host may hide its trigger bar while another opener stays visible. */
+  portalDialog?: boolean;
 }
 
 export default function SymbolPicker({
-  symbol, displayLabel, scope = "symbols", onPick, open, onOpenChange,
-  className = "", eyebrow, label, mark, trackSource,
+  symbol, displayLabel, scope = "symbols", onPick, onCompanyPick, searchSeed = "", initialSelection, open, onOpenChange,
+  className = "", eyebrow, label, mark, trackSource, portalDialog = false,
 }: SymbolPickerProps) {
   const identity = useShellIdentity();
   // The same preference store the chart's picker reads, so a user who switched HK off does not
@@ -99,10 +119,6 @@ export default function SymbolPicker({
     if (started.current) return;
     started.current = true;
     setFailed(false);
-    const apply = (m: unknown) => {
-      const next = (m as Manifest | null)?.symbols;
-      if (mounted.current && next) { setSymbols(next); setFailed(false); }
-    };
     const giveUp = () => {
       if (!mounted.current) return;
       // Both "absent" (404) and "unavailable" (network/5xx) mean we do not have the universe.
@@ -110,10 +126,25 @@ export default function SymbolPicker({
       started.current = false;
       setFailed(true);
     };
+    const apply = (m: unknown) => {
+      if (!mounted.current) return;
+      const next = readManifestSymbols(m);
+      if (next === null) { giveUp(); return; }
+      setSymbols(next);
+      setFailed(false);
+    };
     getJSONResult(MANIFEST_URL, { onRevalidate: apply })
       .then((outcome) => { if (outcome.status === "data") apply(outcome.data); else giveUp(); })
       .catch(giveUp);
   }, []);
+
+  const retryUniverse = useCallback(() => {
+    if (started.current) return;
+    // Explicit recovery must bypass the shared cache's malformed data or 404 TTL.
+    // Ordinary idle/hover/focus reads keep the existing cache and deduplication path.
+    invalidate(MANIFEST_URL);
+    loadUniverse();
+  }, [loadUniverse]);
 
   // Idle after mount: never on the critical path, normally well ahead of the tap.
   useEffect(() => {
@@ -130,6 +161,25 @@ export default function SymbolPicker({
   }, [loadUniverse]);
 
   const universeState = symbols ? "ready" : failed ? "unavailable" : "loading";
+  const dialog = open ? <SearchModal
+    open
+    mode="pick"
+    companyScope={scope === "companies"}
+    seed={searchSeed}
+    initialSelection={initialSelection}
+    active={symbol}
+    manifest={symbols ?? {}}
+    universeState={universeState}
+    onRetryUniverse={retryUniverse}
+    inWatchlist={NO_WATCHLIST}
+    marketPrefs={marketPrefs}
+    prefsReady={prefsReady}
+    onShowAllMarkets={showAllMarkets}
+    trackSource={trackSource}
+    onClose={() => onOpenChange(false)}
+    onPick={(next) => { onOpenChange(false); onPick(next); }}
+    onCompanyPick={onCompanyPick ? (next, query) => { onOpenChange(false); onCompanyPick(next, query); } : undefined}
+  /> : null;
 
   return (
     <>
@@ -154,25 +204,7 @@ export default function SymbolPicker({
         <svg className="sym-pick-car" viewBox="0 0 24 24" aria-hidden><path d="M6 9l6 6 6-6" /></svg>
       </button>
 
-      {open && (
-        <SearchModal
-          open
-          mode="pick"
-          companyScope={scope === "companies"}
-          seed=""
-          active={symbol}
-          manifest={symbols ?? {}}
-          universeState={universeState}
-          onRetryUniverse={loadUniverse}
-          inWatchlist={NO_WATCHLIST}
-          marketPrefs={marketPrefs}
-          prefsReady={prefsReady}
-          onShowAllMarkets={showAllMarkets}
-          trackSource={trackSource}
-          onClose={() => onOpenChange(false)}
-          onPick={(next) => { onOpenChange(false); onPick(next); }}
-        />
-      )}
+      {portalDialog && dialog && typeof document !== "undefined" ? createPortal(dialog, document.body) : dialog}
     </>
   );
 }

@@ -93,8 +93,13 @@ async function refresh(f: string, p: Producer): Promise<void> {
     }
     if (p.stopped) return;
     if (outcome.status !== "data") {
-      // Hold the last good frame and retry on the next tick, but say the read did not
-      // land — once per change, not once per cadence.
+      // A rejected NDX/NDXP family is not a temporary read outage. Never replay
+      // the prior measured single-root GEX frame to a late subscriber once a
+      // classified source refusal is observed; ordinary outages retain stale.
+      if (outcome.status === "unavailable" && outcome.refusal === "unadmitted_gex_family") {
+        p.lastJson = null;
+        p.lastFrame = null;
+      }
       if (p.lastStatus === outcome.status) return;
       p.lastStatus = outcome.status;
       p.lastStatusFrame = `event: status\ndata: ${JSON.stringify({ status: outcome.status })}\n\n`;

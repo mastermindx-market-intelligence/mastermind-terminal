@@ -1,0 +1,981 @@
+{
+  "status": "PASS_SCOPED",
+  "source": "0d35b973168b99d37c402e51c00fe31ed33c241d",
+  "fixture": "Frozen actual Next parent, actual AppShell/route/LegacyPageHost and unchanged peer Macro bridge/public Crypto/Vector bytes",
+  "results": [
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "start": "http://127.0.0.1:3100/crypto.html?journey=p12t24#asset-lanes",
+      "title": "Defensive backdrop.",
+      "receipt": "Market Board snapshot 2026-10-31\n50 / 50 assets listed\n\nRanks and research use this date. Quote cells may refresh separately. Older observations never fill missing ranks.\n\nReview excluded observations · 19",
+      "persistentShellOnCryptoVectorBack": true,
+      "states": [
+        {
+          "name": "crypto",
+          "url": "http://127.0.0.1:3100/crypto.html?journey=p12t24#asset-lanes",
+          "rows": [
+            {
+              "href": "/today",
+              "label": "Today",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/discover",
+              "label": "Discover",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/analysis",
+              "label": "Analysis",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/monitor",
+              "label": "Monitor",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/research",
+              "label": "Research",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/portfolio",
+              "label": "Portfolio",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/us_stocks.html",
+              "label": "United States",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/china.html",
+              "label": "China",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/hk.html",
+              "label": "Hong Kong",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/canada.html",
+              "label": "Canada",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/intl.html",
+              "label": "International",
+              "current": null,
+              "selected": false
+            }
+          ]
+        },
+        {
+          "name": "vector",
+          "url": "http://127.0.0.1:3100/vector.html",
+          "rows": [
+            {
+              "href": "/today",
+              "label": "Today",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/discover",
+              "label": "Discover",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/analysis",
+              "label": "Analysis",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/monitor",
+              "label": "Monitor",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/research",
+              "label": "Research",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/portfolio",
+              "label": "Portfolio",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/us_stocks.html",
+              "label": "United States",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/china.html",
+              "label": "China",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/hk.html",
+              "label": "Hong Kong",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/canada.html",
+              "label": "Canada",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/intl.html",
+              "label": "International",
+              "current": null,
+              "selected": false
+            }
+          ]
+        },
+        {
+          "name": "back-crypto",
+          "url": "http://127.0.0.1:3100/crypto.html?journey=p12t24#asset-lanes",
+          "rows": [
+            {
+              "href": "/today",
+              "label": "Today",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/discover",
+              "label": "Discover",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/analysis",
+              "label": "Analysis",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/monitor",
+              "label": "Monitor",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/research",
+              "label": "Research",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/portfolio",
+              "label": "Portfolio",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/us_stocks.html",
+              "label": "United States",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/china.html",
+              "label": "China",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/hk.html",
+              "label": "Hong Kong",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/canada.html",
+              "label": "Canada",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/intl.html",
+              "label": "International",
+              "current": null,
+              "selected": false
+            }
+          ]
+        },
+        {
+          "name": "today",
+          "url": "http://127.0.0.1:3100/today",
+          "rows": [
+            {
+              "href": "/today",
+              "label": "Today",
+              "current": "page",
+              "selected": true
+            },
+            {
+              "href": "/discover",
+              "label": "Discover",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/analysis",
+              "label": "Analysis",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/monitor",
+              "label": "Monitor",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/research",
+              "label": "Research",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/portfolio",
+              "label": "Portfolio",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/us_stocks.html",
+              "label": "United States",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/china.html",
+              "label": "China",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/hk.html",
+              "label": "Hong Kong",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/canada.html",
+              "label": "Canada",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/intl.html",
+              "label": "International",
+              "current": null,
+              "selected": false
+            }
+          ]
+        },
+        {
+          "name": "china",
+          "url": "http://127.0.0.1:3100/china.html",
+          "rows": [
+            {
+              "href": "/today",
+              "label": "Today",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/discover",
+              "label": "Discover",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/analysis",
+              "label": "Analysis",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/monitor",
+              "label": "Monitor",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/research",
+              "label": "Research",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/portfolio",
+              "label": "Portfolio",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/us_stocks.html",
+              "label": "United States",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/china.html",
+              "label": "China",
+              "current": "page",
+              "selected": true
+            },
+            {
+              "href": "/hk.html",
+              "label": "Hong Kong",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/canada.html",
+              "label": "Canada",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/intl.html",
+              "label": "International",
+              "current": null,
+              "selected": false
+            }
+          ]
+        },
+        {
+          "name": "research-location",
+          "url": "http://127.0.0.1:3100/learn.html",
+          "rows": [
+            {
+              "href": "/today",
+              "label": "Today",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/discover",
+              "label": "Discover",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/analysis",
+              "label": "Analysis",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/monitor",
+              "label": "Monitor",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/research",
+              "label": "Research",
+              "current": "location",
+              "selected": true
+            },
+            {
+              "href": "/portfolio",
+              "label": "Portfolio",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/us_stocks.html",
+              "label": "United States",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/china.html",
+              "label": "China",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/hk.html",
+              "label": "Hong Kong",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/canada.html",
+              "label": "Canada",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/intl.html",
+              "label": "International",
+              "current": null,
+              "selected": false
+            }
+          ]
+        }
+      ],
+      "coreJourneyHadNoOutsideRequests": true,
+      "errors": [],
+      "blocked": [
+        "https://fonts.googleapis.com/css2"
+      ],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "start": "http://127.0.0.1:3100/crypto.html?journey=p12t24#asset-lanes",
+      "title": "整体环境偏防守。",
+      "receipt": "市场看板快照 2026-10-31\n50 / 50 项资产已列出\n\n排名与研究采用此快照日期，报价可能单独刷新。不会用旧观测补足当前排名。\n\n查看未纳入的观测 · 19",
+      "persistentShellOnCryptoVectorBack": true,
+      "states": [
+        {
+          "name": "crypto",
+          "url": "http://127.0.0.1:3100/crypto.html?journey=p12t24#asset-lanes",
+          "rows": [
+            {
+              "href": "/today",
+              "label": "今日",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/discover",
+              "label": "发现",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/analysis",
+              "label": "分析",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/monitor",
+              "label": "监测",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/research",
+              "label": "研究",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/portfolio",
+              "label": "投资组合",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/us_stocks.html",
+              "label": "美国",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/china.html",
+              "label": "中国",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/hk.html",
+              "label": "香港",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/canada.html",
+              "label": "加拿大",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/intl.html",
+              "label": "全球",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/terminal",
+              "label": "打开终端",
+              "current": null,
+              "selected": false
+            }
+          ]
+        },
+        {
+          "name": "vector",
+          "url": "http://127.0.0.1:3100/vector.html",
+          "rows": [
+            {
+              "href": "/today",
+              "label": "今日",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/discover",
+              "label": "发现",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/analysis",
+              "label": "分析",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/monitor",
+              "label": "监测",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/research",
+              "label": "研究",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/portfolio",
+              "label": "投资组合",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/us_stocks.html",
+              "label": "美国",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/china.html",
+              "label": "中国",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/hk.html",
+              "label": "香港",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/canada.html",
+              "label": "加拿大",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/intl.html",
+              "label": "全球",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/terminal",
+              "label": "打开终端",
+              "current": null,
+              "selected": false
+            }
+          ]
+        },
+        {
+          "name": "back-crypto",
+          "url": "http://127.0.0.1:3100/crypto.html?journey=p12t24#asset-lanes",
+          "rows": [
+            {
+              "href": "/today",
+              "label": "今日",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/discover",
+              "label": "发现",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/analysis",
+              "label": "分析",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/monitor",
+              "label": "监测",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/research",
+              "label": "研究",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/portfolio",
+              "label": "投资组合",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/us_stocks.html",
+              "label": "美国",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/china.html",
+              "label": "中国",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/hk.html",
+              "label": "香港",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/canada.html",
+              "label": "加拿大",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/intl.html",
+              "label": "全球",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/terminal",
+              "label": "打开终端",
+              "current": null,
+              "selected": false
+            }
+          ]
+        },
+        {
+          "name": "today",
+          "url": "http://127.0.0.1:3100/today",
+          "rows": [
+            {
+              "href": "/today",
+              "label": "今日",
+              "current": "page",
+              "selected": true
+            },
+            {
+              "href": "/discover",
+              "label": "发现",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/analysis",
+              "label": "分析",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/monitor",
+              "label": "监测",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/research",
+              "label": "研究",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/portfolio",
+              "label": "投资组合",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/us_stocks.html",
+              "label": "美国",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/china.html",
+              "label": "中国",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/hk.html",
+              "label": "香港",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/canada.html",
+              "label": "加拿大",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/intl.html",
+              "label": "全球",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/terminal",
+              "label": "打开终端",
+              "current": null,
+              "selected": false
+            }
+          ]
+        },
+        {
+          "name": "china",
+          "url": "http://127.0.0.1:3100/china.html",
+          "rows": [
+            {
+              "href": "/today",
+              "label": "今日",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/discover",
+              "label": "发现",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/analysis",
+              "label": "分析",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/monitor",
+              "label": "监测",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/research",
+              "label": "研究",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/portfolio",
+              "label": "投资组合",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/us_stocks.html",
+              "label": "美国",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/china.html",
+              "label": "中国",
+              "current": "page",
+              "selected": true
+            },
+            {
+              "href": "/hk.html",
+              "label": "香港",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/canada.html",
+              "label": "加拿大",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/intl.html",
+              "label": "全球",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/terminal",
+              "label": "打开终端",
+              "current": null,
+              "selected": false
+            }
+          ]
+        },
+        {
+          "name": "research-location",
+          "url": "http://127.0.0.1:3100/learn.html",
+          "rows": [
+            {
+              "href": "/today",
+              "label": "今日",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/discover",
+              "label": "发现",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/analysis",
+              "label": "分析",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/monitor",
+              "label": "监测",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/research",
+              "label": "研究",
+              "current": "location",
+              "selected": true
+            },
+            {
+              "href": "/portfolio",
+              "label": "投资组合",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/us_stocks.html",
+              "label": "美国",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/china.html",
+              "label": "中国",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/hk.html",
+              "label": "香港",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/canada.html",
+              "label": "加拿大",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/intl.html",
+              "label": "全球",
+              "current": null,
+              "selected": false
+            },
+            {
+              "href": "/terminal",
+              "label": "打开终端",
+              "current": null,
+              "selected": false
+            }
+          ]
+        }
+      ],
+      "coreJourneyHadNoOutsideRequests": true,
+      "errors": [],
+      "blocked": [
+        "https://fonts.googleapis.com/css2"
+      ],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Local representative owner fixture; not authenticated deployment",
+    "No provider refresh, production, or full family product acceptance",
+    "Vector chart loading is an inherited fixture limitation; this qualification covers navigation identity",
+    "Additional Learn location probe attempts one Google Fonts CSS request, explicitly asserted and blocked; core Crypto/Vector/Back/Today/China had no outside requests"
+  ]
+}
