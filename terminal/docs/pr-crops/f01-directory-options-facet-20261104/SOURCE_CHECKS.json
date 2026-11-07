@@ -1,0 +1,40 @@
+[
+  {
+    "check": "unit-final",
+    "exit": 0,
+    "command": [
+      "./node_modules/.bin/vitest",
+      "run",
+      "lib/__tests__/sharedShellDirectoryConformance.test.tsx",
+      "lib/__tests__/sharedShellPublicPresentation.test.tsx",
+      "lib/__tests__/sharedShellContracts.test.ts",
+      "lib/__tests__/sharedShellRouteIdentity.test.ts",
+      "lib/__tests__/sharedShellRegionNavigation.test.ts",
+      "--reporter=json",
+      "--outputFile",
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-focus-correction-20261104-c4/.f01-facet-evidence/unit-final.json"
+    ]
+  },
+  {
+    "check": "lint-final",
+    "exit": 0,
+    "command": [
+      "./node_modules/.bin/eslint",
+      "components/chrome/shared-shell/ShellDirectory.tsx",
+      "lib/sharedShellCopy.ts",
+      "lib/__tests__/sharedShellDirectoryConformance.test.tsx",
+      "e2e/shared-shell-directory-hardening.spec.ts",
+      "--max-warnings=0"
+    ]
+  },
+  {
+    "check": "type-final",
+    "exit": 0,
+    "command": [
+      "./node_modules/.bin/tsc",
+      "--noEmit",
+      "--incremental",
+      "false"
+    ]
+  }
+]

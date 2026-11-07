@@ -1,0 +1,2476 @@
+[
+  {
+    "report": "baseline-browser",
+    "title": "directory retains the task after cross-boundary drags and dismisses only a backdrop gesture",
+    "project": "desktop",
+    "status": "unexpected",
+    "results": [
+      {
+        "status": "failed",
+        "duration": 7714,
+        "startTime": "2026-11-04T08:11:00.785Z",
+        "retry": 0,
+        "errors": [
+          {
+            "location": {
+              "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-focus-correction-20261104-c4/terminal/e2e/shared-shell-directory-hardening.spec.ts",
+              "column": 81,
+              "line": 376
+            },
+            "message": "Error: Dragging from the task onto backdrop must preserve it\n\n\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.shared-shell-directory[open]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Dragging from the task onto backdrop must preserve it with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.shared-shell-directory[open]')\u001b[22m\n\n\n  374 |   await page.mouse.move(outside.x, outside.y, { steps: 8 });\n  375 |   await page.mouse.up();\n> 376 |   await expect(dialog, \"Dragging from the task onto backdrop must preserve it\").toBeVisible();\n      |                                                                                 ^\n  377 |   await expect(search).toHaveValue(\"options\");\n  378 |   await expect(dialog.getByRole(\"button\", { name: \"Options & futures\", exact: true })).toHaveAttribute(\"aria-pressed\", \"true\");\n  379 |   expect(page.url()).toBe(href);\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-focus-correction-20261104-c4/terminal/e2e/shared-shell-directory-hardening.spec.ts:376:81"
+          }
+        ],
+        "attachments": [
+          {
+            "name": "screenshot",
+            "contentType": "image/png",
+            "bytes": 141192,
+            "sha256": "0d633e1bb4157dae7d9b5bc53d423be6d6cf48b808c95df9350b0849dd1bdbdf",
+            "git_blob_sha": "8a405c2476cc1d4f55de1ce7506615be6150eb19",
+            "path": "baseline-browser/shared-shell-directory-har-e9655-ses-only-a-backdrop-gesture-desktop/test-failed-1.png"
+          },
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 625,
+            "sha256": "a3036ee72425c792fd14bc0790f964ddeca0793f5831030084e64235417b5303",
+            "git_blob_sha": "cda367480907b02f512b0470fb225ca3aea4ad82",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 1440,
+                "height": 900
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          },
+          {
+            "name": "error-context",
+            "contentType": "text/markdown",
+            "bytes": 12510,
+            "sha256": "9862c6b92f6d2258a23650e655800e0b13b0836055486cc923eb0889a1a34ca1",
+            "git_blob_sha": "8e51aae89335cf59df5dd7970871dbf1f84a3792",
+            "path": "baseline-browser/shared-shell-directory-har-e9655-ses-only-a-backdrop-gesture-desktop/error-context.md"
+          },
+          {
+            "name": "trace",
+            "contentType": "application/zip",
+            "bytes": 1612674,
+            "sha256": "18fb9d4249244a8228dc7b7ce53f105509978460a88d906ba46ecc77a9be1f99",
+            "git_blob_sha": "ad9f93b5f3f176da7781c31e1d8d3c27312d72e0",
+            "path": "baseline-browser/shared-shell-directory-har-e9655-ses-only-a-backdrop-gesture-desktop/trace.zip"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "baseline-browser",
+    "title": "directory retains the task after cross-boundary drags and dismisses only a backdrop gesture",
+    "project": "tablet",
+    "status": "unexpected",
+    "results": [
+      {
+        "status": "failed",
+        "duration": 7097,
+        "startTime": "2026-11-04T08:11:11.077Z",
+        "retry": 0,
+        "errors": [
+          {
+            "location": {
+              "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-focus-correction-20261104-c4/terminal/e2e/shared-shell-directory-hardening.spec.ts",
+              "column": 81,
+              "line": 376
+            },
+            "message": "Error: Dragging from the task onto backdrop must preserve it\n\n\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.shared-shell-directory[open]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Dragging from the task onto backdrop must preserve it with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.shared-shell-directory[open]')\u001b[22m\n\n\n  374 |   await page.mouse.move(outside.x, outside.y, { steps: 8 });\n  375 |   await page.mouse.up();\n> 376 |   await expect(dialog, \"Dragging from the task onto backdrop must preserve it\").toBeVisible();\n      |                                                                                 ^\n  377 |   await expect(search).toHaveValue(\"options\");\n  378 |   await expect(dialog.getByRole(\"button\", { name: \"Options & futures\", exact: true })).toHaveAttribute(\"aria-pressed\", \"true\");\n  379 |   expect(page.url()).toBe(href);\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-focus-correction-20261104-c4/terminal/e2e/shared-shell-directory-hardening.spec.ts:376:81"
+          }
+        ],
+        "attachments": [
+          {
+            "name": "screenshot",
+            "contentType": "image/png",
+            "bytes": 92512,
+            "sha256": "d5121258105944f98d9785faf7b884139c47866f4f46122a7d2fee5091d5bc00",
+            "git_blob_sha": "538dd6e09a9d82b0a6f55cc6d113a157f6e476ef",
+            "path": "baseline-browser/shared-shell-directory-har-e9655-ses-only-a-backdrop-gesture-tablet/test-failed-1.png"
+          },
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 625,
+            "sha256": "6a520360eef3bfc05e6f520e0f7091e60e3342169129d0b81cec8850757a40f0",
+            "git_blob_sha": "4ef7f1fc7288e85da7b82e35d5680b696ed46dc5",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 820,
+                "height": 1180
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          },
+          {
+            "name": "error-context",
+            "contentType": "text/markdown",
+            "bytes": 11494,
+            "sha256": "5a1549b920d58eecf6bf24eaf80283136e7e00627a91af542873074011945beb",
+            "git_blob_sha": "b27d8ddbcc004c40d237fab24c9c7ff6b8d62ada",
+            "path": "baseline-browser/shared-shell-directory-har-e9655-ses-only-a-backdrop-gesture-tablet/error-context.md"
+          },
+          {
+            "name": "trace",
+            "contentType": "application/zip",
+            "bytes": 939753,
+            "sha256": "c05abcb779e51e470a069084b0fa9c3f1a2151a0aa0915a0006c81a39d45fe13",
+            "git_blob_sha": "559d8e9a47b01573de38eee51d408c85e28a328f",
+            "path": "baseline-browser/shared-shell-directory-har-e9655-ses-only-a-backdrop-gesture-tablet/trace.zip"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "baseline-browser",
+    "title": "directory retains the task after cross-boundary drags and dismisses only a backdrop gesture",
+    "project": "mobile",
+    "status": "unexpected",
+    "results": [
+      {
+        "status": "failed",
+        "duration": 6743,
+        "startTime": "2026-11-04T08:11:19.734Z",
+        "retry": 0,
+        "errors": [
+          {
+            "location": {
+              "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-focus-correction-20261104-c4/terminal/e2e/shared-shell-directory-hardening.spec.ts",
+              "column": 81,
+              "line": 376
+            },
+            "message": "Error: Dragging from the task onto backdrop must preserve it\n\n\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.shared-shell-directory[open]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Dragging from the task onto backdrop must preserve it with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.shared-shell-directory[open]')\u001b[22m\n\n\n  374 |   await page.mouse.move(outside.x, outside.y, { steps: 8 });\n  375 |   await page.mouse.up();\n> 376 |   await expect(dialog, \"Dragging from the task onto backdrop must preserve it\").toBeVisible();\n      |                                                                                 ^\n  377 |   await expect(search).toHaveValue(\"options\");\n  378 |   await expect(dialog.getByRole(\"button\", { name: \"Options & futures\", exact: true })).toHaveAttribute(\"aria-pressed\", \"true\");\n  379 |   expect(page.url()).toBe(href);\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-focus-correction-20261104-c4/terminal/e2e/shared-shell-directory-hardening.spec.ts:376:81"
+          }
+        ],
+        "attachments": [
+          {
+            "name": "screenshot",
+            "contentType": "image/png",
+            "bytes": 60151,
+            "sha256": "11fc82c861b4d0b4cb1e5490a2d8147c591b661f15b73ec433d5399f6f51ac7a",
+            "git_blob_sha": "0265e8996bb45b9fc112854f579e72e16d6cd219",
+            "path": "baseline-browser/shared-shell-directory-har-e9655-ses-only-a-backdrop-gesture-mobile/test-failed-1.png"
+          },
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 624,
+            "sha256": "24d0aadf5c57290cf71f90d0ab73c2bd951b9103b3d39343d0e9eebcdca89dcc",
+            "git_blob_sha": "3772480134bcdf0a7460076002e52ffd57cce5db",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          },
+          {
+            "name": "error-context",
+            "contentType": "text/markdown",
+            "bytes": 11494,
+            "sha256": "5a1549b920d58eecf6bf24eaf80283136e7e00627a91af542873074011945beb",
+            "git_blob_sha": "b27d8ddbcc004c40d237fab24c9c7ff6b8d62ada",
+            "path": "baseline-browser/shared-shell-directory-har-e9655-ses-only-a-backdrop-gesture-mobile/error-context.md"
+          },
+          {
+            "name": "trace",
+            "contentType": "application/zip",
+            "bytes": 881806,
+            "sha256": "afa806b744fd53cbd355efbe9c3294f8dd588d5de210bcf04b2f4cb6fc36abb4",
+            "git_blob_sha": "83cd727c428bebedb9bbd289f35546493bfda37e",
+            "path": "baseline-browser/shared-shell-directory-har-e9655-ses-only-a-backdrop-gesture-mobile/trace.zip"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "four-identity facet preserves the real query corpus through keyboard and touch recovery",
+    "project": "desktop",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 1788,
+        "startTime": "2026-11-04T08:12:48.907Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "facet-corpus-and-input",
+            "contentType": "application/json",
+            "bytes": 533,
+            "sha256": "64cd6e9262091e6dc0af60a2d71e1e6388400d67de4c431e9ed52e72ba1fcc80",
+            "git_blob_sha": "d505b1c3594a28d31cc9627d231a16efb9c6f086",
+            "observations": {
+              "before": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html",
+                "/learn/options/charm-and-time-drift.html",
+                "/learn/options/dealer-hedging-mechanics.html",
+                "/learn/options/gamma-flip-levels.html",
+                "/learn/options/gamma-regimes.html",
+                "/learn/options/market-makers-middleman.html",
+                "/learn/options/open-interest-limits.html",
+                "/learn/options/zero-dte-regime.html",
+                "/tools/calculators/options-profit.html"
+              ],
+              "facet": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html"
+              ],
+              "touch": false,
+              "pointers": [
+                "mouse"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 625,
+            "sha256": "a3036ee72425c792fd14bc0790f964ddeca0793f5831030084e64235417b5303",
+            "git_blob_sha": "cda367480907b02f512b0470fb225ca3aea4ad82",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 1440,
+                "height": 900
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "empty facet recovers a real query with more than 48 results to its first batch",
+    "project": "desktop",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 1988,
+        "startTime": "2026-11-04T08:12:51.080Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "facet-batch-recovery",
+            "contentType": "application/json",
+            "bytes": 1056,
+            "sha256": "7eb9e3b48203cd8b89c171e79396d2048be5f89738a822307f0b2696e6f7a294",
+            "git_blob_sha": "867c932564edb1ca0d0fc4a2ec10b91532a16e75",
+            "observations": {
+              "query": "fund",
+              "total": 104,
+              "firstBatch": [
+                "/fundamental_forensics.html",
+                "/fund_ako.html",
+                "/fund_akre.html",
+                "/fund_altarock.html",
+                "/fund_altimeter.html",
+                "/fund_appaloosa.html",
+                "/fund_aquamarine.html",
+                "/fund_bakerbros.html",
+                "/fund_basswood.html",
+                "/fund_baupost.html",
+                "/fund_berkshire.html",
+                "/fund_casdin.html",
+                "/fund_coatue.html",
+                "/fund_corvex.html",
+                "/fund_d1capital.html",
+                "/fund_dorsey.html",
+                "/fund_dragoneer.html",
+                "/fund_duquesne.html",
+                "/fund_durable.html",
+                "/fund_egerton.html",
+                "/fund_elliott.html",
+                "/fund_engaged.html",
+                "/fund_fairholme.html",
+                "/etfs.html",
+                "/fund_gates.html",
+                "/fund_giverny.html",
+                "/fund_greenlea.html",
+                "/fund_himalaya.html",
+                "/fund_icahn.html",
+                "/fund_index.html",
+                "/fund_jana.html",
+                "/fund_kimmeridge.html",
+                "/fund_lightstreet.html",
+                "/fund_lonepine.html",
+                "/fund_mudrick.html",
+                "/fund_oaktree.html",
+                "/fund_pabrai.html",
+                "/fund_perceptive.html",
+                "/fund_pershing.html",
+                "/fund_polen.html",
+                "/fund_punchcard.html",
+                "/fund_racapital.html",
+                "/fund_rtw.html",
+                "/fund_sachem.html",
+                "/fund_scion.html",
+                "/fund_soros.html",
+                "/fund_starboard.html",
+                "/fund_tci.html"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 625,
+            "sha256": "a3036ee72425c792fd14bc0790f964ddeca0793f5831030084e64235417b5303",
+            "git_blob_sha": "cda367480907b02f512b0470fb225ca3aea4ad82",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 1440,
+                "height": 900
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "facet follows actual locale controls without expanding Chinese search aliases",
+    "project": "desktop",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 2655,
+        "startTime": "2026-11-04T08:12:53.091Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "facet-locale-corpus",
+            "contentType": "application/json",
+            "bytes": 175,
+            "sha256": "f68ce3758d08f194cb7b773a4925f8e556df410c57c35d0779a8c187a50a9c6b",
+            "git_blob_sha": "af4615fa9cf0115f496471fb203c51e0f1de0c36",
+            "observations": {
+              "chineseAll": [
+                "/options",
+                "/options.html"
+              ],
+              "chineseFacet": [
+                "/options",
+                "/options.html"
+              ],
+              "englishFacet": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 624,
+            "sha256": "8db4b739e30775436c4e5728651137197e00500eedd0649839cff1eac17083bb",
+            "git_blob_sha": "971a1c7099d8f839dabf3fc954eade51234de18b",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 320,
+                "height": 420
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "query-wide recovery is distinct from category scope in the real catalogue",
+    "project": "desktop",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 2888,
+        "startTime": "2026-11-04T08:12:55.775Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 625,
+            "sha256": "a3036ee72425c792fd14bc0790f964ddeca0793f5831030084e64235417b5303",
+            "git_blob_sha": "cda367480907b02f512b0470fb225ca3aea4ad82",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 1440,
+                "height": 900
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "clear query, batching and same-instance reopen retain the correct state",
+    "project": "desktop",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 2298,
+        "startTime": "2026-11-04T08:12:58.682Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 625,
+            "sha256": "a3036ee72425c792fd14bc0790f964ddeca0793f5831030084e64235417b5303",
+            "git_blob_sha": "cda367480907b02f512b0470fb225ca3aea4ad82",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 1440,
+                "height": 900
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "actual locale/theme controls preserve a filtered directory across reopen",
+    "project": "desktop",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 2546,
+        "startTime": "2026-11-04T08:13:00.994Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 624,
+            "sha256": "8db4b739e30775436c4e5728651137197e00500eedd0649839cff1eac17083bb",
+            "git_blob_sha": "971a1c7099d8f839dabf3fc954eade51234de18b",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 320,
+                "height": 420
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "drawer-to-directory and resize close return to a visible persistent control",
+    "project": "desktop",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 1647,
+        "startTime": "2026-11-04T08:13:03.556Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 624,
+            "sha256": "a35c92283856c4123f10a7b5eef4a6e879bd63c078b3edd4f3bde6fee611a359",
+            "git_blob_sha": "3d81bb9b00889b900a756137a1d6cc7be99f908e",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 320,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "shortcut from BODY returns to a meaningful visible shell control",
+    "project": "desktop",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 1438,
+        "startTime": "2026-11-04T08:13:05.235Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 625,
+            "sha256": "a3036ee72425c792fd14bc0790f964ddeca0793f5831030084e64235417b5303",
+            "git_blob_sha": "cda367480907b02f512b0470fb225ca3aea4ad82",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 1440,
+                "height": 900
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "Show all reveals its focused category inside the scrolled strip",
+    "project": "desktop",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 1535,
+        "startTime": "2026-11-04T08:13:06.691Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 624,
+            "sha256": "a35c92283856c4123f10a7b5eef4a6e879bd63c078b3edd4f3bde6fee611a359",
+            "git_blob_sha": "3d81bb9b00889b900a756137a1d6cc7be99f908e",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 320,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "directory transfers once to the real company picker and respects composing Escape",
+    "project": "desktop",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 1546,
+        "startTime": "2026-11-04T08:13:08.242Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 625,
+            "sha256": "a3036ee72425c792fd14bc0790f964ddeca0793f5831030084e64235417b5303",
+            "git_blob_sha": "cda367480907b02f512b0470fb225ca3aea4ad82",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 1440,
+                "height": 900
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "native dialog cancellation respects the captured Escape owner",
+    "project": "desktop",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 1573,
+        "startTime": "2026-11-04T08:13:09.810Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 625,
+            "sha256": "a3036ee72425c792fd14bc0790f964ddeca0793f5831030084e64235417b5303",
+            "git_blob_sha": "cda367480907b02f512b0470fb225ca3aea4ad82",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 1440,
+                "height": 900
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "real Next Link keeps the current directory on modified activation",
+    "project": "desktop",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 2456,
+        "startTime": "2026-11-04T08:13:11.401Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 624,
+            "sha256": "1dd69d438aa1778c35c6a6438973071dca401f2b861d3f79a3af02473b884228",
+            "git_blob_sha": "6c3aef1bcef0f2319b95ac47b1fbad9c340c9fdd",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 1440,
+                "height": 900
+              },
+              "url": "http://127.0.0.1:3658/options",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "directory retains the task after cross-boundary drags and dismisses only a backdrop gesture",
+    "project": "desktop",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 2630,
+        "startTime": "2026-11-04T08:13:13.871Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "gesture-retained",
+            "contentType": "image/png",
+            "bytes": 128756,
+            "sha256": "387683c8ce5f29e10c9e84cf28e45c11e2325eb978adea94d2edb96f5bd36e44",
+            "git_blob_sha": "1ae2192698d0e8d52dd7667f0a4922de8aa4871d"
+          },
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 625,
+            "sha256": "a3036ee72425c792fd14bc0790f964ddeca0793f5831030084e64235417b5303",
+            "git_blob_sha": "cda367480907b02f512b0470fb225ca3aea4ad82",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 1440,
+                "height": 900
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "four-identity facet preserves the real query corpus through keyboard and touch recovery",
+    "project": "tablet",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 3264,
+        "startTime": "2026-11-04T08:13:18.194Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "facet-corpus-and-input",
+            "contentType": "application/json",
+            "bytes": 540,
+            "sha256": "504ca86fcfcc900e89c0d45102b719bd60c157bae20aac7fd80e642f4b42e2e8",
+            "git_blob_sha": "c2f0a23a93734fa899e9e0f75ef8d1246d87e88d",
+            "observations": {
+              "before": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html",
+                "/learn/options/charm-and-time-drift.html",
+                "/learn/options/dealer-hedging-mechanics.html",
+                "/learn/options/gamma-flip-levels.html",
+                "/learn/options/gamma-regimes.html",
+                "/learn/options/market-makers-middleman.html",
+                "/learn/options/open-interest-limits.html",
+                "/learn/options/zero-dte-regime.html",
+                "/tools/calculators/options-profit.html"
+              ],
+              "facet": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html"
+              ],
+              "touch": true,
+              "pointers": [
+                "touch",
+                "touch"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 625,
+            "sha256": "6a520360eef3bfc05e6f520e0f7091e60e3342169129d0b81cec8850757a40f0",
+            "git_blob_sha": "4ef7f1fc7288e85da7b82e35d5680b696ed46dc5",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 820,
+                "height": 1180
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "empty facet recovers a real query with more than 48 results to its first batch",
+    "project": "tablet",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 2540,
+        "startTime": "2026-11-04T08:13:22.365Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "facet-batch-recovery",
+            "contentType": "application/json",
+            "bytes": 1056,
+            "sha256": "7eb9e3b48203cd8b89c171e79396d2048be5f89738a822307f0b2696e6f7a294",
+            "git_blob_sha": "867c932564edb1ca0d0fc4a2ec10b91532a16e75",
+            "observations": {
+              "query": "fund",
+              "total": 104,
+              "firstBatch": [
+                "/fundamental_forensics.html",
+                "/fund_ako.html",
+                "/fund_akre.html",
+                "/fund_altarock.html",
+                "/fund_altimeter.html",
+                "/fund_appaloosa.html",
+                "/fund_aquamarine.html",
+                "/fund_bakerbros.html",
+                "/fund_basswood.html",
+                "/fund_baupost.html",
+                "/fund_berkshire.html",
+                "/fund_casdin.html",
+                "/fund_coatue.html",
+                "/fund_corvex.html",
+                "/fund_d1capital.html",
+                "/fund_dorsey.html",
+                "/fund_dragoneer.html",
+                "/fund_duquesne.html",
+                "/fund_durable.html",
+                "/fund_egerton.html",
+                "/fund_elliott.html",
+                "/fund_engaged.html",
+                "/fund_fairholme.html",
+                "/etfs.html",
+                "/fund_gates.html",
+                "/fund_giverny.html",
+                "/fund_greenlea.html",
+                "/fund_himalaya.html",
+                "/fund_icahn.html",
+                "/fund_index.html",
+                "/fund_jana.html",
+                "/fund_kimmeridge.html",
+                "/fund_lightstreet.html",
+                "/fund_lonepine.html",
+                "/fund_mudrick.html",
+                "/fund_oaktree.html",
+                "/fund_pabrai.html",
+                "/fund_perceptive.html",
+                "/fund_pershing.html",
+                "/fund_polen.html",
+                "/fund_punchcard.html",
+                "/fund_racapital.html",
+                "/fund_rtw.html",
+                "/fund_sachem.html",
+                "/fund_scion.html",
+                "/fund_soros.html",
+                "/fund_starboard.html",
+                "/fund_tci.html"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 625,
+            "sha256": "6a520360eef3bfc05e6f520e0f7091e60e3342169129d0b81cec8850757a40f0",
+            "git_blob_sha": "4ef7f1fc7288e85da7b82e35d5680b696ed46dc5",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 820,
+                "height": 1180
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "facet follows actual locale controls without expanding Chinese search aliases",
+    "project": "tablet",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 2594,
+        "startTime": "2026-11-04T08:13:24.919Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "facet-locale-corpus",
+            "contentType": "application/json",
+            "bytes": 175,
+            "sha256": "f68ce3758d08f194cb7b773a4925f8e556df410c57c35d0779a8c187a50a9c6b",
+            "git_blob_sha": "af4615fa9cf0115f496471fb203c51e0f1de0c36",
+            "observations": {
+              "chineseAll": [
+                "/options",
+                "/options.html"
+              ],
+              "chineseFacet": [
+                "/options",
+                "/options.html"
+              ],
+              "englishFacet": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 624,
+            "sha256": "8db4b739e30775436c4e5728651137197e00500eedd0649839cff1eac17083bb",
+            "git_blob_sha": "971a1c7099d8f839dabf3fc954eade51234de18b",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 320,
+                "height": 420
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "query-wide recovery is distinct from category scope in the real catalogue",
+    "project": "tablet",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 2222,
+        "startTime": "2026-11-04T08:13:27.551Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 625,
+            "sha256": "6a520360eef3bfc05e6f520e0f7091e60e3342169129d0b81cec8850757a40f0",
+            "git_blob_sha": "4ef7f1fc7288e85da7b82e35d5680b696ed46dc5",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 820,
+                "height": 1180
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "clear query, batching and same-instance reopen retain the correct state",
+    "project": "tablet",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 1777,
+        "startTime": "2026-11-04T08:13:29.794Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 625,
+            "sha256": "6a520360eef3bfc05e6f520e0f7091e60e3342169129d0b81cec8850757a40f0",
+            "git_blob_sha": "4ef7f1fc7288e85da7b82e35d5680b696ed46dc5",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 820,
+                "height": 1180
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "actual locale/theme controls preserve a filtered directory across reopen",
+    "project": "tablet",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 1963,
+        "startTime": "2026-11-04T08:13:31.592Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 624,
+            "sha256": "8db4b739e30775436c4e5728651137197e00500eedd0649839cff1eac17083bb",
+            "git_blob_sha": "971a1c7099d8f839dabf3fc954eade51234de18b",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 320,
+                "height": 420
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "drawer-to-directory and resize close return to a visible persistent control",
+    "project": "tablet",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 1723,
+        "startTime": "2026-11-04T08:13:33.577Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 625,
+            "sha256": "6a520360eef3bfc05e6f520e0f7091e60e3342169129d0b81cec8850757a40f0",
+            "git_blob_sha": "4ef7f1fc7288e85da7b82e35d5680b696ed46dc5",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 820,
+                "height": 1180
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "shortcut from BODY returns to a meaningful visible shell control",
+    "project": "tablet",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 2015,
+        "startTime": "2026-11-04T08:13:35.320Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 625,
+            "sha256": "6a520360eef3bfc05e6f520e0f7091e60e3342169129d0b81cec8850757a40f0",
+            "git_blob_sha": "4ef7f1fc7288e85da7b82e35d5680b696ed46dc5",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 820,
+                "height": 1180
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "Show all reveals its focused category inside the scrolled strip",
+    "project": "tablet",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 2199,
+        "startTime": "2026-11-04T08:13:37.352Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 624,
+            "sha256": "a35c92283856c4123f10a7b5eef4a6e879bd63c078b3edd4f3bde6fee611a359",
+            "git_blob_sha": "3d81bb9b00889b900a756137a1d6cc7be99f908e",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 320,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "directory transfers once to the real company picker and respects composing Escape",
+    "project": "tablet",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 3393,
+        "startTime": "2026-11-04T08:13:39.569Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 625,
+            "sha256": "6a520360eef3bfc05e6f520e0f7091e60e3342169129d0b81cec8850757a40f0",
+            "git_blob_sha": "4ef7f1fc7288e85da7b82e35d5680b696ed46dc5",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 820,
+                "height": 1180
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "native dialog cancellation respects the captured Escape owner",
+    "project": "tablet",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 1594,
+        "startTime": "2026-11-04T08:13:42.987Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 625,
+            "sha256": "6a520360eef3bfc05e6f520e0f7091e60e3342169129d0b81cec8850757a40f0",
+            "git_blob_sha": "4ef7f1fc7288e85da7b82e35d5680b696ed46dc5",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 820,
+                "height": 1180
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "real Next Link keeps the current directory on modified activation",
+    "project": "tablet",
+    "status": "skipped",
+    "results": [
+      {
+        "status": "skipped",
+        "duration": 1521,
+        "startTime": "2026-11-04T08:13:44.596Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 625,
+            "sha256": "6a520360eef3bfc05e6f520e0f7091e60e3342169129d0b81cec8850757a40f0",
+            "git_blob_sha": "4ef7f1fc7288e85da7b82e35d5680b696ed46dc5",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 820,
+                "height": 1180
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "directory retains the task after cross-boundary drags and dismisses only a backdrop gesture",
+    "project": "tablet",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 2546,
+        "startTime": "2026-11-04T08:13:46.141Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "gesture-retained",
+            "contentType": "image/png",
+            "bytes": 75613,
+            "sha256": "59df2e2826f1f82693bb5e2b0bd521d9af7e2cfd675efe6576164edcbbb3fd91",
+            "git_blob_sha": "511a681df53a37a55b34fd71dd46b73f4f1f740d"
+          },
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 625,
+            "sha256": "6a520360eef3bfc05e6f520e0f7091e60e3342169129d0b81cec8850757a40f0",
+            "git_blob_sha": "4ef7f1fc7288e85da7b82e35d5680b696ed46dc5",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 820,
+                "height": 1180
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "four-identity facet preserves the real query corpus through keyboard and touch recovery",
+    "project": "mobile",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 1983,
+        "startTime": "2026-11-04T08:13:49.625Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "facet-corpus-and-input",
+            "contentType": "application/json",
+            "bytes": 540,
+            "sha256": "504ca86fcfcc900e89c0d45102b719bd60c157bae20aac7fd80e642f4b42e2e8",
+            "git_blob_sha": "c2f0a23a93734fa899e9e0f75ef8d1246d87e88d",
+            "observations": {
+              "before": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html",
+                "/learn/options/charm-and-time-drift.html",
+                "/learn/options/dealer-hedging-mechanics.html",
+                "/learn/options/gamma-flip-levels.html",
+                "/learn/options/gamma-regimes.html",
+                "/learn/options/market-makers-middleman.html",
+                "/learn/options/open-interest-limits.html",
+                "/learn/options/zero-dte-regime.html",
+                "/tools/calculators/options-profit.html"
+              ],
+              "facet": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html"
+              ],
+              "touch": true,
+              "pointers": [
+                "touch",
+                "touch"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 624,
+            "sha256": "24d0aadf5c57290cf71f90d0ab73c2bd951b9103b3d39343d0e9eebcdca89dcc",
+            "git_blob_sha": "3772480134bcdf0a7460076002e52ffd57cce5db",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "empty facet recovers a real query with more than 48 results to its first batch",
+    "project": "mobile",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 1711,
+        "startTime": "2026-11-04T08:13:52.280Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "facet-batch-recovery",
+            "contentType": "application/json",
+            "bytes": 1056,
+            "sha256": "7eb9e3b48203cd8b89c171e79396d2048be5f89738a822307f0b2696e6f7a294",
+            "git_blob_sha": "867c932564edb1ca0d0fc4a2ec10b91532a16e75",
+            "observations": {
+              "query": "fund",
+              "total": 104,
+              "firstBatch": [
+                "/fundamental_forensics.html",
+                "/fund_ako.html",
+                "/fund_akre.html",
+                "/fund_altarock.html",
+                "/fund_altimeter.html",
+                "/fund_appaloosa.html",
+                "/fund_aquamarine.html",
+                "/fund_bakerbros.html",
+                "/fund_basswood.html",
+                "/fund_baupost.html",
+                "/fund_berkshire.html",
+                "/fund_casdin.html",
+                "/fund_coatue.html",
+                "/fund_corvex.html",
+                "/fund_d1capital.html",
+                "/fund_dorsey.html",
+                "/fund_dragoneer.html",
+                "/fund_duquesne.html",
+                "/fund_durable.html",
+                "/fund_egerton.html",
+                "/fund_elliott.html",
+                "/fund_engaged.html",
+                "/fund_fairholme.html",
+                "/etfs.html",
+                "/fund_gates.html",
+                "/fund_giverny.html",
+                "/fund_greenlea.html",
+                "/fund_himalaya.html",
+                "/fund_icahn.html",
+                "/fund_index.html",
+                "/fund_jana.html",
+                "/fund_kimmeridge.html",
+                "/fund_lightstreet.html",
+                "/fund_lonepine.html",
+                "/fund_mudrick.html",
+                "/fund_oaktree.html",
+                "/fund_pabrai.html",
+                "/fund_perceptive.html",
+                "/fund_pershing.html",
+                "/fund_polen.html",
+                "/fund_punchcard.html",
+                "/fund_racapital.html",
+                "/fund_rtw.html",
+                "/fund_sachem.html",
+                "/fund_scion.html",
+                "/fund_soros.html",
+                "/fund_starboard.html",
+                "/fund_tci.html"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 624,
+            "sha256": "24d0aadf5c57290cf71f90d0ab73c2bd951b9103b3d39343d0e9eebcdca89dcc",
+            "git_blob_sha": "3772480134bcdf0a7460076002e52ffd57cce5db",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "facet follows actual locale controls without expanding Chinese search aliases",
+    "project": "mobile",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 2014,
+        "startTime": "2026-11-04T08:13:54.011Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "facet-locale-corpus",
+            "contentType": "application/json",
+            "bytes": 175,
+            "sha256": "f68ce3758d08f194cb7b773a4925f8e556df410c57c35d0779a8c187a50a9c6b",
+            "git_blob_sha": "af4615fa9cf0115f496471fb203c51e0f1de0c36",
+            "observations": {
+              "chineseAll": [
+                "/options",
+                "/options.html"
+              ],
+              "chineseFacet": [
+                "/options",
+                "/options.html"
+              ],
+              "englishFacet": [
+                "/options/futures",
+                "/options",
+                "/options.html",
+                "/options_screener.html"
+              ]
+            }
+          },
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 624,
+            "sha256": "8db4b739e30775436c4e5728651137197e00500eedd0649839cff1eac17083bb",
+            "git_blob_sha": "971a1c7099d8f839dabf3fc954eade51234de18b",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 320,
+                "height": 420
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "query-wide recovery is distinct from category scope in the real catalogue",
+    "project": "mobile",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 2196,
+        "startTime": "2026-11-04T08:13:56.041Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 624,
+            "sha256": "24d0aadf5c57290cf71f90d0ab73c2bd951b9103b3d39343d0e9eebcdca89dcc",
+            "git_blob_sha": "3772480134bcdf0a7460076002e52ffd57cce5db",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "clear query, batching and same-instance reopen retain the correct state",
+    "project": "mobile",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 2112,
+        "startTime": "2026-11-04T08:13:58.261Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 624,
+            "sha256": "24d0aadf5c57290cf71f90d0ab73c2bd951b9103b3d39343d0e9eebcdca89dcc",
+            "git_blob_sha": "3772480134bcdf0a7460076002e52ffd57cce5db",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "actual locale/theme controls preserve a filtered directory across reopen",
+    "project": "mobile",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 2816,
+        "startTime": "2026-11-04T08:14:00.418Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 624,
+            "sha256": "8db4b739e30775436c4e5728651137197e00500eedd0649839cff1eac17083bb",
+            "git_blob_sha": "971a1c7099d8f839dabf3fc954eade51234de18b",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 320,
+                "height": 420
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "drawer-to-directory and resize close return to a visible persistent control",
+    "project": "mobile",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 1519,
+        "startTime": "2026-11-04T08:14:03.273Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 624,
+            "sha256": "24d0aadf5c57290cf71f90d0ab73c2bd951b9103b3d39343d0e9eebcdca89dcc",
+            "git_blob_sha": "3772480134bcdf0a7460076002e52ffd57cce5db",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "shortcut from BODY returns to a meaningful visible shell control",
+    "project": "mobile",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 2027,
+        "startTime": "2026-11-04T08:14:04.843Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 624,
+            "sha256": "24d0aadf5c57290cf71f90d0ab73c2bd951b9103b3d39343d0e9eebcdca89dcc",
+            "git_blob_sha": "3772480134bcdf0a7460076002e52ffd57cce5db",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "Show all reveals its focused category inside the scrolled strip",
+    "project": "mobile",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 1859,
+        "startTime": "2026-11-04T08:14:06.886Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 624,
+            "sha256": "24d0aadf5c57290cf71f90d0ab73c2bd951b9103b3d39343d0e9eebcdca89dcc",
+            "git_blob_sha": "3772480134bcdf0a7460076002e52ffd57cce5db",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "directory transfers once to the real company picker and respects composing Escape",
+    "project": "mobile",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 2082,
+        "startTime": "2026-11-04T08:14:08.767Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 624,
+            "sha256": "24d0aadf5c57290cf71f90d0ab73c2bd951b9103b3d39343d0e9eebcdca89dcc",
+            "git_blob_sha": "3772480134bcdf0a7460076002e52ffd57cce5db",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "native dialog cancellation respects the captured Escape owner",
+    "project": "mobile",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 2354,
+        "startTime": "2026-11-04T08:14:10.867Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 624,
+            "sha256": "24d0aadf5c57290cf71f90d0ab73c2bd951b9103b3d39343d0e9eebcdca89dcc",
+            "git_blob_sha": "3772480134bcdf0a7460076002e52ffd57cce5db",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "real Next Link keeps the current directory on modified activation",
+    "project": "mobile",
+    "status": "skipped",
+    "results": [
+      {
+        "status": "skipped",
+        "duration": 1445,
+        "startTime": "2026-11-04T08:14:13.235Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 624,
+            "sha256": "24d0aadf5c57290cf71f90d0ab73c2bd951b9103b3d39343d0e9eebcdca89dcc",
+            "git_blob_sha": "3772480134bcdf0a7460076002e52ffd57cce5db",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "final-browser",
+    "title": "directory retains the task after cross-boundary drags and dismisses only a backdrop gesture",
+    "project": "mobile",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 2485,
+        "startTime": "2026-11-04T08:14:14.708Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "gesture-retained",
+            "contentType": "image/png",
+            "bytes": 44850,
+            "sha256": "32348b8fd5b641bd6433eab6f52e39a24531292f00fe06dd975338da5bc66490",
+            "git_blob_sha": "ab01becac81329e29c56e476905b42a542fef875"
+          },
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 624,
+            "sha256": "24d0aadf5c57290cf71f90d0ab73c2bd951b9103b3d39343d0e9eebcdca89dcc",
+            "git_blob_sha": "3772480134bcdf0a7460076002e52ffd57cce5db",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "capture-browser",
+    "title": "directory retains the task after cross-boundary drags and dismisses only a backdrop gesture",
+    "project": "desktop",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 3106,
+        "startTime": "2026-11-04T08:21:01.584Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "gesture-retained",
+            "contentType": "image/png",
+            "bytes": 128756,
+            "sha256": "387683c8ce5f29e10c9e84cf28e45c11e2325eb978adea94d2edb96f5bd36e44",
+            "git_blob_sha": "1ae2192698d0e8d52dd7667f0a4922de8aa4871d"
+          },
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 625,
+            "sha256": "a3036ee72425c792fd14bc0790f964ddeca0793f5831030084e64235417b5303",
+            "git_blob_sha": "cda367480907b02f512b0470fb225ca3aea4ad82",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 1440,
+                "height": 900
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "capture-browser",
+    "title": "directory retains the task after cross-boundary drags and dismisses only a backdrop gesture",
+    "project": "tablet",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 2271,
+        "startTime": "2026-11-04T08:21:05.855Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "gesture-retained",
+            "contentType": "image/png",
+            "bytes": 75613,
+            "sha256": "59df2e2826f1f82693bb5e2b0bd521d9af7e2cfd675efe6576164edcbbb3fd91",
+            "git_blob_sha": "511a681df53a37a55b34fd71dd46b73f4f1f740d"
+          },
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 625,
+            "sha256": "6a520360eef3bfc05e6f520e0f7091e60e3342169129d0b81cec8850757a40f0",
+            "git_blob_sha": "4ef7f1fc7288e85da7b82e35d5680b696ed46dc5",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 820,
+                "height": 1180
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "report": "capture-browser",
+    "title": "directory retains the task after cross-boundary drags and dismisses only a backdrop gesture",
+    "project": "mobile",
+    "status": "expected",
+    "results": [
+      {
+        "status": "passed",
+        "duration": 2920,
+        "startTime": "2026-11-04T08:21:09.408Z",
+        "retry": 0,
+        "errors": [],
+        "attachments": [
+          {
+            "name": "gesture-retained",
+            "contentType": "image/png",
+            "bytes": 44850,
+            "sha256": "32348b8fd5b641bd6433eab6f52e39a24531292f00fe06dd975338da5bc66490",
+            "git_blob_sha": "ab01becac81329e29c56e476905b42a542fef875"
+          },
+          {
+            "name": "browser-observations",
+            "contentType": "application/json",
+            "bytes": 624,
+            "sha256": "24d0aadf5c57290cf71f90d0ab73c2bd951b9103b3d39343d0e9eebcdca89dcc",
+            "git_blob_sha": "3772480134bcdf0a7460076002e52ffd57cce5db",
+            "observations": {
+              "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+              "viewport": {
+                "width": 390,
+                "height": 844
+              },
+              "url": "http://127.0.0.1:3658/discover",
+              "observed": {
+                "pageErrors": [],
+                "consoleErrors": [
+                  "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+                ],
+                "failedRequests": [
+                  "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+                ],
+                "httpErrors": [
+                  "404 /_next/static/chunks/components_1i7frpt._.js"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

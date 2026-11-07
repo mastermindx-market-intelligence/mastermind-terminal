@@ -1,0 +1,312 @@
+{
+  "scope": "All final R2 captures, raw results/logs, failures and virtual source composition; trace ZIPs excluded. Non-selected intermediate R1 captures remain local.",
+  "archive_bytes": 1954413,
+  "archive_sha256": "3a1cd70e9ed0cb7b84e8546274b96f9feca0c3907a9e5bbb0e43ba91765c459f",
+  "members": [
+    {
+      "path": "base-directory.tsx",
+      "bytes": 15957,
+      "sha256": "0dec62b6bf353d8ec3d28509810c29652a65cb5967cd33a37141d6c50ef52bc0"
+    },
+    {
+      "path": "browser-body-red/.last-run.json",
+      "bytes": 96,
+      "sha256": "79cdf9950373c3424a82a7aa2527552f525a33cf67ba2e51d26a1889686f3fe7"
+    },
+    {
+      "path": "browser-body-red/shared-shell-directory-har-e0322-ngful-visible-shell-control-desktop/error-context.md",
+      "bytes": 15947,
+      "sha256": "0354fd34fa8c5b1e7771432c884606e50c9e097f736c23eeede93a06ed127b89"
+    },
+    {
+      "path": "browser-body-red/shared-shell-directory-har-e0322-ngful-visible-shell-control-desktop/test-failed-1.png",
+      "bytes": 140981,
+      "sha256": "6510e27f3e288d97bb1254ae483311cfb80b25a52dd667668b1a82bf1b7405c1"
+    },
+    {
+      "path": "browser-body-red-server.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "browser-body-red.json",
+      "bytes": 17026,
+      "sha256": "dd527cff052476a8368703093b5007b3d84501cd5b0254dbeb4c30005ade7689"
+    },
+    {
+      "path": "browser-final-r2/.last-run.json",
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    {
+      "path": "browser-final-r2/shared-shell-directory-har-0505f-scope-in-the-real-catalogue-desktop/category-recovery-dark-en.png",
+      "bytes": 130494,
+      "sha256": "c9157716e0a591f1cc59287ca8e8bb7b5a92a25617be022595420aba1f1118cd"
+    },
+    {
+      "path": "browser-final-r2/shared-shell-directory-har-0505f-scope-in-the-real-catalogue-desktop/empty-category-dark-en.png",
+      "bytes": 122891,
+      "sha256": "87524524647061d93c2af71611ec424606ddc86d11ef640ac2d7fb21ba83c069"
+    },
+    {
+      "path": "browser-final-r2/shared-shell-directory-har-0505f-scope-in-the-real-catalogue-mobile/category-recovery-dark-en.png",
+      "bytes": 50200,
+      "sha256": "4a1e73ed824956ac17fe69741937417aacbf3a7782352d97a95586081f8a251c"
+    },
+    {
+      "path": "browser-final-r2/shared-shell-directory-har-0505f-scope-in-the-real-catalogue-mobile/empty-category-dark-en.png",
+      "bytes": 53156,
+      "sha256": "d1051d1a5215e150398a53ed587fdf9b1e9527ad83baae2f14d121a2a7a9026d"
+    },
+    {
+      "path": "browser-final-r2/shared-shell-directory-har-0505f-scope-in-the-real-catalogue-tablet/category-recovery-dark-en.png",
+      "bytes": 75779,
+      "sha256": "f225171f1ed02e205aab595678d6ac28fb39a811f569a023bb8d7a5fb40e3b0e"
+    },
+    {
+      "path": "browser-final-r2/shared-shell-directory-har-0505f-scope-in-the-real-catalogue-tablet/empty-category-dark-en.png",
+      "bytes": 73618,
+      "sha256": "5005e19ded122c5adaae892cb773a2b91aaf97931a05bb423197ca4d013bdc38"
+    },
+    {
+      "path": "browser-final-r2/shared-shell-directory-har-221b6-y-inside-the-scrolled-strip-desktop/revealed-category-focus.png",
+      "bytes": 43145,
+      "sha256": "62d1679d4e3f7a4b099609c6aa9324164672ae1ba2551f1bbb04557663db9e3d"
+    },
+    {
+      "path": "browser-final-r2/shared-shell-directory-har-221b6-y-inside-the-scrolled-strip-mobile/revealed-category-focus.png",
+      "bytes": 54605,
+      "sha256": "71d23d9af788c1585fa6f17cc00df1d574fd2c6c474f23ff5bb242baa343184b"
+    },
+    {
+      "path": "browser-final-r2/shared-shell-directory-har-221b6-y-inside-the-scrolled-strip-tablet/revealed-category-focus.png",
+      "bytes": 43145,
+      "sha256": "62d1679d4e3f7a4b099609c6aa9324164672ae1ba2551f1bbb04557663db9e3d"
+    },
+    {
+      "path": "browser-final-r2/shared-shell-directory-har-407c0--visible-persistent-control-desktop/visible-focus-return.png",
+      "bytes": 54232,
+      "sha256": "709171877076ddfafd64e400c99ed93b6c71142afee67c9ed277bfb321e76f76"
+    },
+    {
+      "path": "browser-final-r2/shared-shell-directory-har-407c0--visible-persistent-control-mobile/visible-focus-return.png",
+      "bytes": 60837,
+      "sha256": "8850dadd077d7ca32ef20c33a0802b3fc6e62733f82bc31e93669abdd0502975"
+    },
+    {
+      "path": "browser-final-r2/shared-shell-directory-har-407c0--visible-persistent-control-tablet/visible-focus-return.png",
+      "bytes": 93609,
+      "sha256": "d4d420b83a57b3732d7e4791d26de42db50064099e9fcf355a58b8af931b62b7"
+    },
+    {
+      "path": "browser-final-r2/shared-shell-directory-har-44fe0-red-directory-across-reopen-desktop/category-recovery-light-zh.png",
+      "bytes": 159015,
+      "sha256": "26feb3b42dc31396c67e09bfa5c7be466a0fef274e0203c992a721a6e5a5d983"
+    },
+    {
+      "path": "browser-final-r2/shared-shell-directory-har-44fe0-red-directory-across-reopen-desktop/short-320-light-zh.png",
+      "bytes": 23897,
+      "sha256": "fef859e30a32c45bf201517896c717e1270bc8cbd96db674ee3c68ab6e3516d4"
+    },
+    {
+      "path": "browser-final-r2/shared-shell-directory-har-44fe0-red-directory-across-reopen-mobile/category-recovery-light-zh.png",
+      "bytes": 62578,
+      "sha256": "fcd914f7a7e54f60345458f456c65a3095560f6ce9b7db367ee2e0681410309b"
+    },
+    {
+      "path": "browser-final-r2/shared-shell-directory-har-44fe0-red-directory-across-reopen-mobile/short-320-light-zh.png",
+      "bytes": 23897,
+      "sha256": "fef859e30a32c45bf201517896c717e1270bc8cbd96db674ee3c68ab6e3516d4"
+    },
+    {
+      "path": "browser-final-r2/shared-shell-directory-har-44fe0-red-directory-across-reopen-tablet/category-recovery-light-zh.png",
+      "bytes": 94353,
+      "sha256": "1494a742719d8760414d1cc1627511f36e098dc63860a25eae810a38b081c758"
+    },
+    {
+      "path": "browser-final-r2/shared-shell-directory-har-44fe0-red-directory-across-reopen-tablet/short-320-light-zh.png",
+      "bytes": 23897,
+      "sha256": "fef859e30a32c45bf201517896c717e1270bc8cbd96db674ee3c68ab6e3516d4"
+    },
+    {
+      "path": "browser-final-r2/shared-shell-directory-har-e0322-ngful-visible-shell-control-desktop/shortcut-meaningful-return.png",
+      "bytes": 141851,
+      "sha256": "417fc6d9611ee19bc87731f9e72c03559e139e89671e2e25cacc892ef8280ea6"
+    },
+    {
+      "path": "browser-final-r2/shared-shell-directory-har-e0322-ngful-visible-shell-control-mobile/shortcut-meaningful-return.png",
+      "bytes": 60837,
+      "sha256": "ca6b00207682e05491befa2b97fc31bf45847b47dbc5922e4eb2035e179f4015"
+    },
+    {
+      "path": "browser-final-r2/shared-shell-directory-har-e0322-ngful-visible-shell-control-tablet/shortcut-meaningful-return.png",
+      "bytes": 93609,
+      "sha256": "05cec3db70b19e4309fb938b81f070c5e9b1072a6e9062a9b63d99c886ccb001"
+    },
+    {
+      "path": "browser-final-r2-server.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "browser-final-r2.json",
+      "bytes": 68486,
+      "sha256": "f4dd8d24110fa9f531aa6ae94b794f997ab57d76dec5473600bc31ae4304a2d9"
+    },
+    {
+      "path": "browser-green/shared-shell-directory-har-221b6-y-inside-the-scrolled-strip-desktop/revealed-category-focus.png",
+      "bytes": 42933,
+      "sha256": "db34bbbc39899f2558de36fe19f7d0565761821ba0de8d4fc3aecff9db48e31e"
+    },
+    {
+      "path": "browser-green-server.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "browser-green.json",
+      "bytes": 68452,
+      "sha256": "bd1efb4999deb8f6dd6ada42713f20e95ea5982e0da29fcb2fdd7ab55b2c1acc"
+    },
+    {
+      "path": "browser-outline-red/.last-run.json",
+      "bytes": 96,
+      "sha256": "51bf994af67dba3f9aa0830c1f573a05b925655330d83d4d77c6a94b417616b8"
+    },
+    {
+      "path": "browser-outline-red/shared-shell-directory-har-221b6-y-inside-the-scrolled-strip-desktop/error-context.md",
+      "bytes": 21007,
+      "sha256": "7ac027e58de425c55e7d98a9b3eb3bcc43fbf99a6cb063ad834aadce8e30528e"
+    },
+    {
+      "path": "browser-outline-red/shared-shell-directory-har-221b6-y-inside-the-scrolled-strip-desktop/test-failed-1.png",
+      "bytes": 42933,
+      "sha256": "db34bbbc39899f2558de36fe19f7d0565761821ba0de8d4fc3aecff9db48e31e"
+    },
+    {
+      "path": "browser-outline-red-server.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "browser-outline-red.json",
+      "bytes": 15702,
+      "sha256": "d5307c5491029e8ff8742acd445062957256e48d3e15891d948a68d593b44622"
+    },
+    {
+      "path": "browser-red-server.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "browser-red-warm/.last-run.json",
+      "bytes": 145,
+      "sha256": "636b0ae29a31594b08652eb4033c94d61f04f2fd2761d5d990fd30a17152458f"
+    },
+    {
+      "path": "browser-red-warm/shared-shell-directory-har-221b6-y-inside-the-scrolled-strip-desktop/error-context.md",
+      "bytes": 20860,
+      "sha256": "d9b6ca770e4649d14335d6a57f70bc59b2996715616eadee43dd84eceac8de65"
+    },
+    {
+      "path": "browser-red-warm/shared-shell-directory-har-221b6-y-inside-the-scrolled-strip-desktop/test-failed-1.png",
+      "bytes": 41798,
+      "sha256": "cd073859607dc2b8ae1b959a2169daf3f58875e09caac3251b146ce78288e2a7"
+    },
+    {
+      "path": "browser-red-warm/shared-shell-directory-har-e0322-ngful-visible-shell-control-desktop/error-context.md",
+      "bytes": 18712,
+      "sha256": "3e235c61f5682513e7a079c21f9d1d8ec377fa65f87b9836e9ee5283371e065a"
+    },
+    {
+      "path": "browser-red-warm/shared-shell-directory-har-e0322-ngful-visible-shell-control-desktop/test-failed-1.png",
+      "bytes": 140886,
+      "sha256": "a1b49622a4864b87d0677a77db324f300d412a06008e15d7782ae33931e381e0"
+    },
+    {
+      "path": "browser-red-warm-server.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "browser-red-warm.json",
+      "bytes": 22896,
+      "sha256": "b2141e01c124544ccd13a71a256fedf7629d1204c81e8188c26d0c819c4a0aed"
+    },
+    {
+      "path": "browser-red.json",
+      "bytes": 8060,
+      "sha256": "15bcd183dcf159250491c311f035f8b4f3098a6afd7226a31965c1aaa759c120"
+    },
+    {
+      "path": "lint-r2.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "lint.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "owner1244-composition.json",
+      "bytes": 646,
+      "sha256": "560a563017fc443b6cba5e9dac5a390bfe06d6ccbb86aff6f267e520cd7400ca"
+    },
+    {
+      "path": "owner1244-composition.tsx",
+      "bytes": 17182,
+      "sha256": "1406c03586e297ec10bbcfe63eaea2d38db575763a38e1b719bdae16b3b75dfc"
+    },
+    {
+      "path": "owner1244-directory.tsx",
+      "bytes": 16258,
+      "sha256": "ababa87900d9a0adbda3ffc35e5833d59d98c38d7f1e98aa90a3949bf000dca1"
+    },
+    {
+      "path": "source-checks-r2.json",
+      "bytes": 970,
+      "sha256": "dc859e90ba49afe6d4953deb298b70cbb1c3ca42e81b47971ca840a73295ea1c"
+    },
+    {
+      "path": "source-checks.json",
+      "bytes": 847,
+      "sha256": "7ece14000a8fa4bf0d07722851d8a8ae47add729e587bff178c4252d8571a3e3"
+    },
+    {
+      "path": "startup-diagnostic.log",
+      "bytes": 11305,
+      "sha256": "11c80b027c627f39f0c83487512e9e178a7f359bbda6b87816bae495d0b4b2cf"
+    },
+    {
+      "path": "typecheck-r2.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "typecheck.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "unit-green.json",
+      "bytes": 31240,
+      "sha256": "7dadb099148ee952368ec58d10ec28092d9ce68897370473baa5a5197796e41b"
+    },
+    {
+      "path": "unit-green.log",
+      "bytes": 690,
+      "sha256": "b0ebfae37ced8cdbf0206e188fcf34767b90a0c9a2924b286dc3307843f29da7"
+    },
+    {
+      "path": "unit-red.json",
+      "bytes": 12531,
+      "sha256": "3af3b1a9e29695af6283c44a8736a9ae1ea31a7b63cec4929d2971e7441d62b2"
+    },
+    {
+      "path": "unit-red.log",
+      "bytes": 493,
+      "sha256": "005648b99c3650cf71b81697bb35dfee59999560ac384232b44ec2a4c50890d7"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "scope": "Single-file virtual composition only; not whole-PR integration, CI or release proof",
+  "f01_base": "e48170b609dddf3b5b4eba1c047620d5d017290f",
+  "f01_parent": "1364256763ba505399399afe7a6b54021f141953",
+  "pr1244_head": "624dbc0ac22ecdaa6d1bd580d5221da939c5e5a9",
+  "exit_code": 0,
+  "required_markers": {
+    "import { INTELLIGENCE_DESTINATIONS } from \"@/lib/shared-shell/intelligenceNavigation\";": true,
+    "const intelligence = INTELLIGENCE_DESTINATIONS.find(item => item.href === entry.href);": true,
+    "element !== document.body": true,
+    "strip.scrollLeft = 0": true,
+    "OPTIONS_FUTURES_IDS.has(entry.id)": true,
+    "data-directory-facet={category}": true
+  },
+  "composed_sha256": "a23d3bdcadf8e6f555b2eff2c13028553268861441dfa4fe586439e5035a9c78",
+  "stderr": ""
+}

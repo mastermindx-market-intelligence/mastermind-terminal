@@ -1,0 +1,25 @@
+{
+  "captured_utc": "2026-11-04T07:27:40.939751+00:00",
+  "host": "authorized M2 Studio",
+  "platform": "macOS-26.5-arm64-arm-64bit-Mach-O",
+  "workspace": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-focus-correction-20261104-c4",
+  "operation": "f01-directory-focus-correction-20261104-c4",
+  "browser_operations": [
+    "f01-facet-20261104-c4-r1",
+    "f01-facet-20261104-c4-r2"
+  ],
+  "repository": "mastermindx-market-intelligence/mastermind-terminal",
+  "pr": 1276,
+  "branch": "sol/web-f01-directory-focus-correction-20261104-c4",
+  "parent": "1364256763ba505399399afe7a6b54021f141953",
+  "protected_law_pin": "690e5316629815ae3e78f65ebdec2eb87f0cad16",
+  "publisher": "Original GitHub connector git-object API with expected head; no Studio git push",
+  "node": "v26.5.0",
+  "next": "16.2.9",
+  "playwright": "1.61.1",
+  "browser": "Chromium 149",
+  "ports": [
+    3139
+  ],
+  "publication_status": "Prepared for publication; this evidence is included in the published commit, whose parent and source hashes are recorded here."
+}
