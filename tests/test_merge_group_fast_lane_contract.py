@@ -1,7 +1,8 @@
 """The native merge queue runs integrated fast checks, not duplicate browser matrices.
 
-The full responsive and screenshot suites still run on each ordinary PR head.
-Only the trusted GitHub merge_group event may skip those expensive repetitions.
+The full responsive and screenshot suites still run on ordinary source PRs.
+Native merge_group and independently qualified docs-only PRs may skip the browser
+matrix; the browser selector remains mandatory in both cases.
 The branch-protected Terminal aggregate must stay red if ANY of the checks
 required for that event fail or are unexpectedly skipped.
 """
@@ -21,24 +22,43 @@ def jobs() -> dict:
     return yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]
 
 
-def test_full_browser_matrix_only_skips_on_native_merge_group() -> None:
+def aggregate_assertion_step() -> dict:
+    return next(
+        step for step in jobs()["terminal"]["steps"]
+        if step.get("name") == "Assert all event-required Terminal checks passed"
+    )
+
+
+def test_full_browser_matrix_only_skips_for_qualified_event() -> None:
     all_jobs = jobs()
     e2e = all_jobs["terminal-e2e"]
-    assert e2e["if"] == "github.event_name != 'merge_group'"
+    docs = (
+        "github.event_name == 'pull_request' && needs.pr_scope.result == 'success' "
+        "&& needs.pr_scope.outputs.mode == 'docs'"
+    )
+    assert e2e["if"] == (
+        "${{ !cancelled() && needs.e2e-scope.result == 'success' "
+        "&& github.event_name != 'merge_group' && !(" + docs + ") }}"
+    )
     assert e2e["strategy"]["fail-fast"] is False
     from scripts.ci_e2e_scope import FULL_MATRIX
     assert len(FULL_MATRIX) == 12
     assert e2e["strategy"]["matrix"] == (
         chr(36) + "{{ fromJSON(needs.e2e-scope.outputs.matrix) }}"
     )
-    assert e2e["needs"] == ["e2e-scope"]
+    assert e2e["needs"] == ["pr_scope", "e2e-scope"]
     assert any(
         "test:e2e:responsive -- ${{ matrix.projects }}" in str(step.get("run", ""))
         for step in e2e["steps"]
     )
-    # None of the three independently required protected checks are gated.
-    for job in ("hub", "python", "terminal-unit"):
-        assert "if" not in all_jobs[job]
+    # Hub/python checks report on every uncancelled event, including docs PRs;
+    # only the unit shard receives the explicitly qualified job-skip exemption.
+    for job in ("hub", "python"):
+        assert all_jobs[job]["if"] == "${{ !cancelled() }}"
+    assert all_jobs["terminal"]["if"] == "always()"
+    assert all_jobs["terminal-unit"]["if"] == (
+        "${{ !cancelled() && needs.e2e-scope.result == 'success' && !(" + docs + ") }}"
+    )
 
 
 def test_only_original_browser_capture_steps_skip_on_merge_group() -> None:
@@ -65,15 +85,20 @@ def test_required_aggregate_keeps_original_check_name_and_dependencies() -> None
     aggregate = jobs()["terminal"]
     assert aggregate["name"] == "Terminal typecheck + tests"
     assert aggregate["if"] == "always()"
-    assert set(aggregate["needs"]) == {"e2e-scope", "terminal-unit", "terminal-e2e"}
-    step = aggregate["steps"][0]
+    assert set(aggregate["needs"]) == {
+        "pr_scope", "e2e-scope", "terminal-unit", "terminal-e2e"
+    }
+    step = aggregate_assertion_step()
+    assert step["if"] == "${{ !cancelled() }}"
     assert step["env"] == {
         "SCOPE": chr(36) + "{{ needs.e2e-scope.result }}",
+        "PR_SCOPE": "${{ needs.pr_scope.result }}",
+        "PR_MODE": "${{ needs.pr_scope.outputs.mode }}",
         "UNIT": "${{ needs.terminal-unit.result }}",
         "E2E": "${{ needs.terminal-e2e.result }}",
         "EVENT": "${{ github.event_name }}",
     }
-    assert "Merge-group fast lane" in step["run"]
+    assert "native merge group" in step["run"]
     assert 'if [ "$SCOPE" != "success" ]; then' in step["run"]
 
 
@@ -95,10 +120,11 @@ def test_required_aggregate_keeps_original_check_name_and_dependencies() -> None
 def test_required_aggregate_refuses_missing_or_failed_event_checks(
     event: str, unit: str, e2e: str, should_pass: bool
 ) -> None:
-    command = jobs()["terminal"]["steps"][0]["run"]
+    command = aggregate_assertion_step()["run"]
     result = subprocess.run(
         ["bash", "-e", "-c", command],
         env={**os.environ, "EVENT": event, "SCOPE": "success",
+             "PR_SCOPE": "success", "PR_MODE": "full",
              "UNIT": unit, "E2E": e2e},
         capture_output=True,
         text=True,
@@ -116,10 +142,11 @@ def test_required_aggregate_refuses_missing_or_failed_event_checks(
 def test_unqualified_scope_can_never_pass_event_aggregate(
     scope_result: str, event: str, e2e: str
 ) -> None:
-    command = jobs()["terminal"]["steps"][0]["run"]
+    command = aggregate_assertion_step()["run"]
     result = subprocess.run(
         ["bash", "-e", "-c", command],
         env={**os.environ, "EVENT": event, "SCOPE": scope_result,
+             "PR_SCOPE": "success", "PR_MODE": "full",
              "UNIT": "success", "E2E": e2e},
         capture_output=True, text=True, check=False,
     )

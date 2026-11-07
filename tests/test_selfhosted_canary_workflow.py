@@ -95,7 +95,7 @@ def test_shard_table_mirrors_hosted_e2e_matrix() -> None:
 
     workflow = yaml.safe_load(CI_WORKFLOW.read_text(encoding="utf-8"))
     browser = workflow["jobs"]["terminal-e2e"]
-    assert browser["needs"] == ["e2e-scope"]
+    assert browser["needs"] == ["pr_scope", "e2e-scope"]
     assert browser["strategy"]["matrix"] == "${{ fromJSON(needs.e2e-scope.outputs.matrix) }}"
     assert "scripts/ci_e2e_scope.py" in workflow["jobs"]["e2e-scope"]["steps"][-1]["run"]
     hosted = {
