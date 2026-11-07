@@ -4916,27 +4916,151 @@ def loaded_safety_hook_sources(unit):
     return fragment, dropins, sources
 
 
+# The pinned volume guard invokes these two operating-system programs by name.
+# Admit manager PATH only through source-owned system directories and retain
+# both the ordered resolution and observed custody in the existing hook tuple.
+SAFETY_PATH_DIRECTORIES = frozenset((
+    "/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin", "/sbin", "/bin"))
+SAFETY_PATH_ALIASES = {"/bin": "/usr/bin", "/sbin": "/usr/sbin"}
+SAFETY_PATH_EXECUTABLE_LIMIT = 8 * 1024 * 1024
+
+
+def safety_path_identity(info):
+    return tuple(getattr(info, field) for field in (
+        "st_dev", "st_ino", "st_mode", "st_uid", "st_gid", "st_nlink",
+        "st_size", "st_mtime_ns", "st_ctime_ns"))
+
+
+def qualify_manager_safety_path(value):
+    """Observe one declared PATH without executing or changing its programs."""
+    import hashlib
+    if not value or len(value) > 1024:
+        raise Refused("safety-hook-manager-path-unsupported")
+    components = value.split(":")
+    if (len(components) > len(SAFETY_PATH_DIRECTORIES)
+            or len(set(components)) != len(components)
+            or any(item not in SAFETY_PATH_DIRECTORIES for item in components)):
+        raise Refused("safety-hook-manager-path-unsupported")
+    observed, absent = {}, []
+
+    def directory(path):
+        if path in observed:
+            return observed[path][2]
+        try:
+            info = os.lstat(path)
+            link = os.readlink(path) if stat.S_ISLNK(info.st_mode) else None
+        except OSError:
+            raise Refused("safety-hook-manager-path-unreadable")
+        if info.st_uid != 0 or info.st_gid != 0:
+            raise Refused("safety-hook-manager-path-untrusted")
+        if path != "/":
+            directory(os.path.dirname(path))
+        if link is not None:
+            target = SAFETY_PATH_ALIASES.get(path)
+            if target is None or link not in (target, target.lstrip("/")):
+                raise Refused("safety-hook-manager-path-untrusted")
+            canonical = directory(target)
+        else:
+            if not stat.S_ISDIR(info.st_mode) or info.st_mode & 0o022:
+                raise Refused("safety-hook-manager-path-untrusted")
+            canonical = path
+        observed[path] = (safety_path_identity(info), link, canonical)
+        return canonical
+
+    resolved = [(item, directory(item)) for item in components]
+    programs = []
+    for name in ("findmnt", "stat"):
+        selected = None
+        for spelling, canonical in resolved:
+            path = canonical + "/" + name
+            try:
+                before = os.lstat(path)
+            except FileNotFoundError:
+                absent.append(path)
+                continue
+            except OSError:
+                raise Refused("safety-hook-manager-program-unreadable")
+            if (path not in ("/usr/bin/" + name, "/bin/" + name)
+                    or not stat.S_ISREG(before.st_mode)
+                    or before.st_uid != 0 or before.st_gid != 0
+                    or before.st_nlink != 1 or before.st_mode & 0o6022
+                    or not before.st_mode & 0o111
+                    or not 0 < before.st_size <= SAFETY_PATH_EXECUTABLE_LIMIT):
+                raise Refused("safety-hook-manager-program-untrusted")
+            descriptor = -1
+            try:
+                descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW |
+                                     os.O_NONBLOCK | os.O_CLOEXEC)
+                if safety_path_identity(os.fstat(descriptor)) != safety_path_identity(before):
+                    raise Refused("safety-hook-manager-path-changed")
+                payload = b""
+                while len(payload) <= SAFETY_PATH_EXECUTABLE_LIMIT:
+                    block = os.read(descriptor, min(65536,
+                        SAFETY_PATH_EXECUTABLE_LIMIT + 1 - len(payload)))
+                    if not block:
+                        break
+                    payload += block
+                if (len(payload) != before.st_size
+                        or safety_path_identity(os.fstat(descriptor)) != safety_path_identity(before)
+                        or safety_path_identity(os.lstat(path)) != safety_path_identity(before)):
+                    raise Refused("safety-hook-manager-path-changed")
+            except OSError:
+                raise Refused("safety-hook-manager-program-unreadable")
+            finally:
+                if descriptor >= 0:
+                    os.close(descriptor)
+            selected = (name, spelling + "/" + name, path,
+                        safety_path_identity(before), hashlib.sha256(payload).hexdigest())
+            break
+        if selected is None:
+            raise Refused("safety-hook-manager-program-missing")
+        programs.append(selected)
+    try:
+        for path, (identity, link, _) in observed.items():
+            info = os.lstat(path)
+            current_link = os.readlink(path) if stat.S_ISLNK(info.st_mode) else None
+            if safety_path_identity(info) != identity or current_link != link:
+                raise Refused("safety-hook-manager-path-changed")
+        for path in absent:
+            try:
+                os.lstat(path)
+            except FileNotFoundError:
+                continue
+            raise Refused("safety-hook-manager-path-changed")
+    except OSError:
+        raise Refused("safety-hook-manager-path-changed")
+    return tuple((path, *values) for path, values in sorted(observed.items())), tuple(programs)
+
+
 def safety_hook_environment(unit):
-    # Bind every consumer to the same observed environment. Re-reading only a
-    # subset later could admit a different generation than the safety policy.
+    # Preserve the five observed fields for existing consumers; append the
+    # manager PATH custody/resolution proof to the same equality observation.
     snapshot = (unit_property(unit, "Environment"), manager_environment(),
                 unit_property(unit, "ExecSearchPath"),
                 unit_property(unit, "PassEnvironment"),
                 unit_property(unit, "UnsetEnvironment"))
     if snapshot[2]:
         raise Refused("safety-hook-search-path-unsupported")
-    for text in (snapshot[0], snapshot[1], snapshot[3], snapshot[4]):
+    paths = []
+    for index in (0, 1, 3, 4):
         try:
-            tokens = shlex.split(text)
+            tokens = shlex.split(snapshot[index])
         except ValueError:
             raise Refused("safety-hook-environment-unsupported")
-        refuse_selected_launch_overrides(tokens)
         for token in tokens:
-            key = token.partition("=")[0]
+            key, separator, value = token.partition("=")
+            if index == 1 and key == "PATH":
+                if not separator:
+                    raise Refused("safety-hook-manager-path-unsupported")
+                paths.append(value)
+            else:
+                refuse_selected_launch_overrides([token])
             if (key.upper() in ("IFS", "SHELLOPTS", "BASHOPTS", "CDPATH", "GLOBIGNORE")
                     or key.startswith("BASH_FUNC_")):
                 raise Refused("safety-hook-environment-unsupported")
-    return snapshot
+    if len(paths) != 1:
+        raise Refused("safety-hook-manager-path-unsupported")
+    return snapshot + (qualify_manager_safety_path(paths[0]),)
 
 
 def classify_production_safety_hooks(profile, unit):

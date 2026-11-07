@@ -63,7 +63,7 @@ def _main_body(*, code_only: bool = False) -> str:
 
 
 @pytest.fixture()
-def verifier():
+def verifier(tmp_path):
     text = _library_text()
     marker = "<<'PY_INVESTIGATION_INSTALL'"
     start = text.index(marker) + len(marker) + 1
@@ -73,7 +73,8 @@ def verifier():
         "the extracted verifier must keep its main guard so the test namespace "
         "never executes production main"
     )
-    namespace = {"__name__": "terminal_investigation_install_under_test"}
+    namespace = {"__name__": "terminal_investigation_install_under_test",
+                 "_safety_fixture_root": tmp_path / "safety-path-filesystem"}
     exec(compile(body, "<extracted investigation verifier>", "exec"), namespace)
     return namespace
 
@@ -1953,6 +1954,68 @@ check_mount /opt/terminal /live-terminal
 '''
 
 
+SAFETY_MANAGER_PATH = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+
+class SafetyPathFilesystem:
+    """Actual private files/fds; logical OS paths and root custody are fixtures.
+
+    The executable bytes are inert test data. No system command, real manager,
+    production directory or installed binary is read or executed.
+    """
+    def __init__(self, verifier):
+        self.root = verifier["_safety_fixture_root"]
+        self.root.mkdir()
+        self.overrides = {}
+        self.descriptors = {}
+        for name in ("usr/local/sbin", "usr/local/bin", "usr/sbin", "usr/bin"):
+            self.root.joinpath(name).mkdir(parents=True, exist_ok=True)
+        (self.root / "bin").symlink_to("usr/bin")
+        (self.root / "sbin").symlink_to("usr/sbin")
+        for name in ("findmnt", "stat"):
+            path = self.file("/usr/bin/" + name)
+            path.write_bytes(("inert fixture bytes for " + name).encode())
+            path.chmod(0o755)
+        fixture = self
+        virtual = SimpleNamespace(**vars(os))
+
+        def logical_stat(info, path):
+            fields = ("st_dev", "st_ino", "st_mode", "st_uid", "st_gid", "st_nlink",
+                      "st_size", "st_mtime_ns", "st_ctime_ns")
+            values = {name: getattr(info, name) for name in fields}
+            values.update(st_uid=0, st_gid=0)
+            values.update(fixture.overrides.get(path, {}))
+            return SimpleNamespace(**values)
+
+        def lstat(path):
+            return logical_stat(os.lstat(fixture.file(path)), path)
+
+        def open_file(path, flags):
+            assert flags & os.O_NOFOLLOW
+            assert not flags & (os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC)
+            descriptor = os.open(fixture.file(path), flags)
+            fixture.descriptors[descriptor] = path
+            return descriptor
+
+        def fstat(descriptor):
+            return logical_stat(os.fstat(descriptor), fixture.descriptors[descriptor])
+
+        def close(descriptor):
+            del fixture.descriptors[descriptor]
+            os.close(descriptor)
+
+        virtual.lstat = lstat
+        virtual.readlink = lambda path: os.readlink(fixture.file(path))
+        virtual.open = open_file
+        virtual.fstat = fstat
+        virtual.close = close
+        verifier["os"] = virtual
+        self.virtual_os = virtual
+
+    def file(self, path):
+        return self.root / path.lstrip("/")
+
+
 def safety_host(verifier, *, extra_props=None):
     script = verifier["BUILD_ID_SAFETY_SCRIPT"]
     guard = verifier["VOLUME_SAFETY_PATH"]
@@ -1964,7 +2027,9 @@ def safety_host(verifier, *, extra_props=None):
         FragmentPath="/etc/systemd/system/terminal.service",
         DropInPaths=" ".join(p for p, _ in verifier["SAFETY_HOOK_ASSIGNMENTS"]))
     props.update(extra_props or {})
-    host = FakeGitHost(tree_listing=primitive_entry(), unit=props).install(verifier)
+    host = FakeGitHost(tree_listing=primitive_entry(), unit=props,
+                       manager="PATH=" + SAFETY_MANAGER_PATH).install(verifier)
+    host.safety_path_fs = SafetyPathFilesystem(verifier)
     files = {props["FragmentPath"]: "[Service]\nExecStart=/usr/bin/npm run start\n",
              guard: SAFETY_GUARD}
     files.update({p: "[Service]\n" + assignment + "\n"
@@ -2146,3 +2211,159 @@ def test_safety_hook_metadata_refuses_unknown_or_changed_structure(verifier, cha
     host.unit["ExecStartPre"] = change(projection)
     with pytest.raises(verifier["Refused"], match="unsupported-service-launch-hook"):
         verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
+
+
+# Manager defaults are a different environment role from explicit unit/file
+# overrides. The exact hook contract must compose with qualified OS resolution.
+@pytest.mark.parametrize("path", [
+    "/usr/bin", "/bin", "/usr/sbin:/usr/bin", SAFETY_MANAGER_PATH,
+    "/bin:/usr/bin:/usr/local/bin",
+])
+def test_exact_safety_hooks_accept_qualified_manager_path(verifier, path):
+    host, _, _ = safety_host(verifier)
+    host.manager = "PATH=" + path + "\nLANG=C\n"
+    observed = verifier["classify_production_safety_hooks"]("production", "terminal")
+    assert observed[:5] == (PROD_CLOSED_ENV, host.manager, "", "", "")
+    assert len(observed) == 6
+    _, programs = observed[5]
+    assert [row[0] for row in programs] == ["findmnt", "stat"]
+    for name, spelling, canonical, _, digest in programs:
+        assert spelling == path.split(":")[0] + "/" + name or spelling == "/usr/bin/" + name
+        assert canonical == "/usr/bin/" + name
+        assert digest == hashlib.sha256(host.safety_path_fs.file(canonical).read_bytes()).hexdigest()
+    assert not host.safety_path_fs.descriptors
+
+
+@pytest.mark.parametrize("value", [
+    "", ":/usr/bin", "/usr/bin:", "usr/bin", "/usr/bin::/bin",
+    "/usr/bin:/usr/bin", "/usr/bin/../bin", "/tmp:/usr/bin",
+])
+def test_manager_path_rejects_unsupported_search_topology(verifier, value):
+    host, _, _ = safety_host(verifier)
+    host.manager = "PATH=" + value
+    with pytest.raises(verifier["Refused"], match="safety-hook-manager-path-unsupported"):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+
+
+@pytest.mark.parametrize("declaration", [
+    "LANG=C", "PATH", "PATH=/usr/bin\nPATH=/bin", "path=/usr/bin",
+])
+def test_safety_manager_path_requires_one_exact_declaration(verifier, declaration):
+    host, _, _ = safety_host(verifier)
+    host.manager = declaration
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+
+
+@pytest.mark.parametrize("prop,token", [
+    ("Environment", "PATH=/usr/bin"), ("Environment", "HOME=/root"),
+    ("Environment", "npm_config_workspace=other"),
+    ("PassEnvironment", "PATH"), ("UnsetEnvironment", "PATH"),
+])
+def test_manager_path_exception_never_applies_to_selected_environment(verifier, prop, token):
+    host, _, _ = safety_host(verifier)
+    host.unit[prop] = (host.unit[prop] + " " + token).strip()
+    with pytest.raises(verifier["Refused"], match="unsupported-launch-environment-override"):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+
+
+@pytest.mark.parametrize("mutation", [
+    "directory_owner", "directory_group", "writable_directory", "ancestor_symlink",
+    "wrong_alias", "missing_program", "program_symlink", "program_owner",
+    "writable_program", "nonexecutable_program", "setuid_program",
+    "oversized_program", "hardlinked_program", "earlier_shadow",
+])
+def test_manager_path_requires_trusted_directories_and_first_programs(verifier, mutation):
+    host, _, _ = safety_host(verifier)
+    fs = host.safety_path_fs
+    program = fs.file("/usr/bin/findmnt")
+    if mutation == "directory_owner":
+        fs.overrides["/usr/bin"] = {"st_uid": 1000}
+    elif mutation == "directory_group":
+        fs.overrides["/usr"] = {"st_gid": 1000}
+    elif mutation == "writable_directory":
+        fs.file("/usr/local/bin").chmod(0o777)
+    elif mutation == "ancestor_symlink":
+        fs.file("/usr/local/sbin").rmdir()
+        fs.file("/usr/local/bin").rmdir()
+        fs.file("/usr/local").rmdir()
+        fs.file("/usr/local").symlink_to("bin")
+    elif mutation == "wrong_alias":
+        fs.file("/bin").unlink()
+        fs.file("/bin").symlink_to("usr/local/bin")
+    elif mutation == "missing_program":
+        program.unlink()
+    elif mutation == "program_symlink":
+        program.unlink()
+        program.symlink_to("stat")
+    elif mutation == "program_owner":
+        fs.overrides["/usr/bin/findmnt"] = {"st_uid": 1000}
+    elif mutation == "writable_program":
+        program.chmod(0o777)
+    elif mutation == "nonexecutable_program":
+        program.chmod(0o644)
+    elif mutation == "setuid_program":
+        program.chmod(0o4755)
+    elif mutation == "oversized_program":
+        fs.overrides["/usr/bin/findmnt"] = {"st_size": 8 * 1024 * 1024 + 1}
+    elif mutation == "hardlinked_program":
+        os.link(program, fs.file("/usr/bin/another-name"))
+    else:
+        shadow = fs.file("/usr/local/bin/findmnt")
+        shadow.write_bytes(b"earlier executable shadow")
+        shadow.chmod(0o755)
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+    assert not fs.descriptors
+
+
+@pytest.mark.parametrize("mutation", ["program_bytes", "directory_identity", "earlier_shadow"])
+def test_unchanged_manager_text_does_not_hide_resolution_or_custody_change(verifier, mutation):
+    host, _, _ = safety_host(verifier)
+    fs = host.safety_path_fs
+    original = verifier["qualify_manager_safety_path"]
+    calls = 0
+
+    def moving(value):
+        nonlocal calls
+        result = original(value)
+        calls += 1
+        if calls == 1:
+            if mutation == "program_bytes":
+                fs.file("/usr/bin/findmnt").write_bytes(b"changed inert command bytes")
+            elif mutation == "directory_identity":
+                info = fs.file("/usr/bin").stat()
+                os.utime(fs.file("/usr/bin"), ns=(info.st_atime_ns, info.st_mtime_ns + 1000000))
+            else:
+                shadow = fs.file("/usr/local/bin/findmnt")
+                shadow.write_bytes(b"new earlier executable")
+                shadow.chmod(0o755)
+        return result
+
+    verifier["qualify_manager_safety_path"] = moving
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
+
+
+def test_manager_program_replacement_during_descriptor_read_refuses(verifier):
+    host, _, _ = safety_host(verifier)
+    fs = host.safety_path_fs
+    original = fs.virtual_os.read
+    changed = False
+
+    def moving(descriptor, count):
+        nonlocal changed
+        data = original(descriptor, count)
+        if not changed and fs.descriptors[descriptor] == "/usr/bin/findmnt":
+            changed = True
+            path = fs.file("/usr/bin/findmnt")
+            path.rename(path.with_name("old-findmnt"))
+            path.write_bytes(b"replacement bytes")
+            path.chmod(0o755)
+        return data
+
+    fs.virtual_os.read = moving
+    with pytest.raises(verifier["Refused"], match="safety-hook-manager-path-changed"):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+    assert changed
+    assert not fs.descriptors
