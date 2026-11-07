@@ -41,27 +41,93 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Trusted-base PR scope (Mastermind #917 CI acceleration, 2026-11-05).
+  # Classifies the exact pull-request merge commit from Git objects only: a
+  # prose-only change (Markdown under docs/ and terminal/docs/ minus the
+  # sub-trees and files that code or tests read, plus raster evidence images
+  # under docs/evidence/ and terminal/docs/pr-crops/; see the allowlist in
+  # scripts/ci_pr_scope.py) is mode=docs, and the unit, e2e, ingest and
+  # PostgreSQL jobs below are then
+  # skipped or reduced to a no-op that still reports its required context
+  # green. Anything else -- or anything the classifier cannot qualify: a base
+  # mismatch, a symlink, an executable bit, a type change, a classifier missing
+  # from the base -- is mode=full, exactly what this workflow always ran. The
+  # classifier executes from the protected base commit (HEAD^1 of the merge
+  # commit), so a pull request cannot reclassify itself. Other events never
+  # receive the docs exemption; their existing event-specific checks remain.
+  pr_scope:
+    name: PR test scope
+    # Only a pull request against the protected default branch is classified;
+    # a PR targeting any other branch runs the full suite (the classifier is
+    # taken from HEAD^1, which is only trusted when that is the default branch).
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref == github.event.repository.default_branch }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      mode: ${{ steps.scope.outputs.mode }}
+      reason: ${{ steps.scope.outputs.reason }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The merge commit plus both parents: the classifier diffs HEAD^1..HEAD
+          # and is itself taken from HEAD^1, the protected base.
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Classify the exact merge commit using protected base code
+        id: scope
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+          trusted="$RUNNER_TEMP/ci-trusted-base"
+          mkdir -p "$trusted"
+          if git cat-file -e "HEAD^1:scripts/ci_pr_scope.py" 2>/dev/null; then
+            git archive HEAD^1 scripts/ci_pr_scope.py | tar -x -C "$trusted"
+            python3 "$trusted/scripts/ci_pr_scope.py" \
+              --repo "$GITHUB_WORKSPACE" --base-sha "$PR_BASE_SHA" \
+              --base-ref "$PR_BASE_REF" --default-branch "$DEFAULT_BRANCH" \
+              --output "$GITHUB_OUTPUT"
+          else
+            printf 'mode=full\nreason=CLASSIFIER_NOT_IN_PROTECTED_BASE\n' >> "$GITHUB_OUTPUT"
+            echo 'CI_SCOPE mode=full reason=CLASSIFIER_NOT_IN_PROTECTED_BASE'
+          fi
+
   hub:
     name: Quote Hub tests
     runs-on: ubuntu-latest
+    needs: [pr_scope]
+    # A docs-only pull request (pr_scope mode=docs) still COMPLETES this
+    # required context green: every step below is skipped, so branch
+    # protection and scripts/merge_on_green.py (`conclusion == success`)
+    # read it as proven. `!cancelled()` keeps the job running when pr_scope
+    # itself failed or was skipped: mode is then empty and every step runs.
+    if: ${{ !cancelled() }}
     defaults:
       run:
         working-directory: hub
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        uses: actions/checkout@v4
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: hub/package-lock.json
-      - run: npm ci
-      - run: npm test
-      - uses: actions/setup-python@v5
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        run: npm ci
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        run: npm test
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
           cache: pip
           cache-dependency-path: hub/requirements-futures.txt
-      - name: Futures offline SDK and source conformance
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        name: Futures offline SDK and source conformance
         run: |
           python -m pip install -r requirements-futures.txt
           python -m unittest discover -s tests -p 'test_futures_*.py' -v
@@ -130,7 +196,10 @@ jobs:
           fi
 
   terminal-unit:
-    needs: [e2e-scope]
+    needs: [pr_scope, e2e-scope]
+    # The browser selector stays mandatory. PR scope only grants the docs
+    # exemption; its failure or absence falls back to normal qualification.
+    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
     name: Terminal unit + typecheck (shard)
     runs-on: ubuntu-latest
     # Existing stages had20min. Add bounded10min browser setup +55min captures
@@ -331,13 +400,12 @@ jobs:
 
   terminal-e2e:
     name: Terminal e2e ${{ matrix.shard }} (shard)
-    # The complete responsive matrix remains mandatory on pull_request and
-    # workflow_dispatch. On merge_group, rerun only the fast integrated unit,
-    # type, source-law, ingest and Quote Hub checks. The required aggregator
-    # explicitly accepts the browser job's 'skipped' state ONLY for merge_group.
-    # This reduces queue time without claiming full browser integration proof.
-    if: github.event_name != 'merge_group'
     runs-on: ubuntu-latest
+    needs: [pr_scope, e2e-scope]
+    # Source PRs run the independently selected responsive matrix. Trusted
+    # docs-only PRs and native merge groups have separate, explicit skip rules.
+    # Neither rule permits a failed selector or claims fresh browser proof.
+    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && github.event_name != 'merge_group' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
     # 6h default masked a 70-min job. Bound it. On 2026-10-04 the slowest shards measured
     # tablet ~35-36 min and each desktop half ~28-31 min (from the old whole-desktop runs).
     # By 2026-10-12 the whole tablet project ran 47-59 min and the whole mobile project
@@ -351,7 +419,6 @@ jobs:
     # This cap is a hang detector, not a budget to grow into: when a shard creeps toward it,
     # split that shard (as desktop, tablet and mobile are below), never just raise the number.
     timeout-minutes: 60
-    needs: [e2e-scope]
     strategy:
       # Full shards and focused specs are owned by scripts/ci_e2e_scope.py.
       # tests/test_ci_e2e_shards.py validates project/shard coverage.
@@ -430,42 +497,53 @@ jobs:
           if-no-files-found: ignore
 
   terminal:
-    # FROZEN NAME. master's branch protection keys on this exact string. Do not edit it,
-    # do not add a matrix to this job, do not let it become a `${{ }}` expression.
+    # Stable required context: both selectors and every selected shard feed it.
     name: Terminal typecheck + tests
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [e2e-scope, terminal-unit, terminal-e2e]
-    # `always()` so a failed/cancelled/skipped dependency still REPORTS this check as red
-    # rather than leaving it "expected — waiting" forever and wedging every armed PR.
+    needs: [pr_scope, e2e-scope, terminal-unit, terminal-e2e]
     if: always()
     steps:
-      - name: Assert every terminal shard succeeded
+      - name: Refuse cancelled qualification
+        if: cancelled()
+        run: |
+          echo "::error title=terminal-ci::Workflow cancellation cannot qualify skipped work"
+          exit 1
+      - name: Assert all event-required Terminal checks passed
+        if: ${{ !cancelled() }}
         env:
           SCOPE: ${{ needs.e2e-scope.result }}
+          PR_SCOPE: ${{ needs.pr_scope.result }}
+          PR_MODE: ${{ needs.pr_scope.outputs.mode }}
           UNIT: ${{ needs.terminal-unit.result }}
           E2E: ${{ needs.terminal-e2e.result }}
           EVENT: ${{ github.event_name }}
         run: |
-          echo "event=$EVENT e2e-scope:$SCOPE terminal-unit:$UNIT terminal-e2e:$E2E"
+          echo "event=$EVENT pr_scope:$PR_SCOPE mode=$PR_MODE e2e-scope:$SCOPE terminal-unit:$UNIT terminal-e2e:$E2E"
+          docs_only=0
+          if [ "$EVENT" = "pull_request" ] && [ "$PR_SCOPE" = "success" ] && [ "$PR_MODE" = "docs" ]; then
+            docs_only=1
+          fi
           fail=0
-          # Selector selection and unit qualification are mandatory on every
-          # event, including native merge_group. A skipped or failed selector
-          # must never give a dynamically narrowed browser plan a green gate.
+          # The independent browser selector is mandatory for every event,
+          # including docs-only PRs and the native merge-group fast lane.
           if [ "$SCOPE" != "success" ]; then
             echo "::error title=terminal-ci::e2e-scope concluded '$SCOPE' (expected 'success')"
             fail=1
           fi
-          if [ "$UNIT" != "success" ]; then
+          if [ "$UNIT" = "success" ]; then
+            :
+          elif [ "$docs_only" -eq 1 ] && [ "$UNIT" = "skipped" ]; then
+            echo "terminal-unit skipped: trusted docs-only pull request"
+          else
             echo "::error title=terminal-ci::terminal-unit concluded '$UNIT' (expected 'success')"
             fail=1
           fi
-          # The original 12-shard full browser proof remains required on PRs.
-          # The native queue skips only this expensive duplicate matrix while
-          # keeping current-source evidence and all integrated tests in unit.
-          if [ "$EVENT" = "merge_group" ] && [ "$E2E" = "skipped" ]; then
-            echo "Merge-group fast lane: full browser matrix was proved on PR heads."
-          elif [ "$E2E" != "success" ]; then
+          if [ "$E2E" = "success" ]; then
+            :
+          elif [ "$E2E" = "skipped" ] && { [ "$docs_only" -eq 1 ] || [ "$EVENT" = "merge_group" ]; }; then
+            echo "terminal-e2e skipped: qualified docs-only PR or native merge group"
+          else
             echo "::error title=terminal-ci::terminal-e2e concluded '$E2E' (expected 'success')"
             fail=1
           fi
@@ -475,6 +553,13 @@ jobs:
   python:
     name: Ingest + signal-layer tests
     runs-on: ubuntu-latest
+    needs: [pr_scope]
+    # A docs-only pull request (pr_scope mode=docs) still COMPLETES this
+    # required context green: every step below is skipped, so branch
+    # protection and scripts/merge_on_green.py (`conclusion == success`)
+    # read it as proven. `!cancelled()` keeps the job running when pr_scope
+    # itself failed or was skipped: mode is then empty and every step runs.
+    if: ${{ !cancelled() }}
     # GitHub GraphQL native mergeQueue and source PR membership are read-only;
     # contents:read alone cannot authenticate the queue's pull-request objects.
     # Keep write privileges absent on the candidate-controlled merge_group path.
@@ -482,18 +567,22 @@ jobs:
       contents: read
       pull-requests: read
     steps:
-      - uses: actions/checkout@v4
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        uses: actions/checkout@v4
       # The Scenario PostgreSQL qualification drives the actual TypeScript HTTP
       # consumer in this same job. Python and PostgreSQL alone cannot run it.
-      - uses: actions/setup-node@v4
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: terminal/package-lock.json
-      - name: Install Terminal consumer test dependencies
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        name: Install Terminal consumer test dependencies
         run: npm ci
         working-directory: terminal
-      - uses: actions/setup-python@v5
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
@@ -510,12 +599,15 @@ jobs:
       #                    can't misread a comment or a `run:` shell block as a real job key.
       # requirements.txt additionally carries fastapi/uvicorn, which nothing under tests/
       # imports — installing them would only slow the job down.
-      - run: pip install numpy pandas pyarrow jsonschema pyyaml requests yfinance==1.4.1 pytest
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        run: pip install numpy pandas pyarrow jsonschema pyyaml requests yfinance==1.4.1 pytest
       # Keep the broad ingest suite fail-closed when PostgreSQL binaries are missing.
       # The dedicated upstream Investigation job remains an additional gate.
-      - name: Put PostgreSQL binaries on PATH
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        name: Put PostgreSQL binaries on PATH
         run: echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
-      - name: Require PostgreSQL rather than silently skip
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        name: Require PostgreSQL rather than silently skip
         run: |
           command -v initdb
           command -v pg_ctl
@@ -535,7 +627,8 @@ jobs:
       # merge-on-green orders after refreshing a stale branch (round 4, MAJOR 2):
       # on that trigger github.event.pull_request.number is empty, and that
       # dispatched run is then the only CI run for the sha that merges.
-      - run: python -m pytest tests/ -q
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        run: python -m pytest tests/ -q
         env:
           PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
           # Read-only native membership qualification for present open migrations
@@ -545,6 +638,10 @@ jobs:
   investigation-postgres:
     name: Investigation PostgreSQL invariants
     runs-on: ubuntu-latest
+    needs: [pr_scope]
+    # Skipped only for a qualified docs-only pull request (pr_scope
+    # mode=docs); a failed, skipped or unqualified pr_scope runs everything.
+    if: ${{ !cancelled() && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
