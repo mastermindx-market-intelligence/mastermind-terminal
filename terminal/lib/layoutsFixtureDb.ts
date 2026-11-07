@@ -9,8 +9,8 @@
 //     taken name answers `{code:"23505"}` and `upsert(onConflict:"user_id,name")` updates in place.
 //     So "two concurrent saves leave exactly one row" is proved against a store that behaves like
 //     the post-`0008` schema, not against UI debouncing. (The fixture therefore always models the
-//     APPLIED world; the unapplied-DDL fallback path in lib/layouts.ts is covered by unit tests,
-//     which can return 42P10 on demand.)
+//     APPLIED world; the best-effort pre-insert name check without that DDL is covered by
+//     scripted unit tests, without claiming concurrent uniqueness in that state.)
 //
 //  2. FAULT INJECTION. Production Supabase must never be broken to prove an error state, so the
 //     store fails on request instead: the `mm_e2e_layout_fault` cookie makes the matching operation
@@ -20,6 +20,7 @@
 // falls through to the RLS'd Supabase server client.
 
 import type { LayoutDb, LayoutDbResult, LayoutQuery, LayoutRow } from "@/lib/layouts";
+import { canonicalJson } from "@/lib/workspaceLayout";
 
 /** Per-test store key, so the three parallel viewport projects cannot see each other's writes. */
 export const LAYOUT_STORE_COOKIE = "mm_e2e_layouts";
@@ -79,32 +80,42 @@ type Op =
 /** Which fault class an operation belongs to, so one cookie can target reads or writes. */
 const faultClassOf = (op: Op): LayoutFault => (op.kind === "select" ? "list" : op.kind === "delete" ? "delete" : "save");
 
-/** `column` is either a plain row column ("user_id", "name", "id") or a PostgREST JSON-path
- *  reference ("config->>revision"). The `->>` operator always yields TEXT, so a path read is
- *  stringified (never a raw number/boolean) and a missing key or non-object base reads as `null` —
- *  the same "NULL never satisfies eq/neq" semantics real Postgres gives a still-legacy row that has
- *  no `config.schema` key at all (see the `LayoutQuery` doc-comment in `lib/layouts.ts`). */
+/** SQL NULL and JSON null differ for a `->` path. Only missing keys/non-object
+ * bases produce SQL NULL; `->>` also maps JSON null to SQL NULL and yields text. */
+const SQL_NULL = Symbol("layout-fixture-sql-null");
 function readPath(row: LayoutRow, column: string): unknown {
-  const idx = column.indexOf("->>");
-  if (idx === -1) return row[column];
-  const base = row[column.slice(0, idx)];
-  if (typeof base !== "object" || base === null || Array.isArray(base)) return null;
-  const val = (base as Record<string, unknown>)[column.slice(idx + 3)];
-  return val === undefined || val === null ? null : String(val);
+  const parts = column.split(/(->>|->)/);
+  if (parts.length === 1) return row[column] ?? SQL_NULL;
+  let value: unknown = row[parts[0]];
+  for (let i = 1; i < parts.length; i += 2) {
+    if (typeof value !== "object" || value === null || Array.isArray(value)) return SQL_NULL;
+    value = (value as Record<string, unknown>)[parts[i + 1]];
+    if (value === undefined) return SQL_NULL;
+    if (parts[i] === "->>") {
+      if (value === null) return SQL_NULL;
+      value = typeof value === "object" ? JSON.stringify(value) : String(value);
+    }
+  }
+  return value;
 }
 
 type Filter = { column: string; op: "eq" | "neq" | "is"; value: unknown };
 
 function filterMatches(row: LayoutRow, filter: Filter): boolean {
   const actual = readPath(row, filter.column);
-  switch (filter.op) {
-    case "eq": return actual !== null && actual === filter.value;
-    // SQL `<>` semantics: NULL is never distinct-or-equal to anything under `neq`/`eq` — it simply
-    // never satisfies either. Callers that need "no value OR a different value" use `is`+`neq` as
-    // two disjoint attempts (see `saveWorkspace`'s migrate-on-write guard).
-    case "neq": return actual !== null && actual !== filter.value;
-    case "is": return filter.value === null ? actual === null : actual === filter.value;
-  }
+  if (filter.op === "is") return filter.value === null ? actual === SQL_NULL : actual === filter.value;
+  if (actual === SQL_NULL) return false;
+  // PostgREST passes JSON filter values as encoded text; PostgreSQL compares jsonb
+  // structurally, preserving number/string/null types and ignoring object key order.
+  const path = filter.column.split(/(->>|->)/);
+  let equal: boolean;
+  if (path.length > 1 && path[path.length - 2] === "->") {
+    try {
+      const expected = typeof filter.value === "string" ? JSON.parse(filter.value) : filter.value;
+      equal = canonicalJson(actual) === canonicalJson(expected);
+    } catch { return false; }
+  } else equal = actual === filter.value;
+  return filter.op === "eq" ? equal : !equal;
 }
 
 function teamStoreFor(teamId: string): Store {

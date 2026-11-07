@@ -146,6 +146,8 @@ async function assertNoNextIndicator(page, file) {
 
 async function openRollup(page, lang, viewport, rollup) {
   await page.setViewportSize(viewport);
+  // The product aurora is intentionally continuous; evidence crops freeze ambient motion.
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addInitScript((l) => {
     localStorage.setItem("mm.lang", l);
     localStorage.setItem("theme", "dark");
@@ -162,8 +164,7 @@ async function openRollup(page, lang, viewport, rollup) {
   const title = lang === "zh" ? "你的判断，逐条核对。" : "Your calls, checked.";
   await page.getByRole("heading", { name: title, exact: true }).waitFor({ state: "visible", timeout: 15_000 });
   await stripDevOverlay(page);
-  // Laser sweep is 0.9s; wait it out so crops are not a mid-animation smear.
-  await page.waitForTimeout(1100);
+  // Reduced motion makes the ambient aurora deterministic for evidence capture.
   await stripDevOverlay(page);
 }
 
@@ -236,7 +237,7 @@ async function main() {
     "harness:",
     ...SHOTS.map((s) => `  ${s.file}: { url: "/dev/settings?s=accuracy&lang=${s.lang}&acc=populated&rollup=${s.rollup}", fixture: rollup-${s.rollup} }`),
     "capture_flag: TERMINAL_E2E_FIXTURE",
-    "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.",
+    "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.",
     "command: |",
     "  cd terminal",
     "  node e2e/tools/capture_w9t_f13_9_team_rollup.cjs",

@@ -1,0 +1,24 @@
+[
+  {
+    "command": [
+      "./node_modules/.bin/tsc",
+      "--noEmit",
+      "--incremental",
+      "false"
+    ],
+    "exit": 0,
+    "log": "source-check-r4-0.log"
+  },
+  {
+    "command": [
+      "./node_modules/.bin/eslint",
+      "components/chrome/shared-shell/ShellDirectory.tsx",
+      "lib/sharedShellCopy.ts",
+      "lib/__tests__/sharedShellDirectoryConformance.test.tsx",
+      "e2e/shared-shell-directory-hardening.spec.ts",
+      "--max-warnings=0"
+    ],
+    "exit": 0,
+    "log": "source-check-r4-1.log"
+  }
+]

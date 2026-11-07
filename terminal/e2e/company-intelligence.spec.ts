@@ -353,7 +353,7 @@ test("Company Intelligence keeps its context and evidence workflow responsive", 
   await expect(paperBrief.locator(".ci-paper-metrics > button")).toHaveCount(4);
   const whyItMatters = paperBrief.locator(".ci-paper-insight").filter({ hasText: "Why it matters" });
   await expect(whyItMatters).toBeVisible();
-  await expect(whyItMatters).toContainText("Not asserted");
+  await expect(whyItMatters).toContainText("Business implications are not available for this event.");
 
   await page.locator(".ci-lenses").getByRole("tab", { name: "Results" }).click();
   const paperResults = page.locator("[data-ci-paper-results]");
@@ -799,7 +799,7 @@ test("general highlights are not relabelled as Constructive without explicit pos
   });
   await page.goto("/analysis?symbol=NVDA&page=intelligence");
   const changed = page.locator(".ci-paper-insight").filter({ hasText: "What changed" });
-  await expect(changed).toContainText("No comparable change is asserted");
+  await expect(changed).toContainText("No comparison is available for this event.");
   await expect(changed.getByRole("button")).toHaveCount(0);
   await expect(changed).not.toContainText("Constructive");
 });
@@ -1016,7 +1016,7 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   await expect(page.locator(".ci-inst-card")).toHaveCount(0);
   const whyItMatters = page.locator(".ci-paper-insight").filter({ hasText: "Why it matters" });
   await expect(whyItMatters).toBeVisible();
-  await expect(whyItMatters).toContainText("Not asserted");
+  await expect(whyItMatters).toContainText("Business implications are not available for this event.");
   await expect(page.locator(".ci-page")).not.toContainText("Current event");
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-brief.png`), fullPage: false });
 
@@ -1045,6 +1045,19 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   await expect(paperResults).toContainText("Not asserted · reaction not joined");
   await expect(paperResults).toContainText("Not asserted · context only");
   await expect(page.locator("#ci-panel-results")).toContainText("No beat/miss");
+  const repricing = page.locator("[data-ci-repricing-evidence]");
+  await expect(repricing).toBeVisible();
+  await expect(repricing).toHaveAttribute("data-ci-inference", "NOT_ESTABLISHED");
+  await expect(repricing.locator('[data-ci-repricing-lane="reported"]')).toContainText("$109.4B");
+  await expect(repricing.locator('[data-ci-repricing-lane="guidance"]')).toContainText("9–11%");
+  await expect(repricing.locator('[data-ci-repricing-lane="consensus"]')).toHaveAttribute("data-ci-repricing-status", "NOT_ADMITTED");
+  await expect(repricing.locator('[data-ci-repricing-lane="reaction"]')).toHaveAttribute("data-ci-repricing-status", "NOT_ADMITTED");
+  await expect(repricing.locator('button[data-ci-repricing-lane="consensus"]')).toHaveCount(0);
+  await expect(repricing.locator('button[data-ci-repricing-lane="reaction"]')).toHaveCount(0);
+  await expect(repricing).toContainText("The evidence does not establish what was priced in");
+  await repricing.locator('button[data-ci-repricing-lane="reported"]').click();
+  await expect(page.locator(".ci-receipt-card")).toHaveAttribute("data-ci-receipt-state", "byte_replayed");
+  await closeEvidenceOverlay(page);
   const typedAbsences = page.locator('[data-ci-results-region="typed-absences"]');
   const coverageStates = page.locator('[data-ci-results-region="coverage-states"]');
   await expect(typedAbsences).toContainText("TYPED ABSENCES");
@@ -1104,6 +1117,34 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   expect(errors).toEqual([]);
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-event-workspace.png`), fullPage: false });
   await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-aapl-transcript.png`), fullPage: false });
+});
+
+test("signed guidance survives the Results lens and opens its existing source receipt", async ({ page }, testInfo) => {
+  // Synthetic numeric contract input only: the original AAPL disclosure receipt
+  // substantiates 9–11%, not this negative range. This checks UI source gating.
+  const guidance = structuredClone(aaplWorkspace.guidance);
+  guidance[0]!.low = -3;
+  guidance[0]!.high = -1;
+  const zh = testInfo.project.name.endsWith("mobile");
+  if (zh) await page.addInitScript(() => window.localStorage.setItem("mm.lang", "zh"));
+  await openAaplWorkspace(page, aaplWorkspacePayload({ guidance }));
+  await page.locator(".ci-lenses").getByRole("tab", { name: zh ? "业绩" : "Results" }).click();
+
+  const repricing = page.locator("[data-ci-repricing-evidence]");
+  await expect(repricing).toHaveAttribute("data-ci-inference", "NOT_ESTABLISHED");
+  const guidanceLane = repricing.locator('[data-ci-repricing-lane="guidance"]');
+  await expect(guidanceLane).toHaveAttribute("data-ci-repricing-status", "SOURCE_BACKED");
+  await expect(guidanceLane).toContainText("-3–-1%");
+  await expect(repricing.locator('button[data-ci-repricing-lane="guidance"]')).toBeVisible();
+  await repricing.locator('button[data-ci-repricing-lane="guidance"]').click();
+  await expect(page.locator(".ci-receipt-card")).toHaveAttribute("data-ci-receipt-state", "byte_replayed");
+  await closeEvidenceOverlay(page);
+  for (const lane of ["consensus", "reaction"]) {
+    await expect(repricing.locator('[data-ci-repricing-lane="' + lane + '"]')).toHaveAttribute(
+      "data-ci-repricing-status", "NOT_ADMITTED",
+    );
+    await expect(repricing.locator('button[data-ci-repricing-lane="' + lane + '"]')).toHaveCount(0);
+  }
 });
 
 test("AAPL workspace correction advances generation without changing event identity", async ({ page }, testInfo) => {
@@ -1206,6 +1247,75 @@ test("AAPL v1 score overlay cannot populate current Brief, Results, or Sources",
   await expect(page.locator("#ci-panel-sources")).not.toContainText("8-K / Exhibit 99.1");
   await expect(page.locator("#ci-panel-sources")).not.toContainText("14");
   await expect(page.locator("#ci-panel-sources")).not.toContainText(/score overlay/i);
+});
+
+test("Ownership Institutional page uses the verified 13F owner without claiming total ownership", async ({ page }, testInfo) => {
+  await page.route("**/api/company-intelligence/NVDA**", async (route) => {
+    await route.fulfill({ json: { ok: true, state: "ready", context: contextFixture() } });
+  });
+
+  await page.goto("/analysis?symbol=NVDA&page=ownership");
+  await expect(page.locator(".sym-pick strong")).toHaveText("NVDA", { timeout: 45_000 });
+
+  const ownership = page.locator("[data-ownership-page]");
+  await expect(ownership).toBeVisible({ timeout: 15_000 });
+  await expect(ownership).toHaveAttribute("data-ownership-company-generation", "aaaaaaaaaaaaaaaaaaaaaaaa");
+  await expect(ownership).toHaveAttribute("data-ownership-event-id", "cie_d8488221fd8c710c53d6537d");
+  await expect(ownership).toContainText("OWNERSHIP · INSTITUTIONAL");
+  await expect(ownership).toContainText("Tracked institutional positioning");
+  await expect(ownership).toContainText("This is not total ownership, not a company rank, and not a trading signal.");
+  await expect(ownership).toContainText("does not estimate total ownership, rank the company, or issue a signal.");
+
+  const compact = page.viewportSize()!.width <= 860;
+  if (compact) {
+    await expect(page.locator(".fin-family-mobile-trigger")).toContainText("Ownership");
+    await expect(page.locator(".fin-local-mobile-tab.on")).toHaveText("Institutional");
+  } else {
+    await expect(page.locator('[data-fin-family="ownership"]')).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator('[data-fin-local="ownership"]')).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator('[data-fin-local="insider"]')).toContainText("Insider");
+  }
+
+  const card = ownership.locator(".ci-inst-card");
+  await expect(page.getByRole("heading", { name: "3 tracked managers reported a position" })).toBeVisible();
+  await expect(card).toContainText("Reporting set");
+  await expect(card).toContainText("3/3");
+  await expect(card).toContainText("Current holders");
+  await expect(card).toContainText("$28M");
+  await expect(card).toContainText("0.347");
+  await expect(card).toContainText("HHI within this roster");
+  await expect(card).toContainText("Alpha Capital");
+  await expect(card).toContainText("Gamma Investments");
+  await expect(card).toContainText("Beta Partners");
+  await expect(card).toContainText("Added");
+  await expect(card).toContainText("Held");
+  await expect(card).toContainText("Trimmed");
+  await expect(card).toContainText("Accumulating");
+  await expect(card).toContainText("Only fully reported quarters can assert direction");
+  await expect(card).toContainText("2026-05-15");
+  await expectNoDocumentOverflow(page);
+  await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-ownership-institutional.png`), fullPage: false });
+});
+
+test("Ownership Institutional page remains truthful and usable in Chinese on mobile", async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.endsWith("mobile"), "one mobile bilingual ownership contract is sufficient");
+  await page.addInitScript(() => window.localStorage.setItem("mm.lang", "zh"));
+  await page.route("**/api/company-intelligence/NVDA**", async (route) => {
+    await route.fulfill({ json: { ok: true, state: "ready", context: contextFixture() } });
+  });
+
+  await page.goto("/analysis?symbol=NVDA&page=ownership");
+  const ownership = page.locator("[data-ownership-page]");
+  await expect(ownership).toBeVisible({ timeout: 15_000 });
+  await expect(page.locator(".fin-family-mobile-trigger")).toContainText("持仓");
+  await expect(page.locator(".fin-local-mobile-tab.on")).toHaveText("机构");
+  await expect(ownership).toContainText("持仓 · 机构");
+  await expect(ownership).toContainText("追踪机构持仓");
+  await expect(ownership).toContainText("并非总持股");
+  await expect(ownership).toContainText("仅限该名册的 HHI");
+  await expect(ownership).toContainText("对齐历史");
+  await expect(ownership).toContainText("持续积累");
+  await expectNoDocumentOverflow(page);
 });
 
 function alignTranscriptRevisionSha<T extends { workspace: Record<string, unknown> }>(payload: T, sha: string): T {

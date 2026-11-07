@@ -1,0 +1,14 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/terminal-03-replay-geometry-ee6b38-5527303a67b04625/terminal
+
+ ✓ lib/__tests__/flowClientCacheRefresh.test.ts (4 tests) 5ms
+ ✓ lib/__tests__/replayIndexIdentity.test.ts (5 tests) 5ms
+ ✓ lib/__tests__/heatSeriesGeometry.test.ts (6 tests) 8ms
+ ✓ lib/__tests__/surfaceReplayMounted.test.tsx (25 tests) 1569ms
+
+ Test Files  4 passed (4)
+      Tests  40 passed (40)
+   Start at  09:49:25
+   Duration  21.33s (transform 1.22s, setup 0ms, collect 1.90s, tests 1.59s, environment 5.41s, prepare 1.73s)
+

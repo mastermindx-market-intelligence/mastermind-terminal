@@ -166,20 +166,60 @@ type Marker = { t: string; title: string; cx: number; cy: number };
 /** Every titled marker currently painted, in VIEWPORT coordinates — the same space the mouse
  *  moves in, so a test never has to convert. */
 async function markers(page: Page): Promise<Marker[]> {
+  return (await markerField(page)).list;
+}
+
+/** Every titled marker, plus the chart's LAYOUT ACCOUNTING — read in ONE evaluate so none of it
+ *  can straddle a relayout.
+ *
+ *  A marker's coordinates only mean something while nothing is queued to move them, and the marker
+ *  field itself cannot tell you that: it can sit perfectly still for seconds with a 118px shrink
+ *  already committed against it. The mount builds the default indicator set (two sub-panes) and then
+ *  swaps in the saved one; ChartPanel reports the new sub-pane count to TerminalShell, whose
+ *  `--subpanes` React state drives the mobile chart-body height formula (globals.css); the chart
+ *  then follows its container through a ResizeObserver + rAF. Under a saturated runner that state
+ *  commit lands seconds after the sub-panes are gone (run 36051830283: sub-panes removed by t≈3.0s,
+ *  `--subpanes: 0` committed at t≈5.2s), and lightweight-charts is drawing 464px into a 346px
+ *  `.pane{overflow:hidden}` in between — a stable, clipped, WRONG layout that two identical reads
+ *  happily accept. The shrink then lands during the tap and the finger's down point is 42px from
+ *  the marker it was aimed at.
+ *
+ *  So beside the markers this reads, from DOM the product already exposes (no test hook):
+ *    - `--subpanes` and `--drawing-host-height` on `.chart-body` — the REQUESTED topology and the
+ *      parent's measured height (#688);
+ *    - the sub-panes lightweight-charts is DRAWING right now (pane rows and the time-axis row carry
+ *      canvases; the 1px separator rows do not); and
+ *    - whether the lightweight-charts table is the same height as the wrapper it is meant to fill.
+ *  The requested topology catches the default-set transient, `declared === drawn` the window before
+ *  the state commits, `fills` the window before the chart follows it. */
+async function markerField(page: Page): Promise<{
+  subpanes: string; hostHeight: string; declared: number; drawn: number; fills: boolean; list: Marker[];
+}> {
   return page.locator("[data-sig-layer]").first().evaluate((svg) => {
-    const out: { t: string; title: string; cx: number; cy: number }[] = [];
+    const list: { t: string; title: string; cx: number; cy: number }[] = [];
     for (const g of [...svg.querySelectorAll(":scope > g")]) {
       const title = g.querySelector(":scope > title")?.textContent;
       if (!title) continue;
       const b = g.getBoundingClientRect();
       if (!(b.width > 0) || !(b.height > 0)) continue;
-      out.push({ t: title.split(" ·")[0], title, cx: b.x + b.width / 2, cy: b.y + b.height / 2 });
+      list.push({ t: title.split(" ·")[0], title, cx: b.x + b.width / 2, cy: b.y + b.height / 2 });
     }
-    return out;
+    const wrap = svg.parentElement;                                   // ChartPanel's `wrap`
+    const body = wrap?.closest<HTMLElement>(".chart-body") ?? null;
+    const table = wrap?.querySelector<HTMLElement>(".tv-lightweight-charts table") ?? null;
+    if (!wrap || !body || !table) return { subpanes: "", hostHeight: "", declared: -1, drawn: -2, fills: false, list };
+    const style = getComputedStyle(body);
+    const subpanes = style.getPropertyValue("--subpanes").trim();
+    const hostHeight = style.getPropertyValue("--drawing-host-height").trim();
+    const declared = Number.parseInt(subpanes || "0", 10);
+    const drawn = [...table.querySelectorAll("tr")].filter((tr) => tr.querySelector("canvas")).length - 2;
+    const fills = Math.abs(table.getBoundingClientRect().height - wrap.getBoundingClientRect().height) <= 1;
+    return { subpanes, hostHeight, declared, drawn, fills, list };
   });
 }
 
-/** The marker field, once the REQUESTED pane topology and its geometry have stopped moving.
+/** The marker field, once the REQUESTED pane topology and its geometry have stopped moving — and
+ *  the chart has actually followed them.
  *
  *  This fixture requests only the price-pane Golden Oracle overlay (`_oracle`), so the settled
  *  shell has zero indicator subpanes. During preference hydration the shell can briefly render
@@ -187,33 +227,30 @@ async function markers(page: Page): Promise<Marker[]> {
  *  layout are not a readiness proof. A later 2 -> 0 subpane commit moves the whole marker field
  *  after those coordinates were returned, turning a physical tap into a stale-coordinate miss.
  *
- *  Bind readiness to the actual parent layout contract: zero requested subpanes plus two identical
- *  reads of the parent host height and marker coordinates. This does not widen a hit target,
- *  gesture threshold, timeout, or product behavior; it only refuses to measure the fixture while
- *  its requested topology is still being committed. */
+ *  Bind readiness to the actual parent layout contract: zero requested subpanes, the chart drawing
+ *  exactly the sub-panes the parent has accounted for and filling its wrapper (`markerField`), plus
+ *  two identical reads of the parent host height and marker coordinates — never a sleep. A read
+ *  taken over a pending relayout never counts as the first of the two. This does not widen a hit
+ *  target, gesture threshold, timeout, or product behavior; it only refuses to measure the fixture
+ *  while its layout is still being committed. */
 async function settledMarkers(page: Page): Promise<Marker[]> {
   let prev = "";
   let list: Marker[] = [];
   await expect.poll(async () => {
-    list = await markers(page);
-    const geometry = await page.locator(".chart-body").evaluate((node) => {
-      const style = getComputedStyle(node);
-      return {
-        subpanes: style.getPropertyValue("--subpanes").trim(),
-        hostHeight: style.getPropertyValue("--drawing-host-height").trim(),
-      };
-    });
+    const field = await markerField(page);
+    list = field.list;
     const key = [
-      `subpanes=${geometry.subpanes}`,
-      `hostHeight=${geometry.hostHeight}`,
+      `subpanes=${field.subpanes}`,
+      `hostHeight=${field.hostHeight}`,
       ...list.map((m) => `${m.t}@${Math.round(m.cx)},${Math.round(m.cy)}`),
     ].join("|");
-    const requestedTopologyReady = geometry.subpanes === "0";
-    const settled = requestedTopologyReady && list.length > 0 && key === prev;
-    prev = key;
+    const requestedTopologyReady = field.subpanes === "0";
+    const chartFollowed = field.declared === field.drawn && field.fills;
+    const settled = requestedTopologyReady && chartFollowed && list.length > 0 && key === prev;
+    prev = requestedTopologyReady && chartFollowed ? key : "";
     return settled;
   }, {
-    message: "the requested zero-subpane marker geometry should stop moving before it is measured",
+    message: "the requested zero-subpane marker geometry should stop moving, with the chart filling a container sized for its panes, before it is measured",
     timeout: 25_000,
     intervals: [150, 200, 300, 400, 500],
   }).toBe(true);
