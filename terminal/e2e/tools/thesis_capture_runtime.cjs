@@ -8,7 +8,8 @@ const { classifyRequest, typedUnavailablePayload } = require("./f11_provider_clo
 const hash = bytes => createHash("sha256").update(bytes).digest("hex");
 const UUID = "[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}";
 function fixtureApi(url, method, base) {
-  const u = new URL(url);
+  if (typeof url !== "string" || typeof method !== "string") return false;
+  let u; try { u = new URL(url); } catch { return false; }
   if (u.origin !== base || u.username || u.password || /%|\\/.test(u.pathname)) return false;
   if (u.pathname === "/api/theses") return ["GET","POST","PATCH","DELETE"].includes(method);
   if (u.pathname === "/api/thesis-saved-views") return ["GET","PUT","DELETE"].includes(method);
@@ -36,14 +37,20 @@ async function boundary(context, base, counts) {
     if (d === "fulfill") { counts.businessUnavailable++; return route.fulfill({status:503,json:typedUnavailablePayload()}); }
     counts.externalDenied++; return route.abort("blockedbyclient");
   });
-  // APIRequestContext bypasses context.route. Bind its real fixture mutations
-  // separately to the exact same local paths, never an absolute provider URL.
-  for (const method of ["get","post","put","patch","delete"]) {
-    const original = context.request[method].bind(context.request);
-    context.request[method] = async (url, options={}) => {
-      if (!fixtureApi(url,method.toUpperCase(),base)) throw Error("THESIS_CAPTURE_API_SCOPE");
+  guardApiRequest(context.request, base, counts);
+}
+function guardApiRequest(request, base, counts) {
+  // Every public network entrypoint converges on the captured original fetch.
+  // Named convenience methods must not dynamically re-enter an unguarded fetch.
+  const fetch = request.fetch.bind(request);
+  for (const name of ["get","post","put","patch","delete","head","fetch"]) {
+    request[name] = async (url, options={}) => {
+      if (!options || typeof options !== "object") throw Error("THESIS_CAPTURE_API_SCOPE");
+      const raw = name === "fetch" ? options.method ?? "GET" : name;
+      const method = typeof raw === "string" && /^[A-Za-z]+$/.test(raw) ? raw.toUpperCase() : "";
+      if (!fixtureApi(url,method,base)) throw Error("THESIS_CAPTURE_API_SCOPE");
       counts.directFixtureRequests++;
-      return original(url,{...options,maxRedirects:0});
+      return fetch(url,{...options,method,maxRedirects:0});
     };
   }
 }
@@ -129,4 +136,4 @@ function publish(stage,target,files,control){
   fs.writeFileSync(path.join(stage,"CONTROL.json"),JSON.stringify(control,null,2)+"\n");
   process.stdout.write(JSON.stringify({thesisCaptureControl:path.join(stage,"CONTROL.json"),...control})+"\n");
 }
-module.exports={fixtureApi,decision,boundary,getChromium,assertPortFree,assertOwnedListener,start,staging,publish};
+module.exports={fixtureApi,decision,boundary,guardApiRequest,getChromium,assertPortFree,assertOwnedListener,start,staging,publish};

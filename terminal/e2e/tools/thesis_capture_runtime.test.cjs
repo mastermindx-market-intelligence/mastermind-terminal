@@ -1,7 +1,7 @@
 "use strict";
 const {test}=require("node:test"),assert=require("node:assert/strict");
 const fs=require("node:fs"),path=require("node:path"),os=require("node:os"),cp=require("node:child_process");
-const {fixtureApi,decision,publish}=require("./thesis_capture_runtime.cjs");
+const {fixtureApi,decision,publish,guardApiRequest}=require("./thesis_capture_runtime.cjs");
 const base="http://127.0.0.1:41911",id="00000000-0000-0000-0000-000000000001";
 test("exact incumbent fixture endpoints and methods only",()=>{
  for(const [p,m] of [["/api/theses","POST"],["/api/thesis-saved-views","PUT"],[`/api/thesis/${id}/proposals`,"POST"],[`/api/thesis/${id}/proposals/${id}`,"PATCH"],["/api/thesis-fire-status","GET"]])assert.equal(fixtureApi(base+p,m,base),true);
@@ -32,4 +32,21 @@ test("incomplete or unsettled records preserve all old outputs",()=>{
  assert.throws(()=>publish(stage,target,["one.png"],{counts:{...ready.counts,contextsClosed:0}}));assert.equal(fs.readFileSync(path.join(target,"EVIDENCE.yml"),"utf8"),"old-lock");
  publish(stage,target,["one.png"],ready);assert.equal(fs.readFileSync(path.join(target,"EVIDENCE.yml"),"utf8"),"new-lock");assert.equal(fs.readFileSync(path.join(stage,"previous","one.png"),"utf8"),"old-image");
  }finally{fs.rmSync(temp,{recursive:true,force:true});}
+});
+
+test("all exposed API transports refuse foreign/forged methods before original fetch",async()=>{
+ const reached=[],request={fetch:async(url,options)=>{reached.push({url,options});return "local";}};
+ const counts={directFixtureRequests:0};guardApiRequest(request,base,counts);
+ for(const name of ["get","post","put","patch","delete","head","fetch"])
+  await assert.rejects(()=>request[name]("https://provider.invalid/test"),/THESIS_CAPTURE_API_SCOPE/);
+ for(const input of [new URL(base+"/api/theses"),{url:base+"/api/theses"},{toString:()=>base+"/api/theses"},null])
+  await assert.rejects(()=>request.fetch(input),/THESIS_CAPTURE_API_SCOPE/);
+ for(const method of ["HEAD","TRACE","CONNECT",{},null,"POST "])
+  await assert.rejects(()=>request.fetch(base+"/api/theses",{method}),/THESIS_CAPTURE_API_SCOPE/);
+ await assert.rejects(()=>request.head(base+"/api/theses"),/THESIS_CAPTURE_API_SCOPE/);
+ assert.equal(reached.length,0);
+ assert.equal(await request.fetch(base+"/api/theses",{method:"POST",maxRedirects:99,data:{action:"create"}}),"local");
+ assert.equal(await request.get(base+"/api/theses",{method:"DELETE",maxRedirects:99}),"local");
+ assert.deepEqual(reached.map(x=>[x.options.method,x.options.maxRedirects]),[["POST",0],["GET",0]]);
+ assert.equal(counts.directFixtureRequests,2);
 });
