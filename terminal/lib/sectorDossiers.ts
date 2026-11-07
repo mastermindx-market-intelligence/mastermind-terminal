@@ -429,7 +429,7 @@ export type SectorWindowMeasurementsRead =
 const boundedText = (maxLength: number) => ({
   type: "string", minLength: 1, maxLength, pattern: "^[^\\u0000-\\u001f]+(?![\\s\\S])",
 });
-const sessionDate = { type: "string", format: "date", pattern: "^\\d{4}-\\d{2}-\\d{2}(?![\\s\\S])" };
+const sessionDate = { type: "string", format: "date", pattern: "^(?!0000)\\d{4}-\\d{2}-\\d{2}(?![\\s\\S])" };
 const clockText = boundedText(64);
 const exactCoverage = closed({
   observed_n: count(64), expected_n: count(64), ratio: { type: "number", minimum: 0, maximum: 1 },
@@ -782,6 +782,7 @@ function exactConsistent(doc: SectorWindowMeasurements, measured: Record<string,
 
   // The block reason and the top status.
   const blockReasons = diagnostics.qualification_reasons;
+  const windowOnlyReasons = new Set<string>([...EXACT_BLOCK_REASONS, "insufficient_reference_history"]);
   const topReason = blockReasons.length > 0 ? blockReasons[0] : null;
   if (doc.reason !== topReason) return false;
   if (blockReasons.length > 0 && doc.status !== "unavailable") return false;
@@ -801,6 +802,7 @@ function exactConsistent(doc: SectorWindowMeasurements, measured: Record<string,
       return false;
     }
     if (!publishedNumber(window.benchmark_return_pct)) return false;
+    if (window.benchmark_return_pct !== null && window.benchmark_coverage.observed_n < 2) return false;
 
     // Insufficient reference history is decided before any block reason.
     const insufficient = window.null_reason === "insufficient_reference_history";
@@ -818,6 +820,8 @@ function exactConsistent(doc: SectorWindowMeasurements, measured: Record<string,
       if (window.benchmark_return_pct !== null) return false;
       if (window.benchmark_null_reason !== topReason) return false;
       if (window.null_reason !== topReason) return false;
+    } else if (window.benchmark_null_reason !== null && windowOnlyReasons.has(window.benchmark_null_reason)) {
+      return false;
     }
 
     let anyMeasured = false;
@@ -827,6 +831,11 @@ function exactConsistent(doc: SectorWindowMeasurements, measured: Record<string,
       if (!coverageAgrees(cell.coverage, expectedN)) return false;
       const absolute = cell.absolute_return_pct, relative = cell.relative_wealth_pct;
       if (!publishedNumber(absolute) || !publishedNumber(relative)) return false;
+      if (relative !== null && window.benchmark_return_pct === null) return false;
+      // A raw absolute return is required to calculate relative wealth. Only
+      // percent-publication overflow can withhold its absolute percentage later.
+      if (relative !== null && absolute === null
+        && cell.null_reasons.absolute_return_pct !== "non_finite_input") return false;
       // A number implies no reason; a null implies exactly one recognized reason.
       if (absolute === null ? cell.null_reasons.absolute_return_pct === null
         : cell.null_reasons.absolute_return_pct !== null) return false;
@@ -834,7 +843,7 @@ function exactConsistent(doc: SectorWindowMeasurements, measured: Record<string,
         : cell.null_reasons.relative_wealth_pct !== null) return false;
       const present = (absolute === null ? 0 : 1) + (relative === null ? 0 : 1);
       const expectedStatus = present === 2 ? "available" : present === 1 ? "partial" : "unavailable";
-      if (cell.status !== expectedStatus) return false;
+      if (cell.status !== expectedStatus || (present > 0 && cell.coverage.observed_n < 2)) return false;
       if (present === 2) completeCells += 1; else allComplete = false;
       if (present > 0) { measuredCells += 1; anyMeasured = true; }
       if (insufficient) {
@@ -847,10 +856,23 @@ function exactConsistent(doc: SectorWindowMeasurements, measured: Record<string,
         if (absolute !== null || relative !== null) return false;
         if (cell.null_reasons.absolute_return_pct !== topReason
           || cell.null_reasons.relative_wealth_pct !== topReason) return false;
+      } else if (Object.values(cell.null_reasons).some(reason => reason !== null && windowOnlyReasons.has(reason))) {
+        return false;
       }
     }
     const expectedWindowStatus = allComplete ? "available" : anyMeasured ? "partial" : "unavailable";
     if (window.status !== expectedWindowStatus) return false;
+  }
+
+  // Fixed windows share one end and one captured panel. Longer windows cannot
+  // lose observations, or gain more observations than their added sessions.
+  for (const [shortKey, longKey, extra] of [["5", "20", 15], ["20", "63", 43]] as const) {
+    if (doc.windows[shortKey].start_session === null || doc.windows[longKey].start_session === null) continue;
+    const pairs = [[doc.windows[shortKey].benchmark_coverage.observed_n,
+      doc.windows[longKey].benchmark_coverage.observed_n],
+    ...doc.groups.map(group => [group.windows[shortKey].coverage.observed_n,
+      group.windows[longKey].coverage.observed_n])];
+    if (pairs.some(([short, long]) => long < short || long - short > extra)) return false;
   }
 
   // The published counts are verified against the cells, not replaced by them.

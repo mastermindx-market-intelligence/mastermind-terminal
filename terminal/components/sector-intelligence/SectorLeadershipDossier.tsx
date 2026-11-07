@@ -373,6 +373,8 @@ function Pair({ term, detail, note, reason, mono }: {
 /** A signed zero is a plain zero: the sign of zero carries no direction and no minus sign. */
 function formatPercent(value: number | null): string {
   if (value === null || !Number.isFinite(value)) return "—";
+  // Very large finite owner values remain readable without clipping their exponent.
+  if (Math.abs(value) >= 1e6) return `${value > 0 ? "+" : ""}${value.toExponential(2)}%`;
   return formatValue(value === 0 ? 0 : value, 2, "%", true);
 }
 
