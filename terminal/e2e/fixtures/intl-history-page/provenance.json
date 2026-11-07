@@ -1,0 +1,230 @@
+{
+  "macro_source": "389c3ac3442547b0f38a81e7922f9581d25b1e5b",
+  "macro_tree": "9cb54c2e883db3a3328cd11951776fa372043f2f",
+  "raw_jinja_sha256": "8eee0e38f96db1b4e7868b75a25b641aee3138391adc52f2351ca6496165f95c",
+  "fixture_source": {
+    "path": "tests/fixtures/intl_workspace/history_cases.json",
+    "sha256": "39fb8a33cfb2fc49769e546636fc6cdf54f02273264011306404b2130425f2fe"
+  },
+  "fixture_generator": "tests/intl_history_next_fixture.py",
+  "generator_sha256": "f6358528bff60cea785efe4a081304ca6611d382931769e714e678e75141b8a0",
+  "postprocessor": "lib/shared_shell.py::inject_shared_shell_text",
+  "postprocessor_sha256": "eb1f06843b556968f15a0478d756e8312a3b6f4f4c8cb3daf047a6c438f79c1c",
+  "composition": "Actual full intl.html.j2/_vm/_env/render_international_pages + actual attach_history; controlled existing source fixture, not current receipt. Only normal owned capability block added; removal returns exact raw.",
+  "assets_from_current_templates": [
+    {
+      "asset": "/account.js",
+      "source": "templates/account.js",
+      "sha256": "3a75ad49f6d678871206efbefd68311c1f60559b7924e96cfee0fcf5120cb50c"
+    },
+    {
+      "asset": "/fonts/Inter-400.woff2",
+      "source": "templates/fonts/Inter-400.woff2",
+      "sha256": "8909904ab6c872eb994093482a88a28eca2cd95912d7b6fecd72103b0dc07edc"
+    },
+    {
+      "asset": "/fonts/Inter-500.woff2",
+      "source": "templates/fonts/Inter-500.woff2",
+      "sha256": "f3779f1efccc4bdcdf9c0a02ab95bf6bd092ed09c48c08cedc725889edd1d19f"
+    },
+    {
+      "asset": "/fonts/Inter-600.woff2",
+      "source": "templates/fonts/Inter-600.woff2",
+      "sha256": "f9a06e79cd3a2a20951c0f0e28f66dd0e6d3fda73911d640a2125c8fcb78f21a"
+    },
+    {
+      "asset": "/fonts/Inter-700.woff2",
+      "source": "templates/fonts/Inter-700.woff2",
+      "sha256": "6f56409fd3d64bb85f7d070bce20749db2d66b6d63cec586cc22d1c761be2491"
+    },
+    {
+      "asset": "/fonts/Inter-800.woff2",
+      "source": "templates/fonts/Inter-800.woff2",
+      "sha256": "a7d0a50f15d389cad679238466bdb5fc9787aa0715719064ce25abaff042820d"
+    },
+    {
+      "asset": "/intl_library_search.js",
+      "source": "templates/intl_library_search.js",
+      "sha256": "019933a8f2f6c705dae32c68f83c065b24f693a2e899c33381b21fb6b86f748f"
+    },
+    {
+      "asset": "/intl_workspace.css",
+      "source": "templates/intl_workspace.css",
+      "sha256": "cea40312080e4da21ffa6580f755163e0ff4bec9f3dbbad0c802ddf58ce808e3"
+    },
+    {
+      "asset": "/intl_workspace.js",
+      "source": "templates/intl_workspace.js",
+      "sha256": "50ef82f213d5f7120c8c03f237dcfdbc5b4ccdefece1c96a2f129e5f2f14b7a9"
+    },
+    {
+      "asset": "/intl_workspace_entry.js",
+      "source": "templates/intl_workspace_entry.js",
+      "sha256": "3b476b4ce04b91f0a8854c4a3e5b2e26f672cfa21c67445d8ce765edc62a8b1b"
+    },
+    {
+      "asset": "/intl_workspace_history.css",
+      "source": "templates/intl_workspace_history.css",
+      "sha256": "cfd288b76c0b43c588023716b8f9f13a91524edb0cc7b3b4b8548b893e70f5de"
+    },
+    {
+      "asset": "/intl_workspace_macro.css",
+      "source": "templates/intl_workspace_macro.css",
+      "sha256": "11b8e48f9f15a8e90c556e0c703e60818ac1db8a9c02786fd6f59ccbc219dc15"
+    },
+    {
+      "asset": "/intl_workspace_risk.css",
+      "source": "templates/intl_workspace_risk.css",
+      "sha256": "5f21f98f0604c86876fd2d693e542094c85c8107da127b409c0b2865726a816e"
+    },
+    {
+      "asset": "/intl_workspace_scenario.js",
+      "source": "templates/intl_workspace_scenario.js",
+      "sha256": "91217398f9f527173fc0be1a01dca305b84f2060c7b3b0e215866ef564471ab4"
+    },
+    {
+      "asset": "/intl_workspace_state.js",
+      "source": "templates/intl_workspace_state.js",
+      "sha256": "b02a808380c1a1d2c798f1b827707fa07d23679e15bf01753cffaada55f00fd1"
+    },
+    {
+      "asset": "/intl_workspace_surveillance.css",
+      "source": "templates/intl_workspace_surveillance.css",
+      "sha256": "e7ccff77c7e095d600921282da70683f580e8df368e8933349438cc7cb36ff16"
+    },
+    {
+      "asset": "/live.js",
+      "source": "templates/live.js",
+      "sha256": "f8cda39dd4258a5778864b3b7e0bd8b9cc685bd1f926211a72268883a937a592"
+    },
+    {
+      "asset": "/logo_config.js",
+      "source": "templates/logo_config.js",
+      "sha256": "b37d33d3194c191b1bb64db3f5c33d17c7dc06a74892e4aa8ea4d50320aae215"
+    },
+    {
+      "asset": "/nav_market.js",
+      "source": "templates/nav_market.js",
+      "sha256": "d6a0ffd9c7fcc4f201f73b3e226934cc1709950452894e68cf921d60a90f1587"
+    },
+    {
+      "asset": "/navigation-refresh.css",
+      "source": "templates/navigation-refresh.css",
+      "sha256": "edfd821b3a6267c762fe452f7da74c0517d2f4435705f3148d5ab2be89105fae"
+    },
+    {
+      "asset": "/product-nav-icons.css",
+      "source": "templates/product-nav-icons.css",
+      "sha256": "432f6a454755566f63e843a269bee842e672d0934f10d957b6c386dcc1a824ea"
+    },
+    {
+      "asset": "/shared_shell.css",
+      "source": "templates/shared_shell.css",
+      "sha256": "b1918ccaa2294f18c0fd5bca123e38267251c7e9d9a7c4fce1f296ef9e4c3c1e"
+    },
+    {
+      "asset": "/shared_shell_bridge.js",
+      "source": "templates/shared_shell_bridge.js",
+      "sha256": "071ef7202d8886228342c00f0e7a3026eaba1d0103c4dcf1e6d204a7da77451b"
+    },
+    {
+      "asset": "/stock-logos.js",
+      "source": "templates/stock-logos.js",
+      "sha256": "cc29be531bc08e655464b6c0d384e1a46041aeb31caf7d982e926681fda7cb49"
+    },
+    {
+      "asset": "/tablesort.js",
+      "source": "templates/tablesort.js",
+      "sha256": "62f1b5ef9c2a26c292424aa407dbcffd0dbd9d5f6e4b0443c6e9b4ca74368a42"
+    },
+    {
+      "asset": "/terminal_overlay.js",
+      "source": "templates/terminal_overlay.js",
+      "sha256": "9817ca9fdace99e6ce0af55bebda7b90c3a55ae6589fa267cf35ab23c9b5a5bf"
+    },
+    {
+      "asset": "/theme.css",
+      "source": "templates/theme.css",
+      "sha256": "9bd171a66b42712c54459c99a0104725e2369a96cd9f3a71ba3e60b7c683d757"
+    },
+    {
+      "asset": "/theme.js",
+      "source": "templates/theme.js",
+      "sha256": "918e7acece23ab6df8211305a938e569f0de4184c0fd9c0b2f1e56c50e3cac4d"
+    }
+  ],
+  "unchanged_retained_assets": [
+    "/live_config.js"
+  ],
+  "retained_asset_preimages": {
+    "terminal_source": "5ee0cac1",
+    "bundle_sha256": "f96e0c877c37d0abf3e2a6afbcb08dfa38005e2d98cc37e6623fbf913bc6de02",
+    "macro_source": "7a2ffcb8dec91f701ebaf0d04990b2be6a7b8abb",
+    "scope": "Only unchanged generated/fixture assets absent as direct template; original exact immutable transport preimages, not a current site publication."
+  },
+  "schema": "shared-shell.retained-legacy-fixture.v1",
+  "bundle_sha256": "bb84e0c01af391babe206ff42d8654b056532e7aca65bc181a9bc93f41bcae38",
+  "bundle_bytes": 822710,
+  "html_sha256": "2756b62267ade84f0316c4f3e93847fa5fd4cce9e2ee6e6004fb2d3f1de740fb",
+  "expected": {
+    "market": "JP",
+    "points": [
+      {
+        "observation_at": "2026-01-01T00:00:00+09:00",
+        "growth_score": 0.4375,
+        "inflation_score": -1.25
+      },
+      {
+        "observation_at": "2026-01-02T00:00:00+09:00",
+        "growth_score": 17,
+        "inflation_score": 0.1875
+      },
+      {
+        "observation_at": "2026-01-03T00:00:00.123456789+09:00",
+        "growth_score": 19,
+        "inflation_score": 23
+      }
+    ],
+    "initial_dates": [
+      "",
+      ""
+    ],
+    "scenario_initial": [
+      "",
+      ""
+    ]
+  },
+  "asset_count": 29,
+  "asset_sha256": {
+    "/account.js": "3a75ad49f6d678871206efbefd68311c1f60559b7924e96cfee0fcf5120cb50c",
+    "/fonts/Inter-400.woff2": "8909904ab6c872eb994093482a88a28eca2cd95912d7b6fecd72103b0dc07edc",
+    "/fonts/Inter-500.woff2": "f3779f1efccc4bdcdf9c0a02ab95bf6bd092ed09c48c08cedc725889edd1d19f",
+    "/fonts/Inter-600.woff2": "f9a06e79cd3a2a20951c0f0e28f66dd0e6d3fda73911d640a2125c8fcb78f21a",
+    "/fonts/Inter-700.woff2": "6f56409fd3d64bb85f7d070bce20749db2d66b6d63cec586cc22d1c761be2491",
+    "/fonts/Inter-800.woff2": "a7d0a50f15d389cad679238466bdb5fc9787aa0715719064ce25abaff042820d",
+    "/intl_library_search.js": "019933a8f2f6c705dae32c68f83c065b24f693a2e899c33381b21fb6b86f748f",
+    "/intl_workspace.css": "cea40312080e4da21ffa6580f755163e0ff4bec9f3dbbad0c802ddf58ce808e3",
+    "/intl_workspace.js": "50ef82f213d5f7120c8c03f237dcfdbc5b4ccdefece1c96a2f129e5f2f14b7a9",
+    "/intl_workspace_entry.js": "3b476b4ce04b91f0a8854c4a3e5b2e26f672cfa21c67445d8ce765edc62a8b1b",
+    "/intl_workspace_history.css": "cfd288b76c0b43c588023716b8f9f13a91524edb0cc7b3b4b8548b893e70f5de",
+    "/intl_workspace_macro.css": "11b8e48f9f15a8e90c556e0c703e60818ac1db8a9c02786fd6f59ccbc219dc15",
+    "/intl_workspace_risk.css": "5f21f98f0604c86876fd2d693e542094c85c8107da127b409c0b2865726a816e",
+    "/intl_workspace_scenario.js": "91217398f9f527173fc0be1a01dca305b84f2060c7b3b0e215866ef564471ab4",
+    "/intl_workspace_state.js": "b02a808380c1a1d2c798f1b827707fa07d23679e15bf01753cffaada55f00fd1",
+    "/intl_workspace_surveillance.css": "e7ccff77c7e095d600921282da70683f580e8df368e8933349438cc7cb36ff16",
+    "/live.js": "f8cda39dd4258a5778864b3b7e0bd8b9cc685bd1f926211a72268883a937a592",
+    "/live_config.js": "b49562cb0d9a53aaabc4b9852758f69524774fccc60c02558064e0952ee3926e",
+    "/logo_config.js": "b37d33d3194c191b1bb64db3f5c33d17c7dc06a74892e4aa8ea4d50320aae215",
+    "/nav_market.js": "d6a0ffd9c7fcc4f201f73b3e226934cc1709950452894e68cf921d60a90f1587",
+    "/navigation-refresh.css": "edfd821b3a6267c762fe452f7da74c0517d2f4435705f3148d5ab2be89105fae",
+    "/product-nav-icons.css": "432f6a454755566f63e843a269bee842e672d0934f10d957b6c386dcc1a824ea",
+    "/shared_shell.css": "b1918ccaa2294f18c0fd5bca123e38267251c7e9d9a7c4fce1f296ef9e4c3c1e",
+    "/shared_shell_bridge.js": "071ef7202d8886228342c00f0e7a3026eaba1d0103c4dcf1e6d204a7da77451b",
+    "/stock-logos.js": "cc29be531bc08e655464b6c0d384e1a46041aeb31caf7d982e926681fda7cb49",
+    "/tablesort.js": "62f1b5ef9c2a26c292424aa407dbcffd0dbd9d5f6e4b0443c6e9b4ca74368a42",
+    "/terminal_overlay.js": "9817ca9fdace99e6ce0af55bebda7b90c3a55ae6589fa267cf35ab23c9b5a5bf",
+    "/theme.css": "9bd171a66b42712c54459c99a0104725e2369a96cd9f3a71ba3e60b7c683d757",
+    "/theme.js": "918e7acece23ab6df8211305a938e569f0de4184c0fd9c0b2f1e56c50e3cac4d"
+  },
+  "scope": "Hermetic source/test input only; no browser/realNext execution/auth/producer/store/feed/rights claim."
+}
