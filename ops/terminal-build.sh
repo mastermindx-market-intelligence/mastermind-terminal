@@ -4473,6 +4473,7 @@ investigation_install_state(){
   sanitize_git_environment
   if ! decision=$(python3 -I - "$SRC" "$expected_sha" "$phase" "$APP" "$SERVICE_NAME" \
       "$ENV_SOURCE_DIR" "$TARGET" 2>&1 <<'PY_INVESTIGATION_INSTALL'
+import hashlib
 import json
 import os
 import re
@@ -4511,6 +4512,35 @@ PROFILES = ("production", "beta")
 
 # The key must be followed by a separator/whitespace/end so a longer key that
 # merely shares this prefix is never classified as this key.
+CANONICAL_PRODUCTION_UNIT = "terminal"
+PREHOOK_INTERPRETER = "/bin/sh"
+PREHOOK_INTERPRETER_REALPATH = "/usr/bin/dash"
+PREHOOK_GUARD_PATH = "/usr/local/sbin/terminal-volume-guard"
+PREHOOK_GUARD_BYTES = 600
+PREHOOK_GUARD_SHA256 = (
+    "1a7e39a4188d9dcfd55907e741a1b27850ed65835f4525cc6bc3a48eca122de9")
+PREHOOK_FRAGMENT_PATH = "/etc/systemd/system/terminal.service"
+PREHOOK_SOURCE_DIR = "/etc/systemd/system/terminal.service.d"
+PREHOOK_DECLARATION_BASENAMES = ("hardening.conf", "storage.conf")
+PREHOOK_BUILD_ID_ARGV = (
+    "/bin/sh", "-c",
+    "test -f /opt/terminal/terminal/.next/BUILD_ID || "
+    "{ echo no-build-refusing-start; exit 1; }")
+PREHOOK_GUARD_ARGV = (PREHOOK_GUARD_PATH, "--service")
+PREHOOK_HARDENING_DECLARATION = (
+    '/bin/sh -c "test -f /opt/terminal/terminal/.next/BUILD_ID || '
+    '{ echo no-build-refusing-start; exit 1; }"')
+PREHOOK_STORAGE_DECLARATION = "/usr/local/sbin/terminal-volume-guard --service"
+MAX_PREHOOK_ROWS = 8
+MAX_PREHOOK_REPLY_BYTES = 64 * 1024
+MAX_UNIT_SOURCE_BYTES = 16 * 1024
+MAX_UNIT_SOURCES = 32
+PREHOOK_DEFAULT_SEARCH_DIRS = (
+    "/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin")
+PREHOOK_SUPPORTED_SEARCH_PATHS = (
+    ":".join(PREHOOK_DEFAULT_SEARCH_DIRS),
+    ":".join((*PREHOOK_DEFAULT_SEARCH_DIRS, "/sbin", "/bin")))
+
 KEY_LINE = re.compile(r"^(?:export\s+)?INVESTIGATION_API_ADMISSION(?![A-Za-z0-9_])")
 KEY_ASSIGNMENT = re.compile(
     r"(?m)^\s*(?:export\s+)?INVESTIGATION_API_ADMISSION(?![A-Za-z0-9_])\s*(?:=|:)")
@@ -5096,10 +5126,17 @@ def classify_environment_topology(profile, unit, app_root, env_source_dir):
     expected_root = "/opt/terminal/terminal" if profile == "production" else "/opt/terminal/beta/terminal"
     if unit_property(unit, "WorkingDirectory") != expected_root:
         raise Refused("unsupported-working-directory")
+    prehooks = unit_property(unit, "ExecStartPre")
     for prop in ("ExecStartPost", "ExecCondition", "ExecStopPost",
                  "RootDirectory", "RootImage", "PAMName"):
         if unit_property(unit, prop):
             raise Refused("unsupported-service-launch-hook")
+    if prehooks:
+        # Zero-hook behavior is unchanged everywhere else: any ExecStartPre on
+        # a non-production target or any other unit stays refused outright.
+        if profile != "production" or unit != CANONICAL_PRODUCTION_UNIT:
+            raise Refused("unsupported-service-launch-hook")
+        classify_supported_prehooks(unit)
     safety_environment = classify_production_safety_hooks(profile, unit)
     files = unit_property(unit, "EnvironmentFiles")
     entries = ENVFILE_ENTRY.findall(files)
@@ -5127,6 +5164,8 @@ def classify_environment_topology(profile, unit, app_root, env_source_dir):
             raise Refused("admission-key-in-indirect-unit-environment")
     manager = safety_environment[1] if safety_environment is not None else manager_environment()
     refuse_file_launch_overrides(manager)
+    if prehooks:
+        classify_prehook_search_environment(unit, manager)
     if KEY_ASSIGNMENT.search(manager):
         raise Refused("admission-key-in-manager-environment")
     values = admission_values_in_unit_environment(
@@ -5151,6 +5190,279 @@ def classify_environment_topology(profile, unit, app_root, env_source_dir):
     if (safety_environment is not None
             and safety_hook_environment(unit) != safety_environment):
         raise Refused("safety-hook-changed-during-verification")
+    # Both independent qualifiers must describe the same observed hook set.
+    # A hook appearing after the typed branch was skipped cannot be admitted
+    # only by the source snapshot, nor may a verified hook disappear mid-read.
+    if unit_property(unit, "ExecStartPre") != prehooks:
+        raise Refused("safety-hook-changed-during-verification")
+
+
+def unit_source_paths(property_value):
+    # DropInPaths renders as a space-separated path list. Whitespace inside a
+    # path would make the rendering ambiguous, so it is a refusal, never a
+    # guess. Loaded sources beyond the expected two stay un-pinned: they are
+    # read only to prove they declare no ExecStartPre.
+    entries = property_value.split(" ")
+    if len(entries) > MAX_UNIT_SOURCES or len(set(entries)) != len(entries):
+        raise Refused("unit-source-list-unusable")
+    paths = []
+    for entry in entries:
+        entry = entry.strip(" \t")
+        if not entry:
+            continue
+        if (not entry.startswith("/") or re.search(r"[\s\"']", entry)
+                or entry.endswith("/")):
+            raise Refused("unit-source-list-unusable")
+        paths.append(entry)
+    return paths
+
+def execstartpre_assignments(text, prefix):
+    # Narrow systemd directive scan: complete single-line assignments only.
+    # Continuations, NUL/BOM bytes and unrecognized line shapes fail closed so
+    # a prehook declaration can never hide behind unsupported syntax. Only
+    # ExecStartPre values are projected; unrelated fields are never pinned.
+    if "\x00" in text or "\ufeff" in text:
+        raise Refused(prefix + "-unsupported-syntax")
+    lines = text.split("\n")
+    if len(lines) > MAX_SCAN_LINES:
+        raise Refused(prefix + "-oversized")
+    values = []
+    section = None
+    for line in lines:
+        stripped = line.strip(" \t\r")
+        if not stripped or stripped.startswith(("#", ";")):
+            continue
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            continue
+        if stripped.endswith("\\"):
+            raise Refused(prefix + "-unsupported-syntax")
+        key, separator, value = stripped.partition("=")
+        key = key.strip(" \t")
+        if not separator or re.fullmatch(r"[A-Za-z][A-Za-z0-9]*", key) is None:
+            raise Refused(prefix + "-unsupported-syntax")
+        if key.lower() == "execstartpre":
+            if key != "ExecStartPre" or section != "Service":
+                raise Refused(prefix + "-unsupported-syntax")
+            values.append(value.strip(" \t"))
+    return values
+
+def unit_execstartpre_rows(unit):
+    # Typed effective ExecStartPre argv over D-Bus. The rendered systemctl
+    # argv[] vector is lossy for arguments containing whitespace, so approval
+    # is never based on rendered text. Read-only: hooks are never executed.
+    name = unit if unit.endswith(".service") else unit + ".service"
+    object_path = "/org/freedesktop/systemd1/unit/" + re.sub(
+        r"[^A-Za-z0-9]", lambda match: "_%02x" % ord(match.group(0)), name)
+    try:
+        completed = subprocess.run(
+            ["/usr/bin/busctl", "--json=short", "get-property", "org.freedesktop.systemd1",
+             object_path, "org.freedesktop.systemd1.Service", "ExecStartPre"],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        raise Refused("prehook-effective-argv-unavailable")
+    if completed.returncode != 0:
+        raise Refused("prehook-effective-argv-unavailable")
+    if len(completed.stdout) > MAX_PREHOOK_REPLY_BYTES:
+        raise Refused("prehook-inventory-oversized")
+    try:
+        return json.loads(completed.stdout.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        raise Refused("prehook-effective-argv-unavailable")
+
+def typed_prehook_rows(payload):
+    # busctl --json=short renders the reply body as the list of complete out
+    # arguments; here that is one argument holding the a(sasbttttuii) array.
+    # Row positions are the execution order. Anything else fails closed.
+    if (not isinstance(payload, dict) or set(payload) != {"type", "data"}
+            or payload["type"] != "a(sasbttttuii)"):
+        raise Refused("unsupported-prehook-shape")
+    rows = payload["data"]
+    if not isinstance(rows, list) or not rows:
+        raise Refused("unsupported-prehook-shape")
+    if (len(rows) == 1 and isinstance(rows[0], list)
+            and all(isinstance(row, list) for row in rows[0])):
+        rows = rows[0]
+    if len(rows) > MAX_PREHOOK_ROWS:
+        raise Refused("prehook-inventory-oversized")
+    typed = []
+    for row in rows:
+        if (not isinstance(row, list) or len(row) != 10
+                or not isinstance(row[0], str)
+                or not isinstance(row[1], list) or not row[1]
+                or not all(isinstance(item, str) for item in row[1])
+                or not isinstance(row[2], bool)):
+            raise Refused("unsupported-prehook-shape")
+        typed.append((row[0], tuple(row[1]), row[2]))
+    return typed
+
+def trusted_path_identity(path):
+    # Metadata-only custody reader for hook-referenced binaries. Identity is
+    # the evidence; nothing is executed and no content beyond custody is read.
+    try:
+        direct = os.lstat(path)
+        resolved = os.path.realpath(path)
+        target = os.stat(path)
+    except OSError:
+        raise Refused("prehook-custody-unavailable")
+    return (direct.st_uid, direct.st_gid, stat.S_ISLNK(direct.st_mode),
+            resolved, target.st_uid, target.st_gid, target.st_mode,
+            stat.S_ISREG(target.st_mode), target.st_size)
+
+def bind_prehook_interpreter_custody():
+    # The observed legitimate /bin/sh is a trusted root-owned symlink to the
+    # root-owned interpreter. That exact shape is bound by path and custody;
+    # unexpected interpreter, target or ownership changes fail closed.
+    trusted_uid = os.geteuid()
+    link = trusted_path_identity(PREHOOK_INTERPRETER)
+    (link_uid, link_gid, is_symlink, resolved,
+     target_uid, target_gid, target_mode, target_regular, _) = link
+    if (not is_symlink or link_uid != trusted_uid or link_gid != trusted_uid
+            or resolved != PREHOOK_INTERPRETER_REALPATH
+            or not target_regular or target_uid != trusted_uid
+            or target_gid != trusted_uid or target_mode & 0o022
+            or not target_mode & 0o100):
+        raise Refused("prehook-interpreter-custody")
+
+def guard_script_payload():
+    return read_bounded_regular_file(
+        PREHOOK_GUARD_PATH, PREHOOK_GUARD_BYTES, "guard-script")
+
+def bind_prehook_guard_custody():
+    # The volume guard is bound by exact body hash and custody: a root-owned,
+    # non-symlink, group/other-nonwritable, owner-executable regular file. A
+    # changed body - including one that mutates environment files - is refused
+    # here on hash and size alone, before anything could run it.
+    trusted_uid = os.geteuid()
+    guard = trusted_path_identity(PREHOOK_GUARD_PATH)
+    (link_uid, link_gid, is_symlink, resolved,
+     target_uid, target_gid, target_mode, target_regular, _) = guard
+    if (is_symlink or resolved != PREHOOK_GUARD_PATH
+            or link_uid != trusted_uid or link_gid != trusted_uid
+            or not target_regular or target_uid != trusted_uid
+            or target_gid != trusted_uid or target_mode & 0o022
+            or not target_mode & 0o100):
+        raise Refused("prehook-guard-custody")
+    payload = guard_script_payload()
+    if (len(payload.encode("utf-8")) != PREHOOK_GUARD_BYTES
+            or hashlib.sha256(payload.encode("utf-8")).hexdigest()
+            != PREHOOK_GUARD_SHA256):
+        raise Refused("prehook-guard-body-mismatch")
+
+def classify_supported_prehooks(unit):
+    # Production's canonical unit binds the two approved prehooks three ways:
+    # the declaring drop-in sources (owners, order, custody), the typed
+    # effective argv (order, argv, ignore_errors) and the guard script body.
+    if (unit_property(unit, "Id") != "terminal.service"
+            or unit_property(unit, "FragmentPath") != PREHOOK_FRAGMENT_PATH):
+        raise Refused("prehook-unit-source-unqualified")
+    entries = unit_source_paths(unit_property(unit, "DropInPaths"))
+    owners = {}
+    for entry in entries:
+        base = entry.rstrip("/").rpartition("/")[2]
+        if base in PREHOOK_DECLARATION_BASENAMES:
+            if base in owners:
+                raise Refused("prehook-declaration-ambiguous")
+            owners[base] = entry
+    if len(owners) != len(PREHOOK_DECLARATION_BASENAMES):
+        raise Refused("prehook-declaration-missing")
+    hardening_owner = owners["hardening.conf"]
+    storage_owner = owners["storage.conf"]
+    hardening_parent = hardening_owner.rpartition("/")[0]
+    storage_parent = storage_owner.rpartition("/")[0]
+    if (hardening_parent != storage_parent
+            or hardening_parent != PREHOOK_SOURCE_DIR
+            or entries.index(hardening_owner) > entries.index(storage_owner)):
+        raise Refused("prehook-declaration-ambiguous")
+    for entry in [PREHOOK_FRAGMENT_PATH, *entries]:
+        if entry != PREHOOK_FRAGMENT_PATH and os.path.dirname(entry) != PREHOOK_SOURCE_DIR:
+            raise Refused("prehook-declaration-ambiguous")
+        values = execstartpre_assignments(
+            read_bounded_regular_file(entry, MAX_UNIT_SOURCE_BYTES, "unit-source"),
+            "unit-source")
+        if entry == hardening_owner:
+            if values != [PREHOOK_HARDENING_DECLARATION]:
+                raise Refused("prehook-declaration-mismatch")
+        elif entry == storage_owner:
+            if values != [PREHOOK_STORAGE_DECLARATION]:
+                raise Refused("prehook-declaration-mismatch")
+        elif values:
+            raise Refused("prehook-declaration-extra")
+    rows = typed_prehook_rows(unit_execstartpre_rows(unit))
+    if len(rows) != 2:
+        raise Refused("unsupported-prehook-shape")
+    if rows[0] != (PREHOOK_BUILD_ID_ARGV[0], PREHOOK_BUILD_ID_ARGV, False):
+        raise Refused("unsupported-prehook-shape")
+    if rows[1] != (PREHOOK_GUARD_PATH, PREHOOK_GUARD_ARGV, False):
+        raise Refused("unsupported-prehook-shape")
+    bind_prehook_interpreter_custody()
+    bind_prehook_guard_custody()
+
+def prehook_search_directories(manager):
+    # systemctl show-environment is not a shell program. Recognize only its
+    # literal PATH form and two standard system-manager sequences, never
+    # expand variables, quotes, escapes, relative/empty elements or custom
+    # directories. An absent assignment uses systemd's documented default.
+    values = []
+    for line in manager.split("\n"):
+        stripped = line.strip(" \t\r")
+        if re.match(r"^(?:export\s+)?PATH(?![A-Za-z0-9_])", stripped):
+            match = re.fullmatch(r"PATH=([/A-Za-z0-9:_-]+)", stripped)
+            if match is None:
+                raise Refused("prehook-search-path-unqualified")
+            values.append(match.group(1))
+    if len(values) > 1:
+        raise Refused("prehook-search-path-unqualified")
+    if not values:
+        return PREHOOK_DEFAULT_SEARCH_DIRS
+    if values[0] not in PREHOOK_SUPPORTED_SEARCH_PATHS:
+        raise Refused("prehook-search-path-unqualified")
+    return tuple(values[0].split(":"))
+
+def qualify_prehook_search_tools(directories):
+    # Read metadata only. Every directory/ancestor must be root-custodied
+    # and nonwritable by group/other; /bin and /sbin may use their normal
+    # root-owned aliases. Never execute a tool to qualify it. The first
+    # existing match must resolve to the canonical trusted /usr/bin tool,
+    # so an earlier PATH shadow is refused even when its file is root-owned.
+    trusted_uid = os.geteuid()
+    for directory in directories:
+        components = directory.strip("/").split("/")
+        paths = ["/"] + ["/" + "/".join(components[:n])
+                         for n in range(1, len(components) + 1)]
+        for path in paths:
+            identity = trusted_path_identity(path)
+            (owner, group, linked, resolved, target_owner, target_group,
+             mode, regular, size) = identity
+            expected = {"/bin": "/usr/bin", "/sbin": "/usr/sbin"}.get(path, path)
+            if (owner != trusted_uid or group != trusted_uid
+                    or target_owner != trusted_uid or target_group != trusted_uid
+                    or not stat.S_ISDIR(mode) or mode & 0o022
+                    or resolved != expected):
+                raise Refused("prehook-search-directory-custody")
+    for name in ("findmnt", "stat"):
+        for directory in directories:
+            path = directory + "/" + name
+            if not os.path.lexists(path):
+                continue
+            identity = trusted_path_identity(path)
+            (owner, group, linked, resolved, target_owner, target_group,
+             mode, regular, size) = identity
+            if (owner != trusted_uid or group != trusted_uid
+                    or target_owner != trusted_uid or target_group != trusted_uid
+                    or not regular or mode & 0o022 or not mode & 0o100
+                    or resolved != "/usr/bin/" + name):
+                raise Refused("prehook-search-tool-custody")
+            break
+        else:
+            raise Refused("prehook-search-tool-unavailable")
+
+def classify_prehook_search_environment(unit, manager):
+    # ExecSearchPath can supply the hook's PATH independently of manager and
+    # unit Environment. This contract supports only the ordinary default.
+    if unit_property(unit, "ExecSearchPath"):
+        raise Refused("prehook-search-path-unqualified")
+    qualify_prehook_search_tools(prehook_search_directories(manager))
 
 
 def installed_package_json(app_root):
