@@ -15,6 +15,7 @@ import { rateLimit, tooMany } from "@/lib/rateLimit";
 // holds no service credential and keeps NO cache shared across callers, so one entitled
 // caller's bytes can never be served to the next anonymous caller.
 import { NW_BASE } from "@/lib/upstreams";
+import { canonicalBottomSymbol, selectBottomPivotFeed } from "@/lib/bottomPivotSelection";
 const FIXTURE_DIR = path.join(process.cwd(), "public", "data");
 
 const FEEDS: Record<string, string> = {
@@ -24,11 +25,14 @@ const FEEDS: Record<string, string> = {
   // Gate #8: macro's read-only projection of the latest finalized U.S. picks
   // (mastermind.selection_cohort_projection.v1). Same proxy, same entitlement relay, same 503 honesty.
   selection_cohort_us: "selection_cohort/us.json",
+  // On-demand, single-symbol read-only evidence. Never return the full paid row feed.
+  bottom_sensors: "bottom_sensors.json",
 };
 
 // Checked-in samples served when NW_FIXTURE=1, one per feed.
 const FIXTURES: Record<string, string> = {
   market_plane: "nw_plane_fixture.json",
+  bottom_sensors: "nw_bottom_pivot_fixture.json",
 };
 
 // Per-caller bytes: no browser, CDN or proxy may keep or share them.
@@ -65,6 +69,12 @@ export async function GET(req: Request): Promise<Response> {
   if (!file) {
     return NextResponse.json({ error: "bad f param" }, { status: 400 });
   }
+  // Single-symbol projection keeps a potentially large paid producer feed off the client.
+  // Reject invalid symbols before auth/network; the proxy never accepts a path from input.
+  const symbol = f === "bottom_sensors" ? canonicalBottomSymbol(url.searchParams.get("symbol")) : null;
+  if (f === "bottom_sensors" && !symbol) {
+    return NextResponse.json({ error: "bad symbol" }, { status: 400, headers: PRIVATE_HEADERS });
+  }
 
   // Dev fixture mode: serve the checked-in sample without touching the upstream.
   if (process.env.NW_FIXTURE === "1") {
@@ -73,9 +83,14 @@ export async function GET(req: Request): Promise<Response> {
       return NextResponse.json({ error: "fixture unavailable" }, { status: 503 });
     }
     try {
-      const raw = await fs.readFile(path.join(FIXTURE_DIR, fixtureFile), "utf8");
-      return NextResponse.json(JSON.parse(raw) as Record<string, unknown>, {
-        headers: { "Cache-Control": "no-store", "X-NW-Source": "fixture" },
+      const fixturePath = f === "bottom_sensors"
+        ? path.join(process.cwd(), "lib", "__tests__", "fixtures", fixtureFile)
+        : path.join(FIXTURE_DIR, fixtureFile);
+      const raw = JSON.parse(await fs.readFile(fixturePath, "utf8")) as Record<string, unknown>;
+      const data = symbol ? selectBottomPivotFeed(raw, symbol) : raw;
+      if (!data) return refuse(503);
+      return NextResponse.json(data, {
+        headers: { ...PRIVATE_HEADERS, "X-NW-Source": "fixture" },
       });
     } catch {
       return NextResponse.json({ error: "fixture unavailable" }, { status: 503 });
@@ -100,7 +115,9 @@ export async function GET(req: Request): Promise<Response> {
     if (res.status === 402 || res.status === 403) return refuse(403);
     // Any other non-2xx, every 3xx, and an opaque redirect: the strip/card render their unavailable state.
     if (!res.ok) return refuse(503);
-    const data = (await res.json()) as Record<string, unknown>;
+    const raw = (await res.json()) as Record<string, unknown>;
+    const data = symbol ? selectBottomPivotFeed(raw, symbol) : raw;
+    if (!data) return refuse(503);
     return NextResponse.json(data, { headers: PRIVATE_HEADERS });
   } catch {
     // Network error, timeout or unparseable body. No stale copy exists to fall back to, by design.

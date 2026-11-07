@@ -1,0 +1,134 @@
+{
+  "as_of": "2026-11-05",
+  "labels_version": "labels_v2",
+  "is_display_only": true,
+  "n_rows": 3,
+  "rows": [
+    {
+      "symbol": "AAPL",
+      "bottom_state": "WATCH",
+      "pivot_context": {
+        "schema": "bottom_pivot_context.v1",
+        "symbol": "AAPL",
+        "scope": "single_security",
+        "cadence": "daily",
+        "evidence_mode": "current_snapshot",
+        "decision_at": "2026-11-05T22:00:00Z",
+        "quality": "partial",
+        "is_display_only": true,
+        "probability": null,
+        "action_authority": "none",
+        "explanation": {
+          "en": "Daily single-stock source context for AAPL: the existing source recorded a T2 trigger and a recent-low distance. This is not proof of a market bottom or a trade instruction.",
+          "zh": "AAPL 日频个股来源背景：既有来源记录了 T2 触发和近期低点距离。这并非市场底部证明，也不是交易指令。"
+        },
+        "evidence": [
+          {
+            "field": "trigger_tier",
+            "value": "T2",
+            "state": "observed",
+            "source": "signal_gate.json",
+            "as_of": "2026-11-05",
+            "available_at": null
+          },
+          {
+            "field": "coiled",
+            "value": false,
+            "state": "observed",
+            "source": "us_standouts.json",
+            "as_of": "2026-11-05",
+            "available_at": null
+          },
+          {
+            "field": "dist_21d_low_pct",
+            "value": 2.1,
+            "state": "observed",
+            "source": "data/stocks/AAPL.parquet",
+            "as_of": "2026-11-05",
+            "available_at": null
+          },
+          {
+            "field": "knife_score",
+            "value": null,
+            "state": "missing",
+            "source": null,
+            "as_of": null,
+            "available_at": null
+          }
+        ],
+        "limitations": [
+          "daily_not_intraday",
+          "no_calibrated_probability",
+          "no_market_bottom_claim",
+          "first_seen_unknown"
+        ]
+      }
+    },
+    {
+      "symbol": "UBER",
+      "bottom_state": "WATCH",
+      "pivot_context": {
+        "schema": "bottom_pivot_context.v1",
+        "symbol": "UBER",
+        "scope": "single_security",
+        "cadence": "daily",
+        "evidence_mode": "current_snapshot",
+        "decision_at": "2026-11-05T22:00:00Z",
+        "quality": "partial",
+        "is_display_only": true,
+        "probability": null,
+        "action_authority": "none",
+        "explanation": {
+          "en": "Daily single-stock source context for UBER: the existing source recorded a T2 trigger and a recent-low distance. This is not proof of a market bottom or a trade instruction.",
+          "zh": "UBER 日频个股来源背景：既有来源记录了 T2 触发和近期低点距离。这并非市场底部证明，也不是交易指令。"
+        },
+        "evidence": [
+          {
+            "field": "trigger_tier",
+            "value": "T2",
+            "state": "observed",
+            "source": "signal_gate.json",
+            "as_of": "2026-11-05",
+            "available_at": null
+          },
+          {
+            "field": "coiled",
+            "value": false,
+            "state": "observed",
+            "source": "us_standouts.json",
+            "as_of": "2026-11-05",
+            "available_at": null
+          },
+          {
+            "field": "dist_21d_low_pct",
+            "value": 2.1,
+            "state": "observed",
+            "source": "data/stocks/UBER.parquet",
+            "as_of": "2026-11-05",
+            "available_at": null
+          },
+          {
+            "field": "knife_score",
+            "value": null,
+            "state": "missing",
+            "source": null,
+            "as_of": null,
+            "available_at": null
+          }
+        ],
+        "limitations": [
+          "daily_not_intraday",
+          "no_calibrated_probability",
+          "no_market_bottom_claim",
+          "first_seen_unknown"
+        ]
+      }
+    },
+    {
+      "symbol": "MSFT",
+      "bottom_state": "UNKNOWN",
+      "pivot_context": null,
+      "unrelated_private_field": "NEVER-SEND-OTHER-SYMBOL"
+    }
+  ]
+}

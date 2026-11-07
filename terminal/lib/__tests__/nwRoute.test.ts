@@ -6,6 +6,9 @@ const ROOT = join(__dirname, "..", "..");
 const PLANE_FIXTURE = JSON.parse(
   readFileSync(join(ROOT, "public", "data", "nw_plane_fixture.json"), "utf8"),
 );
+const BOTTOM_FIXTURE = JSON.parse(
+  readFileSync(join(ROOT, "lib", "__tests__", "fixtures", "nw_bottom_pivot_fixture.json"), "utf8"),
+);
 
 const envSnapshot = { ...process.env };
 
@@ -70,6 +73,71 @@ describe("/api/nw fixture mode (unchanged)", () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual(PLANE_FIXTURE);
     expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
+describe("/api/nw Bottom Pivot read-only selection", () => {
+  it("fixture mode sends only the selected name, without touching the upstream", async () => {
+    process.env.NW_FIXTURE = "1";
+    const { GET } = await import("@/app/api/nw/route");
+    const res = await GET(req("bottom_sensors&symbol=AAPL"));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("X-NW-Source")).toBe("fixture");
+    const data = await res.json();
+    expect(data).toMatchObject({
+      schema: "bottom_pivot_selection.v1", symbol: "AAPL",
+      context: { schema: "bottom_pivot_context.v1", quality: "partial" },
+    });
+    expect(JSON.stringify(data)).not.toContain("NEVER-SEND-OTHER-SYMBOL");
+    expectPrivate(res);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("requires a bounded symbol before auth or I/O", async () => {
+    const { GET } = await import("@/app/api/nw/route");
+    for (const f of ["bottom_sensors", "bottom_sensors&symbol=..", "bottom_sensors&symbol=AAPL%2FMSFT"]) {
+      const res = await GET(req(f, ENTITLED));
+      expect(res.status).toBe(400);
+      expect(await res.json()).toEqual({ error: "bad symbol" });
+      expectPrivate(res);
+    }
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("relays only caller Supabase cookies; upstream returns one sanitized context", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(upstream(200, BOTTOM_FIXTURE));
+    const { GET } = await import("@/app/api/nw/route");
+    const res = await GET(req("bottom_sensors&symbol=MSFT", "theme=dark; " + SB_WHOLE));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({
+      schema: "bottom_pivot_selection.v1",
+      symbol: "MSFT",
+      context: null, reason: "context_unavailable",
+    });
+    expect(String(vi.mocked(fetch).mock.calls[0][0])).toBe(
+      "https://www.mastermind-x.com/neuralwebdata/bottom_sensors.json",
+    );
+    expect(sentCookie()).toBe(SB_WHOLE);
+    expect(fetchInit()).toMatchObject({ cache: "no-store", redirect: "manual" });
+    expectPrivate(res);
+  });
+
+  it("anonymous cannot fetch; 403 remains private; malformed feed fails closed", async () => {
+    const { GET } = await import("@/app/api/nw/route");
+    const noCookie = await GET(req("bottom_sensors&symbol=AAPL"));
+    expect(noCookie.status).toBe(401);
+    expect(fetch).not.toHaveBeenCalled();
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(upstream(403, { secret_marker: "PRIVATE" }))
+      .mockResolvedValueOnce(upstream(200, { rows: [], is_display_only: false }));
+    const denied = await GET(req("bottom_sensors&symbol=AAPL", ENTITLED));
+    expect(denied.status).toBe(403);
+    expect(await denied.json()).toEqual({ error: "not_entitled" });
+    const malformed = await GET(req("bottom_sensors&symbol=AAPL", ENTITLED));
+    expect(malformed.status).toBe(503);
+    expect(await malformed.json()).toEqual({ error: "feed unavailable" });
+    expectPrivate(denied);
+    expectPrivate(malformed);
   });
 });
 
