@@ -4843,7 +4843,8 @@ def safety_exec_projection(value):
     )
     metadata = (
         r"(?:start_time=\[[^\]\r\n]*\] ; stop_time=\[[^\]\r\n]*\] ; "
-        r"pid=[0-9]+ ; code=[a-zA-Z0-9_-]+ ; status=[0-9]+(?:/[A-Z0-9]+)? ;? )?")
+        r"pid=[0-9]+ ; code=(?:[a-zA-Z0-9_-]+|\(null\)) ; "
+        r"status=[0-9]+(?:/[A-Z0-9]+)?(?: ; | {1,2}))?")
     records = []
     for path, argv in commands:
         records.append(
