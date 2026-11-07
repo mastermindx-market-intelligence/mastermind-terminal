@@ -63,7 +63,7 @@ def _main_body(*, code_only: bool = False) -> str:
 
 
 @pytest.fixture()
-def verifier():
+def verifier(tmp_path):
     text = _library_text()
     marker = "<<'PY_INVESTIGATION_INSTALL'"
     start = text.index(marker) + len(marker) + 1
@@ -73,7 +73,8 @@ def verifier():
         "the extracted verifier must keep its main guard so the test namespace "
         "never executes production main"
     )
-    namespace = {"__name__": "terminal_investigation_install_under_test"}
+    namespace = {"__name__": "terminal_investigation_install_under_test",
+                 "_safety_fixture_root": tmp_path / "safety-path-filesystem"}
     exec(compile(body, "<extracted investigation verifier>", "exec"), namespace)
     return namespace
 
@@ -1934,3 +1935,435 @@ def test_systemd_environment_file_supported_single_line_declaration(verifier, tm
     app.mkdir()
     host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_beta_unit(str(env_file)))
     assert _decide(verifier, host, app=app, profile="beta", unit_name="terminal-beta", env_dir=str(tmp_path)) == 0
+
+# Prospective production safety-hook contract. All host readers are fake;
+# these tests neither retry original44380 nor execute a hook or installer.
+SAFETY_GUARD = '''#!/bin/bash
+set -euo pipefail
+if [[ "${1:-}" != --service && -e /etc/terminal-storage-maintenance ]]; then exit 75; fi
+check_mount() {
+ local rec uuid kind root extra
+ rec=$(findmnt -rn --mountpoint "$1" -o UUID,FSTYPE,FSROOT) || return 1
+ [[ -n "$rec" && "$rec" != *$'\\n'* ]] || return 1
+ read -r uuid kind root extra <<< "$rec"
+ [[ "$uuid" == 71dc6155-3f93-4370-a971-b89a6d87a203 && "$kind" == ext4 && "$root" == "$2" && -z "$extra" ]]
+}
+check_mount /mnt/terminal_storage /
+check_mount /opt/terminal /live-terminal
+[[ "$(stat -Lc '%d' /opt/terminal)" == "$(stat -Lc '%d' /mnt/terminal_storage)" ]]
+'''
+
+
+SAFETY_MANAGER_PATH = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+
+class SafetyPathFilesystem:
+    """Actual private files/fds; logical OS paths and root custody are fixtures.
+
+    The executable bytes are inert test data. No system command, real manager,
+    production directory or installed binary is read or executed.
+    """
+    def __init__(self, verifier):
+        self.root = verifier["_safety_fixture_root"]
+        self.root.mkdir()
+        self.overrides = {}
+        self.descriptors = {}
+        for name in ("usr/local/sbin", "usr/local/bin", "usr/sbin", "usr/bin"):
+            self.root.joinpath(name).mkdir(parents=True, exist_ok=True)
+        (self.root / "bin").symlink_to("usr/bin")
+        (self.root / "sbin").symlink_to("usr/sbin")
+        for name in ("findmnt", "stat"):
+            path = self.file("/usr/bin/" + name)
+            path.write_bytes(("inert fixture bytes for " + name).encode())
+            path.chmod(0o755)
+        fixture = self
+        virtual = SimpleNamespace(**vars(os))
+
+        def logical_stat(info, path):
+            fields = ("st_dev", "st_ino", "st_mode", "st_uid", "st_gid", "st_nlink",
+                      "st_size", "st_mtime_ns", "st_ctime_ns")
+            values = {name: getattr(info, name) for name in fields}
+            values.update(st_uid=0, st_gid=0)
+            values.update(fixture.overrides.get(path, {}))
+            return SimpleNamespace(**values)
+
+        def lstat(path):
+            return logical_stat(os.lstat(fixture.file(path)), path)
+
+        def open_file(path, flags):
+            assert flags & os.O_NOFOLLOW
+            assert not flags & (os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC)
+            descriptor = os.open(fixture.file(path), flags)
+            fixture.descriptors[descriptor] = path
+            return descriptor
+
+        def fstat(descriptor):
+            return logical_stat(os.fstat(descriptor), fixture.descriptors[descriptor])
+
+        def close(descriptor):
+            del fixture.descriptors[descriptor]
+            os.close(descriptor)
+
+        virtual.lstat = lstat
+        virtual.readlink = lambda path: os.readlink(fixture.file(path))
+        virtual.open = open_file
+        virtual.fstat = fstat
+        virtual.close = close
+        verifier["os"] = virtual
+        self.virtual_os = virtual
+
+    def file(self, path):
+        return self.root / path.lstrip("/")
+
+
+def safety_host(verifier, *, extra_props=None):
+    script = verifier["BUILD_ID_SAFETY_SCRIPT"]
+    guard = verifier["VOLUME_SAFETY_PATH"]
+    pre = ("{ path=/bin/sh ; argv[]=/bin/sh -c " + script
+           + " ; ignore_errors=no ; } "
+           + "{ path=" + guard + " ; argv[]=" + guard
+           + " --service ; ignore_errors=no ; }")
+    props = closed_prod_unit(ExecStartPre=pre, ExecSearchPath="",
+        FragmentPath="/etc/systemd/system/terminal.service",
+        DropInPaths=" ".join(p for p, _ in verifier["SAFETY_HOOK_ASSIGNMENTS"]))
+    props.update(extra_props or {})
+    host = FakeGitHost(tree_listing=primitive_entry(), unit=props,
+                       manager="PATH=" + SAFETY_MANAGER_PATH).install(verifier)
+    host.safety_path_fs = SafetyPathFilesystem(verifier)
+    files = {props["FragmentPath"]: "[Service]\nExecStart=/usr/bin/npm run start\n",
+             guard: SAFETY_GUARD}
+    files.update({p: "[Service]\n" + assignment + "\n"
+                  for p, assignment in verifier["SAFETY_HOOK_ASSIGNMENTS"]})
+    reads = []
+    def read(path, limit):
+        reads.append(path)
+        if path not in files:
+            raise verifier["Refused"]("safety-hook-unreadable")
+        return files[path]
+    verifier["trusted_safety_file"] = read
+    return host, files, reads
+
+
+def test_two_exact_production_safety_predicates_are_source_qualified(verifier):
+    host, files, reads = safety_host(verifier)
+    assert len(SAFETY_GUARD.encode()) == 600
+    assert hashlib.sha256(SAFETY_GUARD.encode()).hexdigest() == verifier["VOLUME_SAFETY_SHA256"]
+    verifier["main"](["/app", NEW_SHA, "prestart", "/app", "terminal", "/app", "production"])
+    assert reads.count(verifier["VOLUME_SAFETY_PATH"]) == 2
+    assert host.unit_calls.count("ExecStartPre") == 2
+
+
+@pytest.mark.parametrize("change", [
+    lambda s: s.replace("--service", "--service --bypass"),
+    lambda s: s.replace("ignore_errors=no", "ignore_errors=yes"),
+    lambda s: s.replace("exit 1;", "exit 0;"),
+    lambda s: s.replace("test -f", "touch"),
+    lambda s: s.replace("/bin/sh", "/tmp/sh"),
+    lambda s: s + " { path=/bin/evil ; argv[]=/bin/evil ; ignore_errors=no ; }",
+    lambda s: s.replace(" --service", ""),
+    lambda s: s.replace("BUILD_ID ||", "BUILD_ID; env > /tmp/leak ||"),
+])
+def test_safety_hook_projection_does_not_allow_changed_or_additional_command(verifier, change):
+    host, _, _ = safety_host(verifier)
+    host.unit["ExecStartPre"] = change(host.unit["ExecStartPre"])
+    with pytest.raises(verifier["Refused"], match="unsupported-service-launch-hook"):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+
+
+@pytest.mark.parametrize("profile,unit", [("beta", "terminal-beta"), ("production", "other")])
+def test_production_safety_contract_cannot_be_transferred(verifier, profile, unit):
+    safety_host(verifier)
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_production_safety_hooks"](profile, unit)
+
+
+@pytest.mark.parametrize("mutation", ["reset", "duplicate", "outside_service", "continuation", "guard_bytes", "missing"])
+def test_loaded_safety_source_must_match_projection(verifier, mutation):
+    _, files, _ = safety_host(verifier)
+    path = verifier["SAFETY_HOOK_ASSIGNMENTS"][0][0]
+    if mutation == "reset": files[path] += "ExecStartPre=\n"
+    elif mutation == "duplicate": files[path] += verifier["SAFETY_HOOK_ASSIGNMENTS"][0][1] + "\n"
+    elif mutation == "outside_service": files[path] = files[path].replace("[Service]", "[Unit]")
+    elif mutation == "continuation": files[path] += "Environment=SAFE=1\\\n"
+    elif mutation == "guard_bytes": files[verifier["VOLUME_SAFETY_PATH"]] += "exit 0\n"
+    else: del files[path]
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+
+
+@pytest.mark.parametrize("env", ["BASH_ENV=/tmp/load", "ENV=/tmp/load", "PATH=/tmp", "IFS=x", "SHELLOPTS=x", "BASHOPTS=x", "BASH_FUNC_test%%=evil"])
+def test_safety_shell_environment_cannot_inject_effects(verifier, env):
+    host, _, _ = safety_host(verifier)
+    host.manager = env
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+
+
+def test_loaded_safety_sources_changing_during_admission_refuse(verifier):
+    _, files, reads = safety_host(verifier)
+    original = verifier["trusted_safety_file"]
+    guard = verifier["VOLUME_SAFETY_PATH"]
+    def moving(path, limit):
+        value = original(path, limit)
+        if path == guard: files[guard] += "# changed\n"
+        return value
+    verifier["trusted_safety_file"] = moving
+    with pytest.raises(verifier["Refused"], match="safety-hook-changed-during-verification"):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+
+
+def test_safety_parent_symlink_or_writable_directory_refuses(verifier, monkeypatch):
+    # Exercise the real provenance collector rather than the fake reader above.
+    for mode in (0o120777, 0o040777):
+        monkeypatch.setattr(os, "lstat", lambda path, mode=mode: SimpleNamespace(st_mode=mode, st_uid=0))
+        with pytest.raises(verifier["Refused"], match="safety-hook-parent-untrusted"):
+            verifier["trusted_safety_file"]("/etc/systemd/system/x.conf", 1024)
+
+@pytest.mark.parametrize("change_at", [2, 3])
+@pytest.mark.parametrize("source", ["unit", "manager"])
+@pytest.mark.parametrize("late", [
+    'BASH_FUNC_findmnt%%="() { :; }"',
+    'SHELLOPTS=x',
+    'UNRELATED_DIAGNOSTIC=changed',
+])
+def test_deferred_safety_environment_change_refuses_full_topology(verifier, source, late, change_at):
+    host, _, _ = safety_host(verifier)
+    original_unit = verifier["unit_property"]
+    original_manager = verifier["manager_environment"]
+    reads = 0
+    def moving_unit(unit, prop):
+        nonlocal reads
+        value = original_unit(unit, prop)
+        if source == "unit" and prop == "Environment":
+            reads += 1
+            if reads >= change_at:
+                return value + " " + late
+        return value
+    def moving_manager():
+        nonlocal reads
+        value = original_manager()
+        if source == "manager":
+            reads += 1
+            if reads >= change_at:
+                return value + "\n" + late
+        return value
+    verifier["unit_property"] = moving_unit
+    verifier["manager_environment"] = moving_manager
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_environment_topology"](
+            "production", "terminal", "/app", "/app")
+
+
+@pytest.mark.parametrize("prop,late", [
+    ("ExecSearchPath", "/tmp/other-bin"),
+    ("PassEnvironment", "BASH_FUNC_findmnt%%"),
+    ("UnsetEnvironment", "UNRELATED_DIAGNOSTIC"),
+])
+@pytest.mark.parametrize("change_at", [2, 3])
+def test_deferred_safety_search_and_indirect_environment_refused(verifier, prop, late, change_at):
+    safety_host(verifier)
+    original = verifier["unit_property"]
+    reads = 0
+
+    def moving_property(unit, name):
+        nonlocal reads
+        value = original(unit, name)
+        if name == prop:
+            reads += 1
+            if reads >= change_at:
+                return late
+        return value
+
+    verifier["unit_property"] = moving_property
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
+
+
+@pytest.mark.parametrize("code", ["exited", "(null)"])
+@pytest.mark.parametrize("suffix", [" ; ", " "])
+def test_safety_hook_known_systemd_metadata_schema(verifier, code, suffix):
+    host, _, _ = safety_host(verifier)
+    metadata = ("start_time=[] ; stop_time=[] ; pid=0 ; code=" + code
+                + " ; status=0/0" + suffix)
+    host.unit["ExecStartPre"] = host.unit["ExecStartPre"].replace(
+        "ignore_errors=no ; }", "ignore_errors=no ; " + metadata + "}")
+    verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
+
+
+@pytest.mark.parametrize("change", [
+    lambda s: s.replace("pid=0 ;", "pid=0 ; extra=value ;"),
+    lambda s: s.replace("start_time=[] ; stop_time=[]", "stop_time=[] ; start_time=[]"),
+    lambda s: s.replace("code=(null)", "code=(NULL)"),
+    lambda s: s.replace("code=(null)", "code=(null)junk"),
+    lambda s: s.replace("code=(null)", "code=()"),
+    lambda s: s.replace("status=0/0", "status=0/0 ; unknown=value"),
+    lambda s: s.replace("--service", "--service --bypass"),
+    lambda s: s.replace("ignore_errors=no", "ignore_errors=yes"),
+    lambda s: s.replace("stop_time=[] ; ", ""),
+    lambda s: s[:-1],
+    lambda s: s + " unexpected",
+])
+def test_safety_hook_metadata_refuses_unknown_or_changed_structure(verifier, change):
+    host, _, _ = safety_host(verifier)
+    metadata = "start_time=[] ; stop_time=[] ; pid=0 ; code=(null) ; status=0/0 "
+    projection = host.unit["ExecStartPre"].replace(
+        "ignore_errors=no ; }", "ignore_errors=no ; " + metadata + "}")
+    host.unit["ExecStartPre"] = change(projection)
+    with pytest.raises(verifier["Refused"], match="unsupported-service-launch-hook"):
+        verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
+
+
+# Manager defaults are a different environment role from explicit unit/file
+# overrides. The exact hook contract must compose with qualified OS resolution.
+@pytest.mark.parametrize("path", [
+    "/usr/bin", "/bin", "/usr/sbin:/usr/bin", SAFETY_MANAGER_PATH,
+    "/bin:/usr/bin:/usr/local/bin",
+])
+def test_exact_safety_hooks_accept_qualified_manager_path(verifier, path):
+    host, _, _ = safety_host(verifier)
+    host.manager = "PATH=" + path + "\nLANG=C\n"
+    observed = verifier["classify_production_safety_hooks"]("production", "terminal")
+    assert observed[:5] == (PROD_CLOSED_ENV, host.manager, "", "", "")
+    assert len(observed) == 6
+    _, programs = observed[5]
+    assert [row[0] for row in programs] == ["findmnt", "stat"]
+    for name, spelling, canonical, _, digest in programs:
+        assert spelling == path.split(":")[0] + "/" + name or spelling == "/usr/bin/" + name
+        assert canonical == "/usr/bin/" + name
+        assert digest == hashlib.sha256(host.safety_path_fs.file(canonical).read_bytes()).hexdigest()
+    assert not host.safety_path_fs.descriptors
+
+
+@pytest.mark.parametrize("value", [
+    "", ":/usr/bin", "/usr/bin:", "usr/bin", "/usr/bin::/bin",
+    "/usr/bin:/usr/bin", "/usr/bin/../bin", "/tmp:/usr/bin",
+])
+def test_manager_path_rejects_unsupported_search_topology(verifier, value):
+    host, _, _ = safety_host(verifier)
+    host.manager = "PATH=" + value
+    with pytest.raises(verifier["Refused"], match="safety-hook-manager-path-unsupported"):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+
+
+@pytest.mark.parametrize("declaration", [
+    "LANG=C", "PATH", "PATH=/usr/bin\nPATH=/bin", "path=/usr/bin",
+])
+def test_safety_manager_path_requires_one_exact_declaration(verifier, declaration):
+    host, _, _ = safety_host(verifier)
+    host.manager = declaration
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+
+
+@pytest.mark.parametrize("prop,token", [
+    ("Environment", "PATH=/usr/bin"), ("Environment", "HOME=/root"),
+    ("Environment", "npm_config_workspace=other"),
+    ("PassEnvironment", "PATH"), ("UnsetEnvironment", "PATH"),
+])
+def test_manager_path_exception_never_applies_to_selected_environment(verifier, prop, token):
+    host, _, _ = safety_host(verifier)
+    host.unit[prop] = (host.unit[prop] + " " + token).strip()
+    with pytest.raises(verifier["Refused"], match="unsupported-launch-environment-override"):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+
+
+@pytest.mark.parametrize("mutation", [
+    "directory_owner", "directory_group", "writable_directory", "ancestor_symlink",
+    "wrong_alias", "missing_program", "program_symlink", "program_owner",
+    "writable_program", "nonexecutable_program", "setuid_program",
+    "oversized_program", "hardlinked_program", "earlier_shadow",
+])
+def test_manager_path_requires_trusted_directories_and_first_programs(verifier, mutation):
+    host, _, _ = safety_host(verifier)
+    fs = host.safety_path_fs
+    program = fs.file("/usr/bin/findmnt")
+    if mutation == "directory_owner":
+        fs.overrides["/usr/bin"] = {"st_uid": 1000}
+    elif mutation == "directory_group":
+        fs.overrides["/usr"] = {"st_gid": 1000}
+    elif mutation == "writable_directory":
+        fs.file("/usr/local/bin").chmod(0o777)
+    elif mutation == "ancestor_symlink":
+        fs.file("/usr/local/sbin").rmdir()
+        fs.file("/usr/local/bin").rmdir()
+        fs.file("/usr/local").rmdir()
+        fs.file("/usr/local").symlink_to("bin")
+    elif mutation == "wrong_alias":
+        fs.file("/bin").unlink()
+        fs.file("/bin").symlink_to("usr/local/bin")
+    elif mutation == "missing_program":
+        program.unlink()
+    elif mutation == "program_symlink":
+        program.unlink()
+        program.symlink_to("stat")
+    elif mutation == "program_owner":
+        fs.overrides["/usr/bin/findmnt"] = {"st_uid": 1000}
+    elif mutation == "writable_program":
+        program.chmod(0o777)
+    elif mutation == "nonexecutable_program":
+        program.chmod(0o644)
+    elif mutation == "setuid_program":
+        program.chmod(0o4755)
+    elif mutation == "oversized_program":
+        fs.overrides["/usr/bin/findmnt"] = {"st_size": 8 * 1024 * 1024 + 1}
+    elif mutation == "hardlinked_program":
+        os.link(program, fs.file("/usr/bin/another-name"))
+    else:
+        shadow = fs.file("/usr/local/bin/findmnt")
+        shadow.write_bytes(b"earlier executable shadow")
+        shadow.chmod(0o755)
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+    assert not fs.descriptors
+
+
+@pytest.mark.parametrize("mutation", ["program_bytes", "directory_identity", "earlier_shadow"])
+def test_unchanged_manager_text_does_not_hide_resolution_or_custody_change(verifier, mutation):
+    host, _, _ = safety_host(verifier)
+    fs = host.safety_path_fs
+    original = verifier["qualify_manager_safety_path"]
+    calls = 0
+
+    def moving(value):
+        nonlocal calls
+        result = original(value)
+        calls += 1
+        if calls == 1:
+            if mutation == "program_bytes":
+                fs.file("/usr/bin/findmnt").write_bytes(b"changed inert command bytes")
+            elif mutation == "directory_identity":
+                info = fs.file("/usr/bin").stat()
+                os.utime(fs.file("/usr/bin"), ns=(info.st_atime_ns, info.st_mtime_ns + 1000000))
+            else:
+                shadow = fs.file("/usr/local/bin/findmnt")
+                shadow.write_bytes(b"new earlier executable")
+                shadow.chmod(0o755)
+        return result
+
+    verifier["qualify_manager_safety_path"] = moving
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
+
+
+def test_manager_program_replacement_during_descriptor_read_refuses(verifier):
+    host, _, _ = safety_host(verifier)
+    fs = host.safety_path_fs
+    original = fs.virtual_os.read
+    changed = False
+
+    def moving(descriptor, count):
+        nonlocal changed
+        data = original(descriptor, count)
+        if not changed and fs.descriptors[descriptor] == "/usr/bin/findmnt":
+            changed = True
+            path = fs.file("/usr/bin/findmnt")
+            path.rename(path.with_name("old-findmnt"))
+            path.write_bytes(b"replacement bytes")
+            path.chmod(0o755)
+        return data
+
+    fs.virtual_os.read = moving
+    with pytest.raises(verifier["Refused"], match="safety-hook-manager-path-changed"):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+    assert changed
+    assert not fs.descriptors

@@ -1,13 +1,14 @@
 """The `terminal-e2e` matrix job carries a repository-variable-gated lane switch
 (Mastermind #917, phase 9). These tests pin its safety contract:
 
-* with the variable unset the job is byte-for-byte the hosted job it was before
-  (ubuntu-latest, one worker, ports 3108 / 31991 / 31992);
-* a `pull_request` from a fork never reaches the self-hosted host, whatever the
-  variable says (public repository);
+* with the variable unset, the hosted job preserves ubuntu-latest, one worker
+  and ports 3108 / 31991 / 31992;
+* this unchanged workflow routes a fork pull_request to hosted runners,
+  regardless of the variable; the runbook retains the separate host boundary;
 * the hosted fallback is a literal, so a broken expression cannot land on the host;
-* no workflow expression is spliced into a `run:` block (lane values travel as env
-  and are bound by .github/scripts/terminal_e2e_lane.sh, which rejects bad input).
+* only the accepted protected selector's matrix.projects and matrix.specs fields
+  are spliced into browser run blocks; lane values travel as env and are bound by
+  .github/scripts/terminal_e2e_lane.sh, which rejects bad input.
 """
 from __future__ import annotations
 
@@ -64,13 +65,13 @@ def test_lane_env_mirrors_the_runs_on_condition() -> None:
     assert env["TERMINAL_E2E_LANE_WORKERS"] == "${{ vars.TERMINAL_E2E_WORKERS }}"
 
 
-def test_no_expression_inside_any_run_block_except_matrix_projects() -> None:
+def test_no_expression_inside_any_run_block_except_bound_matrix_fields() -> None:
     for step in e2e_job()["steps"]:
         run = step.get("run")
         if not run:
             continue
         for expr in re.findall(r"\$\{\{(.*?)\}\}", run):
-            assert expr.strip() == "matrix.projects", f"expression spliced into run block: {expr!r}"
+            assert expr.strip() in {"matrix.projects", "matrix.specs"}, f"expression spliced into run block: {expr!r}"
 
 
 def test_playwright_cache_is_bound_per_lane() -> None:

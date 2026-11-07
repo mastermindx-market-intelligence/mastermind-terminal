@@ -125,9 +125,9 @@
 @media(pointer:coarse) { .map button,.map select,.map input { min-height:44px; } }
 @media(max-width:540px) { .map { padding:0 8px 14px; gap:12px; } .workspaceNav>span { display:none; } .workspaceNav button { flex:1; } .instrument h2 { font-size:25px; } .badge { max-width:140px; font-size:9px!important; } .toolbar { gap:8px; } .toolbar label { flex:1; min-width:0; } .toolbar select { max-width:100%; width:100%; font-size:11px; } .toolbar>.segment { width:100%; } .toolbar>.segment button { flex:1; } .leaders { grid-template-columns:1fr 1fr; } .leaders>* { padding:11px; } .leaders>:nth-child(2) { border-inline-end:0; } .leaders>:nth-child(-n+2) { border-bottom:1px solid var(--line); } .leaders strong { font-size:21px; } .leaders span { font-size:8px; } .chart { height:340px; } .chartBody { bottom:48px; } .caption { font-size:8px; } .chartTools .segment { width:100%; } .chartTools .segment button { flex:1; } .chartTools>div:last-child { width:100%; justify-content:space-between; } .inspector { display:block; padding:14px; } .inspector .route { margin-top:16px; } .expiryGrid { grid-template-columns:repeat(2,minmax(0,1fr)); } .sectionHead { align-items:flex-start; flex-direction:column; } .analytics { padding:12px; } .source dl { grid-template-columns:minmax(0,1fr); } .source dd { text-align:start; margin-bottom:8px; } .momentumGrid { gap:3px; } .momentumGrid>button { padding:8px 4px; } .momentumGrid strong { font-size:9px; overflow-wrap:anywhere; } .quad { grid-template-columns:minmax(0,1fr); } }
 @media(prefers-reduced-motion:reduce) { .map * { scroll-behavior:auto!important; } }
-.averageStrip { display:flex; gap:10px; flex-wrap:wrap; padding:7px 12px; border-bottom:1px solid var(--line); color:var(--text-2); font-size:9px; }
+.averageStrip { display:flex; gap:10px; flex-wrap:wrap; padding:7px 12px; border-bottom:1px solid var(--line); color:var(--text-2); font-size:11px; line-height:1.35; overflow-wrap:anywhere; }
 .averageStrip b { font-weight:500; color:var(--muted); }
-.averageStrip small { margin-inline-start:auto; font-size:8px; color:var(--muted); }
+.averageStrip small { margin-inline-start:auto; font-size:11px; color:var(--muted); }
 /* The chart workspace owns one compact instrument/navigation row. */
 .map { gap:10px; }
 .workspaceNav { min-height:44px; }
@@ -149,7 +149,7 @@
 
 .scenario .toolbar>label { font-size:10px; gap:5px; }
 .panelScope { width:100%; margin-top:10px; padding:7px; background:var(--bg); border:1px solid var(--line); border-radius:5px; font-size:10px!important; }
-.averageStrip time { color:var(--muted); font-size:8px; }
+.averageStrip time { color:var(--muted); font-size:11px; }
 
 .inspectorSheet { padding:0!important; }
 .inspectorSheet .inspector { border:0; border-radius:0; padding:14px 18px 24px; }
@@ -175,7 +175,6 @@
   .chartTools>div:last-child { width:auto; gap:0; }
   .chartTools>div:last-child button { min-width:44px; padding:5px; }
   .averageStrip { padding:5px 8px; gap:5px 8px; }
-  .averageStrip small { display:none; }
 }
 .profile { max-height:310px; overflow-y:auto; }
 .marketLeader { padding:10px; margin:10px 0; }
@@ -370,3 +369,11 @@
 }
 @media(max-width:540px) { .instrument h2 { font-size:28px; } .leaders>* { padding:10px 11px; } }
 @media(max-width:640px){.sectionHead{flex-wrap:wrap}.segment{flex-wrap:wrap}}
+
+/* Light numeric/bias ink must read on the research surface. Signs and bias
+   words carry meaning; the fixed exposure palette stays on chart marks. */
+:global(html[data-theme="light"]) .map .leaders strong[data-sign],
+:global(html[data-theme="light"]) .map .rankedNodes b[data-sign],
+:global(html[data-theme="light"]) .map .momentumGrid strong[data-sign] { color:var(--text); }
+
+.inspector>h3:focus-visible { outline:2px solid var(--brand-2); outline-offset:3px; }

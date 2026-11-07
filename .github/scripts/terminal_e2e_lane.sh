@@ -12,7 +12,7 @@
 # ubuntu0 -> one 32-core host serves several runner slots at once, so every slot owns a
 #            disjoint port set derived from its slot number N (1..9): 3200+N for the shard,
 #            32000+10N+1 / +2 for the serial opt-ins. Workers default to 4 (measured
-#            2026-11-05: desktop-1 8m08s at 4 workers vs 54m41s hosted) and must be an
+#            2026-11-05: desktop-1 job 8m08s, command 431s; no full-matrix proof) and must be an
 #            integer 1..16 when the variable is set. A slot name that does not match
 #            `ubuntu0-e2e-N`, or an invalid workers value, exits 2: a misnamed slot would
 #            collide on ports with its neighbours, and silently defaulting an operator

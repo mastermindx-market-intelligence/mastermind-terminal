@@ -1,24 +1,33 @@
 # Terminal e2e self-hosted lane (ubuntu0)
 
 Mastermind #917, phase 9. The `terminal-e2e` matrix job in `.github/workflows/ci.yml`
-can run its twelve Playwright shards on the ubuntu0 host instead of `ubuntu-latest`.
+can route its selected Playwright shards to ubuntu0 instead of `ubuntu-latest`.
+The accepted dynamic selector chooses the matrix; a full selection has twelve shards.
+Trusted docs-only and native merge-group skips retain their existing separate rules.
 The switch is a repository variable, so the lane is **inert until an administrator
 sets it**. Unsetting the variable restores hosted routing; stopping the runner slots
 is the full rollback (see Rollback). No PR is needed to turn it on or off.
 
 ## Why
 
-Canary measurements on 2026-11-05 (workflow `selfhosted-e2e-canary.yml`, shard
-`desktop-1`, ephemeral JIT runner on ubuntu0, 32 cores / 29 GB):
+Historical canaries on 2026-11-05 used `selfhosted-e2e-canary.yml`,
+`desktop-1`, an ephemeral JIT runner on ubuntu0, 32 cores / 29 GB.
+Keep their measurement boundaries separate:
 
-| lane | workers | wall time | run |
-| --- | --- | --- | --- |
-| hosted `ubuntu-latest` | 1 | 54m41s | baseline p50 |
-| ubuntu0 JIT | 1 | 16m06s | 42011181810 |
-| ubuntu0 JIT | 4 | 8m08s | 42029519496 |
+| Observation | Time | Source / boundary |
+| --- | ---: | --- |
+| Earlier hosted baseline | 54m41s | Reported historical shard p50; not a matched-source comparison |
+| ubuntu0, one worker | 16m06s | Canary job, run 42011181810 |
+| ubuntu0, four workers | 8m08s | Canary job, run 42029519496 |
+| Four-worker browser command | 7m11s | Actual `shard_seconds=431` in job 127256570861 |
+| Four-worker whole workflow | 17m36s | Run 42029519496, created 12:43:10Z / completed 13:00:46Z |
 
-The hosted shard is bound by the 4-core hosted runner's Next.js dev server; on the
-host the same shard is 3.4x faster at one worker and 6.7x faster at four.
+The [four-worker native log](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/42029519496/job/127256570861)
+selected 268 tests: 236 passed and 32 skipped. Source was protected 50713efda7cbd06c60b6dce2f88b31cea5c005a2,
+runner `ubuntu0-canary-3`, group `Default`. This proves one shard on
+that canary, not a restricted multi-slot fleet, a current whole-matrix result,
+causal speed ratios or a five-minute verdict. Required host isolation and runner
+group qualification below remain unproved by that historical Default-group run.
 
 ## The switch
 
@@ -88,11 +97,13 @@ A runner not named `ubuntu0-e2e-N` (for example the canary's `ubuntu0-canary-*`
 JIT runners) is rejected with exit 2, so a mislabelled runner fails the job
 loudly instead of colliding on ports.
 
-Sizing from the canary: at 4 workers one shard used roughly 4-6 cores at peak.
-Four slots × 4 workers fits the 32-core host with headroom; start with four slots
-(`ubuntu0-e2e-1..4`) and `TERMINAL_E2E_WORKERS` unset (default 4). Twelve shards
-over four slots is three rounds of ~8 min, about 25 min wall for the whole matrix
-against 54 min hosted, and each additional slot removes a round.
+Four slots × four workers is an initial sizing proposal, subject to measured CPU,
+memory, storage contention and queue behavior under the qualified host policy.
+The simple estimate of three eight-minute rounds is about 25 minutes before other
+required paths and scheduling costs; it is not observed whole-matrix performance.
+The 431-second canary command already exceeds the complete 300-second target, so
+fixture work and smaller qualified scheduling units remain necessary. Increasing
+slots alone cannot establish the five-minute architecture's acceptance.
 
 ### Registering a slot (host operator)
 
@@ -304,3 +315,26 @@ ownership, which the CI seat
 does not hold (the API returned 403 on 2026-11-05). That is the single human step
 for this lane. Everything else in this document is already in source and inert
 until the variable is set.
+
+## Current protected-source composition — 2026-11-07
+
+This original candidate composes protected `da93645b9f21d8bdd25ace98ef24d08d0914c2fd`.
+It retains `needs: [pr_scope, e2e-scope]`, the selected JSON matrix, both
+`matrix.projects` and `matrix.specs`, trusted docs/native merge-group
+skip conditions, artifact names and fail-closed aggregate. Only the existing
+lane binder, worker/port selection and per-slot browser cache differ from the
+protected browser job. Hosted defaults remain one worker and original ports;
+both serial opt-ins remain one worker with zero retries.
+
+The original #1223 create-commit effect remains unresolved on its own branch and
+candidate tree. This composition does not import its held topology, tracing,
+timing or Node-discovery work. The original #1306 queue entry and old-head review
+remain historical receipts; a new source head needs current CI and any genuinely
+mandatory review. No variable, listener, runner registration, queue admission,
+administrator setting or host installation is changed by this source update.
+
+Activation still needs the existing restricted runner-group/public-contributor
+policy, no-sudo slot identities, ephemeral credential and process custody,
+fresh-home/drain checks, capacity evidence and verified rollback. The earlier
+administrator 403 is not retried. Source qualification and an administrator's
+host activation are distinct milestones.
