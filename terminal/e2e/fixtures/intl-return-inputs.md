@@ -1,64 +1,69 @@
-# Intl Return input and execution contract
+# Hermetic Intl Return fixture and normal execution
 
-This is a test of the existing real Next/AppShell/SharedShellPresentation/Link
-and catchall route. The single spec loops Macro and Risk. It does not exercise
-Save, a baseline request, production auth, provider data or actual deployment.
-It must be enrolled only at the next qualified Terminal source boundary; it
-must not amend/replay the live1312/00f73 or1340 operations.
+The repository now supplies the entire source input. The spec has no
+`INTL_RETURN_FIXTURE_DIR` or `INTL_RETURN_MACRO_ASSETS` dependency, foreign
+checkout, download, live origin, alternate renderer or input-preparation job.
 
-The test extends `playwright.config.ts` and the development-only layout/Analysis
-preview already used by `shared-shell-directory-hardening.spec.ts` and
-`shared-shell-refinement.spec.ts`. No product component, router, Link, parent,
-status JSON, config or issuer is replaced. `fixtures/real-next-legacy-transport.ts`
-serves the real Next process's SSR/RSC/chunks/status at the existing canonical
-Beta browser origin, with the actual locally rendered legacy document at www.
-Only HTTP transport is mapped. This keeps the existing approved Beta/www bridge
-origins, never touches the original unknown3100 process, and does not broaden
-an allowlist. All unrelated outgoing requests, mutations and baseline requests
-are blocked and recorded. Only two existing fixed guest-layout cookies are
-forwarded; no session, signer or credential is created/copied.
+`intl-return-page/fixture.json.gz` is a retained source artifact in the incumbent
+`e2e/fixtures` namespace. SHA256:
+`f96e0c877c37d0abf3e2a6afbcb08dfa38005e2d98cc37e6623fbf913bc6de02`.
+Its readable `provenance.json` binds the accepted Macro
+`7a2ffcb8dec91f701ebaf0d04990b2be6a7b8abb` full-page Jinja bytes, actual
+composition, source postprocessor and every asset digest.
 
-Two exact source inputs are required:
+The retained raw Jinja HTML is unchanged, SHA256
+`4f807836970e39dbfe429368e23079aff6a21ceed39d9f2f724259cb9e612f8a`.
+It came from the existing `intl_gs_fixture_site::_vm/_env` plus S28
+`page_fixture`, actual `intl.html.j2` and `render_international_pages`. No History
+controls, source clock, subject, new evidence or current generation was invented.
+The raw standalone fixture had no Shared Shell capability block. The incumbent
+`lib/shared_shell.py::inject_shared_shell_text` at the same pin adds only its
+normal owned block, with actual bridge/CSS content versions. Removing that block
+returns the exact raw bytes. Result HTML SHA256:
+`07606d80b209c4e79381ed96d8390f93590c57cab3899a26d1dd5daeda9bdfcf`.
+This source document metadata never substitutes for the actual Next sibling
+status endpoint or grants product readiness.
 
-- `INTL_RETURN_FIXTURE_DIR`: directory containing `intl.html` from the existing
-  real full-page Jinja fixture composition at Macro
-  `7a2ffcb8dec91f701ebaf0d04990b2be6a7b8abb`. SHA256 is
-  `4f807836970e39dbfe429368e23079aff6a21ceed39d9f2f724259cb9e612f8a`.
-  Existing composition: `tests/intl_gs_fixture_site.py::_vm/_env` plus
-  `tests/intl_investigation_page_fixture.py::page_fixture`, rendered through
-  `lib.intl_library_mount.render_international_pages` and actual `intl.html.j2`.
-  Replace only `vm['intl_workspace']` with the supplied S28 page fixture, no
-  new UI wrapper, invented History controls or provider/build job. The accepted
-  retained input is in the original S28 `visual-s28/presentation-7a2` artifact;
-  normal CI's owning source-input stage must carry these exact bytes.
-- `INTL_RETURN_MACRO_ASSETS`: the qualified same-source `templates` asset root
-  including fonts. The case pins all five functional Intl/bridge JS/CSS digests
-  before the browser case. Missing/wrong inputs fail the admitted case; there
-  is no download, current-generation fallback or replacement rendering.
+The bundle retains 29 assets: the accepted 12-cell source-request closure,
+normal bridge/CSS dependencies, and the exact incumbent no-live-config fixture
+response. All bytes are retained and hash/length verified before use. The loader
+uses Node built-ins, does not render or fetch, and rejects missing/wrong input.
+The helper serves its verified readonly asset map; a missing member is blocked,
+never replaced by a local/current or remote file. Historical fixture eligibility
+is not current feed/auth/served/Paper/OPEN proof.
 
-The normal qualified existing CI job may run, after supplying those inputs and
-its ordinary installed dependencies:
+The existing `terminal-e2e` serial-only **Qualify Shared Shell beta presentation**
+step now selects this spec alongside `shared-shell-refinement.spec.ts`. Its
+existing `MMX_SHARED_SHELL=1`, `CI=1`, owned port31992, desktop/tablet/mobile,
+workers1, retries0, output/upload and budgets remain unchanged. No job, setup,
+framework, foreign checkout or privilege was added. The default-off ordinary
+matrix remains the incumbent opt-in convention; the existing opt-in step
+actually selects this case rather than merely discovering it.
+
+The normal next qualified source cohort may run the existing command:
 
 ```sh
-CI=1 MMX_SHARED_SHELL=1 TERMINAL_E2E_PORT=<owned-CI-port-not3100> \
-  INTL_RETURN_FIXTURE_DIR=<qualified-input-dir> \
-  INTL_RETURN_MACRO_ASSETS=<qualified-Macro7a2-templates> \
-  npm run test:e2e:responsive -- e2e/intl-investigation-return.spec.ts --project=desktop --retries=0
+CI=1 MMX_SHARED_SHELL=1 TERMINAL_E2E_PORT=31992 \
+  npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts e2e/intl-investigation-return.spec.ts \
+  --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 \
+  --output=test-results/shared-shell-refinement
 ```
 
-Use the existing responsive project's appropriate next source-boundary scope;
-this command is an instruction, not a launched CI/browser operation. The local
-non-CI case requires the incumbent explicit visual-operation handle, which makes
-its existing config refuse unrelated-server reuse. No arbitrary local server,
-mutable customer checkout or held browser objective may be borrowed.
+This is an instruction, not a launched CI/browser/server operation. Do not amend
+or replay live1312/00f73 or1340. Local non-CI execution requires the incumbent
+explicit visual-operation handle, disabling unrelated-server reuse. Port3100
+and its original unknown operation remain forbidden.
 
-Required observations: actual Link click retains the same Beta origin and top
-Next document; actual status endpoint and LegacyPageHost reach ready; the actual
-mounted Intl handle and visible panel restore view, selected market, ordered
-pins, horizon, currency basis and price-return basis. No POST/baseline is allowed.
-Only those executed observations establish the missing Return leg. Static types,
-test discovery, the prior paired14 and destination assertions do not.
+The single new spec loops Macro/Risk and clicks real Next Link inside actual
+AppShell/SharedShellPresentation. It requires the same Beta origin and top
+Next document, actual sibling status/LegacyPageHost ready, and actual mounted
+Intl state/panel restoring view, market, ordered pins, horizon, currency and
+price basis. No Save or baseline request is allowed. The helper changes HTTP
+transport only, preserving real SSR/RSC/router/parent and approved Beta/www
+origins. It creates no signer/session/credential, invented status/ready response,
+fake Link, aliased router or parallel viewer. Only executed browser observations
+will qualify Return; static types, discovery and transport checks do not.
 
-The transport helper is test-owned and may be imported read-only by the disjoint
-History case with that case's actual accepted repaired-consumer HTML/assets.
-It does not generate History data, expose a parallel viewer or qualify a page.
+The disjoint History spec may reuse the transport and retained-fixture decoder
+read-only with its own actual accepted repaired-consumer fixture. This S28
+bundle contains no newly manufactured History behavior.

@@ -1,6 +1,5 @@
 import { expect, test } from "@playwright/test";
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
 import path from "node:path";
 
 // Extend the incumbent real Next/AppShell harness. No Link/router/parent is
@@ -12,7 +11,10 @@ if (process.env.MMX_SHARED_SHELL === "1" && !process.env.CI && process.env.TERMI
   throw new Error("Use the incumbent fresh-owned server harness; never reuse an unrelated local Next server.");
 }
 import { SHELL, LEGACY, installRealNextLegacyTransport } from "./fixtures/real-next-legacy-transport";
-const HTML_SHA = "4f807836970e39dbfe429368e23079aff6a21ceed39d9f2f724259cb9e612f8a";
+import { readRetainedLegacyFixture } from "./fixtures/retained-legacy-fixture";
+const BUNDLE_SHA = "f96e0c877c37d0abf3e2a6afbcb08dfa38005e2d98cc37e6623fbf913bc6de02";
+const RAW_JINJA_SHA = "4f807836970e39dbfe429368e23079aff6a21ceed39d9f2f724259cb9e612f8a";
+const HTML_SHA = "07606d80b209c4e79381ed96d8390f93590c57cab3899a26d1dd5daeda9bdfcf";
 const ASSET_SHA: Record<string, string> = {
   "intl_workspace.js": "43fe67c4be946c4c7de6b1afc080f5970ff58c4e428a157182f3ad0399f5a879",
   "intl_workspace_state.js": "b02a808380c1a1d2c798f1b827707fa07d23679e15bf01753cffaada55f00fd1",
@@ -23,17 +25,14 @@ const ASSET_SHA: Record<string, string> = {
 const digest = (value: Buffer) => createHash("sha256").update(value).digest("hex");
 
 test("Macro/Risk Return executes real Next Link and restores Intl in the same AppShell", async ({ page, context, baseURL }, info) => {
-  // Inputs are the existing full-page Jinja fixture at Macro7a2, not a new
-  // renderer. Missing/wrong inputs fail this admitted case; no fallback HTML,
-  // current generation, downloaded dependency or invented ready receipt exists.
-  const fixture = process.env.INTL_RETURN_FIXTURE_DIR;
-  const assets = process.env.INTL_RETURN_MACRO_ASSETS;
-  expect(fixture, "Qualified full-page fixture directory").toBeTruthy();
-  expect(assets, "Qualified Macro template assets").toBeTruthy();
-  const html = readFileSync(path.join(fixture!, "intl.html"));
-  expect(digest(html)).toBe(HTML_SHA);
-  for (const [name, sha] of Object.entries(ASSET_SHA)) expect(digest(readFileSync(path.join(assets!, name))), name).toBe(sha);
-  const observations = await installRealNextLegacyTransport({ page, context, baseURL: baseURL!, canonicalChildPath: "/intl.html", html, assetsDirectory: assets! });
+  // Repository checkout supplies the exact historical source closure. Only the
+  // incumbent normal SharedShell capability block was added to retained Jinja.
+  const retained = readRetainedLegacyFixture(path.join(__dirname, "fixtures/intl-return-page/fixture.json.gz"), BUNDLE_SHA);
+  expect(retained.provenance.macro_source).toBe("7a2ffcb8dec91f701ebaf0d04990b2be6a7b8abb");
+  expect(digest(retained.rawJinja)).toBe(RAW_JINJA_SHA);
+  expect(digest(retained.html)).toBe(HTML_SHA);
+  for (const [name, sha] of Object.entries(ASSET_SHA)) expect(digest(retained.assets.get("/" + name)!), name).toBe(sha);
+  const observations = await installRealNextLegacyTransport({ page, context, baseURL: baseURL!, canonicalChildPath: "/intl.html", html: retained.html, assets: retained.assets });
   const states: unknown[] = [];
 
   try {

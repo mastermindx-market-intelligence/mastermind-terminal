@@ -10,11 +10,12 @@ export const SHELL = "https://beta.mastermind-x.com";
 export const LEGACY = "https://www.mastermind-x.com";
 const mime: Record<string, string> = { ".css": "text/css", ".js": "text/javascript", ".woff2": "font/woff2", ".png": "image/png", ".svg": "image/svg+xml" };
 
-export async function installRealNextLegacyTransport({ page, context, baseURL, canonicalChildPath, html, assetsDirectory }: {
+export async function installRealNextLegacyTransport({ page, context, baseURL, canonicalChildPath, html, assetsDirectory, assets }: {
   page: Page; context: BrowserContext; baseURL: string;
-  canonicalChildPath: "/intl.html"; html: Buffer; assetsDirectory: string;
+  canonicalChildPath: "/intl.html"; html: Buffer; assetsDirectory?: string; assets?: ReadonlyMap<string, Buffer>;
 }) {
   expect(canonicalChildPath).toBe("/intl.html");
+  expect((assetsDirectory === undefined) !== (assets === undefined), "One explicit source asset input").toBe(true);
   if (!process.env.CI && process.env.TERMINAL_VISUAL_EVIDENCE_OPERATION === undefined) {
     throw new Error("Use the incumbent fresh-owned server harness; never reuse an unrelated local Next server.");
   }
@@ -64,8 +65,15 @@ export async function installRealNextLegacyTransport({ page, context, baseURL, c
     }
     if (url.origin === LEGACY) {
       if (url.pathname === canonicalChildPath) { await route.fulfill({ contentType: "text/html; charset=utf-8", body: html }); return; }
-      const file = path.resolve(assetsDirectory, "." + decodeURIComponent(url.pathname));
-      const root = path.resolve(assetsDirectory);
+      if (assets !== undefined) {
+        const body = assets.get(url.pathname);
+        if (body && Object.hasOwn(mime, path.extname(url.pathname))) {
+          await route.fulfill({ contentType: mime[path.extname(url.pathname)], body }); return;
+        }
+        await route.abort("blockedbyclient"); return; // no missing-map -> file/current fallback
+      }
+      const file = path.resolve(assetsDirectory!, "." + decodeURIComponent(url.pathname));
+      const root = path.resolve(assetsDirectory!);
       if (file.startsWith(root + path.sep) && Object.hasOwn(mime, path.extname(file))) {
         try { await route.fulfill({ contentType: mime[path.extname(file)], body: readFileSync(file) }); return; } catch { /* missing stays unavailable */ }
       }

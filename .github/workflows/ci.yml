@@ -510,7 +510,7 @@ jobs:
           CI: '1'
           TERMINAL_E2E_PORT: '31992'
         run: >-
-          npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts
+          npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts e2e/intl-investigation-return.spec.ts
           --project=desktop --project=tablet --project=mobile
           --workers=1 --retries=0
           --output=test-results/shared-shell-refinement
