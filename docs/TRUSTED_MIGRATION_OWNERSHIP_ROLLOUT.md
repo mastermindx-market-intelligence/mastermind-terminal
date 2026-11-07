@@ -34,9 +34,11 @@ and verify its selected master branch policy. Do not let a workflow implicitly
 create an unprotected environment. After qualifying the exact named nonsecret
 variable preimages, pin repository-level `MIGRATION_OWNER_APP_ID` and
 `MIGRATION_OWNER_INSTALLATION_ID` to `0` while bootstrapping. This explicit
-disabled selection stops preflight before any API client or mint step; an
-unconfigured environment alone does not prove repository/organization fallback
-values absent. No key is needed to install the protected code in this state.
+disabled selection skips the supplementary workflow job before runner
+allocation, with no App-produced check and no change to required checks.
+Missing or partially configured selectors still reach strict preflight and
+fail before any API client or token mint. An unconfigured environment alone
+does not prove repository/organization fallback values absent. No key is needed to install the protected code in this state.
 These settings were not read or changed by the source tests.
 
 After the protected code is installed, provision the approved environment key
