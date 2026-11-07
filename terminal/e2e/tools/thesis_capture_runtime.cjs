@@ -57,7 +57,7 @@ function getChromium() {
   const original = require(modulePath).chromium;
   const counts = {contexts:0,contextsClosed:0,browsersClosed:0,fixtureRequests:0,directFixtureRequests:0,
     localAssets:0,businessUnavailable:0,externalDenied:0,socketsDenied:0,redirectsDenied:0};
-  return {counts,toolchain:{package:pkg.name,version:pkg.version,packageSha256:hash(fs.readFileSync(packagePath)),executable:original.executablePath()},
+  return {counts,toolchain:{package:pkg.name,version:pkg.version,packageSha256:hash(fs.readFileSync(packagePath)),defaultExecutableLookup:original.executablePath()},
     async launch(options) {
       const server = await original.launchServer({...options,timeout:30000});
       const child = server.process();
@@ -66,6 +66,8 @@ function getChromium() {
       try { browser = await original.connect(server.wsEndpoint(),{timeout:30000}); }
       catch(error) { await server.close(); throw error; }
       counts.browserPid=child.pid;
+      counts.browserExecutable=child.spawnfile;
+      counts.browserExecutableSha256=hash(fs.readFileSync(child.spawnfile));
       const newContext = browser.newContext.bind(browser), close = browser.close.bind(browser);
       browser.newContext = async opts => {
         const context = await newContext({...opts,serviceWorkers:"block"});counts.contexts++;
