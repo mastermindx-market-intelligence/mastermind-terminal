@@ -1,0 +1,51 @@
+{
+  "schema": "portfolio_brief.v2",
+  "asof": "2026-11-02",
+  "generated_at": "2026-11-02T09:30:00+00:00",
+  "stale": false,
+  "weighting": {
+    "mode": "equal",
+    "label_en": "Equal weighted",
+    "label_zh": "等权重"
+  },
+  "book": {
+    "n": 0,
+    "covered": 0,
+    "uncovered": []
+  },
+  "population": {
+    "mode": "positions",
+    "label_en": "Your holdings",
+    "label_zh": "你的持仓",
+    "n": 0,
+    "disclosure_en": "This read describes the 0 names you hold.",
+    "disclosure_zh": "此判读描述你持有的 0 只个股。"
+  },
+  "headline": {
+    "en": "Nothing to read yet.",
+    "zh": "暂无可解读的持仓。"
+  },
+  "sections": [],
+  "portfolio_context": {
+    "schema": "portfolio_snapshot_witness.v1",
+    "owner_id": "3f0d4a5e-6c21-4f8a-9b77-2c9a1d5e7f30",
+    "population": "positions",
+    "rows": [],
+    "selected_position_ids": [],
+    "composer_input_source": "positions",
+    "composer_inputs": [],
+    "completeness": {
+      "source": "portfolio_positions",
+      "exact_count": 0,
+      "range_first": null,
+      "range_last": null,
+      "returned_count": 0,
+      "open_count": 0,
+      "selected_count": 0,
+      "max_rows": 1000,
+      "positions_reads": 1,
+      "complete": true,
+      "watchlist": null
+    }
+  }
+}
