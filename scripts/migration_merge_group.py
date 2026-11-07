@@ -73,6 +73,10 @@ def validate_snapshot(data: dict, event: dict, env: Mapping[str, str], checkout_
     ref = group.get("head_ref", "")
     require(isinstance(ref, str) and ref.startswith("refs/heads/gh-readonly-queue/master/")
             and ref == env.get("GITHUB_REF"), "event and checkout refs differ")
+    return _validate_serial_queue(data, repo, head, base)
+
+
+def _validate_serial_queue(data: dict, repo: str, head: str, base: str) -> tuple[int, str, str]:
     repository = data.get("repository") or {}
     require(repository.get("nameWithOwner") == repo, "API repository differs")
     default = repository.get("defaultBranchRef") or {}
@@ -173,6 +177,12 @@ def validate_parallel_snapshot(
     ref = group.get("head_ref", "")
     require(isinstance(ref, str) and ref.startswith("refs/heads/gh-readonly-queue/master/")
             and ref == env.get("GITHUB_REF"), "event and checkout refs differ")
+    return _validate_parallel_queue(data, repo, head, event_base)
+
+
+def _validate_parallel_queue(
+    data: dict, repo: str, head: str, required_base: str
+) -> tuple[dict[int, str], str]:
     repository = data.get("repository") or {}
     require(repository.get("nameWithOwner") == repo, "API repository differs")
     default = repository.get("defaultBranchRef") or {}
@@ -233,10 +243,11 @@ def validate_parallel_snapshot(
                     "first PR merge tree differs from native candidate")
         owners[number] = source_head
         prev = current
-    # merge_group.base_sha is the protected target branch SHA, not the
-    # predictive predecessor (which comes only from the native queue chain).
-    # Exact candidate ancestry was checked above on each immutable commit.
-    require(event_base == protected_tip and prev == head,
+    # The original event route supplies its actual event base. The protected
+    # workflow-run route supplies the base of its authenticated live snapshot;
+    # it never claims to possess the old merge_group event. Both require the
+    # complete predecessor chain from this protected tip through the candidate.
+    require(required_base == protected_tip and prev == head,
             "event protected base/head do not match native queue")
     return owners, protected_tip
 
