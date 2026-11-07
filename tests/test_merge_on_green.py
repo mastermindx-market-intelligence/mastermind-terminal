@@ -1954,7 +1954,7 @@ def test_native_auto_admission_changed_head_withholds_without_effect():
 
 
 @pytest.mark.parametrize("text", [
-    "HOLD: no merge", "- HOLD-FOR-SOL: not released", "DO NOT MERGE", "STOP -- critical",
+    "HOLD: no merge", "- HOLD-FOR-SOL: not released", "HOLD for security", "DO NOT MERGE", "STOP -- critical",
 ])
 def test_automatic_admission_hold_parser_is_fail_closed(text):
     assert mog.has_recorded_hold({"body": text}, [])

@@ -60,9 +60,8 @@ HOLD_LABELS = frozenset({"hold", "do-not-merge"})
 # still possible after a qualified human reconciliation. HOLD-RELEASED text
 # alone does not erase an older hold.
 RECORDED_HOLD_RE = re.compile(
-    r"(?im)^\s*(?:[-*]\s*)?(?:#{1,6}\s*)?"
-    r"(?:HOLD(?!-RELEASED)(?:-FOR-[A-Z0-9_-]+)?|STOP|DO\s+NOT\s+MERGE)"
-    r"(?:\s*[:—-]|\s*$)"
+    r"(?im)^\s*(?:[-*>]\s*)?(?:#{1,6}\s*)?"
+    r"(?:HOLD(?!-RELEASED)\b|HOLD-FOR-[A-Z0-9_-]+\b|STOP\b|DO\s+NOT\s+MERGE\b)"
 )
 REQUIRED_CHECKS = (
     "Quote Hub tests",
