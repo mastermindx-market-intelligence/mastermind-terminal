@@ -83,3 +83,10 @@ test("generic namespace absent-to-absent is a no-write only after custody/source
   fs.unlinkSync(path.join(root,"next-env.d.ts"));const linked=prepareNamespace(root);fs.symlinkSync(path.join(root,"tsconfig.json"),path.join(root,"next-env.d.ts"));assert.throws(()=>linked.restoreGeneratedTypeFile(),/F11_GENERATED_FILE_CUSTODY/);
  }finally{fs.rmSync(root,{recursive:true,force:true});}
 });
+
+test("literal lookup supports Node listener setup with no DNS or bind in the discriminator",()=>{
+ const probe=`const net=require('node:net'),dns=require('node:dns');const calls=[];dns.lookup=(host,options,callback)=>{calls.push(host);callback(Object.assign(new Error('CONTROLLED_BEFORE_BIND'),{code:'CONTROLLED_BEFORE_BIND'}));};const s=net.createServer();s.once('error',e=>console.log(JSON.stringify({calls,error:e.code,listening:s.listening})));s.listen(41911,'127.0.0.1');`;
+ const result=JSON.parse(cp.execFileSync(process.execPath,["-e",probe],{encoding:"utf8"}));assert.deepEqual(result,{calls:["127.0.0.1"],error:"CONTROLLED_BEFORE_BIND",listening:false});
+ const script=`const dns=require('node:dns');Promise.all([new Promise((resolve,reject)=>dns.lookup('127.0.0.1',{all:true},(e,v)=>e?reject(e):resolve(v))),dns.promises.lookup('::1')]).then(v=>console.log(JSON.stringify(v)));`;
+ const out=cp.execFileSync(process.execPath,["--require",path.join(__dirname,"thesis_capture_egress.cjs"),"-e",script],{env:{PATH:process.env.PATH,THESIS_CAPTURE_SERVER:"1",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1",THESIS_CAPTURE_PORT:"41911"},encoding:"utf8"});assert.deepEqual(JSON.parse(out),[[{address:"127.0.0.1",family:4}],{address:"::1",family:6}]);
+});

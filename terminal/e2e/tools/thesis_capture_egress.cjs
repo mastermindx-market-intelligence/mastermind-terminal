@@ -19,10 +19,25 @@ function install(port) {
     return connect.apply(this, args);
   };
   const dns = require("node:dns");
-  for (const name of ["lookup", "resolve", "resolve4", "resolve6", "reverse"])
-    dns[name] = denied;
-  for (const name of ["lookup", "resolve", "resolve4", "resolve6", "reverse"])
-    dns.promises[name] = async () => denied();
+  // Node Server.listen(host) uses lookup even for a literal IP. Returning that
+  // same literal performs no resolver/network operation; socket.connect still
+  // restricts every outbound connection to the one owned HTTP port.
+  const literal = (host,options) => {
+    if (host !== "127.0.0.1" && host !== "::1") return denied();
+    const family=host === "127.0.0.1" ? 4 : 6;
+    const selected=typeof options === "number" ? options : options?.family;
+    if(selected && selected!==family)throw Error("THESIS_CAPTURE_LITERAL_FAMILY");
+    const value={address:host,family};return options?.all ? [value] : value;
+  };
+  dns.lookup=(host,options,callback)=>{
+    if(typeof options === "function"){callback=options;options={};}
+    const value=literal(host,options);
+    queueMicrotask(()=>Array.isArray(value) ? callback(null,value) : callback(null,value.address,value.family));
+  };
+  dns.promises.lookup=async(host,options)=>literal(host,options);
+  for (const name of ["resolve", "resolve4", "resolve6", "reverse"]) {
+    dns[name] = denied;dns.promises[name] = async () => denied();
+  }
   const fetch = globalThis.fetch;
   globalThis.fetch = async (input, options) => {
     const url = new URL(typeof input === "string" || input instanceof URL ? input : input.url);
