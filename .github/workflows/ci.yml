@@ -659,9 +659,11 @@ jobs:
         run: python -m pytest tests/ -q
         env:
           PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
-          # Read-only native membership qualification for present open migrations
-          # on a single-entry merge group. No PR/contents write permission added.
-          GH_TOKEN: ${{ github.event_name == 'merge_group' && github.token || '' }}
+          # The original built-in-token queue read was forbidden. Do not retry
+          # it from a later predictive candidate. With no open migration the
+          # strict guard needs no API; with one it refuses before network.
+          # The separate protected issuer/required-gate transfer is not active.
+          GH_TOKEN: ''
 
   investigation-postgres:
     name: Investigation PostgreSQL invariants

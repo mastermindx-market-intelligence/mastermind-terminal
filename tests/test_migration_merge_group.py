@@ -429,8 +429,8 @@ def test_parallel_source_query_uses_immutable_membership_not_environment_hint(tm
 
 
 def test_ingest_merge_group_membership_reads_are_minimal_privilege():
-    """Migration owner proofs may read PR/queue metadata but never write
-    source, approvals, actions, permissions or queue membership."""
+    """The denied candidate-token read is withheld, not retried or widened.
+    Missing ownership still keeps strict namespace enforcement."""
     import yaml
 
     workflow = yaml.safe_load(
@@ -443,8 +443,36 @@ def test_ingest_merge_group_membership_reads_are_minimal_privilege():
         s for s in ingest["steps"]
         if s.get("run") == "python -m pytest tests/ -q"
     )
-    assert "github.event_name == 'merge_group'" in step["env"]["GH_TOKEN"]
-    assert "github.token" in step["env"]["GH_TOKEN"]
+    assert step["env"]["GH_TOKEN"] == ""
+
+
+def test_withheld_candidate_inlet_closed_tree_passes_open_prefix_refuses_before_network(tmp_path, monkeypatch):
+    from test_supabase_migration_namespace import reservations_doc
+    directory = tmp_path / "migrations"
+    directory.mkdir()
+    (directory / NAME).write_bytes(RAW)
+    doc = reservations_doc(prefixes={"0099": copy.deepcopy(ROW)})
+    ledger = tmp_path / "RESERVATIONS.json"
+    ledger.write_text(json.dumps(doc))
+    _, event, env = fixture()
+    event_file = tmp_path / "original-event.json"
+    event_file.write_text(json.dumps(event))
+    env.update(GITHUB_EVENT_PATH=str(event_file), GH_TOKEN="", GITHUB_TOKEN="inert-no-fallback")
+    # Disposable Git identity seam only; real qualifier/token inlet/namespace
+    # owner run. The HTTP spy also catches accidental fallback/auth probing.
+    monkeypatch.setattr(group.subprocess, "check_output", lambda *a, **k: HEAD)
+    network = []
+    def forbidden_network(*args, **kwargs):
+        network.append(1)
+        raise AssertionError("candidate must not attempt the denied read")
+    monkeypatch.setattr(group.urllib.request, "urlopen", forbidden_network)
+    findings, _, mode = collect_for_event(env, migrations_dir=directory, reservations=ledger)
+    assert {f.code for f in findings} == {"MERGE_GROUP_OWNERSHIP_UNQUALIFIED", "OPEN_PR_STATE_WITH_FILE_PRESENT"}
+    assert mode.startswith("STRICT") and network == []
+    doc["prefixes"]["0099"]["pr_state"] = "merged"
+    ledger.write_text(json.dumps(doc))
+    findings, _, mode = collect_for_event(env, migrations_dir=directory, reservations=ledger)
+    assert findings == [] and mode.startswith("STRICT") and network == []
 
 
 def test_namespace_accepts_only_verified_parallel_owner_set(tmp_path, monkeypatch):

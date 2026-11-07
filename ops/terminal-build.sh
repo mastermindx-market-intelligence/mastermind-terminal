@@ -4631,11 +4631,8 @@ MAX_SCAN_LINES = 4096
 PHASES = ("prestart", "poststart", "restoration")
 PROFILES = ("production", "beta")
 
-# The canonical production unit may carry exactly two ExecStartPre commands:
-# the installed build-id check through the trusted interpreter and the storage
-# volume guard. Declaring unit sources, typed effective argv and script
-# custody are bound separately; nothing here executes a hook, and a recognized
-# hook never shortcuts the remaining admission classification.
+# The key must be followed by a separator/whitespace/end so a longer key that
+# merely shares this prefix is never classified as this key.
 CANONICAL_PRODUCTION_UNIT = "terminal"
 PREHOOK_INTERPRETER = "/bin/sh"
 PREHOOK_INTERPRETER_REALPATH = "/usr/bin/dash"
@@ -4665,8 +4662,6 @@ PREHOOK_SUPPORTED_SEARCH_PATHS = (
     ":".join(PREHOOK_DEFAULT_SEARCH_DIRS),
     ":".join((*PREHOOK_DEFAULT_SEARCH_DIRS, "/sbin", "/bin")))
 
-# The key must be followed by a separator/whitespace/end so a longer key that
-# merely shares this prefix is never classified as this key.
 KEY_LINE = re.compile(r"^(?:export\s+)?INVESTIGATION_API_ADMISSION(?![A-Za-z0-9_])")
 KEY_ASSIGNMENT = re.compile(
     r"(?m)^\s*(?:export\s+)?INVESTIGATION_API_ADMISSION(?![A-Za-z0-9_])\s*(?:=|:)")
@@ -5072,32 +5067,151 @@ def loaded_safety_hook_sources(unit):
     return fragment, dropins, sources
 
 
+# The pinned volume guard invokes these two operating-system programs by name.
+# Admit manager PATH only through source-owned system directories and retain
+# both the ordered resolution and observed custody in the existing hook tuple.
+SAFETY_PATH_DIRECTORIES = frozenset((
+    "/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin", "/sbin", "/bin"))
+SAFETY_PATH_ALIASES = {"/bin": "/usr/bin", "/sbin": "/usr/sbin"}
+SAFETY_PATH_EXECUTABLE_LIMIT = 8 * 1024 * 1024
+
+
+def safety_path_identity(info):
+    return tuple(getattr(info, field) for field in (
+        "st_dev", "st_ino", "st_mode", "st_uid", "st_gid", "st_nlink",
+        "st_size", "st_mtime_ns", "st_ctime_ns"))
+
+
+def qualify_manager_safety_path(value):
+    """Observe one declared PATH without executing or changing its programs."""
+    import hashlib
+    if not value or len(value) > 1024:
+        raise Refused("safety-hook-manager-path-unsupported")
+    components = value.split(":")
+    if (len(components) > len(SAFETY_PATH_DIRECTORIES)
+            or len(set(components)) != len(components)
+            or any(item not in SAFETY_PATH_DIRECTORIES for item in components)):
+        raise Refused("safety-hook-manager-path-unsupported")
+    observed, absent = {}, []
+
+    def directory(path):
+        if path in observed:
+            return observed[path][2]
+        try:
+            info = os.lstat(path)
+            link = os.readlink(path) if stat.S_ISLNK(info.st_mode) else None
+        except OSError:
+            raise Refused("safety-hook-manager-path-unreadable")
+        if info.st_uid != 0 or info.st_gid != 0:
+            raise Refused("safety-hook-manager-path-untrusted")
+        if path != "/":
+            directory(os.path.dirname(path))
+        if link is not None:
+            target = SAFETY_PATH_ALIASES.get(path)
+            if target is None or link not in (target, target.lstrip("/")):
+                raise Refused("safety-hook-manager-path-untrusted")
+            canonical = directory(target)
+        else:
+            if not stat.S_ISDIR(info.st_mode) or info.st_mode & 0o022:
+                raise Refused("safety-hook-manager-path-untrusted")
+            canonical = path
+        observed[path] = (safety_path_identity(info), link, canonical)
+        return canonical
+
+    resolved = [(item, directory(item)) for item in components]
+    programs = []
+    for name in ("findmnt", "stat"):
+        selected = None
+        for spelling, canonical in resolved:
+            path = canonical + "/" + name
+            try:
+                before = os.lstat(path)
+            except FileNotFoundError:
+                absent.append(path)
+                continue
+            except OSError:
+                raise Refused("safety-hook-manager-program-unreadable")
+            if (path not in ("/usr/bin/" + name, "/bin/" + name)
+                    or not stat.S_ISREG(before.st_mode)
+                    or before.st_uid != 0 or before.st_gid != 0
+                    or before.st_nlink != 1 or before.st_mode & 0o6022
+                    or not before.st_mode & 0o111
+                    or not 0 < before.st_size <= SAFETY_PATH_EXECUTABLE_LIMIT):
+                raise Refused("safety-hook-manager-program-untrusted")
+            descriptor = -1
+            try:
+                descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW |
+                                     os.O_NONBLOCK | os.O_CLOEXEC)
+                if safety_path_identity(os.fstat(descriptor)) != safety_path_identity(before):
+                    raise Refused("safety-hook-manager-path-changed")
+                payload = b""
+                while len(payload) <= SAFETY_PATH_EXECUTABLE_LIMIT:
+                    block = os.read(descriptor, min(65536,
+                        SAFETY_PATH_EXECUTABLE_LIMIT + 1 - len(payload)))
+                    if not block:
+                        break
+                    payload += block
+                if (len(payload) != before.st_size
+                        or safety_path_identity(os.fstat(descriptor)) != safety_path_identity(before)
+                        or safety_path_identity(os.lstat(path)) != safety_path_identity(before)):
+                    raise Refused("safety-hook-manager-path-changed")
+            except OSError:
+                raise Refused("safety-hook-manager-program-unreadable")
+            finally:
+                if descriptor >= 0:
+                    os.close(descriptor)
+            selected = (name, spelling + "/" + name, path,
+                        safety_path_identity(before), hashlib.sha256(payload).hexdigest())
+            break
+        if selected is None:
+            raise Refused("safety-hook-manager-program-missing")
+        programs.append(selected)
+    try:
+        for path, (identity, link, _) in observed.items():
+            info = os.lstat(path)
+            current_link = os.readlink(path) if stat.S_ISLNK(info.st_mode) else None
+            if safety_path_identity(info) != identity or current_link != link:
+                raise Refused("safety-hook-manager-path-changed")
+        for path in absent:
+            try:
+                os.lstat(path)
+            except FileNotFoundError:
+                continue
+            raise Refused("safety-hook-manager-path-changed")
+    except OSError:
+        raise Refused("safety-hook-manager-path-changed")
+    return tuple((path, *values) for path, values in sorted(observed.items())), tuple(programs)
+
+
 def safety_hook_environment(unit):
-    # Bind every consumer to the same observed environment. Re-reading only a
-    # subset later could admit a different generation than the safety policy.
+    # Preserve the five observed fields for existing consumers; append the
+    # manager PATH custody/resolution proof to the same equality observation.
     snapshot = (unit_property(unit, "Environment"), manager_environment(),
                 unit_property(unit, "ExecSearchPath"),
                 unit_property(unit, "PassEnvironment"),
                 unit_property(unit, "UnsetEnvironment"))
-    # Preserve the incumbent fixed manager-PATH/tool-custody contract. This
-    # qualification precedes the sole manager PATH exception below; all other
-    # launch environment surfaces retain their strict override refusal.
-    classify_prehook_search_environment(unit, snapshot[1])
     if snapshot[2]:
         raise Refused("safety-hook-search-path-unsupported")
-    for index, text in enumerate((snapshot[0], snapshot[1], snapshot[3], snapshot[4])):
+    paths = []
+    for index in (0, 1, 3, 4):
         try:
-            tokens = shlex.split(text)
+            tokens = shlex.split(snapshot[index])
         except ValueError:
             raise Refused("safety-hook-environment-unsupported")
         for token in tokens:
-            key = token.partition("=")[0]
-            if index != 1 or key != "PATH":
+            key, separator, value = token.partition("=")
+            if index == 1 and key == "PATH":
+                if not separator:
+                    raise Refused("safety-hook-manager-path-unsupported")
+                paths.append(value)
+            else:
                 refuse_selected_launch_overrides([token])
             if (key.upper() in ("IFS", "SHELLOPTS", "BASHOPTS", "CDPATH", "GLOBIGNORE")
                     or key.startswith("BASH_FUNC_")):
                 raise Refused("safety-hook-environment-unsupported")
-    return snapshot
+    if len(paths) != 1:
+        raise Refused("safety-hook-manager-path-unsupported")
+    return snapshot + (qualify_manager_safety_path(paths[0]),)
 
 
 def classify_production_safety_hooks(profile, unit):
@@ -5223,7 +5337,6 @@ def unit_source_paths(property_value):
         paths.append(entry)
     return paths
 
-
 def execstartpre_assignments(text, prefix):
     # Narrow systemd directive scan: complete single-line assignments only.
     # Continuations, NUL/BOM bytes and unrecognized line shapes fail closed so
@@ -5255,7 +5368,6 @@ def execstartpre_assignments(text, prefix):
             values.append(value.strip(" \t"))
     return values
 
-
 def unit_execstartpre_rows(unit):
     # Typed effective ExecStartPre argv over D-Bus. The rendered systemctl
     # argv[] vector is lossy for arguments containing whitespace, so approval
@@ -5278,7 +5390,6 @@ def unit_execstartpre_rows(unit):
         return json.loads(completed.stdout.decode("utf-8"))
     except (ValueError, UnicodeDecodeError):
         raise Refused("prehook-effective-argv-unavailable")
-
 
 def typed_prehook_rows(payload):
     # busctl --json=short renders the reply body as the list of complete out
@@ -5306,7 +5417,6 @@ def typed_prehook_rows(payload):
         typed.append((row[0], tuple(row[1]), row[2]))
     return typed
 
-
 def trusted_path_identity(path):
     # Metadata-only custody reader for hook-referenced binaries. Identity is
     # the evidence; nothing is executed and no content beyond custody is read.
@@ -5319,7 +5429,6 @@ def trusted_path_identity(path):
     return (direct.st_uid, direct.st_gid, stat.S_ISLNK(direct.st_mode),
             resolved, target.st_uid, target.st_gid, target.st_mode,
             stat.S_ISREG(target.st_mode), target.st_size)
-
 
 def bind_prehook_interpreter_custody():
     # The observed legitimate /bin/sh is a trusted root-owned symlink to the
@@ -5336,11 +5445,9 @@ def bind_prehook_interpreter_custody():
             or not target_mode & 0o100):
         raise Refused("prehook-interpreter-custody")
 
-
 def guard_script_payload():
     return read_bounded_regular_file(
         PREHOOK_GUARD_PATH, PREHOOK_GUARD_BYTES, "guard-script")
-
 
 def bind_prehook_guard_custody():
     # The volume guard is bound by exact body hash and custody: a root-owned,
@@ -5362,7 +5469,6 @@ def bind_prehook_guard_custody():
             or hashlib.sha256(payload.encode("utf-8")).hexdigest()
             != PREHOOK_GUARD_SHA256):
         raise Refused("prehook-guard-body-mismatch")
-
 
 def classify_supported_prehooks(unit):
     # Production's canonical unit binds the two approved prehooks three ways:
@@ -5413,7 +5519,6 @@ def classify_supported_prehooks(unit):
     bind_prehook_interpreter_custody()
     bind_prehook_guard_custody()
 
-
 def prehook_search_directories(manager):
     # systemctl show-environment is not a shell program. Recognize only its
     # literal PATH form and two standard system-manager sequences, never
@@ -5434,7 +5539,6 @@ def prehook_search_directories(manager):
     if values[0] not in PREHOOK_SUPPORTED_SEARCH_PATHS:
         raise Refused("prehook-search-path-unqualified")
     return tuple(values[0].split(":"))
-
 
 def qualify_prehook_search_tools(directories):
     # Read metadata only. Every directory/ancestor must be root-custodied
@@ -5473,7 +5577,6 @@ def qualify_prehook_search_tools(directories):
             break
         else:
             raise Refused("prehook-search-tool-unavailable")
-
 
 def classify_prehook_search_environment(unit, manager):
     # ExecSearchPath can supply the hook's PATH independently of manager and
