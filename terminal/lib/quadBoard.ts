@@ -133,6 +133,8 @@ export type Quadrant = "amplify_stable" | "amplify_volsens" | "dampen_stable" | 
 
 export interface QuadRow {
   root: string;
+  /** Observation session for this root; distinct from the index build date. */
+  asof?: string;
   gamma_pctile: number;
   vanna_pctile: number;
   quadrant: Quadrant;

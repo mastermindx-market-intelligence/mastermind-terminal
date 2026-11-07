@@ -1,0 +1,256 @@
+{
+  "schema": "mastermind.large-trades.ci-evidence.v1",
+  "status": "HISTORICAL_ORIGINAL_CANDIDATE_HELD",
+  "observedAtUtc": "2026-10-11 11:14:38 UTC",
+  "repository": "mastermindx-market-intelligence/mastermind-terminal",
+  "pullRequest": 929,
+  "workflow": {
+    "id": 38131631918,
+    "number": 3771,
+    "attempt": 1,
+    "event": "pull_request",
+    "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/38131631918",
+    "status": "completed",
+    "conclusion": "success",
+    "startedAt": "2026-10-11T10:21:00Z",
+    "completedAt": "2026-10-11T11:09:28Z",
+    "headSha": "604f48d3ca08cd1a2904c35ef2cbba865ac558b6",
+    "baseSha": "707648d5201494ec42a2429ffb64cc39fb24314e",
+    "testedMergeSha": "49de08e8e34b35586b92df375c938bdb278a7a9d"
+  },
+  "scope": "Original pushed source604f48 only. The confirmed price-pane visibility defect and later repaired-source changes prevent using this run as repaired-candidate or production admission.",
+  "observationMethod": {
+    "root": "GitHub REST workflow, jobs, artifact and draft-PR metadata independently read.",
+    "delegate": "Completed job logs, test counts, checkout merge SHA and artifact-upload metadata reviewed by /root/market_microstructure_research."
+  },
+  "jobs": [
+    {
+      "id": 114446987553,
+      "name": "Terminal unit + typecheck (shard)",
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/38131631918/job/114446987553",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-11T10:21:03Z",
+      "completedAt": "2026-10-11T10:24:53Z",
+      "reportedCounts": {
+        "files": 534,
+        "passed": 8766,
+        "todo": 4
+      }
+    },
+    {
+      "id": 114446987632,
+      "name": "Quote Hub tests",
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/38131631918/job/114446987632",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-11T10:21:03Z",
+      "completedAt": "2026-10-11T10:21:22Z",
+      "reportedCounts": {
+        "suites": 72,
+        "passed": 388,
+        "failed": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "id": 114446987681,
+      "name": "Ingest + signal-layer tests",
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/38131631918/job/114446987681",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-11T10:21:03Z",
+      "completedAt": "2026-10-11T10:21:51Z",
+      "reportedCounts": {
+        "passed": 1832,
+        "skipped": 21,
+        "subtestsPassed": 40,
+        "warnings": 3
+      }
+    },
+    {
+      "id": 114446987692,
+      "name": "Terminal e2e desktop-2 (shard)",
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/38131631918/job/114446987692",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-11T10:21:03Z",
+      "completedAt": "2026-10-11T10:57:06Z",
+      "reportedCounts": {
+        "selectedProjectInstances": 300,
+        "passed": 275,
+        "skipped": 25,
+        "flaky": 0
+      }
+    },
+    {
+      "id": 114446987696,
+      "name": "Investigation PostgreSQL invariants",
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/38131631918/job/114446987696",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-11T10:21:03Z",
+      "completedAt": "2026-10-11T10:21:26Z",
+      "reportedCounts": {
+        "passed": 13
+      }
+    },
+    {
+      "id": 114446987750,
+      "name": "Terminal e2e tablet (shard)",
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/38131631918/job/114446987750",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-11T10:21:03Z",
+      "completedAt": "2026-10-11T11:09:22Z",
+      "reportedCounts": {
+        "selectedProjectInstances": 600,
+        "passed": 429,
+        "skipped": 171,
+        "flaky": 0
+      }
+    },
+    {
+      "id": 114446987752,
+      "name": "Terminal e2e mobile (shard)",
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/38131631918/job/114446987752",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-11T10:21:03Z",
+      "completedAt": "2026-10-11T11:04:20Z",
+      "reportedCounts": {
+        "selectedProjectInstances": 600,
+        "passed": 428,
+        "skipped": 172,
+        "flaky": 0
+      }
+    },
+    {
+      "id": 114446987757,
+      "name": "Terminal e2e desktop-1 (shard)",
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/38131631918/job/114446987757",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-11T10:21:03Z",
+      "completedAt": "2026-10-11T10:59:04Z",
+      "reportedCounts": {
+        "selectedProjectInstances": 300,
+        "passed": 254,
+        "skipped": 45,
+        "flaky": 1
+      }
+    },
+    {
+      "id": 114446987772,
+      "name": "Terminal e2e serial (shard)",
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/38131631918/job/114446987772",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-11T10:21:03Z",
+      "completedAt": "2026-10-11T10:34:06Z",
+      "reportedCounts": {
+        "selectedProjectInstances": 112,
+        "passed": 79,
+        "skipped": 33,
+        "flaky": 0
+      }
+    },
+    {
+      "id": 114455567418,
+      "name": "Terminal typecheck + tests",
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/38131631918/job/114455567418",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-11T11:09:24Z",
+      "completedAt": "2026-10-11T11:09:28Z",
+      "reportedCounts": null
+    }
+  ],
+  "browserTotals": {
+    "passed": 1465,
+    "skipped": 446,
+    "flaky": 1,
+    "selectedProjectInstances": 1912,
+    "uniqueJourneyCountClaimed": false,
+    "cleanFirstPass": false
+  },
+  "flaky": {
+    "jobId": 114446987757,
+    "test": "legacy indicator-pane drawing coordinates migrate into pane value space",
+    "file": "terminal/e2e/drawing-system.spec.ts",
+    "testLine": 1687,
+    "assertionLine": 1712,
+    "failure": "First migrated point p unexpectedly remained0.",
+    "result": "Passed on configured retry.",
+    "predatesCandidateEstablished": false,
+    "artifactId": 11699549986,
+    "failedScreenshot": "test-results/drawing-system-legacy-indi-fc334-grate-into-pane-value-space-desktop/test-failed-1.png"
+  },
+  "quarantine": {
+    "file": "terminal/e2e/drawing-system.spec.ts",
+    "line": 992,
+    "title": "flagship geometry, editing, and path limits survive adversarial interaction",
+    "owner": "issue#485, R1 reliability program",
+    "historicalRunId": 33942726252,
+    "separateFromFlaky": true,
+    "reenablement": "Path tool commits on double-click; remove quarantine row and test.fixme in repair PR; green desktop run on repair head."
+  },
+  "disclosureLimits": [
+    "Browser summaries do not enumerate each skipped journey's reason.",
+    "Ingest summary does not enumerate21 skip reasons.",
+    "Four indicatorParity TODOs and four skipped cases in that file are the same pending cases, not additive.",
+    "Artifact bytes/digests were verified against GitHub metadata and upload logs; archive contents were not independently visually inspected in this CI-monitoring task."
+  ],
+  "artifacts": [
+    {
+      "id": 11700705648,
+      "name": "responsive-qa-38131631918-mobile",
+      "bytes": 7712004,
+      "sha256": "c5dcaeb45df00d3b5183cff4c6884c67b17d7f9d7ade9768064dcfabde2d0187",
+      "expired": false,
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/38131631918/artifacts/11700705648"
+    },
+    {
+      "id": 11700555127,
+      "name": "responsive-qa-38131631918-desktop-2",
+      "bytes": 9660171,
+      "sha256": "bdd44a32fe11b5ed9e9eb7a7d9e11ce7ef934d467490efe78b2f1e7004dece9e",
+      "expired": false,
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/38131631918/artifacts/11700555127"
+    },
+    {
+      "id": 11700140229,
+      "name": "responsive-qa-38131631918-serial",
+      "bytes": 9593119,
+      "sha256": "ce9fa75719bbac78e3635f69b902f6def2370e5410c4b6020c5555052c1bbc68",
+      "expired": false,
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/38131631918/artifacts/11700140229"
+    },
+    {
+      "id": 11699953239,
+      "name": "responsive-qa-38131631918-tablet",
+      "bytes": 11859469,
+      "sha256": "498a8c3564dd2fd5f24e82ca6196f4f5da2b38af04356bfd665f71cad0f3b4ff",
+      "expired": false,
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/38131631918/artifacts/11699953239"
+    },
+    {
+      "id": 11699549986,
+      "name": "responsive-qa-38131631918-desktop-1",
+      "bytes": 24450017,
+      "sha256": "849936c134dadd88b61f8699c48a0a37c33339cbed4e9f114308d9aa8a9ab805",
+      "expired": false,
+      "url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/38131631918/artifacts/11699549986"
+    }
+  ],
+  "finalPrObservation": {
+    "draft": true,
+    "labels": [
+      "hold"
+    ],
+    "merged": false,
+    "autoMerge": null
+  },
+  "productionProven": false
+}

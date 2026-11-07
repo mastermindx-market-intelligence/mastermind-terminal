@@ -40,6 +40,7 @@ const PORT = Number(process.env.TERMINAL_CROP_PORT || 3537);
 const BASE = `http://127.0.0.1:${PORT}`;
 const VIEWPORTS = {
   1440: { width: 1440, height: 900 },
+  820: { width: 820, height: 1180 },
   390: { width: 390, height: 844 },
 };
 
@@ -105,7 +106,7 @@ async function waitForServer(timeoutMs) {
     try {
       const res = await fetch(`${BASE}/terminal?symbol=SPY`, { redirect: "manual" });
       last = String(res.status);
-      if (res.status >= 200 && res.status < 500) return;
+      if (res.status === 200) return;
     } catch (err) {
       last = err.cause?.code || err.message;
     }
@@ -197,6 +198,9 @@ async function openIndicatorLibrary(page, width) {
 async function captureGuidePanel(page, width, lang, outPath) {
   await gotoReady(page, "/terminal?symbol=NVDA", lang);
   await page.locator(".workspace").waitFor({ state: "visible", timeout: 60_000 });
+  // The SSR toolbar can precede hydration on the first cold route. Wait for
+  // the real chart consumer to mount before invoking its indicator controls.
+  await page.locator(".chart-wrap canvas").first().waitFor({ state: "visible", timeout: 60_000 });
   await openIndicatorLibrary(page, width);
   const library = page.locator(".imodal-library");
   await library.waitFor({ state: "visible", timeout: 20_000 });
@@ -250,7 +254,7 @@ async function captureChartConductor(page, width, lang, outPath) {
     const el = document.querySelector(".cmx-plate.show");
     return !!el && getComputedStyle(el).opacity === "1";
   }, null, { timeout: 15_000 });
-  const toggle = page.locator(".cmx-plate-ctl .cmx-btn:not(.cmx-skip)").first();
+  const toggle = page.locator(".cmx-plate-ctl button[aria-expanded]");
   await toggle.waitFor({ state: "attached", timeout: 15_000 });
   const expected = lang === "zh" ? "显示实时步骤" : "Show live steps";
   const hide = lang === "zh" ? "隐藏实时步骤" : "Hide live steps";
@@ -290,7 +294,7 @@ async function main() {
     await waitForServer(180_000);
     const browser = await chromium.launch({ headless: true });
     try {
-      for (const width of [1440, 390]) {
+      for (const width of [1440, 820, 390]) {
         for (const lang of ["en", "zh"]) {
           for (const surface of SURFACES) {
             if (!shouldCapture(surface.name, width, lang)) continue;
@@ -334,6 +338,7 @@ async function main() {
     "languages: [en, zh]",
     "viewports:",
     "  - { name: desktop, width: 1440, height: 900 }",
+    "  - { name: tablet, width: 820, height: 1180 }",
     "  - { name: mobile, width: 390, height: 844 }",
     "surfaces: [GuidePanel, LevelsView, LevelsLearn, ChartConductor]",
     "capture_flag: TERMINAL_E2E_FIXTURE",

@@ -1,0 +1,22 @@
+[warmup] /terminal?symbol=NVDA → 200 in 211ms
+[warmup] /options → 200 in 401ms
+[warmup] /portfolio → 200 in 351ms
+[warmup] /alerts → 200 in 218ms
+[warmup] /analysis → 200 in 487ms
+[warmup] /discover → 200 in 430ms
+[warmup] /admin → 200 in 156ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 122ms
+[warmup] /login → 200 in 311ms
+[warmup] /reset-password → 200 in 258ms
+[warmup] /api/me → 200 in 166ms
+[warmup] /api/watchlist → 200 in 85ms
+[warmup] /api/layouts → 200 in 68ms
+[warmup] /api/watchlist/annotations → 409 in 71ms
+[warmup] 14 routes compiled in 3s
+
+Running 2 tests using 1 worker
+
+  ✓  1 [desktop] › e2e/sector-constituent-evidence.spec.ts:171:5 › a listed holding opens its existing company evidence and closes back to the same sector (3.4s)
+  ✓  2 [desktop] › e2e/sector-constituent-evidence.spec.ts:212:5 › the Chinese light board reads the same membership record and opens the same evidence (2.3s)
+
+  2 passed (20.8s)

@@ -1,0 +1,97 @@
+{
+  "command": [
+    "npx",
+    "playwright",
+    "test",
+    "e2e/sector-portfolio-continuity.spec.ts",
+    "e2e/sector-constituent-evidence.spec.ts",
+    "e2e/sector-company-workflow.spec.ts",
+    "e2e/sector-feed-failure.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=2",
+    "--reporter=list"
+  ],
+  "exit_code": 1,
+  "elapsed_seconds": 159.808,
+  "completed_at": "2026-11-07T07:29:28.920636+00:00",
+  "base_head": "fa79003d23cc08216ced65935e80b0e95a54a285",
+  "candidate_dirty": true,
+  "log_sha256": "80cf4e0c6240aea61efd033b0e07f5a199b30eaed21a694884a650db9f331fb4",
+  "fixture_scope": "real local Next routes with controlled synthetic owner data; not production auth or current-source acceptance",
+  "screenshots": [
+    {
+      "file": "desktop-narrow-320-en-dark.png",
+      "sha256": "66c0bd85519bbca5391e8c48dd2713819caa5737f6bd7e67fde2ac7cd9df4849"
+    },
+    {
+      "file": "desktop-narrow-320-zh-light.png",
+      "sha256": "71595c1079fb3abac3cc4c48b92045efcbca77b5fb6321cb815945c322992856"
+    },
+    {
+      "file": "desktop-risk-en-dark.png",
+      "sha256": "23b624679b5533cc6739ad5e4fccf70166a28d6aea8e10759f280988c850bd18"
+    },
+    {
+      "file": "desktop-risk-zh-light.png",
+      "sha256": "90e3edfb3b7b2dc2090e5dbf4a5a97af34dfc3277bd267b88add8ea74adf9df1"
+    },
+    {
+      "file": "desktop-sector-depth-en-dark.png",
+      "sha256": "b425c4534bd39b949871c2a5c2cbcb8d084781ab86a16c4845236e3210d99178"
+    },
+    {
+      "file": "desktop-sector-depth-zh-light.png",
+      "sha256": "bd14b0b207d56c40f1d223ed7c9c3ba521ee412859988842d80c5751a7760809"
+    },
+    {
+      "file": "mobile-narrow-320-en-dark.png",
+      "sha256": "66c0bd85519bbca5391e8c48dd2713819caa5737f6bd7e67fde2ac7cd9df4849"
+    },
+    {
+      "file": "mobile-narrow-320-zh-light.png",
+      "sha256": "71595c1079fb3abac3cc4c48b92045efcbca77b5fb6321cb815945c322992856"
+    },
+    {
+      "file": "mobile-risk-en-dark.png",
+      "sha256": "8eb5ab1a2ebddf10f0920ab3bd0bbfebd74003d65b4956d3ea3e1c15e59e680d"
+    },
+    {
+      "file": "mobile-risk-zh-light.png",
+      "sha256": "ccdf887d1a812189ce3a8a940cf8f4169c9cfe9cbd30b5e4dd85e7d56193fe5c"
+    },
+    {
+      "file": "mobile-sector-depth-en-dark.png",
+      "sha256": "3760254e950841faef054d438f9fcbd627e1090e4ea8cfa112eedc637a9e88a0"
+    },
+    {
+      "file": "mobile-sector-depth-zh-light.png",
+      "sha256": "b33e1b44b2284a6515bbebe3569ef02c44d501afe6d02837c99812a4d998df61"
+    },
+    {
+      "file": "tablet-narrow-320-en-dark.png",
+      "sha256": "66c0bd85519bbca5391e8c48dd2713819caa5737f6bd7e67fde2ac7cd9df4849"
+    },
+    {
+      "file": "tablet-narrow-320-zh-light.png",
+      "sha256": "71595c1079fb3abac3cc4c48b92045efcbca77b5fb6321cb815945c322992856"
+    },
+    {
+      "file": "tablet-risk-en-dark.png",
+      "sha256": "4d6609c4882f3e10b91cedca836e35ce7a75fbd8e9b196fe74b932239763ffe3"
+    },
+    {
+      "file": "tablet-risk-zh-light.png",
+      "sha256": "0f54fcc61aeccc367cf9343e26768cdad95cff73e8c5565f89b226b66b3b5d67"
+    },
+    {
+      "file": "tablet-sector-depth-en-dark.png",
+      "sha256": "408d41675334e2244fa2fe78352650e8953bf88e3b65ebd8af8d2c3c4d9ea272"
+    },
+    {
+      "file": "tablet-sector-depth-zh-light.png",
+      "sha256": "6da95e7594b3f46119e58aeae70bbb5a1f7df18293d9eebd8d646fa3c87ccdbb"
+    }
+  ]
+}

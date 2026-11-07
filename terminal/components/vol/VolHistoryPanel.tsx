@@ -18,7 +18,7 @@ import type { Lang } from "@/lib/i18n";
 import { makeVolT } from "./volStrings";
 import type { VolHistoryRow } from "./volTypes";
 import {
-  finiteSegments, ProvenanceLine, PanelEmpty, PLOT_PAD, AXIS_TXT, REF_TXT,
+  admitVolHistoryRows, finiteSegments, ProvenanceLine, PanelEmpty, PLOT_PAD, AXIS_TXT, REF_TXT,
 } from "./volShared";
 
 // Local override, not MIN_CHART_H.axis (190) — this panel sits beside
@@ -29,7 +29,12 @@ import {
 // VolTermPanel.tsx for the matching comment.
 const H = 250;
 
-interface Pt { date: string; e: number; v: number }
+const CONFLICT_NOTE: React.CSSProperties = {
+  margin: "0 0 8px",
+  fontSize: 10.5,
+  lineHeight: 1.45,
+  color: "var(--warn)",
+};
 
 export function VolHistoryPanel({
   history,
@@ -46,21 +51,14 @@ export function VolHistoryPanel({
   const boxRef = useRef<HTMLDivElement | null>(null);
   const w = useChartWidth(boxRef);
 
-  // Date-valid rows in ascending order; atm_iv stays raw here — segmentation
-  // below decides what is drawable (R7: gaps break the line, never bridge).
-  const rows = useMemo<Pt[]>(() => {
-    const out: Pt[] = [];
-    for (const r of history ?? []) {
-      if (typeof r?.date !== "string") continue;
-      const e = Date.parse(`${r.date.slice(0, 10)}T00:00:00Z`);
-      if (!Number.isFinite(e)) continue;
-      out.push({ date: r.date.slice(0, 10), e, v: Number(r.atm_iv) });
-    }
-    out.sort((a, b) => a.e - b.e);
-    return out;
-  }, [history]);
-
+  // One shared admission rule preserves duplicate dates as explicit NaN gaps instead
+  // of deleting their coordinate and reconnecting the two surrounding sessions.
+  const admission = useMemo(() => admitVolHistoryRows(history), [history]);
+  const rows = admission.rows;
   const finite = useMemo(() => rows.filter((p) => Number.isFinite(p.v)), [rows]);
+  const conflictSummary = admission.conflictDates.size > 0
+    ? t("histConflictCount").replace("{n}", String(admission.conflictDates.size))
+    : null;
 
   // ── Empty gate — the wrapper (with the measure ref) is ALWAYS rendered. ──
   const drawable = finite.length >= 10;
@@ -111,15 +109,21 @@ export function VolHistoryPanel({
           <span style={{ marginLeft: "auto", fontSize: 10, color: "var(--text-dim)", fontVariantNumeric: "tabular-nums" }}>
             {t("histCoverage")
               .replace("{n}", String(finite.length))
-              .replace("{d}", finite[0].date.slice(0, 10))}
+              .replace("{d}", finite[0].date.slice(0, 10))
+              .replace("{last}", finite[finite.length - 1].date.slice(0, 10))}
           </span>
         )}
       </div>
+      {conflictSummary && (
+        <div data-testid="history-conflict-status" role="status" style={CONFLICT_NOTE}>
+          {conflictSummary}
+        </div>
+      )}
       <div ref={boxRef} style={{ width: "100%", minWidth: 0 }}>
         {!drawable ? (
           <PanelEmpty title={t("histEmptyTitle")} why={t("histEmptyWhy")} minHeight={H} />
         ) : (
-          <svg viewBox={`0 0 ${w} ${H}`} width={w} height={H} role="img" aria-label={t("histAria")}>
+          <svg viewBox={`0 0 ${w} ${H}`} width={w} height={H} role="img" aria-label={conflictSummary ? `${t("histAria")}. ${conflictSummary}` : t("histAria")}>
             {/* y grid + labels */}
             {yTicks.map((v) => (
               <g key={`y${v}`}>

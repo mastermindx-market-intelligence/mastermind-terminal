@@ -1,0 +1,254 @@
+{
+  "capturedAtHead": "6c9cde3550d2ab6281c2ea309c56f714f58b2ae1",
+  "langStorageKey": "mm.lang",
+  "capturedAt": "2026-10-22T09:11:05.008Z",
+  "port": 3123,
+  "captures": [
+    {
+      "dataTheme": "dark",
+      "bodyBackgroundColor": "rgb(10, 11, 14)",
+      "cardBackgroundColor": "color(srgb 0.0509804 0.0588235 0.0745098 / 0.94)",
+      "borderTopStyle": "dashed",
+      "borderTopColor": "color(srgb 0.235137 0.254431 0.303529)",
+      "pColor": "rgb(113, 122, 142)",
+      "innerText": "CURRENT THEME CONTEXT\n\nNo theme context for this company yet. It appears here once the company is mapped to a tracked theme.",
+      "box": {
+        "x": 132,
+        "y": 805.9,
+        "width": 614,
+        "height": 67
+      },
+      "scrollX": 0,
+      "scrollY": 0,
+      "dataThemeAfterMount": "dark",
+      "clip": {
+        "x": 108,
+        "y": 782,
+        "width": 662,
+        "height": 115
+      },
+      "file": "1440x900-en-dark-theme-empty.png",
+      "lang": "en",
+      "theme": "dark",
+      "viewport": "1440x900"
+    },
+    {
+      "dataTheme": "light",
+      "bodyBackgroundColor": "rgb(10, 11, 14)",
+      "cardBackgroundColor": "color(srgb 0.0509804 0.0588235 0.0745098 / 0.94)",
+      "borderTopStyle": "dashed",
+      "borderTopColor": "color(srgb 0.235137 0.254431 0.303529)",
+      "pColor": "rgb(113, 122, 142)",
+      "innerText": "CURRENT THEME CONTEXT\n\nNo theme context for this company yet. It appears here once the company is mapped to a tracked theme.",
+      "box": {
+        "x": 132,
+        "y": 805.9,
+        "width": 614,
+        "height": 67
+      },
+      "scrollX": 0,
+      "scrollY": 0,
+      "dataThemeAfterMount": "dark",
+      "clip": {
+        "x": 108,
+        "y": 782,
+        "width": 662,
+        "height": 115
+      },
+      "file": "1440x900-en-light-theme-empty.png",
+      "lang": "en",
+      "theme": "light",
+      "viewport": "1440x900"
+    },
+    {
+      "dataTheme": "dark",
+      "bodyBackgroundColor": "rgb(10, 11, 14)",
+      "cardBackgroundColor": "color(srgb 0.0509804 0.0588235 0.0745098 / 0.94)",
+      "borderTopStyle": "dashed",
+      "borderTopColor": "color(srgb 0.235137 0.254431 0.303529)",
+      "pColor": "rgb(113, 122, 142)",
+      "innerText": "当前主题背景\n\n该公司暂无主题背景；纳入跟踪主题后会显示在这里。",
+      "box": {
+        "x": 132,
+        "y": 805.9,
+        "width": 614,
+        "height": 67
+      },
+      "scrollX": 0,
+      "scrollY": 0,
+      "dataThemeAfterMount": "dark",
+      "clip": {
+        "x": 108,
+        "y": 782,
+        "width": 662,
+        "height": 115
+      },
+      "file": "1440x900-zh-dark-theme-empty.png",
+      "lang": "zh",
+      "theme": "dark",
+      "viewport": "1440x900"
+    },
+    {
+      "dataTheme": "light",
+      "bodyBackgroundColor": "rgb(10, 11, 14)",
+      "cardBackgroundColor": "color(srgb 0.0509804 0.0588235 0.0745098 / 0.94)",
+      "borderTopStyle": "dashed",
+      "borderTopColor": "color(srgb 0.235137 0.254431 0.303529)",
+      "pColor": "rgb(113, 122, 142)",
+      "innerText": "当前主题背景\n\n该公司暂无主题背景；纳入跟踪主题后会显示在这里。",
+      "box": {
+        "x": 132,
+        "y": 805.9,
+        "width": 614,
+        "height": 67
+      },
+      "scrollX": 0,
+      "scrollY": 0,
+      "dataThemeAfterMount": "dark",
+      "clip": {
+        "x": 108,
+        "y": 782,
+        "width": 662,
+        "height": 115
+      },
+      "file": "1440x900-zh-light-theme-empty.png",
+      "lang": "zh",
+      "theme": "light",
+      "viewport": "1440x900"
+    },
+    {
+      "dataTheme": "dark",
+      "bodyBackgroundColor": "rgb(10, 11, 14)",
+      "cardBackgroundColor": "color(srgb 0.0509804 0.0588235 0.0745098 / 0.94)",
+      "borderTopStyle": "dashed",
+      "borderTopColor": "color(srgb 0.235137 0.254431 0.303529)",
+      "pColor": "rgb(113, 122, 142)",
+      "innerText": "CURRENT THEME CONTEXT\n\nNo theme context for this company yet. It appears here once the company is mapped to a tracked theme.",
+      "box": {
+        "x": 12,
+        "y": 547.8,
+        "width": 366,
+        "height": 83.5
+      },
+      "scrollX": 0,
+      "scrollY": 0,
+      "dataThemeAfterMount": "dark",
+      "clip": {
+        "x": 0,
+        "y": 524,
+        "width": 390,
+        "height": 132
+      },
+      "file": "390x844-en-dark-theme-empty.png",
+      "lang": "en",
+      "theme": "dark",
+      "viewport": "390x844"
+    },
+    {
+      "dataTheme": "light",
+      "bodyBackgroundColor": "rgb(10, 11, 14)",
+      "cardBackgroundColor": "color(srgb 0.0509804 0.0588235 0.0745098 / 0.94)",
+      "borderTopStyle": "dashed",
+      "borderTopColor": "color(srgb 0.235137 0.254431 0.303529)",
+      "pColor": "rgb(113, 122, 142)",
+      "innerText": "CURRENT THEME CONTEXT\n\nNo theme context for this company yet. It appears here once the company is mapped to a tracked theme.",
+      "box": {
+        "x": 12,
+        "y": 547.8,
+        "width": 366,
+        "height": 83.5
+      },
+      "scrollX": 0,
+      "scrollY": 0,
+      "dataThemeAfterMount": "dark",
+      "clip": {
+        "x": 0,
+        "y": 524,
+        "width": 390,
+        "height": 132
+      },
+      "file": "390x844-en-light-theme-empty.png",
+      "lang": "en",
+      "theme": "light",
+      "viewport": "390x844"
+    },
+    {
+      "dataTheme": "dark",
+      "bodyBackgroundColor": "rgb(10, 11, 14)",
+      "cardBackgroundColor": "color(srgb 0.0509804 0.0588235 0.0745098 / 0.94)",
+      "borderTopStyle": "dashed",
+      "borderTopColor": "color(srgb 0.235137 0.254431 0.303529)",
+      "pColor": "rgb(113, 122, 142)",
+      "innerText": "当前主题背景\n\n该公司暂无主题背景；纳入跟踪主题后会显示在这里。",
+      "box": {
+        "x": 12,
+        "y": 564,
+        "width": 366,
+        "height": 67
+      },
+      "scrollX": 0,
+      "scrollY": 0,
+      "dataThemeAfterMount": "dark",
+      "clip": {
+        "x": 0,
+        "y": 540,
+        "width": 390,
+        "height": 115
+      },
+      "file": "390x844-zh-dark-theme-empty.png",
+      "lang": "zh",
+      "theme": "dark",
+      "viewport": "390x844"
+    },
+    {
+      "dataTheme": "light",
+      "bodyBackgroundColor": "rgb(10, 11, 14)",
+      "cardBackgroundColor": "color(srgb 0.0509804 0.0588235 0.0745098 / 0.94)",
+      "borderTopStyle": "dashed",
+      "borderTopColor": "color(srgb 0.235137 0.254431 0.303529)",
+      "pColor": "rgb(113, 122, 142)",
+      "innerText": "当前主题背景\n\n该公司暂无主题背景；纳入跟踪主题后会显示在这里。",
+      "box": {
+        "x": 12,
+        "y": 564,
+        "width": 366,
+        "height": 67
+      },
+      "scrollX": 0,
+      "scrollY": 0,
+      "dataThemeAfterMount": "dark",
+      "clip": {
+        "x": 0,
+        "y": 540,
+        "width": 390,
+        "height": 115
+      },
+      "file": "390x844-zh-light-theme-empty.png",
+      "lang": "zh",
+      "theme": "light",
+      "viewport": "390x844"
+    }
+  ],
+  "darkLightIdentical": {
+    "1440x900-en": {
+      "identical": false,
+      "darkSha": "d07a166f45d7974d8120acddb383488331e32b8a94c86855403381116a9ececd",
+      "lightSha": "904e5d49419eb1d943d04a7b984f3b95e1883b764cdd53165e7de87c4352ec9b"
+    },
+    "1440x900-zh": {
+      "identical": true,
+      "darkSha": "03348507e725c396f12a24a1b12689eb849efcf3a8f4e65a0e6c35d319044c6a",
+      "lightSha": "03348507e725c396f12a24a1b12689eb849efcf3a8f4e65a0e6c35d319044c6a"
+    },
+    "390x844-en": {
+      "identical": true,
+      "darkSha": "349ac6e78a1aa0f709193881cc6828a02dd95f8e82b8bffa58edbe0e6769dfbb",
+      "lightSha": "349ac6e78a1aa0f709193881cc6828a02dd95f8e82b8bffa58edbe0e6769dfbb"
+    },
+    "390x844-zh": {
+      "identical": true,
+      "darkSha": "bb96b3f4d216fdc37d3321b5c915858302175681337ce74cec514a21304579ac",
+      "lightSha": "bb96b3f4d216fdc37d3321b5c915858302175681337ce74cec514a21304579ac"
+    }
+  }
+}
