@@ -66,7 +66,7 @@ function getChromium() {
     localAssets:0,businessUnavailable:0,externalDenied:0,socketsDenied:0,redirectsDenied:0};
   return {counts,toolchain:{package:pkg.name,version:pkg.version,packageSha256:hash(fs.readFileSync(packagePath)),defaultExecutableLookup:original.executablePath()},
     async launch(options) {
-      const server = await original.launchServer({...options,timeout:30000});
+      const server = await original.launchServer({...options,timeout:30000,env:captureServerEnv()});
       const child = server.process();
       if (!child || !Number.isSafeInteger(child.pid)) { await server.close(); throw Error("THESIS_CAPTURE_BROWSER_IDENTITY"); }
       let browser;
