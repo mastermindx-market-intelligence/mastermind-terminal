@@ -5,6 +5,7 @@ import { useShellIdentity } from "@/components/chrome/AppShell";
 import { useLang } from "@/lib/i18n";
 import { buildRotationMonitor, type RotationReason } from "@/lib/rotationMonitor";
 import { useRotationMonitorInputs } from "./useRotationMonitorInputs";
+import RSPivotWatchPreview from "./RSPivotWatchPreview";
 import styles from "./RSPivotRotationMonitor.module.css";
 
 const NAMES: Record<string, [string, string]> = {
@@ -114,6 +115,7 @@ export default function RSPivotRotationMonitor({ hydrated, onSelectSymbol, selec
         {(inputs.quoteState === "unavailable" || inputs.historyState === "unavailable" || inputs.historyState === "partial")
           && <p className={styles.note} role="status">{pick("Some inputs are unavailable; affected comparisons remain unavailable.",
             "部分输入不可用；对应比较暂不显示。")}</p>}
+        <RSPivotWatchPreview monitor={report} histories={inputs.histories} nowMs={inputs.nowMs} zh={zh} />
         <details className={styles.evidence}>
           <summary>{pick("Source details", "来源详情")}</summary>
           <dl>

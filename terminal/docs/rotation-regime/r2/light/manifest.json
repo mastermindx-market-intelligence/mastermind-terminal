@@ -1,0 +1,313 @@
+{
+  "schema": "mastermind.terminal.r2_light_theme_product_proof.v1",
+  "kind": "local_synthetic_browser",
+  "label": "fixture/local product preview of the R2 opening-range pivot preview — not current market data, not authenticated production proof, not product or release acceptance",
+  "operation": "rotation-pivot-watch-r2-20261103-sol-001",
+  "branch": "sol/web-rotation-pivot-watch-r2-20261103-sol-001",
+  "repository": "mastermindx-market-intelligence/mastermind-terminal",
+  "pull_request": 1281,
+  "pull_request_state_at_run": "OPEN / Draft (unarmed)",
+  "tested_commit": "dcd4f4071db4f6512bd0e843a502c259371648ba",
+  "tested_tree": "b3d05755eb8ea9362175fda4120ed5de2fb85d8a",
+  "tested_commit_parents": [
+    "c0baec65eb10ae53771ba7edb7c212e31289dbd2",
+    "293602908b6b009922b17c9ff613d6e27d201e9a"
+  ],
+  "frozen_composition_base": "293602908b6b009922b17c9ff613d6e27d201e9a",
+  "r2_production_blobs_preserved": {
+    "terminal/components/workspaces/RSPivotRotationMonitor.tsx": "48a07e7d6f95d22090422797e8da9e328cdd0645",
+    "terminal/components/workspaces/RSPivotWatchPreview.tsx": "36b080d44191e8f83db34fad5a619233f935028e",
+    "terminal/lib/pivotWatchPreview.ts": "c185d451beb20b60739fec0bba428344703e2a0e",
+    "terminal/lib/rotationPivotPreview.ts": "83769166c60e3f9575b05607f57d606568656d6f"
+  },
+  "browser": {
+    "engine": "chromium",
+    "version": "149.0.7827.55",
+    "playwright": "1.61.1",
+    "revision": "1228",
+    "headless": true
+  },
+  "runtime": {
+    "node": "v24.21.0",
+    "workers": 1,
+    "retries": 0,
+    "loopback_port": 32181,
+    "origin": "http://127.0.0.1:32181",
+    "dev_server": "next dev --hostname 127.0.0.1 --port 32181",
+    "server_env": [
+      "ANALYSIS_LOCAL_PREVIEW=1",
+      "ADMIN_DEV=1",
+      "TERMINAL_E2E_FIXTURE=1",
+      "TERMINAL_E2E_EMAIL=responsive@example.com",
+      "TERMINAL_E2E_ENTITLEMENT=unlimited",
+      "RATE_LIMIT_MAX=100000",
+      "HUB_REALTIME_QUOTES=1",
+      "TICKER_NEWS_RAIL=1",
+      "FLOW_FIXTURE=1",
+      "INVESTIGATION_API_ADMISSION=open"
+    ]
+  },
+  "command": "CI=1 TERMINAL_E2E_PORT=32181 npm run test:e2e:responsive -- e2e/rotation-monitor.spec.ts --grep \"R2 light-theme product proof\" --project=desktop --project=tablet --project=mobile --workers=1 --retries=0",
+  "spec": "terminal/e2e/rotation-monitor.spec.ts",
+  "fixture": {
+    "source": "incumbent synthetic 5m fixture and fixed clock in terminal/e2e/rotation-monitor.spec.ts",
+    "entitlement_identity": "incumbent mm_e2e_rs30 cookie plus TERMINAL_E2E_ENTITLEMENT=unlimited fixture",
+    "clock": "2026-10-27T15:00:02Z",
+    "production_fetch": false,
+    "credentials_used": false
+  },
+  "theme_source": "existing storage request (theme=light, theme_auto=0, mm.lang) before navigation, plus the app's existing html[data-theme] CSS theme root; the applied theme is asserted and read back, never inferred from the file name",
+  "applied_theme_asserted": true,
+  "summary": {
+    "expected": 6,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "duration_ms": 16718,
+    "executed": 6,
+    "states_captured": 12
+  },
+  "cases": [
+    {
+      "project": "desktop",
+      "title": "R2 light-theme product proof (en)",
+      "status": "passed",
+      "duration_ms": 1204,
+      "retry": 0,
+      "theme_readback": {
+        "actualTheme": "light",
+        "actualLang": "en",
+        "foreground": "rgb(214, 218, 227)",
+        "background": "rgba(0, 0, 0, 0)"
+      }
+    },
+    {
+      "project": "desktop",
+      "title": "R2 light-theme product proof (zh)",
+      "status": "passed",
+      "duration_ms": 1171,
+      "retry": 0,
+      "theme_readback": {
+        "actualTheme": "light",
+        "actualLang": "zh",
+        "foreground": "rgb(214, 218, 227)",
+        "background": "rgba(0, 0, 0, 0)"
+      }
+    },
+    {
+      "project": "mobile",
+      "title": "R2 light-theme product proof (en)",
+      "status": "passed",
+      "duration_ms": 1066,
+      "retry": 0,
+      "theme_readback": {
+        "actualTheme": "light",
+        "actualLang": "en",
+        "foreground": "rgb(214, 218, 227)",
+        "background": "rgba(0, 0, 0, 0)"
+      }
+    },
+    {
+      "project": "mobile",
+      "title": "R2 light-theme product proof (zh)",
+      "status": "passed",
+      "duration_ms": 1156,
+      "retry": 0,
+      "theme_readback": {
+        "actualTheme": "light",
+        "actualLang": "zh",
+        "foreground": "rgb(214, 218, 227)",
+        "background": "rgba(0, 0, 0, 0)"
+      }
+    },
+    {
+      "project": "tablet",
+      "title": "R2 light-theme product proof (en)",
+      "status": "passed",
+      "duration_ms": 1086,
+      "retry": 0,
+      "theme_readback": {
+        "actualTheme": "light",
+        "actualLang": "en",
+        "foreground": "rgb(214, 218, 227)",
+        "background": "rgba(0, 0, 0, 0)"
+      }
+    },
+    {
+      "project": "tablet",
+      "title": "R2 light-theme product proof (zh)",
+      "status": "passed",
+      "duration_ms": 1190,
+      "retry": 0,
+      "theme_readback": {
+        "actualTheme": "light",
+        "actualLang": "zh",
+        "foreground": "rgb(214, 218, 227)",
+        "background": "rgba(0, 0, 0, 0)"
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "desktop-en-missing-spy.png",
+      "sha256": "7ee8319e20cf725c975a670acaa765d6dd4a74ea1c3791a857e8c10260747cf5",
+      "bytes": 20820,
+      "width_px": 1246,
+      "height_px": 161,
+      "viewport": "desktop",
+      "language": "en",
+      "state": "missing-spy",
+      "kind": "local_synthetic_browser",
+      "theme_root": "light",
+      "label": "fixture/local product preview — not current market data, not authenticated production proof"
+    },
+    {
+      "file": "desktop-en-preview.png",
+      "sha256": "859f29ed03cf7cd4b5ca779a1bbe4bd7f1f130e83e1ce5d3e01993826ac27cb3",
+      "bytes": 58792,
+      "width_px": 1246,
+      "height_px": 718,
+      "viewport": "desktop",
+      "language": "en",
+      "state": "preview",
+      "kind": "local_synthetic_browser",
+      "theme_root": "light",
+      "label": "fixture/local product preview — not current market data, not authenticated production proof"
+    },
+    {
+      "file": "desktop-zh-missing-spy.png",
+      "sha256": "4496245560ae89405bf55608fc7ffe2cb49457326eb5b1f549966e10a722f4c8",
+      "bytes": 33879,
+      "width_px": 1246,
+      "height_px": 161,
+      "viewport": "desktop",
+      "language": "zh",
+      "state": "missing-spy",
+      "kind": "local_synthetic_browser",
+      "theme_root": "light",
+      "label": "fixture/local product preview — not current market data, not authenticated production proof"
+    },
+    {
+      "file": "desktop-zh-preview.png",
+      "sha256": "60362846056cfe5fd85b218f0dc2f186870ead6800a9a332050d8711ae930c99",
+      "bytes": 82840,
+      "width_px": 1246,
+      "height_px": 718,
+      "viewport": "desktop",
+      "language": "zh",
+      "state": "preview",
+      "kind": "local_synthetic_browser",
+      "theme_root": "light",
+      "label": "fixture/local product preview — not current market data, not authenticated production proof"
+    },
+    {
+      "file": "mobile-en-missing-spy.png",
+      "sha256": "432201f34e954096c4df5ee56ec70099c027b207df6062a0fea46415eee810a1",
+      "bytes": 20662,
+      "width_px": 340,
+      "height_px": 345,
+      "viewport": "mobile",
+      "language": "en",
+      "state": "missing-spy",
+      "kind": "local_synthetic_browser",
+      "theme_root": "light",
+      "label": "fixture/local product preview — not current market data, not authenticated production proof"
+    },
+    {
+      "file": "mobile-en-preview.png",
+      "sha256": "c00c733628ce62c2a1ed4a0a224a972470cc5def1144b6037df16ef174514508",
+      "bytes": 53181,
+      "width_px": 340,
+      "height_px": 1134,
+      "viewport": "mobile",
+      "language": "en",
+      "state": "preview",
+      "kind": "local_synthetic_browser",
+      "theme_root": "light",
+      "label": "fixture/local product preview — not current market data, not authenticated production proof"
+    },
+    {
+      "file": "mobile-zh-missing-spy.png",
+      "sha256": "e7c0720d8a342fce666468ae8ae12ff5a3889401a2bd4cf841f54082d66ae633",
+      "bytes": 31376,
+      "width_px": 340,
+      "height_px": 258,
+      "viewport": "mobile",
+      "language": "zh",
+      "state": "missing-spy",
+      "kind": "local_synthetic_browser",
+      "theme_root": "light",
+      "label": "fixture/local product preview — not current market data, not authenticated production proof"
+    },
+    {
+      "file": "mobile-zh-preview.png",
+      "sha256": "0d6a67ad94aa430f829b9a68695285e36024ab48674eeec9d56102bbd4954eff",
+      "bytes": 78746,
+      "width_px": 340,
+      "height_px": 997,
+      "viewport": "mobile",
+      "language": "zh",
+      "state": "preview",
+      "kind": "local_synthetic_browser",
+      "theme_root": "light",
+      "label": "fixture/local product preview — not current market data, not authenticated production proof"
+    },
+    {
+      "file": "tablet-en-missing-spy.png",
+      "sha256": "87a7604e1c967ac9a1a4901549019ef9023020ffc0acacb275aff1217f0de02a",
+      "bytes": 21157,
+      "width_px": 754,
+      "height_px": 178,
+      "viewport": "tablet",
+      "language": "en",
+      "state": "missing-spy",
+      "kind": "local_synthetic_browser",
+      "theme_root": "light",
+      "label": "fixture/local product preview — not current market data, not authenticated production proof"
+    },
+    {
+      "file": "tablet-en-preview.png",
+      "sha256": "3dfde1aefbd8e664cdbf3017586f050e1614d9b2099d1f16963a419b33ea7252",
+      "bytes": 53420,
+      "width_px": 754,
+      "height_px": 719,
+      "viewport": "tablet",
+      "language": "en",
+      "state": "preview",
+      "kind": "local_synthetic_browser",
+      "theme_root": "light",
+      "label": "fixture/local product preview — not current market data, not authenticated production proof"
+    },
+    {
+      "file": "tablet-zh-missing-spy.png",
+      "sha256": "212c0ddce9815c476bea2766a0a688435d6bd8cc7da8d4f2dc4ff7441c368328",
+      "bytes": 32605,
+      "width_px": 754,
+      "height_px": 161,
+      "viewport": "tablet",
+      "language": "zh",
+      "state": "missing-spy",
+      "kind": "local_synthetic_browser",
+      "theme_root": "light",
+      "label": "fixture/local product preview — not current market data, not authenticated production proof"
+    },
+    {
+      "file": "tablet-zh-preview.png",
+      "sha256": "ba64018d620ee72e76e62624064caccb8229f7116bdcd9ea3f6967bcc3e4127c",
+      "bytes": 75481,
+      "width_px": 754,
+      "height_px": 701,
+      "viewport": "tablet",
+      "language": "zh",
+      "state": "preview",
+      "kind": "local_synthetic_browser",
+      "theme_root": "light",
+      "label": "fixture/local product preview — not current market data, not authenticated production proof"
+    }
+  ],
+  "observed_limitations": [
+    "The Terminal product surface is dark-only by design (terminal/app/settings.css): the core :root tokens are not overridden for html[data-theme=\"light\"] outside the shared-shell beta and the options-companion subtree, so the R2 preview retains the Terminal's own dark material under the light root. The attached computed foreground rgb(214, 218, 227) is the dark --text token. No production source, styling, dependency, entitlement, data or collector file was changed.",
+    "The captures are fixture/local product previews of the incumbent synthetic 5m data. They are not current market data, not a signed-in production path, and not a deployment, latency, forecast or economic qualification.",
+    "The shared-shell beta is the only light-material Terminal surface and is a separate opt-in surface; it was not exercised by this proof."
+  ]
+}
