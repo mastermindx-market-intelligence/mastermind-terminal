@@ -427,13 +427,14 @@ def test_required_aggregate_rejects_unsuccessful_expanded_matrix(matrix_result):
     aggregate = workflow["jobs"]["terminal"]
     assert "terminal-e2e" in aggregate["needs"]
     assert aggregate["if"] == "always()"
-    step = next(step for step in aggregate["steps"] if step.get("name") == "Assert every terminal shard succeeded")
+    step = next(step for step in aggregate["steps"] if step.get("name") == "Assert all event-required Terminal checks passed")
     # Run the actual aggregate shell with the matrix-level result GitHub supplies.
     # A new row remains inside terminal-e2e, so its failure/cancellation makes this
     # matrix result unsuccessful; no new optional job or aggregate exception exists.
     result = subprocess.run(
         ["bash", "-c", step["run"]],
-        env={**os.environ, "SCOPE": "success", "UNIT": "success", "E2E": matrix_result, "EVENT": "pull_request"},
+        env={**os.environ, "SCOPE": "success", "PR_SCOPE": "success", "PR_MODE": "full",
+             "UNIT": "success", "E2E": matrix_result, "EVENT": "pull_request"},
         capture_output=True, text=True, check=False,
     )
     assert (result.returncode == 0) is (matrix_result == "success"), result.stdout

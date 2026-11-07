@@ -1,4 +1,15 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+// Explicit synthetic born-OPEN BFF realm. Real admission/BFF handlers stay
+// unchanged; only kernel IO and per-case negative-cell collaborators are fixtures.
+const bootFixture=vi.hoisted(()=>({bornOpen:true,closed:false}));
+vi.mock("@/lib/investigationBootAdmission",()=>({
+ readInvestigationBootAdmission:()=>bootFixture.bornOpen,
+ hasObservedInvestigationClosure:()=>bootFixture.closed,
+ observeInvestigationClosure:()=>{bootFixture.closed=true;}
+}));
+// A fresh synthetic realm per case is not a production latch-reset mechanism.
+beforeEach(()=>{bootFixture.bornOpen=true;bootFixture.closed=false;vi.stubEnv("INVESTIGATION_API_ADMISSION","open");});
+afterEach(()=>{vi.unstubAllEnvs();});
 // Real route and owner service. Only external authentication, rate limiting and RPC transport are stubbed.
 const {rpc,getUser,rateLimit}=vi.hoisted(()=>({rpc:vi.fn(),getUser:vi.fn(),rateLimit:vi.fn()}));
 vi.mock("@/lib/supabase/server",()=>({createClient:async()=>({rpc,auth:{getUser}})}));
@@ -80,4 +91,14 @@ describe("a legacy POST retry is bound to the signed-in account, never to the bo
   expect(JSON.stringify(rpc.mock.calls[0])).toBe(JSON.stringify(rpc.mock.calls[1]));
   expect(JSON.stringify(rpc.mock.calls)).not.toContain(principal);expect(JSON.stringify(rpc.mock.calls)).not.toContain(other);
  });
+});
+
+it.each(["born-closed","current-closed","observed-closed"])("synthetic %s ceiling stops the real route before auth/owner access",async mode=>{
+ bootFixture.bornOpen=mode!=="born-closed";vi.resetModules();
+ const {POST:guarded}=await import("@/app/api/investigations/route");
+ if(mode!=="born-closed")vi.stubEnv("INVESTIGATION_API_ADMISSION","closed");
+ if(mode==="observed-closed"){expect((await guarded(req(legacy()))).status).toBe(503);vi.stubEnv("INVESTIGATION_API_ADMISSION","open");}
+ const r=req(legacy());const body=vi.spyOn(r.body!,"getReader");
+ const response=await guarded(r);expect(response.status).toBe(503);expect(response.headers.get("cache-control")).toBe("private, no-store");
+ expect(body).not.toHaveBeenCalled();expect(getUser).not.toHaveBeenCalled();expect(rpc).not.toHaveBeenCalled();expect(rateLimit).not.toHaveBeenCalled();
 });

@@ -1,4 +1,15 @@
-import {beforeEach,describe,expect,it,vi} from "vitest";
+import {afterEach,beforeEach,describe,expect,it,vi} from "vitest";
+// Explicit synthetic born-OPEN BFF realm. Real admission/BFF handlers stay
+// unchanged; only kernel IO and per-case negative-cell collaborators are fixtures.
+const bootFixture=vi.hoisted(()=>({bornOpen:true,closed:false}));
+vi.mock("@/lib/investigationBootAdmission",()=>({
+ readInvestigationBootAdmission:()=>bootFixture.bornOpen,
+ hasObservedInvestigationClosure:()=>bootFixture.closed,
+ observeInvestigationClosure:()=>{bootFixture.closed=true;}
+}));
+// A fresh synthetic realm per case is not a production latch-reset mechanism.
+beforeEach(()=>{bootFixture.bornOpen=true;bootFixture.closed=false;vi.stubEnv("INVESTIGATION_API_ADMISSION","open");});
+afterEach(()=>{vi.unstubAllEnvs();});
 const {getUser,read,version}=vi.hoisted(()=>({getUser:vi.fn(),read:vi.fn(),version:vi.fn()}));
 vi.mock("@/lib/supabase/server",()=>({createClient:async()=>({auth:{getUser}})}));
 vi.mock("@/lib/investigations",async()=>({...await vi.importActual<typeof import("@/lib/investigations")>("@/lib/investigations"),readInvestigation:read}));
@@ -26,4 +37,14 @@ describe("exact saved canonical Thesis references",()=>{
  it("allows a valid empty reference list without inventing any Thesis",async()=>{
   read.mockResolvedValue({status:"found",id,revision:1,manifest:{...manifest,thesis_refs:[]}});expect(await (await GET(request())).json()).toMatchObject({status:"resolved",items:[]});expect(version).not.toHaveBeenCalled();
  });
+});
+
+it.each(["born-closed","current-closed","observed-closed"])("synthetic %s ceiling stops the real route before auth/owner access",async mode=>{
+ bootFixture.bornOpen=mode!=="born-closed";vi.resetModules();
+ const {GET:guarded}=await import("@/app/api/investigations/theses/route");
+ if(mode!=="born-closed")vi.stubEnv("INVESTIGATION_API_ADMISSION","closed");
+ if(mode==="observed-closed"){expect((await guarded(request())).status).toBe(503);vi.stubEnv("INVESTIGATION_API_ADMISSION","open");}
+ const r=request();
+ const response=await guarded(r);expect(response.status).toBe(503);expect(response.headers.get("cache-control")).toBe("private, no-store");
+ expect(getUser).not.toHaveBeenCalled();expect(read).not.toHaveBeenCalled();expect(version).not.toHaveBeenCalled();
 });

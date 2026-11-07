@@ -1,4 +1,15 @@
-import {beforeEach,describe,expect,it,vi} from "vitest";
+import {afterEach,beforeEach,describe,expect,it,vi} from "vitest";
+// Explicit synthetic born-OPEN BFF realm. Real admission/BFF handlers stay
+// unchanged; only kernel IO and per-case negative-cell collaborators are fixtures.
+const bootFixture=vi.hoisted(()=>({bornOpen:true,closed:false}));
+vi.mock("@/lib/investigationBootAdmission",()=>({
+ readInvestigationBootAdmission:()=>bootFixture.bornOpen,
+ hasObservedInvestigationClosure:()=>bootFixture.closed,
+ observeInvestigationClosure:()=>{bootFixture.closed=true;}
+}));
+// A fresh synthetic realm per case is not a production latch-reset mechanism.
+beforeEach(()=>{bootFixture.bornOpen=true;bootFixture.closed=false;vi.stubEnv("INVESTIGATION_API_ADMISSION","open");});
+afterEach(()=>{vi.unstubAllEnvs();});
 import fixture from "./fixtures/aapl-event-workspace.json";
 const {getUser,read,current,retained,authorize,selected}=vi.hoisted(()=>({getUser:vi.fn(),read:vi.fn(),current:vi.fn(),retained:vi.fn(),authorize:vi.fn(),selected:vi.fn()}));
 vi.mock("@/lib/supabase/server",()=>({createClient:async()=>({auth:{getUser}})}));
@@ -54,4 +65,14 @@ it("keeps a mixed-owner manifest's selected Earnings baseline with its existing 
  const mixed={...manifest,schema:"investigation_manifest.v3",intent:{...manifest.intent,subjects:[...manifest.intent.subjects,{owner:"intl.workspace_context",kind:"economy",object_id:ref.object_id}]},evidence_refs:[reference,ref]};
  read.mockResolvedValue({status:"found",id,revision:1,manifest:mixed,committed_at:"2026-11-04T10:00:00.000Z"});const forbiddenFetch=vi.fn(()=>{throw Error("Unexpected International owner read");});vi.stubGlobal("fetch",forbiddenFetch);
  try{const response=await GET(request());expect(response.status).toBe(200);expect(await response.json()).toMatchObject({status:"reviewed",baseline:owner.receipt});expect(retained).toHaveBeenCalled();expect(forbiddenFetch).not.toHaveBeenCalled();}finally{vi.unstubAllGlobals();}
+});
+
+it.each(["born-closed","current-closed","observed-closed"])("synthetic %s ceiling stops the real route before auth/owner access",async mode=>{
+ bootFixture.bornOpen=mode!=="born-closed";vi.resetModules();
+ const {GET:guarded}=await import("@/app/api/investigations/review/route");
+ if(mode!=="born-closed")vi.stubEnv("INVESTIGATION_API_ADMISSION","closed");
+ if(mode==="observed-closed"){expect((await guarded(request())).status).toBe(503);vi.stubEnv("INVESTIGATION_API_ADMISSION","open");}
+ const r=request();
+ const response=await guarded(r);expect(response.status).toBe(503);expect(response.headers.get("cache-control")).toBe("private, no-store");
+ expect(getUser).not.toHaveBeenCalled();expect(read).not.toHaveBeenCalled();expect(current).not.toHaveBeenCalled();expect(retained).not.toHaveBeenCalled();
 });

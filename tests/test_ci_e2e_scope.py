@@ -141,16 +141,25 @@ def test_required_check_never_launders_skipped_or_failed_scope():
     aggregate = jobs["terminal"]
     assert aggregate["name"] == "Terminal typecheck + tests"
     assert aggregate["if"] == "always()"
-    assert set(aggregate["needs"]) == {"e2e-scope", "terminal-unit", "terminal-e2e"}
-    run = aggregate["steps"][0]["run"]
+    assert set(aggregate["needs"]) == {"pr_scope", "e2e-scope", "terminal-unit", "terminal-e2e"}
+    run = next(step["run"] for step in aggregate["steps"]
+               if step["name"] == "Assert all event-required Terminal checks passed")
     for dep in ["e2e-scope:$SCOPE", "terminal-unit:$UNIT", "terminal-e2e:$E2E"]:
         assert dep in run
     assert '[ "$fail" -eq 0 ] || exit 1' in run
-    assert jobs["terminal-unit"]["needs"] == ["e2e-scope"]
-    assert jobs["terminal-e2e"]["needs"] == ["e2e-scope"]
+    assert jobs["terminal-unit"]["needs"] == ["pr_scope", "e2e-scope"]
+    assert jobs["terminal-e2e"]["needs"] == ["pr_scope", "e2e-scope"]
     # Full audited PR matrix or safe focused subset; native merge_group must
     # not duplicate the separately proven browser work.
-    assert jobs["terminal-e2e"]["if"] == "github.event_name != 'merge_group'"
+    docs = ("github.event_name == 'pull_request' && "
+            "needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs'")
+    assert jobs["terminal-unit"]["if"] == (
+        "${{ !cancelled() && needs.e2e-scope.result == 'success' && !(" + docs + ") }}"
+    )
+    assert jobs["terminal-e2e"]["if"] == (
+        "${{ !cancelled() && needs.e2e-scope.result == 'success' && "
+        "github.event_name != 'merge_group' && !(" + docs + ") }}"
+    )
     assert jobs["terminal-e2e"]["strategy"]["fail-fast"] is False
     assert jobs["terminal-e2e"]["strategy"]["matrix"] == (
         "${{ fromJSON(needs.e2e-scope.outputs.matrix) }}"
@@ -345,3 +354,121 @@ def test_deleted_allowlisted_css_really_runs_full_through_workflow(tmp_path):
     assert mode == "full"
     assert matrix == scope.FULL_MATRIX
     assert "non_modification_change" in stdout
+
+
+
+def test_ci_workflow_has_no_duplicate_yaml_mapping_keys():
+    # Git's textual merge can leave two needs/if/SCOPE keys without a conflict
+    # marker. PyYAML normally keeps only the last value, masking lost gates.
+    def check(node, path="workflow"):
+        if isinstance(node, yaml.MappingNode):
+            keys = [key.value for key, _ in node.value]
+            assert len(keys) == len(set(keys)), (path, keys)
+            for key, value in node.value:
+                check(value, f"{path}.{key.value}")
+        elif isinstance(node, yaml.SequenceNode):
+            for index, value in enumerate(node.value):
+                check(value, f"{path}[{index}]")
+
+    check(yaml.compose(CI.read_text(), Loader=yaml.BaseLoader))
+
+
+def _execute_required_aggregate(**overrides):
+    import os
+
+    job = yaml.safe_load(CI.read_text())["jobs"]["terminal"]
+    step = next(step for step in job["steps"]
+                if step["name"] == "Assert all event-required Terminal checks passed")
+    assert step["if"] == "${{ !cancelled() }}"
+    env = {
+        **os.environ,
+        "EVENT": "pull_request", "PR_SCOPE": "success", "PR_MODE": "full",
+        "SCOPE": "success", "UNIT": "success", "E2E": "success", **overrides,
+    }
+    return subprocess.run(
+        ["bash", "-e", "-o", "pipefail", "-c", step["run"]],
+        cwd=ROOT, env=env, capture_output=True, text=True, timeout=10,
+    )
+
+
+@pytest.mark.parametrize("unit,e2e", [
+    ("success", "success"), ("success", "skipped"),
+    ("skipped", "success"), ("skipped", "skipped"),
+])
+def test_qualified_docs_pr_can_skip_each_test_job(unit, e2e):
+    result = _execute_required_aggregate(PR_MODE="docs", UNIT=unit, E2E=e2e)
+    assert result.returncode == 0, result.stdout
+
+
+@pytest.mark.parametrize("pr_scope,mode", [
+    ("failure", "docs"), ("skipped", "docs"), ("cancelled", "docs"),
+    ("", "docs"), ("success", ""), ("success", "invalid"),
+    ("success", "DOCS"), ("failure", ""),
+])
+def test_unqualified_pr_scope_permits_successful_normal_testing(pr_scope, mode):
+    result = _execute_required_aggregate(PR_SCOPE=pr_scope, PR_MODE=mode)
+    assert result.returncode == 0, result.stdout
+
+
+@pytest.mark.parametrize("pr_scope,mode", [
+    ("failure", "docs"), ("skipped", "docs"), ("cancelled", "docs"),
+    ("", "docs"), ("success", ""), ("success", "invalid"),
+    ("success", "DOCS"),
+])
+@pytest.mark.parametrize("job", ["UNIT", "E2E"])
+def test_unqualified_pr_scope_cannot_authorize_a_skipped_job(pr_scope, mode, job):
+    result = _execute_required_aggregate(PR_SCOPE=pr_scope, PR_MODE=mode, **{job: "skipped"})
+    assert result.returncode != 0, result.stdout
+
+
+@pytest.mark.parametrize("status", ["failure", "cancelled", "skipped", "", "unknown"])
+def test_docs_qualification_cannot_replace_the_browser_selector(status):
+    result = _execute_required_aggregate(
+        PR_MODE="docs", SCOPE=status, UNIT="skipped", E2E="skipped",
+    )
+    assert result.returncode != 0, result.stdout
+
+
+@pytest.mark.parametrize("status", ["failure", "cancelled", "", "unknown"])
+@pytest.mark.parametrize("job", ["UNIT", "E2E"])
+def test_docs_qualification_never_excuses_a_failed_or_cancelled_test(status, job):
+    values = {"UNIT": "skipped", "E2E": "skipped", job: status}
+    result = _execute_required_aggregate(PR_MODE="docs", **values)
+    assert result.returncode != 0, result.stdout
+
+
+def test_native_merge_group_keeps_only_its_accepted_browser_skip():
+    result = _execute_required_aggregate(
+        EVENT="merge_group", PR_SCOPE="skipped", PR_MODE="", E2E="skipped",
+    )
+    assert result.returncode == 0, result.stdout
+    result = _execute_required_aggregate(
+        EVENT="merge_group", PR_MODE="docs", UNIT="skipped", E2E="skipped",
+    )
+    assert result.returncode != 0, result.stdout
+
+
+@pytest.mark.parametrize("event", ["workflow_dispatch", "schedule", "push"])
+def test_other_events_cannot_inherit_a_docs_pr_exemption(event):
+    result = _execute_required_aggregate(EVENT=event, PR_MODE="docs")
+    assert result.returncode == 0, result.stdout
+    result = _execute_required_aggregate(
+        EVENT=event, PR_MODE="docs", UNIT="skipped", E2E="skipped",
+    )
+    assert result.returncode != 0, result.stdout
+
+
+def test_cancelled_workflow_has_an_explicit_failing_aggregate_step():
+    # always() permits the aggregate to start after cancellation. It must
+    # reject cancellation rather than interpret cancellation skips as docs.
+    job = yaml.safe_load(CI.read_text())["jobs"]["terminal"]
+    assert job["if"] == "always()"
+    step = job["steps"][0]
+    assert step["name"] == "Refuse cancelled qualification"
+    assert step["if"] == "cancelled()"
+    result = subprocess.run(
+        ["bash", "-e", "-o", "pipefail", "-c", step["run"]],
+        cwd=ROOT, capture_output=True, text=True, timeout=10,
+    )
+    assert result.returncode != 0
+    assert "cancellation" in result.stdout

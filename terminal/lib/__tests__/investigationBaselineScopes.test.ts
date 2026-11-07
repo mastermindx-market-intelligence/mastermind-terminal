@@ -1,4 +1,15 @@
-import {beforeEach, describe, expect, it, vi} from "vitest";
+import {afterEach,beforeEach, describe, expect, it, vi} from "vitest";
+// Explicit synthetic born-OPEN BFF realm. Real admission/BFF handlers stay
+// unchanged; only kernel IO and per-case negative-cell collaborators are fixtures.
+const bootFixture=vi.hoisted(()=>({bornOpen:true,closed:false}));
+vi.mock("@/lib/investigationBootAdmission",()=>({
+ readInvestigationBootAdmission:()=>bootFixture.bornOpen,
+ hasObservedInvestigationClosure:()=>bootFixture.closed,
+ observeInvestigationClosure:()=>{bootFixture.closed=true;}
+}));
+// A fresh synthetic realm per case is not a production latch-reset mechanism.
+beforeEach(()=>{bootFixture.bornOpen=true;bootFixture.closed=false;vi.stubEnv("INVESTIGATION_API_ADMISSION","open");});
+afterEach(()=>{vi.unstubAllEnvs();});
 import golden from "./fixtures/aapl-event-workspace.json";
 
 const {getUser, current, whole, selected}=vi.hoisted(()=>({getUser:vi.fn(),current:vi.fn(),whole:vi.fn(),selected:vi.fn()}));
@@ -82,4 +93,14 @@ describe("Company context and selected-release endpoint scope composition",()=>{
       .toEqual({ok:false,code:"HISTORICAL_UNAVAILABLE",reason:"normalize"});
     expect(selected).toHaveBeenCalledTimes(1);expect(whole).not.toHaveBeenCalled();expect(current).not.toHaveBeenCalled();
   });
+});
+
+it.each(["born-closed","current-closed","observed-closed"])("synthetic %s ceiling stops the real route before auth/owner access",async mode=>{
+ bootFixture.bornOpen=mode!=="born-closed";vi.resetModules();
+ const {GET:guarded}=await import("@/app/api/investigations/baseline/route");
+ if(mode!=="born-closed")vi.stubEnv("INVESTIGATION_API_ADMISSION","closed");
+ if(mode==="observed-closed"){expect((await guarded(request(query))).status).toBe(503);vi.stubEnv("INVESTIGATION_API_ADMISSION","open");}
+ const r=request(query);
+ const response=await guarded(r);expect(response.status).toBe(503);expect(response.headers.get("cache-control")).toBe("private, no-store");
+ expect(getUser).not.toHaveBeenCalled();expect(current).not.toHaveBeenCalled();expect(whole).not.toHaveBeenCalled();expect(selected).not.toHaveBeenCalled();
 });

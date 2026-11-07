@@ -622,6 +622,7 @@ export function curateTechnicals(ohlc: unknown): Record<string, unknown> {
   const st = supertrend(bars, 10, 3);
   const stTrend = st.trend[st.trend.length - 1];
 
+  // Match the charted population bands; the Python event-signal fixture opts into ddof=1.
   const bb = bollingerBands(bars, 20, 2);
   const up = bb.upper[bb.upper.length - 1];
   const lo = bb.lower[bb.lower.length - 1];
