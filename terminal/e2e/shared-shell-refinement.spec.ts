@@ -158,12 +158,12 @@ test("company search selects one canonical company from desktop, tablet and phon
   : page.locator(".mobilebar").getByRole("button",{name:"Search companies",exact:true});
  await opener.click();
  const dialog=page.getByRole("dialog");await expect(dialog).toHaveCount(1);await expect(dialog).toBeVisible();
- await expect(dialog).toHaveAccessibleName("Search companies");
+ await expect(dialog).toHaveAccessibleName("Search companies and tools");
  const panel=dialog.locator(".smodal").count().then(count=>count?dialog.locator(".smodal"):dialog);
  const box=await (await panel).boundingBox();
  expect(box!.x).toBeGreaterThanOrEqual(0);expect(box!.x+box!.width).toBeLessThanOrEqual(page.viewportSize()!.width+1);
  await dialog.getByRole("combobox").fill("Apple");
- await expect(dialog.locator(".r .tk").first()).toHaveText("AAPL");
+ await expect(dialog.locator('[data-company-symbol="AAPL"]')).toContainText("AAPL");
  await page.screenshot({animations:"disabled",path:info.outputPath("company-search-selection.png")});
  await dialog.getByRole("combobox").press("Enter");
  await expect(dialog.getByRole("button",{name:"Open Analysis",exact:true})).toBeVisible();
@@ -183,7 +183,7 @@ test("phone company search keeps its scope in both languages and dismisses by to
   const opener=bar.getByRole("button",{name:chinese?"搜索公司":"Search companies",exact:true});
   await opener.tap();
   const dialog=page.getByRole("dialog");await expect(dialog).toHaveCount(1);
-  await expect(dialog).toHaveAccessibleName(chinese?"搜索公司":"Search companies");
+  await expect(dialog).toHaveAccessibleName(chinese?"搜索公司和工具":"Search companies and tools");
   await expect(dialog).toBeVisible();
   await page.screenshot({animations:"disabled",path:info.outputPath(`phone-scope-${chinese?"light-zh":"dark-en"}.png`)});
   await page.setViewportSize({width:320,height:844});

@@ -1,9 +1,10 @@
 "use client";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
 import { getJSONResult, invalidate } from "@/lib/dataCache";
 import { useShellIdentity } from "@/components/chrome/AppShell";
+import type { SharedSearchOptions } from "./SharedSearchWorkspace";
 import { useMarketPrefs } from "@/lib/useMarketPrefs";
 
 /**
@@ -74,6 +75,7 @@ export interface SymbolPickerProps {
   onCompanyPick?: (symbol: string, query: string) => void;
   searchSeed?: string;
   initialSelection?: string;
+  sharedSearch?: SharedSearchOptions;
   /** Controlled, so a host can also open the picker from elsewhere (e.g. a recovery button). */
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -92,10 +94,11 @@ export interface SymbolPickerProps {
 }
 
 export default function SymbolPicker({
-  symbol, displayLabel, scope = "symbols", onPick, onCompanyPick, searchSeed = "", initialSelection, open, onOpenChange,
+  symbol, displayLabel, scope = "symbols", onPick, onCompanyPick, searchSeed = "", initialSelection, sharedSearch, open, onOpenChange,
   className = "", eyebrow, label, mark, trackSource, portalDialog = false,
 }: SymbolPickerProps) {
   const identity = useShellIdentity();
+  const trigger = useRef<HTMLButtonElement>(null);
   // The same preference store the chart's picker reads, so a user who switched HK off does not
   // get HK rows here. It is a module-level store: the two dialogs cannot disagree.
   const { prefs: marketPrefs, ready: prefsReady, enableAll: showAllMarkets } = useMarketPrefs(identity);
@@ -167,6 +170,7 @@ export default function SymbolPicker({
     companyScope={scope === "companies"}
     seed={searchSeed}
     initialSelection={initialSelection}
+    sharedSearch={sharedSearch}
     active={symbol}
     manifest={symbols ?? {}}
     universeState={universeState}
@@ -181,9 +185,19 @@ export default function SymbolPicker({
     onCompanyPick={onCompanyPick ? (next, query) => { onOpenChange(false); onCompanyPick(next, query); } : undefined}
   /> : null;
 
+  // Compose the accepted #1188 cold-focus repair: the activated placeholder may
+  // disappear before the real dialog records an opener. Seed only that lost
+  // body-focus case; preserve a connected external opener and ordinary hosts.
+  useLayoutEffect(() => {
+    if (!portalDialog || !open) return;
+    if (document.activeElement !== document.body) return;
+    trigger.current?.focus();
+  }, [portalDialog, open]);
+
   return (
     <>
       <button
+        ref={trigger}
         type="button"
         className={`sym-pick${className ? ` ${className}` : ""}`}
         aria-label={label}
