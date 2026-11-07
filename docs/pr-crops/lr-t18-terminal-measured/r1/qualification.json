@@ -1,0 +1,644 @@
+{
+  "transport": "local interception",
+  "productionProof": false,
+  "inputs": [
+    {
+      "path": "sector_base.json",
+      "bytes": 145069,
+      "sha256": "2f89eee87e602d6df8f98afb64024ce3da8c14b6778c96114b441bc4f03883f4"
+    },
+    {
+      "path": "history.json",
+      "bytes": 2119318,
+      "sha256": "462201aa4b38836816f1e247f1ec187ba2589fe8a97d1fdb1ee3d753f32ce615"
+    },
+    {
+      "path": "events.json",
+      "bytes": 117246,
+      "sha256": "9eb9993be7db6dec2b07669d300b35bb16f7e7ca98d54ab5695fa9baec07a916"
+    },
+    {
+      "path": "measured_read_v1.json",
+      "bytes": 9430,
+      "sha256": "3c94163010d780c9bf1a3ab5e06bbd711a52470951e866c68a4ff595b7f6b5b1"
+    }
+  ],
+  "variants": {
+    "aligned": "75cfa889768bff00ddb51e8e8e9ae6dbd953a89d918e8769168c686b71bd8cdd",
+    "stale": "2861abc00a4e54342a2b19d2f5a6fb3f4bcd0e3881b4c2492319198d24c6b24f",
+    "outage": "01aedc4467600977036fe276103fede34d89f8996fed5914413c1def70bf2bc7",
+    "invalid": "69c485ee95a2feec4d4203ba1a94115c1fb0e7c61c8d9de072920045aeb01b78",
+    "absent": "5c65b888366a88a68d71aff1dbad2ea3b27aa9b94982b1b9bca6f58320062f29"
+  },
+  "checks": [
+    {
+      "name": "inputs: sector page as_of is the frozen 2026-10-12 snapshot",
+      "passed": true,
+      "details": {
+        "as_of": "2026-10-12",
+        "sectors": 11
+      }
+    },
+    {
+      "name": "inputs: owner history payload publishes no reconstructed rs_history trail",
+      "passed": true,
+      "details": "meta.rs_history absent — the trail is unpublished; the view must render the honest unavailable state, never a fabricated trail"
+    },
+    {
+      "name": "oracle: independent fixture derivation matches the 9/11 partial cohort",
+      "passed": true,
+      "details": "Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sector today), Utilities (not enough price history yet)"
+    },
+    {
+      "name": "A/chromium-1440-en-dark-aligned: coverage line equals the independent oracle exactly",
+      "passed": true,
+      "details": "Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sector today), Utilities (not enough price history yet)"
+    },
+    {
+      "name": "A/chromium-1440-en-dark-aligned: measured line sits directly after the rotation receipt",
+      "passed": true,
+      "details": "DOM order receipt → measured"
+    },
+    {
+      "name": "A/chromium-1440-en-dark-aligned: no raw reason code or NaN/undefined/null leaks",
+      "passed": true,
+      "details": "rotation view text hygiene"
+    },
+    {
+      "name": "A/chromium-1440-en-dark-aligned: no horizontal scroll",
+      "passed": true,
+      "details": {
+        "scroll": 1440,
+        "inner": 1440
+      }
+    },
+    {
+      "name": "A/chromium-1440-en-light-aligned: coverage line equals the independent oracle exactly",
+      "passed": true,
+      "details": "Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sector today), Utilities (not enough price history yet)"
+    },
+    {
+      "name": "A/chromium-1440-en-light-aligned: measured line sits directly after the rotation receipt",
+      "passed": true,
+      "details": "DOM order receipt → measured"
+    },
+    {
+      "name": "A/chromium-1440-en-light-aligned: no raw reason code or NaN/undefined/null leaks",
+      "passed": true,
+      "details": "rotation view text hygiene"
+    },
+    {
+      "name": "A/chromium-1440-en-light-aligned: no horizontal scroll",
+      "passed": true,
+      "details": {
+        "scroll": 1440,
+        "inner": 1440
+      }
+    },
+    {
+      "name": "A/chromium-1440-zh-dark-aligned: coverage line equals the independent oracle exactly",
+      "passed": true,
+      "details": "已测 9 / 11 个板块 · 未测：房地产（今日缺少该板块价格数据）、公用事业（价格历史不足）"
+    },
+    {
+      "name": "A/chromium-1440-zh-dark-aligned: measured line sits directly after the rotation receipt",
+      "passed": true,
+      "details": "DOM order receipt → measured"
+    },
+    {
+      "name": "A/chromium-1440-zh-dark-aligned: no raw reason code or NaN/undefined/null leaks",
+      "passed": true,
+      "details": "rotation view text hygiene"
+    },
+    {
+      "name": "A/chromium-1440-zh-dark-aligned: no horizontal scroll",
+      "passed": true,
+      "details": {
+        "scroll": 1440,
+        "inner": 1440
+      }
+    },
+    {
+      "name": "A/chromium-1440-zh-light-aligned: coverage line equals the independent oracle exactly",
+      "passed": true,
+      "details": "已测 9 / 11 个板块 · 未测：房地产（今日缺少该板块价格数据）、公用事业（价格历史不足）"
+    },
+    {
+      "name": "A/chromium-1440-zh-light-aligned: measured line sits directly after the rotation receipt",
+      "passed": true,
+      "details": "DOM order receipt → measured"
+    },
+    {
+      "name": "A/chromium-1440-zh-light-aligned: no raw reason code or NaN/undefined/null leaks",
+      "passed": true,
+      "details": "rotation view text hygiene"
+    },
+    {
+      "name": "A/chromium-1440-zh-light-aligned: no horizontal scroll",
+      "passed": true,
+      "details": {
+        "scroll": 1440,
+        "inner": 1440
+      }
+    },
+    {
+      "name": "A/chromium-390-en-dark-aligned: coverage line equals the independent oracle exactly",
+      "passed": true,
+      "details": "Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sector today), Utilities (not enough price history yet)"
+    },
+    {
+      "name": "A/chromium-390-en-dark-aligned: measured line sits directly after the rotation receipt",
+      "passed": true,
+      "details": "DOM order receipt → measured"
+    },
+    {
+      "name": "A/chromium-390-en-dark-aligned: no raw reason code or NaN/undefined/null leaks",
+      "passed": true,
+      "details": "rotation view text hygiene"
+    },
+    {
+      "name": "A/chromium-390-en-dark-aligned: no horizontal scroll",
+      "passed": true,
+      "details": {
+        "scroll": 390,
+        "inner": 390
+      }
+    },
+    {
+      "name": "A/chromium-390-en-dark-aligned: coverage line wraps on the 390 viewport",
+      "passed": true,
+      "details": {
+        "height": 121.734375,
+        "lineHeight": 17.4
+      }
+    },
+    {
+      "name": "A/chromium-390-en-light-aligned: coverage line equals the independent oracle exactly",
+      "passed": true,
+      "details": "Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sector today), Utilities (not enough price history yet)"
+    },
+    {
+      "name": "A/chromium-390-en-light-aligned: measured line sits directly after the rotation receipt",
+      "passed": true,
+      "details": "DOM order receipt → measured"
+    },
+    {
+      "name": "A/chromium-390-en-light-aligned: no raw reason code or NaN/undefined/null leaks",
+      "passed": true,
+      "details": "rotation view text hygiene"
+    },
+    {
+      "name": "A/chromium-390-en-light-aligned: no horizontal scroll",
+      "passed": true,
+      "details": {
+        "scroll": 390,
+        "inner": 390
+      }
+    },
+    {
+      "name": "A/chromium-390-en-light-aligned: coverage line wraps on the 390 viewport",
+      "passed": true,
+      "details": {
+        "height": 121.734375,
+        "lineHeight": 17.4
+      }
+    },
+    {
+      "name": "A/chromium-390-zh-dark-aligned: coverage line equals the independent oracle exactly",
+      "passed": true,
+      "details": "已测 9 / 11 个板块 · 未测：房地产（今日缺少该板块价格数据）、公用事业（价格历史不足）"
+    },
+    {
+      "name": "A/chromium-390-zh-dark-aligned: measured line sits directly after the rotation receipt",
+      "passed": true,
+      "details": "DOM order receipt → measured"
+    },
+    {
+      "name": "A/chromium-390-zh-dark-aligned: no raw reason code or NaN/undefined/null leaks",
+      "passed": true,
+      "details": "rotation view text hygiene"
+    },
+    {
+      "name": "A/chromium-390-zh-dark-aligned: no horizontal scroll",
+      "passed": true,
+      "details": {
+        "scroll": 390,
+        "inner": 390
+      }
+    },
+    {
+      "name": "A/chromium-390-zh-dark-aligned: coverage line wraps on the 390 viewport",
+      "passed": true,
+      "details": {
+        "height": 69.5625,
+        "lineHeight": 17.4
+      }
+    },
+    {
+      "name": "A/chromium-390-zh-light-aligned: coverage line equals the independent oracle exactly",
+      "passed": true,
+      "details": "已测 9 / 11 个板块 · 未测：房地产（今日缺少该板块价格数据）、公用事业（价格历史不足）"
+    },
+    {
+      "name": "A/chromium-390-zh-light-aligned: measured line sits directly after the rotation receipt",
+      "passed": true,
+      "details": "DOM order receipt → measured"
+    },
+    {
+      "name": "A/chromium-390-zh-light-aligned: no raw reason code or NaN/undefined/null leaks",
+      "passed": true,
+      "details": "rotation view text hygiene"
+    },
+    {
+      "name": "A/chromium-390-zh-light-aligned: no horizontal scroll",
+      "passed": true,
+      "details": {
+        "scroll": 390,
+        "inner": 390
+      }
+    },
+    {
+      "name": "A/chromium-390-zh-light-aligned: coverage line wraps on the 390 viewport",
+      "passed": true,
+      "details": {
+        "height": 69.5625,
+        "lineHeight": 17.4
+      }
+    },
+    {
+      "name": "A/1440-en: computed color differs between dark and light",
+      "passed": true,
+      "details": {
+        "dark": {
+          "color": "rgb(155, 163, 180)",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "parentBackground": "rgba(0, 0, 0, 0)",
+          "height": 15
+        },
+        "light": {
+          "color": "rgb(101, 115, 135)",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "parentBackground": "rgba(0, 0, 0, 0)",
+          "height": 15
+        }
+      }
+    },
+    {
+      "name": "A/1440-zh: computed color differs between dark and light",
+      "passed": true,
+      "details": {
+        "dark": {
+          "color": "rgb(155, 163, 180)",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "parentBackground": "rgba(0, 0, 0, 0)",
+          "height": 17
+        },
+        "light": {
+          "color": "rgb(101, 115, 135)",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "parentBackground": "rgba(0, 0, 0, 0)",
+          "height": 17
+        }
+      }
+    },
+    {
+      "name": "A/390-en: computed color differs between dark and light",
+      "passed": true,
+      "details": {
+        "dark": {
+          "color": "rgb(155, 163, 180)",
+          "fontSize": "12px",
+          "lineHeight": "17.4px",
+          "parentBackground": "rgba(0, 0, 0, 0)",
+          "height": 121.734375
+        },
+        "light": {
+          "color": "rgb(101, 115, 135)",
+          "fontSize": "12px",
+          "lineHeight": "17.4px",
+          "parentBackground": "rgba(0, 0, 0, 0)",
+          "height": 121.734375
+        }
+      }
+    },
+    {
+      "name": "A/390-zh: computed color differs between dark and light",
+      "passed": true,
+      "details": {
+        "dark": {
+          "color": "rgb(155, 163, 180)",
+          "fontSize": "12px",
+          "lineHeight": "17.4px",
+          "parentBackground": "rgba(0, 0, 0, 0)",
+          "height": 69.5625
+        },
+        "light": {
+          "color": "rgb(101, 115, 135)",
+          "fontSize": "12px",
+          "lineHeight": "17.4px",
+          "parentBackground": "rgba(0, 0, 0, 0)",
+          "height": 69.5625
+        }
+      }
+    },
+    {
+      "name": "B/state-stale-1440-en-dark: coverage line equals the stale oracle exactly",
+      "passed": true,
+      "details": "Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sector today), Utilities (not enough price history yet) · measured 2026-10-09, older than this page"
+    },
+    {
+      "name": "B/state-stale-1440-en-light: coverage line equals the stale oracle exactly",
+      "passed": true,
+      "details": "Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sector today), Utilities (not enough price history yet) · measured 2026-10-09, older than this page"
+    },
+    {
+      "name": "B/state-outage-1440-en-dark: coverage line equals the outage oracle exactly",
+      "passed": true,
+      "details": "Measured read could not be produced today."
+    },
+    {
+      "name": "B/state-outage-1440-en-light: coverage line equals the outage oracle exactly",
+      "passed": true,
+      "details": "Measured read could not be produced today."
+    },
+    {
+      "name": "B/state-invalid-1440-en-dark: coverage line equals the invalid oracle exactly",
+      "passed": true,
+      "details": "Measured read could not be checked, so it is not shown."
+    },
+    {
+      "name": "B/state-invalid-1440-en-light: coverage line equals the invalid oracle exactly",
+      "passed": true,
+      "details": "Measured read could not be checked, so it is not shown."
+    },
+    {
+      "name": "B/state-absent-1440-en-dark: no coverage element is rendered",
+      "passed": true,
+      "details": "absent state renders nothing"
+    },
+    {
+      "name": "B/state-absent-1440-en-light: no coverage element is rendered",
+      "passed": true,
+      "details": "absent state renders nothing"
+    },
+    {
+      "name": "B/state-stale-1440-zh-dark: coverage line equals the stale oracle exactly",
+      "passed": true,
+      "details": "已测 9 / 11 个板块 · 未测：房地产（今日缺少该板块价格数据）、公用事业（价格历史不足） · 实测于 2026-10-09，早于本页"
+    },
+    {
+      "name": "B/state-outage-1440-zh-dark: coverage line equals the outage oracle exactly",
+      "passed": true,
+      "details": "今日未能生成实测读数。"
+    },
+    {
+      "name": "B/distinctness: aligned/stale/outage/invalid/absent full lines differ pairwise (first-80 heads printed; the 80-char head truncates before the stale clause)",
+      "passed": true,
+      "details": [
+        "aligned: Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sec",
+        "stale: Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sec",
+        "outage: Measured read could not be produced today.",
+        "invalid: Measured read could not be checked, so it is not shown.",
+        "absent: <none>"
+      ]
+    },
+    {
+      "name": "C/a42-history-error-1440-en-dark: plotted population unchanged with the history owner failing",
+      "passed": true,
+      "details": {
+        "points": 11
+      }
+    },
+    {
+      "name": "C/a42-history-error-1440-en-dark: coverage line still equals the aligned oracle",
+      "passed": true,
+      "details": "Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sector today), Utilities (not enough price history yet)"
+    },
+    {
+      "name": "C/a42-history-error-1440-en-dark: sector selection still responds while history fails",
+      "passed": true,
+      "details": "http://localhost:3171/discover?tab=sectors&sectorWorkspace=rotation&sector=xlk&sectorTheme=dark&sectorDiscoverySort=source&sectorCompanyTableSort=source&sectorDiscoveryMode=summary&sectorMatrixTimeframe=1D&sectorRotationMode=map&sectorView=intelligence&group=semiconductors&sectorSort=source"
+    },
+    {
+      "name": "C/a42-history-error-1440-en-light: plotted population unchanged with the history owner failing",
+      "passed": true,
+      "details": {
+        "points": 11
+      }
+    },
+    {
+      "name": "C/a42-history-error-1440-en-light: coverage line still equals the aligned oracle",
+      "passed": true,
+      "details": "Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sector today), Utilities (not enough price history yet)"
+    },
+    {
+      "name": "C/a42-history-error-1440-en-light: sector selection still responds while history fails",
+      "passed": true,
+      "details": "http://localhost:3171/discover?tab=sectors&sectorWorkspace=rotation&sector=xlk&sectorTheme=light&sectorDiscoverySort=source&sectorCompanyTableSort=source&sectorDiscoveryMode=summary&sectorMatrixTimeframe=1D&sectorRotationMode=map&sectorView=intelligence&group=semiconductors&sectorSort=source"
+    },
+    {
+      "name": "C/a42-history-unavailable-1440-en-dark: receipt status unavailable also keeps the full plotted population",
+      "passed": true,
+      "details": "11 points"
+    },
+    {
+      "name": "C/a42-history-unavailable-1440-en-dark: coverage line unaffected by the unavailable receipt status",
+      "passed": true,
+      "details": "Measured 9 of 11 sectors · not measured: Real Estate (no price data for this sector today), Utilities (not enough price history yet)"
+    },
+    {
+      "name": "D/access-1440-en-dark: no coverage element under access loss",
+      "passed": true,
+      "details": "A45 for this view"
+    },
+    {
+      "name": "D/access-1440-en-dark: none of the fixture's measured rs numbers appear",
+      "passed": true,
+      "details": {
+        "checked": 18,
+        "leaked": []
+      }
+    },
+    {
+      "name": "D/access-1440-en-dark: no measured vocabulary renders",
+      "passed": true,
+      "details": "Rotation\n\nRotation data requires access.\n\nReview sources →"
+    },
+    {
+      "name": "E/navigation-1440-en-dark: clicking XLK selects it in the URL",
+      "passed": true,
+      "details": "http://localhost:3171/discover?tab=sectors&sectorWorkspace=rotation&sector=xlk&sectorTheme=dark&sectorDiscoverySort=source&sectorCompanyTableSort=source&sectorDiscoveryMode=summary&sectorMatrixTimeframe=1D&sectorRotationMode=map&sectorView=intelligence&group=semiconductors&sectorSort=source"
+    },
+    {
+      "name": "E/navigation-1440-en-dark: browser Back restores the XLE selection",
+      "passed": true,
+      "details": "http://localhost:3171/discover?tab=sectors&sectorWorkspace=rotation&sector=xle&sectorTheme=dark"
+    },
+    {
+      "name": "E/navigation-1440-en-dark: Tab walk reaches a rotation point within 30 presses",
+      "passed": true,
+      "details": {
+        "tabWalk": {
+          "presses": 30,
+          "tag": "BUTTON",
+          "point": "xlp",
+          "testid": null,
+          "text": "XLP"
+        },
+        "enter": {
+          "selectionBefore": "xle",
+          "selectionAfter": "xlp"
+        },
+        "space": {
+          "selectionAfterSpace": "xlp"
+        }
+      }
+    },
+    {
+      "name": "E/touch-390-en-dark: touch bounding boxes recorded (finding, not a failure)",
+      "passed": true,
+      "details": {
+        "count": 11,
+        "under44Both": 0,
+        "small": []
+      }
+    },
+    {
+      "name": "F/webkit: matching cached build present",
+      "passed": false,
+      "details": "webkit-2311 not in ~/.cache/ms-playwright — recorded as a GAP, not a failure"
+    },
+    {
+      "name": "zero page exceptions",
+      "passed": true,
+      "details": []
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "chromium-1440-en-dark-aligned.png",
+      "sha256": "c48d24e7ab3b38a74dffec8f3a7af7c75d6538d8f7c2d24ad883139c5c48a8b0"
+    },
+    {
+      "name": "chromium-1440-en-light-aligned.png",
+      "sha256": "d04df01fd5227ff850085fb4c3ce048831bfa78e34324e97e31ec4fe2686db57"
+    },
+    {
+      "name": "chromium-1440-zh-dark-aligned.png",
+      "sha256": "ff9b0893f127e764d244f72ebe952a778b8cee03e2b7076790d938b66489cd89"
+    },
+    {
+      "name": "chromium-1440-zh-light-aligned.png",
+      "sha256": "883183eb979c8268ba3e1b37c7487936a49f602dec445fe92be0215630c45d3a"
+    },
+    {
+      "name": "chromium-390-en-dark-aligned.png",
+      "sha256": "1527e1e32ca7b202c92efb423cc98d1e3deb4046826d23b7f3a9b63776828602"
+    },
+    {
+      "name": "chromium-390-en-light-aligned.png",
+      "sha256": "cd6e791ed8c249a1b59645bb0f1c2c5c2a9d260c93967a6b29129c13def084cf"
+    },
+    {
+      "name": "chromium-390-zh-dark-aligned.png",
+      "sha256": "33787a6e5e4e0b27fa0a2f1437c69eacd3a59731c262406a17501f1c8a78a34e"
+    },
+    {
+      "name": "chromium-390-zh-light-aligned.png",
+      "sha256": "b6748f14bf0414debf6250c61601a47269f2ce2e701a8a48127b886cb5a9a698"
+    },
+    {
+      "name": "state-stale-1440-en-dark.png",
+      "sha256": "b0a3ea60908f248bdabb4dc52fe56305ce91a47b9084b54ea2dc0dc4060737cd"
+    },
+    {
+      "name": "state-stale-1440-en-light.png",
+      "sha256": "a3df30edf9a82bd4683cb7dec575480a68f67afc6d3bec995bdbd10fc3260fbd"
+    },
+    {
+      "name": "state-outage-1440-en-dark.png",
+      "sha256": "445c377a100df393bcb082388e3f680d4f6bf59ab062f51173eeb38e602b3361"
+    },
+    {
+      "name": "state-outage-1440-en-light.png",
+      "sha256": "916fa7302eaca6ed4e8f0826f90eff626395a12df44d70642bd5d89d4443c29a"
+    },
+    {
+      "name": "state-invalid-1440-en-dark.png",
+      "sha256": "435b7ee0772d23644347d3811225ecd1fd3bc026bea734bd5eea268ac355a612"
+    },
+    {
+      "name": "state-invalid-1440-en-light.png",
+      "sha256": "4b445bd716e9cd6c6b35219356d68bba6379553bad03370577c11b728cb47117"
+    },
+    {
+      "name": "state-absent-1440-en-dark.png",
+      "sha256": "10586309e9b7cebe66765efa280c846d045938f81eb31ff7d249787a6e675950"
+    },
+    {
+      "name": "state-absent-1440-en-light.png",
+      "sha256": "ce26de8b54fb554c0f4b7e7258c4db95c5a6330be5550a543271216c34e52612"
+    },
+    {
+      "name": "state-stale-1440-zh-dark.png",
+      "sha256": "2e5137bfdaa50e83c22281d9c3cb4b655ef02459547718f67d09841472da8cdc"
+    },
+    {
+      "name": "state-outage-1440-zh-dark.png",
+      "sha256": "b6be5d7709d69be21c8863d22d172926a8f1d94d5c1a4169cc95f7744195e2fd"
+    },
+    {
+      "name": "state-aligned-1440-en-dark.png",
+      "sha256": "883b87d6c7c36729aa8d704ef52a0193e97ca83b8553b3bd766304773cb439a3"
+    },
+    {
+      "name": "state-aligned-1440-en-light.png",
+      "sha256": "7c1e16fbc77ced272b3e5040b61cfa4f69c1f37bc353bbc644815d4bddc903cd"
+    },
+    {
+      "name": "a42-history-error-1440-en-dark.png",
+      "sha256": "15640698ba5bd142cecde40f66a4fc38d3d19884c00049e09008c76567af1d70"
+    },
+    {
+      "name": "a42-history-error-1440-en-light.png",
+      "sha256": "31e7b1579f0c1fe0cd0ede4f4318e0f5080600404b2b9696c1f79c2fd115b619"
+    },
+    {
+      "name": "access-1440-en-dark.png",
+      "sha256": "3009c5200e0c7ce096f7dd48ab6ca58811a60c4044499c7f3acbc1ec94fdd258"
+    }
+  ],
+  "errors": [],
+  "gaps": [
+    {
+      "name": "webkit cells",
+      "details": "no cached webkit build matching playwright-core revision 2311; F cells skipped"
+    }
+  ],
+  "keyboard": {
+    "tabWalk": {
+      "presses": 30,
+      "tag": "BUTTON",
+      "point": "xlp",
+      "testid": null,
+      "text": "XLP"
+    },
+    "enter": {
+      "selectionBefore": "xle",
+      "selectionAfter": "xlp"
+    },
+    "space": {
+      "selectionAfterSpace": "xlp"
+    }
+  },
+  "touch": {
+    "count": 11,
+    "under44Both": 0,
+    "small": []
+  },
+  "verdict": "PASS-WITH-GAPS"
+}

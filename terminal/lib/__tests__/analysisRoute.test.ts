@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { parseAnalysisRoute, parseAnalysisSearchParams } from "@/lib/analysisRoute";
+import { ambientForAnalysisRoute, parseAnalysisRoute, parseAnalysisSearchParams } from "@/lib/analysisRoute";
 
 describe("the closed /analysis route vocabulary", () => {
+  it("binds retained research links to the Investigation view and exact revision",()=>{
+    const id="123e4567-e89b-42d3-a456-426614174000";
+    expect(parseAnalysisRoute({view:"investigations",investigation:id,revision:"7"})).toEqual({kind:"investigations",investigationId:id,revision:7});
+    for(const query of [{view:"company",investigation:id},{view:"investigations",investigation:[id,id]},{view:"investigations",revision:"7"},{view:"investigations",investigation:id,revision:"0"}]) expect(parseAnalysisRoute(query).kind).toBe("unsupported");
+  });
   it("preserves the existing company route when view is absent or explicitly company", () => {
     expect(parseAnalysisRoute({ symbol: "NVDA", pane: "earnings" })).toEqual({
       kind: "company", symbol: "NVDA", page: "earnings",
@@ -49,5 +54,56 @@ describe("the closed /analysis route vocabulary", () => {
     expect(parseAnalysisSearchParams(new URLSearchParams("view=theses&view=company"))).toEqual({
       kind: "unsupported", reason: "invalid_view",
     });
+  });
+
+  it("navigating to theses from the company context bar carries the symbol through URL encoding", () => {
+    // Plain symbol round-trip
+    expect(parseAnalysisSearchParams(new URLSearchParams("view=theses&symbol=NVDA"))).toEqual({
+      kind: "theses", symbol: "NVDA",
+    });
+    // The caret must survive context-bar encoding rather than introducing a query.
+    expect(parseAnalysisSearchParams(new URLSearchParams("view=theses&symbol=%5EGSPC"))).toEqual({
+      kind: "theses", symbol: "^GSPC",
+    });
+    // Dotted ticker that needs URL encoding round-trips exactly
+    expect(parseAnalysisSearchParams(new URLSearchParams("view=theses&symbol=BRK.B"))).toEqual({
+      kind: "theses", symbol: "BRK.B",
+    });
+    // The control href format: /analysis?view=theses&symbol=<encodeURIComponent(sym)>
+    for (const symbol of ["^GSPC", "BRK.B"]) {
+      const controlHref = `/analysis?view=theses&symbol=${encodeURIComponent(symbol)}`;
+      const params = new URLSearchParams(controlHref.split("?")[1]);
+      expect(params.get("symbol")).toBe(symbol); // URLSearchParams.get already decodes
+      expect(parseAnalysisSearchParams(params)).toEqual({ kind: "theses", symbol });
+    }
+  });
+});
+
+describe("ambientForAnalysisRoute — the Brain widget's ambient panel (F11-6)", () => {
+  const id = "123e4567-e89b-42d3-a456-426614174000";
+
+  it("maps the company view (implicit or explicit) to panel company", () => {
+    expect(ambientForAnalysisRoute(parseAnalysisRoute({ symbol: "NVDA" }))).toBe("company");
+    expect(ambientForAnalysisRoute(parseAnalysisRoute({ view: "company", symbol: "NVDA", page: "intelligence" }))).toBe("company");
+    expect(ambientForAnalysisRoute(parseAnalysisRoute({}))).toBe("company");
+  });
+
+  it("maps the theses view — with or without a thesis id — to panel theses", () => {
+    expect(ambientForAnalysisRoute(parseAnalysisRoute({ view: "theses", symbol: "NVDA" }))).toBe("theses");
+    expect(ambientForAnalysisRoute(parseAnalysisRoute({ view: "theses", thesis: id }))).toBe("theses");
+  });
+
+  it("maps every closed/malformed shape to null (page analysis, no panel)", () => {
+    expect(ambientForAnalysisRoute(parseAnalysisRoute({ view: "nope" }))).toBeNull();
+    expect(ambientForAnalysisRoute(parseAnalysisRoute({ view: "" }))).toBeNull();
+    expect(ambientForAnalysisRoute(parseAnalysisRoute({ view: ["company", "theses"] }))).toBeNull();
+    expect(ambientForAnalysisRoute(parseAnalysisRoute({ thesis: id }))).toBeNull();
+    expect(ambientForAnalysisRoute(parseAnalysisRoute({ view: "theses", thesis: "not-a-uuid" }))).toBeNull();
+  });
+
+  it("agrees with the browser-side parser the host actually uses", () => {
+    expect(ambientForAnalysisRoute(parseAnalysisSearchParams(new URLSearchParams("view=theses&symbol=NVDA")))).toBe("theses");
+    expect(ambientForAnalysisRoute(parseAnalysisSearchParams(new URLSearchParams("symbol=NVDA")))).toBe("company");
+    expect(ambientForAnalysisRoute(parseAnalysisSearchParams(new URLSearchParams("view=nope")))).toBeNull();
   });
 });

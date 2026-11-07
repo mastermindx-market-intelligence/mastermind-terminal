@@ -28,11 +28,13 @@ const LOCAL_LABELS: Record<FinPage, [string, string]> = {
   statistics: ["Statistics", "统计"],
   revenue: ["Revenue", "营收"],
   dividends: ["Dividends", "股息"],
+  compare: ["Compare", "对比"],
   earnings: ["Results", "结果"],
   forecast: ["Analyst", "分析师"],
   transcripts: ["Transcripts", "电话会"],
   technicals: ["Technicals", "技术面"],
   seasonals: ["Seasonality", "季节性"],
+  ownership: ["Institutional", "机构"],
   insider: ["Insider", "内部交易"],
   lab: ["Lab", "实验室"],
 };
