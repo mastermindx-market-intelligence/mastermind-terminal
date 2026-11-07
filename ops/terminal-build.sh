@@ -4811,6 +4811,158 @@ def admission_values_in_proc_environ(payload):
     return values
 
 
+# These are prospective source-owned safety contracts, NOT a host allow-list.
+# The existing deployment refusal remains authoritative until this source is
+# reviewed, protected and adopted through the incumbent owner. Empty pre-hooks
+# retain the prior path; beta and unknown hooks remain unsupported.
+BUILD_ID_SAFETY_SCRIPT = (
+    "test -f /opt/terminal/terminal/.next/BUILD_ID || "
+    "{ echo no-build-refusing-start; exit 1; }")
+SAFETY_HOOK_ASSIGNMENTS = (
+    ("/etc/systemd/system/terminal.service.d/hardening.conf",
+     'ExecStartPre=/bin/sh -c "' + BUILD_ID_SAFETY_SCRIPT + '"'),
+    ("/etc/systemd/system/terminal.service.d/storage.conf",
+     "ExecStartPre=/usr/local/sbin/terminal-volume-guard --service"),
+)
+VOLUME_SAFETY_PATH = "/usr/local/sbin/terminal-volume-guard"
+# Retained host bytes alone did not grant this trust. Any change to this source
+# pin is a changed-risk review, never a runtime setting or environment override.
+VOLUME_SAFETY_SHA256 = "1a7e39a4188d9dcfd55907e741a1b27850ed65835f4525cc6bc3a48eca122de9"
+
+
+def safety_exec_projection(value):
+    """Recognize only two exact argv projections; never evaluate shell text.
+
+    systemctl appends execution metadata to each record. Ignore only this
+    fixed schema of status metadata, not arbitrary record fields or suffixes.
+    Unknown serialization fails closed rather than guessing argv boundaries.
+    """
+    commands = (
+        ("/bin/sh", "/bin/sh -c " + BUILD_ID_SAFETY_SCRIPT),
+        (VOLUME_SAFETY_PATH, VOLUME_SAFETY_PATH + " --service"),
+    )
+    metadata = (
+        r"(?:start_time=\[[^\]\r\n]*\] ; stop_time=\[[^\]\r\n]*\] ; "
+        r"pid=[0-9]+ ; code=[a-zA-Z0-9_-]+ ; status=[0-9]+(?:/[A-Z0-9]+)? ;? )?")
+    records = []
+    for path, argv in commands:
+        records.append(
+            r"\{ path=" + re.escape(path) + r" ; argv\[\]="
+            + re.escape(argv) + r" ; ignore_errors=no ; " + metadata + r"\}")
+    if re.fullmatch(r"\s*" + r"\s+".join(records) + r"\s*", value) is None:
+        raise Refused("unsupported-service-launch-hook")
+
+
+def trusted_safety_file(path, limit):
+    # O_NOFOLLOW in the incumbent file reader protects the leaf; check all
+    # ancestors too so an accepted leaf cannot be reached through a symlink or
+    # a directory writable by a different principal. This path never executes.
+    current = os.path.dirname(path)
+    while True:
+        try:
+            info = os.lstat(current)
+        except OSError:
+            raise Refused("safety-hook-parent-unreadable")
+        if (not stat.S_ISDIR(info.st_mode) or info.st_uid != 0
+                or info.st_mode & 0o022):
+            raise Refused("safety-hook-parent-untrusted")
+        if current == "/":
+            break
+        current = os.path.dirname(current)
+    if os.geteuid() != 0:
+        raise Refused("safety-hook-owner-unqualified")
+    return read_bounded_regular_file(path, limit, "safety-hook")
+
+
+def loaded_safety_hook_sources(unit):
+    fragment = unit_property(unit, "FragmentPath")
+    dropins = unit_property(unit, "DropInPaths")
+    if fragment != "/etc/systemd/system/terminal.service":
+        raise Refused("safety-hook-fragment-unqualified")
+    try:
+        paths = shlex.split(dropins)
+    except ValueError:
+        raise Refused("safety-hook-dropins-unqualified")
+    if (len(paths) > 16 or len(set(paths)) != len(paths)
+            or any(re.fullmatch(
+                r"/etc/systemd/system/terminal\.service\.d/[A-Za-z0-9_-]+\.conf",
+                path) is None for path in paths)):
+        raise Refused("safety-hook-dropins-unqualified")
+    # systemd orders drop-ins lexically. Require that exact published order;
+    # a source list cannot reorder or reset the recognized hooks.
+    if paths != sorted(paths):
+        raise Refused("safety-hook-dropins-unqualified")
+    sources = tuple((path, trusted_safety_file(path, 64 * 1024))
+                    for path in [fragment, *paths])
+    assignments = []
+    for path, text in sources:
+        section = None
+        for line in text.splitlines():
+            line = line.strip()
+            if not line or line.startswith(("#", ";")):
+                continue
+            if line.endswith("\\") or "\x00" in line or "\ufeff" in line:
+                raise Refused("safety-hook-source-syntax-unsupported")
+            if line.startswith("[") and line.endswith("]"):
+                section = line
+                continue
+            if re.match(r"ExecStartPre\s*=", line):
+                if section != "[Service]":
+                    raise Refused("safety-hook-source-syntax-unsupported")
+                assignments.append((path, line))
+    if tuple(assignments) != SAFETY_HOOK_ASSIGNMENTS:
+        raise Refused("safety-hook-source-unqualified")
+    return fragment, dropins, sources
+
+
+def safety_hook_environment(unit):
+    # Bind every consumer to the same observed environment. Re-reading only a
+    # subset later could admit a different generation than the safety policy.
+    snapshot = (unit_property(unit, "Environment"), manager_environment(),
+                unit_property(unit, "ExecSearchPath"),
+                unit_property(unit, "PassEnvironment"),
+                unit_property(unit, "UnsetEnvironment"))
+    if snapshot[2]:
+        raise Refused("safety-hook-search-path-unsupported")
+    for text in (snapshot[0], snapshot[1], snapshot[3], snapshot[4]):
+        try:
+            tokens = shlex.split(text)
+        except ValueError:
+            raise Refused("safety-hook-environment-unsupported")
+        refuse_selected_launch_overrides(tokens)
+        for token in tokens:
+            key = token.partition("=")[0]
+            if (key.upper() in ("IFS", "SHELLOPTS", "BASHOPTS", "CDPATH", "GLOBIGNORE")
+                    or key.startswith("BASH_FUNC_")):
+                raise Refused("safety-hook-environment-unsupported")
+    return snapshot
+
+
+def classify_production_safety_hooks(profile, unit):
+    before = unit_property(unit, "ExecStartPre")
+    if not before:
+        return None
+    if profile != "production" or unit not in ("terminal", "terminal.service"):
+        raise Refused("unsupported-service-launch-hook")
+    safety_exec_projection(before)
+    environment = safety_hook_environment(unit)
+    sources = loaded_safety_hook_sources(unit)
+    import hashlib
+    guard = trusted_safety_file(VOLUME_SAFETY_PATH, 4096)
+    if hashlib.sha256(guard.encode("utf-8")).hexdigest() != VOLUME_SAFETY_SHA256:
+        raise Refused("safety-hook-guard-source-unqualified")
+    # A changed loaded projection or source during this read is not a stable
+    # admission. The incumbent already repeats topology at each start and after
+    # serving-process validation; none of those call sites is removed.
+    if (unit_property(unit, "NeedDaemonReload") != "no"
+            or unit_property(unit, "ExecStartPre") != before
+            or loaded_safety_hook_sources(unit) != sources
+            or trusted_safety_file(VOLUME_SAFETY_PATH, 4096) != guard
+            or safety_hook_environment(unit) != environment):
+        raise Refused("safety-hook-changed-during-verification")
+    return environment
+
+
 def classify_environment_topology(profile, unit, app_root, env_source_dir):
     if (unit_property(unit, "LoadState") != "loaded"
             or unit_property(unit, "NeedDaemonReload") != "no"
@@ -4819,10 +4971,11 @@ def classify_environment_topology(profile, unit, app_root, env_source_dir):
     expected_root = "/opt/terminal/terminal" if profile == "production" else "/opt/terminal/beta/terminal"
     if unit_property(unit, "WorkingDirectory") != expected_root:
         raise Refused("unsupported-working-directory")
-    for prop in ("ExecStartPre", "ExecStartPost", "ExecCondition", "ExecStopPost",
+    for prop in ("ExecStartPost", "ExecCondition", "ExecStopPost",
                  "RootDirectory", "RootImage", "PAMName"):
         if unit_property(unit, prop):
             raise Refused("unsupported-service-launch-hook")
+    safety_environment = classify_production_safety_hooks(profile, unit)
     files = unit_property(unit, "EnvironmentFiles")
     entries = ENVFILE_ENTRY.findall(files)
     if ENVFILE_ENTRY.sub("", files).strip():
@@ -4837,20 +4990,23 @@ def classify_environment_topology(profile, unit, app_root, env_source_dir):
             raise Refused("unsupported-env-file-topology")
         declared.append(read_bounded_regular_file(
             entries[0][0], MAX_ENV_FILE_BYTES, "env-file"))
-    for token in shlex.split(unit_property(unit, "PassEnvironment")):
+    for token in shlex.split(safety_environment[3] if safety_environment is not None
+                             else unit_property(unit, "PassEnvironment")):
         refuse_selected_launch_overrides([token])
         if token.split("=", 1)[0] == ADMISSION_KEY:
             raise Refused("admission-key-in-indirect-unit-environment")
-    for token in shlex.split(unit_property(unit, "UnsetEnvironment")):
+    for token in shlex.split(safety_environment[4] if safety_environment is not None
+                             else unit_property(unit, "UnsetEnvironment")):
         refuse_selected_launch_overrides([token])
         if token.split("=", 1)[0] == ADMISSION_KEY:
             raise Refused("admission-key-in-indirect-unit-environment")
-    manager = manager_environment()
+    manager = safety_environment[1] if safety_environment is not None else manager_environment()
     refuse_file_launch_overrides(manager)
     if KEY_ASSIGNMENT.search(manager):
         raise Refused("admission-key-in-manager-environment")
     values = admission_values_in_unit_environment(
-        unit_property(unit, "Environment"))
+        safety_environment[0] if safety_environment is not None
+        else unit_property(unit, "Environment"))
     for text in declared:
         values.extend(admission_values_in_systemd_file(text))
     if not values:
@@ -4867,6 +5023,9 @@ def classify_environment_topology(profile, unit, app_root, env_source_dir):
         refuse_file_launch_overrides(text, selected=True)
         if admission_values_in_text(text):
             raise Refused("dotenv-admission-conflict")
+    if (safety_environment is not None
+            and safety_hook_environment(unit) != safety_environment):
+        raise Refused("safety-hook-changed-during-verification")
 
 
 def installed_package_json(app_root):

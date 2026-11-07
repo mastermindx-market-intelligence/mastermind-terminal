@@ -1,4 +1,8 @@
-/** Browser-only chart preferences. No chart/feed/indicator math and no dependencies. */
+import type { ChartSettings } from "@/components/ChartFrameBar";
+import { parseCssColor } from "./chart-engine/canvas/priceAxis";
+import { readablePriceTagTextColor } from "./priceTagPlacement";
+
+/** Browser-only chart preferences and render appearance. No chart/feed/indicator math. */
 export function colorInputHex(value: string, fallback = "#000000"): string {
   const hex = (input: string): string | null => {
     const s = input.trim();
@@ -69,4 +73,32 @@ export function activateSettingsDialog(dialog: HTMLDialogElement, returnFocusTo?
       if (target?.isConnected) target.focus({ preventScroll: true });
     }
   };
+}
+
+
+/** Render policy only. Empty factory colours remain transparent/inherit while
+ * their host follows the selected material; nonempty saved colours remain exact. An equal default is not proof
+ * a user never edited it. This never writes settings or chart/view state. */
+export function resolveChartAppearance(settings: Partial<Pick<ChartSettings, "backgroundTop" | "backgroundBottom">>, light: boolean,
+  tokens: { panel: string; chartBackground: string; axis: string; grid: string; line: string; text: string }) {
+  const backgroundTop = settings.backgroundTop || "transparent";
+  const backgroundBottom = settings.backgroundBottom || backgroundTop;
+  const foregroundBase = parseCssColor(backgroundTop), host = parseCssColor(light ? tokens.panel : tokens.chartBackground);
+  const frame = foregroundBase && host
+    ? foregroundBase.slice(0, 3).map((channel, i) => Math.round(channel * foregroundBase[3] + host[i] * (1 - foregroundBase[3]))) : null;
+  const frameBackground = frame ? `rgb(${frame.join(", ")})` : (light ? tokens.panel : tokens.chartBackground);
+  const ink = light ? readablePriceTagTextColor(frameBackground) : undefined;
+  return { backgroundTop, backgroundBottom, frameBackground,
+    headerInk: light && settings.backgroundTop ? ink : undefined,
+    axis: light ? (settings.backgroundTop ? ink! : tokens.text) : tokens.axis,
+    grid: light && ink !== "#fff" ? tokens.line : tokens.grid };
+}
+
+/** Contrast for the existing translucent legend row over its actual frame.
+ * Colours come from those existing layers; no new palette or preference field. */
+export function chartLegendInk(frameBackground: string, rowBackground: string) {
+  const frame = parseCssColor(frameBackground), row = parseCssColor(rowBackground);
+  if (!frame || !row) return undefined;
+  const composed = row.slice(0, 3).map((channel, i) => Math.round(channel * row[3] + frame[i] * (1 - row[3])));
+  return readablePriceTagTextColor(`rgb(${composed.join(", ")})`);
 }
