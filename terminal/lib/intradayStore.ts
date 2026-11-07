@@ -4,7 +4,7 @@ import { promises as fsp } from "node:fs";
 import { createHash } from "node:crypto";
 import path from "node:path";
 import {
-  type Bar6, tfMinutes, filterUsEquitySession, resampleUsEquitySession,
+  type Bar6, tfMinutes, filterUsEquitySession, resampleUsEquitySession, filterBarsToSessionDate,
 } from "./intradayShared";
 import type { BarOrigin, IntradayAssemblyTrace, StoreRead } from "./intradayEvidence";
 
@@ -47,7 +47,11 @@ export async function withStoredHistory(
   sym: string, tf: string, ext: boolean, live: Bar6[],
   capture?: (trace: IntradayAssemblyTrace) => void,
   overnight = false,
+  studyDate?: string,
 ): Promise<Bar6[]> {
+  // A selected-day study must scope precise history before the ordinary latest-bars cap.
+  // Defaults and the single-read source trace remain unchanged for chart consumers.
+  if (studyDate) live = filterBarsToSessionDate(live, studyDate, "calendar");
   const storeReads: StoreRead[] = [];
   const finish = (bars: Bar6[], origins: Array<[number, BarOrigin]>) => {
     capture?.({ origins, storeReads });
@@ -73,7 +77,7 @@ export async function withStoredHistory(
   const session = ext ? "extended" : "regular";
   // Hourly history cannot be split truthfully at the 09:30 phase boundary.
   if (overnight && base === "1h") return liveOnly();
-  const selected = filterUsEquitySession(stored, session);
+  const selected = filterUsEquitySession(studyDate ? filterBarsToSessionDate(stored, studyDate, "calendar") : stored, session);
   const targetMin = tfMinutes(tf);
   const hb = targetMin === baseMin && !overnight ? selected : resampleUsEquitySession(selected, targetMin, overnight ? "24h" : session);
   const liveEp = new Set(live.map(bar => bar[0]));

@@ -2,7 +2,7 @@ import { after, NextResponse } from "next/server";
 import { readOvernightDaytime } from "@/lib/intradayDaytimeCache";
 import { createClient } from "@/lib/supabase/server";
 import { fetchIntraday, isIntradayTf, isSecondTf, classify } from "@/lib/intradaySources";
-import { isMacroSymbol } from "@/lib/macroSymbols";
+import { isMacroSymbol, isDailyOnlySymbol } from "@/lib/macroSymbols";
 import { readTiingoBoatsHistory, prependBoatsHistory, type BoatsHistoryEvidence } from "@/lib/tiingoBoatsStore";
 import { requestBoatsLiveHistory } from "@/lib/tiingoBoatsLiveHistory";
 import { withStoredHistory } from "@/lib/intradayStore";
@@ -11,6 +11,8 @@ import { filterBarsToSessionDate, type Bar6 } from "@/lib/intradayShared";
 import { intradayFixture } from "@/lib/flowSource";
 import { isOvernightTimeframe } from "@/lib/liveCandle";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
+import { usRegularSessionWindow } from "@/lib/usEquitySessionClock";
+import { us24hCandleClose } from "@/lib/usEquityCalendar";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,6 +31,13 @@ type IntradayResponse = {
   note?: string;
   error?: string;
   session_date?: string;
+  regular_session_window?: { start_minute: number; end_minute: number; post_end_minute: number } | null;
+  session_study_evidence?: {
+    source: "canonical-daytime";
+    status: "available" | "empty" | "pending" | "unavailable" | "closed";
+    bars: number;
+    meaning: "acquisition_status_not_full_session_coverage";
+  };
   boats_history?: BoatsHistoryEvidence;
   daytime_cache?: {
     cache_state: "new_assembly" | "cache" | "stale_cache";
@@ -126,6 +135,15 @@ export async function GET(req: Request) {
   const sym = (searchParams.get("sym") || "").trim();
   const tf = (searchParams.get("tf") || "").trim();
   const date = (searchParams.get("date") || "").trim();
+  const studyValues = searchParams.getAll("study");
+  const returnsStudy = studyValues.length === 1 && studyValues[0] === "returns";
+  if (studyValues.length && (!returnsStudy
+      || ["sym", "tf", "date", "session", "ext"].some(key => searchParams.getAll(key).length !== 1)
+      || searchParams.has("overnight") || tf !== "30m" || !date || searchParams.get("ext") !== "1"
+      || searchParams.get("session") !== "24h" || !/^[A-Z][A-Z0-9.-]{0,14}$/i.test(sym)
+      || classify(sym) !== "us" || isMacroSymbol(sym) || isDailyOnlySymbol(sym))) {
+    return NextResponse.json({ error: "bad study params" }, { status: 400 });
+  }
   const overnight = searchParams.get("session") === "24h" && classify(sym) === "us" && !isMacroSymbol(sym) && isOvernightTimeframe(tf);
   const ext = searchParams.get("ext") === "1" || overnight; // regular session by default; extended is explicit opt-in
   if (!sym || !isIntradayTf(tf) || (date && !isValidSessionDate(date))) {
@@ -138,7 +156,7 @@ export async function GET(req: Request) {
   // ET-anchored epochs as the heat columns. Roots without a surface fixture return null and fall
   // through to the normal path unchanged. Placed ahead of the cache + the key-spending upstream
   // fetch so the fixture never warms (or reads) the shared cross-provider cache.
-  if (process.env.FLOW_FIXTURE === "1") {
+  if (!returnsStudy && process.env.FLOW_FIXTURE === "1") {
     const fx = await intradayFixture(sym, tf);
     if (fx?.length) {
       return NextResponse.json(responseForSession({ t: sym, tf, bars: fx, source: "fixture" }, date, null, "new_assembly", overnight));
@@ -192,6 +210,30 @@ export async function GET(req: Request) {
     }
     if (authRequired && !verifiedUser) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
   }
+  let studyWindow: IntradayResponse["regular_session_window"];
+  if (returnsStudy) {
+    const day = Date.parse(date + "T00:00:00Z") / 1000;
+    try {
+      const window = usRegularSessionWindow(day);
+      if (window === null) studyWindow = null;
+      else {
+        const close = us24hCandleClose(day + window[1] * 60, 86_400);
+        if (close != null) studyWindow = { start_minute: window[0], end_minute: window[1],
+          post_end_minute: (close - day) / 60 };
+      }
+    } catch { /* Missing calendar authority cannot authorize guessed session hours. */ }
+    if (!studyWindow) {
+      const closed = studyWindow === null;
+      const data: IntradayResponse = { t: sym, tf, bars: [], regular_session_window: studyWindow,
+        session_study_evidence: { source: "canonical-daytime", status: closed ? "closed" : "unavailable",
+          bars: 0, meaning: "acquisition_status_not_full_session_coverage" },
+        note: closed ? "exchange calendar marks this date closed" : "exchange calendar unavailable" };
+      const evidence: EvidenceState = { trace: { origins: [], storeReads: [] }, assembledAtMs: Date.now(),
+        symbol: sym, timeframe: tf, extended: true, overnight: true };
+      return NextResponse.json(responseForSession(data, date, evidence, "new_assembly", true),
+        { headers: { "Cache-Control": "no-store" } });
+    }
+  }
   // Provider demand always needs a verified user, including deployments where
   // baseline chart reads are public. A warm cache cannot bypass that check.
   if (liveHistoryDemand && verifiedUser) {
@@ -211,7 +253,7 @@ export async function GET(req: Request) {
     // Read overnight data on EVERY authorized request. Only the expensive daytime
     // baseline is cached; neither a missing snapshot nor a correction waits 45s.
     const [daytime, history] = await Promise.all([
-      readOvernightDaytime(ckey, sym, tf, work => { after(async () => { await work; }); }),
+      readOvernightDaytime(ckey, sym, tf, work => { after(async () => { await work; }); }, returnsStudy ? date : undefined),
       readTiingoBoatsHistory(sym, tf, date, { live: liveHistoryAllowed }),
     ]);
     const baseline = daytime.snapshot;
@@ -235,6 +277,13 @@ export async function GET(req: Request) {
         meaning: "daytime_assembly_not_market_data_freshness",
       },
     };
+    if (returnsStudy) {
+      data.regular_session_window = studyWindow;
+      data.session_study_evidence = { source: "canonical-daytime",
+        status: daytime.refreshPending ? "pending" : daytime.error || !daytime.assemblyComplete ? "unavailable"
+          : current.length ? "available" : "empty",
+        bars: current.length, meaning: "acquisition_status_not_full_session_coverage" };
+    }
     if (daytime.error) {
       if (data.bars.length) data.note = "daytime fallback: " + daytime.error;
       else data.error = daytime.error;

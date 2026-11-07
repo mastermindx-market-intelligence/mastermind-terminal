@@ -40,6 +40,7 @@ import ForecastPage from "./ForecastPage";
 import TechnicalsPage from "./TechnicalsPage";
 import BottomPivotContextCard from "./BottomPivotContextCard";
 import SeasonalsPage from "./SeasonalsPage";
+import ReturnsCalendar from "../ReturnsCalendar";
 import OwnershipPage from "./OwnershipPage";
 import InsiderPage from "./InsiderPage";
 import TechLabPanel from "./TechLabPanel";
@@ -75,6 +76,7 @@ const PAGE_LABELS: Record<FinPage, [string, string]> = {
   forecast: ["Analyst", "分析师"],
   technicals: ["Technicals", "技术面"],
   seasonals: ["Seasonal", "季节性"],
+  returns: ["Returns", "收益"],
   ownership: ["Ownership", "持仓"],
   insider: ["Insider", "内部交易"],
   lab: ["Lab", "实验室"],
@@ -379,6 +381,7 @@ export default function MegaPane({
             <TechnicalsPage sym={sym} bars={bars} zh={zh} />
           </>}
           {page === "seasonals" && <SeasonalsPage sym={sym} bars={bars} zh={zh} />}
+          {page === "returns" && <ReturnsCalendar symbol={sym} bars={bars} pick={(en, cn) => zh ? (cn || en || "") : (en || cn || "")} />}
           {page === "ownership" && <OwnershipPage sym={sym} fund={fund} fundLoading={fundLoading} />}
           {page === "insider" && <InsiderPage sym={sym} bars={bars} zh={zh} />}
           {page === "lab" && <TechLabPanel sym={sym} intel={intel} zh={zh} />}

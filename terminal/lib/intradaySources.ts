@@ -168,6 +168,86 @@ async function fetchPolygon(sym: string, market: Market, tf: string, ext: boolea
   return out;
 }
 
+
+// ── Date-scoped U.S. equity study bars ─────────────────────────────────────
+//
+// The normal chart fetch intentionally has a bounded recent lookback. A selected-day dossier
+// study can point years back, and not every symbol has a local 5m store. This narrow helper asks
+// the SAME canonical Massive aggregate source for exactly one ET calendar date when the
+// selected-day precise store has no bars. It is server-called from /api/intraday only; it
+// does not create a second route or alternate market-data owner.
+export async function fetchUsEquityDateStudyBars(
+  sym: string,
+  tf: string,
+  ext: boolean,
+  dateStr: string,
+  signal?: AbortSignal,
+): Promise<Bar6[]> {
+  const day = Date.parse(dateStr + "T00:00:00Z") / 1000;
+  if (!/^[A-Z][A-Z0-9.-]{0,14}$/i.test(sym) || classify(sym) !== "us"
+      || isMacroSymbol(sym) || isDailyOnlySymbol(sym) || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)
+      || !Number.isFinite(day) || new Date(day * 1000).toISOString().slice(0, 10) !== dateStr
+      || !isIntradayTf(tf) || isSecondTf(tf)) return [];
+  const minutes = tfMinutes(tf);
+  if (!Number.isInteger(minutes) || minutes < 1) return [];
+  const key = process.env.POLYGON_API_KEY || process.env.MASSIVE_API_KEY;
+  if (!key) throw new Error("POLYGON_API_KEY not set");
+  const sourceMinutes = polygonUsSessionBaseMinutes(minutes);
+  const url =
+    `https://api.polygon.io/v2/aggs/ticker/${encodeURIComponent(sym.toUpperCase())}` +
+    `/range/${sourceMinutes}/minute/${dateStr}/${dateStr}` +
+    `?adjusted=true&sort=asc&limit=50000&apiKey=${encodeURIComponent(key)}`;
+  // In the route, the existing shared-flight owner cancels this fetch and its body.
+  const response = await fetch(url, { cache: "no-store", signal: signal ?? AbortSignal.timeout(8000) });
+  if (!response.ok) {
+    if (response.status === 429) throw new Error("polygon rate-limited");
+    throw new Error("polygon " + response.status);
+  }
+  const value: unknown = await response.json();
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("polygon malformed study response");
+  const data = value as Record<string, unknown>;
+  if (Object.hasOwn(data, "ticker") && (typeof data.ticker !== "string" || data.ticker.toUpperCase() !== sym.toUpperCase())) {
+    throw new Error("polygon study symbol mismatch");
+  }
+  if (data.error || (Object.hasOwn(data, "status")
+      && (typeof data.status !== "string" || !["OK", "DELAYED"].includes(data.status)))) {
+    throw new Error("polygon study unavailable");
+  }
+  // One bounded date request; an incomplete page is not a complete selected-day acquisition.
+  if (data.next_url) throw new Error("polygon study response truncated");
+  const rows = Array.isArray(data.results) ? data.results
+    : !Object.hasOwn(data, "results") && data.status === "OK" && data.resultsCount === 0 ? [] : null;
+  if (!rows || rows.length > 50_000) throw new Error("polygon malformed study results");
+  if (Object.hasOwn(data, "resultsCount") && (typeof data.resultsCount !== "number"
+      || !Number.isSafeInteger(data.resultsCount) || data.resultsCount < 0 || data.resultsCount !== rows.length)) {
+    throw new Error("polygon inconsistent study count");
+  }
+  const byEpoch = new Map<number, Bar6>();
+  for (const value of rows) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("polygon malformed study bar");
+    const bar = value as Record<string, unknown>;
+    const fields = [bar.t, bar.o, bar.h, bar.l, bar.c, bar.v];
+    if (!fields.every(n => typeof n === "number" && Number.isFinite(n))) throw new Error("polygon malformed study bar");
+    const [time, open, high, low, close, volume] = fields as number[];
+    if (!Number.isSafeInteger(time) || time <= 0 || !Number.isFinite(new Date(time).valueOf())
+        || time % (sourceMinutes * 60_000) !== 0 || Math.min(open, high, low, close) <= 0
+        || volume < 0 || high < Math.max(open, close) || low > Math.min(open, close) || high < low) {
+      throw new Error("polygon malformed study bar");
+    }
+    const { epoch } = etDisplay(time);
+    if (epoch < day || epoch >= day + 86_400) continue;
+    const row: Bar6 = [epoch, open, high, low, close, volume];
+    const previous = byEpoch.get(epoch);
+    if (previous && previous.some((n, index) => n !== row[index])) throw new Error("polygon conflicting study bars");
+    byEpoch.set(epoch, row);
+  }
+  const raw = [...byEpoch.values()].sort((a, b) => a[0] - b[0]);
+  // Keep the existing calendar/phase owner, including the 17:00 early-close post boundary.
+  // The first filter excludes overnight prints from the daytime provider leg.
+  const selected = filterUsEquitySession(filterUsEquitySession(raw, ext ? "extended" : "regular"), "24h");
+  return resampleUsEquitySession(selected, minutes, "24h");
+}
+
 // ── Second-resolution aggregates (US equities only) ──────────────────────────
 //
 // ENTITLEMENT. `…/range/<n>/second/…` is a Stocks-Advanced feature and the plan covers US
