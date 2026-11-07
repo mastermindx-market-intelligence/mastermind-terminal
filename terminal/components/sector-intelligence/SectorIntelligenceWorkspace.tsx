@@ -18,11 +18,13 @@ import styles from "./SectorIntelligenceWorkspace.module.css";
 import SectorCompanyComparison from "./SectorCompanyComparison";
 import SectorIntradayComparison, { useSectorPresentationClock } from "./SectorIntradayComparison";
 import SectorLeadershipDossier from "./SectorLeadershipDossier";
+import SectorConstituentEvidence from "./SectorConstituentEvidence";
 import { sectorOriginFromState, withExposureOrigin } from "@/lib/exposureOrigin";
 import { sectorRotationRelativeTrend } from "@/lib/rotationRelativeTrend";
 import { holdingsCoverageFor, sectorHoldingsCoverage } from "@/lib/sectorHoldingsCoverage";
 import { encodeSectorDepthReturn, resolveSectorDepthReturn, sectorDepthReturnQuery,
   SECTOR_DEPTH_RETURN_PARAM, SECTOR_DEPTH_RETURN_HISTORY_KEY } from "@/lib/sectorDepthReturn";
+import { sectorPortfolioCopy, sectorPortfolioHref } from "@/lib/sectorPortfolioContext";
 
 const VIEW_KEYS: Record<SectorView, string> = {
   intelligence: "siOverview", companies: "siCompaniesTab", signals: "siSignals", drivers: "siDrivers", history: "siHistory",
@@ -67,6 +69,7 @@ function Metric({ label, value, foot }: { label: string; value: string; foot: st
 
 export default function SectorIntelligenceWorkspace() {
   const t = useSectorT(), { lang } = useLang(), identity = useShellIdentity();
+  const sc = sectorPortfolioCopy(lang);
   const [state, setState] = useState<SectorState>(DEFAULT_SECTOR_STATE);
   const [revision, setRevision] = useState(0);
   const activeFeeds = state.workspace === "discover" && state.sourceFamily === "finviz" ? FINVIZ_FEEDS : SECTOR_FEEDS;
@@ -221,6 +224,16 @@ export default function SectorIntelligenceWorkspace() {
       asOf: feeds.confluence?.receipt.asOf ?? null, contentHash: feeds.confluence?.receipt.contentHash ?? null, benchmark: ROTATION_BENCHMARK });
     return origin ? withExposureOrigin(`/options?tab=prism&symbol=${encodeURIComponent(ticker)}&view=chart`, origin) : null;
   }, [state, returnState, visibleMembers, feeds.confluence]);
+  // The Portfolio action carries the selected native sector ETF and the admitted opener
+  // snapshot — navigation context only. No dossier value, position, weight, target or
+  // account identity rides in the address.
+  const portfolioOpener = useMemo(() => {
+    if (state.workspace !== "detail") return null;
+    return returnState ? { ...returnState, sourcesOpen: false } : { ...state, workspace: returnWorkspace, sourcesOpen: false };
+  }, [state, returnState, returnWorkspace]);
+  const portfolioHref = useMemo(
+    () => sectorPortfolioHref(text(sector.ticker), portfolioOpener),
+    [sector.ticker, portfolioOpener]);
   const landed = useRef(false);
   useEffect(() => {
     // A return address names an exact holding: land on it once, without a scroll jump.
@@ -365,6 +378,8 @@ export default function SectorIntelligenceWorkspace() {
       {state.workspace === "detail" && <div className={styles.depthNavigation} data-testid="sector-detail-depth">
         <button type="button" data-testid="sector-detail-return" onClick={returnToOuterWorkspace}>← {t(RETURN_KEYS[returnWorkspace])}</button>
         <span>{t("siResearchDepth")} · {sectorName || state.sector.toUpperCase()}</span>
+        {portfolioHref && <Link className={styles.button} href={portfolioHref} data-testid="sector-view-in-portfolio"
+          data-sector-etf={text(sector.ticker)}>{sc("viewInPortfolio")}</Link>}
       </div>}
       {state.workspace === "discover" && <nav className={styles.workspaceNavigation} aria-label={t("siFinvizSourceFamily")}>
         <button type="button" aria-pressed={state.sourceFamily === "sectors"} onClick={() => change({ sourceFamily: "sectors" }, true)}>{t("siFinvizSectors")}</button>
@@ -444,6 +459,9 @@ export default function SectorIntelligenceWorkspace() {
               state, and it never falls back to another sector's numbers. */}
           <SectorLeadershipDossier feed={feeds.sector} selectedTicker={text(sector.ticker)} onSources={() => openSources()} />
           {comparison}
+          <SectorConstituentEvidence fund={text(sector.ticker) || null}
+            coverage={holdingsCoverage ? holdingsCoverageFor(holdingsCoverage, text(sector.ticker)) : null}
+            feed={feeds.holdings ?? null} identity={identity} presentation={state.theme} />
           {/* Catalyst: the owner's measured intraday interval, after the market summary and before
               the detailed evidence disclosure. It adds no new state owner and no new route. */}
           <SectorIntradayComparison data={feeds.intraday?.data} status={feeds.intraday?.receipt.status || "loading"}

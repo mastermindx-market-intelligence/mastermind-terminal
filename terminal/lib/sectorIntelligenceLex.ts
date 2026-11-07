@@ -390,6 +390,33 @@ export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siDossierRawReason: ["Owner reason", "来源原因"],
   siDossierMechanism: ["Mechanism", "机制"],
   siDossierSectorRisk: ["Sector risk", "板块风险"],
+
+  // Constituent evidence. An isolated namespace for the sector fund's listed holdings and the
+  // company evidence opened from one of them. The membership clocks and the company's own
+  // disclosure clocks are named separately and never merged.
+  siConstituentEvidenceEyebrow: ["Sector fund holdings", "板块基金持仓"],
+  siConstituentEvidenceTitle: ["Constituent company evidence", "成分股公司证据"],
+  siConstituentEvidenceScope: ["Holdings listed by this sector's fund, with their position in the listed sample and weight of the fund.", "此板块基金列出的持仓，及其在所列样本中的顺序与占基金的权重。"],
+  siConstituentEvidenceFundLabel: ["Fund", "基金"],
+  siConstituentEvidenceMemberLabel: ["Listed holding", "已列出的持仓"],
+  siConstituentEvidenceChooseMember: ["Choose a listed holding", "选择已列出的持仓"],
+  siConstituentEvidenceRankLabel: ["Position in listed sample", "所列样本中的顺序"],
+  siConstituentEvidenceWeightLabel: ["Weight of fund", "占基金权重"],
+  siConstituentEvidenceMembershipAsOf: ["Holdings as of", "持仓截至"],
+  siConstituentEvidenceSeparation: ["Membership date, listed-sample position and fund weight come from the holdings source. The company's own identity and disclosure dates are shown separately below.", "归属日期、样本顺序与基金权重来自持仓来源；公司自身的身份与披露日期在下方单独列出。"],
+  siConstituentEvidenceTopHoldingsNote: ["This is the source's own listed holdings, not a complete constituent list. A holding that is not listed is not implied.", "此为来源自身列出的持仓，并非完整成分股名单；未列出的持仓不代表不存在。"],
+  siConstituentEvidenceOpen: ["Open company evidence", "打开公司证据"],
+  siConstituentEvidenceClose: ["Close company evidence", "关闭公司证据"],
+  siConstituentEvidenceSignIn: ["Sign in", "登录"],
+  siConstituentEvidenceFeedRecord: ["Holdings source record", "持仓来源记录"],
+  siConstituentEvidenceFeedRecordCopy: ["The source's own receipt. A fetch time never replaces a membership date, and no capture receipt is implied here.", "来源自身的凭据。抓取时间不会替代归属日期，此处也不代表任何采集凭据。"],
+  siConstituentEvidenceHashAbsent: ["Not supplied by this source", "该来源未提供"],
+  siConstituentEvidenceFeedLoading: ["Reading the sector fund holdings…", "正在读取板块基金持仓…"],
+  siConstituentEvidenceFeedUnavailable: ["The sector fund holdings source is not available.", "板块基金持仓来源暂不可用。"],
+  siConstituentEvidenceFeedAccess: ["The sector fund holdings source requires access.", "板块基金持仓来源需要访问权限。"],
+  siConstituentEvidenceFeedUnqualified: ["The sector fund holdings source was not qualified.", "板块基金持仓来源未通过校验。"],
+  siConstituentEvidenceNoFund: ["This sector has no listed fund holdings.", "该板块没有已列出的基金持仓。"],
+  siConstituentEvidenceNoMembers: ["This fund lists no holding.", "该基金没有列出持仓。"],
 };
 
 export function useSectorT() {

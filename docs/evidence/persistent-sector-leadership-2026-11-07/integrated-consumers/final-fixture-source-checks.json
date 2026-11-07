@@ -1,0 +1,28 @@
+{
+  "completed_at": "2026-11-07T07:36:41.469456+00:00",
+  "checks": [
+    {
+      "name": "typecheck",
+      "command": [
+        "npx",
+        "tsc",
+        "--noEmit"
+      ],
+      "exit_code": 0,
+      "seconds": 17.744,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lint",
+      "command": [
+        "npx",
+        "eslint",
+        "e2e/sector-portfolio-continuity.spec.ts",
+        "e2e/sector-constituent-evidence.spec.ts"
+      ],
+      "exit_code": 0,
+      "seconds": 3.898,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}
