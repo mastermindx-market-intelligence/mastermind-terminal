@@ -57,8 +57,13 @@ jobs:
         env:
           GH_REPO: ${{ github.repository }}
           MERGE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # This sweep reports queue readiness, never native-user admission.
-          # Keep user enqueue credentials out of its environment.
+          # Default OFF. Canary: explicit target_pr workflow dispatch only.
+          # Enabled needs successful merge_group canary and approved owner enrollment.
+          NATIVE_QUEUE_AUTO_ADMIT: ${{ vars.NATIVE_QUEUE_AUTO_ADMIT || 'off' }}
+          NATIVE_ENQUEUE_TOKEN: ${{ (vars.NATIVE_QUEUE_AUTO_ADMIT == 'canary' || vars.NATIVE_QUEUE_AUTO_ADMIT == 'enabled') && secrets.NATIVE_ENQUEUE_TOKEN || '' }}
+          NATIVE_ENQUEUE_ISSUER_LOGIN: ${{ vars.NATIVE_ENQUEUE_ISSUER_LOGIN }}
+          NATIVE_ENQUEUE_ISSUER_ID: ${{ vars.NATIVE_ENQUEUE_ISSUER_ID }}
+          GITHUB_REPOSITORY_ID: ${{ github.event.repository.id }}
           TRIGGER_PR_NUMBER: ${{ github.event.pull_request.number }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           TARGET_PR: ${{ inputs.target_pr }}

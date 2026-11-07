@@ -8,11 +8,13 @@ same-repository, non-draft pull requests carrying the
 ``merge-on-green`` label; requires the latest trusted instance of all three CI jobs
 to have completed successfully; and pins every state-changing action to the head SHA
 it evaluated. When GitHub's native merge queue is enabled for master, the controller
-verifies every eligible green head (including a head that is merely behind master)
-against the queue and reports it ready, but never enqueues: this workflow holds
-the repository GITHUB_TOKEN, whose enqueue return cannot establish downstream
-merge-group event delivery. Admission is left to the already-supported native-user
-route, with an expected-head pin. Without
+verifies eligible green heads against the queue. The default remains report-only:
+GITHUB_TOKEN enqueue success cannot prove merge_group event delivery. An
+explicitly enabled canary or subsequent production enrollment uses a separately
+verified event-generating user credential and an exact-head GraphQL lease.
+Before attempting that one mutation the workflow consumes its opt-in label so
+unknown results cannot cause automatic replay. The queue's own required checks
+and protected integrated proof still govern the eventual merge. Without
 a merge queue it retains the historical refresh-then-SHA-pinned-squash fallback.
 
 The controller is deliberately label-gated. ``hold`` and ``do-not-merge`` are hard
@@ -40,6 +42,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -52,6 +55,15 @@ from typing import Any, Iterable, Protocol
 ARM_LABEL = "merge-on-green"
 BLOCK_LABEL = "merge-blocked"
 HOLD_LABELS = frozenset({"hold", "do-not-merge"})
+# Conservatively refuse a native *automatic* enqueue if a PR body or any
+# accessible issue comment records an explicit hold; manual GitHub admission is
+# still possible after a qualified human reconciliation. HOLD-RELEASED text
+# alone does not erase an older hold.
+RECORDED_HOLD_RE = re.compile(
+    r"(?im)^\s*(?:[-*]\s*)?(?:#{1,6}\s*)?"
+    r"(?:HOLD(?!-RELEASED)(?:-FOR-[A-Z0-9_-]+)?|STOP|DO\s+NOT\s+MERGE)"
+    r"(?:\s*[:—-]|\s*$)"
+)
 REQUIRED_CHECKS = (
     "Quote Hub tests",
     "Terminal typecheck + tests",
@@ -157,6 +169,26 @@ class GitHubApi:
         if not isinstance(data, dict):
             raise ApiError(502, "GraphQL response did not contain a data object")
         return data
+
+    def release_comments(self, number: int) -> list[dict[str, Any]]:
+        """Read every issue-comment page before native automatic enrollment.
+
+        An unreadable page or more than 2000 comments means we cannot prove
+        that a recorded release hold is absent, so refuse closed.
+        """
+        rows: list[dict[str, Any]] = []
+        for page in range(1, 21):
+            found = self.request(
+                "GET", f"/issues/{int(number)}/comments?per_page=100&page={page}"
+            )
+            if not isinstance(found, list):
+                raise ApiError(502, "release comments response was not a list")
+            if any(not isinstance(item, dict) for item in found):
+                raise ApiError(502, "release comments contained malformed entries")
+            rows.extend(found)
+            if len(found) < 100:
+                return rows
+        raise ApiError(422, "release hold audit needs more than 2000 comments")
 
     def merge_queue_enabled(self, base_ref: str) -> bool:
         owner, name = self.repo.split("/", 1)
@@ -375,6 +407,8 @@ class MergeApi(Protocol):
     def update_branch(self, number: int, head_sha: str) -> None: ...
     def dispatch_ci(self, branch: str, pr_number: int | None = None) -> None: ...
     def merge_queue_enabled(self, base_ref: str) -> bool: ...
+    def release_comments(self, number: int) -> list[dict[str, Any]]: ...
+    def native_enqueue_api(self) -> GitHubApi: ...
     def queue_entry(self, pull_request_id: str) -> str | None: ...
     def enqueue(self, pull_request_id: str, head_sha: str) -> str: ...
     def merge(self, number: int, head_sha: str) -> dict[str, Any]: ...
@@ -392,6 +426,11 @@ class CheckVerdict:
 
 def label_names(pull: dict[str, Any]) -> set[str]:
     return {str(label.get("name", "")) for label in pull.get("labels", [])}
+
+
+def has_recorded_hold(pull: dict[str, Any], comments: list[dict[str, Any]]) -> bool:
+    texts = [pull.get("body") or ""] + [comment.get("body") or "" for comment in comments]
+    return any(isinstance(body, str) and RECORDED_HOLD_RE.search(body) for body in texts)
 
 
 def trusted_check_app_id(run: dict[str, Any]) -> int | None:
@@ -582,6 +621,7 @@ def sweep(
     trigger_number: int | None = None,
     *,
     target_number: int | None = None,
+    native_admission: bool = False,
     wait=time.sleep,
 ) -> list[str]:
     pulls = [pull for pull in api.list_pulls() if is_armed_candidate(pull, api.repo)]
@@ -661,11 +701,59 @@ def sweep(
             if existing_entry is not None:
                 actions.append(f"#{number}: already queued ({existing_entry})")
                 continue
-            # A GITHUB_TOKEN enqueue return does not prove downstream merge_group
-            # event delivery. Keep this workflow read-only at the admission seam;
-            # a maintainer uses the existing native-user path with the verified
-            # head pinned. This is not a finding about every missing event.
-            # Admission, ordering and revalidation then belong to the queue.
+            if native_admission:
+                # A missing/unknown release hold or credential is a pre-effect
+                # refusal. Do not consume the label until both reads succeed.
+                if has_recorded_hold(pull, api.release_comments(number)):
+                    actions.append(f"#{number}: recorded HOLD/STOP needs manual release adjudication")
+                    continue
+                try:
+                    api.native_enqueue_api()  # read-only credential and issuer preflight
+                except ApiError as error:
+                    actions.append(f"#{number}: native user enrollment not qualified ({error})")
+                    continue
+                latest = api.pull(number)
+                current_head = latest.get("head") or {}
+                if (
+                    latest.get("draft") or latest.get("mergeable") is not True
+                    or latest.get("mergeable_state") not in {"clean", "behind"}
+                    or (latest.get("base") or {}).get("ref") != "master"
+                    or current_head.get("sha") != head_sha
+                    or (current_head.get("repo") or {}).get("full_name") != api.repo
+                    or label_names(latest).intersection(HOLD_LABELS)
+                    or ARM_LABEL not in label_names(latest)
+                    or has_recorded_hold(latest, api.release_comments(number))
+                ):
+                    actions.append(f"#{number}: source/hold changed; native admission withheld")
+                    continue
+                fresh_verdict = check_verdict(api.check_runs(head_sha))
+                if fresh_verdict.state != "green":
+                    actions.append(f"#{number}: checks changed ({fresh_verdict.state}); native admission withheld")
+                    continue
+                # One-shot fence BEFORE the irreversible enqueue. If the native
+                # callback is lost, the next sweep cannot repeat this attempt.
+                api.remove_label(number, ARM_LABEL)
+                post_fence = api.pull(number)
+                if (
+                    (post_fence.get("head") or {}).get("sha") != head_sha
+                    or post_fence.get("draft") or post_fence.get("mergeable") is not True
+                    or post_fence.get("mergeable_state") not in {"clean", "behind"}
+                    or label_names(post_fence).intersection(HOLD_LABELS)
+                    or ARM_LABEL in label_names(post_fence)
+                ):
+                    actions.append(f"#{number}: disarmed after identity/hold race; manual requalification required")
+                    continue
+                queued = api.queue_entry(pull_request_id)
+                if queued is not None:
+                    actions.append(f"#{number}: already queued ({queued})")
+                    continue
+                entry = api.enqueue(pull_request_id, head_sha)
+                actions.append(
+                    f"#{number}: native enqueue submitted ({entry}); "
+                    "merge_group and final protected release still unproven"
+                )
+                continue
+            # Default reporting mode has no queue mutation or user credential.
             actions.append(
                 f"#{number}: ready for the merge queue; native user admission required "
                 f"(gh pr merge {number} --auto --match-head-commit {head_sha}); "
@@ -766,11 +854,20 @@ def main() -> int:
             file=sys.stderr,
         )
         return 2
+    enrollment = (os.environ.get("NATIVE_QUEUE_AUTO_ADMIT") or "off").strip().lower()
+    if enrollment not in {"off", "canary", "enabled"}:
+        print("::error::NATIVE_QUEUE_AUTO_ADMIT must be off, canary or enabled", file=sys.stderr)
+        return 2
+    native_admission = enrollment == "enabled" or (
+        enrollment == "canary" and event_name == "workflow_dispatch" and target is not None
+    )
+    # Preserve default source behavior until explicitly enrolled.
+    extra = {"native_admission": True} if native_admission else {}
     try:
         if target is None:
-            actions = sweep(GitHubApi(repo, token), trigger)
+            actions = sweep(GitHubApi(repo, token), trigger, **extra)
         else:
-            actions = sweep(GitHubApi(repo, token), trigger, target_number=target)
+            actions = sweep(GitHubApi(repo, token), trigger, target_number=target, **extra)
     except (ApiError, KeyError, TypeError, ValueError) as error:
         print(f"::error::{error}", file=sys.stderr)
         return 1

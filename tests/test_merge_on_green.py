@@ -1845,8 +1845,11 @@ def test_reporting_workflow_does_not_receive_native_user_credentials():
     steps = document["jobs"]["sweep"]["steps"]
     step = next(s for s in steps if s.get("name") == "reconcile armed pull requests")
     assert step["env"]["MERGE_TOKEN"] == "${{ secrets.GITHUB_TOKEN }}"
-    assert not any(name.startswith("NATIVE_ENQUEUE_") for name in step["env"])
-    assert "GITHUB_REPOSITORY_ID" not in step["env"]
+    assert step["env"]["NATIVE_QUEUE_AUTO_ADMIT"] == "${{ vars.NATIVE_QUEUE_AUTO_ADMIT || 'off' }}"
+    assert step["env"]["NATIVE_ENQUEUE_TOKEN"] == (
+        "${{ (vars.NATIVE_QUEUE_AUTO_ADMIT == 'canary' || vars.NATIVE_QUEUE_AUTO_ADMIT == 'enabled') && secrets.NATIVE_ENQUEUE_TOKEN || '' }}"
+    )
+    assert step["env"]["GITHUB_REPOSITORY_ID"] == "${{ github.event.repository.id }}"
     assert "ADMIN_GH_TOKEN" not in json.dumps(document)
     assert document["concurrency"]["cancel-in-progress"] is False
     assert document["jobs"]["sweep"]["timeout-minutes"] == 10
@@ -1870,6 +1873,95 @@ def test_configured_user_enrollment_does_not_enable_workflow_queue_admission(mon
     assert api.actions == []
     assert api.queue_entries == {}
 
+
+
+# Native automatic admission remains OFF unless the trusted protected workflow
+# explicitly enrolls a canary or enabled mode with a separate verified user.
+def test_automatic_enqueue_consumes_label_once_before_mutation():
+    api = FakeApi([pull()], queue_enabled=True)
+    api.release_comments = lambda number: []
+    api.native_enqueue_api = lambda: api
+    assert sweep(api, native_admission=True) == [
+        "#7: native enqueue submitted (MQE-PR-node-7); merge_group and final protected release still unproven"
+    ]
+    assert ("remove_label", 7, ARM_LABEL) in api.actions
+    assert ("enqueue", "PR-node-7", "head-7") in api.actions
+    assert api.actions.index(("remove_label", 7, ARM_LABEL)) < api.actions.index(
+        ("enqueue", "PR-node-7", "head-7")
+    )
+    assert sweep(api, native_admission=True) == []
+    assert [a for a in api.actions if a[0] == "enqueue"] == [("enqueue", "PR-node-7", "head-7")]
+
+
+def test_automatic_enqueue_failure_is_fenced_without_replay():
+    api = FakeApi([pull()], queue_enabled=True)
+    api.release_comments = lambda number: []
+    api.native_enqueue_api = lambda: api
+    def lost(*args):
+        api.actions.append(("enqueue_lost", args))
+        raise TimeoutError("unknown native queue outcome")
+    api.enqueue = lost
+    with pytest.raises(TimeoutError):
+        sweep(api, native_admission=True)
+    assert ("remove_label", 7, ARM_LABEL) in api.actions
+    assert sweep(api, native_admission=True) == []
+    assert len([a for a in api.actions if a[0] == "enqueue_lost"]) == 1
+
+
+@pytest.mark.parametrize("blocked", ["body", "comment", "hold", "draft", "red"])
+def test_native_automatic_enqueue_never_arms_blocked_candidate(blocked):
+    candidate = pull(labels=[ARM_LABEL, "hold"] if blocked == "hold" else None,
+                     draft=blocked == "draft")
+    if blocked == "body":
+        candidate["body"] = "HOLD: release review pending"
+    comments = [{"body": "STOP: owner review pending"}] if blocked == "comment" else []
+    api = FakeApi([candidate], queue_enabled=True,
+                  runs={"head-7": checks(conclusion="failure")} if blocked == "red" else None)
+    api.release_comments = lambda number: comments
+    api.native_enqueue_api = lambda: api
+    result = sweep(api, native_admission=True)
+    assert not any(a[0] == "enqueue" for a in api.actions)
+    assert ARM_LABEL in label_names(api.pulls[7])
+
+
+def test_native_automatic_enqueue_preflight_denial_has_no_effect():
+    api = FakeApi([pull()], queue_enabled=True)
+    api.release_comments = lambda number: []
+    def refuse():
+        raise ApiError(412, "native enrollment unavailable")
+    api.native_enqueue_api = refuse
+    assert "not qualified" in sweep(api, native_admission=True)[0]
+    assert api.actions == []
+    assert ARM_LABEL in label_names(api.pulls[7])
+
+
+def test_native_auto_admission_changed_head_withholds_without_effect():
+    api = FakeApi([pull()], queue_enabled=True)
+    api.release_comments = lambda number: []
+    api.native_enqueue_api = lambda: api
+    original = api.pull
+    def moved(number):
+        item = original(number)
+        item["head"]["sha"] = "different-head"
+        return item
+    api.pull = moved
+    assert "source/hold changed" in sweep(api, native_admission=True)[0]
+    assert api.actions == []
+    assert ARM_LABEL in label_names(api.pulls[7])
+
+
+@pytest.mark.parametrize("text", [
+    "HOLD: no merge", "- HOLD-FOR-SOL: not released", "DO NOT MERGE", "STOP -- critical",
+])
+def test_automatic_admission_hold_parser_is_fail_closed(text):
+    assert mog.has_recorded_hold({"body": text}, [])
+    assert mog.has_recorded_hold({"body": ""}, [{"body": text}])
+
+
+def test_automatic_admission_has_no_unconditional_systemwide_mode():
+    assert "NATIVE_QUEUE_AUTO_ADMIT" in Path(mog.__file__).read_text()
+    assert "enrollment == \"canary\"" in Path(mog.__file__).read_text()
+    assert "event_name == \"workflow_dispatch\"" in Path(mog.__file__).read_text()
 
 
 def assert_privileged_controller_source(document):
