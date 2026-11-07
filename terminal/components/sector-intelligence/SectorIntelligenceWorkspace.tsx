@@ -17,6 +17,7 @@ import SectorRotationMap, { ROTATION_BENCHMARK } from "./SectorRotationMap";
 import styles from "./SectorIntelligenceWorkspace.module.css";
 import SectorCompanyComparison from "./SectorCompanyComparison";
 import SectorIntradayComparison, { useSectorPresentationClock } from "./SectorIntradayComparison";
+import SectorLeadershipDossier from "./SectorLeadershipDossier";
 import { sectorOriginFromState, withExposureOrigin } from "@/lib/exposureOrigin";
 import { sectorRotationRelativeTrend } from "@/lib/rotationRelativeTrend";
 import { holdingsCoverageFor, sectorHoldingsCoverage } from "@/lib/sectorHoldingsCoverage";
@@ -438,6 +439,10 @@ export default function SectorIntelligenceWorkspace() {
               <Metric label={t("siTop5")} value={formatValue(cap ? cap.share * 100 : null, 1, "%")} foot={cap ? `${cap.count} ${t("siTiles")}` : t("siNotConnected")} />
             </div>
           </section>}
+          {/* Persistent Sector Leadership: the owner's measured relative wealth, rendered from the
+              same sector feed the overview already reads. It owns no snapshot, no fetch and no
+              state, and it never falls back to another sector's numbers. */}
+          <SectorLeadershipDossier feed={feeds.sector} selectedTicker={text(sector.ticker)} onSources={() => openSources()} />
           {comparison}
           {/* Catalyst: the owner's measured intraday interval, after the market summary and before
               the detailed evidence disclosure. It adds no new state owner and no new route. */}
