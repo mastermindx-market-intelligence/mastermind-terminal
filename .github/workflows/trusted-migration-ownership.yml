@@ -1,4 +1,5 @@
 name: Protected migration ownership issuer
+run-name: Migration owner ${{ github.event.workflow_run.id }}/${{ github.event.workflow_run.run_attempt }} ${{ github.event.workflow_run.head_sha }}
 
 # SOURCE PROPOSAL ONLY. Enrollment/environment/rule changes are separate effects.
 # Stage 1 is supplementary: the old Ingest enforcement remains unchanged.

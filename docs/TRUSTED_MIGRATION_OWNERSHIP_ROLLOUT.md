@@ -79,6 +79,25 @@ unconfirmed. A matching unsettled check or changed source-code identity refuses
 another POST; a completed matching original operation can only be reconciled.
 No native queue admission or retry primitive is present.
 
+The actual issuer's `GITHUB_RUN_ID` and `GITHUB_RUN_ATTEMPT` are separately
+authenticated against Actions metadata: exact repository, issuer workflow
+ID/path/name, `workflow_run` event, master ref, protected code SHA and current
+attempt. Its service-generated run title binds the original CI run ID/attempt/H.
+The check's fixed `details_url` retains that issuer's **first** attempt; it is
+not accepted as authority without the actual issuer record. Phase-2 proof reads
+that first attempt and validates the same original target and protected code.
+
+Only the original issuer attempt can create or complete a check. The configured
+workflow rejects reruns in preflight **before** minting. The owner helper can
+read/reconcile an already completed original check on a later actual attempt,
+but a missing or unsettled original check retains UNKNOWN and cannot reach any
+POST/PATCH. Claiming attempt 1 does not override actual service attempt 2.
+GitHub keeps a workflow-run ID across reruns and increments its attempt; changing
+the issuer/source identity or creating another run is not a supported recovery
+primitive here. The protected workflow invokes the mutation owner once, has no
+manual trigger/retry wrapper, and the HTTP client does not retry it. This is an
+enforced original-attempt boundary, not an assertion that a lost POST was unsent.
+
 ## Complete two-stage rollout (none executed)
 
 1. Root reviews the exact source, grants and scoped independent consequence
@@ -130,6 +149,13 @@ No native queue admission or retry primitive is present.
    remain intact. The new protected owner now supplies the mandatory full
    group membership/content gate. No environment/caller boolean enables this
    transfer; it is a separately verified source change.
+   This generated patch is the core handoff, not the complete activation PR:
+   Terminal's existing release law also requires the required-context change
+   to be reflected in `AGENTS.md`, `CLAUDE.md`, the incumbent
+   `merge-on-green.yml` and controller tests in the same source PR. Calibrate
+   those companions to the actual enrolled App ID and retain all three old
+   check producers. Do not activate/land the two-file patch in isolation or
+   describe it as a whole qualified activation release.
 8. A subsequent new candidate's normal head/group checks and release are still
    owed. There is no authorization here to rearm or retry PR1290.
 
@@ -156,3 +182,5 @@ enrollment, workflow execution, required checks, deployment or SQL application.
 - [Check creation requires Checks write](https://docs.github.com/en/rest/checks/runs#create-a-check-run)
 - [Required checks with expected App source](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#require-status-checks-before-merging)
 - [Environment ref restrictions](https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments#deployment-branches-and-tags)
+- [Run ID and attempt semantics](https://docs.github.com/en/actions/reference/workflows-and-actions/variables#default-environment-variables)
+- [Read an exact workflow-run attempt](https://docs.github.com/en/rest/actions/workflow-runs#get-a-workflow-run-attempt)

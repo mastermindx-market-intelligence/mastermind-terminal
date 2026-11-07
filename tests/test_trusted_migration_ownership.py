@@ -48,7 +48,7 @@ def input_data(event="merge_group"):
                 "workflow_run": run_data(event)}
     env = {"GITHUB_ACTIONS": "true", "GITHUB_EVENT_NAME": "workflow_run", "GITHUB_REPOSITORY": owner.REPO,
            "GITHUB_REPOSITORY_ID": "123", "GITHUB_REF": "refs/heads/master", "GITHUB_SHA": CODE,
-           "TRUSTED_CHECKOUT_SHA": CODE}
+           "TRUSTED_CHECKOUT_SHA": CODE, "GITHUB_RUN_ID": "81", "GITHUB_RUN_ATTEMPT": "1"}
     return envelope, env
 
 
@@ -56,6 +56,7 @@ def check_data(run=None, **overrides):
     run = run_data() if run is None else run
     value = {"id": 91, "name": owner.CONTEXT, "head_sha": run["head_sha"], "app": {"id": APP},
              "external_id": f"migration-owner:v1:{run['id']}:{run['run_attempt']}:{run['head_sha']}:{CODE}",
+             "details_url": f"https://github.com/{owner.REPO}/actions/runs/{81 if run['id'] == 71 else 82}/attempts/1",
              "status": "completed", "conclusion": "success"}
     return value | overrides
 
@@ -68,6 +69,13 @@ def blob(raw):
 class Service:
     def __init__(self, event="merge_group"):
         self.run = run_data(event)
+        self.issuer = {"id": 81, "run_attempt": 1, "workflow_id": 18,
+                       "path": ".github/workflows/trusted-migration-ownership.yml",
+                       "name": "Protected migration ownership issuer", "event": "workflow_run",
+                       "head_sha": CODE, "head_branch": "master", "status": "in_progress",
+                       "repository": {"id": 123, "full_name": owner.REPO},
+                       "head_repository": {"id": 123, "full_name": owner.REPO},
+                       "display_title": f"Migration owner {self.run['id']}/{self.run['run_attempt']} {self.run['head_sha']}"}
         self.workflow = {"id": 17, "path": owner.WORKFLOW, "name": "CI", "state": "active"}
         self.queue, _, _ = queue_fixture()
         repo = self.queue["repository"]
@@ -107,8 +115,12 @@ class Service:
             return result
         self.reads.append(path)
         if "/actions/runs/" in path:
+            if path.endswith("/81"):
+                return copy.deepcopy(self.issuer)
             return copy.deepcopy(self.run)
         if "/actions/workflows/" in path:
+            if path.endswith("/18"):
+                return {"id": 18, "path": self.issuer["path"], "name": self.issuer["name"], "state": "active"}
             return copy.deepcopy(self.workflow)
         if "/check-runs?" in path:
             return copy.deepcopy(self.previous)
@@ -155,6 +167,7 @@ def test_real_parallel_new_origin_full_prefix(broken):
         for key in ("baseRepository", "headRepository"):
             entry["pullRequest"][key]["nameWithOwner"] = owner.REPO
     api.run["head_sha"] = old_event["merge_group"]["head_sha"]
+    api.issuer["display_title"] = f"Migration owner {api.run['id']}/{api.run['run_attempt']} {api.run['head_sha']}"
     envelope, env = input_data()
     envelope["workflow_run"] = copy.deepcopy(api.run)
     if broken == "incomplete": repo["mergeQueue"]["entries"]["pageInfo"]["hasNextPage"] = True
@@ -330,6 +343,78 @@ def test_lost_mutation_response_never_retries(method):
     assert sum(m[0] == "PATCH" for m in api.mutations) == (method == "PATCH")
 
 
+@pytest.mark.parametrize("claimed_attempt", ["2", "1"])
+def test_lost_post_later_empty_check_list_is_not_permission_to_create(claimed_attempt):
+    api = Service()
+    envelope, env = input_data()
+    api.lose = "POST"
+    with pytest.raises(group.OwnershipUnqualified):
+        owner.execute(envelope, env, api, APP)
+    assert sum(m[0] == "POST" for m in api.mutations) == 1
+    # The server may not expose the first check after dispatch/response loss.
+    # Actual GitHub reruns retain issuer ID81 and increment its attempt. A
+    # supplied claim of attempt1 cannot override actual service attempt2.
+    api.lose = None
+    api.previous = {"check_runs": [], "total_count": 0}
+    api.issuer["run_attempt"] = 2
+    env["GITHUB_RUN_ATTEMPT"] = claimed_attempt
+    with pytest.raises(group.OwnershipUnqualified):
+        owner.execute(envelope, env, api, APP)
+    assert sum(m[0] == "POST" for m in api.mutations) == 1
+
+
+@pytest.mark.parametrize("field,value", [
+    ("display_title", "Migration owner 99/1 " + HEAD),
+    ("head_sha", "f" * 40), ("head_branch", "claude/foreign"),
+    ("event", "workflow_dispatch"), ("path", owner.WORKFLOW),
+    ("id", 82), ("workflow_id", 17), ("status", "completed"),
+    ("repository.id", 999), ("head_repository.full_name", "foreign/repo"),
+])
+def test_actual_issuer_and_complete_original_target_cannot_be_relabelled(field, value):
+    api = Service()
+    set_path(api.issuer, field, value)
+    with pytest.raises(group.OwnershipUnqualified):
+        owner.execute(*input_data(), api, APP)
+    assert not api.mutations
+
+
+@pytest.mark.parametrize("attempt", ["0", "-1", "+1", "01", "１", "", "1.0"])
+def test_noncanonical_issuer_attempt_refuses(attempt):
+    envelope, env = input_data()
+    env["GITHUB_RUN_ATTEMPT"] = attempt
+    api = Service()
+    with pytest.raises(group.OwnershipUnqualified):
+        owner.execute(envelope, env, api, APP)
+    assert not api.mutations
+
+
+def test_later_actual_attempt_can_only_read_reconcile_original_completed_check():
+    api = Service()
+    envelope, env = input_data()
+    api.issuer["run_attempt"] = 2
+    env["GITHUB_RUN_ATTEMPT"] = "2"
+    api.previous = {"check_runs": [check_data()], "total_count": 1}
+    assert owner.execute(envelope, env, api, APP) == {"state": "RECONCILED", "conclusion": "success"}
+    assert not api.mutations
+
+
+def test_rerun_preflight_stops_before_the_key_mint_step(tmp_path, monkeypatch):
+    api = Service()
+    envelope, env = input_data()
+    api.issuer["run_attempt"] = 2
+    env["GITHUB_RUN_ATTEMPT"] = "2"
+    path = tmp_path / "service-event.json"
+    path.write_text(json.dumps(envelope))
+    env |= {"GITHUB_EVENT_PATH": str(path), "OWNERSHIP_APP_ID": str(APP),
+            "EXPECTED_INSTALLATION": "999", "OWNERSHIP_RUN_TOKEN": "INERT_RUN"}
+    for key, value in env.items(): monkeypatch.setenv(key, value)
+    monkeypatch.setattr(owner, "Api", lambda token: api)
+    monkeypatch.setattr(owner.sys, "argv", ["owner", "--preflight"])
+    assert owner.main() == 1
+    assert not api.mutations
+
+
+
 @pytest.mark.parametrize("which", ["pending", "code-change", "duplicate"])
 def test_same_original_operation_never_reissued(which):
     api = Service()
@@ -373,6 +458,11 @@ class AdminService(Service):
         self.branch = {"name": "master", "commit": {"sha": BASE}}
         self.proofs = {71: run_data("merge_group", 71), 72: run_data("pull_request", 72)}
         self.proofs[72]["head_sha"] = SOURCE
+        self.issuers = {81: copy.deepcopy(self.issuer), 82: copy.deepcopy(self.issuer)}
+        for issuer_id, record in self.issuers.items():
+            target = self.proofs[71 if issuer_id == 81 else 72]
+            record.update(id=issuer_id, status="completed", conclusion="success",
+                          display_title=f"Migration owner {target['id']}/{target['run_attempt']} {target['head_sha']}")
         self.files = {p: (ROOT / p).read_text() for p in transition.SOURCE_PATHS + transition.TARGET_PATHS}
         self.calls = []
 
@@ -382,7 +472,12 @@ class AdminService(Service):
         if path.endswith("/protection"): return copy.deepcopy(self.protection)
         if "/rules/branches/" in path: return copy.deepcopy(self.rules)
         if path.endswith("/branches/master"): return copy.deepcopy(self.branch)
-        if "/actions/runs/" in path: return copy.deepcopy(self.proofs[int(path.rsplit("/", 1)[1])])
+        if "/actions/runs/" in path:
+            if "/attempts/" in path:
+                return copy.deepcopy(self.issuers[int(path.split("/runs/", 1)[1].split("/")[0])])
+            return copy.deepcopy(self.proofs[int(path.rsplit("/", 1)[1])])
+        if path.endswith("/actions/workflows/18"):
+            return {"id": 18, "path": owner.ISSUER_WORKFLOW, "name": owner.ISSUER_NAME, "state": "active"}
         if "/check-runs?" in path:
             run = self.proofs[72] if SOURCE in path else self.proofs[71]
             return {"check_runs": [check_data(run)], "total_count": 1}
@@ -424,6 +519,15 @@ def test_premature_or_unpinned_gate_transfer_refuses(which):
 def test_pr_only_proof_cannot_transfer_group_gate():
     api = AdminService()
     api.proofs[71] = run_data("pull_request", 71)
+    with pytest.raises(group.OwnershipUnqualified): transition.prepare(api, APP, [71, 72])
+
+
+@pytest.mark.parametrize("field,value", [("display_title", "foreign target"),
+    ("head_sha", "f" * 40), ("run_attempt", 2), ("conclusion", "failure"),
+    ("path", owner.WORKFLOW)])
+def test_transfer_requires_actual_original_issuer_attempt_not_just_a_check_url(field, value):
+    api = AdminService()
+    api.issuers[81][field] = value
     with pytest.raises(group.OwnershipUnqualified): transition.prepare(api, APP, [71, 72])
 
 
@@ -496,6 +600,8 @@ def test_real_workflow_no_candidate_execution_or_key_in_candidate_job():
     workflow = yaml.safe_load((ROOT / ".github/workflows/trusted-migration-ownership.yml").read_text())
     trigger = workflow.get("on", workflow.get(True))
     assert trigger == {"workflow_run": {"workflows": ["CI"], "types": ["completed"]}}
+    assert workflow["run-name"] == ("Migration owner ${{ github.event.workflow_run.id }}/"
+                                    "${{ github.event.workflow_run.run_attempt }} ${{ github.event.workflow_run.head_sha }}")
     assert workflow["permissions"] == {}
     job = workflow["jobs"]["qualify"]
     assert job["permissions"] == {"contents": "read", "actions": "read"}

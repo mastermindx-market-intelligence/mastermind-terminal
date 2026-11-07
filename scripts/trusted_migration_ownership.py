@@ -24,6 +24,8 @@ from scripts import check_supabase_migration_namespace as namespace
 
 REPO = "mastermindx-market-intelligence/mastermind-terminal"
 WORKFLOW = ".github/workflows/ci.yml"
+ISSUER_WORKFLOW = ".github/workflows/trusted-migration-ownership.yml"
+ISSUER_NAME = "Protected migration ownership issuer"
 CONTEXT = "Migration namespace / protected owner"
 API = "https://api.github.com"
 MAX_RESPONSE = 8 * 1024 * 1024
@@ -139,6 +141,61 @@ class _VerifiedRun:
     @property
     def external_id(self):
         return f"migration-owner:v1:{self.run_id}:{self.attempt}:{self.head}:{self.protected_code}"
+
+
+@dataclass(frozen=True)
+class _VerifiedIssuer:
+    run_id: int
+    attempt: int
+    workflow_id: int
+
+    @property
+    def original_details_url(self):
+        return f"https://github.com/{REPO}/actions/runs/{self.run_id}/attempts/1"
+
+
+def _issuer_title(origin: _VerifiedRun):
+    return f"Migration owner {origin.run_id}/{origin.attempt} {origin.head}"
+
+
+def _issuer_record(value, origin: _VerifiedRun, issuer_id, attempt, *, completed=False):
+    """An authentic Actions record binds the actual issuer to its whole target."""
+    require(isinstance(value, dict) and positive(value.get("id")) == issuer_id
+            and positive(value.get("run_attempt")) == attempt, "issuer attempt identity changed")
+    for key in ("repository", "head_repository"):
+        repo = value.get(key) or {}
+        require(repo.get("full_name") == REPO and positive(repo.get("id")) == origin.repository_id,
+                "foreign issuer repository")
+    require(value.get("event") == "workflow_run" and value.get("path") == ISSUER_WORKFLOW
+            and value.get("name") == ISSUER_NAME and value.get("head_branch") == "master"
+            and value.get("head_sha") == origin.protected_code
+            and value.get("display_title") == _issuer_title(origin), "issuer target or protected code differs")
+    if completed:
+        require(value.get("status") == "completed" and value.get("conclusion") == "success",
+                "original issuer attempt has not passed")
+    else:
+        require(value.get("status") == "in_progress", "issuer is not the actual running attempt")
+    return _VerifiedIssuer(issuer_id, attempt, positive(value.get("workflow_id")))
+
+
+def _issuer_workflow(issuer: _VerifiedIssuer, api):
+    workflow = api.request("GET", f"/repos/{REPO}/actions/workflows/{issuer.workflow_id}")
+    require(positive(workflow.get("id")) == issuer.workflow_id
+            and workflow.get("path") == ISSUER_WORKFLOW and workflow.get("name") == ISSUER_NAME
+            and workflow.get("state") == "active", "issuer workflow identity differs")
+
+
+def _qualify_issuer(origin: _VerifiedRun, env: dict, api):
+    values = []
+    for name in ("GITHUB_RUN_ID", "GITHUB_RUN_ATTEMPT"):
+        raw = env.get(name)
+        require(isinstance(raw, str) and re.fullmatch(r"[1-9][0-9]{0,18}", raw), "issuer identity unavailable")
+        values.append(positive(int(raw)))
+    issuer_id, attempt = values
+    current = api.request("GET", f"/repos/{REPO}/actions/runs/{issuer_id}")
+    issuer = _issuer_record(current, origin, issuer_id, attempt)
+    _issuer_workflow(issuer, api)
+    return issuer
 
 
 def _run_identity(value: dict) -> tuple:
@@ -314,17 +371,19 @@ def _qualify_contents(origin: _VerifiedRun, api):
     return digest(snapshot), material_digest
 
 
-def _assert_current(origin: _VerifiedRun, event: dict, env: dict, api, evidence):
+def _assert_current(origin: _VerifiedRun, issuer: _VerifiedIssuer, event: dict, env: dict, api, evidence):
     require(_qualify_run(event, env, api) == origin, "source run changed before publication")
+    require(_qualify_issuer(origin, env, api) == issuer, "issuer attempt changed before publication")
     require(_qualify_contents(origin, api) == evidence, "source or queue changed before publication")
 
 
-def _check_identity(check: dict, origin: _VerifiedRun, app_id: int):
+def _check_identity(check: dict, origin: _VerifiedRun, issuer: _VerifiedIssuer, app_id: int):
     require(isinstance(check, dict) and positive(check.get("id"))
             and check.get("name") == CONTEXT and check.get("head_sha") == origin.head
             and type((check.get("app") or {}).get("id")) is int
             and (check.get("app") or {}).get("id") == app_id
-            and check.get("external_id") == origin.external_id, "wrong check producer or selection")
+            and check.get("external_id") == origin.external_id
+            and check.get("details_url") == issuer.original_details_url, "wrong check producer or selection")
 
 
 def execute(event: dict, env: dict, api, app_id: int):
@@ -332,6 +391,7 @@ def execute(event: dict, env: dict, api, app_id: int):
     positive(app_id)
     require(app_id != 15368, "independent check App required")
     origin = _qualify_run(event, env, api)
+    issuer = _qualify_issuer(origin, env, api)
     prior = api.request("GET", f"/repos/{REPO}/commits/{origin.head}/check-runs?filter=all&per_page=100")
     checks = prior.get("check_runs")
     require(isinstance(checks, list) and type(prior.get("total_count")) is int
@@ -343,23 +403,28 @@ def execute(event: dict, env: dict, api, app_id: int):
                and c["external_id"].startswith(operation_prefix)]
     require(len(matches) <= 1, "duplicate owner operation")
     if matches:
-        _check_identity(matches[0], origin, app_id)
+        _check_identity(matches[0], origin, issuer, app_id)
         require(matches[0].get("status") == "completed", "original check outcome unsettled; no replay")
         return {"state": "RECONCILED", "conclusion": matches[0].get("conclusion")}
+    # A later issuer attempt is never evidence NOT_SENT, even if the service
+    # currently exposes no check after the original POST/response loss.
+    require(issuer.attempt == 1, "original issuer outcome unknown; later attempts are reconcile-only")
     # Produce no success until both checks of the current origin and full data pass.
     # An unknown POST response ends this invocation: there is no retry path.
     evidence = _qualify_contents(origin, api)
+    require(_qualify_issuer(origin, env, api) == issuer, "issuer attempt changed before check creation")
     check = api.request("POST", f"/repos/{REPO}/check-runs", {
         "name": CONTEXT, "head_sha": origin.head, "external_id": origin.external_id,
+        "details_url": issuer.original_details_url,
         "status": "in_progress", "output": {"title": "Migration ownership", "summary": "Qualification in progress."}})
-    _check_identity(check, origin, app_id)
-    _assert_current(origin, event, env, api, evidence)
+    _check_identity(check, origin, issuer, app_id)
+    _assert_current(origin, issuer, event, env, api, evidence)
     result = api.request("PATCH", f"/repos/{REPO}/check-runs/{check['id']}", {
         "status": "completed", "conclusion": "success",
         "output": {"title": "Migration ownership qualified", "summary":
                    f"Run {origin.run_id}, attempt {origin.attempt}; protected guard {origin.protected_code}; "
                    f"namespace material {evidence[1]}."}})
-    _check_identity(result, origin, app_id)
+    _check_identity(result, origin, issuer, app_id)
     require(result.get("status") == "completed" and result.get("conclusion") == "success",
             "check publication unconfirmed; no retry")
     return {"state": "PUBLISHED", "head": origin.head}
@@ -371,7 +436,11 @@ def main():
         if sys.argv[1:] == ["--preflight"]:
             require(positive(int(os.environ["OWNERSHIP_APP_ID"])) != 15368
                     and positive(int(os.environ["EXPECTED_INSTALLATION"])), "independent installation not configured")
-            _qualify_run(event, dict(os.environ), Api(os.environ.get("OWNERSHIP_RUN_TOKEN", "")))
+            api = Api(os.environ.get("OWNERSHIP_RUN_TOKEN", ""))
+            origin = _qualify_run(event, dict(os.environ), api)
+            issuer = _qualify_issuer(origin, dict(os.environ), api)
+            # The configured workflow refuses reruns BEFORE key/mint access.
+            require(issuer.attempt == 1, "issuer rerun retained; no mint or mutation")
             print("migration-owner: protected run origin qualified")
             return 0
         require(not sys.argv[1:], "unsupported issuer command")

@@ -11,11 +11,13 @@ import argparse
 import difflib
 import json
 import os
+import re
 from pathlib import Path
 
 from scripts import migration_merge_group as group
 from scripts.trusted_migration_ownership import (
     Api, CONTEXT, REPO, WORKFLOW, positive, _run_identity, _variables,
+    _VerifiedRun, _issuer_record, _issuer_workflow,
 )
 
 OLD_CONTEXTS = ("Quote Hub tests", "Terminal typecheck + tests", "Ingest + signal-layer tests")
@@ -83,7 +85,15 @@ def _proof(api, run_id, app_id):
     require(check.get("head_sha") == head and check.get("status") == "completed"
             and check.get("conclusion") == "success", "producer has not passed")
     code = group.oid(check["external_id"][len(prefix):])
-    return event, code, value, check
+    original = re.fullmatch(re.escape(f"https://github.com/{REPO}/actions/runs/")
+                            + r"([1-9][0-9]{0,18})/attempts/1", check.get("details_url", ""))
+    require(original is not None, "original issuer selection missing")
+    issuer_id = positive(int(original[1]))
+    origin = _VerifiedRun(rid, attempt, wid, head, branch, event, code, repo_id)
+    issuer_record = api.request("GET", f"/repos/{REPO}/actions/runs/{issuer_id}/attempts/1")
+    issuer = _issuer_record(issuer_record, origin, issuer_id, 1, completed=True)
+    _issuer_workflow(issuer, api)
+    return event, code, value, check, issuer_record
 
 
 def _source_patch(sources, app_id):
@@ -126,7 +136,7 @@ def prepare(api, app_id, run_ids):
     branch = api.request("GET", f"/repos/{REPO}/branches/master")
     tip = group.oid((branch.get("commit") or {}).get("sha"))
     sources = _blobs(api, tip, SOURCE_PATHS + TARGET_PATHS)
-    for _, code, _, _ in proofs:
+    for _, code, _, _, _ in proofs:
         require(_blobs(api, code, SOURCE_PATHS) == {p: sources[p] for p in SOURCE_PATHS},
                 "producer code differs from current protected issuer")
     patch = _source_patch(sources, app_id)
