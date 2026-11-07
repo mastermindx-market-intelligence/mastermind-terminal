@@ -111,23 +111,13 @@ def test_blocking_or_false_green_mutations_are_detected(mutation):
 @pytest.mark.parametrize(("unit", "e2e"), list(product(RESULTS, repeat=2)))
 def test_real_required_gate_rejects_every_incomplete_pr_result(unit, e2e):
     gate = _workflow()["jobs"]["terminal"]
-    step = next(step for step in gate["steps"] if step.get("name") == "Assert every terminal shard succeeded")
-    env = {"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "GITHUB_EVENT_NAME": "pull_request"}
-    for key, value in step.get("env", {}).items():
-        value = str(value)
-        if "needs.terminal-unit.result" in value:
-            env[key] = unit
-        elif "needs.terminal-e2e.result" in value:
-            env[key] = e2e
-        elif "github.event_name" in value:
-            env[key] = "pull_request"
-        elif "needs." in value and ".result" in value:
-            env[key] = "success"
-        elif "needs." in value and ".outputs.mode" in value:
-            env[key] = "full"
-        else:
-            assert "${{" not in value, f"Unqualified gate input: {key}={value}"
-            env[key] = value
+    step = next(step for step in gate["steps"] if step.get("name") == "Assert all event-required Terminal checks passed")
+    env = {
+        "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
+        "SCOPE": "success", "PR_SCOPE": "success", "PR_MODE": "full",
+        "UNIT": unit, "E2E": e2e, "EVENT": "pull_request",
+    }
+    assert set(step["env"]) == {"SCOPE", "PR_SCOPE", "PR_MODE", "UNIT", "E2E", "EVENT"}
     result = subprocess.run(
         ["bash", "-e", "-c", step["run"]], env=env, capture_output=True, text=True, timeout=5
     )

@@ -30,7 +30,9 @@ NESTED_GUARDS = (
     "never retry an explicit safety/permission denial",
     "reconcile EFFECT_UNKNOWN on the same carrier",
     "Do not claim a pushed remote branch when publication did not occur",
-    "fresh incognito end-to-end pass",
+    "Auth/session paths require a fresh authenticated/incognito journey",
+    "unrelated cosmetic edits do not",
+    "Shared-shell/navigation/global CSS",
     "merge-on-green",
 )
 WORKSPACE_GUARDS = (

@@ -4,6 +4,7 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { installBrainAccountIsolation } from "./captureRoutes.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const terminalRoot = resolve(here, "../../..");
@@ -66,6 +67,12 @@ async function installRoutes(page) {
     "**/data/NVDA.fund.json",
     "**/api/brain/chart/state",
   ]) await page.route(path, async (route) => route.fulfill({ json: {} }));
+  // The Brain ACCOUNT companion is optional here too, and out of scope for this packet: the
+  // production Brain widget asks it who the visitor is, and the Terminal's own gateway proxy
+  // answers 502 whenever the Brain gateway is unreachable — a console error and an HTTP error
+  // on a page whose option-level proof is otherwise perfect. Isolate it here, in the browser,
+  // with an honest guest lane. See captureRoutes.mjs.
+  await installBrainAccountIsolation(page, baseURL);
   await page.route("**/api/quote?**", async (route) => {
     const url = new URL(route.request().url());
     const syms = (url.searchParams.get("syms") || "NVDA").split(",").filter(Boolean);

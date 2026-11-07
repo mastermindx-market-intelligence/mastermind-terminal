@@ -1,0 +1,85 @@
+name: Protected migration ownership issuer
+run-name: Migration owner ${{ github.event.workflow_run.id }}/${{ github.event.workflow_run.run_attempt }} ${{ github.event.workflow_run.head_sha }}
+
+# SOURCE PROPOSAL ONLY. Enrollment/environment/rule changes are separate effects.
+# Stage 1 is supplementary: the old Ingest enforcement remains unchanged.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+permissions: {}
+concurrency:
+  group: protected-migration-owner-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}
+  cancel-in-progress: false
+
+jobs:
+  qualify:
+    if: >-
+      github.repository == 'mastermindx-market-intelligence/mastermind-terminal' &&
+      github.ref == 'refs/heads/master' &&
+      github.event.repository.default_branch == 'master' &&
+      github.event.workflow_run.repository.full_name == github.repository &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      github.event.workflow_run.conclusion == 'success' &&
+      contains(fromJSON('["merge_group","pull_request","workflow_dispatch"]'), github.event.workflow_run.event)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Must be separately configured for selected BRANCH master only, with no tag
+    # match, no candidate refs and no administration bypass. No enrollment implied.
+    environment: terminal-migration-owner
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Check out immutable protected code only
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          path: trusted
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            scripts/trusted_migration_ownership.py
+            scripts/migration_merge_group.py
+            scripts/check_supabase_migration_namespace.py
+      - name: Qualify source and original run before minting
+        working-directory: trusted
+        env:
+          OWNERSHIP_RUN_TOKEN: ${{ github.token }}
+          OWNERSHIP_APP_ID: ${{ vars.MIGRATION_OWNER_APP_ID }}
+          EXPECTED_INSTALLATION: ${{ vars.MIGRATION_OWNER_INSTALLATION_ID }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          export TRUSTED_CHECKOUT_SHA="$GITHUB_SHA"
+          python3 -I -S -c 'import sys; sys.path.insert(0, "."); from scripts.trusted_migration_ownership import main; raise SystemExit(main())' --preflight
+      - name: Mint repository-scoped installation token
+        id: installation
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510
+        with:
+          # Supported by this immutable action revision. Using the expected
+          # numeric App issuer binds token mint to the required check producer;
+          # a key for another App cannot authenticate that issuer.
+          app-id: ${{ vars.MIGRATION_OWNER_APP_ID }}
+          private-key: ${{ secrets.MIGRATION_OWNER_PRIVATE_KEY }}
+          owner: mastermindx-market-intelligence
+          repositories: mastermind-terminal
+          permission-merge-queues: read
+          permission-contents: read
+          permission-pull-requests: read
+          # Explicit proposed grant: independent App check producer, NOT read-only.
+          permission-checks: write
+      - name: Qualify namespace and publish exact App check
+        working-directory: trusted
+        env:
+          OWNERSHIP_RUN_TOKEN: ${{ github.token }}
+          OWNERSHIP_TOKEN: ${{ steps.installation.outputs.token }}
+          OWNERSHIP_APP_ID: ${{ vars.MIGRATION_OWNER_APP_ID }}
+          EXPECTED_INSTALLATION: ${{ vars.MIGRATION_OWNER_INSTALLATION_ID }}
+          ACTUAL_INSTALLATION: ${{ steps.installation.outputs.installation-id }}
+        run: |
+          test -n "$EXPECTED_INSTALLATION"
+          test "$ACTUAL_INSTALLATION" = "$EXPECTED_INSTALLATION"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          export TRUSTED_CHECKOUT_SHA="$GITHUB_SHA"
+          python3 -I -S -c 'import sys; sys.path.insert(0, "."); from scripts.trusted_migration_ownership import main; raise SystemExit(main())'
