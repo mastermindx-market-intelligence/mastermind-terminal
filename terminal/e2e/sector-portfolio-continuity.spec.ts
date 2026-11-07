@@ -3,6 +3,23 @@ import { isolateWatchlistStore } from "./watchlistStore";
 import { sectorFixture } from "./fixtures/sector-company-v3";
 import dossier from "../lib/__tests__/fixtures/sector_dossiers_v1.json";
 import outage from "../lib/__tests__/fixtures/sector_dossiers_unavailable_v1.json";
+import complete from "../lib/__tests__/fixtures/sector_window_measurements.complete.v1.json";
+import companionUnavailable from "../lib/__tests__/fixtures/sector_window_measurements.unavailable.v1.json";
+
+/** The clearly labelled synthetic November 5 parent. It carries the producer's own exact-session
+ * companion and no legacy dossier, so the companion is proved on its own in the Portfolio. It is
+ * NOT the October 9 legacy fixture with its dates moved. */
+const nov5Parent = (read: unknown) => ({
+  schema: "leadership_rotation_context.measured_group_read/v1",
+  status: "available",
+  generation: {
+    benchmark: "SPY", cohort_id: "us_sectors_11", history_as_of: "2026-11-05",
+    history_schema: "sector_cycles.rs_history.v1", id: "2026-11-05|SPY|us_sectors_11",
+    price_basis: "total_return", session_end: "2026-11-05",
+  },
+  groups: [],
+  sector_window_measurements: read,
+});
 
 /**
  * Persistent Sector Leadership → Portfolio continuity.
@@ -50,6 +67,8 @@ type SectorFeedOptions = {
   language?: string;
   /** The owner's measured_read document. `null` serves a feed with no dossier at all. */
   read?: unknown;
+  /** The producer's exact-session companion, inside a synthetic November 5 parent. */
+  companion?: unknown;
   /** The owner refuses the read. */
   denied?: boolean;
   /** The transport fails before any answer. */
@@ -82,7 +101,8 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefin
       observedAt: null, stale: false, contentHash: null } } });
     if (options.offline) return route.abort("failed");
     if (options.holdFirst && sectorReads === 1) await new Promise<void>(resolve => { options.holdFirst!.release = resolve; });
-    const read = options.read === undefined ? dossier : options.read;
+    const read = options.companion !== undefined ? nov5Parent(options.companion)
+      : options.read === undefined ? dossier : options.read;
     const data = read === null ? { as_of: "2026-10-09", sectors }
       : { as_of: "2026-10-09", sectors, measured_read: read };
     try {
@@ -493,3 +513,189 @@ for (const [language, theme] of [["en", "dark"], ["zh", "light"]] as const) {
       body: JSON.stringify(paths, null, 1), contentType: "application/json" });
   });
 }
+
+/* -------------------------------------------------------------------------- *
+ * The exact-session companion inside the Portfolio.
+ *
+ * The Portfolio reads the same owner feed again under this owner's own identity. The companion
+ * is a separate document from the legacy dossier, and it is read the same way.
+ * -------------------------------------------------------------------------- */
+
+test("Portfolio Risk shows the fresh same-ETF companion and the exact opener and filter return", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL, { companion: complete });
+  await seed(page, { ticker: "XLE", shares: "10", entryPrice: "100", entryCurrency: "USD" });
+  await page.goto("/discover?tab=sectors&sectorWorkspace=rotation&sectorRotationMode=list");
+  await sectorRoot(page).locator('[data-sector-rotation-row="xle"]').click();
+  await sectorRoot(page).getByTestId("rotation-inspector")
+    .getByRole("button", { name: "Open sector research" }).click();
+  await expect(sectorRoot(page)).toHaveAttribute("data-sector-workspace", "detail");
+  await viewLink(page).click();
+  await expect(page).toHaveURL(/\/portfolio\?sector=XLE/);
+  await expect(block(page)).toHaveAttribute("data-etf", "XLE");
+  // The Portfolio reads the owner feed again: the companion is fresh and for the same ETF.
+  const companion = page.getByTestId("sector-exact-window-returns");
+  await expect(companion).toBeVisible();
+  await expect(companion).toContainText("Energy · XLE");
+  await expect(companion.locator('[data-testid="sector-exact-window"][data-window="63"] [data-testid="sector-exact-absolute"]'))
+    .toHaveText("+33.00%");
+  await expect(companion.locator('[data-testid="sector-exact-window"][data-window="63"] [data-testid="sector-exact-relative"]'))
+    .toHaveText("+16.28%");
+  // The exact opener and its filter come back.
+  const back = backLink(page);
+  const href = await back.getAttribute("href");
+  expect(href).toContain("sector=xle");
+  expect(href).toContain("sectorRotationMode=list");
+  await back.click();
+  await expect(sectorRoot(page)).toHaveAttribute("data-sector-workspace", "rotation");
+  await expect(sectorRoot(page).locator('[data-sector-rotation-row="xle"]')).toHaveAttribute("aria-pressed", "true");
+  await noOverflow(page);
+});
+
+test("a valid all-null companion block stays visible in the Portfolio", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL, { companion: companionUnavailable });
+  await page.goto(portfolioAddress("XLK"));
+  const companion = page.getByTestId("sector-exact-window-returns");
+  await expect(companion).toBeVisible();
+  await expect(companion).toContainText("Exact-session returns are unavailable");
+  // No prior positive figure survives the refusal.
+  await expect(companion).not.toContainText("-8.85%");
+  await companion.getByTestId("sector-exact-compare").locator("summary").click();
+  await expect(companion.locator("tbody tr")).toHaveCount(11);
+  await expect(companion).toContainText("The source panel holds sessions after the end of the measurement cut.");
+});
+
+test("a withdrawn access clears the companion in the Portfolio too", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL, { companion: complete, denied: true });
+  await page.goto(portfolioAddress("XLK"));
+  await expect(dossierPanel(page)).toContainText("Leadership evidence requires access");
+  await expect(page.getByTestId("sector-exact-window-returns")).toHaveCount(0);
+});
+
+test("a late answer for a retired selection never paints a companion figure", async ({ page, baseURL }, testInfo) => {
+  const hold: { release: () => void } = { release: () => {} };
+  await prepare(page, testInfo, baseURL, { companion: complete, holdFirst: hold });
+  await page.goto(portfolioAddress("XLK"));
+  await expect(block(page)).toHaveAttribute("data-etf", "XLK");
+
+  // The selection changes while the first answer is still in flight.
+  await page.evaluate(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("sector", "XLE");
+    window.history.pushState({}, "", url.toString());
+    window.dispatchEvent(new Event("mmx:shell-location"));
+  });
+  await expect(block(page)).toHaveAttribute("data-etf", "XLE");
+
+  // The retired answer arrives late and must paint nothing.
+  hold.release();
+  await page.waitForTimeout(500);
+  await expect(block(page)).toHaveAttribute("data-etf", "XLE");
+  await expect(page.getByTestId("sector-exact-window-returns")).not.toContainText("Technology · XLK");
+});
+
+/* -------------------------------------------------------------------------- *
+ * The corrected copy, in the Portfolio.
+ *
+ * The Portfolio reads the same owner feed under the same owner's identity, so the companion's
+ * copy has to be accurate here too. Each case serves a clearly labelled synthetic companion
+ * document derived from the canonical producer document.
+ * -------------------------------------------------------------------------- */
+
+type CompanionDoc = {
+  status: string;
+  reason: string | null;
+  windows: Record<string, { status: string }>;
+  groups: { group_id: string; windows: Record<string, {
+    absolute_return_pct: number | null; relative_wealth_pct: number | null;
+    null_reasons: { absolute_return_pct: string | null; relative_wealth_pct: string | null };
+    status: string;
+  }> }[];
+  clocks: Record<string, string | null>;
+  limitations: Record<string, { status: string; reason?: string; clock?: string }>;
+  receipt: Record<string, unknown> | null;
+  diagnostics: { complete_cells: number; measured_cells: number; receipt_withheld: boolean };
+};
+
+/** One withheld value inside an otherwise complete packet. Technology is the sixth cohort row. */
+const partialCompanion = () => {
+  const source = structuredClone(complete) as unknown as CompanionDoc;
+  const xlk63 = source.groups[5].windows["63"];
+  xlk63.absolute_return_pct = null;
+  xlk63.null_reasons.absolute_return_pct = "missing_input";
+  xlk63.status = "partial";
+  source.windows["63"].status = "partial";
+  source.diagnostics.complete_cells = 32;
+  source.status = "partial";
+  return source;
+};
+
+/** The owner's own publication, availability and history clocks, supplied unchanged. */
+const suppliedClockCompanion = () => {
+  const source = structuredClone(complete) as unknown as CompanionDoc;
+  for (const name of ["publication", "availability", "history"]) {
+    source.clocks[name] = "2026-11-05T21:00:00Z";
+    source.limitations[name] = { status: "supplied", clock: "2026-11-05T21:00:00Z" };
+  }
+  return source;
+};
+
+/** A receipt the owner explicitly withheld. */
+const withheldReceiptCompanion = () => {
+  const source = structuredClone(complete) as unknown as CompanionDoc;
+  source.receipt = null;
+  source.diagnostics.receipt_withheld = true;
+  return source;
+};
+
+const exactWindowValue = (page: Page, window: string, testId: string) =>
+  page.getByTestId("sector-exact-window-returns")
+    .locator(`[data-testid="sector-exact-window"][data-window="${window}"] [data-testid="${testId}"]`);
+
+test("a partial companion in the Portfolio says so plainly and keeps every published value",
+  async ({ page, baseURL }, testInfo) => {
+    await prepare(page, testInfo, baseURL, { companion: partialCompanion() });
+    await page.goto(portfolioAddress("XLK"));
+    const companion = page.getByTestId("sector-exact-window-returns");
+    await expect(companion).toBeVisible();
+    await expect(companion).toContainText("Some exact-session measurements are missing");
+    await expect(companion).not.toContainText("Exact-session returns are unavailable");
+    await expect(companion).not.toContainText("The owner withheld every measurement for this cut.");
+    await expect(exactWindowValue(page, "63", "sector-exact-absolute")).toHaveText("—");
+    await expect(exactWindowValue(page, "63", "sector-exact-relative")).toHaveText("-20.30%");
+    await noOverflow(page);
+  });
+
+test("a supplied owner clock in the Portfolio is shown and is not denied",
+  async ({ page, baseURL }, testInfo) => {
+    await prepare(page, testInfo, baseURL, { companion: suppliedClockCompanion() });
+    await page.goto(portfolioAddress("XLK"));
+    const companion = page.getByTestId("sector-exact-window-returns");
+    await expect(companion).toBeVisible();
+    await expect(companion).not.toContainText("The original availability, publication and history times were not supplied");
+    await expect(companion).toContainText("A supplied clock does not establish verified freshness");
+    await expect(companion).toContainText("2026-11-05T21:00:00Z");
+    await expect(companion).toContainText("The owner supplied no freshness receipt.");
+    await noOverflow(page);
+  });
+
+test("an unsupplied receipt in the Portfolio is not called a withheld receipt",
+  async ({ page, baseURL }, testInfo) => {
+    await prepare(page, testInfo, baseURL, { companion: complete });
+    await page.goto(portfolioAddress("XLK"));
+    const source = page.getByTestId("sector-exact-window-returns").getByTestId("sector-exact-source");
+    await source.locator("summary").click();
+    await expect(source).toContainText("The owner supplied no receipt.");
+    await expect(source).not.toContainText("The owner withheld its receipt.");
+    await noOverflow(page);
+  });
+
+test("an explicitly withheld receipt in the Portfolio is named as withheld",
+  async ({ page, baseURL }, testInfo) => {
+    await prepare(page, testInfo, baseURL, { companion: withheldReceiptCompanion() });
+    await page.goto(portfolioAddress("XLK"));
+    const withheld = page.getByTestId("sector-exact-window-returns").getByTestId("sector-exact-source");
+    await withheld.locator("summary").click();
+    await expect(withheld).toContainText("The owner withheld its receipt.");
+    await expect(withheld).not.toContainText("The owner supplied no receipt.");
+    await noOverflow(page);
+  });
