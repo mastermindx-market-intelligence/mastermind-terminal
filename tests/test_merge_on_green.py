@@ -1967,6 +1967,39 @@ def test_automatic_admission_has_no_unconditional_systemwide_mode():
     assert "event_name == \"workflow_dispatch\"" in Path(mog.__file__).read_text()
 
 
+@pytest.mark.parametrize(("mode", "event", "target", "native"), [
+    ("off", "workflow_dispatch", "861", False),
+    ("canary", "workflow_dispatch", "861", True),
+    ("canary", "workflow_dispatch", None, False),
+    ("canary", "schedule", None, False),
+    ("enabled", "schedule", None, True),
+])
+def test_native_queue_mode_is_explicit_and_canary_is_targeted(monkeypatch, mode, event, target, native):
+    main_env(monkeypatch, event=event, target=target)
+    monkeypatch.setenv("NATIVE_QUEUE_AUTO_ADMIT", mode)
+    observed = []
+    def record(api, trigger_number=None, **kwargs):
+        observed.append(kwargs)
+        return []
+    monkeypatch.setattr(mog, "sweep", record)
+    assert mog.main() == 0
+    assert len(observed) == 1
+    assert observed[0].get("native_admission", False) is native
+    if target is not None:
+        assert observed[0]["target_number"] == 861
+
+
+def test_invalid_native_queue_mode_refuses_before_github_client(monkeypatch, capsys):
+    main_env(monkeypatch, event="workflow_dispatch", target="861")
+    monkeypatch.setenv("NATIVE_QUEUE_AUTO_ADMIT", "automatic-without-canary")
+    def forbidden(*args, **kwargs):
+        raise AssertionError("invalid mode must refuse before any GitHub client")
+    monkeypatch.setattr(mog, "GitHubApi", forbidden)
+    monkeypatch.setattr(mog, "sweep", forbidden)
+    assert mog.main() == 2
+    assert "must be off, canary or enabled" in capsys.readouterr().err
+
+
 def assert_privileged_controller_source(document):
     events = document.get("on", document.get(True))
     assert set(events) == {"workflow_run", "pull_request_target", "schedule", "workflow_dispatch"}
