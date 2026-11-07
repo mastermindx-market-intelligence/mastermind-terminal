@@ -1,12 +1,12 @@
 {
-  "capturedAtHead": "bfe98ed4f82f30506af69e9ada13811343e386fe",
-  "capturedAt": "2026-09-27T10:18:21.534Z",
+  "capturedAtHead": "40e28feee85e1b85481365ba29caf6c4460c1162",
+  "capturedAt": "2026-10-10T01:11:47.020Z",
   "layoutFiles": {
-    "terminal/components/settings/SectionPortfolioTargets.tsx": "42efc4318fe724c0315b065b2833862ff241f9bc612aae976d32518ba523371b",
+    "terminal/components/settings/SectionPortfolioTargets.tsx": "780b6a21eea9bac3df42e0b5092a40ed1d27a02f4d8f62a9618393fa137801b6",
     "terminal/components/settings/SettingsPanel.tsx": "526725b37af04f1092359a8aca1e6d3d6d62815b5913b3a7eba754e4ca020329",
     "terminal/components/settings/SettingsProvider.tsx": "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910",
     "terminal/components/settings/icons.tsx": "7f3e17e45cb92545437ade898fe47a92cf6a65d1682cec9b9cea7a5bb8bd4d83",
-    "terminal/lib/i18n.tsx": "51276ecc8db6956c6c4e5cc67c55eab029c0b468ccb61e34f8bb92f25e42b9f8"
+    "terminal/lib/i18n.tsx": "63689cd6a07d538ff8cdbe03a4ffd5a4037b9ec1ec162ff2f39c6f90a6b29e80"
   },
   "theme": "dark",
   "languages": [
