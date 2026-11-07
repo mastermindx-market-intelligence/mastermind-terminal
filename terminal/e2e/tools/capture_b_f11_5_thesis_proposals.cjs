@@ -62,7 +62,7 @@ function layoutFilesBlock() {
   return LAYOUT_FILES.map((rel) => `  ${rel}: "${sha256File(rel)}"`);
 }
 
-async function startServer() { return runtime.start(ROOT, PORT); }
+async function startServer() { return runtime.start(ROOT, PORT, OUT); }
 async function stopServer(owner) { return owner.stop(); }
 async function waitForServer(timeoutMs, owner) { return owner.ready(timeoutMs); }
 
@@ -245,6 +245,7 @@ async function main() {
   const capturedAtHead = currentGitHead();
   const child = await startServer();
   const files = [];
+  let primaryError;
   try {
     await waitForServer(180_000, child);
     const browser = await chromium.launch({ headless: true });
@@ -277,8 +278,10 @@ async function main() {
     } finally {
       await browser.close();
     }
+  } catch(error) {
+    primaryError=error;child.failure(error);throw error;
   } finally {
-    await stopServer(child);
+    await runtime.cleanupPreserving(primaryError,()=>stopServer(child));
   }
 
   const evidence = [

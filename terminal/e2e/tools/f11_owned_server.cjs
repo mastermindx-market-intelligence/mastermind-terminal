@@ -101,6 +101,9 @@ function prepareNamespace(root) {
   return { restoreGeneratedTypeFile() {
     check();
     const now = readRegular(file, true);
+    // A failed startup may generate no type file at all. After the same custody
+    // checks, absent→absent is an observed no-op, not unknown content to erase.
+    if (!before && !now) { restored = true; return; }
     if (before && now?.bytes.equals(before.bytes)) { restored = true; return; }
     if (!now || !now.bytes.equals(Buffer.from(typeTemplate))) throw new Error("F11_GENERATED_TYPES_UNKNOWN");
     if (!before) fs.unlinkSync(file);

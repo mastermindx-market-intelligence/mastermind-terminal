@@ -1,7 +1,7 @@
 "use strict";
 const {test}=require("node:test"),assert=require("node:assert/strict");
 const fs=require("node:fs"),path=require("node:path"),os=require("node:os"),cp=require("node:child_process");
-const {fixtureApi,decision,publish,guardApiRequest,initializeOwnedBrowser}=require("./thesis_capture_runtime.cjs");
+const {fixtureApi,decision,publish,guardApiRequest,initializeOwnedBrowser,cleanupPreserving}=require("./thesis_capture_runtime.cjs");
 const base="http://127.0.0.1:41911",id="00000000-0000-0000-0000-000000000001";
 test("exact incumbent fixture endpoints and methods only",()=>{
  for(const [p,m] of [["/api/theses","POST"],["/api/thesis-saved-views","PUT"],[`/api/thesis/${id}/proposals`,"POST"],[`/api/thesis/${id}/proposals/${id}`,"PATCH"],["/api/thesis-fire-status","GET"]])assert.equal(fixtureApi(base+p,m,base),true);
@@ -63,4 +63,23 @@ test("postlaunch metadata failure closes owned server, preserves cause and clean
  await assert.rejects(()=>initializeOwnedBrowser({close:async()=>{throw Error("close failed");},process:()=>({pid:99})},async()=>{throw unknown;},()=>{throw Error("must not probe after failed close");}),actual=>actual===unknown);
  assert.equal(unknown.ownedBrowserCleanup.unknown,true);assert.equal(unknown.ownedBrowserCleanup.serverCloseObserved,false);
  let healthyCloses=0;assert.equal(await initializeOwnedBrowser({close:async()=>{healthyCloses++;}},async()=>"healthy",()=>{throw Error("must not probe healthy live browser");}),"healthy");assert.equal(healthyCloses,0);
+});
+
+test("a cleanup exception never masks the original capture failure",async()=>{
+ const primary=new Error("primary"),cleanup=new Error("cleanup");
+ await assert.rejects(()=>cleanupPreserving(primary,async()=>{throw cleanup;}),actual=>actual===primary && actual.cleanupError===cleanup);
+ await assert.rejects(()=>cleanupPreserving(null,async()=>{throw cleanup;}),actual=>actual===cleanup);
+ assert.equal(await cleanupPreserving(primary,async()=>"closed"),"closed");
+});
+
+test("generic namespace absent-to-absent is a no-write only after custody/source checks",()=>{
+ const {prepareNamespace}=require("./f11_owned_server.cjs");
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),"thesis-types-"));
+ try{
+  for(const name of ["tsconfig.json","tsconfig.f11.json"])fs.writeFileSync(path.join(root,name),"{}\n");
+  const clean=prepareNamespace(root);clean.restoreGeneratedTypeFile();assert.equal(clean.summary().nextEnvRestored,true);assert.equal(fs.existsSync(path.join(root,"next-env.d.ts")),false);
+  const changed=prepareNamespace(root);fs.writeFileSync(path.join(root,"tsconfig.json"),"{ }\n");assert.throws(()=>changed.restoreGeneratedTypeFile(),/F11_TYPESCRIPT_SOURCE_CHANGED/);
+  const unknown=prepareNamespace(root);fs.writeFileSync(path.join(root,"next-env.d.ts"),"unrecognized generated file");assert.throws(()=>unknown.restoreGeneratedTypeFile(),/F11_GENERATED_TYPES_UNKNOWN/);
+  fs.unlinkSync(path.join(root,"next-env.d.ts"));const linked=prepareNamespace(root);fs.symlinkSync(path.join(root,"tsconfig.json"),path.join(root,"next-env.d.ts"));assert.throws(()=>linked.restoreGeneratedTypeFile(),/F11_GENERATED_FILE_CUSTODY/);
+ }finally{fs.rmSync(root,{recursive:true,force:true});}
 });
