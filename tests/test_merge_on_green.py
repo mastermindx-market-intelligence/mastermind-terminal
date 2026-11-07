@@ -1840,7 +1840,7 @@ def test_native_enqueue_lost_response_has_one_mutation_and_no_fallback(native_is
     assert all(row[0] == "test-native-user-credential" for row in calls)
 
 
-def test_reporting_workflow_does_not_receive_native_user_credentials():
+def test_reporting_workflow_requires_explicit_opt_in_for_native_user_credentials():
     document = yaml.safe_load((Path(__file__).resolve().parents[1] / ".github/workflows/merge-on-green.yml").read_text())
     steps = document["jobs"]["sweep"]["steps"]
     step = next(s for s in steps if s.get("name") == "reconcile armed pull requests")
@@ -1921,7 +1921,7 @@ def test_native_automatic_enqueue_never_arms_blocked_candidate(blocked):
     api.native_enqueue_api = lambda: api
     result = sweep(api, native_admission=True)
     assert not any(a[0] == "enqueue" for a in api.actions)
-    assert ARM_LABEL in label_names(api.pulls[7])
+    assert ARM_LABEL in mog.label_names(api.pulls[7])
 
 
 def test_native_automatic_enqueue_preflight_denial_has_no_effect():
@@ -1932,7 +1932,7 @@ def test_native_automatic_enqueue_preflight_denial_has_no_effect():
     api.native_enqueue_api = refuse
     assert "not qualified" in sweep(api, native_admission=True)[0]
     assert api.actions == []
-    assert ARM_LABEL in label_names(api.pulls[7])
+    assert ARM_LABEL in mog.label_names(api.pulls[7])
 
 
 def test_native_auto_admission_changed_head_withholds_without_effect():
@@ -1940,14 +1940,17 @@ def test_native_auto_admission_changed_head_withholds_without_effect():
     api.release_comments = lambda number: []
     api.native_enqueue_api = lambda: api
     original = api.pull
+    reads = [0]
     def moved(number):
+        reads[0] += 1
         item = original(number)
-        item["head"]["sha"] = "different-head"
+        if reads[0] >= 2:
+            item["head"]["sha"] = "different-head"
         return item
     api.pull = moved
     assert "source/hold changed" in sweep(api, native_admission=True)[0]
     assert api.actions == []
-    assert ARM_LABEL in label_names(api.pulls[7])
+    assert ARM_LABEL in mog.label_names(api.pulls[7])
 
 
 @pytest.mark.parametrize("text", [
