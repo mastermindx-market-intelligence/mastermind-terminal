@@ -152,7 +152,9 @@ export function computePulseWave(bars: SuiteBar[], profile: PulseProfile): Pulse
   if (m < P.long + P.short + 4) return { wave, gapped, states };
 
   const diff: number[] = new Array(m);
-  diff[0] = 0; // neutral seed — first bar has no prior close
+  // Bar 0 has no predecessor, so there is no real close-to-close change to feed the
+  // long EMA. A synthetic zero would complete both EMA warmups one bar early.
+  diff[0] = NaN;
   for (let k = 1; k < m; k++) diff[k] = closes[k] - closes[k - 1];
 
   const mom = emaTail(emaTail(diff, P.long), P.short);
