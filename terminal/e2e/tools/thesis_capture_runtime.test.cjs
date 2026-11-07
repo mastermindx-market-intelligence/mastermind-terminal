@@ -90,3 +90,42 @@ test("literal lookup supports Node listener setup with no DNS or bind in the dis
  const script=`const dns=require('node:dns');Promise.all([new Promise((resolve,reject)=>dns.lookup('127.0.0.1',{all:true},(e,v)=>e?reject(e):resolve(v))),dns.promises.lookup('127.0.0.1')]).then(v=>console.log(JSON.stringify(v)));`;
  const out=cp.execFileSync(process.execPath,["--require",path.join(__dirname,"thesis_capture_egress.cjs"),"-e",script],{env:{PATH:process.env.PATH,THESIS_CAPTURE_SERVER:"1",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1",THESIS_CAPTURE_PORT:"41911"},encoding:"utf8"});assert.deepEqual(JSON.parse(out),[[{address:"127.0.0.1",family:4}],{address:"127.0.0.1",family:4}]);
 });
+
+function fakeRuntimeIo({failJournalAt=Infinity,failAppend=false,failStop=false}={}) {
+ const vm=require("node:vm"),{EventEmitter}=require("node:events");
+ const stats={writes:0,spawns:0,stops:0,restored:0};
+ const child={pid:64001,stdout:new EventEmitter(),stderr:new EventEmitter()};
+ const io=Object.assign(new Error("controlled diagnostic IO"),{code:"EIO"});
+ const fakeFs={...fs,writeFileSync(){if(++stats.writes>=failJournalAt)throw io;},appendFileSync(){if(failAppend)throw io;}};
+ const module={exports:{}};
+ const requires=name=>{
+  if(name==="node:fs")return fakeFs;
+  if(name==="node:net")return {createServer:()=>({once(){},listen(_p,_h,ready){ready();},close(done){done();}})};
+  if(name==="node:child_process")return {spawn(){stats.spawns++;return child;},execFileSync(){return "";}};
+  if(name==="./capture_b_f11_10_analysis_theses_entry.cjs")return {assertNoCaptureDotenv(){},captureServerEnv:()=>({})};
+  if(name==="./f11_owned_server.cjs")return {prepareNamespace:()=>({restoreGeneratedTypeFile(){stats.restored++;},summary:()=>({restored:true})}),trackOwnedServer:()=>({assertRunning(){},async stop(){stats.stops++;if(failStop)throw Error("CONTROLLED_STOP_UNKNOWN");},settlement:()=>({pid:64001,processGroupAbsent:true})})};
+  return require(name);
+ };
+ vm.runInNewContext(fs.readFileSync(path.join(__dirname,"thesis_capture_runtime.cjs"),"utf8"),{module,exports:module.exports,require:requires,__dirname,Buffer,URL,AbortSignal,setTimeout,process:{env:{},stdout:{write(){}},getuid:()=>process.getuid()}});
+ return {api:module.exports,stats,child,io};
+}
+test("journal EIO after spawn awaits owned cleanup; error-path note cannot mask primary",async()=>{
+ const f=fakeRuntimeIo({failJournalAt:2});
+ await assert.rejects(()=>f.api.start("/fake-root",41921,"/fake-stage"),e=>e===f.io && e.ownedServerCleanup.pid===64001 && e.ownedServerCleanup.processGroupAbsent===true);
+ assert.equal(f.stats.spawns,1);assert.equal(f.stats.stops,1);assert.equal(f.stats.restored,1);
+ const primary=Error("original primary"),cleanup=Error("cleanup uncertain");
+ await assert.rejects(()=>f.api.cleanupPreserving(primary,async()=>{throw cleanup;}),e=>e===primary && e.cleanupError===cleanup);
+ const unknown=fakeRuntimeIo({failJournalAt:2,failStop:true});
+ await assert.rejects(()=>unknown.api.start("/fake-root",41921,"/fake-stage"),e=>e===unknown.io && e.ownedServerCleanup.unknown && e.cleanupError.message==="CONTROLLED_STOP_UNKNOWN");
+ assert.equal(unknown.stats.stops,1);
+});
+test("stream log IO cannot throw uncaught, stops its owner and refuses publication",async()=>{
+ const f=fakeRuntimeIo({failAppend:true});const owner=await f.api.start("/fake-root",41921,"/fake-stage");
+ assert.doesNotThrow(()=>f.child.stdout.emit("data",Buffer.from("controlled server output")));
+ await owner.stop();assert.equal(f.stats.stops,1);assert.equal(f.stats.restored,1);
+ assert.throws(()=>owner.summary(),e=>e===f.io);
+ assert.throws(()=>f.api.publish("/fake-stage","/fake-target",[],{}),e=>e===f.io);
+ const pipe=fakeRuntimeIo();const other=await pipe.api.start("/fake-root",41921,"/fake-stage");
+ assert.doesNotThrow(()=>pipe.child.stderr.emit("error",pipe.io));await other.stop();assert.equal(pipe.stats.stops,1);
+ assert.throws(()=>other.summary(),e=>e===pipe.io);
+});

@@ -5,8 +5,10 @@ const { createHash } = require("node:crypto");
 const { assertNoCaptureDotenv, captureServerEnv } = require("./capture_b_f11_10_analysis_theses_entry.cjs");
 const { trackOwnedServer, prepareNamespace } = require("./f11_owned_server.cjs");
 const { classifyRequest, typedUnavailablePayload } = require("./f11_provider_closed_policy.cjs");
-let journal;
-const note = value => { if(journal)journal(value); };
+let journal, diagnosticFailure;
+// Diagnostics are never allowed to replace the original effect/cleanup result.
+const note = value => { try { if(journal)journal(value); } catch(error) { diagnosticFailure ||= error; } };
+const assertDiagnostics = () => { if(diagnosticFailure)throw diagnosticFailure; };
 const hash = bytes => createHash("sha256").update(bytes).digest("hex");
 const UUID = "[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}";
 function fixtureApi(url, method, base) {
@@ -96,19 +98,27 @@ function getChromium() {
     localAssets:0,businessUnavailable:0,externalDenied:0,socketsDenied:0,redirectsDenied:0};
   return {counts,toolchain:{package:pkg.name,version:pkg.version,packageSha256:hash(fs.readFileSync(packagePath)),defaultExecutableLookup:original.executablePath()},
     async launch(options) {
-      note({phase:"BROWSER_LAUNCH_REQUESTED"});
+      note({phase:"BROWSER_LAUNCH_REQUESTED"});assertDiagnostics();
       const server = await original.launchServer({...options,timeout:30000,env:captureServerEnv()});
       return initializeOwnedBrowser(server,async()=>{
       const child = server.process();
-      note({phase:"BROWSER_PROCESS_RETURNED",browserPid:child?.pid});
+      note({phase:"BROWSER_PROCESS_RETURNED",browserPid:child?.pid});assertDiagnostics();
       if (!child || !Number.isSafeInteger(child.pid)) throw Error("THESIS_CAPTURE_BROWSER_IDENTITY");
       const browser = await original.connect(server.wsEndpoint(),{timeout:30000});
       counts.browserPid=child.pid;
       counts.browserExecutable=child.spawnfile;
       counts.browserExecutableSha256=hash(fs.readFileSync(child.spawnfile));
-      note({phase:"BROWSER_CONNECTED",browserPid:child.pid,browserExecutable:child.spawnfile,browserExecutableSha256:counts.browserExecutableSha256});
+      const profiles=child.spawnargs.filter(arg=>arg.startsWith("--user-data-dir="));
+      if(profiles.length!==1 || !process.env.TMPDIR)throw Error("THESIS_CAPTURE_PROFILE_SCOPE");
+      const tmp=fs.realpathSync(process.env.TMPDIR), profile=fs.realpathSync(profiles[0].slice("--user-data-dir=".length));
+      const st=fs.lstatSync(profile), parent=fs.lstatSync(tmp);
+      if(!profile.startsWith(tmp+path.sep) || !st.isDirectory() || st.uid!==process.getuid()
+          || !parent.isDirectory() || parent.uid!==process.getuid() || (parent.mode&0o777)!==0o700)throw Error("THESIS_CAPTURE_PROFILE_SCOPE");
+      counts.browserProfile={path:profile,dev:st.dev,ino:st.ino,uid:st.uid,tmpRoot:tmp};
+      note({phase:"BROWSER_CONNECTED",browserPid:child.pid,browserExecutable:child.spawnfile,browserExecutableSha256:counts.browserExecutableSha256,browserProfile:counts.browserProfile});assertDiagnostics();
       const newContext = browser.newContext.bind(browser), close = browser.close.bind(browser);
       browser.newContext = async opts => {
+        assertDiagnostics();
         const context = await newContext({...opts,serviceWorkers:"block"});counts.contexts++;
         await boundary(context,process.env.THESIS_CAPTURE_BASE,counts);
         const closeContext = context.close.bind(context);let closed=false;
@@ -119,6 +129,8 @@ function getChromium() {
         try { await close(); } finally { await server.close(); }
         try { process.kill(child.pid,0); throw Error("THESIS_CAPTURE_BROWSER_STILL_PRESENT"); }
         catch(error) { if(error.code!=="ESRCH")throw error; }
+        if(fs.existsSync(counts.browserProfile.path))throw Error("THESIS_CAPTURE_PROFILE_STILL_PRESENT");
+        counts.browserProfileAbsent=true;
         counts.browsersClosed++;counts.browserProcessAbsent=true;
         note({phase:"BROWSER_CLOSED",browserPid:child.pid,browserProcessAbsent:true});
       };
@@ -137,48 +149,76 @@ function assertOwnedListener(port,group) {
       || Number(execFileSync("ps",["-o","pgid=","-p",pid],{encoding:"utf8"}).trim())!==group)) throw Error("THESIS_CAPTURE_FOREIGN_LISTENER");
 }
 async function start(root,port,stage) {
-  const file=path.join(stage,"CONTROL.json");
-  const record={phase:"PREPARING",events:[]};
+  const file=path.join(stage,"CONTROL.json"),record={phase:"PREPARING",events:[]};
+  diagnosticFailure=undefined;
   journal=value=>{record.phase=value.phase;record.events.push({...value,at:new Date().toISOString()});
     fs.writeFileSync(file,JSON.stringify(record,null,2)+"\n",{mode:0o600});};
-  note({phase:"PREPARING",port});
+  note({phase:"PREPARING",port});assertDiagnostics();
   process.stdout.write("THESIS_CAPTURE_CONTROL "+file+"\n");
   assertNoCaptureDotenv(root);await assertPortFree(port);
   const namespace=prepareNamespace(root);
   const env={...captureServerEnv(),THESIS_CAPTURE_SERVER:"1",THESIS_CAPTURE_PORT:String(port),
     NODE_OPTIONS:`--require ${JSON.stringify(path.join(__dirname,"thesis_capture_egress.cjs"))}`,
     npm_config_update_notifier:"false",npm_config_audit:"false"};
-  const child=spawn("npm",["run","dev","--","--webpack","--hostname","127.0.0.1","--port",String(port)],{cwd:root,env,stdio:["ignore","pipe","pipe"],detached:true});
-  const owner=trackOwnedServer(child);let output="",lastStatus=null;
-  note({phase:"SERVER_PROCESS_RETURNED",serverPid:child.pid,port});
-  const log=path.join(stage,"server.log");let retained=0;
-  for(const pipe of [child.stdout,child.stderr])pipe.on("data",b=>{
-    output=(output+b.toString()).slice(-16000);
-    if(retained<262144){const bytes=b.subarray(0,262144-retained);fs.appendFileSync(log,bytes,{mode:0o600});retained+=bytes.length;}
+  let child,owner,settlement,stopPromise,resourceFailure,output="",lastStatus=null;
+  const stopOwned=()=>stopPromise ||= owner.stop().then(()=>{
+    settlement=owner.settlement();note({phase:"SERVER_CLOSED",...settlement});
   });
-  const base=`http://127.0.0.1:${port}`;process.env.THESIS_CAPTURE_BASE=base;
-  let settlement;
-  return {async ready(timeoutMs=180000){
-    const until=Date.now()+timeoutMs;
-    while(Date.now()<until){owner.assertRunning();
-      try {assertOwnedListener(port,child.pid);const r=await fetch(base+"/analysis?view=theses&symbol=NVDA",{redirect:"manual",headers:{Cookie:"mm_e2e_rs30=1"},signal:AbortSignal.timeout(10000)});owner.assertRunning();assertOwnedListener(port,child.pid);lastStatus=r.status;if(r.status===200){note({phase:"SERVER_READY",serverPid:child.pid,port,status:200});return;}}
-      catch(e){owner.assertRunning();if(e.message==="THESIS_CAPTURE_FOREIGN_LISTENER")throw e;}
-      await new Promise(r=>setTimeout(r,500));
-    }
-    note({phase:"SERVER_NOT_READY",serverPid:child.pid,port,lastStatus});
-    throw Error("THESIS_CAPTURE_SERVER_NOT_READY");
-  },failure(error){note({phase:"PRIMARY_FAILURE",name:error.name,code:error.code || null,message:/^[A-Z_]{1,80}$/.test(error.message) ? error.message : "OTHER",
-    category:/EPERM|EACCES|permission denied|operation not permitted/i.test(error.message) ? "PERMISSION" : /timeout|timed out/i.test(error.message) ? "TIMEOUT" : "OTHER"});},
-  async stop(){
-    try{await owner.stop();settlement=owner.settlement();note({phase:"SERVER_CLOSED",...settlement});}
-    finally{namespace.restoreGeneratedTypeFile();note({phase:"TYPES_RESTORED"});}
-  },summary(){
-    if(!settlement)throw Error("THESIS_CAPTURE_NOT_SETTLED");
-    return {server:settlement,generatedTypes:namespace.summary(),port,providerBoundary:"Node socket/DNS/fetch denied before external egress; fixture path allowlist",serverLogSha256:hash(Buffer.from(output))};
-  }};
+  const settle=async()=>{
+    let failure;
+    try { if(owner)await stopOwned();else if(child)throw Error("THESIS_CAPTURE_SERVER_CUSTODY_UNKNOWN"); }
+    catch(error){failure=error;}
+    try { namespace.restoreGeneratedTypeFile();note({phase:"TYPES_RESTORED"}); }
+    catch(error){if(failure)failure.typesCleanupError=error;else failure=error;}
+    if(failure)throw failure;
+  };
+  try {
+    child=spawn("npm",["run","dev","--","--webpack","--hostname","127.0.0.1","--port",String(port)],{cwd:root,env,stdio:["ignore","pipe","pipe"],detached:true});
+    owner=trackOwnedServer(child);
+    // Keep the actual spawn receipt in the error path even if persistence fails.
+    note({phase:"SERVER_PROCESS_RETURNED",serverPid:child.pid,port});assertDiagnostics();
+    const log=path.join(stage,"server.log");let retained=0;
+    const logUnavailable=error=>{
+      diagnosticFailure ||= error;note({phase:"LOG_UNAVAILABLE",code:error.code || "OTHER"});
+      void stopOwned().catch(error=>{resourceFailure ||= error;});
+    };
+    for(const pipe of [child.stdout,child.stderr]){pipe.on("error",logUnavailable);pipe.on("data",b=>{
+      try {
+        output=(output+b.toString()).slice(-16000);
+        if(retained<262144){const bytes=b.subarray(0,262144-retained);fs.appendFileSync(log,bytes,{mode:0o600});retained+=bytes.length;}
+      } catch(error) {
+        // Event callbacks cannot throw past the owner.
+        logUnavailable(error);
+      }
+    });}
+    const base=`http://127.0.0.1:${port}`;process.env.THESIS_CAPTURE_BASE=base;
+    return {async ready(timeoutMs=180000){
+      const until=Date.now()+timeoutMs;
+      while(Date.now()<until){assertDiagnostics();owner.assertRunning();
+        try {assertOwnedListener(port,child.pid);const r=await fetch(base+"/analysis?view=theses&symbol=NVDA",{redirect:"manual",headers:{Cookie:"mm_e2e_rs30=1"},signal:AbortSignal.timeout(10000)});owner.assertRunning();assertOwnedListener(port,child.pid);lastStatus=r.status;if(r.status===200){note({phase:"SERVER_READY",serverPid:child.pid,port,status:200});assertDiagnostics();return;}}
+        catch(error){assertDiagnostics();owner.assertRunning();if(error.message==="THESIS_CAPTURE_FOREIGN_LISTENER")throw error;}
+        await new Promise(resolve=>setTimeout(resolve,500));
+      }
+      note({phase:"SERVER_NOT_READY",serverPid:child.pid,port,lastStatus});assertDiagnostics();
+      throw Error("THESIS_CAPTURE_SERVER_NOT_READY");
+    },failure(error){note({phase:"PRIMARY_FAILURE",name:error.name,code:error.code || null,
+      message:/^[A-Z_]{1,80}$/.test(error.message)?error.message:"OTHER",
+      category:/EPERM|EACCES|permission denied|operation not permitted/i.test(error.message)?"PERMISSION":/timeout|timed out/i.test(error.message)?"TIMEOUT":"OTHER"});},
+    stop:settle,summary(){
+      assertDiagnostics();if(resourceFailure)throw resourceFailure;
+      if(!settlement)throw Error("THESIS_CAPTURE_NOT_SETTLED");
+      return {server:settlement,generatedTypes:namespace.summary(),port,providerBoundary:"Node socket/DNS/fetch denied before external egress; fixture path allowlist",serverLogSha256:hash(Buffer.from(output))};
+    }};
+  } catch(error) {
+    try { await settle();error.ownedServerCleanup={pid:child?.pid,...settlement,unknown:!!child&&!settlement}; }
+    catch(cleanup){error.cleanupError=cleanup;error.ownedServerCleanup={pid:child?.pid,unknown:true};}
+    note({phase:"INITIALIZATION_FAILED",...error.ownedServerCleanup});
+    throw error;
+  }
 }
 function staging(root,family){const parent=path.join(root,".next","thesis-capture");fs.mkdirSync(parent,{recursive:true});return fs.mkdtempSync(path.join(parent,family+"-"));}
 function publish(stage,target,files,control){
+  assertDiagnostics();
   if(control.counts.contexts!==control.counts.contextsClosed || control.counts.browsersClosed!==1 || control.counts.redirectsDenied)throw Error("THESIS_CAPTURE_UNSETTLED");
   for(const file of [...files,"EVIDENCE.yml"]){const st=fs.lstatSync(path.join(stage,file));if(!st.isFile() || st.size<8)throw Error("THESIS_CAPTURE_INCOMPLETE");}
   const backup=path.join(stage,"previous");fs.mkdirSync(backup);fs.mkdirSync(target,{recursive:true});
