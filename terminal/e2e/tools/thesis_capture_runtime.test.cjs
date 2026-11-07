@@ -1,7 +1,7 @@
 "use strict";
 const {test}=require("node:test"),assert=require("node:assert/strict");
 const fs=require("node:fs"),path=require("node:path"),os=require("node:os"),cp=require("node:child_process");
-const {fixtureApi,decision,publish,guardApiRequest}=require("./thesis_capture_runtime.cjs");
+const {fixtureApi,decision,publish,guardApiRequest,initializeOwnedBrowser}=require("./thesis_capture_runtime.cjs");
 const base="http://127.0.0.1:41911",id="00000000-0000-0000-0000-000000000001";
 test("exact incumbent fixture endpoints and methods only",()=>{
  for(const [p,m] of [["/api/theses","POST"],["/api/thesis-saved-views","PUT"],[`/api/thesis/${id}/proposals`,"POST"],[`/api/thesis/${id}/proposals/${id}`,"PATCH"],["/api/thesis-fire-status","GET"]])assert.equal(fixtureApi(base+p,m,base),true);
@@ -49,4 +49,18 @@ test("all exposed API transports refuse foreign/forged methods before original f
  assert.equal(await request.get(base+"/api/theses",{method:"DELETE",maxRedirects:99}),"local");
  assert.deepEqual(reached.map(x=>[x.options.method,x.options.maxRedirects]),[["POST",0],["GET",0]]);
  assert.equal(counts.directFixtureRequests,2);
+});
+
+test("postlaunch metadata failure closes owned server, preserves cause and cleanup uncertainty",async()=>{
+ let closes=0,probes=0;const server={close:async()=>{closes++;},process:()=>({pid:99})};
+ let error;
+ await assert.rejects(()=>initializeOwnedBrowser(server,async()=>{
+  try { fs.readFileSync(path.join(__dirname,"missing-thesis-browser-metadata.test-only")); }
+  catch(actual){error=actual;throw actual;}
+ },async pid=>{assert.equal(pid,99);probes++;}),actual=>actual===error && actual.code==="ENOENT");
+ assert.equal(closes,1);assert.equal(probes,1);assert.deepEqual(error.ownedBrowserCleanup,{serverCloseObserved:true,processAbsent:true,unknown:false});
+ const unknown=new Error("original initialization error");
+ await assert.rejects(()=>initializeOwnedBrowser({close:async()=>{throw Error("close failed");},process:()=>({pid:99})},async()=>{throw unknown;},()=>{throw Error("must not probe after failed close");}),actual=>actual===unknown);
+ assert.equal(unknown.ownedBrowserCleanup.unknown,true);assert.equal(unknown.ownedBrowserCleanup.serverCloseObserved,false);
+ let healthyCloses=0;assert.equal(await initializeOwnedBrowser({close:async()=>{healthyCloses++;}},async()=>"healthy",()=>{throw Error("must not probe healthy live browser");}),"healthy");assert.equal(healthyCloses,0);
 });

@@ -54,6 +54,25 @@ function guardApiRequest(request, base, counts) {
     };
   }
 }
+async function initializeOwnedBrowser(server, initialize, absent = pid => {
+  try { process.kill(pid,0); } catch(error) { if(error.code === "ESRCH")return; throw error; }
+  throw Error("THESIS_CAPTURE_BROWSER_STILL_PRESENT");
+}) {
+  try { return await initialize(); }
+  catch(error) {
+    const cleanup={serverCloseObserved:false,processAbsent:false,unknown:true};
+    try {
+      await server.close();cleanup.serverCloseObserved=true;
+      const pid=server.process()?.pid;
+      if(!Number.isSafeInteger(pid) || pid<=1)throw Error("THESIS_CAPTURE_BROWSER_IDENTITY");
+      await absent(pid);cleanup.processAbsent=true;cleanup.unknown=false;
+    } catch(cleanupError) { cleanup.errorCode=cleanupError.code || "THESIS_CAPTURE_CLEANUP_UNKNOWN"; }
+    // Keep the original initialization failure; uncertain cleanup never becomes
+    // permission for another browser/host/process launch.
+    error.ownedBrowserCleanup=cleanup;
+    throw error;
+  }
+}
 function getChromium() {
   const custom = process.env.THESIS_CAPTURE_PLAYWRIGHT_MODULE;
   const modulePath = custom || "@playwright/test";
@@ -67,11 +86,10 @@ function getChromium() {
   return {counts,toolchain:{package:pkg.name,version:pkg.version,packageSha256:hash(fs.readFileSync(packagePath)),defaultExecutableLookup:original.executablePath()},
     async launch(options) {
       const server = await original.launchServer({...options,timeout:30000,env:captureServerEnv()});
+      return initializeOwnedBrowser(server,async()=>{
       const child = server.process();
-      if (!child || !Number.isSafeInteger(child.pid)) { await server.close(); throw Error("THESIS_CAPTURE_BROWSER_IDENTITY"); }
-      let browser;
-      try { browser = await original.connect(server.wsEndpoint(),{timeout:30000}); }
-      catch(error) { await server.close(); throw error; }
+      if (!child || !Number.isSafeInteger(child.pid)) throw Error("THESIS_CAPTURE_BROWSER_IDENTITY");
+      const browser = await original.connect(server.wsEndpoint(),{timeout:30000});
       counts.browserPid=child.pid;
       counts.browserExecutable=child.spawnfile;
       counts.browserExecutableSha256=hash(fs.readFileSync(child.spawnfile));
@@ -90,6 +108,7 @@ function getChromium() {
         counts.browsersClosed++;counts.browserProcessAbsent=true;
       };
       return browser;
+      });
     }};
 }
 async function assertPortFree(port) {
@@ -136,4 +155,4 @@ function publish(stage,target,files,control){
   fs.writeFileSync(path.join(stage,"CONTROL.json"),JSON.stringify(control,null,2)+"\n");
   process.stdout.write(JSON.stringify({thesisCaptureControl:path.join(stage,"CONTROL.json"),...control})+"\n");
 }
-module.exports={fixtureApi,decision,boundary,guardApiRequest,getChromium,assertPortFree,assertOwnedListener,start,staging,publish};
+module.exports={initializeOwnedBrowser,fixtureApi,decision,boundary,guardApiRequest,getChromium,assertPortFree,assertOwnedListener,start,staging,publish};
