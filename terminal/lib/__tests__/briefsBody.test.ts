@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
+  briefLanguageNotice,
+  marketReadSentences,
+  requiresExplicitBriefLanguage,
   fillTargetNames,
   monitorsSummary,
   pinLastReady,
@@ -24,6 +27,17 @@ describe("brief body schema guard", () => {
     expect(validateBriefBody(valid)).toEqual(valid);
   });
 
+  it("retains an explicit null watchlist version under the new decoder contract", () => {
+    const watchlist = { ...valid, target: { ...valid.target, kind: "watchlist" as const, version_or_asof: null } };
+    expect(validateBriefBody(watchlist)).toEqual(watchlist);
+    expect(requiresExplicitBriefLanguage(watchlist)).toBe(true);
+    expect(briefLanguageNotice(watchlist, "zh")).toBeNull();
+    for (const version of [undefined, "", " "]) {
+      expect(validateBriefBody({ ...watchlist, target: { ...watchlist.target, version_or_asof: version } })).toBeNull();
+    }
+    expect(validateBriefBody({ ...valid, target: { ...valid.target, version_or_asof: null } })).toBeNull();
+  });
+
   it("rejects numeric judgement keys", () => {
     expect(validateBriefBody({ ...valid, score: 0.81 })).toBeNull();
     expect(validateBriefBody({ ...valid, target: { ...valid.target, confidence: 12 } })).toBeNull();
@@ -40,6 +54,68 @@ describe("brief body schema guard", () => {
       ...valid,
       market_read: [{ section: "tape", sentence_en: "The close held.", asof: "2026-09-11" }],
     })).toBeNull();
+  });
+});
+
+
+describe("explicit brief-language availability", () => {
+  const mixed = {
+    ...valid,
+    market_read: [
+      { ...valid.market_read[0], translation_status: "available" as const },
+      { ...valid.market_read[1], sentence_zh: null, translation_status: "unavailable" as const },
+    ],
+  };
+
+  it("preserves admitted null/status, target, monitors and source clocks", () => {
+    expect(validateBriefBody(mixed)).toEqual(mixed);
+    expect(requiresExplicitBriefLanguage(mixed)).toBe(true);
+    expect(requiresExplicitBriefLanguage(valid)).toBe(false);
+    expect(marketReadSentences(mixed, "en")).toEqual(valid.market_read.map((row) => row.sentence_en));
+    expect(marketReadSentences(mixed, "zh")).toEqual([
+      valid.market_read[0].sentence_zh,
+      `英文原文：${valid.market_read[1].sentence_en}`,
+    ]);
+  });
+
+  it.each([
+    { sentence_zh: null },
+    { sentence_zh: "", translation_status: "unavailable" },
+    { sentence_zh: " ", translation_status: "available" },
+    { sentence_zh: null, translation_status: "available" },
+    { sentence_zh: "有中文。", translation_status: "unavailable" },
+    { sentence_zh: "有中文。", translation_status: "pending" },
+    { sentence_zh: null, translation_status: null },
+    { sentence_zh: undefined, translation_status: "unavailable" },
+  ])("rejects missing, unknown or contradictory language fields: %j", (fields) => {
+    expect(validateBriefBody({
+      ...valid, market_read: [{ ...valid.market_read[0], ...fields }],
+    })).toBeNull();
+  });
+
+  it("keeps recursive forbidden fields excluded from admitted partial-language bodies", () => {
+    expect(validateBriefBody({
+      ...mixed,
+      market_read: [{ ...mixed.market_read[1], translation_model: "test" }],
+    })).toBeNull();
+  });
+
+  it("reports missing Chinese beyond the first two preview passages", () => {
+    const body = { ...valid, market_read: [...valid.market_read, mixed.market_read[1]] };
+    expect(marketReadSentences(body, "zh")).toEqual(valid.market_read.map((row) => row.sentence_zh));
+    expect(briefLanguageNotice(body, "en")).toContain("2 of 3");
+    expect(briefLanguageNotice(body, "zh")).toContain("2/3");
+    expect(briefLanguageNotice(valid, "zh")).toBeNull();
+    expect(briefLanguageNotice({ ...valid, market_read: [mixed.market_read[1]] }, "en")).toContain("0 of 1");
+  });
+
+  it("labels the exact historical pending-marker fallback without rewriting stored Chinese", () => {
+    const row = valid.market_read[0];
+    const stored = { ...valid, market_read: [{ ...row, sentence_zh: `${row.sentence_en} （翻译待补）` }] };
+    expect(validateBriefBody(stored)).toEqual(stored);
+    expect(marketReadSentences(stored, "zh")).toEqual([`英文原文：${row.sentence_en}`]);
+    expect(briefLanguageNotice(stored, "en")).toContain("0 of 1");
+    expect(requiresExplicitBriefLanguage(stored)).toBe(false);
   });
 });
 

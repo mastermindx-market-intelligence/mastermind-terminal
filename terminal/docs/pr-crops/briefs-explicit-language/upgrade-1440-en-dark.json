@@ -1,0 +1,25 @@
+{
+  "proof": "Actual Alerts inbox with controlled delivery responses; route ownership separately unit-tested.",
+  "capturedAtHead": "e2ddccbfe0a1904cec60ba31ccb29d58f45dc1d7",
+  "capturedAt": "2026-10-17T12:24:10.490Z",
+  "route": "/alerts",
+  "lang": "en",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "state": "upgrade",
+  "requestedContract": "briefs.explicit-language.v1",
+  "sourceHashes": {
+    "terminal/lib/briefs.ts": "e753fe4f3d7b9a98adf8717568ea4bd946a28e473a7970a6c9a3afc9825759ea",
+    "terminal/app/api/briefs/deliveries/route.ts": "1888d27e5369f9e3851a5c363ae4978bda0b1e7126303adc5125b84227d0e05b",
+    "terminal/components/briefs/BriefsInbox.tsx": "da07463dac6187fdfe470f89676e46b60c24071443ad314939951ba31614587b",
+    "terminal/components/briefs/briefs.module.css": "bdec4855420f396e8ad30565741c70904d55090310298e396f75e3e44c41b573",
+    "terminal/components/alerts/AlertsCockpit.tsx": "6f10a31635043273d4f77cb812aaca671af36a5732eca54e0f4ada1796ce9040",
+    "terminal/e2e/briefs-inbox.spec.ts": "57e4d91f97d9bb9be4385707ad79ccb8bf0af25d806dfe99f53624e875050ceb"
+  },
+  "png": "upgrade-1440-en-dark.png",
+  "sha256": "dcf17f4892b4a497422284d9f7ab216a3ffa67e79d69042b704c2222627118e1",
+  "productionAcceptance": false,
+  "producerActivation": false
+}
