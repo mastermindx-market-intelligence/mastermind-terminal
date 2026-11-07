@@ -23,7 +23,9 @@ from scripts.trusted_migration_ownership import (
 OLD_CONTEXTS = ("Quote Hub tests", "Terminal typecheck + tests", "Ingest + signal-layer tests")
 SOURCE_PATHS = ("scripts/trusted_migration_ownership.py", "scripts/migration_merge_group.py",
                 "scripts/check_supabase_migration_namespace.py", ".github/workflows/trusted-migration-ownership.yml")
-TARGET_PATHS = ("tests/test_supabase_migration_namespace.py", "scripts/merge_on_green.py")
+TARGET_PATHS = ("tests/test_supabase_migration_namespace.py", "scripts/merge_on_green.py",
+                "AGENTS.md", "CLAUDE.md", ".github/workflows/merge-on-green.yml",
+                "tests/test_merge_on_green.py")
 require = group.require
 
 
@@ -120,7 +122,59 @@ def _source_patch(sources, app_id):
     controller = controller.replace(compare, "trusted_check_app_id(run) != REQUIRED_CHECK_APP_IDS[name]")
     controller = controller.replace('f"missing trusted App {REQUIRED_CHECK_APP_ID} checks: {\', \'.join(missing)}"',
                                     'f"missing pinned producer checks: {\', \'.join(missing)}"')
-    changed = {TARGET_PATHS[0]: test.replace(old, new), TARGET_PATHS[1]: controller}
+    agents = sources["AGENTS.md"]
+    anchor = "master` protects the exact three CI checks;"
+    require(agents.count(anchor) == 1 and "<!-- migration-owner-transfer-v1 -->" not in agents,
+            "unexpected release guide preimage")
+    agents = agents.replace(anchor, "master` retains the three original GitHub Actions CI checks and also requires\n"
+                            f"  `{CONTEXT}` from App `{app_id}`;")
+    agents += ("\n<!-- migration-owner-transfer-v1 -->\n"
+               "## Protected migration ownership\n\n"
+               f"The required `{CONTEXT}` check is bound to App `{app_id}`. The three original\n"
+               "GitHub Actions checks remain bound to App15368; the incumbent controller\n"
+               "checks each context against its own exact producer. Same names from other\n"
+               "Apps or Any source do not satisfy release. The protected default-code\n"
+               "issuer owns full native membership and migration content qualification;\n"
+               "candidate Ingest retains content and pure negative checks. No candidate\n"
+               "code receives the issuer key. Restore the original strict Ingest owner\n"
+               "before withdrawing the new required gate; failure stops migration release.\n")
+    claude = sources["CLAUDE.md"]
+    require(claude.startswith("@AGENTS.md\n") and "migration-owner-transfer-v1" not in claude,
+            "unexpected imported guide preimage")
+    claude += (f"<!-- migration-owner-transfer-v1: AGENTS.md now includes the distinct App{app_id} "
+               "migration ownership gate. The import remains the single release-law source. -->\n")
+    workflow = sources[".github/workflows/merge-on-green.yml"]
+    comment = "# master is protected by the same three checks, so native auto-merge is the fast"
+    require(workflow.count(comment) == 1, "unexpected incumbent workflow preimage")
+    workflow = workflow.replace(comment,
+        f"# Required producers: three original Actions checks plus migration owner App{app_id}.\n"
+        "# No issuer key is added here; checks:read observes each pinned producer.\n"
+        "# master keeps native auto-merge as the fast")
+    tests = sources["tests/test_merge_on_green.py"]
+    changes = {
+        "    REQUIRED_CHECK_APP_ID,\n": "    REQUIRED_CHECK_APP_ID,\n    REQUIRED_CHECK_APP_IDS,\n",
+        "\ndef checks(\n": "\n_DEFAULT_CHECK_APP = object()\n\n\ndef checks(\n",
+        "    app_id: int | str | bool | None = REQUIRED_CHECK_APP_ID,\n": "    app_id: object = _DEFAULT_CHECK_APP,\n",
+        'run["app"] = {"id": app_id}': 'run["app"] = {"id": REQUIRED_CHECK_APP_IDS[name] if app_id is _DEFAULT_CHECK_APP else app_id}',
+        '    runs[2]["app"] = {"id": True}\n': '    runs[2]["app"] = {"id": True}\n    runs[3]["app"] = {"id": None}\n',
+        'assert f"trusted App {REQUIRED_CHECK_APP_ID}" in verdict.detail': 'assert "pinned producer" in verdict.detail',
+        'f"#7: missing trusted App {REQUIRED_CHECK_APP_ID} checks: "': '"#7: missing pinned producer checks: "',
+        '"missing trusted App" in result[0]': '"missing pinned producer" in result[0]',
+    }
+    for before, after in changes.items():
+        require(before in tests, "unexpected controller test preimage")
+        tests = tests.replace(before, after)
+    tests += ("\n\ndef test_migration_owner_requires_its_distinct_producer():\n"
+              f"    context = {CONTEXT!r}\n"
+              "    assert check_verdict(checks()).state == 'green'\n"
+              "    absent = [r for r in checks() if r['name'] != context]\n"
+              "    assert check_verdict(absent).state == 'pending'\n"
+              "    wrong = checks()\n"
+              "    next(r for r in wrong if r['name'] == context)['app']['id'] = REQUIRED_CHECK_APP_ID\n"
+              "    assert check_verdict(wrong).state == 'pending'\n")
+    changed = {TARGET_PATHS[0]: test.replace(old, new), TARGET_PATHS[1]: controller,
+               "AGENTS.md": agents, "CLAUDE.md": claude,
+               ".github/workflows/merge-on-green.yml": workflow, "tests/test_merge_on_green.py": tests}
     return "".join("".join(difflib.unified_diff(sources[p].splitlines(True), changed[p].splitlines(True),
                                                 fromfile="a/" + p, tofile="b/" + p)) for p in TARGET_PATHS)
 

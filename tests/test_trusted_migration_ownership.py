@@ -414,6 +414,21 @@ def test_rerun_preflight_stops_before_the_key_mint_step(tmp_path, monkeypatch):
     assert not api.mutations
 
 
+def test_zero_repository_identity_selector_fails_before_api_or_mint(tmp_path, monkeypatch):
+    envelope, env = input_data()
+    path = tmp_path / "service-event.json"
+    path.write_text(json.dumps(envelope))
+    env |= {"GITHUB_EVENT_PATH": str(path), "OWNERSHIP_APP_ID": "0", "EXPECTED_INSTALLATION": "0"}
+    for key, value in env.items(): monkeypatch.setenv(key, value)
+    calls = []
+    def unavailable(token):
+        calls.append(token)
+        raise AssertionError("disabled selector must stop before any API client")
+    monkeypatch.setattr(owner, "Api", unavailable)
+    monkeypatch.setattr(owner.sys, "argv", ["owner", "--preflight"])
+    assert owner.main() == 1 and not calls
+
+
 
 @pytest.mark.parametrize("which", ["pending", "code-change", "duplicate"])
 def test_same_original_operation_never_reissued(which):
@@ -491,13 +506,15 @@ class AdminService(Service):
         return {"repository": repo}
 
 
-def test_transfer_prepares_real_two_path_source_change_only_after_both_actual_proofs():
+def test_transfer_prepares_complete_source_change_only_after_both_actual_proofs():
     api = AdminService()
     patch = transition.prepare(api, APP, [71, 72])
     assert "MERGE_GROUP_CONTENT" in patch and "REQUIRED_CHECK_APP_IDS" in patch
     assert f"= {APP}" in patch
     assert "--- a/tests/test_supabase_migration_namespace.py" in patch
     assert "--- a/scripts/merge_on_green.py" in patch
+    for path in ("AGENTS.md", "CLAUDE.md", ".github/workflows/merge-on-green.yml", "tests/test_merge_on_green.py"):
+        assert "--- a/" + path in patch
     assert "supabase/migrations/0049" not in patch
     assert not api.mutations
 
@@ -593,6 +610,44 @@ def test_transfer_output_is_an_unapplied_reversible_source_patch(tmp_path, monke
                               input=patch, text=True, capture_output=True)
     assert restored.returncode == 0, restored.stderr
     assert all((tmp_path / p).read_text() == api.files[p] for p in transition.TARGET_PATHS)
+
+
+def test_actual_generated_companion_controller_suite_is_closed_and_green(tmp_path):
+    import os
+    import subprocess
+    import sys
+    api = AdminService()
+    patch = transition.prepare(api, APP, [71, 72])
+    for path in transition.TARGET_PATHS:
+        target = tmp_path / path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(api.files[path])
+    applied = subprocess.run(["git", "apply", "-"], cwd=tmp_path, input=patch,
+                             text=True, capture_output=True)
+    assert applied.returncode == 0, applied.stderr
+    ci = tmp_path / ".github/workflows/ci.yml"
+    ci.write_text((ROOT / ".github/workflows/ci.yml").read_text())
+    runner = tmp_path / "inert_controller_runner.py"
+    runner.write_text("""import socket, sys
+def deny(*args, **kwargs):
+    raise AssertionError('no network in generated companion qualification')
+socket.socket.connect = deny
+socket.create_connection = deny
+import pytest
+raise SystemExit(pytest.main(['-q', 'tests/test_merge_on_green.py', '--tb=short', '--junitxml=generated-controller.xml']))
+""")
+    result = subprocess.run([sys.executable, str(runner)], cwd=tmp_path, text=True, capture_output=True,
+                            env={"PATH": os.defpath, "HOME": str(tmp_path),
+                                 "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1", "PYTHONDONTWRITEBYTECODE": "1"})
+    assert result.returncode == 0, result.stdout + result.stderr
+    import xml.etree.ElementTree as ET
+    cases = list(ET.parse(tmp_path / "generated-controller.xml").iter("testcase"))
+    assert cases and not any(c.find(k) is not None for c in cases for k in ("failure", "error", "skipped"))
+    destination = os.environ.get("S17_PHASE2_GENERATED_EVIDENCE")
+    if destination:
+        # Explicit test-only evidence export, never production readiness input.
+        with Path(destination).open("xb") as stream:
+            stream.write((tmp_path / "generated-controller.xml").read_bytes())
 
 
 def test_real_workflow_no_candidate_execution_or_key_in_candidate_job():

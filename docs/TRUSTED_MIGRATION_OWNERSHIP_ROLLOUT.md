@@ -29,6 +29,24 @@ Confirm the actual repository plan supports these controls before enabling.
 This trusts reviewed protected-default code, not a per-workflow secret ACL:
 another protected master workflow could reference the same environment.
 
+Before default-branch installation, separately authorize the empty environment
+and verify its selected master branch policy. Do not let a workflow implicitly
+create an unprotected environment. After qualifying the exact named nonsecret
+variable preimages, pin repository-level `MIGRATION_OWNER_APP_ID` and
+`MIGRATION_OWNER_INSTALLATION_ID` to `0` while bootstrapping. This explicit
+disabled selection stops preflight before any API client or mint step; an
+unconfigured environment alone does not prove repository/organization fallback
+values absent. No key is needed to install the protected code in this state.
+These settings were not read or changed by the source tests.
+
+After the protected code is installed, provision the approved environment key
+and actual installation binding. Change the repository installation ID first,
+leaving App ID zero until the final authorized activation edge. Use repository
+nonsecret identity variables for the workflow contexts; environment variables
+arrive later on the runner. Verify actual rendered identity during subsequent
+lawful qualification. This selection is not an execution grant: the key,
+installation, service/run/source and full namespace predicates still apply.
+
 The immutable GitHub-owned token action supports its numeric `app-id` input.
 This proposal deliberately uses the same expected numeric App issuer as the
 required check source, so a private key for a different App cannot mint for it.
@@ -103,16 +121,20 @@ enforced original-attempt boundary, not an assertion that a lost POST was unsent
 1. Root reviews the exact source, grants and scoped independent consequence
    review. Current PR1290, its SQL/ACL bytes and source branch stay untouched.
    The denied built-in-token read cannot be retested with this proposal.
-2. Deliver the stage-1 source through the normal protected path. Its new owner
-   is supplementary: current Ingest still enforces live membership. Do not
+2. Publish the reviewed stage-1 source as a draft first. Before default-branch
+   merge, separately authorize and qualify the empty restricted environment and
+   zero repository identity selectors described above. Then use the normal
+   protected source path. Its new owner is supplementary: current Ingest still
+   enforces live membership. Do not
    claim stage 1 alone can repair the held open-migration PR. A normal healthy
    source/CI candidate without that old membership failure is needed to prove
    the prospective owner, rather than replaying an old terminal group.
 3. Only under separate administrator authorization, create/approve a controlled
    App with the exact repository/grants above, restricted installation and
-   protected environment. Configure nonsecret `MIGRATION_OWNER_APP_ID` and
-   `MIGRATION_OWNER_INSTALLATION_ID`, and the environment-only
-   `MIGRATION_OWNER_PRIVATE_KEY`. No value was retrieved or provisioned here.
+   prequalified environment. Bind the actual nonsecret App/installation identity
+   and the environment-only `MIGRATION_OWNER_PRIVATE_KEY`, leaving the repository
+   App ID zero until the final authorized activation edge. No value was retrieved
+   or provisioned here.
 4. Separately qualify the exact full read operations and actual independent
    App check producer. A new denial holds its exact action; no automatic extra
    grant, alternate identity or old-read retry. Verify real successful checks
@@ -141,21 +163,21 @@ enforced original-attempt boundary, not an assertion that a lost POST was unsent
    requires strict old checks plus the pinned new gate, the native queue,
    genuine App successes for both source modes, and exact current protected
    issuer bytes. It repeats the rule/source/proof checks before returning.
-7. Review and normally merge that exact patch. It changes only the real-tree
-   merge-group test's membership-dependent assertion to content enforcement,
-   and extends the existing controller's exact context-to-App map. Pure
+7. Review and normally merge that complete six-path patch. It changes the
+   real-tree merge-group test's membership-dependent assertion to content
+   enforcement and extends the existing controller's exact context-to-App map.
+   It also updates `AGENTS.md`, its `CLAUDE.md` import note, the incumbent
+   workflow's producer comments and the actual controller tests, including the
+   distinct-producer negative. All source uses the actual qualified App ID. Pure
    ownership negatives, original event/strict CLI behavior, ordinary PR law,
    Ingest's other tests/permissions, old checks, native-user admission and SQL
    remain intact. The new protected owner now supplies the mandatory full
    group membership/content gate. No environment/caller boolean enables this
    transfer; it is a separately verified source change.
-   This generated patch is the core handoff, not the complete activation PR:
-   Terminal's existing release law also requires the required-context change
-   to be reflected in `AGENTS.md`, `CLAUDE.md`, the incumbent
-   `merge-on-green.yml` and controller tests in the same source PR. Calibrate
-   those companions to the actual enrolled App ID and retain all three old
-   check producers. Do not activate/land the two-file patch in isolation or
-   describe it as a whole qualified activation release.
+   The companion source is generated in that same patch, as required by
+   Terminal's existing release law. Do not split out or land the two-file core
+   handoff without those companions. This is still unapplied source preparation,
+   not proof of a configured App, required gate or actual activation release.
 8. A subsequent new candidate's normal head/group checks and release are still
    owed. There is no authorization here to rearm or retry PR1290.
 
