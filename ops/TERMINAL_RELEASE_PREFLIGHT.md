@@ -235,3 +235,48 @@ python -m compileall -q ops \
   tests/test_terminal_source_audit_policy_contracts.py \
   tests/test_terminal_release_preflight.py
 ```
+
+
+## Exact safety hooks and the manager search path
+
+The Investigation installation gate in `terminal-build.sh` recognizes only
+the two source-qualified production pre-start predicates: the exact BUILD_ID
+check and the pinned `terminal-volume-guard --service` script. Its guard calls
+`findmnt` and `stat` by name, so accepting the hook also requires qualified
+command resolution.
+
+The manager's default PATH has a separate role from an explicit unit or
+environment-file override. For these safety hooks, the owner requires exactly
+one manager PATH declaration and observes its original order. Every component
+must be one of `/usr/local/sbin`, `/usr/local/bin`, `/usr/sbin`, `/usr/bin`,
+`/sbin` or `/bin`; empty, relative, repeated or other components are refused.
+This is a supported source contract, not a claim about the currently deployed
+host's PATH. Normal directories and their ancestors must be root-owned,
+root-group-owned and not writable by group or others. Only the explicit
+`/bin → /usr/bin` and `/sbin → /usr/sbin` aliases are admitted; their targets
+receive the same custody checks.
+
+The first discovered `findmnt` and `stat` must be regular, executable,
+non-writable system files in `/usr/bin` or a qualified `/bin` directory.
+Earlier shadows, arbitrary executable symlinks, hard links, set-id files,
+missing programs and unreadable or oversized bytes are refused. The owner
+opens each program read-only without following a leaf symlink, bounds its
+capture to 8 MiB, checks descriptor/name identity and retains its content hash.
+The five original environment fields remain intact. Directory identities,
+alias targets and ordered executable resolution join the same equality
+observation repeated around hook/source admission and before/after service
+start. Unchanged PATH text cannot hide changed resolution or file custody.
+
+Unit `Environment`, environment files, `PassEnvironment` and
+`UnsetEnvironment` retain their existing PATH/HOME/npm override refusals.
+Manager HOME and other previously refused shell, preload and npm inputs keep
+their existing treatment. The release does not set, clear or normalize an
+environment, execute a program during qualification, relax a source/hook pin,
+or change the four closed Investigation controls.
+
+Qualification uses the exact extracted owner, isolated real files and file
+descriptors, and an explicit fixture mapping of OS paths/root ownership.
+Those tests do not establish production custody. First adoption still
+requires a protected full `ops/` archive and the incumbent exact-target
+deployment path. A source pass is not a deployed marker, authenticated browser
+proof or a reason to repeat an unresolved or unchanged failed release effect.
