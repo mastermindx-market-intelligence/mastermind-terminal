@@ -1,0 +1,83 @@
+{
+  "current_master": "02e082b3603f7be03e93918051f2c924003e6a10",
+  "current_master_merge_head": "f69e493581a42860c99d821456b5d2adb724aca3",
+  "findings_closed": [
+    {
+      "after": "typed conditional-scenario validator/transpose/HeatData bridge exists without casting to SurfaceFrame",
+      "before": "no Terminal consumer contract existed for options.scenario_surface/v1",
+      "id": "SCENARIO_DISTINCT_FROM_HISTORY",
+      "red": "contract-red.log"
+    },
+    {
+      "after": "future IV clock and future-date OI vintage fail closed",
+      "before": "first validator accepted an IV source timestamp after market_observed_at",
+      "green": "pit-green.log",
+      "id": "SCENARIO_PIT_SOURCE_CLOCKS",
+      "red": "pit-red.log"
+    },
+    {
+      "after": "trade/NBBO envelopes are typed and validated as ordered fully-known or fully-null clocks no later than observation; OI must be strictly prior ET date",
+      "before": "Terminal type omitted live trade/NBBO envelopes, accepted same-day OI, and did not validate envelope ordering/future clocks",
+      "green": "live-provenance-semantic-green.log",
+      "id": "SCENARIO_LIVE_SOURCE_CLOCK_IDENTITY",
+      "red": "live-provenance-semantic-red.log"
+    },
+    {
+      "after": "Terminal pins Macro v1 deterministic-time, assumption-sign, and exact GEX/VEX/CEX units",
+      "before": "validator accepted altered time roll-forward, dealer-sign label, and arbitrary unit strings",
+      "green": "live-provenance-semantic-green.log",
+      "id": "SCENARIO_MODEL_SEMANTIC_IDENTITY",
+      "red": "live-provenance-semantic-red.log"
+    }
+  ],
+  "macro_producer": "macro#7306",
+  "non_claims": [
+    "user-visible surface integration",
+    "production deployment",
+    "live freshness",
+    "observed participant inventory",
+    "predictive edge",
+    "QuantedOptions parity",
+    "parent #603 completion"
+  ],
+  "operation": "options-workbench-r2-scenario-terminal-contract-20260918-sol-001",
+  "parent": "mastermind-terminal#603",
+  "release_gates": {
+    "hosted_ci": "requires refresh after final records head is pushed",
+    "independent_review": "requires refresh after final records head is pushed",
+    "production_proof": "not attempted",
+    "surface_pane_consumer": "blocked on incumbent #608 plus Macro #7306 acceptance"
+  },
+  "schema": "mastermind.options_workbench.scenario_terminal_contract_evidence.v1",
+  "semantic_hardening_head": "d10b1b1d32beaa9a68beec2f55b3a85e210d5fad",
+  "skillpack_sha": "61a2ff79aba4e8a5685e779707ad5c4426cf5cc5",
+  "source_hashes": {
+    "docs/OPTIONS_WORKBENCH_SCENARIO_TERMINAL_CONTRACT_2026-09-18.md": "3ed05224e640f1012e456bd3648a00a122696d149edeea5568c12b006ab1e1e4",
+    "terminal/lib/__tests__/scenarioSurfaceContract.test.ts": "6ae4ec1cd430fa3e8b19c8b2aa591082e8931e0ae3a4efbc4e33b65665ae02ff",
+    "terminal/lib/scenarioSurfaceContract.ts": "05795f3ad656b76fc8c8867b57bd588a8288933634b5f36f40e2b042810a975d"
+  },
+  "state": "BUILT_NOT_PROVEN",
+  "terminal_base": "1f56eae265bdbb69c60ce1c5b63dcea19f1f480e",
+  "verification": {
+    "baseline_surface_contract": {
+      "failed": 0,
+      "passed": 93
+    },
+    "baseline_typescript_exit": 0,
+    "current_master_owner_pack": {
+      "failed": 0,
+      "passed": 133
+    },
+    "current_master_typescript_exit": 0,
+    "diff_check_exit": 0,
+    "owner_pack": {
+      "failed": 0,
+      "passed": 133
+    },
+    "scenario_contract": {
+      "failed": 0,
+      "passed": 9
+    },
+    "typescript_exit": 0
+  }
+}
