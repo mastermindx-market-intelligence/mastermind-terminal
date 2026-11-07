@@ -47,7 +47,12 @@ for(const lang of ["en","zh"] as const){
 
 test("coalesced trailing null clears BOATS and a later failure cannot revive it",async({page},info)=>{
  test.setTimeout(60_000);
- const q=boatsQuote(100,1);
+ // Hold browser time below the recurring 5s/30s poll cadence. Only the
+ // visibility triggers and their zero-delay catch-up belong to this assertion.
+ const start=new Date();
+ await page.clock.install({time:start});
+ await page.clock.pauseAt(start);
+ const q=boatsQuote(100,1,start.getTime()/1000-1);
  let phase:"initial"|"hold"|"empty"|"failure"="initial";
  let held:import("@playwright/test").Route|null=null;
  let requests=0;
@@ -62,8 +67,10 @@ test("coalesced trailing null clears BOATS and a later failure cannot revive it"
   await route.fulfill({json:{quotes:{NVDA:{sym:"NVDA",last:192.53,regularPrice:192.53,regularChg:-1.64,...q}}}});
  });
  await page.goto("/terminal?symbol=NVDA");
+ await page.clock.runFor(1_000); // settle initial debounce/catch-up timers
  const surface=info.project.name==="desktop"?page.locator(".ah-block"):page.locator('[data-quote-lane="extended"]');
  await expect(surface).toContainText("100.00",{timeout:30_000});
+ await page.clock.runFor(100); // retire any bootstrap catch-up before the baseline
  phase="hold";await page.evaluate(()=>document.dispatchEvent(new Event("visibilitychange")));
  await expect.poll(()=>held!==null).toBe(true);
  const heldRequestCount=requests;
@@ -71,7 +78,7 @@ test("coalesced trailing null clears BOATS and a later failure cannot revive it"
  await page.evaluate(()=>{
   for(let i=0;i<3;i++)document.dispatchEvent(new Event("visibilitychange"));
  });
- await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
+ await page.clock.runFor(50); // run animation frames while wall-clock timers stay paused
  // A trigger cannot manufacture an authoritative empty result while the sole request is held.
  expect(requests).toBe(heldRequestCount);
  await expect(surface).toContainText("100.00");
@@ -81,14 +88,21 @@ test("coalesced trailing null clears BOATS and a later failure cannot revive it"
   return body?.quotes?.NVDA===null;
  });
  await held!.fulfill({json:{quotes:{NVDA:q}}});
+ // The fulfilled fetch may enqueue its catch-up after the route promise
+ // settles. Advance only 1ms per observation until that exact request arrives.
+ await expect.poll(async()=>{
+  await page.clock.runFor(1);
+  return requests;
+ },{timeout:3_000,intervals:[25]}).toBe(heldRequestCount+1);
  await emptyResponse;
  await expect(surface).toHaveCount(0);
  expect(requests).toBe(heldRequestCount+1); // exactly one coalesced catch-up
+ expect(await page.evaluate(()=>Date.now())-start.getTime()).toBeLessThan(2_000);
  expect(await page.evaluate(()=>Date.now()/1000)-q.extTs).toBeLessThan(25); // not freshness expiry
  phase="failure";
  const failedResponse=page.waitForResponse(response=>response.url().includes("/api/ext-quote?")&&response.status()===503);
  await page.evaluate(()=>document.dispatchEvent(new Event("visibilitychange")));
  await failedResponse;
- await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
+ await page.clock.runFor(50); // run animation frames while wall-clock timers stay paused
  await expect(surface).toHaveCount(0);
 });
