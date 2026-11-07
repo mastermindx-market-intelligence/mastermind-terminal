@@ -11,6 +11,7 @@ import hashlib
 import json
 import re
 import subprocess
+import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Any, Callable, Mapping
@@ -18,6 +19,72 @@ from typing import Any, Callable, Mapping
 
 class OwnershipUnqualified(ValueError):
     pass
+
+
+_READ_KINDS = frozenset({
+    "forbidden", "rate_limited", "unauthorized", "not_found", "validation",
+    "graphql_error", "mixed_errors", "malformed_errors", "response_shape",
+    "json_decode", "transport", "http_unauthorized", "http_forbidden", "http_rate_limited", "http_other",
+})
+_GRAPHQL_KINDS = {
+    "FORBIDDEN": "forbidden", "INSUFFICIENT_SCOPES": "forbidden",
+    "RATE_LIMITED": "rate_limited", "UNAUTHORIZED": "unauthorized",
+    "NOT_FOUND": "not_found", "GRAPHQL_VALIDATION_FAILED": "validation",
+    "GRAPHQL_PARSE_FAILED": "validation",
+}
+
+
+class _ReadFailure(OwnershipUnqualified):
+    """Only finite diagnostic data crosses the API-error boundary."""
+
+    def __init__(self, kind: str, scope: str = "other") -> None:
+        self.kind = kind if type(kind) is str and kind in _READ_KINDS else "graphql_error"
+        self.scope = scope if type(scope) is str and scope in {"queue", "source"} else "other"
+        super().__init__("GitHub ownership read failed" if self.kind in {
+            "transport", "json_decode", "http_unauthorized", "http_forbidden", "http_rate_limited", "http_other",
+        } else "GitHub ownership query did not succeed")
+
+
+def _graphql_failure(errors: Any) -> _ReadFailure:
+    if type(errors) is not list or not errors:
+        return _ReadFailure("malformed_errors")
+    # Do not traverse an unbounded error collection merely to enrich a refusal.
+    if len(errors) > 8:
+        return _ReadFailure("graphql_error")
+    if any(type(e) is not dict for e in errors):
+        return _ReadFailure("malformed_errors")
+    kinds, scopes = set(), set()
+    for error in errors:
+        extension = error.get("extensions")
+        code = error.get("type")
+        if type(code) is not str and type(extension) is dict:
+            code = extension.get("code")
+        kinds.add(_GRAPHQL_KINDS.get(code, "graphql_error") if type(code) is str else "graphql_error")
+        path = error.get("path")
+        scope = "other"
+        if type(path) is list and len(path) >= 2 and path[0] == "repository":
+            field = path[1]
+            if field == "mergeQueue":
+                scope = "queue"
+            elif type(field) is str and (field in {"ledger", "base_tree"}
+                    or re.fullmatch(r"(?:file|base)[0-9]{1,5}", field)):
+                scope = "source"
+        scopes.add(scope)
+    return _ReadFailure(next(iter(kinds)) if len(kinds) == 1 else "mixed_errors",
+                        next(iter(scopes)) if len(scopes) == 1 else "other")
+
+
+def _read_at_stage(read: Callable[[str, dict], dict], stage: str,
+                   query: str, variables: dict) -> dict:
+    require(type(stage) is str and stage in {"queue_snapshot", "immutable_source"},
+            "ownership diagnostic stage invalid")
+    try:
+        return read(query, variables)
+    except _ReadFailure as exc:
+        # Never format the original API exception, body, query or path.
+        raise OwnershipUnqualified(
+            f"GitHub ownership read failed [stage={stage}; kind={exc.kind}; scope={exc.scope}]"
+        ) from None
 
 
 def require(value: Any, message: str) -> None:
@@ -298,14 +365,21 @@ def graphql_reader(token: str) -> Callable[[str, dict], dict]:
         try:
             with urllib.request.urlopen(request, timeout=30) as response:
                 payload = json.load(response)
-            require(isinstance(payload, dict) and not payload.get("errors")
-                    and isinstance(payload.get("data"), dict), "GitHub ownership query did not succeed")
-            return payload["data"]
-        except OwnershipUnqualified:
-            raise
-        except Exception as exc:
-            # API exception text can contain request details. Do not print it.
-            raise OwnershipUnqualified("GitHub ownership read failed") from exc
+        except urllib.error.HTTPError as exc:
+            kind = ({401: "http_unauthorized", 403: "http_forbidden", 429: "http_rate_limited"}.get(exc.code, "http_other")
+                    if type(exc.code) is int else "http_other")
+            raise _ReadFailure(kind) from None
+        except json.JSONDecodeError:
+            raise _ReadFailure("json_decode") from None
+        except Exception:
+            raise _ReadFailure("transport") from None
+        if not isinstance(payload, dict):
+            raise _ReadFailure("response_shape")
+        if payload.get("errors"):
+            raise _graphql_failure(payload["errors"])
+        if not isinstance(payload.get("data"), dict):
+            raise _ReadFailure("response_shape")
+        return payload["data"]
     return read
 
 
@@ -316,12 +390,14 @@ def qualify_owner(root: Path, env: Mapping[str, str], doc: dict, files: Mapping[
         read = graphql_reader(env.get("GH_TOKEN", ""))
         owner, name = env["GITHUB_REPOSITORY"].split("/", 1)
         variables = {"owner": owner, "name": name}
-        snapshot = read(QUEUE_QUERY, variables)
+        snapshot = _read_at_stage(read, "queue_snapshot", QUEUE_QUERY, variables)
+        def read_source(query: str, source_variables: dict) -> dict:
+            return _read_at_stage(read, "immutable_source", query, source_variables)
         config = ((snapshot.get("repository") or {}).get("mergeQueue") or {}).get("configuration") or {}
         if (config.get("maximumEntriesToBuild"), config.get("maximumEntriesToMerge")) == (8, 4):
             members, protected_tip = validate_parallel_snapshot(snapshot, event, env, checkout)
             return validate_parallel_migrations(
-                members, protected_tip, doc, files, read, variables
+                members, protected_tip, doc, files, read_source, variables
             )
         number, source_head, base = validate_snapshot(snapshot, event, env, checkout)
         expressions = {"ledger": f"{source_head}:supabase/migrations/RESERVATIONS.json",
@@ -336,7 +412,7 @@ def qualify_owner(root: Path, env: Mapping[str, str], doc: dict, files: Mapping[
             + ' }' for key in expressions)
         declarations = ", ".join(f"${key}: String!" for key in expressions)
         query = f"query($owner: String!, $name: String!, {declarations}) {{ repository(owner: $owner, name: $name) {{ {fields} }} }}"
-        source = read(query, variables | expressions).get("repository") or {}
+        source = read_source(query, variables | expressions).get("repository") or {}
         validate_migrations(number, doc, files, source)
         return number
     except OwnershipUnqualified:

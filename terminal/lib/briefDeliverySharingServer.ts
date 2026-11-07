@@ -78,3 +78,14 @@ export async function sharingCommandText(request: Request): Promise<string | nul
   } catch { return null; }
   finally { if (timer !== undefined) clearTimeout(timer); }
 }
+
+/** The public Terminal origin is fixed; reverse-proxy internal URLs are not a trust source. */
+export function sharingOriginAllowed(request: Request): boolean {
+  const origin = request.headers.get("origin");
+  if (origin === "https://app.mastermind-x.com") return true;
+  if (process.env.NODE_ENV === "production" || !origin) return false;
+  try {
+    const target = new URL(request.url), supplied = new URL(origin);
+    return supplied.origin === origin && target.origin === origin && ["localhost", "127.0.0.1", "[::1]"].includes(target.hostname);
+  } catch { return false; }
+}
