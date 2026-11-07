@@ -4537,9 +4537,6 @@ MAX_UNIT_SOURCE_BYTES = 16 * 1024
 MAX_UNIT_SOURCES = 32
 PREHOOK_DEFAULT_SEARCH_DIRS = (
     "/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin")
-PREHOOK_SUPPORTED_SEARCH_PATHS = (
-    ":".join(PREHOOK_DEFAULT_SEARCH_DIRS),
-    ":".join((*PREHOOK_DEFAULT_SEARCH_DIRS, "/sbin", "/bin")))
 
 KEY_LINE = re.compile(r"^(?:export\s+)?INVESTIGATION_API_ADMISSION(?![A-Za-z0-9_])")
 KEY_ASSIGNMENT = re.compile(
@@ -4947,10 +4944,9 @@ def loaded_safety_hook_sources(unit):
 
 
 # The pinned volume guard invokes these two operating-system programs by name.
-# Admit manager PATH only through source-owned system directories and retain
+# Admit manager PATH only through root-custodied canonical directories and retain
 # both the ordered resolution and observed custody in the existing hook tuple.
-SAFETY_PATH_DIRECTORIES = frozenset((
-    "/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin", "/sbin", "/bin"))
+SAFETY_PATH_MAX_COMPONENTS = 6
 SAFETY_PATH_ALIASES = {"/bin": "/usr/bin", "/sbin": "/usr/sbin"}
 SAFETY_PATH_EXECUTABLE_LIMIT = 8 * 1024 * 1024
 
@@ -4961,16 +4957,28 @@ def safety_path_identity(info):
         "st_size", "st_mtime_ns", "st_ctime_ns"))
 
 
+def safety_path_components(value, code="safety-hook-manager-path-unsupported"):
+    """Admit literal, already-normalized absolute spellings; never rewrite PATH.
+
+    This lexical contract does not qualify a directory or program. Both
+    independent custody/resolution authorities still inspect the original order.
+    """
+    if type(value) is not str or not value or len(value) > 1024:
+        raise Refused(code)
+    components = tuple(value.split(":"))
+    if (len(components) > SAFETY_PATH_MAX_COMPONENTS
+            or len(set(components)) != len(components)
+            or any(re.fullmatch(r"/(?:[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*)?", item) is None
+                   or any(part in (".", "..") for part in item.split("/"))
+                   for item in components)):
+        raise Refused(code)
+    return components
+
+
 def qualify_manager_safety_path(value):
     """Observe one declared PATH without executing or changing its programs."""
     import hashlib
-    if not value or len(value) > 1024:
-        raise Refused("safety-hook-manager-path-unsupported")
-    components = value.split(":")
-    if (len(components) > len(SAFETY_PATH_DIRECTORIES)
-            or len(set(components)) != len(components)
-            or any(item not in SAFETY_PATH_DIRECTORIES for item in components)):
-        raise Refused("safety-hook-manager-path-unsupported")
+    components = safety_path_components(value)
     observed, absent = {}, []
 
     def directory(path):
@@ -4984,7 +4992,10 @@ def qualify_manager_safety_path(value):
         if info.st_uid != 0 or info.st_gid != 0:
             raise Refused("safety-hook-manager-path-untrusted")
         if path != "/":
-            directory(os.path.dirname(path))
+            parent = os.path.dirname(path)
+            if directory(parent) != parent:
+                # Exact /bin and /sbin aliases do not admit aliased descendants.
+                raise Refused("safety-hook-manager-path-untrusted")
         if link is not None:
             target = SAFETY_PATH_ALIASES.get(path)
             if target is None or link not in (target, target.lstrip("/")):
@@ -5002,7 +5013,7 @@ def qualify_manager_safety_path(value):
     for name in ("findmnt", "stat"):
         selected = None
         for spelling, canonical in resolved:
-            path = canonical + "/" + name
+            path = os.path.join(canonical, name)
             try:
                 before = os.lstat(path)
             except FileNotFoundError:
@@ -5039,7 +5050,7 @@ def qualify_manager_safety_path(value):
             finally:
                 if descriptor >= 0:
                     os.close(descriptor)
-            selected = (name, spelling + "/" + name, path,
+            selected = (name, os.path.join(spelling, name), path,
                         safety_path_identity(before), hashlib.sha256(payload).hexdigest())
             break
         if selected is None:
@@ -5400,14 +5411,14 @@ def classify_supported_prehooks(unit):
 
 def prehook_search_directories(manager):
     # systemctl show-environment is not a shell program. Recognize only its
-    # literal PATH form and two standard system-manager sequences, never
-    # expand variables, quotes, escapes, relative/empty elements or custom
-    # directories. An absent assignment uses systemd's documented default.
+    # literal, bounded normalized absolute PATH form, never expand variables,
+    # quotes, escapes or relative/empty elements. Directory names alone confer
+    # no trust. An absent assignment uses systemd's documented default.
     values = []
     for line in manager.split("\n"):
         stripped = line.strip(" \t\r")
         if re.match(r"^(?:export\s+)?PATH(?![A-Za-z0-9_])", stripped):
-            match = re.fullmatch(r"PATH=([/A-Za-z0-9:_-]+)", stripped)
+            match = re.fullmatch(r"PATH=([/A-Za-z0-9:_.-]+)", stripped)
             if match is None:
                 raise Refused("prehook-search-path-unqualified")
             values.append(match.group(1))
@@ -5415,9 +5426,7 @@ def prehook_search_directories(manager):
         raise Refused("prehook-search-path-unqualified")
     if not values:
         return PREHOOK_DEFAULT_SEARCH_DIRS
-    if values[0] not in PREHOOK_SUPPORTED_SEARCH_PATHS:
-        raise Refused("prehook-search-path-unqualified")
-    return tuple(values[0].split(":"))
+    return safety_path_components(values[0], "prehook-search-path-unqualified")
 
 def qualify_prehook_search_tools(directories):
     # Read metadata only. Every directory/ancestor must be root-custodied
@@ -5442,7 +5451,7 @@ def qualify_prehook_search_tools(directories):
                 raise Refused("prehook-search-directory-custody")
     for name in ("findmnt", "stat"):
         for directory in directories:
-            path = directory + "/" + name
+            path = os.path.join(directory, name)
             if not os.path.lexists(path):
                 continue
             identity = trusted_path_identity(path)

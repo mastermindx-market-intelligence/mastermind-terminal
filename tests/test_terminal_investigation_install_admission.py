@@ -17,6 +17,7 @@ import json
 import os
 import re
 import shutil
+import stat as stat_module
 import subprocess
 import sys
 import textwrap
@@ -2703,7 +2704,7 @@ def test_prehook_manager_path_rejects_unqualified_resolution(verifier, tmp_path,
     host = approved_hook_host(tmp_path)
     host.manager = manager
     install_hook_fakes(verifier)
-    with pytest.raises(verifier["Refused"], match="safety-hook-manager-path-unsupported|prehook-search-path-unqualified"):
+    with pytest.raises(verifier["Refused"], match="safety-hook-manager-path-unsupported|safety-hook-manager-path-unreadable|prehook-search-path-unqualified"):
         _decide(verifier, host, app=app)
 
 
@@ -2801,7 +2802,7 @@ def test_hooks_allow_npm_process_path_but_reject_unsafe_manager_path(verifier, t
     args = [str(app), NEW_SHA, phase, str(app), "terminal", "/tmp", "production"]
     assert verifier["main"](args) == 0
     host.manager = "PATH=/tmp/evil-hook-bin"
-    with pytest.raises(verifier["Refused"], match="safety-hook-manager-path-unsupported"):
+    with pytest.raises(verifier["Refused"], match="safety-hook-manager-path-unreadable"):
         verifier["main"](args)
 
 
@@ -3139,7 +3140,7 @@ def test_exact_safety_hooks_accept_qualified_manager_path(verifier, path):
 
 @pytest.mark.parametrize("value", [
     "", ":/usr/bin", "/usr/bin:", "usr/bin", "/usr/bin::/bin",
-    "/usr/bin:/usr/bin", "/usr/bin/../bin", "/tmp:/usr/bin",
+    "/usr/bin:/usr/bin", "/usr/bin/../bin",
 ])
 def test_manager_path_rejects_unsupported_search_topology(verifier, value):
     host, _, _ = safety_host(verifier)
@@ -3274,7 +3275,6 @@ def test_manager_program_replacement_during_descriptor_read_refuses(verifier):
 
 @pytest.mark.parametrize("manager,code", [
     ("", "safety-hook-manager-path-unsupported"),
-    ("PATH=/usr/bin", "prehook-search-path-unqualified"),
 ])
 def test_full_topology_requires_both_manager_and_typed_hook_contracts(verifier, tmp_path, manager, code):
     app = tmp_path / "app"
@@ -3282,7 +3282,204 @@ def test_full_topology_requires_both_manager_and_typed_hook_contracts(verifier, 
     host = approved_hook_host(tmp_path)
     host.manager = manager
     install_hook_fakes(verifier)
-    # Missing manager PATH cannot borrow the typed helper's default; a path
-    # admitted by the manager helper alone cannot skip the typed source policy.
+    # Missing manager PATH cannot borrow the typed helper's standalone default.
+    # Independent custody authorities are covered by the semantic-path cases.
     with pytest.raises(verifier["Refused"], match=code):
         _decide(verifier, host, app=app)
+
+
+# Prospective semantic manager-PATH support. Private real files/fds only;
+# both independent production qualifiers run, with OS custody mapped explicitly.
+def semantic_path_host(verifier, value="/opt/qualified.bin:/usr/bin"):
+    typed_tools = verifier["qualify_prehook_search_tools"]
+    host, files, reads = safety_host(verifier)
+    fs = host.safety_path_fs
+    fs.file("/opt/qualified.bin").mkdir(parents=True)
+    fs.virtual_os.geteuid = lambda: 0
+    paths = SimpleNamespace(**vars(os.path))
+    paths.exists = lambda path: fs.file(path).exists()
+    paths.lexists = lambda path: os.path.lexists(fs.file(path))
+    fs.virtual_os.path = paths
+    prior_identity = verifier["trusted_path_identity"]
+
+    def identity(path):
+        if path in ("/bin/sh", verifier["VOLUME_SAFETY_PATH"]):
+            row = list(prior_identity(path))
+            for index in (0, 1, 4, 5):
+                row[index] = 0
+            return tuple(row)
+        direct = fs.virtual_os.lstat(path)
+        relative = fs.file(path).resolve().relative_to(fs.root.resolve())
+        canonical = "/" if relative == Path(".") else "/" + relative.as_posix()
+        target = fs.virtual_os.lstat(canonical)
+        return hook_identity(direct.st_uid, direct.st_gid,
+            stat_module.S_ISLNK(direct.st_mode), canonical,
+            target.st_uid, target.st_gid, target.st_mode,
+            stat_module.S_ISREG(target.st_mode), target.st_size)
+
+    verifier["trusted_path_identity"] = identity
+    verifier["qualify_prehook_search_tools"] = typed_tools
+    host.manager = "PATH=" + value
+    return host, fs
+
+
+@pytest.mark.parametrize("value", [
+    "/opt/qualified.bin:/usr/bin", "/usr/bin", "/bin:/usr/bin",
+    "/:/opt/qualified.bin:/usr/bin", "/usr/bin:/opt/qualified.bin", SAFETY_MANAGER_PATH,
+])
+def test_semantic_path_full_conjunction_accepts_trusted_neutral_components(verifier, value):
+    host, fs = semantic_path_host(verifier, value)
+    result = verifier["classify_production_safety_hooks"]("production", "terminal")
+    assert len(result) == 6
+    assert all(row[2] == "/usr/bin/" + row[0] for row in result[5][1])
+    verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
+    assert not fs.descriptors
+    host.unit["Environment"] = PROD_OPEN_ENV
+    with pytest.raises(verifier["Refused"], match="unit-admission-not-closed"):
+        verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
+
+
+@pytest.mark.parametrize("value", [
+    "", ":/usr/bin", "/usr/bin:", "relative:/usr/bin", "/./usr/bin",
+    "/usr/../usr/bin", "//usr/bin", "/usr//bin", "/usr/bin/",
+    "/usr/bin:/usr/bin", "/a:/b:/c:/d:/e:/f:/usr/bin",
+    "/" + "a" * 1024, "/opt/white space:/usr/bin", "/opt/$bin:/usr/bin",
+    "/opt/back\\slash:/usr/bin",
+])
+def test_semantic_path_both_lexical_gates_reject_ambiguity(verifier, value):
+    with pytest.raises(verifier["Refused"]):
+        verifier["qualify_manager_safety_path"](value)
+    with pytest.raises(verifier["Refused"]):
+        verifier["prehook_search_directories"]("PATH=" + value)
+
+
+@pytest.mark.parametrize("mutation", [
+    "missing", "missing_later", "writable", "foreign_owner", "foreign_group", "ancestor_writable",
+    "unknown_alias", "alias_descendant", "findmnt_shadow", "stat_shadow",
+])
+def test_semantic_path_full_conjunction_refuses_untrusted_neutral_directory(verifier, mutation):
+    host, fs = semantic_path_host(verifier)
+    neutral = fs.file("/opt/qualified.bin")
+    if mutation in ("missing", "missing_later"):
+        neutral.rmdir()
+        if mutation == "missing_later":
+            host.manager = "PATH=/usr/bin:/opt/qualified.bin"
+    elif mutation == "writable":
+        neutral.chmod(0o777)
+    elif mutation == "foreign_owner":
+        fs.overrides["/opt/qualified.bin"] = {"st_uid": 1000}
+    elif mutation == "foreign_group":
+        fs.overrides["/opt"] = {"st_gid": 1000}
+    elif mutation == "ancestor_writable":
+        fs.file("/opt").chmod(0o777)
+    elif mutation == "unknown_alias":
+        neutral.rmdir()
+        neutral.symlink_to("../usr/bin")
+    elif mutation == "alias_descendant":
+        fs.file("/usr/bin/subdir").mkdir()
+        host.manager = "PATH=/bin/subdir:/usr/bin"
+        with pytest.raises(verifier["Refused"]):
+            verifier["qualify_prehook_search_tools"](("/bin/subdir", "/usr/bin"))
+    else:
+        name = mutation.removesuffix("_shadow")
+        shadow = neutral / name
+        shadow.write_bytes(b"root-owned earlier shadow")
+        shadow.chmod(0o755)
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
+    assert not fs.descriptors
+
+
+def test_semantic_path_each_custody_authority_remains_necessary(verifier):
+    host, fs = semantic_path_host(verifier)
+    original = verifier["trusted_path_identity"]
+
+    def typed_foreign(path):
+        row = list(original(path))
+        if path == "/opt/qualified.bin":
+            row[4] = 1000
+        return tuple(row)
+
+    verifier["trusted_path_identity"] = typed_foreign
+    # The source/hash qualifier succeeds; the independent typed one must fail.
+    verifier["classify_production_safety_hooks"]("production", "terminal")
+    with pytest.raises(verifier["Refused"], match="prehook-search-directory-custody"):
+        verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
+    assert not fs.descriptors
+
+
+@pytest.mark.parametrize("mutation", ["earlier_appears", "directory_changes", "path_reorders"])
+def test_semantic_path_final_snapshot_rejects_new_resolution(verifier, mutation):
+    host, fs = semantic_path_host(verifier)
+    original = verifier["qualify_manager_safety_path"]
+    calls = 0
+
+    def moving(value):
+        nonlocal calls
+        result = original(value)
+        calls += 1
+        if calls == 1:
+            if mutation == "earlier_appears":
+                shadow = fs.file("/opt/qualified.bin/findmnt")
+                shadow.write_bytes(b"new earlier shadow")
+                shadow.chmod(0o755)
+            elif mutation == "directory_changes":
+                fs.overrides["/opt/qualified.bin"] = {"st_ino": 999999}
+            else:
+                host.manager = "PATH=/usr/bin:/opt/qualified.bin"
+        return result
+
+    verifier["qualify_manager_safety_path"] = moving
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
+    assert calls >= 1
+    assert not fs.descriptors
+
+
+@pytest.mark.parametrize("control", ["\n", "\r", "\t", "\x00"])
+def test_semantic_path_literal_value_and_serialized_controls_refuse(verifier, control):
+    with pytest.raises(verifier["Refused"]):
+        verifier["safety_path_components"]("/opt/line" + control + "bin:/usr/bin")
+    # A manager assignment containing a control is serialized/quoted, not an
+    # unquoted multiline value accidentally treated as two environment records.
+    with pytest.raises(verifier["Refused"]):
+        verifier["prehook_search_directories"]('PATH="/opt/line' + control + 'bin:/usr/bin"')
+
+
+def test_semantic_path_earlier_absence_rechecked_during_same_fd_capture(verifier):
+    host, fs = semantic_path_host(verifier)
+    read = fs.virtual_os.read
+    changed = False
+    neutral_info = fs.virtual_os.lstat("/opt/qualified.bin")
+
+    def appearing(descriptor, count):
+        nonlocal changed
+        raw = read(descriptor, count)
+        if not changed:
+            changed = True
+            shadow = fs.file("/opt/qualified.bin/findmnt")
+            shadow.write_bytes(b"new earlier root-owned shadow")
+            shadow.chmod(0o755)
+            # Isolate the earlier-absence check from the separately tested
+            # directory-time readback: fixture metadata stays otherwise equal.
+            fs.overrides["/opt/qualified.bin"] = {
+                "st_mtime_ns": neutral_info.st_mtime_ns,
+                "st_ctime_ns": neutral_info.st_ctime_ns,
+                "st_size": neutral_info.st_size,
+            }
+        return raw
+
+    fs.virtual_os.read = appearing
+    with pytest.raises(verifier["Refused"], match="safety-hook-manager-path-changed"):
+        verifier["qualify_manager_safety_path"]("/opt/qualified.bin:/usr/bin")
+    assert changed and not fs.descriptors
+
+
+def test_semantic_path_exact_lexical_bounds_preserve_original_value(verifier):
+    components = ("/a", "/b", "/c", "/d", "/e", "/f")
+    value = ":".join(components)
+    assert verifier["safety_path_components"](value) == components
+    boundary = "/" + "a" * 1023
+    assert verifier["safety_path_components"](boundary) == (boundary,)
+    with pytest.raises(verifier["Refused"]):
+        verifier["safety_path_components"](boundary + "a")
