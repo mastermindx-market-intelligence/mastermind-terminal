@@ -1,0 +1,360 @@
+.lens {
+  color: var(--text);
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+  --fast: var(--link);
+  --slow: var(--text-2);
+}
+.hero,
+.plotCard,
+.rail {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  min-width: 0;
+}
+.hero {
+  padding: 18px 22px;
+  margin-bottom: 10px;
+}
+.top,
+.meta,
+.tools,
+.toggle,
+.controls,
+.dates,
+.metrics,
+.turns > div,
+.rail h4,
+.rail button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.top,
+.tools,
+.dates,
+.rail h4,
+.rail button {
+  justify-content: space-between;
+}
+.top,
+.meta,
+.dates,
+.controls,
+.turns time,
+.rail h4,
+.metrics span,
+.metrics time {
+  color: var(--text-2);
+  font-size: 12px;
+}
+.top {
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.hero h2 {
+  margin: 8px 0 !important;
+  font: 650 clamp(23px, 3vw, 34px) / 1.15 var(--font-ui);
+  letter-spacing: -0.035em;
+}
+.hero h2 span {
+  color: var(--text-2);
+  font-weight: 400;
+}
+.meta {
+  flex-wrap: wrap;
+  gap: 6px 18px;
+}
+.meta b {
+  color: var(--text);
+}
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2.2fr) minmax(208px, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+.plotCard,
+.rail {
+  padding: 16px 20px;
+}
+.lens h3 {
+  font-size: 16px;
+}
+.lens h4 {
+  font-size: 12px;
+  margin: 0;
+}
+.tools {
+  flex-wrap: wrap;
+}
+.controls {
+  margin: 4px 0;
+}
+.lens button,
+.lens select {
+  font: inherit;
+  background: transparent;
+  color: var(--text);
+  border: 0;
+  cursor: pointer;
+  min-height: 44px;
+}
+.lens select {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  padding: 0 6px;
+}
+.toggle {
+  gap: 0;
+}
+.toggle button {
+  padding: 0 10px;
+  color: var(--text-2);
+  border-bottom: 2px solid transparent;
+}
+.toggle button[aria-pressed="true"] {
+  color: var(--text);
+  border-bottom-color: var(--fast);
+}
+.lens :is(button, input, summary, select):focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: -2px;
+}
+.metrics {
+  margin: 10px 0 14px;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.metrics > div {
+  display: grid;
+  gap: 3px;
+}
+.metrics strong {
+  font-size: 24px;
+}
+.metrics > div:first-child strong {
+  color: var(--fast);
+}
+.metrics time {
+  margin-inline-start: auto;
+}
+.graph {
+  display: flex;
+  gap: 6px;
+  height: 150px;
+}
+.axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: var(--text-2);
+  font-size: 11px;
+  min-width: 40px;
+}
+.graph svg {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  overflow: visible;
+}
+.graph path {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+.grid,
+.cursor {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.cursor {
+  stroke-dasharray: 2 3;
+}
+.short,
+.long {
+  stroke-width: 2.5;
+}
+.short {
+  stroke: var(--fast);
+}
+.long {
+  stroke: var(--slow);
+  stroke-dasharray: 6 3;
+}
+.dot {
+  fill: var(--fast);
+}
+.lens input {
+  width: 100%;
+  min-height: 44px;
+  accent-color: var(--fast);
+}
+.turns {
+  border-top: 1px solid var(--line);
+  margin-top: 15px;
+  padding-top: 12px;
+  font-size: 12px;
+}
+.turns > div {
+  margin: 4px 0;
+}
+.turns em {
+  color: var(--text-2);
+  font-style: normal;
+}
+.lens details {
+  font-size: 12px;
+  color: var(--text-2);
+}
+.lens summary {
+  cursor: pointer;
+  min-height: 44px;
+  align-content: center;
+}
+.lens details p {
+  max-width: 68ch;
+}
+.rail h4 {
+  padding: 10px 0 3px;
+  border-bottom: 1px solid var(--line);
+}
+.rail button {
+  width: 100%;
+  text-align: left;
+  padding: 0 6px;
+}
+.rail button[aria-pressed="true"] {
+  box-shadow: inset 2px 0 var(--link);
+  background: var(--panel-2);
+}
+.rail button b {
+  font-weight: 500;
+  color: var(--text-2);
+  font-size: 12px;
+}
+.scrollTable {
+  overflow: auto;
+  max-height: 240px;
+}
+.scrollTable table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.scrollTable caption {
+  position: absolute;
+  clip-path: inset(50%);
+}
+.scrollTable th,
+.scrollTable td {
+  text-align: right;
+  padding: 5px 4px;
+  border-bottom: 1px solid var(--line);
+}
+.scrollTable th:first-child {
+  text-align: left;
+}
+.dates {
+  font-size: 11px;
+}
+@media (max-width: 740px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .hero,
+  .plotCard,
+  .rail {
+    padding: 12px;
+  }
+  .metrics {
+    gap: 12px;
+  }
+  .metrics time {
+    font-size: 11px;
+  }
+  .graph {
+    height: 124px;
+  }
+  .controls {
+    margin: 3px 0;
+  }
+  .rail > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 8px;
+  }
+  .rail h4 {
+    width: 100%;
+  }
+  .rail button {
+    width: auto;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .meta {
+    gap: 4px 12px;
+  }
+}
+
+.baskets {
+  margin-top: 10px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: 4px 20px 8px;
+}
+.baskets > summary {
+  font-weight: 650;
+  font-size: 15px;
+  color: var(--text);
+}
+.baskets small {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2);
+  padding-left: 6px;
+}
+.basketTop {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.basketTop label {
+  min-width: 0;
+  flex: 1 1 180px;
+  display: grid;
+  gap: 4px;
+}
+.basketTop select {
+  width: 100%;
+}
+.baskets table {
+  width: 100%;
+  font-size: 12px;
+  table-layout: fixed;
+  border-collapse: collapse;
+  color: var(--text);
+  margin-top: 12px;
+}
+.baskets caption {
+  text-align: left;
+  color: var(--text-2);
+}
+.baskets td,
+.baskets th {
+  padding: 7px 4px;
+  text-align: right;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid var(--line);
+}
+.baskets th:first-child {
+  text-align: left;
+}
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  clip-path: inset(50%);
+  overflow: hidden;
+}
