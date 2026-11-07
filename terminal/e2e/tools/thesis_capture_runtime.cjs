@@ -109,7 +109,7 @@ async function start(root,port) {
   return {async ready(timeoutMs=180000){
     const until=Date.now()+timeoutMs;
     while(Date.now()<until){owner.assertRunning();
-      try {assertOwnedListener(port,child.pid);const r=await fetch(base+"/analysis?view=theses&symbol=NVDA",{redirect:"manual",headers:{Cookie:"mm_e2e_rs30=1"}});owner.assertRunning();assertOwnedListener(port,child.pid);if(r.status===200)return;}
+      try {assertOwnedListener(port,child.pid);const r=await fetch(base+"/analysis?view=theses&symbol=NVDA",{redirect:"manual",headers:{Cookie:"mm_e2e_rs30=1"},signal:AbortSignal.timeout(10000)});owner.assertRunning();assertOwnedListener(port,child.pid);if(r.status===200)return;}
       catch(e){owner.assertRunning();if(e.message==="THESIS_CAPTURE_FOREIGN_LISTENER")throw e;}
       await new Promise(r=>setTimeout(r,500));
     }
