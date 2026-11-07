@@ -4,6 +4,10 @@ This repository and Macro Dashboard are operated by multiple Claude accounts and
 Codex sessions. Repository files are the durable, shared source of instructions;
 promises or “memory” recorded only inside one chat do not carry to another session.
 
+## Reuse-first engineering
+
+Before building substantial commodity machinery (trading charts, agent interfaces, UI primitives, telemetry, jobs or storage), inspect the existing Terminal/Macro/Mastermind implementation and suitable maintained open-source solutions. Prefer an adapter/composition/extension over unnecessary rebuilding; keep proprietary quant/signal intelligence, point-in-time semantics and scientific validity independently owned and tested. Confirm maintenance, compatibility and real consumer evidence; retain existing security/data boundaries without adding a sign-off. Apply the protected [Mastermind engineering policy](https://github.com/mastermindx-market-intelligence/Mastermind/blob/master/docs/REUSE_FIRST_ENGINEERING.md) once accepted. Do not create a second control plane or mandatory research/approval ceremony.
+
 ## Session-owned PR/source review (Chairman 2026-11-03)
 
 The assigned attended CEO Web session owns the actual source diff, self-review, focused tests, required CI and authorized release. **FAST, STANDARD, and CRITICAL do not impose a blanket independent technical reviewer, Fabric/Dot/native-child handoff or additional formal non-author approval on attended Web work.** A risk tier still determines proportionate security, regression and real-path proof; incomplete source is HOLD, not a shortcut. A different ChatGPT Web, Codex or Claude top-level session is never the default review prerequisite. Existing native GitHub/CODEOWNERS approvals, recorded release/security holds, exact-head CI, source custody and non-author merge authority remain binding; never self-approve, self-merge or bypass a required control. This attended-session waiver does not disable the separate signed automatic GitHub/Executive machine review path.
