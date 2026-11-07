@@ -46,7 +46,7 @@ function guardApiRequest(request, base, counts) {
   for (const name of ["get","post","put","patch","delete","head","fetch"]) {
     request[name] = async (url, options={}) => {
       if (!options || typeof options !== "object") throw Error("THESIS_CAPTURE_API_SCOPE");
-      const raw = name === "fetch" ? options.method ?? "GET" : name;
+      const raw = name === "fetch" ? (options.method === undefined ? "GET" : options.method) : name;
       const method = typeof raw === "string" && /^[A-Za-z]+$/.test(raw) ? raw.toUpperCase() : "";
       if (!fixtureApi(url,method,base)) throw Error("THESIS_CAPTURE_API_SCOPE");
       counts.directFixtureRequests++;
