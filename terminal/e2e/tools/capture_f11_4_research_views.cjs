@@ -17,11 +17,13 @@ const { spawn, execFileSync } = require("node:child_process");
 const { createHash, randomUUID } = require("node:crypto");
 const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { basename, join } = require("node:path");
-const { chromium } = require("@playwright/test");
+const runtime = require("./thesis_capture_runtime.cjs");
+const chromium = runtime.getChromium();
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
-const OUT = join(ROOT, "docs", "pr-crops", "b-f11-4-research-views");
+const TARGET = join(ROOT, "docs", "pr-crops", "b-f11-4-research-views");
+const OUT = runtime.staging(ROOT, "b-f11-4-research-views");
 const LAYOUT_FILES = [
   "terminal/components/workspaces/ThesisWorkspace.tsx",
   // Round-3 review (Meta-CEO B ruling R4): this packet changes the workspace stylesheet,
@@ -59,58 +61,9 @@ function cropName(surface, width, lang) {
   return `${surface}-${width}${lang === "zh" ? "-zh" : ""}.png`;
 }
 
-function startServer() {
-  const env = {
-    ...process.env,
-    ANALYSIS_LOCAL_PREVIEW: "1",
-    ADMIN_DEV: "1",
-    TERMINAL_E2E_FIXTURE: "1",
-    TERMINAL_E2E_EMAIL: "responsive@example.com",
-    TERMINAL_E2E_ENTITLEMENT: "unlimited",
-    RATE_LIMIT_MAX: "100000",
-    HUB_REALTIME_QUOTES: "1",
-    FLOW_FIXTURE: "1",
-    NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
-  };
-  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT)], {
-    cwd: ROOT,
-    env,
-    stdio: ["ignore", "pipe", "pipe"],
-    detached: true,
-  });
-  child.stdout.on("data", (buf) => {
-    const line = String(buf);
-    if (/Ready|compiled|error|Error/i.test(line)) process.stdout.write(`[dev] ${line}`);
-  });
-  child.stderr.on("data", (buf) => process.stderr.write(`[dev:err] ${buf}`));
-  return child;
-}
-
-function stopServer(child) {
-  if (!child || !child.pid) return;
-  try {
-    process.kill(-child.pid, "SIGTERM");
-  } catch {
-    try { child.kill("SIGTERM"); } catch { /* already gone */ }
-  }
-}
-
-async function waitForServer(timeoutMs) {
-  const deadline = Date.now() + timeoutMs;
-  let last = "not tried";
-  while (Date.now() < deadline) {
-    try {
-      const res = await fetch(`${BASE}/terminal?symbol=SPY`, { redirect: "manual" });
-      last = String(res.status);
-      if (res.status >= 200 && res.status < 500) return;
-    } catch (err) {
-      last = err.cause?.code || err.message;
-    }
-    await new Promise((r) => setTimeout(r, 750));
-  }
-  throw new Error(`dev server on ${PORT} never answered (${last})`);
-}
+async function startServer() { return runtime.start(ROOT, PORT); }
+async function stopServer(owner) { return owner.stop(); }
+async function waitForServer(timeoutMs, owner) { return owner.ready(timeoutMs); }
 
 function subject(symbol) {
   return {
@@ -376,12 +329,13 @@ function manifestFiles(captured) {
 }
 
 async function main() {
+  if (process.env.CAPTURE_ONLY) throw Error("THESIS_CAPTURE_PARTIAL_REFUSED");
   const capturedAtHead = currentGitHead();
-  const child = startServer();
+  const child = await startServer();
   const files = [];
   let failed = 0;
   try {
-    await waitForServer(180_000);
+    await waitForServer(180_000, child);
     const browser = await chromium.launch({ headless: true });
     try {
       for (const width of [1440, 390]) {
@@ -432,7 +386,7 @@ async function main() {
       await browser.close();
     }
   } finally {
-    stopServer(child);
+    await stopServer(child);
   }
 
   const evidence = [
@@ -468,7 +422,7 @@ async function main() {
     "  transport for the first thesis created in a store whose key carries",
     "  FIXTURE_MONITOR_FIRED_TOKEN (terminal/lib/watchlistsFixtureDb.ts). The shipped",
     "  GET /api/thesis-fire-status route and mapOutboxToConditionStates() run for real",
-    "  against it; nothing in this capture stubs a network response.",
+    "  against it. The controlled boundary preserves these fixture routes and answers unrelated provider reads unavailable.",
     "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
     "command: |",
     "  cd terminal",
@@ -489,6 +443,7 @@ async function main() {
   }
   writeFileSync(join(OUT, "EVIDENCE.yml"), evidence);
   console.log(`capturedAtHead ${capturedAtHead}`);
+  runtime.publish(OUT, TARGET, files, { ...child.summary(), counts: chromium.counts, toolchain: chromium.toolchain, capturedAtHead });
   console.log(`wrote ${files.length} crops + EVIDENCE.yml to ${OUT}`);
 }
 

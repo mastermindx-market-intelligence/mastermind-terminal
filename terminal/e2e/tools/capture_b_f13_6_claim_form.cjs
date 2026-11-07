@@ -18,11 +18,13 @@ const { spawn, execFileSync } = require("node:child_process");
 const { createHash } = require("node:crypto");
 const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
-const { chromium } = require("@playwright/test");
+const runtime = require("./thesis_capture_runtime.cjs");
+const chromium = runtime.getChromium();
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
-const OUT = join(ROOT, "docs", "pr-crops", "b-f13-6-claim-form");
+const TARGET = join(ROOT, "docs", "pr-crops", "b-f13-6-claim-form");
+const OUT = runtime.staging(ROOT, "b-f13-6-claim-form");
 const LAYOUT_FILES = [
   "terminal/components/workspaces/ClaimAuthoringForm.tsx",
   "terminal/components/workspaces/ClaimAuthoringForm.module.css",
@@ -72,58 +74,9 @@ function utcTomorrow() {
     .slice(0, 10);
 }
 
-function startServer() {
-  const env = {
-    ...process.env,
-    ANALYSIS_LOCAL_PREVIEW: "1",
-    ADMIN_DEV: "1",
-    TERMINAL_E2E_FIXTURE: "1",
-    TERMINAL_E2E_EMAIL: "responsive@example.com",
-    TERMINAL_E2E_ENTITLEMENT: "unlimited",
-    RATE_LIMIT_MAX: "100000",
-    HUB_REALTIME_QUOTES: "1",
-    FLOW_FIXTURE: "1",
-    NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
-  };
-  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT)], {
-    cwd: ROOT,
-    env,
-    stdio: ["ignore", "pipe", "pipe"],
-    detached: true,
-  });
-  child.stdout.on("data", (buf) => {
-    const line = String(buf);
-    if (/Ready|compiled|error|Error/i.test(line)) process.stdout.write(`[dev] ${line}`);
-  });
-  child.stderr.on("data", (buf) => process.stderr.write(`[dev:err] ${buf}`));
-  return child;
-}
-
-function stopServer(child) {
-  if (!child || !child.pid) return;
-  try {
-    process.kill(-child.pid, "SIGTERM");
-  } catch {
-    try { child.kill("SIGTERM"); } catch { /* already gone */ }
-  }
-}
-
-async function waitForServer(timeoutMs) {
-  const deadline = Date.now() + timeoutMs;
-  let last = "not tried";
-  while (Date.now() < deadline) {
-    try {
-      const res = await fetch(`${BASE}/analysis?view=theses&symbol=${SYM}`, { redirect: "manual" });
-      last = String(res.status);
-      if (res.status >= 200 && res.status < 500) return;
-    } catch (err) {
-      last = err.cause?.code || err.message;
-    }
-    await new Promise((r) => setTimeout(r, 750));
-  }
-  throw new Error(`dev server on ${PORT} never answered (${last})`);
-}
+async function startServer() { return runtime.start(ROOT, PORT); }
+async function stopServer(owner) { return owner.stop(); }
+async function waitForServer(timeoutMs, owner) { return owner.ready(timeoutMs); }
 
 async function stripDevOverlay(page) {
   await page.evaluate(() => {
@@ -196,11 +149,12 @@ async function shoot(page, file, kind) {
 }
 
 async function main() {
+  if (process.env.CAPTURE_ONLY) throw Error("THESIS_CAPTURE_PARTIAL_REFUSED");
   const capturedAtHead = currentGitHead();
-  const child = startServer();
+  const child = await startServer();
   const files = [];
   try {
-    await waitForServer(180_000);
+    await waitForServer(180_000, child);
     const browser = await chromium.launch({ headless: true });
     try {
       for (const shot of SHOTS) {
@@ -233,7 +187,7 @@ async function main() {
       await browser.close();
     }
   } finally {
-    stopServer(child);
+    await stopServer(child);
   }
 
   const evidence = [
@@ -261,6 +215,7 @@ async function main() {
     ...SHOTS.map((s) => `  - ${s.file}`),
   ];
   writeFileSync(join(OUT, "EVIDENCE.yml"), `${evidence.join("\n")}\n`);
+  runtime.publish(OUT, TARGET, files, { ...child.summary(), counts: chromium.counts, toolchain: chromium.toolchain, capturedAtHead });
   console.log(`wrote ${files.length} crops + EVIDENCE.yml at ${capturedAtHead}`);
 }
 
