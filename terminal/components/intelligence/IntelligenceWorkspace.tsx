@@ -12,7 +12,7 @@ const COPY = {
  en: { title:"Market Intelligence", intro:"Start with the market backdrop, inspect sector cycles, then investigate a company or plan. Each reading keeps its own source and date.",
   macro:"Macro Dashboard", cycles:"Sector Cycles", prophet:"Prophet", macroSource:"Macro Command · United States", cycleSource:"Sector cycle model · United States", prophetSource:"Macro-originated plans",
   loading:"Loading source reading…", unavailable:"This reading is unavailable. It does not mean risk is low or there are no opportunities.", access:"Your current access does not include this reading. Other available readings remain usable.", missing:"This source has not published a reading.", retry:"Try again", date:"Source as of", unknown:"Date unavailable", stale:"This is a previously saved reading. Check its date before relying on it.",
-  openMacro:"Open Macro Dashboard", openCycles:"Open Sector Cycles", openProphet:"Open Prophet", openSectors:"Explore sector intelligence", openCommand:"Open Macro Command",
+  openMacro:"Open Macro Dashboard", openCycles:"Open Sector Cycles", openProphet:"Open opportunity workspace", openModelPlans:"Model plans & options", openSectors:"Explore sector intelligence", openCommand:"Open Macro Command",
   coverage:"source sections verified", partial:"Some source readings are omitted or unavailable. A partial view is not an all-clear.", noSummary:"The source did not publish a summary.",
   cycleNote:"Published cycle phases and positions, not a relative-strength rotation score. A position is not a probability or confidence rating.", position:"Position", model:"model", unavailableValue:"Unavailable", sectors:"sectors covered", noSectors:"The published source reports zero covered sectors.",
   preview:"A preview of published open plans in the source's order, not new recommendations.", openCount:"Open plans in published source", noPlans:"The published source reports no open plans.", priceDate:"Plan price basis", planDate:"Plan revision", published:"Publication date", mixed:"These readings come from different source dates.", delayed:"The source data is delayed.", sourceUnknown:"The underlying source date is unknown.",
@@ -21,7 +21,7 @@ const COPY = {
  zh: { title:"市场情报", intro:"先了解宏观环境，再查看行业周期，继而研究公司或计划。每项读数均保留其来源与日期。",
   macro:"宏观仪表盘", cycles:"行业周期", prophet:"Prophet", macroSource:"宏观指挥台 · 美国", cycleSource:"行业周期模型 · 美国", prophetSource:"宏观引擎生成的计划",
   loading:"正在加载来源读数…", unavailable:"此读数暂不可用。这并不代表风险较低或没有机会。", access:"当前权限不包含此读数。其他可用读数仍可查看。", missing:"该来源尚未发布读数。", retry:"重试", date:"来源截至", unknown:"日期不可用", stale:"这是先前保存的读数。使用前请核对其日期。",
-  openMacro:"打开宏观仪表盘", openCycles:"打开行业周期", openProphet:"打开 Prophet", openSectors:"探索行业情报", openCommand:"打开宏观指挥台",
+  openMacro:"打开宏观仪表盘", openCycles:"打开行业周期", openProphet:"打开机会工作台", openModelPlans:"模型计划与期权", openSectors:"探索行业情报", openCommand:"打开宏观指挥台",
   coverage:"个来源板块已核验", partial:"部分来源读数被省略或暂不可用。局部信息并不代表风险已解除。", noSummary:"来源未发布摘要。",
   cycleNote:"展示已发布的周期阶段与位置，并非相对强度轮动评分。周期位置不是概率或置信度。", position:"位置", model:"模型", unavailableValue:"不可用", sectors:"个行业已覆盖", noSectors:"已发布来源报告零个已覆盖行业。",
   preview:"按原始发布顺序展示未关闭计划；仅为有限预览，并非新的建议。", openCount:"来源报告的开放计划数", noPlans:"已发布来源报告当前无开放计划。", priceDate:"计划价格基准", planDate:"计划修订", published:"发布日期", mixed:"来源报告了混合数据日期。", delayed:"来源报告数据延迟。", sourceUnknown:"来源数据日期未知。",
@@ -85,7 +85,7 @@ function IntelligenceSession({ownerKey}:{ownerKey:string}) {
   </div> : <div className={s.grid}>
    {KINDS.map(kind=>{
     const read = reads[kind].generation === scope.current ? reads[kind] : initial()[kind];
-    const title = c[kind], href = kind === "macro" ? "/macro.html" : kind === "cycles" ? "/sector_cycles.html" : "/prophet";
+    const title = c[kind], href = kind === "macro" ? "/macro.html" : kind === "cycles" ? "/sector_cycles.html" : "/us_stocks.html";
     return <section key={kind} className={s.card} aria-labelledby={`intel-${kind}`} aria-busy={read.phase === "loading"} data-intelligence-source={kind} data-read-state={read.phase}>
      <p className={s.eyebrow}>{kind === "macro" ? c.macroSource : kind === "cycles" ? c.cycleSource : c.prophetSource}</p><h2 id={`intel-${kind}`}>{title}</h2>
      {read.phase !== "ready" ? <p role="status" className={s.notice}>{c[read.phase]}</p> : kind === "macro" ? (()=>{
@@ -122,6 +122,7 @@ function IntelligenceSession({ownerKey}:{ownerKey:string}) {
       </>;
      })()}
      <div className={s.footer}><Link className={s.action} href={href} prefetch={false}>{kind === "macro" ? c.openMacro : kind === "cycles" ? c.openCycles : c.openProphet} →</Link>
+      {kind === "prophet" && <Link className={s.action} href="/prophet" prefetch={false}>{c.openModelPlans}</Link>}
       <button className={s.action} aria-label={`${c.retry}: ${title}`} aria-disabled={read.phase === "loading"} onClick={()=>{if(read.phase !== "loading") void load(kind);}}>{c.retry}</button>
      </div>
     </section>;

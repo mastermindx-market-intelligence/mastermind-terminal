@@ -27,14 +27,16 @@ function Session({ownerKey,kind}:{ownerKey:string;kind:"prophet"|"sectors"}) {
   flowInvalidate();
   return ()=>flowInvalidate();
  },[kind,ready]);
- const title = kind === "prophet" ? "Prophet" : zh ? "行业情报" : "Sector Intelligence";
+ const title = kind === "prophet" ? pick(lang, "Model plans & options", "模型计划与期权") : zh ? "行业情报" : "Sector Intelligence";
  const identityMessage = ended
   ? pick(lang, "Your account changed or your session ended. Private readings have been cleared.", "账户已更改或会话已结束。私人读数已清除。")
   : unavailable
     ? pick(lang, "Account verification is unavailable. Private readings are hidden.", "账户核验暂不可用。私人读数已隐藏。")
     : pick(lang, "Verifying your account…", "正在核验账户…");
  return <div className={`main2 ${s.workspace}`} data-intelligence-tool={kind}>
-  <header className={s.workspaceHeader}><h1>{title}</h1><IntelligenceNav /></header>
+  <header className={s.workspaceHeader}><h1>{title}</h1><IntelligenceNav />
+   {kind === "prophet" && <Link className={s.action} href="/us_stocks.html" prefetch={false}>{pick(lang, "Open Prophet workspace", "打开 Prophet 工作台")} →</Link>}
+  </header>
   {!ready ? <main id="shared-shell-content" tabIndex={-1} className={s.root}>
    <div role="status" className={s.notice}><p>{identityMessage}</p>
     {(ended || unavailable) && <div className={s.footer}>

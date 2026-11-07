@@ -63,7 +63,7 @@ export function useShellEmail(): string {
 // Chart (/terminal) has its own shell and is intentionally absent.
 const TITLE_MAP: Array<[string, string, string]> = [
   ["/intelligence", "shellIntelligence", "Market Intelligence"],
-  ["/prophet", "shellProphet", "Prophet"],
+  ["/prophet", "shellProphet", "Model plans & options"],
   ["/sectors", "shellSectors", "Sector Intelligence"],
   ["/today", "shellToday", "Today"],
   ["/research", "shellResearch", "Research"],

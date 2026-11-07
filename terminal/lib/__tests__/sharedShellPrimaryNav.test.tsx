@@ -33,10 +33,11 @@ describe("beta-only primary nav and intelligence current-page policy", () => {
   it.each([
     ["/intelligence", "", "/intelligence"],
     ["/macro.html", "", "/macro.html"],
-    ["/prophet", "", "/prophet"],
+    ["/us_stocks.html", "", "/us_stocks.html"],
+    ["/prophet", "", "/us_stocks.html"],
     ["/sector_cycles.html", "", "/sector_cycles.html"],
     ["/sectors", "", "/sectors"],
-    ["/options", "tab=prophet", "/prophet"],
+    ["/options", "tab=prophet", "/us_stocks.html"],
     ["/discover", "tab=sectors", "/sectors"],
   ])("%s %s has one current destination, not Today", (path,search,expected) => {
     mock.path=path; mock.search=search;
@@ -48,7 +49,7 @@ describe("beta-only primary nav and intelligence current-page policy", () => {
   it("does not let a mobile caller override mark Today while displaying Prophet", () => {
     mock.path="/options"; mock.search="tab=prophet";
     expect([...nav("drawer","shellToday").querySelectorAll('a[aria-current="page"]')]
-      .map(a=>a.getAttribute("href"))).toEqual(["/prophet"]);
+      .map(a=>a.getAttribute("href"))).toEqual(["/us_stocks.html"]);
   });
   it("preserves a legitimate caller override on a non-intelligence route", () => {
     mock.path="/analysis";
@@ -69,7 +70,8 @@ describe("beta-only primary nav and intelligence current-page policy", () => {
     const host=nav("rail");
     const refs=[...host.querySelectorAll("a")].map(a=>a.getAttribute("href"));
     expect(refs.find(x=>x?.startsWith("/analysis"))).toBe("/analysis?symbol=SMR");
-    expect(refs.find(x=>x?.startsWith("/prophet"))).toBe("/prophet");
+    expect(refs).toContain("/us_stocks.html");
+    expect(refs).not.toContain("/prophet");
   });
   it("renders the same five bilingual intelligence destinations without losing labels", () => {
     mock.lang="zh";

@@ -26,13 +26,22 @@ describe("intelligence overview privacy, source truth and independent lanes",()=
   await answer(0,macro);await answer(1,cycles);await answer(2,prophet);
   expect(host.textContent).toContain("Liquidity is mixed");expect(host.textContent).toContain("Technology");expect(host.textContent).toContain("NVDA");
   expect(host.textContent).toContain("2026-09-25");expect(host.textContent).not.toContain("2099-01-01");
-  for(const href of ["/macro.html","/sector_cycles.html","/prophet","/sectors","/analysis?symbol=NVDA"])expect(host.querySelector(`a[href='${href}']`)).toBeTruthy();
+  for(const href of ["/macro.html","/sector_cycles.html","/us_stocks.html","/prophet","/sectors","/analysis?symbol=NVDA"])expect(host.querySelector(`a[href='${href}']`)).toBeTruthy();
   expect(host.textContent).toContain("not a relative-strength rotation score");
+ });
+ it.each(["en","zh"])("%s distinguishes the opportunity workspace from the paid model-plan preview",async lang=>{
+  state.lang=lang;await mount();await answer(2,prophet);
+  const panel=host.querySelector('[data-intelligence-source="prophet"]')!;
+  expect(panel.querySelector('a[href="/us_stocks.html"]')?.textContent).toContain(lang==="zh"?"打开机会工作台":"Open opportunity workspace");
+  expect(panel.querySelector('a[href="/prophet"]')?.textContent).toBe(lang==="zh"?"模型计划与期权":"Model plans & options");
+  expect(panel.textContent).toContain(lang==="zh"?"来源报告的开放计划数":"Open plans in published source");
+  expect(panel.textContent).not.toContain(lang==="zh"?"今日机会数":"Today's opportunities");
  });
  it("a denied Prophet read does not erase available Macro or cycle readings",async()=>{
   await mount();await answer(0,macro);await answer(1,cycles);await answer(2,{error:"pro_required"},403);
   expect(host.textContent).toContain("Liquidity is mixed");expect(host.textContent).toContain("Technology");expect(host.querySelector('[data-intelligence-source="prophet"]')?.getAttribute("data-read-state")).toBe("access");
   expect(host.textContent).not.toContain("no open plans");
+  expect(host.querySelector('[data-intelligence-source="prophet"] a[href="/us_stocks.html"]')).toBeTruthy();
  });
  it("malformed/503 responses are unavailable and never quiet, empty or zero",async()=>{
   await mount();await answer(0,{},503);await answer(1,{schema:"wrong"});await answer(2,{...prophet,plans:null});

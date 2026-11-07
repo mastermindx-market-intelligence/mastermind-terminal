@@ -119,7 +119,11 @@ async function overflow(page){return page.evaluate(()=>({document:document.docum
   }
   theme='dark';locale='en';const ctx=await context();const page=await ctx.newPage();
   await page.goto(BASE+'/intelligence');await expect(page.locator('[data-intelligence-source="prophet"]')).toHaveAttribute('data-read-state','ready');
-  await page.locator('[data-intelligence-nav="context"] a[href="/prophet"]').click();await expect(page).toHaveURL(BASE+'/prophet');await expect(page.locator('.obs-prophet-grid')).toBeVisible({timeout:45000});await expect(page.getByText('UBER',{exact:true}).first()).toBeVisible();
+  await expect(page.locator('[data-intelligence-nav="context"] a[href="/us_stocks.html"]')).toHaveText('Prophet');
+  await expect(page.locator('[data-intelligence-source="prophet"] a[href="/us_stocks.html"]')).toContainText('Open opportunity workspace');
+  report.prophetWorkspaceHref='/us_stocks.html'; // href proof only; joined Macro document needs its separate real-source journey.
+  await page.locator('[data-intelligence-source="prophet"] a[href="/prophet"]').click();await expect(page).toHaveURL(BASE+'/prophet');await expect(page.getByRole('heading',{name:'Model plans & options',exact:true})).toBeVisible();await expect(page.locator('.obs-prophet-grid')).toBeVisible({timeout:45000});await expect(page.getByText('UBER',{exact:true}).first()).toBeVisible();
+  await expect(page.getByRole('link',{name:'Open Prophet workspace →',exact:true})).toHaveAttribute('href','/us_stocks.html');
   await page.screenshot({path:path.join(OUT,'prophet-native-desktop.png')});await page.goBack();await expect(page).toHaveURL(BASE+'/intelligence');
   await page.locator('[data-intelligence-nav="context"] a[href="/sectors"]').click();await expect(page.locator('[data-testid="sector-intelligence"]')).toBeVisible({timeout:45000});
   await page.goto(BASE+'/sectors?sector=xlk&group=semiconductors&sectorTheme=light');

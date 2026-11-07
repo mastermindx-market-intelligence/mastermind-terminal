@@ -7,7 +7,7 @@ type ShellLang = "en" | "zh";
 const pick = (lang: ShellLang, en: string, zh: string): string => lang === "zh" ? zh : en;
 export const SHARED_SHELL_COPY: Record<string, (lang: ShellLang) => string> = {
   shellIntelligence: (lang) => pick(lang, "Market Intelligence", "市场情报"),
-  shellProphet: (lang) => pick(lang, "Prophet", "Prophet"),
+  shellProphet: (lang) => pick(lang, "Model plans & options", "模型计划与期权"),
   shellSectors: (lang) => pick(lang, "Sector Intelligence", "行业情报"),
   shellToday: (lang) => pick(lang, "Today","今日"),
   shellMonitor: (lang) => pick(lang, "Monitor","监测"),

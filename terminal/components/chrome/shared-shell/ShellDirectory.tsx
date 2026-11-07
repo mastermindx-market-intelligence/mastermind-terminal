@@ -31,6 +31,7 @@ const nativeTitle = (entry: Entry): { k?: string; label: string; copy?: Entry["t
   const intelligence = INTELLIGENCE_DESTINATIONS.find(item => item.href === entry.href);
   if (intelligence) return { label: intelligence.label[0], copy: { en: intelligence.label[0], zh: intelligence.label[1] } };
   if (entry.kind !== "native") return undefined;
+  if (entry.href === "/prophet") return { k: "shellProphet", label: "Model plans & options" };
   const job = SHARED_SHELL_NAV.find(job => job.href === entry.href);
   if (job) return job;
   if (entry.href === "/options/futures") return {

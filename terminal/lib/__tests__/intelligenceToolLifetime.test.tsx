@@ -7,7 +7,7 @@ vi.mock("@/lib/i18n",()=>({useLang:()=>({lang:state.lang})}));
 vi.mock("@/lib/shared-shell/useReadingScope",()=>({useReadingScope:()=>({ready:state.ready,ended:!state.ready&&!state.unavailable,unavailable:state.unavailable,retryIdentity:vi.fn()})}));
 vi.mock("@/lib/flowClientCache",()=>({flowInvalidate:()=>{state.cache='cleared';state.invalidations++;}}));
 vi.mock("@/components/intelligence/IntelligenceNav",()=>({default:()=>null}));
-vi.mock("next/link",()=>({default:({children,...props}:React.AnchorHTMLAttributes<HTMLAnchorElement>)=><a {...props}>{children}</a>}));
+vi.mock("next/link",()=>({default:({children,prefetch,...props}:React.AnchorHTMLAttributes<HTMLAnchorElement>&{prefetch?:boolean})=>{void prefetch;return <a {...props}>{children}</a>;}}));
 vi.mock("next/dynamic",()=>({default:()=>function Child(){useEffect(()=>{state.reads.push(state.cache);},[]);return <div>Existing tool</div>;}}));
 import Tool from "@/components/intelligence/IntelligenceToolWorkspace";
 import TodayIntelligenceEntry from "@/components/intelligence/TodayIntelligenceEntry";
@@ -16,6 +16,11 @@ let root:Root,host:HTMLDivElement;
 beforeEach(()=>{state.ready=true;state.unavailable=false;state.lang='en';state.cache='previous-account';state.reads=[];state.invalidations=0;host=document.createElement('div');document.body.appendChild(host);root=createRoot(host);});
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();});
 describe("dedicated Prophet preserves the incumbent cache boundary",()=>{
+ it.each(['en','zh'] as const)("%s names the native plan tool and links back to the full workspace",async lang=>{
+  state.lang=lang;await act(async()=>root.render(<Tool ownerKey="A" kind="prophet"/>));
+  expect(host.querySelector('h1')?.textContent).toBe(lang==='zh'?'模型计划与期权':'Model plans & options');
+  expect(host.querySelector('a[href="/us_stocks.html"]')?.textContent).toContain(lang==='zh'?'打开 Prophet 工作台':'Open Prophet workspace');
+ });
  it("clears the existing cache before child passive reads and again on account departure",async()=>{
   await act(async()=>root.render(<Tool ownerKey="A" kind="prophet"/>));expect(state.reads).toEqual(['cleared']);expect(state.invalidations).toBe(1);
   state.cache='A-private';state.ready=false;await act(async()=>root.render(<Tool ownerKey="A" kind="prophet"/>));expect(state.cache).toBe('cleared');expect(host.textContent).not.toContain('Existing tool');
