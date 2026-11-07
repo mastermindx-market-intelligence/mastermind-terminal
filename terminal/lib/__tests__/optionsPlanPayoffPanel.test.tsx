@@ -100,4 +100,38 @@ describe("Plan editor to conditional curve", () => {
     expect(host.textContent).not.toContain("Contract terms unavailable");
   });
 
+  it.each(["en", "zh"] as const)("pins a local baseline then compares exact API P/L in %s without saving", async lang => {
+    const fetcher = vi.fn(async (_url, init) => {
+      const req = JSON.parse(init.body) as PlanExpiryRequest;
+      const raw = response(req);
+      const premium = req.draft.legs[0].assumptions.entry!.premium_per_unit;
+      raw.curve.pnl = req.spots.map(s => Math.max(s - 765, 0) * 100 - premium * 100);
+      raw.curve.cost = premium * 100;
+      raw.curve.max_loss = -premium * 100;
+      raw.curve.breakevens = [765 + premium];
+      return new Response(JSON.stringify(raw), { status: 200 });
+    });
+    vi.stubGlobal("fetch", fetcher);
+    await act(async () => root.render(<OptionsPlanPayoffPanel scopeKey="exact-user-and-pins"
+      draft={draft()} lang={lang} onDraftChange={() => undefined} onClose={() => undefined} />));
+    await submit();
+    expect(host.querySelector('[data-testid="plan-pin-baseline"]')).not.toBeNull();
+    await act(async () => { (host.querySelector('[data-testid="plan-pin-baseline"]') as HTMLButtonElement).click(); });
+    expect(host.querySelector('[data-testid="plan-baseline-pending"]')).not.toBeNull();
+    await changeEntry("4");
+    expect(host.querySelector('[data-testid="plan-baseline-pending"]')).not.toBeNull();
+    await submit();
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(host.querySelector('[data-testid="plan-compare-overlay"]')).not.toBeNull();
+    expect(host.querySelector('[data-testid="plan-assumption-diff"]')?.textContent).toContain("4");
+    // CSS modules rename the class; locate the exact figures table within its disclosure.
+    const exactTable = host.querySelector('[data-testid="plan-comparison-points"]') as HTMLTableElement;
+    expect(exactTable).not.toBeNull();
+    expect(exactTable.querySelectorAll("tbody tr").length).toBeGreaterThanOrEqual(101);
+    expect(exactTable.querySelector("tbody tr")?.children[3].textContent).toBe("-200");
+    expect(host.textContent).toContain(lang === "en" ? "Pinning does not save" : "已有研究记录保持不变");
+    await act(async () => { (host.querySelector('[data-testid="plan-clear-baseline"]') as HTMLButtonElement).click(); });
+    expect(host.querySelector('[data-testid="plan-compare-overlay"]')).toBeNull();
+  });
+
 });
