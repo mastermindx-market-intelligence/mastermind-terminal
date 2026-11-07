@@ -247,14 +247,23 @@ command resolution.
 
 The manager's default PATH has a separate role from an explicit unit or
 environment-file override. For these safety hooks, the owner requires exactly
-one manager PATH declaration and observes its original order. Every component
-must be one of `/usr/local/sbin`, `/usr/local/bin`, `/usr/sbin`, `/usr/bin`,
-`/sbin` or `/bin`; empty, relative, repeated or other components are refused.
-This is a supported source contract, not a claim about the currently deployed
-host's PATH. Normal directories and their ancestors must be root-owned,
+one manager PATH declaration and observes its original text and order. The
+literal value is at most 1024 characters and has at most six distinct,
+already-normalized absolute components. Ordinary ASCII letters, digits,
+underscores, hyphens and dots within segment names are supported; empty,
+relative, repeated, dot/dot-dot segments, redundant/trailing slashes (except
+root `/`), quotes, escapes, whitespace, controls and expansion syntax refuse.
+The owner never normalizes or rewrites a host PATH to make it pass. Both lexical
+readers use this same bounded syntax while retaining their independent custody
+and ordered-tool-resolution checks. Directory spelling alone grants no trust.
+This is a prospective supported-source extension, not a claim about the currently
+deployed host's PATH or a reinterpretation of a retained refusal.
+Normal directories and their ancestors must be root-owned,
 root-group-owned and not writable by group or others. Only the explicit
 `/bin → /usr/bin` and `/sbin → /usr/sbin` aliases are admitted; their targets
-receive the same custody checks.
+receive the same custody checks. Descendants reached through these aliases
+(such as `/bin/subdir`) remain refused: every other component must be physically
+canonical, including its ancestors. Missing directories are never skipped.
 
 The first discovered `findmnt` and `stat` must be regular, executable,
 non-writable system files in `/usr/bin` or a qualified `/bin` directory.
