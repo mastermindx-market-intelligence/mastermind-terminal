@@ -101,3 +101,40 @@ describe("Plan editor to conditional curve", () => {
   });
 
 });
+
+describe("explicit entry baseline lifecycle", () => {
+  const render = async (scope: string) => act(async () => root.render(<OptionsPlanPayoffPanel scopeKey={scope} draft={draft()} lang="en" onDraftChange={() => undefined} onClose={() => undefined} />));
+  const button = (label: string) => [...host.querySelectorAll("button")].find(b => b.textContent === label);
+  const keep = async () => act(async () => button("Keep as entry baseline")!.click());
+  it("keeps a baseline only explicitly and clears it on a changed account/selection scope", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (_url, init) => new Response(JSON.stringify(response(JSON.parse(init.body) as PlanExpiryRequest)))));
+    await render("A"); await submit();
+    expect(button("Clear baseline")).toBeUndefined();
+    await keep();
+    expect(button("Clear baseline")).toBeDefined();
+    await render("B");
+    expect(button("Clear baseline")).toBeUndefined();
+    expect(host.querySelector('svg[role="img"]')).toBeNull();
+  });
+  it("withdraws a baseline after malformed success", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockImplementationOnce(async (_url, init) => new Response(JSON.stringify(response(JSON.parse(init.body) as PlanExpiryRequest)))).mockResolvedValueOnce(new Response("{}")));
+    await render("A"); await submit(); await keep(); await changeEntry("4"); await submit();
+    expect(button("Clear baseline")).toBeUndefined();
+    expect(host.querySelector('[role="alert"]')).not.toBeNull();
+    expect(host.querySelector('svg[role="img"]')).toBeNull();
+  });
+  it("ignores an old calculation response after an edit without replacing the kept baseline", async () => {
+    let finish!: (value: Response) => void;
+    let pendingRequest!: PlanExpiryRequest;
+    vi.stubGlobal("fetch", vi.fn().mockImplementationOnce(async (_url, init) => new Response(JSON.stringify(response(JSON.parse(init.body) as PlanExpiryRequest)))).mockImplementationOnce((_url, init) => {
+      pendingRequest = JSON.parse(init.body) as PlanExpiryRequest;
+      return new Promise<Response>(resolve => { finish = resolve; });
+    }));
+    await render("A"); await submit(); await keep(); await changeEntry("4"); await submit(); await changeEntry("5");
+    await act(async () => finish(new Response(JSON.stringify(response(pendingRequest)))));
+    expect(button("Clear baseline")).toBeDefined();
+    expect(button("Keep as entry baseline")).toBeUndefined();
+    expect(host.querySelector('svg[role="img"]')).toBeNull();
+    expect(host.textContent).not.toContain("Current entry");
+  });
+});

@@ -1,0 +1,30 @@
+{
+  "scope": "synthetic local Plan, EN/ZH x 1440/820/390; dark only",
+  "production": false,
+  "captures": [
+    {
+      "file": "entry-baseline-zh-dark-desktop.png",
+      "sha256": "517bd714a99ae9b5274fd193abbdca78544179f473a76bf0177950ff9063d1b8"
+    },
+    {
+      "file": "entry-baseline-zh-dark-mobile.png",
+      "sha256": "bee4287f7e8e09870d9fa4c7577c8487ba899274aae0336a85e0cf73c7482221"
+    },
+    {
+      "file": "entry-baseline-zh-dark-tablet.png",
+      "sha256": "2298a51ac6731b96e1d8675b5aed71137fc5afca41acb812ea7a475d52afca24"
+    },
+    {
+      "file": "entry-baseline-en-dark-desktop.png",
+      "sha256": "24609e9f787b4f20ab1d714e06ab96fe624aa6628cb820e46c4e6fb1c68781e0"
+    },
+    {
+      "file": "entry-baseline-en-dark-mobile.png",
+      "sha256": "99a0c52010f1534a5682d1548ce4d6615227e04eb655a9b91a844de5625d80cb"
+    },
+    {
+      "file": "entry-baseline-en-dark-tablet.png",
+      "sha256": "4eac2bf7464424a69a1bdd0a8f213b479348c1f85c3010dfeeceadbc69fce4c7"
+    }
+  ]
+}
