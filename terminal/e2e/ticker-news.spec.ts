@@ -243,7 +243,7 @@ async function installEventSourceStub(page: Page) {
   });
 }
 
-async function prepare(page: Page, testInfo: TestInfo, baseURL?: string, symbol = "NVDA", manifest = MANIFEST) {
+async function prepare(page: Page, testInfo: TestInfo, baseURL?: string, manifest = MANIFEST) {
   await isolateWatchlistStore(page, testInfo, baseURL);
   await installEventSourceStub(page);
 
@@ -296,15 +296,34 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL?: string, symbol 
     },
   }));
 
-  await page.goto(`/terminal?symbol=${symbol}`);
-  await expect(page.locator("#rail-tab-news")).toBeAttached({ timeout: 60_000 });
 }
 
-async function setPresentation(page: Page, lang: "en" | "zh", theme: "light" | "dark" = "dark") {
-  await page.evaluate((l) => {
-    localStorage.setItem("mm.lang", l);
-  }, lang);
-  await page.reload();
+async function setPresentation(
+  page: Page,
+  lang: "en" | "zh",
+  theme: "light" | "dark" = "dark",
+  symbol?: string,
+) {
+  const firstDocument = page.url() === "about:blank";
+  if (firstDocument) {
+    // Seed only absent storage. Later presentation reloads must keep the
+    // language explicitly selected below rather than reset to this first one.
+    await page.addInitScript((initialLanguage) => {
+      if (localStorage.getItem("mm.lang") === null) {
+        localStorage.setItem("mm.lang", initialLanguage);
+      }
+    }, lang);
+  } else {
+    await page.evaluate((l) => {
+      localStorage.setItem("mm.lang", l);
+    }, lang);
+  }
+  if (firstDocument || symbol !== undefined) {
+    await page.goto(`/terminal?symbol=${symbol ?? "NVDA"}`);
+  } else {
+    // Preserve later document resets: they clear specimen CSS and rail state.
+    await page.reload();
+  }
   await expect(page.locator("#rail-tab-news")).toBeAttached({ timeout: 60_000 });
   await expect(page.locator("html")).toHaveAttribute("data-lang", lang);
   await selectAppearance(page, lang, theme);
@@ -435,9 +454,6 @@ test("unavailable snapshot renders without rail overflow", async ({ page, baseUR
     status: 503,
     json: { detail: "service unavailable" },
   }));
-  await page.goto("/terminal?symbol=NVDA");
-  await expect(page.locator("#rail-tab-news")).toBeAttached({ timeout: 60_000 });
-
   const languages = ["en", "zh"] as const;
   const size = testInfo.project.name === "mobile" ? "mobile" : "desktop";
   await page.setViewportSize(size === "mobile" ? { width: 390, height: 844 } : { width: 1440, height: 900 });
@@ -541,8 +557,8 @@ test("grouped reports expand inside the real rail without leaving ticker context
 
 test("MSFT grouped detail starts while an Apple story response is still held", async ({ page, baseURL }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Desktop owns real-shell symbol transition proof.");
-  await prepare(page, testInfo, baseURL, "AAPL");
-  await setPresentation(page, "en");
+  await prepare(page, testInfo, baseURL);
+  await setPresentation(page, "en", "dark", "AAPL");
 
   let releaseAaplStory!: () => void;
   const aaplStoryGate = new Promise<void>((resolve) => {
@@ -609,6 +625,8 @@ test("editorial views filter before display and keep grouped details in the sele
       ],
     } });
   });
+  await page.goto("/terminal?symbol=NVDA");
+  await expect(page.locator("#rail-tab-news")).toBeAttached({ timeout: 60_000 });
   const panel = await openNews(page);
   const control = panel.locator("select[data-news-view-select]");
   await control.selectOption("company");
@@ -662,16 +680,17 @@ test("Chinese and Hong Kong tickers preserve original Chinese headlines", async 
     await page.route((url) => url.pathname === `/api/news/${example.ticker}`, (route) =>
       route.fulfill({ json: snapshot }));
   }
-  await prepare(page, testInfo, baseURL, examples[0].ticker, manifest);
+  await prepare(page, testInfo, baseURL, manifest);
   const out = join(process.cwd(), "docs", "pr-crops", "ticker-news-cn-hk");
   if (CROPS) mkdirSync(out, { recursive: true });
   // Synthetic contract fixtures prove rendering only, not publisher coverage or licensing.
   for (const example of examples) {
-    await page.goto(`/terminal?symbol=${example.ticker}`);
-    await expect(page.locator("#rail-tab-news")).toBeAttached({ timeout: 60_000 });
     for (const lang of ["en", "zh"] as const) {
       for (const theme of ["dark", "light"] as const) {
-        await setPresentation(page, lang, theme);
+        await setPresentation(
+          page, lang, theme,
+          lang === "en" && theme === "dark" ? example.ticker : undefined,
+        );
         const panel = await openNews(page, "degraded");
         if (theme === "light") {
           await page.addStyleTag({ content: LIGHT_SPECIMEN_CSS });

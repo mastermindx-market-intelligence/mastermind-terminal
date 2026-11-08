@@ -184,6 +184,10 @@ test("J1 saves A, inspects B, and reopens A with its exact source return", async
   await openAnalysis(page, `symbol=NVDA&page=intelligence&${CONTEXT_QUERY}`);
   await page.getByRole("link", { name: /Your theses on NVDA/ }).click();
   await expect(page.getByTestId("thesis-workspace")).toBeVisible();
+  // The first visible Company link must preserve origin before any save/history
+  // effect. Do not wait for the context strip before clicking that link.
+  expect(new URL(page.url()).searchParams.get("symbol")).toBe("NVDA");
+  expectContextParams(new URL(page.url()));
   await fillNewThesis(page, "J1 saved A");
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByText("Version 1 · Current")).toBeVisible({ timeout: 30_000 });

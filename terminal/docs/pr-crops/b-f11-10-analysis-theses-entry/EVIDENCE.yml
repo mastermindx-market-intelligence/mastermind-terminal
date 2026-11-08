@@ -1,11 +1,11 @@
 # B-F11-10a Analysis context-bar theses entry — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: de20960c3340cd79fc8bf92598e11d6aee41cab3
-# capturedAt: 2026-11-06T00:13:09.284Z
+# capturedAtHead: 030c84c98944a6d4c145695e7aeda5bd32eac015
+# capturedAt: 2026-11-07T15:28:58.070Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/workspaces/AnalysisWorkspace.tsx: "80bc4d4018313e22edcd2144d7d2616b447c9d2c10cf775900ef3bd2f199860c"
+  terminal/components/workspaces/AnalysisWorkspace.tsx: "8868ab406b9a25d177c10dc6d24427dea07e693a8fa4a191de594f118f4049d7"
   terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
   terminal/lib/i18n.tsx: "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
 theme: dark
@@ -33,3 +33,13 @@ files:
   - tablet-zh.png
   - mobile-en.png
   - mobile-zh.png
+
+# Existing protected real-capture reuse, not a new capture or hash restamp.
+containingSourceIntake20261108:
+  protectedSource: d7a83d3348a4fcb762d93221f19c4e94cbe4505e
+  exactCapturedPacket: ../company-origin-context-20261107/theses-entry-20261107
+  sourceQualification: ../company-origin-context-20261107/source-qualification.json
+  binding: All six PNG bytes and the original capture identity/layout rows above are copied exactly from that actual protected capture; all three source rows match the containing source.
+  previousContainingPacket: c266e8f396d1375847569b024de3f79cc86675d2:terminal/docs/pr-crops/b-f11-10-analysis-theses-entry
+  previousProtectedHistory: d7a83d3348a4fcb762d93221f19c4e94cbe4505e:terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml
+  scope: Reuses the accepted six local dark NVDA context-bar captures only; no new canonical-font, browser, runtime, served, authenticated or 200-percent claim.

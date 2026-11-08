@@ -661,6 +661,16 @@ def test_real_workflow_no_candidate_execution_or_key_in_candidate_job():
     job = workflow["jobs"]["qualify"]
     assert job["permissions"] == {"contents": "read", "actions": "read"}
     assert job["environment"] == "terminal-migration-owner"
+    # Only the documented repo-level zero/zero bootstrap selector may skip the
+    # supplementary job; missing/partial configuration must reach strict preflight.
+    selector = "(vars.MIGRATION_OWNER_APP_ID != '0' || vars.MIGRATION_OWNER_INSTALLATION_ID != '0')"
+    assert job["if"].strip().endswith(selector)
+    for app_id, installation, should_run in (
+        ("0", "0", False), ("0", "123", True), ("123", "0", True),
+        ("", "0", True), ("0", "", True), ("", "", True),
+        ("123", "456", True),
+    ):
+        assert (app_id != "0" or installation != "0") is should_run
     checkout, preflight, mint, invoke = job["steps"]
     assert checkout["with"]["ref"] == "${{ github.sha }}"
     assert checkout["with"]["persist-credentials"] is False
