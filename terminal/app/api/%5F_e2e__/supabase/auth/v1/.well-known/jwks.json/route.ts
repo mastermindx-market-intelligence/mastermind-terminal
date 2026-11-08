@@ -5,9 +5,9 @@ import { fixtureFlagsEnabled, fixtureJwksDocument } from "@/lib/e2e/investigatio
 // development plus both dedicated fixture flags, so production and an ordinary test build get
 // a plain 404 with no key. No private material in the response — the matching private key
 // lives in the test-only e2e/fixtures/investigation-auth.ts, which no runtime module imports.
-// Nothing else is mounted under /api/__e2e__/supabase (no token, user, session, refresh or
-// callback route), so every other path is the framework's own 404 and switching the flag on
-// cannot become an auth surface.
+// No token/session/refresh/callback service exists. A separately third-opted-in native
+// journey GET user fixture verifies the same isolated signer for one distinct test subject.
+// These two flags alone still expose only this public key; its response grants no identity.
 
 export const dynamic = "force-dynamic";
 

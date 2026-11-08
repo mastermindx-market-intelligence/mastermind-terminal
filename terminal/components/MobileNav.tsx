@@ -2,6 +2,7 @@
 import { useCallback, useId, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import SharedShellPrimaryNav from "@/components/intelligence/SharedShellPrimaryNav";
 import { BrandLockup, BrandMark } from "@/components/BrandMark";
 import DashboardBackButton from "@/components/DashboardBackButton";
 import { TOP, Glyph as NavGlyph } from "@/components/AppNav";
@@ -9,7 +10,7 @@ import SettingsButton from "@/components/settings/SettingsButton";
 import { useSharedShellT } from "@/lib/sharedShellCopy";
 import { useActiveSymbol } from "@/lib/activeSymbol";
 import { navHref } from "@/lib/navSymbol";
-import { SHARED_SHELL_NAV, SHARED_SHELL_MARKETS, sharedShellActiveKey, sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
+import { SHARED_SHELL_MARKETS, sharedShellActiveKey, sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
 import MobileNavModal from "./MobileNavModal";
 import styles from "./MobileNav.module.css";
 import SharedShellPresentationControls from "./chrome/shared-shell/SharedShellPresentationControls";
@@ -185,21 +186,11 @@ export default function MobileNav({
           >
             <div className="m-drawer-h"><BrandLockup /></div>
             <nav className="m-nav">
-              {SHARED_SHELL_NAV.map((it) => {
-                const on = it.k === derivedKey;
-                return (
-                  <Link
-                    key={it.k}
-                    href={navHref(it, activeSymbol, navPath)}
-                    className={on ? "on" : ""}
-                    aria-current={on ? navPath === it.href ? "page" : "location" : undefined}
-                    onClick={closeDrawer}
-                  >
-                    <NavGlyph k={it.k} />
-                    {t(it.k, it.label)}
-                  </Link>
-                );
-              })}
+              {/* The beta primary navigation owns this list. Preserve upstream's
+                  exact-route versus workspace-location accessibility in that owner. */}
+              <SharedShellPrimaryNav mode="drawer" labelled activeSymbol={activeSymbol}
+                activeKeyOverride={activeKeyProp} onNavigate={closeDrawer}
+                renderGlyph={key => <NavGlyph k={key} />} />
               <span className="m-nav-sect">{t("shellMarkets")}</span>
               {SHARED_SHELL_MARKETS.map((mk) => (
                 <Link

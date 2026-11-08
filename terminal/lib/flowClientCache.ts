@@ -24,6 +24,8 @@
  *   const data = await flowGet("gex:NVDA");
  */
 
+import { ownerUserId } from "./accountIdentity";
+import { retainedQuery, validRetainedRequest, validateRetainedMatrixResponse, type RetainedMatrixRequest, type RetainedMatrixAvailable } from "./retainedMatrixRead";
 import type { UnavailableReason } from "@/lib/dataCache";
 
 const TTL_MS = 25_000;
@@ -34,7 +36,7 @@ const TTL_MS = 25_000;
  * body say nothing about whether the payload exists.
  */
 export type FlowOutcome =
-  | { status: "data"; data: unknown }
+  | { status: "data"; data: unknown; retained?: RetainedMatrixAvailable }
   | { status: "absent"; httpStatus: number }
   | { status: "unavailable"; reason: UnavailableReason; httpStatus?: number };
 
@@ -57,13 +59,13 @@ function buildUrl(f: string): string {
  */
 const FLOW_READ_DEADLINE_MS = 25_000;
 
-async function readOutcome(requestUrl: string): Promise<FlowOutcome> {
+async function readOutcome(requestUrl: string, headers?: Record<string, string>): Promise<FlowOutcome> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FLOW_READ_DEADLINE_MS);
   try {
     let r: Response;
     try {
-      r = await fetch(requestUrl, { cache: "no-store", signal: controller.signal });
+      r = await fetch(requestUrl, { cache: "no-store", signal: controller.signal, ...(headers ? { headers } : {}) });
     } catch {
       return { status: "unavailable", reason: "network" };
     }
@@ -147,7 +149,19 @@ export async function flowGet(f: string, options: { refresh?: boolean } = {}): P
  * `refresh` awaits a new read instead of answering from the cache, as flowGet's does:
  * a refresh must be able to fail, or a failed one is indistinguishable from a cached hit.
  */
-export async function flowGetResult(f: string, options: { refresh?: boolean } = {}): Promise<FlowOutcome> {
+export async function flowGetResult(f: string, options: { refresh?: boolean; retained?: RetainedMatrixRequest } = {}): Promise<FlowOutcome> {
+  // A private capture is one request's coupled result, never a URL-only SWR entry.
+  if (options.retained) {
+    const request = { ...options.retained };
+    if (f !== `matrix:${request.root}` || !validRetainedRequest(request)) return { status: "unavailable", reason: "malformed" };
+    const outcome = await readOutcome(buildUrl(f) + "&" + retainedQuery(request), {
+      "X-Mastermind-Expected-Principal": ownerUserId(request.ownerKey),
+    });
+    if (outcome.status !== "data") return { status: "unavailable", reason: "server" };
+    const result = await validateRetainedMatrixResponse(outcome.data, request);
+    return result.status === "available" ? { status: "data", data: result.display, retained: result }
+      : { status: "unavailable", reason: "malformed" };
+  }
   const url = buildUrl(f);
   const entry = store.get(url);
 

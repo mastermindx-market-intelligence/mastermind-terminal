@@ -12,6 +12,8 @@
  * 'use client' component. See SECURITY.md: the flow_score_v1 weights must not reach
  * the client bundle; attachFlowScores strips them before the payload leaves the box.
  */
+import { ownerUserId } from "./accountIdentity";
+import { retainedQuery, validRetainedRequest, validateRetainedMatrixResponse, retainedUnavailable, type RetainedMatrixRequest, type RetainedMatrixResponse } from "./retainedMatrixRead";
 import { promises as fs } from "fs";
 import path from "path";
 import { createHash } from "node:crypto";
@@ -1358,4 +1360,20 @@ export async function loadFlowFreshResult(f: string): Promise<UpstreamOutcome> {
 export async function loadFlowFresh(f: string): Promise<Record<string, unknown> | null> {
   const outcome = await loadFlowFreshResult(f);
   return outcome.status === "data" ? outcome.data : null;
+}
+
+/** Qualified mode of the SAME mapped Matrix reader. No fixture, R2, TTL or stale fallback. */
+export async function readRetainedMatrix(request: RetainedMatrixRequest, token: string): Promise<RetainedMatrixResponse> {
+  if (!token || !validRetainedRequest(request)) return retainedUnavailable("invalid_request");
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15_000);
+  try {
+    const response = await fetch(`${BACKEND}${backendPath(`matrix:${request.root}`)}?${retainedQuery(request)}`, {
+      cache: "no-store", signal: controller.signal,
+      headers: { Authorization: `Bearer ${token}`, "X-Mastermind-Expected-Principal": ownerUserId(request.ownerKey) },
+    });
+    if (!response.ok) return retainedUnavailable();
+    return await validateRetainedMatrixResponse(await response.json(), request);
+  } catch { return retainedUnavailable(); }
+  finally { clearTimeout(timer); }
 }
