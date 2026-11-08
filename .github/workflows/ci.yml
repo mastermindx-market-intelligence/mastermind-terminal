@@ -235,7 +235,7 @@ jobs:
         run: node e2e/tools/capture_ci_evidence.cjs --checkout-only
       - run: npm ci
       # next-env.d.ts and .next/ route types are gitignored; generate them first
-      # so tsc checks the same project a `next build` would.
+      # for the full-project CI gate (application, tests and tooling remain checked).
       - run: npx next typegen
       - run: npx tsc --noEmit
       - name: Check immutable evidence orchestration (synthetic)

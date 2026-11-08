@@ -171,6 +171,10 @@ const embedChartHeaders = embedHeaders.map((header) =>
 );
 
 const nextConfig: NextConfig = {
+  // Production checks application + generated Next contracts in a bounded project.
+  // The unchanged full tsconfig.json remains the required CI typecheck (tests/tools included).
+  typescript: { tsconfigPath: isProd ? "tsconfig.build.json" : "tsconfig.json" },
+  // The existing provider-closed F11 recipe retains its own project and namespace.
   ...(isF11Capture ? { distDir: ".next/f11", typescript: { tsconfigPath: "tsconfig.f11.json" } } : {}),
   // Internal public-sample diagnostics must never be copied into a deploy artifact.
   // Turbopack globs are project-relative; parent-traversal excludes panic at build time.
