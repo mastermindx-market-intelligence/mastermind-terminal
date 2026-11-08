@@ -492,10 +492,16 @@ jobs:
           timeout 480 npx playwright install --with-deps chromium \
             || { echo "::warning::apt/--with-deps stalled or failed — installing the browser only"; \
                  npx playwright install chromium; }
-      # A cache hit still needs the system libs check to be cheap and non-fatal.
+      # Browser caches do not include system fonts on fresh hosted runners.
       - name: Ensure browser present on cache hit
         if: steps.pwcache.outputs.cache-hit == 'true'
-        run: npx playwright install chromium
+        timeout-minutes: 6
+        run: |
+          if [ "$TERMINAL_E2E_LANE" = "hosted" ]; then
+            timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium
+          else
+            npx playwright install chromium
+          fi
       - run: npm run test:e2e:responsive -- ${{ matrix.projects }} ${{ matrix.specs }} --workers="$TERMINAL_E2E_WORKERS"
         env:
           TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port }}
