@@ -238,7 +238,7 @@ jobs:
       - run: npx tsc --noEmit
       - name: Check immutable evidence orchestration (synthetic)
         timeout-minutes: 1
-        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs scripts/retained-progress-reporter.test.mjs scripts/unit-result-reporter.test.mjs e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs e2e/tools/f11_provider_closed_policy.test.cjs e2e/tools/thesis_capture_runtime.test.cjs
+        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs scripts/retained-progress-reporter.test.mjs scripts/unit-result-reporter.test.mjs e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs e2e/tools/f11_provider_closed_policy.test.cjs e2e/tools/thesis_capture_runtime.test.cjs e2e/tools/thesis_capture_fonts.test.cjs
       - name: Plan current-source evidence capture
         id: evidence_plan
         run: node scripts/ci/plan-evidence-capture.cjs
