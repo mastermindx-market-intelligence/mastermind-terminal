@@ -1,0 +1,23 @@
+PASS for the bounded source integration in Terminal PR #945. No actionable defects found in the changed route or regression tests. This is independent source acceptance at head 7506ef1539c8646e7bf52b65b697a102fd549942, subject to the normal protected release gates.
+
+Reviewer: /root/tiingo_consumer_reasoning_review, astra-coordinator.
+Carrier: existing native read-only reasoning/coordinator review, explicitly authorized by the user after the Fabric pre-launch log reservation failure. No files were owned or mutated by the reviewer.
+
+The reviewer verified that the local carrier was clean and at that exact head. The merge base with supplied protected base bc28e47ee54f13eac3094c76a47ec7e71b689330 is 292357daa86525d6c488fb2042340f782cf91e60; the merge-base diff was reviewed. The two reviewed files have no intervening changes between that merge base and the supplied protected base.
+
+The source supports the intended contract:
+- Malformed or missing metadata: terminal/app/api/ext-quote/route.ts:46 accepts only the three exact basis strings and bounded source identifiers. No string coercion, trimming, source-to-basis inference, or default-to-LIVE. Source and basis are independently optional, so valid metadata survives when its companion is missing or invalid.
+- Price and failure semantics: route.ts:69 makes the same loopback Quote Hub request with the same three-second timeout. Price eligibility, timestamp fallback, per-symbol null results, 503 behavior and cache policy are unchanged. Metadata cannot create a quote without existing numeric price/change requirements.
+- Owner compatibility: hub/lib/extfeed.js:967 emits the same names and basis vocabulary. Existing source identifiers fit validation. Hub selection, freshness filtering and regular-session suppression remain upstream of the proxy.
+- Browser compatibility: terminal/components/TerminalShell.tsx:2781 retains response objects without rejecting extra fields; its equality comparison detects metadata changes. Regular and extended prices remain separate. Session labels still follow extSession, not provider or basis.
+- Regression evidence: terminal/lib/__tests__/extQuoteRoute.test.ts:111 exercises all admitted bases, source without basis, malformed source, unknown basis and retained null semantics. Committed red/green logs show the original route failing two new provenance regressions and the repaired affected suite passing 33 tests.
+
+Material limits:
+1. This delivers metadata through HTTP. The shell's ExtQuote type and displayed extended-price object still do not expose provenance labels. This review does not establish visible source/basis disclosure.
+2. LIVE is preserved as the Hub assertion. The route does not independently measure print age, authenticate a provider assertion or qualify BOATS pricing.
+3. Tests do not enumerate empty, overlength or forbidden-character source strings. The bounded regex handles them on inspection; this is a nonblocking coverage limitation.
+4. The reviewer ran no tests, provider requests, network checks, merges or deployments. TypeScript success and hosted run 38161624995 were supplied evidence.
+
+No source change requested. This PASS is not formal GitHub approval, production deployment, live BOATS qualification or whole-programme acceptance.
+
+This retained report preserves the reviewer findings and scope; local clickable file links and Markdown emphasis were normalized to repository paths and plain text.

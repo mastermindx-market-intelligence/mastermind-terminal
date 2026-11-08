@@ -1,0 +1,20 @@
+{
+  "exit_code": 1,
+  "seconds": 7.074,
+  "command": [
+    "node_modules/.bin/vitest",
+    "run",
+    "lib/__tests__/portfolioWorkspaceController.test.tsx",
+    "lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx",
+    "lib/__tests__/portfolioMonetaryBasis.test.ts",
+    "lib/__tests__/portfolioRisk.test.ts",
+    "lib/__tests__/sectorLeadershipDossier.test.tsx",
+    "lib/__tests__/sectorDepthReturn.test.ts",
+    "lib/__tests__/sectorPortfolioContext.test.ts",
+    "lib/__tests__/portfolioSectorContext.test.tsx",
+    "lib/__tests__/portfolioWorkspaceSectorContext.test.tsx",
+    "lib/__tests__/portfolioNavigation.test.tsx",
+    "lib/__tests__/SectorConstituentEvidence.test.tsx"
+  ],
+  "log_sha256": "92205c2264a1859155520b4d8caa7650119555890097c2b4e27e6943932930a1"
+}

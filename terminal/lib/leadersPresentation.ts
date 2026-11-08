@@ -19,7 +19,14 @@ export function leaderEmptyLabel(lang: "en" | "zh"): string {
   return lang === "zh" ? "此快照中暂无满足条件的标的" : "No qualifying names in this snapshot";
 }
 
-export function leaderMissingRecurrenceLabel(lang: "en" | "zh", stale: boolean): string {
+export function leaderMissingRecurrenceLabel(
+  lang: "en" | "zh",
+  stale: boolean,
+  staleReason?: string | null,
+): string {
+  if (stale && staleReason === "insufficient_same_session_coverage") {
+    return lang === "zh" ? "暂无" : "unavailable";
+  }
   if (stale) return lang === "zh" ? "历史" : "historical";
   return lang === "zh" ? "累积中" : "accruing";
 }
@@ -29,7 +36,14 @@ export function leaderHistoryLabel(lang: "en" | "zh", sessions: number): string 
   return `${sessions} session${sessions === 1 ? "" : "s"} of history`;
 }
 
-export function leaderDirectionCaveat(lang: "en" | "zh"): string {
+const LEGACY_DIRECTION_NOTE = "Net premium direction is ~-soft (approximate) for all sources until multi-session tape calibration extension passes (FL-R3). Magnitude leads direction.";
+
+export function leaderDirectionCaveat(
+  lang: "en" | "zh",
+  sourceNote: string = LEGACY_DIRECTION_NOTE,
+): string {
+  // Translate only this known legacy disclosure; retain any different producer qualification.
+  if (sourceNote !== LEGACY_DIRECTION_NOTE) return sourceNote;
   return lang === "zh"
     ? "此快照中，幅度比方向更可靠。"
     : "Magnitude is more reliable than direction in this snapshot.";

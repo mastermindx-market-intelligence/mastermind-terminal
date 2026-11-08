@@ -1,0 +1,15 @@
+{
+  "schema": "options_hub.moves/v1",
+  "root": "AAPL",
+  "asof": "2026-10-20",
+  "spot_ref": 255.46,
+  "atm_iv": 36.9,
+  "regime": "mixed",
+  "expected_move": {
+    "band_mult": 1.96,
+    "horizon_days": 1,
+    "pct": 4.55,
+    "lo": 233.85,
+    "hi": 267.07
+  }
+}

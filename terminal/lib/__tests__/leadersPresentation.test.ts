@@ -34,6 +34,20 @@ describe("Flow Leaders presentation", () => {
     expect(leaderMissingRecurrenceLabel("en", false)).toBe("accruing");
   });
 
+  it("does not mislabel incomplete current-session coverage as historical", () => {
+    expect(leaderMissingRecurrenceLabel("en", true, "insufficient_same_session_coverage")).toBe("unavailable");
+    expect(leaderMissingRecurrenceLabel("zh", true, "insufficient_same_session_coverage")).toBe("暂无");
+    expect(leaderMissingRecurrenceLabel("en", true, "source_session_lag")).toBe("historical");
+    expect(leaderMissingRecurrenceLabel("en", false)).toBe("accruing");
+  });
+
+  it("retains a different producer disclosure instead of inventing a confidence claim", () => {
+    const note = "Direction is withheld until coverage is complete.";
+    expect(leaderDirectionCaveat("en", note)).toBe(note);
+    expect(leaderDirectionCaveat("zh", note)).toBe(note);
+    expect(leaderDirectionCaveat("en", "")).toBe("");
+  });
+
   it("translates source mechanics into reader-facing history and confidence copy", () => {
     expect(leaderHistoryLabel("en", 145)).toBe("145 sessions of history");
     expect(leaderHistoryLabel("en", 1)).toBe("1 session of history");

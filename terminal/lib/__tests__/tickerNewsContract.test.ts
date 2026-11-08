@@ -1,0 +1,218 @@
+import { describe, expect, it } from "vitest";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { reportSourceLabel, sourceLabel } from "@/lib/newsDisplay";
+
+import {
+  parseTickerNewsChange,
+  parseTickerNewsSnapshot,
+  parseTickerNewsStory,
+  normalizeTickerNewsSymbol,
+} from "@/lib/newsContract";
+
+const row = {
+  sequence: 7,
+  source: "benzinga",
+  source_item_id: "123",
+  story_id: "ev2_abc",
+  source_count: 1,
+  item_count: 2,
+  title: "Nvidia launches accelerator",
+  url: "https://www.benzinga.com/news/123",
+  teaser: "Short lead",
+  published_at: "2026-10-05T14:00:00+00:00",
+  updated_at: "2026-10-05T14:01:00+00:00",
+  received_at: "2026-10-05T14:01:01+00:00",
+  universe_revision: "sp500-r1",
+};
+
+describe("ticker news contract", () => {
+  it("accepts the exact snapshot contract and preserves cluster identity", () => {
+    const parsed = parseTickerNewsSnapshot({
+      schema: "ticker_news.snapshot.v1",
+      ticker: "NVDA",
+      security_id: "SEC:US-XNAS-NVDA",
+      state: "live",
+      rows: [row],
+      next_cursor: 7,
+      has_more: false,
+      source_health: {
+        state: "live",
+        last_successful_catchup: "2026-10-05T14:01:01+00:00",
+      },
+    });
+
+    expect(parsed.ticker).toBe("NVDA");
+    expect(parsed.rows[0].story_id).toBe("ev2_abc");
+    expect(parsed.rows[0].item_count).toBe(2);
+    expect(parsed.next_cursor).toBe(7);
+  });
+
+  it("accepts every explicit feed state but rejects unknown state/schema", () => {
+    for (const state of ["live", "catching_up", "degraded", "quiet", "restricted", "unavailable"] as const) {
+      expect(parseTickerNewsSnapshot({
+        schema: "ticker_news.snapshot.v1",
+        ticker: "NVDA",
+        security_id: "SEC:US-XNAS-NVDA",
+        state,
+        rows: [],
+        next_cursor: null,
+        has_more: false,
+        source_health: { state },
+      }).state).toBe(state);
+    }
+
+    expect(() => parseTickerNewsSnapshot({
+      schema: "wrong.v1",
+      ticker: "NVDA",
+      security_id: "SEC:US-XNAS-NVDA",
+      state: "live",
+      rows: [],
+      next_cursor: null,
+      has_more: false,
+      source_health: {},
+    })).toThrow(/snapshot_schema/);
+
+    expect(() => parseTickerNewsSnapshot({
+      schema: "ticker_news.snapshot.v1",
+      ticker: "NVDA",
+      security_id: "SEC:US-XNAS-NVDA",
+      state: "mystery",
+      rows: [],
+      next_cursor: null,
+      has_more: false,
+      source_health: {},
+    })).toThrow(/snapshot_state/);
+  });
+
+  it("fails closed on malformed row clocks, counts and URLs", () => {
+    expect(() => parseTickerNewsSnapshot({
+      schema: "ticker_news.snapshot.v1",
+      ticker: "NVDA",
+      security_id: "SEC:US-XNAS-NVDA",
+      state: "live",
+      rows: [{ ...row, sequence: -1 }],
+      next_cursor: null,
+      has_more: false,
+      source_health: {},
+    })).toThrow(/row_sequence/);
+
+    expect(() => parseTickerNewsSnapshot({
+      schema: "ticker_news.snapshot.v1",
+      ticker: "NVDA",
+      security_id: "SEC:US-XNAS-NVDA",
+      state: "live",
+      rows: [{ ...row, published_at: "yesterday" }],
+      next_cursor: null,
+      has_more: false,
+      source_health: {},
+    })).toThrow(/row_published_at/);
+
+    expect(() => parseTickerNewsSnapshot({
+      schema: "ticker_news.snapshot.v1",
+      ticker: "NVDA",
+      security_id: "SEC:US-XNAS-NVDA",
+      state: "live",
+      rows: [{ ...row, url: "javascript:alert(1)" }],
+      next_cursor: null,
+      has_more: false,
+      source_health: {},
+    })).toThrow(/row_url/);
+  });
+
+  it("parses ticker-scoped changes and preserves prior+new targets", () => {
+    const parsed = parseTickerNewsChange({
+      sequence: 8,
+      kind: "upsert",
+      source: "benzinga",
+      source_item_id: "123",
+      story_id: "ev2_abc",
+      title: "Corrected story",
+      url: "https://www.benzinga.com/news/123",
+      teaser: "",
+      security_ids: ["SEC:US-XNAS-NVDA", "SEC:US-XNAS-AVGO"],
+      universe_revision: "sp500-r1",
+      observed_at: "2026-10-05T14:02:00+00:00",
+    });
+    expect(parsed.security_ids).toEqual(["SEC:US-XNAS-NVDA", "SEC:US-XNAS-AVGO"]);
+
+    expect(() => parseTickerNewsChange({
+      ...parsed,
+      kind: "rename",
+    })).toThrow(/change_kind/);
+  });
+
+  it("parses story detail members and rejects member/story mismatch", () => {
+    const detail = parseTickerNewsStory({
+      schema: "ticker_news.story.v1",
+      story_id: "ev2_abc",
+      source_count: 1,
+      item_count: 2,
+      members: [row, { ...row, source_item_id: "124" }],
+    });
+    expect(detail.members).toHaveLength(2);
+
+    expect(() => parseTickerNewsStory({
+      schema: "ticker_news.story.v1",
+      story_id: "ev2_abc",
+      source_count: 1,
+      item_count: 1,
+      members: [{ ...row, story_id: "ev2_other" }],
+    })).toThrow(/story_member_id/);
+  });
+
+
+  it("keeps Chinese headlines and qualified CN/HK listing symbols unchanged", () => {
+    for (const [ticker, securityId, source, title] of [
+      ["0700.HK", "SEC:HK-XHKG-00700", "finlight:etnet.com.hk", "騰訊控股公布季度業績"],
+      ["600519.SS", "SEC:CN-XSHG-600519", "finlight:cls.cn", "贵州茅台发布经营数据"],
+    ]) {
+      const parsed = parseTickerNewsSnapshot({
+        schema: "ticker_news.snapshot.v1", ticker, security_id: securityId,
+        state: "degraded", rows: [{ ...row, source, title, teaser: "", updated_at: null }],
+        next_cursor: 7, has_more: false, source_health: { state: "degraded" },
+      });
+      expect(parsed.rows[0].title).toBe(title);
+      expect(parsed.rows[0].source).toBe(source);
+      expect(parsed.security_id).toBe(securityId);
+      expect(normalizeTickerNewsSymbol(ticker)).toBe(ticker);
+    }
+  });
+
+  it("normalizes ordinary ticker symbols without accepting path syntax", () => {
+    expect(normalizeTickerNewsSymbol(" nvda ")).toBe("NVDA");
+    expect(normalizeTickerNewsSymbol("BRK.B")).toBe("BRK.B");
+    expect(normalizeTickerNewsSymbol("RDS-A")).toBe("RDS-A");
+    expect(() => normalizeTickerNewsSymbol("../NVDA")).toThrow(/symbol/);
+    expect(() => normalizeTickerNewsSymbol("NVDA%2Fetc")).toThrow(/symbol/);
+  });
+});
+
+
+describe("ticker news publisher display boundaries", () => {
+  it.each([
+    ["__proto__", "__proto__"], ["constructor", "Constructor"],
+    ["massive:__proto__", "__proto__"], ["massive:constructor", "constructor"],
+    ["finlight:__proto__", "__proto__"], ["finlight:constructor", "constructor"],
+  ])("renders accepted source %s as a string", (source, expected) => {
+    const parsed = parseTickerNewsSnapshot({
+      schema: "ticker_news.snapshot.v1", ticker: "NVDA", security_id: "SEC:US-XNAS-NVDA",
+      state: "live", rows: [{ ...row, source }], next_cursor: 7, has_more: false,
+      source_health: { state: "live" },
+    });
+    const label = sourceLabel(parsed.rows[0].source);
+    expect(label).toBe(expected);
+    expect(renderToStaticMarkup(createElement("span", null, label))).toBe(`<span>${expected}</span>`);
+    expect(reportSourceLabel(source, "press_release", "en")).toBe(`${expected} · Press release`);
+    expect(reportSourceLabel(source, "press_release", "zh")).toBe(`${expected} · 公司公告`);
+  });
+
+  it.each([
+    [" FINLIGHT:WWW.ETNET.COM.HK. ", "經濟通"], ["finlight:cls.cn", "财联社"],
+    ["massive:REUTERS.COM", "Reuters"], ["benzinga", "Benzinga"],
+    ["finlight:unknown.example", "unknown.example"], ["custom desk", "Custom desk"],
+    [" ", "Source"],
+  ])("preserves publisher normalization and fallback for %s", (source, expected) => {
+    expect(sourceLabel(source)).toBe(expected);
+  });
+});
