@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-require-imports -- Incumbent capture tools and the Node test runner use CommonJS require/exports. */
 /**
  * B-F13-6 Claim authoring form — dark evidence crops.
  *

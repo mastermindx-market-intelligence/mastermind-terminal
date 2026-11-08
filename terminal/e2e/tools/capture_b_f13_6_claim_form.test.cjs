@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- Incumbent capture tools and the Node test runner use CommonJS require/exports. */
 "use strict";
 const {test} = require("node:test"), assert = require("node:assert/strict");
 const fs = require("node:fs"), path = require("node:path");
