@@ -66,15 +66,29 @@ for (const cell of [
       const receipt = frame.locator("details.lrc-receipt"); const summary = receipt.locator("summary");
       await summary.scrollIntoViewIfNeeded(); if (cell.touch) await summary.tap(); else { await summary.focus(); await summary.press("Enter"); }
       await expect(receipt).toHaveAttribute("open", ""); expect(await receipt.innerText()).toContain("2026-11-06");
-      const ledger = receipt.locator(".lrc-ledger"), rows = ledger.locator(":scope > *");
+      const ledger = receipt.locator(".lrc-ledger"), rows = ledger.locator(":scope > .lrc-ledger-row");
       expect(await rows.count()).toBeGreaterThan(0);
-      await rows.first().scrollIntoViewIfNeeded(); await expect(rows.first()).toBeInViewport({ ratio: 1 });
-      await page.screenshot({ path: info.outputPath(`${cell.name}-receipt-content-start.png`) });
-      states.push({ cell: cell.name, ledgerGeometry: await ledger.evaluate(node => {
-        const b=node.getBoundingClientRect();return { x:b.x,y:b.y,width:b.width,height:b.height,viewportWidth:innerWidth,viewportHeight:innerHeight,rows:node.children.length,scrollWidth:node.scrollWidth,clientWidth:node.clientWidth };
-      }) });
-      await rows.last().scrollIntoViewIfNeeded(); await expect(rows.last()).toBeInViewport({ ratio: 1 });
-      await page.screenshot({ path: info.outputPath(`${cell.name}-receipt-content-end.png`) });
+      for (const edge of ["start", "end"] as const) {
+        const row = edge === "start" ? rows.first() : rows.last();
+        // The source row is display:contents: its label/text cells paint, but
+        // the wrapper has no principal box and cannot be a viewport oracle.
+        const label = row.locator(":scope > .lrc-ledger-label"), text = row.locator(":scope > .lrc-ledger-text");
+        await expect(label).toHaveCount(1); await expect(text).toHaveCount(1);
+        const geometry = () => row.evaluate(node => {
+          const box = (el: Element) => { const r=el.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}; };
+          const ancestors=[];let parent=node.parentElement;
+          while(parent && ancestors.length<4){ancestors.push({tag:parent.tagName,scrollTop:parent.scrollTop,scrollHeight:parent.scrollHeight,clientHeight:parent.clientHeight});parent=parent.parentElement;}
+          return {wrapper:{display:getComputedStyle(node).display,box:box(node)},
+            cells:[...node.children].map(el=>({kind:el.classList.contains("lrc-ledger-label")?"label":"text",display:getComputedStyle(el).display,box:box(el)})),
+            receiptOpen:node.closest("details")?.open===true,viewport:{width:innerWidth,height:innerHeight,scrollX,scrollY},ancestors};
+        });
+        states.push({cell:cell.name,ledgerEdge:edge,phase:"before-scroll",geometry:await geometry()});
+        // Ordinary content scrolling; no CSS, visibility or threshold override.
+        await text.evaluate(node=>node.scrollIntoView({block:"center",inline:"nearest",behavior:"instant"}));
+        states.push({cell:cell.name,ledgerEdge:edge,phase:"before-visibility-assertion",geometry:await geometry()});
+        await expect(label).toBeInViewport({ratio:1}); await expect(text).toBeInViewport({ratio:1});
+        await page.screenshot({path:info.outputPath(`${cell.name}-receipt-content-${edge}.png`)});
+      }
       const member = frame.locator("#hold a.tk").filter({ hasText: /^REGN$/ }); await expect(member).toHaveCount(1);
       const memberURL = new URL((await member.getAttribute("href"))!, LEGACY + "/basket/big_pharma.html"); expect(memberURL.pathname).toBe("/stock.html"); expect(memberURL.hash).toBe("#REGN");
       const returnHref = new URL((await frame.locator("a.back").getAttribute("href"))!, LEGACY + "/basket/big_pharma.html");

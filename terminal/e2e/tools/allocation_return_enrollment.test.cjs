@@ -90,3 +90,34 @@ test('actual finite transport aborts only exact telemetry separately and retains
  assert((await t.dispatch('https://beta.mastermind-x.com/api/collect','PUT')).abort);
  assert.equal(observations.mutations.length,6);assert.equal(observations.blockedTelemetryAttempts.length,2);assert.equal(t.reads.length,0);
 });
+
+test('receipt viewport oracle targets actual painted label and text cells, not display-contents row wrappers',()=>{
+ const ts=require('typescript'),{JSDOM}=require('jsdom'),{gunzipSync}=require('node:zlib');
+ const fixture=JSON.parse(gunzipSync(fs.readFileSync(path.join(__dirname,'../fixtures/allocation-return-page/big-pharma.fixture.json.gz'))));
+ const html=fixture.html.utf8,document=new JSDOM(html).window.document;
+ const script=[...document.scripts].find(node=>node.textContent.includes('function leadershipReceiptHtml(')).textContent;
+ const ast=ts.createSourceFile('retained-detail.js',script,ts.ScriptTarget.Latest,true,ts.ScriptKind.JS);
+ const fn=ast.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='leadershipReceiptHtml');assert(fn);
+ // Execute only the actual receipt HTML function with a small non-market input;
+ // its DOM/selector structure comes from the incumbent renderer, not a copy.
+ const receipt=vm.runInNewContext('('+fn.getText(ast)+')',{
+  L:(en,zh)=>`<span class="l-en">${en}</span><span class="l-zh">${zh}</span>`,esc:value=>String(value??''),BENCH:'S&P 500',BENCHZ:'标普500'
+ })({state:'unavailable',rows:[{key:'interval',label_en:'Observation interval',label_zh:'观测区间',text_en:'Retained date',text_zh:'保留日期'},{key:'authority',label_en:'Authority',label_zh:'权限',text_en:'Display only',text_zh:'仅展示'}]});
+ const dom=new JSDOM(`<style>${Object.entries(fixture.assets).filter(([p])=>p.endsWith('.css')).map(([,v])=>Buffer.from(v.base64,'base64').toString()).join('\n')}</style>${receipt}`,{url:'https://retained-source.invalid/basket/big_pharma.html'}),doc=dom.window.document;
+ const row=doc.querySelector('.lrc-ledger > .lrc-ledger-row');assert(row);assert.equal(dom.window.getComputedStyle(row).display,'contents');
+ const spec=fs.readFileSync(path.join(__dirname,'../allocation-return-controlled.spec.ts'),'utf8'),block=spec.slice(spec.indexOf('const ledger = receipt.locator'),spec.indexOf('const member = frame.locator'));
+ const tree=ts.createSourceFile('viewport.ts',block,ts.ScriptTarget.Latest,true,ts.ScriptKind.TS),targets=[];
+ function visit(node){if(ts.isCallExpression(node)&&ts.isPropertyAccessExpression(node.expression)&&node.expression.name.text==='toBeInViewport'){
+  const call=node.expression.expression;assert(ts.isCallExpression(call));const target=call.arguments[0].getText(tree);targets.push(target);const options=node.arguments[0].getText(tree);assert(/ratio\s*:\s*1\b/.test(options),'full visibility threshold retained');
+  const actual=target==='label'?row.querySelector('.lrc-ledger-label'):target==='text'?row.querySelector('.lrc-ledger-text'):row;
+  assert.notEqual(dom.window.getComputedStyle(actual).display,'contents',`viewport target ${target} has no principal box`);
+ }ts.forEachChild(node,visit);}visit(tree);
+ assert.deepEqual(targets,['label','text']);assert(block.includes('edge === "start" ? rows.first() : rows.last()'));assert(block.includes('block:"center"'));dom.window.close();
+});
+test('receipt geometry is retained before the visibility assertion and captures expected wrapper plus both real cells without text',()=>{
+ const source=fs.readFileSync(path.join(__dirname,'../allocation-return-controlled.spec.ts'),'utf8');
+ const block=source.slice(source.indexOf('const ledger = receipt.locator'),source.indexOf('const member = frame.locator'));
+ assert(block.indexOf('phase:"before-visibility-assertion"')<block.indexOf('await expect(label).toBeInViewport'));
+ for(const fact of ['wrapper:{display:getComputedStyle(node).display,box:box(node)}','node.children','receiptOpen:','viewport:','ancestors','scrollTop:','scrollHeight:','clientHeight:'])assert(block.includes(fact),fact);
+ assert(!/innerText|textContent|innerHTML|style\s*=|force:|setAttribute/.test(block),'geometry only; no content/visibility mutation');
+});
