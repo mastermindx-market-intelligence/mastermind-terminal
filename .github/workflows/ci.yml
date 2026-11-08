@@ -407,7 +407,32 @@ jobs:
       group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-terminal-e2e-${{ matrix.shard }}
       cancel-in-progress: true
     name: Terminal e2e ${{ matrix.shard }} (shard)
-    runs-on: ubuntu-latest
+    # Lane switch (Mastermind #917, phase 9; canary runs 42011181810 / 42029519496 on
+    # 2026-11-05: desktop-1 jobs 16m06s at one worker and 8m08s at four on ubuntu0;
+    # the four-worker command took 431s and the whole workflow 17m36s). The repository variable TERMINAL_E2E_LANE chooses the lane: unset
+    # or any value other than `ubuntu0` (GitHub compares case-insensitively) keeps every
+    # selected shard on the hosted runner; `ubuntu0` ROUTES eligible same-repository
+    # pull_request and workflow_dispatch jobs to the ubuntu0 runner slots.
+    # The accepted scope condition below still skips native merge-group jobs
+    # (labels below, names ubuntu0-e2e-N; docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md).
+    #
+    # What the expression does and does not protect. The head.repo guard is ROUTING
+    # ONLY: it keeps this unmodified job off the host for a fork pull_request. It is
+    # not a host fence, because a pull_request runs the workflow file from the PR's
+    # merge ref, so any PR (fork or same-repo) may edit this `runs-on` or add a
+    # workflow naming the four labels, and merge_group runs fork-authored code once a
+    # maintainer queues it. The host fence is procedural and lives outside this file:
+    # fork runs are held by the all_external_contributors approval policy, and the
+    # runbook requires ephemeral, no-sudo runner slots inside an organization runner
+    # group restricted to this repository. Unsetting the variable restores hosted
+    # routing only; stopping the slot listeners is the full rollback. Lane-dependent
+    # values (workers, ports, browser store) are bound by
+    # .github/scripts/terminal_e2e_lane.sh from env, never spliced into a run block.
+    # tests/test_ci_e2e_selfhosted_lane.py pins this contract with mutation tests.
+    runs-on: ${{ (vars.TERMINAL_E2E_LANE == 'ubuntu0' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","linux","x64","ubuntu0-e2e"]') || 'ubuntu-latest' }}
+    env:
+      TERMINAL_E2E_LANE: ${{ (vars.TERMINAL_E2E_LANE == 'ubuntu0' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && 'ubuntu0' || 'hosted' }}
+      TERMINAL_E2E_LANE_WORKERS: ${{ vars.TERMINAL_E2E_WORKERS }}
     needs: [pr_scope, e2e-scope]
     # Source PRs run the independently selected responsive matrix. Trusted
     # docs-only PRs and native merge groups have separate, explicit skip rules.
@@ -437,6 +462,9 @@ jobs:
         working-directory: terminal
     steps:
       - uses: actions/checkout@v4
+      - name: Bind lane workers and ports
+        id: lane
+        run: bash ../.github/scripts/terminal_e2e_lane.sh
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -453,8 +481,8 @@ jobs:
         id: pwcache
         uses: actions/cache@v4
         with:
-          path: ~/.cache/ms-playwright
-          key: pw-${{ runner.os }}-${{ steps.pw.outputs.version }}
+          path: ${{ steps.lane.outputs.browsers_path }}
+          key: pw-${{ runner.os }}-${{ steps.pw.outputs.version }}${{ steps.lane.outputs.cache_suffix }}
       # `--with-deps` shells out to apt, and the runner's Ubuntu mirror stalls often enough to
       # matter (see #438). Bound it, then fall back to a browser-only install.
       - name: Install Playwright browsers (apt bounded, browser-only fallback)
@@ -468,7 +496,10 @@ jobs:
       - name: Ensure browser present on cache hit
         if: steps.pwcache.outputs.cache-hit == 'true'
         run: npx playwright install chromium
-      - run: npm run test:e2e:responsive -- ${{ matrix.projects }} ${{ matrix.specs }}
+      - run: npm run test:e2e:responsive -- ${{ matrix.projects }} ${{ matrix.specs }} --workers="$TERMINAL_E2E_WORKERS"
+        env:
+          TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port }}
+          TERMINAL_E2E_WORKERS: ${{ steps.lane.outputs.workers }}
       # This feature is default-off; the ordinary matrix skips its browser tests.
       # Exercise it with the SAME harness, without altering production flags.
       - name: Qualify investor shell opt-in
@@ -476,7 +507,7 @@ jobs:
         env:
           MMX_INVESTOR_SHELL_PREVIEW: '1'
           CI: '1'
-          TERMINAL_E2E_PORT: '31991'
+          TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port_investor }}
         run: >-
           npm run test:e2e:responsive -- e2e/investor-shell-preview.spec.ts
           --project=desktop --project=tablet --project=mobile
@@ -487,7 +518,7 @@ jobs:
         env:
           MMX_SHARED_SHELL: '1'
           CI: '1'
-          TERMINAL_E2E_PORT: '31992'
+          TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port_shared }}
         run: >-
           npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts
           --project=desktop --project=tablet --project=mobile
