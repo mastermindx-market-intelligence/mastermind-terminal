@@ -41,14 +41,11 @@ function fixture(t, change = {}) {
       const dir = path.join(repoRoot, evidence.PACKETS.pl6); fs.mkdirSync(dir, { recursive: true });
       const record = { schema: "terminal.visual-composition.v2", mode: "records", id: input.id,
         profile: input.profile, operations: input.operations, selections: input.selections };
-      fs.writeFileSync(path.join(dir, `${input.id}.composition.json`), JSON.stringify(record));
-      return { id: input.id }; // Deliberately has no path/digest: matches incumbent return semantics.
-    },
-    readComposition(input) {
-      assert.deepEqual(input.expectedProfile, profile);
-      assert.equal(input.compositionPath, `${evidence.PACKETS.pl6}/${ids.composition}.composition.json`);
-      if (change.readError) throw new Error(change.readError);
-      return { id: ids.composition, cases: Array(change.selectedCount ?? 50).fill({}),
+      assert.deepEqual(input.profile, profile);
+      fs.writeFileSync(path.join(dir, `${input.id}.composition.json`),
+        JSON.stringify(record) + (change.compositionBytesMismatch ? "\n" : ""));
+      // The incumbent writer returns the fully validated composition, without a path/digest.
+      return { id: input.id, cases: Array(change.selectedCount ?? 50).fill({}),
         operations: ["pl6", "vi"].map(packet => ({ id: ids[packet], packet,
           cases: Array(packet === "pl6" ? (change.pl6Count ?? 24) : 30).fill({}) })) };
     },
@@ -186,8 +183,9 @@ for (const [name, change, error] of [
   ["spawn error", { error: new Error("original ENOENT") }, /original ENOENT/],
   ["spawn throws", { throwChild: true }, /original spawn exception/],
   ["source mismatch", { writeError: "SOURCE_MISMATCH" }, /SOURCE_MISMATCH/],
-  ["profile mismatch", { readError: "PROFILE_MISMATCH" }, /PROFILE_MISMATCH/],
+  ["profile mismatch", { writeError: "PROFILE_MISMATCH" }, /PROFILE_MISMATCH/],
   ["bad report/image closure", { writeError: "CASE_REPORT_BINDING" }, /CASE_REPORT_BINDING/],
+  ["composition changed after writer validation", { compositionBytesMismatch: true }, /COMPOSITION_BYTES/],
   ["incomplete composition", { selectedCount: 49 }, /COMPOSITION/],
   ["lost extra layout cases", { pl6Count: 20 }, /COMPOSITION/],
 ]) test(`${name} preserves failure and does not export selector`, t => {

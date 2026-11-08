@@ -159,9 +159,8 @@ function run({ repoRoot = path.resolve(__dirname, "../../.."), env = process.env
     const selections = required.map(c => ({ operationId: ids[c.packet], key: c.key }));
     const input = { repoRoot, id: ids.composition, operations: refs, selections, profile: captureProfile };
     record.state = "VALIDATING"; record.references = refs; save();
-    evidence.writeComposition(input); // Writes immutably and validates its exact created bytes.
+    const validated = evidence.writeComposition(input); // Returns validation of its exact created bytes.
     const compositionPath = `${evidence.PACKETS.pl6}/${ids.composition}.composition.json`;
-    const validated = evidence.readComposition({ repoRoot, compositionPath, expectedProfile: captureProfile });
     if (validated.id !== ids.composition || validated.cases.length !== 50 || validated.operations.length !== 2
         || ["pl6", "vi"].some(packet => {
           const ops = validated.operations.filter(op => op.id === ids[packet] && op.packet === packet);
