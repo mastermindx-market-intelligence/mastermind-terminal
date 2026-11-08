@@ -1,14 +1,14 @@
 # B-F13-6 Claim authoring form — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 24c8032378e3374f3aae9f02b005659b38edcd54
-# capturedAt: 2026-11-06T20:26:21.639Z
+# capturedAtHead: 6d27796792fe5262794cf2f6a6130fdbd3cdcb35
+# capturedAt: 2026-11-08T13:46:27.068Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/workspaces/ClaimAuthoringForm.tsx: "58c9be616f9ef5b7d90c7efdc164138ef76bdc6d7ffd590ff27ad904bfea4a3f"
-  terminal/components/workspaces/ClaimAuthoringForm.module.css: "a8f3030eef0538dccc9f32f5a2688ecbf5f7b8e9c1601717fa819fae763acdc1"
+  terminal/components/workspaces/ClaimAuthoringForm.module.css: "0bff5198770f22d3d286630aae5a3bab6b0728ec80a990aaccf1d1f589b89d3b"
   terminal/lib/claimAuthoring.ts: "b87652bc9c484de109395fb1d5b8dd8a0ba0ddb0ff8e88d629c4bd616b535ed5"
-  terminal/components/workspaces/ThesisWorkspace.tsx: "afabf2e3251975c419a0d8247c44c94757cc51c3470507f199413e371c4033dc"
+  terminal/components/workspaces/ThesisWorkspace.tsx: "80cc40a163f05138c2459c612a4d6788b1dca65c4b012b7da0e6f73f9b596ce1"
 theme: dark
 languages: [en, zh]
 viewports:
