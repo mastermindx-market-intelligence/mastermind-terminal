@@ -150,6 +150,7 @@ function Manager({ owner }: { owner: string }) {
   const [report, setReport] = useState<RefreshReport>(EMPTY_REPORT);
   const [plan, setPlan] = useState<BulkPlan | null>(null);
   const [planStale, setPlanStale] = useState(false);
+  const [reviewCheck, setReviewCheck] = useState<"checking" | "failed" | "ready">("checking");
   const [run, setRun] = useState<Run | null>(null);
 
   const alive = useRef(true);
@@ -157,6 +158,10 @@ function Manager({ owner }: { owner: string }) {
   const selRef = useRef(sel);
   const planRef = useRef<BulkPlan | null>(null);
   const suppressSelf = useRef(false);
+  // Only the latest completed inventory read for this exact review may admit a send.
+  // The ref fences clicks synchronously, before React paints the disabled control.
+  const validatedPlan = useRef<BulkPlan | null>(null);
+  const invalidatedPlan = useRef<BulkPlan | null>(null);
 
   useEffect(() => {
     alive.current = true;
@@ -164,11 +169,20 @@ function Manager({ owner }: { owner: string }) {
   }, []);
 
   const commitSelection = useCallback((next: Selection) => { selRef.current = next; setSel(next); }, []);
-  const commitPlan = useCallback((next: BulkPlan | null) => { planRef.current = next; setPlan(next); }, []);
+  const commitPlan = useCallback((next: BulkPlan | null) => {
+    validatedPlan.current = null;
+    invalidatedPlan.current = null;
+    setReviewCheck("checking");
+    planRef.current = next;
+    setPlan(next);
+  }, []);
 
   /** Read the inventory once. Returns the rows this read saw (null when it saw none). */
   const load = useCallback(async (): Promise<BulkAlert[] | null> => {
     const seq = ++readSeq.current;
+    const reviewed = planRef.current;
+    validatedPlan.current = null;
+    if (reviewed) setReviewCheck("checking");
     setRefreshing(true);
     const read = await readInventory();
     const rows = read.kind === "ok" ? read.rows : null;
@@ -182,13 +196,22 @@ function Manager({ owner }: { owner: string }) {
       return null;
     }
     if (read.kind === "failed") {
+      if (reviewed && planRef.current === reviewed) setReviewCheck("failed");
       setInv((prev) => (prev.kind === "ready" ? { ...prev, stale: true } : { kind: "unavailable" }));
       return null;
     }
     const { selection, report: delta } = reconcileSelection(selRef.current, read.rows);
     commitSelection(selection);
     if (hasReport(delta)) setReport((prev) => mergeReport(prev, delta));
-    if (planRef.current && !planStillMatches(planRef.current, read.rows)) setPlanStale(true);
+    if (planRef.current && !planStillMatches(planRef.current, read.rows)) {
+      invalidatedPlan.current = planRef.current;
+      setPlanStale(true);
+    }
+    if (reviewed && planRef.current === reviewed) {
+      const matches = invalidatedPlan.current !== reviewed && planStillMatches(reviewed, read.rows);
+      validatedPlan.current = matches ? reviewed : null;
+      setReviewCheck(matches ? "ready" : "failed");
+    }
     setInv({ kind: "ready", rows: read.rows, stale: false });
     return read.rows;
   }, [commitPlan, commitSelection, owner]);
@@ -247,12 +270,13 @@ function Manager({ owner }: { owner: string }) {
     if (!planRef.current) return;
     commitPlan(capturePlan(selRef.current, planRef.current.action));
     setPlanStale(false);
+    void load();
   };
   const cancelReview = () => { commitPlan(null); setPlanStale(false); };
 
   const confirm = useCallback(async () => {
     const p = planRef.current;
-    if (!p || planStale) return;
+    if (!alive.current || !p || planStale || invalidatedPlan.current === p || validatedPlan.current !== p) return;
     // Fence: the review is consumed before the first send, so a second click finds no plan.
     commitPlan(null);
     commitSelection(emptySelection(owner));
@@ -394,6 +418,7 @@ function Manager({ owner }: { owner: string }) {
             </div>
           );
         })}
+        {reviewCheck === "checking" ? <p className={s.note} role="status" data-bulk-review-checking>{t("bkLoading")}</p> : null}
         {writable === 0 ? <p className={s.note}>{t("bkNothingToDo")}</p> : null}
         {planStale ? (
           <div className={s.alertBox} role="alert">
@@ -406,7 +431,7 @@ function Manager({ owner }: { owner: string }) {
             type="button"
             className="btn btn-primary"
             onClick={() => void confirm()}
-            disabled={planStale || writable === 0}
+            disabled={planStale || reviewCheck !== "ready" || writable === 0}
             data-bulk-confirm
           >
             {t(p.action === "pause" ? "bkConfirmPause" : "bkConfirmResume", { n: writable })}
