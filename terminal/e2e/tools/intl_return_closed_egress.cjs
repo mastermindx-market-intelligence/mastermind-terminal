@@ -1,8 +1,35 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- Node --require preload and pure CommonJS controls. */
 "use strict";
 // Runner/driver-only preload. Server children retain the incumbent single-port
 // preload. No canonical Beta/www/provider DNS or sockets are permitted here.
+const path=require("node:path");
 const {proxyAllowed,ownedBase}=require("./intl_return_closed_policy.cjs");
-function install(base,endpoint,modules={net:require("node:net"),dns:require("node:dns"),http:require("node:http"),https:require("node:https"),global:globalThis}) {
+function ownedUpgradeHeaders(headers,ws,operationDir) {
+  if(!headers || typeof headers!=="object" || Array.isArray(headers))return false;
+  const h={},allowed=["host","connection","upgrade","sec-websocket-version","sec-websocket-key","sec-websocket-extensions","user-agent","x-playwright-browser","x-playwright-launch-options"];
+  for(const [raw,rawValue] of Object.entries(headers)){
+    const key=raw.toLowerCase();
+    // ws sets the fixed protocol version as number13; Node HTTP accepts it.
+    const value=key==="sec-websocket-version" && rawValue===13 ? "13" : rawValue;
+    if(!allowed.includes(key) || Object.hasOwn(h,key) || typeof value!=="string" || value.length>8192 || /[^\x20-\x7e]/.test(value))return false;
+    h[key]=value;
+  }
+  if(h.connection?.toLowerCase()!=="upgrade" || h.upgrade?.toLowerCase()!=="websocket" || h["sec-websocket-version"]!=="13")return false;
+  const key=h["sec-websocket-key"];if(!key || Buffer.from(key,"base64").length!==16 || Buffer.from(key,"base64").toString("base64")!==key)return false;
+  if(h.host!==undefined && h.host!==ws.host)return false;
+  if(h["x-playwright-browser"]!==undefined && h["x-playwright-browser"]!=="chromium")return false;
+  if(h["sec-websocket-extensions"]!==undefined && !/^permessage-deflate(?:; (?:client_no_context_takeover|server_no_context_takeover|client_max_window_bits(?:=\d{1,2})?|server_max_window_bits=\d{1,2}))*$/.test(h["sec-websocket-extensions"]))return false;
+  if(h["x-playwright-launch-options"]!==undefined){
+    let value;try{value=JSON.parse(h["x-playwright-launch-options"]);}catch{return false;}
+    if(!value || typeof value!=="object" || Array.isArray(value) || Object.keys(value).some(k=>!["handleSIGINT","headless","tracesDir","artifactsDir"].includes(k)))return false;
+    if((value.handleSIGINT!==undefined && value.handleSIGINT!==false) || (value.headless!==undefined && value.headless!==true))return false;
+    for(const name of ["tracesDir","artifactsDir"])if(value[name]!==undefined){
+      const dir=value[name];if(!operationDir || typeof dir!=="string" || path.resolve(dir)!==dir || !dir.startsWith(operationDir+path.sep))return false;
+    }
+  }
+  return true;
+}
+function install(base,endpoint,modules={net:require("node:net"),dns:require("node:dns"),http:require("node:http"),https:require("node:https"),global:globalThis},operationDir=process.env.TERMINAL_INTL_RETURN_OPERATION ? path.dirname(process.env.TERMINAL_INTL_RETURN_OPERATION) : null) {
   base=ownedBase(base);const ws=new URL(endpoint);
   if(ws.protocol!=="ws:" || ws.hostname!=="127.0.0.1" || !/^\d+$/.test(ws.port)
     || Number(ws.port)<1024 || ws.username || ws.password || ws.search || ws.hash)throw Error("INTL_RETURN_BROWSER_ENDPOINT");
@@ -31,14 +58,24 @@ function install(base,endpoint,modules={net:require("node:net"),dns:require("nod
     let url,options={};
     if(typeof args[0]==="string" || args[0] instanceof URL){
       url=new URL(args[0]);options=args[1] && typeof args[1]==="object" ? args[1] : {};
+      if(typeof args[0]==="string" && args[0]!==url.href)return denied();
       if(["hostname","host","port","path","protocol","auth"].some(key=>options[key]!==undefined))return denied();
     }else{
       options=args[0] || {};
-      if(options.hostname!=="127.0.0.1" || options.auth || (options.host && options.host!=="127.0.0.1"))return denied();
-      url=new URL(`${options.protocol || "http:"}//${options.hostname}:${options.port}${options.path || "/"}`);
+      // Installed ws1.63 supplies host and explicitly undefined hostname.
+      // Both spellings still bind the same literal; conflicting aliases refuse.
+      const host=options.hostname ?? options.host;
+      if(host!=="127.0.0.1" || options.auth!==undefined || options.socketPath!==undefined || (options.protocol!==undefined && options.protocol!=="http:")
+        || (options.hostname!==undefined && options.hostname!==host) || (options.host!==undefined && options.host!==host))return denied();
+      if(!["number","string"].includes(typeof options.port) || !/^\d{1,5}$/.test(String(options.port)) || String(Number(options.port))!==String(options.port))return denied();
+      if(options.path!==undefined && typeof options.path!=="string")return denied();
+      const raw=`http://${host}:${options.port}${options.path || "/"}`;url=new URL(raw);
+      if(url.href!==raw)return denied();
     }
     const method=options.method || "GET";
-    if(!(method==="GET" && url.href===endpoint.replace(/^ws:/,"http:")) && !proxyAllowed(url.href,method,base))return denied();
+    const ownedUpgrade=method==="GET" && url.href===endpoint.replace(/^ws:/,"http:");
+    if(ownedUpgrade){if(!ownedUpgradeHeaders(options.headers,ws,operationDir))return denied();}
+    else if(!proxyAllowed(url.href,method,base))return denied();
     return request.apply(this,args);
   };
   modules.http.get=function(...args){const req=modules.http.request(...args);req.end();return req;};

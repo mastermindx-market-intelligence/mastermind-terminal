@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- Node --require preload and pure CommonJS controls. */
 "use strict";
 const {test}=require("node:test"),assert=require("node:assert/strict");
 const {install}=require("./intl_return_closed_egress.cjs");
 const {cleanupAll,runOwned}=require("./run_intl_return_controlled.cjs");
 const {LEGACY,VIEWS}=require("./intl_return_closed_policy.cjs");
 const base="http://127.0.0.1:41951",ws="ws://127.0.0.1:41952/owned-exact-path";
+function upgradeHeaders(){return {"Sec-WebSocket-Version":"13","Sec-WebSocket-Key":Buffer.alloc(16,7).toString("base64"),Connection:"Upgrade",Upgrade:"websocket","x-playwright-browser":"chromium"};}
 function fakes(){
  let connected=0,requested=0;
  class Socket{connect(){connected++;return "connected";}}class Server{listen(){throw Error("unexpected listen");}}
@@ -21,7 +23,7 @@ test("runner/driver network admits only actual owned local socket and exact Next
  assert.throws(()=>modules.dns.resolve("127.0.0.1"),/EGRESS_DENIED/);
  const q=new URLSearchParams({view:"investigations",intl_return:LEGACY+"/intl.html?"+VIEWS[0]});
  modules.http.request(base+"/analysis?"+q,{method:"GET"});
- modules.http.request(ws.replace(/^ws:/,"http:"),{method:"GET"});
+ modules.http.request(ws.replace(/^ws:/,"http:"),{method:"GET",headers:upgradeHeaders()});
  modules.http.request({hostname:"127.0.0.1",port:41951,path:"/api/shared-shell/status",method:"HEAD"});
  for(const [url,options] of [[base+"/api/investigations",{method:"GET"}],[base+"/api/shared-shell/status",{method:"POST"}],
   [base+"/api/shared-shell/status",{hostname:"provider.invalid"}],["https://provider.invalid/x",{}],[ws.replace(/^ws:/,"http:")+"extra",{}]])
@@ -78,7 +80,7 @@ async function controllerCloseProbe(unknown) {
  const cp={execFileSync:(command,args)=>args[0]==="rev-parse" ? "frozen-source\n" : "",spawn:()=>{spawns++;const child=new EventEmitter();child.pid=23457;if(!unknown)queueMicrotask(()=>child.emit("close",0,null));return child;}};
  const server={ready:async()=>{},failure:()=>{},stop:async()=>{serverStops++;},summary:()=>({fixture:"source-only"})};
  const runtime={assertPortFree:async()=>{},start:async()=>server,getChromium:()=>({counts:{},toolchain:{version:"fake-controlled-source-only"},launch:async()=>({thesisOwnedWsEndpoint:"ws://127.0.0.1:41952/owned",close:async()=>{browserCloses++;}})})};
- const module={exports:{}};
+ const vmModule={exports:{}};
  const fakeRequire=name=>{
   if(name==="node:fs")return fakefs;if(name==="node:child_process")return cp;
   if(name==="./thesis_capture_runtime.cjs")return runtime;
@@ -86,10 +88,10 @@ async function controllerCloseProbe(unknown) {
   if(name==="./f11_owned_server.cjs")return {trackOwnedServer:()=>({stop:async()=>{stops++;if(unknown)throw Error("FAKE_GROUP_UNKNOWN");},settlement:()=>({pid:23457,processGroupAbsent:true})})};
   if(name==="/owned/playwright/package.json")return {version:"1.63.0"};return require(name);
  };
- const context={require:fakeRequire,module,exports:module.exports,__dirname,Buffer,URL,console:{log:()=>{}},queueMicrotask,
+ const context={require:fakeRequire,module:vmModule,exports:vmModule.exports,__dirname,Buffer,URL,console:{log:()=>{}},queueMicrotask,
   process:{argv:["node",filename],execPath:"node",getuid:()=>501,env:{TMPDIR:"/owned/tmp",THESIS_CAPTURE_PLAYWRIGHT_MODULE:"/owned/playwright",TERMINAL_CROP_PORT:"41951"}},
   setTimeout:fn=>{queueMicrotask(fn);return 1;},clearTimeout:()=>{}};
- vm.runInNewContext(source,context,{filename});let error;try{await module.exports.main();}catch(e){error=e;}
+ vm.runInNewContext(source,context,{filename});let error;try{await vmModule.exports.main();}catch(e){error=e;}
  const result=JSON.parse(files.get("/owned/tmp/intl-return-fake/RESULT.json"));
  return {error,result,unlinked,spawns,stops,browserCloses,serverStops};
 }
@@ -105,4 +107,33 @@ test("actual main settled runner records standalone close EIO and removes only s
  assert.equal(r.error.message,"FAKE_LOG_CLOSE_EIO");assert.equal(r.result.primary.message,"FAKE_LOG_CLOSE_EIO");
  assert.equal(r.result.runner.settlement.processGroupAbsent,true);assert.equal(r.result.privateOperationRetained,null);
  assert.deepEqual(r.unlinked,["/owned/tmp/intl-return-fake/runner-input.json"]);assert.equal(r.spawns,1);assert.equal(r.stops,1);assert.equal(r.browserCloses,1);assert.equal(r.serverStops,1);
+});
+
+test("retained installed1.63 ws host-only shape reaches only the exact owned endpoint",()=>{
+ const modules=fakes();install(base,ws,modules,"/owned/stage");
+ // Actual utilsBundle2d1ccc01 initAsClient observed by fakeHTTP in original6617
+ // discriminator: explicit undefined hostname/protocol, parsed literal host.
+ const original={hostname:undefined,protocol:undefined,host:"127.0.0.1",port:"41952",path:"/owned-exact-path",method:"GET",headers:{...upgradeHeaders(),"Sec-WebSocket-Version":13}};
+ modules.http.request(original);
+ modules.http.request({...original,hostname:"127.0.0.1"});
+ modules.http.request({...original,headers:{...upgradeHeaders(),"x-playwright-launch-options":JSON.stringify({handleSIGINT:false,headless:true,tracesDir:"/owned/stage/test-output/traces",artifactsDir:"/owned/stage/test-output"})}});
+ assert.equal(modules.counts().requested,3);
+ for(const delta of [{host:"provider.invalid"},{hostname:"provider.invalid"},{hostname:"127.0.0.1",host:"provider.invalid"},
+  {host:"127.0.0.1:41952"},{host:"localhost"},{host:"2130706433"},{port:41953},{port:41951},{path:"/owned-exact-path/other"},{path:"/other/../owned-exact-path"},{path:"/owned-exact-path?proxy=*"},
+  {method:"POST"},{protocol:"https:"},{auth:"forged"},{auth:""},{port:{toString:()=>"41952"}},{port:"041952"},{path:{toString:()=>"/owned-exact-path"}},{socketPath:"/tmp/foreign.sock"}])
+  assert.throws(()=>modules.http.request({...original,...delta}),/EGRESS_DENIED/);
+ for(const headers of [{...upgradeHeaders(),Host:"provider.invalid"},{...upgradeHeaders(),Authorization:"forged"},{...upgradeHeaders(),Cookie:"forged"},
+  {...upgradeHeaders(),"x-playwright-proxy":"*"},{...upgradeHeaders(),"x-playwright-browser":"firefox"},{...upgradeHeaders(),Upgrade:"other"},
+  {...upgradeHeaders(),Connection:"keep-alive"},{...upgradeHeaders(),"Sec-WebSocket-Version":14},{...upgradeHeaders(),"Sec-WebSocket-Key":"invalid"},{...upgradeHeaders(),upgrade:"websocket"},
+  {...upgradeHeaders(),"user-agent":"safe\r\nAuthorization: forged"},
+  {...upgradeHeaders(),"x-playwright-launch-options":JSON.stringify({proxy:{server:"https://provider.invalid"}})},
+  {...upgradeHeaders(),"x-playwright-launch-options":JSON.stringify({headless:true,artifactsDir:"/foreign/output"})},
+  {...upgradeHeaders(),"x-playwright-launch-options":JSON.stringify({headless:true,artifactsDir:"/owned/stage/../escape"})}])
+  assert.throws(()=>modules.http.request({...original,headers}),/EGRESS_DENIED/);
+ assert.equal(modules.counts().requested,3);
+ for(const [url,options] of [[ws.replace(/^ws:/,"http:")+"?proxy=*",{headers:upgradeHeaders()}],
+  [ws.replace(/^ws:/,"http:"),{headers:upgradeHeaders(),host:"provider.invalid"}],
+  [ws.replace(/^ws:/,"http:"),{headers:{}}],["http://provider.invalid/owned-exact-path",{headers:upgradeHeaders()}]])
+  assert.throws(()=>modules.http.request(url,options),/EGRESS_DENIED/);
+ assert.equal(modules.counts().requested,3);
 });
