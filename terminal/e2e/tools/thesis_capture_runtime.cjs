@@ -209,7 +209,7 @@ function assertOwnedListener(port,group) {
 }
 function capturePresentationEnvironment(mode = "dark") {
   if(mode === "dark")return {};
-  if(["shared-shell-light-en-1440","shared-shell-intl-return"].includes(mode))return {MMX_SHARED_SHELL:"1"};
+  if(["shared-shell-light-en-1440","shared-shell-intl-return","shared-shell-allocation-return"].includes(mode))return {MMX_SHARED_SHELL:"1"};
   throw Error("THESIS_CAPTURE_PRESENTATION_SCOPE");
 }
 async function start(root,port,stage,mode = "dark") {

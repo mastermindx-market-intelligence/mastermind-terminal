@@ -130,12 +130,16 @@ test('joined case enrolls only its fixed CLI and private config boolean without 
  vm.runInNewContext(fs.readFileSync(runnerFile,'utf8'),{module:runner,exports:runner.exports,require:stubRequire,__dirname:directory,process:{argv:['node','runner'],env:{}}});
  assert.equal(runner.exports.joinedSourceCase([]),false);assert.equal(runner.exports.joinedSourceCase(['--joined-source']),true);
  for(const args of [['--joined-source','extra'],['--joined-source=1'],['--arbitrary']])assert.throws(()=>runner.exports.joinedSourceCase(args),/FIXED_SCOPE/);
- function config(joinedSource){
-  const input={baseURL:base,wsEndpoint:'ws://127.0.0.1:41952/owned',playwrightModule:'/fixture-pw',joinedSource};const mod={exports:{}};
+ function config(joinedSource,fixtureCase){
+  const input={baseURL:base,wsEndpoint:'ws://127.0.0.1:41952/owned',playwrightModule:'/fixture-pw',joinedSource,fixtureCase};const mod={exports:{}};
   const fakeFs={lstatSync:p=>p==='/owned/op.json'?{isFile:()=>true,uid:1,mode:0o600,size:100}:{isDirectory:()=>true,uid:1,mode:0o700},readFileSync:()=>JSON.stringify(input)};
   vm.runInNewContext(fs.readFileSync(path.join(directory,'intl_return_controlled.config.cjs'),'utf8'),{module:mod,exports:mod.exports,__dirname:directory,URL,process:{env:{TERMINAL_INTL_RETURN_OPERATION:'/owned/op.json'},getuid:()=>1},require:n=>n==='node:fs'?fakeFs:n==='/fixture-pw/package.json'?{version:'1.63.0'}:require(n)});return mod.exports;
  }
  assert.equal(config(true).testMatch,'intl-investigate-controlled.spec.ts');assert.equal(config(false).testMatch,'intl-return-controlled.spec.ts');assert.equal(config(undefined).testMatch,'intl-return-controlled.spec.ts');
+ assert.equal(config(false,'allocation-p12t58').testMatch,'allocation-return-controlled.spec.ts');
+ assert.throws(()=>config(true,'allocation-p12t58'),/FIXED_SCOPE/);
+ for(const [args,want]of [[[],{selected:'intl',allocation:false,joinedSource:false}],[['--joined-source'],{selected:'intl',allocation:false,joinedSource:true}],[['--allocation-p12t58'],{selected:'allocation-p12t58',allocation:true,joinedSource:false}]])assert.equal(JSON.stringify(runner.exports.selectOperation(args)),JSON.stringify(want));
+ for(const args of [['--joined-source','--allocation-p12t58'],['--allocation-p12t58','--joined-source'],['--joined-source=1'],['--unknown']])assert.throws(()=>runner.exports.selectOperation(args),/FIXED_SCOPE/);
  for(const invalid of ['true',1,null])assert.throws(()=>config(invalid),/FIXED_SCOPE/);
  const selected=config(true);assert.equal(selected.workers,1);assert.equal(selected.retries,0);assert.equal(selected.timeout,120000);assert.equal(selected.webServer,undefined);assert.equal(selected.globalSetup,undefined);assert.equal(selected.use.serviceWorkers,'block');
 });

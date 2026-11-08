@@ -41,23 +41,33 @@ function currentQuery(search, route) {
   if(query.get("view") !== "investigations" || [...query.keys()].length !== 2)return false;
   return VIEWS.some(value => query.get("intl_return") === LEGACY+"/intl.html?"+value);
 }
-function proxyAllowed(raw,method,base) {
+function fixtureCase(value="intl") {
+  if(!["intl","allocation-p12t58"].includes(value))throw Error("RETURN_FIXTURE_CASE");
+  return value;
+}
+function proxyAllowed(raw,method,base,selected="intl") {
+  fixtureCase(selected);
   const origin=ownedBase(base),url=cleanURL(raw,origin);
   if(!url || !["GET","HEAD"].includes(method))return false;
-  if(["/analysis","/intl.html"].includes(url.pathname))return currentQuery(url.search,url.pathname);
+  if(selected === "allocation-p12t58") {
+    if(["/allocation.html","/basket/big_pharma.html"].includes(url.pathname)) {
+      const q=new URLSearchParams(url.search);
+      return [...q.keys()].length===0 || ([...q.keys()].length===1 && q.has("_rsc") && /^[A-Za-z0-9_-]{1,128}$/.test(q.get("_rsc")));
+    }
+  } else if(["/analysis","/intl.html"].includes(url.pathname))return currentQuery(url.search,url.pathname);
   if(url.pathname === "/api/shared-shell/status")return url.search === "";
   // Static Next source output only, never /_next/image, HMR, arbitrary data/API.
   if(!/^\/_next\/static\/(?:[A-Za-z0-9_@()-]+\/)*[A-Za-z0-9_.@()-]+\.(?:js|css|woff2|svg|png|ico)$/.test(url.pathname))return false;
   const query=new URLSearchParams(url.search);
   return [...query.keys()].length === 0 || ([...query.keys()].length === 1 && query.has("v") && /^\d{1,20}$/.test(query.get("v")));
 }
-function guardProxy(request,base) {
-  ownedBase(base);
+function guardProxy(request,base,selected="intl") {
+  ownedBase(base);fixtureCase(selected);
   const fetch=request.fetch.bind(request);
   for(const name of ["get","post","put","patch","delete","head","fetch"])request[name]=async(raw,options={}) => {
     if(!options || typeof options !== "object")throw Error("INTL_RETURN_PROXY_SCOPE");
     const method=name === "fetch" ? options.method ?? "GET" : name.toUpperCase();
-    if(!proxyAllowed(raw,method,base) || options.maxRedirects !== 0
+    if(!proxyAllowed(raw,method,base,selected) || options.maxRedirects !== 0
       || ["data","form","multipart","params","ignoreHTTPSErrors"].some(key => options[key] !== undefined))
       throw Error("INTL_RETURN_PROXY_SCOPE");
     const headers=options.headers;
@@ -71,15 +81,15 @@ function guardProxy(request,base) {
       if(key === "next-url") {
         // Next derives source-route metadata from its Flight tree, not the
         // selected destination query. Admit only this case's Analysis origin.
-        const analysisReturn = value === "/analysis" && new URL(raw).pathname === "/intl.html"
+        const analysisReturn = selected === "intl" && value === "/analysis" && new URL(raw).pathname === "/intl.html"
           && headers.rsc === "1" && typeof headers["next-router-state-tree"] === "string"
           && headers["next-router-state-tree"].length > 0;
         const outboundQuery = new URL(raw).searchParams;
         outboundQuery.delete("_rsc");
-        const intlInvestigate = value === "/intl.html" && new URL(raw).pathname === "/analysis"
+        const intlInvestigate = selected === "intl" && value === "/intl.html" && new URL(raw).pathname === "/analysis"
           && JOINED_SOURCE_QUERIES.includes(outboundQuery.toString()) && headers.rsc === "1"
           && typeof headers["next-router-state-tree"] === "string" && headers["next-router-state-tree"].length > 0;
-        if(!analysisReturn && !intlInvestigate && !proxyAllowed(ownedBase(base)+value,"GET",base))throw Error("INTL_RETURN_PROXY_HEADERS");
+        if(!analysisReturn && !intlInvestigate && !proxyAllowed(ownedBase(base)+value,"GET",base,selected))throw Error("INTL_RETURN_PROXY_HEADERS");
       }
     }
     const response=await fetch(raw,{...options,method,maxRedirects:0,timeout:30_000});
@@ -87,4 +97,4 @@ function guardProxy(request,base) {
     return response;
   };
 }
-module.exports={SHELL,LEGACY,VIEWS,ownedBase,currentQuery,proxyAllowed,guardProxy};
+module.exports={SHELL,LEGACY,VIEWS,ownedBase,currentQuery,fixtureCase,proxyAllowed,guardProxy};
