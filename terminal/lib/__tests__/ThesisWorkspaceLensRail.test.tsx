@@ -12,6 +12,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import ThesisWorkspace from "@/components/workspaces/ThesisWorkspace";
+import { LangProvider, applyLang } from "@/lib/i18n";
 import type { ThesisDetail, ThesisSubjectRef, ThesisSummary, ThesisVersion } from "@/lib/theses";
 import { THESIS_CONTENT_SCHEMA, THESIS_SUBJECT_SCHEMA } from "@/lib/theses";
 
@@ -109,12 +110,14 @@ async function flush() {
   });
 }
 
-async function mount(props: { ownerKey: string; initialSymbol?: string }) {
+async function mount(props: { ownerKey: string; initialSymbol?: string; lang?: "en" | "zh" }) {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
   await act(async () => {
-    root!.render(<ThesisWorkspace ownerKey={props.ownerKey} initialSymbol={props.initialSymbol} />);
+    if (props.lang) applyLang(props.lang);
+    const workspace = <ThesisWorkspace ownerKey={props.ownerKey} initialSymbol={props.initialSymbol} />;
+    root!.render(props.lang ? <LangProvider>{workspace}</LangProvider> : workspace);
   });
   await flush();
   return container;
@@ -2972,5 +2975,74 @@ describe("ThesisWorkspace research views — round-8 heal (B-F11-4, PR #546)", (
 
     expect(savedViewsStrip(el)).not.toContain("Your saved views did not load.");
     expect(el.querySelector('[data-testid="rms-save-view"]')).not.toBeNull();
+  });
+});
+
+
+describe("listing-scope presentation localization", () => {
+  function scoped(key: string, display = `${key} · listing scoped`): ThesisSubjectRef {
+    return { schema: THESIS_SUBJECT_SCHEMA, kind: "issuer", owner: "terminal.analysis_symbol",
+      key, identityState: "listing_scoped", listing: { symbol: key, mic: null, securityId: null },
+      companyId: null, display };
+  }
+  function row(id: string, ref: ThesisSubjectRef, daysAgo = 1): ThesisSummary {
+    return { id, currentVersion: 1, lifecycleState: "active", subject: ref, title: `Thesis ${ref.key}`,
+      updatedAt: new Date(Date.now() - daysAgo * 86_400_000).toISOString() };
+  }
+  async function coverageRow(el: HTMLElement, symbol: string) {
+    await act(async () => tabs(el).find(b => b.dataset.view === "coverage")!.click());
+    const button = Array.from(el.querySelectorAll<HTMLButtonElement>('button[class*="subjectRow"]'))
+      .find(b => b.textContent?.includes(symbol));
+    expect(button).toBeTruthy();
+    return button!;
+  }
+  beforeEach(() => window.history.replaceState(null, "", "/analysis?view=theses"));
+  afterEach(async () => { await act(async () => applyLang("en")); });
+
+  it("localizes generated listing scope in Coverage without translating custom or resolved identities", async () => {
+    const rows = [row("scope-1", scoped("NVDA")), row("scope-2", scoped("BABA", "User listing scoped note")),
+      row("scope-3", subject("AAA", "AAA · listing scoped"))];
+    const before = JSON.stringify(rows);
+    installFetch(rows, new Map());
+    const el = await mount({ ownerKey: "owner-scope-labels", lang: "zh" });
+    await coverageRow(el, "NVDA");
+    const labels = Array.from(el.querySelectorAll('button[class*="subjectRow"] strong')).map(n => n.textContent);
+    expect(labels).toContain("NVDA · 上市代码范围身份");
+    expect(labels).toContain("User listing scoped note");
+    expect(labels).toContain("AAA · listing scoped");
+    expect(JSON.stringify(rows)).toBe(before);
+  });
+
+  it("localizes captured scope chip and prose across locale changes even when the current view loses the subject", async () => {
+    const rows = [row("scope-4", scoped("NVDA"))];
+    const before = JSON.stringify(rows);
+    installFetch(rows, new Map());
+    const el = await mount({ ownerKey: "owner-scope-captured", lang: "zh" });
+    const button = await coverageRow(el, "NVDA");
+    await act(async () => button.click());
+    const chip = () => el.querySelector('[data-testid="rms-subject-chip"]')?.textContent;
+    expect(chip()).toBe("NVDA · 上市代码范围身份 · 显示全部");
+    expect(el.querySelector('[class*="lensWhat"]')?.textContent).toContain("NVDA · 上市代码范围身份");
+    await act(async () => applyLang("en"));
+    expect(chip()).toBe("NVDA · listing scoped · Show everything");
+    await act(async () => (el.querySelector('[data-builtin="window_closed"]') as HTMLButtonElement).click());
+    expect(el.querySelector('[data-testid="rms-lens-panel"]')?.textContent).not.toContain("Thesis NVDA");
+    await act(async () => applyLang("zh"));
+    expect(chip()).toBe("NVDA · 上市代码范围身份 · 显示全部");
+    expect(JSON.stringify(rows)).toBe(before);
+  });
+
+  it("keeps view-plus-subject empty copy localized without changing canonical subject data", async () => {
+    const rows = [row("scope-5", scoped("NVDA"), 1), row("scope-6", scoped("AAPL"), 45)];
+    const before = JSON.stringify(rows);
+    installFetch(rows, new Map());
+    const el = await mount({ ownerKey: "owner-scope-empty", lang: "zh" });
+    const button = await coverageRow(el, "NVDA");
+    await act(async () => button.click());
+    await act(async () => (el.querySelector('[data-builtin="stale_30"]') as HTMLButtonElement).click());
+    const empty = el.querySelector('[data-testid="rms-empty"]')?.textContent;
+    expect(empty).toContain("NVDA · 上市代码范围身份");
+    expect(empty).not.toContain("listing scoped");
+    expect(JSON.stringify(rows)).toBe(before);
   });
 });

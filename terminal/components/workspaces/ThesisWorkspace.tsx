@@ -395,6 +395,16 @@ function listingSubject(symbol: string): ThesisSubjectRef {
   };
 }
 
+function subjectDisplayLabel(display: string, groupKey: string, lang: "en" | "zh"): string {
+  // Translate only our generated listing label. Keep canonical subject data and
+  // authored labels intact, and use the captured group key even after rows leave.
+  const prefix = "terminal.analysis_symbol|issuer|";
+  if (lang !== "zh" || !groupKey.startsWith(prefix)) return display;
+  const symbol = groupKey.slice(prefix.length);
+  if (normalizeAnalysisSymbol(symbol) !== symbol || display !== `${symbol} · listing scoped`) return display;
+  return `${symbol} · ${COPY.zh.listingScoped}`;
+}
+
 function exactObjectKeys(value: Record<string, unknown>, expected: readonly string[]): boolean {
   const actual = Object.keys(value);
   const keys = new Set(expected);
@@ -1129,7 +1139,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   // last thesis was edited to a different subject or removed from the loaded list
   // while the filter stayed active. `subjectFilterLabel` is captured once, at the
   // moment of selection, and never re-looked-up.
-  const filteredSubjectDisplay = subjectFilterKey ? subjectFilterLabel : null;
+  const filteredSubjectDisplay = subjectFilterKey && subjectFilterLabel
+    ? subjectDisplayLabel(subjectFilterLabel, subjectFilterKey, lang) : null;
   const clearSubjectFilter = useCallback(() => {
     setSubjectFilterKey(null);
     setSubjectFilterLabel(null);
@@ -2569,7 +2580,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                   ? <div className={styles.emptyLens} data-testid="rms-empty"><p>{lensViewEmptyCopy ?? rms.empty.coverage}</p></div>
                   : coverageViewRows.map((row) => (
                     <button key={row.key} type="button" className={styles.subjectRow} onClick={() => filterBySubject(row)}>
-                      <span><strong>{row.display}</strong><i data-state={row.active > 0 ? "active" : "idle"} /></span>
+                      <span><strong>{subjectDisplayLabel(row.display, row.key, lang)}</strong><i data-state={row.active > 0 ? "active" : "idle"} /></span>
                       {/* m3 (round-2 review): words, not a bare ratio (plain-language law). */}
                       <small>{rms.coverageRatio.replace("{active}", String(row.active)).replace("{theses}", String(row.theses))}</small>
                     </button>
