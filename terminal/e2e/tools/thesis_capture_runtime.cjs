@@ -6,7 +6,7 @@ const { assertNoCaptureDotenv, captureServerEnv } = require("./capture_b_f11_10_
 const { trackOwnedServer, prepareNamespace } = require("./f11_owned_server.cjs");
 const { classifyRequest, typedUnavailablePayload } = require("./f11_provider_closed_policy.cjs");
 // eslint-disable-next-line @typescript-eslint/no-require-imports -- Incumbent capture runtime is CommonJS.
-const { prepareFontEnvironment, installFontWitness, captureCanonicalScreenshot, validateFontWitnesses, waitForCanonicalFonts } = require("./thesis_capture_fonts.cjs");
+const { prepareFontEnvironment, installFontWitness, captureCanonicalScreenshot, validateFontWitnesses, waitForCanonicalFonts, fontFailureFacts } = require("./thesis_capture_fonts.cjs");
 let journal, diagnosticFailure;
 // Diagnostics are never allowed to replace the original effect/cleanup result.
 const note = value => { try { if(journal)journal(value); } catch(error) { diagnosticFailure ||= error; } };
@@ -206,7 +206,7 @@ async function start(root,port,stage) {
       }
       note({phase:"SERVER_NOT_READY",serverPid:child.pid,port,lastStatus});assertDiagnostics();
       throw Error("THESIS_CAPTURE_SERVER_NOT_READY");
-    },failure(error){note({phase:"PRIMARY_FAILURE",name:error.name,code:error.code || null,
+    },failure(error){note({phase:"PRIMARY_FAILURE",fontObservation:fontFailureFacts(error),name:error.name,code:error.code || null,
       message:/^[A-Z_]{1,80}$/.test(error.message)?error.message:"OTHER",
       category:/EPERM|EACCES|permission denied|operation not permitted/i.test(error.message)?"PERMISSION":/timeout|timed out/i.test(error.message)?"TIMEOUT":"OTHER"});},
     stop:settle,summary(){

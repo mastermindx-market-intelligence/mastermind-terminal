@@ -18,10 +18,10 @@ export default defineConfig({
   // Browser cases use .spec.ts; Node tool tests run in their dedicated CI step.
   // Collecting .test.cjs here makes Playwright reject their shared Node test imports.
   testMatch: "**/*.spec.ts",
-  // Compile every route the suite uses BEFORE any spec's clock starts. The suite runs against a
-  // DEV server, so a route's first request pays a Turbopack compile inside whichever spec
-  // happens to touch it first — the measured cause of CI's rotating e2e failures. See the
-  // module header in e2e/globalSetup.ts for the numbers.
+  // Warm the incumbent routes before a spec clock starts. Current startup metadata
+  // distinguishes headers, bounded body completion and selected HTML readiness;
+  // none of those alone proves compiler completion or client hydration. Historical
+  // cold-compilation measurements remain documented in e2e/globalSetup.ts.
   globalSetup: "./e2e/globalSetup.ts",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -108,6 +108,10 @@ export default defineConfig({
     url: `${baseURL}/terminal?symbol=NVDA`,
     reuseExistingServer: !process.env.CI && process.env.TERMINAL_VISUAL_EVIDENCE_OPERATION === undefined,
     timeout: 120_000,
+    // Keep the incumbent Playwright-owned process; retain its normal startup,
+    // compiler and request output in the original job log, not another launcher.
+    stdout: "pipe",
+    stderr: "pipe",
     env: {
       // /analysis is normally member-gated. The page's local-only preview seam
       // keeps responsive visual tests focused on the workspace, not auth.

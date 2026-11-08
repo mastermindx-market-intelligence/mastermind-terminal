@@ -8,6 +8,47 @@ const sha = b => createHash("sha256").update(b).digest("hex");
 const RECEIPT = "1d04bbe5678ad7eef6e969a5c46e643f9526695bc3167de5a7d8a29280b6ca0f";
 const ASSETS = path.resolve(__dirname, "../fixtures/retained-fonts-34fb");
 const PAGE_STATE = new WeakMap();
+const FONT_FAILURES = new WeakMap();
+const safeName = value => typeof value === "string" && value.length <= 128 && /^[A-Za-z0-9_. ,"'-]+$/.test(value) ? value : "OTHER";
+const safeCount = value => Number.isSafeInteger(value) && value >= 0 && value <= 1000000 ? value : null;
+function observeFont(state, phase, facts = {}) {
+  state.lastFontObservation = { schema: "thesis.font-observation.v1", ...state.lastFontObservation, ...facts, phase };
+}
+function fontFailureFacts(error) {
+  try { return JSON.parse(JSON.stringify(FONT_FAILURES.get(error) || null)); } catch { return null; }
+}
+async function withFontFacts(state, work) {
+  try { return await work(); }
+  catch (error) {
+    if (error !== null && (typeof error === "object" || typeof error === "function"))
+      FONT_FAILURES.set(error, state.lastFontObservation || null);
+    throw error;
+  }
+}
+async function fontScope(state, work, cleanup) {
+  let failed = false, failure, result;
+  try { result = await work(); } catch (error) { failed = true; failure = error; }
+  try { await cleanup(); } catch (error) {
+    observeFont(state, "cdp-cleanup-failed", { cdpCleanupFailed: true });
+    if (!failed) { failed = true; failure = error; }
+  }
+  if (failed) throw failure;
+  return result;
+}
+function selectedFacts(value) {
+  const families = typeof value?.fontFamily === "string" ? value.fontFamily.split(",").slice(0, 8).map(f => safeName(f.trim().replaceAll('"', "").replaceAll("'", ""))) : [];
+  const primary = families[0] || "OTHER";
+  return { tag: /^(SPAN|DIV|P|BUTTON|LABEL|TD|TH|INPUT|H[1-6]|A|LI|STRONG|SMALL|TIME|CODE|PRE|DT|DD)$/.test(value?.tag) ? value.tag : "OTHER",
+    fontFamilies: families, primaryFontFamily: primary,
+    intendedRole: !/fallback/i.test(primary) && /^(Inter(?:$|[ _-])|__Inter_)/.test(primary) ? "inter" : ["-apple-system", "BlinkMacSystemFont"].includes(primary) ? "native-ui" : "other",
+    weight: typeof value?.weight === "string" && /^\d{1,4}(?: \d{1,4})?$/.test(value.weight) ? value.weight : "OTHER",
+    hasLatin: value?.hasLatin === true, hasNumeric: value?.hasNumeric === true, hasOtherScript: value?.hasOtherScript === true };
+}
+const platformFacts = fonts => (Array.isArray(fonts) ? fonts : []).slice(0, 24).map(f => ({
+  familyName: safeName(f.familyName), postScriptName: safeName(f.postScriptName),
+  isCustomFont: f.isCustomFont === true, glyphCount: safeCount(f.glyphCount) }));
+const hasInterGlyph = fonts => fonts.some(f => /^Inter(?:\b|[-_ ])/.test(f.familyName) && f.isCustomFont && f.glyphCount > 0);
+
 function need(value) { if (!value) throw Error("THESIS_CAPTURE_FONT_BINDING"); }
 function read(file) {
   const s = fs.lstatSync(file);
@@ -105,13 +146,22 @@ function validateFontWitnesses(stage, files, counts) {
       w.loadedFaces.some(f => f.family.includes(name) && f.status === "loaded")));
     need(Array.isArray(w.verifiedBodies) && ["Inter", "JetBrains Mono"].every(family =>
       w.verifiedBodies.some(b => b.family === family && b.subset === "latin")));
-    need(Array.isArray(w.renderedGlyphs) && w.renderedGlyphs.some(g => g.kind === "latin" && g.present
-      && g.fonts.some(f => /^Inter(?:\b|[-_ ])/.test(f.familyName) && f.isCustomFont && f.glyphCount > 0))
-      && w.renderedGlyphs.some(g => g.kind === "crop" && g.present && g.fonts.some(f => f.glyphCount > 0)));
+    need(Array.isArray(w.renderedGlyphs) && w.renderedGlyphs.length === 4 && ["latin", "numeric", "native-ui", "crop"].every(kind =>
+      w.renderedGlyphs.filter(g => g.kind === kind).length === 1));
+    for (const g of w.renderedGlyphs) {
+      need(typeof g.present === "boolean" && typeof g.requiresCustomInter === "boolean");
+      if (!g.present) need(g.kind !== "crop" && g.status === "not_present" && !g.requiresCustomInter);
+      else {
+        need(Array.isArray(g.fonts) && g.fonts.some(f => f.glyphCount > 0));
+        if (g.kind === "latin" || g.kind === "numeric" || g.requiresCustomInter) need(hasInterGlyph(g.fonts));
+      }
+    }
+    need(w.renderedGlyphs.some(g => g.kind === "crop" && g.present));
     const bytes = fs.readFileSync(target); need(bytes.length === w.imageBytes && sha(bytes) === w.imageSha256);
   }
 }
 async function loadFontFaces(page, state) {
+  observeFont(state, "loading-faces", { loadedFaces: [], verifiedBodies: [], role: null, selectedElement: null, platformFonts: [] });
   const faces = await page.evaluate(async () => {
     const action = async () => {
       const actual = [...document.fonts].filter(f => /Inter|JetBrains/.test(f.family) && !/Fallback/i.test(f.family));
@@ -124,7 +174,15 @@ async function loadFontFaces(page, state) {
     try { return await Promise.race([action(), new Promise((_, reject) => { timer = setTimeout(() => reject(Error("FONT_READY_TIMEOUT")), 5000); })]); }
     finally { clearTimeout(timer); }
   });
+  observeFont(state, "loaded-faces", { loadedFaces: faces.slice(0, 32).map(f => ({ family: safeName(f.family),
+    weight: typeof f.weight === "string" && /^\d{1,4}(?: \d{1,4})?$/.test(f.weight) ? f.weight : "OTHER",
+    style: ["normal", "italic", "oblique"].includes(f.style) ? f.style : "OTHER",
+    status: ["unloaded", "loading", "loaded", "error"].includes(f.status) ? f.status : "OTHER" })) });
   await Promise.all(state.pending);
+  observeFont(state, "body-binding", { verifiedBodies: [...state.verified.values()].slice(0, 32).map(b => ({
+    family: safeName(b.family), subset: safeName(b.subset), sha256: /^[0-9a-f]{64}$/.test(b.sha256) ? b.sha256 : null,
+    bytes: safeCount(b.bytes) })), unavailableBodyCount: safeCount(state.unavailable.length),
+    bodyFailureCodes: state.failures.slice(0, 24).map(f => ["FONT_STATUS", "FONT_BYTES"].includes(f) ? f : "OTHER") });
   need(!state.failures.length && state.unavailable.every(url => state.verified.has(url)));
   const bodies = [...state.verified.values()];
   for (const family of ["Inter", "JetBrains Mono"]) need(bodies.some(b => b.family === family && b.subset === "latin"));
@@ -133,34 +191,47 @@ async function loadFontFaces(page, state) {
 }
 async function waitForCanonicalFonts(page) {
   const state = PAGE_STATE.get(page); need(state);
-  return loadFontFaces(page, state);
+  return withFontFacts(state, () => loadFontFaces(page, state));
 }
 async function qualifyPageFonts(page, state, region = null, faces = null) {
-  faces ||= await loadFontFaces(page, state);
-  await Promise.all(state.pending);
-  need(!state.failures.length && state.unavailable.every(url => state.verified.has(url)));
-  const bodies = [...state.verified.values()];
-  // Platform font glyphs establish actual rendering. fonts.check/load alone can
-  // establish availability but cannot exclude fallback for the displayed text.
-  const session = await page.context().newCDPSession(page), glyphs = [];
-  try {
-    await session.send("DOM.enable"); await session.send("CSS.enable");
-    await session.send("DOM.getDocument");
-    for (const kind of ["latin", "numeric", "crop"]) {
-      const expression = `(() => { const pattern = ${kind === "latin" ? "/[A-Za-z]/" : kind === "numeric" ? "/[0-9]/" : "/[^\\s]/"}, box = ${kind === "crop" ? JSON.stringify(region) : "null"}; for (const e of document.body.querySelectorAll('*')) { const s=getComputedStyle(e), r=e.getBoundingClientRect(), text=[...e.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join(''); if(pattern.test(text) && /Inter/.test(s.fontFamily) && (!box || (r.bottom>box.y && r.top<box.y+box.height && r.right>box.x && r.left<box.x+box.width)) && s.visibility!=='hidden' && s.display!=='none' && s.opacity!=='0' && r.width>0 && r.height>0 && r.bottom>0 && r.right>0 && r.top<innerHeight && r.left<innerWidth) return e; } return null; })()`;
-      const { result } = await session.send("Runtime.evaluate", { expression, returnByValue: false });
-      if (!result.objectId) { need(kind === "numeric"); glyphs.push({ kind, present: false }); continue; }
-      try {
-        const { nodeId } = await session.send("DOM.requestNode", { objectId: result.objectId });
-        const { fonts } = await session.send("CSS.getPlatformFontsForNode", { nodeId });
-        need(fonts.some(f => f.glyphCount > 0));
-        if (kind !== "crop") need(fonts.some(f => /^Inter(?:\b|[-_ ])/.test(f.familyName) && f.isCustomFont && f.glyphCount > 0));
-        glyphs.push({ kind, scope: kind === "crop" ? "captured-region" : "page-visible", present: true,
-          fonts: fonts.map(f => ({ familyName: f.familyName, isCustomFont: f.isCustomFont, glyphCount: f.glyphCount })) });
-      } finally { await session.send("Runtime.releaseObject", { objectId: result.objectId }); }
-    }
-  } finally { await session.detach(); }
-  return { receiptSha256: RECEIPT, loadedFaces: faces, verifiedBodies: bodies, renderedGlyphs: glyphs,
-    unavailableDuplicateBodies: state.unavailable.length, jetBrainsAvailabilityOnly: true };
+  return withFontFacts(state, async () => {
+    faces ||= await loadFontFaces(page, state);
+    await Promise.all(state.pending);
+    need(!state.failures.length && state.unavailable.every(url => state.verified.has(url)));
+    const bodies = [...state.verified.values()], glyphs = [];
+    const session = await page.context().newCDPSession(page);
+    await fontScope(state, async () => {
+      await session.send("DOM.enable"); await session.send("CSS.enable"); await session.send("DOM.getDocument");
+      for (const kind of ["latin", "numeric", "native-ui", "crop"]) {
+        observeFont(state, "selecting-element", { role: kind, selectedElement: null, platformFonts: [] });
+        const expression = `(() => { const kind=${JSON.stringify(kind)}, pattern=kind==='numeric'?/[0-9]/:kind==='crop'?/[^\\s]/:/[A-Za-z]/, box=kind==='crop'?${JSON.stringify(region)}:null; for (const e of document.body.querySelectorAll('*')) { const s=getComputedStyle(e), r=e.getBoundingClientRect(), text=[...e.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join(''), first=s.fontFamily.split(',')[0].trim().replaceAll('"','').replaceAll("'",''), inter=!/fallback/i.test(first)&&/^(Inter(?:$|[ _-])|__Inter_)/.test(first), native=['-apple-system','BlinkMacSystemFont'].includes(first), role=kind==='crop'||(kind==='native-ui'?native:inter); if(pattern.test(text)&&role&&(!box||(r.bottom>box.y&&r.top<box.y+box.height&&r.right>box.x&&r.left<box.x+box.width))&&s.visibility!=='hidden'&&s.display!=='none'&&s.opacity!=='0'&&r.width>0&&r.height>0&&r.bottom>0&&r.right>0&&r.top<innerHeight&&r.left<innerWidth) return e; } return null; })()`;
+        const { result } = await session.send("Runtime.evaluate", { expression, returnByValue: false });
+        if (!result.objectId) {
+          observeFont(state, "role-not-present", { role: kind, selectedElement: null, platformFonts: [] });
+          need(kind !== "crop"); glyphs.push({ kind, present: false, status: "not_present", requiresCustomInter: false }); continue;
+        }
+        await fontScope(state, async () => {
+          const { nodeId } = await session.send("DOM.requestNode", { objectId: result.objectId });
+          const { result: selected } = await session.send("Runtime.callFunctionOn", { objectId: result.objectId, returnByValue: true,
+            functionDeclaration: `function(){const s=getComputedStyle(this),t=[...this.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join('');return{tag:this.tagName,fontFamily:s.fontFamily,weight:s.fontWeight,hasLatin:/[A-Za-z]/.test(t),hasNumeric:/[0-9]/.test(t),hasOtherScript:/[^\\x00-\\x7F]/.test(t)};}` });
+          const selection = selectedFacts(selected.value);
+          observeFont(state, "selected-element", { role: kind, selectedElement: selection });
+          const { fonts } = await session.send("CSS.getPlatformFontsForNode", { nodeId });
+          const requiresCustomInter = kind === "latin" || kind === "numeric"
+            || (kind === "crop" && selection.intendedRole === "inter" && (selection.hasLatin || selection.hasNumeric));
+          observeFont(state, "platform-fonts", { role: kind, selectedElement: selection,
+            requiresCustomInter, platformFontCount: safeCount(fonts.length), platformFonts: platformFacts(fonts) });
+          need(fonts.some(f => f.glyphCount > 0));
+          if (requiresCustomInter) need(hasInterGlyph(fonts));
+          glyphs.push({ kind, scope: kind === "crop" ? "captured-region" : "page-visible", present: true,
+            requiresCustomInter, selectedElement: selection, fonts: platformFacts(fonts) });
+        }, () => session.send("Runtime.releaseObject", { objectId: result.objectId }));
+      }
+    }, () => session.detach());
+    return { receiptSha256: RECEIPT, loadedFaces: faces, verifiedBodies: bodies, renderedGlyphs: glyphs,
+      interRendering: glyphs.some(g => g.present && g.requiresCustomInter) ? "observed" : "not_present",
+      nativeUIRendering: "reported_not_an_Inter_requirement", unavailableDuplicateBodies: state.unavailable.length, jetBrainsAvailabilityOnly: true };
+  });
 }
-module.exports = { prepareFontEnvironment, responseMap, installFontWitness, qualifyPageFonts, captureCanonicalScreenshot, validateFontWitnesses, waitForCanonicalFonts };
+
+module.exports = { prepareFontEnvironment, responseMap, installFontWitness, qualifyPageFonts, captureCanonicalScreenshot, validateFontWitnesses, waitForCanonicalFonts, fontFailureFacts };

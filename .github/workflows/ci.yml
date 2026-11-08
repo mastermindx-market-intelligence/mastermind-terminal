@@ -524,7 +524,10 @@ jobs:
       - name: Ensure browser present on cache hit
         if: steps.pwcache.outputs.cache-hit == 'true'
         run: npx playwright install chromium
-      - run: npm run test:e2e:responsive -- ${{ matrix.projects }} ${{ matrix.specs }} --workers="$TERMINAL_E2E_WORKERS"
+      - run: |
+          # Outside Playwright's cleared outputDir: survive a startup failure.
+          node e2e/fixtureDiagnostics.mjs checkout
+          npm run test:e2e:responsive -- ${{ matrix.projects }} ${{ matrix.specs }} --workers="$TERMINAL_E2E_WORKERS"
         env:
           TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port }}
           TERMINAL_E2E_WORKERS: ${{ steps.lane.outputs.workers }}
@@ -559,7 +562,9 @@ jobs:
           # upload-artifact@v4 HARD-FAILS on duplicate names across a matrix. The shard
           # suffix is mandatory, not cosmetic.
           name: responsive-qa-${{ github.run_id }}-${{ matrix.shard }}
-          path: terminal/test-results
+          path: |
+            terminal/test-results
+            terminal/test-startup-results
           if-no-files-found: ignore
 
   terminal:
