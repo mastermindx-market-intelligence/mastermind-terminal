@@ -517,10 +517,11 @@ jobs:
         if: matrix.shard == 'serial'
         env:
           MMX_SHARED_SHELL: '1'
+          TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT: 'intl-fixture-v1'
           CI: '1'
           TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port_shared }}
         run: >-
-          npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts
+          npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts e2e/intl-history-date-intent.spec.ts
           --project=desktop --project=tablet --project=mobile
           --workers=1 --retries=0
           --output=test-results/shared-shell-refinement
@@ -669,6 +670,7 @@ jobs:
       # on that trigger github.event.pull_request.number is empty, and that
       # dispatched run is then the only CI run for the sha that merges.
       - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        id: ingest_tests
         run: python -m pytest tests/ -q
         env:
           PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
@@ -677,6 +679,26 @@ jobs:
           # strict guard needs no API; with one it refuses before network.
           # The separate protected issuer/required-gate transfer is not active.
           GH_TOKEN: ''
+      - name: Validate safe Ingest outcome publication
+        id: safe_ingest_summary
+        if: ${{ always() && steps.ingest_tests.outputs.safe_pytest_report_initialized == 'true' }}
+        continue-on-error: true
+        timeout-minutes: 1
+        env:
+          PYTEST_DIRECTORY_DEV: ${{ steps.ingest_tests.outputs.safe_pytest_directory_dev }}
+          PYTEST_DIRECTORY_INO: ${{ steps.ingest_tests.outputs.safe_pytest_directory_ino }}
+          PYTEST_FILE_DEV: ${{ steps.ingest_tests.outputs.safe_pytest_file_dev }}
+          PYTEST_FILE_INO: ${{ steps.ingest_tests.outputs.safe_pytest_file_ino }}
+          PYTEST_FILE_SHA256: ${{ steps.ingest_tests.outputs.safe_pytest_file_sha256 }}
+          PYTEST_STEP_OUTCOME: ${{ steps.ingest_tests.outcome }}
+        run: python scripts/ci_pytest_results.py --publish-safe-summary
+      - name: Retain bounded Ingest pytest outcome
+        if: ${{ always() && steps.safe_ingest_summary.outcome == 'success' && steps.safe_ingest_summary.outputs.safe_pytest_summary_ready == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ingest-safe-result-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.safe_ingest_summary.outputs.safe_pytest_summary_path }}
+          if-no-files-found: warn
 
   investigation-postgres:
     concurrency:
