@@ -114,7 +114,11 @@ edit, commit or publish using an M2 host filesystem/process. Once Mastermind PR
 `docs/DELIVERY_WORKFLOW.md` explicitly admits it, a separately authorized Web,
 Claude or Codex session using GitHub-native source APIs may create/update an
 isolated branch, commit and open its own PR without acquiring an M2 worktree
-for that remote-only operation. An open policy PR is not installed authority.
+for that remote-only operation. **GitHub-native** source authoring through an
+actually authorized connector requires no M2 worktree, retains exact blob/head
+preimages and its original branch. Never switch carriers to evade a refusal,
+live writer, existing HOLD or EFFECT_UNKNOWN. An open policy PR is not installed
+authority.
 
 Preserve exact repository/source pin, original operation branch/carrier,
 preimage or expected-head CAS, competing writers and denied/unknown effects.
@@ -128,12 +132,14 @@ self-merge or bypass of Terminal's `merge-on-green` release contract.
 - Never create project work in `~/.codex/worktrees`, `/private/tmp`, or another
   Codex-only location. Never use a `codex/` branch for these repositories.
 - The primary checkout is shared and commonly dirty. Never change its files or git
-  state. Attended ChatGPT Web/Studio sessions acquire or reuse one exact source-pinned
-  operation workspace through the installed `mmx-workspace` owner, as authorized for
-  this repository. Native/harness sessions use their actual assigned source launcher
-  and workspace; only those with an approved direct-worktree contract may create one
-  under its designated root. Do not create an alternate worktree or force/re-home an
-  existing operation to bypass a refusal, exclusive writer, or uncertain effect.
+  state. For host-local editing, attended ChatGPT Web/Studio sessions acquire or reuse
+  one exact source-pinned operation workspace through the installed `mmx-workspace`
+  owner. Authorized GitHub-native editing uses its original isolated GitHub branch,
+  without requiring that host-local workspace. Native/harness sessions use their
+  actual assigned source launcher and workspace; only approved direct-worktree
+  contracts may create a local workspace under its designated root. Do not create
+  an alternate worktree, force/re-home an operation or switch publication surfaces
+  to bypass a refusal, exclusive writer, HOLD or uncertain effect.
 - Never reuse a squash/merge-completed branch and never use the repo-global stash.
 
 ## `ingest/` runs as scripts, not modules
@@ -209,8 +215,13 @@ Do not wait for a separate request to commit, push, merge, or deploy.
 
 Do not stop at a local commit or open PR. Release holds include an explicit
 operator hold, required CI or independent review that is pending or failing,
-and a genuine deployment blocker. Never arm a protected merge while its required
-review or current-head checks remain unqualified.
+and a genuine deployment blocker. A source-complete, non-held, review-qualified
+Ready PR may request native auto-merge enrollment while its required CI is
+still pending, after checking exact-head source custody, conflicts, actual rules
+and any binding approvals. GitHub must hold the eventual merge until all
+enforced required checks pass. Pending is never PASS. Do not enroll a Draft,
+known-red, conflicting, explicitly held or incompletely qualified PR, or one
+with missing enforcement evidence or a binding approval outstanding.
 
 Direct working-tree rsync/scp is not a deployment; production builds only
 merged master. A held release step blocks that effect, not the whole session.

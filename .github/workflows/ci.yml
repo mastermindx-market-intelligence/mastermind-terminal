@@ -33,12 +33,8 @@ on:
 permissions:
   contents: read
 
-# A newer head makes every queued/running proof for the older head unusable. Drop
-# it immediately instead of spending the account-wide hosted-runner quota on a
-# SHA that can no longer merge.
-concurrency:
-  group: ci-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+# Supersede only expensive jobs; a required fan-in must never hold a
+# workflow-wide lock against newer heads. A canceled test remains red.
 
 jobs:
   # Trusted-base PR scope (Mastermind #917 CI acceleration, 2026-11-05).
@@ -95,6 +91,9 @@ jobs:
           fi
 
   hub:
+    concurrency:
+      group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-hub
+      cancel-in-progress: true
     name: Quote Hub tests
     runs-on: ubuntu-latest
     needs: [pr_scope]
@@ -196,6 +195,9 @@ jobs:
           fi
 
   terminal-unit:
+    concurrency:
+      group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-terminal-unit
+      cancel-in-progress: true
     needs: [pr_scope, e2e-scope]
     # The browser selector stays mandatory. PR scope only grants the docs
     # exemption; its failure or absence falls back to normal qualification.
@@ -248,7 +250,9 @@ jobs:
         # Missing/malformed source evidence fails closed to capture=true.
         if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
         timeout-minutes: 10
-        run: npx playwright install --with-deps chromium
+        run: |
+          timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium \
+            || { echo "::warning::Dependency installation failed or stalled; trying browser-only installation"; timeout --signal=TERM --kill-after=15s 180s npx playwright install chromium; }
       - name: Capture and validate evidence on this checkout
         if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
         timeout-minutes: 55
@@ -399,6 +403,9 @@ jobs:
           if-no-files-found: warn
 
   terminal-e2e:
+    concurrency:
+      group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-terminal-e2e-${{ matrix.shard }}
+      cancel-in-progress: true
     name: Terminal e2e ${{ matrix.shard }} (shard)
     runs-on: ubuntu-latest
     needs: [pr_scope, e2e-scope]
@@ -551,6 +558,9 @@ jobs:
           echo "All event-required Terminal checks green."
 
   python:
+    concurrency:
+      group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-python
+      cancel-in-progress: true
     name: Ingest + signal-layer tests
     runs-on: ubuntu-latest
     needs: [pr_scope]
@@ -638,6 +648,9 @@ jobs:
           GH_TOKEN: ''
 
   investigation-postgres:
+    concurrency:
+      group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-investigation-postgres
+      cancel-in-progress: true
     name: Investigation PostgreSQL invariants
     runs-on: ubuntu-latest
     needs: [pr_scope]
