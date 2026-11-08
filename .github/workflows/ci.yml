@@ -551,7 +551,7 @@ jobs:
           CI: '1'
           TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port_shared }}
         run: >-
-          npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts e2e/intl-investigation-return.spec.ts e2e/intl-history-date-intent.spec.ts
+          npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts e2e/intl-investigation-return.spec.ts e2e/intl-history-date-intent.spec.ts e2e/intl-investigate-return.spec.ts
           --project=desktop --project=tablet --project=mobile
           --workers=1 --retries=0
           --output=test-results/shared-shell-refinement

@@ -87,3 +87,55 @@ test('actual retained producer telemetry origins are tagged and aborted while ne
  await dispatch('https://beta.mastermind-x.com/api/investigations/baseline','GET');
  assert.equal(observations.blockedTelemetryAttempts.length,2);assert.equal(observations.mutations.length,negatives.length+3);assert.equal(observations.baselines.length,1);assert.equal(reads,0);assert.equal(fulfilled,0);assert.equal(aborted,negatives.length+6);
 });
+
+// Finite original S28 joined-path source selections.
+{
+const test=require('node:test'),assert=require('node:assert/strict');
+const policy=require('./intl_return_closed_policy.cjs');
+const base='http://127.0.0.1:42051';
+const paths=[
+  "/analysis?view=investigations&intl_context=intl-workspace-context%3Asha256%3A1807a6a6b9c3428f0a152b1f8bfa570b8f8647ca94dd998bb908886c885b3185&intl_generation=im-workspace-generation%3Af180e9f4-eeee-488d-b312-5a68d09ccf5c&intl_fingerprint=0dc2265e5985adaff29f0c2efbf7191be9f80472a6c0f73646a4ac1b5776f8b8&intl_field=GB.policy_rate&intl_return=https%3A%2F%2Fwww.mastermind-x.com%2Fintl.html%3Fview%3Dmacro%26market%3DGB%26pins%3DGB%2CEZ%26horizon%3D3m%26basis%3Dlocal%26return_basis%3Dprice%26group%3D",
+  "/analysis?view=investigations&intl_context=intl-workspace-context%3Asha256%3A7ec67830beee8562216756553bb3e861d3377ab284dbd29f4ce44261b0eaec88&intl_generation=im-workspace-generation%3Af180e9f4-eeee-488d-b312-5a68d09ccf5c&intl_fingerprint=0dc2265e5985adaff29f0c2efbf7191be9f80472a6c0f73646a4ac1b5776f8b8&intl_field=EZ.annual_current_account&intl_return=https%3A%2F%2Fwww.mastermind-x.com%2Fintl.html%3Fview%3Drisk%26market%3DEZ%26pins%3DGB%2CEZ%26horizon%3D1m%26basis%3Dusd_unhedged%26return_basis%3Dprice%26group%3D"
+];
+test('two actual emitted source-link tuples enter only the owned GET/HEAD route, with bounded RSC',()=>{
+ for(const p of paths)for(const method of ['GET','HEAD'])for(const suffix of ['', '&_rsc=bounded-123'])assert.equal(policy.proxyAllowed(base+p+suffix,method,base),true,p);
+});
+test('source identity, Return tuple, origin, method and near-path mutations remain denied',()=>{
+ for(const p of paths){
+  const bad=[];for(const key of ['intl_context','intl_generation','intl_fingerprint','intl_field','intl_return']){const u=new URL(base+p);u.searchParams.set(key,u.searchParams.get(key)+'x');bad.push(u.href);const d=new URL(base+p);d.searchParams.append(key,d.searchParams.get(key));bad.push(d.href);}
+  for(const extra of ['auth=x','principal=x','scope=company_context','intl_other=x','_rsc=','_rsc='+('x'.repeat(129)),'_rsc=ok&_rsc=other'])bad.push(base+p+'&'+extra);
+  const swapped=new URL(base+p);swapped.searchParams.set('intl_return',new URL(base+paths.find(x=>x!==p)).searchParams.get('intl_return'));bad.push(swapped.href);
+  for(const raw of [...bad,'https://provider.invalid'+p,base+p+'#x',base+'/api/investigations/baseline?'+p.split('?')[1],base+'/%61nalysis?'+p.split('?')[1]])assert.equal(policy.proxyAllowed(raw,'GET',base),false,raw);
+  for(const method of ['POST','PUT','PATCH','DELETE','OPTIONS'])assert.equal(policy.proxyAllowed(base+p,method,base),false);
+ }
+ assert.equal(policy.proxyAllowed(base+'/api/investigations/baseline?kind=international','GET',base),false);
+});
+test('ordinary source-route metadata requires exact outbound destination and real RSC shape; denied requests never transport',async()=>{
+ let calls=0;const request={fetch:async()=>{calls++;return{status:()=>200};}};policy.guardProxy(request,base);
+ const good={cookie:'mm_e2e_rs30=1; mm_e2e_guest=1',rsc:'1','next-router-state-tree':'["",{}]','next-url':'/intl.html'};
+ for(const p of paths){await request.fetch(base+p,{method:'GET',headers:good,maxRedirects:0});await request.fetch(base+p+'&_rsc=bounded',{method:'GET',headers:good,maxRedirects:0});}
+ assert.equal(calls,4);
+ for(const headers of [{...good,rsc:undefined},{...good,rsc:'0'},{...good,'next-router-state-tree':''},{...good,'next-router-state-tree':undefined},{...good,'next-url':'/other'},{...good,'next-url':'https://www.mastermind-x.com/intl.html'},{...good,authorization:'forged'}])await assert.rejects(request.fetch(base+paths[0],{headers,maxRedirects:0}));
+ for(const raw of [base+'/api/shared-shell/status',base+'/_next/static/chunks/app/layout.js',base+'/api/investigations/baseline?kind=international',base+paths[0]+'&auth=x'])await assert.rejects(request.fetch(raw,{headers:good,maxRedirects:0}));
+ for(const method of ['POST','PUT','PATCH','DELETE'])await assert.rejects(request.fetch(base+paths[0],{method,headers:good,maxRedirects:0}));
+ assert.equal(calls,4);
+});
+
+}
+
+test('joined case enrolls only its fixed CLI and private config boolean without resource launch',()=>{
+ const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+ const directory=__dirname;const runnerFile=path.join(directory,'run_intl_return_controlled.cjs');const runner={exports:{}};
+ const stubRequire=Object.assign(n=>n==='./thesis_capture_runtime.cjs'?{}:require(n),{main:{}});
+ vm.runInNewContext(fs.readFileSync(runnerFile,'utf8'),{module:runner,exports:runner.exports,require:stubRequire,__dirname:directory,process:{argv:['node','runner'],env:{}}});
+ assert.equal(runner.exports.joinedSourceCase([]),false);assert.equal(runner.exports.joinedSourceCase(['--joined-source']),true);
+ for(const args of [['--joined-source','extra'],['--joined-source=1'],['--arbitrary']])assert.throws(()=>runner.exports.joinedSourceCase(args),/FIXED_SCOPE/);
+ function config(joinedSource){
+  const input={baseURL:base,wsEndpoint:'ws://127.0.0.1:41952/owned',playwrightModule:'/fixture-pw',joinedSource};const mod={exports:{}};
+  const fakeFs={lstatSync:p=>p==='/owned/op.json'?{isFile:()=>true,uid:1,mode:0o600,size:100}:{isDirectory:()=>true,uid:1,mode:0o700},readFileSync:()=>JSON.stringify(input)};
+  vm.runInNewContext(fs.readFileSync(path.join(directory,'intl_return_controlled.config.cjs'),'utf8'),{module:mod,exports:mod.exports,__dirname:directory,URL,process:{env:{TERMINAL_INTL_RETURN_OPERATION:'/owned/op.json'},getuid:()=>1},require:n=>n==='node:fs'?fakeFs:n==='/fixture-pw/package.json'?{version:'1.63.0'}:require(n)});return mod.exports;
+ }
+ assert.equal(config(true).testMatch,'intl-investigate-controlled.spec.ts');assert.equal(config(false).testMatch,'intl-return-controlled.spec.ts');assert.equal(config(undefined).testMatch,'intl-return-controlled.spec.ts');
+ for(const invalid of ['true',1,null])assert.throws(()=>config(invalid),/FIXED_SCOPE/);
+ const selected=config(true);assert.equal(selected.workers,1);assert.equal(selected.retries,0);assert.equal(selected.timeout,120000);assert.equal(selected.webServer,undefined);assert.equal(selected.globalSetup,undefined);assert.equal(selected.use.serviceWorkers,'block');
+});

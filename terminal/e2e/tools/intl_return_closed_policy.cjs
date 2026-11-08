@@ -7,6 +7,12 @@ const VIEWS = [
   "view=macro&market=GB&pins=GB,EZ&horizon=3m&basis=local&return_basis=price&group=",
   "view=risk&market=EZ&pins=GB,EZ&horizon=1m&basis=usd_unhedged&return_basis=price&group=",
 ];
+
+// This operation admits only these two emitted source selections; no URL grants source access.
+const JOINED_SOURCE_QUERIES = [
+  "view=investigations&intl_context=intl-workspace-context%3Asha256%3A1807a6a6b9c3428f0a152b1f8bfa570b8f8647ca94dd998bb908886c885b3185&intl_generation=im-workspace-generation%3Af180e9f4-eeee-488d-b312-5a68d09ccf5c&intl_fingerprint=0dc2265e5985adaff29f0c2efbf7191be9f80472a6c0f73646a4ac1b5776f8b8&intl_field=GB.policy_rate&intl_return=https%3A%2F%2Fwww.mastermind-x.com%2Fintl.html%3Fview%3Dmacro%26market%3DGB%26pins%3DGB%2CEZ%26horizon%3D3m%26basis%3Dlocal%26return_basis%3Dprice%26group%3D",
+  "view=investigations&intl_context=intl-workspace-context%3Asha256%3A7ec67830beee8562216756553bb3e861d3377ab284dbd29f4ce44261b0eaec88&intl_generation=im-workspace-generation%3Af180e9f4-eeee-488d-b312-5a68d09ccf5c&intl_fingerprint=0dc2265e5985adaff29f0c2efbf7191be9f80472a6c0f73646a4ac1b5776f8b8&intl_field=EZ.annual_current_account&intl_return=https%3A%2F%2Fwww.mastermind-x.com%2Fintl.html%3Fview%3Drisk%26market%3DEZ%26pins%3DGB%2CEZ%26horizon%3D1m%26basis%3Dusd_unhedged%26return_basis%3Dprice%26group%3D"
+];
 function ownedBase(raw) {
   const url = new URL(raw);
   if(url.protocol !== "http:" || url.hostname !== "127.0.0.1" || !/^\d+$/.test(url.port)
@@ -30,6 +36,7 @@ function currentQuery(search, route) {
   const rsc = query.get("_rsc");query.delete("_rsc");
   if(rsc !== null && !/^[A-Za-z0-9_-]{1,128}$/.test(rsc))return false;
   if(route === "/intl.html")return VIEWS.some(value => query.toString() === new URLSearchParams(value).toString());
+  if(route === "/analysis" && JOINED_SOURCE_QUERIES.includes(query.toString()))return true;
   if(route !== "/analysis" || keys.some(key => !["view","intl_return","_rsc"].includes(key)))return false;
   if(query.get("view") !== "investigations" || [...query.keys()].length !== 2)return false;
   return VIEWS.some(value => query.get("intl_return") === LEGACY+"/intl.html?"+value);
@@ -67,7 +74,12 @@ function guardProxy(request,base) {
         const analysisReturn = value === "/analysis" && new URL(raw).pathname === "/intl.html"
           && headers.rsc === "1" && typeof headers["next-router-state-tree"] === "string"
           && headers["next-router-state-tree"].length > 0;
-        if(!analysisReturn && !proxyAllowed(ownedBase(base)+value,"GET",base))throw Error("INTL_RETURN_PROXY_HEADERS");
+        const outboundQuery = new URL(raw).searchParams;
+        outboundQuery.delete("_rsc");
+        const intlInvestigate = value === "/intl.html" && new URL(raw).pathname === "/analysis"
+          && JOINED_SOURCE_QUERIES.includes(outboundQuery.toString()) && headers.rsc === "1"
+          && typeof headers["next-router-state-tree"] === "string" && headers["next-router-state-tree"].length > 0;
+        if(!analysisReturn && !intlInvestigate && !proxyAllowed(ownedBase(base)+value,"GET",base))throw Error("INTL_RETURN_PROXY_HEADERS");
       }
     }
     const response=await fetch(raw,{...options,method,maxRedirects:0,timeout:30_000});
