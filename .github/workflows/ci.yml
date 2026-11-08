@@ -240,7 +240,7 @@ jobs:
       - run: npx tsc --noEmit
       - name: Check immutable evidence orchestration (synthetic)
         timeout-minutes: 1
-        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs
+        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs
       - name: Plan current-source evidence capture
         id: evidence_plan
         run: node scripts/ci/plan-evidence-capture.cjs
@@ -514,6 +514,7 @@ jobs:
           --workers=1 --retries=0
           --output=test-results/investor-shell-preview
       - name: Qualify Shared Shell beta presentation
+        id: shared_shell_qa
         if: matrix.shard == 'serial'
         env:
           MMX_SHARED_SHELL: '1'
@@ -525,6 +526,27 @@ jobs:
           --project=desktop --project=tablet --project=mobile
           --workers=1 --retries=0
           --output=test-results/shared-shell-refinement
+          --reporter=github,./e2e/tools/sharedShellSafeReporter.cjs
+      - name: Validate bounded Shared Shell outcome
+        id: safe_shared_shell_summary
+        if: ${{ always() && matrix.shard == 'serial' && steps.shared_shell_qa.outputs.safe_shared_shell_initialized == 'true' }}
+        continue-on-error: true
+        timeout-minutes: 1
+        env:
+          SAFE_DIRECTORY_DEV: ${{ steps.shared_shell_qa.outputs.safe_shared_shell_directory_dev }}
+          SAFE_DIRECTORY_INO: ${{ steps.shared_shell_qa.outputs.safe_shared_shell_directory_ino }}
+          SAFE_FILE_DEV: ${{ steps.shared_shell_qa.outputs.safe_shared_shell_file_dev }}
+          SAFE_FILE_INO: ${{ steps.shared_shell_qa.outputs.safe_shared_shell_file_ino }}
+          SAFE_FILE_SHA256: ${{ steps.shared_shell_qa.outputs.safe_shared_shell_file_sha256 }}
+          SAFE_STEP_OUTCOME: ${{ steps.shared_shell_qa.outcome }}
+        run: node e2e/tools/sharedShellSafeReporter.cjs --publish-safe-summary
+      - name: Retain bounded Shared Shell outcome
+        if: ${{ always() && matrix.shard == 'serial' && steps.safe_shared_shell_summary.outcome == 'success' && steps.safe_shared_shell_summary.outputs.safe_shared_shell_summary_ready == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: responsive-qa-${{ github.run_id }}-serial-safe-summary-${{ github.run_attempt }}
+          path: ${{ steps.safe_shared_shell_summary.outputs.safe_shared_shell_summary_path }}
+          if-no-files-found: warn
       - name: Upload responsive QA screenshots
         if: always()
         uses: actions/upload-artifact@v4
