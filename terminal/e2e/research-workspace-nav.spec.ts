@@ -111,6 +111,122 @@ async function installOverviewFixture(page: Page, fixture: unknown = overviewFun
   await page.route("**/NVDA.fund.json**", async (route) => route.fulfill({ json: fixture }));
 }
 
+async function captureMobileValuation(page: Page, testInfo: TestInfo, language: "en" | "zh") {
+  const valuation = page.locator("[data-overview-vnext-valuation]");
+  const frames = [
+    { name: "current", selectors: [":scope > .fin-sec-h", ":scope > .fin-sec-cap", ".fin-overview-valuation-current"], withAsOf: false },
+    { name: "pe-history", selectors: [".fin-overview-pe-history"], withAsOf: false },
+    { name: "ps-context", selectors: [".fin-overview-ps-context"], withAsOf: true },
+  ];
+
+  for (const frame of frames) {
+    const geometry = await valuation.evaluate(async (section, frame) => {
+      const scroller = section.closest<HTMLElement>(".fin-body");
+      if (!scroller) throw new Error("Overview has no existing .fin-body scrollport");
+      const targets = frame.selectors.map((selector) => {
+        const element = section.querySelector<HTMLElement>(selector);
+        if (!element) throw new Error("Missing valuation capture target: " + selector);
+        return element;
+      });
+      if (frame.withAsOf) {
+        const asOf = section.querySelector<HTMLElement>(":scope > .fin-asof");
+        if (asOf) targets.push(asOf);
+      }
+
+      const measure = () => {
+        const port = scroller.getBoundingClientRect();
+        const usable = {
+          top: Math.max(0, port.top + scroller.clientTop),
+          bottom: Math.min(window.innerHeight, port.top + scroller.clientTop + scroller.clientHeight),
+          left: Math.max(0, port.left + scroller.clientLeft),
+          right: Math.min(window.innerWidth, port.left + scroller.clientLeft + scroller.clientWidth),
+        };
+        // Respect the real chrome; never hide it or resize the viewport for a capture.
+        for (const header of Array.from(document.querySelectorAll<HTMLElement>(
+          ".mobilebar, .analysis-context-bar, .fin-head, .fin-research-nav",
+        ))) {
+          if (!header.getClientRects().length) continue;
+          const box = header.getBoundingClientRect();
+          if (box.left < usable.right && box.right > usable.left &&
+              box.top <= usable.top + 1 && box.bottom > usable.top) {
+            usable.top = Math.max(usable.top, box.bottom);
+          }
+        }
+        const bottomTabs = scroller.closest(".fin-pane")?.querySelector<HTMLElement>(".fin-local-tabs-mobile");
+        if (bottomTabs?.getClientRects().length) {
+          const box = bottomTabs.getBoundingClientRect();
+          if (box.left < usable.right && box.right > usable.left &&
+              box.top < usable.bottom && box.bottom > usable.top) {
+            usable.bottom = Math.min(usable.bottom, box.top);
+          }
+        }
+        const regions = targets.map((element) => {
+          const box = element.getBoundingClientRect();
+          return { top: box.top, bottom: box.bottom, left: box.left, right: box.right };
+        });
+        return {
+          usable,
+          target: {
+            top: Math.min(...regions.map((r) => r.top)),
+            bottom: Math.max(...regions.map((r) => r.bottom)),
+            left: Math.min(...regions.map((r) => r.left)),
+            right: Math.max(...regions.map((r) => r.right)),
+          },
+          regions,
+          scrollTop: scroller.scrollTop,
+        };
+      };
+
+      const before = measure();
+      scroller.scrollTo({
+        top: scroller.scrollTop + before.target.top - before.usable.top - 8,
+        behavior: "instant",
+      });
+      const settledFrame = () => new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      );
+      await settledFrame();
+      const first = measure();
+      await settledFrame();
+      const current = measure();
+      return {
+        frame: frame.name,
+        viewport: { width: window.innerWidth, height: window.innerHeight },
+        ...current,
+        motion: Math.max(
+          Math.abs(first.target.top - current.target.top),
+          Math.abs(first.target.bottom - current.target.bottom),
+          Math.abs(first.scrollTop - current.scrollTop),
+          Math.abs(first.usable.top - current.usable.top),
+          Math.abs(first.usable.bottom - current.usable.bottom),
+        ),
+        centersUnobscured: targets.every((element) => {
+          const box = element.getBoundingClientRect();
+          const hit = document.elementFromPoint((box.left + box.right) / 2, (box.top + box.bottom) / 2);
+          return hit !== null && element.contains(hit);
+        }),
+      };
+    }, frame);
+
+    expect(page.viewportSize()).toEqual({ width: 390, height: 844 });
+    expect(geometry.viewport).toEqual(page.viewportSize());
+    expect(geometry.motion, "valuation capture scroll must settle").toBeLessThanOrEqual(0.5);
+    expect(geometry.target.top).toBeGreaterThanOrEqual(geometry.usable.top - 1);
+    expect(geometry.target.bottom).toBeLessThanOrEqual(geometry.usable.bottom + 1);
+    expect(geometry.target.left).toBeGreaterThanOrEqual(geometry.usable.left - 1);
+    expect(geometry.target.right).toBeLessThanOrEqual(geometry.usable.right + 1);
+    expect(geometry.centersUnobscured, "valuation cards must remain outside the real chrome").toBe(true);
+    await testInfo.attach("overview-" + language + "-valuation-" + frame.name + "-geometry", {
+      body: Buffer.from(JSON.stringify(geometry, null, 2)),
+      contentType: "application/json",
+    });
+    await page.screenshot({
+      path: testInfo.outputPath("overview-" + language + "-valuation-" + frame.name + ".png"),
+      animations: "disabled",
+    });
+  }
+}
+
 async function captureOverview(page: Page, testInfo: TestInfo, language: "en" | "zh") {
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
   // The existing responsive-qa artifact retains these actual browser captures.
@@ -118,6 +234,10 @@ async function captureOverview(page: Page, testInfo: TestInfo, language: "en" | 
     path: testInfo.outputPath(`overview-${language}-first-frame.png`),
     animations: "disabled",
   });
+  if (testInfo.project.name === "mobile") {
+    await captureMobileValuation(page, testInfo, language);
+    return;
+  }
   await page.locator("[data-overview-vnext-valuation]").screenshot({
     path: testInfo.outputPath(`overview-${language}-valuation.png`),
     animations: "disabled",
