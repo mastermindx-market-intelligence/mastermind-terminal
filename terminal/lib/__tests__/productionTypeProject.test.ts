@@ -63,9 +63,25 @@ describe("strict production TypeScript project", () => {
     const removed = full.fileNames.filter(file => !build.has(file)).map(file => path.relative(root, file));
     expect(removed.length).toBeGreaterThan(0); expect(removed.every(isNonBuildRoot)).toBe(true);
     for (const file of full.fileNames.filter(file => !isNonBuildRoot(path.relative(root, file)))) expect(build.has(file)).toBe(true);
-    expect([...build].some(file => file.endsWith(".next/types/validator.ts"))).toBe(true);
-    expect([...build].some(file => file.endsWith(".next/types/routes.d.ts"))).toBe(true);
   });
+  it("accepts clean or private-namespace checkout and retains actual-config generated roots when emitted", () => fixture(dir => {
+    fs.copyFileSync(path.join(root, "tsconfig.json"), path.join(dir, "tsconfig.json"));
+    fs.rmSync(path.join(dir, ".next"), { recursive: true });
+    // A source unit invocation need not have run Next. No default namespace is borrowed.
+    const clean = parse("tsconfig.build.json", dir).fileNames;
+    expect(clean.some(file => file.includes("/.next/"))).toBe(false);
+    const expected = [".next/types/validator.ts", ".next/types/routes.d.ts", ".next/dev/types/validator.ts"];
+    for (const name of expected) {
+      fs.mkdirSync(path.dirname(path.join(dir, name)), { recursive: true });
+      fs.writeFileSync(path.join(dir, name), "export {};\n");
+    }
+    const full = new Set(parse("tsconfig.json", dir).fileNames);
+    const build = new Set(parse("tsconfig.build.json", dir).fileNames);
+    for (const name of expected) {
+      expect(full.has(path.join(dir, name))).toBe(true);
+      expect(build.has(path.join(dir, name))).toBe(true);
+    }
+  }));
   it("retains the unchanged full-project CI typecheck and uses a production-only selection", () => {
     const workflow = fs.readFileSync(path.join(root, "../.github/workflows/ci.yml"), "utf8");
     expect(workflow).toMatch(/run: npx next typegen[\s\S]*run: npx tsc --noEmit/);

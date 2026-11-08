@@ -61,7 +61,14 @@ function guardProxy(request,base) {
       if(typeof value !== "string" || value.length>16384 || /[\r\n]/.test(value))throw Error("INTL_RETURN_PROXY_HEADERS");
       if(key === "rsc" && value !== "1")throw Error("INTL_RETURN_PROXY_HEADERS");
       if(key === "next-router-prefetch" && value !== "1")throw Error("INTL_RETURN_PROXY_HEADERS");
-      if(key === "next-url" && !proxyAllowed(ownedBase(base)+value,"GET",base))throw Error("INTL_RETURN_PROXY_HEADERS");
+      if(key === "next-url") {
+        // Next derives source-route metadata from its Flight tree, not the
+        // selected destination query. Admit only this case's Analysis origin.
+        const analysisReturn = value === "/analysis" && new URL(raw).pathname === "/intl.html"
+          && headers.rsc === "1" && typeof headers["next-router-state-tree"] === "string"
+          && headers["next-router-state-tree"].length > 0;
+        if(!analysisReturn && !proxyAllowed(ownedBase(base)+value,"GET",base))throw Error("INTL_RETURN_PROXY_HEADERS");
+      }
     }
     const response=await fetch(raw,{...options,method,maxRedirects:0,timeout:30_000});
     if(response.status()>=300 && response.status()<400)throw Error("INTL_RETURN_PROXY_REDIRECT");

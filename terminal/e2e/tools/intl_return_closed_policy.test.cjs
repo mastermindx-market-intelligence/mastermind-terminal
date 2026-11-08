@@ -36,3 +36,33 @@ test("all seven direct API entrypoints refuse before transport; actual local pro
  await assert.rejects(request.fetch(base+"/api/shared-shell/status",{headers,maxRedirects:0}),/REDIRECT/);
  assert.equal(calls,2);
 });
+
+// Use the installed Next producer rather than inventing a destination/header map.
+// The source pathname is metadata; the outgoing transport URL remains the exact
+// selected Intl tuple admitted independently above.
+const {extractPathFromFlightRouterState}=require('next/dist/client/components/router-reducer/compute-changed-path');
+const sourceTree=['',{children:['(shell)',{children:['analysis',{children:['__PAGE__?{"view":"investigations"}',{}]}]}]}];
+const nextUrl=extractPathFromFlightRouterState(sourceTree);
+test('installed Next pathname metadata reaches only the exact RSC Intl Return transport',async()=>{
+ assert.equal(nextUrl,'/analysis');
+ let calls=0;const request={fetch:async(raw,options)=>{calls++;assert.equal(options.headers['next-url'],nextUrl);assert.equal(raw,base+'/intl.html?'+VIEWS[calls-1]);return {status:()=>200};}};
+ guardProxy(request,base);
+ const metadata={...headers,'next-router-state-tree':JSON.stringify(sourceTree),'next-url':nextUrl};
+ for(const view of VIEWS)await request.fetch(base+'/intl.html?'+view,{method:'GET',headers:metadata,maxRedirects:0});
+ assert.equal(calls,2);
+});
+test('pathname metadata does not grant a route, context, origin, header or write',async()=>{
+ let calls=0;const request={fetch:async()=>{calls++;return {status:()=>200};}};guardProxy(request,base);
+ const metadata={...headers,'next-router-state-tree':JSON.stringify(sourceTree),'next-url':nextUrl};
+ const fetch=(raw,hs=metadata,method='GET')=>request.fetch(raw,{method,headers:hs,maxRedirects:0});
+ for(const value of ['/intl.html','/analysis/','//analysis','https://beta.mastermind-x.com/analysis','https://provider.invalid/analysis','/analysis#x','/analysis?unknown=1','/analysis%3F','/analysis\\evil',' /analysis','/analysis\r\nforged'])
+  await assert.rejects(fetch(base+'/intl.html?'+VIEWS[0],{...metadata,'next-url':value}),/HEADERS/);
+ for(const hs of [{...metadata,rsc:undefined},{...metadata,rsc:'0'},{...metadata,'next-router-state-tree':''},{...metadata,'next-router-state-tree':undefined},{...metadata,'next-router-state-tree':'\r\n'},{...metadata,authorization:'forged'}])
+  await assert.rejects(fetch(base+'/intl.html?'+VIEWS[0],hs),/HEADERS/);
+ for(const raw of [base+'/intl.html',base+'/intl.html?'+VIEWS[0]+'&extra=1',base+'/api/shared-shell/status',base+'/_next/static/chunks/app/layout.js',base+'/analysis?'+query,'https://provider.invalid/intl.html?'+VIEWS[0]])
+  await assert.rejects(fetch(raw));
+ for(const method of ['POST','PUT','PATCH','DELETE'])await assert.rejects(fetch(base+'/intl.html?'+VIEWS[0],metadata,method));
+ assert.equal(calls,0);
+ // The pre-existing exact full-context metadata contract remains eligible.
+ await fetch(base+'/intl.html?'+VIEWS[0],{...metadata,'next-url':'/analysis?'+query});assert.equal(calls,1);
+});
