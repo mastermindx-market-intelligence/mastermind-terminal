@@ -10,18 +10,19 @@ test.skip(process.env.MMX_SHARED_SHELL !== "1", "Incumbent Shared Shell fixture 
 if (process.env.MMX_SHARED_SHELL === "1" && !process.env.CI && process.env.TERMINAL_VISUAL_EVIDENCE_OPERATION === undefined) {
   throw new Error("Use the incumbent fresh-owned server harness; never reuse an unrelated local Next server.");
 }
-const BUNDLE_SHA = "bb84e0c01af391babe206ff42d8654b056532e7aca65bc181a9bc93f41bcae38";
+const BUNDLE_SHA = "725e82f1a98f62e22e6d73a16973f75f224805cdc8e64095bfef16d93d9b6067";
 const RAW_SHA = "8eee0e38f96db1b4e7868b75a25b641aee3138391adc52f2351ca6496165f95c";
 const HTML_SHA = "2756b62267ade84f0316c4f3e93847fa5fd4cce9e2ee6e6004fb2d3f1de740fb";
 const dates = ["2026-01-01T00:00:00+09:00", "2026-01-03T00:00:00.123456789+09:00"];
 const digest = (value: Buffer) => createHash("sha256").update(value).digest("hex");
 
 test("History accepts real date intent, compares exact reconstruction and returns with supported context", async ({ page, context, baseURL }, info) => {
-  const retained = readRetainedLegacyFixture(path.join(__dirname, "fixtures/intl-history-page/fixture.json.gz"), BUNDLE_SHA);
+  const retained = readRetainedLegacyFixture(path.join(__dirname, "fixtures/intl-history-page-reviewed-query/fixture.json.gz"), BUNDLE_SHA);
   expect(retained.provenance.macro_source).toBe("389c3ac3442547b0f38a81e7922f9581d25b1e5b");
+  expect(retained.provenance.reviewed_controller_sha256).toBe("e5e3a76ec1277f80266a153829360e4e8cc40e277d5250e806ecb7d3d89458aa");
   expect(digest(retained.rawJinja)).toBe(RAW_SHA);
   expect(digest(retained.html)).toBe(HTML_SHA);
-  expect(digest(retained.assets.get("/intl_workspace.js")!)).toBe("50ef82f213d5f7120c8c03f237dcfdbc5b4ccdefece1c96a2f129e5f2f14b7a9");
+  expect(digest(retained.assets.get("/intl_workspace.js")!)).toBe("e5e3a76ec1277f80266a153829360e4e8cc40e277d5250e806ecb7d3d89458aa");
   const observations = await installRealNextLegacyTransport({ page, context, baseURL: baseURL!, canonicalChildPath: "/intl.html", html: retained.html, assets: retained.assets });
   try {
     await page.goto(SHELL + "/intl.html?view=overview&market=JP&pins=JP,KR&horizon=3m&basis=local&return_basis=price&group=", { waitUntil: "domcontentloaded" });

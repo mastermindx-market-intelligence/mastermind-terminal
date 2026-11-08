@@ -135,7 +135,7 @@ test('joined case enrolls only its fixed CLI and private config boolean without 
   const fakeFs={lstatSync:p=>p==='/owned/op.json'?{isFile:()=>true,uid:1,mode:0o600,size:100}:{isDirectory:()=>true,uid:1,mode:0o700},readFileSync:()=>JSON.stringify(input)};
   vm.runInNewContext(fs.readFileSync(path.join(directory,'intl_return_controlled.config.cjs'),'utf8'),{module:mod,exports:mod.exports,__dirname:directory,URL,process:{env:{TERMINAL_INTL_RETURN_OPERATION:'/owned/op.json'},getuid:()=>1},require:n=>n==='node:fs'?fakeFs:n==='/fixture-pw/package.json'?{version:'1.63.0'}:require(n)});return mod.exports;
  }
- assert.equal(config(true).testMatch,'intl-investigate-controlled.spec.ts');assert.equal(config(false).testMatch,'intl-return-controlled.spec.ts');assert.equal(config(undefined).testMatch,'intl-return-controlled.spec.ts');
+ assert.equal(config(true).testMatch,'intl-investigate-controlled.adapter.ts');assert.equal(config(false).testMatch,'intl-return-controlled.adapter.ts');assert.equal(config(undefined).testMatch,'intl-return-controlled.adapter.ts');
  assert.equal(config(false,'allocation-p12t58').testMatch,'allocation-return-controlled.spec.ts');
  assert.throws(()=>config(true,'allocation-p12t58'),/FIXED_SCOPE/);
  for(const [args,want]of [[[],{selected:'intl',allocation:false,joinedSource:false}],[['--joined-source'],{selected:'intl',allocation:false,joinedSource:true}],[['--allocation-p12t58'],{selected:'allocation-p12t58',allocation:true,joinedSource:false}]])assert.equal(JSON.stringify(runner.exports.selectOperation(args)),JSON.stringify(want));

@@ -93,7 +93,7 @@ def test_lane_bind_step_precedes_node_setup_and_feeds_the_test_steps() -> None:
     assert len(candidates) == 1
     main = candidates[0]
     assert commands(main) == [
-        "node e2e/fixtureDiagnostics.mjs checkout",
+        "node e2e/fixtureDiagnostics.cjs checkout",
         'npm run test:e2e:responsive -- ${{ matrix.projects }} ${{ matrix.specs }} --workers="$TERMINAL_E2E_WORKERS"',
     ]
     assert main["env"]["TERMINAL_E2E_PORT"] == "${{ steps.lane.outputs.port }}"

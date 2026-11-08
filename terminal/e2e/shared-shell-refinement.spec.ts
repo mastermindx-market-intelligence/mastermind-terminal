@@ -125,7 +125,12 @@ test("mobile chrome keeps every target usable at 320px and contract widths",asyn
    await expect(page.getByRole("dialog")).toBeVisible();
    await expect(page.getByRole("dialog").getByRole("combobox")).toBeFocused();
    expect(await page.getByRole("dialog").evaluate(node=>node.closest(".topbar")===null)).toBe(true);
-   await expect(page.getByRole("dialog").getByRole("tab",{name:chinese?"股票":"Stocks",exact:true})).toBeVisible();
+   const scopes=page.getByRole("dialog").getByRole("group",{name:chinese?"搜索范围":"Search scope",exact:true});
+   const companies=scopes.getByRole("button",{name:chinese?/^公司(?:\s|$)/:/^Companies(?:\s|$)/});
+   const tools=scopes.getByRole("button",{name:chinese?/^工具(?:\s|$)/:/^Tools(?:\s|$)/});
+   await expect(companies).toBeVisible();await expect(companies).toHaveAttribute("aria-pressed","true");
+   await expect(tools).toBeVisible();await expect(tools).toHaveAttribute("aria-pressed","false");
+   await expect(page.getByRole("dialog").getByRole("region",{name:chinese?"公司结果":"Company results",exact:true})).toBeVisible();
    const skin=await page.getByRole("dialog").evaluate(node=>{
     const surface=node.matches(".msheet")?node:node.querySelector(".smodal");
     const probe=document.createElement("div");probe.style.backgroundColor="var(--panel)";document.body.append(probe);

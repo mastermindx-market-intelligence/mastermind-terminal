@@ -74,7 +74,7 @@ function config(selectedCase){
 }
 test('private operation selects only the fixed spec while preserving budget and unknown-case refusal',()=>{
  const cfg=config(selected);assert.equal(cfg.testMatch,'allocation-return-controlled.spec.ts');assert.equal(cfg.workers,1);assert.equal(cfg.retries,0);assert.equal(cfg.timeout,120000);assert.equal(cfg.webServer,undefined);assert.equal(cfg.globalSetup,undefined);assert.equal(cfg.use.serviceWorkers,'block');
- assert.equal(config(undefined).testMatch,'intl-return-controlled.spec.ts');assert.throws(()=>config('arbitrary'));
+ assert.equal(config(undefined).testMatch,'intl-return-controlled.adapter.ts');assert.throws(()=>config('arbitrary'));
 });
 test('shared presentation enrollment is fixed, retains dark/default Intl, and supplies no auth/rights grant',()=>{
  const {capturePresentationEnvironment}=require('./thesis_capture_runtime.cjs');assert.deepEqual(capturePresentationEnvironment('shared-shell-allocation-return'),{MMX_SHARED_SHELL:'1'});assert.deepEqual(capturePresentationEnvironment('shared-shell-intl-return'),{MMX_SHARED_SHELL:'1'});assert.deepEqual(capturePresentationEnvironment('dark'),{});assert.throws(()=>capturePresentationEnvironment('arbitrary'));

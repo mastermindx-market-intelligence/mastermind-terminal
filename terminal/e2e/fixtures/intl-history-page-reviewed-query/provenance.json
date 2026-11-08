@@ -1,0 +1,214 @@
+{
+  "schema": "shared-shell.controlled-consumer-emission.v1",
+  "bundle_sha256": "725e82f1a98f62e22e6d73a16973f75f224805cdc8e64095bfef16d93d9b6067",
+  "bundle_bytes": 845134,
+  "uncompressed_bytes": 5459491,
+  "raw_jinja_sha256": "8eee0e38f96db1b4e7868b75a25b641aee3138391adc52f2351ca6496165f95c",
+  "html_sha256": "2756b62267ade84f0316c4f3e93847fa5fd4cce9e2ee6e6004fb2d3f1de740fb",
+  "asset_count": 30,
+  "assets": {
+    "/account.js": {
+      "sha256": "3a75ad49f6d678871206efbefd68311c1f60559b7924e96cfee0fcf5120cb50c",
+      "bytes": 75906
+    },
+    "/fonts/Inter-400.woff2": {
+      "sha256": "8909904ab6c872eb994093482a88a28eca2cd95912d7b6fecd72103b0dc07edc",
+      "bytes": 23664
+    },
+    "/fonts/Inter-500.woff2": {
+      "sha256": "f3779f1efccc4bdcdf9c0a02ab95bf6bd092ed09c48c08cedc725889edd1d19f",
+      "bytes": 24272
+    },
+    "/fonts/Inter-600.woff2": {
+      "sha256": "f9a06e79cd3a2a20951c0f0e28f66dd0e6d3fda73911d640a2125c8fcb78f21a",
+      "bytes": 24452
+    },
+    "/fonts/Inter-700.woff2": {
+      "sha256": "6f56409fd3d64bb85f7d070bce20749db2d66b6d63cec586cc22d1c761be2491",
+      "bytes": 24356
+    },
+    "/fonts/Inter-800.woff2": {
+      "sha256": "a7d0a50f15d389cad679238466bdb5fc9787aa0715719064ce25abaff042820d",
+      "bytes": 24400
+    },
+    "/fonts/Inter-900.woff2": {
+      "sha256": "d5c0ed7b8b5dde97d48b97947d740bbd8ad3ba9f2c5cc6b8280f16acba2d828e",
+      "bytes": 23900
+    },
+    "/intl_library_search.js": {
+      "sha256": "019933a8f2f6c705dae32c68f83c065b24f693a2e899c33381b21fb6b86f748f",
+      "bytes": 15948
+    },
+    "/intl_workspace.css": {
+      "sha256": "cea40312080e4da21ffa6580f755163e0ff4bec9f3dbbad0c802ddf58ce808e3",
+      "bytes": 21312
+    },
+    "/intl_workspace.js": {
+      "sha256": "e5e3a76ec1277f80266a153829360e4e8cc40e277d5250e806ecb7d3d89458aa",
+      "bytes": 142191
+    },
+    "/intl_workspace_entry.js": {
+      "sha256": "3b476b4ce04b91f0a8854c4a3e5b2e26f672cfa21c67445d8ce765edc62a8b1b",
+      "bytes": 3371
+    },
+    "/intl_workspace_history.css": {
+      "sha256": "cfd288b76c0b43c588023716b8f9f13a91524edb0cc7b3b4b8548b893e70f5de",
+      "bytes": 6800
+    },
+    "/intl_workspace_macro.css": {
+      "sha256": "11b8e48f9f15a8e90c556e0c703e60818ac1db8a9c02786fd6f59ccbc219dc15",
+      "bytes": 8258
+    },
+    "/intl_workspace_risk.css": {
+      "sha256": "5f21f98f0604c86876fd2d693e542094c85c8107da127b409c0b2865726a816e",
+      "bytes": 7454
+    },
+    "/intl_workspace_scenario.js": {
+      "sha256": "91217398f9f527173fc0be1a01dca305b84f2060c7b3b0e215866ef564471ab4",
+      "bytes": 14796
+    },
+    "/intl_workspace_state.js": {
+      "sha256": "b02a808380c1a1d2c798f1b827707fa07d23679e15bf01753cffaada55f00fd1",
+      "bytes": 28387
+    },
+    "/intl_workspace_surveillance.css": {
+      "sha256": "e7ccff77c7e095d600921282da70683f580e8df368e8933349438cc7cb36ff16",
+      "bytes": 68027
+    },
+    "/live.js": {
+      "sha256": "f8cda39dd4258a5778864b3b7e0bd8b9cc685bd1f926211a72268883a937a592",
+      "bytes": 50731
+    },
+    "/live_config.js": {
+      "sha256": "54d8d46e1f43c6a8f3f2476a9ff5f6d60749d6e7465a6d9cc2e4f8e64b485d24",
+      "bytes": 63
+    },
+    "/logo_config.js": {
+      "sha256": "b37d33d3194c191b1bb64db3f5c33d17c7dc06a74892e4aa8ea4d50320aae215",
+      "bytes": 202
+    },
+    "/nav_market.js": {
+      "sha256": "d6a0ffd9c7fcc4f201f73b3e226934cc1709950452894e68cf921d60a90f1587",
+      "bytes": 96881
+    },
+    "/navigation-refresh.css": {
+      "sha256": "edfd821b3a6267c762fe452f7da74c0517d2f4435705f3148d5ab2be89105fae",
+      "bytes": 104548
+    },
+    "/product-nav-icons.css": {
+      "sha256": "432f6a454755566f63e843a269bee842e672d0934f10d957b6c386dcc1a824ea",
+      "bytes": 41645
+    },
+    "/shared_shell.css": {
+      "sha256": "b1918ccaa2294f18c0fd5bca123e38267251c7e9d9a7c4fce1f296ef9e4c3c1e",
+      "bytes": 467
+    },
+    "/shared_shell_bridge.js": {
+      "sha256": "071ef7202d8886228342c00f0e7a3026eaba1d0103c4dcf1e6d204a7da77451b",
+      "bytes": 51296
+    },
+    "/stock-logos.js": {
+      "sha256": "cc29be531bc08e655464b6c0d384e1a46041aeb31caf7d982e926681fda7cb49",
+      "bytes": 16539
+    },
+    "/tablesort.js": {
+      "sha256": "62f1b5ef9c2a26c292424aa407dbcffd0dbd9d5f6e4b0443c6e9b4ca74368a42",
+      "bytes": 15556
+    },
+    "/terminal_overlay.js": {
+      "sha256": "9817ca9fdace99e6ce0af55bebda7b90c3a55ae6589fa267cf35ab23c9b5a5bf",
+      "bytes": 41029
+    },
+    "/theme.css": {
+      "sha256": "9bd171a66b42712c54459c99a0104725e2369a96cd9f3a71ba3e60b7c683d757",
+      "bytes": 227583
+    },
+    "/theme.js": {
+      "sha256": "918e7acece23ab6df8211305a938e569f0de4184c0fd9c0b2f1e56c50e3cac4d",
+      "bytes": 400176
+    }
+  },
+  "copied_assets_by_incumbent_writer": 169,
+  "provenance": {
+    "macro_source": "389c3ac3442547b0f38a81e7922f9581d25b1e5b",
+    "consumer_template_source": "01aa9c09495f77d207461af14a343e053b6ecf79",
+    "reviewed_controller_sha256": "e5e3a76ec1277f80266a153829360e4e8cc40e277d5250e806ecb7d3d89458aa",
+    "source_identity": "Retained389c History generator/data/template closure byte-bound to current01aa + reviewed e5e3 query-controller postimage",
+    "raw_jinja_sha256": "8eee0e38f96db1b4e7868b75a25b641aee3138391adc52f2351ca6496165f95c",
+    "composition": "Incumbent tests.intl_history_next_fixture.build_fixture with actual attach_history/render_international_pages \u2192 intl_gs_fixture_site.write_site actual asset/font writer \u2192 lib.shared_shell copy/inject postprocessing",
+    "source_inputs": {
+      "tests/intl_history_next_fixture.py": "f6358528bff60cea785efe4a081304ca6611d382931769e714e678e75141b8a0",
+      "tests/intl_gs_fixture_site.py": "5137a60a035d3c8b6c6eb9a5fb811ad8977216a142b5646e20f2fb93a0968913",
+      "tests/test_intl_history_mount.py": "ff89fd8830c1f533b85b8110c741619ec6643682027a8c5c46be65d021828c63",
+      "tests/fixtures/intl_workspace/history_cases.json": "39fb8a33cfb2fc49769e546636fc6cdf54f02273264011306404b2130425f2fe",
+      "lib/intl_history_mount.py": "ba4593c31e9d72c21973e6eb27de0dbe275525f27fc6d82172baefe63fe0461c",
+      "lib/shared_shell.py": "eb1f06843b556968f15a0478d756e8312a3b6f4f4c8cb3daf047a6c438f79c1c",
+      "config/intl_library_catalogue.json": "efb38991184357909b1f8c55c6753efad4f2e8b56616d2d526d9318e8a94895c"
+    },
+    "retained_generation": "im-workspace-generation:12345678-1234-4123-8123-123456789012",
+    "retained_config": {
+      "markets": [
+        "JP",
+        "KR",
+        "TW",
+        "IN",
+        "AU",
+        "GB",
+        "EZ"
+      ],
+      "horizons": [
+        "1m",
+        "3m",
+        "6m",
+        "12m",
+        "ytd"
+      ],
+      "bases": [
+        "usd_unhedged",
+        "local"
+      ],
+      "default_horizon": "1m",
+      "default_basis": "usd_unhedged",
+      "source_reference": "im-workspace-generation:12345678-1234-4123-8123-123456789012",
+      "anchor_ids": [
+        "intl-legacy-research"
+      ],
+      "library_group_ids": []
+    },
+    "retained_expected": {
+      "market": "JP",
+      "points": [
+        {
+          "observation_at": "2026-01-01T00:00:00+09:00",
+          "growth_score": 0.4375,
+          "inflation_score": -1.25
+        },
+        {
+          "observation_at": "2026-01-02T00:00:00+09:00",
+          "growth_score": 17,
+          "inflation_score": 0.1875
+        },
+        {
+          "observation_at": "2026-01-03T00:00:00.123456789+09:00",
+          "growth_score": 19,
+          "inflation_score": 23
+        }
+      ],
+      "initial_dates": [
+        "",
+        ""
+      ],
+      "scenario_initial": [
+        "",
+        ""
+      ]
+    },
+    "original_bundle_sha256": "bb84e0c01af391babe206ff42d8654b056532e7aca65bc181a9bc93f41bcae38",
+    "no_data_refresh": true,
+    "no_live_config": "Incumbent fixture writer emits no-live-config stub; no account config bake",
+    "referenced_external_assets_denied": [
+      "data:image/svg+xml,%3Csvg xmlns="
+    ]
+  },
+  "limits": "Source-only controlled NEW closure, not protected/served/currentfeed/auth/PIT/browser proof. Originalbb84 History data/HTML/hash/oracles immutable."
+}

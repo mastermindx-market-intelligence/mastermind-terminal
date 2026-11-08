@@ -6,7 +6,7 @@ import ShellSearch from "@/components/chrome/shared-shell/ShellSearch";
 import { LangProvider } from "@/lib/i18n";
 vi.mock("next/navigation",()=>({useRouter:()=>({push:vi.fn()})}));
 vi.mock("@/lib/activeSymbol",()=>({useActiveSymbol:()=>"NVDA",writeActiveSymbol:vi.fn()}));
-vi.mock("@/lib/sharedShellCopy",()=>({useSharedShellT:()=>((key:string)=>key)}));
+vi.mock("@/lib/sharedShellCopy",async()=>({...await vi.importActual<typeof import("@/lib/sharedShellCopy")>("@/lib/sharedShellCopy"),useSharedShellT:()=>((key:string)=>key)}));
 vi.mock("@/components/chrome/AppShell",()=>({useShellIdentity:()=>({})}));
 vi.mock("@/lib/useMarketPrefs",async()=>{const {DEFAULT_PREFS}=await import("@/lib/markets");return {useMarketPrefs:()=>({prefs:DEFAULT_PREFS,ready:true,enableAll:vi.fn()})};});
 vi.mock("@/lib/dataCache",()=>({getJSONResult:vi.fn(async()=>({status:"data",data:{symbols:{AAPL:{name:"Apple",col:"#aaa",verdict:null,mkt:"US",sec:"Equities"}}}}))}));
@@ -34,4 +34,13 @@ it.each(["Escape", "close button"])("restores a live search trigger after cold k
 it("restores a real external opener after programmatic cold open",async()=>{
  const opener=host.querySelector<HTMLButtonElement>("[data-external]")!;opener.focus();await act(async()=>opener.click());
  expect(document.body.querySelector('[role="dialog"]')).not.toBeNull();await escape();expect(document.activeElement).toBe(opener);
+});
+
+// Exercise the real native-title aliases deterministically, independently of
+// when the lazily loaded directory settles during the focus cases.
+it("keeps real bilingual directory copy available under the controlled translation hook",async()=>{
+ const {searchDirectoryEntries}=await import("@/lib/sharedShellDirectorySearch");
+ const entry={href:"/today",kind:"native",title:{en:"Today",zh:"今日"},group:"native"};
+ expect(searchDirectoryEntries([entry],[],"Today")).toEqual([entry]);
+ expect(searchDirectoryEntries([entry],[],"今日")).toEqual([entry]);
 });

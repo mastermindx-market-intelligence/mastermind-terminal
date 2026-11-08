@@ -549,6 +549,7 @@ jobs:
         env:
           MMX_SHARED_SHELL: '1'
           CI: '1'
+          TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT: 'intl-fixture-v1'
           TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port_shared }}
         run: >-
           npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts e2e/intl-investigation-return.spec.ts e2e/intl-history-date-intent.spec.ts e2e/intl-investigate-return.spec.ts

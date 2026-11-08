@@ -494,3 +494,92 @@ test("failed or unclosed case stops sequence and cannot yield partial success",a
     await assert.rejects(operation);assert.deepEqual(calls,SIX_FILES.slice(0,2));
   }
 });
+
+
+// The installed Flight reader is the consumer. Only its two byte streams are
+// controlled: no copied parser, renderer, browser or network is involved.
+test("actual Next Flight waits for a withheld debug owner and settles only on its matching row", async () => {
+  const { createFromReadableStream } = require("next/dist/compiled/react-server-dom-turbopack/cjs/react-server-dom-turbopack-client.browser.development.js");
+  const encode = value => new TextEncoder().encode(value);
+  const model = '0:["$","div",null,{"children":"retained fixture"},"$1",null]\n';
+  const input = () => new ReadableStream({ start(controller) { controller.enqueue(encode(model)); controller.close(); } });
+  const drainReader = () => new Promise(resolve => setImmediate(resolve));
+  let ordinary, ordinaryError;
+  createFromReadableStream(input()).then(value => { ordinary = value; }, error => { ordinaryError = error; });
+  await drainReader();
+  assert.equal(ordinaryError, undefined);
+  assert.equal(ordinary.type, "div");
+  assert.equal(ordinary.props.children, "retained fixture");
+
+  let debug, waiting, waitingError;
+  const readable = new ReadableStream({ start(controller) { debug = controller; } });
+  createFromReadableStream(input(), { debugChannel: { readable } }).then(value => { waiting = value; }, error => { waitingError = error; });
+  await drainReader();
+  assert.equal(waitingError, undefined);
+  assert.equal(waiting.$$typeof, Symbol.for("react.lazy"));
+  const pending = waiting._payload;
+  assert.equal(pending.status, "blocked");
+  assert.throws(() => waiting._init(pending), error => error === pending);
+  debug.enqueue(encode("2:null\n")); // An unrelated debug row cannot release owner 1.
+  await drainReader();
+  assert.equal(pending.status, "blocked");
+  debug.enqueue(encode("1:null\n"));
+  debug.close();
+  await drainReader();
+  assert.equal(pending.status, "fulfilled");
+  const completed = waiting._init(pending);
+  assert.equal(completed.type, ordinary.type);
+  assert.deepEqual(completed.props, ordinary.props);
+
+  let missing;
+  const ended = new ReadableStream({ start(controller) { controller.close(); } });
+  createFromReadableStream(input(), { debugChannel: { readable: ended } }).then(value => { missing = value; }, () => {});
+  await drainReader();
+  assert.equal(missing._payload.status, "rejected");
+  assert.throws(() => missing._init(missing._payload), /Connection closed/);
+});
+
+test("exact closed canonical fixture disables only its optional development debug stream", async () => {
+  const fixture = { NODE_ENV: "development", TERMINAL_E2E_FIXTURE: "1" };
+  const normal = evaluateActualNextConfig(fixture);
+  const closed = evaluateActualNextConfig({ ...fixture, TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT: "intl-fixture-v1" });
+  assert.equal(closed.experimental.reactDebugChannel, false);
+  assert.equal(closed.distDir, undefined);
+  assert.deepEqual(Object.keys(closed.typescript), ["tsconfigPath"]);
+  assert.equal(closed.typescript.tsconfigPath, "tsconfig.json");
+  assert.equal(JSON.stringify({ ...closed, experimental: { ...closed.experimental, reactDebugChannel: true } }), JSON.stringify(normal));
+  assert.equal(JSON.stringify(await closed.headers()), JSON.stringify(await normal.headers()));
+  assert.equal(JSON.stringify(await closed.redirects()), JSON.stringify(await normal.redirects()));
+  for (const env of [
+    { ...fixture },
+    { ...fixture, TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT: "1" },
+    { ...fixture, TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT: "intl-fixture-v1 " },
+    { ...fixture, TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT: "INTL-FIXTURE-V1" },
+    { NODE_ENV: "development", TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT: "intl-fixture-v1" },
+    { ...fixture, TERMINAL_E2E_FIXTURE: "0", TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT: "intl-fixture-v1" },
+    { ...fixture, NODE_ENV: "production", TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT: "intl-fixture-v1" },
+    { ...fixture, NODE_ENV: "test", TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT: "intl-fixture-v1" },
+  ]) {
+    const other = evaluateActualNextConfig(env);
+    assert.equal(other.experimental.reactDebugChannel, true);
+    assert.equal(other.distDir, undefined);
+    assert.equal(other.typescript.tsconfigPath, env.NODE_ENV === "production" ? "tsconfig.build.json" : "tsconfig.json");
+  }
+  const f11 = evaluateActualNextConfig({ ...fixture, TERMINAL_F11_PROVIDER_CLOSED: "1", TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT: "intl-fixture-v1" });
+  assert.equal(f11.experimental.reactDebugChannel, false);
+  assert.equal(f11.distDir, ".next/f11");
+  assert.equal(f11.typescript.tsconfigPath, "tsconfig.f11.json");
+});
+
+test("only the incumbent Shared Shell CI step selects the exact closed canonical producer recipe", () => {
+  const workflow = fs.readFileSync(path.join(__dirname, "../../../.github/workflows/ci.yml"), "utf8");
+  const step = workflow.split("      - name: Qualify Shared Shell beta presentation\n")[1]?.split("\n      - name: ")[0];
+  assert.ok(step);
+  assert.match(step, /MMX_SHARED_SHELL: '1'/);
+  assert.match(step, /CI: '1'/);
+  assert.match(step, /TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT: 'intl-fixture-v1'/);
+  assert.equal((workflow.match(/TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT:/g) || []).length, 1);
+  for (const file of ["shared-shell-refinement.spec.ts", "intl-investigation-return.spec.ts", "intl-history-date-intent.spec.ts", "intl-investigate-return.spec.ts"]) assert.ok(step.includes(file));
+  assert.ok(step.includes("--project=desktop --project=tablet --project=mobile"));
+  assert.ok(step.includes("--workers=1 --retries=0"));
+});

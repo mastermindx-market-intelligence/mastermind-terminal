@@ -18,7 +18,7 @@ if(endpoint.protocol!=="ws:" || endpoint.hostname!=="127.0.0.1" || !endpoint.por
   throw Error("INTL_RETURN_BROWSER_ENDPOINT");
 if(!path.isAbsolute(input.playwrightModule) || require(input.playwrightModule+"/package.json").version!=="1.63.0")
   throw Error("INTL_RETURN_TOOLCHAIN");
-module.exports={testDir:path.join(__dirname,".."),testMatch:input.joinedSource?"intl-investigate-controlled.spec.ts":selected==="intl"?"intl-return-controlled.spec.ts":"allocation-return-controlled.spec.ts",
+module.exports={testDir:path.join(__dirname,".."),testMatch:input.joinedSource?"intl-investigate-controlled.adapter.ts":selected==="intl"?"intl-return-controlled.adapter.ts":"allocation-return-controlled.spec.ts",
   fullyParallel:false,workers:1,retries:0,timeout:120_000,forbidOnly:true,
   reporter:[["json",{outputFile:path.join(path.dirname(file),"test-result.json")}]],
   outputDir:path.join(path.dirname(file),"test-output"),

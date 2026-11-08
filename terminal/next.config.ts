@@ -10,6 +10,13 @@ const isF11Capture = process.env.NODE_ENV === "development"
   && process.env.TERMINAL_E2E_FIXTURE === "1"
   && process.env.TERMINAL_F11_PROVIDER_CLOSED === "1";
 
+// Canonical-origin retained Intl fixtures close all WebSockets. Their existing
+// CI recipe must also omit optional Flight debug rows carried on that channel.
+// This changes neither the ordinary compiler project nor the F11 namespace.
+const isClosedCanonicalTransport = process.env.NODE_ENV === "development"
+  && process.env.TERMINAL_E2E_FIXTURE === "1"
+  && process.env.TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT === "intl-fixture-v1";
+
 // ── Deployment id (version-skew protection / stale-chunk self-heal) ───────────
 // Each production deploy gets a DISTINCT id: prefer the git sha wired in by
 // ops/terminal-build.sh (GIT_SHA / NEXT_DEPLOYMENT_ID), then read the deploy marker that the
@@ -213,9 +220,10 @@ const nextConfig: NextConfig = {
   // React dev Flight dependencies normally arrive over the debug WebSocket.
   // F11 intentionally closes every socket before connect; disable only that
   // optional dev transport in its provider-closed child so hydration can settle.
-  // Production, normal development, and other e2e/capture recipes retain Next's default.
+  // The explicit closed canonical fixture recipe has the same transport need.
+  // Production, normal development, and all other recipes retain Next's default.
   experimental: {
-    reactDebugChannel: !isF11Capture,
+    reactDebugChannel: !(isF11Capture || isClosedCanonicalTransport),
   },
   // tsc --noEmit is clean as of 2026-07-11, so builds enforce types again — the
   // 2026-07-07 `typescript.ignoreBuildErrors` escape hatch (FinPage union nits)
