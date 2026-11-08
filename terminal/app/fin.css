@@ -80,15 +80,15 @@
 .fin-body::-webkit-scrollbar-thumb{background:var(--line-3);border-radius:99px;border:2px solid transparent;background-clip:content-box;transition:background .15s}
 .fin-body::-webkit-scrollbar-thumb:hover{background:var(--panel-3);background-clip:content-box}
 .fin-sec{margin-bottom:28px}
-.fin-sec-h{display:flex;align-items:baseline;gap:7px;font:650 var(--fs-title)/1.25 var(--font-ui);letter-spacing:-.01em;color:var(--text);margin-bottom:3px}
-/* v7 section-header system (macro-framework transfer): eyebrow above, optional
- * 3px gradient rail + hairline rule on the title. Rail color rides --rail —
- * brand = analytical (default); var(--up)/var(--down) ONLY on genuinely
- * directional sections; var(--warn) for caution blocks. */
+.fin-sec-h{display:flex;align-items:baseline;gap:7px;font:650 var(--fs-title)/1.25 var(--font-ui);letter-spacing:-.01em;color:var(--text);margin:0 0 3px}
+/* Section headers: eyebrow above, hairline rule under the title — instrument-
+ * neutral, no decorative rail. An interactive header jumps via a real button
+ * (.fin-sec-action) that fills the header row and inherits the title font,
+ * color and letter-spacing through the global button reset; the 40px row is
+ * its touch target and the global :focus-visible outline stays untouched. */
 .fin-eyebrow{font:700 var(--fs-micro)/1 var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
-.fin-sec-h.fin-rail{gap:9px}
-.fin-sec-h.fin-rail::before{content:"";flex:none;align-self:center;width:3px;height:15px;border-radius:2px;background:linear-gradient(180deg,var(--rail),color-mix(in srgb,var(--rail) 30%,transparent))}
 .fin-sec-h.fin-rule{padding-bottom:9px;border-bottom:1px solid var(--hairline);margin-bottom:10px}
+.fin-sec-action{display:flex;align-items:baseline;gap:7px;width:100%;min-height:40px;padding:0;text-align:left}
 /* a .fin-tag inside a baseline-aligned section header centers itself */
 .fin-sec-h .fin-tag{align-self:center}
 .fin-sec-h .chev{color:var(--brand);cursor:pointer}
@@ -366,7 +366,6 @@
 .fin-fact .v.fin-earn-next>span:first-child{overflow:hidden;text-overflow:ellipsis}
 .fin-earn-module-hdr.fin-rule{padding-bottom:9px;border-bottom:1px solid var(--hairline)}
 .fin-earn-module-hdr .fin-sec-h{margin-bottom:0}
-.fin-earn-module-title.fin-rail::before{height:13px}
 .fin-earn-module{border:1px solid var(--line);border-radius:var(--r-card);padding:14px;background:var(--panel-2);margin-bottom:20px;overflow:hidden}
 .fin-earn-module-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:12px}
 .fin-earn-module-title{font:650 13px/1.2 var(--font-ui);color:var(--text)}
@@ -1219,7 +1218,21 @@
   /* Override the fixed-overlay base (.fin-pane) so the pane fills the workspace flex slot.
    * `overflow:hidden` on .fin-pane is reset here; inner .fin-body carries its own scroll. */
   .fin-pane--workspace{position:relative;inset:auto;z-index:1;flex:1;min-height:0;overflow:hidden}
+  /* in-flow beside the chart: the left rail's Chart button is the exit, so no pane header here */
+  .fin-head--touch-exit{display:none}
   /* suppress the body-level scrim entirely on desktop (no scrim element rendered in workspace mode) */
+}
+/* ── full-viewport panes ≤860px: their own way back ──
+ * The fallback above makes the chart's pane a fixed full-viewport layer at z-90 that paints over
+ * `.mobilebar`, so the pane's header is the only exit a touch user has. The overlay variant (the
+ * shell dossier's "Open full analysis" — the iPhone/iPad symbol sheet) is the same fixed inset:0
+ * layer at every width. Keep both headers clear of the notch / rounded corners and give the
+ * button a full 44px touch target; above 860px the overlay keeps the compact desktop pill. */
+@media (max-width:860px){
+  .fin-head--touch-exit,
+  .fin-pane:not(.fin-pane--workspace) > .fin-head{padding:max(8px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 8px max(12px,env(safe-area-inset-left))}
+  .fin-head--touch-exit .fin-head-back,
+  .fin-pane:not(.fin-pane--workspace) > .fin-head .fin-head-back{min-height:44px;min-width:44px;padding:0 14px;font-size:13px;flex:none}
 }
 /* ── /analysis on phone + tablet: a desk, not an overlay ──────────────────────────────────
  * ≤860px the workspace override above stops applying and the pane falls back to the .fin-pane

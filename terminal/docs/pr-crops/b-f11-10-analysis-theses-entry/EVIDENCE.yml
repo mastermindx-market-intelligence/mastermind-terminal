@@ -1,14 +1,13 @@
-# 2026-10-05 #802/#808 source hash reconciliation: preserves captured PNG bytes/provenance; added Dislocations-only labels are not rendered by these capture surfaces.
 # B-F11-10a Analysis context-bar theses entry — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 2846101a95c9f9c4e1b3f21d0005c356cc41ba8f
-# capturedAt: 2026-10-05T10:58:46.160Z
+# capturedAtHead: e2846880681d4b9aff4a060e1321f50f240cafc7
+# capturedAt: 2026-10-24T05:29:47.034Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
-  terminal/app/company-intelligence.css: "16ca4e131ad1f2973b6346e7f051af802dbfa27227d6c33615af87578e73f885"
-  terminal/lib/i18n.tsx: "858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f"
+  terminal/components/workspaces/AnalysisWorkspace.tsx: "8868ab406b9a25d177c10dc6d24427dea07e693a8fa4a191de594f118f4049d7"
+  terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
+  terminal/lib/i18n.tsx: "13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -23,7 +22,7 @@ harness:
   mobile-en.png: { url: "/analysis?symbol=NVDA&lang=en", state: context-bar-with-theses-control }
   mobile-zh.png: { url: "/analysis?symbol=NVDA&lang=zh", state: context-bar-with-theses-control }
 capture_flag: TERMINAL_E2E_FIXTURE
-capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
 command: |
   cd terminal
   node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs
@@ -34,3 +33,30 @@ files:
   - tablet-zh.png
   - mobile-en.png
   - mobile-zh.png
+
+documentLanguageRecapture20261024:
+  sourceHead: e2846880681d4b9aff4a060e1321f50f240cafc7
+  qualification: Actual native producer executed in original managed language workspace; existing fixture data, no live-account or production claim
+  historicalManifest: history/before-document-language-20261024.yml
+  historicalSource: 919114d1c27f0f588d9d5a4d52574f19b0137d6d
+  receiptIndex: ../document-language/recapture-index.json
+
+# Raw capture identity and every upstream source/crop lock remain unchanged; omit only unused pending-copy dependency.
+lexProjection: {"schema":"terminal.lex_capture_projection.v1","omittedProperty":"obDonePrefsSyncing","capturedRawSha256":"13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c","projectedSha256":"d6dcc2df7615a1c5782f4d755178fbb76bcf9ee42b93dffe7c7c95317a652de5","sourceGitBlob":"664d68043f472919f7b581f545a334bf66d9782f","sourceRecoveryCommit":"e2846880681d4b9aff4a060e1321f50f240cafc7","captureCommitLocallyAvailable":true}
+
+companyAlternateListingSourceRecapture20261103:
+  sourceHead: 246ae1579e88ff9c7583eff5061a404644bed05a
+  qualification: Fresh incumbent six-case NVDA context-bar capture; OUT declaration redirected only; no runtime, fixture, URL, viewport or assertion change
+  captureDirectory: ../company-alternate-listing-20261103/theses-entry-20261103
+  start: ../company-alternate-listing-20261103/theses-entry-20261103/start.json
+  result: ../company-alternate-listing-20261103/theses-entry-20261103/result.json
+  scope: AnalysisWorkspace source row only; historical six crops, raw capture identity and lexProjection retained unchanged; local dev fixture, no served or authenticated claim
+
+companyOriginContextSourceRecapture20261107:
+  sourceHead: 030c84c98944a6d4c145695e7aeda5bd32eac015
+  qualification: Fresh incumbent six-case NVDA context-bar capture; OUT declaration redirected only; unchanged fixture, URL, viewport and assertions
+  captureDirectory: ../company-origin-context-20261107/theses-entry-20261107
+  start: ../company-origin-context-20261107/theses-entry-20261107/start.json
+  result: ../company-origin-context-20261107/theses-entry-20261107/result.json
+  sourceQualification: ../company-origin-context-20261107/source-qualification.json
+  scope: AnalysisWorkspace source row only; historical six crops, raw capture identity, CSS row and lexProjection retained unchanged; local dev fixture, no served or authenticated claim

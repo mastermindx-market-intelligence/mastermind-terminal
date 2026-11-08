@@ -1,0 +1,151 @@
+{
+  "source_head": "6b8e0855b96f2aeff5d202d73170e45a382ba9a4",
+  "checkpoint": "51156577a8d823f3a00825008341fb7569e807c8",
+  "route": "/options?tab=gex&view=research",
+  "browser": "installed Google Chrome headed",
+  "data": "synthetic fixture",
+  "results": [
+    {
+      "count": 1000,
+      "graphics": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Ultra, Unspecified Version)",
+      "idleSeconds": 3,
+      "idleDraws": 0,
+      "idleTaskCpuPercent": 0.16353333333333334,
+      "activeMs": 4718.783666,
+      "sceneDraws": 180,
+      "sceneDrawRatePerSecond": 38.14542321508493,
+      "rafCadencePerSecond": 100.00636983247341,
+      "rafIntervalP95Ms": 11.5,
+      "pickingMaxMs": 0.6000000238418579,
+      "pickingSamples": 20,
+      "filterCycles": 0,
+      "resources": [],
+      "wholePageHeapAfterForcedGcBefore": 15456696,
+      "wholePageHeapAfterForcedGcAfter": 15456696,
+      "mounted": {
+        "draws": 185,
+        "buffers": 7,
+        "programs": 2,
+        "bufferBytes": 37248
+      },
+      "unmounted": {
+        "draws": 185,
+        "buffers": 0,
+        "programs": 0,
+        "bufferBytes": 0
+      },
+      "pageErrors": []
+    },
+    {
+      "count": 5000,
+      "graphics": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Ultra, Unspecified Version)",
+      "idleSeconds": 3,
+      "idleDraws": 0,
+      "idleTaskCpuPercent": 0.1576,
+      "activeMs": 5088.092417,
+      "sceneDraws": 180,
+      "sceneDrawRatePerSecond": 35.37671591785476,
+      "rafCadencePerSecond": 99.95474489896309,
+      "rafIntervalP95Ms": 11.400000000001455,
+      "pickingMaxMs": 0.9000000953674316,
+      "pickingSamples": 20,
+      "filterCycles": 0,
+      "resources": [],
+      "wholePageHeapAfterForcedGcBefore": 16438864,
+      "wholePageHeapAfterForcedGcAfter": 16438864,
+      "mounted": {
+        "draws": 185,
+        "buffers": 7,
+        "programs": 2,
+        "bufferBytes": 181248
+      },
+      "unmounted": {
+        "draws": 185,
+        "buffers": 0,
+        "programs": 0,
+        "bufferBytes": 0
+      },
+      "pageErrors": []
+    },
+    {
+      "count": 20000,
+      "graphics": "ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Ultra, Unspecified Version)",
+      "idleSeconds": 3,
+      "idleDraws": 0,
+      "idleTaskCpuPercent": 0.14773333333333333,
+      "activeMs": 5153.3870419999985,
+      "sceneDraws": 180,
+      "sceneDrawRatePerSecond": 34.92848461274181,
+      "rafCadencePerSecond": 99.98638317738832,
+      "rafIntervalP95Ms": 11.5,
+      "pickingMaxMs": 2.600000023841858,
+      "pickingSamples": 20,
+      "filterCycles": 90,
+      "resources": [
+        {
+          "cycle": 15,
+          "draws": 200,
+          "buffers": 7,
+          "programs": 2,
+          "bufferBytes": 721248
+        },
+        {
+          "cycle": 30,
+          "draws": 215,
+          "buffers": 7,
+          "programs": 2,
+          "bufferBytes": 721248
+        },
+        {
+          "cycle": 45,
+          "draws": 230,
+          "buffers": 7,
+          "programs": 2,
+          "bufferBytes": 721248
+        },
+        {
+          "cycle": 60,
+          "draws": 245,
+          "buffers": 7,
+          "programs": 2,
+          "bufferBytes": 721248
+        },
+        {
+          "cycle": 75,
+          "draws": 260,
+          "buffers": 7,
+          "programs": 2,
+          "bufferBytes": 721248
+        },
+        {
+          "cycle": 90,
+          "draws": 275,
+          "buffers": 7,
+          "programs": 2,
+          "bufferBytes": 721248
+        }
+      ],
+      "wholePageHeapAfterForcedGcBefore": 20213708,
+      "wholePageHeapAfterForcedGcAfter": 22873172,
+      "mounted": {
+        "draws": 275,
+        "buffers": 7,
+        "programs": 2,
+        "bufferBytes": 721248
+      },
+      "unmounted": {
+        "draws": 275,
+        "buffers": 0,
+        "programs": 0,
+        "bufferBytes": 0
+      },
+      "pageErrors": []
+    }
+  ],
+  "caveats": [
+    "RAF cadence and scene draw submission rate are not compositor presentation FPS.",
+    "Whole-page heap uses explicit garbage collection; not a long-session leak proof.",
+    "Tracked live WebGL buffers/programs are instrumented JavaScript calls, not a total native VRAM measurement.",
+    "Runs use a development server on the M2 Ultra, not production deployment."
+  ]
+}

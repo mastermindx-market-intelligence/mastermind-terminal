@@ -1,0 +1,595 @@
+{
+  "schema": "mastermind.large_trades.scoped_browser_review.v1",
+  "status": "PASS_SCOPED_CURRENT_SOURCE_BOUND_BROWSER_EVIDENCE",
+  "reviewer": "/root/terminal_chart_audit",
+  "reviewedAtUtc": "2026-10-11 15:40:38 UTC",
+  "scope": "Independent saved evidence review of completed matrix commands 1 and 2, source identity, three real SPY native PNG viewports, selected fixture/pane/phone control witnesses. No runtime launched or source changed.",
+  "privateReviewReceiptSha256": "cda1fcbc6938e12fed77d0f4d91e00dfaf15af078316edb797ed3f757ab3f0b8",
+  "rootReadFullSectionAndAccepted": true,
+  "source": {
+    "head": "70b4778936bf90f8177c587b3de77b1b571339c9",
+    "tree": "b458d7efd449da3e090e225304f9cb4b933e5b51",
+    "parent": "be4b16f40e24f400217a3320b9deb9c14405bb52",
+    "sourceBundleSha256": "bfb06448143ab0c93df7a35a7dbc03a3ba68c1fc2283aca58d7f80c3194c341f",
+    "sourceFiles": 1716,
+    "sourceMapsBeforeAfterExactlyEqual": true,
+    "changedSources": [],
+    "untrackedSources": [],
+    "testSha256": "392c1dca6f6009c8bd581ea5c701bfe85ad43d4719935247d2b9aee2985eb790",
+    "productSourceReview": "Reuse accepted be4 semantic review and 70b single-file correction review. Product source unchanged by 70b; core/export/admission invariants remain in the retained source review."
+  },
+  "matrixCustodyReceiptSha256": "e812add558848deb6136312bcf1836a667871e54a0d2ae3ceb6e1a3e63b8bc4a",
+  "reports": [
+    {
+      "report": 1,
+      "sha256": "7cb655c928d00fba6d476a61c2f192f3def717aa722103c4fe39df14a6a7c6b6",
+      "bytes": 251855,
+      "stats": {
+        "startTime": "2026-10-11T15:23:33.028Z",
+        "duration": 362163.213,
+        "expected": 48,
+        "skipped": 18,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "errorCount": 0,
+      "projects": {
+        "desktop": {
+          "expected": 20,
+          "skipped": 2
+        },
+        "tablet": {
+          "expected": 13,
+          "skipped": 9
+        },
+        "mobile": {
+          "expected": 15,
+          "skipped": 7
+        }
+      }
+    },
+    {
+      "report": 2,
+      "sha256": "4ef807993e7f7bd45fba3762f7764b504eb15cbca7d7307d94f5f9f1d924c565",
+      "bytes": 23878,
+      "stats": {
+        "startTime": "2026-10-11T15:29:42.814Z",
+        "duration": 17027.218,
+        "expected": 3,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "errorCount": 0,
+      "projects": {
+        "desktop": {
+          "expected": 1
+        },
+        "tablet": {
+          "expected": 1
+        },
+        "mobile": {
+          "expected": 1
+        }
+      }
+    }
+  ],
+  "outcomeInterpretation": {
+    "largeTrades": {
+      "passed": 48,
+      "skipped": 18,
+      "failed": 0,
+      "flaky": 0,
+      "reportErrors": 0,
+      "observedRetries": 0,
+      "uniqueCaseTitles": 22,
+      "projectOutcomes": 66
+    },
+    "historicalUi": {
+      "passed": 3,
+      "skipped": 0,
+      "failed": 0,
+      "flaky": 0,
+      "reportErrors": 0,
+      "observedRetries": 0
+    },
+    "plannedSkips": {
+      "desktopOnlyCases": 7,
+      "skippedTabletMobileOutcomes": 14,
+      "phoneOnlyCases": 2,
+      "skippedDesktopTabletOutcomes": 4,
+      "realIexNativePngSkipped": 0
+    },
+    "scope": "Counts are distinct completed outcomes from this run. Do not add earlier attempts/repeated matrices to invent unique coverage. All three real IEX native-PNG cases executed here; old hosted CI or be4 optional-artifact skips are distinct."
+  },
+  "realSpy": {
+    "sha256": "bdd7a794a5e8d78e0aa61273780c3f0cd7d38a0718fd9bfddb4ec67bb3bdb9e6",
+    "inputSha256": "c8f3acd1390bffa145441cb95dedbc5e3dafcbe08deed3a4c11691155b2b5b8b",
+    "inputBytes": 146763,
+    "symbol": "SPY",
+    "instrumentId": "IEX:SPY",
+    "assetClass": "equity",
+    "quantityUnit": "shares",
+    "priceScale": 10000,
+    "tickSizeInt": null,
+    "engineSha256": "1936357255e27951d051f2c8fe93349292c7b12a63c66fed8c9246cbfb898483",
+    "independentNormalizedEnvelopeRead": {
+      "kind": "correct-print-fields",
+      "sourceRecordTypes": {
+        "L": 32,
+        "T": 270
+      },
+      "sideMethods": {
+        "resting_order": 32,
+        "unknown": 270
+      },
+      "kinds": {
+        "trade": 302
+      },
+      "eligibleCount": 302,
+      "eligibleGrossQuantity": 26121,
+      "responseCoverage": "unavailable",
+      "responseCount": 0,
+      "eventMinNs": "1791202125849568972",
+      "eventMaxNs": "1791207038259009165",
+      "availabilitySet": [
+        "1791353317000000000"
+      ]
+    },
+    "provider": "IEX",
+    "dataset": "HIST DEEP+ 1.0",
+    "venue": "IEX",
+    "dataMode": "historical",
+    "evidenceMode": "HISTORICAL_REPLAY",
+    "scope": "venue",
+    "coverage": "partial",
+    "receiptBasis": "archive_acquisition",
+    "acquiredAtNs": "1791353317000000000",
+    "generatedAtNs": "1791712347072532000",
+    "sourceSha256": "2e41ba84c2a24ccd541d079c2bb05a6da38e988790d8e97a19c1527b1195b0dd",
+    "originalDecisionTimeAvailabilityProven": false,
+    "fullArchiveHashRecomputedInThisReview": false,
+    "decoderRerun": false,
+    "consolidatedNbboAvailable": false,
+    "predictiveValidation": false
+  },
+  "directlyViewedPngs": 12,
+  "images": [
+    {
+      "path": "large-trades/desktop/large-trades-native-export-real-iex.png",
+      "sha256": "f96674a590b2851ed4e8750291253d1889d048c0234be52ce408eb01460bb1a9",
+      "project": "desktop",
+      "width": 1934,
+      "height": 1816,
+      "directlyViewed": true,
+      "byteIdenticalToViewedImage": false
+    },
+    {
+      "path": "large-trades/tablet/large-trades-native-export-real-iex.png",
+      "sha256": "4d5b7cb25fad288c70ab5a5bffa3e0cb381753e5acae274ff610a75087baf5d7",
+      "project": "tablet",
+      "width": 1640,
+      "height": 1686,
+      "directlyViewed": true,
+      "byteIdenticalToViewedImage": false
+    },
+    {
+      "path": "large-trades/mobile/large-trades-native-export-real-iex.png",
+      "sha256": "0c91bd1b41cd56b95649c1d3b4fc20c23d07042742fac58f584a8999c9e78935",
+      "project": "mobile",
+      "width": 780,
+      "height": 1068,
+      "directlyViewed": true,
+      "byteIdenticalToViewedImage": false
+    },
+    {
+      "path": "historical-iex/desktop/large-trades-real-iex-historical-inspection.png",
+      "sha256": "386ffa6a36fe3964e9711dbb6ad9a86fa4e9800da5bd42760ba681501fec3194",
+      "project": "desktop",
+      "width": 1440,
+      "height": 900,
+      "directlyViewed": true,
+      "byteIdenticalToViewedImage": false
+    },
+    {
+      "path": "historical-iex/mobile/large-trades-real-iex-historical-inspection.png",
+      "sha256": "3a2dc254b4e3f696d8af640030a0e0658b7e4e4664a20a2f6fb6f4ef0882b9d0",
+      "project": "mobile",
+      "width": 390,
+      "height": 844,
+      "directlyViewed": true,
+      "byteIdenticalToViewedImage": false
+    },
+    {
+      "path": "large-trades/desktop/large-trades-en-dark-inspection-overview.png",
+      "sha256": "3f0bc4111930ae89fb2443af6e1105ce47376cd935b2c24db997642fc99c3673",
+      "project": "desktop",
+      "width": 1440,
+      "height": 900,
+      "directlyViewed": true,
+      "byteIdenticalToViewedImage": false
+    },
+    {
+      "path": "large-trades/desktop/large-trades-native-export.png",
+      "sha256": "21fefc139178e0852f47127a07a563d6320469b62553cc29d6845dd31473b9e4",
+      "project": "desktop",
+      "width": 1934,
+      "height": 1760,
+      "directlyViewed": true,
+      "byteIdenticalToViewedImage": false
+    },
+    {
+      "path": "large-trades/tablet/large-trades-nonprice-maximized-fixed.png",
+      "sha256": "72b8eccbffe897ad348f07889e91cb3c3bca7fca71ae1761c11aab31e4187a66",
+      "project": "tablet",
+      "width": 820,
+      "height": 1180,
+      "directlyViewed": true,
+      "byteIdenticalToViewedImage": false
+    },
+    {
+      "path": "large-trades/tablet/large-trades-price-restored-fixed.png",
+      "sha256": "0fa879ca9b87224565a8a36506c0d70904cc0caba7d0ab3ac4b64e28224b3e4d",
+      "project": "tablet",
+      "width": 820,
+      "height": 1180,
+      "directlyViewed": true,
+      "byteIdenticalToViewedImage": false
+    },
+    {
+      "path": "large-trades/mobile/large-trades-phone-header-normal-en.png",
+      "sha256": "d4312d6e85434de3a8eca2b7337f7dfddc5ecfc141bf0dedbbe90969c3e41d2e",
+      "project": "mobile",
+      "width": 390,
+      "height": 844,
+      "directlyViewed": true,
+      "byteIdenticalToViewedImage": false
+    },
+    {
+      "path": "large-trades/mobile/large-trades-phone-header-fullscreen-zh.png",
+      "sha256": "7ca64c0e38a511ac2aa90df33fdb632ee477e279388c75f671383a99367ecc93",
+      "project": "mobile",
+      "width": 390,
+      "height": 844,
+      "directlyViewed": true,
+      "byteIdenticalToViewedImage": false
+    },
+    {
+      "path": "large-trades/mobile/large-trades-phone-header-text-scaled-zh.png",
+      "sha256": "ef155ef6b2692ea3cd0ae42febabdf756d020e476be05e26ad0cd7d92c08290e",
+      "project": "mobile",
+      "width": 390,
+      "height": 844,
+      "directlyViewed": true,
+      "byteIdenticalToViewedImage": false
+    },
+    {
+      "path": "large-trades/desktop/large-trades-native-export-inspector-excluded.png",
+      "sha256": "21fefc139178e0852f47127a07a563d6320469b62553cc29d6845dd31473b9e4",
+      "project": "desktop",
+      "width": 1934,
+      "height": 1760,
+      "directlyViewed": false,
+      "byteIdenticalToViewedImage": true
+    }
+  ],
+  "findings": [
+    "All three SPY native exports visibly retain SPY, historical mode, IEX, this-venue-only scope, shares, 2026-10-05, manual minimum 1,000 shares, distinct orders unavailable, partial coverage and later-acquired-archive notice.",
+    "The full required IEX attribution and https://www.iex.io/legal/hist-data-terms are visibly complete in desktop, tablet and mobile native footer. Their decoded provenance footer arrays match the admitted envelope.",
+    "Native exports contain markers and numerical quantities without inspector/dock controls. The selected fixture export pair with inspector closed/open is byte-identical at SHA 21fefc139178e0852f47127a07a563d6320469b62553cc29d6845dd31473b9e4.",
+    "The fixture inspector visibly distinguishes 1,301 shares from three trade reports and unavailable distinct-order count, and marks executions synthetic; the price-response/absorption statement remains descriptive candidate-only fixture evidence.",
+    "Tablet saved maximize state contains RSI with no Large Trades markers/dock. Restored state returns four fixture quantity markers and a dock contained inside the price pane.",
+    "Current phone normal EN, fullscreen ZH and scaled-header ZH images show the owned inspector below the actual status header; all ten locale/state geometry attachments report zero field overlap.",
+    "The inspected SPY UI images retain historical/date/source identity and inspectable actual report quantity/time; they are fixture-shell browser interceptions, not production publication."
+  ],
+  "limitations": [
+    "SPY numeric marker labels overlap in dense clusters, especially mobile, including the 1,000-share threshold exports. This review does not certify every label unobscured or collision-free.",
+    "Only the twelve identified PNGs were directly viewed. Other listed real-image hashes were verified without blanket visual inspection of all 104 prospective delivery images.",
+    "Full-shell screenshots include unrelated deterministic quote/watchlist/research-card fixtures whose values need not match the historical archive. These are test-environment surfaces; native PNGs are cleaner actual-execution illustrations.",
+    "No raw archive is reproduced in this receipt. Exact source hash does not imply complete archive coverage or live availability."
+  ],
+  "inspectorExportByteComparison": {
+    "kind": "inspector-export-comparison",
+    "byteIdentical": true,
+    "first": "21fefc139178e0852f47127a07a563d6320469b62553cc29d6845dd31473b9e4",
+    "second": "21fefc139178e0852f47127a07a563d6320469b62553cc29d6845dd31473b9e4"
+  },
+  "phoneHeaderGeometry": [
+    {
+      "name": "phone-header-normal-en",
+      "sha256": "73a18ac14ce0b46d7650bf59fa926c7c267aa3284c95e4ffc102d4106908e0c9",
+      "header": {
+        "left": 0,
+        "right": 278,
+        "top": 231.671875,
+        "bottom": 306.546875,
+        "width": 278,
+        "height": 74.875
+      },
+      "inspector": {
+        "left": 8,
+        "right": 320,
+        "top": 314.625,
+        "bottom": 541.65625,
+        "width": 312,
+        "height": 227.03125
+      },
+      "fieldOverlapAreas": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "inspectorHeaderGapCssPx": 8.078125
+    },
+    {
+      "name": "phone-header-fullscreen-en",
+      "sha256": "7b281ea8e3e4e24013f5faf779b5ace2d77e2555267bb69497789f1c00874ff6",
+      "header": {
+        "left": 0,
+        "right": 278,
+        "top": 133.671875,
+        "bottom": 208.546875,
+        "width": 278,
+        "height": 74.875
+      },
+      "inspector": {
+        "left": 8,
+        "right": 320,
+        "top": 216.5,
+        "bottom": 761.65625,
+        "width": 312,
+        "height": 545.15625
+      },
+      "fieldOverlapAreas": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "inspectorHeaderGapCssPx": 7.953125
+    },
+    {
+      "name": "phone-header-restored-en",
+      "sha256": "73a18ac14ce0b46d7650bf59fa926c7c267aa3284c95e4ffc102d4106908e0c9",
+      "header": {
+        "left": 0,
+        "right": 278,
+        "top": 231.671875,
+        "bottom": 306.546875,
+        "width": 278,
+        "height": 74.875
+      },
+      "inspector": {
+        "left": 8,
+        "right": 320,
+        "top": 314.625,
+        "bottom": 541.65625,
+        "width": 312,
+        "height": 227.03125
+      },
+      "fieldOverlapAreas": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "inspectorHeaderGapCssPx": 8.078125
+    },
+    {
+      "name": "phone-header-text-scaled-en",
+      "sha256": "e687f557323ee68af52422955d38efe467e03f5daecb7f2e5f49ec14ea4877b9",
+      "header": {
+        "left": 0,
+        "right": 278,
+        "top": 231.671875,
+        "bottom": 332.953125,
+        "width": 278,
+        "height": 101.28125
+      },
+      "inspector": {
+        "left": 8,
+        "right": 320,
+        "top": 341.0625,
+        "bottom": 541.65625,
+        "width": 312,
+        "height": 200.59375
+      },
+      "fieldOverlapAreas": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "inspectorHeaderGapCssPx": 8.109375
+    },
+    {
+      "name": "phone-header-text-restored-en",
+      "sha256": "73a18ac14ce0b46d7650bf59fa926c7c267aa3284c95e4ffc102d4106908e0c9",
+      "header": {
+        "left": 0,
+        "right": 278,
+        "top": 231.671875,
+        "bottom": 306.546875,
+        "width": 278,
+        "height": 74.875
+      },
+      "inspector": {
+        "left": 8,
+        "right": 320,
+        "top": 314.625,
+        "bottom": 541.65625,
+        "width": 312,
+        "height": 227.03125
+      },
+      "fieldOverlapAreas": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "inspectorHeaderGapCssPx": 8.078125
+    },
+    {
+      "name": "phone-header-normal-zh",
+      "sha256": "73a18ac14ce0b46d7650bf59fa926c7c267aa3284c95e4ffc102d4106908e0c9",
+      "header": {
+        "left": 0,
+        "right": 278,
+        "top": 231.671875,
+        "bottom": 306.546875,
+        "width": 278,
+        "height": 74.875
+      },
+      "inspector": {
+        "left": 8,
+        "right": 320,
+        "top": 314.625,
+        "bottom": 541.65625,
+        "width": 312,
+        "height": 227.03125
+      },
+      "fieldOverlapAreas": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "inspectorHeaderGapCssPx": 8.078125
+    },
+    {
+      "name": "phone-header-fullscreen-zh",
+      "sha256": "7b281ea8e3e4e24013f5faf779b5ace2d77e2555267bb69497789f1c00874ff6",
+      "header": {
+        "left": 0,
+        "right": 278,
+        "top": 133.671875,
+        "bottom": 208.546875,
+        "width": 278,
+        "height": 74.875
+      },
+      "inspector": {
+        "left": 8,
+        "right": 320,
+        "top": 216.5,
+        "bottom": 761.65625,
+        "width": 312,
+        "height": 545.15625
+      },
+      "fieldOverlapAreas": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "inspectorHeaderGapCssPx": 7.953125
+    },
+    {
+      "name": "phone-header-restored-zh",
+      "sha256": "73a18ac14ce0b46d7650bf59fa926c7c267aa3284c95e4ffc102d4106908e0c9",
+      "header": {
+        "left": 0,
+        "right": 278,
+        "top": 231.671875,
+        "bottom": 306.546875,
+        "width": 278,
+        "height": 74.875
+      },
+      "inspector": {
+        "left": 8,
+        "right": 320,
+        "top": 314.625,
+        "bottom": 541.65625,
+        "width": 312,
+        "height": 227.03125
+      },
+      "fieldOverlapAreas": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "inspectorHeaderGapCssPx": 8.078125
+    },
+    {
+      "name": "phone-header-text-scaled-zh",
+      "sha256": "e687f557323ee68af52422955d38efe467e03f5daecb7f2e5f49ec14ea4877b9",
+      "header": {
+        "left": 0,
+        "right": 278,
+        "top": 231.671875,
+        "bottom": 332.953125,
+        "width": 278,
+        "height": 101.28125
+      },
+      "inspector": {
+        "left": 8,
+        "right": 320,
+        "top": 341.0625,
+        "bottom": 541.65625,
+        "width": 312,
+        "height": 200.59375
+      },
+      "fieldOverlapAreas": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "inspectorHeaderGapCssPx": 8.109375
+    },
+    {
+      "name": "phone-header-text-restored-zh",
+      "sha256": "73a18ac14ce0b46d7650bf59fa926c7c267aa3284c95e4ffc102d4106908e0c9",
+      "header": {
+        "left": 0,
+        "right": 278,
+        "top": 231.671875,
+        "bottom": 306.546875,
+        "width": 278,
+        "height": 74.875
+      },
+      "inspector": {
+        "left": 8,
+        "right": 320,
+        "top": 314.625,
+        "bottom": 541.65625,
+        "width": 312,
+        "height": 227.03125
+      },
+      "fieldOverlapAreas": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "inspectorHeaderGapCssPx": 8.078125
+    }
+  ],
+  "touchInterpretation": "All recorded pointer events are browser-trusted touch events with CANVAS hit ownership; native batch dispatch reports no supplied timestamps. Wall dispatch elapsed 38 ms/24 ms and observed event intervals are separate measurements. This is browser automation proof, not a physical phone test.",
+  "contentReview": {
+    "scope": "Twelve directly viewed images and selected provenance/touch data; root separately validated all157 exact-byte attachments and performed a bounded literal scan. No blanket pixel review claim.",
+    "selectedCredentialsObserved": false,
+    "publicArchiveUrl": "Retained sourceRef is a public IEX archive URL, not a credential."
+  },
+  "preservationAndLimits": [
+    "Prior 5c16 observed header defect, be4 source repair/phone proof, startup failures and unresolved earlier 404 cause remain preserved.",
+    "The failed be4 broader matrix remains 44 passed/21 skipped/1 failed; 70b fixes its test setup and does not relabel that failed run.",
+    "Earlier NVDA source/images and ab7 CI/95 local proof remain historical and distinct from this SPY/70b acceptance.",
+    "Actual quantities come from the 302 admitted SPY executions, not candle volume. Test OHLC coordinates derive from those same partial executions without gap filling.",
+    "No verified tick size, response coverage or quote path exists for this SPY sample. OOS predictiveness is not estimable; no absorption/trapped-seller or alpha inference is admitted.",
+    "This review does not prove production publication, real live transport, CME licensing or deployment. Root owns remaining release gates."
+  ],
+  "reviewerRuntimeStopped": true,
+  "releaseReadinessCertified": false
+}

@@ -1,0 +1,50 @@
+{
+  "captured_at": "2026-10-13T02:38:03.930692+00:00",
+  "scope": "Actual production-route component and Options shell; generated HTTP fixtures; NOT deployed or live data",
+  "route": "/options/futures",
+  "tests": {
+    "browser": 15,
+    "page_and_source_unit": 71,
+    "real_http_vertical": 1,
+    "typecheck_exit": 0,
+    "lint_exit": 0,
+    "plain_language_guard_exit": 0
+  },
+  "source_sha256": {
+    "terminal/lib/futuresUiCopy.ts": "6498e3292c032c16e5d7ddef294b782de20b972716540445ee0561ce839ef3b5",
+    "terminal/lib/i18n.tsx": "ed08a4459e3aafdd2eec9b2a6984f796507f03efb2a21f59d12f829ac38ee6e0",
+    "terminal/lib/futuresTransport.ts": "c1ab7c67cdf9ca728e662cd6808eadd9f07ce7eb3a167d9d9414c3b03bf523ef",
+    "terminal/components/futures/FuturesWorkspaceView.tsx": "f86f3bda3a49a58ffadf9f4ca8674507cb0060d51c02c73ae906a5a66e1ec4fe",
+    "terminal/components/futures/useFuturesWorkspace.ts": "1189a6ec94d6349d27192e02b4d7ef28f7bcf8bebd10482583307a857ac51c71",
+    "terminal/components/futures/futuresLab.module.css": "264ecafc9f212cb9a5c0a375b61b90ac82e1350f8e74fc584aff7e99f607c70e",
+    "terminal/components/workspaces/OptionsWorkspace.tsx": "acbf9098ef20a949f88eda6ecb8d28e0f79072a5f855a7dc14d89592bcf071a9",
+    "terminal/components/mounts/FuturesWorkspaceMount.tsx": "0a589c486330c0341f6b3d985f342b23fe5d198e37ab425fd7e498dd79fc603c",
+    "terminal/app/(shell)/options/futures/page.tsx": "4c09c49925efa4e8aa869e9e8ce6acc20c5127e57658d92baf357b9a59f36ede",
+    "terminal/e2e/fixtures/futuresPublished.ts": "7f1cab888e312ce9baf16f593a9be1e9544dedb79da2a2da54a5578f405dd66c",
+    "terminal/e2e/futures-workspace.spec.ts": "05546150b562d4ee1c1b3a6d48ad213dbe1127db19f393c1e69e2701ff74a33c",
+    "terminal/lib/__tests__/futuresPage.test.ts": "ea1a12a7a74accfa47c9d2425684c509fbda47da222f1ba97f9a9c5b9ef55a6c",
+    "terminal/lib/__tests__/futuresBridgeHttp.test.ts": "14bfa8552cfd71714bdd98102203db97aceafb62e7871b582fcb5943efb13f1a"
+  },
+  "screenshots": {
+    "tablet-options-futures-footprint-nq-en.png": "95c8a2b93f1b66771cb2f5b6f52ff0165cbf5f2e6f0dcee235e2bf99eaba683d",
+    "desktop-options-futures-footprint-nq-en.png": "4c69af05d83442b3e0f5a4acde1ac2d857f52998e4da68f6e22749b30bc19f41",
+    "desktop-options-futures-replay-zh.png": "52b25dc79fe1e6c79ebb86e7be6954bdafb6e72ffa3ec6776a009245804f293f",
+    "mobile-options-futures-depth-en.png": "bc72f4f18a12babbc42c97ed17fee68bc8a021e1f99e9ea1bf63b558ebbcda71",
+    "mobile-options-futures-replay-zh.png": "cfbd7680d6c58a32e8869256e39fbecbeb72693e4aa86dd10a559afa8ac053b8",
+    "desktop-options-futures-no-source-en.png": "0e2188df5331601c9e7ea5f7c6d78032bfcf1a01e396f23710b42f9ba6966b98",
+    "mobile-options-futures-access-lost.png": "476d83a06624665c3dabedd59813d6df4f4757ba39303ee6e1a377e167276019",
+    "desktop-options-futures-depth-en.png": "69bf13f3bf9317137ce6cc7a14a83934e72a465059b2efb3ea0828cf32353070",
+    "mobile-options-futures-no-source-en.png": "c04c255c27a1352f72184cc7420fefafb8e7ce26766f24f1fb563bce8bdd5df1",
+    "desktop-options-futures-access-lost.png": "a4f402f53d6108c9b3705546e06347b9ff9479e5b82b98ecb5fd34533a70c6b3",
+    "mobile-options-futures-footprint-nq-en.png": "098fe2c7f48b41c9cb9cfbc0d3f68df00b0982d670b48d46083d5b1ff689ee92",
+    "tablet-options-futures-depth-en.png": "ce7c23f7378df0e47b482c67372469f518340d75455f91258548b3e41b5ffd80",
+    "tablet-options-futures-replay-zh.png": "9c4bc4677fb9a2a5e7c30f2b2448d74dadd913db52f582698bd6bd7d9f6ce519",
+    "tablet-options-futures-access-lost.png": "dc65b55b3f627a0124f98d3967febbf9d4eb88f27bddf385c26d9de63529d8e4",
+    "tablet-options-futures-no-source-en.png": "7c3356592f552490f18f2d0a835df1737c60cac96a45c10f9aa7f1393cb7947a"
+  },
+  "api_auth_bypass": false,
+  "source_directory_configured": false,
+  "live_feed": false,
+  "independent_review": false,
+  "deployed": false
+}

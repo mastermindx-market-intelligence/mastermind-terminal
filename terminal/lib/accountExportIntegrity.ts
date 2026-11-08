@@ -5,7 +5,8 @@ import type { AccountExportDoc } from "@/lib/accountExport";
 
 export type ExportSha256 = (utf8Text: string) => string;
 export type ExportReadWindow = { started_at: string; finished_at: string };
-export const EXPORT_COLLECTIONS = ["watchlists", "portfolio_positions", "saved_scripts", "chart_layouts"] as const;
+const LEGACY_COLLECTIONS = ["watchlists", "portfolio_positions", "saved_scripts", "chart_layouts"] as const;
+export const EXPORT_COLLECTIONS = [...LEGACY_COLLECTIONS, "chart_drawings", "alerts"] as const;
 type CollectionKey = typeof EXPORT_COLLECTIONS[number];
 type CollectionIntegrity = {
   state: "included_unverified" | "complete" | "partial" | "unavailable" | "not_requested";
@@ -14,14 +15,14 @@ type CollectionIntegrity = {
   sha256: string | null;
 };
 export type ExportIntegrityManifest = {
-  schema: "mm.terminal_account_export.integrity.v1";
+  schema: "mm.terminal_account_export.integrity.v1" | "mm.terminal_account_export.integrity.v2";
   algorithm: "sha256";
   canonicalization: "mm.json_sorted_keys.v1";
   digest_scope: "logical_json_payload_and_manifest";
   authentication: "unkeyed_checksums_not_identity_proof";
   consistency: "independent_collection_reads";
   read_window: ExportReadWindow;
-  collections: Record<CollectionKey, CollectionIntegrity>;
+  collections: Record<typeof LEGACY_COLLECTIONS[number], CollectionIntegrity> & Partial<Record<"chart_drawings" | "alerts", CollectionIntegrity>>;
   payload_sha256: string;
   manifest_sha256: string;
 };
@@ -83,7 +84,10 @@ export function sealAccountExport(doc: AccountExportDoc, window: ExportReadWindo
   const payload = accountExportPayload(doc);
   if (payload.schema !== "mm.terminal_account_export.v1") throw new Error("unsupported export schema");
   const collections = {} as Record<CollectionKey, CollectionIntegrity>;
-  for (const key of EXPORT_COLLECTIONS) {
+  // Keep already-downloaded v1 receipts byte-compatible. Adding either new source
+  // requires v2 and six entries, including explicit not_requested for an absent source.
+  const extended = Object.hasOwn(payload, "chart_drawings") || Object.hasOwn(payload, "alerts");
+  for (const key of extended ? EXPORT_COLLECTIONS : LEGACY_COLLECTIONS) {
     const included = payload.coverage.included.filter((entry) => entry.key === key);
     const unavailable = payload.coverage.unavailable.filter((entry) => entry.key === key);
     const partial = (payload.coverage.partial ?? []).filter((entry) => entry.key === key);
@@ -113,7 +117,7 @@ export function sealAccountExport(doc: AccountExportDoc, window: ExportReadWindo
       sha256: digest(canonicalExportJson(rows), sha256) };
   }
   const manifest = {
-    schema: "mm.terminal_account_export.integrity.v1" as const,
+    schema: extended ? "mm.terminal_account_export.integrity.v2" as const : "mm.terminal_account_export.integrity.v1" as const,
     algorithm: "sha256" as const,
     canonicalization: "mm.json_sorted_keys.v1" as const,
     digest_scope: "logical_json_payload_and_manifest" as const,

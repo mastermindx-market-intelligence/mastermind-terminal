@@ -7,11 +7,12 @@
 // so intradaySources must stay free of node:fs. intradayStore owns all fs access and is imported
 // ONLY by the route. This shared module sits in between — no fs, no problem on either side.
 
+import { usEquitySessionAtDisplayEpoch, usSessionBucket } from "./usEquityCalendar";
 import { usRegularSessionWindow } from "./usEquitySessionClock";
 
 export type Bar6 = [number, number, number, number, number, number];
 
-export const INTRADAY_TFS = ["1m", "2m", "3m", "5m", "10m", "15m", "30m", "45m", "1h", "2h", "3h", "4h"] as const;
+export const INTRADAY_TFS = ["1m", "2m", "3m", "5m", "10m", "15m", "30m", "45m", "1h", "2h", "3h", "4h", "12h"] as const;
 const INTRADAY_SET: ReadonlySet<string> = new Set(INTRADAY_TFS);
 
 // ── Second-resolution band (US equities only) ────────────────────────────────
@@ -100,6 +101,30 @@ function segmentBucket(epoch: number, minutes: number, segments: SessionSegment[
   return dayStart + (seg.start + idx * minutes) * 60;
 }
 
+/**
+ * `segmentBucket` plus the wall-clock end of the segment the resulting candle belongs to, so a
+ * caller can bound that candle WITHOUT restating the folding rule. Deriving the segment end here
+ * is deliberate: the segment a bucket lands in is exactly the last segment whose open has passed,
+ * which is the same loop `segmentBucket` runs — re-deriving it in a consumer is how auction and
+ * lunch prints end up in a different candle than the chart plotted.
+ *
+ * A print before the first open or inside the lunch break still folds into the owning segment's
+ * LAST candle, and `segmentEnd` is that segment's close, so the clamped end never invents a stub.
+ */
+export function sessionSegmentBucket(
+  epoch: number,
+  minutes: number,
+  segments: SessionSegment[],
+): { start: number; segmentEnd: number } | null {
+  if (!Number.isFinite(epoch) || !Number.isFinite(minutes) || minutes <= 0 || !segments.length) return null;
+  const dayStart = Math.floor(epoch / 86400) * 86400;
+  const start = segmentBucket(epoch, minutes, segments);
+  const minute = (start - dayStart) / 60;
+  let seg = segments[0];
+  for (const s of segments) if (minute >= s.start) seg = s;
+  return { start, segmentEnd: dayStart + seg.end * 60 };
+}
+
 export function resampleSessionSegments(bars: Bar6[], minutes: number, segments: SessionSegment[]): Bar6[] {
   if (minutes <= 0 || bars.length === 0) return bars;
   const out: Bar6[] = [];
@@ -114,7 +139,7 @@ export function resampleSessionSegments(bars: Bar6[], minutes: number, segments:
   return out;
 }
 
-export type UsEquitySession = "regular" | "extended";
+export type UsEquitySession = "regular" | "extended" | "24h";
 const US_REGULAR_START = 9 * 60 + 30;
 const US_EXTENDED_START = 4 * 60;
 const US_EXTENDED_END = 20 * 60;
@@ -128,6 +153,7 @@ function displayMinuteOfDay(epoch: number): number {
 // again: 09:30 in the display epoch is always the exchange's 09:30.
 export function filterUsEquitySession(bars: Bar6[], session: UsEquitySession): Bar6[] {
   return bars.filter((bar) => {
+    if (session === "24h") return usEquitySessionAtDisplayEpoch(bar[0]).session !== "closed";
     const window = session === "extended"
       ? [US_EXTENDED_START, US_EXTENDED_END]
       : usRegularSessionWindow(bar[0]);
@@ -147,9 +173,9 @@ export function resampleUsEquitySession(
 ): Bar6[] {
   // Enforce regular-session boundaries even for callers supplying raw bars.
   // Extended-session policy is deliberately unchanged by this clock repair.
-  const selected = session === "regular" ? filterUsEquitySession(bars, session) : bars;
+  const selected = session !== "extended" ? filterUsEquitySession(bars, session) : bars;
   if (minutes <= 1 || selected.length === 0) return selected;
-  const anchorMinute = session === "extended" ? US_EXTENDED_START : US_REGULAR_START;
+  const anchorMinute = session !== "regular" ? US_EXTENDED_START : US_REGULAR_START;
   const span = minutes * 60;
   const out: Bar6[] = [];
   let current: Bar6 | null = null;
@@ -157,7 +183,8 @@ export function resampleUsEquitySession(
   for (const bar of selected) {
     const dayStart = Math.floor(bar[0] / 86400) * 86400;
     const offset = bar[0] - dayStart - anchorMinute * 60;
-    const bucket = dayStart + anchorMinute * 60 + Math.floor(offset / span) * span;
+    const bucket = session === "24h" ? usSessionBucket(bar[0], span, "24h") : dayStart + anchorMinute * 60 + Math.floor(offset / span) * span;
+    if (bucket == null) continue;
     if (bucket !== key) {
       if (current) out.push(current);
       key = bucket;
@@ -200,15 +227,21 @@ export function sessionEpoch(sessionDate: string, hhmm: string): number {
 /**
  * Keep only bars belonging to one market session date.
  *
- * Intraday bars use the app's display-epoch convention, so a session is the simple
- * half-open UTC-shaped day [00:00, next 00:00). Keeping this helper beside
+ * Standard intraday reads use the half-open display day [00:00, next 00:00).
+ * Explicit 24H reads use the exchange trading date, including its preceding
+ * 20:00 overnight anchor. A wide overnight candle must not disappear at midnight.
+ * Keeping this helper beside
  * `sessionEpoch` prevents clients from accidentally mixing a deep history response into
  * a single-session study (the Flow Surface regression that flattened price and reduced
  * today's field to a sliver).
  */
-export function filterBarsToSessionDate(bars: Bar6[], sessionDate: string): Bar6[] {
+export function filterBarsToSessionDate(
+  bars: Bar6[], sessionDate: string, session: "calendar" | "24h" = "calendar",
+): Bar6[] {
   const start = sessionEpoch(sessionDate, "00:00");
   if (!Number.isFinite(start)) return [];
+  if (session === "24h") return bars.filter(bar =>
+    usEquitySessionAtDisplayEpoch(bar[0]).tradeDate === sessionDate);
   const end = start + 86_400;
   return bars.filter((bar) => Number.isFinite(bar[0]) && bar[0] >= start && bar[0] < end);
 }

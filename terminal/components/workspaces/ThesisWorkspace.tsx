@@ -1,12 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useEffectEvent, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useLang, useT } from "@/lib/i18n";
 import { subjectKindLabel } from "@/lib/plainLabels";
 import { parseAnalysisSearchParams } from "@/lib/analysisRoute";
 import { normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
 import { hasMarketOntologyContext, parseMarketOntologyContext, serializeMarketOntologyContext, stripMarketOntologyParams, type MarketOntologyContext } from "@/lib/marketOntologyContext";
 import { isUuid, normalizeThesisContent, normalizeThesisSubject } from "@/lib/theses";
+import { installThesisReadSource } from "@/lib/thesisReadContext";
+import { readThesisInspection, withThesisInspection } from "@/lib/thesisInspectionHistory";
 import type {
   ThesisAction,
   ThesisContent,
@@ -93,6 +95,8 @@ type DetailState = "idle" | "loading" | "ready" | "not_found" | "unavailable";
 type ProposalRead = { thesisId: string | null; state: "loading" | "ready" | "unavailable"; rows: ProposalRow[] };
 const PROPOSALS_PENDING: ProposalRead = { thesisId: null, state: "loading", rows: [] };
 type MobilePane = "list" | "detail";
+// A navigation candidate belongs to one detail request and is confirmed by its response.
+type PendingMarketOntologyContext = { context: MarketOntologyContext; company: string };
 
 const EMPTY_DRAFT: Draft = {
   title: "", statement: "", catalysts: "", falsifiers: "", risks: "",
@@ -127,6 +131,7 @@ const COPY = {
     pendingRecoveries: "Pending recovery requests",
     moreTheses: "More theses exist; refine this workspace before continuing.",
     historyTruncated: "History is truncated; no versions were silently discarded.", backToList: "Back to list",
+    openSavedTheses: "Open saved theses",
     carrierUnavailable: "This browser could not safely preserve the request. Nothing was sent.",
     unsaved: "Unsaved changes", unsavedBody: "This draft has not been sent. Copy it or confirm before leaving or switching.",
     confirmDiscard: "Discard this unsaved draft? This cannot be undone.",
@@ -186,6 +191,7 @@ const COPY = {
     pendingRecoveries: "待恢复请求",
     moreTheses: "还有更多论点；请先缩小工作区范围。", historyTruncated: "历史记录已截断；没有静默丢弃任何版本。",
     backToList: "返回列表",
+    openSavedTheses: "打开已保存的论点",
     carrierUnavailable: "此浏览器无法安全保留该请求。请求尚未发送。",
     unsaved: "有未保存的更改", unsavedBody: "此草稿尚未发送。请先复制，或在离开和切换前确认放弃。",
     confirmDiscard: "放弃这份未保存的草稿？此操作无法撤销。",
@@ -537,10 +543,21 @@ function historyState(position: number): Record<string, unknown> {
   };
 }
 
+function subscribeThesisLocation(changed: () => void) {
+  window.addEventListener("popstate", changed);
+  return () => window.removeEventListener("popstate", changed);
+}
+const thesisLocation = () => window.location.href;
+const serverThesisLocation = () => "";
+
 export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesisId, invalidLink = false }: ThesisWorkspaceProps) {
   const { lang } = useLang();
   const t = useT();
   const copy = COPY[lang];
+  // React checks this snapshot again when a suspended/cached workspace resumes.
+  // A popstate missed while its effects were detached must still reconcile the
+  // selected record, even if the server props and selection state did not change.
+  const browserLocation = useSyncExternalStore(subscribeThesisLocation, thesisLocation, serverThesisLocation);
   const initialSymbolKey = normalizeAnalysisSymbol(initialSymbol) ?? "";
   const [listState, setListState] = useState<LoadState>(invalidLink ? "ready" : "loading");
   const [detailState, setDetailState] = useState<DetailState>(initialThesisId ? "loading" : "idle");
@@ -548,6 +565,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [truncated, setTruncated] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(initialThesisId ?? null);
   const [detail, setDetail] = useState<ThesisDetail | null>(null);
+  const [detailReadOwner, setDetailReadOwner] = useState<string | null>(null);
   const [proposalRead, setProposalRead] = useState<ProposalRead>(PROPOSALS_PENDING);
   const [assistantText, setAssistantText] = useState("");
   const [proposalBusy, setProposalBusy] = useState(false);
@@ -567,6 +585,23 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [carrierBlocked, setCarrierBlocked] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [inspectedVersion, setInspectedVersion] = useState<number | null>(null);
+  const inspectionHeading = useRef<HTMLHeadingElement | null>(null);
+  const inspectionReturn = useRef<{ ownerKey: string; thesisId: string; version: number } | null>(null);
+  useLayoutEffect(() => {
+    const returning = inspectionReturn.current;
+    if (!returning) return;
+    if (returning.ownerKey !== ownerKey || returning.thesisId !== selectedId) {
+      inspectionReturn.current = null;
+      return;
+    }
+    if (detailState !== "ready" || detailReadOwner !== ownerKey || !inspectionHeading.current) return;
+    inspectionReturn.current = null;
+    if (returning.version === inspectedVersion) {
+      // Canonical content has now mounted. Native scroll restoration can run
+      // before this asynchronous detail exists and leave the review off-screen.
+      inspectionHeading.current.scrollIntoView({ block: "center", behavior: "instant" });
+    }
+  }, [detailReadOwner, detailState, inspectedVersion, ownerKey, selectedId]);
   const [routeInvalid, setRouteInvalid] = useState(invalidLink);
   const [mobilePane, setMobilePane] = useState<MobilePane>(initialThesisId || initialSymbolKey ? "detail" : "list");
   const [claimFormOpen, setClaimFormOpen] = useState(false);
@@ -623,9 +658,11 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [missingIds, setMissingIds] = useState<Set<string>>(new Set());
   const lensRefs = useRef<Partial<Record<RmsViewId, HTMLButtonElement | null>>>({});
   const detailRequest = useRef(0);
+  const statementEditRevision = useRef(0);
   const routeDiscardAuthorized = useRef(false);
   const historyPositionRef = useRef(0);
   const restoringPop = useRef(false);
+  const contextCompany = useRef(initialSymbolKey);
   /** M4 (round-2 review): hydration is one automatic batch, ever, per mount — never a
    *  chain. Without this, a batch that comes back all-`missing` (hydratedDetails stays
    *  empty) kept re-firing the effect because `missingIds` grew and was in its deps.
@@ -702,6 +739,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     // for an invalid link. Both are now derived together, in the same tick.
     setTheses([]);
     setListState(invalidLinkRef.current ? "ready" : "loading");
+    return () => { detailRequest.current += 1; };
   }, [ownerKey]);
   // Round-2 review r3 minor 1/2: the rail's ARIA orientation must track the same
   // 600px breakpoint the CSS switches the tablist to a horizontal scroller at — read
@@ -821,13 +859,22 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       window.history.replaceState(historyState(0), "", window.location.href);
     }
     const params = new URLSearchParams(window.location.search);
-    if (hasMarketOntologyContext(params) && !initialSymbolKey) {
+    const route = parseAnalysisSearchParams(params);
+    const company = normalizeAnalysisSymbol(route.kind === "theses" ? route.symbol : initialSymbolKey) ?? "";
+    const thesisId = route.kind === "theses" ? route.thesisId : initialThesisId;
+    contextCompany.current = company;
+    if (hasMarketOntologyContext(params) && !company) {
       const url = new URL(window.location.href);
       url.search = stripMarketOntologyParams(params).toString();
       window.history.replaceState(historyState(historyPositionRef.current), "", url.toString());
     }
+    const mountedContext = company ? parseMarketOntologyContext(new URLSearchParams(window.location.search)) : null;
+    // J1 reopen: a deep link straight to a thesis detail withholds the strip until the
+    // canonical load names the anchored company — the same rule as a reopen from the
+    // list. Without that, a link whose thesis belongs to another company would carry a
+    // strip that was never validated against what is on screen.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMarketOntologyContext(initialSymbolKey ? parseMarketOntologyContext(new URLSearchParams(window.location.search)) : null);
+    setMarketOntologyContext(thesisId ? null : mountedContext);
   }, []);
 
   useEffect(() => {
@@ -1503,7 +1550,20 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     }
   }, []);
 
+  const writeRoute = useCallback((url: URL, mode: "push" | "replace") => {
+    if (url.href === window.location.href) return;
+    if (mode === "push") {
+      const next = historyPositionRef.current + 1;
+      window.history.pushState(withThesisInspection(historyState(next), null), "", url.toString());
+      historyPositionRef.current = next;
+    } else {
+      window.history.replaceState(historyState(historyPositionRef.current), "", url.toString());
+    }
+    setMarketOntologyContext(parseMarketOntologyContext(url.searchParams));
+  }, []);
+
   const loadProposals = useCallback(async (id: string, token = detailRequest.current) => {
+    if (token !== detailRequest.current) return;
     // A different thesis starts from "loading", never from the previous thesis's rows; a refresh of the
     // same thesis keeps its last answered rows until this read settles.
     setProposalRead((prev) => (prev.thesisId === id ? prev : { thesisId: id, state: "loading", rows: [] }));
@@ -1526,50 +1586,105 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     }
   }, []);
 
-  const loadDetail = useCallback(async (id: string, token = ++detailRequest.current) => {
+  // Only a current, canonical detail response can confirm the candidate's company.
+  const settleMarketOntologyContext = useCallback((
+    thesisId: string,
+    candidate: PendingMarketOntologyContext | null,
+    loadedSubjectKey: string | null,
+  ) => {
+    if (!candidate) return;
+    const currentRoute = parseAnalysisSearchParams(new URLSearchParams(window.location.search));
+    if (window.location.pathname !== "/analysis" || currentRoute.kind !== "theses"
+      || currentRoute.thesisId !== thesisId.toLowerCase()) return;
+    // A same-id history entry can carry a different candidate. An old read must
+    // not overwrite that entry even if its popstate was missed during remount.
+    if (normalizeAnalysisSymbol(currentRoute.symbol) !== candidate.company
+      || JSON.stringify(parseMarketOntologyContext(new URLSearchParams(window.location.search)))
+        !== JSON.stringify(candidate.context)) return;
+    if (loadedSubjectKey !== null && loadedSubjectKey === candidate.company) {
+      contextCompany.current = candidate.company;
+      const url = new URL(window.location.href);
+      url.searchParams.set("symbol", candidate.company);
+      url.search = serializeMarketOntologyContext(candidate.context, url.searchParams).toString();
+      if (url.href === window.location.href) setMarketOntologyContext(candidate.context);
+      else writeRoute(url, "replace");
+      return;
+    }
+    const url = new URL(window.location.href);
+    // A disproved candidate loses both halves of its context/company pair.
+    url.searchParams.delete("symbol");
+    url.search = stripMarketOntologyParams(url.searchParams).toString();
+    if (url.href === window.location.href) setMarketOntologyContext(null);
+    else writeRoute(url, "replace");
+  }, [writeRoute]);
+
+  const loadDetail = useCallback(async (
+    id: string,
+    token = ++detailRequest.current,
+    contextCandidate: PendingMarketOntologyContext | null = null,
+  ) => {
     try {
       const response = await fetch(`/api/theses?id=${encodeURIComponent(id)}`, { cache: "no-store" });
       if (token !== detailRequest.current) return;
       if (response.status === 401) {
+        settleMarketOntologyContext(id, contextCandidate, null);
         setListState("session_expired");
         setDetailState("idle");
         return;
       }
-      if (response.status === 404) return setDetailState("not_found");
-      if (!response.ok) return setDetailState("unavailable");
+      if (!response.ok) {
+        settleMarketOntologyContext(id, contextCandidate, null);
+        return setDetailState(response.status === 404 ? "not_found" : "unavailable");
+      }
       const payload = await response.json();
       if (token !== detailRequest.current) return;
-      if (!payload.thesis) return setDetailState("unavailable");
+      if (!payload?.thesis?.subject || typeof payload.thesis.subject.key !== "string") {
+        settleMarketOntologyContext(id, contextCandidate, null);
+        return setDetailState("unavailable");
+      }
       const loadedDraft = draftFromDetail(payload.thesis);
       setDetail(payload.thesis);
+      setDetailReadOwner(ownerKey);
       setDraft(loadedDraft);
       setSubjectDraft(payload.thesis.subject.key);
       setBaseline({ subject: payload.thesis.subject.key, draft: loadedDraft });
       setEffectiveBaselineUtc(payload.thesis.current.content.effectiveAt);
       setEffectiveEdited(false);
-      setInspectedVersion(null);
+      const restoredInspection = payload.thesis.id === id
+        ? readThesisInspection(window.history.state, ownerKey, id, payload.thesis.history ?? [])
+        : null;
+      inspectionReturn.current = restoredInspection === null ? null : { ownerKey, thesisId: id, version: restoredInspection };
+      setInspectedVersion(restoredInspection);
       setDetailState("ready");
+      settleMarketOntologyContext(id, contextCandidate, normalizeAnalysisSymbol(payload.thesis.subject?.key ?? ""));
       void loadProposals(id, token);
     } catch {
       if (token !== detailRequest.current) return;
+      settleMarketOntologyContext(id, contextCandidate, null);
       setDetailState("unavailable");
     }
-  }, [loadProposals]);
+  }, [loadProposals, ownerKey, settleMarketOntologyContext]);
 
-  const writeRoute = useCallback((url: URL, mode: "push" | "replace") => {
-    if (url.href === window.location.href) return;
-    if (mode === "push") {
-      const next = historyPositionRef.current + 1;
-      window.history.pushState(historyState(next), "", url.toString());
-      historyPositionRef.current = next;
-    } else {
-      window.history.replaceState(historyState(historyPositionRef.current), "", url.toString());
-    }
-    setMarketOntologyContext(parseMarketOntologyContext(url.searchParams));
-  }, []);
+  const inspectVersion = useCallback((version: number | null) => {
+    if (detailState !== "ready" || !detail || detailReadOwner !== ownerKey || detail.id !== selectedId) return;
+    const selection = version === null ? null : { ownerKey, thesisId: detail.id, version };
+    const nextState = withThesisInspection(window.history.state, selection);
+    if (version !== null && readThesisInspection(nextState, ownerKey, detail.id, detail.history) !== version) return;
+    window.history.replaceState(nextState, "", window.location.href);
+    setInspectedVersion(version);
+  }, [detail, detailReadOwner, detailState, ownerKey, selectedId]);
 
   const openDetail = useCallback((id: string, historyMode: "push" | "none" = "push") => {
     const token = ++detailRequest.current;
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlContext = parseMarketOntologyContext(urlParams);
+    const company = normalizeAnalysisSymbol(urlParams.get("symbol") ?? undefined);
+    // The URL carries the candidate as one context/company pair, including while
+    // display is withheld. This survives a real remount and cannot resurrect a
+    // previous entry's context on a context-free history navigation.
+    const contextCandidate = urlContext && company
+      ? { context: urlContext, company }
+      : null;
     setRouteInvalid(false);
     setSelectedId(id);
     setDetail(null);
@@ -1587,11 +1702,15 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       const url = new URL(window.location.href);
       url.searchParams.set("view", "theses");
       url.searchParams.set("thesis", id);
-      url.searchParams.delete("symbol");
-      url.search = stripMarketOntologyParams(url.searchParams).toString();
+      if (!contextCandidate) {
+        url.searchParams.delete("symbol");
+        url.search = stripMarketOntologyParams(url.searchParams).toString();
+      }
       writeRoute(url, "push");
     }
-    void loadDetail(id, token);
+    // Retained URL context is an input, not a claim about the unconfirmed detail.
+    setMarketOntologyContext(null);
+    void loadDetail(id, token, contextCandidate);
   }, [loadDetail, writeRoute]);
 
   const beginDetailLoad = useCallback((id: string, discardConfirmed = false) => {
@@ -1605,11 +1724,27 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     // React state transition, and both loaders update only after their first network boundary.
     void Promise.resolve().then(() => loadList());
     void Promise.resolve().then(() => loadSavedViews());
-    if (initialThesisId) {
+    // A lazy workspace can mount after a quick Back/Forward has already changed
+    // the browser route. Reconcile that route rather than missing the earlier popstate.
+    const params = new URLSearchParams(window.location.search);
+    const route = parseAnalysisSearchParams(params);
+    const thesisId = route.kind === "theses" ? route.thesisId : initialThesisId;
+    if (thesisId) {
       const token = ++detailRequest.current;
-      void Promise.resolve().then(() => loadDetail(initialThesisId, token));
+      // Deep link / reload: the mount withheld the strip; this load decides, by the
+      // same anchored-company rule as a reopen from the list.
+      const company = normalizeAnalysisSymbol(route.kind === "theses" ? route.symbol : initialSymbolKey) ?? "";
+      const mountedContext = company ? parseMarketOntologyContext(params) : null;
+      const contextCandidate = mountedContext ? { context: mountedContext, company } : null;
+      void Promise.resolve().then(() => {
+        if (token !== detailRequest.current) return;
+        setSelectedId(thesisId);
+        setDetailState("loading");
+        setMobilePane("detail");
+        return loadDetail(thesisId, token, contextCandidate);
+      });
     }
-  }, [initialThesisId, invalidLink, loadDetail, loadList, loadSavedViews, ownerKey]);
+  }, [initialSymbolKey, initialThesisId, invalidLink, loadDetail, loadList, loadSavedViews, ownerKey]);
 
   useEffect(() => {
     // Round-2 review (Opus MAJOR 2 / Grok minor 1): this used to `.slice(0, 50)` while
@@ -1693,15 +1828,17 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       url.searchParams.delete("thesis");
       if (symbol) url.searchParams.set("symbol", symbol);
       else url.searchParams.delete("symbol");
+      // New thesis may follow a successful save whose existing route omits symbol.
+      // Only the displayed, confirmed context can bridge that explicit action.
       const nextContext = marketOntologyContext;
-      if (!symbol || symbol !== initialSymbolKey || !nextContext) {
+      if (!symbol || symbol !== contextCompany.current || !nextContext) {
         url.search = stripMarketOntologyParams(url.searchParams).toString();
       } else {
         url.search = serializeMarketOntologyContext(nextContext, url.searchParams).toString();
       }
       writeRoute(url, "push");
     }
-  }, [initialSymbolKey, marketOntologyContext, writeRoute]);
+  }, [marketOntologyContext, writeRoute]);
 
   const startNew = useCallback(() => {
     if (pending || !confirmDiscard()) return;
@@ -1738,50 +1875,91 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     resetToList();
   }, [confirmDiscard, pending, resetToList]);
 
-  useEffect(() => {
-    const handlePop = (event: PopStateEvent) => {
-      if (restoringPop.current) {
-        restoringPop.current = false;
-        return;
-      }
-      const priorPosition = historyPositionRef.current;
-      const nextPosition = historyPosition(event.state);
-      const restore = () => {
-        event.stopImmediatePropagation();
-        restoringPop.current = true;
-        if (nextPosition === null) window.history.forward();
-        else window.history.go(priorPosition - nextPosition);
-      };
-      if (pending) return restore();
-      if (isDirty && !window.confirm(copy.confirmDiscard)) return restore();
-      if (isDirty) {
-        routeDiscardAuthorized.current = true;
-        window.setTimeout(() => { routeDiscardAuthorized.current = false; }, 1000);
-      }
-      if (nextPosition !== null) historyPositionRef.current = nextPosition;
-      // Every pushed history entry lacking symbol has already had mo_* stripped.
-      setMarketOntologyContext(parseMarketOntologyContext(new URLSearchParams(window.location.search)));
-      if (window.location.pathname !== "/analysis") return;
-      const route = parseAnalysisSearchParams(new URLSearchParams(window.location.search));
-      if (route.kind === "invalid_thesis") {
-        detailRequest.current += 1;
-        setRouteInvalid(true);
-        setSelectedId(null);
-        setDetail(null);
-        setDetailState("idle");
-        return;
-      }
-      if (route.kind !== "theses") return;
-      if (route.thesisId) return openDetail(route.thesisId, "none");
-      const symbol = normalizeAnalysisSymbol(route.symbol) ?? "";
-      if (symbol) return resetToNew(symbol, "none");
-      resetToList("none");
+  const browseSavedTheses = useCallback(() => {
+    if (pending || !marketOntologyContext || !confirmDiscard()) return;
+    // Keep this company's arrival context while making its existing records reachable
+    // on mobile. The separate generic Back to list action still clears that context.
+    resetToNew(contextCompany.current);
+    setMobilePane("list");
+  }, [confirmDiscard, marketOntologyContext, pending, resetToNew]);
+
+  const handleHistoryPop = useEffectEvent((event: PopStateEvent) => {
+    if (restoringPop.current) {
+      restoringPop.current = false;
+      return;
+    }
+    const priorPosition = historyPositionRef.current;
+    const nextPosition = historyPosition(event.state);
+    const restore = () => {
+      event.stopImmediatePropagation();
+      restoringPop.current = true;
+      if (nextPosition === null) window.history.forward();
+      else window.history.go(priorPosition - nextPosition);
     };
+    if (pending) return restore();
+    if (isDirty && !window.confirm(copy.confirmDiscard)) return restore();
+    if (isDirty) {
+      routeDiscardAuthorized.current = true;
+      window.setTimeout(() => { routeDiscardAuthorized.current = false; }, 1000);
+    }
+    if (nextPosition !== null) historyPositionRef.current = nextPosition;
+    if (window.location.pathname !== "/analysis") return;
+    const params = new URLSearchParams(window.location.search);
+    const route = parseAnalysisSearchParams(params);
+    const urlContext = parseMarketOntologyContext(params);
+    if (route.kind === "invalid_thesis") {
+      detailRequest.current += 1;
+      setMarketOntologyContext(null);
+      setRouteInvalid(true);
+      setSelectedId(null);
+      setDetail(null);
+      setDetailState("idle");
+      return;
+    }
+    if (route.kind !== "theses") {
+      setMarketOntologyContext(urlContext);
+      return;
+    }
+    // Detail history entries may carry a pending candidate. Withhold display
+    // until this entry's own canonical read confirms the anchored company.
+    if (route.thesisId) {
+      setMarketOntologyContext(null);
+      return openDetail(route.thesisId, "none");
+    }
+    const symbol = normalizeAnalysisSymbol(route.symbol) ?? "";
+    contextCompany.current = symbol;
+    setMarketOntologyContext(symbol ? urlContext : null);
+    if (symbol) return resetToNew(symbol, "none");
+    resetToList("none");
+  });
+
+  useEffect(() => {
+    // Keep the listener installed throughout a history transition. Re-subscribing
+    // when Back clears the selection can remove it during the following Forward
+    // dispatch, before React has committed the replacement lazy route.
+    const handlePop = (event: PopStateEvent) => handleHistoryPop(event);
     window.addEventListener("popstate", handlePop);
     return () => window.removeEventListener("popstate", handlePop);
-  }, [copy.confirmDiscard, isDirty, openDetail, pending, resetToList, resetToNew]);
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const currentRoute = parseAnalysisSearchParams(new URLSearchParams(window.location.search));
+    if (window.location.pathname === "/analysis" && currentRoute.kind === "theses"
+      && (currentRoute.thesisId ?? null) !== selectedId && !pending && !isDirty) {
+      // A popstate can land while React replaces a lazy workspace. Reconcile after
+      // subscribing, so a missed event cannot leave the view on a different record.
+      void Promise.resolve().then(() => {
+        if (active) handleHistoryPop(new PopStateEvent("popstate", { state: window.history.state }));
+      });
+    }
+    return () => {
+      active = false;
+    };
+  }, [browserLocation, copy.confirmDiscard, isDirty, openDetail, pending, resetToList, resetToNew, selectedId]);
 
   const changeDraft = useCallback(<K extends keyof Draft>(key: K, value: Draft[K]) => {
+    if (key === "statement") statementEditRevision.current += 1;
     setDraft((current) => ({ ...current, [key]: value }));
     setMessage(null);
   }, []);
@@ -1789,13 +1967,13 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const changeSubjectDraft = useCallback((value: string) => {
     const nextSymbol = normalizeAnalysisSymbol(value) ?? "";
     setSubjectDraft(value.toUpperCase());
-    if (!marketOntologyContext || !nextSymbol || nextSymbol === initialSymbolKey) return;
+    if (!marketOntologyContext || !nextSymbol || nextSymbol === contextCompany.current) return;
 
     const url = new URL(window.location.href);
     url.search = stripMarketOntologyParams(url.searchParams).toString();
     window.history.replaceState(historyState(historyPositionRef.current), "", url.toString());
     setMarketOntologyContext(null);
-  }, [initialSymbolKey, marketOntologyContext]);
+  }, [marketOntologyContext]);
 
   const mutationBody = useCallback((action: ThesisAction, requestId: string): Record<string, unknown> | null => {
     const symbol = detail?.subject.key ?? normalizeAnalysisSymbol(subjectDraft);
@@ -1895,18 +2073,28 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     const url = new URL(window.location.href);
     url.searchParams.set("view", "theses");
     url.searchParams.set("thesis", id);
-    url.searchParams.delete("symbol");
     const savedSubjectKey = pendingSubjectKey(pendingMutation);
-    if (!savedSubjectKey || savedSubjectKey !== initialSymbolKey) {
+    if (!savedSubjectKey || savedSubjectKey !== contextCompany.current) {
+      url.searchParams.delete("symbol");
       url.search = stripMarketOntologyParams(url.searchParams).toString();
+    } else if (parseMarketOntologyContext(url.searchParams)) {
+      // Preserve the same context/company pair in the saved detail history entry.
+      // Back or reload must be able to revalidate it without another entry's state.
+      url.searchParams.set("symbol", savedSubjectKey);
+    } else {
+      url.searchParams.delete("symbol");
     }
+    // A successful write returns to its new current version, even if the URL
+    // did not change. Do not restore the old inspection on the following read.
+    window.history.replaceState(withThesisInspection(window.history.state, null), "", window.location.href);
+    setInspectedVersion(null);
     writeRoute(url, "replace");
     setSelectedId(id);
     setMobilePane("detail");
     setMessage(`${copy.saved} ${version}${payload.replayed ? ` · ${copy.replayed}` : ""}`);
     await loadList();
     await loadDetail(id);
-  }, [copy.ambiguous, copy.invalid, copy.replayed, copy.saved, copy.transition, initialSymbolKey, loadDetail, loadList, removeTerminalPending, writeRoute]);
+  }, [copy.ambiguous, copy.invalid, copy.replayed, copy.saved, copy.transition, loadDetail, loadList, removeTerminalPending, writeRoute]);
 
   const send = useCallback(async (pendingMutation: Pending) => {
     if (!storePending(pendingMutation)) {
@@ -1979,6 +2167,24 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     return fromHistory ?? detail.current;
   }, [detail, inspectedVersion]);
 
+  // Register only committed, ready, caller-owned detail. Cleanup is mount-token
+  // guarded, so an older workspace cannot clear a newer registration.
+  useLayoutEffect(() => installThesisReadSource(() => {
+    if (detailState !== "ready" || !detail || detailReadOwner !== ownerKey
+        || selectedId !== detail.id) return null;
+    // A pop/navigation can precede React reconciliation. Never reuse its old
+    // selected record during that interval. This reads location; it never writes it.
+    const params = new URLSearchParams(window.location.search);
+    if (window.location.pathname !== "/analysis" || params.get("view") !== "theses"
+        || params.get("thesis") !== detail.id) return null;
+    const version = inspectedVersion
+      ? detail.history.find((entry) => entry.version === inspectedVersion)
+      : detail.current;
+    if (!version || version.thesisId !== detail.id) return null;
+    return { thesis_id: detail.id, version_id: version.id };
+  }), [detail, detailReadOwner, detailState, inspectedVersion, ownerKey, selectedId]);
+
+
   const suggestAmendment = useCallback(async () => {
     if (!selectedId || !detail) {
       setMessage(copy.suggestNeedVersion);
@@ -1994,6 +2200,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       setMessage(copy.suggestNeedVersion);
       return;
     }
+    const token = detailRequest.current;
     setProposalBusy(true);
     try {
       const response = await fetch(`/api/thesis/${encodeURIComponent(selectedId)}/proposals`, {
@@ -2002,6 +2209,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
         body: JSON.stringify({ amended_from: version.id, body: text, evidence_refs: [] }),
       });
       const payload = await response.json().catch(() => ({}));
+      if (token !== detailRequest.current) return;
       if (response.status === 400 && payload && typeof payload === "object") {
         setMessage(lang === "zh" && payload.messageZh ? String(payload.messageZh) : String(payload.message || MESSAGES.emptyBody[lang === "zh" ? 1 : 0]));
         return;
@@ -2012,9 +2220,9 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       }
       setAssistantText("");
       setMessage(copy.suggested);
-      await loadProposals(selectedId);
+      await loadProposals(selectedId, token);
     } catch {
-      setMessage(copy.unavailable);
+      if (token === detailRequest.current) setMessage(copy.unavailable);
     } finally {
       setProposalBusy(false);
     }
@@ -2022,6 +2230,10 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
 
   const setProposalState = useCallback(async (proposal: ProposalRow, next: "accepted" | "rejected") => {
     if (!selectedId) return;
+    // The issued server action can settle after navigation; its editor/message/read effects
+    // belong only to this selection generation, including an A→B→A return.
+    const token = detailRequest.current;
+    const editRevision = statementEditRevision.current;
     setProposalBusy(true);
     try {
       const response = await fetch(
@@ -2032,8 +2244,10 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
           body: JSON.stringify({ state: next }),
         },
       );
+      if (token !== detailRequest.current) return;
       if (response.status === 400) {
         const payload = await response.json().catch(() => ({}));
+        if (token !== detailRequest.current) return;
         setMessage(lang === "zh" && payload.messageZh ? String(payload.messageZh) : String(payload.message || copy.transition));
         return;
       }
@@ -2041,13 +2255,13 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
         setMessage(copy.unavailable);
         return;
       }
-      if (next === "accepted") {
+      if (next === "accepted" && editRevision === statementEditRevision.current) {
         setDraft((current) => ({ ...current, statement: proposal.body }));
         setMessage(copy.acceptedIntoEditor);
       }
-      await loadProposals(selectedId);
+      await loadProposals(selectedId, token);
     } catch {
-      setMessage(copy.unavailable);
+      if (token === detailRequest.current) setMessage(copy.unavailable);
     } finally {
       setProposalBusy(false);
     }
@@ -2082,6 +2296,9 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       <header className={styles.contextBar}>
         <div><small>{copy.eyebrow}</small><h1>{copy.title}</h1><span className={styles.contextSubject}>{(detail?.subject.key ?? subjectDraft) || "—"}</span></div>
         <div className={styles.contextActions} data-testid="thesis-context-actions">
+          {marketOntologyContext && mobilePane === "detail" && (
+            <button type="button" disabled={carrierLocked} onClick={browseSavedTheses}>{copy.openSavedTheses}</button>
+          )}
           {detail && <button type="button" onClick={() => void copyLink()}>{copy.copyLink}</button>}
           <button
             type="button"
@@ -2473,6 +2690,21 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                       </div>)}
                     </section>}
 
+                    <form className={styles.form} onSubmit={(event) => { event.preventDefault(); submit(selectedId ? "revise" : "create"); }}>
+                      <label>{copy.subject}<input aria-label={copy.subject} value={detail?.subject.key ?? subjectDraft} disabled={!!detail || carrierLocked} onChange={(event) => { changeSubjectDraft(event.target.value); setMessage(null); }} placeholder="NVDA" /></label>
+                      <label>{copy.titleLabel}<input aria-label={copy.titleLabel} value={draft.title} disabled={!editable || carrierLocked} maxLength={160} onChange={(event) => changeDraft("title", event.target.value)} /></label>
+                      <label className={styles.full}>{copy.statement}<textarea aria-label={copy.statement} value={draft.statement} disabled={!editable || carrierLocked} maxLength={12000} rows={8} onChange={(event) => changeDraft("statement", event.target.value)} /></label>
+                      {(["catalysts", "falsifiers", "risks"] as const).map((field) => <label key={field}>{copy[field]}<small>{copy.onePerLine}</small><textarea aria-label={copy[field]} value={draft[field]} disabled={!editable || carrierLocked} rows={5} onChange={(event) => changeDraft(field, event.target.value)} /></label>)}
+                      <label>{copy.horizon}<select aria-label={copy.horizon} value={draft.horizon} disabled={!editable || carrierLocked} onChange={(event) => changeDraft("horizon", event.target.value as ThesisHorizon)}>{(["unspecified", "days", "weeks", "months", "quarters", "years"] as ThesisHorizon[]).map((value) => <option key={value} value={value}>{HORIZON_LABELS[lang][value]}</option>)}</select></label>
+                      <label>{copy.effective}<input aria-label={copy.effective} type="datetime-local" step="0.001" value={draft.effectiveAt} disabled={!editable || carrierLocked} onChange={(event) => { setEffectiveEdited(true); changeDraft("effectiveAt", event.target.value); }} /></label>
+                      <label className={styles.full}>{copy.revision}<textarea aria-label={copy.revision} value={draft.revisionNote} disabled={carrierLocked} maxLength={1000} rows={3} onChange={(event) => changeDraft("revisionNote", event.target.value)} /></label>
+                      <div className={`${styles.actions} ${styles.full}`}>
+                        {editable && <button className={styles.primaryButton} type="submit" disabled={saving || ambiguous || carrierLocked}>{saving ? copy.saving : copy.save}</button>}
+                        {detail && lifecycle === "active" && <><button type="button" disabled={saving || ambiguous || carrierLocked} onClick={() => submit("archive")}>{copy.archive}</button><button type="button" className={styles.dangerButton} disabled={saving || ambiguous || carrierLocked} onClick={() => submit("invalidate")}>{copy.invalidate}</button></>}
+                        {detail && lifecycle !== "active" && <button type="button" className={styles.primaryButton} disabled={saving || ambiguous || carrierLocked} onClick={() => submit("reopen")}>{copy.reopen}</button>}
+                      </div>
+                    </form>
+
                     {detail && <div data-testid="thesis-amendment-panel">
                     <section className={styles.assistantNotes} data-testid="thesis-assistant-notes" aria-label={copy.assistantNotes}>
                       <div className={styles.historyHeading}><h2>{copy.assistantNotes}</h2></div>
@@ -2542,21 +2774,6 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                     </section>
                     </div>}
 
-                    <form className={styles.form} onSubmit={(event) => { event.preventDefault(); submit(selectedId ? "revise" : "create"); }}>
-                      <label>{copy.subject}<input aria-label={copy.subject} value={detail?.subject.key ?? subjectDraft} disabled={!!detail || carrierLocked} onChange={(event) => { changeSubjectDraft(event.target.value); setMessage(null); }} placeholder="NVDA" /></label>
-                      <label>{copy.titleLabel}<input aria-label={copy.titleLabel} value={draft.title} disabled={!editable || carrierLocked} maxLength={160} onChange={(event) => changeDraft("title", event.target.value)} /></label>
-                      <label className={styles.full}>{copy.statement}<textarea aria-label={copy.statement} value={draft.statement} disabled={!editable || carrierLocked} maxLength={12000} rows={8} onChange={(event) => changeDraft("statement", event.target.value)} /></label>
-                      {(["catalysts", "falsifiers", "risks"] as const).map((field) => <label key={field}>{copy[field]}<small>{copy.onePerLine}</small><textarea aria-label={copy[field]} value={draft[field]} disabled={!editable || carrierLocked} rows={5} onChange={(event) => changeDraft(field, event.target.value)} /></label>)}
-                      <label>{copy.horizon}<select aria-label={copy.horizon} value={draft.horizon} disabled={!editable || carrierLocked} onChange={(event) => changeDraft("horizon", event.target.value as ThesisHorizon)}>{(["unspecified", "days", "weeks", "months", "quarters", "years"] as ThesisHorizon[]).map((value) => <option key={value} value={value}>{HORIZON_LABELS[lang][value]}</option>)}</select></label>
-                      <label>{copy.effective}<input aria-label={copy.effective} type="datetime-local" step="0.001" value={draft.effectiveAt} disabled={!editable || carrierLocked} onChange={(event) => { setEffectiveEdited(true); changeDraft("effectiveAt", event.target.value); }} /></label>
-                      <label className={styles.full}>{copy.revision}<textarea aria-label={copy.revision} value={draft.revisionNote} disabled={carrierLocked} maxLength={1000} rows={3} onChange={(event) => changeDraft("revisionNote", event.target.value)} /></label>
-                      <div className={`${styles.actions} ${styles.full}`}>
-                        {editable && <button className={styles.primaryButton} type="submit" disabled={saving || ambiguous || carrierLocked}>{saving ? copy.saving : copy.save}</button>}
-                        {detail && lifecycle === "active" && <><button type="button" disabled={saving || ambiguous || carrierLocked} onClick={() => submit("archive")}>{copy.archive}</button><button type="button" className={styles.dangerButton} disabled={saving || ambiguous || carrierLocked} onClick={() => submit("invalidate")}>{copy.invalidate}</button></>}
-                        {detail && lifecycle !== "active" && <button type="button" className={styles.primaryButton} disabled={saving || ambiguous || carrierLocked} onClick={() => submit("reopen")}>{copy.reopen}</button>}
-                      </div>
-                    </form>
-
                     {detail && <section className={styles.history} aria-label={copy.history}>
                       <div className={styles.historyHeading}><h2>{copy.history}</h2><span>{detail.history.length}</span></div>
                       {history.map((entry) => {
@@ -2568,10 +2785,10 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                             <time dateTime={entry.systemRecordedAt}>{new Date(entry.systemRecordedAt).toLocaleString(lang === "zh" ? "zh-CN" : "en-CA")}</time>
                             <strong>{entry.content.title}</strong>
                             <p>{entry.content.revisionNote || copy.lines}{entry.effectiveAt && <span className={styles.effectiveAt}>{copy.effectiveHistory}: <time dateTime={entry.effectiveAt}>{new Date(entry.effectiveAt).toLocaleString(lang === "zh" ? "zh-CN" : "en-CA")}</time></span>}</p>
-                            <button type="button" aria-label={`${copy.inspectVersion} ${entry.version}`} aria-expanded={open} onClick={() => setInspectedVersion(open ? null : entry.version)}>{copy.inspectVersion}</button>
+                            <button type="button" aria-label={`${copy.inspectVersion} ${entry.version}`} aria-expanded={open} onClick={() => inspectVersion(open ? null : entry.version)}>{copy.inspectVersion}</button>
                           </div>
                           {open && <div className={styles.versionInspector} data-testid="thesis-version-inspector" data-posture={currentEntry ? "current" : "historical"}>
-                            <header><div><small>{copy.version} {entry.version}</small><h3>{currentEntry ? copy.currentSnapshot : copy.historicalSnapshot}</h3></div><span data-state={entry.lifecycleState}>{statusLabel(entry.lifecycleState, copy)}</span></header>
+                            <header><div><small>{copy.version} {entry.version}</small><h3 ref={inspectionHeading}>{currentEntry ? copy.currentSnapshot : copy.historicalSnapshot}</h3></div><span data-state={entry.lifecycleState}>{statusLabel(entry.lifecycleState, copy)}</span></header>
                             <dl className={styles.versionMeta}>
                               <div><dt>{copy.previousVersion}</dt><dd>{entry.previousVersion === null ? copy.origin : `${copy.version} ${entry.previousVersion}`}</dd></div>
                               <div><dt>{copy.recordedBy}</dt><dd>{copy.you}</dd></div>

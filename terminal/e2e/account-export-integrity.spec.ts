@@ -38,6 +38,11 @@ for (const lang of ["en", "zh"] as const) {
     const jsonPath = await jsonDownload.path(); expect(jsonPath).not.toBeNull();
     const doc: AccountExportDoc = JSON.parse(await readFile(jsonPath!, "utf8"));
     expect(verifyAccountExportIntegrity(doc, sha256)).toBe(true);
+    expect(doc.integrity!.schema).toBe("mm.terminal_account_export.integrity.v2");
+    // Unknown tables on the existing fixture client yield empty, unpageable responses.
+    // They must remain partial, never a complete empty inventory or populated proof.
+    expect(doc.integrity!.collections.chart_drawings).toMatchObject({ state: "partial", item_count: 0, sha256: sha256("[]") });
+    expect(doc.integrity!.collections.alerts).toMatchObject({ state: "partial", item_count: 0, sha256: sha256("[]") });
     expect(doc.watchlists).toHaveLength(1); expect(doc.watchlists[0].symbols).toHaveLength(6);
     expect(doc.integrity!.collections.watchlists).toMatchObject({ state: "included_unverified", item_count: 1, coverage_row_count: 6 });
     await expect(csvButton).toBeEnabled();

@@ -14,6 +14,13 @@ async function openOverflow(page: Page) {
 }
 
 export async function toggleToolbarReplay(page: Page) {
+  if (isPhoneViewport(page)) {
+    const hub = page.getByTestId("analysis-hub");
+    if (!(await hub.isVisible())) await page.getByTestId("roller-more").click();
+    await page.getByTestId("hub-tile-replay").click();
+    await expect(hub).toHaveCount(0);
+    return;
+  }
   const direct = page.locator('[data-toolbar-action="replay"]');
   if (await direct.isVisible()) {
     await direct.click();

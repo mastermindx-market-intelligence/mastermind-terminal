@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import json
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -19,6 +20,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 FIXED_NOW = datetime(2026, 9, 17, 4, 0, 0, tzinfo=timezone.utc)
 PERSONAL_ACCURACY_BUNDLE = "scripts/dist/score_personal_accuracy.mjs"
 PERSONAL_ACCURACY_SIBLING = "scripts/dist/another.mjs"
+FUNDAMENTAL_SCAN_BUNDLE = "scripts/dist/gen_fundamental_scan.mjs"
 PERSONAL_ACCURACY_ALLOWANCE = {
     "path": PERSONAL_ACCURACY_BUNDLE,
     "classification": "generated_sidecar_bundle",
@@ -274,6 +276,7 @@ def test_production_policy_is_complete_narrow_and_tree_pinned() -> None:
         "node_modules",
         "public/data",
         PERSONAL_ACCURACY_BUNDLE,
+        FUNDAMENTAL_SCAN_BUNDLE,
     }
     env_template = app_allowances[".env.example"]
     assert env_template["allow_tracked_absence"] is True
@@ -292,6 +295,7 @@ def test_production_policy_is_complete_narrow_and_tree_pinned() -> None:
         ".next.bak": "directory",
         "node_modules": "directory",
         PERSONAL_ACCURACY_BUNDLE: "file",
+        FUNDAMENTAL_SCAN_BUNDLE: "file",
     }
     assert {
         path: app_allowances[path]["expected_live_type"] for path in expected_app_types
@@ -301,6 +305,15 @@ def test_production_policy_is_complete_narrow_and_tree_pinned() -> None:
     assert "canonical_git_blob" not in bundle
     assert "canonical_git_tree" not in bundle
     assert "canonical_git_mode" not in bundle
+    scan_bundle = app_allowances[FUNDAMENTAL_SCAN_BUNDLE]
+    assert scan_bundle == {
+        "path": FUNDAMENTAL_SCAN_BUNDLE,
+        "classification": "generated_sidecar_bundle",
+        "expected_live_type": "file",
+    }
+    assert "canonical_git_blob" not in scan_bundle
+    assert "canonical_git_tree" not in scan_bundle
+    assert "canonical_git_mode" not in scan_bundle
     assert "scripts/dist" not in app_allowances
     assert "scripts" not in app_allowances
     assert not any(
@@ -360,6 +373,53 @@ def test_production_policy_is_complete_narrow_and_tree_pinned() -> None:
     assert "*" not in serialized
     assert ".env*" not in serialized
     assert policy["deployment_id_file"] == "/opt/terminal/terminal/.deployment-id"
+
+
+def build_installed_sidecar_bundles() -> list[str]:
+    build = (PROJECT_ROOT / "ops" / "terminal-build.sh").read_text(encoding="utf-8")
+    staged = re.findall(r"--outfile=(scripts/dist/[A-Za-z0-9_.-]+\.mjs)\.new", build)
+    installed = re.findall(
+        r'mv -f "\$APP/(scripts/dist/[A-Za-z0-9_.-]+\.mjs)\.new"', build
+    )
+    assert staged == installed
+    # Fail closed on any other install form or extension: every scripts/dist file the
+    # build or the nightly names must be one of the bundles parsed above.
+    nightly = (PROJECT_ROOT / "ops" / "terminal-data").read_text(encoding="utf-8")
+    named = {
+        name.removesuffix(".new")
+        for text in (build, nightly)
+        for name in re.findall(r"scripts/dist/[A-Za-z0-9_.-]+", text)
+    }
+    assert named == set(staged)
+    return staged
+
+
+def test_every_bundle_the_build_installs_has_an_exact_preflight_allowance() -> None:
+    # terminal-build.sh writes these git-ignored bundles into the live checkout. The
+    # next release preflight audits that checkout, so a bundle without its own exact
+    # allowance is an IGNORED_IMPLEMENTATION_CANDIDATE and blocks every later deploy.
+    bundles = build_installed_sidecar_bundles()
+    assert PERSONAL_ACCURACY_BUNDLE in bundles
+    assert FUNDAMENTAL_SCAN_BUNDLE in bundles
+    assert len(bundles) == len(set(bundles))
+
+    policy_path = PROJECT_ROOT / "ops" / "terminal_source_audit.production.json"
+    policy = json.loads(policy_path.read_text(encoding="utf-8"))
+    app = next(item for item in policy["mappings"] if item["name"] == "terminal-app")
+    sidecars = {
+        item["path"]: item
+        for item in app["allowances"]
+        if item["classification"] == "generated_sidecar_bundle"
+    }
+    missing = [path for path in bundles if path not in sidecars]
+    assert missing == []
+    assert set(sidecars) == set(bundles)
+    for path in bundles:
+        assert sidecars[path] == {
+            "path": path,
+            "classification": "generated_sidecar_bundle",
+            "expected_live_type": "file",
+        }
 
 
 def test_relative_policy_path_is_rejected_before_any_file_read(

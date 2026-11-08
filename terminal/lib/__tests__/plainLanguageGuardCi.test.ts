@@ -168,10 +168,21 @@ describe("plain-language guard — CI wiring", () => {
 
     // The aggregate job's name is what master's branch protection keys on, and
     // it must still depend on terminal-unit — otherwise a red guard step would
-    // never reach the required check.
+    // never reach the required check. pr_scope sits in the same `needs` list
+    // because the fan-in reads its result/mode to admit a docs-only skip; the
+    // independent e2e selector and both shard jobs must also stay listed.
     const aggregate = jobBlock(text, "terminal");
     expect(aggregate).toContain("name: Terminal typecheck + tests");
-    expect(aggregate).toContain("needs: [terminal-unit, terminal-e2e]");
+    const needsLine = aggregate.match(/^\s*needs: \[([^\]]*)\]/m);
+    expect(needsLine).not.toBeNull();
+    const needs = needsLine![1].split(",").map((s) => s.trim());
+    expect(needs).toContain("terminal-unit");
+    expect(needs).toContain("terminal-e2e");
+    expect(needs).toContain("pr_scope");
+    expect(needs).toContain("e2e-scope");
+    expect(aggregate).toContain("e2e-scope:$SCOPE");
+    expect(aggregate).toContain("terminal-unit:$UNIT");
+    expect(aggregate).toContain("terminal-e2e:$E2E");
   });
 
   it("A4. the guard is invoked exactly twice inside terminal-unit (self-check, then enforce)", () => {

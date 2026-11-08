@@ -1,0 +1,120 @@
+{
+  "schema": "portfolio_workspace_owner_repair.v1",
+  "recorded_at_utc": "2026-10-21T05:50:40.396008+00:00",
+  "repository": "mastermindx-market-intelligence/mastermind-terminal",
+  "pull_request": 1044,
+  "original_frozen_head": "33535adb1ef8d087449cab9e67cde8d068ec9257",
+  "original_frozen_tree": "0b8620a5a78e04346861f5f9db03ea01abf1893a",
+  "repaired_semantic_head": "de0100bc073e038c068b4c9d95c8b9ee01929fd6",
+  "repaired_semantic_tree": "cc7505eaf0550590d157385a4e5d850336f732a0",
+  "changed_blobs": {
+    "terminal/components/PortfolioView.tsx": "4b880664272863572ef898f45f0f740464cbb6e6",
+    "terminal/lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx": "8cda4de0b776b0db02e126f63b857315b34991e7"
+  },
+  "independent_review": {
+    "carrier": "explicitly user-authorized native reviewer",
+    "reviewer": "/root/portfolio_independent_review",
+    "original_verdict": "HOLD: N1 and N2 HIGH",
+    "repair_verdict": "PASS: N1 and N2 closed on exact semantic head",
+    "execution_assistance": "Parent mechanically executed reviewer-designed probes after child connector stalls. Reviewer independently read source, designed probes, inspected raw logs and adjudicated.",
+    "failed_fabric_014_015": "preserved; neither retried nor substituted"
+  },
+  "validation": {
+    "red": {
+      "command": "vitest run lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx --reporter=verbose",
+      "runtime_source": "original frozen33535",
+      "exit_code": 1,
+      "expected_owner_failures": 8,
+      "same_owner_controls_passed": 2
+    },
+    "green": {
+      "command": "vitest run lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx --reporter=verbose",
+      "exit_code": 0,
+      "passed": 10
+    },
+    "bounded": {
+      "command": "vitest run lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx lib/__tests__/portfolioWorkspaceController.test.tsx lib/__tests__/portfolioBriefPanelRetry.test.tsx lib/__tests__/eventImpactPanelRender.test.ts lib/__tests__/b_pl_6Batch1Evidence.test.ts lib/__tests__/visualIntelligenceEvidence.test.ts lib/__tests__/optionsLevelAxisEvidence.test.ts --reporter=verbose",
+      "exit_code": 0,
+      "files": 7,
+      "passed": 134
+    },
+    "native_recheck": {
+      "receipt": "native-repair-recheck.json",
+      "exit_code": 0,
+      "files": 4,
+      "passed": 67,
+      "archive_exact_semantic_head": "de0100bc073e038c068b4c9d95c8b9ee01929fd6"
+    },
+    "typecheck": {
+      "command": "tsc --noEmit --incremental false",
+      "exit_code": 0
+    },
+    "lint": {
+      "command": "eslint components/PortfolioView.tsx lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx",
+      "exit_code": 0
+    },
+    "browser_smoke": {
+      "command": "TERMINAL_E2E_PORT=3493 playwright test e2e/portfolio-workspace.spec.ts --project=desktop --grep \"tabs, filters and malformed optional analysis leave holdings usable\" --workers=1 --retries=0 --max-failures=1 --reporter=line,json",
+      "exit_code": 0,
+      "stats": {
+        "startTime": "2026-10-21T05:45:22.747Z",
+        "duration": 10825.752,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "retries": 0,
+      "classification": "localhost existing fixture transport"
+    },
+    "counts_overlap": true,
+    "parent_test_source_binding": "Parent runs used the exact working-tree bytes subsequently committed in de0100; the independent recheck used a fresh archive of that commit."
+  },
+  "retained_server_review_blobs": {
+    "terminal/lib/portfolio.ts": "cc699dc56b92ca162d32875a894609a42648333d",
+    "terminal/lib/portfolioRisk.ts": "8b8080aba39b9a15d996be972f4d9fc2ba5a66ae",
+    "terminal/app/api/portfolio/route.ts": "9a1db9e11bb771ce50a9a409b4ef0335100ade36",
+    "terminal/app/api/portfolio/targets/route.ts": "39a58fc8ed8f237ec7b508f168752da1276398e9"
+  },
+  "preserved_migration_sha256": {
+    "supabase/migrations/0036_portfolio_entry_currency.sql": "9c09540e7b4e451e55a39d8229b3a73eb93c997578f3dadfdc3f24b47a7f7f4c",
+    "terminal/docs/verification/portfolio-workspace/0036-production-receipt.json": "511faa4788ca35b8946070bdc8420057fcd0bd62be96fa289c058609e3fe3ff1"
+  },
+  "retained_visual_evidence": "VI30, BPL24 and Options-axis retain actual prior capture sources and unchanged declared bindings; three current readers passed. No capture restamping.",
+  "production_mutations_performed": false,
+  "migration_applied": false,
+  "production_deployed_by_this_packet": false,
+  "remaining_release_gates_at_recording": [
+    "current published-head hosted CI and protected-master integration",
+    "actual merged-SHA0036 metadata follow-up",
+    "incumbent deployment owner and live read-only acceptance",
+    "new authenticated mutation/readback and Targets proof only through a currently authorized controlled identity"
+  ],
+  "artifacts_sha256": {
+    "README.md": "60436bcb8c4c1a0e8da55d69ef5c336795571276195cda5fa7b6db805002ec00",
+    "bounded-regression.log": "bc23e998827fa07100d951a3c1c9125409485fdba11a3caa6ea2b039c045bc49",
+    "browser-smoke.json": "8dd172fc4f6cbef7a55aeb7e86540ccaa62ed58b32bc3d0e5819ebe7655c98a1",
+    "browser-smoke.log": "07a2124fa599dcbecad5b7f1f50aacfd870624b5b6ce2ee414138cee15cccf0b",
+    "lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "native-controller-baseline.log": "6e954ef1c6b86d15d03f06fbeb2e9bd04e7a755a5172e07fb4e60af035de6843",
+    "native-event-owner-probe.log": "3f303427df2e1c240127ad22cb5147c2d56c5b46dfbe2e3289c3e7c41a34cae1",
+    "native-owner-probe-envelope.log": "cd8fcb530e2d91920f7fc3da325a878b2e0fa40800d584ce2b96a908def96282",
+    "native-owner-probe.log": "4be7553e3e5e07bb02218e74ca39a2fa7c75e6541de5947e28b276518bd9d55c",
+    "native-probe-receipt.json": "f3ce9d90c5d6a9a845a7da04a1f7f8e3ee498d9650f7fd4b0e3eee896df1f2f9",
+    "native-probes/portfolioNativeEventOwnerProbe.test.tsx.txt": "4e82172ee1f326677ed2ebf59c5f28d82cda7f6aedf26d01145ca5ce8a0ba83d",
+    "native-probes/portfolioNativeOwnerProbe.test.tsx.txt": "632d9a4c7b9661ba270f951438bfeee922f287ea799f96c8626d272b61fbbb5d",
+    "native-probes/portfolioNativeOwnerProbeEnvelope.test.tsx.txt": "070313ed097544a9f21cecfc28a293eb3ca28eea0ec06dcd44d1cb320475c613",
+    "native-repair-recheck.json": "56036353142c63362dad1ccc3b1def2a3aa895fd282cb34e33e25b42e96ff972",
+    "native-repair-recheck.log": "f61a2ae86613c40056459577a6f55f4c47404130c11f95264177fdd89beaa97d",
+    "native-review-frozen-33535.md": "b24dd569d52b63ade5aa30c87af5258d37f394b1e3279c590730461cddf503ed",
+    "native-review-repair-de0100.md": "ff8a97ce5ba551ee125eb2227ceff5614f48767eb8bf3f4fb56737fe269099a7",
+    "procedure-source.json": "b06d7e6be85d7bc5214aac205d02a77edff04c2d5ee88d66af09d2ef61c879f4",
+    "regression-green.log": "99b15c615438681512158763e67737732c79596cb46aef86d5ce6722371f872f",
+    "regression-red.log": "44aef636cf0829c7d14f5a3d92bd156488f77326498f35f1ba56a842b235e75d",
+    "repaired-review-source-blobs.json": "1e5f04b34fcd9974522e7571429cb3f6f6ad944738a53923f7c5b702f06a130c",
+    "source-blobs.json": "5c8f52f8120e9d50d80d4fe12f2b7a9d9a1ad6f999525a6b1a545432643cddff",
+    "typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "native_probe_storage": "Reviewer-authored TSX sources are preserved byte-for-byte with a .txt suffix to keep documentation artifacts outside application compilation.",
+  "raw_log_preservation": "Raw tool logs retain their original terminal newlines and hashes; git whitespace checking excludes only these captured .log files. Source, tests, receipt, reports and other text pass the normal whitespace check."
+}

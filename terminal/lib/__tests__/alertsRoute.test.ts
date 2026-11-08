@@ -59,6 +59,23 @@ beforeEach(() => {
 });
 
 describe("/api/alerts options identity", () => {
+  it("keeps the preparatory frozen-node core outside enrollment despite client-authored grants", async () => {
+    const res = await post({
+      symbol: "SPY",
+      condition: {
+        type: "opt_frozen_node_proximity", root: "SPY",
+        target: { price: 620 },
+        admission: { rights: { allowed: true }, principal: "user-1" },
+        rights: { allowed: true },
+        armingEpoch: "2026-10-20T14:00:00Z",
+        _fnp: { inside: false, lastQuoteAt: "2026-10-20T14:01:00Z" },
+      },
+    });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "Unknown alert condition: opt_frozen_node_proximity" });
+    expect(H.inserted).toBeNull();
+  });
+
   it("persists one validated root in both symbol and condition when client fields conflict", async () => {
     const res = await post({
       symbol: "SPY",

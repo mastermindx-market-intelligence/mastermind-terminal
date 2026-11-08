@@ -1,0 +1,43 @@
+[warmup] /terminal?symbol=NVDA → 200 in 253ms
+[warmup] /options → 200 in 332ms
+[warmup] /portfolio → 200 in 79ms
+[warmup] /alerts → 200 in 82ms
+[warmup] /analysis → 200 in 82ms
+[warmup] /discover → 200 in 96ms
+[warmup] /admin → 200 in 64ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 70ms
+[warmup] /login → 200 in 208ms
+[warmup] /reset-password → 200 in 255ms
+[warmup] /api/me → 200 in 13ms
+[warmup] /api/watchlist → 200 in 11ms
+[warmup] /api/layouts → 200 in 12ms
+[warmup] 13 routes compiled in 2s
+
+Running 24 tests using 1 worker
+
+  ✓   1 [desktop] › e2e/large-trades-historical.spec.ts:10:5 › decoded IEX archive retains historical provenance and inspectable executed shares (8.1s)
+  ✓   2 [desktop] › e2e/large-trades.spec.ts:49:7 › exact executions, reports and responsive inspection en dark (4.1s)
+  ✓   3 [desktop] › e2e/large-trades.spec.ts:49:7 › exact executions, reports and responsive inspection zh dark (5.5s)
+  ✓   4 [desktop] › e2e/large-trades.spec.ts:98:5 › settings cap quantity markers and expose adaptive warmup (15.7s)
+  ✓   5 [desktop] › e2e/large-trades.spec.ts:132:5 › canonical replay excludes future executions and waits for price response (17.3s)
+  ✓   6 [desktop] › e2e/large-trades.spec.ts:157:5 › unavailable transaction source never turns coordinate candle volume into markers (6.0s)
+  ✓   7 [desktop] › e2e/large-trades.spec.ts:169:5 › an exact-arithmetic overflow is isolated as invalid evidence (8.2s)
+  ✓   8 [desktop] › e2e/large-trades.spec.ts:188:5 › the canonical language event retitles the mounted legend, inspector and settings (23.0s)
+  ✓   9 [tablet] › e2e/large-trades-historical.spec.ts:10:5 › decoded IEX archive retains historical provenance and inspectable executed shares (7.8s)
+  ✓  10 [tablet] › e2e/large-trades.spec.ts:49:7 › exact executions, reports and responsive inspection en dark (10.4s)
+  ✓  11 [tablet] › e2e/large-trades.spec.ts:49:7 › exact executions, reports and responsive inspection zh dark (6.5s)
+  ✓  12 [tablet] › e2e/large-trades.spec.ts:98:5 › settings cap quantity markers and expose adaptive warmup (20.3s)
+  ✓  13 [tablet] › e2e/large-trades.spec.ts:132:5 › canonical replay excludes future executions and waits for price response (24.1s)
+  ✓  14 [tablet] › e2e/large-trades.spec.ts:157:5 › unavailable transaction source never turns coordinate candle volume into markers (2.4s)
+  ✓  15 [tablet] › e2e/large-trades.spec.ts:169:5 › an exact-arithmetic overflow is isolated as invalid evidence (4.3s)
+  ✓  16 [tablet] › e2e/large-trades.spec.ts:188:5 › the canonical language event retitles the mounted legend, inspector and settings (9.9s)
+  ✓  17 [mobile] › e2e/large-trades-historical.spec.ts:10:5 › decoded IEX archive retains historical provenance and inspectable executed shares (6.6s)
+  ✓  18 [mobile] › e2e/large-trades.spec.ts:49:7 › exact executions, reports and responsive inspection en dark (5.0s)
+  ✓  19 [mobile] › e2e/large-trades.spec.ts:49:7 › exact executions, reports and responsive inspection zh dark (4.4s)
+  ✓  20 [mobile] › e2e/large-trades.spec.ts:98:5 › settings cap quantity markers and expose adaptive warmup (15.6s)
+  ✓  21 [mobile] › e2e/large-trades.spec.ts:132:5 › canonical replay excludes future executions and waits for price response (12.6s)
+  ✓  22 [mobile] › e2e/large-trades.spec.ts:157:5 › unavailable transaction source never turns coordinate candle volume into markers (6.8s)
+  ✓  23 [mobile] › e2e/large-trades.spec.ts:169:5 › an exact-arithmetic overflow is isolated as invalid evidence (5.5s)
+  ✓  24 [mobile] › e2e/large-trades.spec.ts:188:5 › the canonical language event retitles the mounted legend, inspector and settings (7.0s)
+
+  24 passed (4.1m)
