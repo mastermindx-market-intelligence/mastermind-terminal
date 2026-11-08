@@ -172,6 +172,8 @@ function getChromium() {
           || !parent.isDirectory() || parent.uid!==process.getuid() || (parent.mode&0o777)!==0o700)throw Error("THESIS_CAPTURE_PROFILE_SCOPE");
       counts.browserProfile={path:profile,dev:st.dev,ino:st.ino,uid:st.uid,tmpRoot:tmp};
       note({phase:"BROWSER_CONNECTED",browserPid:child.pid,browserExecutable:child.spawnfile,browserExecutableSha256:counts.browserExecutableSha256,browserProfile:counts.browserProfile});assertDiagnostics();
+      // Local private runner connection only; never serialize this endpoint.
+      Object.defineProperty(browser,"thesisOwnedWsEndpoint",{value:server.wsEndpoint()});
       const newContext = browser.newContext.bind(browser), close = browser.close.bind(browser);
       browser.newContext = async opts => {
         assertDiagnostics();
@@ -207,7 +209,7 @@ function assertOwnedListener(port,group) {
 }
 function capturePresentationEnvironment(mode = "dark") {
   if(mode === "dark")return {};
-  if(mode === "shared-shell-light-en-1440")return {MMX_SHARED_SHELL:"1"};
+  if(["shared-shell-light-en-1440","shared-shell-intl-return"].includes(mode))return {MMX_SHARED_SHELL:"1"};
   throw Error("THESIS_CAPTURE_PRESENTATION_SCOPE");
 }
 async function start(root,port,stage,mode = "dark") {
