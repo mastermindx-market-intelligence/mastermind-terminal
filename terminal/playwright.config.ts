@@ -15,10 +15,13 @@ const w2aWorkspacesSpec = /w2a-workspaces\.spec\.ts/;
 
 export default defineConfig({
   testDir: "./e2e",
-  // Compile every route the suite uses BEFORE any spec's clock starts. The suite runs against a
-  // DEV server, so a route's first request pays a Turbopack compile inside whichever spec
-  // happens to touch it first — the measured cause of CI's rotating e2e failures. See the
-  // module header in e2e/globalSetup.ts for the numbers.
+  // Browser cases use .spec.ts; Node tool tests run in their dedicated CI step.
+  // Collecting .test.cjs here makes Playwright reject their shared Node test imports.
+  testMatch: "**/*.spec.ts",
+  // Warm the incumbent routes before a spec clock starts. Current startup metadata
+  // distinguishes headers, bounded body completion and selected HTML readiness;
+  // none of those alone proves compiler completion or client hydration. Historical
+  // cold-compilation measurements remain documented in e2e/globalSetup.ts.
   globalSetup: "./e2e/globalSetup.ts",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -51,7 +54,7 @@ export default defineConfig({
   // 30000ms exceeded" mid-poll, not a poll's own budget). CI-only, like the worker cap;
   // locally the default stands.
   timeout: process.env.CI ? 60_000 : undefined,
-  reporter: process.env.CI ? "github" : "list",
+  reporter: process.env.CI ? [["github"], ["./e2e/reporters/retainedProgress.mjs"]] : "list",
   use: {
     baseURL,
     screenshot: "only-on-failure",
@@ -105,6 +108,10 @@ export default defineConfig({
     url: `${baseURL}/terminal?symbol=NVDA`,
     reuseExistingServer: !process.env.CI && process.env.TERMINAL_VISUAL_EVIDENCE_OPERATION === undefined,
     timeout: 120_000,
+    // Keep the incumbent Playwright-owned process; retain its normal startup,
+    // compiler and request output in the original job log, not another launcher.
+    stdout: "pipe",
+    stderr: "pipe",
     env: {
       // /analysis is normally member-gated. The page's local-only preview seam
       // keeps responsive visual tests focused on the workspace, not auth.
@@ -114,6 +121,7 @@ export default defineConfig({
       // Production runs `next start` and can never satisfy it.
       ADMIN_DEV: "1",
       TERMINAL_E2E_FIXTURE: "1",
+      TERMINAL_E2E_VERIFIED_AUTH: "1",
       TERMINAL_E2E_EMAIL: "responsive@example.com",
       TERMINAL_E2E_ENTITLEMENT: "unlimited",
       // All browser projects share one loopback IP. The fully-parallel matrix can
@@ -130,7 +138,8 @@ export default defineConfig({
       // exact literal "open" per request. This dev-server-only env block opts the fixture
       // origin in; production never receives the value, so the unset default stays closed.
       INVESTIGATION_API_ADMISSION: "open",
-      NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
+      // Same-origin public-only JWKS for the development-only verified-auth fixture.
+      NEXT_PUBLIC_SUPABASE_URL: `http://127.0.0.1:${port}/api/__e2e__/supabase`,
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
     },
   },

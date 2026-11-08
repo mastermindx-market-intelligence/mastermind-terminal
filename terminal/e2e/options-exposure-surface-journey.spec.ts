@@ -1462,12 +1462,12 @@ for (const lang of ["en", "zh"] as const) {
       } else throw new Error("Unexpected in-memory preference fixture operation");
       return user;
     });
-    await page.addInitScript(() => {
+    await page.addInitScript((fixtureOrigin: string) => {
       const originalFetch = window.fetch.bind(window);
       window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
         const url = new URL(typeof input === "string" ? input : input instanceof Request ? input.url : input.toString(), location.href);
-        if (url.pathname.startsWith("/auth/v1/")) {
-          if (url.origin !== "http://127.0.0.1:54321" || url.pathname !== "/auth/v1/user") throw new Error("Unexpected fixture Auth operation");
+        if (url.pathname.startsWith("/api/__e2e__/supabase/auth/v1/")) {
+          if (url.origin !== fixtureOrigin || url.pathname !== "/api/__e2e__/supabase/auth/v1/user") throw new Error("Unexpected fixture Auth operation");
           const request = input instanceof Request ? input : null;
           const method = init?.method ?? request?.method ?? "GET";
           const body = typeof init?.body === "string" ? init.body : request ? await request.clone().text() : null;
@@ -1476,7 +1476,7 @@ for (const lang of ["en", "zh"] as const) {
         }
         return originalFetch(input, init);
       };
-    });
+    }, origin);
     const mt = exposureMapT(lang);
     const map = page.getByTestId("exposure-map");
     const inspector = page.getByTestId("exposure-node-inspector");

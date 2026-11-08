@@ -272,3 +272,70 @@ it("composes the same exact pin with account-bound staging and reported-Gamma na
     delete brainHost.MM_BRAIN_CFG;
   }
 });
+
+it.each(["retain", "root", "matrix", "session"] as const)("settles a delayed archive only into its still-admitted Lab context: %s", async change => {
+  let finishArchive!: (value: ReturnType<typeof asData>) => void;
+  const pendingArchive = new Promise<ReturnType<typeof asData>>(resolve => { finishArchive = resolve; });
+  load.mockImplementation(async key => key === "gex_dates:SPY" ? asData(dates)
+    : key === `gex_at:SPY:${PRIOR}` ? pendingArchive : asAbsent());
+  const brainHost = window as unknown as MastermindBrainHost;
+  const submit = vi.fn<(ref: OptionsQuestionReference) => boolean>().mockReturnValue(true);
+  const clear = vi.fn();
+  const network = vi.fn();
+  vi.stubGlobal("fetch", network);
+  brainHost.MM_BRAIN_CFG = { principal: "one" };
+  brainHost.MMBrain = { submitOptionsQuestion: submit, clearOptionsQuestion: clear };
+  const source = reportedGammaBook(SESSION);
+  const capturedMatrix = { ...matrix, _matrix_source_identity: {
+    schema: "options_structure.acquired_bytes/v1", kind: "matrix", root: "SPY",
+    session: SESSION, sha256: "a".repeat(64), byte_length: 1234,
+  } };
+  const render = (instrument: string, value: unknown) => act(async () => root.render(
+    <OptionsResearchLab root={instrument} matrix={value} currentGexSnapshot={source}
+      questionOwnerKey="account:one" lang="en" onClose={() => {}} />));
+  try {
+    await render("SPY", capturedMatrix);
+    await click("100 Call · 2026-10-23");
+    await act(async () => host.querySelector<HTMLButtonElement>('[data-testid="research-question-action"] button')!.click());
+    expect(submit).toHaveBeenCalledTimes(1);
+    const reference = submit.mock.calls[0][0];
+    await click("Replay & change");
+    await vi.waitFor(() => expect(load).toHaveBeenCalledWith(`gex_at:SPY:${PRIOR}`));
+    expect(memoryStatus()).toBe("loading");
+    expect(clear).toHaveBeenCalledTimes(1); expect(clear).toHaveBeenCalledWith(reference);
+
+    await render(change === "root" ? "QQQ" : "SPY", change === "matrix" ? null
+      : change === "session" ? { ...capturedMatrix, _build_meta: { asof_date: PRIOR } } : capturedMatrix);
+    // The session mismatch must be committed before the old archive is released.
+    if (change === "session") await vi.waitFor(() => expect(memoryStatus()).toBe("mismatch"));
+    else if (change !== "retain") {
+      const inspector = host.querySelector('[data-testid="research-inspector"]')!;
+      expect(inspector.querySelector("dl")).toBeNull();
+      expect(inspector.textContent).not.toContain(`100 Call · ${EXPIRY}`);
+      expect(host.querySelector<HTMLButtonElement>('[data-testid="research-question-action"] button')!.disabled).toBe(true);
+    }
+    const readsBeforeSettlement = load.mock.calls.length;
+    await act(async () => { finishArchive(asData(archive(2))); await pendingArchive; });
+    if (change === "retain") {
+      // Positive control: these exact delayed bytes are valid and must render
+      // when the context survives. An invalid archive cannot prove withdrawal.
+      for (let n = 0; n < 60 && memoryStatus() !== "ready"; n++) {
+        await act(async () => new Promise(resolve => setTimeout(resolve, 5)));
+      }
+      expect(memoryStatus()).toBe("ready");
+      expect(pin()!.getAttribute("data-pin-state")).toBe("pinned");
+      expect(pin()!.textContent).toContain(`100 Call · ${EXPIRY}`);
+    } else expect(panel()).toBeNull();
+    expect(host.textContent).not.toContain("Selection staged in Brain");
+    expect(submit).toHaveBeenCalledTimes(1);
+    expect(clear).toHaveBeenCalledTimes(1); expect(clear).toHaveBeenCalledWith(reference);
+    expect(load).toHaveBeenCalledTimes(readsBeforeSettlement);
+    expect(load.mock.calls.some(([key]) => key === "gex:SPY" || key.startsWith("gex:QQQ"))).toBe(false);
+    expect(network).not.toHaveBeenCalled();
+    expect([...host.querySelectorAll("button")].find(b => b.textContent === "Save investigation")!.disabled).toBe(true);
+  } finally {
+    finishArchive(asData(archive(2)));
+    delete brainHost.MMBrain;
+    delete brainHost.MM_BRAIN_CFG;
+  }
+});

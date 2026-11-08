@@ -638,6 +638,10 @@ raise SystemExit(pytest.main(['-q', 'tests/test_merge_on_green.py', '--tb=short'
 """)
     result = subprocess.run([sys.executable, str(runner)], cwd=tmp_path, text=True, capture_output=True,
                             env={"PATH": os.defpath, "HOME": str(tmp_path),
+                                 # Keep the installed test dependencies available when the
+                                 # intentional temporary HOME hides a user-site install.
+                                 # No source checkout or parent environment is inherited.
+                                 "PYTHONPATH": str(Path(pytest.__file__).resolve().parent.parent),
                                  "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1", "PYTHONDONTWRITEBYTECODE": "1"})
     assert result.returncode == 0, result.stdout + result.stderr
     import xml.etree.ElementTree as ET

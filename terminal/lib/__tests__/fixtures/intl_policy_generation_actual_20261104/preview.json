@@ -1,0 +1,62 @@
+{
+  "schema": "intl.policy_preview.v1",
+  "state": "qualified",
+  "source_generation": "im-workspace-generation:f180e9f4-eeee-488d-b312-5a68d09ccf5c",
+  "artifact_sha256": "0dc2265e5985adaff29f0c2efbf7191be9f80472a6c0f73646a4ac1b5776f8b8",
+  "mapping_identity": "6c196e8d2d2f3d3e926b02653f4ae15b66d495a28c346b03c9771cca1b23e132",
+  "qualification_identity": "8665ccb11e46f3c640b6f0554cfdf3a31ef6e3fb8418944fde5e0cd0a68cc8ce",
+  "result": {
+    "state": "qualified",
+    "identity": {
+      "economy_a": "EZ",
+      "economy_b": "GB",
+      "lens": "nominal_policy_point_gap",
+      "definition": "absolute_gap_change_bp",
+      "method_version": "intl-ecb-boe-nominal-policy-point-v1",
+      "period": {
+        "mode": "fixed_dates",
+        "start": "2026-08-28",
+        "end": "2026-09-30"
+      },
+      "vintage_policy": "latest_vintage",
+      "identity": {
+        "principal_partition": null,
+        "saved_id": null,
+        "saved_revision": null,
+        "source_generation": "im-workspace-generation:f180e9f4-eeee-488d-b312-5a68d09ccf5c"
+      }
+    },
+    "signed_start_bp": -150,
+    "signed_end_bp": -125,
+    "signed_change_bp": 25,
+    "absolute_change_bp": -25,
+    "direction": "narrowed",
+    "crosses_zero": false,
+    "evidence_refs": [
+      {
+        "slot": "a_start",
+        "source_reference": "https://data-api.ecb.europa.eu/service/data/FM/D.U2.EUR.4F.KR.DFR.LEV?format=csvdata&startPeriod=1999-01-01",
+        "qualification_ref": "intl-policy-endpoint:sha256:aedd2cfbdb2b63c776375f678bc34f564f0c39c9085a4c8775bef0bf10277c9f",
+        "observation_at": "2026-08-28"
+      },
+      {
+        "slot": "a_end",
+        "source_reference": "https://data-api.ecb.europa.eu/service/data/FM/D.U2.EUR.4F.KR.DFR.LEV?format=csvdata&startPeriod=1999-01-01",
+        "qualification_ref": "intl-policy-endpoint:sha256:ab2e14dece4d8f7bc5bb5ce7b396047cd3a89bb866f87970a7b059c5448a980b",
+        "observation_at": "2026-09-30"
+      },
+      {
+        "slot": "b_start",
+        "source_reference": "https://www.bankofengland.co.uk/boeapps/database/_iadb-fromshowcolumns.asp?CodeVer=new&xml.x=yes&Datefrom=01%2FJan%2F2026&Dateto=02%2FNov%2F2026&SeriesCodes=IUDBEDR&VPD=N&VFD=Y&VUD=A",
+        "qualification_ref": "intl-policy-endpoint:sha256:d973df2184e2068a318123016d4f282a42ca5aa317714d887947d2157297a345",
+        "observation_at": "2026-08-28"
+      },
+      {
+        "slot": "b_end",
+        "source_reference": "https://www.bankofengland.co.uk/boeapps/database/_iadb-fromshowcolumns.asp?CodeVer=new&xml.x=yes&Datefrom=01%2FJan%2F2026&Dateto=02%2FNov%2F2026&SeriesCodes=IUDBEDR&VPD=N&VFD=Y&VUD=A",
+        "qualification_ref": "intl-policy-endpoint:sha256:59086d24879e3312e16e2a00d944e66e000a62ebc1d8968e3e26ee5626448787",
+        "observation_at": "2026-09-30"
+      }
+    ]
+  }
+}

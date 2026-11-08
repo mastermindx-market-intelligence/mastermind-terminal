@@ -125,7 +125,12 @@ test("mobile chrome keeps every target usable at 320px and contract widths",asyn
    await expect(page.getByRole("dialog")).toBeVisible();
    await expect(page.getByRole("dialog").getByRole("combobox")).toBeFocused();
    expect(await page.getByRole("dialog").evaluate(node=>node.closest(".topbar")===null)).toBe(true);
-   await expect(page.getByRole("dialog").getByRole("tab",{name:chinese?"股票":"Stocks",exact:true})).toBeVisible();
+   const scopes=page.getByRole("dialog").getByRole("group",{name:chinese?"搜索范围":"Search scope",exact:true});
+   const companies=scopes.getByRole("button",{name:chinese?/^公司(?:\s|$)/:/^Companies(?:\s|$)/});
+   const tools=scopes.getByRole("button",{name:chinese?/^工具(?:\s|$)/:/^Tools(?:\s|$)/});
+   await expect(companies).toBeVisible();await expect(companies).toHaveAttribute("aria-pressed","true");
+   await expect(tools).toBeVisible();await expect(tools).toHaveAttribute("aria-pressed","false");
+   await expect(page.getByRole("dialog").getByRole("region",{name:chinese?"公司结果":"Company results",exact:true})).toBeVisible();
    const skin=await page.getByRole("dialog").evaluate(node=>{
     const surface=node.matches(".msheet")?node:node.querySelector(".smodal");
     const probe=document.createElement("div");probe.style.backgroundColor="var(--panel)";document.body.append(probe);
@@ -158,12 +163,12 @@ test("company search selects one canonical company from desktop, tablet and phon
   : page.locator(".mobilebar").getByRole("button",{name:"Search companies",exact:true});
  await opener.click();
  const dialog=page.getByRole("dialog");await expect(dialog).toHaveCount(1);await expect(dialog).toBeVisible();
- await expect(dialog).toHaveAccessibleName("Search companies");
+ await expect(dialog).toHaveAccessibleName("Search companies and tools");
  const panel=dialog.locator(".smodal").count().then(count=>count?dialog.locator(".smodal"):dialog);
  const box=await (await panel).boundingBox();
  expect(box!.x).toBeGreaterThanOrEqual(0);expect(box!.x+box!.width).toBeLessThanOrEqual(page.viewportSize()!.width+1);
  await dialog.getByRole("combobox").fill("Apple");
- await expect(dialog.locator(".r .tk").first()).toHaveText("AAPL");
+ await expect(dialog.locator('[data-company-symbol="AAPL"]')).toContainText("AAPL");
  await page.screenshot({animations:"disabled",path:info.outputPath("company-search-selection.png")});
  await dialog.getByRole("combobox").press("Enter");
  await expect(dialog.getByRole("button",{name:"Open Analysis",exact:true})).toBeVisible();
@@ -183,7 +188,7 @@ test("phone company search keeps its scope in both languages and dismisses by to
   const opener=bar.getByRole("button",{name:chinese?"搜索公司":"Search companies",exact:true});
   await opener.tap();
   const dialog=page.getByRole("dialog");await expect(dialog).toHaveCount(1);
-  await expect(dialog).toHaveAccessibleName(chinese?"搜索公司":"Search companies");
+  await expect(dialog).toHaveAccessibleName(chinese?"搜索公司和工具":"Search companies and tools");
   await expect(dialog).toBeVisible();
   await page.screenshot({animations:"disabled",path:info.outputPath(`phone-scope-${chinese?"light-zh":"dark-en"}.png`)});
   await page.setViewportSize({width:320,height:844});

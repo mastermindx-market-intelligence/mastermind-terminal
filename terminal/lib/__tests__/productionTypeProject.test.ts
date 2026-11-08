@@ -40,7 +40,7 @@ describe("strict production TypeScript project", () => {
   it.each([
     ["production", "0", "0", "tsconfig.build.json", undefined],
     ["development", "0", "0", "tsconfig.json", undefined],
-    ["development", "1", "1", "tsconfig.json", undefined],
+    ["development", "1", "1", "tsconfig.f11.json", ".next/f11"],
   ])("preserves actual config selection for %s fixture=%s providerClosed=%s", async (mode, fixture, closed, project, distDir) => {
     vi.stubEnv("NODE_ENV", mode);
     vi.stubEnv("TERMINAL_E2E_FIXTURE", fixture);

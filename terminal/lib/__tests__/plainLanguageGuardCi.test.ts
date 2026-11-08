@@ -66,6 +66,30 @@ function stepBlock(jobText: string, stepName: string): string {
 const ENFORCE_STEP = "Plain-language guard (forward-only, added lines block)";
 const SELF_CHECK_STEP = "Plain-language guard self-check";
 const DISCLOSE_STEP = "Disclose quarantined e2e journeys";
+const UNIT_TEST_STEP = "Terminal unit tests";
+
+function assertUnitCommandBeforeGuards(unit: string): void {
+  const testStep = unit.indexOf(`- name: ${UNIT_TEST_STEP}`);
+  expect(unit.match(/^ {6}- name: Terminal unit tests$/gm)).toHaveLength(1);
+  const tests = stepBlock(unit, UNIT_TEST_STEP);
+  // The named step now exports the safe reporter's initialization signal.
+  // Its name alone cannot stand in for actually running the original suite.
+  expect(tests).toMatch(/^ {8}id: terminal_unit_tests$/m);
+  expect(tests).toMatch(/^ {8}run: npm test -- --reporter=default --reporter=github-actions --reporter=\.\/scripts\/unit-result-reporter\.mjs$/m);
+  expect(tests).toMatch(/^ {8}timeout-minutes: 20$/m);
+  const disclose = unit.indexOf(`- name: ${DISCLOSE_STEP}`);
+  const selfCheck = unit.indexOf(`- name: ${SELF_CHECK_STEP}`);
+  const enforce = unit.indexOf(`- name: ${ENFORCE_STEP}`);
+  expect(testStep).toBeGreaterThan(-1);
+  expect(disclose).toBeGreaterThan(testStep);
+  expect(selfCheck).toBeGreaterThan(disclose);
+  expect(enforce).toBeGreaterThan(selfCheck);
+}
+
+function moveStepBefore(unit: string, name: string, before: string): string {
+  const block = `      ${stepBlock(unit, name)}`;
+  return unit.replace(block, "").replace(`      - name: ${before}`, `${block}      - name: ${before}`);
+}
 
 function fixtureRoot(): string {
   const root = mkdtempSync(join(tmpdir(), "plg-ci-"));
@@ -152,19 +176,12 @@ describe("plain-language guard — CI wiring", () => {
   it("A3. both guard steps run LAST — after npm test and after the quarantine disclosure — inside the job that feeds the required check", () => {
     const text = readFileSync(workflowPath, "utf8");
     const unit = jobBlock(text, "terminal-unit");
-    const testStep = unit.indexOf("- run: npm test");
-    const disclose = unit.indexOf(`- name: ${DISCLOSE_STEP}`);
-    const selfCheck = unit.indexOf(`- name: ${SELF_CHECK_STEP}`);
-    const enforce = unit.indexOf(`- name: ${ENFORCE_STEP}`);
-    expect(testStep).toBeGreaterThan(-1);
-    expect(disclose).toBeGreaterThan(testStep);
+    assertUnitCommandBeforeGuards(unit);
     // The disclosure step's own comment promises it runs on EVERY run, but it
     // carries no `if: always()`. A guard step placed BEFORE it would, the first
     // time it found a blocking line, skip the disclosure outright and quietly
     // retract that promise — a green matrix would stop being annotated with
     // the journeys it does not cover. The guard goes last.
-    expect(selfCheck).toBeGreaterThan(disclose);
-    expect(enforce).toBeGreaterThan(selfCheck);
 
     // The aggregate job's name is what master's branch protection keys on, and
     // it must still depend on terminal-unit — otherwise a red guard step would
@@ -183,6 +200,20 @@ describe("plain-language guard — CI wiring", () => {
     expect(aggregate).toContain("e2e-scope:$SCOPE");
     expect(aggregate).toContain("terminal-unit:$UNIT");
     expect(aggregate).toContain("terminal-e2e:$E2E");
+  });
+
+  it.each([
+    ["a same-name step that does not execute the suite", (unit: string) => unit.replace("run: npm test --", "run: echo npm test --")],
+    ["a missing baseline GitHub reporter", (unit: string) => unit.replace(" --reporter=github-actions", "")],
+    ["a missing safe reporter", (unit: string) => unit.replace(" --reporter=./scripts/unit-result-reporter.mjs", "")],
+    ["a changed unit budget", (unit: string) => unit.replace("timeout-minutes: 20", "timeout-minutes: 21")],
+    ["self-check before the unit suite", (unit: string) => moveStepBefore(unit, SELF_CHECK_STEP, UNIT_TEST_STEP)],
+    ["enforcement before self-check", (unit: string) => moveStepBefore(unit, ENFORCE_STEP, SELF_CHECK_STEP)],
+    ["disclosure after self-check", (unit: string) => moveStepBefore(unit, SELF_CHECK_STEP, DISCLOSE_STEP)],
+    ["the suite moved out of its required job", (unit: string) => unit.replace(`      ${stepBlock(unit, UNIT_TEST_STEP)}`, "")],
+  ] as const)("A3 negative: rejects %s", (_label, mutate) => {
+    const unit = jobBlock(readFileSync(workflowPath, "utf8"), "terminal-unit");
+    expect(() => assertUnitCommandBeforeGuards(mutate(unit))).toThrow();
   });
 
   it("A4. the guard is invoked exactly twice inside terminal-unit (self-check, then enforce)", () => {

@@ -64,6 +64,8 @@ type Props = {
   /** Current editor inputs, independent of the last applied calculation. */
   onDraftInputChange?: (draft: OptionsPlanDraft | null) => void;
   onClose: () => void;
+  /** Synchronous incumbent lifetime guard; checked again after each async boundary. */
+  isScopeCurrent?: () => boolean;
 };
 
 /** A new account or retained selection gets a fresh editor/result controller.
@@ -72,7 +74,7 @@ type Props = {
 export function OptionsPlanPayoffPanel(props: Props) {
   return <PlanPayoffBody key={props.scopeKey} {...props} />;
 }
-function PlanPayoffBody({ draft, lang, onDraftChange, onDraftInputChange, onClose }: Props) {
+function PlanPayoffBody({ draft, lang, onDraftChange, onDraftInputChange, onClose, isScopeCurrent = () => true }: Props) {
   const t = (en: string, zh: string) => lang === "zh" ? zh : en;
   const [result, setResult] = useState<PlanPayoff | null>(null);
   const [coverage, setCoverage] = useState<PlanReferenceCoverage | null>(null);
@@ -82,20 +84,24 @@ function PlanPayoffBody({ draft, lang, onDraftChange, onDraftInputChange, onClos
   useEffect(() => () => { sequence.current++; controller.current?.abort(); }, []);
   useEffect(() => { if (result) answer.current?.focus(); }, [result]);
   const calculate = async (candidate: OptionsPlanDraft) => {
+    if (!isScopeCurrent()) {
+      sequence.current++; controller.current?.abort(); setResult(null); setCoverage(null); setStatus("access"); return;
+    }
     controller.current?.abort(); const own = ++sequence.current;
     setResult(null); setCoverage(null); setReason(""); onDraftChange(candidate);
     const request = preparePlanExpiryRequest(candidate);
     if (!request.ok) { setStatus("incomplete"); setReason(request.reason); return; }
+    if (!isScopeCurrent()) return;
     setStatus("loading"); controller.current = new AbortController();
     try {
       const response = await fetch("/api/options/plan/expiry", { method: "POST", cache: "no-store", credentials: "same-origin",
         headers: { "Content-Type": "application/json" }, body: JSON.stringify(request.value), signal: controller.current.signal });
-      if (own !== sequence.current) return;
+      if (own !== sequence.current || !isScopeCurrent()) return;
       if (!response.ok) {
         // Only the fixed proxy emits this small allowlisted summary. Revalidate
         // its shape before rendering; never render arbitrary upstream text.
         const body = await response.json().catch(() => null);
-        if (own !== sequence.current) return;
+        if (own !== sequence.current || !isScopeCurrent()) return;
         const c = body?.coverage;
         if (c && (c.root === "SPY" || c.root === "QQQ") && Number.isInteger(c.contract_count) && c.contract_count >= 1 && c.contract_count <= 100
           && Array.isArray(c.expirations) && c.expirations.length > 0 && c.expirations.length <= 100
@@ -104,11 +110,11 @@ function PlanPayoffBody({ draft, lang, onDraftChange, onDraftInputChange, onClos
         setStatus(response.status === 401 || response.status === 403 ? "access" : "unavailable"); return;
       }
       const parsed = readPlanPayoff(await response.json(), request.value);
-      if (own !== sequence.current) return;
+      if (own !== sequence.current || !isScopeCurrent()) return;
       if (!parsed) { setStatus("unavailable"); return; }
       setResult(parsed); setCoverage({ root: parsed.source_boundary.reference_root, contract_count: parsed.source_boundary.reference_contract_count,
         expirations: parsed.source_boundary.reference_expirations, as_of: parsed.source_boundary.reference_as_of, captured_at: parsed.source_boundary.reference_observed_at }); setStatus("ready");
-    } catch { if (own === sequence.current) setStatus("unavailable"); }
+    } catch { if (own === sequence.current && isScopeCurrent()) setStatus("unavailable"); }
   };
   const bound = (v: number | "UNBOUNDED", loss: boolean) => v === "UNBOUNDED" ? t(loss ? "Unbounded loss" : "Unbounded gain", loss ? "亏损无上限" : "收益无上限") : money(v, lang);
   const incomplete = reason === "expiry" ? t("Use contracts with the same expiry for this curve.", "此曲线须使用相同到期日的合约。")

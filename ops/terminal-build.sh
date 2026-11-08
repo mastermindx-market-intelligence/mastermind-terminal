@@ -15,6 +15,8 @@
 #   /opt/terminal/terminal-build.sh --target beta --target-sha <full-lowercase-40-hex>
 # USAGE (beta-only one-shot failed dirty upgrade recovery; immutable IDs required):
 #   /opt/terminal/terminal-build.sh --target beta --recover-attempt <32-hex> --pending-record-id <64-hex> --target-sha <40-hex>
+# OPTIONAL factual local HTTP observation (ordinary beta upgrade only; never global drain):
+#   /opt/terminal/terminal-build.sh --target beta --target-sha <full-40-hex> --observe-terminal-http
 # USAGE (beta-only FIRST-INSTALL bootstrap entrance; invalid for production):
 #   /opt/terminal/terminal-build.sh --target beta --bootstrap --target-sha <full-lowercase-40-hex>
 #
@@ -137,6 +139,7 @@ BETA_STATUS_URL=http://127.0.0.1:3001/api/shared-shell/status
 ENV_SOURCE_DIR="$APP"
 DEPLOY_LOCK_HELD=0
 BOOTSTRAP_REQUESTED=0
+HTTP_OBSERVATION_REQUESTED=0
 DEMOTE_ON_FAILURE=0
 BOOTSTRAP_MODE=
 BETA_BOOTSTRAP_SCRATCH=
@@ -2657,6 +2660,11 @@ def action_runtime(args):
         "previous_runtime_record_id": attempt.get("prior_runtime_record_id"),
         "runtime_accepted": True, "rollback_baseline": True,
     }
+    # Optional bounded FACTS only; absent/incomplete captures never gate a normal
+    # CLOSED installation and never imply global ingress/drain/OPEN readiness.
+    if (attempt.get("terminal_http_before",{}).get("state")=="observed"
+            and attempt.get("terminal_http_after",{}).get("state")=="observed"):
+        payload["terminal_http_observation"]=attempt["terminal_http_after"]["facts"]
     if attempt.get("recovery_from_record_id"):
         payload.update({key: attempt[key] for key in (
             "recovery_from_record", "recovery_from_record_id", "recovery_retained_builds")})
@@ -2693,7 +2701,100 @@ def action_demote(args):
     return 0
 
 
+def _http_module(attempt):
+    import subprocess
+    sha=full_sha(attempt.get("target_sha", ""), "HTTP observer source SHA")
+    repo=attempt.get("canonical_repo")
+    if not isinstance(repo,str) or norm(repo)!=repo: fail("HTTP observer owner source is invalid")
+    env=dict(os.environ,GIT_NO_LAZY_FETCH="1",GIT_OPTIONAL_LOCKS="0",GIT_TERMINAL_PROMPT="0")
+    protected=subprocess.run(["git","-C",repo,"merge-base","--is-ancestor",sha,"refs/remotes/origin/master"],capture_output=True,env=env)
+    code=subprocess.run(["git","-C",repo,"show",sha+":ops/investigation_http_closure.py"],capture_output=True,env=env)
+    if protected.returncode or code.returncode or len(code.stdout)>1048576: fail("HTTP observer protected source unavailable")
+    namespace={"__name__":"_owned_terminal_http_source"}
+    exec(compile(code.stdout,"<qualified-terminal-http-owner>","exec"),namespace)
+    return namespace
+
+
+def _http_save(target_root,state_dir,identifier,old_path,attempt):
+    attempt.pop("record_id",None)
+    path=publish(state_dir,f"attempt-{identifier}-http-{record_id(attempt)[:16]}.json",attempt)
+    replace_pointer(target_root,ATTEMPT_POINTER,path,old_path)
+    return path,read_record(path)
+
+
+def _http_action(args,stage):
+    target_root,state_dir,identifier,expected_id=args
+    old_path,attempt=read_attempt(target_root,state_dir,identifier)
+    hex64(expected_id,"HTTP observation original owner record")
+    if record_id(attempt)!=expected_id: fail("HTTP observation owner record changed")
+    field="terminal_http_"+stage
+    if field in attempt: fail("HTTP observation already started; preserve original result")
+    if stage=="before":
+        if attempt.get("phase")!="staging" or attempt.get("live_inputs_dirty") or not attempt.get("prior_runtime_record_id"):
+            fail("HTTP prior capture must precede this upgrade replacement")
+        current,_=pointer_destination(target_root,RUNTIME_POINTER)
+        prior=validated_runtime(target_root,state_dir,attempt["app_root"],attempt["canonical_repo"],"/opt/terminal/terminal",current)
+        if record_id(prior)!=attempt["prior_runtime_record_id"]: fail("HTTP prior accepted generation changed")
+        require_live_identity(attempt["app_root"],attempt["prior_sha"],attempt["prior_build_id"])
+    elif stage=="after":
+        if attempt.get("phase")!="validated" or attempt.get("terminal_http_before",{}).get("state")!="observed":
+            fail("HTTP drain unavailable without original prior capture and validated replacement")
+        require_live_identity(attempt["app_root"],attempt["target_sha"],attempt["build_id"])
+    else: fail("HTTP observation stage invalid")
+    module=_http_module(attempt)
+    # The existing attempt records the original stage BEFORE the first native
+    # read. Failure/response loss is not an invitation to replace that stage.
+    attempt[field]={"state":"observing","source_record_id":expected_id}
+    started_path,started=_http_save(target_root,state_dir,identifier,old_path,attempt)
+    try:
+        if stage=="before":
+            facts=module["capture_before"](attempt["canonical_repo"],attempt["target_sha"])
+            beta=next(u for u in facts["units"] if u["unit"]=="terminal-beta")
+            if beta["source_sha"]!=attempt["prior_sha"] or beta["build_id"]!=attempt["prior_build_id"]:
+                raise ValueError("HTTP prior generation mismatch")
+        else:
+            facts=module["capture_after"](attempt["canonical_repo"],attempt["target_sha"],attempt["terminal_http_before"]["facts"],attempt["target_sha"],attempt["build_id"])
+        result={"state":"observed","source_record_id":expected_id,"facts":facts}
+    except Exception as error:
+        # No raw config, headers, environment, command line or exception prose.
+        code=error.args[0] if isinstance(error,module["Unavailable"]) and error.args else "http_owner_observation_unavailable"
+        if not isinstance(code,str) or re.fullmatch(r"[a-z0-9_]{1,96}",code)is None: code="http_owner_observation_unavailable"
+        result={"state":"unavailable","source_record_id":expected_id,"reason":code}
+    path,now=read_attempt(target_root,state_dir,identifier)
+    if norm(path)!=norm(started_path) or record_id(now)!=record_id(started): fail("HTTP owner changed during observation; original intent retained")
+    now[field]=result
+    final,_=_http_save(target_root,state_dir,identifier,path,now)
+    if result["state"]!="observed": fail("HTTP observation unavailable: "+result["reason"])
+    print(final)
+    return 0
+
+
+def action_http_before(args):
+    return _http_action(args,"before")
+
+
+def action_http_after(args):
+    return _http_action(args,"after")
+
+
+def action_http_observe(args):
+    target_root,state_dir,app_root,repo,production_app=args
+    path,_=pointer_destination(target_root,RUNTIME_POINTER)
+    record=validated_runtime(target_root,state_dir,app_root,repo,production_app,path)
+    facts=record.get("terminal_http_observation")
+    if not facts: fail("HTTP drain unavailable: accepted generation has no owned observation")
+    module=_http_module({"target_sha":record["accepted_sha"],"canonical_repo":record["canonical_repo"]})
+    try: result=module["observe_current"](repo,record["accepted_sha"],facts)
+    except Exception: fail("HTTP current owner observation unavailable; no fallback or retry")
+    print(json.dumps(result,sort_keys=True,separators=(",",":")))
+    return 0
+
+
 ACTIONS = {
+    "http-pending-id": lambda args: print(record_id(read_attempt(*args)[1])) or 0,
+    "http-before": action_http_before,
+    "http-after": action_http_after,
+    "http-observe": action_http_observe,
     "inventory": action_inventory,
     "members": action_members,
     "admit": action_admit,
@@ -2993,6 +3094,24 @@ beta_publish_runtime_accepted(){
   RUNTIME_RECORD_PATH=$outcome
   log "beta generation runtime-accepted: $RUNTIME_RECORD_PATH"
   return 0
+}
+
+# Optional factual observation in this SAME transaction; never an OPEN/drain
+# grant or an acceptance gate for an ordinary CLOSED install. No environment
+# opt-in and no second publisher. Failed/unfinished stages remain immutable in
+# the existing private attempt; they cannot be overwritten by another sample.
+beta_http_capture(){
+  local stage=$1 pending outcome
+  [ "$HTTP_OBSERVATION_REQUESTED" = 1 ] || return 0
+  [ "$TARGET" = beta ] && [ "$DEPLOY_LOCK_HELD" = 1 ] && [ -n "$BETA_TXN_ID" ] || {
+    log "FATAL: HTTP observation requires this beta transaction's shared hold"; return 73;
+  }
+  pending=$(beta_statectl http-pending-id "$BETA_TARGET_ROOT" "$SOURCE_PROVISIONED_STATE_DIR" "$BETA_TXN_ID") || return $?
+  if ! outcome=$(beta_statectl "http-$stage" "$BETA_TARGET_ROOT" "$SOURCE_PROVISIONED_STATE_DIR" "$BETA_TXN_ID" "$pending" 2>&1); then
+    log "HTTP $stage observation unavailable; existing attempt retains original stage; no global drain claim"
+    return 0
+  fi
+  log "HTTP $stage factual owner observation retained in existing attempt"
 }
 
 beta_bootstrap_demote(){
@@ -3830,6 +3949,7 @@ beta_txn_begin(){
   NEW_BUILD_ID=
   BETA_TXN_COMMITTED=0
   BETA_TXN_INPUTS_DIRTY=0
+  beta_http_capture before || return $?
   # Before any live dependency/source write or generation move, prevent a reboot
   # from starting the not-yet-accepted candidate. Existing A may keep serving.
   systemctl disable "$SERVICE_NAME" || return $?
@@ -4402,6 +4522,7 @@ beta_txn_commit(){
   [ "$PREFLIGHT_ACCEPTED_SHA" = "$FULL_SHA" ] || { log "FATAL: beta final source receipt is not the candidate SHA"; return 75; }
   beta_unit_declares_shared_shell active disabled || return $?
   beta_txn_phase validated "$NEW_BUILD_ID" || return $?
+  beta_http_capture after || return $?
   beta_txn_phase committing "$NEW_BUILD_ID" || return $?
   beta_publish_runtime_accepted "$FULL_SHA" "$NEW_BUILD_ID" || return $?
   BETA_TXN_COMMITTED=1
@@ -5567,7 +5688,7 @@ def classify_project_npm_config(repository, revision, listing, app_root):
             path, MAX_ENV_FILE_BYTES, "project-npm-configuration"))
 
 
-def classify_serving_processes(unit, app_root):
+def classify_serving_processes(unit, app_root, *, require_closed=True):
     if unit_property(unit, "ActiveState") != "active":
         raise Refused("service-not-active")
     main_text = unit_property(unit, "MainPID")
@@ -5602,6 +5723,7 @@ def classify_serving_processes(unit, app_root):
         return collected
     collected = descendants(capture=True)
     roles = {}
+    initial_closed = {}
     for pid in collected:
         role = serving_role(proc_cmdline(pid), proc_comm(pid))
         if role == "unknown":
@@ -5629,9 +5751,10 @@ def classify_serving_processes(unit, app_root):
         refuse_launch_overrides(item.decode("utf-8", "replace")
                                 for item in initial_env.split(b"\0") if item)
         values = admission_values_in_proc_environ(initial_env)
-        if len(values) > 1:
+        initial_closed[pid] = len(values)==1 and values[0]==CLOSED_VALUE
+        if require_closed and len(values) > 1:
             raise Refused("serving-process-admission-conflict")
-        if not values or values[0] != CLOSED_VALUE:
+        if require_closed and (not values or values[0] != CLOSED_VALUE):
             raise Refused("serving-process-admission-not-closed")
     if (unit_property(unit, "ActiveState") != "active"
             or unit_property(unit, "MainPID") != main_text
@@ -5643,6 +5766,10 @@ def classify_serving_processes(unit, app_root):
             raise Refused("process-identity-changed-during-verification")
         if proc_cgroup_path(pid) != main_cgroup:
             raise Refused("process-identity-changed-during-verification")
+
+    return {"cgroup": main_cgroup, "processes": [
+        {"pid": pid, "start_ticks": expected_starttimes[pid], "role": roles[pid],
+         "initial_closed": initial_closed[pid]} for pid in collected]}
 
 
 def main(argv):
@@ -5844,7 +5971,7 @@ if [ "${BASH_SOURCE[0]}" != "$0" ]; then
 fi
 
 # ── argument form -> profile -> SHA. Nothing here touches the filesystem. ──────
-# Four explicit forms are accepted: the production default, ordinary beta,
+# Existing forms plus one optional beta factual-observation form are accepted: the production default, ordinary beta,
 # beta bootstrap, and exact one-shot beta recovery. The profile flag,
 # when present, comes first and --bootstrap is valid only with --target beta. There
 # is no environment variable, config file or positional shortcut that selects a
@@ -5861,6 +5988,10 @@ if [ "$#" -eq 2 ] && [ "$1" = "--target-sha" ]; then
 elif [ "$#" -eq 4 ] && [ "$1" = "--target" ] && [ "$3" = "--target-sha" ]; then
   TARGET_REQUESTED=$2
   TARGET_SHA=$4
+elif [ "$#" -eq 5 ] && [ "$1" = "--target" ] && [ "$2" = beta ] && [ "$3" = "--target-sha" ] && [ "$5" = "--observe-terminal-http" ]; then
+  TARGET_REQUESTED=beta
+  TARGET_SHA=$4
+  HTTP_OBSERVATION_REQUESTED=1
 elif [ "$#" -eq 5 ] && [ "$1" = "--target" ] && [ "$3" = "--bootstrap" ] && [ "$4" = "--target-sha" ]; then
   TARGET_REQUESTED=$2
   TARGET_SHA=$5

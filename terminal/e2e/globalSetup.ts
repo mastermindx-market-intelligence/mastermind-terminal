@@ -1,5 +1,5 @@
 /**
- * globalSetup — compile every route the suite uses BEFORE any spec's clock starts.
+ * globalSetup — warm configured routes before each spec clock starts.
  *
  * ── The failure this removes ──────────────────────────────────────────────────────────────
  *
@@ -30,14 +30,33 @@
  * the measured cause directly. Raising timeouts was rejected outright — it hides the signal,
  * and since the set rotates, the next cold run simply picks different victims.
  *
+ * Current qualification records headers and bounded body completion separately.
+ * Historical compilation measurements above do not prove the cause of run42400936830's
+ * later navigation stall. Selected /analysis HTML readiness is a prospective fixture
+ * prerequisite, not client hydration, source authority or a broader runtime claim.
+ *
  * Keep ROUTES in fixtureWarmup.cjs in step with the suite. A route that is missing here is not broken, it is merely
  * back to paying its own compile; the list is derived from every `page.goto()` in e2e/.
  */
 import type { FullConfig } from "@playwright/test";
 import { warmFixtureRoutes } from "./fixtureWarmup.cjs";
+import { record } from "./fixtureDiagnostics.cjs";
 
 export default async function globalSetup(config: FullConfig): Promise<void> {
   const base = config.projects[0]?.use?.baseURL
     ?? `http://127.0.0.1:${process.env.TERMINAL_E2E_PORT || 3108}`;
-  await warmFixtureRoutes(base);
+  record({ phase: "checkout" });
+  record({ phase: "global_setup_started" });
+  try {
+    await warmFixtureRoutes(base, {
+      // Prospective fixture HTML readiness, not compiler/client hydration proof.
+      // API 401/404/409/redirect statuses keep their compile-probe semantics.
+      requiredHtmlRoutes: ["/analysis"],
+      onOutcome: record,
+    });
+    record({ phase: "global_setup_complete" });
+  } catch (error) {
+    record({ phase: "global_setup_failed", errorName: error instanceof Error ? error.name : "OtherError" });
+    throw error;
+  }
 }

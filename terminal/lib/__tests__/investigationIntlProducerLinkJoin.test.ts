@@ -1,0 +1,16 @@
+import {expect,it,vi} from "vitest";
+import {readFileSync,readdirSync} from "node:fs";
+import {join} from "node:path";
+import {createHash} from "node:crypto";
+import {parseAnalysisRoute} from "../analysisRoute";
+import {intlBaselineUrl,parseIntlBaselineReply,safeIntlReturn} from "../investigationIntlEntry";
+import {createIntlInvestigationHandlers} from "../investigationIntlApi";
+import {decodeIntlGeneration,parseIntlPublicationPolicies} from "../investigationIntlGenerationCodec";
+const dir=join(__dirname,"fixtures/intl_policy_generation_actual_20261104"),raw=readFileSync(join(dir,"actual-producer-hrefs.json")),producer=JSON.parse(raw.toString("utf8"));
+type Row={navigation:string;view:string;field:string;href:string;return_url:string;context_id:string;generation:string;fingerprint:string;field_ids:string[];source_context:{market:string;horizon:string;currency_basis:string;return_basis:string}};
+it("consumes the exact original helper result without manufacturing links or rebuilding generation",()=>{expect(raw.byteLength).toBe(19732);expect(createHash("sha256").update(raw).digest("hex")).toBe("4ad588195f2662904585cd2cfd79fdc9d8e93f4fa152b33f2bd505590faba2fe");expect(producer.source).toBe("d1c5a4421208a34d4e65181a7dd854be354ecd24");expect(producer.network_attempts).toEqual([]);expect(producer.cases).toHaveLength(12);});
+for(const row of producer.cases as Row[])it(`actual ${row.view}/${row.field}/${row.navigation} → strict intake → native qualified baseline`,async()=>{
+ const url=new URL(row.href,"https://terminal.test"),route=parseAnalysisRoute(Object.fromEntries(url.searchParams));expect(route.kind).toBe("investigations");if(route.kind!=="investigations"||!route.intlEntry)throw Error("invalid actual input");expect(route.intlEntry).toEqual({context:row.context_id,generation:producer.generation,fingerprint:producer.artifact_sha256,fields:row.field_ids});expect(route.intlReturnTo).toBe(row.return_url);
+ const files=new Map(readdirSync(dir).filter(n=>n.startsWith("intl_generation_")).map(n=>[n,readFileSync(join(dir,n))]));const fetcher=vi.fn<typeof fetch>(async(input,init)=>{expect(init?.method??"GET").toBe("GET");expect(init?.credentials).toBe("omit");const name=new URL(String(input)).pathname.split("/").at(-1)!;expect(name).not.toContain("intl_policy_points_");if(!files.has(name))throw Error("Unexpected immutable input "+name);return new Response(files.get(name),{headers:{"content-type":"application/json"}});});
+ const handler=createIntlInvestigationHandlers({decodeIntlGeneration,parseIntlPublicationPolicies},{base:"https://synthetic.source.test",fetcher});const result=await handler.baseline(new Request("https://terminal.test"+intlBaselineUrl(route.intlEntry)),"90000000-0000-4000-8000-000000000009");expect(result.status).toBe(200);const baseline=parseIntlBaselineReply(result.body,route.intlEntry);expect(baseline).not.toBeNull();expect(baseline!.subject).toEqual({owner:"intl.workspace_context",kind:"economy",object_id:row.context_id});expect(baseline!.refs.map(r=>r.selection?.field)).toEqual(row.field_ids);expect(baseline!.context).toEqual({researchMarket:row.source_context.market,periodIdentity:row.source_context.horizon,currencyBasis:row.source_context.currency_basis,returnBasis:row.source_context.return_basis});expect(safeIntlReturn(route.intlReturnTo,baseline!.context)).toBe(row.return_url);
+});

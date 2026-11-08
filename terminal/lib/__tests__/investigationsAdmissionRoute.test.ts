@@ -1,8 +1,15 @@
+// Fixture process born OPEN; kernel-reader behavior is tested separately with mocked IO.
+const bootFixture=vi.hoisted(()=>({closed:false}));
+vi.mock("@/lib/investigationBootAdmission",()=>({readInvestigationBootAdmission:()=>true,
+ hasObservedInvestigationClosure:()=>bootFixture.closed,observeInvestigationClosure:()=>{bootFixture.closed=true}}));
+// Fresh controlled request realm per case, never a production latch reset.
+beforeEach(()=>{bootFixture.closed=false});
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const { rpc, getUser, createClient } = vi.hoisted(() => ({ rpc: vi.fn(), getUser: vi.fn(), createClient: vi.fn(async () => ({ rpc, auth: { getUser } })) }));
 vi.mock("@/lib/supabase/server", () => ({createClient}));
 vi.mock("@/lib/rateLimit",()=>({rateLimit:()=>({ok:true})}));
-import { GET } from "@/app/api/investigations/route";
+let GET:typeof import("@/app/api/investigations/route").GET;
+beforeEach(async()=>{vi.resetModules();({GET}=await import("@/app/api/investigations/route"))});
 const id="10000000-0000-4000-8000-000000000001";
 beforeEach(()=>{rpc.mockReset();getUser.mockReset();createClient.mockClear();getUser.mockResolvedValue({data:{user:{id}},error:null});});
 const U="https://terminal.test/api/investigations";

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useEffectEvent, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import Link from "next/link";
 import { useLang, useT } from "@/lib/i18n";
 import { subjectKindLabel } from "@/lib/plainLabels";
 import { parseAnalysisSearchParams } from "@/lib/analysisRoute";
@@ -394,6 +395,16 @@ function listingSubject(symbol: string): ThesisSubjectRef {
   };
 }
 
+function subjectDisplayLabel(display: string, groupKey: string, lang: "en" | "zh"): string {
+  // Translate only our generated listing label. Keep canonical subject data and
+  // authored labels intact, and use the captured group key even after rows leave.
+  const prefix = "terminal.analysis_symbol|issuer|";
+  if (lang !== "zh" || !groupKey.startsWith(prefix)) return display;
+  const symbol = groupKey.slice(prefix.length);
+  if (normalizeAnalysisSymbol(symbol) !== symbol || display !== `${symbol} · listing scoped`) return display;
+  return `${symbol} · ${COPY.zh.listingScoped}`;
+}
+
 function exactObjectKeys(value: Record<string, unknown>, expected: readonly string[]): boolean {
   const actual = Object.keys(value);
   const keys = new Set(expected);
@@ -559,6 +570,10 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   // selected record, even if the server props and selection state did not change.
   const browserLocation = useSyncExternalStore(subscribeThesisLocation, thesisLocation, serverThesisLocation);
   const initialSymbolKey = normalizeAnalysisSymbol(initialSymbol) ?? "";
+  // Mount-only fallback for history initialization. Later prop/locale updates
+  // must not reinitialize context already validated by a canonical thesis read.
+  // Analysis keys this workspace by owner and thesis; a new mount gets new inputs.
+  const mountRoute = useRef({ symbol: initialSymbolKey, thesisId: initialThesisId });
   const [listState, setListState] = useState<LoadState>(invalidLink ? "ready" : "loading");
   const [detailState, setDetailState] = useState<DetailState>(initialThesisId ? "loading" : "idle");
   const [theses, setTheses] = useState<ThesisSummary[]>([]);
@@ -658,6 +673,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [missingIds, setMissingIds] = useState<Set<string>>(new Set());
   const lensRefs = useRef<Partial<Record<RmsViewId, HTMLButtonElement | null>>>({});
   const detailRequest = useRef(0);
+  const listRequest = useRef(0);
   const statementEditRevision = useRef(0);
   const routeDiscardAuthorized = useRef(false);
   const historyPositionRef = useRef(0);
@@ -739,7 +755,10 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     // for an invalid link. Both are now derived together, in the same tick.
     setTheses([]);
     setListState(invalidLinkRef.current ? "ready" : "loading");
-    return () => { detailRequest.current += 1; };
+    return () => {
+      detailRequest.current += 1;
+      listRequest.current += 1;
+    };
   }, [ownerKey]);
   // Round-2 review r3 minor 1/2: the rail's ARIA orientation must track the same
   // 600px breakpoint the CSS switches the tablist to a horizontal scroller at — read
@@ -860,8 +879,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     }
     const params = new URLSearchParams(window.location.search);
     const route = parseAnalysisSearchParams(params);
-    const company = normalizeAnalysisSymbol(route.kind === "theses" ? route.symbol : initialSymbolKey) ?? "";
-    const thesisId = route.kind === "theses" ? route.thesisId : initialThesisId;
+    const company = normalizeAnalysisSymbol(route.kind === "theses" ? route.symbol : mountRoute.current.symbol) ?? "";
+    const thesisId = route.kind === "theses" ? route.thesisId : mountRoute.current.thesisId;
     contextCompany.current = company;
     if (hasMarketOntologyContext(params) && !company) {
       const url = new URL(window.location.href);
@@ -873,7 +892,6 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     // canonical load names the anchored company — the same rule as a reopen from the
     // list. Without that, a link whose thesis belongs to another company would carry a
     // strip that was never validated against what is on screen.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMarketOntologyContext(thesisId ? null : mountedContext);
   }, []);
 
@@ -1121,7 +1139,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   // last thesis was edited to a different subject or removed from the loaded list
   // while the filter stayed active. `subjectFilterLabel` is captured once, at the
   // moment of selection, and never re-looked-up.
-  const filteredSubjectDisplay = subjectFilterKey ? subjectFilterLabel : null;
+  const filteredSubjectDisplay = subjectFilterKey && subjectFilterLabel
+    ? subjectDisplayLabel(subjectFilterLabel, subjectFilterKey, lang) : null;
   const clearSubjectFilter = useCallback(() => {
     setSubjectFilterKey(null);
     setSubjectFilterLabel(null);
@@ -1527,8 +1546,13 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   }, [copy.confirmDiscard, isDirty, pending]);
 
   const loadList = useCallback(async () => {
+    // Clearing rows on an owner change is insufficient: an earlier request can
+    // finish afterwards. Keep successes, decoding and failures on this read's
+    // generation, including an A→B→A owner change or a newer same-owner refresh.
+    const token = ++listRequest.current;
     try {
       const response = await fetch("/api/theses", { cache: "no-store" });
+      if (token !== listRequest.current) return;
       if (response.status === 401) return setListState("session_expired");
       if (!response.ok) {
         setListState("unavailable");
@@ -1536,6 +1560,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
         return;
       }
       const payload = await response.json();
+      if (token !== listRequest.current) return;
       if (!Array.isArray(payload.theses)) {
         setListState("unavailable");
         setMobilePane("list");
@@ -1545,6 +1570,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       setTruncated(payload.truncated === true);
       setListState("ready");
     } catch {
+      if (token !== listRequest.current) return;
       setListState("unavailable");
       setMobilePane("list");
     }
@@ -2285,7 +2311,12 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       <main className={`main2 ws-shell ${styles.root}`} data-testid="thesis-workspace">
         <section className={styles.centerState} role="status" data-testid="thesis-invalid-link">
           <span className={styles.stateMark}>!</span><h1>{copy.invalidLink}</h1><p>{copy.invalidLinkBody}</p>
-          <a className={styles.primaryButton} href="/analysis?view=theses">{copy.title}</a>
+          <Link className={styles.primaryButton} href="/analysis?view=theses" prefetch={false}
+            onNavigate={(event) => {
+              // Leave the invalid workspace through a full-document handoff.
+              event.preventDefault();
+              window.location.assign("/analysis?view=theses");
+            }}>{copy.title}</Link>
         </section>
       </main>
     );
@@ -2549,7 +2580,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                   ? <div className={styles.emptyLens} data-testid="rms-empty"><p>{lensViewEmptyCopy ?? rms.empty.coverage}</p></div>
                   : coverageViewRows.map((row) => (
                     <button key={row.key} type="button" className={styles.subjectRow} onClick={() => filterBySubject(row)}>
-                      <span><strong>{row.display}</strong><i data-state={row.active > 0 ? "active" : "idle"} /></span>
+                      <span><strong>{subjectDisplayLabel(row.display, row.key, lang)}</strong><i data-state={row.active > 0 ? "active" : "idle"} /></span>
                       {/* m3 (round-2 review): words, not a bare ratio (plain-language law). */}
                       <small>{rms.coverageRatio.replace("{active}", String(row.active)).replace("{theses}", String(row.theses))}</small>
                     </button>

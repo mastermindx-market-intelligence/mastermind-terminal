@@ -1,0 +1,55 @@
+{
+  "bundle": "f967ca83d7d239506fb290b2bc92a91bb6931d3c406a5dfe96add8cfd785a9ce",
+  "controller": "e5e3a76ec1277f80266a153829360e4e8cc40e277d5250e806ecb7d3d89458aa",
+  "rows": [
+    {
+      "selection": {
+        "view": "macro",
+        "market": "GB",
+        "pins": [
+          "GB",
+          "EZ"
+        ],
+        "horizon": "3m",
+        "basis": "local",
+        "field": "GB.policy_rate"
+      },
+      "canonical": "/intl.html?view=macro&market=GB&pins=GB,EZ&horizon=3m&basis=local&return_basis=price&group=",
+      "return": "https://www.mastermind-x.com/intl.html?view=macro&market=GB&pins=GB,EZ&horizon=3m&basis=local&return_basis=price&group=",
+      "standaloneHref": "https://app.mastermind-x.com/analysis?view=investigations&intl_context=intl-workspace-context%3Asha256%3A1807a6a6b9c3428f0a152b1f8bfa570b8f8647ca94dd998bb908886c885b3185&intl_generation=im-workspace-generation%3Af180e9f4-eeee-488d-b312-5a68d09ccf5c&intl_fingerprint=0dc2265e5985adaff29f0c2efbf7191be9f80472a6c0f73646a4ac1b5776f8b8&intl_field=GB.policy_rate&intl_return=https%3A%2F%2Fwww.mastermind-x.com%2Fintl.html%3Fview%3Dmacro%26market%3DGB%26pins%3DGB%2CEZ%26horizon%3D3m%26basis%3Dlocal%26return_basis%3Dprice%26group%3D",
+      "relative": "/analysis?view=investigations&intl_context=intl-workspace-context%3Asha256%3A1807a6a6b9c3428f0a152b1f8bfa570b8f8647ca94dd998bb908886c885b3185&intl_generation=im-workspace-generation%3Af180e9f4-eeee-488d-b312-5a68d09ccf5c&intl_fingerprint=0dc2265e5985adaff29f0c2efbf7191be9f80472a6c0f73646a4ac1b5776f8b8&intl_field=GB.policy_rate&intl_return=https%3A%2F%2Fwww.mastermind-x.com%2Fintl.html%3Fview%3Dmacro%26market%3DGB%26pins%3DGB%2CEZ%26horizon%3D3m%26basis%3Dlocal%26return_basis%3Dprice%26group%3D",
+      "serializedQuery": "view=investigations&intl_context=intl-workspace-context%3Asha256%3A1807a6a6b9c3428f0a152b1f8bfa570b8f8647ca94dd998bb908886c885b3185&intl_generation=im-workspace-generation%3Af180e9f4-eeee-488d-b312-5a68d09ccf5c&intl_fingerprint=0dc2265e5985adaff29f0c2efbf7191be9f80472a6c0f73646a4ac1b5776f8b8&intl_field=GB.policy_rate&intl_return=https%3A%2F%2Fwww.mastermind-x.com%2Fintl.html%3Fview%3Dmacro%26market%3DGB%26pins%3DGB%2CEZ%26horizon%3D3m%26basis%3Dlocal%26return_basis%3Dprice%26group%3D",
+      "identity": {
+        "context": "intl-workspace-context:sha256:1807a6a6b9c3428f0a152b1f8bfa570b8f8647ca94dd998bb908886c885b3185",
+        "generation": "im-workspace-generation:f180e9f4-eeee-488d-b312-5a68d09ccf5c",
+        "fingerprint": "0dc2265e5985adaff29f0c2efbf7191be9f80472a6c0f73646a4ac1b5776f8b8",
+        "field": "GB.policy_rate"
+      }
+    },
+    {
+      "selection": {
+        "view": "risk",
+        "market": "EZ",
+        "pins": [
+          "GB",
+          "EZ"
+        ],
+        "horizon": "1m",
+        "basis": "usd_unhedged",
+        "field": "EZ.annual_current_account"
+      },
+      "canonical": "/intl.html?view=risk&market=EZ&pins=GB,EZ&horizon=1m&basis=usd_unhedged&return_basis=price&group=",
+      "return": "https://www.mastermind-x.com/intl.html?view=risk&market=EZ&pins=GB,EZ&horizon=1m&basis=usd_unhedged&return_basis=price&group=",
+      "standaloneHref": "https://app.mastermind-x.com/analysis?view=investigations&intl_context=intl-workspace-context%3Asha256%3A7ec67830beee8562216756553bb3e861d3377ab284dbd29f4ce44261b0eaec88&intl_generation=im-workspace-generation%3Af180e9f4-eeee-488d-b312-5a68d09ccf5c&intl_fingerprint=0dc2265e5985adaff29f0c2efbf7191be9f80472a6c0f73646a4ac1b5776f8b8&intl_field=EZ.annual_current_account&intl_return=https%3A%2F%2Fwww.mastermind-x.com%2Fintl.html%3Fview%3Drisk%26market%3DEZ%26pins%3DGB%2CEZ%26horizon%3D1m%26basis%3Dusd_unhedged%26return_basis%3Dprice%26group%3D",
+      "relative": "/analysis?view=investigations&intl_context=intl-workspace-context%3Asha256%3A7ec67830beee8562216756553bb3e861d3377ab284dbd29f4ce44261b0eaec88&intl_generation=im-workspace-generation%3Af180e9f4-eeee-488d-b312-5a68d09ccf5c&intl_fingerprint=0dc2265e5985adaff29f0c2efbf7191be9f80472a6c0f73646a4ac1b5776f8b8&intl_field=EZ.annual_current_account&intl_return=https%3A%2F%2Fwww.mastermind-x.com%2Fintl.html%3Fview%3Drisk%26market%3DEZ%26pins%3DGB%2CEZ%26horizon%3D1m%26basis%3Dusd_unhedged%26return_basis%3Dprice%26group%3D",
+      "serializedQuery": "view=investigations&intl_context=intl-workspace-context%3Asha256%3A7ec67830beee8562216756553bb3e861d3377ab284dbd29f4ce44261b0eaec88&intl_generation=im-workspace-generation%3Af180e9f4-eeee-488d-b312-5a68d09ccf5c&intl_fingerprint=0dc2265e5985adaff29f0c2efbf7191be9f80472a6c0f73646a4ac1b5776f8b8&intl_field=EZ.annual_current_account&intl_return=https%3A%2F%2Fwww.mastermind-x.com%2Fintl.html%3Fview%3Drisk%26market%3DEZ%26pins%3DGB%2CEZ%26horizon%3D1m%26basis%3Dusd_unhedged%26return_basis%3Dprice%26group%3D",
+      "identity": {
+        "context": "intl-workspace-context:sha256:7ec67830beee8562216756553bb3e861d3377ab284dbd29f4ce44261b0eaec88",
+        "generation": "im-workspace-generation:f180e9f4-eeee-488d-b312-5a68d09ccf5c",
+        "fingerprint": "0dc2265e5985adaff29f0c2efbf7191be9f80472a6c0f73646a4ac1b5776f8b8",
+        "field": "EZ.annual_current_account"
+      }
+    }
+  ],
+  "scope": "Source-only actual emitted HTML/reducer/controller painted href extraction. No bridge/browser/network or identity grant simulated."
+}

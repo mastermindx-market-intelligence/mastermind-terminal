@@ -1,0 +1,18 @@
+# One focused Shared Shell light Claim native-controls observation; separate from dark40
+# capturedAtHead: a082d97dd06ccd1e53a2460fced3ef0a1fc70990
+theme: light
+languages: [en]
+viewports: [{ name: desktop, width: 1440, height: 900 }]
+layoutFiles:
+  terminal/components/workspaces/ClaimAuthoringForm.tsx: "58c9be616f9ef5b7d90c7efdc164138ef76bdc6d7ffd590ff27ad904bfea4a3f"
+  terminal/components/workspaces/ClaimAuthoringForm.module.css: "0bff5198770f22d3d286630aae5a3bab6b0728ec80a990aaccf1d1f589b89d3b"
+  terminal/lib/claimAuthoring.ts: "b87652bc9c484de109395fb1d5b8dd8a0ba0ddb0ff8e88d629c4bd616b535ed5"
+  terminal/components/workspaces/ThesisWorkspace.tsx: "3473df42441d27f33ec132ca1a69101f6ed24cbd7b7237602657d2457a0c74af"
+  terminal/components/chrome/shared-shell/shared-shell.css: "2b3417366f58b0d25588b6d6bf6a2346f47ad84403885066946c5a2f18b1c116"
+  terminal/components/chrome/shared-shell/SharedShellPresentation.tsx: "a57b68b36686f83a7a7095aa498b3fcc310982853e8008d48abee35213d9071c"
+  terminal/app/(shell)/layout.tsx: "7206e216f07e0e4371777bfff860f851fac6da356225601b3dbb6a0affc9bf95"
+observation: {"sharedShell":"1","theme":"light","lang":"en","lightPressed":"true","viewport":{"width":1440,"height":900},"panelToken":"#ffffff","panelBackground":"rgb(255, 255, 255)","panelText":"rgb(32, 38, 50)","dateBackground":"rgb(238, 241, 246)","dateScheme":"light","checkboxScheme":"light","dateValue":"2026-11-09","checkboxChecked":true,"checkboxAccent":"auto","dateAppearance":"auto","checkboxAppearance":"auto"}
+deliveredStyles: [{"path":"/_next/static/css/_app-pages-browser_components_workspaces_ThesisWorkspace_tsx.css","bytes":37781,"sha256":"fff1a492b63b4d70e685e97916dc622035550f933bb9442f1bc4717fa00b6a6f","sharedShell":false,"claimForm":true},{"path":"/_next/static/css/app/(shell)/analysis/loading.css","bytes":5030,"sha256":"83745d257e661783a46cd1f8c50636017f5956d10142cd2d6c1d823c57e2555e","sharedShell":false,"claimForm":false},{"path":"/_next/static/css/app/(shell)/analysis/page.css","bytes":15796,"sha256":"46a193a55f2bfb25694720e837bf359aa6f0a9c515bccd04912ce28f5fabf17a","sharedShell":false,"claimForm":false},{"path":"/_next/static/css/app/(shell)/layout.css","bytes":35469,"sha256":"0e442f229988f18bdf630aec996c5fa30187d9f6bb835b16c213cbb7a8be43d4","sharedShell":true,"claimForm":false},{"path":"/_next/static/css/app/error.css","bytes":3139,"sha256":"46bd85868b81a19ad5a4660967fc827b63f9eddc666b64a73cf6776eaee5e4b3","sharedShell":false,"claimForm":false},{"path":"/_next/static/css/app/global-error.css","bytes":3139,"sha256":"46bd85868b81a19ad5a4660967fc827b63f9eddc666b64a73cf6776eaee5e4b3","sharedShell":false,"claimForm":false},{"path":"/_next/static/css/app/layout.css","bytes":820196,"sha256":"0ac3acd4da2f7be43783bd59879555c463a0778165c06741cbb52d20211199f8","sharedShell":true,"claimForm":false}]
+command: node e2e/tools/capture_b_f13_6_claim_form.cjs --light-claim
+files:
+  - light-en-1440-native-controls.png

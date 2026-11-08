@@ -1,3 +1,9 @@
+// Fixture process born OPEN; kernel-reader behavior is tested separately with mocked IO.
+const bootFixture=vi.hoisted(()=>({closed:false}));
+vi.mock("@/lib/investigationBootAdmission",()=>({readInvestigationBootAdmission:()=>true,
+ hasObservedInvestigationClosure:()=>bootFixture.closed,observeInvestigationClosure:()=>{bootFixture.closed=true}}));
+// Fresh controlled request realm per case, never a production latch reset.
+beforeEach(()=>{bootFixture.closed=false});
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import golden from "./fixtures/aapl-event-workspace.json";
 const { getUser, retained, current } = vi.hoisted(() => ({ getUser: vi.fn(), retained: vi.fn(), current: vi.fn() }));

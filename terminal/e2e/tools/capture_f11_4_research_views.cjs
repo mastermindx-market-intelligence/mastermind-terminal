@@ -9,6 +9,10 @@
  * From terminal/:
  *   node e2e/tools/capture_f11_4_research_views.cjs
  *
+ * Fixed --light-representative captures four light body observations; fixed
+ * --dark-representative captures ONE EN1440 body. Both use real PresentationOwner
+ * controls and separate nested manifests; default full dark is unchanged.
+ *
  * Writes PNGs + EVIDENCE.yml under docs/pr-crops/b-f11-4-research-views/.
  */
 "use strict";
@@ -17,11 +21,17 @@ const { spawn, execFileSync } = require("node:child_process");
 const { createHash, randomUUID } = require("node:crypto");
 const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { basename, join } = require("node:path");
-const { chromium } = require("@playwright/test");
+const runtime = require("./thesis_capture_runtime.cjs");
+const light = require("./thesis_capture_light_bodies.cjs");
+const MODE = light.captureMode(process.argv.slice(2)), LIGHT = MODE === light.LIGHT_MODE, REP = MODE !== "dark";
+const THEME = LIGHT ? "light" : "dark";
+const lightObservations = [], styleReaders = new WeakMap();
+const chromium = runtime.getChromium();
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
-const OUT = join(ROOT, "docs", "pr-crops", "b-f11-4-research-views");
+const TARGET = join(ROOT, "docs", "pr-crops", "b-f11-4-research-views");
+const OUT = runtime.staging(ROOT, REP ? "body-representative" : "b-f11-4-research-views");
 const LAYOUT_FILES = [
   "terminal/components/workspaces/ThesisWorkspace.tsx",
   // Round-3 review (Meta-CEO B ruling R4): this packet changes the workspace stylesheet,
@@ -52,65 +62,16 @@ function sha256File(rel) {
 }
 
 function layoutFilesBlock() {
-  return LAYOUT_FILES.map((rel) => `  ${rel}: "${sha256File(rel)}"`);
+  return (REP ? light.SOURCE_FILES : LAYOUT_FILES).map((rel) => `  ${rel}: "${sha256File(rel)}"`);
 }
 
 function cropName(surface, width, lang) {
-  return `${surface}-${width}${lang === "zh" ? "-zh" : ""}.png`;
+  return REP ? `${THEME}-${surface}-${width}-${lang}.png` : `${surface}-${width}${lang === "zh" ? "-zh" : ""}.png`;
 }
 
-function startServer() {
-  const env = {
-    ...process.env,
-    ANALYSIS_LOCAL_PREVIEW: "1",
-    ADMIN_DEV: "1",
-    TERMINAL_E2E_FIXTURE: "1",
-    TERMINAL_E2E_EMAIL: "responsive@example.com",
-    TERMINAL_E2E_ENTITLEMENT: "unlimited",
-    RATE_LIMIT_MAX: "100000",
-    HUB_REALTIME_QUOTES: "1",
-    FLOW_FIXTURE: "1",
-    NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
-  };
-  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT)], {
-    cwd: ROOT,
-    env,
-    stdio: ["ignore", "pipe", "pipe"],
-    detached: true,
-  });
-  child.stdout.on("data", (buf) => {
-    const line = String(buf);
-    if (/Ready|compiled|error|Error/i.test(line)) process.stdout.write(`[dev] ${line}`);
-  });
-  child.stderr.on("data", (buf) => process.stderr.write(`[dev:err] ${buf}`));
-  return child;
-}
-
-function stopServer(child) {
-  if (!child || !child.pid) return;
-  try {
-    process.kill(-child.pid, "SIGTERM");
-  } catch {
-    try { child.kill("SIGTERM"); } catch { /* already gone */ }
-  }
-}
-
-async function waitForServer(timeoutMs) {
-  const deadline = Date.now() + timeoutMs;
-  let last = "not tried";
-  while (Date.now() < deadline) {
-    try {
-      const res = await fetch(`${BASE}/terminal?symbol=SPY`, { redirect: "manual" });
-      last = String(res.status);
-      if (res.status >= 200 && res.status < 500) return;
-    } catch (err) {
-      last = err.cause?.code || err.message;
-    }
-    await new Promise((r) => setTimeout(r, 750));
-  }
-  throw new Error(`dev server on ${PORT} never answered (${last})`);
-}
+async function startServer() { return runtime.start(ROOT, PORT, OUT, MODE); }
+async function stopServer(owner) { return owner.stop(); }
+async function waitForServer(timeoutMs, owner) { return owner.ready(timeoutMs); }
 
 function subject(symbol) {
   return {
@@ -165,7 +126,8 @@ async function createSavedView(context, name, filter) {
 
 async function openList(page, width, lang) {
   await page.goto(`${BASE}/analysis?view=theses`, { waitUntil: "domcontentloaded", timeout: 90_000 });
-  await page.evaluate((l) => {
+  if(REP)await light.settleOwner(page,lang,THEME);
+  else await page.evaluate((l) => {
     localStorage.setItem("mm.lang", l);
     localStorage.setItem("theme", "dark");
     localStorage.setItem("theme_auto", "0");
@@ -212,6 +174,7 @@ async function shootPane(page, outPath) {
 async function cropPane(page, outPath) {
   const pane = page.locator('[data-testid="thesis-list-pane"]');
   await pane.waitFor({ state: "visible", timeout: 20_000 });
+  await runtime.waitForCanonicalFonts(page);
   const box = await pane.boundingBox();
   if (!box) throw new Error(`no list pane box for ${outPath}`);
   const vp = page.viewportSize();
@@ -219,7 +182,10 @@ async function cropPane(page, outPath) {
   const y = Math.max(0, Math.floor(box.y));
   const width = Math.max(8, Math.min(vp.width - x, Math.ceil(box.width)));
   const height = Math.max(8, Math.min(vp.height - y, Math.ceil(box.height)));
-  await page.screenshot({ path: outPath, clip: { x, y, width, height } });
+  const lightShot=REP ? light.plan("research",MODE).find(shot=>shot.file===basename(outPath)) : null;
+  const facts=REP ? await light.observe(page,pane,lightShot) : null;
+  await runtime.captureCanonicalScreenshot(page, page, { path: outPath, clip: { x, y, width, height } });
+  if(REP)lightObservations.push({file:basename(outPath),facts,deliveredStyles:await styleReaders.get(page)()});
 }
 
 async function withStore(browser, width, lang, storeKey, run, extraCookies = []) {
@@ -227,13 +193,14 @@ async function withStore(browser, width, lang, storeKey, run, extraCookies = [])
     viewport: VIEWPORTS[width],
     hasTouch: width === 390,
     locale: lang === "zh" ? "zh-CN" : "en-US",
-    colorScheme: "dark",
+    colorScheme: LIGHT ? "light" : "dark",
   });
   await context.addCookies([
     { name: "mm_e2e_wl", value: storeKey, url: BASE },
+    ...(REP ? [{name:"mm_e2e_rs30",value:"1",url:BASE},{name:"mm_e2e_guest",value:"1",url:BASE}] : []),
     ...extraCookies.map((cookie) => ({ ...cookie, url: BASE })),
   ]);
-  await context.addInitScript((l) => {
+  if(!REP)await context.addInitScript((l) => {
     localStorage.setItem("mm.lang", l);
     localStorage.setItem("theme", "dark");
     localStorage.setItem("theme_auto", "0");
@@ -241,6 +208,7 @@ async function withStore(browser, width, lang, storeKey, run, extraCookies = [])
     document.documentElement.setAttribute("data-lang", l);
   }, lang);
   const page = await context.newPage();
+  if(REP)styleReaders.set(page,light.retainStyles(page,BASE));
   page.setDefaultTimeout(45_000);
   try {
     await run(page, context);
@@ -376,16 +344,18 @@ function manifestFiles(captured) {
 }
 
 async function main() {
+  if (process.env.CAPTURE_ONLY) throw Error("THESIS_CAPTURE_PARTIAL_REFUSED");
   const capturedAtHead = currentGitHead();
-  const child = startServer();
+  const child = await startServer();
   const files = [];
+  let primaryError;
   let failed = 0;
   try {
-    await waitForServer(180_000);
+    await waitForServer(180_000, child);
     const browser = await chromium.launch({ headless: true });
     try {
-      for (const width of [1440, 390]) {
-        for (const lang of ["en", "zh"]) {
+      for (const width of (MODE===light.DARK_MODE ? [1440] : [1440,390])) {
+        for (const lang of (MODE===light.DARK_MODE ? ["en"] : ["en","zh"])) {
           const surfaces = [
             { name: "empty", run: (page) => captureEmpty(page, width, lang, join(OUT, cropName("empty", width, lang))) },
             { name: "named-views", run: (page, context) => captureNamed(page, context, width, lang, join(OUT, cropName("named-views", width, lang))) },
@@ -407,7 +377,7 @@ async function main() {
             });
           }
           const only = process.env.CAPTURE_ONLY;
-          const selected = only ? surfaces.filter((surface) => surface.name === only) : surfaces;
+          const selected = REP ? surfaces.filter(surface=>surface.name===light.plan("research",MODE).find(shot=>shot.width===width && shot.lang===lang).surface) : only ? surfaces.filter((surface) => surface.name === only) : surfaces;
           for (const surface of selected) {
             const file = cropName(surface.name, width, lang);
             process.stdout.write(`capture ${file} … `);
@@ -424,6 +394,7 @@ async function main() {
             } catch (err) {
               failed += 1;
               console.log(`FAIL ${err && err.message ? err.message : err}`);
+              if(REP)throw err;
             }
           }
         }
@@ -431,11 +402,22 @@ async function main() {
     } finally {
       await browser.close();
     }
+  } catch(error) {
+    primaryError=error;child.failure(error);throw error;
   } finally {
-    stopServer(child);
+    await runtime.cleanupPreserving(primaryError,()=>stopServer(child));
   }
 
-  const evidence = [
+  if(REP)light.assertComplete("research",files,lightObservations,MODE);
+  const evidence = REP ? [
+    `# ${LIGHT ? "Four light" : "One dark"} representative body observations; separate from full dark family`,
+    `# capturedAtHead: ${capturedAtHead}`,"layoutFiles:",...layoutFilesBlock(),
+    `theme: ${THEME}`,LIGHT ? "languages: [en, zh]" : "languages: [en]",
+    "scope: representative bodies only; controlled fixture rendering, not production persistence or full light matrix",
+    `observations: ${JSON.stringify(lightObservations)}`,
+    `command: node e2e/tools/capture_f11_4_research_views.cjs ${LIGHT ? "--light-representative" : "--dark-representative"}`,
+    "files:",...files.map(file=>`  - ${file}`),"",
+  ].join("\n") : [
     "# B-F11-4 research management views — capture evidence",
     "# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
     "# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR",
@@ -468,7 +450,7 @@ async function main() {
     "  transport for the first thesis created in a store whose key carries",
     "  FIXTURE_MONITOR_FIRED_TOKEN (terminal/lib/watchlistsFixtureDb.ts). The shipped",
     "  GET /api/thesis-fire-status route and mapOutboxToConditionStates() run for real",
-    "  against it; nothing in this capture stubs a network response.",
+    "  against it. The controlled boundary preserves these fixture routes and answers unrelated provider reads unavailable.",
     "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
     "command: |",
     "  cd terminal",
@@ -489,6 +471,7 @@ async function main() {
   }
   writeFileSync(join(OUT, "EVIDENCE.yml"), evidence);
   console.log(`capturedAtHead ${capturedAtHead}`);
+  runtime.publish(OUT, REP ? join(TARGET,LIGHT ? "light-representative" : "dark-representative") : TARGET, files, { ...child.summary(), counts: chromium.counts, toolchain: chromium.toolchain, capturedAtHead, ...(REP ? {presentation:MODE,lightObservations} : {}) });
   console.log(`wrote ${files.length} crops + EVIDENCE.yml to ${OUT}`);
 }
 

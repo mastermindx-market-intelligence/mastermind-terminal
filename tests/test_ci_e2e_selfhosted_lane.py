@@ -86,8 +86,16 @@ def test_lane_bind_step_precedes_node_setup_and_feeds_the_test_steps() -> None:
     bind = next(i for i, s in enumerate(steps) if s.get("id") == "lane")
     assert steps[bind]["run"] == "bash ../.github/scripts/terminal_e2e_lane.sh"
     assert names[bind - 1] == "actions/checkout@v4"
-    main = next(s for s in steps if str(s.get("run", "")).startswith("npm run test:e2e:responsive -- ${{ matrix.projects }}"))
-    assert main["run"].endswith('--workers="$TERMINAL_E2E_WORKERS"')
+    def commands(step):
+        return [line.strip() for line in str(step.get("run", "")).splitlines()
+                if line.strip() and not line.lstrip().startswith("#")]
+    candidates = [step for step in steps if any(line.startswith("npm run test:e2e:responsive -- ${{ matrix.projects }}") for line in commands(step))]
+    assert len(candidates) == 1
+    main = candidates[0]
+    assert commands(main) == [
+        "node e2e/fixtureDiagnostics.cjs checkout",
+        'npm run test:e2e:responsive -- ${{ matrix.projects }} ${{ matrix.specs }} --workers="$TERMINAL_E2E_WORKERS"',
+    ]
     assert main["env"]["TERMINAL_E2E_PORT"] == "${{ steps.lane.outputs.port }}"
     assert main["env"]["TERMINAL_E2E_WORKERS"] == "${{ steps.lane.outputs.workers }}"
     investor = next(s for s in steps if s.get("name") == "Qualify investor shell opt-in")

@@ -240,10 +240,15 @@ jobs:
       - run: npx tsc --noEmit
       - name: Check immutable evidence orchestration (synthetic)
         timeout-minutes: 1
-        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs
+        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs scripts/retained-progress-reporter.test.mjs scripts/unit-result-reporter.test.mjs e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs e2e/tools/f11_provider_closed_policy.test.cjs e2e/tools/thesis_capture_runtime.test.cjs e2e/tools/thesis_capture_fonts.test.cjs e2e/tools/capture_b_f13_6_claim_form.test.cjs e2e/tools/intl_return_closed_policy.test.cjs e2e/tools/intl_return_closed_egress.test.cjs e2e/tools/allocation_return_enrollment.test.cjs
       - name: Plan current-source evidence capture
         id: evidence_plan
         run: node scripts/ci/plan-evidence-capture.cjs
+      - name: Check immutable evidence writer-reader contract (synthetic)
+        # The real two-packet source-lock control takes about 77 seconds locally.
+        # Keep it separate from the existing one-minute orchestration checks.
+        timeout-minutes: 3
+        run: node --test e2e/tools/visualEvidence.test.cjs
       - name: Prepare Chromium for original mock captures
         # PRs always capture. Merge groups recapture only when the actual
         # integrated source no longer matches BOTH checked-in evidence locks.
@@ -257,8 +262,27 @@ jobs:
         if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
         timeout-minutes: 55
         run: node e2e/tools/capture_ci_evidence.cjs
-      - run: npm test
+      # F11 is a separate real-component contract, not an extra case in PL6/VI50.
+      # Business inputs are intercepted as unavailable before reaching API/provider code.
+      - name: Capture provider-closed F11 theses entry on this checkout
+        timeout-minutes: 8
+        run: node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs
+      - name: Terminal unit tests
+        id: terminal_unit_tests
+        run: npm test -- --reporter=default --reporter=github-actions --reporter=./scripts/unit-result-reporter.mjs
         timeout-minutes: 20
+      # Only source-projected tracked-file/ordinal/state records; never raw logs,
+      # titles, messages, stacks, payloads, environment or hashes of those values.
+      - name: Retain safe unit outcome summary
+        id: safe_unit_summary
+        if: always()
+        continue-on-error: true
+        timeout-minutes: 1
+        env:
+          UNIT_REPORT_INITIALIZED: ${{ steps.terminal_unit_tests.outputs.safe_unit_report_initialized }}
+          UNIT_REPORT_FAILED: ${{ steps.terminal_unit_tests.outputs.safe_unit_report_failed }}
+          UNIT_STEP_OUTCOME: ${{ steps.terminal_unit_tests.outcome }}
+        run: node scripts/unit-result-reporter.mjs --summary
       # Quarantined journeys are disclosed on EVERY run: a green matrix must never be read as
       # full coverage. Bare `echo`, never a logger — a logger prefix pushes `::warning` off the
       # start of the line and GitHub silently drops the annotation.
@@ -395,7 +419,11 @@ jobs:
           name: unit-evidence-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             ${{ runner.temp }}/terminal-ci-evidence/
+            !${{ runner.temp }}/terminal-ci-evidence/*.unit.safe-summary.json
+            !${{ runner.temp }}/terminal-ci-evidence/unit-safe-*/**
+            ${{ steps.safe_unit_summary.outcome == 'success' && steps.safe_unit_summary.outputs.safe_unit_summary_path || '' }}
             terminal/test-results/
+            terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/
             terminal/docs/pr-crops/b-pl-6-batch-1/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/terminal-visual-intelligence/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/options-level-axis-labels/manifest.json
@@ -496,7 +524,10 @@ jobs:
       - name: Ensure browser present on cache hit
         if: steps.pwcache.outputs.cache-hit == 'true'
         run: npx playwright install chromium
-      - run: npm run test:e2e:responsive -- ${{ matrix.projects }} ${{ matrix.specs }} --workers="$TERMINAL_E2E_WORKERS"
+      - run: |
+          # Outside Playwright's cleared outputDir: survive a startup failure.
+          node e2e/fixtureDiagnostics.cjs checkout
+          npm run test:e2e:responsive -- ${{ matrix.projects }} ${{ matrix.specs }} --workers="$TERMINAL_E2E_WORKERS"
         env:
           TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port }}
           TERMINAL_E2E_WORKERS: ${{ steps.lane.outputs.workers }}
@@ -518,9 +549,10 @@ jobs:
         env:
           MMX_SHARED_SHELL: '1'
           CI: '1'
+          TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT: 'intl-fixture-v1'
           TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port_shared }}
         run: >-
-          npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts
+          npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts e2e/intl-investigation-return.spec.ts e2e/intl-history-date-intent.spec.ts e2e/intl-investigate-return.spec.ts
           --project=desktop --project=tablet --project=mobile
           --workers=1 --retries=0
           --output=test-results/shared-shell-refinement
@@ -531,7 +563,9 @@ jobs:
           # upload-artifact@v4 HARD-FAILS on duplicate names across a matrix. The shard
           # suffix is mandatory, not cosmetic.
           name: responsive-qa-${{ github.run_id }}-${{ matrix.shard }}
-          path: terminal/test-results
+          path: |
+            terminal/test-results
+            terminal/test-startup-results
           if-no-files-found: ignore
 
   terminal:
@@ -704,6 +738,6 @@ jobs:
           command -v pg_ctl
           command -v psql
       - name: Exercise migration, replay, CAS and owner isolation
-        run: python -m pytest tests/test_investigation_postgres.py tests/test_thesis_proposal_postgres.py tests/test_api_watchlist_write_postgres.py tests/test_forex_watch_postgres.py tests/test_alerts_frozen_hit_postgres.py tests/test_alerts_frozen_prepared_postgres.py tests/test_portfolio_target_role_postgres.py tests/test_options_frozen_migration_postgres.py tests/test_options_frozen_enrollment_postgres.py -q
+        run: python -m pytest tests/test_investigation_postgres.py tests/test_investigation_native_participant_postgres.py tests/test_investigation_schema_qualification_postgres.py tests/test_investigation_rpc_closure_postgres.py tests/test_thesis_proposal_postgres.py tests/test_api_watchlist_write_postgres.py tests/test_forex_watch_postgres.py tests/test_alerts_frozen_hit_postgres.py tests/test_alerts_frozen_prepared_postgres.py tests/test_portfolio_target_role_postgres.py tests/test_options_frozen_migration_postgres.py tests/test_options_frozen_enrollment_postgres.py -q
       - name: Exercise drawing snapshots, replacement and actual competing sessions
         run: python tests/sql/audit04/run_native_fixture.py --out-dir "$RUNNER_TEMP/audit04-evidence"
