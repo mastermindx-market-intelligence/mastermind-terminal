@@ -15,6 +15,11 @@ concurrency:
 
 jobs:
   qualify:
+    # Stage-1 repository App ID and installation ID are explicitly pinned to
+    # literal 0 until separately authorized activation. Only that exact 0/0
+    # state skips this supplementary issuer before allocating a runner.
+    # Missing/partial identity is NOT a disabled pair: strict preflight must
+    # still refuse it. No protected check, key or migration gate is bypassed.
     if: >-
       github.repository == 'mastermindx-market-intelligence/mastermind-terminal' &&
       github.ref == 'refs/heads/master' &&
@@ -22,7 +27,8 @@ jobs:
       github.event.workflow_run.repository.full_name == github.repository &&
       github.event.workflow_run.head_repository.full_name == github.repository &&
       github.event.workflow_run.conclusion == 'success' &&
-      contains(fromJSON('["merge_group","pull_request","workflow_dispatch"]'), github.event.workflow_run.event)
+      contains(fromJSON('["merge_group","pull_request","workflow_dispatch"]'), github.event.workflow_run.event) &&
+      (vars.MIGRATION_OWNER_APP_ID != '0' || vars.MIGRATION_OWNER_INSTALLATION_ID != '0')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # Must be separately configured for selected BRANCH master only, with no tag
