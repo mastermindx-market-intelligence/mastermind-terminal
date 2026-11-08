@@ -1,5 +1,6 @@
 """Accepted protected Terminal master -> existing zero-downtime VPS build, shape tests."""
 from pathlib import Path
+import subprocess
 
 import yaml
 
@@ -55,3 +56,10 @@ def test_terminal_vps_wake_preserves_builder_release_ownership() -> None:
     for forbidden in ("ssh-keyscan", "accept-new", "rsync ", "git push",
                       "gh pr merge", "systemctl restart", "--admin"):
         assert forbidden not in executable
+
+
+def test_deploy_command_shell_parses_without_running() -> None:
+    command = _workflow()["jobs"]["deploy"]["steps"][-1]["run"]
+    parsed = subprocess.run(["bash", "-n"], input=command, text=True,
+                            capture_output=True, check=False)
+    assert parsed.returncode == 0, parsed.stderr
