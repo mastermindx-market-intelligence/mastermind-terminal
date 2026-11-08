@@ -113,6 +113,12 @@ function LadderSteps({ row, lang }: { row: TickerNewsStoryRow; lang: Lang }) {
   );
 }
 
+// R3 P2 (rev3 item 4): the open evidence group's DOM id, named by the ladder button's
+// aria-controls. story_id is engine text, so anything outside [A-Za-z0-9_-] is folded to _.
+function evidenceDomId(storyId: string): string {
+  return `news-evidence-${storyId.replace(/[^A-Za-z0-9_-]/g, "_")}`;
+}
+
 export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: string; lang: Lang; userId?: string }) {
   const copy = COPY[lang];
   const [view, setView] = useState<TickerNewsViewMode>("news");
@@ -336,6 +342,7 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
                   className={styles.ladder}
                   data-news-ladder
                   aria-expanded={!!detail}
+                  aria-controls={detail ? evidenceDomId(row.story_id) : undefined}
                   aria-label={newsLadderText(detail ? "ladder.close" : "ladder.open", lang)}
                   onClick={() => void toggleStory(row)}
                   disabled={activeDetailBusy?.storyId === row.story_id}
@@ -348,7 +355,7 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
                 </span>
               )}
               {detail && (
-                <div className={styles.evidence} role="group" aria-label={copy.reports(detail.item_count)}>
+                <div id={evidenceDomId(row.story_id)} className={styles.evidence} role="group" aria-label={copy.reports(detail.item_count)}>
                   <p className={styles.clocks}>
                     {clocks.map((clock) => (
                       <Fragment key={clock.key}>

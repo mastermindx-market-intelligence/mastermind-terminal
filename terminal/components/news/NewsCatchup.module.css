@@ -20,7 +20,7 @@
 .tagNew{color:var(--brand-2)}
 .tagUpdated{color:var(--warn)}
 .tagReviewed{color:var(--flow-muted)}
-.change{margin:4px 0 0;color:var(--text-2);font:600 10px/1.35 var(--font-ui)}
+.change{margin:6px 0 0;color:var(--flow-muted);font:450 11px/15px var(--font-ui)}
 .savedBasis{display:flex;flex-direction:column;gap:5px;margin-top:6px;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:color-mix(in srgb,var(--panel-2) 55%,transparent)}
 .savedBasisRow{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .savedBasisNote{color:var(--text);font:650 10px/1.3 var(--font-ui)}

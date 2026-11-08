@@ -18,6 +18,8 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
+from scripts.ci_e2e_scope import FULL_MATRIX, FOCUSED_MATRIX
+
 import pytest
 import yaml
 
@@ -34,7 +36,11 @@ def ci_workflow() -> dict[str, Any]:
 
 
 def e2e_matrix(workflow: dict[str, Any]) -> list[dict[str, Any]]:
-    return workflow["jobs"]["terminal-e2e"]["strategy"]["matrix"]["include"]
+    """Read the full audited shard contract, now emitted by the selector."""
+    assert workflow["jobs"]["terminal-e2e"]["strategy"]["matrix"] == (
+        "${{ fromJSON(needs.e2e-scope.outputs.matrix) }}"
+    )
+    return FULL_MATRIX
 
 
 def playwright_projects() -> set[str]:

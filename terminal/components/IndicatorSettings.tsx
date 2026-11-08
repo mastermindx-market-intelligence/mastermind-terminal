@@ -6,6 +6,7 @@
 // script's declared input() params instead.
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import type { EntitlementVisualState } from "@/lib/entitlementVisualState";
 import { IND_DEFS, withDefaults, defaultVis, VIS_UNITS, type IndField, type VisUnit, type VisRange } from "@/lib/indicators";
 import { studyParamsWithDefaults, studyTypeOf } from "@/lib/studyInstances";
 import { isSuiteKey, getSuiteDef, suiteDefaults } from "@/lib/suites/registry";
@@ -196,13 +197,15 @@ function SuiteRow({ f, val, onChange }: { f: SuiteField; val: any; onChange: (v:
   );
 }
 
-function ModuleSection({ m, values, locked, expanded, onToggle, onChange, onGuide, t }:
-  { m: SuiteModuleMeta; values: Record<string, any>; locked: boolean; expanded: boolean;
+function ModuleSection({ m, values, locked, accessState, expanded, onToggle, onChange, onGuide, t }:
+  { m: SuiteModuleMeta; values: Record<string, any>; locked: boolean; accessState: EntitlementVisualState; expanded: boolean;
     onToggle: () => void; onChange: (patch: Record<string, any>) => void; onGuide?: () => void; t: (k: string, f?: string) => string }) {
   const on = !!values[`${m.key}.on`] && !locked;
   const setOn = () => { if (!locked) onChange({ [`${m.key}.on`]: !on }); };
   const shown = m.fields.filter((f) => !f.showIf || sameVal(values[`${m.key}.${f.showIf.key}`], f.showIf.eq));
-  const unlockNote = m.tier === "pro" ? t("isSuiteUnlockPro", "Unlocks with PRO") : t("isSuiteUnlockInsider", "Unlocks with ESSENTIAL");
+  const unlockNote = accessState === "verified"
+    ? (m.tier === "pro" ? t("isSuiteUnlockPro", "Unlocks with PRO") : t("isSuiteUnlockInsider", "Unlocks with ESSENTIAL"))
+    : accessState === "checking" ? t("accessChecking", "Checking access…") : t("accessUnavailable", "Access unavailable");
   return (
     <div className={`is-mod${locked ? " locked" : ""}${on ? "" : " off"}`}>
       <div className="is-mod-h"
@@ -217,7 +220,7 @@ function ModuleSection({ m, values, locked, expanded, onToggle, onChange, onGuid
         {onGuide && <button className="is-guide" title={t("guideOpen", "Guide")} aria-label={t("guideOpen", "Guide")}
           onClick={(e) => { e.stopPropagation(); onGuide(); }}>?</button>}
         {m.tier !== "free" && <span className="is-tier" style={{ "--c": TIER_COLOR[m.tier] } as CSSProperties}>{TIER_LABEL[m.tier]}</span>}
-        {locked && <svg className="is-lock" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11h12v9H6z" /><path d="M9 11V7.5a3 3 0 0 1 6 0V11" /></svg>}
+        {locked && accessState === "verified" && <svg className="is-lock" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11h12v9H6z" /><path d="M9 11V7.5a3 3 0 0 1 6 0V11" /></svg>}
         <span className={`is-switch${on ? " on" : ""}${locked ? " dis" : ""}`} role="switch" aria-checked={on}
           aria-disabled={locked || undefined} aria-label={m.label} tabIndex={locked ? -1 : 0}
           onClick={(e) => { e.stopPropagation(); setOn(); }}
@@ -235,7 +238,7 @@ function ModuleSection({ m, values, locked, expanded, onToggle, onChange, onGuid
   );
 }
 
-export default function IndicatorSettings({ indKey, moduleTarget, params, onChange, pine, onPineChange, onClose, onReset, userTier = "free", onOpenGuide, title: instanceTitle }:
+export default function IndicatorSettings({ indKey, moduleTarget, params, onChange, pine, onPineChange, onClose, onReset, userTier = "free", accessState = "verified", onOpenGuide, title: instanceTitle }:
   { indKey: string;
     /** Display name of this study INSTANCE (e.g. "RSI 2 (7)") when several of one type are active. */
     title?: string;
@@ -248,6 +251,7 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
     onReset?: () => void;
     onOpenGuide?: (suiteKey: string, moduleKey: string, moduleLabel: string) => void;
     userTier?: Tier;   // fail closed: unknown/absent entitlement = free
+    accessState?: EntitlementVisualState;
   }) {
   const t = useT();
   const { lang } = useLang();
@@ -359,7 +363,9 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
           {activeTab === "inputs" && (moduleEntry && directModule ? (
             directLocked ? (
               <div className="is-empty">
-                {directModule.tier === "pro" ? t("isSuiteUnlockPro", "Unlocks with PRO") : t("isSuiteUnlockInsider", "Unlocks with ESSENTIAL")}
+                {accessState !== "verified"
+                  ? (accessState === "checking" ? t("accessChecking", "Checking access…") : t("accessUnavailable", "Access unavailable"))
+                  : directModule.tier === "pro" ? t("isSuiteUnlockPro", "Unlocks with PRO") : t("isSuiteUnlockInsider", "Unlocks with ESSENTIAL")}
               </div>
             ) : (
               <div className="is-sec">
@@ -377,7 +383,7 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
               {suite.modules.map((m) => {
                 const locked = isLocked(m);
                 return (
-                  <ModuleSection key={m.key} m={m} values={SV} locked={locked}
+                  <ModuleSection key={m.key} m={m} values={SV} locked={locked} accessState={accessState}
                     expanded={!locked && (modOpen[m.key] ?? !!SV[`${m.key}.on`])}
                     onToggle={() => setModOpen((o) => ({ ...o, [m.key]: !(o[m.key] ?? !!SV[`${m.key}.on`]) }))}
                     onChange={onChange} t={t}

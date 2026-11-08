@@ -1,0 +1,983 @@
+{
+  "base_sha": "0f03615e86ed63f00ad9b294c7a5c909bad7b70a",
+  "source_files": [
+    {
+      "path": "terminal/components/vol/VolComparePanel.tsx",
+      "sha256": "d63aa4113c3ea361195e7b087de3b5090ea9bab03a941320103a418bbd54e5ee"
+    },
+    {
+      "path": "terminal/components/vol/volStrings.ts",
+      "sha256": "19615ec660380f750066188249e6271163eafb0f99d770869c06890da87f6572"
+    },
+    {
+      "path": "terminal/lib/__tests__/volCompareTenorAsofClock.test.tsx",
+      "sha256": "14d8e5694441f2169321cc8c17b58700661de3f10813754f14b3c24da2744c2d"
+    },
+    {
+      "path": "terminal/lib/__tests__/volCompareHorizonGrammar.test.tsx",
+      "sha256": "834dc53784fd25f954183fc524a1314fb5a095041a244187ed262459240a6ac4"
+    },
+    {
+      "path": "terminal/e2e/vol-horizon-grammar.spec.ts",
+      "sha256": "8c1143f0ef903ac52df78b564fc20112670121299c2f04ffdaf86a2fc91160dd"
+    }
+  ],
+  "packets": [
+    {
+      "name": "options-r1-w3",
+      "evidence_sha256": "250e71b8b98e8b422e53a16c493c7661b17bf5436837892efd0ee602d5adc1cf",
+      "verified_source_pins": 22,
+      "crops": [
+        {
+          "path": "terminal/docs/pr-crops/options-r1-w3/eod-expmove-method-1440-zh.png",
+          "sha256": "4cdf87b7dd46cbd137b6ef546242301c1200fcefd99da46aa69c7b02f86bad90",
+          "bytes": 6146,
+          "width": 178,
+          "height": 87
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-r1-w3/eod-expmove-method-1440.png",
+          "sha256": "e5005c1b526b569c3345330cbaeaa5348b33797fe86c483b4b72b8158212fd49",
+          "bytes": 6656,
+          "width": 172,
+          "height": 87
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-r1-w3/eod-expmove-method-390-zh.png",
+          "sha256": "3d2f50cea77cf7cea3840c04059d98ba246cddf078d0c84144fbb52f7949408c",
+          "bytes": 6132,
+          "width": 148,
+          "height": 87
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-r1-w3/eod-expmove-method-390.png",
+          "sha256": "b475a9d5b2ffa7c3825f242c52ba8f4868aa69ac4fbabfb29c9aef19ec3dcd5a",
+          "bytes": 6630,
+          "width": 218,
+          "height": 86
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-r1-w3/eod-expmove-method-820-zh.png",
+          "sha256": "18b9917aea22038911e2742b0c985304b149f2a204bc41af9c50e9074b96b0f1",
+          "bytes": 6095,
+          "width": 183,
+          "height": 74
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-r1-w3/eod-expmove-method-820.png",
+          "sha256": "2003b7c8c651a1020f0089dc021be59961e3e1d7fca43b17cfac84d98f22456e",
+          "bytes": 6596,
+          "width": 178,
+          "height": 86
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-r1-w3/flow-desk-inspector-1440-zh.png",
+          "sha256": "89c00d0005ecb4cf4be8ccba5cbd28420ad9cd34c7bfee97e10ec3eb6fdf746b",
+          "bytes": 40664,
+          "width": 310,
+          "height": 361
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-r1-w3/flow-desk-inspector-1440.png",
+          "sha256": "ab1345f4a22fcecc29594cf6dd8b92083ca26d57c633c57186804fef87f3219e",
+          "bytes": 34283,
+          "width": 310,
+          "height": 361
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-r1-w3/flow-desk-inspector-390-zh.png",
+          "sha256": "b309b305e5867de180b216fb2308304dddcba22efe7428f3fb6eb5f54d70983c",
+          "bytes": 39399,
+          "width": 300,
+          "height": 341
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-r1-w3/flow-desk-inspector-390.png",
+          "sha256": "a5697ac185bbc8d10a9430b66fafda9d32a4adb89874f6ff0b5079ef6dbeb3a5",
+          "bytes": 30932,
+          "width": 300,
+          "height": 341
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-r1-w3/flow-desk-inspector-820-zh.png",
+          "sha256": "4c31e7c0c6d0c3760a5aeedd4f4f9bdc9f95817c8e3f03c56766bfe540eed636",
+          "bytes": 39418,
+          "width": 300,
+          "height": 341
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-r1-w3/flow-desk-inspector-820.png",
+          "sha256": "6741adcbeaf20c31a2373e1f711872ad699d870df384eba5989f0c862151fcf5",
+          "bytes": 30978,
+          "width": 300,
+          "height": 341
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-r1-w3/flow-desk-inspector-print-end-1440-zh.png",
+          "sha256": "6e3c84011cc1a492b6950f1dcb0218826771da88836513ad2bc4e8756ad1503c",
+          "bytes": 41313,
+          "width": 310,
+          "height": 361
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-r1-w3/flow-desk-inspector-print-end-1440.png",
+          "sha256": "a0227ea89a1f56975307fc11478a2d464800fa84f5062cb9f9099f45f2e43dc6",
+          "bytes": 32204,
+          "width": 310,
+          "height": 361
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-r1-w3/flow-desk-inspector-print-end-390-zh.png",
+          "sha256": "0e9e7bf3fff3f6fab972bc297e6b546777019c6eaaa22791aa940e395bc97ba3",
+          "bytes": 40212,
+          "width": 300,
+          "height": 341
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-r1-w3/flow-desk-inspector-print-end-390.png",
+          "sha256": "8c1ff8fd45352f7899468b2d3ef3245717708b404899be65c44fd5ac3693fc42",
+          "bytes": 30639,
+          "width": 300,
+          "height": 341
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-r1-w3/flow-desk-inspector-print-end-820-zh.png",
+          "sha256": "13af1ee0effe1d1827b7a939867c8a9585013dd169186bc33f0232dab91d9dd2",
+          "bytes": 40251,
+          "width": 300,
+          "height": 341
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-r1-w3/flow-desk-inspector-print-end-820.png",
+          "sha256": "a2df266c84dd30102340e656d8de4c8a476dc9ee09b1522db786f00d333b5853",
+          "bytes": 30675,
+          "width": 300,
+          "height": 341
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-r1-w3/vol-compare-band-1440-zh.png",
+          "sha256": "b717c051028940a5e2f0e19bc77d66c67cc20fa451536b140d209bb8324d4026",
+          "bytes": 190867,
+          "width": 670,
+          "height": 1054
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-r1-w3/vol-compare-band-1440.png",
+          "sha256": "39753533c63abb343d6774df2a1f50b03214d7bdeb7638d9bd40429477672d5b",
+          "bytes": 167973,
+          "width": 670,
+          "height": 1107
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-r1-w3/vol-compare-band-390-zh.png",
+          "sha256": "1b9b3ec4ba25782577f56ccf64a3229255f8e1eb0b6ab94d75167eb089ff3d48",
+          "bytes": 163983,
+          "width": 362,
+          "height": 1314
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-r1-w3/vol-compare-band-390.png",
+          "sha256": "8f055aa3e31918dceffd7a2a771c40967ac6b492e604c1712920af525e35e393",
+          "bytes": 144920,
+          "width": 362,
+          "height": 1412
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-r1-w3/vol-compare-band-820-zh.png",
+          "sha256": "4f4bdd169f3b8d5d2e50cb3a2f228b5f43bd16cfa7e6eebf728f7fb20978c561",
+          "bytes": 190994,
+          "width": 792,
+          "height": 1019
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-r1-w3/vol-compare-band-820.png",
+          "sha256": "f1c7d1108a1a8c07e7669a2af04a53288cf63a65260861e1dd1faa61121808fb",
+          "bytes": 168529,
+          "width": 792,
+          "height": 1087
+        }
+      ]
+    },
+    {
+      "name": "options-ac40-tenor-asof",
+      "evidence_sha256": "ca11aa2763291b1e4c43c1b1b4aef6e274658bab765cb2d9ccf6a0289ff265cd",
+      "verified_source_pins": 8,
+      "crops": [
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof/asof-missing-1440-zh.png",
+          "sha256": "8ae69748d8fc2f5b2cd809966cec6fdebf74e48fb3eac445ba909a44dacf30a9",
+          "bytes": 190874,
+          "width": 670,
+          "height": 1065
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof/asof-missing-1440.png",
+          "sha256": "4ee64940df684aee383938be97452f5c0270e55293380b33c327743bda9aa9ca",
+          "bytes": 170689,
+          "width": 670,
+          "height": 1166
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof/asof-missing-390-zh.png",
+          "sha256": "0cb4092d3b4873b1569bbbc4b6ab4349f3ac29b9d9d37f055692795b18c5e316",
+          "bytes": 169648,
+          "width": 362,
+          "height": 1330
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof/asof-missing-390.png",
+          "sha256": "f146cc9db703aaeaf47efd0f18594770b1e21b11f875367649cb73dea14000b4",
+          "bytes": 152734,
+          "width": 362,
+          "height": 1455
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof/asof-missing-820-zh.png",
+          "sha256": "440a3d6195837208b210a93e43505148ba230774441369800429da6a6020f387",
+          "bytes": 191601,
+          "width": 792,
+          "height": 1049
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof/asof-missing-820.png",
+          "sha256": "84bbff9b055e4a55e7aa7ae3ab033f0e5296b9d2759891090d420251e49e66eb",
+          "bytes": 171617,
+          "width": 792,
+          "height": 1146
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof/old-read-on-today-1440-zh.png",
+          "sha256": "ea7f04d721543b47620e4200300ebcdaa4159f62837934163a311d1c666f520a",
+          "bytes": 156367,
+          "width": 670,
+          "height": 888
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof/old-read-on-today-1440.png",
+          "sha256": "a185d1e058ac3ac6d82b9748368db187b9195a571f8cd761a77833861ae1d68e",
+          "bytes": 133124,
+          "width": 670,
+          "height": 934
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof/old-read-on-today-390-zh.png",
+          "sha256": "fc56ef5af8a7af3dac92af541ba8b6ecce6ec993153ccb1d17a88124f4883bbc",
+          "bytes": 133299,
+          "width": 362,
+          "height": 1047
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof/old-read-on-today-390.png",
+          "sha256": "cd7f1fbd317fa73a0688d0bed28277c85bb0219cb2a39126da3a43f4b96cb032",
+          "bytes": 112737,
+          "width": 362,
+          "height": 1108
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof/old-read-on-today-820-zh.png",
+          "sha256": "fd32e83992567f53aa642f0929a579f5db8ee813b87f55d219b727cc7282cde2",
+          "bytes": 156337,
+          "width": 792,
+          "height": 869
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof/old-read-on-today-820.png",
+          "sha256": "11d95d86ae2a0b0e3fe36282e025fb6afa9787195522b470dc24871f1fd592cd",
+          "bytes": 133509,
+          "width": 792,
+          "height": 900
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof/today-read-1440-zh.png",
+          "sha256": "5ae9bbee62d2d688346cc11637a795fe8b31ae5d69d8cbff4874e59f39e26f69",
+          "bytes": 191003,
+          "width": 670,
+          "height": 1054
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof/today-read-1440.png",
+          "sha256": "fea99191fa57449ad605e7f8f74b2c52f81512fd8b0ec13f24efb0d1383a6a98",
+          "bytes": 169070,
+          "width": 670,
+          "height": 1107
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof/today-read-390-zh.png",
+          "sha256": "8269c663ef59bd7635d0f034f4a36f8aecc9dd2fbf3f81f4fdfceb585c4cf1f1",
+          "bytes": 168457,
+          "width": 362,
+          "height": 1330
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof/today-read-390.png",
+          "sha256": "58235ae67829fc71a6a94bac4877b79ea786d3bf5579b5ced62a4c1a619a43a4",
+          "bytes": 149606,
+          "width": 362,
+          "height": 1428
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof/today-read-820-zh.png",
+          "sha256": "485c89c6f3893b1e66dea9be1275ea7042b08ddae93667457c09b32e35762805",
+          "bytes": 191296,
+          "width": 792,
+          "height": 1019
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof/today-read-820.png",
+          "sha256": "4676d039286b34dfbfd095029dcff37dce8a8345b3898588ad7ae9d9a24fd3cb",
+          "bytes": 169501,
+          "width": 792,
+          "height": 1087
+        }
+      ]
+    },
+    {
+      "name": "options-ac40-tenor-asof-light",
+      "evidence_sha256": "caf743cac7decf6140614c3c1d4854707d7394cb86f2e27faddd467b554329ae",
+      "verified_source_pins": 8,
+      "crops": [
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof-light/asof-missing-1440-zh.png",
+          "sha256": "7b8daf312d7d9862477f368e1b458f81f82ddd01f69d4fbe79f99938e0d812dc",
+          "bytes": 187733,
+          "width": 588,
+          "height": 1201
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof-light/asof-missing-1440.png",
+          "sha256": "efc12d3416e83575add93dba85647785915f83219f3c9099198c778a9a82b7ef",
+          "bytes": 169460,
+          "width": 588,
+          "height": 1277
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof-light/asof-missing-390-zh.png",
+          "sha256": "1e72942e5f0daf19d5948634c9fc4fcd35baf841920f25be66a882347cae35a2",
+          "bytes": 167668,
+          "width": 362,
+          "height": 1330
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof-light/asof-missing-390.png",
+          "sha256": "05985a2aeb9f4e70fe2b207b2aae7cc87d18fb2d13c54be23a788574be457fd4",
+          "bytes": 151466,
+          "width": 362,
+          "height": 1455
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof-light/asof-missing-820-zh.png",
+          "sha256": "43d7c8e771074b503b380ff728d5bc59bd783baeb58f0a0955bd9d9dfa3f8b69",
+          "bytes": 189380,
+          "width": 792,
+          "height": 1049
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof-light/asof-missing-820.png",
+          "sha256": "4450fb525492fa1712be9e13316793e74b4bfe004543beb3a0cd9574e49ba62e",
+          "bytes": 171905,
+          "width": 792,
+          "height": 1130
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof-light/old-read-on-today-1440-zh.png",
+          "sha256": "a0748c6c3edc64a620939135b8725db7c39e93f64e2532c28aca34aec9b3fd6f",
+          "bytes": 153020,
+          "width": 588,
+          "height": 904
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof-light/old-read-on-today-1440.png",
+          "sha256": "48bc6cbe9f3b8488224858f428b4e6049115503cc101076fdc0606bd173e6cca",
+          "bytes": 132171,
+          "width": 588,
+          "height": 981
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof-light/old-read-on-today-390-zh.png",
+          "sha256": "e6f1c0db831d7aa49e7cee0238e33b99cf296404f057f39853962d96d40fa319",
+          "bytes": 132974,
+          "width": 362,
+          "height": 1047
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof-light/old-read-on-today-390.png",
+          "sha256": "106c2a34a343c15929819aaf6f0f36f57a8a93ebec3c6428d2026b69224a9038",
+          "bytes": 112877,
+          "width": 362,
+          "height": 1108
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof-light/old-read-on-today-820-zh.png",
+          "sha256": "7d28955f1ab76dacb8af27e2431f2439d9f46ec9af5b87e2c93074ac5a6e39ee",
+          "bytes": 155985,
+          "width": 792,
+          "height": 869
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof-light/old-read-on-today-820.png",
+          "sha256": "3437ca9d968d754fc43f5c6171fff81d40fe6a78297416a499053e1bbbc678f0",
+          "bytes": 133821,
+          "width": 792,
+          "height": 884
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof-light/today-read-1440-zh.png",
+          "sha256": "82065d9c6a45839c3e88993ca76c6953912dec6ec8a933bd6ee498f6d5db5c74",
+          "bytes": 188021,
+          "width": 588,
+          "height": 1171
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof-light/today-read-1440.png",
+          "sha256": "3ef254cd71ba9a82d48a779da311bc57eca373b83be0f58af60c7c02ab41e71b",
+          "bytes": 167896,
+          "width": 588,
+          "height": 1250
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof-light/today-read-390-zh.png",
+          "sha256": "be14195e2eb92e503460786e042d05913b3907a5eb830e260635ad0e8df70999",
+          "bytes": 167274,
+          "width": 362,
+          "height": 1330
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof-light/today-read-390.png",
+          "sha256": "c871396ce04077419a9903bd745e777d0670e9ecd438acfca53a31c78a809580",
+          "bytes": 149217,
+          "width": 362,
+          "height": 1428
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof-light/today-read-820-zh.png",
+          "sha256": "94a95bbb5d52da8309fe82962ae533db1db1caa84826e942eee6f6417b0f7e38",
+          "bytes": 189959,
+          "width": 792,
+          "height": 1019
+        },
+        {
+          "path": "terminal/docs/pr-crops/options-ac40-tenor-asof-light/today-read-820.png",
+          "sha256": "682de0b70c172bf83745ded7e50f0fcdebd9971b1a4806e2b2b531682294e748",
+          "bytes": 169905,
+          "width": 792,
+          "height": 1071
+        }
+      ]
+    },
+    {
+      "name": "vol-load-failure",
+      "evidence_sha256": "f9442152ea43aa1ae527b22226ef6bf85373849997cc04883dcadb717e20ee13",
+      "verified_source_pins": 4,
+      "crops": [
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/snapshot-absent-1440-zh.png",
+          "sha256": "e4f1a21d2c5e1b866cb3627736951e1bc9b2d4b4d6d21798537c3ce8ce5ae768",
+          "bytes": 17658,
+          "width": 1380,
+          "height": 663
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/snapshot-absent-1440.png",
+          "sha256": "a3c951a0a78b253cd5f3d1a8275dea7b2bc20bb7624fcdb7511b810d8fbc1659",
+          "bytes": 15738,
+          "width": 1380,
+          "height": 663
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/snapshot-absent-390-zh.png",
+          "sha256": "5bf3b1cba36f92b814bb4654deb303e8e51338644ba5724c835b6b93e55a400c",
+          "bytes": 13398,
+          "width": 390,
+          "height": 331
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/snapshot-absent-390.png",
+          "sha256": "1d32a5b8336f17cd1c22cd8d609cae6513a95eb25fe01a26b2daabe5eea0e7fd",
+          "bytes": 11359,
+          "width": 390,
+          "height": 331
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/snapshot-absent-820-zh.png",
+          "sha256": "45901bc78ef86e13e183dcd708eb99bc0cd5e9f24b973c7d5bb7755cb19dcda5",
+          "bytes": 14318,
+          "width": 820,
+          "height": 331
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/snapshot-absent-820.png",
+          "sha256": "54a54354394a012ae96db09867fa24284bc95bcdf1b77bb1131e4b9c2e3be7b6",
+          "bytes": 12677,
+          "width": 820,
+          "height": 331
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/snapshot-refused-1440-zh.png",
+          "sha256": "9557014817b9e99e0611191792c9d65efc95239fb37fecb3de47f1eec9836847",
+          "bytes": 17729,
+          "width": 1380,
+          "height": 663
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/snapshot-refused-1440.png",
+          "sha256": "d05a7d56ea085284e59f7c6aedb131822c78ac187614e5b96b1ed684f7e540ce",
+          "bytes": 15365,
+          "width": 1380,
+          "height": 663
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/snapshot-refused-390-zh.png",
+          "sha256": "2961cc02707b8f52c6b3f3a3ac76aa314a6be1787fc4c209f54202a178cc16c8",
+          "bytes": 13500,
+          "width": 390,
+          "height": 331
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/snapshot-refused-390.png",
+          "sha256": "80139bfa81785e70e8d33ec23287b55c57f0cdb171fa418ca246be29f0992559",
+          "bytes": 11274,
+          "width": 390,
+          "height": 331
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/snapshot-refused-820-zh.png",
+          "sha256": "f4ffd9766fef07db3380a90ad8a1cd7fe7be07bcca39980eb297bdbbdfdeca18",
+          "bytes": 14367,
+          "width": 820,
+          "height": 331
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/snapshot-refused-820.png",
+          "sha256": "d26fd9eff09a6fb3f70ef7640826bbf30dcad4aa0476139c5890e3fb55843ac4",
+          "bytes": 12317,
+          "width": 820,
+          "height": 331
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/snapshot-retried-1440-zh.png",
+          "sha256": "613f32320e613016ca4fcd17b3c0755c5b46ecc4185997232536d2fa9b75ec62",
+          "bytes": 120083,
+          "width": 1380,
+          "height": 663
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/snapshot-retried-1440.png",
+          "sha256": "d0f981a9880896f94d6d28e81507521dba7e532dc6e7bb9499a4668e8b226fd4",
+          "bytes": 110221,
+          "width": 1380,
+          "height": 663
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/snapshot-retried-390-zh.png",
+          "sha256": "9b1884a9a81bc5914aa66ecb2c92eeb01c9da09e04c790ef3a48a6f60a7e1ad6",
+          "bytes": 43706,
+          "width": 390,
+          "height": 630
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/snapshot-retried-390.png",
+          "sha256": "5982aee0a2f300c444ad72373149049ea3565ce85d4b25da48ad6fd26ff44b66",
+          "bytes": 42390,
+          "width": 390,
+          "height": 630
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/snapshot-retried-820-zh.png",
+          "sha256": "a2de5b1a3eeac4a87c2b6dbd19b6eeeaa0c30a0b4d7eb915bd15ab433c8118c5",
+          "bytes": 107935,
+          "width": 820,
+          "height": 988
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/snapshot-retried-820.png",
+          "sha256": "a218dbe7614b206ade8ec8ebd684eb0ceebf80a5db1ca90506a909b636a2a045",
+          "bytes": 100362,
+          "width": 820,
+          "height": 988
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/snapshot-unavailable-1440-zh.png",
+          "sha256": "ae3e74b38d70a7eaa3110ceb94083ff7e387e9d940bc221e047efb7acebd8bdb",
+          "bytes": 19851,
+          "width": 1380,
+          "height": 663
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/snapshot-unavailable-1440.png",
+          "sha256": "8c16831f649923e33a195a94836e8cf982dcc0001ca137bd892150c94940dd1d",
+          "bytes": 17609,
+          "width": 1380,
+          "height": 684
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/snapshot-unavailable-390-zh.png",
+          "sha256": "1f93d342ddc91f0f9773fe928bb3100dacd9ba0d1872eda8427b4ae620bde4cf",
+          "bytes": 15269,
+          "width": 390,
+          "height": 331
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/snapshot-unavailable-390.png",
+          "sha256": "0c8cea5c29d90ba51dc3ea58f5100801c88580d90ad9fef95ca4132b5c3ebb99",
+          "bytes": 13001,
+          "width": 390,
+          "height": 331
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/snapshot-unavailable-820-zh.png",
+          "sha256": "334833da070e905ab6a382d2cbdc2e6ab082055f83616e73468d9afab58af8b1",
+          "bytes": 16326,
+          "width": 820,
+          "height": 331
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/snapshot-unavailable-820.png",
+          "sha256": "40bb27c74ade9f28d180a7262b2c3382cacb23179bc39a3029ac1f87b5e9f103",
+          "bytes": 14277,
+          "width": 820,
+          "height": 331
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/spread-absent-1440-zh.png",
+          "sha256": "a679dc6941fabeeb05b63f09cf39b649a3add9ec32de728eca3ac38a28ddb25a",
+          "bytes": 86160,
+          "width": 1382,
+          "height": 515
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/spread-absent-1440.png",
+          "sha256": "fe273b692acd22093b673ffedeab85f36b89ba27a7efd89fa02dfa888f758e72",
+          "bytes": 81334,
+          "width": 1382,
+          "height": 515
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/spread-absent-390-zh.png",
+          "sha256": "62140ad72c6637bbd59100956476275c6fb4789dd26f520f8c6745fc5195c2f9",
+          "bytes": 37162,
+          "width": 382,
+          "height": 426
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/spread-absent-390.png",
+          "sha256": "9003a98ed1dd116ae07f17693fd4829c4505848b1c18b889dfe3b8ae900fb13e",
+          "bytes": 37554,
+          "width": 382,
+          "height": 437
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/spread-absent-820-zh.png",
+          "sha256": "59dc1a9404a5485a5547ab60d1dbd9ad4ee6ce663d1704afdfa505a0155ede2d",
+          "bytes": 37425,
+          "width": 820,
+          "height": 321
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/spread-absent-820.png",
+          "sha256": "aa2bc35b2d74caff1b0992095827a38c24420054fd9dcbb5eccbeb18a14c94ef",
+          "bytes": 36687,
+          "width": 820,
+          "height": 321
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/spread-loading-1440-zh.png",
+          "sha256": "a1ad3cbcdd3b1852ede34be6ec454203ae6207aa153ebdbe49327ca88d82b2f7",
+          "bytes": 74372,
+          "width": 1382,
+          "height": 515
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/spread-loading-1440.png",
+          "sha256": "4ac1c8b951d4637fdfd6f852524558e8cf17c3293930ec9e79c256d974ae9723",
+          "bytes": 68621,
+          "width": 1382,
+          "height": 515
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/spread-loading-390-zh.png",
+          "sha256": "0d00fe54d6f083adc62828d39d269c6cff5a553a9cadf4196d43840996a4e9c1",
+          "bytes": 26298,
+          "width": 382,
+          "height": 426
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/spread-loading-390.png",
+          "sha256": "fb5fe79797ac23ca12178efe76c04eb64b36f8e0fa61b15eeb690eb23c02f17c",
+          "bytes": 25576,
+          "width": 382,
+          "height": 426
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/spread-loading-820-zh.png",
+          "sha256": "eb0715c43fe0fa9c1b3ebd4e1a8587e14ecbcab1b2ae4bd03fdfbfb6c57ea56b",
+          "bytes": 26239,
+          "width": 820,
+          "height": 321
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/spread-loading-820.png",
+          "sha256": "de4fe57331e78388ec7e812af5702a4498decc4f7841c77453b610755e24e023",
+          "bytes": 24399,
+          "width": 820,
+          "height": 321
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/spread-retried-1440-zh.png",
+          "sha256": "a17bf1ea94c3e312f11bdfab305af71984e296ca762e2d68abeaefc2be622713",
+          "bytes": 106446,
+          "width": 1382,
+          "height": 585
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/spread-retried-1440.png",
+          "sha256": "4c5de1441895a58ceacb6e374913ec2e5cb96f319ecbfc5b1180145a34d29366",
+          "bytes": 97564,
+          "width": 1382,
+          "height": 596
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/spread-retried-390-zh.png",
+          "sha256": "b10b5b3424bf3b8fe11eb74af87b746cccb06f634a37c5e21ddea1a5801e6cc9",
+          "bytes": 50106,
+          "width": 382,
+          "height": 511
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/spread-retried-390.png",
+          "sha256": "2cdbc0985f53f416314ebae98e7d9dc00339166cfe18527f456913c0876e4fe3",
+          "bytes": 47655,
+          "width": 382,
+          "height": 535
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/spread-retried-820-zh.png",
+          "sha256": "a5507c87cf13c82fc3a335c5e916bab2c25f2103e422fd84a7af2f4be9387beb",
+          "bytes": 57855,
+          "width": 820,
+          "height": 391
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/spread-retried-820.png",
+          "sha256": "11fbdd01267e6b90f53ec6f7e63a8eb7432355c6c54d1979ce8c4dbb854eef00",
+          "bytes": 52550,
+          "width": 820,
+          "height": 391
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/spread-unavailable-1440-zh.png",
+          "sha256": "548955367f85d711025b47183b1afb677c99e7fd25cb5c253206438e019f9723",
+          "bytes": 82526,
+          "width": 1382,
+          "height": 520
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/spread-unavailable-1440.png",
+          "sha256": "15bd2fc182af0fe5fb380c3ad17db37f65131c721c2b586c5f2cf12fcb6952e3",
+          "bytes": 76458,
+          "width": 1382,
+          "height": 537
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/spread-unavailable-390-zh.png",
+          "sha256": "0d73e8d13412349fc5be61770f70f0bd4daad578a778fe4e040da8c1df5de4ad",
+          "bytes": 34255,
+          "width": 382,
+          "height": 453
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/spread-unavailable-390.png",
+          "sha256": "56750cc571f720fbd1924265ffbd175b2e4df8c6301e2a88449e5df0db59667f",
+          "bytes": 33226,
+          "width": 382,
+          "height": 453
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/spread-unavailable-820-zh.png",
+          "sha256": "e9d882890c10fa4c1d707d639b34bdb3c279bbecef8fd6fe8958516b41b835cf",
+          "bytes": 35257,
+          "width": 820,
+          "height": 332
+        },
+        {
+          "path": "terminal/docs/pr-crops/vol-load-failure/spread-unavailable-820.png",
+          "sha256": "8ac56fbc3f7fecaaa89dfe9edd68290fa052ce625d3c0d47ef106bad48c610e4",
+          "bytes": 33220,
+          "width": 820,
+          "height": 349
+        }
+      ]
+    }
+  ],
+  "focused_browser_crops": [
+    {
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/browser/dark-en-1day-1440.png",
+      "sha256": "e7ea9fc5b277355c08921eaa3b5664dbe7a7cc66eb126bea367911b56ffe7787",
+      "bytes": 27425,
+      "width": 632,
+      "height": 188
+    },
+    {
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/browser/dark-en-1day-390.png",
+      "sha256": "4c6718f7678a491859a551abadee1b31c543b02900511c3d5b449974fb2b1c7d",
+      "bytes": 27439,
+      "width": 324,
+      "height": 240
+    },
+    {
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/browser/dark-en-1day-820.png",
+      "sha256": "05becf05705031ed8ce74dcce068196eba7138fbc170ed71576bd000c5905045",
+      "bytes": 27809,
+      "width": 754,
+      "height": 188
+    },
+    {
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/browser/dark-en-2day-1440.png",
+      "sha256": "52d6487e14d1f3f595f520a6a08df1e1d7105d409e7d7c03a4e99bcdc64a6292",
+      "bytes": 27798,
+      "width": 632,
+      "height": 188
+    },
+    {
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/browser/dark-en-2day-390.png",
+      "sha256": "8c2db3d822267739d4298dcf1fed45f67d2469e69d143e51b26da6025a2ea539",
+      "bytes": 27987,
+      "width": 324,
+      "height": 240
+    },
+    {
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/browser/dark-en-2day-820.png",
+      "sha256": "b7f888a7a17314582922ef316f189ca0540a88cc660e90a9c342982b3e7aa137",
+      "bytes": 28192,
+      "width": 754,
+      "height": 188
+    },
+    {
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/browser/dark-zh-1day-1440.png",
+      "sha256": "9180855c7f2f0cc89acde481ace17869be2ee76756c1b1d77502d91920ce8865",
+      "bytes": 29183,
+      "width": 632,
+      "height": 187
+    },
+    {
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/browser/dark-zh-1day-390.png",
+      "sha256": "b25364c2cd5682b9597a53df22540ebb282303a0c5138cfcc0d44446c4a574a9",
+      "bytes": 28521,
+      "width": 324,
+      "height": 203
+    },
+    {
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/browser/dark-zh-1day-820.png",
+      "sha256": "56e21e03e0ef3ddbd8165630776961f75e82affe873d6ecb809fef8be1f083f2",
+      "bytes": 29678,
+      "width": 754,
+      "height": 188
+    },
+    {
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/browser/dark-zh-2day-1440.png",
+      "sha256": "d5f1665327498a63d66fcd3404c3dfd3468e6bea1e0f84c26328e9ea7d5d66c0",
+      "bytes": 29427,
+      "width": 632,
+      "height": 187
+    },
+    {
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/browser/dark-zh-2day-390.png",
+      "sha256": "06b7606aef0ff9cfba7dd473e1d8d91234f323ac5f67be99972c25b758b62209",
+      "bytes": 28755,
+      "width": 324,
+      "height": 203
+    },
+    {
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/browser/dark-zh-2day-820.png",
+      "sha256": "2332dcb953638f78564145d7fd131bf0d29b42a0e02ecff194b379a9499a5a33",
+      "bytes": 29915,
+      "width": 754,
+      "height": 188
+    },
+    {
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/browser/light-en-1day-1440.png",
+      "sha256": "1881a530293e34fd27867dd4cd732100ac9d5eb301d95da938be51fa9431d119",
+      "bytes": 26821,
+      "width": 550,
+      "height": 188
+    },
+    {
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/browser/light-en-1day-390.png",
+      "sha256": "1e9123275278ed8a6300e56a39340e1c4dc48315f6b6fe1c4802451eb95381bd",
+      "bytes": 26954,
+      "width": 324,
+      "height": 240
+    },
+    {
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/browser/light-en-1day-820.png",
+      "sha256": "93f9ae6022cc5345b17e1761809a4e075521bed6669bff432ee80d9aada35531",
+      "bytes": 27515,
+      "width": 754,
+      "height": 188
+    },
+    {
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/browser/light-en-2day-1440.png",
+      "sha256": "073a755a84ee17fefb1190d2f863624820bfc5ea9eac2245c22ab4ce23e0bb90",
+      "bytes": 27023,
+      "width": 550,
+      "height": 188
+    },
+    {
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/browser/light-en-2day-390.png",
+      "sha256": "4fa61012c254ca6aa6bc7cc4b92925b852e04809fcdf8babf5e28692e25219e5",
+      "bytes": 27487,
+      "width": 324,
+      "height": 240
+    },
+    {
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/browser/light-en-2day-820.png",
+      "sha256": "23f80ddc345b45908116375cc0ed0a9cd472af928de1b77010d514674b63659b",
+      "bytes": 27712,
+      "width": 754,
+      "height": 188
+    },
+    {
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/browser/light-zh-1day-1440.png",
+      "sha256": "ccec606d3583198c311514e81445a39485fed64a8efd34c368b3d624e212a2e7",
+      "bytes": 28094,
+      "width": 550,
+      "height": 187
+    },
+    {
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/browser/light-zh-1day-390.png",
+      "sha256": "49c0b5797366008e9f78b91bba4813da9918363f87b31c148f9fc23b27ebe73c",
+      "bytes": 27252,
+      "width": 324,
+      "height": 203
+    },
+    {
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/browser/light-zh-1day-820.png",
+      "sha256": "952f71c7a15ca141124ef7973cb95c90e743454fa954b9197ac4a0a90dd3697c",
+      "bytes": 28832,
+      "width": 754,
+      "height": 188
+    },
+    {
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/browser/light-zh-2day-1440.png",
+      "sha256": "265abd756e0e960d844278b0c5a5926a1f98bd9a147a64f43d1a00d54b32dc89",
+      "bytes": 28280,
+      "width": 550,
+      "height": 187
+    },
+    {
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/browser/light-zh-2day-390.png",
+      "sha256": "862942962878dbaade5cd8222e595e743fbb2a5db0cb51e5acee75b51a5167d5",
+      "bytes": 27442,
+      "width": 324,
+      "height": 203
+    },
+    {
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/browser/light-zh-2day-820.png",
+      "sha256": "fe1feb07791ea0efe253fcc30b84cbd5a9dc901b178d587892f1102731c80c6d",
+      "bytes": 29029,
+      "width": 754,
+      "height": 188
+    }
+  ],
+  "historical_evidence_json_unchanged": true,
+  "result": "PASS"
+}

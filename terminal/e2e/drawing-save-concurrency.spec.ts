@@ -127,10 +127,18 @@ test("a failed drawings read is shown and keeps drawing disabled",async({page})=
 test("two devices conflict and cloud survives until an explicit recovery choice",async({page,browser,baseURL})=>{
  const secondContext=await browser.newContext({baseURL,viewport:page.viewportSize()!,hasTouch:(page.viewportSize()?.width ?? 1440)<=820});const second=await secondContext.newPage();
  let cloud:any={drawings:[],revision:null,schemaVersion:1};let commits=0;let calls=0;
+ let rejectedStaleWrite=false;
+ let conflictHandled!:()=>void;const conflictResponse=new Promise<void>(resolve=>{conflictHandled=resolve;});
+ let recoveryReadHandled!:()=>void;const recoveryRead=new Promise<void>(resolve=>{recoveryReadHandled=resolve;});
  const serve=async(route:any)=>{
-  if(route.request().method()==="GET"){await route.fulfill(json(cloud));return;}
+  if(route.request().method()==="GET"){
+   const isRecoveryRead=rejectedStaleWrite&&route.request().frame().page()===second;
+   await route.fulfill(json(cloud));
+   if(isRecoveryRead)recoveryReadHandled();
+   return;
+  }
   calls++;const body=route.request().postDataJSON();
-  if(body.expectedRevision!==cloud.revision){await route.fulfill({status:409,contentType:"application/json",body:JSON.stringify({ok:false,code:"revision_conflict"})});return;}
+  if(body.expectedRevision!==cloud.revision){rejectedStaleWrite=true;await route.fulfill({status:409,contentType:"application/json",body:JSON.stringify({ok:false,code:"revision_conflict"})});conflictHandled();return;}
   commits++;cloud={drawings:body.drawings,revision:commits===1?committed:nextRevision,schemaVersion:1};
   await route.fulfill(json({ok:true,operationId:body.operationId,revision:cloud.revision,idempotentReplay:false,superseded:false}));
  };
@@ -138,6 +146,10 @@ test("two devices conflict and cloud survives until an explicit recovery choice"
   await page.route("**/api/drawings**",serve);await second.route("**/api/drawings**",serve);
   await seed(page,{drawings:[line("tab-a")],revision:null});await open(page);await expect.poll(()=>commits).toBe(1);
   await seed(second,{drawings:[line("tab-b")],revision:null});await open(second);
+  // A visible canvas does not mean the queued save has received its 409 or the
+  // recovery read. Fence those fixture events before starting the UI assertions;
+  // otherwise their 5s budget also includes unrelated hydration/journal work.
+  await conflictResponse;await recoveryRead;
   await expect(second.getByTestId("drawing-save-recovery")).toContainText("cloud copy changed");
   await expect(second.getByTestId("drawing-save-recovery")).toContainText("Cloud drawings (1)");
   expect(cloud.drawings[0].id).toBe("tab-a");expect(commits).toBe(1);expect(calls).toBe(2);
@@ -148,20 +160,29 @@ test("two devices conflict and cloud survives until an explicit recovery choice"
 
 test("superseded replay parks queued edits and use-cloud clears the recovered symbol",async({page})=>{
  await seed(page,{drawings:[line("queued")],revision:null,attempt:{operationId:original,expectedRevision:null,drawings:[line("old")]}});let calls=0;let reads=0;
+ let replayHandled!:()=>void;let replayFailed!:(error:unknown)=>void;
+ const replayResponse=new Promise<void>((resolve,reject)=>{replayHandled=resolve;replayFailed=reject;});
+ let recoveryReadHandled!:()=>void;let recoveryReadFailed!:(error:unknown)=>void;
+ const recoveryRead=new Promise<void>((resolve,reject)=>{recoveryReadHandled=resolve;recoveryReadFailed=reject;});
  // Let the initial GET settle behind the journal fence before replaying. A
  // superseded receipt parks local edits; it does not guarantee an available cloud snapshot.
  await holdJournal(page,true);
  await page.route("**/api/drawings**",async(route)=>{
-  if(route.request().method()==="GET"){
-   // Exercise the supported explicit-review path when the automatic read fails.
-   if(++reads===2){await route.abort("failed");return;}
-   await route.fulfill(json({drawings:[line("external")],revision:committed,schemaVersion:1}));return;
-  }
-  expect(route.request().postDataJSON()).toMatchObject({operationId:original,expectedRevision:null,drawings:[line("old")]});
-  calls++;await route.fulfill(json({ok:true,operationId:original,revision:committed,idempotentReplay:true,superseded:true}));
+  try {
+   if(route.request().method()==="GET"){
+    // Exercise the supported explicit-review path when the automatic read fails.
+    if(++reads===2){await route.abort("failed");recoveryReadHandled();return;}
+    await route.fulfill(json({drawings:[line("external")],revision:committed,schemaVersion:1}));return;
+   }
+   expect(route.request().postDataJSON()).toMatchObject({operationId:original,expectedRevision:null,drawings:[line("old")]});
+   calls++;await route.fulfill(json({ok:true,operationId:original,revision:committed,idempotentReplay:true,superseded:true}));replayHandled();
+  } catch(error) {replayFailed(error);recoveryReadFailed(error);throw error;}
  });
- await open(page);const recovery=page.getByTestId("drawing-save-recovery");
- await expect.poll(()=>reads).toBe(2);expect(calls).toBe(1);
+ // Canvas readiness can precede the journal replay. Await the exact response
+ // and failed automatic read within the existing test timeout, then count them.
+ // Promise.all observes fixture errors even while open(page) is still pending.
+ await Promise.all([open(page),replayResponse,recoveryRead]);const recovery=page.getByTestId("drawing-save-recovery");
+ expect(reads).toBe(2);expect(calls).toBe(1);
  await recovery.getByRole("button",{name:"Review cloud copy",exact:true}).click();
  await expect(recovery).toContainText("Cloud drawings (1)");expect(calls).toBe(1);
  await recovery.getByRole("button",{name:"Use cloud copy",exact:true}).click();await expect(recovery).toHaveCount(0);expect(calls).toBe(1);expect(reads).toBe(3);

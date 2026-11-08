@@ -1,0 +1,30 @@
+{
+  "observedAt": "2026-11-04T06:51:40.865Z",
+  "scope": "Read-only live public source samples; same response bytes compared against pre-fix and fixed search; not deployed UI proof",
+  "cases": [
+    {
+      "symbol": "AMZN",
+      "sha256": "68f5fb084a326278c902c19c9606c7d80fc7e4f471be51397f8fb4fbc186a7c9",
+      "observations": 385,
+      "priced": 385,
+      "displayedPriceMissesBefore": 160,
+      "displayedPriceMissesAfter": 0
+    },
+    {
+      "symbol": "COST",
+      "sha256": "27bde95650f10cf320ab373844151b30ea9236082dc25aa54212c032eb2ddb0f",
+      "observations": 457,
+      "priced": 457,
+      "displayedPriceMissesBefore": 224,
+      "displayedPriceMissesAfter": 0
+    },
+    {
+      "symbol": "NVDA",
+      "sha256": "3579cb397bcc780dc710b010e8bf6f368c1907c5dd7eadd57d5fc991ea2b4227",
+      "observations": 320,
+      "priced": 319,
+      "displayedPriceMissesBefore": 161,
+      "displayedPriceMissesAfter": 0
+    }
+  ]
+}
