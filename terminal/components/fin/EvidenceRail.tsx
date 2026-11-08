@@ -170,7 +170,9 @@ export default function EvidenceRail({
                     ? pick(zh, "Byte-replayed", "字节回放")
                     : v2.receipt_state === "address_only"
                       ? pick(zh, "Address only", "仅地址")
-                      : pick(zh, "Typed absence", "类型化缺项")}</b>
+                      : v2.receipt_state === "status_only"
+                        ? pick(zh, "Status only", "仅状态")
+                        : pick(zh, "Typed absence", "类型化缺项")}</b>
                 </div>
                 <div className="ci-receipt-row">
                   <span>{pick(zh, "Source document", "来源文档")}</span>
