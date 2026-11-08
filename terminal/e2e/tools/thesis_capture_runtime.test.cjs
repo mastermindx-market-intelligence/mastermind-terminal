@@ -255,3 +255,163 @@ test("witness-journal IO failure cannot skip owned context/server cleanup or fab
  assert(context.isClosed());await owner.stop();assert.equal(t.stats.stops,1);assert.equal(t.stats.restored,1);
  assert.throws(()=>owner.summary(),e=>e===t.io);assert.throws(()=>t.api.publish("unused","unused",[],{counts:{}}),e=>e===t.io);
 });
+
+// Fixed representative light mode uses the same runtime/CI command; no new job.
+const lightBodies=require("./thesis_capture_light_bodies.cjs");
+test("representative light selection is finite, four observations per existing family",()=>{
+ assert.equal(lightBodies.captureMode([]),"dark");assert.equal(lightBodies.captureMode(["--light-representative"]),lightBodies.LIGHT_MODE);
+ for(const args of [["--light"],["--light-representative","--width=800"],["--light-representative=1"],["--light-representative","--light-representative"],null])assert.throws(()=>lightBodies.captureMode(args),/PRESENTATION_SCOPE/);
+ assert.deepEqual(require("./thesis_capture_runtime.cjs").capturePresentationEnvironment(lightBodies.LIGHT_MODE),{MMX_SHARED_SHELL:"1"});
+ const research=lightBodies.plan("research");assert.deepEqual(research.map(s=>[s.width,s.lang,s.surface]),[[1440,"en","save-flow"],[1440,"zh","view-subject-empty"],[390,"en","save-flow"],[390,"zh","save-flow"]]);
+ assert.equal(lightBodies.plan("proposals").filter(s=>s.surface==="populated").length,4);
+ for(const family of ["claim","",null,{}])assert.throws(()=>lightBodies.plan(family),/LIGHT_FAMILY/);
+});
+function lightFacts(shot){return {sharedShell:"1",theme:"light",lang:shot.lang,lightPressed:"true",localePressed:shot.lang==="zh"?"true":"false",viewport:{width:shot.width,height:shot.width===1440?900:844},panelToken:"#ffffff",textToken:"#202632",body:{width:290,height:600}};}
+test("light root attributes alone cannot substitute for owner/locale/material/current viewport",()=>{
+ const shot=lightBodies.plan("research")[0],facts=lightFacts(shot);assert.equal(lightBodies.assertObservation(facts,shot),facts);
+ for(const change of [{sharedShell:null},{theme:"dark"},{lang:"zh"},{lightPressed:"false"},{localePressed:"true"},{panelToken:"#181b21"},{textToken:"#d7dce3"},{viewport:{width:390,height:844}},{body:{width:0,height:600}},{body:{width:290,height:NaN}}])assert.throws(()=>lightBodies.assertObservation({...facts,...change},shot),/LIGHT_PRESENTATION/);
+});
+test("actual owner public toggles settle both locale and light with no theme/root injection",async()=>{
+ for(const lang of ["en","zh"]){
+  const actions=[];const page={locator:()=>({waitFor:async()=>{}}),getByRole:(role,options)=>{assert.equal(role,"button");assert.equal(options.includeHidden,undefined);assert(options.name instanceof RegExp);return {waitFor:async()=>{},getAttribute:async()=>"false",click:async()=>actions.push(options.name.source)};},waitForFunction:async(fn,arg)=>{assert(arg===null || (arg.requested===lang && arg.theme==="light"));assert.match(fn.toString(),/mmxSharedShell/);}};
+  await lightBodies.settleOwner(page,lang);assert.equal(actions.length,lang==="zh"?2:1);assert(actions[0].includes("Light theme"));
+ }
+ await assert.rejects(lightBodies.settleOwner({},"de"),/LIGHT_LOCALE/);
+});
+function lightStylePage(){let listener;return {on:(name,fn)=>{assert.equal(name,"response");listener=fn;},emit:r=>listener(r)};}
+function lightStyleResponse(url="http://127.0.0.1:41911/_next/static/css/app.css?private=not-retained",body="data-mmx-shared-shell ThesisWorkspace",status=200){return {url:()=>url,request:()=>({resourceType:()=>"stylesheet"}),status:()=>status,body:async()=>Buffer.from(body)};}
+test("representative light CSS captures exact local bodies, no query/raw text and refuses missing facets/errors",async()=>{
+ const page=lightStylePage(),read=lightBodies.retainStyles(page,base);page.emit(lightStyleResponse());const [entry]=await read();assert.equal(entry.path,"/_next/static/css/app.css");assert.match(entry.sha256,/^[0-9a-f]{64}$/);assert(!JSON.stringify(entry).includes("private"));
+ for(const response of [lightStyleResponse("https://provider.invalid/a.css"),lightStyleResponse("http://user@127.0.0.1:41911/_next/static/a.css"),lightStyleResponse("malformed"),lightStyleResponse(undefined,"missing"),lightStyleResponse(undefined,undefined,500),{...lightStyleResponse(),body:async()=>{throw Error("BODY_UNKNOWN");}}]){
+  const p=lightStylePage(),r=lightBodies.retainStyles(p,base);p.emit(response);await assert.rejects(r());
+ }
+});
+test("representative publication requires exactly current four named owner/CSS observations",()=>{
+ const shots=lightBodies.plan("research"),files=shots.map(s=>s.file),observations=shots.map(s=>({file:s.file,facts:lightFacts(s),deliveredStyles:[{sharedShell:true,workspace:true}]}));
+ lightBodies.assertComplete("research",files,observations);
+ for(const [f,o] of [[files.slice(1),observations],[files,observations.slice(1)],[[...files.slice(0,3),files[0]],observations],[files,observations.map((v,i)=>i? v:{...v,deliveredStyles:[]})]])assert.throws(()=>lightBodies.assertComplete("research",f,o),/LIGHT_INCOMPLETE/);
+});
+test("both actual drivers select only fixed runtime mode before any child transport",async()=>{
+ const vm=require("node:vm");
+ for(const file of ["capture_f11_4_research_views.cjs","capture_b_f11_5_thesis_proposals.cjs"]){
+  for(const args of [[],["--light-representative"]]){
+   const calls=[];let exited;const runtime={getChromium:()=>({}),staging:(_root,family)=>"/private/stage/"+family,start:async(...values)=>{calls.push(values);throw Error("CONTROLLED_NO_EFFECT");}};
+   const quietFs={mkdirSync:()=>{},readFileSync:()=>Buffer.from("unused"),writeFileSync:()=>{throw Error("UNEXPECTED_WRITE");}};
+   const context={require:name=>name==="./thesis_capture_runtime.cjs"?runtime:name==="./thesis_capture_light_bodies.cjs"?lightBodies:name==="node:fs"?quietFs:name==="node:child_process"?{execFileSync:()=>"exact-source"}:require(name),__dirname,process:{argv:["node",file,...args],env:{},stdout:{write:()=>{}},exit:code=>{exited=code;}},console:{error:()=>{}}};
+   vm.runInNewContext(fs.readFileSync(path.join(__dirname,file),"utf8"),context);await new Promise(resolve=>setImmediate(resolve));
+   assert.equal(calls.length,1);assert.equal(calls[0][3],args.length?lightBodies.LIGHT_MODE:"dark");assert.equal(exited,1);
+  }
+ }
+});
+
+test("light driver source keeps existing default dark families and strict publication while separating light artifacts",()=>{
+ for(const name of ["capture_f11_4_research_views.cjs","capture_b_f11_5_thesis_proposals.cjs"]){
+  const source=fs.readFileSync(path.join(__dirname,name),"utf8");
+  assert.match(source,/if \(process.env.CAPTURE_ONLY\) throw Error\("THESIS_CAPTURE_PARTIAL_REFUSED"\)/);
+  assert.match(source,/REP \? join\(TARGET,LIGHT \? "light-representative" : "dark-representative"\) : TARGET/);
+  assert.match(source,/if\(REP\)light.assertComplete/);
+  assert.match(source,/await runtime.captureCanonicalScreenshot/);
+  assert.match(source,/colorScheme: LIGHT \? "light" : "dark"/);
+  assert.match(source,/if\(!REP\)await (?:context|page).addInitScript/);
+ }
+ const owner=lightBodies.settleOwner.toString();assert.doesNotMatch(owner,/evaluate|addInitScript|localStorage|setAttribute/);
+ assert.match(owner,/waitForFunction/);assert.match(owner,/mmxSharedShell/);
+ assert.equal(new Set(lightBodies.SOURCE_FILES).size,15);
+});
+
+test("light owner actions use exact visible role names rather than duplicated hidden responsive controls",async()=>{
+ const calls=[];
+ const page={locator:selector=>{assert.equal(selector,'[data-shared-shell="beta"]');return {waitFor:async()=>{}};},
+  getByRole:(role,options)=>{assert.equal(role,"button");assert.equal(options.includeHidden,undefined);calls.push(options.name.source);return {waitFor:async()=>{},getAttribute:async()=>"true",click:async()=>{}};},waitForFunction:async()=>{}};
+ await lightBodies.settleOwner(page,"zh");assert.deepEqual(calls,["^(Light theme|浅色主题)$","^(Chinese language|中文界面)$"]);
+});
+
+test("light observation facts read the same visible role controls instead of a hidden duplicate",async()=>{
+ const shot=lightBodies.plan("research")[0],calls=[];
+ const page={getByRole:(role,options)=>{assert.equal(role,"button");assert.equal(options.includeHidden,undefined);calls.push(options.name.source);return {getAttribute:async()=>options.name.test("Light theme")?"true":"false"};}};
+ const target={evaluate:async fn=>{if(fn===lightBodies.observeSmallTextRendering)return {status:"observed",roles:[],namingInput:{present:false}};assert.doesNotMatch(fn.toString(),/aria-pressed|querySelector\('button/);return {...lightFacts(shot),lightPressed:"false",localePressed:"true"};}};
+ const facts=await lightBodies.observe(page,target,shot);assert.equal(facts.lightPressed,"true");assert.equal(facts.localePressed,"false");assert.equal(calls.length,2);
+});
+
+test("fixed dark representative is exactly one EN1440 named state per family, independent from full dark and light",()=>{
+ assert.equal(lightBodies.captureMode(["--dark-representative"]),lightBodies.DARK_MODE);
+ assert.deepEqual(require("./thesis_capture_runtime.cjs").capturePresentationEnvironment(lightBodies.DARK_MODE),{MMX_SHARED_SHELL:"1"});
+ for(const args of [["--dark-representative","--lang=zh"],["--dark-representative","--light-representative"],["--dark-representative=1"],["--dark-representative","--width=390"]])assert.throws(()=>lightBodies.captureMode(args),/PRESENTATION_SCOPE/);
+ for(const family of ["research","proposals"]){
+  const shots=lightBodies.plan(family,lightBodies.DARK_MODE);assert.equal(shots.length,1);assert.deepEqual([shots[0].width,shots[0].lang,shots[0].theme],[1440,"en","dark"]);
+  assert.equal(shots[0].surface,family==="research"?"save-flow":"populated");
+  const facts={...lightFacts(shots[0]),theme:"dark",lightPressed:"false",panelToken:"#181b21",textToken:"#d7dce3"};
+  lightBodies.assertObservation(facts,shots[0]);const obs=[{file:shots[0].file,facts,deliveredStyles:[{sharedShell:true,workspace:true}]}];
+  lightBodies.assertComplete(family,[shots[0].file],obs,lightBodies.DARK_MODE);
+  assert.throws(()=>lightBodies.assertComplete(family,[],obs,lightBodies.DARK_MODE),/INCOMPLETE/);
+  assert.throws(()=>lightBodies.assertComplete(family,[shots[0].file,shots[0].file],obs,lightBodies.DARK_MODE),/INCOMPLETE/);
+  assert.throws(()=>lightBodies.assertObservation({...facts,lightPressed:"true"},shots[0]),/PRESENTATION/);
+  assert.throws(()=>lightBodies.assertObservation(facts,{...shots[0],width:390}),/PRESENTATION/);
+  assert.throws(()=>lightBodies.assertObservation(facts,{...shots[0],lang:"zh"}),/PRESENTATION/);
+  assert.equal(lightBodies.plan(family).length,4);assert.throws(()=>lightBodies.plan(family,"dark"),/SCOPE/);
+ }
+});
+test("dark representative toggles the same actual visible owner off and keeps locale EN",async()=>{
+ const actions=[];const page={locator:()=>({waitFor:async()=>{}}),getByRole:(_role,options)=>({waitFor:async()=>{},getAttribute:async()=>"true",click:async()=>actions.push(options.name.source)}),waitForFunction:async(_fn,arg)=>{if(arg)assert.deepEqual(arg,{requested:"en",theme:"dark"});}};
+ await lightBodies.settleOwner(page,"en","dark");assert.deepEqual(actions,["^(Light theme|浅色主题)$","^(Chinese language|中文界面)$"]);
+ await assert.rejects(lightBodies.settleOwner(page,"en","auto"),/SCOPE/);
+});
+
+test("actual driver main selects full20/8, fixedlight4 and fixeddark1 with distinct publication manifests",async()=>{
+ const vm=require("node:vm");
+ for(const family of ["research","proposals"]){
+  const file=family==="research"?"capture_f11_4_research_views.cjs":"capture_b_f11_5_thesis_proposals.cjs";
+  for(const args of [[],["--light-representative"],["--dark-representative"]]){
+   const publications=[],writes=[],calls=[];let stopped=0,browserClosed=0,contextsClosed=0;
+   const page={setDefaultTimeout:()=>{},on:()=>{}};
+   const browser={newContext:async()=>({addCookies:async()=>{},addInitScript:async()=>{},newPage:async()=>page,close:async()=>{contextsClosed++;}}),close:async()=>{browserClosed++;}};
+   const runtime={getChromium:()=>({launch:async()=>browser,counts:{},toolchain:{}}),staging:()=>"/private/new-stage",start:async(...values)=>{calls.push(values);return {ready:async()=>{},stop:async()=>{stopped++;},summary:()=>({}),failure:()=>{}};},cleanupPreserving:async(_error,action)=>action(),publish:(stage,target,files,control)=>publications.push({stage,target,files:[...files],control})};
+   const fakeFs={mkdirSync:()=>{},readFileSync:()=>Buffer.from("controlled-layout-source"),writeFileSync:(file,body)=>writes.push({file,body})};
+   const context={require:name=>name==="./thesis_capture_runtime.cjs"?runtime:name==="./thesis_capture_light_bodies.cjs"?lightBodies:name==="node:fs"?fakeFs:name==="node:child_process"?{execFileSync:()=>"controlled-source-head"}:require(name),module:{exports:{}},__dirname,process:{argv:["node",file,...args],env:{},stdout:{write:()=>{}}},console:{log:()=>{},error:()=>{}},__family:family,__facts:shot=>({...lightFacts(shot),...(shot.theme==="dark"?{theme:"dark",lightPressed:"false",panelToken:"#181b21",textToken:"#d7dce3"}:{})})};
+   const original=fs.readFileSync(path.join(__dirname,file),"utf8"),at=original.lastIndexOf("\nmain().catch");assert(at>0);
+   vm.createContext(context);vm.runInContext(original.slice(0,at)+"\nmodule.exports={main};",context);
+   // Only capture/DOM leaves are fake. The original main selection, manifest,
+   // context lifecycle and complete-family predicate above remain actual source.
+   const record=`async function recordCapture(...values){const file=require('node:path').basename(values[values.length-1]);if(REP){const shot=light.plan(__family,MODE).find(s=>s.file===file);if(!shot)throw Error('UNDECLARED_SHOT');lightObservations.push({file,facts:__facts(shot),deliveredStyles:[{sharedShell:true,workspace:true}]});}}`;
+   vm.runInContext(record+(family==="research"?"\ncaptureEmpty=recordCapture;captureNamed=recordCapture;captureSaveFlow=recordCapture;captureWindowClosed=recordCapture;captureViewSubjectEmpty=recordCapture;captureUnavailable=recordCapture;":"\nopenPanel=async()=>{};shoot=async(page,file)=>recordCapture(file);"),context);
+   await context.module.exports.main();assert.equal(publications.length,1);assert.equal(stopped,1);assert.equal(browserClosed,1);
+   const pub=publications[0],rep=args.length>0,isDark=args[0]==="--dark-representative";
+   assert.equal(pub.files.length,rep?(isDark?1:4):(family==="research"?20:8));assert.equal(contextsClosed,pub.files.length);
+   assert.equal(calls[0][3],rep?(isDark?lightBodies.DARK_MODE:lightBodies.LIGHT_MODE):"dark");
+   if(rep){assert(pub.target.endsWith(isDark?"/dark-representative":"/light-representative"));assert(pub.files.every(f=>f.startsWith(isDark?"dark-":"light-")));assert.match(writes[0].body,new RegExp('theme: '+(isDark?'dark':'light')));}
+   else {assert(!pub.target.endsWith("-representative"));assert(!pub.files.some(f=>/^(light|dark)-/.test(f)));}
+  }
+ }
+});
+
+function textObserverFixture(lang="en",extra=""){
+ const {JSDOM}=require("jsdom"),vm=require("node:vm");
+ const placeholder=lang==="zh"?"为这个视图命名":"Name this view";
+ const dom=new JSDOM(`<html data-lang="${lang}"><body><aside id="target"><nav data-testid="thesis-lens-rail"><button role="tab" aria-selected="true"><span>Theses</span><span>2</span></button><button role="tab" aria-selected="false"><span>Review</span><span>0</span></button></nav><p data-testid="rms-scope">Scope</p><form style="background:#eef1f6;opacity:.8"><input aria-label="${placeholder}" placeholder="${placeholder}" style="font-family:Inter;font-size:12px;color:#202632;background:#eef1f6;opacity:1"/><button type="submit" disabled>Save</button></form><section data-testid="thesis-assistant-notes"><div><h2>Notes</h2></div><p>Help</p><label>Suggested change<textarea></textarea></label><div><button data-testid="thesis-suggest-amendment">Suggest</button></div></section><section data-testid="thesis-proposals"><div><h2>Proposals</h2><span>3</span></div><p data-testid="thesis-proposals-ceiling">Ceiling</p><article data-testid="thesis-proposal-row"><p>Body</p><p>Based on</p><div><i data-state="accepted">Accepted</i><time>Time</time></div><div><button>Accept</button><button>Reject</button></div></article></section>${extra}</aside></body></html>`);
+ // JSDOM supplies actual selectors and properties, not rendered layout/pseudo
+ // styles. Only those two unimplemented browser primitives are controlled here.
+ dom.window.HTMLElement.prototype.getBoundingClientRect=function(){return {x:0,y:0,width:100,height:20};};
+ const calls=[],getComputedStyle=(node,pseudo)=>{if(pseudo){calls.push(pseudo);assert.equal(pseudo,"::placeholder");return {color:"rgb(84, 97, 116)",opacity:"1",fontSize:"12px",fontFamily:"Inter",fontWeight:"400",fontStyle:"normal",lineHeight:"normal"};}return dom.window.getComputedStyle(node);};
+ const target=dom.window.document.getElementById("target");
+ return {dom,target,calls,read:()=>vm.runInNewContext(`(${lightBodies.observeSmallTextRendering.toString()})(element)`,{element:target,document:dom.window.document,getComputedStyle})};
+}
+test("observer reads actual enabled empty naming input/pseudo styles and bounded audit roles without mutation",()=>{
+ for(const lang of ["en","zh"]){const f=textObserverFixture(lang),before=f.target.outerHTML,read=f.read();
+  assert.equal(read.status,"observed");assert.equal(read.roles.length,19);const input=read.namingInput;
+  assert.equal(input.enabled,true);assert.equal(input.disabledProperty,false);assert.equal(input.readOnly,false);assert.equal(input.valueEmpty,true);assert.equal(input.placeholderMatchesLocale,true);assert.equal(input.saveButton.disabled,true);
+  assert.equal(input.placeholderStyle.color,"rgb(84, 97, 116)");assert.equal(input.placeholderStyle.opacity,"1");assert.equal(input.placeholderStyle.fontSize,"12px");assert.equal(input.placeholderStyle.fontFamily,"Inter");assert(input.ancestors.rows.some(r=>r.backgroundColor==="rgb(238, 241, 246)" && r.opacity==="0.8"));
+  assert.equal(f.calls.length,1);assert.equal(read.roles.find(r=>r.role==="research-count").entries[0].selected,"true");assert.equal(read.roles.find(r=>r.role==="research-count").entries[1].selected,"false");
+  assert.equal(read.roles.find(r=>r.role==="notes-label").visible,true);assert.equal(read.roles.find(r=>r.role==="proposal-count").visible,true);assert.equal(read.roles.find(r=>r.role==="status").entries[0].state,"accepted");assert.equal(read.roles.find(r=>r.role==="retry").present,false);
+  assert.equal(f.target.outerHTML,before);f.dom.window.close();
+ }
+});
+test("observer preserves absent/disabled/nonempty/unknown-placeholder states without leaking values or enabling Save",()=>{
+ const f=textObserverFixture(),input=f.target.querySelector("input");input.value="private-entered-name";input.disabled=true;input.readOnly=true;input.placeholder="private-placeholder";
+ const before=f.target.outerHTML,r=f.read();assert.equal(r.namingInput.enabled,false);assert.equal(r.namingInput.readOnly,true);assert.equal(r.namingInput.valueEmpty,false);assert.equal(r.namingInput.placeholder,"other");assert.equal(r.namingInput.placeholderMatchesLocale,false);assert(!JSON.stringify(r).includes("private-"));assert.equal(f.target.outerHTML,before);
+ input.remove();const missing=f.read();assert.equal(missing.namingInput.present,false);assert.equal(missing.roles.find(r=>r.role==="research-name").present,false);f.dom.window.close();
+});
+test("observer bounds repeated roles/ancestors and reports observation failure without a new qualification threshold",()=>{
+ const extra=Array.from({length:25},()=>'<article data-testid="thesis-proposal-row"><p>Body</p><p>Based</p></article>').join("");const f=textObserverFixture("en",extra),r=f.read(),body=r.roles.find(x=>x.role==="body");assert.equal(body.entries.length,3);assert.equal(body.omitted,23);assert(body.entries.every(x=>x.ancestors.rows.length<=4));f.dom.window.close();
+ const vm=require("node:vm"),unavailable=vm.runInNewContext(`(${lightBodies.observeSmallTextRendering.toString()})(element)`,{element:{querySelectorAll:()=>{throw Error("private-failure");}}});assert.equal(unavailable.status,"unavailable");assert(!JSON.stringify(unavailable).includes("private-failure"));
+ const source=lightBodies.observeSmallTextRendering.toString();assert.doesNotMatch(source,/setAttribute|\.click\(|\.focus\(|scrollIntoView|\.style\.[A-Za-z]+\s*=/);
+});

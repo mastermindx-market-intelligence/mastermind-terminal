@@ -10,6 +10,10 @@
  * From terminal/:
  *   node e2e/tools/capture_b_f11_5_thesis_proposals.cjs
  *
+ * Fixed --light-representative captures four light body observations; fixed
+ * --dark-representative captures ONE EN1440 body. Both use real PresentationOwner
+ * controls and separate nested manifests; default full dark is unchanged.
+ *
  * Writes PNGs + EVIDENCE.yml under docs/pr-crops/b-f11-5-thesis-proposals/.
  */
 "use strict";
@@ -19,12 +23,16 @@ const { createHash, randomUUID } = require("node:crypto");
 const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
 const runtime = require("./thesis_capture_runtime.cjs");
+const light = require("./thesis_capture_light_bodies.cjs");
+const MODE = light.captureMode(process.argv.slice(2)), LIGHT = MODE === light.LIGHT_MODE, REP = MODE !== "dark";
+const THEME = LIGHT ? "light" : "dark";
+const lightObservations = [], styleReaders = new WeakMap();
 const chromium = runtime.getChromium();
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
 const TARGET = join(ROOT, "docs", "pr-crops", "b-f11-5-thesis-proposals");
-const OUT = runtime.staging(ROOT, "b-f11-5-thesis-proposals");
+const OUT = runtime.staging(ROOT, REP ? "body-representative" : "b-f11-5-thesis-proposals");
 const LAYOUT_FILES = [
   "terminal/components/workspaces/ThesisWorkspace.tsx",
   "terminal/components/workspaces/ThesisWorkspace.module.css",
@@ -59,10 +67,10 @@ function sha256File(rel) {
 }
 
 function layoutFilesBlock() {
-  return LAYOUT_FILES.map((rel) => `  ${rel}: "${sha256File(rel)}"`);
+  return (REP ? light.SOURCE_FILES : LAYOUT_FILES).map((rel) => `  ${rel}: "${sha256File(rel)}"`);
 }
 
-async function startServer() { return runtime.start(ROOT, PORT, OUT); }
+async function startServer() { return runtime.start(ROOT, PORT, OUT, MODE); }
 async function stopServer(owner) { return owner.stop(); }
 async function waitForServer(timeoutMs, owner) { return owner.ready(timeoutMs); }
 
@@ -196,7 +204,7 @@ async function seedThesis(page, populated, lang) {
 
 async function openPanel(page, lang, viewport, populated) {
   await page.setViewportSize(viewport);
-  await page.addInitScript((l) => {
+  if(!REP)await page.addInitScript((l) => {
     localStorage.setItem("mm.lang", l);
     localStorage.setItem("theme", "dark");
     localStorage.setItem("theme_auto", "0");
@@ -213,12 +221,14 @@ async function openPanel(page, lang, viewport, populated) {
     timeout: 90_000,
   });
   await page.getByTestId("thesis-workspace").waitFor({ state: "visible", timeout: 45_000 });
+  if(REP)await light.settleOwner(page,lang,THEME);
   const thesisId = await seedThesis(page, populated, lang);
   await page.goto(`${BASE}/analysis?view=theses&thesis=${thesisId}&lang=${lang}`, {
     waitUntil: "domcontentloaded",
     timeout: 90_000,
   });
   await page.getByTestId("thesis-amendment-panel").waitFor({ state: "visible", timeout: 45_000 });
+  if(REP)await light.settleOwner(page,lang,THEME);
   if (populated) {
     // Three rows (proposed + declined + accepted) share this test id; wait on
     // the first card and on a non-proposed chip so the crop cannot land before
@@ -237,7 +247,10 @@ async function shoot(page, file) {
   await assertNoNextIndicator(page, file);
   await page.mouse.move(0, 0);
   await page.waitForTimeout(200);
+  const lightShot=REP ? light.plan("proposals",MODE).find(shot=>shot.file===file) : null;
+  const facts=REP ? await light.observe(page,page.getByTestId("thesis-amendment-panel"),lightShot) : null;
   await runtime.captureCanonicalScreenshot(page, page.getByTestId("thesis-amendment-panel"), { path: join(OUT, file) });
+  if(REP)lightObservations.push({file,facts,deliveredStyles:await styleReaders.get(page)()});
 }
 
 async function main() {
@@ -250,15 +263,18 @@ async function main() {
     await waitForServer(180_000, child);
     const browser = await chromium.launch({ headless: true });
     try {
-      for (const shot of SHOTS) {
+      const shots=REP ? light.plan("proposals",MODE).map(shot=>({...shot,viewport:shot.width===1440 ? "desktop" : "mobile",populated:true})) : SHOTS;
+      for (const shot of shots) {
         process.stdout.write(`capture ${shot.file} … `);
         const context = await browser.newContext({
           viewport: VIEWPORTS[shot.viewport],
           hasTouch: shot.viewport === "mobile",
           locale: shot.lang === "zh" ? "zh-CN" : "en-US",
-          colorScheme: "dark",
+          colorScheme: LIGHT ? "light" : "dark",
         });
+        if(REP)await context.addCookies([{name:"mm_e2e_rs30",value:"1",url:BASE},{name:"mm_e2e_guest",value:"1",url:BASE}]);
         const page = await context.newPage();
+        if(REP)styleReaders.set(page,light.retainStyles(page,BASE));
         page.setDefaultTimeout(45_000);
         try {
           await openPanel(page, shot.lang, VIEWPORTS[shot.viewport], shot.populated);
@@ -284,7 +300,16 @@ async function main() {
     await runtime.cleanupPreserving(primaryError,()=>stopServer(child));
   }
 
-  const evidence = [
+  if(REP)light.assertComplete("proposals",files,lightObservations,MODE);
+  const evidence = REP ? [
+    `# ${LIGHT ? "Four light" : "One dark"} representative body observations; separate from full dark family`,
+    `# capturedAtHead: ${capturedAtHead}`,"layoutFiles:",...layoutFilesBlock(),
+    `theme: ${THEME}`,LIGHT ? "languages: [en, zh]" : "languages: [en]",
+    "scope: representative bodies only; controlled fixture rendering, not production persistence or full light matrix",
+    `observations: ${JSON.stringify(lightObservations)}`,
+    `command: node e2e/tools/capture_b_f11_5_thesis_proposals.cjs ${LIGHT ? "--light-representative" : "--dark-representative"}`,
+    "files:",...files.map(file=>`  - ${file}`),"",
+  ].join("\n") : [
     "# B-F11-5 Suggested changes to your thesis — capture evidence",
     "# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
     "# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR",
@@ -308,8 +333,8 @@ async function main() {
     "files:",
     ...SHOTS.map((s) => `  - ${s.file}`),
   ];
-  writeFileSync(join(OUT, "EVIDENCE.yml"), `${evidence.join("\n")}\n`);
-  runtime.publish(OUT, TARGET, files, { ...child.summary(), counts: chromium.counts, toolchain: chromium.toolchain, capturedAtHead });
+  writeFileSync(join(OUT, "EVIDENCE.yml"), REP ? evidence : `${evidence.join("\n")}\n`);
+  runtime.publish(OUT, REP ? join(TARGET,LIGHT ? "light-representative" : "dark-representative") : TARGET, files, { ...child.summary(), counts: chromium.counts, toolchain: chromium.toolchain, capturedAtHead, ...(REP ? {presentation:MODE,lightObservations} : {}) });
   console.log(`wrote ${files.length} crops + EVIDENCE.yml at ${capturedAtHead}`);
 }
 

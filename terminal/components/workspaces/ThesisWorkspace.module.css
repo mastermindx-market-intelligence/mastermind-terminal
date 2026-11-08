@@ -235,3 +235,20 @@
 .conditionLine { margin: -8px 0 16px; padding-left: 10px; border-left: 2px solid var(--line-3); color: var(--muted); font-size: 12px; line-height: 1.5; }
 .conditionLine[data-state="window_closed"] { border-left-color: var(--warn); color: var(--text-2); }
 @media (prefers-reduced-motion: reduce) { .lens { transition: none; } }
+
+/* Light small status words and proposal metadata keep their explicit labels.
+   Use the existing secondary ink on pale materials; dark and market ink stay owned above. */
+:global(html[data-theme="light"]) .root .thesisList i,
+:global(html[data-theme="light"]) .root .proposalMeta i,
+:global(html[data-theme="light"]) .root .proposalMeta time,
+:global(html[data-theme="light"]) .root .assistantNotes .muted,
+:global(html[data-theme="light"]) .root .proposals .muted { color: var(--text-2); }
+
+/* Complete the small-text roles in the two light proposal panels. */
+:global(html[data-theme="light"]) .root .assistantNotes label,
+:global(html[data-theme="light"]) .root .proposals .historyHeading span { color: var(--text-2); }
+
+/* Enabled Research helper/count text uses the same qualified light ink. */
+:global(html[data-theme="light"]) .root .lensCount,
+:global(html[data-theme="light"]) .root .scopeNote { color: var(--text-2); }
+:global(html[data-theme="light"]) .root .saveViewForm input::placeholder { color: var(--text-2); opacity: 1; }
