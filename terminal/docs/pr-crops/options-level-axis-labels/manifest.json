@@ -1,8 +1,8 @@
 {
   "schema": "mastermind.options_level_axis_evidence/v1",
-  "capturedAt": "2026-09-22T21:13:32.667Z",
-  "sourceHead": "381388d541a79b972737dd0778fe793d5e00a1bf",
-  "baseURL": "http://127.0.0.1:36941",
+  "capturedAt": "2026-10-23T07:01:17.408Z",
+  "sourceHead": "87bf8c50c037b8da866cc1149ac0194312045cc0",
+  "baseURL": "http://127.0.0.1:32926",
   "classification": "LOCAL_BROWSER_WITH_INTERCEPTED_OPTIONS_CONTRACT_PAYLOADS_NOT_PRODUCTION_DATA",
   "expectedLinePrices": [
     192.42,
@@ -13,8 +13,8 @@
     192.6
   ],
   "sourceFiles": {
-    "components/ChartPanel.tsx": "f256f64d6a95a3c93dc394fe70f7602b6d87f362065d62c6c975e5539b20d470",
-    "lib/optionsLevels.ts": "ba5268ff0097eca172ae2192c4ad1659e597acdb5934e27f165f022754a93efd",
+    "components/ChartPanel.tsx": "56457ac4fe11f5c4fcfe4ab0e14f487ac3b3eaa70d9daa81f21526ed1b47b871",
+    "lib/optionsLevels.ts": "4098ca48d107fd2cf2bd40ce96fca87d51757f3e2578e7ea8f8301d1d8e6d7fc",
     "lib/priceTagPlacement.ts": "75798f32a3b1cf6432c38e076b4a9fac580e2ef402cb862596525a86a09465ff"
   },
   "captures": [
@@ -23,7 +23,7 @@
       "width": 1440,
       "height": 900,
       "screenshot": "desktop.png",
-      "sha256": "6db8a7d6fa9281640069939efd14fe54a2feb57afff9f7c4bb5a1c866b844d3a",
+      "sha256": "bf945aaa9b5311198c0fcfea94f766ded53a3352f79318641cff207a0b27d7ef",
       "proof": {
         "labels": {
           "primaryTop": 106,
@@ -132,7 +132,7 @@
       "width": 820,
       "height": 1180,
       "screenshot": "tablet.png",
-      "sha256": "b50c557a0304929a9292e8ca1c29af178699d6eb289427c56d1ae80ae7f82559",
+      "sha256": "3caab4f9c8cb32ae0573b524e229ed6827301217e7ed7367b79af16d57134151",
       "proof": {
         "labels": {
           "primaryTop": 38,
@@ -226,8 +226,8 @@
         "wrap": {
           "left": 0,
           "right": 820,
-          "top": 160,
-          "bottom": 606.796875,
+          "top": 146,
+          "bottom": 592.796875,
           "width": 820,
           "height": 446.796875
         }
@@ -241,7 +241,7 @@
       "width": 390,
       "height": 844,
       "screenshot": "mobile.png",
-      "sha256": "30d9dd7a97273643ab8ac8e1244f49c86a5cce8ee6c954872060c8aa7ec3f5ea",
+      "sha256": "825fad08c5c41263acb0dac812f303d1a1eccf3e96c4bf636cb3584aa3217a31",
       "proof": {
         "labels": {
           "primaryTop": 46,
@@ -335,8 +335,8 @@
         "wrap": {
           "left": 0,
           "right": 390,
-          "top": 112,
-          "bottom": 457.609375,
+          "top": 98,
+          "bottom": 443.609375,
           "width": 390,
           "height": 345.609375
         }
@@ -352,12 +352,12 @@
       "left": true,
       "percentage": true,
       "screenshot": "desktop-left-percentage.png",
-      "sha256": "8ee4bae9d4c955f6b50288eba33f21bdb1b01f76c4ca5d8b6dc00d79ae04eb4a",
+      "sha256": "ac0e785049adbad639cac768c633228f6756b421a21dc790a0a1cf8d38149f8e",
       "proof": {
         "labels": {
           "primaryTop": 106,
           "primaryNaturalTop": 195,
-          "primaryAnchorY": 203.46568344229888,
+          "primaryAnchorY": 203.465683442299,
           "primaryDocked": true,
           "pricePaneTop": 0,
           "extendedTop": 196,
@@ -374,7 +374,7 @@
               "anchorY": 203.25658101464705,
               "docked": true,
               "lane": 0,
-              "text": "CW 344.81%"
+              "text": "CW 342.90%"
             },
             {
               "key": "put_wall",
@@ -384,7 +384,7 @@
               "anchorY": 203.79427297146628,
               "docked": true,
               "lane": 0,
-              "text": "PW 344.40%"
+              "text": "PW 342.49%"
             },
             {
               "key": "gamma_flip",
@@ -394,7 +394,7 @@
               "anchorY": 203.49555521767775,
               "docked": true,
               "lane": 0,
-              "text": "FLIP 344.63%"
+              "text": "FLIP 342.72%"
             },
             {
               "key": "abs_gamma",
@@ -404,7 +404,7 @@
               "anchorY": 203.67478586995082,
               "docked": true,
               "lane": 0,
-              "text": "ABS γ 344.49%"
+              "text": "ABS γ 342.58%"
             },
             {
               "key": "em_lo",
@@ -414,17 +414,17 @@
               "anchorY": 203.73452942070855,
               "docked": true,
               "lane": 0,
-              "text": "EM− 344.44%"
+              "text": "EM− 342.53%"
             },
             {
               "key": "em_hi",
               "price": 192.58,
               "top": 88,
               "naturalTop": 195,
-              "anchorY": 203.31632456540467,
+              "anchorY": 203.31632456540478,
               "docked": true,
               "lane": 0,
-              "text": "EM+ 344.77%"
+              "text": "EM+ 342.86%"
             }
           ],
           "hoverTop": null,
@@ -461,26 +461,26 @@
       "width": 1440,
       "height": 430,
       "screenshot": "desktop-compact.png",
-      "sha256": "a08b7f1e0e4058ac24caa61355552f639862222139f2731a65b64fb2950d453d",
+      "sha256": "fe26fe3a36d1d83d82b28280067e70fba1151a3141cf8df45a692ad978a2c149",
       "proof": {
         "labels": {
-          "primaryTop": 36,
-          "primaryNaturalTop": 72,
-          "primaryAnchorY": 79.5550372510263,
+          "primaryTop": 48,
+          "primaryNaturalTop": 84,
+          "primaryAnchorY": 92.00268207389385,
           "primaryDocked": true,
           "pricePaneTop": 0,
-          "extendedTop": 72,
-          "extendedNaturalTop": 72,
-          "extendedAnchorY": 79.59004409305152,
+          "extendedTop": 84,
+          "extendedNaturalTop": 84,
+          "extendedAnchorY": 92.0431746997111,
           "extendedDocked": false,
           "timerOwner": "extended",
           "optionTags": [
             {
               "key": "call_wall",
               "price": 192.6,
-              "top": 0,
-              "naturalTop": 71,
-              "anchorY": 79.47335461963405,
+              "top": 12,
+              "naturalTop": 84,
+              "anchorY": 91.9081992803203,
               "docked": true,
               "lane": 0,
               "text": "CW 192.60"
@@ -488,9 +488,9 @@
             {
               "key": "put_wall",
               "price": 192.42,
-              "top": 140,
-              "naturalTop": 72,
-              "anchorY": 79.68339567178549,
+              "top": 152,
+              "naturalTop": 84,
+              "anchorY": 92.15115503522375,
               "docked": true,
               "lane": 0,
               "text": "PW 192.42"
@@ -498,9 +498,9 @@
             {
               "key": "gamma_flip",
               "price": 192.52,
-              "top": 54,
-              "naturalTop": 72,
-              "anchorY": 79.566706198368,
+              "top": 66,
+              "naturalTop": 84,
+              "anchorY": 92.01617961583293,
               "docked": true,
               "lane": 0,
               "text": "FLIP 192.52"
@@ -508,9 +508,9 @@
             {
               "key": "abs_gamma",
               "price": 192.46,
-              "top": 104,
-              "naturalTop": 72,
-              "anchorY": 79.6367198824185,
+              "top": 116,
+              "naturalTop": 84,
+              "anchorY": 92.09716486746743,
               "docked": true,
               "lane": 0,
               "text": "ABS γ 192.46"
@@ -518,9 +518,9 @@
             {
               "key": "em_lo",
               "price": 192.44,
-              "top": 122,
-              "naturalTop": 72,
-              "anchorY": 79.660057777102,
+              "top": 134,
+              "naturalTop": 84,
+              "anchorY": 92.12415995134558,
               "docked": true,
               "lane": 0,
               "text": "EM− 192.44"
@@ -528,9 +528,9 @@
             {
               "key": "em_hi",
               "price": 192.58,
-              "top": 18,
-              "naturalTop": 71,
-              "anchorY": 79.49669251431754,
+              "top": 30,
+              "naturalTop": 84,
+              "anchorY": 91.93519436419842,
               "docked": true,
               "lane": 0,
               "text": "EM+ 192.58"
@@ -556,9 +556,9 @@
           "left": 112,
           "right": 1079,
           "top": 98,
-          "bottom": 408,
+          "bottom": 453,
           "width": 967,
-          "height": 310
+          "height": 355
         }
       },
       "consoleErrors": [],

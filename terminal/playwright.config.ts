@@ -103,7 +103,7 @@ export default defineConfig({
   webServer: {
     command: `npm run dev -- --hostname 127.0.0.1 --port ${port}`,
     url: `${baseURL}/terminal?symbol=NVDA`,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: !process.env.CI && process.env.TERMINAL_VISUAL_EVIDENCE_OPERATION === undefined,
     timeout: 120_000,
     env: {
       // /analysis is normally member-gated. The page's local-only preview seam
@@ -123,7 +123,13 @@ export default defineConfig({
       // Exercise the second-resolution UI in deterministic route fixtures. Production remains
       // controlled by the server-only operator flag; this value exists only in the test process.
       HUB_REALTIME_QUOTES: "1",
+      // Exercise the News rail in deterministic e2e; production stays dark unless the operator sets TICKER_NEWS_RAIL.
+      TICKER_NEWS_RAIL: "1",
       FLOW_FIXTURE: "1",
+      // The Investigation API admission gate (lib/investigationApiAdmission.ts) reads the
+      // exact literal "open" per request. This dev-server-only env block opts the fixture
+      // origin in; production never receives the value, so the unset default stays closed.
+      INVESTIGATION_API_ADMISSION: "open",
       NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
     },

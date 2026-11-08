@@ -1,0 +1,33 @@
+[warmup] /terminal?symbol=NVDA → 200 in 79ms
+[warmup] /options → 200 in 1562ms
+[warmup] /portfolio → 200 in 563ms
+[warmup] /alerts → 200 in 1110ms
+[warmup] /analysis → 200 in 1095ms
+[warmup] /discover → 200 in 924ms
+[warmup] /admin → 200 in 354ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 268ms
+[warmup] /login → 200 in 56ms
+[warmup] /reset-password → 200 in 328ms
+[warmup] /api/me → 200 in 262ms
+[warmup] /api/watchlist → 200 in 100ms
+[warmup] /api/layouts → 200 in 114ms
+[warmup] /api/watchlist/annotations → 409 in 96ms
+[warmup] 14 routes compiled in 7s
+
+Running 12 tests using 1 worker
+
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   1 [desktop] › e2e/options-ac40-tenor-asof-crops.spec.ts:227:11 › Options AC40 tenor-asof crop packet (dark) › volatility compare panel · old-read-on-today / en (1.7s)
+  ✓   2 [desktop] › e2e/options-ac40-tenor-asof-crops.spec.ts:227:11 › Options AC40 tenor-asof crop packet (dark) › volatility compare panel · old-read-on-today / zh (1.7s)
+  ✓   3 [desktop] › e2e/options-ac40-tenor-asof-crops.spec.ts:227:11 › Options AC40 tenor-asof crop packet (dark) › volatility compare panel · today-read / en (1.6s)
+  ✓   4 [desktop] › e2e/options-ac40-tenor-asof-crops.spec.ts:227:11 › Options AC40 tenor-asof crop packet (dark) › volatility compare panel · today-read / zh (1.7s)
+  ✓   5 [desktop] › e2e/options-ac40-tenor-asof-crops.spec.ts:227:11 › Options AC40 tenor-asof crop packet (dark) › volatility compare panel · asof-missing / en (1.6s)
+  ✓   6 [desktop] › e2e/options-ac40-tenor-asof-crops.spec.ts:227:11 › Options AC40 tenor-asof crop packet (dark) › volatility compare panel · asof-missing / zh (1.7s)
+  ✓   7 [desktop] › e2e/options-r1-w3-crops.spec.ts:97:9 › Options R1 W3 crop packet › flow desk with the print inspector open on e1 / en (2.5s)
+  ✓   8 [desktop] › e2e/options-r1-w3-crops.spec.ts:140:9 › Options R1 W3 crop packet › volatility compare panel with the published band wired / en (1.6s)
+  ✓   9 [desktop] › e2e/options-r1-w3-crops.spec.ts:172:9 › Options R1 W3 crop packet › eod belt expMove cell with the band method line / en (1.5s)
+  ✓  10 [desktop] › e2e/options-r1-w3-crops.spec.ts:97:9 › Options R1 W3 crop packet › flow desk with the print inspector open on e1 / zh (2.8s)
+  ✓  11 [desktop] › e2e/options-r1-w3-crops.spec.ts:140:9 › Options R1 W3 crop packet › volatility compare panel with the published band wired / zh (1.7s)
+  ✓  12 [desktop] › e2e/options-r1-w3-crops.spec.ts:172:9 › Options R1 W3 crop packet › eod belt expMove cell with the band method line / zh (1.5s)
+
+  12 passed (41.7s)
