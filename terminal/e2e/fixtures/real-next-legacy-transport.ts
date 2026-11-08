@@ -29,7 +29,7 @@ export async function installRealNextLegacyTransport({ page, context, baseURL, c
   expect(native.pathname).toBe("/");
   expect(["localhost", "127.0.0.1"]).toContain(native.hostname);
   expect(native.port, "Never borrow the original unknown3100 operation").not.toBe("3100");
-  const observations = { mutations: [] as string[], baselines: [] as string[], pageErrors: [] as string[], nextRequests: [] as string[], nextNavigations: [] as NextNavigationObservation[], omittedNextNavigations: 0 };
+  const observations = { blockedTelemetryAttempts: [] as Array<{ method: "POST"; path: "/api/collect"; disposition: "blocked-before-transport" }>, mutations: [] as string[], baselines: [] as string[], pageErrors: [] as string[], nextRequests: [] as string[], nextNavigations: [] as NextNavigationObservation[], omittedNextNavigations: 0 };
   page.on("pageerror", error => observations.pageErrors.push(error.message));
   await context.addCookies([
     { name: "mm_e2e_rs30", value: "1", url: SHELL },
@@ -39,6 +39,11 @@ export async function installRealNextLegacyTransport({ page, context, baseURL, c
   await context.route("**/*", async route => {
     const request = route.request(), url = new URL(request.url());
     if (!["GET", "HEAD"].includes(request.method())) {
+      if (request.method() === "POST" && url.origin === SHELL && url.pathname === "/api/collect"
+        && !url.search && !url.hash && !url.username && !url.password) {
+        observations.blockedTelemetryAttempts.push({ method: "POST", path: "/api/collect", disposition: "blocked-before-transport" });
+        await route.abort("blockedbyclient"); return;
+      }
       observations.mutations.push(`${request.method()} ${url.pathname}`);
       await route.abort("blockedbyclient"); return;
     }
