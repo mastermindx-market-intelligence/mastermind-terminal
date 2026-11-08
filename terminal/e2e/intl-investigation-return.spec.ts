@@ -12,11 +12,11 @@ if (process.env.MMX_SHARED_SHELL === "1" && !process.env.CI && process.env.TERMI
 }
 import { SHELL, LEGACY, installRealNextLegacyTransport } from "./fixtures/real-next-legacy-transport";
 import { readRetainedLegacyFixture } from "./fixtures/retained-legacy-fixture";
-const BUNDLE_SHA = "f96e0c877c37d0abf3e2a6afbcb08dfa38005e2d98cc37e6623fbf913bc6de02";
+const BUNDLE_SHA = "f967ca83d7d239506fb290b2bc92a91bb6931d3c406a5dfe96add8cfd785a9ce";
 const RAW_JINJA_SHA = "4f807836970e39dbfe429368e23079aff6a21ceed39d9f2f724259cb9e612f8a";
 const HTML_SHA = "07606d80b209c4e79381ed96d8390f93590c57cab3899a26d1dd5daeda9bdfcf";
 const ASSET_SHA: Record<string, string> = {
-  "intl_workspace.js": "43fe67c4be946c4c7de6b1afc080f5970ff58c4e428a157182f3ad0399f5a879",
+  "intl_workspace.js": "e5e3a76ec1277f80266a153829360e4e8cc40e277d5250e806ecb7d3d89458aa",
   "intl_workspace_state.js": "b02a808380c1a1d2c798f1b827707fa07d23679e15bf01753cffaada55f00fd1",
   "intl_workspace_entry.js": "3b476b4ce04b91f0a8854c4a3e5b2e26f672cfa21c67445d8ce765edc62a8b1b",
   "shared_shell_bridge.js": "071ef7202d8886228342c00f0e7a3026eaba1d0103c4dcf1e6d204a7da77451b",
@@ -25,10 +25,11 @@ const ASSET_SHA: Record<string, string> = {
 const digest = (value: Buffer) => createHash("sha256").update(value).digest("hex");
 
 test("Macro/Risk Return executes real Next Link and restores Intl in the same AppShell", async ({ page, context, baseURL }, info) => {
-  // Repository checkout supplies the exact historical source closure. Only the
-  // incumbent normal SharedShell capability block was added to retained Jinja.
-  const retained = readRetainedLegacyFixture(path.join(__dirname, "fixtures/intl-return-page/fixture.json.gz"), BUNDLE_SHA);
-  expect(retained.provenance.macro_source).toBe("7a2ffcb8dec91f701ebaf0d04990b2be6a7b8abb");
+  // Repository checkout binds retained data to the explicitly reviewed current consumer.
+  // Original raw/bridged Jinja identities remain unchanged; assets have a NEW provenance.
+  const retained = readRetainedLegacyFixture(path.join(__dirname, "fixtures/intl-return-page-reviewed-query/fixture.json.gz"), BUNDLE_SHA);
+  expect(retained.provenance.macro_source).toBe("01aa9c09495f77d207461af14a343e053b6ecf79");
+  expect(retained.provenance.reviewed_controller_sha256).toBe("e5e3a76ec1277f80266a153829360e4e8cc40e277d5250e806ecb7d3d89458aa");
   expect(digest(retained.rawJinja)).toBe(RAW_JINJA_SHA);
   expect(digest(retained.html)).toBe(HTML_SHA);
   for (const [name, sha] of Object.entries(ASSET_SHA)) expect(digest(retained.assets.get("/" + name)!), name).toBe(sha);
@@ -75,7 +76,7 @@ test("Macro/Risk Return executes real Next Link and restores Intl in the same Ap
     }
     expect(observations.baselines).toEqual([]);
     expect(observations.mutations).toEqual([]);
-    expect(observations.blockedTelemetryAttempts.every(attempt => attempt.method === "POST"
+    expect(observations.blockedTelemetryAttempts.every(attempt => ["shell", "legacy"].includes(attempt.origin) && attempt.method === "POST"
       && attempt.path === "/api/collect" && attempt.disposition === "blocked-before-transport")).toBe(true);
     expect(observations.pageErrors).toEqual([]);
   } finally {

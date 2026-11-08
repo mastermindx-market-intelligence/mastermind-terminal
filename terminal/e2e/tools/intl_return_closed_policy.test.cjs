@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- Pure Node source controls use incumbent CommonJS tooling. */
 "use strict";
 const {test}=require("node:test"),assert=require("node:assert/strict");
 const {LEGACY,VIEWS,ownedBase,proxyAllowed,guardProxy}=require("./intl_return_closed_policy.cjs");
@@ -65,4 +66,24 @@ test('pathname metadata does not grant a route, context, origin, header or write
  assert.equal(calls,0);
  // The pre-existing exact full-context metadata contract remains eligible.
  await fetch(base+'/intl.html?'+VIEWS[0],{...metadata,'next-url':'/analysis?'+query});assert.equal(calls,1);
+});
+
+// Exercise the actual route callback; neither first-party telemetry destination
+// is allowed to transmit, and request bodies/headers are never inspected.
+test('actual retained producer telemetry origins are tagged and aborted while near matches remain business-write failures',async()=>{
+ const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),ts=require('typescript');
+ const file=path.join(__dirname,'../fixtures/real-next-legacy-transport.ts'),mod={exports:{}};
+ const expect=actual=>({toBe:v=>assert.equal(actual,v),toContain:v=>assert(actual.includes(v)),not:{toBe:v=>assert.notEqual(actual,v)}});
+ vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,esModuleInterop:true}}).outputText,{module:mod,exports:mod.exports,require:n=>n==='@playwright/test'?{expect}:require(n),URL,Buffer,process:{env:{TERMINAL_VISUAL_EVIDENCE_OPERATION:'intl-return-controlled'}}});
+ let handler,reads=0,fulfilled=0,aborted=0;
+ const context={addCookies:async()=>{},routeWebSocket:async()=>{},route:async(_,cb)=>{handler=cb;},request:{fetch:async()=>{reads++;throw Error('must never transport');}}};
+ const observations=await mod.exports.installRealNextLegacyTransport({page:{on(){}},context,baseURL:base,canonicalChildPath:'/intl.html',html:Buffer.from('source'),assets:new Map()});
+ async function dispatch(raw,method='POST') {await handler({request:()=>({url:()=>raw,method:()=>method,headers:()=>{throw Error('must not inspect headers');},postData:()=>{throw Error('must not inspect body');}}),abort:async()=>{aborted++;},fulfill:async()=>{fulfilled++;}});}
+ await dispatch('https://beta.mastermind-x.com/api/collect');await dispatch('https://www.mastermind-x.com/api/collect');
+ assert.equal(JSON.stringify(observations.blockedTelemetryAttempts),JSON.stringify([{origin:'shell',method:'POST',path:'/api/collect',disposition:'blocked-before-transport'},{origin:'legacy',method:'POST',path:'/api/collect',disposition:'blocked-before-transport'}]));
+ const negatives=['https://provider.invalid/api/collect','http://www.mastermind-x.com/api/collect','https://www.mastermind-x.com:444/api/collect','https://www.mastermind-x.com.evil.invalid/api/collect','https://www.mastermind-x.com/api/collect?x=1','https://www.mastermind-x.com/api/collect?','https://www.mastermind-x.com/api/collect#x','https://www.mastermind-x.com/api/collect#','https://a@www.mastermind-x.com/api/collect','https://www.mastermind-x.com/api/investigations'];
+ for(const raw of negatives)await dispatch(raw);
+ for(const method of ['PUT','PATCH','DELETE'])await dispatch('https://www.mastermind-x.com/api/collect',method);
+ await dispatch('https://beta.mastermind-x.com/api/investigations/baseline','GET');
+ assert.equal(observations.blockedTelemetryAttempts.length,2);assert.equal(observations.mutations.length,negatives.length+3);assert.equal(observations.baselines.length,1);assert.equal(reads,0);assert.equal(fulfilled,0);assert.equal(aborted,negatives.length+6);
 });

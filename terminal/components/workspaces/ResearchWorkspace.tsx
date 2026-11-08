@@ -26,8 +26,8 @@ const EDITORIAL_COPY = {
  zh: { topic:"主题", institution:"机构", sort:"排序", allTopics:"全部已提供主题", noTopics:"未提供主题", allInstitutions:"全部已提供机构", noInstitutions:"未提供机构", newest:"发布日期从新到旧", oldest:"发布日期从旧到新", titleOrder:"报告标题", noMatches:"已加载的选择中没有符合这些筛选条件的报告。", selectedReport:"所选报告", librarySummary:"资料库摘要", browseLibrary:"浏览研究资料库", readingContext:"阅读上下文", sourcePages:"来源页码", closePages:"关闭来源页码", currentPage:"当前来源页码", outlineMissing:"此修订未提供来源页码目录。请使用文本窗口控件继续阅读。", inspectPassage:"查看来源片段", passageEvidence:"所选片段证据", returnPassage:"返回片段", returnReading:"返回所选阅读", sourceRange:"来源字节范围", segmentReceipt:"片段文本 SHA-256", identifier:"报告标识", textWindows:"来源文本窗口", searchLimit:"搜索最多返回 50 份报告。此处计数仅描述已加载的选择。", loaded:(shown:number,total:number,loaded:number)=>`已显示 ${shown} 份 · ${loaded} 份已加载报告中有 ${total} 份符合条件`, windowNumber:(number:number)=>`窗口 ${number}` },
 } as const;
 type Phase = "idle"|"loading"|"ready"|"changed"|"restricted"|"auth"|"rate"|"invalid"|"unavailable";
-type Reader = { owner: string; docId: string; selection: ReadingSelection | null; body: ReadingBody | null; start: number; phase: Phase };
-const emptyReader = (owner: string): Reader => ({ owner, docId:"", selection:null, body:null, start:0, phase:"idle" });
+type Reader = { owner: string; docId: string; selection: ReadingSelection | null; body: ReadingBody | null; start: number; position: number; phase: Phase };
+const emptyReader = (owner: string): Reader => ({ owner, docId:"", selection:null, body:null, start:0, position:0, phase:"idle" });
 
 function ResearchWorkspaceSession({ ownerKey }: { ownerKey: string }) {
  const { lang } = useLang(), c = COPY[lang], e = EDITORIAL_COPY[lang], onboarding=useOnboarding();
@@ -66,14 +66,14 @@ function ResearchWorkspaceSession({ ownerKey }: { ownerKey: string }) {
   }
   // Native history writes are observed by Next. Wait for that exact query commit so
   // its route-focus lifecycle cannot reclaim the source-page destination.
-  if (shown.selection && routeQuery !== new URL(readingHref(shown.selection, shown.start), window.location.href).searchParams.toString()) return;
+  if (shown.selection && routeQuery !== new URL(readingHref(shown.selection, shown.position), window.location.href).searchParams.toString()) return;
   const destination = destinationFocus.current;
   const frame = requestAnimationFrame(() => {
    destinationFocus.current = null;
    (document.getElementById(`research-segment-${destination}`) ?? titleRef.current)?.focus();
   });
   return () => cancelAnimationFrame(frame);
- }, [pageSheetOpen, shown.phase, shown.body, shown.selection, shown.start, routeQuery]);
+ }, [pageSheetOpen, shown.phase, shown.body, shown.selection, shown.position, routeQuery]);
  useEffect(() => {
   const media = window.matchMedia?.("(min-width: 1100px)");
   const closeOnDesktop = () => { if (media?.matches) setPageSheetOpen(false); };
@@ -102,7 +102,7 @@ function ResearchWorkspaceSession({ ownerKey }: { ownerKey: string }) {
   setEvidenceIndex(null);
   const focusDestination = destinationFocus.current;
   const ticket=++readSequence.current;
-  setReader({owner:ownerKey,docId,selection:selected,body:null,start,phase:"loading"});
+  setReader({owner:ownerKey,docId,selection:selected,body:null,start,position:start,phase:"loading"});
   try {
    const query = selected ? researchReadQuery(selected,start) : new URLSearchParams({segment_start:"0",max_segments:"2"});
    const { response, value } = await readingJson(scope,`/api/shared-shell/research/read/${docId}?${query}`);
@@ -110,11 +110,11 @@ function ResearchWorkspaceSession({ ownerKey }: { ownerKey: string }) {
    if(!response.ok){
     if(response.status===401){invalidateIdentity();return;}
     const phase:Phase = response.status===409?"changed":response.status===402||response.status===403?"restricted":response.status===401?"auth":response.status===429?"rate":"unavailable";
-    setReader({owner:ownerKey,docId,selection:selected,body:null,start,phase});return;
+    setReader({owner:ownerKey,docId,selection:selected,body:null,start,position:start,phase});return;
    }
    const body=readingBody(value,docId,selected,start);
    if(!body)throw Error("unavailable");
-   setReader({owner:ownerKey,docId,selection:body.selection,body,start,phase:"ready"});
+   setReader({owner:ownerKey,docId,selection:body.selection,body,start,position:start,phase:"ready"});
    const nextProgress={selection:body.selection,segmentStart:start};setProgress(nextProgress);
    setStorageFailed(!saveBrowserReadingProgress(ownerKey,nextProgress));
    if(history!=="none") {
@@ -125,7 +125,7 @@ function ResearchWorkspaceSession({ ownerKey }: { ownerKey: string }) {
     window.history[history==="push"?"pushState":"replaceState"]({},"",href);
    }
    if (focusDestination === null) requestAnimationFrame(()=>titleRef.current?.focus());
-  } catch {if(!scope.current?.signal.aborted && ticket===readSequence.current)setReader({owner:ownerKey,docId,selection:selected,body:null,start,phase:"unavailable"});}
+  } catch {if(!scope.current?.signal.aborted && ticket===readSequence.current)setReader({owner:ownerKey,docId,selection:selected,body:null,start,position:start,phase:"unavailable"});}
  }
  function fromUrl() {
   const queryString=window.location.search;
@@ -161,7 +161,7 @@ function ResearchWorkspaceSession({ ownerKey }: { ownerKey: string }) {
  const published = isResearchPublicationDate(metadata?.published_at) ? metadata?.published_at : null;
  const hasSelection = shown.phase !== "idle";
  const pageDestinations = sourcePageDestinations(shown.body?.outline ?? []);
- const currentSourceRange = shown.body?.segments[0];
+ const currentSourceRange = shown.body?.segments.find(part => part.segment_index === shown.position);
  const evidenceSegment = shown.body?.segments.find(part => part.segment_index === evidenceIndex) ?? null;
  const phaseCopy = shown.phase === "changed" ? c.changed : shown.phase === "restricted" ? c.restricted : shown.phase === "auth" ? c.auth : shown.phase === "rate" ? c.rate : shown.phase === "invalid" ? c.invalid : c.unavailable;
  function inspectPassage(index: number) {
@@ -175,7 +175,19 @@ function ResearchWorkspaceSession({ ownerKey }: { ownerKey: string }) {
    setPageSheetOpen(false);
   }
   if (shown.body?.segments.some(part => part.segment_index === entry.segment_index)) {
-   if (!fromSheet) document.getElementById(`research-segment-${entry.segment_index}`)?.focus();
+   if (entry.segment_index !== shown.position) {
+    // Selecting an already-loaded page keeps the text window and its allowance,
+    // while URL, continuation and current-page state follow the selected passage.
+    destinationFocus.current = entry.segment_index;
+    setReader({ ...shown, position:entry.segment_index });
+    setEvidenceIndex(null);
+    const nextProgress={selection:shown.selection,segmentStart:entry.segment_index};
+    setProgress(nextProgress);
+    setStorageFailed(!saveBrowserReadingProgress(ownerKey,nextProgress));
+    const href=readingHref(shown.selection,entry.segment_index);
+    observedQuery.current=new URL(href,window.location.href).search;
+    window.history.pushState({},"",href);
+   } else if (!fromSheet) document.getElementById(`research-segment-${entry.segment_index}`)?.focus();
    return;
   }
   void open(shown.docId, shown.selection, entry.segment_index);

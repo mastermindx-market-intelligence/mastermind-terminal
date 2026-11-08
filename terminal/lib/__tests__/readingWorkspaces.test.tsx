@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import ResearchWorkspace from "@/components/workspaces/ResearchWorkspace";
 import TodayWorkspace from "@/components/workspaces/TodayWorkspace";
 import { businessClockQualification, todayPayload } from "@/lib/shared-shell/readingPayloads";
-import { readingHref } from "@/lib/shared-shell/readingProgress";
+import { loadBrowserReadingProgress, readingHref } from "@/lib/shared-shell/readingProgress";
 import type { ReadingSelection } from "@/lib/shared-shell/readingContracts";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -352,4 +352,67 @@ it("settles failed sheet destination focus and lets an explicit current-revision
  await click("Open current revision");await answer(3,{...body("EXPLICIT CURRENT REVISION RECOVERY"),outline});
  expect(held).toHaveLength(4);expect(new URL(held[3].url,"https://example.test").searchParams.has("source_pdf_sha256")).toBe(false);
  expect(document.activeElement?.id).toBe("research-reader-title");expect(headingFocus).toHaveBeenCalledOnce();expect(window.location.search).toContain("segment_start=0");
+});
+
+it.each([false,true])("keeps an already-loaded source page across reopen without another body read (sheet=%s)", async fromSheet => {
+ await mount(<ResearchWorkspace ownerKey={A}/>); await library(); await click("Open current revision");
+ const first=body("FIRST PAGE",0), second=body("SECOND PAGE",1); second.segments[0].page_start=2;second.segments[0].page_end=2;
+ const outline=[{segment_index:0,page_start:1,page_end:1},{segment_index:1,page_start:2,page_end:2},{segment_index:2,page_start:3,page_end:3}];
+ await answer(1,{...first,segments:[first.segments[0],second.segments[0]],outline});
+ if(fromSheet){
+  await act(async()=>container.querySelector<HTMLButtonElement>('button[aria-haspopup="dialog"]')!.click());await flush();
+  const dialog=document.querySelector('[role="dialog"]')!;const destination=Array.from(dialog.querySelectorAll("button")).find(b=>b.textContent?.includes("Source page 2"))!;
+  await act(async()=>destination.click());await flush();
+ }else await click("Source page 2");
+ expect(held).toHaveLength(2);
+ expect(new URLSearchParams(window.location.search).get("segment_start")).toBe("1");
+ expect(window.location.pathname+window.location.search).toBe(readingHref(selection,1));
+ expect(loadBrowserReadingProgress(A)).toEqual({selection,segmentStart:1});
+ expect(JSON.stringify(window.localStorage)).not.toContain("SECOND PAGE");
+ expect(container.querySelector('button[aria-current="page"]')?.textContent).toContain("Source page 2");
+ expect(document.activeElement?.id).toBe("research-segment-1");
+ await mount(<div/>);await mount(<ResearchWorkspace ownerKey={A}/>);
+ expect(held).toHaveLength(4);
+ expect(held[3].url).toContain("segment_start=1");
+ expect(held[3].url).toContain(selection.sourcePdfSha256);
+ expect(held[3].url).toContain(selection.extractedTextSha256);
+ await answer(2,{items:[],preview:false}); await answer(3,{...second,outline});
+ expect(container.querySelector('button[aria-current="page"]')?.textContent).toContain("Source page 2");
+ expect(held).toHaveLength(4);
+});
+
+async function loadedPages() {
+ await mount(<ResearchWorkspace ownerKey={A}/>);await library();await click("Open current revision");
+ const first=body("FIRST PAGE",0), second=body("SECOND PAGE",1);
+ second.segments[0].page_start=2;second.segments[0].page_end=2;
+ const outline=[{segment_index:0,page_start:1,page_end:1},{segment_index:1,page_start:2,page_end:2},{segment_index:2,page_start:3,page_end:3}];
+ await answer(1,{...first,segments:[first.segments[0],second.segments[0]],outline});return outline;
+}
+it("keeps both loaded pages reusable while pagination retains the actual window boundary",async()=>{
+ const outline=await loadedPages();
+ await click("Source page 2");await click("Source page 1");
+ expect(held).toHaveLength(2);
+ expect(loadBrowserReadingProgress(A)).toEqual({selection,segmentStart:0});
+ await click("Source page 2");
+ const entries=window.history.length;await click("Source page 2");
+ expect(window.history.length).toBe(entries);expect(held).toHaveLength(2);
+ expect(container.textContent).toContain("FIRST PAGE");expect(container.textContent).toContain("SECOND PAGE");
+ expect(container.textContent).toContain("Text segments: 1–2 / 3");
+ await click("Next text window");expect(held).toHaveLength(3);
+ expect(held[2].url).toContain("segment_start=2");
+ expect(held[2].url).toContain(selection.sourcePdfSha256);expect(held[2].url).toContain(selection.extractedTextSha256);
+ const third=body("THIRD PAGE",2);third.segments[0].page_start=3;third.segments[0].page_end=3;
+ await answer(2,{...third,outline});expect(container.querySelector('button[aria-current="page"]')?.textContent).toContain("Source page 3");
+ await click("Previous text window");expect(held[3].url).toContain("segment_start=0");
+});
+it("keeps the selected URL and warns when local position storage is unavailable",async()=>{
+ await loadedPages();
+ const storage=vi.spyOn(Storage.prototype,"setItem").mockImplementation(()=>{throw Error("storage unavailable");});
+ try {
+  await click("Source page 2");expect(held).toHaveLength(2);
+  expect(window.location.pathname+window.location.search).toBe(readingHref(selection,1));
+  expect(container.textContent).toContain("This browser could not keep the reading position");
+  expect(container.querySelector('button[aria-current="page"]')?.textContent).toContain("Source page 2");
+  expect(document.activeElement?.id).toBe("research-segment-1");
+ }finally{storage.mockRestore();}
 });
