@@ -21,12 +21,11 @@ const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "sw
 // no longer needs to preload on pages that never render a character cell.
 const jetbrainsMono = JetBrains_Mono({ variable: "--font-jetbrains-mono", subsets: ["latin"], display: "swap", preload: false });
 
-// Viewport config: device-width, no zoom (full-bleed chart UX), safe-area insets via viewportFit.
+// Reading pages retain browser magnification; chart gestures stay local to charts.
+// Keep device-width, initial scale and safe-area insets for the existing shell.
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: "cover",
 };
 
