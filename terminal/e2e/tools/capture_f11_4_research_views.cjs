@@ -165,6 +165,7 @@ async function shootPane(page, outPath) {
 async function cropPane(page, outPath) {
   const pane = page.locator('[data-testid="thesis-list-pane"]');
   await pane.waitFor({ state: "visible", timeout: 20_000 });
+  await runtime.waitForCanonicalFonts(page);
   const box = await pane.boundingBox();
   if (!box) throw new Error(`no list pane box for ${outPath}`);
   const vp = page.viewportSize();
@@ -172,7 +173,7 @@ async function cropPane(page, outPath) {
   const y = Math.max(0, Math.floor(box.y));
   const width = Math.max(8, Math.min(vp.width - x, Math.ceil(box.width)));
   const height = Math.max(8, Math.min(vp.height - y, Math.ceil(box.height)));
-  await page.screenshot({ path: outPath, clip: { x, y, width, height } });
+  await runtime.captureCanonicalScreenshot(page, page, { path: outPath, clip: { x, y, width, height } });
 }
 
 async function withStore(browser, width, lang, storeKey, run, extraCookies = []) {

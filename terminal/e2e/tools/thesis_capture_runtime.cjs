@@ -5,6 +5,8 @@ const { createHash } = require("node:crypto");
 const { assertNoCaptureDotenv, captureServerEnv } = require("./capture_b_f11_10_analysis_theses_entry.cjs");
 const { trackOwnedServer, prepareNamespace } = require("./f11_owned_server.cjs");
 const { classifyRequest, typedUnavailablePayload } = require("./f11_provider_closed_policy.cjs");
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- Incumbent capture runtime is CommonJS.
+const { prepareFontEnvironment, installFontWitness, captureCanonicalScreenshot, validateFontWitnesses, waitForCanonicalFonts } = require("./thesis_capture_fonts.cjs");
 let journal, diagnosticFailure;
 // Diagnostics are never allowed to replace the original effect/cleanup result.
 const note = value => { try { if(journal)journal(value); } catch(error) { diagnosticFailure ||= error; } };
@@ -121,6 +123,7 @@ function getChromium() {
         assertDiagnostics();
         const context = await newContext({...opts,serviceWorkers:"block"});counts.contexts++;
         await boundary(context,process.env.THESIS_CAPTURE_BASE,counts);
+        installFontWitness(context,counts);
         const closeContext = context.close.bind(context);let closed=false;
         context.close=async()=>{await closeContext();if(!closed){closed=true;counts.contextsClosed++;}};
         return context;
@@ -156,8 +159,10 @@ async function start(root,port,stage) {
   note({phase:"PREPARING",port});assertDiagnostics();
   process.stdout.write("THESIS_CAPTURE_CONTROL "+file+"\n");
   assertNoCaptureDotenv(root);await assertPortFree(port);
+  const fontFixture=prepareFontEnvironment(root);
+  record.canonicalFontInputs=fontFixture.provenance;
   const namespace=prepareNamespace(root);
-  const env={...captureServerEnv(),THESIS_CAPTURE_SERVER:"1",THESIS_CAPTURE_PORT:String(port),
+  const env={...captureServerEnv(),...fontFixture.env,THESIS_CAPTURE_SERVER:"1",THESIS_CAPTURE_PORT:String(port),
     NODE_OPTIONS:`--require ${JSON.stringify(path.join(__dirname,"thesis_capture_egress.cjs"))}`,
     npm_config_update_notifier:"false",npm_config_audit:"false"};
   let child,owner,settlement,stopPromise,resourceFailure,output="",lastStatus=null;
@@ -207,7 +212,7 @@ async function start(root,port,stage) {
     stop:settle,summary(){
       assertDiagnostics();if(resourceFailure)throw resourceFailure;
       if(!settlement)throw Error("THESIS_CAPTURE_NOT_SETTLED");
-      return {server:settlement,generatedTypes:namespace.summary(),port,providerBoundary:"Node socket/DNS/fetch denied before external egress; fixture path allowlist",serverLogSha256:hash(Buffer.from(output))};
+      return {server:settlement,generatedTypes:namespace.summary(),canonicalFontInputs:fontFixture.provenance,port,providerBoundary:"Node socket/DNS/fetch denied before external egress; fixture path allowlist",serverLogSha256:hash(Buffer.from(output))};
     }};
   } catch(error) {
     try { await settle();error.ownedServerCleanup={pid:child?.pid,...settlement,unknown:!!child&&!settlement}; }
@@ -220,6 +225,7 @@ function staging(root,family){const parent=path.join(root,".next","thesis-captur
 function publish(stage,target,files,control){
   assertDiagnostics();
   if(control.counts.contexts!==control.counts.contextsClosed || control.counts.browsersClosed!==1 || control.counts.redirectsDenied)throw Error("THESIS_CAPTURE_UNSETTLED");
+  validateFontWitnesses(stage,files,control.counts);
   for(const file of [...files,"EVIDENCE.yml"]){const st=fs.lstatSync(path.join(stage,file));if(!st.isFile() || st.size<8)throw Error("THESIS_CAPTURE_INCOMPLETE");}
   const backup=path.join(stage,"previous");fs.mkdirSync(backup);fs.mkdirSync(target,{recursive:true});
   for(const file of [...files,"EVIDENCE.yml"]){const dst=path.join(target,file);if(fs.existsSync(dst))fs.copyFileSync(dst,path.join(backup,file));
@@ -227,4 +233,4 @@ function publish(stage,target,files,control){
   fs.writeFileSync(path.join(stage,"CONTROL.json"),JSON.stringify(control,null,2)+"\n");
   process.stdout.write(JSON.stringify({thesisCaptureControl:path.join(stage,"CONTROL.json"),...control})+"\n");
 }
-module.exports={cleanupPreserving,initializeOwnedBrowser,fixtureApi,decision,boundary,guardApiRequest,getChromium,assertPortFree,assertOwnedListener,start,staging,publish};
+module.exports={captureCanonicalScreenshot,waitForCanonicalFonts,cleanupPreserving,initializeOwnedBrowser,fixtureApi,decision,boundary,guardApiRequest,getChromium,assertPortFree,assertOwnedListener,start,staging,publish};

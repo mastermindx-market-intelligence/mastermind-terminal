@@ -145,7 +145,7 @@ async function shoot(page, file, kind) {
   const target = kind === "entry"
     ? page.getByTestId("thesis-context-actions")
     : page.getByTestId("claim-authoring-form");
-  await target.screenshot({ path: join(OUT, file) });
+  await runtime.captureCanonicalScreenshot(page, target, { path: join(OUT, file) });
 }
 
 async function main() {

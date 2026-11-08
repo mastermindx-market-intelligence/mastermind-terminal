@@ -26,7 +26,8 @@ test("Node preload refuses before actual DNS/socket/fetch and scopes exact local
 test("incomplete or unsettled records preserve all old outputs",()=>{
  const temp=fs.mkdtempSync(path.join(os.tmpdir(),"thesis-capture-check-"));
  try{const stage=path.join(temp,"stage"),target=path.join(temp,"target");fs.mkdirSync(stage);fs.mkdirSync(target);fs.writeFileSync(path.join(target,"one.png"),"old-image");fs.writeFileSync(path.join(target,"EVIDENCE.yml"),"old-lock");
- const ready={counts:{contexts:1,contextsClosed:1,browsersClosed:1,redirectsDenied:0}};
+ // eslint-disable-next-line @typescript-eslint/no-require-imports -- Mock image bytes in the incumbent CommonJS harness.
+ const ready={counts:{contexts:1,contextsClosed:1,browsersClosed:1,redirectsDenied:0,canonicalFontWitnesses:[{file:"one.png",receiptSha256:"1d04bbe5678ad7eef6e969a5c46e643f9526695bc3167de5a7d8a29280b6ca0f",loadedFaces:[{family:"Inter",status:"loaded"},{family:"JetBrains Mono",status:"loaded"}],verifiedBodies:[{family:"Inter",subset:"latin"},{family:"JetBrains Mono",subset:"latin"}],renderedGlyphs:[{kind:"latin",present:true,fonts:[{familyName:"Inter",isCustomFont:true,glyphCount:1}]},{kind:"crop",present:true,fonts:[{glyphCount:1}]}],imageSha256:require("node:crypto").createHash("sha256").update("new-image").digest("hex"),imageBytes:9}]}};
  assert.throws(()=>publish(stage,target,["one.png"],ready));assert.equal(fs.readFileSync(path.join(target,"one.png"),"utf8"),"old-image");
  fs.writeFileSync(path.join(stage,"one.png"),"new-image");fs.writeFileSync(path.join(stage,"EVIDENCE.yml"),"new-lock");
  assert.throws(()=>publish(stage,target,["one.png"],{counts:{...ready.counts,contextsClosed:0}}));assert.equal(fs.readFileSync(path.join(target,"EVIDENCE.yml"),"utf8"),"old-lock");
@@ -100,6 +101,7 @@ function fakeRuntimeIo({failJournalAt=Infinity,failAppend=false,failStop=false}=
  const module={exports:{}};
  const requires=name=>{
   if(name==="node:fs")return fakeFs;
+  if(name==="./thesis_capture_fonts.cjs")return {prepareFontEnvironment:()=>({env:{},provenance:{}}),installFontWitness(){}};
   if(name==="node:net")return {createServer:()=>({once(){},listen(_p,_h,ready){ready();},close(done){done();}})};
   if(name==="node:child_process")return {spawn(){stats.spawns++;return child;},execFileSync(){return "";}};
   if(name==="./capture_b_f11_10_analysis_theses_entry.cjs")return {assertNoCaptureDotenv(){},captureServerEnv:()=>({})};

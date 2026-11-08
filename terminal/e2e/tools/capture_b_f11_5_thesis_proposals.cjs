@@ -237,7 +237,7 @@ async function shoot(page, file) {
   await assertNoNextIndicator(page, file);
   await page.mouse.move(0, 0);
   await page.waitForTimeout(200);
-  await page.getByTestId("thesis-amendment-panel").screenshot({ path: join(OUT, file) });
+  await runtime.captureCanonicalScreenshot(page, page.getByTestId("thesis-amendment-panel"), { path: join(OUT, file) });
 }
 
 async function main() {
