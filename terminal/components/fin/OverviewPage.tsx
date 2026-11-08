@@ -73,10 +73,10 @@ type AQ = "annual" | "quarterly";
 
 /**
  * Section header with optional uppercase eyebrow above and a `›` jump to a
- * sibling tab. v7 framework transfer: rail + hairline rule on every header.
- * Rail stays `var(--brand)` (analytical) across this page — no section on the
- * Overview is a directional call or a caution block, and a static `--warn` rail
- * on "Financial health" would read as a verdict on every company alike.
+ * sibling tab. Headings stay instrument-neutral: the hairline rule is the only
+ * chrome, no decorative rail. The jump is a native button inside the heading —
+ * Enter/Space activation is the platform's, so no synthetic key handlers —
+ * and static headings remain plain <h2> text.
  */
 function SecH({
   title,
@@ -84,29 +84,31 @@ function SecH({
   cap,
   page,
   onNavigate,
-  rail = "var(--brand)",
 }: {
   title: string;
   eyebrow?: string;
   cap?: string;
   page?: FinPage;
   onNavigate?: (p: FinPage) => void;
-  rail?: string;
 }) {
   const clickable = !!page && !!onNavigate;
   return (
     <>
       {eyebrow && <div className="fin-eyebrow">{eyebrow}</div>}
-      <div
-        className={"fin-sec-h fin-rail fin-rule" + (clickable ? " link" : "")}
-        style={{ "--rail": rail } as React.CSSProperties}
-        onClick={clickable ? () => onNavigate!(page!) : undefined}
-        role={clickable ? "button" : undefined}
-        tabIndex={clickable ? 0 : undefined}
-      >
-        <span>{title}</span>
-        {clickable && <span className="chev">›</span>}
-      </div>
+      <h2 className={"fin-sec-h fin-rule" + (clickable ? " link" : "")}>
+        {clickable ? (
+          <button
+            type="button"
+            className="fin-sec-action"
+            onClick={() => onNavigate!(page!)}
+          >
+            <span>{title}</span>
+            <span className="chev" aria-hidden="true">›</span>
+          </button>
+        ) : (
+          title
+        )}
+      </h2>
       {cap && <div className="fin-sec-cap">{cap}</div>}
     </>
   );
@@ -195,7 +197,7 @@ export default function OverviewPage({ sym, fund, name, onNavigate }: OverviewPa
     {
       k: pick(zh, "Basic EPS", "基本每股收益"),
       v: latestEps(ann) != null ? fmtNum(latestEps(ann)!) : "—",
-      s: pick(zh, "Latest FY", "最近财年"),
+      s: pick(zh, "Latest available FY", "最近可用财年"),
     },
     { k: pick(zh, "Founded", "成立"), v: p?.founded || "—" },
     {
@@ -484,7 +486,7 @@ export default function OverviewPage({ sym, fund, name, onNavigate }: OverviewPa
               <span>{pick(zh, "P/E TTM", "市盈率 TTM")}</span>
             </div>
             <div className="fin-overview-current-eps">
-              <span>{pick(zh, "Basic EPS · latest FY", "基本每股收益 · 最近财年")}</span>
+              <span>{pick(zh, "Basic EPS · latest available FY", "基本每股收益 · 最近可用财年")}</span>
               <b className="num">{currentBasicEps == null ? "—" : fmtNum(currentBasicEps)}</b>
             </div>
             <button className="fin-overview-detail-link" onClick={() => onNavigate("statistics")}>
@@ -503,7 +505,7 @@ export default function OverviewPage({ sym, fund, name, onNavigate }: OverviewPa
               <div className="fin-empty fin-empty-lg" role="status">
                 <div className="fin-empty-title">{pick(zh, "No historical P/E series", "暂无历史市盈率序列")}</div>
                 <div className="fin-empty-why">
-                  {pick(zh, "The current ratio remains available above; no ratio history is published for this company.", "当前比率仍可在上方查看；该公司尚未发布比率历史。")}
+                  {pick(zh, "Historical P/E is unavailable in the current data.", "当前数据中暂无历史市盈率。")}
                 </div>
               </div>
             )}

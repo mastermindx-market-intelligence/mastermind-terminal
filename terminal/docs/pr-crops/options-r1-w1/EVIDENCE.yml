@@ -1,0 +1,266 @@
+capturedAtHead: 3fa242d6cdf8dccad1659d31578a569b6fe11c60
+command: "OPTIONS_R1_CROPS=1 npx playwright test e2e/options-r1-w1-crops.spec.ts --project=desktop --workers=1"
+theme: Terminal and Options routes are dark-only; the Discover rotation workspace is captured in both sectorTheme=dark and sectorTheme=light.
+sources: synthetic (e2e/helpers/optionsR1Journey.ts, lib/__tests__/fixtures/reportedGammaBooks.ts, lib/__tests__/marketRiskFixture.ts); not provider evidence.
+layoutFiles:
+  - path: terminal/app/globals.css
+    sha256: e2346b09969625a05d69a3dcd91501617374d795c748bd1edfa57708d92c3bd2
+  - path: terminal/components/exposure-map/ExposureOriginStrip.tsx
+    sha256: 982fc944061b92be277da0aeb5bf9f3d5a256d5c3f0a9b790462e5284ca91e13
+  - path: terminal/components/exposure-map/ExposureChangeInspector.tsx
+    sha256: 64c6966b0ded9159d0ff68f402de5761e4f48c6d0ca62382dbe04cdbe1c1fe03
+  - path: terminal/components/exposure-map/ExposureChangeInspector.module.css
+    sha256: b1efb662e118e18f5f4de6f6b8b4c03ac0b7b03de34be1741583c98134586964
+  - path: terminal/components/exposure-map/ExposureChartReference.tsx
+    sha256: f52f5212213daf74454094523f16ea21e18aba440792adef8b1ab94b068e518a
+  - path: terminal/components/exposure-map/ExposureMap.tsx
+    sha256: 3759a2bcba453d333e09f57489ae1d3df1a3342356b4b20555da4e1e1be696c9
+  - path: terminal/components/exposure-map/exposureMapStrings.ts
+    sha256: c250367c6bc99b69060c19f38a1af0fbf8a9994705f988e4b43566acf5dc9fc8
+  - path: terminal/components/exposure-map/exposureChangeInspectorStrings.ts
+    sha256: 37ee98c1a732c16973b84add7e2a04a40fb93f356d8b8038282b54a5427c3a50
+  - path: terminal/components/gexdesk/GexDeskView.tsx
+    sha256: 0f7bd0a8477d2a70d4979fec2592126b37d7ee30cd88867e86167438230100cb
+  - path: terminal/components/options-companion/GexMarketMemory.tsx
+    sha256: 912b4570620d9bc9675e851ae58e8cad8bd6bf700e4ad2bb1d33ac835287aa71
+  - path: terminal/components/sector-intelligence/SectorCompanyComparison.tsx
+    sha256: b6a4688044edbdfa3816e190b79d489618fa06f3c6f916c064368abc8ed200d2
+  - path: terminal/components/sector-intelligence/SectorRotationMap.tsx
+    sha256: 7fa54ccf1e24774e165f4e1c22a351935a068f30487d687702fdd673743fea6c
+  - path: terminal/components/sector-intelligence/SectorRotationMap.module.css
+    sha256: 0630a245f13eef7dc4d4a5be98ae7ef7516ea770907422c7d6e4971a3f5db592
+  - path: terminal/lib/exposureChangeInspector.ts
+    sha256: f2ff303e3dc2b33b3d9cc5c851b9fec132305377b090f3f03e13afcaaeb2046e
+  - path: terminal/lib/exposureOrigin.ts
+    sha256: 5550ebf52826536b413f307fbe838f6578873975415679cd28ec134d8bc71283
+  - path: terminal/lib/rotationEligibility.ts
+    sha256: b5d9f01491029f60ebc8c5bd22da4924a0caced58c3e9ffe70503c159fa72edf
+crops:
+  - file: origin-exact-1440.png
+    viewport: 1440x900
+    lang: en
+    state: origin-exact
+    theme: dark
+    sha256: 699e46402d9b023f0347590852e2815eed76b76668b283c9934753edb44fed33
+  - file: origin-exact-820.png
+    viewport: 820x1180
+    lang: en
+    state: origin-exact
+    theme: dark
+    sha256: 110da442fe029914cfcff2d2f1b34e0fac4b0d4e8f69a3330036a03293cf7e1f
+  - file: origin-exact-390.png
+    viewport: 390x844
+    lang: en
+    state: origin-exact
+    theme: dark
+    sha256: c5ae09c5d44586a1ef4a4895343eff7a774bb93946cb292b1858f800d73b3b65
+  - file: origin-changed-1440.png
+    viewport: 1440x900
+    lang: en
+    state: origin-changed
+    theme: dark
+    sha256: 24f611b9bebc6900ed8a77af2f285afda333c429d84ca961c6270874c8330e14
+  - file: origin-changed-390.png
+    viewport: 390x844
+    lang: en
+    state: origin-changed
+    theme: dark
+    sha256: 452be0e91522e0a56514163bc252f355579978eeb705387984928acf74eac218
+  - file: origin-absent-1440.png
+    viewport: 1440x900
+    lang: en
+    state: origin-absent
+    theme: dark
+    sha256: 41c22c8da245a7c8927304ecee5a03b123b415de62bdc04523e042eef9762302
+  - file: origin-absent-390.png
+    viewport: 390x844
+    lang: en
+    state: origin-absent
+    theme: dark
+    sha256: cdd5775c7aba1f2934446efef93ccd8185045eff0a8e77879628c03fa4a4cf69
+  - file: chart-reference-1440.png
+    viewport: 1440x900
+    lang: en
+    state: chart-reference
+    theme: dark
+    sha256: 1abdbc61e3cb2afb9588739e0415e75747159c34b0a3aa5f8f1bc738ad6807ac
+  - file: chart-reference-820.png
+    viewport: 820x1180
+    lang: en
+    state: chart-reference
+    theme: dark
+    sha256: c5ecbfae7cc9adb0c280364b178d4372e3fc6d5aea35a5b686dc6cf034302bea
+  - file: chart-reference-390.png
+    viewport: 390x844
+    lang: en
+    state: chart-reference
+    theme: dark
+    sha256: b9767614fb14d950ddbe5abe68f3d950f716bcdff5f273e51a118ce7c6e629f0
+  - file: change-inspector-1440.png
+    viewport: 1440x1233
+    lang: en
+    state: change-inspector
+    theme: dark
+    sha256: 5961f73d7585a0b277df9ed5be195fc7692537bb21b5140995ff99d06429c0af
+  - file: change-inspector-820.png
+    viewport: 820x1180
+    lang: en
+    state: change-inspector
+    theme: dark
+    sha256: 1550f495bd850079312a425ca1a7fea327bf56d591f50380c5253205d1071d0b
+  - file: change-inspector-390.png
+    viewport: 390x1132
+    lang: en
+    state: change-inspector
+    theme: dark
+    sha256: 1bed51f0da6532e70e6cf92b5f0daed6a3e3d41b39e33d2225ad7bdd7e42e904
+  - file: rotation-map-1440.png
+    viewport: 1440x1525
+    lang: en
+    state: rotation-map
+    theme: dark
+    sha256: ed993ca1a9e78f30aa52c3306b469f584af459a7a620282fa7c368d4de0da3ca
+  - file: rotation-map-820.png
+    viewport: 820x1805
+    lang: en
+    state: rotation-map
+    theme: dark
+    sha256: b24f701badeb95248b775d3d2733d26415e75d760415082d196f9426b6ab7d57
+  - file: rotation-map-390.png
+    viewport: 390x1976
+    lang: en
+    state: rotation-map
+    theme: dark
+    sha256: 3719056954bfa27123acf64a52004f22d1cad40d13f473e101e9280d7107ef0c
+  - file: rotation-map-1440-light.png
+    viewport: 1440x1525
+    lang: en
+    state: rotation-map
+    theme: light
+    sha256: a112bde38615b41996b3b36593c9476f0e8900066de63033ac6a6abb224c2228
+  - file: rotation-map-820-light.png
+    viewport: 820x1805
+    lang: en
+    state: rotation-map
+    theme: light
+    sha256: ec447ce02b983c6660d3c33d4be2a637082b07da06663530c455d4915ca420f8
+  - file: rotation-map-390-light.png
+    viewport: 390x1976
+    lang: en
+    state: rotation-map
+    theme: light
+    sha256: ad8a6e5a13158e25b7cc974271cb274e94060b19ad7cb2dc65f1dcc3c881bdc7
+  - file: origin-exact-1440-zh.png
+    viewport: 1440x900
+    lang: zh
+    state: origin-exact
+    theme: dark
+    sha256: 91f8aaa17cca8705cbd51723b166c38dc35f70cdf8972d190601d0000722f0ef
+  - file: origin-exact-820-zh.png
+    viewport: 820x1180
+    lang: zh
+    state: origin-exact
+    theme: dark
+    sha256: 8cdd4a95ffb016c5924351c101276739ab54e06f0fa9ce0a4ed0b3ada98e96fd
+  - file: origin-exact-390-zh.png
+    viewport: 390x844
+    lang: zh
+    state: origin-exact
+    theme: dark
+    sha256: 4a6bd743160e2c9a5d78bc265a4d5806a8eb18dd1e0c2821d6ebc51fa18b9eee
+  - file: origin-changed-1440-zh.png
+    viewport: 1440x900
+    lang: zh
+    state: origin-changed
+    theme: dark
+    sha256: ec2d9f38265d376fd8a37ff3d9a8206742ff18912b7859601afa4f349ba05fc5
+  - file: origin-changed-390-zh.png
+    viewport: 390x844
+    lang: zh
+    state: origin-changed
+    theme: dark
+    sha256: f2aee09e88c5f29422fa6930afe6dab2777e23fc70999637b36f8b5682d339da
+  - file: origin-absent-1440-zh.png
+    viewport: 1440x900
+    lang: zh
+    state: origin-absent
+    theme: dark
+    sha256: 1940d5c54ab4578986abf49657d8723194b3ecb0bd6d4f070e89c17c083d90ef
+  - file: origin-absent-390-zh.png
+    viewport: 390x844
+    lang: zh
+    state: origin-absent
+    theme: dark
+    sha256: fbd34a03362d2c5db8e67876410e09fb9a14367ce555a9d60b17a0d2b1d1b0f6
+  - file: chart-reference-1440-zh.png
+    viewport: 1440x900
+    lang: zh
+    state: chart-reference
+    theme: dark
+    sha256: cbf69289365756e8a35f23775f632ac123d75ca6091da7374ebdba6a25b74851
+  - file: chart-reference-820-zh.png
+    viewport: 820x1180
+    lang: zh
+    state: chart-reference
+    theme: dark
+    sha256: 587d793c207ba8e53b7cfece0f90d98c6f41466d0e9a25a51da0836bc35b733c
+  - file: chart-reference-390-zh.png
+    viewport: 390x844
+    lang: zh
+    state: chart-reference
+    theme: dark
+    sha256: 44d883183fccfb7e129dd7e6f7238568e69738424b7b4a3d52663cd5f200bd63
+  - file: change-inspector-1440-zh.png
+    viewport: 1440x1232
+    lang: zh
+    state: change-inspector
+    theme: dark
+    sha256: e3da31afd54a2ada642968ceb21d848ccca259ec258c077b7914a4c1d5a12fe7
+  - file: change-inspector-820-zh.png
+    viewport: 820x1180
+    lang: zh
+    state: change-inspector
+    theme: dark
+    sha256: 4081ee6f70c9a15a3d4a4cdccb44eb1553756e903c83b98425270ac046a1d558
+  - file: change-inspector-390-zh.png
+    viewport: 390x1132
+    lang: zh
+    state: change-inspector
+    theme: dark
+    sha256: c32051e9f82545d127d39474302e88ab795abb462e68b22732301806661aca5c
+  - file: rotation-map-1440-zh.png
+    viewport: 1440x1497
+    lang: zh
+    state: rotation-map
+    theme: dark
+    sha256: b8da770189a0c66e0132ac0d0e2c919bd26d7afff6049f3243c3e714fa444ad2
+  - file: rotation-map-820-zh.png
+    viewport: 820x1782
+    lang: zh
+    state: rotation-map
+    theme: dark
+    sha256: c0091c9934abea70b830d662f3005cb8494b2cf3331fba7341fe09d81dc72fa5
+  - file: rotation-map-390-zh.png
+    viewport: 390x1811
+    lang: zh
+    state: rotation-map
+    theme: dark
+    sha256: 5d3731b32b31457e70d0c2b343441bc541ab8312bd71e2c1e7aa6623126e93bb
+  - file: rotation-map-1440-zh-light.png
+    viewport: 1440x1497
+    lang: zh
+    state: rotation-map
+    theme: light
+    sha256: ab77dbb1b873184fa5775a3774cb786dee0cb07a2dfe8ae0caeda30a543e02a0
+  - file: rotation-map-820-zh-light.png
+    viewport: 820x1782
+    lang: zh
+    state: rotation-map
+    theme: light
+    sha256: c7bad7ac2ff75d34c34c74cca8ea37d67f3b2e6683e5622cb89c06d9dd4eb825
+  - file: rotation-map-390-zh-light.png
+    viewport: 390x1811
+    lang: zh
+    state: rotation-map
+    theme: light
+    sha256: da931744dd45e1613cf52e66580a01e8faa1acadfbfe32f6ca0bff8103ddf0da

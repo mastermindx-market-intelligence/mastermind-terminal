@@ -1,0 +1,48 @@
+{
+  "head": "54bf1bc931832655b7c0ca4de24e26fbab598d11",
+  "manifestSha256": "63630d8563f5d77621e9ba271ddb4346f709a68c2492f6abb7a99df0fe89f8d6",
+  "files": [
+    {
+      "path": "terminal/lib/futuresGexProjection.ts",
+      "start": 1,
+      "end": 78,
+      "fileSha256": "d8133b5767aefc49ba71f72b21ab157e8e1d244fff96b7321bfb30118b6f9511",
+      "excerptSha256": "a91ff0cc6e81c191dec5940047ece8e78c151ee01898ab11b1dd28617389b034"
+    },
+    {
+      "path": "terminal/lib/futuresGexFrame.ts",
+      "start": 1,
+      "end": 136,
+      "fileSha256": "38f6cb62949cea17db070881036cc88405275713940eeec9255c2321eb6ec13e",
+      "excerptSha256": "563189b3a839c2dd2e4e79634f487d80b481a1f79bf9d16a61c26f6ffe8ec3fb"
+    },
+    {
+      "path": "terminal/lib/futuresGexLens.ts",
+      "start": 1,
+      "end": 75,
+      "fileSha256": "4bb6931de5581fef212016a0ece0af8f481ef65f834fb5d6632ce8bca8bda8d2",
+      "excerptSha256": "57224d1ea0180d424f97e5802407474390444ff41fa698cba4a81e49be58c766"
+    },
+    {
+      "path": "terminal/lib/futuresGexLevels.ts",
+      "start": 1,
+      "end": 26,
+      "fileSha256": "28dc71dc2500660d88af86cb6317b6cee613ac5c70046b148ec6cf739bd1db14",
+      "excerptSha256": "8eb08a7353bed23cbde10bd79eaae53feaf4caf4741b8e26b05d3d4bfde1eea8"
+    },
+    {
+      "path": "terminal/lib/futuresVolumeProfile.ts",
+      "start": 1,
+      "end": 18,
+      "fileSha256": "e9ea6fbbfd0e985456bff5f8274f41a4b39699fd4e88479126cd9c808394ef69",
+      "excerptSha256": "c20273620c78a80d883f08d3b4b684a4d6fc6ca1fd0981b78680d0fe523234b4"
+    },
+    {
+      "path": "terminal/components/futures/useFuturesWorkspace.ts",
+      "start": 1,
+      "end": 76,
+      "fileSha256": "a25b49a55c59888eb4992e7bd3099c6f7f08c7e61c4dc03f445634af84c0b3ca",
+      "excerptSha256": "9255944c779d3d6cded0d31893e5df4d875aba08617e251d6fc54ac25315ccb5"
+    }
+  ]
+}

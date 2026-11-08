@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page, type TestInfo } from "@playwright/test";
 
 const overviewFundFixture = {
   schema: "mastermind.fund/v1",
@@ -107,8 +107,21 @@ const overviewFundFixture = {
   segments: null,
 };
 
-async function installOverviewFixture(page: Page) {
-  await page.route("**/NVDA.fund.json**", async (route) => route.fulfill({ json: overviewFundFixture }));
+async function installOverviewFixture(page: Page, fixture: unknown = overviewFundFixture) {
+  await page.route("**/NVDA.fund.json**", async (route) => route.fulfill({ json: fixture }));
+}
+
+async function captureOverview(page: Page, testInfo: TestInfo, language: "en" | "zh") {
+  await page.evaluate(() => document.fonts.ready.then(() => undefined));
+  // The existing responsive-qa artifact retains these actual browser captures.
+  await page.screenshot({
+    path: testInfo.outputPath(`overview-${language}-first-frame.png`),
+    animations: "disabled",
+  });
+  await page.locator("[data-overview-vnext-valuation]").screenshot({
+    path: testInfo.outputPath(`overview-${language}-valuation.png`),
+    animations: "disabled",
+  });
 }
 
 /**
@@ -161,7 +174,7 @@ test("family selection lands on the existing family default without a second rou
 });
 
 
-test("Overview vNext keeps snapshot, ownership, capital and valuation in one research canvas", async ({ page }) => {
+test("Overview vNext keeps snapshot, ownership, capital and valuation in one research canvas", async ({ page }, testInfo) => {
   await installOverviewFixture(page);
   await page.goto("/analysis?symbol=NVDA&page=overview");
   await expect(page.locator(".sym-pick strong")).toHaveText("NVDA", { timeout: 45_000 });
@@ -180,12 +193,13 @@ test("Overview vNext keeps snapshot, ownership, capital and valuation in one res
   await expect(valuation).toContainText("Valuation");
   await expect(valuation).toContainText("CURRENT");
   await expect(valuation).toContainText("P/E TTM");
-  await expect(valuation.locator(".fin-overview-valuation-current")).toContainText("Basic EPS · latest FY");
+  await expect(valuation.locator(".fin-overview-valuation-current")).toContainText("Basic EPS · latest available FY");
   await expect(valuation).toContainText("Historical P/E");
   await expect(valuation).toContainText("Revenue-relative context");
 
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
+  await captureOverview(page, testInfo, "en");
 });
 
 test("Overview vNext remains bilingual and overflow-safe on mobile", async ({ page }, testInfo) => {
@@ -202,11 +216,50 @@ test("Overview vNext remains bilingual and overflow-safe on mobile", async ({ pa
   await expect(overview).toContainText("资本结构");
   await expect(overview).toContainText("估值");
   await expect(overview).toContainText("当前");
-  await expect(overview.locator(".fin-overview-valuation-current")).toContainText("基本每股收益 · 最近财年");
+  await expect(overview.locator(".fin-overview-valuation-current")).toContainText("基本每股收益 · 最近可用财年");
 
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
+  await captureOverview(page, testInfo, "zh");
 });
+
+
+for (const locale of [
+  { language: "en", project: "desktop", epsLabel: "Basic EPS", basis: "Latest available FY", cardBasis: "Basic EPS · latest available FY", history: "Historical P/E is unavailable in the current data." },
+  { language: "zh", project: "mobile", epsLabel: "基本每股收益", basis: "最近可用财年", cardBasis: "基本每股收益 · 最近可用财年", history: "当前数据中暂无历史市盈率。" },
+] as const) {
+  test(`Overview labels an older available annual EPS without inventing current or historical P/E (${locale.language})`, async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== locale.project, "one missing-data contract per locale is sufficient");
+    await page.addInitScript((language) => window.localStorage.setItem("mm.lang", language), locale.language);
+    await installOverviewFixture(page, {
+      ...overviewFundFixture,
+      statements: {
+        ...overviewFundFixture.statements,
+        annual: {
+          ...overviewFundFixture.statements.annual,
+          income: { ...overviewFundFixture.statements.annual.income, eps_basic: [1.2, 1.9, null] },
+        },
+      },
+      ratios: {
+        ...overviewFundFixture.ratios,
+        pe: [],
+        current: { ...overviewFundFixture.ratios.current, pe_ttm: null },
+      },
+    });
+    await page.goto("/analysis?symbol=NVDA&page=overview");
+
+    const overview = page.locator("[data-overview-vnext]");
+    await expect(overview).toBeVisible({ timeout: 45_000 });
+    const epsFact = overview.locator(".fin-kpi").filter({ has: page.getByText(locale.epsLabel, { exact: true }) });
+    await expect(epsFact.locator(".v")).toHaveText("1.90");
+    await expect(epsFact.locator(".s")).toHaveText(locale.basis);
+    const current = overview.locator(".fin-overview-valuation-current");
+    await expect(current.locator(".fin-overview-current-pe .num")).toHaveText("—");
+    await expect(current.locator(".fin-overview-current-eps")).toContainText(locale.cardBasis);
+    await expect(current.locator(".fin-overview-current-eps .num")).toHaveText("1.90");
+    await expect(overview.locator(".fin-overview-pe-history")).toContainText(locale.history);
+  });
+}
 
 test("Ownership family defaults to Institutional and preserves Insider as its sibling", async ({ page }) => {
   await page.route("**/api/company-intelligence/NVDA**", async (route) => {

@@ -107,7 +107,8 @@ def regen(sym: str, write: bool = True, cache=None, patches: dict | None = None,
                                 reclaims_enabled=eligible,
                                 symbol=sym, override_gate=gate)
     ind = contracts.indicator_contract(
-        sym, "3D", sig, bar_quality="real_ohlc", src_text=SRC, honest_read=HONEST, v2=v2)
+        sym, "3D", sig, bar_quality="real_ohlc", src_text=SRC, honest_read=HONEST, v2=v2,
+        bar_closed=contracts.three_day_bar_closed(close, anchor))
     # ── washout-override pass (ratified 2026-08-10, notch 25%) ──
     # This script is the nightly's LAST writer of the flagship slices (terminal-data phase 1
     # runs it right after build_polygon_universe), so without this pass every flagship ⊘

@@ -1,0 +1,24 @@
+{
+  "semantic_head": "de0100bc073e038c068b4c9d95c8b9ee01929fd6",
+  "tree": "cc7505eaf0550590d157385a4e5d850336f732a0",
+  "source_blobs": {
+    "terminal/components/PortfolioView.tsx": "4b880664272863572ef898f45f0f740464cbb6e6",
+    "terminal/lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx": "8cda4de0b776b0db02e126f63b857315b34991e7"
+  },
+  "probes": {
+    "portfolioNativeOwnerProbeEnvelope.test.tsx": "070313ed097544a9f21cecfc28a293eb3ca28eea0ec06dcd44d1cb320475c613",
+    "portfolioNativeEventOwnerProbe.test.tsx": "4e82172ee1f326677ed2ebf59c5f28d82cda7f6aedf26d01145ca5ce8a0ba83d"
+  },
+  "dependency_copy": "independent cp -a --reflink=auto",
+  "exit_code": 0,
+  "command": [
+    "vitest",
+    "run",
+    "lib/__tests__/portfolioNativeOwnerProbeEnvelope.test.tsx",
+    "lib/__tests__/portfolioNativeEventOwnerProbe.test.tsx",
+    "lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx",
+    "lib/__tests__/portfolioWorkspaceController.test.tsx",
+    "--reporter=verbose"
+  ],
+  "log_sha256": "f61a2ae86613c40056459577a6f55f4c47404130c11f95264177fdd89beaa97d"
+}
