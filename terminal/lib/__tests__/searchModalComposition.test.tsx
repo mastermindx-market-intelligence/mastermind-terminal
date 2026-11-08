@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // Mount the real modal, deferred query, filtering, and EN/ZH lexicon.
-// Removing the native IME guard must expose composing-key actions and selection changes.
+// The accepted dialog capture guard also handles composition; these mounted cases test observable behavior.
 // Synthetic component coverage only; this does not prove platform IME or full-shell behavior.
 import React, { act, type ComponentProps } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -189,22 +189,42 @@ describe.each(["normal", "StrictMode"] as const)("SearchModal focused IME (%s)",
       noAction();
     });
 
-    it("a composing key outside the field does not invoke its local handler", async () => {
+    it("composing and ordinary keys on a non-input dialog target leave the field action alone", async () => {
       await mount(lang, "pick", strict);
-      const outside = document.createElement("button");
-      document.body.appendChild(outside);
-      outside.focus();
-      try {
-        expect(document.activeElement).toBe(outside);
-        act(() => {
-          outside.dispatchEvent(new KeyboardEvent("keydown", {
-            key: "Enter", isComposing: true, bubbles: true, cancelable: true,
-          }));
-        });
-        noAction();
-      } finally {
-        outside.remove();
-      }
+      const field = input();
+      const query = field.value;
+      const panel = field.closest<HTMLDivElement>(".smodal")!;
+      expect(panel).not.toBeNull();
+      expect(panel).not.toBe(field);
+      act(() => { panel.focus(); });
+      expect(document.activeElement).toBe(panel);
+      expect(activeSymbol()).toBe("AAPL");
+
+      const composing = new KeyboardEvent("keydown", {
+        key: "Enter", isComposing: true, bubbles: true, cancelable: true,
+      });
+      act(() => { panel.dispatchEvent(composing); });
+      expect(composing.defaultPrevented).toBe(false);
+      expect(field.value).toBe(query);
+      expect(activeSymbol()).toBe("AAPL");
+      noAction();
+
+      const ordinary = new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true });
+      act(() => { panel.dispatchEvent(ordinary); });
+      expect(ordinary.defaultPrevented).toBe(false);
+      expect(field.value).toBe(query);
+      expect(activeSymbol()).toBe("AAPL");
+      noAction();
+
+      // The same mounted field still owns ordinary Enter after the non-input controls.
+      act(() => { field.focus(); });
+      expect(document.activeElement).toBe(field);
+      expect(key("Enter").defaultPrevented).toBe(true);
+      expect(props.onPick).toHaveBeenCalledTimes(1);
+      expect(props.onPick).toHaveBeenCalledWith("AAPL");
+      expect(props.onClose).toHaveBeenCalledTimes(1);
+      expect(props.onAdd).not.toHaveBeenCalled();
+      expect(props.onToggleCompare).not.toHaveBeenCalled();
     });
 
     it("ordinary ArrowDown chooses the next row", async () => {
