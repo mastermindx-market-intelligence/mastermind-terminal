@@ -321,17 +321,18 @@ function evaluateActualNextConfig(env) {
   vm.runInNewContext(compiled,{exports,process:{env},__dirname:"/fixture",require: name => name === "node:fs" ? { readFileSync(){throw Object.assign(new Error("fixture"),{code:"ENOENT"});},readdirSync(){return [];} } : require(name)});
   return exports.default;
 }
-test("actual Next config disables only F11 development debug transport; production and other capture defaults unchanged", () => {
+test("actual Next config keeps F11 development private and preserves production and full-development compiler projects", () => {
   const env={NODE_ENV:"development",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1"};
   const f11=evaluateActualNextConfig(env);
   assert.equal(f11.experimental.reactDebugChannel,false);
   assert.equal(f11.distDir,".next/f11");
   assert.equal(f11.typescript.tsconfigPath,"tsconfig.f11.json");
-  for (const other of [{NODE_ENV:"production",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1"},{NODE_ENV:"development"},{NODE_ENV:"development",TERMINAL_E2E_FIXTURE:"1"},{NODE_ENV:"development",TERMINAL_F11_PROVIDER_CLOSED:"1"},{NODE_ENV:"test",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1"}]) {
+  for (const other of [{NODE_ENV:"production",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1"},{NODE_ENV:"production"},{NODE_ENV:"development"},{NODE_ENV:"development",TERMINAL_E2E_FIXTURE:"1"},{NODE_ENV:"development",TERMINAL_F11_PROVIDER_CLOSED:"1"},{NODE_ENV:"test",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1"}]) {
     const normal=evaluateActualNextConfig(other);
     assert.equal(normal.experimental.reactDebugChannel,true);
     assert.equal(normal.distDir,undefined);
-    assert.equal(normal.typescript,undefined);
+    assert.deepEqual(Object.keys(normal.typescript),["tsconfigPath"]);
+    assert.equal(normal.typescript.tsconfigPath,other.NODE_ENV === "production" ? "tsconfig.build.json" : "tsconfig.json");
   }
   const ordinary=evaluateActualNextConfig({...env,TERMINAL_F11_PROVIDER_CLOSED:"0"});
   assert.equal(JSON.stringify({...f11,experimental:undefined,distDir:undefined,typescript:undefined}),JSON.stringify({...ordinary,experimental:undefined,distDir:undefined,typescript:undefined}));

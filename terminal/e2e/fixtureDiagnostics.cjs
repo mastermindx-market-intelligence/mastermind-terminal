@@ -1,13 +1,15 @@
 "use strict";
 // Bounded fixture metadata in the existing CI artifact. No server lifecycle,
 // environment dump, response body, arbitrary error message or credential read.
-import fs from "node:fs";
-import path from "node:path";
-import crypto from "node:crypto";
-import { execFileSync } from "node:child_process";
-import { fileURLToPath } from "node:url";
-import { ROUTES } from "./fixtureWarmup.cjs";
-const HERE = path.dirname(fileURLToPath(import.meta.url));
+// Playwright loads this helper from CommonJS-transformed TS and direct Node CLI.
+/* eslint-disable @typescript-eslint/no-require-imports -- Explicit .cjs boundary; keep both callers CommonJS. */
+const fs = require("node:fs");
+const path = require("node:path");
+const crypto = require("node:crypto");
+const { execFileSync } = require("node:child_process");
+const { ROUTES } = require("./fixtureWarmup.cjs");
+/* eslint-enable @typescript-eslint/no-require-imports */
+const HERE = __dirname;
 const OUTPUT_DIRECTORY = "test-startup-results";
 const OUTPUT_FILE = "fixture-startup.jsonl";
 const PHASES = new Set(["checkout", "global_setup_started", "readiness", "readiness_failed", "route", "summary", "global_setup_failed", "global_setup_complete"]);
@@ -35,7 +37,7 @@ function checkout(cwd, run = execFileSync) {
   const parents = read(["show", "-s", "--format=%P", commit]).split(" ").filter(Boolean);
   if (![commit, tree, ...parents].every((value) => /^[0-9a-f]{40}$/.test(value)) || parents.length > 2) throw new TypeError("unqualified fixture checkout");
   const sources = {};
-  for (const relative of ["playwright.config.ts", "e2e/globalSetup.ts", "e2e/fixtureWarmup.cjs", "e2e/fixtureDiagnostics.mjs", "e2e/company-intelligence.spec.ts", "package.json", "package-lock.json"]) {
+  for (const relative of ["playwright.config.ts", "e2e/globalSetup.ts", "e2e/fixtureWarmup.cjs", "e2e/fixtureDiagnostics.cjs", "e2e/company-intelligence.spec.ts", "package.json", "package-lock.json"]) {
     const file = path.join(cwd, relative);
     const info = fs.lstatSync(file);
     if (!info.isFile() || info.isSymbolicLink() || info.size > 4 * 1024 * 1024) throw new TypeError("unqualified fixture source");
@@ -64,8 +66,8 @@ function record(event, options = {}) {
   } finally { fs.closeSync(descriptor); }
   return row;
 }
-export { project, checkout, record, OUTPUT_DIRECTORY, OUTPUT_FILE };
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+module.exports = { project, checkout, record, OUTPUT_DIRECTORY, OUTPUT_FILE };
+if (require.main === module) {
   if (process.argv.length !== 3 || process.argv[2] !== "checkout") throw new TypeError("unsupported diagnostic command");
   record({ phase: "checkout" });
 }

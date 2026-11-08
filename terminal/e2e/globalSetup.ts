@@ -40,7 +40,7 @@
  */
 import type { FullConfig } from "@playwright/test";
 import { warmFixtureRoutes } from "./fixtureWarmup.cjs";
-import { record } from "./fixtureDiagnostics.mjs";
+import { record } from "./fixtureDiagnostics.cjs";
 
 export default async function globalSetup(config: FullConfig): Promise<void> {
   const base = config.projects[0]?.use?.baseURL

@@ -526,7 +526,7 @@ jobs:
         run: npx playwright install chromium
       - run: |
           # Outside Playwright's cleared outputDir: survive a startup failure.
-          node e2e/fixtureDiagnostics.mjs checkout
+          node e2e/fixtureDiagnostics.cjs checkout
           npm run test:e2e:responsive -- ${{ matrix.projects }} ${{ matrix.specs }} --workers="$TERMINAL_E2E_WORKERS"
         env:
           TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port }}
