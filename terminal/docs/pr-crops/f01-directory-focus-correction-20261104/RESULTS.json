@@ -1,0 +1,1350 @@
+{
+  "scope": "F01 directory focus correction; controlled development fixture, not beta/production acceptance",
+  "unit": {
+    "total": 87,
+    "passed": 87,
+    "failed": 0,
+    "source_reuse": "The 24 directory + 63 neighbor tests and TSX are unchanged from their passing run; subsequent changes are CSS focus clearance and browser assertions.",
+    "cases": [
+      {
+        "title": "Shared Shell route contract enables only the exact server flag",
+        "status": "passed"
+      },
+      {
+        "title": "Shared Shell route contract resolves root, relative and nested paths against the canonical Macro document",
+        "status": "passed"
+      },
+      {
+        "title": "Shared Shell route contract keeps exact ordinary query bytes and fragments while removing only transport keys",
+        "status": "passed"
+      },
+      {
+        "title": "Shared Shell route contract leaves external browser destinations external",
+        "status": "passed"
+      },
+      {
+        "title": "Shared Shell route contract blocks unsupported schemes, credential URLs and unadmitted paths",
+        "status": "passed"
+      },
+      {
+        "title": "Shared Shell route contract fails closed for malformed input and configuration",
+        "status": "passed"
+      },
+      {
+        "title": "Shared Shell child message contract constructs only the allowed variants",
+        "status": "passed"
+      },
+      {
+        "title": "Shared Shell child message contract requires the exact frame window, origin and generation",
+        "status": "passed"
+      },
+      {
+        "title": "Shared Shell child message contract rejects unknown fields and invalid variant values",
+        "status": "passed"
+      },
+      {
+        "title": "Shared Shell child message contract does not conflate a valid NAVIGATE envelope with route authorization",
+        "status": "passed"
+      },
+      {
+        "title": "presentation state never carries account material rejects authentication parameters while preserving ordinary market state",
+        "status": "passed"
+      },
+      {
+        "title": "presentation state never carries account material validates bounded scroll coordinates and stable identifiers without copying extras",
+        "status": "passed"
+      },
+      {
+        "title": "presentation state never carries account material requires own envelope and required variant fields",
+        "status": "passed"
+      },
+      {
+        "title": "Shared Shell response provenance keeps a recognized gate response distinct from product readiness",
+        "status": "passed"
+      },
+      {
+        "title": "Shared Shell authentication URL boundary rejects credentials and combined query/fragment authentication state at every entry",
+        "status": "passed"
+      },
+      {
+        "title": "Shared Shell authentication URL boundary preserves ordinary code and fragment query state",
+        "status": "passed"
+      },
+      {
+        "title": "incumbent directory conformance recovers zero-in-category matches without changing the typed query",
+        "status": "passed"
+      },
+      {
+        "title": "incumbent directory conformance preserves category-specific canonical fallback and distinct same-title routes",
+        "status": "passed"
+      },
+      {
+        "title": "incumbent directory conformance clears only query and retains the selected category",
+        "status": "passed"
+      },
+      {
+        "title": "incumbent directory conformance retains expansion on same-instance reopen and resets it on query or category change",
+        "status": "passed"
+      },
+      {
+        "title": "incumbent directory conformance focuses the first newly revealed destination when the final batch removes Show more",
+        "status": "passed"
+      },
+      {
+        "title": "incumbent directory conformance uses a concise atomic status instead of announcing the result grid",
+        "status": "passed"
+      },
+      {
+        "title": "incumbent directory conformance retains query, category, expansion and focus through a locale rerender",
+        "status": "passed"
+      },
+      {
+        "title": "incumbent directory conformance returns to a visible navigation opener when the desktop opener becomes hidden",
+        "status": "passed"
+      },
+      {
+        "title": "incumbent directory conformance uses the visible opener when the directory was opened with BODY active",
+        "status": "passed"
+      },
+      {
+        "title": "incumbent directory conformance does not manufacture a tab stop on an invoker that lost focusability",
+        "status": "passed"
+      },
+      {
+        "title": "incumbent directory conformance retains a legitimate programmatically focused invoker",
+        "status": "passed"
+      },
+      {
+        "title": "incumbent directory conformance uses the current main heading if all old controls are hidden or disabled",
+        "status": "passed"
+      },
+      {
+        "title": "incumbent directory conformance does not steal deliberate later focus during an external close",
+        "status": "passed"
+      },
+      {
+        "title": "incumbent directory conformance leaves composing and child-consumed Escape to their existing owner",
+        "status": "passed"
+      },
+      {
+        "title": "incumbent directory conformance guards native cancellation for protected Escape {\"isComposing\":true}",
+        "status": "passed"
+      },
+      {
+        "title": "incumbent directory conformance guards native cancellation for protected Escape {\"keyCode\":229}",
+        "status": "passed"
+      },
+      {
+        "title": "incumbent directory conformance guards native cancellation for protected Escape {\"repeat\":true}",
+        "status": "passed"
+      },
+      {
+        "title": "incumbent directory conformance retains the original composition decision if composition ends during Escape dispatch",
+        "status": "passed"
+      },
+      {
+        "title": "incumbent directory conformance defensively retains a child-consumed Escape when a synthetic cancel is injected",
+        "status": "passed"
+      },
+      {
+        "title": "incumbent directory conformance allows a later non-keyboard cancel after a protected Escape with no keyup",
+        "status": "passed"
+      },
+      {
+        "title": "incumbent directory conformance consumes protected cancellation once without blocking a second independent close",
+        "status": "passed"
+      },
+      {
+        "title": "incumbent directory conformance expires an unconsumed Escape association when no cancel or key release arrives",
+        "status": "passed"
+      },
+      {
+        "title": "incumbent directory conformance preserves modified-click context and closes only for ordinary navigation",
+        "status": "passed"
+      },
+      {
+        "title": "incumbent directory conformance hands off to company search once through its parent without a deferred opener",
+        "status": "passed"
+      },
+      {
+        "title": "public Shared Shell presentation real .topbar guest controls update both owners without navigation or signup",
+        "status": "passed"
+      },
+      {
+        "title": "public Shared Shell presentation real .mobilebar guest controls update both owners without navigation or signup",
+        "status": "passed"
+      },
+      {
+        "title": "public Shared Shell presentation restores guest choices on a fresh shell using the real document language bootstrap",
+        "status": "passed"
+      },
+      {
+        "title": "public Shared Shell presentation continues applying account Auto and explicit Settings metadata through the incumbent store",
+        "status": "passed"
+      },
+      {
+        "title": "public Shared Shell presentation retains UUID ownership, ignores an outgoing account read and keeps a public override local",
+        "status": "passed"
+      },
+      {
+        "title": "public Shared Shell presentation keeps child presentation requests on the same owner and rejects unqualified sources",
+        "status": "passed"
+      },
+      {
+        "title": "public Shared Shell presentation still applies public choices when browser storage is blocked",
+        "status": "passed"
+      },
+      {
+        "title": "public Shared Shell presentation adds no presentation controls or presentation owner in the ordinary shell",
+        "status": "passed"
+      },
+      {
+        "title": "explicit Settings presentation intent after a public override follows system changes only while Auto is active and removes its listener",
+        "status": "passed"
+      },
+      {
+        "title": "explicit Settings presentation intent after a public override reapplies the same saved 'dark' choice with systemDark=false through the real Settings UI",
+        "status": "passed"
+      },
+      {
+        "title": "explicit Settings presentation intent after a public override reapplies the same saved 'light' choice with systemDark=true through the real Settings UI",
+        "status": "passed"
+      },
+      {
+        "title": "explicit Settings presentation intent after a public override reapplies the same saved 'auto' choice with systemDark=true through the real Settings UI",
+        "status": "passed"
+      },
+      {
+        "title": "explicit Settings presentation intent after a public override reapplies the same saved 'auto' choice with systemDark=false through the real Settings UI",
+        "status": "passed"
+      },
+      {
+        "title": "explicit Settings presentation intent after a public override does not reapply a saved theme on a real Settings language edit",
+        "status": "passed"
+      },
+      {
+        "title": "explicit Settings presentation intent after a public override does not reapply a saved theme on a real Settings trade edit",
+        "status": "passed"
+      },
+      {
+        "title": "explicit Settings presentation intent after a public override does not reapply a saved theme on a real Settings follow edit",
+        "status": "passed"
+      },
+      {
+        "title": "explicit Settings presentation intent after a public override keeps ordinary Settings functional outside a Shared Shell presentation provider",
+        "status": "passed"
+      },
+      {
+        "title": "regional overview navigation identity /us_stocks.html belongs to its market row without claiming the native Today page",
+        "status": "passed"
+      },
+      {
+        "title": "regional overview navigation identity /china.html belongs to its market row without claiming the native Today page",
+        "status": "passed"
+      },
+      {
+        "title": "regional overview navigation identity /hk.html belongs to its market row without claiming the native Today page",
+        "status": "passed"
+      },
+      {
+        "title": "regional overview navigation identity /canada.html belongs to its market row without claiming the native Today page",
+        "status": "passed"
+      },
+      {
+        "title": "regional overview navigation identity /intl.html belongs to its market row without claiming the native Today page",
+        "status": "passed"
+      },
+      {
+        "title": "regional overview navigation identity preserves the existing primary family for /today",
+        "status": "passed"
+      },
+      {
+        "title": "regional overview navigation identity preserves the existing primary family for /discover",
+        "status": "passed"
+      },
+      {
+        "title": "regional overview navigation identity preserves the existing primary family for /discover/stock-screener",
+        "status": "passed"
+      },
+      {
+        "title": "regional overview navigation identity preserves the existing primary family for /analysis",
+        "status": "passed"
+      },
+      {
+        "title": "regional overview navigation identity preserves the existing primary family for /stock.html",
+        "status": "passed"
+      },
+      {
+        "title": "regional overview navigation identity preserves the existing primary family for /china_lookup.html",
+        "status": "passed"
+      },
+      {
+        "title": "regional overview navigation identity preserves the existing primary family for /hk_lookup.html",
+        "status": "passed"
+      },
+      {
+        "title": "regional overview navigation identity preserves the existing primary family for /canada_stock.html",
+        "status": "passed"
+      },
+      {
+        "title": "regional overview navigation identity preserves the existing primary family for /intl_stock.html",
+        "status": "passed"
+      },
+      {
+        "title": "regional overview navigation identity preserves the existing primary family for /research",
+        "status": "passed"
+      },
+      {
+        "title": "regional overview navigation identity preserves the existing primary family for /stocks/earnings",
+        "status": "passed"
+      },
+      {
+        "title": "regional overview navigation identity preserves the existing primary family for /monitor",
+        "status": "passed"
+      },
+      {
+        "title": "regional overview navigation identity preserves the existing primary family for /watchlist.html",
+        "status": "passed"
+      },
+      {
+        "title": "regional overview navigation identity preserves the existing primary family for /portfolio",
+        "status": "passed"
+      },
+      {
+        "title": "Shared Shell native job identity selects the actual native Today destination",
+        "status": "passed"
+      },
+      {
+        "title": "Shared Shell native job identity does not present an unrelated tool as the native Today page: /crypto.html",
+        "status": "passed"
+      },
+      {
+        "title": "Shared Shell native job identity does not present an unrelated tool as the native Today page: /vector.html",
+        "status": "passed"
+      },
+      {
+        "title": "Shared Shell native job identity does not present an unrelated tool as the native Today page: /vector_allocation.html",
+        "status": "passed"
+      },
+      {
+        "title": "Shared Shell native job identity does not present an unrelated tool as the native Today page: /macro.html",
+        "status": "passed"
+      },
+      {
+        "title": "Shared Shell native job identity does not present an unrelated tool as the native Today page: /commodities.html",
+        "status": "passed"
+      },
+      {
+        "title": "Shared Shell native job identity does not present an unrelated tool as the native Today page: /bonds.html",
+        "status": "passed"
+      },
+      {
+        "title": "Shared Shell native job identity does not present an unrelated tool as the native Today page: /theme_tree.html",
+        "status": "passed"
+      },
+      {
+        "title": "Shared Shell native job identity does not present an unrelated tool as the native Today page: /",
+        "status": "passed"
+      },
+      {
+        "title": "Shared Shell native job identity does not present an unrelated tool as the native Today page: /today-report.html",
+        "status": "passed"
+      },
+      {
+        "title": "Shared Shell native job identity does not present an unrelated tool as the native Today page: /future-tool.html",
+        "status": "passed"
+      }
+    ]
+  },
+  "unit_red": {
+    "total": 24,
+    "passed": 22,
+    "failed": 2,
+    "failures": [
+      "incumbent directory conformance uses the visible opener when the directory was opened with BODY active",
+      "incumbent directory conformance does not manufacture a tab stop on an invoker that lost focusability"
+    ]
+  },
+  "browser": {
+    "stats": {
+      "startTime": "2026-11-04T05:00:50.295Z",
+      "duration": 57604.533,
+      "expected": 25,
+      "skipped": 2,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "errors": [],
+    "cases": [
+      {
+        "title": "query-wide recovery is distinct from category scope in the real catalogue",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 2244,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 1440,
+              "height": 900
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "clear query, batching and same-instance reopen retain the correct state",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 1301,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 1440,
+              "height": 900
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "actual locale/theme controls preserve a filtered directory across reopen",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 1382,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 320,
+              "height": 420
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "drawer-to-directory and resize close return to a visible persistent control",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 1188,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 320,
+              "height": 844
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "shortcut from BODY returns to a meaningful visible shell control",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 1918,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 1440,
+              "height": 900
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "Show all reveals its focused category inside the scrolled strip",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 1651,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 320,
+              "height": 844
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "directory transfers once to the real company picker and respects composing Escape",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 1584,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 1440,
+              "height": 900
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "native dialog cancellation respects the captured Escape owner",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 1144,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 1440,
+              "height": 900
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "real Next Link keeps the current directory on modified activation",
+        "project": "desktop",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 1989,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 1440,
+              "height": 900
+            },
+            "url": "http://127.0.0.1:3139/options",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "query-wide recovery is distinct from category scope in the real catalogue",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 2021,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 820,
+              "height": 1180
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "clear query, batching and same-instance reopen retain the correct state",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 1581,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 820,
+              "height": 1180
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "actual locale/theme controls preserve a filtered directory across reopen",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 1579,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 320,
+              "height": 420
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "drawer-to-directory and resize close return to a visible persistent control",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 1064,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 820,
+              "height": 1180
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "shortcut from BODY returns to a meaningful visible shell control",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 1414,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 820,
+              "height": 1180
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "Show all reveals its focused category inside the scrolled strip",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 1900,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 320,
+              "height": 844
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "directory transfers once to the real company picker and respects composing Escape",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 1807,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 820,
+              "height": 1180
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "native dialog cancellation respects the captured Escape owner",
+        "project": "tablet",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 1291,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 820,
+              "height": 1180
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "real Next Link keeps the current directory on modified activation",
+        "project": "tablet",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "retry": 0,
+            "duration": 1050,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 820,
+              "height": 1180
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "query-wide recovery is distinct from category scope in the real catalogue",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 2580,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "clear query, batching and same-instance reopen retain the correct state",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 2185,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "actual locale/theme controls preserve a filtered directory across reopen",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 2296,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 320,
+              "height": 420
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "drawer-to-directory and resize close return to a visible persistent control",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 1426,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "shortcut from BODY returns to a meaningful visible shell control",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 1836,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "Show all reveals its focused category inside the scrolled strip",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 1784,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "directory transfers once to the real company picker and respects composing Escape",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 2094,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "native dialog cancellation respects the captured Escape owner",
+        "project": "mobile",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "retry": 0,
+            "duration": 1313,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "real Next Link keeps the current directory on modified activation",
+        "project": "mobile",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "retry": 0,
+            "duration": 975,
+            "error": null
+          }
+        ],
+        "observations": [
+          {
+            "basis": "Existing development fixture; real AppShell/Directory/Link, controlled company manifest, no production acceptance",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "url": "http://127.0.0.1:3139/discover",
+            "observed": {
+              "pageErrors": [],
+              "consoleErrors": [
+                "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+              ],
+              "failedRequests": [
+                "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+              ],
+              "httpErrors": [
+                "404 /_next/static/chunks/components_1i7frpt._.js"
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "observed_union": {
+      "pageErrors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found) [/_next/static/chunks/components_1i7frpt._.js:0]"
+      ],
+      "failedRequests": [
+        "/_next/static/chunks/components_1i7frpt._.js: net::ERR_ABORTED"
+      ],
+      "httpErrors": [
+        "404 /_next/static/chunks/components_1i7frpt._.js"
+      ]
+    }
+  },
+  "self_qa": {
+    "final_focus_png_sha256": "62d1679d4e3f7a4b099609c6aa9324164672ae1ba2551f1bbb04557663db9e3d",
+    "finding": "Initial green geometry checked only the button; actual screenshot showed a clipped top focus outline. Added 5px strip clearance and full-outline containment assertions; focused regression failed before CSS repair and final matrix passed.",
+    "review_class": "SELF_REVIEWED with optional read-only reasoning advice; not formal nonauthor approval"
+  },
+  "limits": [
+    "All 86 complete programme specifications remain NOT_RUN.",
+    "Actual OS IME, assistive technologies, other engines and complete zoom/state combinations are not qualified.",
+    "The shortcut regression establishes a mounted runtime via one actual UI open/close; it does not qualify cold pre-hydration shortcut delivery.",
+    "Network/console is not clean: the exact missing development chunk also appears before the correction.",
+    "No merge, Ready, deployment or live product acceptance is claimed."
+  ]
+}

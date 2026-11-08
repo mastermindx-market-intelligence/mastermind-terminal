@@ -1,0 +1,93 @@
+{
+  "scope": "Local actual AppShell/Directory/browser proof with incumbent dev identity seam and controlled AAPL manifest; not production/auth/data-provider proof",
+  "unit": {
+    "numTotalTests": 92,
+    "numPassedTests": 92,
+    "numFailedTests": 0,
+    "numPendingTests": 0,
+    "success": true
+  },
+  "pre_implementation_red": {
+    "numTotalTests": 29,
+    "numPassedTests": 24,
+    "numFailedTests": 5,
+    "success": false
+  },
+  "full_browser_r1": {
+    "startTime": "2026-11-04T07:19:24.454Z",
+    "duration": 107921.933,
+    "expected": 34,
+    "skipped": 2,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "final_affected_browser_r2": {
+    "startTime": "2026-11-04T07:22:47.407Z",
+    "duration": 29637.4,
+    "expected": 12,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "final_checks": [
+    {
+      "check": "unit-final",
+      "exit": 0,
+      "command": [
+        "./node_modules/.bin/vitest",
+        "run",
+        "lib/__tests__/sharedShellDirectoryConformance.test.tsx",
+        "lib/__tests__/sharedShellPublicPresentation.test.tsx",
+        "lib/__tests__/sharedShellContracts.test.ts",
+        "lib/__tests__/sharedShellRouteIdentity.test.ts",
+        "lib/__tests__/sharedShellRegionNavigation.test.ts",
+        "--reporter=json",
+        "--outputFile",
+        "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-focus-correction-20261104-c4/.f01-facet-evidence/unit-final.json"
+      ]
+    },
+    {
+      "check": "lint-final",
+      "exit": 0,
+      "command": [
+        "./node_modules/.bin/eslint",
+        "components/chrome/shared-shell/ShellDirectory.tsx",
+        "lib/sharedShellCopy.ts",
+        "lib/__tests__/sharedShellDirectoryConformance.test.tsx",
+        "e2e/shared-shell-directory-hardening.spec.ts",
+        "--max-warnings=0"
+      ]
+    },
+    {
+      "check": "type-final",
+      "exit": 0,
+      "command": [
+        "./node_modules/.bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ]
+    }
+  ],
+  "screenshot_review": {
+    "reviewer": "F01 owning ChatGPT Web session self-QA",
+    "accepted": [
+      "1440 desktop dark EN",
+      "820 tablet dark EN",
+      "390 phone dark EN vertical facet list",
+      "320x420 light ZH search/recovery retained",
+      "320x420 light ZH fourth destination reachable by results scrolling"
+    ],
+    "change_after_r1": "Facet-only single-column list at <=600px plus last-destination visibility assertion; 12 affected cases rerun on final source"
+  },
+  "intentional_skips": "Native modified-click new-tab cases are desktop-only; tablet/mobile skip those 2 cases.",
+  "existing_browser_diagnostic": "Incumbent development chunk 404 /_next/static/chunks/components_1i7frpt._.js and ERR_ABORTED retained in raw observations; no new uncaught page exception.",
+  "limits": [
+    "Chromium only",
+    "No production authentication or premium entitlement proof",
+    "No Paper effect reconciliation",
+    "No qualification of the separate 86-case programme suite",
+    "No claim of candidate.5 adoption",
+    "No merge, ready-state, queue or deployment action"
+  ]
+}

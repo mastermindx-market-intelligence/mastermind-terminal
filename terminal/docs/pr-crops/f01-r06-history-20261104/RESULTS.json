@@ -1,0 +1,208 @@
+{
+  "schema": "mastermind.f01.r06.local_chromium.v1",
+  "sourceBase": "4d67ee7785428a46dc78f09f6bc1dca32518d4aa",
+  "sourceMode": "isolated candidate patch on exact baseline",
+  "parent": "http://127.0.0.1:3158",
+  "child": "http://127.0.0.1:3159",
+  "browserVersion": "149.0.7827.55",
+  "viewport": {
+    "width": 1280,
+    "height": 900
+  },
+  "checks": {
+    "initialSaved": true,
+    "distinctNavigationEntry": true,
+    "parentBackToOriginalEntry": true,
+    "parentLookupAfterBack": true,
+    "exactRestorePayload": true,
+    "restoredScroll": true,
+    "restoredFocus": true,
+    "validRoutes": true,
+    "zeroBrowserErrors": true
+  },
+  "before": {
+    "parent": {
+      "href": "http://127.0.0.1:3158/macro.html",
+      "key": "621a2323-1e47-493b-ab6f-95448985b312",
+      "phase": "ready",
+      "events": [
+        {
+          "type": "BRIDGE_IN",
+          "origin": "http://127.0.0.1:3159",
+          "messageType": "READY"
+        },
+        {
+          "type": "BRIDGE_IN",
+          "origin": "http://127.0.0.1:3159",
+          "messageType": "VIEW_STATE",
+          "view": {
+            "x": 0,
+            "y": 650,
+            "focusId": "r06-focus"
+          }
+        },
+        {
+          "type": "MAP_SET",
+          "key": "621a2323-1e47-493b-ab6f-95448985b312",
+          "value": {
+            "x": 0,
+            "y": 650,
+            "focusId": "r06-focus"
+          }
+        }
+      ]
+    },
+    "child": {
+      "href": "http://127.0.0.1:3159/macro.html?mmx_shell=1&mmx_generation=613ef87b-f294-4caa-98ca-fa2fada85c78",
+      "y": 650,
+      "focus": "r06-focus",
+      "init": [
+        {
+          "canonicalPath": "/macro.html",
+          "restore": null
+        }
+      ]
+    }
+  },
+  "intermediate": {
+    "parent": {
+      "href": "http://127.0.0.1:3158/china.html",
+      "key": "38295084-8516-421b-809c-b4fa18ebdbca",
+      "phase": "ready",
+      "events": [
+        {
+          "type": "BRIDGE_IN",
+          "origin": "http://127.0.0.1:3159",
+          "messageType": "READY"
+        },
+        {
+          "type": "BRIDGE_IN",
+          "origin": "http://127.0.0.1:3159",
+          "messageType": "VIEW_STATE",
+          "view": {
+            "x": 0,
+            "y": 650,
+            "focusId": "r06-focus"
+          }
+        },
+        {
+          "type": "MAP_SET",
+          "key": "621a2323-1e47-493b-ab6f-95448985b312",
+          "value": {
+            "x": 0,
+            "y": 650,
+            "focusId": "r06-focus"
+          }
+        },
+        {
+          "type": "BRIDGE_IN",
+          "origin": "http://127.0.0.1:3159",
+          "messageType": "READY"
+        }
+      ]
+    },
+    "child": {
+      "href": "http://127.0.0.1:3159/china.html?mmx_shell=1&mmx_generation=6e566d00-0d5f-4042-ad10-b365b42b909e",
+      "init": [
+        {
+          "canonicalPath": "/china.html",
+          "restore": null
+        }
+      ]
+    }
+  },
+  "restored": {
+    "parent": {
+      "href": "http://127.0.0.1:3158/macro.html",
+      "key": "621a2323-1e47-493b-ab6f-95448985b312",
+      "phase": "ready",
+      "events": [
+        {
+          "type": "BRIDGE_IN",
+          "origin": "http://127.0.0.1:3159",
+          "messageType": "READY"
+        },
+        {
+          "type": "BRIDGE_IN",
+          "origin": "http://127.0.0.1:3159",
+          "messageType": "VIEW_STATE",
+          "view": {
+            "x": 0,
+            "y": 650,
+            "focusId": "r06-focus"
+          }
+        },
+        {
+          "type": "MAP_SET",
+          "key": "621a2323-1e47-493b-ab6f-95448985b312",
+          "value": {
+            "x": 0,
+            "y": 650,
+            "focusId": "r06-focus"
+          }
+        },
+        {
+          "type": "BRIDGE_IN",
+          "origin": "http://127.0.0.1:3159",
+          "messageType": "READY"
+        },
+        {
+          "type": "POPSTATE",
+          "key": "621a2323-1e47-493b-ab6f-95448985b312",
+          "href": "http://127.0.0.1:3158/macro.html"
+        },
+        {
+          "type": "MAP_GET",
+          "key": "621a2323-1e47-493b-ab6f-95448985b312",
+          "hit": true,
+          "value": {
+            "x": 0,
+            "y": 650,
+            "focusId": "r06-focus"
+          }
+        },
+        {
+          "type": "BRIDGE_IN",
+          "origin": "http://127.0.0.1:3159",
+          "messageType": "READY"
+        },
+        {
+          "type": "BRIDGE_IN",
+          "origin": "http://127.0.0.1:3159",
+          "messageType": "VIEW_STATE",
+          "view": {
+            "x": 0,
+            "y": 650,
+            "focusId": "r06-focus"
+          }
+        },
+        {
+          "type": "MAP_SET",
+          "key": "621a2323-1e47-493b-ab6f-95448985b312",
+          "value": {
+            "x": 0,
+            "y": 650,
+            "focusId": "r06-focus"
+          }
+        }
+      ]
+    },
+    "child": {
+      "href": "http://127.0.0.1:3159/macro.html?mmx_shell=1&mmx_generation=f0fabae0-34dc-42fd-8da2-1950bbc3d56d",
+      "y": 650,
+      "focus": "r06-focus",
+      "init": [
+        {
+          "canonicalPath": "/macro.html",
+          "restore": {
+            "x": 0,
+            "y": 650,
+            "focusId": "r06-focus"
+          }
+        }
+      ]
+    }
+  },
+  "errors": [],
+  "status": "PASS_SCOPED"
+}

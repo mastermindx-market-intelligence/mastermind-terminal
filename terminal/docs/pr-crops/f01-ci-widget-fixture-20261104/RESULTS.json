@@ -1,0 +1,120 @@
+{
+  "schema": "F01.thesis_external_widget_fixture.v1",
+  "parent": "b14436dd7b9c1296d17455c89f63960c774ab9be",
+  "ci_tested_merge": "5011a82b62de7f77c09f65b0ede287190505a071",
+  "workflow_run": 41792754660,
+  "attempt": 1,
+  "failed_jobs": [
+    126449710430,
+    126449710445
+  ],
+  "source": {
+    "bytes": 66880,
+    "sha256": "45c5249f143a26eb4d05a6b0cf4a0a80e197249d3c9a345aa5fc14f3d2aa1331",
+    "git_blob_sha": "4a013e6ed3cdf85a4af1868e823db50c66e67ca8"
+  },
+  "commands": [
+    {
+      "name": "lineage",
+      "started_at": "2026-11-04T08:29:03.333818+00:00",
+      "command": [
+        "npm",
+        "run",
+        "test:e2e:responsive",
+        "--",
+        "e2e/thesis-workspace.spec.ts",
+        "--grep",
+        "keeps immutable history",
+        "--project=desktop",
+        "--project=mobile",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=json",
+        "--output=/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-focus-correction-20261104-c4/.f01-ci-evidence/lineage"
+      ],
+      "exit": 0,
+      "duration_seconds": 26.42,
+      "source_before_sha256": "45c5249f143a26eb4d05a6b0cf4a0a80e197249d3c9a345aa5fc14f3d2aa1331",
+      "source_after_sha256": "45c5249f143a26eb4d05a6b0cf4a0a80e197249d3c9a345aa5fc14f3d2aa1331"
+    },
+    {
+      "name": "thesis-full",
+      "started_at": "2026-11-04T08:29:29.758710+00:00",
+      "command": [
+        "npm",
+        "run",
+        "test:e2e:responsive",
+        "--",
+        "e2e/thesis-workspace.spec.ts",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=json",
+        "--output=/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-focus-correction-20261104-c4/.f01-ci-evidence/thesis-full"
+      ],
+      "exit": 0,
+      "duration_seconds": 178.87,
+      "source_before_sha256": "45c5249f143a26eb4d05a6b0cf4a0a80e197249d3c9a345aa5fc14f3d2aa1331",
+      "source_after_sha256": "45c5249f143a26eb4d05a6b0cf4a0a80e197249d3c9a345aa5fc14f3d2aa1331"
+    },
+    {
+      "name": "lint",
+      "started_at": "2026-11-04T08:32:28.631551+00:00",
+      "command": [
+        "./node_modules/.bin/eslint",
+        "e2e/thesis-workspace.spec.ts",
+        "--max-warnings=0"
+      ],
+      "exit": 0,
+      "duration_seconds": 4.38,
+      "source_before_sha256": "45c5249f143a26eb4d05a6b0cf4a0a80e197249d3c9a345aa5fc14f3d2aa1331",
+      "source_after_sha256": "45c5249f143a26eb4d05a6b0cf4a0a80e197249d3c9a345aa5fc14f3d2aa1331"
+    },
+    {
+      "name": "type",
+      "started_at": "2026-11-04T08:32:33.008374+00:00",
+      "command": [
+        "./node_modules/.bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exit": 0,
+      "duration_seconds": 81.09,
+      "source_before_sha256": "45c5249f143a26eb4d05a6b0cf4a0a80e197249d3c9a345aa5fc14f3d2aa1331",
+      "source_after_sha256": "45c5249f143a26eb4d05a6b0cf4a0a80e197249d3c9a345aa5fc14f3d2aa1331"
+    }
+  ],
+  "browser_stats": {
+    "lineage": {
+      "startTime": "2026-11-04T08:29:04.081Z",
+      "duration": 25618.27,
+      "expected": 2,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "thesis-full": {
+      "startTime": "2026-11-04T08:29:30.869Z",
+      "duration": 177725.326,
+      "expected": 84,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    }
+  },
+  "proof_restore": {
+    "tracked_preexisting_files_restored": [
+      "terminal/e2e/proof/f11-theses/desktop-conflict.png",
+      "terminal/e2e/proof/f11-theses/desktop-lineage.png",
+      "terminal/e2e/proof/f11-theses/mobile-conflict.png",
+      "terminal/e2e/proof/f11-theses/mobile-lineage.png",
+      "terminal/e2e/proof/f11-theses/tablet-conflict.png",
+      "terminal/e2e/proof/f11-theses/tablet-lineage.png"
+    ],
+    "tracked_proof_unchanged": true
+  },
+  "hosted_new_head": "NOT_YET_QUALIFIED"
+}

@@ -1,0 +1,27 @@
+{
+  "typecheck": {
+    "exit_code": 0,
+    "command": [
+      "./node_modules/.bin/tsc",
+      "--noEmit",
+      "--incremental",
+      "false"
+    ]
+  },
+  "lint": {
+    "exit_code": 0,
+    "command": [
+      "./node_modules/.bin/eslint",
+      "components/chrome/shared-shell/ShellDirectory.tsx",
+      "lib/__tests__/sharedShellDirectoryConformance.test.tsx",
+      "e2e/shared-shell-directory-hardening.spec.ts",
+      "--max-warnings=0"
+    ]
+  },
+  "source": {
+    "components/chrome/shared-shell/ShellDirectory.tsx": "0db65550c503ca81dd7e4bff80ad534361ae87e2d8df3ae670bac4879b072e49",
+    "components/chrome/shared-shell/shared-shell.css": "13487845a939bfdabaa946598baf88931795ef5866970d6f08cc24378285a4da",
+    "lib/__tests__/sharedShellDirectoryConformance.test.tsx": "c0ee4aab3637ffb0b3fc3c4cc1a3311f188c00fdd883e8ec6f589d9db6d478df",
+    "e2e/shared-shell-directory-hardening.spec.ts": "4797b2653605959857c18f28aa66a0cfa62af7ecbba0042dd380064ae2145c10"
+  }
+}

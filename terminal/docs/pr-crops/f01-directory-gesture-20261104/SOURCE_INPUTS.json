@@ -1,0 +1,22 @@
+{
+  "parent": "b14436dd7b9c1296d17455c89f63960c774ab9be",
+  "operation": "f01-directory-focus-correction-20261104-c4",
+  "procedure": "7a52808e5761739a08b279dddba0d0c88e13224d",
+  "files": {
+    "terminal/components/chrome/shared-shell/ShellDirectory.tsx": {
+      "bytes": 19543,
+      "sha256": "5ac51ef33f210fa50fdaadc04fc2b75bbeeb1de80e5987d03d4b4cee857e9bd3",
+      "git_blob_sha": "5a34390cd314833451cea9fad2506aa1b7bd1fc7"
+    },
+    "terminal/lib/__tests__/sharedShellDirectoryConformance.test.tsx": {
+      "bytes": 26103,
+      "sha256": "66b83ac65fabaa6c4c1121264bbef75cbbc358fbdf8299ab8d277b3de54e6096",
+      "git_blob_sha": "a3ad71b10d80abf452f085556cf350b43be15eaf"
+    },
+    "terminal/e2e/shared-shell-directory-hardening.spec.ts": {
+      "bytes": 27431,
+      "sha256": "186bde53d98d9f7bac09e0975154e213811e074130be86d779d8495b04396813",
+      "git_blob_sha": "3b32a11fb3031a1479deb894ad360fe30a3ed1d5"
+    }
+  }
+}

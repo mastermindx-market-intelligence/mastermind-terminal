@@ -1,0 +1,60 @@
+{
+  "base_commit": "e48170b609dddf3b5b4eba1c047620d5d017290f",
+  "containing_commit": "Proof binds only the listed file hashes and its first publishing commit. Later source changes require new proof; local HEAD remains the managed base until reconciled.",
+  "files": [
+    {
+      "path": "terminal/components/chrome/shared-shell/ShellDirectory.tsx",
+      "bytes": 16881,
+      "sha256": "0db65550c503ca81dd7e4bff80ad534361ae87e2d8df3ae670bac4879b072e49",
+      "git_blob_sha": "4f3deed7267985f723e4d2da8136e86dfc3b3a0b"
+    },
+    {
+      "path": "terminal/components/chrome/shared-shell/shared-shell.css",
+      "bytes": 22933,
+      "sha256": "13487845a939bfdabaa946598baf88931795ef5866970d6f08cc24378285a4da",
+      "git_blob_sha": "45d96cb7037be526c8998c7dc65222f49ec5aff9"
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedShellDirectoryConformance.test.tsx",
+      "bytes": 18739,
+      "sha256": "c0ee4aab3637ffb0b3fc3c4cc1a3311f188c00fdd883e8ec6f589d9db6d478df",
+      "git_blob_sha": "959dd8b8132f0299af1130e00a10fc26fedf2494"
+    },
+    {
+      "path": "terminal/e2e/shared-shell-directory-hardening.spec.ts",
+      "bytes": 17263,
+      "sha256": "4797b2653605959857c18f28aa66a0cfa62af7ecbba0042dd380064ae2145c10",
+      "git_blob_sha": "ce561a17f3ac9647e0901af7127cb3ce81bb405f"
+    },
+    {
+      "path": "terminal/lib/sharedShellCopy.ts",
+      "bytes": 7216,
+      "sha256": "4cef78b0145bc9968cb4fb324ad7f17b3a8a3f631fa62ba9402c0f5701abb2d3",
+      "git_blob_sha": "2a1a22a6db37343abcb2a2df968551a344765960"
+    },
+    {
+      "path": "terminal/lib/sharedShellRoutes.ts",
+      "bytes": 1974,
+      "sha256": "4ac28d620190b30ce64b4945750ce4fcdd29b32f782d006f490b7d3da62ee432",
+      "git_blob_sha": "098ce4fa15c40a17349822ca77619090aaf74e8b"
+    },
+    {
+      "path": "terminal/lib/sharedShellRoutes.generated.json",
+      "bytes": 796825,
+      "sha256": "2bfc0bf51e405abdd61032470d0b04cf1e1114370bd1c1f9b8e9e137d807f8cc",
+      "git_blob_sha": "25b0573cbac3e4b565d71c5aa9e7435b0964c5d1"
+    },
+    {
+      "path": "terminal/package-lock.json",
+      "bytes": 309324,
+      "sha256": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9",
+      "git_blob_sha": "2e162a8eb37dd72aad7a01e88c590370a324d0d1"
+    },
+    {
+      "path": "terminal/playwright.config.ts",
+      "bytes": 7995,
+      "sha256": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+      "git_blob_sha": "a6a0f8d5938b92af3744a4ee9a8945bbb9ecfcd6"
+    }
+  ]
+}

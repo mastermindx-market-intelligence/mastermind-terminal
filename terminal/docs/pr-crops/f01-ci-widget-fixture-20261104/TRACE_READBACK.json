@@ -1,0 +1,169 @@
+{
+  "schema": "F01.CI_trace_readback.v1",
+  "traces": [
+    {
+      "project": "desktop5",
+      "artifact_sha256": "e10290b6c8a6bd681cabbc7702f2d49c71675070e116d2177e5545bc0c1d4947",
+      "artifact_bytes": 18120788,
+      "traces": [
+        {
+          "path": "thesis-workspace-create-→--d6c3e-pen-keeps-immutable-history-desktop/trace.zip",
+          "bytes": 2391280,
+          "sha256": "035fbc511424b02cd800c8b9490f185005537e40d56359be01294b3302da4174",
+          "requests": [
+            {
+              "started": "2026-11-04T07:55:14.018Z",
+              "status": -1,
+              "failure": "net::ERR_CONNECTION_CLOSED",
+              "url": "https://www.mastermind-x.com/mm_brain.js"
+            },
+            {
+              "started": "2026-11-04T07:55:15.747Z",
+              "status": -1,
+              "failure": "net::ERR_CONNECTION_CLOSED",
+              "url": "https://www.mastermind-x.com/mm_brain.js"
+            },
+            {
+              "started": "2026-11-04T07:55:17.311Z",
+              "status": -1,
+              "failure": "net::ERR_CONNECTION_CLOSED",
+              "url": "https://www.mastermind-x.com/mm_brain.js"
+            }
+          ]
+        },
+        {
+          "path": "thesis-workspace-create-→--d6c3e-pen-keeps-immutable-history-desktop-retry1/trace.zip",
+          "bytes": 2477655,
+          "sha256": "4fabe41f48d10b5faaa9665f03b5b396daf18875797a0463cbc0ecf9b2d9d0bc",
+          "requests": [
+            {
+              "started": "2026-11-04T07:55:23.436Z",
+              "status": -1,
+              "failure": "net::ERR_CONNECTION_CLOSED",
+              "url": "https://www.mastermind-x.com/mm_brain.js"
+            },
+            {
+              "started": "2026-11-04T07:55:24.877Z",
+              "status": -1,
+              "failure": "net::ERR_CONNECTION_CLOSED",
+              "url": "https://www.mastermind-x.com/mm_brain.js"
+            },
+            {
+              "started": "2026-11-04T07:55:26.394Z",
+              "status": -1,
+              "failure": "net::ERR_CONNECTION_CLOSED",
+              "url": "https://www.mastermind-x.com/mm_brain.js"
+            }
+          ]
+        },
+        {
+          "path": "thesis-workspace-create-→--d6c3e-pen-keeps-immutable-history-desktop-retry2/trace.zip",
+          "bytes": 2525071,
+          "sha256": "c2e1cbe0f8a627ebf88412ada33fdb4eb8732e3ad66f9baf2d3feaafafeccbd5",
+          "requests": [
+            {
+              "started": "2026-11-04T07:55:31.149Z",
+              "status": -1,
+              "failure": "net::ERR_CONNECTION_CLOSED",
+              "url": "https://www.mastermind-x.com/mm_brain.js"
+            },
+            {
+              "started": "2026-11-04T07:55:32.854Z",
+              "status": -1,
+              "failure": "net::ERR_CONNECTION_CLOSED",
+              "url": "https://www.mastermind-x.com/mm_brain.js"
+            },
+            {
+              "started": "2026-11-04T07:55:34.350Z",
+              "status": -1,
+              "failure": "net::ERR_CONNECTION_CLOSED",
+              "url": "https://www.mastermind-x.com/mm_brain.js"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "project": "mobile3",
+      "artifact_sha256": "d81df077c052ad3aff783ae3ebeb0e2c613b0be1d04d9f31f48002d15d57ddc0",
+      "artifact_bytes": 11587265,
+      "traces": [
+        {
+          "path": "thesis-workspace-create-→--d6c3e-pen-keeps-immutable-history-mobile/trace.zip",
+          "bytes": 2289081,
+          "sha256": "3b5b70839150246361e5d76427da04e7a0bf232f0775c6532b270056cfd6a15c",
+          "requests": [
+            {
+              "started": "2026-11-04T08:00:20.128Z",
+              "status": -1,
+              "failure": "net::ERR_CONNECTION_CLOSED",
+              "url": "https://www.mastermind-x.com/mm_brain.js"
+            },
+            {
+              "started": "2026-11-04T08:00:21.934Z",
+              "status": -1,
+              "failure": "net::ERR_CONNECTION_CLOSED",
+              "url": "https://www.mastermind-x.com/mm_brain.js"
+            },
+            {
+              "started": "2026-11-04T08:00:23.464Z",
+              "status": -1,
+              "failure": "net::ERR_CONNECTION_CLOSED",
+              "url": "https://www.mastermind-x.com/mm_brain.js"
+            }
+          ]
+        },
+        {
+          "path": "thesis-workspace-create-→--d6c3e-pen-keeps-immutable-history-mobile-retry1/trace.zip",
+          "bytes": 2312406,
+          "sha256": "cd8f55917ae88d2c2ab72b8398e5e985841e688105ee517156639e4f5e4390cb",
+          "requests": [
+            {
+              "started": "2026-11-04T08:00:29.263Z",
+              "status": -1,
+              "failure": "net::ERR_CONNECTION_CLOSED",
+              "url": "https://www.mastermind-x.com/mm_brain.js"
+            },
+            {
+              "started": "2026-11-04T08:00:30.723Z",
+              "status": -1,
+              "failure": "net::ERR_CONNECTION_CLOSED",
+              "url": "https://www.mastermind-x.com/mm_brain.js"
+            },
+            {
+              "started": "2026-11-04T08:00:32.070Z",
+              "status": -1,
+              "failure": "net::ERR_CONNECTION_CLOSED",
+              "url": "https://www.mastermind-x.com/mm_brain.js"
+            }
+          ]
+        },
+        {
+          "path": "thesis-workspace-create-→--d6c3e-pen-keeps-immutable-history-mobile-retry2/trace.zip",
+          "bytes": 2315394,
+          "sha256": "966fc7e9421a573998d782af8856aa1ecc340959253dcba5e17bc03f945e9e4c",
+          "requests": [
+            {
+              "started": "2026-11-04T08:00:36.963Z",
+              "status": -1,
+              "failure": "net::ERR_CONNECTION_CLOSED",
+              "url": "https://www.mastermind-x.com/mm_brain.js"
+            },
+            {
+              "started": "2026-11-04T08:00:38.404Z",
+              "status": -1,
+              "failure": "net::ERR_CONNECTION_CLOSED",
+              "url": "https://www.mastermind-x.com/mm_brain.js"
+            },
+            {
+              "started": "2026-11-04T08:00:39.798Z",
+              "status": -1,
+              "failure": "net::ERR_CONNECTION_CLOSED",
+              "url": "https://www.mastermind-x.com/mm_brain.js"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
