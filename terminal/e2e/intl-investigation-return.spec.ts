@@ -49,6 +49,9 @@ test("Macro/Risk Return executes real Next Link and restores Intl in the same Ap
       await expect(shell).toBeVisible();
       const link = page.getByRole("link", { name: "Return to International Markets", exact: true });
       await expect(link).toHaveAttribute("href", canonical);
+      // SSR can expose the anchor before Next's click handler is hydrated.
+      // This existing control enables only after the real owner mount commits.
+      await expect(page.getByRole("button", { name: "Start new research", exact: true })).toBeEnabled();
       await page.evaluate(() => { (window as Window & { __s28NextDocument?: string }).__s28NextDocument = "real-next-return"; });
       await link.click(); // Real next/link and router; no evaluate navigation substitute.
       await expect(page).toHaveURL(SHELL + canonical);

@@ -8,6 +8,10 @@ import path from "node:path";
 // this existing fixtures namespace instead of creating competing parents.
 export const SHELL = "https://beta.mastermind-x.com";
 export const LEGACY = "https://www.mastermind-x.com";
+type NextNavigationObservation = {
+  path: string; resourceType: string; navigation: boolean; rsc: boolean;
+  routerStatePresent: boolean; status: number | null; contentType: string | null;
+};
 const mime: Record<string, string> = { ".css": "text/css", ".js": "text/javascript", ".woff2": "font/woff2", ".png": "image/png", ".svg": "image/svg+xml" };
 
 export async function installRealNextLegacyTransport({ page, context, baseURL, canonicalChildPath, html, assetsDirectory, assets }: {
@@ -25,7 +29,7 @@ export async function installRealNextLegacyTransport({ page, context, baseURL, c
   expect(native.pathname).toBe("/");
   expect(["localhost", "127.0.0.1"]).toContain(native.hostname);
   expect(native.port, "Never borrow the original unknown3100 operation").not.toBe("3100");
-  const observations = { mutations: [] as string[], baselines: [] as string[], pageErrors: [] as string[], nextRequests: [] as string[] };
+  const observations = { mutations: [] as string[], baselines: [] as string[], pageErrors: [] as string[], nextRequests: [] as string[], nextNavigations: [] as NextNavigationObservation[], omittedNextNavigations: 0 };
   page.on("pageerror", error => observations.pageErrors.push(error.message));
   await context.addCookies([
     { name: "mm_e2e_rs30", value: "1", url: SHELL },
@@ -59,7 +63,21 @@ export async function installRealNextLegacyTransport({ page, context, baseURL, c
         const incoming = request.headers();
         for (const key of ["accept", "rsc", "next-router-state-tree", "next-router-prefetch", "next-url"]) if (incoming[key]) headers[key] = incoming[key];
         observations.nextRequests.push(url.pathname);
+        // Bounded route diagnostics only: no query, cookie, header value or body.
+        const navigation: NextNavigationObservation | null = ["/analysis", canonicalChildPath].includes(url.pathname)
+          ? { path: url.pathname, resourceType: request.resourceType(), navigation: request.isNavigationRequest(),
+              rsc: incoming.rsc === "1", routerStatePresent: !!incoming["next-router-state-tree"], status: null, contentType: null }
+          : null;
+        if (navigation) {
+          if (observations.nextNavigations.length < 16) observations.nextNavigations.push(navigation);
+          else observations.omittedNextNavigations++;
+        }
         const response = await context.request.fetch(new URL(url.pathname + url.search, native).href, { method: request.method(), headers, maxRedirects: 0 });
+        if (navigation) {
+          navigation.status = response.status();
+          const contentType = (response.headers()["content-type"] ?? "").split(";", 1)[0].trim();
+          navigation.contentType = /^[a-z0-9.+-]+\/[a-z0-9.+-]+$/i.test(contentType) ? contentType : "other";
+        }
         await route.fulfill({ response }); return;
       }
     }
