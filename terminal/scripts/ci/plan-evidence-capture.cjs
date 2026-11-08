@@ -56,6 +56,50 @@ function planEvidenceCapture(root = ROOT) {
   }
 }
 
+
+// Paths only: discovering the ordinary partition must never import these readers.
+// Each reader still validates its genuine selected records or authorized legacy
+// inputs when its evidence partition is collected.
+const UNIT_EVIDENCE_CONSUMERS = Object.freeze([
+  "lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+  "lib/__tests__/visualIntelligenceEvidence.test.ts",
+  "lib/__tests__/optionsLevelAxisEvidence.test.ts",
+]);
+
+function unitEvidencePartition({
+  partition,
+  planOutcome,
+  capture,
+  eventName,
+  captureOutcome,
+  evidenceMode,
+  evidenceComposition,
+} = {}) {
+  // The existing unpartitioned workflow retains its complete default discovery.
+  if (partition === undefined) return {};
+  if (partition === "ordinary") return {exclude: [...UNIT_EVIDENCE_CONSUMERS]};
+  if (partition !== "evidence") throw new Error("unknown Terminal unit partition");
+  if (planOutcome !== "success")
+    throw new Error("evidence partition requires successful evidence capture planner");
+
+  if (capture === "true") {
+    if (captureOutcome !== "success" || evidenceMode !== "records"
+        || typeof evidenceComposition !== "string" || !evidenceComposition.trim())
+      throw new Error("evidence partition requires successful capture and current records selector");
+  } else if (capture === "false") {
+    if (eventName !== "merge_group"
+        || captureOutcome !== "skipped"
+        || (evidenceMode !== undefined && evidenceMode !== "legacy")
+        || evidenceComposition !== undefined)
+      throw new Error("legacy evidence partition requires authorized merge-group plan without stale selector");
+  } else {
+    throw new Error("evidence partition requires explicit planner capture true or false");
+  }
+  // This is an import barrier, not a second composition validator. The existing
+  // consumers perform their fresh validating reads after collection is admitted.
+  return {include: [...UNIT_EVIDENCE_CONSUMERS]};
+}
+
 if (require.main === module) {
   const result = process.env.GITHUB_EVENT_NAME === "merge_group"
     ? planEvidenceCapture() : {capture: true, reason: "full-pr-proof"};
@@ -71,4 +115,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = {MANIFESTS, manifestLocks, planEvidenceCapture};
+module.exports = {MANIFESTS, manifestLocks, planEvidenceCapture, UNIT_EVIDENCE_CONSUMERS, unitEvidencePartition};

@@ -1,5 +1,23 @@
-import { defineConfig } from "vitest/config";
+import { defineConfig, configDefaults } from "vitest/config";
+import { createRequire } from "node:module";
 import path from "path";
+
+
+const { unitEvidencePartition } = createRequire(path.join(__dirname, "vitest.config.ts"))(
+  "./scripts/ci/plan-evidence-capture.cjs"
+);
+const partition = unitEvidencePartition({
+  partition: process.env.TERMINAL_UNIT_PARTITION,
+  planOutcome: process.env.TERMINAL_EVIDENCE_PLAN_OUTCOME,
+  capture: process.env.TERMINAL_EVIDENCE_CAPTURE,
+  eventName: process.env.GITHUB_EVENT_NAME,
+  captureOutcome: process.env.TERMINAL_EVIDENCE_CAPTURE_OUTCOME,
+  evidenceMode: process.env.TERMINAL_EVIDENCE_MODE,
+  evidenceComposition: process.env.TERMINAL_EVIDENCE_COMPOSITION,
+});
+const partitionConfig = partition.exclude
+  ? { ...partition, exclude: [...configDefaults.exclude, ...partition.exclude] }
+  : partition;
 
 export default defineConfig({
   test: {
@@ -26,6 +44,9 @@ export default defineConfig({
       // IDR W1: Dislocations screen component tests (screen lane S2).
       "components/dislocations/__tests__/**/*.test.tsx",
     ],
+    // Explicit partitions change discovery before any evidence reader is imported.
+    // An unset partition is {}, preserving the incumbent default configuration.
+    ...partitionConfig,
   },
   resolve: {
     alias: {
