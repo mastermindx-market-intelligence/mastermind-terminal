@@ -1,7 +1,7 @@
 "use strict";
 const {test}=require("node:test"),assert=require("node:assert/strict");
 const fs=require("node:fs"),path=require("node:path"),os=require("node:os"),cp=require("node:child_process");
-const {fixtureApi,decision,publish,guardApiRequest,initializeOwnedBrowser,cleanupPreserving}=require("./thesis_capture_runtime.cjs");
+const {fixtureApi,decision,publish,guardApiRequest,initializeOwnedBrowser,cleanupPreserving,boundary}=require("./thesis_capture_runtime.cjs");
 const base="http://127.0.0.1:41911",id="00000000-0000-0000-0000-000000000001";
 test("exact incumbent fixture endpoints and methods only",()=>{
  for(const [p,m] of [["/api/theses","POST"],["/api/thesis-saved-views","PUT"],[`/api/thesis/${id}/proposals`,"POST"],[`/api/thesis/${id}/proposals/${id}`,"PATCH"],["/api/thesis-fire-status","GET"]])assert.equal(fixtureApi(base+p,m,base),true);
@@ -140,4 +140,69 @@ test("font facts use the existing failure journal without replacing original cau
  const unavailable=fakeRuntimeIo({fontError:error,fontFacts:facts,failJournalAt:3}),other=await unavailable.api.start("/fake-root",41921,"/fake-stage");
  assert.doesNotThrow(()=>other.failure(error));await other.stop();assert.throws(()=>other.summary(),e=>e===unavailable.io);
  assert.equal(error.message,"private font failure details");
+});
+
+
+// Pure callback/teardown controls: no Playwright process or network is started.
+function fakeBoundaryContext() {
+ let handler,closed=false;
+ return {request:{fetch:async()=>{}},routeWebSocket:async()=>{},
+   route:async(_pattern,value)=>{handler=value;},
+   close:async()=>{closed=true;},
+   dispatch:route=>handler(route),isClosed:()=>closed};
+}
+function fakeRoute(fetch) {
+ return {request:()=>({url:()=>base+"/_next/static/chunk.js",method:()=>"GET",resourceType:()=>"script"}),
+   fetch,fulfill:async()=>{},abort:async()=>{}};
+}
+function deferred(){let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};}
+test("context teardown waits for the actual in-flight route before closing its target",async()=>{
+ const context=fakeBoundaryContext(),gate=deferred(),counts={};
+ await boundary(context,base,counts);
+ const callback=context.dispatch(fakeRoute(async()=>{await gate.promise;assert.equal(context.isClosed(),false);return {status:()=>200};}));
+ const closing=context.close();await Promise.resolve();assert.equal(context.isClosed(),false);
+ gate.resolve();await callback;await closing;assert.equal(context.isClosed(),true);
+});
+test("teardown refuses newly arriving routes without fetch while the first route drains",async()=>{
+ const context=fakeBoundaryContext(),gate=deferred(),counts={};let fetched=0,aborted=0;
+ await boundary(context,base,counts);
+ const first=context.dispatch(fakeRoute(async()=>{await gate.promise;return {status:()=>200};}));
+ const closing=context.close();
+ const late=fakeRoute(async()=>{fetched++;return {status:()=>200};});late.abort=async()=>{aborted++;};
+ await context.dispatch(late);assert.equal(fetched,0);assert.equal(aborted,1);
+ gate.resolve();await first;await closing;
+});
+test("route rejection is handled, cleanup runs, and the original failure blocks publication",async()=>{
+ const context=fakeBoundaryContext(),counts={contexts:1,contextsClosed:1,browsersClosed:1},cause=Error("synthetic fetch failure");
+ await boundary(context,base,counts);
+ await assert.doesNotReject(context.dispatch(fakeRoute(async()=>{throw cause;})));
+ await context.close();assert.equal(context.isClosed(),true);
+ assert.throws(()=>publish("unused-stage","unused-target",[],{counts}),actual=>actual===cause);
+});
+test("late abort failure is retained rather than ignored and closing preserves a primary capture failure",async()=>{
+ const context=fakeBoundaryContext(),counts={},gate=deferred(),cause=Error("synthetic abort failure"),primary=Error("capture failure");
+ await boundary(context,base,counts);
+ const first=context.dispatch(fakeRoute(async()=>{await gate.promise;return {status:()=>200};}));
+ const closing=context.close(),late=fakeRoute(async()=>{throw Error("must not fetch");});late.abort=async()=>{throw cause;};
+ await assert.doesNotReject(context.dispatch(late));gate.resolve();await first;await closing;
+ await assert.rejects(async()=>{try{throw primary;}finally{await context.close();}},actual=>actual===primary);
+ assert.throws(()=>publish("unused-stage","unused-target",[],{counts}),actual=>actual===cause);
+});
+
+test("first route failure survives secondary close failure and the owned close is attempted once",async()=>{
+ const context=fakeBoundaryContext(),counts={},cause=Error("first route failure"),cleanup=Error("close failure");let closes=0;
+ context.close=async()=>{closes++;throw cleanup;};
+ await boundary(context,base,counts);
+ await context.dispatch(fakeRoute(async()=>{throw cause;}));
+ await assert.rejects(context.close(),actual=>actual===cause && actual.cleanupError===cleanup);
+ await assert.rejects(context.close(),actual=>actual===cause);assert.equal(closes,1);
+});
+test("routes delivered during actual close still settle, and pending or serialized failure counts cannot publish",async()=>{
+ const context=fakeBoundaryContext(),counts={},gate=deferred();let fetched=0;
+ context.close=async()=>{await context.dispatch({...fakeRoute(async()=>{fetched++;}),abort:async()=>{await gate.promise;}});};
+ await boundary(context,base,counts);
+ const closing=context.close();await Promise.resolve();await Promise.resolve();
+ assert.throws(()=>publish("unused","unused",[],{counts}),/THESIS_CAPTURE_ROUTE_UNSETTLED/);
+ gate.resolve();await closing;assert.equal(fetched,0);assert.equal(counts.routeCallbacksPending,0);
+ assert.throws(()=>publish("unused","unused",[],{counts:{routeCallbacksFailed:1}}),/THESIS_CAPTURE_ROUTE_UNSETTLED/);
 });

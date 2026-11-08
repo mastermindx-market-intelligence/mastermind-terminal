@@ -30,9 +30,24 @@ function decision(request, base) {
       && request.resourceType === "document" && u.pathname === "/analysis") return "document";
   return classifyRequest(request, base).decision;
 }
+const routeFailures = new WeakMap();
 async function boundary(context, base, counts) {
+  const pending = new Set(), closeContext = context.close.bind(context);
+  let closing = false, closePromise;
+  const drain = async () => { while(pending.size)await Promise.all([...pending]); };
+  context.close = (...args) => {
+    // Keep the boundary installed: newly arriving requests abort, never fetch.
+    // Existing local fetches keep their incumbent timeout and finish before the
+    // target closes. A callback rejection is retained, never left unhandled.
+    if(!closePromise)closePromise=(async()=>{
+      closing=true;await drain();
+      try { await cleanupPreserving(routeFailures.get(counts),()=>closeContext(...args)); } finally { await drain(); }
+    })();
+    return closePromise;
+  };
   await context.routeWebSocket("**/*", socket => { counts.socketsDenied++; socket.close(); });
-  await context.route("**/*", async route => {
+  const handle = async route => {
+    if(closing){counts.teardownRequestsDenied=(counts.teardownRequestsDenied || 0)+1;return route.abort("blockedbyclient");}
     const r = route.request(), d = decision({url:r.url(),method:r.method(),resourceType:r.resourceType()},base);
     if (d === "fixture" || d === "document" || d === "continue") {
       const response = await route.fetch({maxRedirects:0});
@@ -42,6 +57,15 @@ async function boundary(context, base, counts) {
     }
     if (d === "fulfill") { counts.businessUnavailable++; return route.fulfill({status:503,json:typedUnavailablePayload()}); }
     counts.externalDenied++; return route.abort("blockedbyclient");
+  };
+  await context.route("**/*", route => {
+    const task=handle(route).catch(error=>{
+      if(!routeFailures.has(counts))routeFailures.set(counts,error);
+      counts.routeCallbacksFailed=(counts.routeCallbacksFailed || 0)+1;
+      note({phase:"ROUTE_CALLBACK_FAILED",code:"THESIS_CAPTURE_ROUTE_CALLBACK_FAILED"});
+    }).finally(()=>{pending.delete(task);counts.routeCallbacksPending=pending.size;});
+    pending.add(task);counts.routeCallbacksPending=pending.size;
+    return task;
   });
   guardApiRequest(context.request, base, counts);
 }
@@ -230,6 +254,8 @@ async function start(root,port,stage,mode = "dark") {
 function staging(root,family){const parent=path.join(root,".next","thesis-capture");fs.mkdirSync(parent,{recursive:true});return fs.mkdtempSync(path.join(parent,family+"-"));}
 function publish(stage,target,files,control){
   assertDiagnostics();
+  if(routeFailures.has(control.counts))throw routeFailures.get(control.counts);
+  if(control.counts.routeCallbacksPending || control.counts.routeCallbacksFailed)throw Error("THESIS_CAPTURE_ROUTE_UNSETTLED");
   if(control.counts.contexts!==control.counts.contextsClosed || control.counts.browsersClosed!==1 || control.counts.redirectsDenied)throw Error("THESIS_CAPTURE_UNSETTLED");
   validateFontWitnesses(stage,files,control.counts);
   for(const file of [...files,"EVIDENCE.yml"]){const st=fs.lstatSync(path.join(stage,file));if(!st.isFile() || st.size<8)throw Error("THESIS_CAPTURE_INCOMPLETE");}
