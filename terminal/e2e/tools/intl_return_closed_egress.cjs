@@ -6,7 +6,7 @@ const path=require("node:path");
 const {proxyAllowed,ownedBase}=require("./intl_return_closed_policy.cjs");
 function ownedUpgradeHeaders(headers,ws,operationDir) {
   if(!headers || typeof headers!=="object" || Array.isArray(headers))return false;
-  const h={},allowed=["host","connection","upgrade","sec-websocket-version","sec-websocket-key","sec-websocket-extensions","user-agent","x-playwright-browser","x-playwright-launch-options"];
+  const h={},allowed=["host","connection","upgrade","sec-websocket-version","sec-websocket-key","sec-websocket-extensions","user-agent","x-playwright-browser","x-playwright-launch-options","x-playwright-proxy"];
   for(const [raw,rawValue] of Object.entries(headers)){
     const key=raw.toLowerCase();
     // ws sets the fixed protocol version as number13; Node HTTP accepts it.
@@ -17,6 +17,8 @@ function ownedUpgradeHeaders(headers,ws,operationDir) {
   if(h.connection?.toLowerCase()!=="upgrade" || h.upgrade?.toLowerCase()!=="websocket" || h["sec-websocket-version"]!=="13")return false;
   const key=h["sec-websocket-key"];if(!key || Buffer.from(key,"base64").length!==16 || Buffer.from(key,"base64").toString("base64")!==key)return false;
   if(h.host!==undefined && h.host!==ws.host)return false;
+  // Installed dispatcher always emits this exact no-exposure enum.
+  if(h["x-playwright-proxy"]!==undefined && h["x-playwright-proxy"]!=="")return false;
   if(h["x-playwright-browser"]!==undefined && h["x-playwright-browser"]!=="chromium")return false;
   if(h["sec-websocket-extensions"]!==undefined && !/^permessage-deflate(?:; (?:client_no_context_takeover|server_no_context_takeover|client_max_window_bits(?:=\d{1,2})?|server_max_window_bits=\d{1,2}))*$/.test(h["sec-websocket-extensions"]))return false;
   if(h["x-playwright-launch-options"]!==undefined){
@@ -73,8 +75,13 @@ function install(base,endpoint,modules={net:require("node:net"),dns:require("nod
       if(url.href!==raw)return denied();
     }
     const method=options.method || "GET";
+    const headers=options.headers;
+    if(headers!==undefined && (!headers || typeof headers!=="object" || Array.isArray(headers)))return denied();
+    const handshake=Object.entries(headers || {}).some(([key,value])=>key.toLowerCase()==="upgrade" || key.toLowerCase().startsWith("sec-websocket-")
+      || (key.toLowerCase()==="connection" && typeof value==="string" && /(?:^|,)\s*upgrade\s*(?:,|$)/i.test(value)));
     const ownedUpgrade=method==="GET" && url.href===endpoint.replace(/^ws:/,"http:");
-    if(ownedUpgrade){if(!ownedUpgradeHeaders(options.headers,ws,operationDir))return denied();}
+    // A WS handshake never falls through to the ordinary Next read authority.
+    if(handshake || ownedUpgrade){if(!ownedUpgrade || !ownedUpgradeHeaders(headers,ws,operationDir))return denied();}
     else if(!proxyAllowed(url.href,method,base))return denied();
     return request.apply(this,args);
   };

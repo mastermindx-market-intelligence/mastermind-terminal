@@ -137,3 +137,26 @@ test("retained installed1.63 ws host-only shape reaches only the exact owned end
   assert.throws(()=>modules.http.request(url,options),/EGRESS_DENIED/);
  assert.equal(modules.counts().requested,3);
 });
+
+test("actual dispatcher empty no-exposure metadata is exact; proxy variants remain refused",()=>{
+ const modules=fakes();install(base,ws,modules,"/owned/stage");
+ const request={host:"127.0.0.1",hostname:undefined,protocol:undefined,port:"41952",path:"/owned-exact-path",method:"GET",followRedirects:false,
+  headers:{...upgradeHeaders(),"Sec-WebSocket-Version":13,"User-Agent":"Playwright/1.63.0 (source-control)","x-playwright-proxy":"",
+   "x-playwright-launch-options":JSON.stringify({handleSIGINT:false,headless:true,tracesDir:"/owned/stage/test-output/traces",artifactsDir:"/owned/stage/test-output"})}};
+ modules.http.request(request);assert.equal(modules.counts().requested,1);
+ for(const value of ["*","<loopback>","127.0.0.1",null,0,"\r\nUpgrade: websocket"])
+  assert.throws(()=>modules.http.request({...request,headers:{...request.headers,"x-playwright-proxy":value}}),/EGRESS_DENIED/);
+ assert.throws(()=>modules.http.request({...request,headers:{...request.headers,"X-Playwright-Proxy":""}}),/EGRESS_DENIED/);
+ assert.throws(()=>modules.http.request({...request,headers:{...request.headers,"x-playwright-proxy-unknown":""}}),/EGRESS_DENIED/);
+ assert.equal(modules.counts().requested,1);
+});
+test("handshake cannot borrow otherwise-allowed Next read authority, including redirects",()=>{
+ const modules=fakes();install(base,ws,modules);
+ const analysis="/analysis?"+new URLSearchParams({view:"investigations",intl_return:LEGACY+"/intl.html?"+VIEWS[0]});
+ for(const target of ["/api/shared-shell/status",analysis]){
+  modules.http.request(base+target,{method:"GET"});modules.http.request(base+target,{method:"HEAD"});
+  for(const headers of [upgradeHeaders(),{"Sec-WebSocket-Key":Buffer.alloc(16).toString("base64")},{Connection:"keep-alive, Upgrade"},{Upgrade:"websocket"}])
+   assert.throws(()=>modules.http.request(base+target,{method:"GET",headers}),/EGRESS_DENIED/);
+ }
+ assert.equal(modules.counts().requested,4);
+});
