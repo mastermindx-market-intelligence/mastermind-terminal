@@ -1,4 +1,5 @@
 import { qualifyFinvizMembershipManifest } from "@/lib/finvizMembershipManifest";
+import { intelligenceResponse } from "@/lib/shared-shell/intelligenceResponse";
 import { normalizeFinviz, TIMEFRAMES } from "@/lib/finvizThemes";
 import { isAdminRequest } from "@/lib/adminGate";
 import { createHash } from "node:crypto";
@@ -158,7 +159,7 @@ export type FeedFailure =
   /** The body arrived but is not the owner envelope. */
   | "payload_invalid";
 
-export async function GET(req: Request): Promise<Response> {
+async function readIncumbent(req: Request): Promise<Response> {
   const source = new URL(req.url).searchParams.get("source") || "";
   // own-property test excludes __proto__/constructor and all user-supplied URLs.
   if (!Object.hasOwn(PATHS, source)) {
@@ -285,4 +286,13 @@ export async function GET(req: Request): Promise<Response> {
     return failure(502, "error", "upstream_transport");
   }
   finally { clearTimeout(timer); req.signal.removeEventListener("abort", abort); }
+}
+
+// This compact view reads the same canonical history result after member/source checks.
+// It never substitutes a relative-strength feed for the published cycle model.
+export async function GET(req: Request): Promise<Response> {
+  const response = await readIncumbent(req);
+  const params = new URL(req.url).searchParams;
+  return params.get("view") === "intelligence" && params.get("source") === "history"
+    ? intelligenceResponse(response, "cycles") : response;
 }

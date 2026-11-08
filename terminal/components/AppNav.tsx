@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import SharedShellPrimaryNav from "@/components/intelligence/SharedShellPrimaryNav";
 import { Suspense } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useSharedShellT } from "@/lib/sharedShellCopy";
@@ -9,7 +10,7 @@ import { MACRO_OVERVIEW_HREF } from "@/lib/investorShellPreview";
 // unit-tested without mounting a nav.
 import { navHref } from "@/lib/navSymbol";
 import { Tip } from "@/components/ui/Tip";
-import { SHARED_SHELL_NAV, SHARED_SHELL_MARKETS, sharedShellActiveKey, sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
+import { SHARED_SHELL_MARKETS, sharedShellActiveKey, sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
 
 // Line glyphs — all share the 24-box, 1.7-stroke, fill:none house style (.navbtn svg).
 // Multi-path keys draw each `d` as a stacked <path>; a few workspaces need composite
@@ -115,7 +116,8 @@ function AppNavInner({ labelled = false, id, overviewBridge = false, sharedShell
           <div className="investor-nav-divider" aria-hidden="true" />
         </>
       )}
-      {(sharedShell ? SHARED_SHELL_NAV : TOP).map((it) => {
+      {sharedShell ? <SharedShellPrimaryNav mode="rail" labelled={labelled} activeSymbol={activeSymbol}
+        renderGlyph={key => <Glyph k={key} />} /> : TOP.map((it) => {
         const on = it.k === activeKey;
         return (
           <Tip key={it.k} label={t(it.k, it.label)} side="right" size="mini" disabled={sharedShell && labelled}>

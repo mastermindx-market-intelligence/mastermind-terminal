@@ -1,4 +1,6 @@
 "use client";
+import type { RetainedMatrixRequest, RetainedMatrixBinding, MountedRetainedMatrix, RetainedMatrixAvailable } from "@/lib/retainedMatrixRead";
+import type { RetainedInput } from "@/lib/retainedOptionsWire";
 import { VolRegimeChip } from "@/components/eodcontext/VolRegimeChip";
 import ExposureMap from "@/components/exposure-map/ExposureMap";
 import { parseExposureChartRequest } from "@/lib/exposureChartLink";
@@ -214,7 +216,7 @@ const GEX_POLL_MS = 60_000;
 // Every desk read keeps its outcome (failure-state truth law): only a 404/410 is a
 // published absence; a 5xx, a refused fetch or an unparseable body is a read that did
 // not land, and it renders as a load error with a Retry — never as a coverage gap.
-async function readFlow(f: string, options: { refresh?: boolean } = {}): Promise<FlowOutcome> {
+async function readFlow(f: string, options: { refresh?: boolean; retained?: RetainedMatrixRequest } = {}): Promise<FlowOutcome> {
   try {
     return await flowGetResult(f, options);
   } catch {
@@ -227,7 +229,11 @@ type ReadStatus = "loading" | "data" | "absent" | "unavailable";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange?: (active: boolean) => void; onOpenPlan?: () => void } = {}) {
+export function GexDeskView({ onMapFirstChange, onOpenPlan, retainedSelection = null }: {
+  onMapFirstChange?: (active: boolean) => void; onOpenPlan?: () => void;
+  /** Optional already captured selection; no acquisition or fallback here. */
+  retainedSelection?: RetainedInput | null;
+} = {}) {
   const { lang } = useLang();
   const t = makeGexT(lang);
 
@@ -338,11 +344,13 @@ export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange
   // what makes the lens real. Best-effort: it exists only for some roots (and can run a
   // different session than the gex payload) — absent → the lens reports itself unavailable.
   const [matrix, setMatrix] = useState<MatrixDoc | null>(null);
-  const [matrixRead, setMatrixRead] = useState<{ root: string; status: MatrixRead["status"] }>({ root: "", status: "data" });
+  const [matrixRead, setMatrixRead] = useState<{ root: string; status: ReadStatus; generation: number }>({ root: "", status: "data", generation: 0 });
   // Drops a slow old-root matrix response after the ticker has changed. Envelope root
   // validation stops substitution, but without request ordering an internally valid SPY
   // response can still arrive after a newer QQQ request and clobber QQQ's state.
   const matrixReqRef = useRef(0);
+  const retainedBindingRef = useRef<RetainedMatrixBinding | null>(null);
+  const [retainedRead, setRetainedRead] = useState<MountedRetainedMatrix | null>(null);
   const stateReqRef = useRef(0);
   // ── Dated session replay (R0.10) ──────────────────────────────────────────
   // sessionDates = the gex_history dates.json index (null = absent/invalid → no dropdown;
@@ -458,28 +466,44 @@ export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange
   // Returns the doc as well as storing it: the matrix view's CONFLUENCE mode refetches
   // SPY/QQQ/IWM through this same reader, so there is one matrix fetch path on the desk.
   // Stable identity on purpose: CONFLUENCE re-reads whenever this function changes.
-  const readMatrix = useCallback(async (root: string): Promise<MatrixRead> => {
+  const readMatrix = useCallback(async (root: string, retained?: RetainedMatrixRequest): Promise<MatrixRead & { retained?: RetainedMatrixAvailable }> => {
     // `matrix:{ROOT}` is published FLAT — the desk's pre-§5.3 reader never unwrapped a
     // by-root envelope and its expiry lens works in prod, so no `data[root]` step here.
-    const outcome = await readFlow(`matrix:${root}`);
+    const outcome = await readFlow(`matrix:${root}`, { retained });
     if (outcome.status !== "data") return { status: outcome.status };
     // A cells-less, wrong-schema, or wrong-root payload — the fixture's honest {} for
     // an unknown root, a malformed upstream doc, or a substituted cache object — resolves
     // to null. A matrix must never wear a different selected ticker's header.
-    return { status: "data", doc: isMatrixDocForRoot(outcome.data, root) ? outcome.data : null };
+    return { status: "data", doc: isMatrixDocForRoot(outcome.data, root) ? outcome.data : null, retained: outcome.retained };
   }, []);
 
-  const fetchMatrix = useCallback(async (root: string) => {
+  const fetchMatrix = useCallback(async (root: string, binding?: RetainedMatrixBinding) => {
+    if (binding) {
+      const generation = matrixReqRef.current;
+      const read = await readMatrix(root, binding.request);
+      if (retainedBindingRef.current !== binding || generation !== matrixReqRef.current) return;
+      setRetainedRead(read.status === "data" && read.retained ? { binding, result: read.retained } : null);
+      return;
+    }
+    retainedBindingRef.current = null;
+    setRetainedRead(null);
     const req = ++matrixReqRef.current;
+    setMatrixRead({ root, status: "loading", generation: req });
     const read = await readMatrix(root);
     if (matrixReqRef.current !== req) return;
-    setMatrixRead({ root, status: read.status });
+    setMatrixRead({ root, status: read.status, generation: req });
     if (read.status === "unavailable") {
       setMatrix((prev) => (isMatrixDocForRoot(prev, root) ? prev : null));
     } else {
       setMatrix(read.status === "data" ? read.doc : null);
     }
   }, [readMatrix]);
+
+  const requestRetainedMatrix = useCallback((binding: RetainedMatrixBinding | null) => {
+    retainedBindingRef.current = binding;
+    setRetainedRead(null);
+    if (binding) void fetchMatrix(binding.request.root, binding);
+  }, [fetchMatrix]);
 
   const retryState = useCallback(() => {
     flowInvalidate(`gexstate:${ticker}`);
@@ -960,6 +984,10 @@ export function GexDeskView({ onMapFirstChange, onOpenPlan }: { onMapFirstChange
 
   if (researchOpen) return (
     <OptionsResearchLab key={ticker} root={ticker}
+      retainedSelection={!isArchived && rootOk ? retainedSelection : null}
+      retainedRead={!isArchived && rootOk ? retainedRead : null}
+      retainedReadGeneration={matrixRead.generation}
+      onRetainedRequest={retainedSelection ? undefined : requestRetainedMatrix}
       matrix={isArchived ? null : visibleMatrix}
       // Reuse the selected Exposure book; null prevents a separate live fallback.
       currentGexSnapshot={!isArchived && rootOk ? activePayload : null}

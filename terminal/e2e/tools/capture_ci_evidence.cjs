@@ -109,7 +109,7 @@ function recordCheckout({ repoRoot = path.resolve(__dirname, "../../.."), env = 
 }
 
 function run({ repoRoot = path.resolve(__dirname, "../../.."), env = process.env,
-  evidence, spawn = spawnSync, checkout = checkoutIdentity } = {}) {
+  evidence, spawn = spawnSync, checkout = checkoutIdentity, failurePackets = require("./gex_failure_capture.cjs") } = {}) {
   evidence ||= require("./visualEvidence.cjs");
   const ids = operationIds(env), terminal = path.join(repoRoot, "terminal");
   const diagnostics = diagnosticDirectory(env);
@@ -128,9 +128,10 @@ function run({ repoRoot = path.resolve(__dirname, "../../.."), env = process.env
     record.profile = captureProfile;
     record.optionsAxis = { plan: optionsCapturePlan(terminal), state: "PREPARING" };
     record.state = "CAPTURING"; save();
-    const capture = (packet, args, extraEnv) => {
-      const stdoutPath = path.join(diagnostics, `${ids[packet]}.stdout.log`);
-      const stderrPath = path.join(diagnostics, `${ids[packet]}.stderr.log`);
+    const capture = (packet, args, extraEnv, rawId) => {
+      const invocationId = rawId || ids[packet];
+      const stdoutPath = path.join(diagnostics, `${invocationId}.stdout.log`);
+      const stderrPath = path.join(diagnostics, `${invocationId}.stderr.log`);
       const child = { packet, command: [process.execPath, ...args], stdoutPath, stderrPath, state: "RUNNING" };
       record.children.push(child); save();
       const out = fs.openSync(stdoutPath, "wx");
@@ -145,8 +146,44 @@ function run({ repoRoot = path.resolve(__dirname, "../../.."), env = process.env
       if (result.error || result.signal || result.status !== 0)
         throw new Error(`CI_EVIDENCE_CHILD_FAILED: ${packet}: status=${result.status} signal=${result.signal || "none"} error=${result.error?.message || "none"}`);
       if (fs.statSync(stdoutPath).size > 16 * 1024 * 1024) throw new Error("CI_EVIDENCE_LOG_LIMIT");
-      return reference(fs.readFileSync(stdoutPath, "utf8"), packet, ids[packet], evidence);
+      return rawId ? { stdoutPath, stderrPath } : reference(fs.readFileSync(stdoutPath, "utf8"), packet, ids[packet], evidence);
     };
+    // Raw GEX/EOD packets are committed source evidence, unlike the transient
+    // PL6/VI selector. Prepare a missing source prerequisite, retain it, and stop
+    // for the existing owner to inspect/import the actual complete packet.
+    record.failurePackets = failurePackets.plan(repoRoot);
+    const changedPackets = record.failurePackets.filter(packet => packet.required);
+    if (changedPackets.length) {
+      record.state = "PREPARING_RAW_FAILURE_PACKETS"; save();
+      for (const packet of changedPackets) {
+        const id = `${ids.prefix}-${packet.id}-full`, directory = path.join(diagnostics, id);
+        fs.mkdirSync(directory, { mode: 0o700 });
+        packet.outputDirectory = directory; packet.state = "CAPTURING"; save();
+        const before = failurePackets.historicalBefore(repoRoot, packet);
+        const logs = capture(packet.id, [`e2e/tools/${packet.script}`], {
+          TERMINAL_CROP_PORT: packet.port, TERMINAL_CROP_OUTPUT_DIR: directory,
+          UPDATE_HEATMAP_EVIDENCE: "", CAPTURE_ONLY: "",
+        }, id);
+        packet.cleanup = failurePackets.cleanupFromLog(fs.readFileSync(logs.stdoutPath, "utf8"));
+        const current = checkout(repoRoot, env).actualCheckout;
+        if (current.commit !== record.actualCheckout.commit || current.tree !== record.actualCheckout.tree)
+          throw new Error("CI_GEX_CHECKOUT_CHANGED");
+        packet.outputs = failurePackets.validate(repoRoot, packet, directory, record.actualCheckout.commit);
+        packet.historicalBefore = failurePackets.preserveBefore(repoRoot, packet, directory, before);
+        failurePackets.materializeForReaders(repoRoot, packet, directory, packet.outputs);
+        packet.state = "CAPTURED_AWAITING_READERS"; save();
+      }
+      const readerFiles = changedPackets.map(packet => `lib/__tests__/${packet.reader}`);
+      capture("gex-readers", ["node_modules/vitest/vitest.mjs", "run", ...readerFiles], {}, `${ids.prefix}-gex-readers`);
+      for (const packet of changedPackets) {
+        if (JSON.stringify(failurePackets.sourceMap(repoRoot, packet)) !== JSON.stringify(packet.sourceFiles))
+          throw new Error("CI_GEX_SOURCE_CHANGED");
+        packet.state = "VALIDATED_AWAITING_REVIEW_IMPORT";
+      }
+      record.state = "REVIEW_IMPORT_REQUIRED"; save();
+      // Never advertise product green from fresh but uncommitted raw locks.
+      const pending = new Error("CI_GEX_REVIEW_IMPORT_REQUIRED"); pending.reviewImportRequired = true; throw pending;
+    }
     const refs = [capture("pl6", ["e2e/tools/capture_pl6_batch1.cjs"], {
       TERMINAL_PL6_EVIDENCE_OPERATION_ID: ids.pl6, TERMINAL_CROP_PORT: "3536",
       TERMINAL_CI_OPTIONS_AXIS_CAPTURE: record.optionsAxis.plan.required ? "1" : "0",
@@ -177,7 +214,7 @@ function run({ repoRoot = path.resolve(__dirname, "../../.."), env = process.env
     record.state = "SELECTED"; save();
     return record;
   } catch (error) {
-    record.state = "FAILED"; record.error = { message: error.message, stack: error.stack };
+    record.state = error.reviewImportRequired ? "REVIEW_IMPORT_REQUIRED" : "FAILED"; record.error = { message: error.message, stack: error.stack };
     save(); throw error;
   }
 }

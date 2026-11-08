@@ -525,6 +525,16 @@ jobs:
           --project=desktop --project=tablet --project=mobile
           --workers=1 --retries=0
           --output=test-results/shared-shell-refinement
+      - name: Qualify native Intelligence entrances
+        if: matrix.shard == 'serial'
+        env:
+          CI: '1'
+          TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port_shared }}
+        run: >-
+          npm run test:e2e:responsive -- --config=playwright.intelligence.config.ts
+          --project=desktop --project=tablet --project=mobile
+          --workers=1 --retries=0
+          --output=test-results/native-intelligence
       - name: Upload responsive QA screenshots
         if: always()
         uses: actions/upload-artifact@v4
