@@ -1,0 +1,21 @@
+{
+  "schema": "futures.external_review_adjudication/v1",
+  "runId": "terminal-futures-pr964-aggregation-review-20261014-r2",
+  "root": "terminal-futures-gex-pr964",
+  "parent": "terminal-futures-gex-pr964",
+  "reviewedHead": "54bf1bc931832655b7c0ca4de24e26fbab598d11",
+  "resultSha256": "66323951e60d5e7064c06de6f74c2d7032b3449c9792e6e704971beda2f8d05d",
+  "resultBytes": 1726,
+  "externalTestsExecuted": false,
+  "parentActualModuleControls": [
+    "hub/tests/futuresReviewArithmetic.test.js: 3 passed"
+  ],
+  "findings": [
+    {
+      "id": "A1",
+      "disposition": "REJECTED_BY_EXECUTABLE_COUNTEREXAMPLE",
+      "reason": "The exact proposed 0xffffffff * 4000000000ns sample returns precisely 0xffffffff. Conversion to float for the final quotient has ordinary bounded relative rounding, not a large-factor error. BigInt integer division would incorrectly truncate valid fractional time-weighted means (1.75 -> 1). Exact accumulation remains BigInt."
+    }
+  ],
+  "disposition": "retained_review_adjudicated_not_whole_program_release"
+}

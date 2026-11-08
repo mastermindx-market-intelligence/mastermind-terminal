@@ -1,14 +1,14 @@
 # B-F11-9 thesis window-closed — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-capturedAtHead: 83a69d5e613c020f5bef24050acb18784de47015
-# capturedAt: 2026-09-19T19:33:50.275Z
+capturedAtHead: 3258f5721f8c5954b2cd64b61b849da9f5197005
+# capturedAt: 2026-10-19T07:40:11.658Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/lib/alertsView.ts: "ee48893ed7706de4d6fa306b237a5df647166acb6737dc4b9dd3b23c350b1d0f"
-  terminal/components/alerts/AlertsCockpit.tsx: "d0052d5922f880d651e8d5cf1d6a20d0b05626a9d7066dc9daf754c25955e950"
+  terminal/lib/alertsView.ts: "2c3461178393c770cd3ca9918273c650c52adc381e8437f9679903715b3a54fa"
+  terminal/components/alerts/AlertsCockpit.tsx: "15c9d49915da05fcceaaaeeb62aa22c5a9984404fca122e654316ccac3f8b4bb"
   terminal/components/alerts/AlertTimeline.tsx: "22395c8972c8fc88f80fae1f72a0c9d546a1fd6e8354e0ef6a8ae62211514d96"
-  terminal/components/alerts/AlertDetail.tsx: "74bbdd5f0f5106b97fa56d67b6966caa86f32e65649eaef0d811f6ae6ef2485f"
+  terminal/components/alerts/AlertDetail.tsx: "a5121ed88b6eb4e639292de53e402ee41ef3599a7bacaa24c278d2298c8ddce0"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -16,7 +16,7 @@ viewports:
   - { name: mobile, width: 390, height: 844 }
 surfaces: [recent-activity, thesis-detail]
 capture_flag: TERMINAL_E2E_FIXTURE
-capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
 command: |
   cd terminal
   node e2e/tools/capture_b_f11_9_thesis_window_closed.cjs

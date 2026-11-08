@@ -1,0 +1,46 @@
+{
+  "sourceHead": "83bb2536856d1ef601d5a1c99d9c071e87884ef4",
+  "implementationSourceHead": "6c9cde3550d2ab6281c2ea309c56f714f58b2ae1",
+  "recordedAt": "2026-10-22T09:13:28.985236+00:00",
+  "command": "env -u MMX_SHARED_SHELL -u MMX_INVESTOR_SHELL_PREVIEW node e2e/tools/capture_mi_g10_b4t_theme_empty.mjs 3123 /tmp/shared-shell-pr1124-company-b4-settled",
+  "environment": {
+    "node": "v20.20.2",
+    "MMX_SHARED_SHELL": "unset",
+    "MMX_INVESTOR_SHELL_PREVIEW": "unset",
+    "TERMINAL_E2E_FIXTURE": "1 via harness"
+  },
+  "actualCaptures": 8,
+  "sourceChanges": {
+    "terminal/app/company-intelligence.css": {
+      "before": "2bd8643832428198d38e8a5140cb7029687466781b2366976cb3ca5ddad9892b",
+      "after": "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
+    }
+  },
+  "sourceHashes": {
+    "terminal/app/company-intelligence.css": "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34",
+    "terminal/components/chrome/shared-shell/shared-shell.css": "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339"
+  },
+  "outputs": {
+    "1440x900-en-dark-theme-empty.png": "904e5d49419eb1d943d04a7b984f3b95e1883b764cdd53165e7de87c4352ec9b",
+    "1440x900-zh-dark-theme-empty.png": "03348507e725c396f12a24a1b12689eb849efcf3a8f4e65a0e6c35d319044c6a",
+    "390x844-en-dark-theme-empty.png": "349ac6e78a1aa0f709193881cc6828a02dd95f8e82b8bffa58edbe0e6769dfbb",
+    "390x844-zh-dark-theme-empty.png": "bb96b3f4d216fdc37d3321b5c915858302175681337ce74cec514a21304579ac",
+    "capture-log.json": "8c1291b8e7f1f826fbfd89842ac4b34792989384c8c565e9c3dd9ec090a0ff05",
+    "shared-shell-company-recapture/1440x900-en-light-theme-empty.png": "904e5d49419eb1d943d04a7b984f3b95e1883b764cdd53165e7de87c4352ec9b",
+    "shared-shell-company-recapture/1440x900-zh-light-theme-empty.png": "03348507e725c396f12a24a1b12689eb849efcf3a8f4e65a0e6c35d319044c6a",
+    "shared-shell-company-recapture/390x844-en-light-theme-empty.png": "349ac6e78a1aa0f709193881cc6828a02dd95f8e82b8bffa58edbe0e6769dfbb",
+    "shared-shell-company-recapture/390x844-zh-light-theme-empty.png": "bb96b3f4d216fdc37d3321b5c915858302175681337ce74cec514a21304579ac"
+  },
+  "captureLog": {
+    "path": "shared-shell-company-recapture.log",
+    "sha256": "9cebd1f7972790fb28a74adb78612f981a6bed33cb894d43fcdf52585033d6fc"
+  },
+  "qualification": "Actual scoped local incumbent-profile captures. Existing full reports and older acceptance history remain historical; no live account, current-data or deployment claim. The new light shadow token is Shared Shell opt-in only.",
+  "preservedHistoricalManifestSha256": "3e51613747d6556d9cd9995268cc72cf98048b99cb4944834e6bcd5ae2228ca2",
+  "captureStabilityRepair": {
+    "initialResult": "First desktop EN pair differed in 3 pixels at x33..35,y11; actual images and log retained under shared-shell-company-recapture/.",
+    "change": "Wait for document.fonts.ready and disable animations for actual screenshots; no pixel edits or equality rewriting.",
+    "harnessSha256": "3795be06ccc252511672f7c1e2a5a64c3828721606f4602ea340d04112cbc08a",
+    "result": "All four actual dark/light comparison pairs are byte equal. This remains the incumbent dark-only profile and does not qualify Shared Shell light."
+  }
+}
