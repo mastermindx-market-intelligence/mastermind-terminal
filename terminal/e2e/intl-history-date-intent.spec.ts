@@ -47,6 +47,12 @@ test("History accepts real date intent, compares exact reconstruction and return
     await chooseHistory();
     await parentContext("history");
     const panel = frame.locator('[data-im-history-panel]');
+    // Wide layouts expose both panes; phones use the authored subview tabs.
+    async function showHistorySubview(view: "history" | "scenario") {
+      const tab = panel.locator(`[data-im-history-tabs] button[data-im-scenario-tab="${view}"]`);
+      if (await tab.isVisible()) await tab.click();
+      await expect(panel.locator(`[data-im-history-subview="${view}"]`)).toBeVisible();
+    }
     const market = panel.locator('[data-im-history-market="JP"]');
     await expect(market).toBeVisible();
     const left = market.locator('[data-im-snapshot-date="left"]');
@@ -73,7 +79,7 @@ test("History accepts real date intent, compares exact reconstruction and return
     const fx = panel.locator('[data-im-scenario-field="fx"]');
     await expect(local).toHaveValue(""); await expect(fx).toHaveValue("");
     await local.fill("7"); // User assumption; never imported classifier score.
-    await panel.locator('[data-im-history-tabs] button[data-im-scenario-tab="history"]').click();
+    await showHistorySubview("history");
     await expect(result).toBeVisible();
     await expect(left).toHaveValue(dates[0]); await expect(right).toHaveValue(dates[1]);
     await panel.locator('footer button[data-im-view="overview"]').click();
@@ -82,7 +88,7 @@ test("History accepts real date intent, compares exact reconstruction and return
     await parentContext("history");
     await expect(left).toHaveValue(dates[0]); await expect(right).toHaveValue(dates[1]);
     await expect(result).toBeVisible();
-    await panel.locator('[data-im-history-tabs] button[data-im-scenario-tab="scenario"]').click();
+    await showHistorySubview("scenario");
     await expect(local).toHaveValue("7"); await expect(fx).toHaveValue("");
     await parentContext("history");
     await page.screenshot({ path: info.outputPath("history-return-context.png") });
