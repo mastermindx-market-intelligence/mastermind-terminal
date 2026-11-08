@@ -30,6 +30,36 @@ function decision(request, base) {
       && request.resourceType === "document" && u.pathname === "/analysis") return "document";
   return classifyRequest(request, base).decision;
 }
+// Projection only: retain already-computed facts, never qualify an image here.
+const witnessKeys = new Set(["receiptSha256","loadedFaces","family","weight","style","status",
+  "verifiedBodies","sha256","bytes","subset","renderedGlyphs","kind","scope","present",
+  "requiresCustomInter","selectedElement","tag","fontFamilies","primaryFontFamily","intendedRole",
+  "hasLatin","hasNumeric","hasOtherScript","fonts","familyName","postScriptName","isCustomFont",
+  "glyphCount","file","captureKind","region","x","y","width","height","imageSha256","imageBytes",
+  "interRendering","nativeUIRendering","unavailableDuplicateBodies","jetBrainsAvailabilityOnly"]);
+function retainedWitnessFacts(value, depth=0) {
+  if(depth>8)return undefined;
+  if(value===null || typeof value==="boolean")return value;
+  if(typeof value==="number")return Number.isFinite(value) && Math.abs(value)<=1000000 ? value : undefined;
+  if(typeof value==="string")return value.length<=128 && /^[A-Za-z0-9_. ,"'-]+$/.test(value) ? value : undefined;
+  if(Array.isArray(value))return value.slice(0,depth===0?40:32).map(v=>retainedWitnessFacts(v,depth+1)).filter(v=>v!==undefined);
+  if(value && typeof value==="object") {
+    const result={};
+    for(const key of witnessKeys)if(Object.hasOwn(value,key)) {
+      const field=retainedWitnessFacts(value[key],depth+1);if(field!==undefined)result[key]=field;
+    }
+    return result;
+  }
+  return undefined;
+}
+function retainComputedWitnesses(counts) {
+  try {
+    const witnesses=Array.isArray(counts.canonicalFontWitnesses)?counts.canonicalFontWitnesses:[];
+    note({phase:"CAPTURE_WITNESS_SNAPSHOT",scope:"computed_partial_not_publication",
+      canonicalFontWitnesses:retainedWitnessFacts(witnesses.filter(w=>typeof w?.file==="string"
+        && /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}\.png$/.test(w.file) && !w.file.startsWith("FAIL-")))});
+  } catch(error) { diagnosticFailure ||= error; }
+}
 const routeFailures = new WeakMap();
 async function boundary(context, base, counts) {
   const pending = new Set(), closeContext = context.close.bind(context);
@@ -40,7 +70,7 @@ async function boundary(context, base, counts) {
     // Existing local fetches keep their incumbent timeout and finish before the
     // target closes. A callback rejection is retained, never left unhandled.
     if(!closePromise)closePromise=(async()=>{
-      closing=true;await drain();
+      closing=true;retainComputedWitnesses(counts);await drain();
       try { await cleanupPreserving(routeFailures.get(counts),()=>closeContext(...args)); } finally { await drain(); }
     })();
     return closePromise;

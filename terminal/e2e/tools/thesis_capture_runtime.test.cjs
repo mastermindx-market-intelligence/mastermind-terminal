@@ -206,3 +206,52 @@ test("routes delivered during actual close still settle, and pending or serializ
  gate.resolve();await closing;assert.equal(fetched,0);assert.equal(counts.routeCallbacksPending,0);
  assert.throws(()=>publish("unused","unused",[],{counts:{routeCallbacksFailed:1}}),/THESIS_CAPTURE_ROUTE_UNSETTLED/);
 });
+
+
+test("computed named-image font witness survives route and close failure in the existing CONTROL journal",async()=>{
+ // eslint-disable-next-line @typescript-eslint/no-require-imports -- Exercise the actual incumbent font helper with offline CDP/response fakes.
+ const fonts=require("./thesis_capture_fonts.cjs"),assets=path.resolve(__dirname,"../fixtures/retained-fonts-34fb");
+ const receipt=JSON.parse(fs.readFileSync(path.join(assets,"receipt.json"))),t=fakeRuntimeIo(),owner=await t.api.start("/fake-root",41921,"/fake-stage");
+ const counts={},temp=fs.mkdtempSync(path.join(os.tmpdir(),"computed-font-retention-"));let response;
+ const session={async send(method){
+  if(method==="Runtime.evaluate")return {result:{objectId:"controlled"}};
+  if(method==="Runtime.callFunctionOn")return {result:{value:{tag:"SPAN",fontFamily:"Inter",weight:"400",hasLatin:true,hasNumeric:true,hasOtherScript:false}}};
+  if(method==="DOM.requestNode")return {nodeId:1};
+  if(method==="CSS.getPlatformFontsForNode")return {fonts:[{familyName:"Inter",postScriptName:"Inter-Regular",isCustomFont:true,glyphCount:4}]};
+  return {};
+ },async detach(){}};
+ const page={on(event,handler){if(event==="response")response=handler;},
+  async evaluate(){return [{family:"Inter",weight:"100 900",style:"normal",status:"loaded"},{family:"JetBrains Mono",weight:"100 800",style:"normal",status:"loaded"}];},
+  context(){return {async newCDPSession(){return session;}};},
+  async screenshot(options){const image=Buffer.from("controlled-computed-png");fs.writeFileSync(options.path,image);return image;}};
+ const context=fakeBoundaryContext();context.newPage=async()=>page;
+ const routeError=Error("route failed"),closeError=Error("close unknown"),gate=deferred();let witnessBeforeClose=false;
+ context.close=async()=>{const snapshot=JSON.parse(t.stats.lastSnapshot);witnessBeforeClose=snapshot.events.some(e=>e.phase==="CAPTURE_WITNESS_SNAPSHOT");throw closeError;};
+ try{
+  await t.api.boundary(context,base,counts);fonts.installFontWitness(context,counts);await context.newPage();
+  for(const family of receipt.families){const f=family.files.find(x=>x.subset==="latin");response({url:()=>base+"/_next/static/media/"+f.sha256+".woff2",status:()=>200,body:async()=>fs.readFileSync(path.join(assets,f.file))});}
+  await fonts.captureCanonicalScreenshot(page,page,{path:path.join(temp,"computed.png")});
+  const actual=counts.canonicalFontWitnesses[0];assert.equal(actual.file,"computed.png");assert(actual.imageSha256);assert.equal(actual.renderedGlyphs[0].fonts[0].glyphCount,4);
+  actual.privateUiText="NEVER_RETAIN_PRIVATE_TEXT";actual.renderedGlyphs[0].selectedElement.textContent="NEVER_RETAIN_PRIVATE_TEXT";
+  const active=context.dispatch(fakeRoute(async()=>{await gate.promise;throw routeError;}));
+  const closing=context.close();gate.resolve();await active;
+  await assert.rejects(closing,error=>error===routeError && error.cleanupError===closeError);
+  assert(witnessBeforeClose,"witness must persist before actual context close");
+  owner.failure(routeError);await owner.stop();
+  const snapshot=JSON.parse(t.stats.lastSnapshot),event=snapshot.events.find(e=>e.phase==="CAPTURE_WITNESS_SNAPSHOT");
+  assert.equal(event.scope,"computed_partial_not_publication");assert.equal(event.canonicalFontWitnesses.length,1);
+  const retained=event.canonicalFontWitnesses[0];assert.equal(retained.file,"computed.png");assert.equal(retained.imageSha256,actual.imageSha256);assert.equal(retained.imageBytes,actual.imageBytes);
+  assert.deepEqual(retained.loadedFaces,actual.loadedFaces);assert.equal(retained.verifiedBodies.length,2);assert(retained.verifiedBodies.every(b=>/^[0-9a-f]{64}$/.test(b.sha256)));
+  assert.equal(retained.renderedGlyphs[0].fonts[0].glyphCount,4);assert.equal(retained.renderedGlyphs[0].fonts[0].familyName,"Inter");
+  assert(!JSON.stringify(snapshot).includes("NEVER_RETAIN_PRIVATE_TEXT"));assert(!JSON.stringify(event).includes("uncomputed.png"));assert(!JSON.stringify(event).includes("/_next/"));
+  assert(snapshot.events.some(e=>e.phase==="PRIMARY_FAILURE"));assert.throws(()=>t.api.publish(temp,"unused-target",["computed.png"],{counts}),error=>error===routeError);
+ }finally{fs.rmSync(temp,{recursive:true,force:true});}
+});
+
+test("witness-journal IO failure cannot skip owned context/server cleanup or fabricate publication",async()=>{
+ const t=fakeRuntimeIo({failJournalAt:3}),owner=await t.api.start("/fake-root",41921,"/fake-stage"),context=fakeBoundaryContext(),primary=Error("original capture failure");
+ await t.api.boundary(context,base,{});
+ await assert.rejects(async()=>{try{throw primary;}finally{await context.close();}},e=>e===primary);
+ assert(context.isClosed());await owner.stop();assert.equal(t.stats.stops,1);assert.equal(t.stats.restored,1);
+ assert.throws(()=>owner.summary(),e=>e===t.io);assert.throws(()=>t.api.publish("unused","unused",[],{counts:{}}),e=>e===t.io);
+});
