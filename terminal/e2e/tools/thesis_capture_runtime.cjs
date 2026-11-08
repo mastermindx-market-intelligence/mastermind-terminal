@@ -151,7 +151,13 @@ function assertOwnedListener(port,group) {
   if (!pids.length || pids.some(pid=>!/^\d+$/.test(pid)
       || Number(execFileSync("ps",["-o","pgid=","-p",pid],{encoding:"utf8"}).trim())!==group)) throw Error("THESIS_CAPTURE_FOREIGN_LISTENER");
 }
-async function start(root,port,stage) {
+function capturePresentationEnvironment(mode = "dark") {
+  if(mode === "dark")return {};
+  if(mode === "shared-shell-light-en-1440")return {MMX_SHARED_SHELL:"1"};
+  throw Error("THESIS_CAPTURE_PRESENTATION_SCOPE");
+}
+async function start(root,port,stage,mode = "dark") {
+  const presentation = capturePresentationEnvironment(mode);
   const file=path.join(stage,"CONTROL.json"),record={phase:"PREPARING",events:[]};
   diagnosticFailure=undefined;
   journal=value=>{record.phase=value.phase;record.events.push({...value,at:new Date().toISOString()});
@@ -162,7 +168,7 @@ async function start(root,port,stage) {
   const fontFixture=prepareFontEnvironment(root);
   record.canonicalFontInputs=fontFixture.provenance;
   const namespace=prepareNamespace(root);
-  const env={...captureServerEnv(),...fontFixture.env,THESIS_CAPTURE_SERVER:"1",THESIS_CAPTURE_PORT:String(port),
+  const env={...captureServerEnv(),...fontFixture.env,...presentation,THESIS_CAPTURE_SERVER:"1",THESIS_CAPTURE_PORT:String(port),
     NODE_OPTIONS:`--require ${JSON.stringify(path.join(__dirname,"thesis_capture_egress.cjs"))}`,
     npm_config_update_notifier:"false",npm_config_audit:"false"};
   let child,owner,settlement,stopPromise,resourceFailure,output="",lastStatus=null;
@@ -233,4 +239,4 @@ function publish(stage,target,files,control){
   fs.writeFileSync(path.join(stage,"CONTROL.json"),JSON.stringify(control,null,2)+"\n");
   process.stdout.write(JSON.stringify({thesisCaptureControl:path.join(stage,"CONTROL.json"),...control})+"\n");
 }
-module.exports={captureCanonicalScreenshot,waitForCanonicalFonts,cleanupPreserving,initializeOwnedBrowser,fixtureApi,decision,boundary,guardApiRequest,getChromium,assertPortFree,assertOwnedListener,start,staging,publish};
+module.exports={capturePresentationEnvironment,captureCanonicalScreenshot,waitForCanonicalFonts,cleanupPreserving,initializeOwnedBrowser,fixtureApi,decision,boundary,guardApiRequest,getChromium,assertPortFree,assertOwnedListener,start,staging,publish};
