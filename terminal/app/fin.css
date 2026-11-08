@@ -1419,7 +1419,7 @@
 .fin-overview-snapshot{display:grid;gap:12px;padding:14px 15px;border:1px solid color-mix(in srgb,var(--brand) 17%,var(--hairline));border-radius:var(--r-card);background:linear-gradient(105deg,color-mix(in srgb,var(--brand) 5%,var(--panel)),var(--panel));box-shadow:var(--shadow-card)}
 .fin-overview-snapshot-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
 .fin-overview-snapshot-head>div{display:grid;gap:5px;min-width:0}
-.fin-overview-snapshot-head h2{margin:0;color:var(--text);font:670 17px/1.2 var(--font-ui);letter-spacing:-.02em}
+.fin-overview-snapshot-head .fin-sec-h.fin-rule{margin:0;padding:0;border:0;color:var(--text);font:670 17px/1.2 var(--font-ui);letter-spacing:-.02em}
 .fin-overview-snapshot-clock{flex:none;color:var(--muted);font:520 8.5px/1.25 var(--font-ui);text-align:right}
 .fin-overview-kpis{grid-template-columns:repeat(7,minmax(0,1fr));gap:0;border:1px solid var(--line);border-radius:var(--r-tile);overflow:hidden}
 .fin-overview-kpis .fin-kpi{min-height:72px;border:0;border-right:1px solid var(--line);border-radius:0;background:var(--panel-2);box-shadow:none}
@@ -1428,7 +1428,7 @@
 .fin-overview-kpis .fin-kpi .v.txt{font:620 10px/1.25 var(--font-ui)}
 .fin-overview-about{display:grid;grid-template-columns:100px minmax(0,1fr);gap:14px;padding-top:10px;border-top:1px solid var(--line-2)}
 .fin-overview-about-head{display:grid;align-content:start;gap:3px}
-.fin-overview-about-head strong{color:var(--text-2);font:650 10px/1.2 var(--font-ui)}
+.fin-overview-about-head .fin-sec-h.fin-rule{margin:0;padding:0;border:0;color:var(--text-2);font:650 10px/1.2 var(--font-ui);letter-spacing:normal}
 .fin-overview-about-head span{color:var(--muted);font:500 8px/1.2 var(--font-ui)}
 .fin-overview-about .fin-about{margin:0}
 .fin-overview-mid>.fin-grid2{gap:10px}

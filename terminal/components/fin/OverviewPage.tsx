@@ -367,7 +367,7 @@ export default function OverviewPage({ sym, fund, name, onNavigate }: OverviewPa
         <div className="fin-overview-snapshot-head">
           <div>
             <span className="fin-eyebrow">{pick(zh, "COMPANY SNAPSHOT", "公司快照")}</span>
-            <h2>{pick(zh, "Key facts", "关键数据")}</h2>
+            <SecH title={pick(zh, "Key facts", "关键数据")} />
           </div>
           {fund.asof && (
             <span className="fin-overview-snapshot-clock">
@@ -400,7 +400,7 @@ export default function OverviewPage({ sym, fund, name, onNavigate }: OverviewPa
         {desc && (
           <div className="fin-overview-about">
             <div className="fin-overview-about-head">
-              <strong>{pick(zh, "About", "公司简介")}</strong>
+              <SecH title={pick(zh, "About", "公司简介")} />
               <span>{pick(zh, "Company profile", "公司资料")}</span>
             </div>
             <p className="fin-about">
