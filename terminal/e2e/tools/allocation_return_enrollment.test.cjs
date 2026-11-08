@@ -83,9 +83,10 @@ test('shared presentation enrollment is fixed, retains dark/default Intl, and su
 test('actual finite transport aborts only exact telemetry separately and retains all business-write failures',async()=>{
  const helper=compiledTransport(),t=context();const observations=await helper.installAllocationLegacyTransport(input(t));
  assert((await t.dispatch('https://beta.mastermind-x.com/api/collect','POST')).abort);
- assert.equal(observations.blockedTelemetryAttempts.length,1);
- assert.equal(JSON.stringify(observations.blockedTelemetryAttempts),JSON.stringify([{method:'POST',path:'/api/collect',disposition:'blocked-before-transport'}]));
- for(const url of ['https://www.mastermind-x.com/api/collect','https://provider.invalid/api/collect','https://beta.mastermind-x.com/api/collect?x=1','https://beta.mastermind-x.com/api/collect#x','https://a@beta.mastermind-x.com/api/collect','https://beta.mastermind-x.com/api/investigations'])assert((await t.dispatch(url,'POST')).abort);
+ assert((await t.dispatch('https://www.mastermind-x.com/api/collect','POST')).abort);
+ assert.equal(observations.blockedTelemetryAttempts.length,2);
+ assert.equal(JSON.stringify(observations.blockedTelemetryAttempts),JSON.stringify([{origin:'shell',method:'POST',path:'/api/collect',disposition:'blocked-before-transport'},{origin:'legacy',method:'POST',path:'/api/collect',disposition:'blocked-before-transport'}]));
+ for(const url of ['https://provider.invalid/api/collect','https://beta.mastermind-x.com/api/collect?x=1','https://beta.mastermind-x.com/api/collect#x','https://a@beta.mastermind-x.com/api/collect','https://beta.mastermind-x.com/api/investigations'])assert((await t.dispatch(url,'POST')).abort);
  assert((await t.dispatch('https://beta.mastermind-x.com/api/collect','PUT')).abort);
- assert.equal(observations.mutations.length,7);assert.equal(observations.blockedTelemetryAttempts.length,1);assert.equal(t.reads.length,0);
+ assert.equal(observations.mutations.length,6);assert.equal(observations.blockedTelemetryAttempts.length,2);assert.equal(t.reads.length,0);
 });

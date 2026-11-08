@@ -75,7 +75,7 @@ test("Macro/Risk Return executes real Next Link and restores Intl in the same Ap
     }
     expect(observations.baselines).toEqual([]);
     expect(observations.mutations).toEqual([]);
-    expect(observations.blockedTelemetryAttempts.every(attempt => attempt.method === "POST"
+    expect(observations.blockedTelemetryAttempts.every(attempt => ["shell", "legacy"].includes(attempt.origin) && attempt.method === "POST"
       && attempt.path === "/api/collect" && attempt.disposition === "blocked-before-transport")).toBe(true);
     expect(observations.pageErrors).toEqual([]);
   } finally {

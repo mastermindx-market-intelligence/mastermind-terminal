@@ -51,6 +51,12 @@ for (const cell of [
       });
       expect(material.borders).toEqual(["1px", "1px", "1px", "1px"]); expect(new Set(material.colors).size).toBe(1); expect(material.radius).toBe("12px");
       states.push({ cell: cell.name, material, scope: "actual retained-source material observation, not full Paper or entitled serving" });
+      const hero = frame.locator(".hero .big");
+      await hero.scrollIntoViewIfNeeded(); await expect(hero).toBeInViewport({ ratio: 1 });
+      states.push({ cell: cell.name, heroGeometry: await hero.evaluate(node => {
+        const b = node.getBoundingClientRect(); return { x:b.x, y:b.y, width:b.width, height:b.height, viewportWidth:innerWidth, viewportHeight:innerHeight };
+      }) });
+      await page.screenshot({ path: info.outputPath(`${cell.name}-hero.png`) });
       const link = frame.locator("a.tlink").filter({ hasText: "Big Pharma" }); await expect(link).toHaveCount(1);
       expect(new URL((await link.getAttribute("href"))!, LEGACY + "/allocation.html").pathname).toBe("/basket/big_pharma.html");
       await link.scrollIntoViewIfNeeded(); await page.screenshot({ path: info.outputPath(`${cell.name}-entry.png`) });
@@ -60,6 +66,15 @@ for (const cell of [
       const receipt = frame.locator("details.lrc-receipt"); const summary = receipt.locator("summary");
       await summary.scrollIntoViewIfNeeded(); if (cell.touch) await summary.tap(); else { await summary.focus(); await summary.press("Enter"); }
       await expect(receipt).toHaveAttribute("open", ""); expect(await receipt.innerText()).toContain("2026-11-06");
+      const ledger = receipt.locator(".lrc-ledger"), rows = ledger.locator(":scope > *");
+      expect(await rows.count()).toBeGreaterThan(0);
+      await rows.first().scrollIntoViewIfNeeded(); await expect(rows.first()).toBeInViewport({ ratio: 1 });
+      await page.screenshot({ path: info.outputPath(`${cell.name}-receipt-content-start.png`) });
+      states.push({ cell: cell.name, ledgerGeometry: await ledger.evaluate(node => {
+        const b=node.getBoundingClientRect();return { x:b.x,y:b.y,width:b.width,height:b.height,viewportWidth:innerWidth,viewportHeight:innerHeight,rows:node.children.length,scrollWidth:node.scrollWidth,clientWidth:node.clientWidth };
+      }) });
+      await rows.last().scrollIntoViewIfNeeded(); await expect(rows.last()).toBeInViewport({ ratio: 1 });
+      await page.screenshot({ path: info.outputPath(`${cell.name}-receipt-content-end.png`) });
       const member = frame.locator("#hold a.tk").filter({ hasText: /^REGN$/ }); await expect(member).toHaveCount(1);
       const memberURL = new URL((await member.getAttribute("href"))!, LEGACY + "/basket/big_pharma.html"); expect(memberURL.pathname).toBe("/stock.html"); expect(memberURL.hash).toBe("#REGN");
       const returnHref = new URL((await frame.locator("a.back").getAttribute("href"))!, LEGACY + "/basket/big_pharma.html");
@@ -73,7 +88,7 @@ for (const cell of [
       expect(geometry.scroll).toBeLessThanOrEqual(geometry.width); expect(geometry.duplicateNav).toBe(false);
       await page.screenshot({ path: info.outputPath(`${cell.name}-returned.png`) }); states.push({ returned: page.url(), geometry });
       expect(observations.baselines).toEqual([]); expect(observations.mutations).toEqual([]);
-      expect(observations.blockedTelemetryAttempts.every(attempt => attempt.method === "POST"
+      expect(observations.blockedTelemetryAttempts.every(attempt => ["shell", "legacy"].includes(attempt.origin) && attempt.method === "POST"
         && attempt.path === "/api/collect" && attempt.disposition === "blocked-before-transport")).toBe(true);
       expect(observations.pageErrors).toEqual([]);
     } finally {
