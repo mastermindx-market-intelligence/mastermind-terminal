@@ -20,12 +20,12 @@
     "terminal/e2e/chart-object-tree.spec.ts": "2ec77ad0832c50cffe6296eeb020a061cf04769fdd096d00e557eb69f22e4539"
   },
   "cropSha256": {
-    "tablet-open.png": "bd34983046c6b27ad7df9208899a48b26a4de5243b83125d8d293a59204185ba",
-    "desktop-open.png": "352ce20b41c55e429e9906233cf9991a2108c20e4e796e499cf8691f01f804b8",
-    "mobile-zh.png": "a05932ca49641d1b22227aeb8c4d00271483262db0a5479cda27d83a81feaf3a",
-    "desktop-zh.png": "54cedc6c78a3fa4328c4a7911821906ce9a511df7b8a8a1fa9358a6b51d478cc",
-    "mobile-open.png": "2be387b846381e8371db03f81f8a45d5e5fa2187e65d920ad07872346e73df99",
-    "tablet-zh.png": "287ed403c3951a95cd592f41f3d4264cd1f11d93bdb0163569fed8d1f8e9e1fd",
+    "tablet-open.png": "f6fe695ed2ace7140ba0477cee7116f5f1f5663644792de9bb977fd8ec3756b9",
+    "desktop-open.png": "405a8902bd9555f83230943c52155906601a7cf95e0e6ec2e034654643f46d79",
+    "mobile-zh.png": "46675eec133dff5cb26a4984a0b67c2274991bf834598d45eebeba5189207cb3",
+    "desktop-zh.png": "80b5ef1a2182e15e3a27f87d8d1b03b58d0de806dab493ae56602f4644a78ca0",
+    "mobile-open.png": "af07f3b4d36610d75ccf3d84500ccf8b315e6eacca3b2b25b307402318ab097a",
+    "tablet-zh.png": "c69c9c5a3c73da8a22d6484a150c25bafd372461a698cf8e55cdf091908d9684",
     "desktop-before.png": "176c85f217f248e6d3e69f028940c6176cf66707cd5747aef4a5861d1bc9fecc"
   },
   "results": {
@@ -42,5 +42,32 @@
     "npx eslint components/ChartObjectTree.tsx lib/__tests__/chartObjectTree.test.tsx e2e/chart-object-tree.spec.ts",
     "npm test -- --maxWorkers=2 --minWorkers=2",
     "TERMINAL_E2E_PORT=3229 npm run test:e2e:responsive -- e2e/chart-object-tree.spec.ts e2e/chart-view-reset.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=1"
-  ]
+  ],
+  "recapture": {
+    "date": "2026-10-10",
+    "capturedAt": "2026-10-10T02:20:41Z",
+    "head": "5ad5212113a8ff11a5701f67ad3ea7317ca63dbf",
+    "command": "TERMINAL_E2E_PORT=3229 npm run test:e2e:responsive -- e2e/chart-object-tree.spec.ts e2e/chart-view-reset.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --max-failures=1",
+    "scriptModified": false,
+    "recapturedCrops": [
+      "desktop-open.png",
+      "desktop-zh.png",
+      "mobile-open.png",
+      "mobile-zh.png",
+      "tablet-open.png",
+      "tablet-zh.png"
+    ],
+    "notRecaptured": {
+      "desktop-before.png": "No producer writes this crop: e2e/chart-object-tree.spec.ts writes only <project>-open.png and <project>-zh.png. Its row is the 2026-09-22 hash, unchanged and still matching the file."
+    },
+    "fileSha256": "Unchanged. All four rows matched the tree at the recapture head before and after the run.",
+    "runs": "Two unmodified runs. Run 1 is committed. In run 2 the context-menu click scrolled the tablet document by about 506px after Playwright logged three 'element is not stable' retries, so tablet-open.png lost the original framing. A 12-run probe showed the scroll in every run that logged those retries and in none that did not. The -open test does not set reduced motion, so the 130ms ctx-pop-in animation is still running at the click.",
+    "changes": [
+      "Object-tree panel: pixel-identical on desktop-open, desktop-zh, tablet-zh and mobile-zh. On tablet-open and mobile-open only the hovered row's remove glyph differs (45 and 17 px). Its brightness varies between runs in the -open shots, which do not set reduced motion, and is stable in the reduced-motion zh shots, so the -open shot catches the glyph mid-change.",
+      "Chart behind the panel: #772 canonical 3D bar identity re-phased the 3D grid, which moved the OHLC header, candles, moving averages, Stochastic, MACD-RSI, the desktop Stochastic axis ticks and the crosshair date label.",
+      "Right rail: #831 added the News tab (Portfolio | Watchlists | News); the e2e server sets TICKER_NEWS_RAIL=1.",
+      "Left rail: an empty icon slot appears between the third icon and the chart icon. AppNav's Dislocations entry renders no glyph. Reported as a product bug; not fixed here.",
+      "Clock-driven pixels: the bottom UTC clock, the movers marquee and the bar-close countdown. The countdown reads 00:00 because periodCloseTs returns Friday's already-passed close between Friday 21:00Z and Saturday 05:00Z. Reported as a product bug; not fixed here."
+    ]
+  }
 }

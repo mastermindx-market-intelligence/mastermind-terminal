@@ -388,6 +388,8 @@ export function StackedBars({ labels, series, fmtY = fmtNum, vw = 320, vh = 180,
 export interface LineSeriesProps {
   labels: string[];
   series: Series[];
+  /** Break every series before these existing label slots without inventing a source coordinate. */
+  breakBefore?: boolean[];
   fmtY?: ValFmt;
   vw?: number;
   vh?: number;
@@ -408,7 +410,7 @@ export interface LineSeriesProps {
  * Multi-line chart with an optional dotted variant per series and optional node
  * markers. Holes (null values) break the path. Right y-axis, faint gridlines.
  */
-export function LineSeries({ labels, series, fmtY = fmtNum, vw = 320, vh = 180, markers, dotted, includeZero = false, refLine = null, noLegend, zh, height }: LineSeriesProps) {
+export function LineSeries({ labels, series, breakBefore, fmtY = fmtNum, vw = 320, vh = 180, markers, dotted, includeZero = false, refLine = null, noLegend, zh, height }: LineSeriesProps) {
   const { tip, show, hide } = useFinTip();
   const box = useBoxW(vw);
   if (allEmpty(series, labels)) return <Empty zh={zh} />;
@@ -445,6 +447,10 @@ export function LineSeries({ labels, series, fmtY = fmtNum, vw = 320, vh = 180, 
           let run: string[] = [];
           for (let i = 0; i < s.values.length; i++) {
             const v = s.values[i];
+            if (breakBefore?.[i] === true && run.length > 0) {
+              runs.push(run);
+              run = [];
+            }
             if (num(v)) {
               run.push(`${x(i)},${y(v)}`);
             } else if (run.length > 0) {
@@ -463,7 +469,8 @@ export function LineSeries({ labels, series, fmtY = fmtNum, vw = 320, vh = 180, 
               ))}
               {s.values.map((v, i) => {
                 if (!num(v)) return null;
-                const isolated = !num(s.values[i - 1]) && !num(s.values[i + 1]);
+                const isolated = (breakBefore?.[i] === true || !num(s.values[i - 1]))
+                  && (breakBefore?.[i + 1] === true || !num(s.values[i + 1]));
                 return markers || isolated
                   ? <circle key={i} className="fin-node" cx={x(i)} cy={y(v)} r={2.4} fill={col} />
                   : null;

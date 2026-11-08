@@ -65,6 +65,13 @@ export interface PlanSummary {
   phase?: string | null;
   /** Flat-shape: recommended action at top level */
   recommended_action?: string | null;
+  /**
+   * Producer-composed plain-language plan pulse. It summarizes the plan clock,
+   * phase, and human-readable management state without granting action authority.
+   * The two language fields are independent; Terminal never machine-translates one.
+   */
+  pulse?: string | null;
+  pulse_zh?: string | null;
   /** Last price from payload (optional — may be absent) */
   last_price?: number | null;
   /**
@@ -163,6 +170,19 @@ export function planPhase(plan: PlanSummary): string | null {
 /** Return recommended_action from either flat or nested shape. */
 export function planRecommendedAction(plan: PlanSummary): string | null {
   return plan.recommended_action ?? plan.state?.recommended_action ?? null;
+}
+
+/**
+ * Return the producer-composed status pulse for the requested language.
+ *
+ * Chinese never falls back to English: missing translated producer copy is an honest
+ * absence, not permission for this consumer to leak or machine-translate the other locale.
+ */
+export function planPulse(plan: PlanSummary, lang: Lang): string | null {
+  const raw = lang === "zh" ? plan.pulse_zh : plan.pulse;
+  if (typeof raw !== "string") return null;
+  const value = raw.trim();
+  return value || null;
 }
 
 /**
@@ -348,6 +368,10 @@ export function SignalCard({ plan, lang, selected, onSelect }: SignalCardProps) 
   // the compact card answers "where could I act now?", while the detail plan keeps history.
   const entryZone = entryZoneView(plan, lang);
 
+  // Quiet producer-owned status context. This is descriptive management state, never
+  // a rank, recommendation, or substitute for B4 new-entry Availability.
+  const pulse = planPulse(plan, lang);
+
   return (
     <div
       className={`obs-card obs-prophet-signal${selected ? " sel" : ""}`}
@@ -417,6 +441,14 @@ export function SignalCard({ plan, lang, selected, onSelect }: SignalCardProps) 
           </span>
         )}
       </div>
+
+      {/* Producer-owned plain-language management context; descriptive, never authority. */}
+      {pulse && (
+        <div className="obs-prophet-pulse" style={PULSE_ROW}>
+          <span style={PULSE_LABEL}>{pick(lang === "zh", "Plan status", "计划状态")}</span>
+          <span style={PULSE_TEXT}>{pulse}</span>
+        </div>
+      )}
 
       {/* Current producer-owned action band: compact enough to scan in the stream. */}
       {entryZone && (
@@ -574,6 +606,29 @@ const CHIP_BASE: React.CSSProperties = {
   fontWeight: 600,
   padding: "3px 8px",
   gap: 3,
+};
+
+const PULSE_ROW: React.CSSProperties = {
+  display: "flex",
+  alignItems: "baseline",
+  flexWrap: "wrap",
+  gap: "3px 7px",
+  marginTop: 7,
+  minWidth: 0,
+};
+
+const PULSE_LABEL: React.CSSProperties = {
+  font: "600 9px/1.2 var(--font-ui)",
+  color: "var(--muted)",
+  letterSpacing: ".035em",
+  textTransform: "uppercase",
+};
+
+const PULSE_TEXT: React.CSSProperties = {
+  minWidth: 0,
+  font: "500 9.5px/1.35 var(--font-ui)",
+  color: "var(--text-2)",
+  overflowWrap: "anywhere",
 };
 
 const ENTRY_ZONE: React.CSSProperties = {

@@ -73,10 +73,10 @@ type AQ = "annual" | "quarterly";
 
 /**
  * Section header with optional uppercase eyebrow above and a `›` jump to a
- * sibling tab. v7 framework transfer: rail + hairline rule on every header.
- * Rail stays `var(--brand)` (analytical) across this page — no section on the
- * Overview is a directional call or a caution block, and a static `--warn` rail
- * on "Financial health" would read as a verdict on every company alike.
+ * sibling tab. Headings stay instrument-neutral: the hairline rule is the only
+ * chrome, no decorative rail. The jump is a native button inside the heading —
+ * Enter/Space activation is the platform's, so no synthetic key handlers —
+ * and static headings remain plain <h2> text.
  */
 function SecH({
   title,
@@ -84,29 +84,31 @@ function SecH({
   cap,
   page,
   onNavigate,
-  rail = "var(--brand)",
 }: {
   title: string;
   eyebrow?: string;
   cap?: string;
   page?: FinPage;
   onNavigate?: (p: FinPage) => void;
-  rail?: string;
 }) {
   const clickable = !!page && !!onNavigate;
   return (
     <>
       {eyebrow && <div className="fin-eyebrow">{eyebrow}</div>}
-      <div
-        className={"fin-sec-h fin-rail fin-rule" + (clickable ? " link" : "")}
-        style={{ "--rail": rail } as React.CSSProperties}
-        onClick={clickable ? () => onNavigate!(page!) : undefined}
-        role={clickable ? "button" : undefined}
-        tabIndex={clickable ? 0 : undefined}
-      >
-        <span>{title}</span>
-        {clickable && <span className="chev">›</span>}
-      </div>
+      <h2 className={"fin-sec-h fin-rule" + (clickable ? " link" : "")}>
+        {clickable ? (
+          <button
+            type="button"
+            className="fin-sec-action"
+            onClick={() => onNavigate!(page!)}
+          >
+            <span>{title}</span>
+            <span className="chev" aria-hidden="true">›</span>
+          </button>
+        ) : (
+          title
+        )}
+      </h2>
       {cap && <div className="fin-sec-cap">{cap}</div>}
     </>
   );

@@ -1,0 +1,10 @@
+{
+  "schema": "mastermind.terminal.release_preflight_receipt.v1",
+  "observedAt": "2026-11-04T06:40:43Z",
+  "accepted_sha": "db06eacd8938cf44588d3906bca95bfd7122b74b",
+  "receipt_id": "d1f447335634ac90d466f91c3443c730132c3db735fc926c88c1e6e3fdbf1abe",
+  "source_audit_receipt_id": "c002e73b1cdb7ddc81a144f87d5a22a231d82529264bd8d9277e88b6c47eaae0",
+  "receipt_file_sha256": "9c5d61107068a24b0a3b8091d58f05b3c3c1447a72bb99535ae462664e63fa74",
+  "result": "CLEAN",
+  "scope": "Current deployed source only; not a release authorization, new candidate build or authenticated browser proof. Source/service/data were unchanged."
+}
