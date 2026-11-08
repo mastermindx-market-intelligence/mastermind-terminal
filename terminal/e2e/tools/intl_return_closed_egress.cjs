@@ -3,7 +3,7 @@
 // Runner/driver-only preload. Server children retain the incumbent single-port
 // preload. No canonical Beta/www/provider DNS or sockets are permitted here.
 const path=require("node:path");
-const {proxyAllowed,ownedBase}=require("./intl_return_closed_policy.cjs");
+const {proxyAllowed,ownedBase,fixtureCase}=require("./intl_return_closed_policy.cjs");
 function ownedUpgradeHeaders(headers,ws,operationDir) {
   if(!headers || typeof headers!=="object" || Array.isArray(headers))return false;
   const h={},allowed=["host","connection","upgrade","sec-websocket-version","sec-websocket-key","sec-websocket-extensions","user-agent","x-playwright-browser","x-playwright-launch-options","x-playwright-proxy"];
@@ -31,8 +31,8 @@ function ownedUpgradeHeaders(headers,ws,operationDir) {
   }
   return true;
 }
-function install(base,endpoint,modules={net:require("node:net"),dns:require("node:dns"),http:require("node:http"),https:require("node:https"),global:globalThis},operationDir=process.env.TERMINAL_INTL_RETURN_OPERATION ? path.dirname(process.env.TERMINAL_INTL_RETURN_OPERATION) : null) {
-  base=ownedBase(base);const ws=new URL(endpoint);
+function install(base,endpoint,modules={net:require("node:net"),dns:require("node:dns"),http:require("node:http"),https:require("node:https"),global:globalThis},operationDir=process.env.TERMINAL_INTL_RETURN_OPERATION ? path.dirname(process.env.TERMINAL_INTL_RETURN_OPERATION) : null,selected="intl") {
+  fixtureCase(selected);base=ownedBase(base);const ws=new URL(endpoint);
   if(ws.protocol!=="ws:" || ws.hostname!=="127.0.0.1" || !/^\d+$/.test(ws.port)
     || Number(ws.port)<1024 || ws.username || ws.password || ws.search || ws.hash)throw Error("INTL_RETURN_BROWSER_ENDPOINT");
   const ports=[Number(new URL(base).port),Number(ws.port)];
@@ -82,14 +82,14 @@ function install(base,endpoint,modules={net:require("node:net"),dns:require("nod
     const ownedUpgrade=method==="GET" && url.href===endpoint.replace(/^ws:/,"http:");
     // A WS handshake never falls through to the ordinary Next read authority.
     if(handshake || ownedUpgrade){if(!ownedUpgrade || !ownedUpgradeHeaders(headers,ws,operationDir))return denied();}
-    else if(!proxyAllowed(url.href,method,base))return denied();
+    else if(!proxyAllowed(url.href,method,base,selected))return denied();
     return request.apply(this,args);
   };
   modules.http.get=function(...args){const req=modules.http.request(...args);req.end();return req;};
   modules.https.request=denied;modules.https.get=denied;
   const fetch=modules.global.fetch;
   modules.global.fetch=async(input,options={})=>{
-    if(typeof input!=="string" || !proxyAllowed(input,options.method || "GET",base) || options.redirect!=="manual")return denied();
+    if(typeof input!=="string" || !proxyAllowed(input,options.method || "GET",base,selected) || options.redirect!=="manual")return denied();
     return fetch(input,options);
   };
 }
@@ -99,6 +99,6 @@ if(process.env.TERMINAL_INTL_RETURN_OPERATION){
   if(!st.isFile() || st.uid!==process.getuid() || (st.mode&0o777)!==0o600 || st.size>8192
     || !parent.isDirectory() || parent.uid!==process.getuid() || (parent.mode&0o777)!==0o700)
     throw Error("INTL_RETURN_OPERATION_CUSTODY");
-  const input=JSON.parse(fs.readFileSync(file,"utf8"));install(input.baseURL,input.wsEndpoint);
+  const input=JSON.parse(fs.readFileSync(file,"utf8"));install(input.baseURL,input.wsEndpoint,undefined,path.dirname(file),fixtureCase(input.fixtureCase));
 }
 module.exports={install};

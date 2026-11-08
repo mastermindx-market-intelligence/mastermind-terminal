@@ -75,6 +75,8 @@ test("Macro/Risk Return executes real Next Link and restores Intl in the same Ap
     }
     expect(observations.baselines).toEqual([]);
     expect(observations.mutations).toEqual([]);
+    expect(observations.blockedTelemetryAttempts.every(attempt => attempt.method === "POST"
+      && attempt.path === "/api/collect" && attempt.disposition === "blocked-before-transport")).toBe(true);
     expect(observations.pageErrors).toEqual([]);
   } finally {
     await info.attach("real-next-intl-return", { body: JSON.stringify({ basis: "Real Next/AppShell/Link; pinned real-Jinja Macro fixture; controlled HTTP/read fixtures only, no live auth/feed/OPEN", observations, states }, null, 2), contentType: "application/json" });

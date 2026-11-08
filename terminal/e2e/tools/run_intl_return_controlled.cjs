@@ -23,13 +23,18 @@ async function runOwned(command,args,options,timeoutMs=150000,{spawn=cp.spawn,tr
       catch(cleanup){error.cleanupError=cleanup;error.runnerCleanup={unknown:true,code:cleanup.code || cleanup.message};}}
     else error.runnerCustody={pid:child?.pid,unknown:true};throw error;}
 }
+function selectedFixture(args) {
+  if(args.length===0)return "intl";
+  if(args.length===1 && args[0]==="--allocation-p12t58")return "allocation-p12t58";
+  throw Error("INTL_RETURN_FIXED_SCOPE");
+}
 async function main(){
-  if(process.argv.length!==2)throw Error("INTL_RETURN_FIXED_SCOPE");
+  const selected=selectedFixture(process.argv.slice(2)),allocation=selected==="allocation-p12t58";
   const root=path.resolve(__dirname,"../.."),port=Number(process.env.TERMINAL_CROP_PORT);
   await runtime.assertPortFree(port);
   const tmp=fs.realpathSync(process.env.TMPDIR),st=fs.lstatSync(tmp);
   if(!st.isDirectory() || st.uid!==process.getuid() || (st.mode&0o777)!==0o700)throw Error("INTL_RETURN_PRIVATE_TMPDIR");
-  const stage=fs.mkdtempSync(path.join(tmp,"intl-return-"));fs.chmodSync(stage,0o700);
+  const stage=fs.mkdtempSync(path.join(tmp,allocation?"allocation-return-":"intl-return-"));fs.chmodSync(stage,0o700);
   const head=cp.execFileSync("git",["rev-parse","HEAD"],{cwd:root,encoding:"utf8"}).trim();
   cp.execFileSync("git",["diff","--exit-code","HEAD","--"],{cwd:root,stdio:"pipe"});
   const modulePath=process.env.THESIS_CAPTURE_PLAYWRIGHT_MODULE;
@@ -37,15 +42,15 @@ async function main(){
   const chromium=runtime.getChromium();let server,browser,primary,result,cleanupError;
   const operation=path.join(stage,"runner-input.json"),log=path.join(stage,"runner.log");
   try{
-    server=await runtime.start(root,port,stage,"shared-shell-intl-return");await server.ready();
+    server=await runtime.start(root,port,stage,allocation?"shared-shell-allocation-return":"shared-shell-intl-return");await server.ready();
     browser=await chromium.launch({headless:true,host:"127.0.0.1"});
     const tsconfig=path.join(stage,"tsconfig.json");
     fs.writeFileSync(tsconfig,JSON.stringify({compilerOptions:{baseUrl:root,paths:{"@/*":[path.join(root,"*")],"@playwright/test":[path.join(modulePath,"test")]}}}),{mode:0o600});
-    fs.writeFileSync(operation,JSON.stringify({baseURL:`http://127.0.0.1:${port}`,wsEndpoint:browser.thesisOwnedWsEndpoint,playwrightModule:modulePath,sourceHead:head}),{mode:0o600});
+    fs.writeFileSync(operation,JSON.stringify({baseURL:`http://127.0.0.1:${port}`,wsEndpoint:browser.thesisOwnedWsEndpoint,playwrightModule:modulePath,sourceHead:head,fixtureCase:selected}),{mode:0o600});
     const fd=fs.openSync(log,"wx",0o600);let runnerError;
     try{
       result=await runOwned(process.execPath,[path.join(modulePath,"cli.js"),"test","--config",path.join(__dirname,"intl_return_controlled.config.cjs"),"--tsconfig",tsconfig],
-        {cwd:root,env:{...captureServerEnv(),MMX_SHARED_SHELL:"1",TERMINAL_VISUAL_EVIDENCE_OPERATION:"intl-return-controlled",TERMINAL_INTL_RETURN_OPERATION:operation,
+        {cwd:root,env:{...captureServerEnv(),MMX_SHARED_SHELL:"1",TERMINAL_VISUAL_EVIDENCE_OPERATION:allocation?"allocation-return-controlled":"intl-return-controlled",TERMINAL_INTL_RETURN_OPERATION:operation,
           NODE_OPTIONS:`--require ${JSON.stringify(path.join(__dirname,"intl_return_closed_egress.cjs"))}`},stdio:["ignore",fd,fd]});
     }catch(error){runnerError=error;throw error;}
     finally{
@@ -73,7 +78,7 @@ async function main(){
     if(bytes>262144)throw Error("INTL_RETURN_LOG_LIMIT");
     logFacts={bytes,sha256:createHash("sha256").update(fs.readFileSync(log)).digest("hex")};
   }}catch(error){if(primary)primary.logEvidenceError=error;else primary=error;}
-  const report={sourceHead:head,scope:"unchanged real Next Return; controlled retained fixture; CLOSED server",
+  const report={sourceHead:head,fixtureCase:selected,scope:allocation?"retained allocation source/bridge fixture; no entitlement or current data claim; CLOSED server":"unchanged real Next Return; controlled retained fixture; CLOSED server",
     primary:primary ? {name:primary.name,message:primary.message,runnerProcess:primary.runnerProcess,
       runnerSettlement:primary.runnerSettlement,runnerCleanup:primary.runnerCleanup,runnerCustody:primary.runnerCustody,
       logCloseError:primary.logCloseError ? {name:primary.logCloseError.name,code:primary.logCloseError.code,message:primary.logCloseError.message} : null} : null,
@@ -86,5 +91,5 @@ async function main(){
   console.log(JSON.stringify({result:path.join(stage,"RESULT.json"),success:!primary&&!cleanupError}));
   if(primary){if(cleanupError)primary.cleanupError=cleanupError;throw primary;}if(cleanupError)throw cleanupError;
 }
-module.exports={cleanupAll,runOwned,main};
+module.exports={cleanupAll,runOwned,selectedFixture,main};
 if(require.main===module)main().catch(error=>{console.error(error);process.exitCode=1;});

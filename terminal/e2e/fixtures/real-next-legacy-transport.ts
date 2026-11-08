@@ -14,11 +14,27 @@ type NextNavigationObservation = {
 };
 const mime: Record<string, string> = { ".css": "text/css", ".js": "text/javascript", ".woff2": "font/woff2", ".png": "image/png", ".svg": "image/svg+xml" };
 
-export async function installRealNextLegacyTransport({ page, context, baseURL, canonicalChildPath, html, assetsDirectory, assets }: {
+export async function installRealNextLegacyTransport({ page, context, baseURL, canonicalChildPath, html, assetsDirectory, assets, fixtureCase, documents }: {
   page: Page; context: BrowserContext; baseURL: string;
-  canonicalChildPath: "/intl.html"; html: Buffer; assetsDirectory?: string; assets?: ReadonlyMap<string, Buffer>;
+  canonicalChildPath?: "/intl.html"; html?: Buffer; assetsDirectory?: string; assets?: ReadonlyMap<string, Buffer>;
+  fixtureCase?: "allocation-p12t58"; documents?: ReadonlyMap<string, Buffer>;
 }) {
-  expect(canonicalChildPath).toBe("/intl.html");
+  let pages: ReadonlyMap<string, Buffer>;
+  if (fixtureCase === "allocation-p12t58") {
+    if (canonicalChildPath !== undefined || html !== undefined || assetsDirectory !== undefined || assets === undefined
+      || !(documents instanceof Map) || documents.size !== 2
+      || [...documents.keys()].some(key => !["/allocation.html", "/basket/big_pharma.html"].includes(key))
+      || [...documents.values()].some(body => !Buffer.isBuffer(body) || body.length === 0))
+      throw new Error("ALLOCATION_RETURN_DOCUMENT_SCOPE");
+    // Retained reader pins hashes before this call. Copy buffers to bind the
+    // installed handler to that input even if a caller later mutates its map.
+    pages = new Map([...documents].map(([key, body]) => [key, Buffer.from(body)]));
+    assets = new Map([...assets].map(([key, body]) => [key, Buffer.from(body)]));
+  } else {
+    if (fixtureCase !== undefined || documents !== undefined || !Buffer.isBuffer(html)) throw new Error("RETURN_FIXTURE_CASE");
+    expect(canonicalChildPath).toBe("/intl.html");
+    pages = new Map([["/intl.html", html]]);
+  }
   expect((assetsDirectory === undefined) !== (assets === undefined), "One explicit source asset input").toBe(true);
   if (!process.env.CI && process.env.TERMINAL_VISUAL_EVIDENCE_OPERATION === undefined) {
     throw new Error("Use the incumbent fresh-owned server harness; never reuse an unrelated local Next server.");
@@ -29,7 +45,7 @@ export async function installRealNextLegacyTransport({ page, context, baseURL, c
   expect(native.pathname).toBe("/");
   expect(["localhost", "127.0.0.1"]).toContain(native.hostname);
   expect(native.port, "Never borrow the original unknown3100 operation").not.toBe("3100");
-  const observations = { mutations: [] as string[], baselines: [] as string[], pageErrors: [] as string[], nextRequests: [] as string[], nextNavigations: [] as NextNavigationObservation[], omittedNextNavigations: 0 };
+  const observations = { blockedTelemetryAttempts: [] as Array<{ method: "POST"; path: "/api/collect"; disposition: "blocked-before-transport" }>, mutations: [] as string[], baselines: [] as string[], pageErrors: [] as string[], nextRequests: [] as string[], nextNavigations: [] as NextNavigationObservation[], omittedNextNavigations: 0 };
   page.on("pageerror", error => observations.pageErrors.push(error.message));
   await context.addCookies([
     { name: "mm_e2e_rs30", value: "1", url: SHELL },
@@ -39,6 +55,11 @@ export async function installRealNextLegacyTransport({ page, context, baseURL, c
   await context.route("**/*", async route => {
     const request = route.request(), url = new URL(request.url());
     if (!["GET", "HEAD"].includes(request.method())) {
+      if (request.method() === "POST" && url.origin === SHELL && url.pathname === "/api/collect"
+        && !url.search && !url.hash && !url.username && !url.password) {
+        observations.blockedTelemetryAttempts.push({ method: "POST", path: "/api/collect", disposition: "blocked-before-transport" });
+        await route.abort("blockedbyclient"); return;
+      }
       observations.mutations.push(`${request.method()} ${url.pathname}`);
       await route.abort("blockedbyclient"); return;
     }
@@ -55,7 +76,7 @@ export async function installRealNextLegacyTransport({ page, context, baseURL, c
         "/data/manifest.json": { as_of: null, symbols: {} },
       };
       if (Object.hasOwn(readFixtures, url.pathname)) { await route.fulfill({ json: readFixtures[url.pathname] }); return; }
-      if (url.pathname.startsWith("/_next/") || ["/analysis", canonicalChildPath, "/api/shared-shell/status"].includes(url.pathname)) {
+      if (url.pathname.startsWith("/_next/") || (pages.has(url.pathname) || (fixtureCase === undefined && url.pathname === "/analysis") || url.pathname === "/api/shared-shell/status")) {
         // Real SSR/RSC/chunks from the existing fresh Next process. Forward only
         // ordinary Next navigation headers and two fixed fixture cookies, never
         // a credential/profile. Redirects stay observable rather than rewritten.
@@ -64,7 +85,7 @@ export async function installRealNextLegacyTransport({ page, context, baseURL, c
         for (const key of ["accept", "rsc", "next-router-state-tree", "next-router-prefetch", "next-url"]) if (incoming[key]) headers[key] = incoming[key];
         observations.nextRequests.push(url.pathname);
         // Bounded route diagnostics only: no query, cookie, header value or body.
-        const navigation: NextNavigationObservation | null = ["/analysis", canonicalChildPath].includes(url.pathname)
+        const navigation: NextNavigationObservation | null = (pages.has(url.pathname) || (fixtureCase === undefined && url.pathname === "/analysis"))
           ? { path: url.pathname, resourceType: request.resourceType(), navigation: request.isNavigationRequest(),
               rsc: incoming.rsc === "1", routerStatePresent: !!incoming["next-router-state-tree"], status: null, contentType: null }
           : null;
@@ -82,7 +103,7 @@ export async function installRealNextLegacyTransport({ page, context, baseURL, c
       }
     }
     if (url.origin === LEGACY) {
-      if (url.pathname === canonicalChildPath) { await route.fulfill({ contentType: "text/html; charset=utf-8", body: html }); return; }
+      if (pages.has(url.pathname)) { await route.fulfill({ contentType: "text/html; charset=utf-8", body: pages.get(url.pathname)! }); return; }
       if (assets !== undefined) {
         const body = assets.get(url.pathname);
         if (body && Object.hasOwn(mime, path.extname(url.pathname))) {
@@ -99,4 +120,12 @@ export async function installRealNextLegacyTransport({ page, context, baseURL, c
     await route.abort("blockedbyclient"); // No live Macro/feed/account/provider escape.
   });
   return observations;
+}
+
+// One finite retained family, not a path registry or a live Macro proxy.
+export async function installAllocationLegacyTransport(input: {
+  page: Page; context: BrowserContext; baseURL: string;
+  documents: ReadonlyMap<string, Buffer>; assets: ReadonlyMap<string, Buffer>;
+}) {
+  return installRealNextLegacyTransport({ ...input, fixtureCase: "allocation-p12t58" });
 }
