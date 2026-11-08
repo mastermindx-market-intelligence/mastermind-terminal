@@ -1434,7 +1434,9 @@ for (const lang of ["en", "zh"] as const) {
       { name: "mm_e2e_rs30", value: "1", url: baseURL! },
       { name: "sb-127-auth-token.0", value: "base64-" + Buffer.from(JSON.stringify(session)).toString("base64url"), url: baseURL! },
     ]);
-    await page.emulateMedia({ colorScheme: "light" });
+    // Opposite to the saved explicit Light choice: auto-mode fallback must not
+    // make a lost preference appear to survive a cold document load.
+    await page.emulateMedia({ colorScheme: "dark" });
     await page.clock.install({ time: new Date(FIXED_NOW) });
     await page.addInitScript(locale => {
       // Locale is part of the declared fixture. Theme is NEVER seeded here,
@@ -1483,6 +1485,7 @@ for (const lang of ["en", "zh"] as const) {
       const observed = await page.evaluate(() => ({
         theme: document.documentElement.dataset.theme,
         bodyBackground: getComputedStyle(document.body).backgroundColor,
+        osPrefersDark: matchMedia("(prefers-color-scheme: dark)").matches,
         appearanceOwner: document.documentElement.dataset.terminalAppearance ?? null,
         documentId: (window as unknown as { exposureColdDocumentId: string }).exposureColdDocumentId,
       }));
@@ -1493,6 +1496,7 @@ for (const lang of ["en", "zh"] as const) {
       await expect(page.locator("html"), `saved Light intent survives ${stage}`)
         .toHaveAttribute("data-theme", "light");
       const observed = await record(stage);
+      expect(observed.osPrefersDark, `explicit Light is independent of dark OS at ${stage}`).toBe(true);
       const rgb = observed.bodyBackground.match(/\d+/g)?.slice(0, 3).map(Number) ?? [];
       expect(rgb, `computed body background at ${stage}`).toHaveLength(3);
       expect(Math.min(...rgb), `Light body background at ${stage}`).toBeGreaterThan(200);
@@ -1504,6 +1508,7 @@ for (const lang of ["en", "zh"] as const) {
       await expect.poll(() => authReads, { message: "canonical fixture account actually loaded" }).toBeGreaterThan(0);
       await selectActualLight(page, lang, "s14-first-intent");
       await expect.poll(() => user.user_metadata.theme, { message: "Settings preference write acknowledged by local fixture" }).toBe("light");
+      expect(user.user_metadata.theme_auto, "explicit Settings choice is acknowledged, not auto mode").toBe("0");
       await expectLight("initial Settings choice");
       await map.getByLabel(mt("scope"), { exact: true }).selectOption(SELECTED_EXPIRY);
       const leader = map.getByRole("button", {
