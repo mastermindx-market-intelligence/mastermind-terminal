@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 // Existing responsive fixture server and route. No new fixture/auth seam.
 for (const lang of ["en", "zh"] as const) {
-  test(`heatmap table keyboard sorting and inspection in ${lang}`, async ({ page }) => {
+  test(`heatmap table keyboard sorting and inspection in ${lang}`, async ({ page }, testInfo) => {
     await page.addInitScript(locale => {
       localStorage.setItem("mm.lang", locale);
       document.documentElement.setAttribute("data-lang", locale);
@@ -37,9 +37,15 @@ for (const lang of ["en", "zh"] as const) {
         expect(names).toEqual(next === "ascending" ? expected : expected.reverse());
         await expect(table.locator("th[aria-sort]")).toHaveCount(1);
       }
+      // Retain actual keyboard-focus views for the existing responsive CI artifacts.
+      await page.screenshot({ path: testInfo.outputPath(`heatmap-${lang}-${layer}-sort-focus.png`) });
       const inspect = table.locator("tbody tr td:first-child button").first();
       for (const key of ["Enter", "Space"]) {
         await inspect.focus();
+        if (key === "Enter") {
+          await expect(inspect).toBeFocused();
+          await page.screenshot({ path: testInfo.outputPath(`heatmap-${lang}-${layer}-inspect-focus.png`) });
+        }
         await inspect.press(key);
         const close = page.getByRole("button", { name: lang === "zh" ? "关闭" : "Close", exact: true });
         await expect(close).toBeVisible();
