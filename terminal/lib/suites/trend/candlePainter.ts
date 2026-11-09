@@ -56,7 +56,9 @@ const VOL_LOW = 0.35; // percentile below which only border+wick are painted
 const RSI_HI = 60;
 const RSI_LO = 40;
 
-type Mode = "trend" | "momentum" | "trendVolume" | "momentumVolume";
+export type CandleMode = "trend" | "momentum" | "trendVolume" | "momentumVolume";
+type Mode = CandleMode;
+export type CandleInput = Pick<SuiteBar, "o" | "h" | "l" | "c" | "v">;
 const MODES = ["trend", "momentum", "trendVolume", "momentumVolume"] as const;
 
 // ------------------------------------------------------------------------------------- settings
@@ -69,7 +71,7 @@ function selOpt<T extends string>(v: any, d: T, allowed: readonly T[]): T {
 }
 
 /** A bar with a zero/NaN price is MISSING, not a print (CN/HK premarket pushes OHLC=0). */
-function validBar(b: SuiteBar | undefined): b is SuiteBar {
+function validBar(b: CandleInput | undefined): b is CandleInput {
   if (!b) return false;
   return Number.isFinite(b.o) && Number.isFinite(b.h) && Number.isFinite(b.l) && Number.isFinite(b.c) && b.c > 0;
 }
@@ -78,7 +80,7 @@ function validBar(b: SuiteBar | undefined): b is SuiteBar {
  * EMA over closes. Invalid bars carry the previous value forward (they do not poison the average).
  * Values before `len` valid closes have been seen are null — the caller renders those bars neutral.
  */
-function emaSeries(bars: SuiteBar[], len: number): Array<number | null> {
+function emaSeries(bars: readonly CandleInput[], len: number): Array<number | null> {
   const n = bars.length;
   const out = new Array<number | null>(n).fill(null);
   const k = 2 / (len + 1);
@@ -105,7 +107,7 @@ function emaSeries(bars: SuiteBar[], len: number): Array<number | null> {
 }
 
 /** Wilder RSI over closes. Null until `len` deltas have accumulated. */
-function rsiSeries(bars: SuiteBar[], len: number): Array<number | null> {
+function rsiSeries(bars: readonly CandleInput[], len: number): Array<number | null> {
   const n = bars.length;
   const out = new Array<number | null>(n).fill(null);
   let prevC: number | null = null;
@@ -152,87 +154,91 @@ function rsiSeries(bars: SuiteBar[], len: number): Array<number | null> {
  * Returns 0.5 (neutral) while the sample is too small or the volume is unusable, so warm-up bars
  * get the mid-intensity treatment instead of a misleading "quiet bar" outline.
  */
-function volPercentile(bars: SuiteBar[], i: number): number {
+export interface CandleVolumeRank { percentile: number | null; samples: number }
+
+/** Empirical CDF, ties included, of positive volume in at most 100 STRICTLY prior bars. */
+export function candleVolumeRank(bars: readonly CandleInput[], i: number): CandleVolumeRank {
   const v = bars[i]?.v;
-  if (!Number.isFinite(v) || (v as number) <= 0) return 0.5;
-  const from = Math.max(0, i - VOL_WINDOW);
-  let count = 0;
-  let le = 0;
-  for (let k = from; k < i; k++) {
-    const pv = bars[k]?.v;
-    if (!Number.isFinite(pv) || (pv as number) <= 0) continue;
-    count++;
-    if ((pv as number) <= (v as number)) le++;
+  let samples = 0, lessOrEqual = 0;
+  for (let k = Math.max(0, i - VOL_WINDOW); k < i; k++) {
+    const prior = bars[k]?.v;
+    if (!Number.isFinite(prior) || prior <= 0) continue;
+    samples++;
+    if (prior <= v) lessOrEqual++;
   }
-  if (count < VOL_MIN_SAMPLE) return 0.5;
-  return le / count;
+  return {
+    percentile: !Number.isFinite(v) || v <= 0 || samples < VOL_MIN_SAMPLE ? null : lessOrEqual / samples,
+    samples,
+  };
 }
 
-// ---------------------------------------------------------------------------------------- compute
+export type CandleState = "up" | "down" | "weakening" | "neutral" | "warming" | "missing";
+export interface CandleFacts {
+  index: number;
+  state: CandleState;
+  momentum: CandleState;
+  trend: CandleState;
+  rsi14: number | null;
+  previousRsi14: number | null;
+  ema20: number | null;
+  ema50: number | null;
+  volumePercentile: number | null;
+  volumeSamples: number;
+}
+
+export function normalizeCandleMode(mode: unknown): CandleMode {
+  return selOpt(mode, "momentum" as Mode, MODES);
+}
+
+/**
+ * ONE canonical state producer for candle paint and inspectable chart context.
+ * Same seeds, warm-up, invalid-bar handling and thresholds as the original painter.
+ * Values at i never consume a future bar. No DOM, clock, cache or mutable global state.
+ */
+export function analyzeCandleSeries(bars: readonly CandleInput[], selectedMode: unknown = "momentum"): CandleFacts[] {
+  const mode = normalizeCandleMode(selectedMode);
+  const isMomentum = mode === "momentum" || mode === "momentumVolume";
+  const fast = emaSeries(bars, EMA_FAST), slow = emaSeries(bars, EMA_SLOW), rsi = rsiSeries(bars, RSI_LEN);
+  return bars.map((bar, i) => {
+    let momentum: CandleState = "missing", trend: CandleState = "missing";
+    let previousRsi14: number | null = null;
+    for (let k = i - 1; k >= 0 && k >= i - 5; k--) {
+      if (rsi[k] !== null) { previousRsi14 = rsi[k]; break; }
+    }
+    if (validBar(bar)) {
+      const r = rsi[i], f = fast[i], sl = slow[i];
+      momentum = r === null ? "warming"
+        : r >= RSI_HI ? "up" : r <= RSI_LO ? "down"
+        : previousRsi14 !== null && r < previousRsi14 ? "weakening" : "neutral";
+      trend = f === null || sl === null ? "warming"
+        : f > sl && bar.c >= Math.max(f, sl) ? "up"
+        : f < sl && bar.c <= Math.min(f, sl) ? "down" : "neutral";
+    }
+    const volume = candleVolumeRank(bars, i);
+    return {
+      index: i, state: isMomentum ? momentum : trend, momentum, trend,
+      rsi14: validBar(bar) ? rsi[i] : null, previousRsi14,
+      ema20: validBar(bar) ? fast[i] : null, ema50: validBar(bar) ? slow[i] : null,
+      volumePercentile: volume.percentile, volumeSamples: volume.samples,
+    };
+  });
+}
 
 function compute(ctx: ModuleCtx): ModuleResult {
-  const { bars, colors } = ctx;
-  const n = bars.length;
-  if (!n) return { prims: [] };
-
-  const s = ctx.s || {};
-  const mode = selOpt(s.mode, "momentum" as Mode, MODES);
-  const isMomentum = mode === "momentum" || mode === "momentumVolume";
+  if (!ctx.bars.length) return { prims: [] };
+  const mode = normalizeCandleMode(ctx.s?.mode);
   const byVolume = mode === "trendVolume" || mode === "momentumVolume";
-
-  const fast = isMomentum ? null : emaSeries(bars, EMA_FAST);
-  const slow = isMomentum ? null : emaSeries(bars, EMA_SLOW);
-  const rsi = isMomentum ? rsiSeries(bars, RSI_LEN) : null;
-
-  const paint: CandlePaintEntry[] = new Array(n);
-
-  for (let i = 0; i < n; i++) {
-    const b = bars[i];
-    let col = colors.muted;
-
-    if (validBar(b)) {
-      if (isMomentum) {
-        const r = rsi![i];
-        if (r !== null) {
-          if (r >= RSI_HI) col = colors.up;
-          else if (r <= RSI_LO) col = colors.down;
-          else {
-            // inside the 40..60 band: falling RSI = momentum bleeding out
-            let prev: number | null = null;
-            for (let k = i - 1; k >= 0 && k >= i - 5; k--) {
-              if (rsi![k] !== null) {
-                prev = rsi![k];
-                break;
-              }
-            }
-            col = prev !== null && r < prev ? colors.warn : colors.muted;
-          }
-        }
-      } else {
-        const f = fast![i];
-        const sl = slow![i];
-        if (f !== null && sl !== null) {
-          const hi = Math.max(f, sl);
-          const lo = Math.min(f, sl);
-          if (f > sl && b.c >= hi) col = colors.up;
-          else if (f < sl && b.c <= lo) col = colors.down;
-          else col = colors.muted; // inside the cross
-        }
-      }
-    }
-
-    if (!byVolume) {
-      paint[i] = { i, color: col, borderColor: col, wickColor: col };
-      continue;
-    }
-
-    // volume modes: the hue is constant, the AMOUNT of candle it takes over is the intensity
-    const pct = volPercentile(bars, i);
-    if (pct >= VOL_HIGH) paint[i] = { i, color: col, borderColor: col, wickColor: col };
-    else if (pct >= VOL_LOW) paint[i] = { i, color: col, borderColor: col };
-    else paint[i] = { i, borderColor: col, wickColor: col };
-  }
-
+  const paint: CandlePaintEntry[] = analyzeCandleSeries(ctx.bars, mode).map((fact) => {
+    const i = fact.index;
+    const col = fact.state === "up" ? ctx.colors.up : fact.state === "down" ? ctx.colors.down
+      : fact.state === "weakening" ? ctx.colors.warn : ctx.colors.muted;
+    if (!byVolume) return { i, color: col, borderColor: col, wickColor: col };
+    // Preserve the legacy mid-intensity fallback. Context distinguishes it from a measured rank.
+    const pct = fact.volumePercentile ?? 0.5;
+    if (pct >= VOL_HIGH) return { i, color: col, borderColor: col, wickColor: col };
+    if (pct >= VOL_LOW) return { i, color: col, borderColor: col };
+    return { i, borderColor: col, wickColor: col };
+  });
   return { prims: [], candlePaint: paint };
 }
 

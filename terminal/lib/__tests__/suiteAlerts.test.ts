@@ -287,7 +287,7 @@ describe("evalSuiteEvent — freshness and the creation floor", () => {
   it("fires on a matching event inside the freshness window that clears the floor", () => {
     const res = evalSuiteEvent(BOS, [ev("bos", 9, { p: 101.25 })], T, 0);
     expect(res.fired).toBe(true);
-    expect(res.state).toEqual({ lastFiredT: T[9] });
+    expect(res.state).toEqual({ lastFiredT: T[9], clockVersion: 2 });
     expect(res.value).toBe(101.25); // bos is unscored → the event price is the reported value
   });
 
@@ -315,7 +315,7 @@ describe("evalSuiteEvent — freshness and the creation floor", () => {
     // ...but a NEWER event on a later bar still fires
     const next = evalSuiteEvent(armed, [ev("bos", 8), ev("bos", 9)], T, 0);
     expect(next.fired).toBe(true);
-    expect(next.state).toEqual({ lastFiredT: T[9] });
+    expect(next.state).toEqual({ lastFiredT: T[9], clockVersion: 2 });
   });
 
   it("takes the NEWEST matching event when several are fresh", () => {
@@ -327,7 +327,7 @@ describe("evalSuiteEvent — freshness and the creation floor", () => {
     );
     expect(res.fired).toBe(true);
     expect(res.value).toBe(88);
-    expect(res.state).toEqual({ lastFiredT: T[9] });
+    expect(res.state).toEqual({ lastFiredT: T[9], clockVersion: 2 });
   });
 
   it("ignores foreign types, out-of-range indices, empty tapes and unknown events", () => {
@@ -369,7 +369,7 @@ describe("evalSuiteEvent — filters", () => {
     // the newest event fails the gate, an older fresh one passes it
     const res = evalSuiteEvent(c, [ev("sfp", 8, { strength: 90 }), ev("sfp", 9, { strength: 10 })], T, 0);
     expect(res.fired).toBe(true);
-    expect(res.state).toEqual({ lastFiredT: T[8] });
+    expect(res.state).toEqual({ lastFiredT: T[8], clockVersion: 2 });
   });
 });
 
@@ -614,7 +614,7 @@ describe("evalSuiteSequence — arm, complete, fire", () => {
         "1970-01-11 (within 5 bars) — structure suite, daily bars, module defaults",
     );
     expect(res.value, "value = step B's strength, rounded").toBe(72);
-    expect(res.state).toEqual({ stepIdx: 0, lastFiredT: T[9] });
+    expect(res.state).toEqual({ stepIdx: 0, lastFiredT: T[9], clockVersion: 2 });
   });
 
   it("reports step B's PRICE when step B is an unscored event", () => {
@@ -662,7 +662,7 @@ describe("evalSuiteSequence — arm, complete, fire", () => {
     expect(evalSuiteSequence(c, [ev("bos", 9)], T, 0).fired, "one event cannot be both hops").toBe(false);
     const res = evalSuiteSequence(c, [ev("bos", 6), ev("bos", 9)], T, 0);
     expect(res.fired).toBe(true);
-    expect(res.state).toEqual({ stepIdx: 0, lastFiredT: T[9] });
+    expect(res.state).toEqual({ stepIdx: 0, lastFiredT: T[9], clockVersion: 2 });
   });
 
   it("obeys the fresh-only law — a completion outside the last N bars never fires", () => {
@@ -693,7 +693,7 @@ describe("evalSuiteSequence — arm, complete, fire", () => {
     );
     expect(res.fired).toBe(true);
     expect(res.value).toBe(88);
-    expect(res.state).toEqual({ stepIdx: 0, lastFiredT: T[9] });
+    expect(res.state).toEqual({ stepIdx: 0, lastFiredT: T[9], clockVersion: 2 });
   });
 
   it("ignores unusable tapes, indices and shapes", () => {
@@ -765,7 +765,7 @@ describe("evalSuiteSequence — the persisted _sq machine", () => {
     const T20 = dayTimes(20);
     const first = evalSuiteSequence(SEQ, [ev("bos", 10), ev("sfp", 12)], T20.slice(0, 13), 0);
     expect(first.fired).toBe(true);
-    expect(first.state).toEqual({ stepIdx: 0, lastFiredT: T20[12] });
+    expect(first.state).toEqual({ stepIdx: 0, lastFiredT: T20[12], clockVersion: 2 });
     const after: SuiteSequenceCondition = { ...SEQ, _sq: first.state as SuiteSequenceState };
     // full tape, longer series: the old completion is below the floor, the new one fires
     const next = evalSuiteSequence(
@@ -775,7 +775,7 @@ describe("evalSuiteSequence — the persisted _sq machine", () => {
       0,
     );
     expect(next.fired).toBe(true);
-    expect(next.state).toEqual({ stepIdx: 0, lastFiredT: T20[19] });
+    expect(next.state).toEqual({ stepIdx: 0, lastFiredT: T20[19], clockVersion: 2 });
     expect(next.value).toBe(30);
   });
 
@@ -790,7 +790,7 @@ describe("evalSuiteSequence — the persisted _sq machine", () => {
       0,
     );
     expect(res.fired).toBe(true);
-    expect(res.state).toEqual({ stepIdx: 0, lastFiredT: T20[12] });
+    expect(res.state).toEqual({ stepIdx: 0, lastFiredT: T20[12], clockVersion: 2 });
   });
 
   it("survives the CRON round-trip: state in → state out → state in, bar by bar", () => {
@@ -819,7 +819,7 @@ describe("evalSuiteSequence — the persisted _sq machine", () => {
       { bar: 13, value: 60 },
       { bar: 29, value: 90 },
     ]);
-    expect(cond._sq).toEqual({ stepIdx: 0, lastFiredT: T30[29] });
+    expect(cond._sq).toEqual({ stepIdx: 0, lastFiredT: T30[29], clockVersion: 2 });
   });
 
   it("does not fire a completion that happened while the cron was down (stale catch-up)", () => {

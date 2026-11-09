@@ -81,7 +81,7 @@ test("the shipped default 3D multi-pane workspace reaches one truthful visual-re
       .__mmChartAxisOpts?.()?.paneTickMarkDensity?.length ?? 0,
   }));
 
-  expect(receipt.requestedIndicators).toBe(JSON.stringify(["ema", "vol", "macd", "stochrsi"]));
+  expect(receipt.requestedIndicators).toBe(JSON.stringify(["ema", "vol", "macd", "stochrsi", "trend"]));
   expect(receipt.paneCount).toBeGreaterThan(1);
   expect(receipt.diagnostics).toEqual([]);
   // The poll above resolves on the FIRST matching ready edge; it is not a barrier against a later,

@@ -15,9 +15,9 @@
 //
 // Fresh-only law: an alert must never fire off old history on its first evaluation.
 // Two gates enforce it, both required:
-//   1. the matching event's bar time must be > floorT (caller passes the alert's
-//      created_at epoch) and > cond._se.lastFiredT (the per-condition fire stamp);
-//   2. the event must sit on one of the last SUITE_EVENT_FRESH_BARS bars of the
+//   1. the confirmation bar time must clear the creation floor; the previous fire
+//      watermark is interpreted under its recorded clock version (legacy = anchor);
+//   2. confirmation must sit on one of the last SUITE_EVENT_FRESH_BARS bars of the
 //      series — a months-old BOS that happens to postdate creation of a stale-data
 //      symbol still cannot fire.
 //
@@ -57,6 +57,8 @@ export const SUITE_ALERT_EVENTS: SuiteAlertEventDef[] = [
   { event: "liq_grab",        suite: "structure", module: "liq",  tier: "pro",       dirs: true, strength: true,  tkey: "suiteEvLiqGrab",       en: "Liquidity grab" },
   { event: "sfp",             suite: "structure", module: "sfp",  tier: "pro",       dirs: true, strength: true,  tkey: "suiteEvSfp",           en: "Swing failure pattern (SFP)" },
   { event: "pd_golden_touch", suite: "structure", module: "pd",   tier: "essential", dirs: true, strength: true,  tkey: "suiteEvPdGoldenTouch", en: "Golden zone touch" },
+  { event: "sr_hold",         suite: "structure", module: "sr",   tier: "essential", dirs: true, strength: true,  tkey: "suiteEvSrHold",        en: "Support / resistance hold" },
+  { event: "sr_break",        suite: "structure", module: "sr",   tier: "essential", dirs: true, strength: true,  tkey: "suiteEvSrBreak",       en: "Support / resistance break" },
   // Trend Waves
   { event: "te_flip",         suite: "trend",     module: "te",   tier: "essential", dirs: true, strength: true,  tkey: "suiteEvTeFlip",        en: "Trend Engine flip" },
   { event: "te_power",        suite: "trend",     module: "te",   tier: "essential", dirs: true, strength: true,  tkey: "suiteEvTePower",       en: "Trend Engine power move" },
@@ -80,6 +82,8 @@ export const SUITE_ALERT_EVENTS: SuiteAlertEventDef[] = [
 /** zh display names for suiteAlertPreview (the catalog stays UI-framework-free; LEX
  *  integration uses tkey — these are the same strings the LEX entries should carry). */
 const ZH_EVENT_NAMES: Record<string, string> = {
+  sr_hold: "支撑 / 阻力守住",
+  sr_break: "支撑 / 阻力突破",
   bos: "结构突破 (BOS)",
   choch: "结构反转 (CHoCH)",
   cisd: "CISD（失败交付）",
@@ -115,6 +119,13 @@ export function suiteAlertEventDef(event: string): SuiteAlertEventDef | null {
   return EVENT_BY_TYPE.get(event) ?? null;
 }
 
+/** Picker and previews share the existing bilingual event catalog, not a third copy. */
+export function suiteEventName(event: string, lang: "en" | "zh"): string {
+  const def = EVENT_BY_TYPE.get(event);
+  if (!def) return lang === "zh" ? "未知的套件事件" : "Unknown suite event";
+  return lang === "zh" ? ZH_EVENT_NAMES[event] || def.en : def.en;
+}
+
 // ─────────────────────────────────────────────────────────────────────── condition
 
 export type SuiteAlertCondition = {
@@ -123,7 +134,7 @@ export type SuiteAlertCondition = {
   event: string;
   dir?: "bull" | "bear";
   minStrength?: number;                 // 0..100; only valid for strength-scored events
-  _se?: { lastFiredT?: number };        // engine state (epoch secs of the last fire)
+  _se?: { lastFiredT?: number; clockVersion?: 2 }; // absent version = legacy anchor clock
 };
 
 /** How many trailing bars count as "fresh" — an event older than this never fires. */
@@ -158,13 +169,59 @@ export function validateSuiteCondition(cond: unknown): string | null {
   return null;
 }
 
+// ───────────────────────────────────────────────────────── source-bar confirmation clock
+
+/** Validate once per batch before index-ordered consumers run. Sorting here would
+ * change event indices and silently reinterpret their evidence, so reject instead. */
+export function validSuiteBarClock(barsT: readonly number[]): boolean {
+  if (!Array.isArray(barsT) || barsT.length === 0) return false;
+  let prior = -Infinity;
+  for (const time of barsT) {
+    if (!isNum(time) || time <= prior || !Number.isFinite(new Date(time * 1000).getTime())) return false;
+    prior = time;
+  }
+  return true;
+}
+
+export interface SuiteEventTiming {
+  anchorI: number;
+  confirmedI: number;
+  anchorT: number;
+  confirmedT: number;
+}
+
+/** Resolve the same causal clock for alerts, sequences and the sidecar preview.
+ * Never reinterpret malformed metadata as an immediate event. These timestamps are
+ * source-bar identities, NOT wall-clock delivery times or proof a live bar closed.
+ * Batch consumers first call validSuiteBarClock; keeping this per-event projection
+ * constant-time avoids revalidating a long history for every emitted event. */
+export function suiteEventTiming(e: SuiteEvent, barsT: number[]): SuiteEventTiming | null {
+  if (!e || !Array.isArray(barsT) || !Number.isInteger(e.i) || e.i < 0 || e.i >= barsT.length) return null;
+  const confirmedI = e.confirmedAt === undefined ? e.i : e.confirmedAt;
+  if (!Number.isInteger(confirmedI) || confirmedI < e.i || confirmedI >= barsT.length) return null;
+  const anchorT = barsT[e.i], confirmedT = barsT[confirmedI];
+  if (!isNum(anchorT) || !isNum(confirmedT) || confirmedT < anchorT) return null;
+  return { anchorI: e.i, confirmedI, anchorT, confirmedT };
+}
+
+type FireClock = { lastFiredT?: number; clockVersion?: 2 };
+const supportedFireClock = (state: FireClock | undefined): boolean =>
+  state?.clockVersion === undefined || state.clockVersion === 2;
+
+/** Old fire stamps addressed anchors. Redating that already-delivered anchor must
+ * not make it new again. New fire receipts explicitly opt into confirmation time. */
+function afterFireWatermark(timing: SuiteEventTiming, state: FireClock | undefined): boolean {
+  if (!isNum(state?.lastFiredT)) return true;
+  return (state?.clockVersion === 2 ? timing.confirmedT : timing.anchorT) > state!.lastFiredT!;
+}
+
 // ─────────────────────────────────────────────────────────────────────── evaluator
 
 export interface SuiteEventEvalResult {
   fired: boolean;
   value?: number;                       // strength for scored events, else the event price
   note?: string;                        // symbol-agnostic one-liner (the cron prefixes the symbol)
-  state?: { lastFiredT: number };       // present ONLY on fire — the caller persists it on _se
+  state?: { lastFiredT: number; clockVersion: 2 }; // present ONLY on fire; confirmation-clock watermark
 }
 
 /** "YYYY-MM-DD" (plus " HH:MM" when the epoch has an intraday component), UTC. Pure. */
@@ -178,10 +235,9 @@ function stampOf(epochSec: number): string {
  * Evaluate a suite_event condition against a module's SuiteEvent stream.
  *
  * @param events the OWNING suite's merged event stream from computeSuite()
- * @param barsT  epoch seconds per bar index — events address bars by index (events[i].i)
- * @param floorT hard time floor in epoch secs (the alert's created_at). Events at or
- *               before max(floorT, cond._se.lastFiredT) never fire — this is what makes
- *               the first evaluation of a new alert silent over old history.
+ * @param barsT  source-bar epoch seconds. i anchors geometry; confirmedAt dates knowability.
+ * @param floorT creation floor in epoch secs. Only later confirmations qualify; prior
+ *               delivery is separately fenced by its legacy/v2 fire-clock watermark.
  *
  * Fires on the NEWEST matching event that clears BOTH the floor and the
  * SUITE_EVENT_FRESH_BARS freshness window. false is "armed, not met"; the caller
@@ -202,11 +258,11 @@ export function evalSuiteEvent(
   floorT: number,
 ): SuiteEventEvalResult {
   const def = EVENT_BY_TYPE.get(cond?.event ?? "");
-  if (!def || !Array.isArray(events) || !Array.isArray(barsT) || barsT.length === 0) {
+  if (!def || !Array.isArray(events) || !validSuiteBarClock(barsT)) {
     return { fired: false };
   }
-  const lastFired = isNum(cond._se?.lastFiredT) ? (cond._se!.lastFiredT as number) : -Infinity;
-  const floor = Math.max(isNum(floorT) ? floorT : -Infinity, lastFired);
+  if (!supportedFireClock(cond._se)) return { fired: false };
+  const floor = isNum(floorT) ? floorT : -Infinity;
   const freshFrom = Math.max(0, barsT.length - SUITE_EVENT_FRESH_BARS);
 
   let best: SuiteEvent | null = null;
@@ -215,11 +271,10 @@ export function evalSuiteEvent(
     if (!e || e.type !== cond.event) continue;
     if (cond.dir !== undefined && e.dir !== cond.dir) continue;
     if (cond.minStrength !== undefined && !(isNum(e.strength) && e.strength >= cond.minStrength)) continue;
-    const i = e.i;
-    if (!Number.isInteger(i) || i < 0 || i >= barsT.length) continue;
-    if (i < freshFrom) continue;                 // fresh-only: last N bars
-    const t = barsT[i];
-    if (!isNum(t) || t <= floor) continue;       // never re-fire, never fire pre-creation history
+    const timing = suiteEventTiming(e, barsT);
+    if (!timing || timing.confirmedI < freshFrom) continue; // fresh since confirmation, not the pivot
+    const t = timing.confirmedT;
+    if (t <= floor || !afterFireWatermark(timing, cond._se)) continue;
     if (t >= bestT) { best = e; bestT = t; }     // >= : same-bar ties → the later-emitted event wins
   }
   if (!best) return { fired: false };
@@ -227,8 +282,11 @@ export function evalSuiteEvent(
   const value = def.strength && isNum(best.strength) ? Math.round(best.strength) : isNum(best.p) ? best.p : undefined;
   const dirWord = best.dir === "bull" ? " (bullish)" : best.dir === "bear" ? " (bearish)" : "";
   const strWord = def.strength && isNum(best.strength) ? `, strength ${Math.round(best.strength)}` : "";
-  const note = `${def.en}${dirWord}${strWord} on ${stampOf(bestT)} — ${def.suite} suite, daily bars, module defaults`;
-  return { fired: true, value, note, state: { lastFiredT: bestT } };
+  const timing = suiteEventTiming(best, barsT)!;
+  const confirmation = timing.confirmedI > timing.anchorI
+    ? ` (confirmed; anchor ${stampOf(timing.anchorT)}, ${timing.confirmedI - timing.anchorI} bars earlier)` : "";
+  const note = `${def.en}${dirWord}${strWord} on ${stampOf(bestT)}${confirmation} — ${def.suite} suite, daily bars, module defaults`;
+  return { fired: true, value, note, state: { lastFiredT: bestT, clockVersion: 2 } };
 }
 
 // ────────────────────────────────────────────────── two-step sequence (suite_sequence)
@@ -254,6 +312,7 @@ export interface SuiteSequenceState {
   stepIdx: number;                      // 0 = idle, 1 = armed
   armedT?: number;                      // epoch secs of the arming (step A) bar, when armed
   lastFiredT?: number;                  // epoch secs of the last completed fire (step B bar)
+  clockVersion?: 2;                     // absent = lastFiredT still uses the legacy anchor clock
 }
 
 /**
@@ -302,8 +361,8 @@ export interface SuiteSequenceEvalResult {
 }
 
 /**
- * Bar-ordered state machine over the suite's event stream, replayed deterministically each
- * run above floor = max(floorT, _sq.lastFiredT):
+ * Confirmation-ordered state machine over the existing event stream. Replay clears
+ * the creation floor and the separately versioned preceding-fire watermark:
  *   • a step-A match arms {stepIdx:1, armedT} (arming needs no freshness — it may predate
  *     this run by many bars);
  *   • a step-B match on a LATER bar within maxBarsBetween bars of the arming bar completes;
@@ -325,25 +384,25 @@ export function evalSuiteSequence(
   const maxGap = cond?.maxBarsBetween;
   if (
     steps.length !== 2 || !defA || !defB || !isNum(maxGap) ||
-    !Array.isArray(events) || !Array.isArray(barsT) || barsT.length === 0
+    !Array.isArray(events) || !validSuiteBarClock(barsT)
   ) {
     return { fired: false };
   }
   const prev = cond._sq;
+  if (!supportedFireClock(prev)) return { fired: false };
   const prevLastFired = isNum(prev?.lastFiredT) ? (prev!.lastFiredT as number) : undefined;
-  const floor = Math.max(isNum(floorT) ? floorT : -Infinity, prevLastFired ?? -Infinity);
+  const floor = isNum(floorT) ? floorT : -Infinity;
 
-  // Candidate events above the floor, bar-ordered (stable sort keeps emission order in-bar).
+  // Candidate confirmations above the floor, ordered by knowability, not drawn anchors.
   const matches = (s: { event: string; dir?: "bull" | "bear" }, def: SuiteAlertEventDef, e: SuiteEvent) =>
     e.type === def.event && (s.dir === undefined || e.dir === s.dir);
   const cands: Array<{ i: number; t: number; e: SuiteEvent; mA: boolean; mB: boolean }> = [];
   for (const e of events) {
-    if (!e || !Number.isInteger(e.i) || e.i < 0 || e.i >= barsT.length) continue;
-    const t = barsT[e.i];
-    if (!isNum(t) || t <= floor) continue;        // pre-creation / pre-fire history is invisible
+    const timing = suiteEventTiming(e, barsT);
+    if (!timing || timing.confirmedT <= floor || !afterFireWatermark(timing, prev)) continue;
     const mA = matches(steps[0], defA, e);
     const mB = matches(steps[1], defB, e);
-    if (mA || mB) cands.push({ i: e.i, t, e, mA, mB });
+    if (mA || mB) cands.push({ i: timing.confirmedI, t: timing.confirmedT, e, mA, mB });
   }
   cands.sort((a, b) => a.i - b.i);
 
@@ -376,7 +435,7 @@ export function evalSuiteSequence(
     const note =
       `Sequence ${defA.en}${dirWord(steps[0])} → ${defB.en}${dirWord(steps[1])} completed on ` +
       `${stampOf(best.t)} (within ${maxGap} bars) — ${defA.suite} suite, daily bars, module defaults`;
-    return { fired: true, value, note, state: { stepIdx: 0, lastFiredT: best.t } };
+    return { fired: true, value, note, state: { stepIdx: 0, lastFiredT: best.t, clockVersion: 2 } };
   }
 
   // No fire. Emit the final machine state ONLY when it differs from the persisted _sq
@@ -385,6 +444,8 @@ export function evalSuiteSequence(
     stepIdx,
     ...(armedT !== undefined ? { armedT } : {}),
     ...(prevLastFired !== undefined ? { lastFiredT: prevLastFired } : {}),
+    // An arm/disarm update is NOT a migration of the preceding fire stamp.
+    ...(prevLastFired !== undefined && prev?.clockVersion === 2 ? { clockVersion: 2 as const } : {}),
   };
   const prevIdx = prev?.stepIdx === 1 ? 1 : 0;
   const prevArmedT = isNum(prev?.armedT) ? prev!.armedT : undefined;
@@ -405,7 +466,7 @@ export function suiteAlertPreview(cond: SuiteAlertCondition, lang: "en" | "zh"):
   if (!def) return zh ? "未知的套件事件" : "Unknown suite event";
   const minS = isNum(cond.minStrength) ? cond.minStrength : undefined;
   if (zh) {
-    const name = ZH_EVENT_NAMES[def.event] || def.en;
+    const name = suiteEventName(def.event, "zh");
     const dirTxt = cond.dir === "bull" ? "（看涨）" : cond.dir === "bear" ? "（看跌）" : "";
     const strTxt = minS !== undefined ? `且强度 ≥ ${minS} ` : "";
     return `当日线图出现${name}${dirTxt}${strTxt}时提醒我（按模块默认参数评估）`;
@@ -425,7 +486,7 @@ export function suiteSequencePreview(cond: SuiteSequenceCondition, lang: "en" | 
   const gap = isNum(cond.maxBarsBetween) ? cond.maxBarsBetween : 10;
   if (zh) {
     const name = (d: SuiteAlertEventDef, s: { dir?: "bull" | "bear" }) =>
-      `${ZH_EVENT_NAMES[d.event] || d.en}${s.dir === "bull" ? "（看涨）" : s.dir === "bear" ? "（看跌）" : ""}`;
+      `${suiteEventName(d.event, "zh")}${s.dir === "bull" ? "（看涨）" : s.dir === "bear" ? "（看跌）" : ""}`;
     return `${name(defA, steps[0])} → ${name(defB, steps[1])}，${gap} 根K线内（日线，按模块默认参数评估）`;
   }
   const name = (d: SuiteAlertEventDef, s: { dir?: "bull" | "bear" }) =>

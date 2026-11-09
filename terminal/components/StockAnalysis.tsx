@@ -2,7 +2,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import { nextDateCountdown, pick as pickI18n, fmtPct } from "@/lib/finFormat";
-import type { Fund, Opts, Bar } from "@/lib/fund";
+import type { StockVolatility } from "@/lib/stockVolatility";
+import { freshnessLabel, readingFreshness } from "@/lib/shared-shell/readingFreshness";
+import type { Fund, Bar } from "@/lib/fund";
 import { buildKeyStatRows, formatCompactStat } from "@/lib/keyStats";
 // Income series are normalized ONCE, in the shared statement math — never read off `set.income`
 // (see lib/finStatementMath's header); the margin line rides the same normalized pair.
@@ -410,69 +412,43 @@ function AnalystGauge({ fund, spot, pick, onOpen, hasIntelAnalyst }: { fund: Fun
 }
 
 /** IV minis — term structure + smile sparklines from opts; RV-cone fallback. */
-function IvMini({ opts, bars, pick }: { opts: Opts | null; bars: Bar[]; pick: Pick }) {
+function IvMini({ opts, bars, pick }: { opts: StockVolatility | null; bars: Bar[]; pick: Pick }) {
   // hooks must run unconditionally — compute the RV cone up front even when opts is present.
   const cone = useMemo(() => (bars.length >= 30 ? realizedVolCone(bars) : []), [bars]);
-  if (opts && opts.term?.length) {
-    const termLabels = opts.term.map((t) => t.label);
-    const termVals = opts.term.map((t) => t.iv * 100);
+  if (opts?.status === "data") {
+    const termLabels = opts.term.map(row => row.expiry);
+    const termVals = opts.term.map(row => row.iv);
     const smile = opts.smile;
-    const smileOk = smile && smile.strikes?.length > 1;
-
-    // staleness: opts.json is rebuilt nightly; >1 trading-day old is stale.
-    // opts.asof is a DATE-ONLY string (e.g. "2026-07-03"). new Date("2026-07-03") parses
-    // as UTC midnight, so a rolling 24h delta would fire any US market hour the next day
-    // (diff 30-37h > 24h), falsely labelling perfectly-fresh EOD data as STALE.
-    // Fix: compare calendar dates at local noon to avoid the UTC-midnight boundary,
-    // and tolerate the weekend gap (Friday data is fresh through Monday, diff≤3).
-    const optsAsof = opts.asof ?? null;
-    const optsStale = optsAsof
-      ? (() => {
-          const m = optsAsof.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-          if (!m) return false;
-          const asofNoon = new Date(+m[1], +m[2] - 1, +m[3], 12, 0, 0, 0);
-          const todayNoon = new Date(); todayNoon.setHours(12, 0, 0, 0);
-          const diffDays = Math.round((todayNoon.getTime() - asofNoon.getTime()) / 86_400_000);
-          if (diffDays <= 1) return false;
-          // Weekend tolerance: Friday EOD data is fresh on Saturday (diff=1, already covered),
-          // Sunday (diff=2) and Monday (diff=3).
-          const dow = todayNoon.getDay(); // 0=Sun, 1=Mon
-          if (dow === 0 && diffDays <= 2) return false;
-          if (dow === 1 && diffDays <= 3) return false;
-          return true;
-        })()
-      : false;
-
+    const age = readingFreshness(opts.asof, new Date());
     return (
-      <Section title={pick("Implied volatility", "隐含波动率")} sub={smile?.dte != null ? `${smile.dte}${pick("d smile", "天微笑")}` : undefined}>
+      <Section title={pick("Implied volatility", "隐含波动率")} sub={pick("Options Hub · end of day", "期权中心 · 收盘数据")}>
         <div className="sa-iv-mini">
           <div className="sa-iv-lbl">{pick("ATM term structure", "ATM期限结构")}</div>
-          <LineSeries labels={termLabels} series={[{ name: "IV", values: termVals, color: "var(--brand-2)" }]} markers noLegend fmtY={(v) => v.toFixed(0) + "%"} vw={300} vh={110} />
+          <LineSeries labels={termLabels} series={[{ name: "IV", values: termVals, color: "var(--brand-2)" }]} breakBefore={opts.termBreakBefore} markers noLegend fmtY={(v) => v.toFixed(0) + "%"} vw={300} vh={110} />
         </div>
-        {smileOk && (
+        {smile && smile.strikes.length > 0 && (
           <div className="sa-iv-mini">
-            <div className="sa-iv-lbl">{pick(`Vol curve (${smile.dte}d)`, `波动率曲线 (${smile.dte}天)`)}</div>
-            <LineSeries labels={smile.strikes.map((s) => fnum(s, s < 10 ? 1 : 0))} series={[{ name: "IV", values: smile.iv.map((v) => v * 100), color: "var(--brand-2)" }]} noLegend fmtY={(v) => v.toFixed(0) + "%"} vw={300} vh={110} />
+            <div className="sa-iv-lbl">{pick(`Call IV · ${smile.expiry}`, `看涨期权隐含波动率 · ${smile.expiry}`)}</div>
+            <LineSeries labels={smile.strikes.map((s) => fnum(s, s < 10 ? 1 : 0))} series={[{ name: "IV", values: smile.callIv, color: "var(--brand-2)" }]} noLegend fmtY={(v) => v.toFixed(0) + "%"} vw={300} vh={110} />
           </div>
         )}
-        {optsAsof && (
-          <div className="sa-iv-asof" style={{ fontSize: "var(--font-num, 11px)", color: "var(--text-2)", marginTop: 4, display: "flex", gap: 6, alignItems: "center" }}>
-            <span>{pick(`as of ${optsAsof}`, `数据截至 ${optsAsof}`)}</span>
-            {optsStale && (
-              <span style={{ color: "var(--warn, #e6a817)", fontWeight: 600, fontSize: "0.9em" }}>
-                {pick("STALE", "数据过期")}
-              </span>
-            )}
-          </div>
-        )}
+        <div className="sa-iv-asof">
+          {opts.asof} · {opts.stale
+            ? pick("Cached after a feed error", "数据源暂不可用，显示缓存")
+            : pick(freshnessLabel(age, "en"), freshnessLabel(age, "zh"))}
+        </div>
       </Section>
     );
   }
   // non-optionable fallback: realized-vol cone from daily bars (computed above, hooks-safe)
   const usable = cone.filter((c) => c.current != null);
-  if (!usable.length) return null;
+  if (!usable.length) return opts ? (
+    <Section title={pick("Implied volatility", "隐含波动率")}>
+      <div className="sa-iv-lbl">{pick("No IV reading available", "暂无隐含波动率数据")}</div>
+    </Section>
+  ) : null;
   return (
-    <Section title={pick("Realized volatility", "已实现波动率")} sub={pick("cone", "锥形")}>
+    <Section title={pick("Realized volatility", "已实现波动率")} sub={opts ? pick("Historical prices · IV unavailable", "历史价格 · 暂无隐含波动率") : pick("Historical prices", "历史价格")}>
       <div className="sa-iv-mini">
         <LineSeries labels={usable.map((c) => c.window + "d")}
           series={[
@@ -539,7 +515,7 @@ export default function StockAnalysis({
   intel, row, slice, deep = false, onExpand, fund = null, opts = null, bars = [], glance = null, onOpenPane, onOpenSignals, beforeIv,
 }: {
   intel: any; row?: any; slice?: any; deep?: boolean; onExpand?: () => void;
-  fund?: Fund | null; opts?: Opts | null; bars?: Bar[]; glance?: GlanceRow | null; onOpenPane?: (page: FinPage) => void; onOpenSignals?: () => void;
+  fund?: Fund | null; opts?: StockVolatility | null; bars?: Bar[]; glance?: GlanceRow | null; onOpenPane?: (page: FinPage) => void; onOpenSignals?: () => void;
   beforeIv?: React.ReactNode;
 }) {
   const { lang } = useLang();
@@ -627,8 +603,8 @@ export default function StockAnalysis({
     ? Math.min(65, _afterD2)
     : _afterD2;
 
-  // spot for the analyst upside / IV context: prefer the live opts spot, then the last daily bar.
-  const spot = opts?.spot ?? (bars.length ? bars[bars.length - 1].c : (typeof row?.last === "number" ? row.last : null));
+  // Analyst upside uses the underlying price, independently of the EOD volatility book.
+  const spot = typeof row?.last === "number" ? row.last : (bars.length ? bars[bars.length - 1].c : null);
 
   // TV-parity market-data widgets (§3.5.1). Rendered in the deep=false rail even when the research
   // desk (intel.analysis) is absent, so a long-tail fund-only name still shows real data. Each
@@ -664,6 +640,7 @@ export default function StockAnalysis({
         {tvWidgets}
         {tvWidgets2}
         {profileWidget}
+        {beforeIv}
       </div>
     );
   }

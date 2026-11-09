@@ -1,0 +1,33 @@
+
+ RUN  v2.1.9 /Volumes/Mastermind 2/agent-workspaces/terminal/web/forex-r26-account-owner-20261021-sol-002/terminal
+
+ ✓ lib/__tests__/alertBulk.test.ts (26 tests) 12ms
+ ✓ lib/__tests__/alertsView.test.ts (99 tests) 51ms
+ ✓ lib/__tests__/alertsRoute.test.ts (3 tests) 10ms
+ ✓ lib/__tests__/alertsRouteAuthority.test.ts (14 tests) 14ms
+ ✓ lib/__tests__/alertsLifecycleRoute.test.ts (10 tests) 22ms
+ ✓ lib/__tests__/forexWatchesRoute.test.ts (41 tests) 29ms
+ ✓ lib/__tests__/forexWatchesInventory.test.tsx (15 tests) 531ms
+ ✓ lib/__tests__/alertsInventoryCountPending.test.tsx (9 tests) 249ms
+ ✓ lib/__tests__/flowRootCallSites.test.tsx (7 tests) 1466ms
+   ✓ the root pattern has one home > no other Terminal source file carries its own copy 1182ms
+ ✓ lib/__tests__/alertDryRunRoute.test.ts (16 tests) 1808ms
+   ✓ negative access > the 403 decision IS the alerts POST route's, for every catalog event and sequence, under every plan 351ms
+   ✓ the real bar file (AAPL.json, tracked) > on the day the file was current: an evaluated verdict equal to the canonical evaluator's 1388ms
+ ✓ lib/__tests__/alertsRearmReconcile.test.tsx (25 tests) 975ms
+ ✓ lib/__tests__/alertsMutationRaces.test.tsx (26 tests) 1080ms
+
+ Test Files  12 passed (12)
+      Tests  291 passed (291)
+   Start at  06:22:07
+   Duration  4.43s (transform 3.56s, setup 0ms, collect 9.40s, tests 6.25s, environment 4.86s, prepare 2.29s)
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+(node:99230) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:99229) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:99226) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:99225) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)

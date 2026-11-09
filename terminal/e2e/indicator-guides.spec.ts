@@ -77,6 +77,54 @@ async function assertCausalProofSemantics(visual: Locator, id: string) {
   }
 }
 
+
+test("existing users get the one-time Mastermind Candles rollout and can remove it afterward", async ({ page }) => {
+  await page.addInitScript(() => {
+    if (sessionStorage.getItem("mm:e2e-mastermind-candles-seeded") === "1") return;
+    localStorage.setItem("mm.inds", JSON.stringify(["ema", "trend"]));
+    localStorage.setItem("mm.indParams", JSON.stringify({
+      trend: {
+        "te.on": true,
+        "fb.on": false,
+        "vb.on": false,
+        "cp.on": false,
+        "dash.on": false,
+        "cp.mode": "trendVolume",
+      },
+    }));
+    localStorage.setItem("mm.indHidden", JSON.stringify(["suite:trend/cp"]));
+    localStorage.removeItem("mm.mastermindCandles.v1");
+    sessionStorage.setItem("mm:e2e-mastermind-candles-seeded", "1");
+  });
+
+  const { library } = await openIndicatorLibrary(page);
+  await library.locator(".im-nav-item").filter({ hasText: "Trend Waves" }).click();
+  const moduleSwitch = library.getByRole("switch", { name: "Mastermind Candles", exact: true });
+  await expect(moduleSwitch).toHaveAttribute("aria-checked", "true");
+
+  const migrated = await page.evaluate(() => ({
+    marker: localStorage.getItem("mm.mastermindCandles.v1"),
+    params: JSON.parse(localStorage.getItem("mm.indParams") || "{}"),
+    hidden: JSON.parse(localStorage.getItem("mm.indHidden") || "[]"),
+  }));
+  expect(migrated.marker).toBe("1");
+  expect(migrated.params.trend["te.on"]).toBe(true);
+  expect(migrated.params.trend["cp.on"]).toBe(true);
+  expect(migrated.params.trend["cp.mode"]).toBe("trendVolume");
+  expect(migrated.hidden).not.toContain("suite:trend/cp");
+
+  // The rollout is one-time: an explicit removal writes normal user state and the marker prevents
+  // a reload from forcing the candles back on.
+  await moduleSwitch.click();
+  await expect(moduleSwitch).toHaveAttribute("aria-checked", "false");
+  await page.reload();
+  await waitForTerminalVisualReady(page);
+  await openLibraryEntryPoint(page);
+  const reopened = page.locator(".imodal-library");
+  await reopened.locator(".im-nav-item").filter({ hasText: "Trend Waves" }).click();
+  await expect(reopened.getByRole("switch", { name: "Mastermind Candles", exact: true })).toHaveAttribute("aria-checked", "false");
+});
+
 test("module switches and the 31-module Guide Center are accessible and responsive", async ({ page }, testInfo) => {
   // ~109 actions across the library, the Guide Center and the settings sheet. The CI trace for
   // this test measured 30.43s of work with every assertion PASSING — it was failing purely on
@@ -87,23 +135,24 @@ test("module switches and the 31-module Guide Center are accessible and responsi
 
   await library.locator(".im-nav-item").filter({ hasText: "Trend Waves" }).click();
 
-  // Candle Painter is the suite's free module, so this contract remains testable for guests too.
-  const moduleSwitch = library.getByRole("switch", { name: "Candle Painter", exact: true });
+  // Mastermind Candles is the suite's free module, so this contract remains testable for guests too.
+  const moduleSwitch = library.getByRole("switch", { name: "Mastermind Candles", exact: true });
   await expect(moduleSwitch).toBeVisible();
   await expect(moduleSwitch.locator(".im-state-switch")).toHaveCount(1);
   await expect(moduleSwitch.locator("input[type=checkbox]")).toHaveCount(0);
 
-  const initialState = await moduleSwitch.getAttribute("aria-checked");
-  expect(initialState === "true" || initialState === "false").toBe(true);
-  const nextState = initialState === "true" ? "false" : "true";
+  // Fresh browser state receives Mastermind Candles as part of the default Terminal visual language.
+  await expect(moduleSwitch).toHaveAttribute("aria-checked", "true");
+  const initialState = "true";
+  const nextState = "false";
 
   await moduleSwitch.focus();
   await moduleSwitch.press("Space");
   await expect(moduleSwitch).toHaveAttribute("aria-checked", nextState);
-  await expect(moduleSwitch).toHaveAccessibleName("Candle Painter");
+  await expect(moduleSwitch).toHaveAccessibleName("Mastermind Candles");
   await expect.poll(() =>
     moduleSwitch.locator(".im-state-switch").evaluate((element) => element.classList.contains("on")),
-  ).toBe(nextState === "true");
+  ).toBe(false);
 
   await expectTapTarget(moduleSwitch, { height: 44 });
 

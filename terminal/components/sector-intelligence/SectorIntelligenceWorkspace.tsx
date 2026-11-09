@@ -1,0 +1,506 @@
+"use client";
+
+import Link from "next/link";
+import MobileSheet from "@/components/ui/MobileSheet";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useLang } from "@/lib/i18n";
+import { useSectorT } from "@/lib/sectorIntelligenceLex";
+import { useShellIdentity } from "@/components/chrome/AppShell";
+import { SECTOR_FEEDS, FINVIZ_FEEDS, SECTOR_VIEWS, DEFAULT_SECTOR_STATE, object, text, number, sectorRows,
+  groupRows, themeRows, themeEntryReady, themeStaleLegs, sectorRotationHistory, sectorRotationEpisodes, sectorMeasuredRead, members, concentration, sortMembers, parseSectorState, writeSectorState,
+  formatValue, type FeedMap, type FeedPayload, type FeedStatus,
+  type SectorFeed, type SectorState, type SectorView, type Row } from "@/lib/sectorIntelligence";
+import SectorGroupBrowser from "./SectorGroupBrowser";
+import FinvizDiscovery from "./FinvizDiscovery";
+import SectorCentralDiscovery from "./SectorCentralDiscovery";
+import SectorRotationMap, { ROTATION_BENCHMARK } from "./SectorRotationMap";
+import styles from "./SectorIntelligenceWorkspace.module.css";
+import SectorCompanyComparison from "./SectorCompanyComparison";
+import SectorIntradayComparison, { useSectorPresentationClock } from "./SectorIntradayComparison";
+import SectorLeadershipDossier from "./SectorLeadershipDossier";
+import SectorConstituentEvidence from "./SectorConstituentEvidence";
+import { sectorOriginFromState, withExposureOrigin } from "@/lib/exposureOrigin";
+import { sectorRotationRelativeTrend } from "@/lib/rotationRelativeTrend";
+import { holdingsCoverageFor, sectorHoldingsCoverage } from "@/lib/sectorHoldingsCoverage";
+import { encodeSectorDepthReturn, resolveSectorDepthReturn, sectorDepthReturnQuery,
+  SECTOR_DEPTH_RETURN_PARAM, SECTOR_DEPTH_RETURN_HISTORY_KEY } from "@/lib/sectorDepthReturn";
+import { sectorPortfolioCopy, sectorPortfolioHref } from "@/lib/sectorPortfolioContext";
+
+const VIEW_KEYS: Record<SectorView, string> = {
+  intelligence: "siOverview", companies: "siCompaniesTab", signals: "siSignals", drivers: "siDrivers", history: "siHistory",
+};
+type OuterWorkspace = Exclude<SectorState["workspace"], "detail">;
+const OUTER_WORKSPACES: readonly OuterWorkspace[] = ["rotation", "discover", "breadth"];
+const WORKSPACE_KEYS: Record<OuterWorkspace, string> = {
+  rotation: "siRotation", discover: "siDiscoverSectors", breadth: "siMarketBreadth",
+};
+const RETURN_KEYS: Record<OuterWorkspace, string> = {
+  rotation: "siReturnToRotation", discover: "siReturnToDiscover", breadth: "siReturnToBreadth",
+};
+const FEED_KEYS: Record<SectorFeed, string> = {
+  sector: "siFeedSector", confluence: "siFeedConfluence", themes: "siFeedThemes", finviz: "siFeedFinviz",
+  heatmap: "siFeedHeatmap", risk: "siFeedRisk", history: "siFeedHistory", events: "siFeedEvents",
+  relative_trend: "siFeedRelativeTrend", holdings: "siFeedHoldings", intraday: "siFeedIntraday",
+};
+const STATUS_KEYS: Record<FeedStatus, string> = {
+  loading: "siStatusLoading", ready: "siStatusReady", access: "siStatusAccess", unavailable: "siStatusUnavailable",
+  invalid: "siStatusInvalid", error: "siStatusError",
+};
+const STATE_KEYS: Record<string, string> = {
+  leading: "siStateLeading", lagging: "siStateLagging", cautious: "siStateCautious", mixed: "siStateMixed",
+  extended: "siStateExtended", "turn signaled": "siStateTurn", watch: "siStateWatch", "top watch": "siStateWatch",
+  early: "siStateEarly", confirmed: "siStateConfirmed", mature: "siStateMature", deteriorating: "siStateDeteriorating",
+  "long-bias": "siStateLong", neutral: "siStateNeutral", "rolling over": "siStateRolling", improving: "siStateImproving",
+  constructive: "siStateConstructive", unavailable: "siUnavailable",
+};
+const emptyFeed = (source: SectorFeed, status: FeedStatus): FeedPayload => ({ data: null,
+  receipt: { source, status, path: "", asOf: null, observedAt: null, contentHash: null, stale: false } });
+const count = (v: unknown): number | null => {
+  const n = number(v); return n !== null && n >= 0 && Number.isInteger(n) ? n : null;
+};
+const rank = (v: unknown): string => { const n = count(v); return n ? `#${n}` : "—"; };
+const pct = (v: unknown): number | null => { const n = number(v); return n !== null && n >= 0 && n <= 100 ? n : null; };
+function Card({ title, subtitle, children, action }: { title: string; subtitle?: string; children: ReactNode; action?: ReactNode }) {
+  return <section className={styles.card}><div className={styles.cardHead}><div><h2>{title}</h2>{subtitle && <p>{subtitle}</p>}</div>{action}</div><div className={styles.cardBody}>{children}</div></section>;
+}
+function Metric({ label, value, foot }: { label: string; value: string; foot: string }) {
+  return <div className={styles.metric}><span>{label}</span><strong>{value}</strong><small>{foot}</small></div>;
+}
+
+export default function SectorIntelligenceWorkspace() {
+  const t = useSectorT(), { lang } = useLang(), identity = useShellIdentity();
+  const sc = sectorPortfolioCopy(lang);
+  const [state, setState] = useState<SectorState>(DEFAULT_SECTOR_STATE);
+  const [revision, setRevision] = useState(0);
+  const activeFeeds = state.workspace === "discover" && state.sourceFamily === "finviz" ? FINVIZ_FEEDS : SECTOR_FEEDS;
+  // Each visit owns fresh responses, even if a user leaves and re-enters Finviz
+  // before the intervening customer feeds settle. Neither access refusal nor
+  // retained internal data contributes to the ordinary customer workspace.
+  const requestOwner = useMemo(() => ({ identity, revision, activeFeeds }), [identity, revision, activeFeeds]);
+  const [received, setReceived] = useState<{ owner: typeof requestOwner | null; feeds: FeedMap; receivedAt: number }>({ owner: null, feeds: {}, receivedAt: 0 });
+  const presentationNow = useSectorPresentationClock(received.owner === requestOwner ? received.receivedAt : 0);
+  const [groupBrowserOpen, setGroupBrowserOpen] = useState(false);
+  const [returnWorkspace, setReturnWorkspace] = useState<OuterWorkspace>("rotation");
+  const [returnState, setReturnState] = useState<SectorState | null>(null);
+  const nav = useRef<HTMLElement>(null);
+  const sourceTrigger = useRef<HTMLButtonElement>(null);
+  const sourceReturn = useRef<string | null>(null);
+  const rootElement = useRef<HTMLElement>(null);
+  const currentWorkspace = useRef<SectorState["workspace"]>("discover");
+  const scrollPositions = useRef<Record<SectorState["workspace"], { inner: number; outer: number; focus: string | null }>>({
+    rotation: { inner: 0, outer: 0, focus: null }, discover: { inner: 0, outer: 0, focus: null },
+    breadth: { inner: 0, outer: 0, focus: null }, detail: { inner: 0, outer: 0, focus: null },
+  });
+  const saveWorkspaceScroll = useCallback(() => {
+    const active = document.activeElement;
+    const returnFocus = active?.getAttribute("data-sector-return-focus"), choiceFocus = active?.getAttribute("data-sector-choice");
+    scrollPositions.current[currentWorkspace.current] = {
+      inner: rootElement.current?.scrollTop || 0, outer: window.scrollY,
+      focus: returnFocus ? `return:${returnFocus}` : choiceFocus ? `choice:${choiceFocus}` : null,
+    };
+  }, []);
+  // A changed account, refresh or source surface hides prior responses before
+  // effects run. Nothing is persisted in browser storage or shared caches.
+  const feeds = received.owner === requestOwner ? received.feeds : {};
+  useEffect(() => {
+    const sync = () => {
+      const params = new URLSearchParams(window.location.search);
+      const next = parseSectorState(params);
+      if (next.workspace !== currentWorkspace.current) saveWorkspaceScroll();
+      if (next.workspace !== "detail") { setReturnWorkspace(next.workspace); setReturnState(null); }
+      else {
+        const opener = resolveSectorDepthReturn(params.get(SECTOR_DEPTH_RETURN_PARAM), window.history.state?.[SECTOR_DEPTH_RETURN_HISTORY_KEY]);
+        setReturnState(opener);
+        setReturnWorkspace(opener?.workspace === "discover" || opener?.workspace === "breadth" ? opener.workspace : "rotation");
+      }
+      setState(next);
+      setGroupBrowserOpen(false);
+    };
+    sync(); window.addEventListener("popstate", sync);
+    return () => window.removeEventListener("popstate", sync);
+  }, [saveWorkspaceScroll]);
+  useEffect(() => {
+    currentWorkspace.current = state.workspace;
+    const saved = scrollPositions.current[state.workspace];
+    const frame = window.requestAnimationFrame(() => {
+      if (rootElement.current) rootElement.current.scrollTop = saved.inner;
+      window.scrollTo({ top: saved.outer, behavior: "instant" });
+      if (saved.focus) {
+        const [kind, value] = saved.focus.split(":", 2);
+        const attribute = kind === "return" ? "data-sector-return-focus" : "data-sector-choice";
+        rootElement.current?.querySelector<HTMLButtonElement>(`[${attribute}="${CSS.escape(value || "")}"]`)?.focus({ preventScroll: true });
+      }
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [state.workspace]);
+  useEffect(() => {
+    const controller = new AbortController(); let alive = true;
+    const pending = new Set<SectorFeed>();
+    async function read(source: SectorFeed) {
+      if (!alive || controller.signal.aborted || pending.has(source)) return;
+      pending.add(source);
+      // One bounded request per feed and owner. A stalled request must not hold
+      // the pending slot forever; leaving the owner cancels every child read.
+      const request = new AbortController();
+      const cancel = () => request.abort();
+      controller.signal.addEventListener("abort", cancel, { once: true });
+      const timeout = setTimeout(cancel, 10_000);
+      let payload: FeedPayload;
+      try {
+        const res = await fetch(`/api/sector-intelligence?source=${source}`, {
+          credentials: "same-origin", cache: "no-store", signal: request.signal,
+        });
+        const body = object(await res.json()), receipt = object(body.receipt);
+        if (request.signal.aborted) throw new Error("Sector owner read expired");
+        const status = text(receipt.status) as FeedStatus;
+        if (receipt.source !== source || !Object.hasOwn(STATUS_KEYS, status) || (status === "ready" && !res.ok)) {
+          payload = emptyFeed(source, "invalid");
+        } else {
+          payload = { data: res.ok ? body.data : null, receipt: {
+            source, status, path: text(receipt.path), asOf: text(receipt.asOf) || null,
+            observedAt: text(receipt.observedAt) || null, contentHash: text(receipt.contentHash) || null,
+            stale: receipt.stale === true,
+            qualificationReasons: Array.isArray(receipt.qualificationReasons)
+              ? receipt.qualificationReasons.filter((value): value is string => typeof value === "string") : undefined,
+          } };
+        }
+      } catch {
+        if (controller.signal.aborted) return;
+        payload = emptyFeed(source, "error");
+      } finally {
+        clearTimeout(timeout);
+        controller.signal.removeEventListener("abort", cancel);
+        pending.delete(source);
+      }
+      if (alive) setReceived(previous => {
+        // A queued state update can run after the effect has lost its owner.
+        if (!alive || controller.signal.aborted) return previous;
+        const prior = previous.owner === requestOwner ? previous.feeds : {};
+        const last = prior[source];
+        const sameBytes = payload.receipt.status === "ready" && payload.receipt.contentHash && last?.receipt.status === "ready"
+          && last.receipt.contentHash === payload.receipt.contentHash;
+        const feed = sameBytes ? { ...payload, data: last.data } : payload;
+        return { owner: requestOwner, receivedAt: Date.now(), feeds: { ...prior, [source]: feed } };
+      });
+    }
+    for (const source of requestOwner.activeFeeds) void read(source);
+    // Quote ticks keep their existing five-second owner. This checks for new
+    // owner publications across Rotation, Discover, Breadth and research depth;
+    // a successful read never advances a feed's source date.
+    function refreshVisible() {
+      if (document.hidden) return;
+      for (const source of requestOwner.activeFeeds) void read(source);
+    }
+    const timer = setInterval(refreshVisible, 60_000);
+    // Resume immediately, even when the next scheduled tick is not due yet.
+    // read() coalesces this with any request already in flight for this owner.
+    document.addEventListener("visibilitychange", refreshVisible);
+    return () => {
+      alive = false;
+      controller.abort();
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", refreshVisible);
+    };
+  }, [requestOwner]);
+
+  const sectors = useMemo(() => sectorRows(feeds.sector?.data), [feeds.sector]);
+  const groups = useMemo(() => groupRows(feeds.confluence?.data), [feeds.confluence]);
+  const themes = useMemo(() => themeRows(feeds.themes?.data), [feeds.themes]);
+  const rotationHistory = useMemo(() => sectorRotationHistory(feeds.history?.data), [feeds.history]);
+  const rotationEpisodes = useMemo(() => sectorRotationEpisodes(feeds.events?.data), [feeds.events]);
+  const measuredRead = useMemo(() => feeds.sector?.receipt.status === "ready" ? sectorMeasuredRead(feeds.sector.data) : null, [feeds.sector]);
+  // Options R1 W2: the weekly relative trend feed and the fund holdings coverage are owner feeds read strictly; a rejected payload stays absent.
+  const relativeTrend = useMemo(() => feeds.relative_trend?.receipt.status === "ready" ? sectorRotationRelativeTrend(feeds.relative_trend.data) : null, [feeds.relative_trend]);
+  const holdingsCoverage = useMemo(() => feeds.holdings?.receipt.status === "ready" ? sectorHoldingsCoverage(feeds.holdings.data) : null, [feeds.holdings]);
+  const sector = useMemo(() => sectors.find(r => r.id === state.sector) || {}, [sectors, state.sector]);
+  const group = useMemo(() => groups.find(r => r.key === state.group) || {}, [groups, state.group]);
+  const roster = useMemo(() => members(group), [group]);
+  const visibleMembers = useMemo(() => sortMembers(roster, state.sort, state.query), [roster, state.sort, state.query]);
+  // Options R1: a holding opens its options exposure with the sector origin beside the
+  // address, so the reader can step the same cohort and return to this exact selection.
+  const exposureHref = useCallback((ticker: string) => {
+    const depthReturn = returnState && encodeSectorDepthReturn(returnState) ? returnState : null;
+    const origin = sectorOriginFromState({ state, depthReturn, company: ticker, roster: visibleMembers.map(member => member.ticker),
+      asOf: feeds.confluence?.receipt.asOf ?? null, contentHash: feeds.confluence?.receipt.contentHash ?? null, benchmark: ROTATION_BENCHMARK });
+    return origin ? withExposureOrigin(`/options?tab=prism&symbol=${encodeURIComponent(ticker)}&view=chart`, origin) : null;
+  }, [state, returnState, visibleMembers, feeds.confluence]);
+  // The Portfolio action carries the selected native sector ETF and the admitted opener
+  // snapshot — navigation context only. No dossier value, position, weight, target or
+  // account identity rides in the address.
+  const portfolioOpener = useMemo(() => {
+    if (state.workspace !== "detail") return null;
+    return returnState ? { ...returnState, sourcesOpen: false } : { ...state, workspace: returnWorkspace, sourcesOpen: false };
+  }, [state, returnState, returnWorkspace]);
+  const portfolioHref = useMemo(
+    () => sectorPortfolioHref(text(sector.ticker), portfolioOpener),
+    [sector.ticker, portfolioOpener]);
+  const landed = useRef(false);
+  useEffect(() => {
+    // A return address names an exact holding: land on it once, without a scroll jump.
+    if (landed.current || state.workspace !== "detail" || !state.company || roster.length === 0) return;
+    landed.current = true;
+    const company = CSS.escape(state.company);
+    const choice = rootElement.current?.querySelector<HTMLElement>(`[data-company-choice="${company}"], [data-sector-company-select="${company}"]`);
+    if (!choice) return;
+    choice.focus({ preventScroll: true });
+    choice.scrollIntoView?.({ block: "nearest" });
+  }, [state.workspace, state.company, roster.length]);
+  const cap = useMemo(() => concentration(feeds.heatmap?.data, text(sector.name)), [feeds.heatmap, sector.name]);
+  const momentum = object(sector.momentum), heat = object(sector.heat), cycle = object(sector.cycle);
+  const rotation = object(sector.rotation), conviction = object(sector.conviction), entry = object(group.entry), regime = object(group.regime);
+  const status = feeds.sector?.receipt.status || "loading";
+  const hasSector = !!sector.id;
+  const completed = activeFeeds.filter(k => feeds[k]).length;
+  const ready = activeFeeds.filter(k => feeds[k]?.receipt.status === "ready").length;
+  const sectorSourceName = text(sector.name);
+  const sectorName = text(lang === "zh" ? sector.name_zh : sector.name) || sectorSourceName || text(sector.ticker);
+  const groupName = text(lang === "zh" ? group.label_zh : group.label) || text(group.label);
+  const localName = (r: Row, en = "name", zh = "name_zh") => text(lang === "zh" ? r[zh] : r[en]) || text(r[en]);
+  const stateLabel = (v: unknown) => t(STATE_KEYS[text(v).toLowerCase()] || "siUnavailable");
+  const change = useCallback((patch: Partial<SectorState>, push = false, opener = returnState) => {
+    const next = { ...state, ...patch };
+    if (next.workspace !== state.workspace) saveWorkspaceScroll();
+    setState(next);
+    const url = new URL(window.location.href);
+    const snapshot = next.workspace === "detail" && opener ? encodeSectorDepthReturn(opener) : null;
+    const publicSnapshot = snapshot && opener ? sectorDepthReturnQuery(opener) : null;
+    const historyState = { ...window.history.state };
+    if (publicSnapshot) {
+      url.searchParams.set(SECTOR_DEPTH_RETURN_PARAM, publicSnapshot);
+      historyState[SECTOR_DEPTH_RETURN_HISTORY_KEY] = snapshot;
+    }
+    else url.searchParams.delete(SECTOR_DEPTH_RETURN_PARAM);
+    if (!publicSnapshot) delete historyState[SECTOR_DEPTH_RETURN_HISTORY_KEY];
+    const href = writeSectorState(url, next);
+    if (push) window.history.pushState(historyState, "", href);
+    else window.history.replaceState(historyState, "", href);
+  }, [state, saveWorkspaceScroll, returnState]);
+  const openOuterWorkspace = (workspace: OuterWorkspace) => {
+    setReturnWorkspace(workspace); setReturnState(null);
+    change({ workspace, sourcesOpen: false }, true);
+  };
+  const openSectorResearch = (sectorId: string) => {
+    if (state.workspace !== "detail") { setReturnWorkspace(state.workspace); setReturnState(state); }
+    change({ sector: sectorId, workspace: "detail", view: "intelligence", group: "", company: "", query: "", expanded: false, sourcesOpen: false }, true, state.workspace !== "detail" ? state : returnState);
+  };
+  const returnToOuterWorkspace = () => {
+    const target = returnState ? { ...returnState, sourcesOpen: false } : { workspace: returnWorkspace, sourcesOpen: false };
+    setReturnState(null); change(target, true);
+  };
+  const go = (view: SectorView) => change({ view, sourcesOpen: false }, true);
+  const openSources = (opener?: HTMLElement) => {
+    // WebKit does not reliably focus a pointer-activated button by itself.
+    (opener || sourceTrigger.current)?.focus({ preventScroll: true });
+    sourceReturn.current = window.location.href;
+    change({ sourcesOpen: true }, true);
+  };
+  const closeSources = () => {
+    // A source panel opened here adds one history entry; dismissing consumes it.
+    // A direct/legacy bookmark has no local opener entry, so replace it safely.
+    if (sourceReturn.current) { sourceReturn.current = null; window.history.back(); }
+    else change({ sourcesOpen: false });
+  };
+  const sourcesLink = <button type="button" className={styles.textButton}
+    onClick={event => openSources(event.currentTarget)}>{t("siOpenSources")} →</button>;
+  const glanceKey = !hasSector ? "siGlanceUnavailable" : text(momentum.lead).toLowerCase() !== "leading" ? "siGlanceMixed"
+    : text(conviction.label_en).toLowerCase() === "cautious" || text(cycle.phaseLabel).toLowerCase() === "rolling over" ? "siGlanceLeading" : "siGlanceLeadingPlain";
+  const comparison = <SectorCompanyComparison rows={visibleMembers} selected={state.company} expanded={state.expanded}
+    groupName={groupName} asOf={feeds.confluence?.receipt.asOf || null}
+    onSelect={company => change({ company }, true)} onExpand={() => change({ expanded: !state.expanded })}
+    onOpenTable={() => go("companies")} exposureHref={exposureHref}
+    coverage={holdingsCoverage ? holdingsCoverageFor(holdingsCoverage, text(sector.ticker)) : null} />;
+  const counts = `${formatValue(count(heat.adv), 0)} ${t("siAdvancing")} / ${formatValue(count(heat.dec), 0)} ${t("siDeclining")}`;
+  const axes = <div className={styles.axes}>
+    <div><h3>{t("siStrength")}</h3><p>{t("siRS")} {rank(momentum.rs_21d_rank)} · {t("siRS63")} {rank(momentum.rs_rank)}</p><span>{momentum.above_200d === true ? t("siAbove200") : momentum.above_200d === false ? t("siBelow200") : t("siTrendUnknown")}</span></div>
+    <div><h3>{t("siFormation")}</h3><p>{t("siSlow")}: {stateLabel(conviction.label_en)} · {stateLabel(cycle.phaseLabel)}</p><span>{t("siFast")}: {stateLabel(rotation.state)}</span></div>
+    <div><h3>{t("siEntry")}</h3><p>{t("siNotConnected")}</p><span>{t("siEntryCopy")}</span></div>
+    <div><h3>{t("siEvidence")}</h3><p>{ready} / {activeFeeds.length} {t("siSourceCount")}</p><span>{t("siSourceRecordCopy")}</span></div>
+  </div>;
+  const pocket = <Card title={groupName || t("siPocket")} subtitle={t("siPocket")}>
+    {!!group.key ? <><div className={styles.split}>
+      <div><span>{t("siEntryOwner")}</span><strong>{["T1", "T2", "T3"].includes(text(entry.tier)) ? text(entry.tier) : "—"}</strong><small>{formatValue(count(group.n_priced), 0)} / {formatValue(count(group.n_members), 0)} {t("siPriced")}</small></div>
+      <span className={styles.versus} aria-hidden="true">↔</span>
+      <div><span>{t("siRegimeOwner")}</span><strong>{stateLabel(regime.state)}</strong><small>{feeds.confluence?.receipt.asOf || t("siUnknownDate")}</small></div>
+    </div><details className={styles.explanation}><summary>{t("siWhyDiffer")}</summary><p>{t("siSplitCopy")}</p></details>
+      <button className={styles.textButton} type="button" onClick={() => go("companies")}>{t("siSeeCompanies")} →</button></>
+      : <p className={styles.muted}>{t("siNoMembers")}</p>}
+  </Card>;
+  const business = <Card title={t("siBusiness")} action={<span className={styles.badge}>{t("siNotConnected")}</span>}><p className={styles.muted}>{t("siBusinessCopy")}</p></Card>;
+  const concentrationCard = <Card title={t("siConcentration")}>
+    <span className={styles.muted}>{t("siTop5")}</span><strong className={styles.largeValue}>{formatValue(cap ? cap.share * 100 : null, 1, "%")}</strong>
+    {cap && <><meter className={styles.meter} min={0} max={100} value={cap.share * 100} aria-label={t("siTop5")} /><p className={styles.muted}>{cap.names.join(" · ")} · {cap.count} {t("siTiles")}</p></>}
+    <p className={styles.note}>{cap ? t("siCohortCopy") : t("siConcentrationMissing")}</p>
+  </Card>;
+
+  return <main ref={rootElement} className={`main2 ${styles.root}`} data-testid="sector-intelligence" data-sector-theme={state.theme} data-sector-workspace={state.workspace}>
+    <SectorGroupBrowser open={groupBrowserOpen} groups={groups} selected={state.group}
+      sourceSectorName={text(sector.name) || null} sectorLabel={sectorName} asOf={feeds.confluence?.receipt.asOf || null}
+      status={feeds.confluence?.receipt.status || "loading"} theme={state.theme}
+      onClose={() => setGroupBrowserOpen(false)} onReviewSources={() => { setGroupBrowserOpen(false); window.requestAnimationFrame(() => openSources()); }}
+      onSelect={group => {
+        setGroupBrowserOpen(false);
+        if (group !== state.group) change({ group, view: "intelligence", query: "", sort: "source", company: "", expanded: false }, true);
+      }} />
+    <MobileSheet open={state.sourcesOpen} onClose={closeSources} ariaLabel={t("siSourcesPanel")}
+      maxHeight="90dvh" initialFocus="sheet" className={`${styles.sourcePanel} ${state.theme === "light" ? styles.light : ""}`}>
+      <div className={styles.sourceContent}>
+        <header className={styles.sourcePanelHeader}><div><h2>{t("siSourcesPanel")}</h2>
+          <p>{state.workspace === "detail" ? `${groupName || state.group || sectorName} · ${t(VIEW_KEYS[state.view])}`
+            : t(state.workspace === "rotation" ? "siRotation" : state.workspace === "breadth" ? "siMarketBreadth" : "siDiscoverSectors")}</p></div>
+          <button type="button" className={styles.button} onClick={closeSources}>{t("siCloseSources")}</button></header>
+        <div className={styles.sectionHeading}><h2>{t("siSourceRecord")}</h2><p>{t("siSourceRecordCopy")}</p></div><div className={styles.sourceGrid}>
+          {activeFeeds.map(source => { const receipt = feeds[source]?.receipt; return <Card key={source} title={t(FEED_KEYS[source])} action={<span className={styles.badge}>{t(STATUS_KEYS[receipt?.status || "loading"])}</span>}>
+            <dl className={styles.pairs}><div><dt>{t("siSnapshotDate")}</dt><dd>{receipt?.asOf || t("siUnknownDate")}</dd></div><div><dt>{t("siFetched")}</dt><dd>{receipt?.observedAt || "—"}</dd></div></dl>
+            {receipt?.stale && <p className={styles.note}>{t("siStale")}</p>}
+            <details className={styles.explanation}><summary>{t("siReceipt")}</summary><p>{t("siSourcePath")}</p><code>{receipt?.path || "—"}</code><p>{t("siHash")}</p><code>{receipt?.contentHash || "—"}</code></details>
+          </Card>; })}</div>
+      </div>
+    </MobileSheet>
+    <div className={styles.page}>
+      <header className={styles.header}><div><p className={styles.eyebrow}>{t("siEyebrow")}</p><h1>{t("siTitle")}</h1><p className={styles.subtitle}>{t("siSubtitle")}</p></div>
+        <div className={`${styles.controls} ${state.workspace === "detail" ? styles.detailControls : styles.utilityControls}`}>
+          {state.workspace === "detail" && <><label>{t("siSector")}<select aria-label={t("siSector")} value={state.sector} onChange={e => change({ sector: e.target.value, group: "", query: "", company: "", expanded: false })}>
+            {!sectors.some(r => r.id === state.sector) && <option value={state.sector}>{state.sector.toUpperCase()}</option>}
+            {sectors.map(r => <option key={text(r.id)} value={text(r.id)}>{localName(r)} · {text(r.ticker)}</option>)}
+          </select></label>
+          <label>{t("siGroup")}<button type="button" className={styles.button}
+            aria-label={t("siBrowseGroups")} aria-haspopup="dialog" aria-expanded={groupBrowserOpen}
+            onClick={event => { event.currentTarget.focus({ preventScroll: true }); setGroupBrowserOpen(true); }}>{groupName || t("siChooseGroup")} ▾</button></label></>}
+          <button type="button" className={styles.button} onClick={() => change({ theme: state.theme === "dark" ? "light" : "dark" })}>{t(state.theme === "dark" ? "siUseLight" : "siUseDark")}</button>
+          <button type="button" className={styles.button} onClick={() => setRevision(n => n + 1)}>{t("siRefresh")}</button>
+        </div>
+      </header>
+      <nav className={styles.workspaceNavigation} aria-label={t("siWorkspaceViews")}>
+        {OUTER_WORKSPACES.map(workspace => <button key={workspace} type="button"
+          aria-current={state.workspace === workspace ? "page" : undefined}
+          onClick={() => openOuterWorkspace(workspace)}>{t(WORKSPACE_KEYS[workspace])}</button>)}
+      </nav>
+      {state.workspace === "detail" && <div className={styles.depthNavigation} data-testid="sector-detail-depth">
+        <button type="button" data-testid="sector-detail-return" onClick={returnToOuterWorkspace}>← {t(RETURN_KEYS[returnWorkspace])}</button>
+        <span>{t("siResearchDepth")} · {sectorName || state.sector.toUpperCase()}</span>
+        {portfolioHref && <Link className={styles.button} href={portfolioHref} data-testid="sector-view-in-portfolio"
+          data-sector-etf={text(sector.ticker)}>{sc("viewInPortfolio")}</Link>}
+      </div>}
+      {state.workspace === "discover" && <nav className={styles.workspaceNavigation} aria-label={t("siFinvizSourceFamily")}>
+        <button type="button" aria-pressed={state.sourceFamily === "sectors"} onClick={() => change({ sourceFamily: "sectors" }, true)}>{t("siFinvizSectors")}</button>
+        <button type="button" aria-pressed={state.sourceFamily === "finviz"} onClick={() => change({ sourceFamily: "finviz" }, true)}>{t("siFeedFinviz")}</button>
+      </nav>}
+      {state.workspace === "discover" && state.sourceFamily === "finviz" ? <FinvizDiscovery feed={feeds.finviz} state={state} onChange={patch => change(patch, !Object.hasOwn(patch, "discoveryQuery"))} /> : state.workspace === "rotation" ? <SectorRotationMap rows={sectors} status={status} risk={feeds.risk}
+        asOf={feeds.sector?.receipt.asOf || null} measured={measuredRead} selected={state.sector} mode={state.rotationMode} query={state.rotationQuery}
+        history={rotationHistory} historyStatus={feeds.history?.receipt.status || "loading"}
+        historyRevision={feeds.history?.receipt.contentHash || null}
+        method={state.rotationMethod} relativeTrend={relativeTrend}
+        relativeTrendStatus={feeds.relative_trend?.receipt.status === "ready" && !relativeTrend ? "invalid" : feeds.relative_trend?.receipt.status || "loading"}
+        onMethod={rotationMethod => change({ rotationMethod })}
+        episodes={rotationEpisodes} episodesStatus={feeds.events?.receipt.status || "loading"}
+        onMode={rotationMode => change({ rotationMode })} onQuery={rotationQuery => change({ rotationQuery })}
+        onSources={() => openSources()} onSelect={sector => change({ sector }, true)}
+        onOpenResearch={openSectorResearch} />
+        : state.workspace !== "detail" ? <SectorCentralDiscovery rows={sectors} status={status}
+        asOf={feeds.sector?.receipt.asOf || null} selected={state.sector} selectedSourceName={sectorSourceName}
+        selectedCompany={state.company} query={state.discoveryQuery} companyTableQuery={state.companyTableQuery}
+        sort={state.discoverySort} companyTableSort={state.companyTableSort}
+        breadth={state.workspace === "breadth"} mode={state.discoveryMode}
+        heatmapData={feeds.heatmap?.data} heatmapStatus={feeds.heatmap?.receipt.status || "loading"}
+        heatmapAsOf={feeds.heatmap?.receipt.asOf || null} matrixTimeframe={state.matrixTimeframe}
+        matrixIndustry={state.matrixIndustry} matrixBand={state.matrixBand}
+        onQuery={discoveryQuery => change({ discoveryQuery })}
+        onCompanyTableQuery={companyTableQuery => change({ companyTableQuery })}
+        onSort={discoverySort => change({ discoverySort })}
+        onCompanyTableSort={companyTableSort => change({ companyTableSort })}
+        onClearCompanyFilters={() => change({ companyTableQuery: "", matrixIndustry: "", matrixBand: "" }, true)}
+        onClearScope={() => change({ matrixIndustry: "", matrixBand: "" }, true)}
+        onMode={discoveryMode => change({ discoveryMode })}
+        onTimeframe={matrixTimeframe => change({ matrixTimeframe })}
+        onIndustry={matrixIndustry => change({ matrixIndustry }, true)}
+        onBand={matrixBand => change({ matrixBand }, true)}
+        onMatrixCell={(matrixIndustry, matrixBand) => change({ matrixIndustry, matrixBand }, true)}
+        onInspectIndustry={matrixIndustry => change({ discoveryMode: "table", matrixIndustry, matrixBand: "", companyTableQuery: "", company: "" }, true)}
+        onCompany={company => change({ company }, true)} onSources={() => openSources()}
+        onSelect={sector => change({ sector, matrixIndustry: "", matrixBand: "", company: "" }, true)}
+        onOpenResearch={openSectorResearch} /> : <>
+      <div className={styles.navigation}><nav ref={nav} className={styles.tabs} role="tablist" aria-label={t("siViews")} onKeyDown={event => {
+        const index = SECTOR_VIEWS.indexOf(state.view);
+        const next = event.key === "ArrowRight" ? (index + 1) % SECTOR_VIEWS.length : event.key === "ArrowLeft" ? (index + SECTOR_VIEWS.length - 1) % SECTOR_VIEWS.length : event.key === "Home" ? 0 : event.key === "End" ? SECTOR_VIEWS.length - 1 : -1;
+        if (next < 0) return;
+        event.preventDefault(); go(SECTOR_VIEWS[next]);
+        nav.current?.querySelectorAll<HTMLButtonElement>("button")[next]?.focus();
+      }}>
+        {SECTOR_VIEWS.map(view => <button type="button" key={view} id={`si-tab-${view}`} role="tab"
+          aria-selected={state.view === view} aria-controls={`si-panel-${view}`} tabIndex={state.view === view ? 0 : -1}
+          onClick={() => go(view)}>{t(VIEW_KEYS[view])}</button>)}
+      </nav><button ref={sourceTrigger} type="button" className={styles.sourceTrigger} aria-haspopup="dialog"
+        aria-expanded={state.sourcesOpen} onClick={event => openSources(event.currentTarget)}>{t("siSourcesPanel")}</button></div>
+      <div className={styles.contextLine}><span className={styles.badge}>{t("siResearchOnly")}</span><span>{t("siDated")} · {feeds.sector?.receipt.asOf || t("siUnknownDate")}</span></div>
+      {completed === activeFeeds.length && ready < activeFeeds.length && <div className={styles.notice} role="status"><div><strong>{t("siCompactPartial")}</strong></div>{sourcesLink}</div>}
+      <div role="tabpanel" id={`si-panel-${state.view}`} aria-labelledby={`si-tab-${state.view}`} tabIndex={0} className={styles.view}>
+        {state.view === "intelligence" && <>
+          {status === "loading" ? <div className={styles.empty} role="status">{t("siLoading")}</div> : !hasSector ? <div className={styles.empty} role="status">
+            <h2>{status === "access" ? t("siAccess") : t("siMissingTitle")}</h2><p>{status === "access" ? t("siAccessCopy") : status === "invalid" || status === "ready" ? t("siInvalidCopy") : t("siMissingCopy")}</p>
+            {status === "access" && <Link className={styles.button} href="/login">{t("siSignIn")}</Link>}{sourcesLink}
+          </div> : <section className={styles.hero}>
+            <div className={styles.heroCopy}>
+              <p className={styles.heroSubject}>{sectorName}</p><h2>{t(glanceKey)}</h2>
+              <p>{t("siGlanceLimit")}</p>
+              <button className={styles.textButton} type="button" data-testid="sector-primary-action" onClick={event => {
+                if (group.key) go("companies");
+                else { event.currentTarget.focus({ preventScroll: true }); setGroupBrowserOpen(true); }
+              }}>{t(group.key ? "siSeeCompanies" : "siBrowseGroups")} →</button>
+            </div>
+            <div className={styles.metrics}>
+              <Metric label={t("siRS")} value={rank(momentum.rs_21d_rank)} foot={`${t("siRS63")} ${rank(momentum.rs_rank)}`} />
+              <Metric label={t("siParticipation")} value={formatValue(pct(heat.breadth_pct), 0, "%")} foot={counts} />
+              <Metric label={t("siHeat")} value={formatValue(number(heat.heat_1M), 2, "%", true)} foot={t("siHeatMethod")} />
+              <Metric label={t("siTop5")} value={formatValue(cap ? cap.share * 100 : null, 1, "%")} foot={cap ? `${cap.count} ${t("siTiles")}` : t("siNotConnected")} />
+            </div>
+          </section>}
+          {/* Persistent Sector Leadership: the owner's measured relative wealth, rendered from the
+              same sector feed the overview already reads. It owns no snapshot, no fetch and no
+              state, and it never falls back to another sector's numbers. */}
+          <SectorLeadershipDossier feed={feeds.sector} selectedTicker={text(sector.ticker)} onSources={() => openSources()} />
+          {comparison}
+          <SectorConstituentEvidence fund={text(sector.ticker) || null}
+            coverage={holdingsCoverage ? holdingsCoverageFor(holdingsCoverage, text(sector.ticker)) : null}
+            feed={feeds.holdings ?? null} identity={identity} presentation={state.theme} />
+          {/* Catalyst: the owner's measured intraday interval, after the market summary and before
+              the detailed evidence disclosure. It adds no new state owner and no new route. */}
+          <SectorIntradayComparison data={feeds.intraday?.data} status={feeds.intraday?.receipt.status || "loading"}
+            asOf={feeds.intraday?.receipt.asOf || null} nowMs={presentationNow} />
+          <details className={styles.studyDisclosure}><summary>{t("siShowEvidence")}</summary>
+            <div className={styles.columns}><div className={styles.stack}><Card title={t("siFocus")} subtitle={t("siSeparate")}>{axes}</Card>{pocket}</div>
+              <aside className={styles.stack}>{business}<Card title={t("siTaxonomy")}><p className={styles.note}>{t("siTaxonomyCopy")}</p></Card></aside></div>
+          </details>
+        </>}
+        {state.view === "signals" && <div className={styles.columns}><div className={styles.stack}><Card title={`${sectorName || state.sector.toUpperCase()} · ${t("siSectorSignals")}`} subtitle={t("siSeparate")}>{axes}</Card>
+          <Card title={t("siSignals")}><div className={styles.callout}><h3>{sectorName || state.sector.toUpperCase()} · {t("siSlow")} / {t("siFast")}</h3><p>{stateLabel(conviction.label_en)} / {stateLabel(rotation.state)}</p><span>{t("siClockCopy")}</span></div><div className={styles.callout}><h3>{groupName || t("siGroup")} · {t("siEntryOwner")} / {t("siRegimeOwner")}</h3><p>{text(entry.tier) || "—"} / {stateLabel(regime.state)}</p><span>{t("siSplitCopy")}</span></div></Card>{business}
+        </div><aside className={styles.stack}>{concentrationCard}<Card title={t("siCohort")}><p className={styles.note}>{t("siMembershipCopy")}</p></Card></aside></div>}
+        {state.view === "companies" && <Card title={groupName || t("siCompanies")} subtitle={`${formatValue(count(group.n_members), 0)} ${t("siMembers")} · ${feeds.confluence?.receipt.asOf || t("siUnknownDate")}`}>
+          <p className={styles.note}>{t("siCompanyCaution")}</p>
+          <div className={styles.tableControls}><label>{t("siSearch")}<input type="search" aria-label={t("siSearch")} value={state.query} maxLength={40} onChange={e => change({ query: e.target.value })} /></label>
+            <label>{t("siSort")}<select aria-label={t("siSort")} value={state.sort} onChange={e => change({ sort: e.target.value as SectorState["sort"] })}>
+              <option value="source">{t("siSourceOrder")}</option><option value="return">{t("siByReturn")}</option><option value="relative">{t("siByRelative")}</option><option value="ticker">{t("siByTicker")}</option>
+            </select></label><span aria-live="polite">{visibleMembers.length} / {roster.length} {t("siShowing")}</span></div>
+          <div className={styles.tableWrap}><table className={styles.companyTable}><thead><tr>{["siTicker", "siPrice", "siReturn20", "siRelative", "siTier", "siTicks", "siSourceFlag", "siState"].map(key => <th key={key}>{t(key)}</th>)}</tr></thead>
+            <tbody>{visibleMembers.map(row => <tr key={row.ticker} data-testid="sector-company-row">
+              <td data-label={t("siTicker")}><button type="button" className={styles.tableSelect} data-sector-company-select={row.ticker} aria-pressed={state.company === row.ticker}
+                aria-label={`${t("siSelectCompany")}: ${row.ticker}`} onClick={() => change({ company: row.ticker, view: "intelligence", expanded: true, query: "" }, true)}>{row.ticker} →</button></td>
+              <td data-label={t("siPrice")}>{formatValue(row.price, 2)}</td><td data-label={t("siReturn20")} data-sign={row.return20d === null || row.return20d === 0 ? undefined : row.return20d < 0 ? "down" : "up"}>{formatValue(row.return20d, 1, "%", true)}</td>
+              <td data-label={t("siRelative")}>{formatValue(row.relative, 1, "pp", true)}</td><td data-label={t("siTier")}>{row.tier || t("siSourceUnrated")}</td>
+              <td data-label={t("siTicks")}>{formatValue(row.ticks, 0)}</td><td data-label={t("siSourceFlag")}>{row.buyable === null ? "—" : row.buyable ? t("siYes") : t("siNo")}</td><td data-label={t("siState")}>{stateLabel(row.state)}</td>
+            </tr>)}</tbody></table></div>
+          {!visibleMembers.length && <p className={styles.empty}>{roster.length ? t("siNoMatches") : t("siNoMembers")}</p>}
+          <p className={styles.muted}>{t("siMembershipCopy")}</p>
+        </Card>}
+        {state.view === "drivers" && <>{business}<details className={styles.studyDisclosure}><summary>{t("siThemesDisclosure")}</summary><div className={styles.sectionHeading}><h2>{t("siThemeContext")}</h2><p>{t("siThemeScope")}</p>{themeStaleLegs(feeds.themes?.data).length > 0 && <p role="status">{t("siThemeFreshnessLimited")}</p>}</div><div className={styles.themeGrid}>
+          {themes.map(row => <Card key={text(row.theme_id)} title={localName(row, "name_en", "name_zh")}><dl className={styles.pairs}><div><dt>{t("siThemeStage")}</dt><dd>{stateLabel(object(row.foresight).stage)}</dd></div><div><dt>{t("siThemeReady")}</dt><dd>{themeEntryReady(row) === null ? t("siUnavailable") : themeEntryReady(row) ? t("siYes") : t("siNo")}</dd></div><div><dt>{t("siSnapshotDate")}</dt><dd>{feeds.themes?.receipt.asOf || t("siUnknownDate")}</dd></div></dl></Card>)}
+          {!themes.length && <p className={styles.empty}>{t("siNoThemes")}</p>}</div><div className={styles.columns}><Card title={t("siTaxonomy")}><p className={styles.note}>{t("siTaxonomyCopy")}</p></Card></div></details></>}
+        {state.view === "history" && <Card title={t("siHistoryEmpty")}>
+          <p className={styles.muted}>{t("siReplayCopy")}</p>
+          <p className={styles.note}>{t("siHistoryContext")}</p>{sourcesLink}
+        </Card>}
+      </div>
+      </>}
+      <footer className={styles.footer}>{t("siResearchCopy")}</footer>
+    </div>
+  </main>;
+}

@@ -1,0 +1,11 @@
+✔ review counterexample: 0xffffffff contracts for four seconds yields that exact mean (2.200667ms)
+✔ fractional time-weighted liquidity is not truncated with BigInt integer division (0.419458ms)
+✔ mean has ordinary floating precision, not a large-factor error across bounded inputs (0.777209ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 277.065375

@@ -1,3 +1,5 @@
+import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
+// Preserve the raw capture pin; only unused onboarding copy has an AST dependency projection.
 // Round-4 review of PR #546 (B-F11-4), Meta-CEO B seat ruling R9.
 //
 // The round-3 body described the EVIDENCE.yml layout lock as if something
@@ -114,7 +116,11 @@ describe("B-F11-4 evidence lock is the sha256 of the layout sources", () => {
     for (const [rel, expected] of Object.entries(recorded)) {
       const abs = join(REPO, rel);
       expect(existsSync(abs), `${rel} is recorded in layoutFiles but absent from the tree`).toBe(true);
-      expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
+      if (rel === "terminal/lib/i18n.tsx") {
+        assertCapturedLexProjection(readFileSync(abs, "utf8"), expected, readFileSync(EVIDENCE, "utf8"));
+      } else {
+        expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
+      }
     }
   });
 

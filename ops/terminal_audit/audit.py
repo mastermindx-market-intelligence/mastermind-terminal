@@ -137,13 +137,14 @@ def audit_source(
     missing_live_roots: list[Path] = []
     for mapping in mappings:
         mapping_receipt, mapping_findings = audit_mapping(
-            repo, accepted_sha, mapping
+            repo,
+            accepted_sha,
+            mapping,
+            deployment_id_file=deployment_id_file,
         )
         mapping_receipts.append(mapping_receipt)
         findings.extend(mapping_findings)
-        if any(
-            item["code"] == "LIVE_PATH_MISSING" for item in mapping_findings
-        ):
+        if any(item["code"] == "LIVE_PATH_MISSING" for item in mapping_findings):
             missing_live_roots.append(mapping.live_path)
 
     marker_suppressed = any(
@@ -189,11 +190,19 @@ def audit_source(
         "mappings": mapping_receipts,
         "summary": {
             "blocking_findings": len(findings),
-            "tracked_paths": sum(
-                item["tracked_paths"] for item in mapping_receipts
+            "tracked_paths": sum(item["tracked_paths"] for item in mapping_receipts),
+            "allowed_paths": sum(item["allowed_paths"] for item in mapping_receipts),
+            "allowed_tracked_absences": sum(
+                item.get("allowed_tracked_absence_count", 0)
+                for item in mapping_receipts
             ),
-            "allowed_paths": sum(
-                item["allowed_paths"] for item in mapping_receipts
+            "allowed_tracked_runtime_subtrees": sum(
+                item.get("allowed_tracked_runtime_subtree_count", 0)
+                for item in mapping_receipts
+            ),
+            "allowed_tracked_runtime_files": sum(
+                item.get("allowed_tracked_runtime_file_count", 0)
+                for item in mapping_receipts
             ),
         },
         "findings": findings,
@@ -221,9 +230,7 @@ def _audit_marker(
             ],
         )
     try:
-        marker_bytes = read_stable_regular_bytes(
-            marker, max_bytes=_MARKER_MAX_BYTES
-        )
+        marker_bytes = read_stable_regular_bytes(marker, max_bytes=_MARKER_MAX_BYTES)
     except UnsupportedLiveFileType as exc:
         return (
             "INVALID_TYPE",

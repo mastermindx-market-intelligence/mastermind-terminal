@@ -25,7 +25,7 @@ import type { SuiteDef } from "@/lib/indicator-canvas/types";
 import { SUITE_ORDER } from "./meta";
 
 /**
- * One import() per suite — NOT one per module.
+ * One import() per suite, with one independent free candle-only entrypoint.
  *
  * Modules inside a suite share compute (the RSI engine's series feeds Signals, Divergence and
  * Channels through `ctx.suite`), so splitting finer would either duplicate that work or fetch
@@ -43,12 +43,15 @@ const LOADERS: Record<string, () => Promise<{ default: SuiteDef }>> = {
   macdx: () => import("./runtime/macdx"),
 };
 
+export type SuiteRuntimeProfile = "full" | "candles";
+const runtimeSlot = (key: string, profile: SuiteRuntimeProfile) => key === "trend" && profile === "candles" ? "trend:cp-only" : key;
+
 const loaded = new Map<string, SuiteDef>();
 const inflight = new Map<string, Promise<SuiteDef | null>>();
 
 /** Synchronous read for the render path. `null` = not loaded yet (or not a suite key). */
-export function peekSuiteRuntime(key: string): SuiteDef | null {
-  return loaded.get(key) ?? null;
+export function peekSuiteRuntime(key: string, profile: SuiteRuntimeProfile = "full"): SuiteDef | null {
+  return loaded.get(runtimeSlot(key, profile)) ?? null;
 }
 
 /** True once this suite's computation is resident and `peekSuiteRuntime` will answer. */
@@ -64,29 +67,30 @@ export function isSuiteRuntimeLoaded(key: string): boolean {
  * "this suite is not drawn yet", never to a broken chart — and it does NOT poison the entry, so
  * the next activation retries.
  */
-export function ensureSuiteRuntime(key: string): Promise<SuiteDef | null> {
-  const already = loaded.get(key);
+export function ensureSuiteRuntime(key: string, profile: SuiteRuntimeProfile = "full"): Promise<SuiteDef | null> {
+  const slot = runtimeSlot(key, profile);
+  const already = loaded.get(slot);
   if (already) return Promise.resolve(already);
-  const pending = inflight.get(key);
+  const pending = inflight.get(slot);
   if (pending) return pending;
-  const load = LOADERS[key];
+  const load = slot === "trend:cp-only" ? () => import("./runtime/trendCandles") : LOADERS[key];
   if (!load) return Promise.resolve(null);
 
   const promise = load()
     .then((mod) => {
       const def = mod.default;
-      if (def) loaded.set(key, def);
+      if (def) loaded.set(slot, def);
       return def ?? null;
     })
     .catch(() => null)
-    .finally(() => { inflight.delete(key); });
-  inflight.set(key, promise);
+    .finally(() => { inflight.delete(slot); });
+  inflight.set(slot, promise);
   return promise;
 }
 
 /** Warm several suites at once — what a consumer calls when the active set changes. */
 export function ensureSuiteRuntimes(keys: Iterable<string>): Promise<Array<SuiteDef | null>> {
-  return Promise.all([...keys].map(ensureSuiteRuntime));
+  return Promise.all([...keys].map((key) => ensureSuiteRuntime(key)));
 }
 
 /**

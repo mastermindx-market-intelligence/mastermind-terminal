@@ -7,8 +7,10 @@
  * supabase/migrations/RESERVATIONS.json, the presence of the `.sql` the row names, and the
  * agreement between that file's `-- Ledger row:` header line and the row.
  *
- * 0023 is on master and NOT applied. The row is asserted exactly as the ledger records it today —
- * this lane pins the ledger, it does not correct it.
+ * 0023 was on master and unapplied for days after #552 merged as 9022e0138. The seat applied it on
+ * 2026-09-13 at 06:57:13Z, in ledger order after 0019/0020/0021/0022, with a readback receipt held
+ * in the seat's handoff kit (ddl/receipt_0023.json); the project ref is never written. The row is
+ * asserted exactly as the ledger records it now.
  *
  * The ledger is read through lib/__tests__/helpers/reservations.ts, which masks nothing and never
  * logs the document, so the project reference in its `project_ref` field cannot reach a test log.
@@ -31,17 +33,18 @@ const row = reservationRow(PREFIX);
 const sql = readMigration(FILE);
 
 describe("0023 portfolio targets ledger contract", () => {
-  it("claims prefix 0023 in RESERVATIONS.json as merged and not yet applied", () => {
+  it("claims prefix 0023 in RESERVATIONS.json as merged and applied", () => {
     expect(row.state).toBe("taken");
     expect(row.file).toBe(FILE);
     expect(row.packet).toBe("B-F08-B5-1");
     expect(row.pr).toBe(552);
     expect(row.pr_state).toBe("merged");
     expect(row.merged_sha).toBe("9022e0138");
-    // Ships UNAPPLIED: the builder never runs DDL against production, so applied_in_production is
-    // false and the date is null because there is no application yet.
-    expect(row.applied_in_production).toBe(false);
-    expect(row.applied_date).toBeNull();
+    // 0023 was applied on 2026-09-13 at 06:57:13Z, in ledger order after 0019/0020/0021/0022.
+    // Readback receipt is held in the seat's handoff kit at ddl/receipt_0023.json; the project
+    // ref is never written.
+    expect(row.applied_in_production).toBe(true);
+    expect(row.applied_date).toBe("2026-09-13");
   });
 
   it("ships the .sql file the row names", () => {
@@ -55,7 +58,7 @@ describe("0023 portfolio targets ledger contract", () => {
     expect(head).toMatch(/^-- Rollback:/m);
   });
 
-  it("the -- Ledger row: header names the packet and addresses the lane by ledger-row id", () => {
+  it("the -- Ledger row: header names the packet, addresses the lane by ledger-row id, and records the apply date", () => {
     const line = ledgerRowHeaderLine(sql);
     expect(line, "0023 carries no -- Ledger row: header line").toBeTruthy();
     expect(line!).toContain("MO-DELTA-003");
@@ -64,17 +67,26 @@ describe("0023 portfolio targets ledger contract", () => {
     // request, so it makes no pull-request or application claim that could go stale. The owning
     // pull request is recorded in the ledger row alone.
     expect(headerPrNumber(line!)).toBeNull();
+    // After the seat applied 0023 on 2026-09-13, the header carries the apply date; it never
+    // claims "not applied" because that phrasing is reserved for prefixes still on master.
+    expect(line!).toContain(`applied ${row.applied_date}`);
     expect(line!).not.toMatch(/not applied/);
     expect(row.pr).toBe(552);
   });
 
-  it("README carries 0023 as merged but not applied, and gives it no application-table row", () => {
+  it("README carries 0023 as merged and applied in both the reservations and application tables", () => {
     const readme = readFileSync(readmePath, "utf8");
-    expect(readme.split("\n").filter((line) => line.includes(FILE))).toEqual([]);
+    // The application-status table lists applied files; 0023 is applied, so its .sql filename
+    // appears there exactly once. The reservations table row names the same packet and merge sha.
+    const fileMentions = readme.split("\n").filter((line) => line.includes(FILE));
+    expect(fileMentions.length).toBeGreaterThan(0);
+    const appRow = readme.split("\n").find((line) => line.includes("`0023_portfolio_targets.sql`"));
+    expect(appRow, "application table is missing the 0023 row").toBeTruthy();
+    expect(appRow!).toContain("yes — applied 2026-09-13");
     const resRow = readme.split("\n").find((line) => line.startsWith("| `0023` |"));
     expect(resRow, "reservations table is missing the 0023 row").toBeTruthy();
     expect(resRow!).toContain("PR #552");
     expect(resRow!).toContain("9022e0138");
-    expect(resRow!).toContain("merged — not applied");
+    expect(resRow!).toContain("merged + applied 2026-09-13");
   });
 });

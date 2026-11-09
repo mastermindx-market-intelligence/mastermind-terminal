@@ -15,6 +15,8 @@ const {
   webullExtractPrint,
   classifySession,
   WEBULL_LRU_CAP,
+  EXT_CACHE_CAP,
+  boundedCacheSet,
 } = require("../lib/extfeed");
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -325,17 +327,31 @@ describe("WebullFeed.resolveTickerId", () => {
 
 // ── WebullFeed — LRU + poll ──────────────────────────────────────────────────
 
+describe("bounded last-good ext cache", () => {
+  it(`retains more symbols than the ${WEBULL_LRU_CAP}-subscription feed while staying capped`, () => {
+    const cache = new Map();
+    for (let i = 0; i <= EXT_CACHE_CAP; i++) {
+      boundedCacheSet(cache, `S${i}`, { price: i, ts: i, session: "pre", source: "test" });
+    }
+    assert.equal(cache.size, EXT_CACHE_CAP);
+    assert.ok(!cache.has("S0"), "only the oldest retained print is evicted at the independent cache cap");
+    assert.ok(cache.has(`S${EXT_CACHE_CAP}`));
+  });
+});
+
 describe("WebullFeed LRU demand management", () => {
-  it(`evicts the LRU symbol at cap (${WEBULL_LRU_CAP}) and drops its cache`, () => {
+  it(`evicts the LRU subscription at cap (${WEBULL_LRU_CAP}) without erasing its last-good print`, () => {
     const feed = new WebullFeed({ fetchJson: async () => null });
     feed.demand("FIRST");
-    feed.cache.set("FIRST", { price: 1, ts: 1, session: "pre", source: "webull" });
+    const lastGood = { price: 1, ts: 1, session: "pre", source: "webull" };
+    feed.cache.set("FIRST", lastGood);
     for (let i = 1; i < WEBULL_LRU_CAP; i++) feed.demand(`S${i}`);
     assert.equal(feed.subs.size, WEBULL_LRU_CAP);
     feed.demand("NEWCOMER");
     assert.equal(feed.subs.size, WEBULL_LRU_CAP, "size stays at cap");
-    assert.ok(!feed.subs.has("FIRST"), "LRU symbol evicted");
-    assert.ok(!feed.cache.has("FIRST"), "its cached print goes with it");
+    assert.ok(!feed.subs.has("FIRST"), "LRU subscription is evicted");
+    assert.deepEqual(feed.get("FIRST"), lastGood,
+      "eviction stops future refresh; serve-time session/age gates decide when the prior print expires");
   });
 
   it("does not start a timer without an explicit start()", () => {
@@ -545,6 +561,28 @@ describe("ExtFeed serve priority — alpaca → webull → yahoo", () => {
         source: "webull",
       });
       assert.equal(feed.getExt("AAPL", now, 313.39), null, "a 91-min-old print is not servable");
+    } finally { feed.stop(); }
+  });
+
+  it("a retained stale Webull print cannot block a fresh Yahoo fallback", () => {
+    const feed = new ExtFeed({ alpacaKey: "", alpacaSecret: "" });
+    try {
+      feed.webull.cache.set("AAPL", {
+        price: 314.0,
+        ts: Math.floor((now - 91 * 60 * 1000) / 1000),
+        session: "pre",
+        source: "webull",
+      });
+      feed._yahooCache.set("AAPL", {
+        price: 313.5,
+        ts: Math.floor((now - 60 * 1000) / 1000),
+        session: "pre",
+        source: "yahoo_unofficial",
+      });
+      const ext = feed.getExt("AAPL", now, 313.39);
+      assert.ok(ext, "provider priority applies only among currently servable candidates");
+      assert.equal(ext.extPrice, 313.5);
+      assert.equal(ext.extSource, "yahoo_unofficial");
     } finally { feed.stop(); }
   });
 

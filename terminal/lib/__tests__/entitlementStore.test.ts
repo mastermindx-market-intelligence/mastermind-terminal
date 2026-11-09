@@ -13,9 +13,11 @@
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { ownerKeyFor, GUEST_OWNER } from "@/lib/accountIdentity";
+import { entitlementVisualState } from "@/lib/entitlementVisualState";
 import {
   __adoptEntitlementOwner, __entitlementSnapshot, __resetEntitlementStore,
   displayEntitlement, gateEntitlement, invalidateEntitlement, refreshEntitlement,
+  type EntitlementSnapshot,
 } from "@/lib/entitlementStore";
 
 const UUID_A = "8f2c41ba-7d19-4e6a-9c03-5b71ee0a4d22";
@@ -312,6 +314,55 @@ describe("regression guard: the dependency is the OWNER, not `!!email`", () => {
   });
 });
 
+describe("gateEntitlement owner check", () => {
+  it("gateEntitlement: owner mismatch reports loading, matching owner resolves, guest without expected owner is not stuck", async () => {
+    const paid: EntitlementSnapshot = {
+      owner: "u2",
+      state: "VERIFIED_PAID",
+      plan: { tier: "pro", status: "active", features: ["terminal_live_options"] },
+      verifiedAt: 1,
+    };
+
+    // (a) another owner's verified grant must not unlock this caller, and must not look settled.
+    const mismatch = gateEntitlement(paid, "u1");
+    expect(mismatch.loading).toBe(true);
+    expect(mismatch.optionsRead).toBe(false);
+    expect(mismatch.tier).toBe("free");
+
+    // (b) the same snapshot, once the owner matches, loads only while s.state is LOADING.
+    const matched = gateEntitlement(paid, "u2");
+    expect(matched.loading).toBe(paid.state === "LOADING");
+    expect(matched.optionsRead).toBe(true);
+    expect(matched.tier).toBe("pro");
+    const loadingSame: EntitlementSnapshot = { ...paid, state: "LOADING" };
+    expect(gateEntitlement(loadingSame, "u2").loading).toBe(true);
+
+    // (c) omitting expectedOwner must not trap a guest or an unavailable read in loading.
+    const guest: EntitlementSnapshot = { owner: GUEST_OWNER, state: "GUEST_FREE", plan: null, verifiedAt: 0 };
+    const unavailable: EntitlementSnapshot = { owner: GUEST_OWNER, state: "UNAVAILABLE", plan: null, verifiedAt: 0 };
+    expect(gateEntitlement(guest).loading).toBe(false);
+    expect(gateEntitlement(unavailable).loading).toBe(false);
+
+    // (d) the hook seam adopts the caller; the cross-owner hold clears with that adoption.
+    respond = async () => json(PRO);
+    __adoptEntitlementOwner(OWNER_B);
+    await settle();
+    const held = __entitlementSnapshot();
+    expect(held.owner).toBe(OWNER_B);
+    expect(gateEntitlement(held, OWNER_A).loading).toBe(true);
+    expect(gateEntitlement(held, OWNER_A).optionsRead).toBe(false);
+
+    __adoptEntitlementOwner(OWNER_A);
+    await settle();
+    const adopted = __entitlementSnapshot();
+    expect(adopted.owner).toBe(OWNER_A);
+    expect(adopted.state).not.toBe("LOADING");
+    expect(gateEntitlement(adopted, OWNER_A).loading).toBe(adopted.state === "LOADING");
+    expect(gateEntitlement(adopted, OWNER_A).loading).toBe(false);
+    expect(gateEntitlement(adopted, OWNER_A).optionsRead).toBe(true);
+  });
+});
+
 describe("payload narrowing", () => {
   it("survives a junk body without throwing, and treats it as free", async () => {
     respond = async () => json("not-an-object");
@@ -337,5 +388,42 @@ describe("payload narrowing", () => {
       fast: { remaining: 40, limit: 200, period: "month" },
       pro: { remaining: 2, limit: 10 },
     });
+  });
+});
+
+describe("visual access state does not turn uncertainty into a paywall", () => {
+  const record = (state: EntitlementSnapshot["state"], plan: EntitlementSnapshot["plan"] = null): EntitlementSnapshot => ({
+    owner: OWNER_A, state, plan, verifiedAt: plan ? 123 : 0,
+  });
+
+  it("distinguishes in-flight, unavailable and verified states without granting paid UI", () => {
+    const pending = gateEntitlement(record("LOADING"));
+    expect(entitlementVisualState(pending)).toBe("checking");
+    expect(pending.tier).toBe("free");
+    expect(pending.optionsRead).toBe(false);
+
+    const lost = gateEntitlement(record("UNAVAILABLE"));
+    expect(entitlementVisualState(lost)).toBe("unavailable");
+    expect(lost.optionsRead).toBe(false);
+
+    const stalePaid = gateEntitlement(record("STALE_LAST_GOOD", PRO));
+    expect(entitlementVisualState(stalePaid)).toBe("unavailable");
+    expect(stalePaid.tier).toBe("free");
+    expect(stalePaid.optionsRead).toBe(false);
+
+    const verifiedFree = gateEntitlement(record("VERIFIED_FREE", FREE));
+    expect(entitlementVisualState(verifiedFree)).toBe("verified");
+    expect(verifiedFree.tier).toBe("free");
+
+    const verifiedPaid = gateEntitlement(record("VERIFIED_PAID", PRO));
+    expect(entitlementVisualState(verifiedPaid)).toBe("verified");
+    expect(verifiedPaid.tier).toBe("pro");
+  });
+
+  it("holds the visual gate while a different account is hydrating", () => {
+    const previousPaid = record("VERIFIED_PAID", PRO);
+    const nextOwner = gateEntitlement(previousPaid, OWNER_B);
+    expect(entitlementVisualState(nextOwner)).toBe("checking");
+    expect(nextOwner.optionsRead).toBe(false);
   });
 });
