@@ -1,12 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
   LEADERS_PREVIEW_ROWS,
+  filterLeaderRows,
   leaderCountLabel,
   leaderCoverageFootnote,
   leaderDirectionCaveat,
   leaderHistoryLabel,
   leaderEmptyLabel,
   leaderMissingRecurrenceLabel,
+  leaderSearchCountLabel,
+  leaderSearchEmptyLabel,
+  normalizeLeaderQuery,
   visibleLeaderRows,
 } from "@/lib/leadersPresentation";
 
@@ -17,6 +21,21 @@ describe("Flow Leaders presentation", () => {
     expect(visibleLeaderRows(rows, false)).toEqual(rows.slice(0, 12));
     expect(visibleLeaderRows(rows, true)).toEqual(rows);
     expect(rows).toHaveLength(133);
+  });
+
+  it("searches the complete board with ticker-friendly normalization", () => {
+    const rows = [{ ticker: "AAPL" }, { ticker: "BRK.B" }, { ticker: "MSFT" }];
+    expect(normalizeLeaderQuery("  $brk  ")).toBe("BRK");
+    expect(filterLeaderRows(rows, "$brk")).toEqual([{ ticker: "BRK.B" }]);
+    expect(filterLeaderRows(rows, "")).toEqual(rows);
+    expect(leaderSearchCountLabel("en", 1, 133, 368)).toBe(
+      "1 match in 133 · 368-name universe",
+    );
+    expect(leaderSearchCountLabel("zh", 2, 133, 368)).toBe(
+      "匹配 2 / 133 · 368 标的范围",
+    );
+    expect(leaderSearchEmptyLabel("en", "$xyz")).toBe("No names match “XYZ”");
+    expect(leaderSearchEmptyLabel("zh", "xyz")).toBe("没有标的匹配“XYZ”");
   });
 
   it("separates board count from universe coverage", () => {
