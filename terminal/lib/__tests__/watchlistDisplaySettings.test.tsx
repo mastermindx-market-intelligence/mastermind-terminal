@@ -97,9 +97,9 @@ describe("watchlist display disclosure", () => {
     vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
       return this.classList.contains("rail-body") ? new DOMRect(0, 100, 340, bottom - 100) : new DOMRect(0, 200, 232, 400);
     });
-    open(); expect(panel()!.style.maxHeight).toBe("192px");
+    open(); expect(panel()!.style.getPropertyValue("--watchlist-display-offset")).toBe(`${window.innerHeight - 192}px`);
     bottom = 330; act(() => window.dispatchEvent(new Event("resize")));
-    expect(panel()!.style.maxHeight).toBe("122px");
+    expect(panel()!.style.getPropertyValue("--watchlist-display-offset")).toBe(`${window.innerHeight - 122}px`);
     expect(document.activeElement).toBe(panel()!.querySelector('[role="switch"]'));
   });
 });

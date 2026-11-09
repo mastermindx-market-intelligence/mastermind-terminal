@@ -27,7 +27,10 @@ export default function WatchlistDisplaySettings({ id, open, settings, onChange,
     const rail = panel.closest<HTMLElement>(".rail-body");
     const fit = () => {
       const bottom = Math.min(window.innerHeight, rail?.getBoundingClientRect().bottom ?? window.innerHeight);
-      panel.style.maxHeight = `${Math.max(0, Math.floor(bottom - panel.getBoundingClientRect().top - 8))}px`;
+      // Let CSS react to a viewport resize before focus can scroll an oversized
+      // popup's clipping ancestors. JS only measures the anchored edge/inset.
+      const offset = panel.getBoundingClientRect().top + window.innerHeight - bottom + 8;
+      panel.style.setProperty("--watchlist-display-offset", `${Math.ceil(offset)}px`);
     };
     fit();
     panel.querySelector<HTMLInputElement>("input")?.focus({ preventScroll: true });

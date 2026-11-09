@@ -38,6 +38,10 @@ for (const lang of ["en", "zh"] as const) {
     await expect(trigger).toHaveAttribute("aria-expanded", "true");
     await expect(trigger).toHaveAttribute("aria-controls", await popup.getAttribute("id") as string);
     await expect(checkbox("last")).toBeFocused();
+    await expect(popup).toHaveCSS("color-scheme", "dark");
+    if (await page.evaluate(() => matchMedia("(pointer: coarse)").matches)) {
+      for (const label of await popup.locator("label").all()) expect((await label.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    }
 
     await checkbox("volume").focus(); await page.keyboard.press("Space");
     await expect(checkbox("volume")).toBeChecked(); await expect(checkbox("volume")).toBeFocused();

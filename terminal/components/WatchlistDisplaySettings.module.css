@@ -4,11 +4,16 @@
   width: 232px;
   min-width: 0;
   max-width: calc(100vw - 24px);
+  max-height: max(0px, calc(100vh - var(--watchlist-display-offset, 240px)));
+  max-height: max(0px, calc(100dvh - var(--watchlist-display-offset, 240px)));
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: var(--line-3) transparent;
+  color-scheme: dark;
 }
+
+:global(html[data-theme="light"]) .panel { color-scheme: light; }
 
 .group {
   min-width: 0;
