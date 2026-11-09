@@ -28,7 +28,7 @@ npx eslint components/fin/FinComparePage.tsx e2e/fin-compare.spec.ts
 
 ## Captures and reference
 
-`after-remove-{desktop,tablet,mobile}.png` shows the focused successor after removal. `remove-target-mobile.png` shows a wrapped 0700.HK peer, the full removal target, and clearance above bottom navigation. Images come from the actual local Analysis route with the repository's synthetic fund fixtures; no live financial claim is made from those fixtures.
+`after-remove-{desktop,tablet,mobile}.png` shows the focused successor after removal. `remove-target-mobile.png` shows a wrapped 0700.HK peer, the full removal target, and clearance above bottom navigation. Images come from the actual local Analysis route with the repository's committed fund snapshots (copied from published fund.json files); no live financial claim is made from those fixtures.
 
 Paper reference: SharedShell Integration Reference R1, file `01M6Y2GT8S3YP4TK052PPESZEC`, page `p-2-0`, company Analysis artboard `2RK-0`. This fix supports the existing company research workflow and reuses its shell/theme/language context. It does not claim a new Paper design was approved.
 
