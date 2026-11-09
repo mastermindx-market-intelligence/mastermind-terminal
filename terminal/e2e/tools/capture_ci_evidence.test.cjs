@@ -25,14 +25,11 @@ function fixture(t, change = {}) {
       const dir = path.join(repoRoot, evidence.PACKETS.pl6); fs.mkdirSync(dir, { recursive: true });
       const record = { schema: "terminal.visual-composition.v2", mode: "records", id: input.id,
         profile: input.profile, operations: input.operations, selections: input.selections };
-      fs.writeFileSync(path.join(dir, `${input.id}.composition.json`), JSON.stringify(record));
-      return { id: input.id }; // Deliberately has no path/digest: matches incumbent return semantics.
-    },
-    readComposition(input) {
-      assert.deepEqual(input.expectedProfile, profile);
-      assert.equal(input.compositionPath, `${evidence.PACKETS.pl6}/${ids.composition}.composition.json`);
-      if (change.readError) throw new Error(change.readError);
-      return { id: ids.composition, cases: Array(change.selectedCount ?? 50).fill({}),
+      assert.deepEqual(input.profile, profile);
+      fs.writeFileSync(path.join(dir, `${input.id}.composition.json`),
+        JSON.stringify(record) + (change.compositionBytesMismatch ? "\n" : ""));
+      // The incumbent writer returns the fully validated composition, without a path/digest.
+      return { id: input.id, cases: Array(change.selectedCount ?? 50).fill({}),
         operations: ["pl6", "vi"].map(packet => ({ id: ids[packet], packet,
           cases: Array(packet === "pl6" ? (change.pl6Count ?? 24) : 30).fill({}) })) };
     },
@@ -66,6 +63,7 @@ function fixture(t, change = {}) {
     "files:", ...definition.files.map(file => "  - " + file), "",
   ].join("\n");
   const optionsDirectory = "terminal/docs/pr-crops/options-level-axis-labels";
+  const optionsPath = path.join(repoRoot, optionsDirectory, "manifest.json");
   const optionsSources = ["components/ChartPanel.tsx", "lib/optionsLevels.ts", "lib/priceTagPlacement.ts"];
   const optionsFiles = ["desktop.png", "tablet.png", "mobile.png", "desktop-left-percentage.png", "desktop-compact.png"];
   for (const file of new Set([
@@ -76,16 +74,17 @@ function fixture(t, change = {}) {
     write(definition.directory + "/EVIDENCE.yml", packetManifest(definition, Boolean(change.legacyStale)));
     for (const file of definition.files) write(definition.directory + "/" + file, "old synthetic image " + file);
   }
-  const writeOptions = stale => {
+  const writeOptions = (stale, sourceHead = "a".repeat(40)) => {
     const captures = optionsFiles.map(file => {
       write(optionsDirectory + "/" + file, (stale ? "old" : "new") + " synthetic options image " + file);
       return { screenshot: file, sha256: sourceHash(optionsDirectory + "/" + file) };
     });
-    const manifest = { sourceHead: "a".repeat(40), sourceFiles: Object.fromEntries(optionsSources.map((file, n) => [file, stale && n === 0 ? "0".repeat(64) : sourceHash("terminal/" + file)])), captures };
+    const manifest = { sourceHead, sourceFiles: Object.fromEntries(optionsSources.map((file, n) => [file, stale && n === 0 ? "0".repeat(64) : sourceHash("terminal/" + file)])), captures };
     write(optionsDirectory + "/manifest.json", JSON.stringify(manifest));
     return captures;
   };
   writeOptions(Boolean(change.optionsStale));
+  if (change.optionsChanged) fs.appendFileSync(path.join(repoRoot, "terminal/" + optionsSources[0]), "changed source\n");
   write(optionsDirectory + "/coverage-audit-summary.json", "unchanged historical audit");
   evidence.imageInfo = bytes => ({ sha256: hash(bytes), width: 10, height: 10 });
   const legacyCalls = [];
@@ -114,7 +113,7 @@ function fixture(t, change = {}) {
   const combinedSpawn = (command, args, options) => {
     const result = originalSpawn(command, args, options);
     if (options.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE === "1") {
-      const captures = writeOptions(false);
+      const captures = change.skipOptionsCapture ? JSON.parse(fs.readFileSync(optionsPath, "utf8")).captures : writeOptions(false, change.optionsHead);
       if (change.mutateOptionsAudit) write(optionsDirectory + "/coverage-audit-summary.json", "changed audit");
       const receipt = { captureId: options.env.TERMINAL_CI_OPTIONS_CAPTURE_ID, capturedAtHead: "a".repeat(40),
         manifestSha256: sourceHash(optionsDirectory + "/manifest.json"),
@@ -127,7 +126,7 @@ function fixture(t, change = {}) {
   const invoke = () => run({ repoRoot, env, evidence, checkout, spawn: combinedSpawn, spawnLegacy });
   const diagnostic = () => JSON.parse(fs.readFileSync(path.join(diagnostics, `${ids.prefix}.json`)));
   const selected = () => fs.existsSync(env.GITHUB_ENV) ? fs.readFileSync(env.GITHUB_ENV, "utf8") : "";
-  return { repoRoot, env, ids, calls, legacyCalls, packets, inputs, checkout, invoke, diagnostic, selected, diagnostics };
+  return { repoRoot, env, ids, calls, legacyCalls, packets, inputs, checkout, invoke, diagnostic, selected, diagnostics, optionsPath };
 }
 
 test("runs complete original captures, retains24PL6, selects20+30 and exact returned hashes", async t => {
@@ -140,11 +139,97 @@ test("runs complete original captures, retains24PL6, selects20+30 and exact retu
   ]);
   assert.equal(f.calls[0].options.env.TERMINAL_PL6_EVIDENCE_OPERATION_ID, f.ids.pl6);
   assert.equal(f.calls[0].options.env.CAPTURE_ONLY, "");
+  assert.equal(f.calls[0].options.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE, "0");
+  assert.equal(r.optionsAxis.state, "EXISTING_PACKET_AWAITING_UNIT_VALIDATION");
   assert.equal(f.inputs[0].selections.filter(s => s.operationId === f.ids.pl6).length, 20);
   assert.equal(f.inputs[0].selections.filter(s => s.operationId === f.ids.vi).length, 30);
   assert.ok(f.inputs[0].operations.every(r => r.sha256 === "f".repeat(64)));
   assert.equal(f.selected(), `TERMINAL_EVIDENCE_MODE=records\nTERMINAL_EVIDENCE_COMPOSITION=${r.composition.path}\n`);
   assert.match(r.composition.sha256, /^[0-9a-f]{64}$/);
+});
+
+test("changed Options source opts only PL6 into one capture and retains actual checkout identity", async t => {
+  const f = fixture(t, { optionsChanged: true });
+  f.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE = "1"; // The caller may not leak this into VI.
+  const r = await f.invoke();
+  assert.deepEqual(f.calls.map(c => c.options.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE), ["1", "0"]);
+  assert.notEqual(r.optionsAxis.prior.files["manifest.json"].sha256, r.optionsAxis.returned.files["manifest.json"].sha256);
+  assert.equal(r.optionsAxis.sources["terminal/components/ChartPanel.tsx"], createHash("sha256").update(fs.readFileSync(path.join(f.repoRoot, "terminal/components/ChartPanel.tsx"))).digest("hex"));
+  assert.equal(r.optionsAxis.state, "CAPTURED_AWAITING_UNIT_VALIDATION");
+  assert.equal(r.optionsAxis.receipt.capturedAtHead, r.actualCheckout.commit);
+  assert.notEqual(r.optionsAxis.receipt.capturedAtHead, r.githubEvent.pullRequestHead);
+  assert.equal(r.optionsAxis.manifestSha256, createHash("sha256").update(fs.readFileSync(f.optionsPath)).digest("hex"));
+  assert.equal(r.composition.selectedCases, 50);
+});
+
+for (const change of [{ skipOptionsCapture: true }, { optionsHead: "e".repeat(40) }])
+test("stale or event-head Options receipt cannot select a successful capture", async t => {
+  const f = fixture(t, { optionsChanged: true, ...change });
+  await assert.rejects(f.invoke, /CI_OPTIONS_CHECKOUT_BINDING/);
+  assert.equal(f.calls.length, 1); assert.equal(f.selected(), "");
+  assert.equal(f.diagnostic().state, "FAILED");
+});
+
+test("Options runs asynchronously against the owned server, preserving inherited fixture settings", async () => {
+  const server = {}, child = new EventEmitter(), calls = [], checks = [];
+  let settled = false;
+  const pending = captureOptions({ server, ownedServer: value => { checks.push(value); return true; },
+    baseURL: "http://127.0.0.1:3536", terminal: "/fixture/terminal", env: { SHARED_SHELL: "1", BASE_URL: "http://wrong" },
+    spawn: (...args) => { calls.push(args); return child; } }).then(() => { settled = true; });
+  await Promise.resolve(); assert.equal(settled, false); assert.deepEqual(checks, [server]);
+  assert.equal(calls.length, 1);
+  assert.deepEqual(calls[0][1], ["docs/pr-crops/options-level-axis-labels/capture.mjs"]);
+  assert.deepEqual(calls[0][2], { cwd: "/fixture/terminal", env: { SHARED_SHELL: "1", BASE_URL: "http://127.0.0.1:3536" }, stdio: "inherit", detached: true });
+  child.emit("close", 0, null); await pending;
+  assert.equal(settled, true); assert.deepEqual(checks, [server, server]);
+});
+
+for (const outcome of ["nonzero", "signal", "error", "server-exit"])
+test(`Options ${outcome} fails once without retrying or starting a replacement server`, async () => {
+  const child = new EventEmitter(); let calls = 0, checks = 0;
+  const pending = captureOptions({ server: {}, ownedServer: () => ++checks === 1 || outcome !== "server-exit",
+    baseURL: "http://127.0.0.1:3536", terminal: "/fixture/terminal", env: {},
+    spawn: () => { calls++; return child; } });
+  const rejected = assert.rejects(pending, outcome === "error" ? /original spawn error/ : /CI_OPTIONS_/);
+  if (outcome === "error") { child.emit("error", new Error("original spawn error")); child.emit("close", 1, null); }
+  else child.emit("close", outcome === "nonzero" ? 1 : 0, outcome === "signal" ? "SIGTERM" : null);
+  await rejected; assert.equal(calls, 1);
+});
+
+test("Options refuses an unowned or unready server before spawning", async () => {
+  let calls = 0;
+  await assert.rejects(captureOptions({ server: {}, ownedServer: () => false,
+    spawn: () => { calls++; } }), /CI_OPTIONS_SERVER_NOT_READY/);
+  assert.equal(calls, 0);
+});
+
+for (const code of ["EPERM", "EACCES"])
+test(`Options preserves the original ${code} refusal after child closure`, async () => {
+  const child = new EventEmitter();
+  const error = Object.assign(new Error(`original Options ${code}`), { code });
+  let calls = 0;
+  const pending = captureOptions({ server: {}, ownedServer: () => true,
+    baseURL: "http://127.0.0.1:3536", terminal: "/fixture/terminal", env: {},
+    spawn: () => { calls++; return child; } });
+  const rejected = assert.rejects(pending, value => value === error && value.code === code);
+  child.emit("error", error);
+  child.emit("close", 1, null);
+  await rejected;
+  assert.equal(calls, 1);
+});
+
+test("PL6 invokes Options only after its captures succeed and before its own server cleanup", () => {
+  const source = fs.readFileSync(path.join(__dirname, "capture_pl6_batch1.cjs"), "utf8");
+  assert.match(source, /captureOptionsAxis && \(!operation \|\| ONLY\.length\)/);
+  assert.match(source, /if \(captureOptionsAxis && failed === 0\)/);
+  assert.equal((source.match(/await captureOptions\(/g) || []).length, 1);
+  const close = source.indexOf("await browser.close();");
+  const capture = source.indexOf("await captureOptions(");
+  const stop = source.indexOf("await settleLegacyServer(child);", capture);
+  assert.ok(close < capture && capture < stop);
+  const workflow = fs.readFileSync(path.resolve(__dirname, "../../../.github/workflows/ci.yml"), "utf8");
+  assert.match(workflow, /terminal\/docs\/pr-crops\/options-level-axis-labels\/manifest\.json/);
+  assert.match(workflow, /terminal\/docs\/pr-crops\/options-level-axis-labels\/\*\.png/);
 });
 
 for (const [name, change, error] of [
@@ -158,8 +243,9 @@ for (const [name, change, error] of [
   ["spawn error", { error: new Error("original ENOENT") }, /original ENOENT/],
   ["spawn throws", { throwChild: true }, /original spawn exception/],
   ["source mismatch", { writeError: "SOURCE_MISMATCH" }, /SOURCE_MISMATCH/],
-  ["profile mismatch", { readError: "PROFILE_MISMATCH" }, /PROFILE_MISMATCH/],
+  ["profile mismatch", { writeError: "PROFILE_MISMATCH" }, /PROFILE_MISMATCH/],
   ["bad report/image closure", { writeError: "CASE_REPORT_BINDING" }, /CASE_REPORT_BINDING/],
+  ["composition changed after writer validation", { compositionBytesMismatch: true }, /COMPOSITION_BYTES/],
   ["incomplete composition", { selectedCount: 49 }, /COMPOSITION/],
   ["lost extra layout cases", { pl6Count: 20 }, /COMPOSITION/],
 ]) test(`${name} preserves failure and does not export selector`, async t => {

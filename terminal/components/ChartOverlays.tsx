@@ -10,6 +10,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useT } from "@/lib/i18n";
+import { chartLegendInk } from "@/lib/chartSettingsUi";
 import { usePineRunT } from "@/lib/pineRunLex";
 import styles from "./ChartOverlays.module.css";
 
@@ -103,6 +104,7 @@ export default function ChartOverlays(props: {
   coarse?: boolean;
   showTitles?: boolean;
   backgroundOpacity?: number;
+  frameBackground?: string;
   paneButtons?: "always" | "hover" | "never";
 } & OverlayActions) {
   const coarse = !!props.coarse;
@@ -230,19 +232,22 @@ export default function ChartOverlays(props: {
                 {p.entries.map((e) => {
                   const visible = entriesVisible;
                   const isArmed = coarse && armedKey === e.key;
+                  const rowBackground = `rgba(6,9,14,${Math.max(0, Math.min(100, props.backgroundOpacity ?? 70)) * 0.0054})`;
+                  const foreground = props.frameBackground ? chartLegendInk(props.frameBackground, rowBackground) : undefined;
+                  const foregroundStyle = foreground ? { color: foreground } : undefined;
                   return (
                     <div
                       key={e.key}
                       ref={isArmed ? armedRowRef : undefined}
                       className={`lg-row${e.hidden ? " is-hidden" : ""}${e.isCompare ? " is-cmp" : ""}${isArmed ? " is-armed" : ""}${e.pineState ? ` ${styles.stateRow}` : ""}`}
                       style={visible
-                        ? { background: `rgba(6,9,14,${Math.max(0, Math.min(100, props.backgroundOpacity ?? 70)) * 0.0054})` }
+                        ? { background: rowBackground }
                         : { display: "none" }}
                     >
                       {e.isCompare && <span className="lg-dot" style={{ background: e.color || "currentColor" }} />}
                       {/* Static Legend: tapping the name area on touch ARMS the row (fires no action) */}
                       <span
-                        className="lg-name"
+                        className="lg-name" style={foregroundStyle}
                         role={coarse && !isArmed ? "button" : undefined}
                         tabIndex={coarse && !isArmed ? 0 : undefined}
                         onClick={coarse && !isArmed ? (ev) => { ev.stopPropagation(); setArmedKey(e.key); } : undefined}
@@ -275,11 +280,11 @@ export default function ChartOverlays(props: {
                           no separate pill, no geometry change. Eye is the fixed first slot. */}
                       {coarse && isArmed ? (
                         <span className="lg-menu">
-                          <button className="lg-ic eye" aria-label={e.hidden ? t("lgShow") : t("lgHide")} onClick={stop(() => { props.onEye(e.key); setArmedKey(null); })}><EyeIcon off={e.hidden} /></button>
-                          {!e.noParams && <button className="lg-ic" aria-label={t("lgSettings")} onClick={stop(() => { props.onSettings(e.key); setArmedKey(null); })}>{I(ICONS.settings, 1.6)}</button>}
-                          <button className="lg-ic" aria-label={t("lgRemove")} onClick={stop(() => { props.onRemove(e.key); setArmedKey(null); })}>{I(ICONS.remove)}</button>
+                          <button style={foregroundStyle} className="lg-ic eye" aria-label={e.hidden ? t("lgShow") : t("lgHide")} onClick={stop(() => { props.onEye(e.key); setArmedKey(null); })}><EyeIcon off={e.hidden} /></button>
+                          {!e.noParams && <button style={foregroundStyle} className="lg-ic" aria-label={t("lgSettings")} onClick={stop(() => { props.onSettings(e.key); setArmedKey(null); })}>{I(ICONS.settings, 1.6)}</button>}
+                          <button style={foregroundStyle} className="lg-ic" aria-label={t("lgRemove")} onClick={stop(() => { props.onRemove(e.key); setArmedKey(null); })}>{I(ICONS.remove)}</button>
                           {/* More → dropdown anchored under the armed row's left edge (conforms on coarse too) */}
-                          <button className="lg-ic" aria-label={t("lgMore")} onClick={(ev) => {
+                          <button style={foregroundStyle} className="lg-ic" aria-label={t("lgMore")} onClick={(ev) => {
                             ev.stopPropagation(); ev.preventDefault();
                             const trigger = ev.currentTarget;
                             const rowEl = trigger.closest(".lg-row") as HTMLElement | null;
@@ -288,17 +293,17 @@ export default function ChartOverlays(props: {
                         </span>
                       ) : !coarse ? (
                         <span className="lg-menu">
-                          <button className="lg-ic eye" data-tip={e.hidden ? t("lgShow") : t("lgHide")} onClick={stop(() => props.onEye(e.key))} aria-label={e.hidden ? t("lgShow") : t("lgHide")}><EyeIcon off={e.hidden} /></button>
-                          {!e.noParams && <button className="lg-ic" data-tip={t("lgSettings")} onClick={stop(() => props.onSettings(e.key))} aria-label={t("lgSettings")}>{I(ICONS.settings, 1.6)}</button>}
-                          {!e.isCompare && !e.noParams && !e.noSource && <button className="lg-ic" data-tip={t("pmSourceCode")} onClick={stop(() => props.onSource(e.key))} aria-label={t("pmSourceCode")}>{I(ICONS.source)}</button>}
-                          <button className="lg-ic" data-tip={t("lgRemove")} onClick={stop(() => props.onRemove(e.key))} aria-label={t("lgRemove")}>{I(ICONS.remove)}</button>
-                          <button className="lg-ic" data-tip={t("lgMore")} onClick={(ev) => { ev.stopPropagation(); ev.preventDefault(); openMore(e, p.paneIndex, ev.currentTarget); }} aria-label={t("lgMore")}>{I(ICONS.more, 2.4)}</button>
+                          <button style={foregroundStyle} className="lg-ic eye" data-tip={e.hidden ? t("lgShow") : t("lgHide")} onClick={stop(() => props.onEye(e.key))} aria-label={e.hidden ? t("lgShow") : t("lgHide")}><EyeIcon off={e.hidden} /></button>
+                          {!e.noParams && <button style={foregroundStyle} className="lg-ic" data-tip={t("lgSettings")} onClick={stop(() => props.onSettings(e.key))} aria-label={t("lgSettings")}>{I(ICONS.settings, 1.6)}</button>}
+                          {!e.isCompare && !e.noParams && !e.noSource && <button style={foregroundStyle} className="lg-ic" data-tip={t("pmSourceCode")} onClick={stop(() => props.onSource(e.key))} aria-label={t("pmSourceCode")}>{I(ICONS.source)}</button>}
+                          <button style={foregroundStyle} className="lg-ic" data-tip={t("lgRemove")} onClick={stop(() => props.onRemove(e.key))} aria-label={t("lgRemove")}>{I(ICONS.remove)}</button>
+                          <button style={foregroundStyle} className="lg-ic" data-tip={t("lgMore")} onClick={(ev) => { ev.stopPropagation(); ev.preventDefault(); openMore(e, p.paneIndex, ev.currentTarget); }} aria-label={t("lgMore")}>{I(ICONS.more, 2.4)}</button>
                         </span>
                       ) : e.hidden ? (
                         // C1 coarse: hidden indicator keeps a persistent crossed-eye in the pill's eye
                         // slot (right after the name) — one tap un-hides without opening the pill
                         <span className="lg-menu">
-                          <button className="lg-ic eye" aria-label={t("lgShow")} onClick={stop(() => props.onEye(e.key))}><EyeIcon off /></button>
+                          <button style={foregroundStyle} className="lg-ic eye" aria-label={t("lgShow")} onClick={stop(() => props.onEye(e.key))}><EyeIcon off /></button>
                         </span>
                       ) : null}
                     </div>

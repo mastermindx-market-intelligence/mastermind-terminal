@@ -1,8 +1,8 @@
 # GEX desk, Levels and Heatmap failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 9ef0160bba5c35d12abd6a531ee1c4e30bed0cdb
-# capturedAt: 2026-10-22T05:11:35.368Z
+# capturedAtHead: a842de07ad2b6e5b2a8c29cbb39226a5443eb490
+# capturedAt: 2026-11-05T12:20:11.060Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
@@ -15,7 +15,7 @@ layoutFiles:
   terminal/lib/dataCache.ts: "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a"
   terminal/components/levels/LevelsView.tsx: "91a4d6fd86b12225e657c8a9c4b2b185e3940356af3cd11466ca30e04f05b0c9"
   terminal/components/levels/levelsLabels.ts: "361124ec9293623fefe69128212f5a25bfddf2c3d716252126d56ec5f356d0d9"
-  terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
+  terminal/lib/heatmapStrings.ts: "d24d5cff73246b1a426fe4034723dae30968cd6779d35cef29a4eaf3b55315b7"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -369,3 +369,10 @@ labGammaMountedRecapture20261104:
   qualification: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/lab-gamma-recapture-20261104.json"
   qualificationSha256: "58ffdbfc7821e7a59baff21c0afb99b582c9aa0f505bc18539f85fcebcb37955"
   scope: "Actual scoped GEX/EOD capture; unrelated sources, historical packets and assertions preserved; not production."
+
+terminal610CaptureRepair20261105:
+  sourceHead: "a842de07ad2b6e5b2a8c29cbb39226a5443eb490"
+  actualCases: 114
+  command: "cd terminal && node e2e/tools/capture_gex_levels_heatmap_load_failure.cjs"
+  capturedAt: "2026-11-05T12:20:11.060Z"
+  scope: "Actual full capture of every state at 1440/820/390 in en and zh against the current source, because heatmapStrings.ts changed the sizeCap label to Price x volume / 价格 x 成交量. The scoped Heatmap mode was refused by its own guard (heatmapStrings.ts is outside HeatmapView.tsx), so the full owner ran. Historical trailing records above are preserved unchanged."

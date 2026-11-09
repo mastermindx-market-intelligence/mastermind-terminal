@@ -87,10 +87,23 @@ def test_no_run_step_touches_raw_inputs_or_eval() -> None:
 
 
 def test_shard_table_mirrors_hosted_e2e_matrix() -> None:
+    # The CI workflow now evaluates the dynamic, protected-parent scope selector.
+    # Compare the canary against the complete FULL matrix that selector emits,
+    # while also proving CI still consumes the selector's output rather than an
+    # unrelated/hand-edited matrix. This cannot be reduced by a focused PR.
+    from scripts.ci_e2e_scope import FULL_MATRIX
+
+    workflow = yaml.safe_load(CI_WORKFLOW.read_text(encoding="utf-8"))
+    browser = workflow["jobs"]["terminal-e2e"]
+    assert browser["needs"] == ["pr_scope", "e2e-scope"]
+    assert browser["strategy"]["matrix"] == "${{ fromJSON(needs.e2e-scope.outputs.matrix) }}"
+    assert "scripts/ci_e2e_scope.py" in workflow["jobs"]["e2e-scope"]["steps"][-1]["run"]
     hosted = {
         entry["shard"]: " ".join(str(entry["projects"]).split())
-        for entry in yaml.safe_load(CI_WORKFLOW.read_text(encoding="utf-8"))["jobs"]["terminal-e2e"]["strategy"]["matrix"]["include"]
+        for entry in FULL_MATRIX
     }
+    assert len(hosted) == len(FULL_MATRIX) == 12
+    assert all(entry["specs"] == "" for entry in FULL_MATRIX)
     table = dict(TABLE_LINE.findall(VALIDATOR.read_text(encoding="utf-8")))
     assert table == hosted
 
