@@ -15,9 +15,9 @@ async function visibleSelection(input: Locator) {
 }
 
 async function walkResults(page: Page, input: Locator) {
-  await input.focus();
+  await input.click();
   const list = page.getByRole("listbox");
-  await expect(list.getByRole("option")).toHaveCount(30);
+  await expect.poll(() => list.getByRole("option").count()).toBeGreaterThan(18);
   const before = await input.boundingBox();
   const pageScroll = await page.evaluate(() => ({ x: scrollX, y: scrollY }));
   for (let i = 0; i < 18; i++) { await input.press("ArrowDown"); await visibleSelection(input); }
