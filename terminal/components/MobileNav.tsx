@@ -97,6 +97,7 @@ export default function MobileNav({
   const derivedKey = activeKeyProp ?? (sharedShell ? sharedShellActiveKey(navPath) : (
     navPath.startsWith("/analysis") ? "analysis"
     : navPath.startsWith("/discover") ? "discover"
+    : navPath.startsWith("/dislocations") ? "dislocations"
     : navPath.startsWith("/options") ? "options"
     : navPath.startsWith("/scripts") ? "scripts"
     : navPath.startsWith("/alerts") ? "alerts"

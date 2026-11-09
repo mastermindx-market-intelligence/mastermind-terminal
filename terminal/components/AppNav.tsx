@@ -21,6 +21,8 @@ const ICON: Record<string, string[]> = {
   shellResearch: ["M4 4h6l2 2 2-2h6v16h-6l-2 2-2-2H4z", "M12 6v16"],
   // Analysis — an analytics card: a rounded frame holding three fundamentals bars.
   analysis: ["M6 3h12a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3z", "M8 16v-3", "M12 16v-6", "M16 16v-4"],
+  // Dislocations — two price traces separating from a common level.
+  dislocations: ["M3 12h6l5-6h7", "M9 12l5 6h7"],
   // Options — a long-call payoff diagram: L-axes with the flat-then-rising hockey stick.
   options: ["M4 4v16h16", "M8 15h3l6-8"],
   // Scripts — code angle-brackets with a script slash between them.
