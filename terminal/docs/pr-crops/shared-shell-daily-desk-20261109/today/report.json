@@ -1,5 +1,5 @@
 {
-  "sourceHead": "edbf1c8a0d5e4851d0c67eb95708b119de88a253",
+  "sourceHead": "b5a00479a1bd76ef09bc92ae969232aa60ef1e47",
   "kind": "ISOLATED_ACTUAL_TODAY_COMPONENT_FIXTURE",
   "results": [
     {
@@ -11,7 +11,7 @@
         "scroll": 1440,
         "width": 1440,
         "mains": 1,
-        "bodyHeight": 1816
+        "bodyHeight": 2194
       },
       "proof": {
         "brief": true,
@@ -111,7 +111,7 @@
         "scroll": 1440,
         "width": 1440,
         "mains": 1,
-        "bodyHeight": 1797
+        "bodyHeight": 2197
       },
       "proof": {
         "brief": true,
@@ -211,7 +211,7 @@
         "scroll": 1440,
         "width": 1440,
         "mains": 1,
-        "bodyHeight": 1816
+        "bodyHeight": 2194
       },
       "proof": {
         "brief": true,
@@ -311,7 +311,7 @@
         "scroll": 1440,
         "width": 1440,
         "mains": 1,
-        "bodyHeight": 1797
+        "bodyHeight": 2197
       },
       "proof": {
         "brief": true,
@@ -411,7 +411,7 @@
         "scroll": 820,
         "width": 820,
         "mains": 1,
-        "bodyHeight": 1845
+        "bodyHeight": 2223
       },
       "proof": {
         "brief": true,
@@ -511,7 +511,7 @@
         "scroll": 820,
         "width": 820,
         "mains": 1,
-        "bodyHeight": 1827
+        "bodyHeight": 2226
       },
       "proof": {
         "brief": true,
@@ -611,7 +611,7 @@
         "scroll": 820,
         "width": 820,
         "mains": 1,
-        "bodyHeight": 1845
+        "bodyHeight": 2223
       },
       "proof": {
         "brief": true,
@@ -711,7 +711,7 @@
         "scroll": 820,
         "width": 820,
         "mains": 1,
-        "bodyHeight": 1827
+        "bodyHeight": 2226
       },
       "proof": {
         "brief": true,
@@ -811,7 +811,7 @@
         "scroll": 390,
         "width": 390,
         "mains": 1,
-        "bodyHeight": 2382
+        "bodyHeight": 3143
       },
       "proof": {
         "brief": true,
@@ -911,7 +911,7 @@
         "scroll": 390,
         "width": 390,
         "mains": 1,
-        "bodyHeight": 2325
+        "bodyHeight": 3065
       },
       "proof": {
         "brief": true,
@@ -1011,7 +1011,7 @@
         "scroll": 390,
         "width": 390,
         "mains": 1,
-        "bodyHeight": 2382
+        "bodyHeight": 3143
       },
       "proof": {
         "brief": true,
@@ -1111,7 +1111,7 @@
         "scroll": 390,
         "width": 390,
         "mains": 1,
-        "bodyHeight": 2325
+        "bodyHeight": 3065
       },
       "proof": {
         "brief": true,
@@ -1211,7 +1211,7 @@
         "scroll": 320,
         "width": 320,
         "mains": 1,
-        "bodyHeight": 2406
+        "bodyHeight": 3149
       },
       "proof": {
         "brief": true,
@@ -1311,7 +1311,7 @@
         "scroll": 1440,
         "width": 1440,
         "mains": 1,
-        "bodyHeight": 2023
+        "bodyHeight": 2401
       },
       "proof": {
         "brief": true,
@@ -1412,7 +1412,7 @@
         "scroll": 390,
         "width": 390,
         "mains": 1,
-        "bodyHeight": 2511
+        "bodyHeight": 3273
       },
       "proof": {
         "brief": true,
@@ -1513,7 +1513,7 @@
         "scroll": 1440,
         "width": 1440,
         "mains": 1,
-        "bodyHeight": 1693
+        "bodyHeight": 2071
       },
       "proof": {
         "brief": true,
@@ -1577,7 +1577,7 @@
         "scroll": 390,
         "width": 390,
         "mains": 1,
-        "bodyHeight": 2196
+        "bodyHeight": 2915
       },
       "proof": {
         "brief": true,
@@ -1641,7 +1641,7 @@
         "scroll": 1440,
         "width": 1440,
         "mains": 1,
-        "bodyHeight": 1693
+        "bodyHeight": 2071
       },
       "proof": {
         "brief": true,
@@ -1737,7 +1737,7 @@
         "scroll": 390,
         "width": 390,
         "mains": 1,
-        "bodyHeight": 2196
+        "bodyHeight": 2915
       },
       "proof": {
         "brief": true,
@@ -1833,7 +1833,7 @@
         "scroll": 1440,
         "width": 1440,
         "mains": 1,
-        "bodyHeight": 1560
+        "bodyHeight": 1630
       },
       "proof": {
         "brief": true,
@@ -1891,7 +1891,7 @@
         "scroll": 390,
         "width": 390,
         "mains": 1,
-        "bodyHeight": 2067
+        "bodyHeight": 2410
       },
       "proof": {
         "brief": true,
@@ -1949,7 +1949,7 @@
         "scroll": 1440,
         "width": 1440,
         "mains": 1,
-        "bodyHeight": 1662
+        "bodyHeight": 2031
       },
       "proof": {
         "brief": true,
@@ -2044,7 +2044,7 @@
         "scroll": 390,
         "width": 390,
         "mains": 1,
-        "bodyHeight": 2122
+        "bodyHeight": 2834
       },
       "proof": {
         "brief": true,

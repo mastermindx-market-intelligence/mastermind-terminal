@@ -39,3 +39,10 @@ Useful first viewport; full Macro depth reachable; no duplicated reads/private-s
 - #1244 original publisher readback still reports local `624dbc0ac22ecdaa6d1bd580d5221da939c5e5a9`, remote `07f6c6aeca8b0c320fc414bc0533fff467cdf653`, dirty workspace, `DIFFERENT_REMOTE_HEAD`, recovery UNKNOWN/no retained publication receipt/retry_allowed false. No replay, carrier substitution, reset or displacement was attempted. Its integration lane is separate from these ready Today changes.
 
 Next: capture the updated exact source, publish the same branch and a reviewable PR, run available app build/consumer checks, then native protected auto-merge and incumbent beta release when eligible. Diagnose the existing integration divergence independently. The full unified-product outcome remains incomplete until native integration and authenticated beta proof are established.
+
+
+## Product-source freeze and visual readback
+
+Product source `b5a00479a1bd76ef09bc92ae969232aa60ef1e47` retains the 223-test/type/lint qualification. Updated Chromium capture: 23/23 cases, zero errors and horizontal overflow; explicit source/comparison keyboard operation, exact saved baseline and no duplicate request checks. Inspected the actual 1440 dark EN and 390 light ZH images. Source files remained unchanged after this freeze; the following evidence commit contains documentation, harness assertions and captures only. Browser evidence is fixture-qualified, not served/authenticated beta proof.
+
+Native repository controls read from the actual owner: three strict required checks (Quote Hub, Terminal typecheck/tests, Ingest/signal), conversation resolution, and a squash ALLGREEN merge queue. No mandatory PR approval is configured. Use ordinary native auto-merge/queue only; no administrator bypass or self-approval. CLI actor is mastermindxryan. No PR existed for this operation at the duplicate check.
