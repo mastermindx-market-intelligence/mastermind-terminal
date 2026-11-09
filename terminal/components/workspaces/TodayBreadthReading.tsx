@@ -98,6 +98,9 @@ export default function TodayBreadthReading({ ownerKey, scope, onUnauthenticated
   const [answer, setAnswer] = useState<{ owner: string; generation: AbortController; phase: Phase; reading: MarketBreadth | null } | null>(null);
   const [attempt, setAttempt] = useState(0);
   const pending = useRef(false);
+  const cell = useRef<HTMLDivElement | null>(null);
+  const retryButton = useRef<HTMLButtonElement | null>(null);
+  const retryFocus = useRef<AbortController | null>(null);
   const current = answer?.owner === ownerKey && answer.generation === scope.current;
   const phase: Phase = current ? answer.phase : "loading";
   const reading = current ? answer.reading : null;
@@ -142,11 +145,24 @@ export default function TodayBreadthReading({ ownerKey, scope, onUnauthenticated
     if (!enabled || !controller || controller.signal.aborted || pending.current
       || phase === "loading" || phase === "restricted" || phase === "ended") return;
     pending.current = true;
+    retryFocus.current = document.activeElement === retryButton.current ? controller : null;
     setAnswer({ owner: ownerKey, generation: controller, phase: "loading", reading: null });
     setAttempt(value => value + 1);
   };
-  const retryAction = <button type="button" className={recovery.retry} onClick={retry} aria-label={c.retry}>{c.retry}</button>;
+  const retryAction = <button ref={retryButton} type="button" className={recovery.retry} onClick={retry} aria-label={c.retry}>{c.retry}</button>;
 
+  // Keep explicit keyboard activation at this reading when its button disappears.
+  // Settlement never moves focus again, and another owner cannot inherit this intent.
+  useEffect(() => {
+    const generation = retryFocus.current;
+    retryFocus.current = null;
+    if (!generation || scope.current !== generation || generation.signal.aborted) return;
+    if (document.activeElement === document.body || document.activeElement === cell.current) {
+      cell.current?.focus({ preventScroll: true });
+    }
+  }, [attempt, scope]);
+  const cellProps = { ref: cell, tabIndex: -1, role: "group", "data-breadth-cell": true,
+    "aria-label": c.label, "aria-live": "polite" as const };
 
   // A tab left open must not keep a live reading past its window: when the window closes the
   // reading is re-checked on the reader's clock and withheld like any other old file. A timer
@@ -169,7 +185,7 @@ export default function TodayBreadthReading({ ownerKey, scope, onUnauthenticated
   if (!enabled || phase === "ended" || scope.current?.signal.aborted) return present(null);
   if (phase !== "ready" || !reading) {
     return present(
-      <div className={`${today.reading} ${today.readingStatic}`} aria-busy={phase === "loading"}>
+      <div {...cellProps} className={`${today.reading} ${today.readingStatic} ${recovery.cell}`} aria-busy={phase === "loading"}>
         <span className={today.readingLabel}>{c.label}</span>
         <strong className={today.readingQuiet}>{phase === "loading" ? c.loading : phase === "restricted" ? c.restricted : c.unavailable}</strong>
         {phase === "unavailable" && retryAction}
@@ -184,7 +200,7 @@ export default function TodayBreadthReading({ ownerKey, scope, onUnauthenticated
     // A withheld reading keeps only its own timestamp: the session word, the delay and the age
     // all describe a live reading, which this is not.
     return present(
-      <div className={`${today.reading} ${today.readingStatic}`} data-breadth="withheld">
+      <div {...cellProps} className={`${today.reading} ${today.readingStatic} ${recovery.cell}`} data-breadth="withheld">
         <span className={today.readingLabel}>{c.label}</span>
         <strong className={today.readingQuiet}>{breadthReason(reading.unusable_reason, lang)}</strong>
         {clock && <span className={today.readingClock}>{clock}</span>}
@@ -194,7 +210,7 @@ export default function TodayBreadthReading({ ownerKey, scope, onUnauthenticated
   }
   const age = readingFreshness(reading.asof, new Date());
   return present(
-    <div className={`${today.reading} ${today.readingStatic}`} data-breadth="live">
+    <div {...cellProps} className={`${today.reading} ${today.readingStatic} ${recovery.cell}`} data-breadth="live">
       <span className={today.readingLabel}>{c.label}</span>
       <strong>{c.advancing(Math.round(large.adv_pct as number))}</strong>
       {large.pa200 !== null && <span className={today.readingNote}>{c.above200(Math.round(large.pa200))}</span>}

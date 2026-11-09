@@ -116,6 +116,23 @@ describe("Today breadth recovery on its incumbent reader", () => {
     expect(held).toHaveLength(1);
   });
 
+  it("keeps keyboard focus on the same reading while the retry control is replaced", async () => {
+    await mount(); await answer(0, {}, 503); retry()!.focus();
+    await act(async () => retry()!.click()); await flush();
+    const cell = host.querySelector('[data-breadth-cell]');
+    expect(document.activeElement).not.toBe(document.body);
+    expect(cell).not.toBeNull(); expect(document.activeElement).toBe(cell);
+    await answer(1, live()); expect(document.activeElement).toBe(cell);
+    expect(cell?.getAttribute("aria-label")).toBe("S&P 500 breadth");
+  });
+
+  it("a completed recovery does not steal focus from the user's next action", async () => {
+    await mount(); await answer(0, {}, 503); retry()!.focus();
+    await act(async () => retry()!.click()); await flush();
+    const other = document.createElement("button"); other.textContent = "Other action"; document.body.appendChild(other); other.focus();
+    await answer(1, live()); expect(document.activeElement).toBe(other); other.remove();
+  });
+
   it("the incumbent request deadline makes a hung read recoverable", async () => {
     await mount(); await act(async () => vi.advanceTimersByTime(18_001)); await flush();
     expect(host.textContent).toContain("Breadth reading unavailable"); expect(retry()).not.toBeNull();

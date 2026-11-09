@@ -21,3 +21,12 @@ New regression baseline: 13 failed / 1 passed on the unchanged reader, confirmin
 ## Release boundary
 
 No new network/server/auth/source clock owner, automatic retry, provider spend, installed service or release is introduced. Hosted CI, protected merge, accepted beta receipt/public identity and real signed-in journeys remain separate obligations. The current auto-release workflow has an observed missing VPS_DEPLOY_KEY preflight; machine-local SSH keys must not be exported as a shortcut. Resume parent implementation and release evidence on #1381.
+
+
+## Follow-up focus hardening
+
+A new regression caught the retry control disappearing without a stable keyboard destination. The original reader now exposes a named, programmatically focusable group and moves focus there only for the user's focused retry. It remains the same DOM cell across loading/success and never steals focus on later settlement or carries focus intent to another account.
+
+Current source qualification: **127/127 tests across five suites**, including 16 reader-recovery cases; TypeScript, scoped ESLint, language guard and whitespace PASS. The earlier 16-cell browser report binds the preceding product source and is not silently relabeled; a refreshed exact-source capture follows this product commit.
+
+Read-only composition with #1386 clock source `4429fc4760e05d51312a2ee46f7fa76bc2980ecc` also passed: the actual current React reader with a source already20minutes old expires after5minutes+1second, performs no expiry fetch, accepts exactly one explicit retry despite duplicate activation, retains focus on its stable cell, and clears all display on owner abort. No borrowed source file or queued branch was changed for that test.

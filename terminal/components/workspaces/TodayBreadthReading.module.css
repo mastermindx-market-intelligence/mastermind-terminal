@@ -20,3 +20,5 @@
 }
 .retry:hover { background: var(--panel-2); }
 .retry:focus-visible { outline: 2px solid var(--info, var(--brand-2)); outline-offset: 3px; }
+
+.cell:focus-visible { outline: 2px solid var(--info, var(--brand-2)); outline-offset: -2px; }
