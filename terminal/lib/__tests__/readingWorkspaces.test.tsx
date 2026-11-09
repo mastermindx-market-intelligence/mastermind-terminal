@@ -188,7 +188,7 @@ describe("Today published nullable source readings",()=>{
  it("renders verified readings alongside intentionally null curve summaries and preserves their clocks",async()=>{
   await mount(<TodayWorkspace ownerKey={A}/>);await answer(0,withCurve);
   expect(container.textContent).toContain("Liquidity is mixed");expect(container.textContent).not.toContain("reading is unavailable");
-  const curveLink=container.querySelector('[aria-label="Source readings"] a[href="/macro_monetary.html#rates"]');
+  const curveLink=container.querySelector('[data-today-reading="rates"]');
   expect(curveLink?.textContent).toContain("View the curve");expect(curveLink?.textContent).toContain("18 October 2026");
  });
  it("shows one honest recovery message and useful onward routes when the source fails",async()=>{

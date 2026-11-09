@@ -14,11 +14,11 @@ import TodaySinceLastVisit from "./TodaySinceLastVisit";
 import TodayBreadthReading from "./TodayBreadthReading";
 import { ageLabel, freshnessLabel, readingFreshness } from "@/lib/shared-shell/readingFreshness";
 import { useReadingClock } from "@/lib/shared-shell/useReadingClock";
-import { useMediaQuery } from "@/lib/useMediaQuery";
 
 const COPY = {
  en: {
-  title: "Today", intro: "A source-backed starting point for your research.", owner: "Macro Command · United States",
+  title: "Today", intro: "Your markets, saved changes and research.", owner: "United States · Macro",
+  snapshot: "Market snapshot", sourceSummary: "Macro reading & source dates",
   loading: "Checking published source coverage…", unavailable: "The Macro Command reading is unavailable. This does not mean markets are quiet.",
   unavailableTitle: "Market reading unavailable", auth: "Your account changed or your session ended. Private readings have been cleared.",
   accountUnavailable: "The account service is unavailable. Private readings are hidden.",
@@ -26,7 +26,7 @@ const COPY = {
   of: "of", sections: "sections have verified source coverage", published: "Source verification", ready: "Listed sources verified",
   partial: "Some sources are unavailable", missing: "No sources could be verified", asof: "Reading as of", manifest: "Publication manifest generated",
   noClock: "Source date unavailable", omitted: "Some source readings are omitted. Inspect each source's coverage before drawing a conclusion.",
-  attentionLabel: "Needs your attention", attention: "Coverage to inspect", noAttention: "No source failures are reported. Check each source date and availability below.",
+  attentionLabel: "Your watchlists", attention: "Coverage to inspect", noAttention: "No source failures are reported. Check each source date and availability below.",
   period: "Reference period", noPeriod: "Reference period unavailable", presence: "Source present; freshness unverified",
   periodNote: "Period labels do not establish observation dates, calculation cut-offs or source freshness.",
   effective: "Effective date", calculated: "Calculated as of", details: "All source coverage and dates",
@@ -35,12 +35,13 @@ const COPY = {
   noLocal: "Choose a report from the Research library to start reading.", resume: "Continue the selected revision",
   research: "Open Research", researchScreener: "Open research screener", clocks: "Publication evidence",
   clockNote: "Manifest generation and publication verification do not certify the freshness of every source. Each reading keeps its own clock.",
-  hash: "Manifest SHA-256", monitor: "Open Monitor", curve: "View the curve", noSummary: "Open source reading",
+  hash: "Manifest SHA-256", monitor: "Open Monitor", curve: "View the curve", noSummary: "Reading unavailable",
   keepGoing: "Keep researching", keepGoingNote: "Open a workspace to inspect its published evidence while this reading recovers.",
   discover: "Discover companies", brief: "Your market", sourceReadings: "Source readings", viewReadings: "View all source readings",
  },
  zh: {
-  title: "今日", intro: "以来源证据为起点，开始研究。", owner: "宏观指挥台 · 美国",
+  title: "今日", intro: "市场概况、已保存读数的变化与研究。", owner: "美国 · 宏观",
+  snapshot: "市场概况", sourceSummary: "宏观解读与来源日期",
   loading: "正在核验已发布来源覆盖…", unavailable: "宏观指挥台读数暂不可用。这并不代表市场平静。",
   unavailableTitle: "市场读数暂不可用", auth: "账户已更改或会话已结束。私人读数已清除。",
   accountUnavailable: "账户服务暂不可用。私人读数已隐藏。",
@@ -48,7 +49,7 @@ const COPY = {
   of: "/", sections: "个板块具有已核验来源覆盖", published: "来源核验", ready: "已核验所列来源",
   partial: "部分来源不可用", missing: "暂无通过核验的来源", asof: "读数截至", manifest: "发布清单生成于",
   noClock: "来源日期不可用", omitted: "部分来源读数未显示。请先查看各来源覆盖，再作判断。",
-  attentionLabel: "关注事项", attention: "需要查看的覆盖", noAttention: "未报告来源失败。请检查下方各来源日期与可用状态。",
+  attentionLabel: "你的关注列表", attention: "需要查看的覆盖", noAttention: "未报告来源失败。请检查下方各来源日期与可用状态。",
   period: "参考期间", noPeriod: "参考期间不可用", presence: "来源已提供；时效性未核实",
   periodNote: "期间标记不能证明观察日期、计算截止时间或来源时效性。",
   effective: "生效日期", calculated: "计算截至", details: "全部来源覆盖与日期",
@@ -57,7 +58,7 @@ const COPY = {
   noLocal: "从研究资料库选择报告，开始阅读。", resume: "继续所选修订",
   research: "打开研究", researchScreener: "打开研究筛选器", clocks: "发布证据",
   clockNote: "清单生成与发布核验并不证明所有来源均为最新。每项读数保留各自时间。",
-  hash: "清单 SHA-256", monitor: "打开监控", curve: "查看曲线", noSummary: "打开来源读数",
+  hash: "清单 SHA-256", monitor: "打开监控", curve: "查看曲线", noSummary: "读数暂不可用",
   keepGoing: "继续研究", keepGoingNote: "在读数恢复期间，可打开工作区查看已发布的来源证据。",
   discover: "发现公司", brief: "市场概览", sourceReadings: "来源读数", viewReadings: "查看全部来源读数",
  },
@@ -92,10 +93,6 @@ function Arrow() {
 function sourceHref(href: string) {
  return typeof href === "string" && /^\/macro_[a-z0-9_]+\.html$/.test(href) ? href : null;
 }
-
-// The narrow placement follows the stylesheet's own phone breakpoint, so the boolean and the
-// CSS move together: this one boolean decides where the source-readings strip is mounted.
-const NARROW_READINGS_QUERY = "(max-width: 699px)";
 
 function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
  const onboarding = useOnboarding();
@@ -155,17 +152,6 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
  const summary = data?.read.clauses.map(clause =>
   `${localText(clause.topic, lang)}${lang === "zh" ? "" : " "}${localText(clause.predicate, lang)}${localText(clause.punct, lang)}`
  ).join("") ?? "";
- // The phone placement is driven by the same breakpoint the stylesheet uses, so the boolean and
- // the CSS move together. The narrow jump lands on the retitled section heading below.
- const narrow = useMediaQuery(NARROW_READINGS_QUERY);
- const sourceReadingsHeading = useRef<HTMLHeadingElement | null>(null);
- const jumpToSourceReadings = useCallback(() => {
-  const heading = sourceReadingsHeading.current;
-  if (!heading) return;
-  heading.focus({ preventScroll: true });
-  heading.scrollIntoView({ block: "start" });
- }, []);
-
  // One stable breadth holder sits above <main>: it fetches only after Today's own data exists
  // (`enabled`), and hands the pure cell down to whichever placement the width calls for.
  // Resizing moves the cell between placements without a refetch, because `enabled` stays true
@@ -173,21 +159,22 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
  return <TodayBreadthReading ownerKey={ownerKey} scope={scope} onUnauthenticated={endAttention}
   enabled={ready && !!data}
   render={breadthCell => {
-  // The strip body is built once — the existing chips plus the pure breadth cell — so the
-  // desktop brief and the narrow jobs section mount the same nodes, never two copies.
-  const readingsBody = data ? <>
-   {data.strip.filter(chip => chip.id !== "coverage").map(chip => {
+  // One source cell per observation. The three named macro dimensions and breadth
+  // stay at a glance; other readings and explanatory notes live in the disclosure.
+  // Neither responsive reflow nor opening details creates another reader lifetime.
+  const chips = data?.strip.filter(chip => chip.id !== "coverage") ?? [];
+  const featured = chips.filter(chip => ["money", "growth", "credit"].includes(chip.section)).slice(0, 3);
+  const featuredIds = new Set(featured.map(chip => chip.id));
+  const renderReading = (chip: TodayPayload["strip"][number], showNote = true) => {
     const age = readingFreshness(chip.as_of, now);
-    return <Link className={today.reading} key={chip.id} href={sectionHref(chip.section)}>
+    return <Link className={today.reading} data-today-reading={chip.id} key={chip.id} href={sectionHref(chip.section)}>
      <span className={today.readingLabel}>{localText(chip.label, lang)}<Arrow /></span>
      <strong>{chip.null ? chip.cause === "see_curve" ? c.curve : c.noSummary : localText(chip.value, lang)}</strong>
-     {chip.note && <span className={today.readingNote}>{localText(chip.note, lang)}</span>}
+     {showNote && chip.note && <span className={today.readingNote}>{localText(chip.note, lang)}</span>}
      <span className={today.readingClock}>{localText(chip.as_of_display, lang) || chip.as_of || c.noClock}</span>
      {age.kind !== "undated" && <span className={today.readingAge} data-kind={age.kind}>{freshnessLabel(age, lang)}</span>}
     </Link>;
-   })}
-   {breadthCell}
-  </> : null;
+  };
   return <main id="shared-shell-content" tabIndex={-1} className={`${styles.root} ${today.today}`}>
   <header className={`${styles.heading} ${today.pageHeading}`}>
    <div><h1>{c.title}</h1><p>{c.intro}</p></div>
@@ -206,24 +193,40 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
     <div className={styles.eyebrow}>{c.owner}</div><h2>{c.unavailableTitle}</h2><p>{c.unavailable}</p>
     <div className={styles.actions}><button onClick={() => void load()}>{c.retry}</button>
     <Link href="/macro_monetary.html">{c.command} →</Link></div>
-   </section> : <section className={today.brief} aria-labelledby="today-command">
-    <div className={today.briefHeader}><span className={styles.eyebrow}>{c.owner}</span>
-     <span className={today.verification} title={c.published}>{data.state === "ready" ? c.ready : data.state === "partial" ? c.partial : c.missing}</span>
+   </section> : <section className={today.brief} data-today-market-snapshot aria-labelledby="today-command">
+    <div className={today.snapshotHeader}>
+     <div><span className={styles.eyebrow}>{c.owner}</span><h2 id="today-command">{c.snapshot}</h2></div>
+     <div className={today.snapshotMeta}>
+      <span className={today.verification} title={c.published}>{data.coverage.available} {c.of} {data.coverage.total} {c.sections}</span>
+      {data.read.as_of && <span className={today.readingAge} data-kind={readAge.kind}>
+       {c.asof}: {localText(data.read.as_of_display, lang) || data.read.as_of}
+       {readAge.kind !== "undated" && ` · ${freshnessLabel(readAge, lang)}`}
+      </span>}
+     </div>
     </div>
-    <h2 id="today-command" className={today.marketRead}>{summary || c.unavailable}</h2>
-    {data.read.as_of && <p className={today.readingDate}>{c.asof}: <strong>{localText(data.read.as_of_display, lang) || data.read.as_of}</strong>
-     {readAge.kind !== "undated" && <em className={today.readingAge} data-kind={readAge.kind}>{[ageLabel(readAge, lang), freshnessLabel(readAge, lang)].filter(Boolean).join(" · ")}</em>}
-     <span>{localText(data.read.as_of_meaning, lang)}</span>
-    </p>}
+    <div className={`${today.readings} ${today.snapshotReadings}`} aria-label={c.sourceReadings}>
+     {featured.map(chip => renderReading(chip, false))}
+     {breadthCell}
+    </div>
     <div className={`${styles.actions} ${today.briefActions}`}>
-     <Link className={`${styles.action} ${styles.primary}`} href="/macro_monetary.html">{c.command}<Arrow /></Link>
-     <span className={styles.coverage}>{data.coverage.available} {c.of} {data.coverage.total} {c.sections}</span>
+     <Link className={`${styles.action} ${styles.primary}`} href="/macro.html">{c.overview}<Arrow /></Link>
+     <Link className={today.commandLink} href="/macro_monetary.html">{c.command}<Arrow /></Link>
     </div>
-    {/* Desktop keeps the full strip inside the brief; on narrow phones the same nodes move to
-        the titled jobs section below, so the readings exist exactly once in the DOM. */}
-    {!narrow && <div className={today.readings} aria-label={c.sourceReadings}>{readingsBody}</div>}
-    {data.read.omitted && <p className={today.coverageNote}>{c.omitted}</p>}
-    {narrow && <button type="button" className={today.jumpReadings} onClick={jumpToSourceReadings}>{c.viewReadings}<Arrow /></button>}
+    <details className={today.sourceDisclosure} data-today-source-details>
+     <summary>{c.sourceSummary}</summary>
+     <p className={today.marketRead}>{summary || c.unavailable}</p>
+     {data.read.as_of && <p className={today.readingDate}>{c.asof}: <strong>{localText(data.read.as_of_display, lang) || data.read.as_of}</strong>
+      {readAge.kind !== "undated" && <em className={today.readingAge} data-kind={readAge.kind}>{[ageLabel(readAge, lang), freshnessLabel(readAge, lang)].filter(Boolean).join(" · ")}</em>}
+      <span>{localText(data.read.as_of_meaning, lang)}</span>
+     </p>}
+     {featured.some(chip => chip.note) && <ul className={today.sourceNotes}>{featured.filter(chip => chip.note).map(chip =>
+      <li key={chip.id}><strong>{localText(chip.label, lang)}:</strong> {localText(chip.note, lang)}</li>
+     )}</ul>}
+     {chips.some(chip => !featuredIds.has(chip.id)) && <div className={today.readings} aria-label={c.sourceSummary}>
+      {chips.filter(chip => !featuredIds.has(chip.id)).map(chip => renderReading(chip))}
+     </div>}
+     {data.read.omitted && <p className={today.coverageNote}>{c.omitted}</p>}
+    </details>
    </section>}
 
    {/* The since-last-visit holder composes the desk's jobs: its paid read holds the opening
@@ -237,13 +240,6 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
       <TodayWatchAttention ownerKey={ownerKey} scope={scope} onUnauthenticated={endAttention} />
      </section>
      <aside className={today.continuationJob}>{continuation}</aside>
-     {/* Narrow-only: the same strip nodes, retitled and always expanded, right after the
-         reading continuation. The breadth cell inside is the holder's pure node — no second
-         fetch, and no DOM copy of the desktop strip. */}
-     {narrow && data && <section className={today.readingsJob} aria-labelledby="today-source-readings">
-      <h2 id="today-source-readings" tabIndex={-1} ref={sourceReadingsHeading}>{c.sourceReadings}</h2>
-      <div className={today.readings} aria-label={c.sourceReadings}>{readingsBody}</div>
-     </section>}
      <div className={today.researchJob}>{briefing}</div>
      {teaser}
      <section className={today.coverageJob} aria-labelledby="today-coverage">
