@@ -371,6 +371,7 @@ export function resolvePaletteRun(actionId: string, seenToken: string, live: Pal
 
 export interface PaletteKeyLike {
   key: string;
+  defaultPrevented?: boolean;
   repeat?: boolean;
   metaKey?: boolean;
   ctrlKey?: boolean;
@@ -395,7 +396,12 @@ export function isTextEntryElement(el: Element | null | undefined): boolean {
  * for one, keeps an invisible inspector dialog in the page at all times.
  */
 export function hasOpenModal(root: ParentNode): boolean {
-  for (const el of Array.from(root.querySelectorAll<HTMLElement>("[aria-modal='true']"))) {
+  const candidates = Array.from(root.querySelectorAll<HTMLElement>("[aria-modal='true']"));
+  // Native modality is distinct from `open`: the wide research panel uses show()
+  // and deliberately leaves the rest of the workspace interactive.
+  try { candidates.push(...root.querySelectorAll<HTMLElement>("dialog:modal")); }
+  catch { /* Older selectors/test DOMs retain the established ARIA fallback. */ }
+  for (const el of candidates) {
     if (el.hidden || el.closest("[aria-hidden='true'], [inert], [hidden]")) continue;
     const style = el.ownerDocument?.defaultView?.getComputedStyle?.(el);
     if (style && (style.display === "none" || style.visibility === "hidden")) continue;
@@ -413,10 +419,22 @@ export function shouldOpenPaletteFromKey(
   e: PaletteKeyLike,
   env: { target: Element | null; active: Element | null; modalOpen: boolean },
 ): boolean {
-  if (e.key !== ">") return false;
+  if (e.defaultPrevented || e.key !== ">") return false;
   if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return false;
   if (e.isComposing || e.keyCode === 229) return false;
   if (env.modalOpen) return false;
   if (isTextEntryElement(env.target) || isTextEntryElement(env.active)) return false;
   return true;
+}
+
+/** Resolve type-anywhere symbol search only after the current keyboard owner yields. */
+export function symbolSearchSeedFromKey(
+  e: PaletteKeyLike,
+  env: { target: Element | null; active: Element | null; modalOpen: boolean },
+): string | null {
+  if (e.defaultPrevented || e.repeat || e.isComposing || e.keyCode === 229 || env.modalOpen) return null;
+  if (isTextEntryElement(env.target) || isTextEntryElement(env.active)) return null;
+  if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === "k") return "";
+  if (e.metaKey || e.ctrlKey || e.altKey) return null;
+  return e.key.length === 1 && /^[a-z0-9]$/i.test(e.key) ? e.key : null;
 }

@@ -314,6 +314,7 @@ export default function ChartPane({ idx, symbol, contextDock, optionsLevel = nul
         onOvernightHistory={setOvernightHistory}
       />
       <ChartFrameBar
+        isActive={isActive}
         timeframe={tf}
         chartApi={chartApi}
         settings={chartSettings}

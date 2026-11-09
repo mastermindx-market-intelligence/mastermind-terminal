@@ -246,7 +246,7 @@ import {
   watchlistSectionOrder,
   watchlistVisualOrder,
 } from "@/lib/watchlistSections";
-import { analysisPageHref, hasOpenModal, resolvePaletteRun, shouldOpenPaletteFromKey, type PaletteContext, type PaletteRunDecision } from "@/lib/commandPalette/catalog";
+import { analysisPageHref, hasOpenModal, resolvePaletteRun, shouldOpenPaletteFromKey, symbolSearchSeedFromKey, type PaletteContext, type PaletteRunDecision } from "@/lib/commandPalette/catalog";
 import { paletteText } from "@/lib/commandPaletteLex";
 import paletteTriggerStyles from "@/components/commandPalette/CommandPaletteTrigger.module.css";
 
@@ -3791,12 +3791,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // type-anywhere → search; Ctrl/Cmd+K
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
-      if (paletteOpen) return;
-      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
-      if (tag === "input" || tag === "textarea") return;
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setSeed(""); setSearchOpen(true); return; }
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (!searchOpen && e.key.length === 1 && /[a-zA-Z0-9]/.test(e.key)) { setSeed(e.key); setSearchOpen(true); }
+      if (paletteOpen || searchOpen) return;
+      const seed = symbolSearchSeedFromKey(e, {
+        target: e.target instanceof Element ? e.target : null,
+        active: document.activeElement,
+        modalOpen: hasOpenModal(document),
+      });
+      if (seed === null) return;
+      e.preventDefault(); setSeed(seed); setSearchOpen(true);
     };
     window.addEventListener("keydown", h); return () => window.removeEventListener("keydown", h);
   }, [paletteOpen, searchOpen]);

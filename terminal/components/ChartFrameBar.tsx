@@ -9,6 +9,7 @@ import { VISUAL_INTELLIGENCE_DEFAULTS, type VisualIntelligenceSettings } from "@
 import { useLang, useT } from "@/lib/i18n";
 import { boatsChartCopy } from "@/lib/extQuoteCopy";
 import { pick } from "@/lib/finFormat";
+import { hasOpenModal, isTextEntryElement } from "@/lib/commandPalette/catalog";
 import overnightStyles from "./ChartOvernight.module.css";
 import quickSettingsStyles from "./ChartQuickSettings.module.css";
 import DataOriginChip from "@/components/DataOriginChip";
@@ -216,6 +217,7 @@ function fmtHHMMSS(d: Date): string {
 type SubMenu = "labels" | "lines" | null;
 
 export default function ChartFrameBar({
+  isActive = true,
   timeframe,
   chartApi,
   settings,
@@ -227,6 +229,8 @@ export default function ChartFrameBar({
   dataOrigin,
   tradingCurrency,
 }: {
+  /** Global keys belong to the selected pane; direct controls remain pane-local. */
+  isActive?: boolean;
   timeframe: string;
   chartApi: ChartEngine | null;
   settings: ChartSettings;
@@ -312,6 +316,7 @@ export default function ChartFrameBar({
   //   ←/→ pan (Shift = larger step), +/- zoom (TradingView-standard chart nav).
   // All guarded against typing contexts.
   useEffect(() => {
+    if (!isActive) return;
     // Pan/zoom the visible logical range. `frac` is signed for pan (fraction of visible
     // width to shift; +right/-left), and a magnitude for zoom around the range center.
     const panBy = (frac: number) => {
@@ -338,11 +343,12 @@ export default function ChartFrameBar({
     };
 
     const h = (e: KeyboardEvent) => {
-      const tgt = e.target as HTMLElement | null;
-      const tag = tgt?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return;
-      if (e.isComposing) return;
-      if (tgt?.isContentEditable) return;
+      if (e.defaultPrevented || e.isComposing || e.keyCode === 229 || e.ctrlKey || e.metaKey) return;
+      const target = e.target instanceof Element ? e.target : null;
+      const active = document.activeElement;
+      if (isTextEntryElement(target) || isTextEntryElement(active) || hasOpenModal(document)) return;
+      const controls = 'button, a, dialog, [role="button"], [role="link"], [role="tab"], [role="dialog"], [role="menu"], [role="listbox"], [role="slider"], [role="spinbutton"]';
+      if (target?.closest(controls) || active?.closest(controls)) return;
 
       // Existing ⌥-bindings (invert / percent / log) — unchanged.
       if (e.altKey) {
@@ -357,25 +363,6 @@ export default function ChartFrameBar({
           onSettings({ mode: settings.mode === EnginePriceScaleMode.Logarithmic ? EnginePriceScaleMode.Normal : EnginePriceScaleMode.Logarithmic });
         }
         return;
-      }
-
-      // Chart-nav keys: reject ctrl/meta/alt combos so ⌥-bindings + browser shortcuts stay
-      // untouched (Shift is the only permitted modifier, and only for the arrows).
-      if (e.ctrlKey || e.metaKey) return;
-
-      // Yield to focused controls / open modals so this window-level (bubble) listener does
-      // not double-fire with element-scoped arrow handlers. WorkspaceTabs' roving-tab arrows
-      // (its focused <button> is document.activeElement) and the tutorial coach dialog
-      // (aria-modal) are the two real bubble collisions; both are covered here.
-      const active = document.activeElement as HTMLElement | null;
-      if (active && active !== document.body) {
-        const atag = active.tagName;
-        if (
-          atag === "INPUT" || atag === "TEXTAREA" || atag === "SELECT" ||
-          atag === "BUTTON" || atag === "A" ||
-          active.isContentEditable ||
-          active.closest('[aria-modal="true"], [role="tab"], [role="dialog"]')
-        ) return;
       }
 
       switch (e.key) {
@@ -404,7 +391,7 @@ export default function ChartFrameBar({
     };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
-  }, [settings, onSettings, chartApi]);
+  }, [isActive, settings, onSettings, chartApi]);
 
   // Only a NEW request opens the box: the value present at mount (a remount after an earlier
   // request) is not one.
