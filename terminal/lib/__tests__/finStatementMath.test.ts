@@ -1252,3 +1252,20 @@ it("suppresses industrial geometry for unqualified retained financial taxonomy",
   expect(incomeViewFamilyDisclosure(view, false)).toContain("historical statement formats are unqualified");
   expect(incomeViewFamilyDisclosure(view, false)).not.toContain("spans industrial");
 });
+
+describe.each([false, true])("Pulse statement currency is independent of next revenue, zh=%s", (zh) => {
+  it.each(["HKD", null])("keeps the actual statement unit %s and never substitutes the quote", (unit) => {
+    const fund = mkCurrencyFund(unit);
+    fund.earnings = { ...fund.earnings, next_rev_est: null };
+    const before = JSON.stringify(fund);
+    const html = renderToStaticMarkup(createElement(EarningsPage, { fund, zh, sym: "TEST.HK" }));
+    const pulse = html.match(/<section[^>]*data-earnings-vnext-pulse[^>]*>([\s\S]*?)<\/section>/)?.[1];
+    expect(pulse).toBeDefined();
+    expect(pulse).toContain(statementCurrencyLabel(unit, zh));
+    expect(pulse).not.toContain("USD");
+    expect(pulse).toContain("0.80");
+    expect(pulse).toContain("26.00");
+    expect(pulse).toContain("3.20");
+    expect(JSON.stringify(fund)).toBe(before);
+  });
+});
