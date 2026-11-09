@@ -602,8 +602,8 @@ describe("nullable statement-set consumers", () => {
     expect(statements).toContain('<button class="" disabled="">Annual</button>');
     expect(statements).toContain('<button class="on">Semiannual</button>');
     expect(statements).toContain("H1 2025");
-    expect(revenue).toContain('<button class="" disabled="">Annual</button>');
-    expect(revenue).toContain('<button class="on">Semiannual</button>');
+    expect(revenue).toContain('<button type="button" aria-pressed="false" class="" disabled="">Annual</button>');
+    expect(revenue).toContain('<button type="button" aria-pressed="true" class="on">Semiannual</button>');
     expect(revenue).toContain("H1 2025");
   });
 
