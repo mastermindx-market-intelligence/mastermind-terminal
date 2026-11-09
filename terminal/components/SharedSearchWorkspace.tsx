@@ -65,13 +65,13 @@ export default function SharedSearchWorkspace({ query, onQueryChange, companies,
   useLayoutEffect(() => {
     if (scope !== "companies") { revealedCompanySelection.current = null; return; }
     if (companyPending || !companyResultsCurrent || !revealCompanySelection || revealedCompanySelection.current === revealCompanySelection) return;
-    if (revealListOption(companyResults.current, `${companyList}-${revealCompanySelection.index}`)) {
+    if (revealListOption(companyResults.current, companyResults.current?.ownerDocument.getElementById(`${companyList}-${revealCompanySelection.index}`) ?? null)) {
       revealedCompanySelection.current = revealCompanySelection;
     }
   }, [scope, companyPending, companyResultsCurrent, revealCompanySelection, companies, companyList]);
   useEffect(() => {
     if (scope !== "tools" || toolState !== "ready" || !activeId) return;
-    revealListOption(toolResults.current, activeId);
+    revealListOption(toolResults.current, toolResults.current?.ownerDocument.getElementById(activeId) ?? null);
   }, [scope, toolState, activeId, query]);
   const toolKey = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;

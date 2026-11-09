@@ -63,16 +63,18 @@ function geometry(rowHeight = 44) {
   vi.spyOn(Element.prototype, "clientTop", "get").mockImplementation(function (this: Element) { return this.getAttribute("role") === "listbox" ? 2 : 0; });
   vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function (this: Element) {
     if (this.getAttribute("role") === "listbox") return new DOMRect(20, 100, 400, 204);
-    if (this.getAttribute("role") === "option") {
+    if (this.getAttribute("role") === "option" || this.classList.contains("r")) {
       const scroller = this.closest('[role="listbox"]')!;
-      const index = [...scroller.querySelectorAll('[role="option"]')].indexOf(this);
-      return new DOMRect(20, 102 + index * rowHeight - scroller.scrollTop, 400, rowHeight);
+      const option = this.classList.contains("r") ? this.querySelector('[role="option"]')! : this;
+      const index = [...scroller.querySelectorAll('[role="option"]')].indexOf(option);
+      const inset = this.getAttribute("role") === "option" && this.parentElement?.classList.contains("r") ? 9 : 0;
+      return new DOMRect(20, 102 + index * rowHeight - scroller.scrollTop + inset, 400, rowHeight - inset * 2);
     }
     return new DOMRect();
   });
 }
 function visibleActive() {
-  const bounds = active().getBoundingClientRect();
+  const bounds = (active().closest(".r") ?? active()).getBoundingClientRect();
   expect(bounds.top).toBeGreaterThanOrEqual(102);
   expect(bounds.bottom).toBeLessThanOrEqual(302);
 }

@@ -422,7 +422,10 @@ export default function SearchModal({
     // The phone sheet deliberately owns one column scroller for its detent
     // gestures. Respect that owner and its sticky-input scroll padding.
     const scrollOwner = phoneDrawer ? list.closest<HTMLElement>(".msheet-body") : list;
-    if (revealListOption(list, `${uid}-opt-${revealSelection.index}`, scrollOwner)) {
+    const option = list.ownerDocument.getElementById(`${uid}-opt-${revealSelection.index}`);
+    // The accessible option excludes sibling actions and visual row padding.
+    // Keep the complete visible row inside the viewport.
+    if (revealListOption(list, option?.closest<HTMLElement>(".r") ?? option, scrollOwner)) {
       revealedSelection.current = revealSelection;
     }
   }, [open, isHome, sharedSearch, resultsCurrent, revealSelection, displayRows, showCompositeRow, phoneDrawer, uid]);

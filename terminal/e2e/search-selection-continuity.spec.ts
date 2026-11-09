@@ -8,7 +8,7 @@ async function visibleSelection(input: Locator) {
     const option = document.getElementById(node.getAttribute("aria-activedescendant") ?? "");
     const list = document.getElementById(node.getAttribute("aria-controls") ?? "");
     if (!option || !list) return false;
-    const row = option.getBoundingClientRect();
+    const row = (option.closest(".r") ?? option).getBoundingClientRect();
     const owner = getComputedStyle(list).overflowY === "visible" ? list.closest<HTMLElement>(".msheet-body") : list;
     if (!owner) return false;
     const box = owner.getBoundingClientRect();
