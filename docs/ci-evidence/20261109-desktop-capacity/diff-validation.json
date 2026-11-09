@@ -1,0 +1,8 @@
+{
+  "sourceAndDocumentationExit": 0,
+  "fullRawEvidenceExit": 2,
+  "rawEvidenceWarnings": [
+    "docs/ci-evidence/20261109-desktop-capacity/investigation.log:39: new blank line at EOF."
+  ],
+  "disposition": "Raw command output is retained byte-for-byte; its trailing blank line is an output-format observation, not a source whitespace error."
+}
