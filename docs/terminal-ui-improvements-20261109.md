@@ -31,3 +31,13 @@ Paper Terminal file: `01M3NSZGE8JWN2EZCSF0DT05RM`; design map page `p-R-0`. D06 
 ## Verification and continuity
 
 Initial state: source investigation in progress; no code or browser pass claimed. No GitHub approval, merge, deployment or production acceptance claimed. This plan is versioned implementation continuity, not an Agent OS/runtime record or a new queue. PLAN_NOT_ORG_LINKED: no existing workstream was identified in the bounded initial source census. Keep milestone evidence with each owned PR and this source plan; continue after saving.
+
+## UI2 source milestone
+
+Chart quick settings now use native keyboard-operable controls, observable selected/expanded state, Escape/focus-return behavior and a bounded scrollable popup with coarse-pointer targets. More settings transfers focus to its persistent gear trigger before opening the existing full dialog. ETH/chart-engine/data behavior is unchanged; PR #1268's only ChartFrameBar hunk (ETH aria-pressed) is disjoint.
+
+Focused tests: 56 passed across chartQuickSettings, chartSettingsUi, chartFrameBarClock and chartSettingsHydration. Candidate ESLint has exactly the same six existing ChartFrameBar findings as the immutable base; both changed test files are clean. Full typecheck initially exhausted the default 2GB heap, then identified omitted validation-snapshot fixtures; these dependencies have been restored and the 4GB rerun is in progress. No typecheck pass claimed yet.
+
+Browser proof remains pending. The attached Chrome extension is blocked by another open extension UI; no attempt to control or bypass it is made. Scratch Playwright browser download failed with a truncated archive. An isolated test-runner route is being qualified. No merge/release request has been submitted yet.
+
+Next independent source gap: IndicatorSettings declares modality without native focus containment; preserve live-save versus Cancel semantics. The broad Options sort-header and ticker-action work is already in PR #1248; do not duplicate it. Four remaining Screener ticker cells may be addressed separately after reconciliation.
