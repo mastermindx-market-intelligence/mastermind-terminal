@@ -17,10 +17,10 @@ MERGE_REF = "refs/pull/123/merge"
 
 
 def test_full_and_focused_shard_contracts():
-    assert len(scope.FULL_MATRIX) == 12
+    assert len(scope.FULL_MATRIX) == 14
     assert {x["shard"] for x in scope.FULL_MATRIX} == {
-        *(f"desktop-{i}" for i in range(1, 6)),
-        *(f"tablet-{i}" for i in range(1, 4)),
+        *(f"desktop-{i}" for i in range(1, 7)),
+        *(f"tablet-{i}" for i in range(1, 5)),
         *(f"mobile-{i}" for i in range(1, 4)),
         "serial",
     }
@@ -223,7 +223,8 @@ def test_real_synthetic_pr_merge_uses_exact_parent_and_source_diff(tmp_path, mon
 
 
 def _run_workflow_selector_in_git_checkout(tmp_path, *, install_base_selector,
-                                           tamper_with_selector=False, delete_css=False):
+                                           tamper_with_selector=False, delete_css=False,
+                                           base_selector_source=None, expected_exit=0):
     """Run actual GitHub Actions shell after a synthetic two-parent PR merge."""
     import os
 
@@ -245,7 +246,8 @@ def _run_workflow_selector_in_git_checkout(tmp_path, *, install_base_selector,
     if install_base_selector:
         script = repo / "scripts" / "ci_e2e_scope.py"
         script.parent.mkdir(parents=True)
-        script.write_bytes((ROOT / "scripts" / "ci_e2e_scope.py").read_bytes())
+        script.write_text(base_selector_source if base_selector_source is not None else
+                          (ROOT / "scripts" / "ci_e2e_scope.py").read_text())
     git("add", ".")
     git("commit", "-m", "protected master")
     git("checkout", "-b", "scoped-pr")
@@ -282,7 +284,10 @@ def _run_workflow_selector_in_git_checkout(tmp_path, *, install_base_selector,
         ["bash", "-e", "-o", "pipefail", "-c", shell],
         cwd=repo, env=env, text=True, capture_output=True, timeout=20,
     )
-    assert result.returncode == 0, (result.stdout, result.stderr)
+    assert result.returncode == expected_exit, (result.stdout, result.stderr)
+    if expected_exit:
+        assert output.read_text() == ""
+        return None, None, result.stderr
     fields = dict(line.split("=", 1) for line in output.read_text().splitlines())
     return fields["mode"], json.loads(fields["matrix"])["include"], result.stdout
 
@@ -312,6 +317,151 @@ def test_real_workflow_rejects_candidate_selector_tampering(tmp_path):
     assert mode == "full"
     assert matrix == scope.FULL_MATRIX
     assert "unknown_or_elevated_path" in stdout
+
+
+def _legacy_full_tablet_matrix():
+    # Model the immutable protected selector that the first repaired PR run
+    # actually receives. Installing the new selector in the base misses this case.
+    rows = [dict(row) for row in scope.FULL_MATRIX
+            if "--project=tablet" not in row["projects"].split()]
+    first = next(i for i, row in enumerate(scope.FULL_MATRIX) if row["shard"] == "tablet-1")
+    rows[first:first] = [
+        {"shard": f"tablet-{i}", "projects": f"--project=tablet --shard={i}/3", "specs": ""}
+        for i in range(1, 4)
+    ]
+    return rows
+
+
+def _protected_matrix_source(mode, matrix):
+    # A fixture-only protected publisher; the candidate is poisoned below.
+    fields = "mode=" + mode + "\nmatrix=" + json.dumps({"include": matrix}) + "\n"
+    return ("import os\nfrom pathlib import Path\n"
+            f"Path(os.environ['GITHUB_OUTPUT']).write_text({fields!r})\n")
+
+
+def test_real_workflow_expands_old_protected_full_tablet_set_without_losing_other_rows(tmp_path):
+    old = _legacy_full_tablet_matrix()
+    extra = {"shard": "future-owner", "projects": "--project=future-owner",
+             "specs": "", "owner_metadata": {"preserve": True}}
+    old.append(extra)
+    mode, matrix, _ = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, tamper_with_selector=True,
+        base_selector_source=_protected_matrix_source("full", old),
+    )
+    assert mode == "full"
+    tablet = [row for row in matrix if "--project=tablet" in row["projects"].split()]
+    assert tablet == [
+        {"shard": f"tablet-{i}", "projects": f"--project=tablet --shard={i}/4", "specs": ""}
+        for i in range(1, 5)
+    ]
+    assert [row for row in matrix if row not in tablet] == [
+        row for row in old if "--project=tablet" not in row["projects"].split()
+    ]
+
+
+def test_real_workflow_activates_quarters_with_the_old_protected_classifier(tmp_path):
+    new_tablet = ('{"shard": f"tablet-{i}", "projects": f"--project=tablet --shard={i}/4", "specs": ""}\n'
+                  '    for i in range(1, 5)')
+    old_tablet = new_tablet.replace("{i}/4", "{i}/3").replace("range(1, 5)", "range(1, 4)")
+    source = (ROOT / "scripts" / "ci_e2e_scope.py").read_text()
+    assert source.count(new_tablet) == 1
+    legacy = source.replace(new_tablet, old_tablet)
+    mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, tamper_with_selector=True,
+        base_selector_source=legacy,
+    )
+    assert mode == "full"
+    assert matrix == scope.FULL_MATRIX
+    assert "unknown_or_elevated_path" in stdout
+    assert "split protected full tablet thirds into quarters" in stdout
+
+
+@pytest.mark.parametrize("variant", ["focused", "extra-tablet", "filtered", "incomplete", "metadata"])
+def test_real_workflow_preserves_unrecognized_protected_tablet_topologies(tmp_path, variant):
+    old = _legacy_full_tablet_matrix()
+    mode = "focused" if variant == "focused" else "full"
+    tablet = next(row for row in old if row["shard"] == "tablet-2")
+    if variant == "extra-tablet":
+        old.append({"shard": "future-tablet", "projects": "--project=tablet", "specs": ""})
+    elif variant == "filtered":
+        tablet["specs"] = "e2e/future.spec.ts"
+    elif variant == "incomplete":
+        old.remove(tablet)
+    elif variant == "metadata":
+        tablet["owner_metadata"] = "preserve"
+    actual_mode, matrix, _ = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, tamper_with_selector=True,
+        base_selector_source=_protected_matrix_source(mode, old),
+    )
+    assert actual_mode == mode
+    assert matrix == old
+
+
+def _legacy_full_desktop_matrix():
+    return [
+        {"shard": f"desktop-{i}", "projects": f"--project=desktop --shard={i}/5", "specs": ""}
+        for i in range(1, 6)
+    ] + [dict(row) for row in scope.FULL_MATRIX if "--project=desktop" not in row["projects"].split()]
+
+
+def test_real_workflow_expands_old_protected_desktop_without_losing_other_rows(tmp_path):
+    old = _legacy_full_desktop_matrix()
+    old.append({"shard": "future-owner", "projects": "--project=future-owner",
+                "specs": "", "owner_metadata": {"preserve": True}})
+    mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, tamper_with_selector=True,
+        base_selector_source=_protected_matrix_source("full", old),
+    )
+    assert mode == "full"
+    assert matrix == scope.FULL_MATRIX + [old[-1]]
+    assert "split protected full desktop fifths into sixths" in stdout
+
+
+def test_real_workflow_expands_both_old_protected_classifier_partitions(tmp_path):
+    source = (ROOT / "scripts" / "ci_e2e_scope.py").read_text()
+    for project, old_count, new_count in [("desktop", 5, 6), ("tablet", 3, 4)]:
+        current = ('{"shard": f"' + project + '-{i}", "projects": f"--project=' + project
+                   + ' --shard={i}/' + str(new_count) + '", "specs": ""}\n'
+                   + '    for i in range(1, ' + str(new_count + 1) + ')')
+        previous = current.replace('{i}/' + str(new_count), '{i}/' + str(old_count)).replace(
+            'range(1, ' + str(new_count + 1) + ')', 'range(1, ' + str(old_count + 1) + ')')
+        assert source.count(current) == 1
+        source = source.replace(current, previous)
+    mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, tamper_with_selector=True, base_selector_source=source,
+    )
+    assert mode == "full"
+    assert matrix == scope.FULL_MATRIX
+    assert "split protected full desktop fifths into sixths" in stdout
+    assert "split protected full tablet thirds into quarters" in stdout
+
+
+@pytest.mark.parametrize("variant", ["focused", "extra-desktop", "filtered", "incomplete", "metadata"])
+def test_real_workflow_preserves_unrecognized_protected_desktop_topologies(tmp_path, variant):
+    old = _legacy_full_desktop_matrix()
+    mode = "focused" if variant == "focused" else "full"
+    desktop = next(row for row in old if row["shard"] == "desktop-2")
+    if variant == "extra-desktop":
+        old.append({"shard": "future-desktop", "projects": "--project=desktop", "specs": ""})
+    elif variant == "filtered":
+        desktop["specs"] = "e2e/future.spec.ts"
+    elif variant == "incomplete":
+        old.remove(desktop)
+    elif variant == "metadata":
+        desktop["owner_metadata"] = "preserve"
+    actual_mode, matrix, _ = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, tamper_with_selector=True,
+        base_selector_source=_protected_matrix_source(mode, old),
+    )
+    assert actual_mode == mode
+    assert matrix == old
+
+
+def test_real_workflow_does_not_replace_a_failed_protected_selector(tmp_path):
+    _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True,
+        base_selector_source="raise SystemExit(17)\n", expected_exit=17,
+    )
 
 
 def test_real_workflow_merge_group_always_bootstraps_full(tmp_path, monkeypatch):
