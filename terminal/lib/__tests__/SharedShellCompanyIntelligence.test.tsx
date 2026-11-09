@@ -15,6 +15,7 @@ vi.mock("@/lib/i18n",()=>({useLang:()=>({lang:edges.lang})}));
 vi.mock("@/lib/companyRetainedContext",async original=>({...await original<typeof import("@/lib/companyRetainedContext")>(),loadCompanyRetainedContext:edges.load}));
 vi.mock("@/components/fin/CompanyIntelligenceV2Current",()=>({default:({ticker}:{ticker:string})=><p data-retained-company={ticker}>verified {ticker}</p>}));
 vi.mock("@/components/fin/CompanyWatchSave",()=>({default:()=>null}));
+vi.mock("@/components/fin/CompanyIntelligencePage",()=>({default:({sym}:{sym:string})=><p data-standard-company={sym}>standard {sym} intelligence</p>}));
 (globalThis as {IS_REACT_ACT_ENVIRONMENT?:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
 const workspace=normalizeEventWorkspace(raw)!;
 const receipt:RetainedEventWorkspaceReceipt={schema:"earnings.retained_baseline.v1",owner:"earnings.workspace_generation",company_id:workspace.issuer.company_id,event_id:workspace.event_id,generation_id:workspace.generation_id,workspace_schema:"event_workspace.v1",manifest_schema:"event_workspace_manifest.v3",authority:"context_only",manifest_sha256:"a".repeat(64),manifest_bytes:2000,workspace_sha256:"b".repeat(64),workspace_bytes:4000,fingerprint:"c".repeat(64),public_known_at:null,platform_known_at:null,generation_emitted_at:workspace.generated_at,rights:{allowed:true,policy_version:"fixture-rights-v1",checked_at:"2026-10-21T12:00:00Z"}};
@@ -28,8 +29,8 @@ async function resolve(index:number){await act(async()=>pending[index].resolve(s
 
 describe("retained Company active scope",()=>{
  it.each([
-  ["en","current_owner_unavailable","Current event unavailable"],
-  ["zh","current_owner_unavailable","当前事件不可用"],
+  ["en","owner_unavailable","Current event unavailable"],
+  ["zh","owner_unavailable","当前事件不可用"],
   ["en","rights_denied","Current event access restricted"],
   ["zh","rights_denied","当前事件的访问受限"],
   ["en","unauthenticated","Sign in to recheck the current event"],
@@ -54,6 +55,34 @@ describe("retained Company active scope",()=>{
   expect(host.textContent).toContain(lang==="zh"?"重新验证所选事件":"Recheck selected event");
   expect(host.textContent).toContain(lang==="zh"?"打开当前事件":"Open current event");
   expect(window.location.href).toBe(original);expect(edges.load).toHaveBeenCalledTimes(1);expect(edges.load.mock.calls[0][0].pin.fingerprint).toBe(receipt.fingerprint);
+ });
+ it.each([
+  ["http_503", "en", "Standard company intelligence"],
+  ["current_owner_unavailable", "zh", "标准公司情报"],
+ ] as const)("shows separately published company context for unpinned %s in %s",async(reason,lang,title)=>{
+  edges.lang=lang;edges.load.mockResolvedValue({ok:false,code:"HISTORICAL_UNAVAILABLE",reason});
+  const original=window.location.href;await render("NVDA");
+  expect(host.querySelector('[data-standard-company="NVDA"]')).not.toBeNull();
+  expect(host.querySelector("h2")?.textContent).toBe(title);
+  expect(host.textContent).toContain(lang==="zh"?"核对来源日期":"check its source dates");
+  expect(window.location.href).toBe(original);
+  expect(edges.load.mock.calls[0][0].pin).toBeNull();
+ });
+ it.each(["rights_denied","unauthenticated","http_403","invalid_reference","owner_unavailable"] as const)(
+  "does not substitute on %s",async(reason)=>{
+   edges.load.mockResolvedValue({ok:false,code:"HISTORICAL_UNAVAILABLE",reason});
+   await render();
+   expect(host.querySelector("[data-standard-company]")).toBeNull();
+   expect(host.querySelector('[data-ci-context-state="historical_unavailable"]')).not.toBeNull();
+  }
+ );
+ it("never substitutes standard intelligence for a pinned event",async()=>{
+  edges.load.mockResolvedValue({ok:false,code:"HISTORICAL_UNAVAILABLE",reason:"http_503"});
+  window.history.replaceState({},"","/analysis?symbol=AAPL&page=intelligence&"+companyRetainedContextParams(receipt).toString());
+  const original=window.location.href;await render();
+  expect(host.querySelector("[data-standard-company]")).toBeNull();
+  expect(host.querySelector("h2")?.textContent).toBe("Selected event unavailable");
+  expect(window.location.href).toBe(original);
  });
  it("keeps the freshly authorized event visible after pin export while the router snapshot lags",async()=>{
   edges.routerSearch=window.location.search;
