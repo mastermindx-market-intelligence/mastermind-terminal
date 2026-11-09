@@ -29,6 +29,8 @@ Held #496 owns changes to the existing W2-A browser harness. This branch adds a 
 
 ## Qualification and continuation
 
+Qualified product `e7273cfda2242dedadb8f490769e1f0e976f2a03`: 102 affected unit tests, full TypeScript exit 0, no added lint findings, and 7 real-route browser cases with zero retries (2 intentional duplicate delayed-response skips). [Complete evidence](pr-crops/terminal-workspace-rename-20261109/verification.md) records exact source, logs, discriminating failures and current images. Native auto-merge enrollment follows Ready and exact-head verification; its receipt belongs in the PR body.
+
 The initial mounted regression cases failed on the protected implementation. Affected mounted/operation/lexicon tests, baseline-relative lint, full TypeScript and real EN/ZH desktop/tablet/phone journeys qualify the final candidate before Ready. Browser proof includes keyboard Save, Cancel, staged Escape, outside blur and a fresh route read confirming persistence.
 
 Search focus #1385 is already enrolled at `9c779b352078c0d425f1b80e31bed21ab8c6caa3` (native auto-merge enabled 2026-11-09T11:44:27Z). Existing sibling loading, search, tooltip, navigation and Discover receipts continue independently. Qualification, enrollment, queue admission, merge, deployment and live acceptance remain distinct.
