@@ -30,4 +30,6 @@ PR #1363 native auto-merge enabled at 2026-11-09T08:42:23Z, head 418caa657071794
 PR #1367 native auto-merge enabled at 2026-11-09T09:11:01Z, head 282dac13a591c0e35a970708e3d43265c4bcfc19.
 Both were open at their latest readbacks; neither is claimed merged or deployed. Do not re-arm either.
 
-Next: obtain exact product-head native browser proof, inspect captures, publish evidence, make this PR Ready and request native auto-merge once at its final head if actual controls permit. User Chrome remains occupied; isolated fixture proof does not establish production browser acceptance.
+Qualified product head: 362199e327a37c1146e464726f23dc795a177fed. All 37 unit checks, the full TypeScript check and 16 native browser checks passed (2 intentional duplicate-locale skips). Baseline-normalized lint adds zero messages. Desktop, tablet and phone captures were visually inspected. [Full proof](./pr-crops/terminal-screener-20261109/verification.md).
+
+Next: make #1371 Ready and enroll it once through native exact-head auto-merge after this evidence-only commit. Continue to rely on actual protected checks and the existing release process. User Chrome remains occupied; isolated fixture proof does not establish production browser acceptance.
