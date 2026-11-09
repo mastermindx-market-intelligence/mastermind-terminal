@@ -17,9 +17,9 @@ The public mobile drawer's route mapping also omitted Dislocations, incorrectly 
 
 ## Ownership and qualification
 
-Held startup PR #654 changes AppNav link intent/prefetch handling, not the glyph table. Held Dislocations discovery PR #1230 does not change AppNav, MobileNav, or sharedShellNavigation. No held code is adopted and no hold is altered.
+Held startup PR #654 changes AppNav link intent/prefetch handling, not the glyph table. Held Dislocations discovery PR #1230 does not change AppNav, MobileNav, or sharedShellNavigation. #1244 changes only the separate Shared Shell primary-nav imports/rendering in these files; its exact patches do not touch the glyph table or public mobile route resolver. No held code is adopted and no hold is altered.
 
-Extend the existing real-route mobile-navigation suite to exercise Discover → Dislocations at desktop, tablet, and phone sizes, checking painted glyph paths and exactly one current-page marker. Run the affected navigation regressions and changed-file lint before Ready; publish exact-head evidence after browser proof.
+Extend the existing real-route mobile-navigation suite to exercise Discover → Dislocations at desktop, tablet, and phone sizes, checking painted glyph paths and exactly one current-page marker. Qualification passed: 44 navigation regressions and 3 real-route browser cases, with no added lint finding. [Exact product receipts and captures](pr-crops/terminal-dislocations-nav-20261109/verification.md) are attached.
 
 ## Continuation
 
