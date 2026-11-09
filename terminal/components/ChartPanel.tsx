@@ -1,7 +1,8 @@
 "use client";
 import { boatsChartHistoryBars, type BoatsChartHistory } from "@/lib/extQuoteCopy";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
-import { syncOptionsPricePin, removeOptionsPricePin, type OptionsPricePin } from "@/lib/optionsChartPin";
+import { resolveChartAppearance } from "@/lib/chartSettingsUi";
+import { syncOptionsPricePin, removeOptionsPricePin, layoutOptionsReferenceBadges, optionsPinVisibility, optionsPinRevealRange, type OptionsPinViewport, type OptionsPricePin } from "@/lib/optionsChartPin";
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 // ── Boot-trace helper — mirrors the one in TerminalShell (?boottrace=1) ──────
@@ -47,13 +48,13 @@ import { DEFAULT_CHART_RIGHT_OFFSET, fullHistoryLogicalRange, futureAxisBarCount
 import { FUTURE_ANCHOR_BARS, futureBarTimes, futureCadence, futureSlotOf, type FutureCadence } from "@/lib/chart-engine/futureTime";
 import { keepIndicatorPaneAxisLabelsOnly } from "@/lib/indicatorPaneSeries";
 import { runPine, type RunResult } from "@/lib/pine-engine";
-import { createPineHost, type PineHost, type PineResult } from "@/lib/pine-engine/host";
+import { createPineHost, type PineHost } from "@/lib/pine-engine/host";
+import { PINE_ENGINE_WAIT_SLACK_MS, PINE_PENDING_GRACE_MS, pineFailurePinned, pineRowState, settleChartPineRun, type PineUnavailable } from "@/lib/pineChartRun";
 import {
   buildAllPineOnEngine,
   buildPineScriptOnEngine,
   clearPineLayer,
   paintPineFromCacheOnEngine,
-  pineOutcome,
 } from "@/lib/pineChartLayer";
 import { ORACLE_V1_PINE } from "@/lib/pine";
 import { DRAWING_SCHEMA_VERSION, MAX_DRAWING_PAYLOAD_BYTES, type Drawing, type DrawKind, type Bar as DBar, type Pt, uid, autoTrendlines, autoFib, srDrawings, mtfaDrawings } from "@/lib/drawings";
@@ -75,7 +76,6 @@ import {
   PRICE_TAG_MIN_VALUE_WIDTH,
   priceTagRowTop,
   priceScaleDisplayValue,
-  layoutPriceAxisBadges,
   priceAxisOffsetForObstacles,
   readablePriceTagTextColor,
   type PriceAxisObstacle,
@@ -133,8 +133,8 @@ import { LIVE_BAR_PROJECTION, LIVE_INPLACE_SERIES_KEYS, LIVE_REBUILD_KEYS, accep
 import { composeCaptureScene, isChartCaptureRequest, type CaptureDataCopy, type CapturePainted, type CaptureScene, type ChartCaptureRequest } from "@/lib/chartCapture";
 import { dailyMultipleOf, groupSessionBars, parseSessionAnchor, resolveBarAnchor,
   sessionToBarTime, resampleTf, type SessionAnchor } from "@/lib/sessionBars";
-import { ichimoku, supertrend, avwap as computeAvwap, rollingVwap, weekAnchoredVwap, vprofile, volbox, rsiStack, accumPct, trendRibbon, buyShare as mfBuyShare } from "@/lib/indicatorMath";
-import ChartOverlays, { type PaneInfo, type LegendEntry } from "@/components/ChartOverlays";
+import { ichimoku, supertrend, avwap as computeAvwap, rollingVwap, weekAnchoredVwap, vprofile, volbox, rsiStack, accumPct, trendRibbon, bollingerBands, buyShare as mfBuyShare } from "@/lib/indicatorMath";
+import ChartOverlays, { type PaneInfo, type PineLegendState, type LegendEntry } from "@/components/ChartOverlays";
 import DayStatsStrip from "@/components/DayStatsStrip";
 import { tPlain, useLang, useT } from "@/lib/i18n";
 import { verdictLabel, type PlainLang } from "@/lib/plainLabels";
@@ -438,7 +438,6 @@ const PRESERVE_VIEW_ON_INDICATOR_TOGGLE = true;
 // ---- indicator math ----
 function ema(a: (number | null)[], p: number) { const o: (number | null)[] = Array(a.length).fill(null); const k = 2 / (p + 1); let pr: number | null = null, s = 0, c = 0; for (let i = 0; i < a.length; i++) { const v = a[i]; if (v == null) { o[i] = pr; continue; } if (pr == null) { s += v; c++; if (c === p) { pr = s / p; o[i] = pr; } } else { pr = v * k + pr * (1 - k); o[i] = pr; } } return o; }
 function sma(a: (number | null)[], p: number) { const o: (number | null)[] = Array(a.length).fill(null); const q: number[] = []; let s = 0; for (let i = 0; i < a.length; i++) { const v = a[i]; q.push(v == null ? 0 : v); if (v != null) s += v; if (q.length > p) s -= q.shift()!; if (q.length === p) o[i] = s / p; } return o; }
-function stddev(a: number[], p: number) { const o: (number | null)[] = Array(a.length).fill(null); for (let i = p - 1; i < a.length; i++) { const w = a.slice(i - p + 1, i + 1); const m = w.reduce((x, y) => x + y, 0) / p; o[i] = Math.sqrt(w.reduce((x, y) => x + (y - m) ** 2, 0) / p); } return o; }
 function rsi(cl: number[], p = 14) { const o: (number | null)[] = Array(cl.length).fill(null); let g = 0, l = 0; for (let i = 1; i < cl.length; i++) { const ch = cl[i] - cl[i - 1], u = ch > 0 ? ch : 0, d = ch < 0 ? -ch : 0; if (i <= p) { g += u; l += d; if (i === p) { g /= p; l /= p; o[i] = l === 0 ? 100 : 100 - 100 / (1 + g / l); } } else { g = (g * (p - 1) + u) / p; l = (l * (p - 1) + d) / p; o[i] = l === 0 ? 100 : 100 - 100 / (1 + g / l); } } return o; }
 // CM_Stochastic_MTF (ChrisMoody) — regular *price* stochastic on the current timeframe:
 // rawK = 100·(close − lowest(low,len)) / (highest(high,len) − lowest(low,len)); %K = SMA(rawK, smoothK); %D = SMA(%K, smoothD).
@@ -516,7 +515,18 @@ const shellAxisFontSize = () => (shellAxis() && shellWide() ? 13 : 12);
 // `axis`/`grid` resolve through the --chart-axis-text / --chart-grid indirection whose :root
 // defaults reproduce --muted / --grid exactly; only the native shell retunes them (D6).
 type Tokens = { up: string; down: string; grid: string; axis: string; line: string; p3: string; link: string; warn: string; signal: string; buy: string; sell: string; mut: string; brand2: string };
-const readTokens = (): Tokens => ({ up: css("--up"), down: css("--down"), grid: css("--chart-grid") || css("--grid"), axis: css("--chart-axis-text") || css("--muted"), line: css("--line"), p3: css("--chart-crosshair-label-bg") || css("--panel-3"), link: css("--link"), warn: css("--warn"), signal: css("--signal"), buy: css("--buy"), sell: css("--sell"), mut: css("--muted"), brand2: css("--brand-2") });
+const chartLight = () => typeof document !== "undefined" && document.documentElement.dataset.terminalAppearance === "1" && document.documentElement.dataset.theme === "light";
+const chartAppearance = (settings: Partial<ChartSettings>) => {
+  const token = typeof document === "undefined" ? () => "" : css;
+  return resolveChartAppearance(settings, chartLight(), {
+    panel: token("--panel"), chartBackground: token("--chart-bg"), axis: token("--chart-axis-text") || token("--muted"),
+    grid: token("--chart-grid") || token("--grid"), line: token("--line"), text: token("--text-2"),
+  });
+};
+const readTokens = (settings: Partial<ChartSettings>): Tokens => {
+  const appearance = chartAppearance(settings);
+  return { up: css("--up"), down: css("--down"), grid: appearance.grid, axis: appearance.axis, line: css("--line"), p3: css("--chart-crosshair-label-bg") || css("--panel-3"), link: css("--link"), warn: css("--warn"), signal: css("--signal"), buy: css("--buy"), sell: css("--sell"), mut: css("--muted"), brand2: css("--brand-2") };
+};
 
 // Directional tint. LWC paints to canvas and cannot resolve var(--up)/var(--down), so every shaded
 // directional band has to be built in JS from the LIVE token — hardcoding the green/red rgba is what
@@ -593,10 +603,10 @@ import { eodSnapshotKnown, replayAxisOf, replayChipAnchor, replayDayChangePct, r
 import { detectGapZones, gapZonesAsOf, type GapZone } from "@/lib/gapZones";
 import { deriveDataOrigin, originComposite, originNotCovered, originUnavailable, type DataOrigin } from "@/lib/dataOrigin";
 
-export default function ChartPanel({ symbol, contextDock, optionsLevel = null, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, onAiDrawingRemove, aiDrawingsReadOnly = false, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
+export default function ChartPanel({ symbol, contextDock, optionsLevel = null, onOptionsViewport, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, onAiDrawingRemove, aiDrawingsReadOnly = false, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
   indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, onVisualReady, onCompareStudy, extHours = false, overnightHours = false, episodeId = null,
   instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, onRenderedPriceSource, onNativeObservations, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin, onOvernightHistory, aiLayerSlot }:
-  { symbol: string; contextDock?: ChartContextDock; optionsLevel?: OptionsChartLevel | null; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
+  { symbol: string; contextDock?: ChartContextDock; optionsLevel?: OptionsChartLevel | null; onOptionsViewport?: (view: OptionsPinViewport) => void; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
     dataReady?: boolean;
     /** The shell's already-resolved startup timeframe, handed over before it can be rendered. */
@@ -698,6 +708,17 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   const pinePaneMapRef = useRef<Map<string, number>>(new Map());             // sub-pane scriptId → pane index (overlay scripts absent)
   const pineErrRef = useRef<Map<string, string>>(new Map());                 // scriptId → error text (surfaced in the legend)
   const pineCacheRef = useRef<Map<string, { key: string; result: RunResult | null; error: string | null }>>(new Map()); // memo: scriptId → last run
+  // scriptId → the script's in-flight host run, so its legend row can say "running" / "waiting for
+  // the engine" instead of reading as an active row with no plot while the worker boots (up to
+  // 2 × WORKER_BOOT_TIMEOUT_MS with the host's boot retry). `since` survives a superseding run (a
+  // live splice re-issues every ~250ms) so a long engine wait is still recognized as one; `token`
+  // names the run that currently owns the entry.
+  const pineInflightRef = useRef<Map<string, { token: number; since: number; graceMs: number; timers: ReturnType<typeof setTimeout>[] }>>(new Map());
+  const pineRunTokenRef = useRef(0);
+  // scriptId → why the ENGINE (not the script) failed on its latest run, and for which request. Kept
+  // out of pineCacheRef on purpose: a failed read is not the script's result. The same request re-runs
+  // only from the legend Retry (pineFailurePinned); new bars / timeframe / symbol / source run fresh.
+  const pineUnavailRef = useRef<Map<string, PineUnavailable>>(new Map());
   // ── worker-backed Pine host (PINE lane's host.ts) ──────────────────────────────────────────────
   // The host runs compile+execute in a terminateable Web Worker (SSR/tests fall back to a sync host,
   // same surface), caches the parsed AST by source hash (data-only re-runs skip re-parsing), and
@@ -1163,13 +1184,21 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   const extendedPriceLineRef = useRef<PriceLineHandle | null>(null);
   const optionsLevelRef = useRef(optionsLevel); optionsLevelRef.current = isActive ? optionsLevel : null;
   const optionsPricePinRef = useRef<OptionsPricePin<PriceLineHandle> | null>(null);
-  const clearOptionsPriceLine = () => { optionsPricePinRef.current = removeOptionsPricePin(optionsPricePinRef.current); };
+  const onOptionsViewportRef = useRef(onOptionsViewport); onOptionsViewportRef.current = onOptionsViewport;
+  const optionsViewportRef = useRef<OptionsPinViewport | null>(null);
+  const optionsViewportPublisherRef = useRef<(() => void) | null>(null);
+  const hideSelectedOptionsBadge = () => {
+    const badge = optionTagHostRef.current?.querySelector<HTMLElement>('[data-level-key="selected-reference"]');
+    if (badge) badge.style.display = "none";
+  };
+  const clearOptionsPriceLine = () => { optionsPricePinRef.current = removeOptionsPricePin(optionsPricePinRef.current); hideSelectedOptionsBadge(); };
   const applyOptionsPriceLine = () => {
     if (!optionsLevelRef.current && !optionsPricePinRef.current) return;
     const color = getComputedStyle(document.documentElement).getPropertyValue("--warn").trim() || "#e8a33d";
     optionsPricePinRef.current = syncOptionsPricePin(optionsPricePinRef.current, priceSeriesHandleRef.current,
       optionsLevelRef.current, symbolRef.current,
       chartDataSymRef.current === symbolRef.current && replayIdxRef.current == null, color);
+    if (!optionsPricePinRef.current) hideSelectedOptionsBadge();
   };
   const pushIndPriceLine = (key: string, pl: PriceLineHandle) => {
     const m = indPriceLinesRef.current;
@@ -1465,11 +1494,12 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     });
     return out;
   };
-  const buildBb = (chart: ChartEngine, rows: Bar[], closes: number[]): SeriesHandle[] => {
+  const buildBb = (chart: ChartEngine, rows: Bar[]): SeriesHandle[] => {
     const out: SeriesHandle[] = []; const p = P("bb");
-    const basis = sma(closes, p.length); const sd = stddev(closes, p.length);
-    const up = closes.map((_, i) => (basis[i] != null && sd[i] != null ? basis[i]! + p.mult * sd[i]! : null));
-    const lo = closes.map((_, i) => (basis[i] != null && sd[i] != null ? basis[i]! - p.mult * sd[i]! : null));
+    // Band math is owned by indicatorMath.bollingerBands (population σ, matching the
+    // published IND_DEFS.bb.source). Never inline it here — that duplicate is what let
+    // the rendered bands drift from the tested ones. See bollingerRenderParity.test.ts.
+    const { mid: basis, upper: up, lower: lo } = bollingerBands(rows, p.length, p.mult);
     [up, basis, lo].forEach((arr, j) => { const ln = chart.addSeries("line", { color: j === 1 ? p.basisCol : p.bandCol, lineWidth: p.width, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }, 0); ln.setData(toLine(rows, arr)); out.push(ln); });
     return out;
   };
@@ -1579,27 +1609,66 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     const cached = pineCacheRef.current.get(script.id);
     return cached && cached.key === pineCacheKey(script, rows) ? { result: cached.result, error: cached.error } : null;
   };
-  // Launch an async host run for one script on `rows`, caching the outcome under the (script,data) key.
-  // Returns the cache-shaped outcome. `cancelled` results (superseded by a newer same-slot run) are
-  // dropped WITHOUT touching the cache so the newer run owns the entry. compile() is fire-and-forget to
-  // warm the AST cache — run() also carries `source` so it self-compiles if the astId isn't cached yet.
-  const runPineHost = async (script: PineScript, rows: Bar[]): Promise<{ result: RunResult | null; error: string | null } | null> => {
+  // Mark a run for `id` in flight (keeping `since` across a superseding run) and schedule the two
+  // legend refreshes its row needs: past the grace period ("running") and past the run budget
+  // ("waiting for the engine"). Returns the token that owns the entry.
+  const pineRunStart = (id: string, graceMs: number): number => {
+    const token = ++pineRunTokenRef.current;
+    const prev = pineInflightRef.current.get(id);
+    if (prev) { prev.token = token; prev.graceMs = Math.min(prev.graceMs, graceMs); return token; }
+    const since = performance.now();
+    const refresh = () => { if (pineInflightRef.current.get(id)?.since === since && engineRef.current) rebuildPaneMeta(); };
+    // +16ms: a timer must not land a hair before the threshold it exists to cross
+    const timers = [setTimeout(refresh, graceMs + 16), setTimeout(refresh, PINE_RUNTIME_CAP_MS + PINE_ENGINE_WAIT_SLACK_MS + 16)];
+    pineInflightRef.current.set(id, { token, since, graceMs, timers });
+    return token;
+  };
+  // Settle the in-flight entry if `token` still owns it. False = a newer run for `id` owns the row.
+  const pineRunEnd = (id: string, token: number): boolean => {
+    const cur = pineInflightRef.current.get(id);
+    if (!cur || cur.token !== token) return false;
+    for (const t of cur.timers) clearTimeout(t);
+    pineInflightRef.current.delete(id);
+    return true;
+  };
+  const clearPineInflight = () => {
+    for (const e of pineInflightRef.current.values()) for (const t of e.timers) clearTimeout(t);
+    pineInflightRef.current.clear();
+  };
+  // Launch an async host run for one script on `rows`. A SCRIPT outcome (result, script error, budget
+  // breach) is cached under the (script,data) key and returned. An ENGINE outcome (worker never booted,
+  // crashed, or was reset under the run past the bounded re-issue — lib/pineChartRun.ts) is recorded in
+  // pineUnavailRef and NOT cached, so it is shown as unavailable and re-runs from the legend Retry or
+  // when its request (bars / timeframe / symbol / source) changes. `superseded` (a newer same-slot run owns the outcome) records nothing. compile() is
+  // fire-and-forget to warm the AST cache — run() also carries `source` so it self-compiles if the
+  // astId isn't cached yet.
+  const runPineHost = async (script: PineScript, rows: Bar[], graceMs = PINE_PENDING_GRACE_MS): Promise<{ result: RunResult | null; error: string | null } | null> => {
     const key = pineCacheKey(script, rows);
     const host = pineHost();
+    const token = pineRunStart(script.id, graceMs);
     // warm/refresh the AST cache when the source changed for this script
     const prevAst = pineAstRef.current.get(script.id);
     if (!prevAst || prevAst.source !== script.source) {
       pineAstRef.current.set(script.id, { source: script.source, astId: null });
-      host.compile(script.source).then((c) => { if (pineAstRef.current.get(script.id)?.source === script.source) pineAstRef.current.set(script.id, { source: script.source, astId: c.astId }); }).catch(() => {});
+      host.compile(script.source).then((c) => { if (pineInflightRef.current.get(script.id)?.token === token && pineAstRef.current.get(script.id)?.source === script.source) pineAstRef.current.set(script.id, { source: script.source, astId: c.astId }); }).catch(() => {});
     }
-    let out: PineResult | null = null; let crash: unknown;
-    try {
-      out = await host.run({ slot: script.id, source: script.source, astId: pineAstRef.current.get(script.id)?.astId ?? undefined, bars: rows as any, inputs: script.params || {}, opts: { timeframe: timeframeRef.current, symbol, sessionAnchor: sessionAnchorRef.current }, budgetMs: PINE_RUNTIME_CAP_MS });
-    } catch (e) { crash = e; }
-    if (out && out.cancelled) return null;   // superseded → let the newer run win; don't cache
-    if (out && out.astId && pineAstRef.current.get(script.id)?.source === script.source) pineAstRef.current.set(script.id, { source: script.source, astId: out.astId });
-    const outcome = pineOutcome(out, crash);
+    // Inputs are pinned at launch so a re-issue after an interrupt runs exactly what `key` names.
+    const timeframe = timeframeRef.current, sessionAnchor = sessionAnchorRef.current;
+    const settled = await settleChartPineRun(
+      // each issue re-reads the astId: the compile that interrupted the first issue may have landed
+      () => host.run({ slot: script.id, source: script.source, astId: pineAstRef.current.get(script.id)?.astId ?? undefined, bars: rows as any, inputs: script.params || {}, opts: { timeframe, symbol, sessionAnchor }, budgetMs: PINE_RUNTIME_CAP_MS }),
+      { current: () => pineInflightRef.current.get(script.id)?.token === token },
+    );
+    const owns = pineRunEnd(script.id, token);
+    if (!owns || settled.kind === "superseded") return null;   // the newer run owns the entry; don't cache
+    if (settled.kind === "unavailable") {
+      pineUnavailRef.current.set(script.id, { reason: settled.reason, key });
+      return null;
+    }
+    if (settled.astId && pineAstRef.current.get(script.id)?.source === script.source) pineAstRef.current.set(script.id, { source: script.source, astId: settled.astId });
+    const outcome = { result: settled.result, error: settled.error };
     pineCacheRef.current.set(script.id, { key, ...outcome });
+    pineUnavailRef.current.delete(script.id);
     return outcome;
   };
 
@@ -1648,7 +1717,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     );
   };
 
-  const buildAllPine = (rows: Bar[]) => {
+  const buildAllPine = (rows: Bar[], immediateId?: string) => {
     buildAllPineOnEngine(rows, {
       getEngine: () => engineRef.current,
       getScripts: () => pineScriptsRef.current,
@@ -1657,9 +1726,31 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       readCache: readPineCache,
       clear: clearAllPine,
       paint: paintPineFromCache,
-      runMisses: async (misses) => { await Promise.all(misses.map((s) => runPineHost(s, rows).catch(() => null))); },
+      runMisses: async (misses) => {
+        const retryable = misses.filter((script) => !pineFailurePinned(pineUnavailRef.current.get(script.id), pineCacheKey(script, rows)));
+        await Promise.all(retryable.map((script) => runPineHost(script, rows,
+          script.id === immediateId ? 0 : PINE_PENDING_GRACE_MS).catch(() => null)));
+      },
       afterSlowRepaint: () => { normalizeStretch(); applyHidden(); renderSignalsRef.current(); measureRef.current(); },
     });
+  };
+
+  // Legend Retry for a script whose ENGINE failed: drop the failure and rebuild the pine layer on the
+  // bars already on the chart (cached scripts repaint synchronously; only this one re-runs). No
+  // symbol / timeframe change needed — the failure was never cached as the script's result.
+  const retryPine = (id: string) => {
+    const chart = engineRef.current; if (!chart || isIntradayRef.current || !barsRef.current.length) return;
+    if (!pineScriptsRef.current.some((s) => s.id === id)) return;
+    pineUnavailRef.current.delete(id);
+    pineCacheRef.current.delete(id);
+    const saved = (() => { try { const r = chart.timeScale().getVisibleLogicalRange(); return r ? { from: r.from as number, to: r.to as number } : null; } catch { return null; } })();
+    clearAllPine();
+    buildAllPine(barsRef.current, id);
+    normalizeStretch();
+    applyHidden();
+    renderSignalsRef.current(); renderRef.current();
+    if (saved) { try { chart.timeScale().setVisibleLogicalRange(saved); } catch {} }
+    measureRef.current();
   };
 
   // ── DT Technicals Suite builders ──────────────────────────────────────────
@@ -2304,11 +2395,33 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     return tokensRef.current.mut || "#787b86";
   };
   // Build a LegendEntry for a custom script. `key` is the raw scriptId (isPine:true tells the shell
-  // to route Settings to the pine branch + resolve remove/eye by scriptId). An error surfaces in the
-  // label (⚠ suffix) and — because ChartOverlays doesn't take a tooltip — the shell can read it too.
-  const pineLegendEntry = (s: PineScript, kind: "overlay" | "pane", series: SeriesHandle[] | undefined, err?: string): Omit<LegendEntry, "hidden"> => ({
-    key: s.id, label: err ? `${s.name} ⚠` : s.name, kind, isPine: true, color: pineColorOf(series),
-  });
+  // to route Settings to the pine branch + resolve remove/eye by scriptId). A SCRIPT error surfaces in
+  // the label (⚠ suffix) and — because ChartOverlays doesn't take a tooltip — the shell can read it
+  // too. A run still in flight, or an ENGINE failure, rides as `pineState` (lib/pineChartRun.ts
+  // pineRowState): the row says running / waiting for the engine / engine failed + Retry, never a
+  // plotless row that reads as active.
+  const pineLegendEntry = (s: PineScript, kind: "overlay" | "pane", series: SeriesHandle[] | undefined, err?: string): Omit<LegendEntry, "hidden"> => {
+    const inflight = pineInflightRef.current.get(s.id);
+    const unavailable = pineUnavailRef.current.get(s.id);
+    // A cached request A must not display an infrastructure failure from request B.
+    const currentFailure = pineFailurePinned(unavailable, pineCacheKey(s, barsRef.current));
+    const st = pineRowState({
+      intraday: isIntradayRef.current,
+      inflightSince: inflight?.since ?? null,
+      graceMs: inflight?.graceMs ?? PINE_PENDING_GRACE_MS,
+      budgetMs: PINE_RUNTIME_CAP_MS,
+      now: performance.now(),
+      hasPlot: !!series?.length,
+      unavailable: currentFailure ? unavailable!.reason : null,
+      error: err,
+    });
+    const pineState: PineLegendState | undefined =
+      st.kind === "running" || st.kind === "engineWait" ? st.kind
+      : st.kind === "unavailable" ? (st.reason === "start" ? "engineFail" : st.reason === "crash" ? "engineError" : "interrupted")
+      : undefined;
+    const warn = st.kind === "intraday" || st.kind === "error";
+    return { key: s.id, label: warn ? `${s.name} ⚠` : s.name, kind, isPine: true, color: pineColorOf(series), ...(pineState ? { pineState } : {}) };
+  };
 
   // Rebuild the per-pane legend registry from the CURRENT indicator series + paneMapRef. The price pane
   // carries the active overlay entries (ema/bb/vwap/vol + overlay scripts); each sub-pane carries its own
@@ -2571,7 +2684,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     // Clear SVG overlay data for overlays being rebuilt
     indOverlayRef.current = {};
     if (inds.has("ema")) indSeriesRef.current.set("ema", buildEma(chart, rows, closes));
-    if (inds.has("bb")) indSeriesRef.current.set("bb", buildBb(chart, rows, closes));
+    if (inds.has("bb")) indSeriesRef.current.set("bb", buildBb(chart, rows));
     if (inds.has("vwap")) indSeriesRef.current.set("vwap", buildVwap(chart, rows));
     if (inds.has("vol")) indSeriesRef.current.set("vol", buildVol(chart, rows));
     // DT overlay indicators
@@ -2639,9 +2752,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     }
     if (inds.has("bb")) {
       const sArr = SB.get("bb"); const p = P("bb");
-      const basis = sma(closes, p.length); const sd = stddev(closes, p.length);
-      const up = closes.map((_, i) => (basis[i] != null && sd[i] != null ? basis[i]! + p.mult * sd[i]! : null));
-      const lo = closes.map((_, i) => (basis[i] != null && sd[i] != null ? basis[i]! - p.mult * sd[i]! : null));
+      // Same single owner as buildBb — the in-place update must not re-derive the bands.
+      const { mid: basis, upper: up, lower: lo } = bollingerBands(rows, p.length, p.mult);
       if (sArr) { [up, basis, lo].forEach((arr, j) => { if (sArr[j]) sArr[j].setData(toLine(rows, arr)); }); }
     }
     if (inds.has("vwap")) {
@@ -2687,7 +2799,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       if (activeLen != null) { const vals = ema(closes, activeLen); rows.forEach((r, i) => { slot(r.time)["ema"] = vals[i] ?? null; }); }
     }
     if (inds.has("bb")) {
-      const p = P("bb"); const basis = sma(closes, p.length);
+      // Same owner as the plotted series, so the table's "bb" column and the basis line on the
+      // chart are the same number rather than two independent SMA implementations.
+      const p = P("bb"); const { mid: basis } = bollingerBands(rows, p.length, p.mult);
       rows.forEach((r, i) => { slot(r.time)["bb"] = basis[i] ?? null; });
     }
     if (inds.has("vwap")) {
@@ -4096,6 +4210,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
             return sm?.top ?? null;
           }) ?? null,
           watermarkVisible: watermarkVisibleRef.current,
+          appearanceSettings: { ...chartSettingsRef.current },
+          nativeBackground: g(() => c.options().layout?.background),
           rowCount: barsRef.current.length,
           leftScaleWidth: g(() => c.priceScale("left").width()),
           timeBarSpacing: g(() => c.timeScale().options().barSpacing),
@@ -4108,6 +4224,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
             colors: resolveSuiteColors(),
           })),
           optionsPin: g(() => optionsPricePinRef.current?.line.options() ?? null),
+          optionsPinViewport: g(() => { const view = optionsViewportRef.current; return view
+            ? { state: view.state, coordinate: view.coordinate, paneHeight: view.paneHeight,
+              root: view.level.root, price: view.level.price, session: view.level.session } : null; }),
           timeframe: timeframeRef.current,
           visibleRange: g(() => c.timeScale().getVisibleLogicalRange()),
           priceVisibleRange: g(() => priceSeriesHandleRef.current?.priceScale().getVisibleRange()),
@@ -4254,7 +4373,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     // ── create the ONE chart (the hard invariant — exactly one renderer instance — now
     // lives behind createEngine; docs/CHART_ENGINE_MASTERPLAN.md P1) ──
     cpMark(`chart-create[${symbol}]`);
-    tokensRef.current = readTokens();
+    tokensRef.current = readTokens(chartSettingsRef.current);
     const t = tokensRef.current;
     const engineOptions = {
       width: el.clientWidth || 900, height: el.clientHeight || 600,
@@ -4449,12 +4568,17 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     optionTagHost.className = "mm-optlevel-layer";
     optionTagHost.style.cssText = "position:absolute;inset:0;z-index:5;pointer-events:none;overflow:visible";
     wrap.appendChild(optionTagHost); optionTagHostRef.current = optionTagHost;
-    const optionTagMap = new Map<OptLevelKey, HTMLDivElement>();
-    const ensureOptionTag = (key: OptLevelKey): HTMLDivElement => {
+    type AxisOptionKey = OptLevelKey | "selected-reference";
+    const optionTagMap = new Map<AxisOptionKey, HTMLDivElement>();
+    const ensureOptionTag = (key: AxisOptionKey): HTMLDivElement => {
       const existing = optionTagMap.get(key); if (existing) return existing;
       const node = document.createElement("div");
       node.className = "mm-optlevel-tag";
       node.dataset.levelKey = key;
+      if (key === "selected-reference") {
+        node.dataset.testid = "options-selected-reference-badge";
+        node.setAttribute("role", "note");
+      }
       node.style.cssText = `position:absolute;right:1px;display:none;box-sizing:border-box;min-width:${PRICE_TAG_MIN_VALUE_WIDTH}px;height:${PRICE_TAG_ROW_HEIGHT}px;padding:0 6px;border-radius:2px;color:#fff;align-items:center;justify-content:flex-end;gap:5px;pointer-events:none;white-space:nowrap;font:600 11px/${PRICE_TAG_ROW_HEIGHT}px var(--font-num);font-variant-numeric:tabular-nums;box-shadow:0 0 0 1px rgba(0,0,0,.14)`;
       optionTagHost.appendChild(node); optionTagMap.set(key, node); return node;
     };
@@ -4555,6 +4679,82 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         return typeof mode === "number" ? mode as EnginePriceScaleMode : (chartSettingsRef.current.mode ?? EnginePriceScaleMode.Normal);
       } catch { return chartSettingsRef.current.mode ?? EnginePriceScaleMode.Normal; }
     };
+    // Source qualification and pin intent do not prove a painted line. Read the
+    // actual native series/pane on the same projection path as price labels.
+    const publishOptionsViewport = () => {
+      if (dead) return;
+      const level = optionsLevelRef.current;
+      const series = priceSeriesHandleRef.current;
+      const previous = optionsViewportRef.current;
+      if (!onOptionsViewportRef.current) return;
+      if (!level || !series) {
+        optionsViewportRef.current = null;
+        if (previous) onOptionsViewportRef.current({ ...previous, state: "unavailable", coordinate: null, reveal: () => {} });
+        return;
+      }
+      const nativePin = optionsPricePinRef.current;
+      const geometry = pricePaneGeometry();
+      const rect = wrap.getBoundingClientRect();
+      let coordinate: number | null = null;
+      let state: OptionsPinViewport["state"] = "unavailable";
+      const live = activeRef.current && dataReadyRef.current && replayIdxRef.current == null && !priceProjHidden()
+        && fullBarsTfRef.current === timeframeRef.current
+        && chartDataSymRef.current === symbolRef.current && level.root === symbolRef.current
+        && nativePin?.host === series && rect.width > 0 && rect.height > 0;
+      if (live && nativePin) {
+        try {
+          const line = nativePin.line.options() as { price?: number; lineVisible?: boolean };
+          if (line.price === level.price && line.lineVisible !== false) {
+            coordinate = series.priceToCoordinate(level.price);
+            const top = rect.top + geometry.top;
+            const from = Math.max(0, -top), to = Math.min(geometry.height, window.innerHeight - top);
+            const viewport = rect.right <= 0 || rect.left >= window.innerWidth || to <= from
+              ? { from: 0, to: 0 } : { from, to };
+            state = optionsPinVisibility(coordinate, geometry.height, viewport);
+          }
+        } catch { /* no usable renderer receipt yet */ }
+      }
+      const view: OptionsPinViewport = {
+        level, generation: series, state, coordinate, paneHeight: geometry.height,
+        reveal: () => {
+          // The button belongs to this exact qualified object and native host.
+          // A stale source, pane, host or replay transition cannot change a view.
+          if (dead || !activeRef.current || !dataReadyRef.current || optionsLevelRef.current !== level
+            || fullBarsTfRef.current !== timeframeRef.current
+            || priceSeriesHandleRef.current !== series || optionsPricePinRef.current?.host !== series
+            || replayIdxRef.current != null || symbolRef.current !== level.root
+            || chartDataSymRef.current !== level.root || priceProjHidden()) return;
+          wrap.scrollIntoView({ block: "nearest" });
+          try {
+            const scale = series.priceScale();
+            const range = scale.getVisibleRange();
+            const y = series.priceToCoordinate(level.price);
+            const mode = scaleMode(series);
+            const formula = range ? axisLogFormulaForRange(range) : null;
+            const domain = range && mode === EnginePriceScaleMode.Logarithmic ? axisRangeToLog(range, formula!) : range;
+            const options = scale.options();
+            const margins = options.scaleMargins as AxisMargins | undefined;
+            const height = pricePaneGeometry().height;
+            // The helper accepts top-origin display coordinates. Mirror an
+            // inverted native axis without changing the user's scale mode.
+            const coordinate = y != null && options.invertScale === true ? height - 1 - y : y;
+            const next = optionsPinRevealRange(domain, coordinate, height, margins ?? AXIS_MARGINS_DEFAULT);
+            if (next && next !== domain) {
+              // Preserve each incumbent adapter's setter domain. No OHLC, clock,
+              // timeframe, scale mode, saved setting or source value is changed.
+              const native = mode === EnginePriceScaleMode.Logarithmic && engine.impl === "mm"
+                ? axisRangeFromLog(next, formula!) : next;
+              scale.setVisibleRange(native);
+            }
+          } catch { /* status stays truthful until the native view is usable */ }
+          scheduleRenderRef.current?.();
+          publishOptionsViewport();
+        },
+      };
+      optionsViewportRef.current = view;
+      if (previous?.level !== level || previous.generation !== series || previous.state !== state) onOptionsViewportRef.current?.(view);
+    };
+    optionsViewportPublisherRef.current = publishOptionsViewport;
     const visibleScaleBasePrice = (s: SeriesHandle) => {
       const range = chart.timeScale().getVisibleLogicalRange();
       if (range == null) return barsRef.current[0]?.c ?? null;
@@ -4712,9 +4912,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         preferredSide?: "above" | "below";
         priority?: number;
         kind: "close" | "option";
-        key?: OptLevelKey;
+        key?: AxisOptionKey;
         price?: number;
-        style?: OptLevelRenderStyle;
+        style?: Pick<OptLevelRenderStyle, "color" | "title">;
       };
       const badgeMeta: RenderBadgeMeta[] = [];
       if (extVisible && shown) {
@@ -4761,14 +4961,40 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         }
       }
 
-      const placements = layoutPriceAxisBadges({
+      // The selected reference joins the same badge/obstacle resolver as
+      // Options Levels. Its true native price line and anchor never move.
+      let referenceReadoutFloor = 0;
+      const selectedReference = optionsLevelRef.current;
+      const nativeReference = optionsPricePinRef.current;
+      if (selectedReference && nativeReference && nativeReference.host === s && activeRef.current && dataReadyRef.current
+        && replayIdxRef.current == null && selectedReference.root === symbolRef.current
+        && chartDataSymRef.current === symbolRef.current && fullBarsTfRef.current === timeframeRef.current) {
+        const anchorY = s.priceToCoordinate(selectedReference.price);
+        if (anchorY != null && Number.isFinite(anchorY) && anchorY >= 0 && anchorY <= paneH) {
+          const native = nativeReference.line.options() as { price?: number; color?: string; lineVisible?: boolean };
+          if (native.price === selectedReference.price && native.lineVisible !== false) {
+            // A narrow statusline can wrap to three rows. Dock only this complete
+            // dated label below its measured readout; the native line stays at anchorY.
+            const readout = statusRef.current?.closest<HTMLElement>(".statusline")?.getBoundingClientRect();
+            const wrapTop = wrap.getBoundingClientRect().top;
+            referenceReadoutFloor = readout && readout.height > 0 ? Math.max(0, readout.bottom - wrapTop - paneGeometry.top + 2) : 0;
+            badgeMeta.push({
+              id: "selected-reference", kind: "option", key: "selected-reference", priority: 90,
+              anchorY, naturalTop: priceTagRowTop(anchorY), price: selectedReference.price,
+              style: { title: selectedReference.label, color: native.color || tokensRef.current.warn },
+            });
+          }
+        }
+      }
+
+      const placements = layoutOptionsReferenceBadges({
         paneHeight: paneH,
         activeTop,
         activeHeight,
         badges: badgeMeta.map(({ id, anchorY, naturalTop, preferredSide, priority }) => ({
           id, anchorY, naturalTop, preferredSide, priority,
         })),
-      });
+      }, referenceReadoutFloor);
       const placementById = new Map(placements.map((placement) => [placement.id, placement]));
 
       if (extVisible && shown) {
@@ -4816,6 +5042,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         const text = `${meta.style.title} ${scalePriceText(s, meta.price)}`;
         const width = Math.max(PRICE_TAG_MIN_VALUE_WIDTH, measuredLabelWidth(node, text, 12));
         node.textContent = text;
+        node.setAttribute("aria-label", text);
         node.style.background = meta.style.color;
         node.style.color = readablePriceTagTextColor(meta.style.color);
         node.style.width = `${width}px`;
@@ -4869,7 +5096,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         node.style.top = paneGeometry.top + placement.top + "px";
         node.dataset.anchorY = String(meta.anchorY);
         node.dataset.naturalTop = String(paneGeometry.top + meta.naturalTop);
-        node.dataset.docked = placement.docked ? "true" : "false";
+        node.dataset.docked = placement.docked || Math.abs(placement.top - meta.naturalTop) > .5 ? "true" : "false";
         node.dataset.lane = String(placement.lane);
         node.dataset.price = String(meta.price);
         node.style.display = "flex";
@@ -4907,6 +5134,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       if (paint === "keep" || y == null || value == null || !s) return;
       tag.textContent = scalePriceText(s, value);
       tag.style.background = tokensRef.current.p3;
+      tag.style.color = chartLight() ? readablePriceTagTextColor(tokensRef.current.p3) : "#fff";
       const axisFontSize = (() => { try { return Number((chart.options() as any).layout?.fontSize) || 12; } catch { return 12; } })();
       // LWC: font + price-label padding (2 x 2.5/12fs) + crosshair padding (2 x 2/12fs).
       const hoverHeight = Math.ceil(axisFontSize * 7 / 4);
@@ -5209,17 +5437,31 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       while (layer.firstChild) layer.removeChild(layer.firstChild);
       if (priceProjHidden()) return;   // sub-pane maximized → price-anchored markers stay cleared
 
-      // Prophet receipts are deliberately outside the Oracle study toggle. A sapphire diamond
-      // says "another system surfaced this name here" without borrowing Oracle's star/pill grammar.
+      // Prophet receipts stay independent of Oracle and its star/pill grammar.
+      // The forecast pulse is a tiny sapphire lens with a rising trajectory, not
+      // a letter stamped into a diamond. Reversal watches retain their R identity.
       for (const m of sigMarksRef.current) {
         if (m.type !== "PROPHET") continue;
         const x = xOf(m.t), y = yOf(m.price); if (x == null || y == null) continue;
-        const cy = y + 22, r = 7, fill = "#5b8cff";
+        const cy = y + 22;
         const glyph = opportunityMarkerGlyph(m.source);
-        const g = mk("g", { opacity: 0.96, "data-signal-source": glyph === "R" ? "reversal_watch" : "prophet_board" });
-        g.appendChild(mk("path", { d: `M${x} ${cy - r} L${x + r} ${cy} L${x} ${cy + r} L${x - r} ${cy} Z`, fill, stroke: "#9bb7ff", "stroke-width": 1 }));
-        const tEl = mk("text", { x, y: cy + 3.2, fill: "#fff", "font-size": 8.5, "font-weight": 900, "text-anchor": "middle", "font-family": "var(--font-ui)" });
-        tEl.textContent = glyph; g.appendChild(tEl);
+        const g = mk("g", { opacity: 0.98, "data-signal-source": glyph === "R" ? "reversal_watch" : "prophet_board" });
+        if (glyph === "P") {
+          // A soft outer halo and crisp rim keep the badge readable at chart scale.
+          g.appendChild(mk("circle", { cx: x, cy, r: 10.5, fill: "#4b8cff", opacity: 0.19 }));
+          g.appendChild(mk("circle", { cx: x, cy, r: 8.35, fill: "#163f91", stroke: "#9bc8ff", "stroke-width": 1.05 }));
+          g.appendChild(mk("circle", { cx: x - 2.3, cy: cy - 3.2, r: 3, fill: "#8db7ff", opacity: 0.15 }));
+          g.appendChild(mk("path", {
+            d: `M${x - 4.6} ${cy + 2.5} L${x - 1.45} ${cy - 0.8} L${x + 0.65} ${cy + 0.85} L${x + 4.15} ${cy - 3.15}`,
+            fill: "none", stroke: "#f2fbff", "stroke-width": 1.75, "stroke-linecap": "round", "stroke-linejoin": "round",
+          }));
+          g.appendChild(mk("circle", { cx: x + 4.15, cy: cy - 3.15, r: 1.3, fill: "#71edff" }));
+        } else {
+          const r = 7;
+          g.appendChild(mk("path", { d: `M${x} ${cy - r} L${x + r} ${cy} L${x} ${cy + r} L${x - r} ${cy} Z`, fill: "#5b8cff", stroke: "#9bb7ff", "stroke-width": 1 }));
+          const tEl = mk("text", { x, y: cy + 3.2, fill: "#fff", "font-size": 8.5, "font-weight": 900, "text-anchor": "middle", "font-family": "var(--font-ui)" });
+          tEl.textContent = glyph; g.appendChild(tEl);
+        }
         addMarkerTitle(g, m); layer.appendChild(g);
       }
 
@@ -5523,11 +5765,13 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         y: clampUnit(y / Math.max(1, el!.clientHeight)),
       },
     });
+    type SnapPaneLock = { key: string | null };
     const snap = (
       px: number,
       py: number,
       modifier?: { ctrlKey?: boolean; metaKey?: boolean },
       forceMagnet?: "off",
+      paneLock?: SnapPaneLock,
     ) => {
       const prec = precRef.current;
       const bars = barsRef.current;
@@ -5541,13 +5785,22 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       const inFuture = bi >= bars.length && future.length > 0;
       const bar = inFuture ? undefined : bars[bi];
       const bt = inFuture ? future[Math.min(future.length - 1, bi - bars.length)] : (bar?.time ?? bars[bars.length - 1]?.time);
-      // Resolve the value in the pane under the cursor. Outside the price pane
-      // the number is an indicator reading, not a price, so it must be read and
-      // later re-projected through that pane's own scale.
-      const hitPane = paneKeyAt(py);
+      // A gesture owns the pane it started in. Without that lock, dragging a
+      // price-range endpoint across an indicator separator sampled (for example)
+      // Stoch 44 as though it were a $44 stock price. That produced the giant
+      // clipped rectangles + impossible +200% labels reported on INTC.
+      //
+      // New gestures hit-test once on pointerdown; every continuation supplies a
+      // paneLock. Clamp a locked gesture to that pane's visible band so crossing
+      // a separator cannot extrapolate an off-screen value either.
+      const hitPane = paneLock ? normalizedPaneKey(paneLock.key) : paneKeyAt(py);
       const inPricePane = !hitPane || hitPane === PRICE_PANE_KEY;
       snapPaneKey = inPricePane ? null : hitPane;
-      let p = priceAtIn(py, snapPaneKey);
+      const lockedLayout = paneLock ? paneLayoutFor(paneLock.key) : null;
+      const sampleY = lockedLayout && lockedLayout.height > 0
+        ? Math.max(lockedLayout.top, Math.min(lockedLayout.top + lockedLayout.height, py))
+        : py;
+      let p = priceAtIn(sampleY, snapPaneKey);
       if (p == null) p = inPricePane ? (bars[bars.length - 1]?.c ?? 0) : 0;
       const configuredMode = magnetRef.current === true ? "strong" : magnetRef.current === false ? "off" : magnetRef.current;
       // OpenMarket's precision modifier is deliberately reversible: Ctrl/Cmd
@@ -5565,7 +5818,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         // Weak magnet is intentionally forgiving but never \"teleports\" an anchor: it only
         // engages inside an 8px desktop / 14px coarse-pointer halo. Strong always snaps.
         const weakRadius = matchMedia("(pointer:coarse)").matches ? 14 : 8;
-        if (mode === "strong" || (bestY != null && Math.abs(bestY - py) <= weakRadius)) {
+        if (mode === "strong" || (bestY != null && Math.abs(bestY - sampleY) <= weakRadius)) {
           p = best;
           const sx = xOf(String(bt));
           if (sx != null && bestY != null) snapTarget = { x: sx, y: bestY };
@@ -5584,11 +5837,12 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       options: { forceMagnet?: "off"; paneKey?: string | null } = {},
     ) => {
       const { forceMagnet, paneKey } = options;
-      if (!origin || !modifier?.shiftKey) return snap(px, py, modifier, forceMagnet);
+      const paneLock = paneKey === undefined ? undefined : { key: paneKey };
+      if (!origin || !modifier?.shiftKey) return snap(px, py, modifier, forceMagnet, paneLock);
       const ox = xOf(origin.t), oy = yOfIn(origin.p, paneKey);
-      if (ox == null || oy == null) return snap(px, py, modifier, forceMagnet);
+      if (ox == null || oy == null) return snap(px, py, modifier, forceMagnet, paneLock);
       const constrained = constrainScreenAngle({ x: ox, y: oy }, { x: px, y: py });
-      return snap(constrained.x, constrained.y, modifier, forceMagnet);
+      return snap(constrained.x, constrained.y, modifier, forceMagnet, paneLock);
     };
     /**
      * Do two anchors land on the same spot on screen? An unprojectable anchor
@@ -6358,8 +6612,9 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       if (target) showBarTip(target, true);
     });
     bar.addEventListener("focusout", hideBarTip);
-    window.addEventListener("resize", hideBarTip);
-    document.addEventListener("scroll", hideBarTip, true);
+    const onViewportShift = () => { hideBarTip(); publishOptionsViewport(); };
+    window.addEventListener("resize", onViewportShift);
+    document.addEventListener("scroll", onViewportShift, true);
     const COLORS = ["#4d82ff", "#26c281", "#f0566b", "#e8b339", "#d6dae3"];
     const RECENT_COLOR_KEY = "mm.drawing.recentColors.v1";
     const normalizeHexColor = (value: unknown) => typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value)
@@ -7537,16 +7792,22 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     };
 
     let drawingPaneClipIds = new Map<string, string>();
+    const drawingClipPaneKey = (kind: Drawing["kind"], paneKey?: string | null): string | null => {
+      if (paneKey && paneKey !== PRICE_PANE_KEY) return paneKey;
+      // Price-bearing range tools are pane-local even though price-pane ownership
+      // is represented as null in persisted documents. Other legacy price tools
+      // (notably vertical/cross lines) intentionally span the chart root.
+      if (kind === "pricerange" || kind === "dateandpricerange" || kind === "measure") return PRICE_PANE_KEY;
+      return null;
+    };
     const applyDrawingPaneClip = <T extends SVGElement>(node: T, paneKey?: string | null): T => {
-      // Legacy price-pane drawings include tools such as vertical lines whose
-      // intentional geometry spans the full chart root. Preserve that contract;
-      // only a drawing explicitly bound to an indicator pane is pane-clipped.
-      if (!paneKey || paneKey === PRICE_PANE_KEY) return node;
+      if (!paneKey) return node;
       const clipId = drawingPaneClipIds.get(paneKey);
       if (clipId) node.setAttribute("clip-path", `url(#${clipId})`);
       return node;
     };
     const renderDraw = () => {
+      publishOptionsViewport();
       const svgEl = svgRef.current; if (!svgEl) return;
       while (svgEl.firstChild) svgEl.removeChild(svgEl.firstChild);
       drawingPaneClipIds = new Map();
@@ -7604,7 +7865,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       };
       for (const d of [...drawRef.current].sort((a, b) => (a.z ?? 0) - (b.z ?? 0))) {
         const node = shape(d, false, projectX, projectYFor(d));
-        svgEl.appendChild(applyDrawingPaneClip(node, drawingPaneKey(d)));
+        svgEl.appendChild(applyDrawingPaneClip(node, drawingClipPaneKey(d.kind, drawingPaneKey(d))));
       }
       // ── D2 locked vertical line overlay ──
       const lvt = lockedVLineOwnerSymbolRef.current === symbolRef.current ? lockedVLineRef.current : null;
@@ -8545,11 +8806,11 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
             const angleOrigin = d0.points.length === 2
               ? d0.points[handleIndex === 0 ? 1 : 0]
               : handleIndex > 0 ? d0.points[0] : undefined;
-            // A sub-pane object keeps reading its own scale even if the cursor
-            // strays into a neighbouring pane mid-drag.
+            // Keep reading the object's own pane even if the cursor strays
+            // across a separator. constrainedSnap also clamps to that pane's
+            // visible band, so the stored value stays representable there.
             const snapped = constrainedSnap(angleOrigin, m0.x, m0.y, e, { paneKey: editPane });
-            const paneValue = editPane ? priceAtIn(m0.y, editPane) : null;
-            const pt = paneValue == null ? snapped : { t: snapped.t, p: +paneValue.toFixed(editPrec) };
+            const pt = snapped;
             const paneAnchored = getDrawingTool(d0.kind)?.creation.anchorSpace === "pane" && handleIndex === 0;
             drawRef.current = drawRef.current.map((x) => x.id !== id ? x : {
               ...x,
@@ -8579,7 +8840,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
           window.addEventListener("pointermove", moveHandle); window.addEventListener("pointerup", endHandle); window.addEventListener("pointercancel", cancelHandle); return;
         }
       }
-      const s0 = rectXY(ev); const start = snap(s0.x, s0.y, ev); const orig = d0.points.map((p) => ({ ...p }));
+      const s0 = rectXY(ev); const start = snap(s0.x, s0.y, ev, undefined, { key: editPane }); const orig = d0.points.map((p) => ({ ...p }));
       const origPaneAnchor = getDrawingTool(d0.kind)?.creation.anchorSpace === "pane" ? paneAnchorOf(d0.meta) : null;
       drawingTransactionRef.current = true;
       setInspectorMoving(true);
@@ -8587,7 +8848,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       const minOrigIndex = Math.min(...origIndices), maxOrigIndex = Math.max(...origIndices);
       const move = (e: PointerEvent) => {
         if (e.pointerId !== pointerId || editCancelled || isReadOnlyDrawing(source)) return;
-        const m0 = rectXY(e), cur = snap(m0.x, m0.y, e), bars = barsRef.current;
+        const m0 = rectXY(e), cur = snap(m0.x, m0.y, e, undefined, { key: editPane }), bars = barsRef.current;
         if (origPaneAnchor) {
           const nextAnchor = {
             x: clampUnit(origPaneAnchor.x + (m0.x - s0.x) / Math.max(1, el!.clientWidth)),
@@ -8605,9 +8866,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         // Vertical translation is measured in the object's OWN pane, so a drag
         // that crosses a pane boundary cannot rewrite the anchors with a value
         // sampled from a different scale.
-        const startValue = editPane ? (priceAtIn(s0.y, editPane) ?? start.p) : start.p;
-        const currentValue = editPane ? (priceAtIn(m0.y, editPane) ?? cur.p) : cur.p;
-        const dp = currentValue - startValue;
+        const dp = cur.p - start.p;
         const requestedDi = barIndex(cur.t!) - barIndex(start.t!);
         // Clamp one shared translation delta so every anchor moves rigidly at
         // the data boundary instead of independently collapsing the geometry.
@@ -8780,7 +9039,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         svgEl.appendChild(guides);
         svgEl.appendChild(applyDrawingPaneClip(
           shape({ id: "_p", kind: p0.kind, points: previewPoints, ...applyStyle(p0.kind), ...(p0.meta ? { meta: p0.meta } : {}) }, true, xOf, (price) => yOfIn(price, p0.paneKey)),
-          p0.paneKey,
+          drawingClipPaneKey(p0.kind, p0.paneKey),
         ));
       });
     });
@@ -8897,12 +9156,12 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       const activation = toolActivationRef.current;
       ev.preventDefault(); ev.stopPropagation();
       const move = (e: PointerEvent) => {
-        const xy = rectXY(e), b = snap(xy.x, xy.y, e);
+        const xy = rectXY(e), b = snap(xy.x, xy.y, e, undefined, { key: measurePane });
         scheduleDraw(() => {
           const svgEl = svgRef.current; if (!svgEl) return;
           svgEl.appendChild(applyDrawingPaneClip(
             shape({ id: "_measure", kind: "measure", points: [a, b], ...applyStyle("measure") }, true, xOf, (price) => yOfIn(price, measurePane)),
-            measurePane,
+            drawingClipPaneKey("measure", measurePane),
           ));
         });
       };
@@ -8913,7 +9172,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       };
       const end = (e: PointerEvent) => {
         cleanupMeasure();
-        const xy = rectXY(e), b = snap(xy.x, xy.y, e);
+        const xy = rectXY(e), b = snap(xy.x, xy.y, e, undefined, { key: measurePane });
         if (!samePlacement(a, b, measurePane)) commitDrawing("measure", [a, b], undefined, activation, measurePane);
         else renderDraw();
       };
@@ -9067,6 +9326,10 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
 
     // ── mount teardown (base line-416 logic + the new refs) ──
     return () => {
+      const lastOptionsView = optionsViewportRef.current;
+      if (lastOptionsView) onOptionsViewportRef.current?.({ ...lastOptionsView, state: "unavailable", coordinate: null, reveal: () => {} });
+      if (optionsViewportPublisherRef.current === publishOptionsViewport) optionsViewportPublisherRef.current = null;
+      optionsViewportRef.current = null;
       dead = true; if (rafId != null) cancelAnimationFrame(rafId); if (measRaf != null) cancelAnimationFrame(measRaf);
       for (const entry of drawingReadinessUnsubs.values()) entry.unsub();
       drawingReadinessUnsubs.clear();
@@ -9076,6 +9339,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       if (drawRaf != null) cancelAnimationFrame(drawRaf); if (resizeRaf != null) cancelAnimationFrame(resizeRaf);
       if (pineLiveTimerRef.current != null) { clearTimeout(pineLiveTimerRef.current); pineLiveTimerRef.current = null; }
       if (pineHostRef.current) { try { pineHostRef.current.dispose(); } catch {} pineHostRef.current = null; }
+      clearPineInflight();
       if (syncCleanupRef.current) { try { syncCleanupRef.current(); } catch {} syncCleanupRef.current = null; }
       if (dragCleanup) dragCleanup();
       drawingTransactionRef.current = false;
@@ -9117,8 +9381,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       if (barRef.current) { try { barRef.current.remove(); } catch {} barRef.current = null; }
       if (creationPaletteRef.current) { try { creationPaletteRef.current.remove(); } catch {} creationPaletteRef.current = null; }
       hideBarTip();
-      window.removeEventListener("resize", hideBarTip);
-      document.removeEventListener("scroll", hideBarTip, true);
+      window.removeEventListener("resize", onViewportShift);
+      document.removeEventListener("scroll", onViewportShift, true);
       try { barTip.remove(); } catch {}
       if (indSvgRef.current) { try { indSvgRef.current.remove(); } catch {} indSvgRef.current = null; }
       suiteTablesRef.current = [];
@@ -9153,6 +9417,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       indPriceLinesRef.current = new Map();
       indSeriesRef.current.clear(); cmpSeriesRef.current.clear(); paneMapRef.current.clear();
       pineSeriesRef.current.clear(); pinePriceShapesRef.current.clear(); pinePaneMapRef.current.clear(); pineErrRef.current.clear(); pineCacheRef.current.clear(); pineAstRef.current.clear();
+      pineUnavailRef.current.clear(); clearPineInflight();
       // Marker sets live ON their host handles (M03): engine.destroy() disposes every series
       // with its attached plugin, so there is nothing to detach — only refs to drop.
       macdLineHRef.current = null;
@@ -9352,7 +9617,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         const closes = onChart.map((r) => r.c);
         closesRef.current = closes;
         precRef.current = closes.length && closes[closes.length - 1] < 10 ? 4 : 2;
-        tokensRef.current = readTokens();
+        tokensRef.current = readTokens(chartSettingsRef.current);
         // Prefetch daily OHLC for slevels/pivots (fire-and-forget; miss is graceful — empty daily = no lines).
         // Also used by DayStatsStrip for gap% and range-used% computations.
         // Only re-fetch when the symbol changed or cache is empty. Uses the same getOhlc cache path as daily branch.
@@ -9526,7 +9791,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
       const closes = onChart.map((r) => r.c);
       closesRef.current = closes;
       precRef.current = closes.length && closes[closes.length - 1] < 10 ? 4 : 2;
-      tokensRef.current = readTokens();
+      tokensRef.current = readTokens(chartSettingsRef.current);
 
       // ── Lab signal markers (TLT-R4): fetch tech events from cached intel when _lab active ──
       // Fire-and-forget: does NOT block chart render. On 404/absent the ref stays empty.
@@ -9855,7 +10120,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     }
     for (const k of wantOverlays) if (!haveOverlays.has(k)) {
       if (k === "ema") indSeriesRef.current.set("ema", buildEma(engine, rows, closes));
-      else if (k === "bb") indSeriesRef.current.set("bb", buildBb(engine, rows, closes));
+      else if (k === "bb") indSeriesRef.current.set("bb", buildBb(engine, rows));
       else if (k === "vwap") indSeriesRef.current.set("vwap", buildVwap(engine, rows));
       else if (k === "vol") indSeriesRef.current.set("vol", buildVol(engine, rows));
       else if (k === "ichimoku") indSeriesRef.current.set("ichimoku", buildIchimoku(engine, rows));
@@ -10214,6 +10479,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     const live = new Set(pineScriptsRef.current.map((s) => s.id));
     for (const id of Array.from(pineCacheRef.current.keys())) if (!live.has(id)) pineCacheRef.current.delete(id);
     for (const id of Array.from(pineErrRef.current.keys())) if (!live.has(id)) pineErrRef.current.delete(id);
+    for (const id of Array.from(pineUnavailRef.current.keys())) if (!live.has(id)) pineUnavailRef.current.delete(id);
+    for (const [id, e] of Array.from(pineInflightRef.current.entries())) if (!live.has(id)) { for (const t of e.timers) clearTimeout(t); pineInflightRef.current.delete(id); }
     // drop the worker's cached AST for removed scripts' sources (frees worker memory), then forget them
     for (const [id, a] of Array.from(pineAstRef.current.entries())) if (!live.has(id)) { try { pineHostRef.current?.evict(a.source); } catch {} pineAstRef.current.delete(id); }
     clearAllPine();
@@ -10367,7 +10634,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   // ────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     const engine = engineRef.current; const priceHandle = priceSeriesHandleRef.current; if (!engine) return;
-    const t = readTokens(); tokensRef.current = t;
+    const t = readTokens(chartSettingsRef.current); tokensRef.current = t;
     const settings = chartSettingsRef.current;
     try {
       engine.applyOptions({
@@ -10453,8 +10720,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         engine.priceScale(scaleId).applyOptions(opts);
       }
       const tokens = tokensRef.current;
-      const backgroundTop = chartSettings.backgroundTop || "transparent";
-      const backgroundBottom = chartSettings.backgroundBottom || backgroundTop;
+      const { backgroundTop, backgroundBottom } = chartAppearance(chartSettings);
       const background = chartSettings.backgroundType === "gradient"
         ? { type: EngineColorType.VerticalGradient, topColor: backgroundTop, bottomColor: backgroundBottom }
         : { type: EngineColorType.Solid, color: backgroundTop };
@@ -10575,6 +10841,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
   // Ephemeral options selection updates a native price line, never the renderer/data lifecycle.
   useEffect(() => {
     applyOptionsPriceLine();
+    optionsViewportPublisherRef.current?.();
+    scheduleRenderRef.current?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [optionsLevel, symbol, isActive, replayCutoff]);
 
@@ -10701,6 +10969,19 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
     // eslint-disable-next-line
   }, [cmpDep]);
 
+  // Keep the existing pane/frame-bar material in the chart's selected Light
+  // direction. The native background still preserves explicit saved colours.
+  useEffect(() => {
+    if (!chartLight()) return;
+    const pane = wrapElRef.current?.closest<HTMLElement>(".pane");
+    if (!pane) return;
+    const previous = pane.style.getPropertyValue("--chart-bg");
+    pane.style.setProperty("--chart-bg", css("--panel"));
+    return () => { if (previous) pane.style.setProperty("--chart-bg", previous); else pane.style.removeProperty("--chart-bg"); };
+  }, [csNonce]);
+  const appearance = chartAppearance(chartSettings ?? {});
+  const readoutInk = appearance.headerInk;
+
   // Golden Oracle Confluence is a toggleable/removable study now: its verdict badge + detail chip only
   // show while it's active AND not hidden via the legend eye. (Kept mounted with display:none so the
   // imperative verdict painter can keep verdictRef current in the background — no remount staleness.)
@@ -10716,7 +10997,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
           dailyBars={stripDailyBars}
         />
       )}
-      <div className="statusline">
+      <div className="statusline" style={readoutInk ? { "--text": readoutInk, "--text-2": readoutInk, "--muted": readoutInk } as React.CSSProperties : undefined}>
         <span ref={statusRef} />
         <span className="mm" style={{ display: oracleVisible ? undefined : "none" }}><i style={{ background: "currentColor" }} /><span ref={verdictRef}>{t("goldenOracleLbl")}</span></span>
         {replayCutoff != null && <span className="mm" style={{ background: "rgba(232,179,57,.14)", borderColor: "rgba(232,179,57,.35)", color: "var(--signal)" }}><i style={{ background: "var(--signal)" }} />REPLAY</span>}
@@ -10780,8 +11061,10 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, c
         panes={paneLayout} hoveredKey={hoveredKey} legendOpen={legendOpen} onToggleLegend={() => setLegendOpen((o) => !o)}
         showTitles={chartSettings?.showIndicatorTitles !== false}
         backgroundOpacity={chartSettings?.indicatorBackgroundOpacity ?? 70}
+        frameBackground={chartLight() ? appearance.frameBackground : undefined}
         paneButtons={chartSettings?.paneButtons ?? "hover"}
         onEye={(k) => onToggleHidden?.(k)} onSettings={(k) => onOpenSettings?.(k)} onSource={(k) => onOpenSource?.(k)} onRemove={(k) => onRemoveInd?.(k)}
+        onRetry={retryPine}
         onMoveUp={(pi) => doMove(pi, -1)} onMoveDown={(pi) => doMove(pi, 1)} onCollapse={doCollapse} onMaximize={doMaximize}
         canMoveUp={canMoveUp} canMoveDown={canMoveDown}
         coarse={isMobile}

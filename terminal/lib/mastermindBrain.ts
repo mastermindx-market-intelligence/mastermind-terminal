@@ -1,4 +1,5 @@
 import type { CompanySourceContextRef } from "./companySourceContext";
+import type { OptionsQuestionReference } from "./optionsQuestionContext";
 
 /**
  * Browser bridge for the document-level Mastermind Brain singleton.
@@ -21,9 +22,17 @@ export type ChartStatePreparationResult =
       "state_unavailable" | "state_post_failed" | "state_post_timeout" | "sign_in_required" };
 
 export interface MastermindBrainHost {
-  MMBrain?: { open?: () => void; mounted?: boolean; setPrincipal?: (id: string | null) => void };
+  MMBrain?: {
+    open?: () => void;
+    mounted?: boolean;
+    setPrincipal?: (id: string | null) => void;
+    /** Optional typed consumer; legacy widgets cannot silently accept this source. */
+    submitOptionsQuestion?: (reference: OptionsQuestionReference) => boolean;
+    clearOptionsQuestion?: (reference: OptionsQuestionReference) => boolean;
+  };
   MM_BRAIN_CFG?: {
     principal?: string | null;
+    authorizeOptionsQuestion?: (expectedPrincipal: string) => Promise<boolean>;
     symbol?: () => string;
     getCompanySourceSpan?: () => CompanySourceContextRef | null | undefined;
     onChartStop?: (request: ChartStopRequest) => ChartStopResult | undefined;

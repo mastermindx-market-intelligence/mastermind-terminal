@@ -30,6 +30,7 @@ import { SearchParamsContext } from "next/dist/shared/lib/hooks-client-context.s
 import ThesisWorkspace from "@/components/workspaces/ThesisWorkspace";
 import type { ThesisDetail, ThesisSubjectRef, ThesisSummary, ThesisVersion } from "@/lib/theses";
 import { THESIS_CONTENT_SCHEMA, THESIS_SUBJECT_SCHEMA } from "@/lib/theses";
+import { readThesisInspection } from "@/lib/thesisInspectionHistory";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -304,6 +305,67 @@ describe("ThesisWorkspace reopen with MarketOntology context", () => {
     }
   });
 
+  it("clears historical inspection without losing the accepted receipt during a same-URL save", async () => {
+    const currentRow = summary(NVDA_ID, listingSubject("NVDA"), "Current NVDA thesis", { currentVersion: 2 });
+    const nextRow = { ...currentRow, currentVersion: 3 };
+    const previous = detailFor(summary(NVDA_ID, listingSubject("NVDA"), "Historical NVDA thesis")).current;
+    const currentDetail = detailFor(currentRow);
+    currentDetail.history = [currentDetail.current, previous];
+    const nextDetail = detailFor(nextRow);
+    nextDetail.history = [nextDetail.current, currentDetail.current, previous];
+    const listGate = deferredResponse();
+    const listResponse = jsonResponse({ theses: [nextRow], truncated: false });
+    let accepted = false;
+    let announceList!: () => void;
+    const listStarted = new Promise<void>((resolve) => { announceList = resolve; });
+    const { requests } = installFetch({
+      mutationFor: () => {
+        accepted = true;
+        return jsonResponse({ thesisId: NVDA_ID, version: 3, lifecycleState: "active", replayed: false }, 201);
+      },
+      listFor: () => {
+        if (!accepted) return jsonResponse({ theses: [currentRow], truncated: false });
+        announceList(); return listGate.promise;
+      },
+      detailFor: () => jsonResponse({ thesis: accepted ? nextDetail : currentDetail }),
+    });
+    const scroll = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "scrollIntoView");
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", { configurable: true, value: vi.fn() });
+    try {
+      const el = await mountAt(`/analysis?view=theses&thesis=${NVDA_ID}`, { initialThesisId: NVDA_ID });
+      const originalUrl = window.location.href;
+      const inspect = el.querySelector<HTMLButtonElement>('button[aria-label="Inspect version 1"]');
+      expect(inspect).toBeTruthy();
+      await act(async () => { inspect!.click(); });
+      await flush();
+      expect(el.textContent).toContain("Historical snapshot");
+      expect(readThesisInspection(window.history.state, OWNER, NVDA_ID, currentDetail.history)).toBe(1);
+      const form = el.querySelector<HTMLInputElement>('input[aria-label="Title"]')!.closest("form")!;
+      await act(async () => {
+        form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+        await listStarted;
+      });
+      await flush(2);
+      expect(window.location.href).toBe(originalUrl);
+      expect(el.textContent).toContain("Saved as version 3");
+      expect(readThesisInspection(window.history.state, OWNER, NVDA_ID, currentDetail.history)).toBeNull();
+      expect(requests.filter(request => request.startsWith(`/api/theses?id=${NVDA_ID} `))).toHaveLength(1);
+
+      listGate.resolve(listResponse);
+      await flush();
+      expect(window.location.href).toBe(originalUrl);
+      expect(el.textContent).toContain("Saved as version 3");
+      expect(el.textContent).toContain("Version 3 · Current");
+      expect(el.textContent).not.toContain("Historical snapshot");
+      expect(el.querySelector<HTMLInputElement>('input[aria-label="Title"]')?.value).toBe(nextRow.title);
+      expect(requests.filter(request => request.startsWith(`/api/theses?id=${NVDA_ID} `))).toHaveLength(2);
+    } finally {
+      listGate.resolve(listResponse);
+      if (scroll) Object.defineProperty(HTMLElement.prototype, "scrollIntoView", scroll);
+      else Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
+    }
+  });
+
   it("does not start a saved-detail read after a later history navigation retires its generation", async () => {
     const stored = seedPendingCreate("c3200000-0000-4000-8000-000000000001");
     const msft = summary(MSFT_ID, listingSubject("MSFT"), "Later MSFT selection");
@@ -464,6 +526,53 @@ describe("ThesisWorkspace reopen with MarketOntology context", () => {
       replace.mockRestore();
     }
   });
+
+  it.each(["response", "decoded body", "401", "500", "network error", "owner A returns"] as const)(
+    "ignores the previous owner's late list %s after the current owner's list answers",
+    async (lateKind) => {
+      const oldRow = summary(NVDA_ID, listingSubject("NVDA"), "Previous owner private thesis");
+      const currentRow = summary(MSFT_ID, listingSubject("MSFT"), "Current owner private thesis");
+      let settleResponse!: (response: Response) => void;
+      let rejectResponse!: (error: Error) => void;
+      let settleBody!: (body: unknown) => void;
+      const response = new Promise<Response>((resolve, reject) => {
+        settleResponse = resolve;
+        rejectResponse = reject;
+      });
+      const body = new Promise<unknown>((resolve) => { settleBody = resolve; });
+      let reads = 0;
+      const { requests } = installFetch({ listFor: () => {
+        reads += 1;
+        if (reads > 1) return jsonResponse({ theses: [currentRow], truncated: false });
+        return lateKind === "decoded body"
+          ? { ok: true, status: 200, json: () => body } as Response
+          : response;
+      } });
+      const el = await mountAt("/analysis?view=theses", { ownerKey: "owner-a" });
+      await act(async () => { root!.render(<ThesisWorkspace ownerKey="owner-b" />); });
+      await flush();
+      if (lateKind === "owner A returns") {
+        await act(async () => { root!.render(<ThesisWorkspace ownerKey="owner-a" />); });
+        await flush();
+      }
+      expect(thesisRow(el, currentRow.title)).toBeTruthy();
+      await act(async () => {
+        if (lateKind === "decoded body") settleBody({ theses: [oldRow], truncated: true });
+        else if (lateKind === "network error") rejectResponse(new Error("old read disconnected"));
+        else settleResponse(jsonResponse({ theses: [oldRow], truncated: true },
+          lateKind === "401" ? 401 : lateKind === "500" ? 500 : 200));
+      });
+      await flush();
+      expect(el.textContent).not.toContain(oldRow.title);
+      expect(thesisRow(el, currentRow.title)).toBeTruthy();
+      expect(el.textContent).not.toContain("Your session expired");
+      expect(el.textContent).not.toContain("Your thesis store did not answer");
+      expect(el.textContent).not.toContain("More theses exist");
+      expect(requests.filter(request => request === "/api/theses ")).toHaveLength(
+        lateKind === "owner A returns" ? 3 : 2,
+      );
+    },
+  );
 
   it("a late same-id read cannot restore the candidate from a different history entry", async () => {
     const nvda = summary(NVDA_ID, listingSubject("NVDA"), "NVDA thesis");

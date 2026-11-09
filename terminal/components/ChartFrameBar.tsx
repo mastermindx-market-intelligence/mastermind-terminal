@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import type { ChartEngine } from "@/lib/chart-engine/api";
 import { EnginePriceScaleMode } from "@/lib/chart-engine";
 import { DEFAULT_CHART_RIGHT_OFFSET, withChartFutureOffset } from "@/lib/chart-engine/viewReset";
@@ -8,7 +8,9 @@ import { isIntradayTf } from "@/lib/intradaySources";
 import { VISUAL_INTELLIGENCE_DEFAULTS, type VisualIntelligenceSettings } from "@/lib/visualIntelligence";
 import { useLang, useT } from "@/lib/i18n";
 import { boatsChartCopy } from "@/lib/extQuoteCopy";
+import { pick } from "@/lib/finFormat";
 import overnightStyles from "./ChartOvernight.module.css";
+import quickSettingsStyles from "./ChartQuickSettings.module.css";
 import DataOriginChip from "@/components/DataOriginChip";
 import type { DataOrigin } from "@/lib/dataOrigin";
 
@@ -223,6 +225,7 @@ export default function ChartFrameBar({
   openGotoRequest = 0,
   symbol,
   dataOrigin,
+  tradingCurrency,
 }: {
   timeframe: string;
   chartApi: ChartEngine | null;
@@ -236,6 +239,10 @@ export default function ChartFrameBar({
   /** Data OS U02: the mounted chart's symbol + its derived origin readout (drives the origin chip). */
   symbol?: string;
   dataOrigin?: DataOrigin | null;
+  /** B1: this listing's trading currency from the fund document (exact ticker + explicit
+   *  3-letter quote_currency), or null while unknown — the chip then says so explicitly
+   *  instead of guessing from the ticker suffix or the statement currency. */
+  tradingCurrency?: string | null;
 }) {
   const t = useT();
   const { lang } = useLang();
@@ -249,6 +256,9 @@ export default function ChartFrameBar({
   const [gotoOpen, setGotoOpen] = useState(false);
   const [gotoDate, setGotoDate] = useState("");
   const gearRef = useRef<HTMLDivElement>(null);
+  const gearButtonRef = useRef<HTMLButtonElement>(null);
+  const gearMenuRef = useRef<HTMLDivElement>(null);
+  const quickSettingsId = useId();
   const gotoRef = useRef<HTMLInputElement>(null);
   // C8/CHART-08b — the native shell swaps the settings glyph for TV's hexagon nut. Read after mount
   // (the marker is stamped pre-paint on <html>, but this component is SSR'd) so the server output —
@@ -291,6 +301,10 @@ export default function ChartFrameBar({
     };
     window.addEventListener("mousedown", h);
     return () => window.removeEventListener("mousedown", h);
+  }, [gearOpen]);
+
+  useEffect(() => {
+    if (gearOpen) gearMenuRef.current?.querySelector<HTMLButtonElement>("button:not(:disabled)")?.focus();
   }, [gearOpen]);
 
   // Keyboard shortcuts:
@@ -483,11 +497,41 @@ export default function ChartFrameBar({
         {/* Data OS U02 — the origin chip replaces the static ADJ span: label and explanation are
             derived from the OHLC file's view contract, never a hardcoded claim. */}
         <DataOriginChip symbol={symbol} origin={dataOrigin ?? null} />
+        {/* B1 — the trading-currency chip sits beside origin: the fund document's quote_currency
+            for THIS exact listing, or an explicit "CCY?" while unknown. A neutral cfb-chip span
+            reuses the frame bar's existing styling — no new CSS, colors or design system. */}
+        <span
+          className="cfb-chip"
+          data-testid="cfb-currency"
+          aria-label={tradingCurrency
+            ? pick(lang === "zh", `Trading currency: ${tradingCurrency}`, `交易币种：${tradingCurrency}`)
+            : pick(lang === "zh", "Trading currency unavailable", "交易币种不可用")}
+        >{tradingCurrency ?? pick(lang === "zh", "CCY?", "币种?")}</span>
         {/* Gear: quick settings */}
-        <div className="cfb-gear-host" ref={gearRef}>
+        <div className="cfb-gear-host" ref={gearRef}
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+              setGearOpen(false);
+              setSubMenu(null);
+            }
+          }}
+          onKeyDown={(event) => {
+            if (event.key !== "Escape" || !gearOpen) return;
+            event.preventDefault();
+            event.stopPropagation();
+            setGearOpen(false);
+            setSubMenu(null);
+            gearButtonRef.current?.focus();
+          }}>
           <button
+            ref={gearButtonRef}
+            type="button"
             className={`cfb-gear${gearOpen ? " on" : ""}`}
             title={t("quickSettings")}
+            aria-label={t("quickSettings")}
+            aria-haspopup="dialog"
+            aria-expanded={gearOpen}
+            aria-controls={gearOpen ? quickSettingsId : undefined}
             onClick={(e) => { e.stopPropagation(); setGearOpen((o) => !o); if (gearOpen) setSubMenu(null); }}
           >
             {/* C8b — at the shell's 26×26 / 15px svg the eight straight radial strokes read as a
@@ -507,31 +551,32 @@ export default function ChartFrameBar({
           </button>
 
           {gearOpen && (
-            <div className="qsg-menu" onClick={(e) => e.stopPropagation()}>
+            <div ref={gearMenuRef} id={quickSettingsId} role="dialog" aria-label={t("quickSettings")}
+              className={`qsg-menu ${quickSettingsStyles.menu}`} onClick={(e) => e.stopPropagation()}>
               {/* Auto-scale: fits price data to the visible bar range.
                   lightweight-charts only exposes a boolean toggle — no ratio-lock API exists.
                   We expose a single honest "Auto-scale" checkbox; when unchecked the axis
                   keeps its last manual zoom (the only alternative the library supports). */}
-              <div className={`qsg-item${s.autoScale ? " checked" : ""}`} onClick={() => {
+              <button type="button" aria-pressed={s.autoScale} className={`qsg-item${s.autoScale ? " checked" : ""}`} onClick={() => {
                 const next = !s.autoScale;
                 onSettings({ autoScale: next });
                 try { if (chartApi) chartApi.priceScale(s.scaleLeft ? "left" : "right").setAutoScale(next); } catch {}
               }}>
-                <span className="qsg-check">{s.autoScale ? "✓" : ""}</span>
+                <span className="qsg-check" aria-hidden="true">{s.autoScale ? "✓" : ""}</span>
                 <span className="qsg-lbl">{t("qsgAuto")}</span>
-              </div>
+              </button>
 
-              <div className="qsg-item qsg-disabled">
-                <span className="qsg-check" />
+              <button type="button" disabled className="qsg-item qsg-disabled">
+                <span className="qsg-check" aria-hidden="true" />
                 <span className="qsg-lbl">{t("qsgScaleChartOnly")}</span>
-              </div>
+              </button>
 
               {/* Invert scale ⌥I */}
-              <div className={`qsg-item${s.invertScale ? " checked" : ""}`} onClick={() => onSettings({ invertScale: !s.invertScale })}>
-                <span className="qsg-check">{s.invertScale ? "✓" : ""}</span>
+              <button type="button" aria-pressed={s.invertScale} aria-keyshortcuts="Alt+I" className={`qsg-item${s.invertScale ? " checked" : ""}`} onClick={() => onSettings({ invertScale: !s.invertScale })}>
+                <span className="qsg-check" aria-hidden="true">{s.invertScale ? "✓" : ""}</span>
                 <span className="qsg-lbl">{t("qsgInvert")}</span>
-                <kbd className="qsg-kbd">⌥I</kbd>
-              </div>
+                <kbd className="qsg-kbd" aria-hidden="true">⌥I</kbd>
+              </button>
 
               <div className="qsg-sep" />
 
@@ -542,47 +587,55 @@ export default function ChartFrameBar({
                 [EnginePriceScaleMode.IndexedTo100, t("qsgIndexed"), ""],
                 [EnginePriceScaleMode.Logarithmic, t("qsgLog"), "⌥L"],
               ] as [EnginePriceScaleMode, string, string][]).map(([m, label, kbd]) => (
-                <div key={m} className={`qsg-item qsg-radio${s.mode === m ? " checked" : ""}`} onClick={() => onSettings({ mode: m })}>
-                  <span className="qsg-radio-dot">{s.mode === m ? "●" : "○"}</span>
+                <button key={m} type="button" aria-pressed={s.mode === m} className={`qsg-item qsg-radio${s.mode === m ? " checked" : ""}`} onClick={() => onSettings({ mode: m })}>
+                  <span className="qsg-radio-dot" aria-hidden="true">{s.mode === m ? "●" : "○"}</span>
                   <span className="qsg-lbl">{label}</span>
-                  {kbd && <kbd className="qsg-kbd">{kbd}</kbd>}
-                </div>
+                  {kbd && <kbd className="qsg-kbd" aria-hidden="true">{kbd}</kbd>}
+                </button>
               ))}
 
               <div className="qsg-sep" />
 
               {/* Move scale to left */}
-              <div className={`qsg-item${s.scaleLeft ? " checked" : ""}`} onClick={() => onSettings({ scaleLeft: !s.scaleLeft })}>
-                <span className="qsg-check">{s.scaleLeft ? "✓" : ""}</span>
+              <button type="button" aria-pressed={s.scaleLeft} className={`qsg-item${s.scaleLeft ? " checked" : ""}`} onClick={() => onSettings({ scaleLeft: !s.scaleLeft })}>
+                <span className="qsg-check" aria-hidden="true">{s.scaleLeft ? "✓" : ""}</span>
                 <span className="qsg-lbl">{t("qsgScaleLeft")}</span>
-              </div>
+              </button>
 
               <div className="qsg-sep" />
 
               {/* Labels submenu */}
-              <div className="qsg-item qsg-has-sub" onClick={(e) => { e.stopPropagation(); setSubMenu(subMenu === "labels" ? null : "labels"); }}>
-                <span className="qsg-check" />
-                <span className="qsg-sub-trigger"><span className="qsg-lbl">{t("qsgLabels")}</span><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M3 2l4 3-4 3" /></svg></span>
+              <div>
+                <button type="button" className="qsg-item" aria-expanded={subMenu === "labels"}
+                  aria-controls={subMenu === "labels" ? `${quickSettingsId}-labels` : undefined}
+                  onClick={() => setSubMenu(subMenu === "labels" ? null : "labels")}>
+                  <span className="qsg-check" aria-hidden="true" />
+                  <span className="qsg-sub-trigger"><span className="qsg-lbl">{t("qsgLabels")}</span><svg aria-hidden="true" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M3 2l4 3-4 3" /></svg></span>
+                </button>
                 {subMenu === "labels" && (
-                  <div className="qsg-submenu" onClick={(e) => e.stopPropagation()}>
-                    <div className={`qsg-item${s.lastValueVisible ? " checked" : ""}`} onClick={() => onSettings({ lastValueVisible: !s.lastValueVisible })}>
-                      <span className="qsg-check">{s.lastValueVisible ? "✓" : ""}</span>
+                  <div id={`${quickSettingsId}-labels`} className={`qsg-submenu ${quickSettingsStyles.submenu}`}>
+                    <button type="button" aria-pressed={s.lastValueVisible} className={`qsg-item${s.lastValueVisible ? " checked" : ""}`} onClick={() => onSettings({ lastValueVisible: !s.lastValueVisible })}>
+                      <span className="qsg-check" aria-hidden="true">{s.lastValueVisible ? "✓" : ""}</span>
                       <span className="qsg-lbl">{t("qsgLastValueLabel")}</span>
-                    </div>
+                    </button>
                   </div>
                 )}
               </div>
 
               {/* Lines submenu */}
-              <div className="qsg-item qsg-has-sub" onClick={(e) => { e.stopPropagation(); setSubMenu(subMenu === "lines" ? null : "lines"); }}>
-                <span className="qsg-check" />
-                <span className="qsg-sub-trigger"><span className="qsg-lbl">{t("qsgLines")}</span><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M3 2l4 3-4 3" /></svg></span>
+              <div>
+                <button type="button" className="qsg-item" aria-expanded={subMenu === "lines"}
+                  aria-controls={subMenu === "lines" ? `${quickSettingsId}-lines` : undefined}
+                  onClick={() => setSubMenu(subMenu === "lines" ? null : "lines")}>
+                  <span className="qsg-check" aria-hidden="true" />
+                  <span className="qsg-sub-trigger"><span className="qsg-lbl">{t("qsgLines")}</span><svg aria-hidden="true" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M3 2l4 3-4 3" /></svg></span>
+                </button>
                 {subMenu === "lines" && (
-                  <div className="qsg-submenu" onClick={(e) => e.stopPropagation()}>
-                    <div className={`qsg-item${s.priceLineVisible ? " checked" : ""}`} onClick={() => onSettings({ priceLineVisible: !s.priceLineVisible })}>
-                      <span className="qsg-check">{s.priceLineVisible ? "✓" : ""}</span>
+                  <div id={`${quickSettingsId}-lines`} className={`qsg-submenu ${quickSettingsStyles.submenu}`}>
+                    <button type="button" aria-pressed={s.priceLineVisible} className={`qsg-item${s.priceLineVisible ? " checked" : ""}`} onClick={() => onSettings({ priceLineVisible: !s.priceLineVisible })}>
+                      <span className="qsg-check" aria-hidden="true">{s.priceLineVisible ? "✓" : ""}</span>
                       <span className="qsg-lbl">{t("qsgPriceLine")}</span>
-                    </div>
+                    </button>
                   </div>
                 )}
               </div>
@@ -590,10 +643,15 @@ export default function ChartFrameBar({
               <div className="qsg-sep" />
 
               {/* More settings — opens the full settings modal on the Scales and lines tab */}
-              <div className="qsg-item" onClick={() => { setGearOpen(false); onOpenSettingsModal?.("scales"); }}>
-                <span className="qsg-check" />
+              <button type="button" className="qsg-item" disabled={!onOpenSettingsModal} onClick={() => {
+                gearButtonRef.current?.focus();
+                setGearOpen(false);
+                setSubMenu(null);
+                onOpenSettingsModal?.("scales");
+              }}>
+                <span className="qsg-check" aria-hidden="true" />
                 <span className="qsg-lbl">{t("qsgMoreSettings")}</span>
-              </div>
+              </button>
             </div>
           )}
         </div>

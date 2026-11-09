@@ -238,9 +238,11 @@
 :root[data-mmx-shared-shell="1"] .m-drawer .m-nav :is(a,button) { min-height:44px; }
 :root[data-mmx-shared-shell="1"] .m-drawer .m-nav-sect { margin:20px 12px 5px;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted); }
 
-/* Shared Shell reads the incumbent account theme preference. Chart presentation
-   remains under its existing owner when this root marker is absent. */
-:root[data-mmx-shared-shell="1"][data-theme="light"] {
+/* Both consumers use the incumbent account applier and this same light token
+   rule. The chart-only marker grants no Shared Shell chrome/bridge behavior;
+   ordinary chart dark continues to use globals.css unchanged. */
+:root[data-mmx-shared-shell="1"][data-theme="light"],
+:root[data-terminal-appearance="1"][data-theme="light"] {
   color-scheme:light;
   --bg:#f7f8fa;--panel:#ffffff;--panel-2:#eef1f6;--panel-3:#e7ecf3;--inset:#f7f8fa;
   --line:#e2e5eb;--line-2:#eceef2;--line-3:#cbd1dc;
@@ -291,3 +293,10 @@ html[data-mmx-shared-shell="1"] :is(.smodal,.msheet-search) .sh:focus-within {
   .shared-directory-filters { padding-bottom:8px; }
   .shared-directory-footer { padding-block:6px; }
 }
+
+/* Chart-only appearance: the existing fullscreen control retains its geometry
+   and currentColor glyph while using the same light material as its host. */
+:root[data-terminal-appearance="1"][data-theme="light"] .chart-fs-float {
+  background:var(--panel);color:var(--text);border-color:var(--line-3);
+}
+:root[data-terminal-appearance="1"][data-theme="light"] .chart-fs-float.on { color:var(--brand-2); }

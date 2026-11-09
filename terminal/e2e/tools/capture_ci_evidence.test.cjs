@@ -6,7 +6,26 @@ const os = require("node:os");
 const path = require("node:path");
 const { createHash } = require("node:crypto");
 const { EventEmitter } = require("node:events");
-const { run, operationIds, recordCheckout, legacyPackets, superviseLegacy, stopLegacyServer, settleLegacyServer, captureOptions } = require("./capture_ci_evidence.cjs");
+const { run, operationIds, recordCheckout, legacyPackets, superviseLegacy, stopLegacyServer, settleLegacyServer, captureOptions, batch2Plan } = require("./capture_ci_evidence.cjs");
+
+const { LAYOUT_FILES, EXPECTED_FILES, assertCompletePacket, assertCaptureNavigation, cropBox } = require("./capture_pl6_batch2.cjs");
+const batch2Relative = "terminal/docs/pr-crops/b-pl-6-batch-2";
+const hash = bytes => createHash("sha256").update(bytes).digest("hex");
+const flags = ["conductor_step: 2", "screenshot_animations: disabled", "screenshot_raster: full",
+  "guide_motion: reduced", "guide_backdrop: hidden"];
+const png = Buffer.concat([Buffer.from("89504e470d0a1a0a", "hex"), Buffer.from("synthetic test bytes")]);
+
+function packetText(repoRoot, { legacy = false, head = "0".repeat(40), historical = null } = {}) {
+  const lines = ["# capturedAtHead: " + head, "layoutFiles:",
+    ...LAYOUT_FILES.map(rel => "  " + rel + ': "' + hash(fs.readFileSync(path.join(repoRoot, rel))) + '"'),
+    // Preserve the current accepted legacy scalar; this is intentionally not a whole-YAML parser.
+    "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set",
+    ...(legacy ? [] : flags), "files:", ...EXPECTED_FILES.map(file => "  - " + file),
+    ...(legacy ? [] : ["captureFiles:", ...EXPECTED_FILES.map(file =>
+      "  " + file + ': "' + hash(fs.readFileSync(path.join(repoRoot, batch2Relative, file))) + '"')]),
+    ...(historical ? ["previousManifest: " + historical] : []), ""];
+  return lines.join("\n");
+}
 
 function fixture(t, change = {}) {
   const repoRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ci-evidence-synthetic-"));
@@ -25,14 +44,11 @@ function fixture(t, change = {}) {
       const dir = path.join(repoRoot, evidence.PACKETS.pl6); fs.mkdirSync(dir, { recursive: true });
       const record = { schema: "terminal.visual-composition.v2", mode: "records", id: input.id,
         profile: input.profile, operations: input.operations, selections: input.selections };
-      fs.writeFileSync(path.join(dir, `${input.id}.composition.json`), JSON.stringify(record));
-      return { id: input.id }; // Deliberately has no path/digest: matches incumbent return semantics.
-    },
-    readComposition(input) {
-      assert.deepEqual(input.expectedProfile, profile);
-      assert.equal(input.compositionPath, `${evidence.PACKETS.pl6}/${ids.composition}.composition.json`);
-      if (change.readError) throw new Error(change.readError);
-      return { id: ids.composition, cases: Array(change.selectedCount ?? 50).fill({}),
+      assert.deepEqual(input.profile, profile);
+      fs.writeFileSync(path.join(dir, `${input.id}.composition.json`),
+        JSON.stringify(record) + (change.compositionBytesMismatch ? "\n" : ""));
+      // The incumbent writer returns the fully validated composition, without a path/digest.
+      return { id: input.id, cases: Array(change.selectedCount ?? 50).fill({}),
         operations: ["pl6", "vi"].map(packet => ({ id: ids[packet], packet,
           cases: Array(packet === "pl6" ? (change.pl6Count ?? 24) : 30).fill({}) })) };
     },
@@ -40,9 +56,26 @@ function fixture(t, change = {}) {
   const checkout = () => ({ actualCheckout: { commit: "a".repeat(40), tree: "b".repeat(40) },
     githubEvent: { sha: "c".repeat(40), pullRequestBase: "d".repeat(40), pullRequestHead: "e".repeat(40) } });
   const spawn = (command, args, options) => {
-    const packet = calls.length === 0 ? "pl6" : "vi";
+    const packet = args[0].includes("batch2") ? "batch2" : calls.length === 0 ? "pl6" : "vi";
     calls.push({ command, args, options });
     fs.writeSync(options.stdio[2], "original child diagnostic\n");
+    if (packet === "batch2") {
+      if (change.batch2Throws) throw new Error("batch2 spawn threw");
+      if (change.batch2Drift) fs.appendFileSync(path.join(repoRoot, LAYOUT_FILES[0]), "\nchanged during capture");
+      const history = "history/before-deterministic-" + hash(priorManifest) + ".yml";
+      fs.mkdirSync(path.join(batch2Dir, "history"), { recursive: true });
+      if (change.batch2HistoryMissing) fs.rmSync(path.join(batch2Dir, history), { force: true });
+      else fs.writeFileSync(path.join(batch2Dir, history), priorManifest);
+      const actualHead = change.batch2WrongHead ? "f".repeat(40) : "a".repeat(40);
+      fs.writeFileSync(manifest, packetText(repoRoot, { head: actualHead, historical: history,
+        legacy: change.batch2Partial }));
+      if (change.batch2CorruptImage) fs.writeFileSync(path.join(batch2Dir, EXPECTED_FILES[0]), "not an image");
+      const completion = "capturedAtHead " + actualHead + "\nwrote " + (change.batch2Count ?? 24)
+        + " crops + EVIDENCE.yml to " + batch2Dir + "\n";
+      if (!change.batch2MissingCompletion) fs.writeSync(options.stdio[1], completion);
+      if (change.batch2DuplicateCompletion) fs.writeSync(options.stdio[1], completion);
+      return { status: change.batch2Status ?? 0, signal: change.batch2Signal ?? null, error: change.batch2Error };
+    }
     const ref = { visualEvidence: `${evidence.PACKETS[packet]}/${ids[packet]}--operation.json`,
       sha256: "f".repeat(64), actualCases: packet === "pl6" ? 24 : 30, ...change.ref };
     if (!change.missing) fs.writeSync(options.stdio[1], JSON.stringify(ref) + "\n");
@@ -58,7 +91,6 @@ function fixture(t, change = {}) {
   const write = (relative, text) => {
     const file = path.join(repoRoot, relative); fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, text);
   };
-  const hash = bytes => createHash("sha256").update(bytes).digest("hex");
   const sourceHash = file => hash(fs.readFileSync(path.join(repoRoot, file)));
   const packetManifest = (definition, stale = false) => [
     "# capturedAtHead: " + "a".repeat(40), "layoutFiles:",
@@ -66,27 +98,40 @@ function fixture(t, change = {}) {
     "files:", ...definition.files.map(file => "  - " + file), "",
   ].join("\n");
   const optionsDirectory = "terminal/docs/pr-crops/options-level-axis-labels";
+  const optionsPath = path.join(repoRoot, optionsDirectory, "manifest.json");
   const optionsSources = ["components/ChartPanel.tsx", "lib/optionsLevels.ts", "lib/priceTagPlacement.ts"];
   const optionsFiles = ["desktop.png", "tablet.png", "mobile.png", "desktop-left-percentage.png", "desktop-compact.png"];
   for (const file of new Set([
+    ...LAYOUT_FILES,
     ...packets.flatMap(packet => [...packet.sources, ...packet.controls]),
     ...optionsSources.map(file => "terminal/" + file), "terminal/e2e/tools/capture_pl6_batch1.cjs", optionsDirectory + "/capture.mjs",
   ])) write(file, "synthetic source: " + file);
+  const batch2Dir = path.join(repoRoot, batch2Relative), manifest = path.join(batch2Dir, "EVIDENCE.yml");
+  fs.mkdirSync(batch2Dir, { recursive: true });
+  for (const file of EXPECTED_FILES) fs.writeFileSync(path.join(batch2Dir, file), png);
+  const seed = packetText(repoRoot, { legacy: true });
+  const seedHistory = "history/before-deterministic-" + hash(seed) + ".yml";
+  fs.mkdirSync(path.join(batch2Dir, "history"), { recursive: true });
+  fs.writeFileSync(path.join(batch2Dir, seedHistory), seed);
+  fs.writeFileSync(manifest, packetText(repoRoot, { legacy: change.batch2Legacy,
+    historical: change.batch2Legacy ? null : seedHistory }));
+  const priorManifest = fs.readFileSync(manifest);
   for (const definition of packets) {
     write(definition.directory + "/EVIDENCE.yml", packetManifest(definition, Boolean(change.legacyStale)));
     for (const file of definition.files) write(definition.directory + "/" + file, "old synthetic image " + file);
     if (definition.packet === "conductor") write(definition.directory + "/before/BEFORE.yml", "unaltered historical chips");
   }
-  const writeOptions = stale => {
+  const writeOptions = (stale, sourceHead = "a".repeat(40)) => {
     const captures = optionsFiles.map(file => {
       write(optionsDirectory + "/" + file, (stale ? "old" : "new") + " synthetic options image " + file);
       return { screenshot: file, sha256: sourceHash(optionsDirectory + "/" + file) };
     });
-    const manifest = { sourceHead: "a".repeat(40), sourceFiles: Object.fromEntries(optionsSources.map((file, n) => [file, stale && n === 0 ? "0".repeat(64) : sourceHash("terminal/" + file)])), captures };
+    const manifest = { sourceHead, sourceFiles: Object.fromEntries(optionsSources.map((file, n) => [file, stale && n === 0 ? "0".repeat(64) : sourceHash("terminal/" + file)])), captures };
     write(optionsDirectory + "/manifest.json", JSON.stringify(manifest));
     return captures;
   };
   writeOptions(Boolean(change.optionsStale));
+  if (change.optionsChanged) fs.appendFileSync(path.join(repoRoot, "terminal/" + optionsSources[0]), "changed source\n");
   write(optionsDirectory + "/coverage-audit-summary.json", "unchanged historical audit");
   evidence.imageInfo = bytes => ({ sha256: hash(bytes), width: 10, height: 10 });
   const legacyCalls = [];
@@ -116,7 +161,7 @@ function fixture(t, change = {}) {
   const combinedSpawn = (command, args, options) => {
     const result = originalSpawn(command, args, options);
     if (options.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE === "1") {
-      const captures = writeOptions(false);
+      const captures = change.skipOptionsCapture ? JSON.parse(fs.readFileSync(optionsPath, "utf8")).captures : writeOptions(false, change.optionsHead);
       if (change.mutateOptionsAudit) write(optionsDirectory + "/coverage-audit-summary.json", "changed audit");
       const receipt = { captureId: options.env.TERMINAL_CI_OPTIONS_CAPTURE_ID, capturedAtHead: "a".repeat(40),
         manifestSha256: sourceHash(optionsDirectory + "/manifest.json"),
@@ -129,7 +174,7 @@ function fixture(t, change = {}) {
   const invoke = () => run({ repoRoot, env, evidence, checkout, spawn: combinedSpawn, spawnLegacy });
   const diagnostic = () => JSON.parse(fs.readFileSync(path.join(diagnostics, `${ids.prefix}.json`)));
   const selected = () => fs.existsSync(env.GITHUB_ENV) ? fs.readFileSync(env.GITHUB_ENV, "utf8") : "";
-  return { repoRoot, env, ids, calls, legacyCalls, packets, inputs, checkout, invoke, diagnostic, selected, diagnostics };
+  return { repoRoot, env, ids, calls, legacyCalls, packets, inputs, checkout, invoke, diagnostic, selected, diagnostics, optionsPath, batch2Dir, manifest, priorManifest };
 }
 
 test("runs complete original captures, retains24PL6, selects20+30 and exact returned hashes", async t => {
@@ -142,11 +187,97 @@ test("runs complete original captures, retains24PL6, selects20+30 and exact retu
   ]);
   assert.equal(f.calls[0].options.env.TERMINAL_PL6_EVIDENCE_OPERATION_ID, f.ids.pl6);
   assert.equal(f.calls[0].options.env.CAPTURE_ONLY, "");
+  assert.equal(f.calls[0].options.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE, "0");
+  assert.equal(r.optionsAxis.state, "EXISTING_PACKET_AWAITING_UNIT_VALIDATION");
   assert.equal(f.inputs[0].selections.filter(s => s.operationId === f.ids.pl6).length, 20);
   assert.equal(f.inputs[0].selections.filter(s => s.operationId === f.ids.vi).length, 30);
   assert.ok(f.inputs[0].operations.every(r => r.sha256 === "f".repeat(64)));
   assert.equal(f.selected(), `TERMINAL_EVIDENCE_MODE=records\nTERMINAL_EVIDENCE_COMPOSITION=${r.composition.path}\n`);
   assert.match(r.composition.sha256, /^[0-9a-f]{64}$/);
+});
+
+test("changed Options source opts only PL6 into one capture and retains actual checkout identity", async t => {
+  const f = fixture(t, { optionsChanged: true });
+  f.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE = "1"; // The caller may not leak this into VI.
+  const r = await f.invoke();
+  assert.deepEqual(f.calls.map(c => c.options.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE), ["1", "0"]);
+  assert.notEqual(r.optionsAxis.prior.files["manifest.json"].sha256, r.optionsAxis.returned.files["manifest.json"].sha256);
+  assert.equal(r.optionsAxis.sources["terminal/components/ChartPanel.tsx"], createHash("sha256").update(fs.readFileSync(path.join(f.repoRoot, "terminal/components/ChartPanel.tsx"))).digest("hex"));
+  assert.equal(r.optionsAxis.state, "CAPTURED_AWAITING_UNIT_VALIDATION");
+  assert.equal(r.optionsAxis.receipt.capturedAtHead, r.actualCheckout.commit);
+  assert.notEqual(r.optionsAxis.receipt.capturedAtHead, r.githubEvent.pullRequestHead);
+  assert.equal(r.optionsAxis.manifestSha256, createHash("sha256").update(fs.readFileSync(f.optionsPath)).digest("hex"));
+  assert.equal(r.composition.selectedCases, 50);
+});
+
+for (const change of [{ skipOptionsCapture: true }, { optionsHead: "e".repeat(40) }])
+test("stale or event-head Options receipt cannot select a successful capture", async t => {
+  const f = fixture(t, { optionsChanged: true, ...change });
+  await assert.rejects(f.invoke, /CI_OPTIONS_CHECKOUT_BINDING/);
+  assert.equal(f.calls.length, 1); assert.equal(f.selected(), "");
+  assert.equal(f.diagnostic().state, "FAILED");
+});
+
+test("Options runs asynchronously against the owned server, preserving inherited fixture settings", async () => {
+  const server = {}, child = new EventEmitter(), calls = [], checks = [];
+  let settled = false;
+  const pending = captureOptions({ server, ownedServer: value => { checks.push(value); return true; },
+    baseURL: "http://127.0.0.1:3536", terminal: "/fixture/terminal", env: { SHARED_SHELL: "1", BASE_URL: "http://wrong" },
+    spawn: (...args) => { calls.push(args); return child; } }).then(() => { settled = true; });
+  await Promise.resolve(); assert.equal(settled, false); assert.deepEqual(checks, [server]);
+  assert.equal(calls.length, 1);
+  assert.deepEqual(calls[0][1], ["docs/pr-crops/options-level-axis-labels/capture.mjs"]);
+  assert.deepEqual(calls[0][2], { cwd: "/fixture/terminal", env: { SHARED_SHELL: "1", BASE_URL: "http://127.0.0.1:3536" }, stdio: "inherit", detached: true });
+  child.emit("close", 0, null); await pending;
+  assert.equal(settled, true); assert.deepEqual(checks, [server, server]);
+});
+
+for (const outcome of ["nonzero", "signal", "error", "server-exit"])
+test(`Options ${outcome} fails once without retrying or starting a replacement server`, async () => {
+  const child = new EventEmitter(); let calls = 0, checks = 0;
+  const pending = captureOptions({ server: {}, ownedServer: () => ++checks === 1 || outcome !== "server-exit",
+    baseURL: "http://127.0.0.1:3536", terminal: "/fixture/terminal", env: {},
+    spawn: () => { calls++; return child; } });
+  const rejected = assert.rejects(pending, outcome === "error" ? /original spawn error/ : /CI_OPTIONS_/);
+  if (outcome === "error") { child.emit("error", new Error("original spawn error")); child.emit("close", 1, null); }
+  else child.emit("close", outcome === "nonzero" ? 1 : 0, outcome === "signal" ? "SIGTERM" : null);
+  await rejected; assert.equal(calls, 1);
+});
+
+test("Options refuses an unowned or unready server before spawning", async () => {
+  let calls = 0;
+  await assert.rejects(captureOptions({ server: {}, ownedServer: () => false,
+    spawn: () => { calls++; } }), /CI_OPTIONS_SERVER_NOT_READY/);
+  assert.equal(calls, 0);
+});
+
+for (const code of ["EPERM", "EACCES"])
+test(`Options preserves the original ${code} refusal after child closure`, async () => {
+  const child = new EventEmitter();
+  const error = Object.assign(new Error(`original Options ${code}`), { code });
+  let calls = 0;
+  const pending = captureOptions({ server: {}, ownedServer: () => true,
+    baseURL: "http://127.0.0.1:3536", terminal: "/fixture/terminal", env: {},
+    spawn: () => { calls++; return child; } });
+  const rejected = assert.rejects(pending, value => value === error && value.code === code);
+  child.emit("error", error);
+  child.emit("close", 1, null);
+  await rejected;
+  assert.equal(calls, 1);
+});
+
+test("PL6 invokes Options only after its captures succeed and before its own server cleanup", () => {
+  const source = fs.readFileSync(path.join(__dirname, "capture_pl6_batch1.cjs"), "utf8");
+  assert.match(source, /captureOptionsAxis && \(!operation \|\| ONLY\.length\)/);
+  assert.match(source, /if \(captureOptionsAxis && failed === 0\)/);
+  assert.equal((source.match(/await captureOptions\(/g) || []).length, 1);
+  const close = source.indexOf("await browser.close();");
+  const capture = source.indexOf("await captureOptions(");
+  const stop = source.indexOf("await settleLegacyServer(child);", capture);
+  assert.ok(close < capture && capture < stop);
+  const workflow = fs.readFileSync(path.resolve(__dirname, "../../../.github/workflows/ci.yml"), "utf8");
+  assert.match(workflow, /terminal\/docs\/pr-crops\/options-level-axis-labels\/manifest\.json/);
+  assert.match(workflow, /terminal\/docs\/pr-crops\/options-level-axis-labels\/\*\.png/);
 });
 
 for (const [name, change, error] of [
@@ -160,8 +291,9 @@ for (const [name, change, error] of [
   ["spawn error", { error: new Error("original ENOENT") }, /original ENOENT/],
   ["spawn throws", { throwChild: true }, /original spawn exception/],
   ["source mismatch", { writeError: "SOURCE_MISMATCH" }, /SOURCE_MISMATCH/],
-  ["profile mismatch", { readError: "PROFILE_MISMATCH" }, /PROFILE_MISMATCH/],
+  ["profile mismatch", { writeError: "PROFILE_MISMATCH" }, /PROFILE_MISMATCH/],
   ["bad report/image closure", { writeError: "CASE_REPORT_BINDING" }, /CASE_REPORT_BINDING/],
+  ["composition changed after writer validation", { compositionBytesMismatch: true }, /COMPOSITION_BYTES/],
   ["incomplete composition", { selectedCount: 49 }, /COMPOSITION/],
   ["lost extra layout cases", { pl6Count: 20 }, /COMPOSITION/],
 ]) test(`${name} preserves failure and does not export selector`, async t => {
@@ -210,9 +342,13 @@ for (const failure of [false, true]) test(`VI outputDir cleanup preserves ${fail
   assert.equal(Boolean(f.selected()), !failure);
 });
 
-test("stale legacy packets run all46 cases, retain complete prior bytes and leave validation with native readers", async t => {
+test("stale legacy packets run all76 cases, retain complete prior bytes and leave validation with native readers", async t => {
   const f = fixture(t, { legacyStale: true }), result = await f.invoke();
-  assert.deepEqual(f.legacyCalls, ["claims", "research", "proposals", "conductor"]);
+  assert.deepEqual(f.legacyCalls, ["pine", "claims", "research", "proposals", "conductor"]);
+  assert.deepEqual(f.packets.map(({ packet, files, deadlineMs }) => [packet, files.length, deadlineMs]), [
+    ["pine", 30, 12 * 60_000], ["claims", 12, 8 * 60_000], ["research", 20, 8 * 60_000],
+    ["proposals", 8, 8 * 60_000], ["conductor", 6, 8 * 60_000],
+  ]);
   assert.equal(f.calls.length, 2);
   assert.equal(result.composition.selectedCases, 50);
   let cases = 0;
@@ -225,7 +361,7 @@ test("stale legacy packets run all46 cases, retain complete prior bytes and leav
     assert.equal(fs.readFileSync(path.join(packet.returned.path, image), "utf8"), "fresh synthetic image " + image);
     assert.equal(packet.receipt.captureId, f.ids.prefix + "-" + definition.packet);
   }
-  assert.equal(cases, 46);
+  assert.equal(cases, 76);
   const conductor = result.legacyPackets.conductor;
   assert.deepEqual(conductor.prior.files["before/BEFORE.yml"], conductor.returned.files["before/BEFORE.yml"]);
 });
@@ -254,7 +390,7 @@ for (const [name, change, expected] of [
   assert.ok(fs.existsSync(packet.prior.path));
   assert.ok(fs.existsSync(packet.returned.path));
   assert.notEqual(packet.state, "CAPTURED_AWAITING_UNIT_VALIDATION");
-  if (!change.mutateHistory) assert.deepEqual(f.legacyCalls, ["claims"]);
+  assert.deepEqual(f.legacyCalls, change.mutateHistory ? ["pine", "claims", "research", "proposals", "conductor"] : ["pine"]);
 });
 
 test("Options uses the full PL6 owner, records five fresh images, and preserves its historical audit", async t => {
@@ -509,3 +645,158 @@ for (const code of ["EPERM", "EACCES"]) {
     assert.equal(result.error.code, code); assert.equal(result.closed, true); assert.deepEqual(calls, []);
   });
 }
+
+test("current full deterministic batch2 packet is left for native validation without a duplicate capture", async t => {
+  const f = fixture(t), before = fs.readFileSync(f.manifest), r = await f.invoke();
+  assert.equal(r.batch2.state, "EXISTING_PACKET_AWAITING_NATIVE_VALIDATION");
+  assert.equal(r.batch2.required, false); assert.equal(f.calls.length, 2);
+  assert.deepEqual(fs.readFileSync(f.manifest), before);
+});
+
+test("legacy receipt forces the incumbent full24 capture and preserves exact prior history before selecting50", async t => {
+  const f = fixture(t, { batch2Legacy: true }), r = await f.invoke();
+  assert.equal(r.state, "SELECTED");
+  assert.equal(r.batch2.state, "CAPTURED_AWAITING_NATIVE_VALIDATION");
+  assert.equal(r.batch2.actualCheckout, "a".repeat(40));
+  assert.deepEqual(f.calls[2].args, ["e2e/tools/capture_pl6_batch2.cjs"]);
+  assert.equal(f.calls[2].options.env.CAPTURE_ONLY, "");
+  assert.equal(f.calls[2].options.env.TERMINAL_CROP_PORT, "3538");
+  assert.equal(f.calls[2].options.timeout, 20 * 60_000);
+  assert.equal(f.calls[2].options.killSignal, "SIGTERM");
+  assert.equal(Object.keys(r.batch2.imageHashes).length, 24);
+  assert.deepEqual(fs.readFileSync(r.batch2.historicalDiagnostic), f.priorManifest);
+  assert.deepEqual(fs.readFileSync(path.join(f.batch2Dir, r.batch2.historicalManifest)), f.priorManifest);
+  assert.equal(f.inputs[0].operations.length, 2);
+  assert.equal(f.inputs[0].selections.length, 50);
+  assert.deepEqual(r.references.map(ref => ref.path), [
+    f.inputs[0].operations[0].path, f.inputs[0].operations[1].path,
+  ]);
+});
+
+test("current-source drift requires real recapture without approximating the legacy lex projection", async t => {
+  const f = fixture(t);
+  fs.appendFileSync(path.join(f.repoRoot, "terminal/lib/i18n.tsx"), "\nnew source");
+  const plan = batch2Plan(f.repoRoot);
+  assert.equal(plan.required, true); assert.ok(plan.reasons.includes("source-bytes-changed"));
+  const r = await f.invoke();
+  assert.equal(r.batch2.state, "CAPTURED_AWAITING_NATIVE_VALIDATION");
+});
+
+test("combined Options and Batch2 refresh keeps the standalone24 packet outside the two-operation composition", async t => {
+  const f = fixture(t, { optionsChanged: true, batch2Legacy: true }), r = await f.invoke();
+  assert.deepEqual(f.calls.map(c => c.options.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE), ["1", "0", "0"]);
+  assert.equal(r.optionsAxis.state, "CAPTURED_AWAITING_UNIT_VALIDATION");
+  assert.equal(r.batch2.state, "CAPTURED_AWAITING_NATIVE_VALIDATION");
+  assert.equal(Object.keys(r.batch2.imageHashes).length, 24);
+  assert.equal(f.inputs[0].operations.length, 2);
+  assert.equal(f.inputs[0].selections.length, 50);
+});
+
+test("a historical sixteen-case active manifest cannot replace the current tablet-inclusive packet", async t => {
+  const f = fixture(t);
+  const text = fs.readFileSync(f.manifest, "utf8");
+  fs.writeFileSync(f.manifest, text.replace(/^  - [A-Za-z0-9-]+-820(?:-zh)?\.png\n/gm, ""));
+  await assert.rejects(f.invoke, /CI_BATCH2_MANIFEST_FILES/);
+  assert.equal(f.calls.length, 0);
+  assert.equal(f.selected(), "");
+});
+
+for (const [name, change, error] of [
+  ["nonzero", { batch2Status: 1 }, /CHILD_FAILED: batch2/],
+  ["signal", { batch2Signal: "SIGTERM" }, /CHILD_FAILED: batch2/],
+  ["timeout", { batch2Error: Object.assign(new Error("ETIMEDOUT"), { code: "ETIMEDOUT" }) }, /ETIMEDOUT/],
+  ["spawn exception", { batch2Throws: true }, /batch2 spawn threw/],
+  ["missing completion", { batch2MissingCompletion: true }, /BATCH2_COMPLETION/],
+  ["duplicate completion", { batch2DuplicateCompletion: true }, /BATCH2_COMPLETION/],
+  ["wrong checkout", { batch2WrongHead: true }, /BATCH2_COMPLETION/],
+  ["incomplete count", { batch2Count: 15 }, /BATCH2_COMPLETION/],
+  ["partial packet", { batch2Partial: true }, /BATCH2_CAPTURE_SOURCE/],
+  ["source changed during capture", { batch2Drift: true }, /BATCH2_CAPTURE_SOURCE/],
+  ["lost history", { batch2HistoryMissing: true }, /ENOENT/],
+  ["invalid actual image", { batch2CorruptImage: true }, /BATCH2_IMAGE_BYTES/],
+]) test("batch2 " + name + " preserves failure, logs and history without selecting a composition", async t => {
+  const f = fixture(t, { batch2Legacy: true, ...change });
+  await assert.rejects(f.invoke, error); assert.equal(f.selected(), "");
+  assert.equal(f.inputs.length, 0); assert.equal(f.diagnostic().state, "FAILED");
+  assert.deepEqual(fs.readFileSync(path.join(f.diagnostics, f.ids.prefix + ".batch2.previous-manifest.yml")), f.priorManifest);
+  assert.match(fs.readFileSync(path.join(f.diagnostics, f.ids.prefix + "-batch2.stderr.log"), "utf8"), /original child diagnostic/);
+});
+
+for (const [name, mutate, error] of [
+  ["duplicate layout", f => {
+    const text = fs.readFileSync(f.manifest, "utf8"), row = text.split("\n").find(line => line.startsWith("  terminal/"));
+    fs.writeFileSync(f.manifest, text.replace("layoutFiles:\n", "layoutFiles:\n" + row + "\n"));
+  }, /BATCH2_MANIFEST_HASH/],
+  ["missing source", f => fs.unlinkSync(path.join(f.repoRoot, LAYOUT_FILES[0])), /ENOENT/],
+  ["duplicate image", f => {
+    const text = fs.readFileSync(f.manifest, "utf8");
+    fs.writeFileSync(f.manifest, text.replace("files:\n", "files:\n  - " + EXPECTED_FILES[0] + "\n"));
+  }, /BATCH2_MANIFEST_FILES/],
+  ["duplicate flag", f => fs.appendFileSync(f.manifest, "\nconductor_step: 2\n"), /BATCH2_MANIFEST_FLAG/],
+  ["wrong image bytes", f => fs.appendFileSync(path.join(f.batch2Dir, EXPECTED_FILES[0]), "changed"), /BATCH2_IMAGE_HASH/],
+  ["missing history declaration", f => {
+    fs.writeFileSync(f.manifest, fs.readFileSync(f.manifest, "utf8").replace(/^previousManifest:.*\n/m, ""));
+  }, /BATCH2_DECLARED_HISTORY/],
+  ["duplicate history declaration", f => {
+    const row = fs.readFileSync(f.manifest, "utf8").split("\n").find(line => line.startsWith("previousManifest:"));
+    fs.appendFileSync(f.manifest, row + "\n");
+  }, /BATCH2_DECLARED_HISTORY/],
+  ["history path traversal", f => {
+    fs.writeFileSync(f.manifest, fs.readFileSync(f.manifest, "utf8").replace(/^previousManifest:.*$/m, "previousManifest: ../../secret.yml"));
+  }, /BATCH2_DECLARED_HISTORY/],
+  ["lost existing history", f => {
+    const row = fs.readFileSync(f.manifest, "utf8").split("\n").find(line => line.startsWith("previousManifest:"));
+    fs.unlinkSync(path.join(f.batch2Dir, row.slice("previousManifest: ".length)));
+  }, /ENOENT/],
+  ["corrupted existing history", f => {
+    const row = fs.readFileSync(f.manifest, "utf8").split("\n").find(line => line.startsWith("previousManifest:"));
+    fs.appendFileSync(path.join(f.batch2Dir, row.slice("previousManifest: ".length)), "corrupted");
+  }, /BATCH2_DECLARED_HISTORY/],
+]) test("malformed batch2 " + name + " fails before any child", async t => {
+  const f = fixture(t); mutate(f);
+  await assert.rejects(f.invoke, error); assert.equal(f.calls.length, 0); assert.equal(f.selected(), "");
+});
+
+test("producer full-packet check rejects missing, duplicate and unrelated successful names", () => {
+  assert.doesNotThrow(() => assertCompletePacket([...EXPECTED_FILES].reverse()));
+  assert.throws(() => assertCompletePacket(EXPECTED_FILES.slice(1)), /BATCH2_INCOMPLETE_PACKET/);
+  assert.throws(() => assertCompletePacket([...EXPECTED_FILES.slice(1), EXPECTED_FILES[1]]), /BATCH2_INCOMPLETE_PACKET/);
+  assert.throws(() => assertCompletePacket([...EXPECTED_FILES.slice(1), "historical.png"]), /BATCH2_INCOMPLETE_PACKET/);
+});
+
+test("producer navigation requires an actual200 and the intended origin, route and query", () => {
+  const target = "http://127.0.0.1:3538/terminal?symbol=NVDA";
+  assert.doesNotThrow(() => assertCaptureNavigation(200, target, target));
+  for (const [status, actual] of [
+    [401, target], [404, target], [302, target],
+    [200, "http://127.0.0.1:3538/login"], [200, "http://127.0.0.1:3538/terminal?symbol=SPY"],
+    [200, "https://different.invalid/terminal?symbol=NVDA"],
+  ]) assert.throws(() => assertCaptureNavigation(status, actual, target), /BATCH2_NAVIGATION/);
+});
+
+test("producer refuses a mounted dev indicator before screenshot without hiding its DOM", async () => {
+  let shots = 0;
+  const page = {
+    viewportSize: () => ({ width: 390, height: 844 }), waitForTimeout: async () => {},
+    locator: selector => { assert.equal(selector, "[data-nextjs-dev-tools-button]"); return { count: async () => 1 }; },
+    evaluate: () => { throw new Error("must not remove the observed portal"); },
+    screenshot: async () => { shots += 1; },
+  };
+  await assert.rejects(cropBox(page, { x: 10, y: 10, width: 300, height: 600 }, "unused.png", 8), /Next.js N overlay/);
+  assert.equal(shots, 0);
+});
+
+test("producer observes the clean DOM before its deterministic crop and retains screenshot settings", async () => {
+  const order = [];
+  const page = {
+    viewportSize: () => ({ width: 390, height: 844 }), waitForTimeout: async () => {},
+    locator: () => ({ count: async () => { order.push("observed"); return 0; } }),
+    screenshot: async options => {
+      order.push("captured"); assert.equal(options.animations, "disabled");
+      assert.equal(options.style, ".guide { visibility: visible }");
+      assert.deepEqual(options.clip, { x: 2, y: 2, width: 316, height: 616 });
+    },
+  };
+  await cropBox(page, { x: 10, y: 10, width: 300, height: 600 }, "unused.png", 8, ".guide { visibility: visible }");
+  assert.deepEqual(order, ["observed", "captured"]);
+});

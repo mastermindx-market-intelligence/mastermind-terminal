@@ -347,6 +347,7 @@ async function main() {
   if (captureOptionsAxis && (!IMMUTABLE_ID || ONLY.length)) throw new Error("CI_OPTIONS_REQUIRES_FULL_PL6");
   const capturedAtHead = currentGitHead();
   const operation = IMMUTABLE_ID === undefined ? null : evidence.beginOperation({ repoRoot: REPO, packet: "pl6", operationId: IMMUTABLE_ID });
+  if (captureOptionsAxis && (!operation || ONLY.length)) throw new Error("CI_OPTIONS_REQUIRES_FULL_OWNED_CAPTURE");
   const executionRows = [];
   const child = startServer();
   const files = [];
