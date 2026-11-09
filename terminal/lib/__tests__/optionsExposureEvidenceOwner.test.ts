@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { createRequire } from "node:module";
-import { mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, lstatSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
 import { qualifiedOptionsExposurePacket, requireIntegrationExecution, requireOptionsIntegrationBrowserCases } from "./helpers/optionsExposureEvidence";
@@ -18,23 +18,46 @@ const owner = createRequire(import.meta.url)("../../e2e/tools/capture_ci_evidenc
 const roots: string[] = [];
 afterEach(() => { for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true }); });
 
-function shadowRepo(overrides: Record<string, Buffer | string>): string {
+function shadowRepo(overrides: Record<string, Buffer | string>, sourceRoot = REPO): string {
   const root = mkdtempSync(join(tmpdir(), "eod-qualified-consumer-"));
   roots.push(root);
   const keys = Object.keys(overrides);
   function mirror(folder: string): void {
     mkdirSync(join(root, folder), { recursive: true });
-    for (const name of readdirSync(join(REPO, folder))) {
+    for (const name of readdirSync(join(sourceRoot, folder))) {
       const file = folder ? folder + "/" + name : name;
-      const source = join(REPO, file), target = join(root, file);
+      const source = join(sourceRoot, file), target = join(root, file);
       if (Object.hasOwn(overrides, file)) writeFileSync(target, overrides[file]);
       else if (keys.some(key => key.startsWith(file + "/"))) mirror(file);
-      else symlinkSync(source, target, statSync(source).isDirectory() ? "dir" : "file");
+      else symlinkSync(source, target);
     }
   }
   mirror("");
   return root;
 }
+
+
+describe("shadow evidence repositories", () => {
+  it("mirrors dangling entries while preserving source alias semantics", () => {
+    const sourceRoot = mkdtempSync(join(tmpdir(), "eod-shadow-source-"));
+    roots.push(sourceRoot);
+    mkdirSync(join(sourceRoot, "data"));
+    writeFileSync(join(sourceRoot, "data/value.txt"), "original");
+    symlinkSync("missing-target", join(sourceRoot, "macro-site-link"), "file");
+    symlinkSync("data", join(sourceRoot, "directory-alias"), "dir");
+    symlinkSync(join("data", "value.txt"), join(sourceRoot, "file-alias"), "file");
+
+    const shadow = shadowRepo({ "data/value.txt": "isolated" }, sourceRoot);
+    const dangling = join(shadow, "macro-site-link");
+    expect(lstatSync(dangling).isSymbolicLink()).toBe(true);
+    expect(() => readFileSync(dangling)).toThrow(/ENOENT/);
+    expect(readFileSync(join(shadow, "directory-alias/value.txt"), "utf8")).toBe("original");
+    expect(readFileSync(join(shadow, "file-alias"), "utf8")).toBe("original");
+    expect(readFileSync(join(shadow, "data/value.txt"), "utf8")).toBe("isolated");
+    expect(readFileSync(join(sourceRoot, "data/value.txt"), "utf8")).toBe("original");
+  });
+});
+
 
 describe("current EOD owner and native reader", () => {
   it("selects the same qualified manifest and preserves its actual capture identity", () => {
