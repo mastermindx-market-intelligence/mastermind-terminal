@@ -1,5 +1,5 @@
 {
-  "capturedAtHead": "5983026f1643e053a40bdc8ca66a61d08a12d66d",
+  "capturedAtHead": "80e69c39e00b6c16c5fc32b5ca1e9146d31b264d",
   "readbacks": [
     {
       "file": "PortfolioTargetsSettings-empty-390-en.png",
@@ -102,10 +102,10 @@
             "entryDate": null,
             "notes": null,
             "status": "open",
-            "createdAt": "2026-11-09T06:54:26.089Z"
+            "createdAt": "2026-11-09T14:24:16.153Z"
           }
         ],
-        "bookKey": "7ad42d4f3f85606448bdf47acbe3ec7915aa458415d19f05d8151b562a5e977a"
+        "bookKey": "d798e5e2f86ba66a18d8090c17ceb73195e4e712796209c9783d1e92dd0c58b2"
       },
       "targetRead": {
         "summary": {
@@ -130,7 +130,7 @@
           "orphaned": [],
           "roleLabelsAvailable": true
         },
-        "bookKey": "7ad42d4f3f85606448bdf47acbe3ec7915aa458415d19f05d8151b562a5e977a"
+        "bookKey": "d798e5e2f86ba66a18d8090c17ceb73195e4e712796209c9783d1e92dd0c58b2"
       }
     },
     {
@@ -146,10 +146,10 @@
             "entryDate": null,
             "notes": null,
             "status": "open",
-            "createdAt": "2026-11-09T06:54:30.353Z"
+            "createdAt": "2026-11-09T14:24:25.717Z"
           }
         ],
-        "bookKey": "787ce1e53787b9e67d23b9e4c65a532603efff8863b740e1372f92b886418f94"
+        "bookKey": "d0f192ac00973d618dd33ea22940098d86c77953d07a845083bb14cf7df2cc7c"
       },
       "targetRead": {
         "summary": {
@@ -174,7 +174,7 @@
           "orphaned": [],
           "roleLabelsAvailable": true
         },
-        "bookKey": "787ce1e53787b9e67d23b9e4c65a532603efff8863b740e1372f92b886418f94"
+        "bookKey": "d0f192ac00973d618dd33ea22940098d86c77953d07a845083bb14cf7df2cc7c"
       }
     },
     {
@@ -190,10 +190,10 @@
             "entryDate": null,
             "notes": null,
             "status": "open",
-            "createdAt": "2026-11-09T06:54:34.032Z"
+            "createdAt": "2026-11-09T14:24:33.540Z"
           }
         ],
-        "bookKey": "b952adf71317bba6157ff3fc3addd591fe39eafcc089a599f92136b4360796fa"
+        "bookKey": "7ecd9bcb948b9f197060185b21a2a59fd7368f11366e6c563df0d581689b0920"
       },
       "targetRead": {
         "summary": {
@@ -218,7 +218,7 @@
           "orphaned": [],
           "roleLabelsAvailable": true
         },
-        "bookKey": "b952adf71317bba6157ff3fc3addd591fe39eafcc089a599f92136b4360796fa"
+        "bookKey": "7ecd9bcb948b9f197060185b21a2a59fd7368f11366e6c563df0d581689b0920"
       }
     },
     {
@@ -234,10 +234,10 @@
             "entryDate": null,
             "notes": null,
             "status": "open",
-            "createdAt": "2026-11-09T06:54:38.736Z"
+            "createdAt": "2026-11-09T14:24:44.123Z"
           }
         ],
-        "bookKey": "b31bfc69aa55f8216406cf0c9e370f52c7f9f3be2fd0dd9668a3254af6031753"
+        "bookKey": "bcf59ab361a6c06c848c93d8928c25a3b1a663fe0234fc438b2c8f9bcd5820a1"
       },
       "targetRead": {
         "summary": {
@@ -262,7 +262,7 @@
           "orphaned": [],
           "roleLabelsAvailable": true
         },
-        "bookKey": "b31bfc69aa55f8216406cf0c9e370f52c7f9f3be2fd0dd9668a3254af6031753"
+        "bookKey": "bcf59ab361a6c06c848c93d8928c25a3b1a663fe0234fc438b2c8f9bcd5820a1"
       }
     }
   ]
