@@ -1,8 +1,8 @@
 {
-  "sourceHead": "ca9f0fa23611c51705138614f19f588eb12c1ef8",
+  "sourceHead": "44644f256e8b38a5cfd0a198ede6d9a1b2f36303",
   "sourceDigests": {
-    "components/workspaces/TodayBreadthReading.tsx": "8f0358437891210234dc844833fa5f4d9739e1eef103e17d164f026400d17ecd",
-    "components/workspaces/TodayBreadthReading.module.css": "0671ab7c21856f15bc802bf133f8ca18dcea99404dcb2351b0efd069529c66dc",
+    "components/workspaces/TodayBreadthReading.tsx": "5109a10ea3763e65b54f3318c6b8b195201802a51ad2dc2cddce768181e818da",
+    "components/workspaces/TodayBreadthReading.module.css": "7b1bae2ce2ee4329b0bb210edfac80c56bc28266c9d673e30d51f00de4d86e10",
     "lib/shared-shell/marketBreadth.ts": "0680c5fc8fb7e685b01c7e9c3805e73cd5c2047af89e3f8de5d1b2ceab198294",
     "lib/shared-shell/useReadingScope.ts": "37bc0cc517172ba243a7578cf82940b6ac6c212cb1c8787bcbf789be8aa43f20"
   },
