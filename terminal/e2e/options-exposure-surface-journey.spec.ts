@@ -1,3 +1,4 @@
+import { FIXTURE_ORIGIN } from "./fixtures/investigation-auth";
 import { expect, test, type Page, type Locator } from "@playwright/test";
 import { fixtureUserId } from "../lib/watchlistsFixtureDb";
 import { createHash } from "node:crypto";
@@ -1449,9 +1450,9 @@ for (const lang of ["en", "zh"] as const) {
     await installSyntheticRoutes(page);
     let authReads = 0;
     const acknowledged: Record<string, unknown>[] = [];
-    // Reuse the existing options-shortlist-plan in-memory SDK transport seam.
-    // CSP correctly refuses a real loopback auth connection. This binding never
-    // requests that connection and changes no policy, cookie guard or app code.
+    // Bind only the configured same-server account endpoint to Node-owned
+    // metadata. Other requests, including the actual fixture JWKS endpoint,
+    // retain normal fetch behavior; no product identity guard is replaced.
     await page.exposeBinding("exposureLocalAccountFixture", async (_source, method: string, body: string | null) => {
       if (method === "GET") authReads++;
       else if (method === "PUT") {
@@ -1462,12 +1463,13 @@ for (const lang of ["en", "zh"] as const) {
       } else throw new Error("Unexpected in-memory preference fixture operation");
       return user;
     });
-    await page.addInitScript(() => {
+    await page.addInitScript((fixtureOrigin: string) => {
+      const accountEndpoint = new URL(fixtureOrigin + "/auth/v1/user");
       const originalFetch = window.fetch.bind(window);
       window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
         const url = new URL(typeof input === "string" ? input : input instanceof Request ? input.url : input.toString(), location.href);
-        if (url.pathname.startsWith("/auth/v1/")) {
-          if (url.origin !== "http://127.0.0.1:54321" || url.pathname !== "/auth/v1/user") throw new Error("Unexpected fixture Auth operation");
+        if (url.pathname === accountEndpoint.pathname) {
+          if (url.origin !== accountEndpoint.origin) throw new Error("Unexpected fixture Auth operation");
           const request = input instanceof Request ? input : null;
           const method = init?.method ?? request?.method ?? "GET";
           const body = typeof init?.body === "string" ? init.body : request ? await request.clone().text() : null;
@@ -1476,7 +1478,7 @@ for (const lang of ["en", "zh"] as const) {
         }
         return originalFetch(input, init);
       };
-    });
+    }, FIXTURE_ORIGIN);
     const mt = exposureMapT(lang);
     const map = page.getByTestId("exposure-map");
     const inspector = page.getByTestId("exposure-node-inspector");

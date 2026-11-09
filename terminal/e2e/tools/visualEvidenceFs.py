@@ -11,16 +11,22 @@ FLAGS = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
 PACKETS = ("terminal/docs/pr-crops/b-pl-6-batch-1", "terminal/docs/pr-crops/terminal-visual-intelligence")
 
 
-def parts(value):
+def parts(value, *, source=False):
     if not isinstance(value, str) or value.startswith('/') or '\\' in value:
         raise ValueError('UNSAFE_PATH')
     out = value.split('/') if value else []
-    if any(not re.fullmatch(r'[A-Za-z0-9_.()\[\]@-]+', p) or p in ('.', '..') for p in out):
-        raise ValueError('UNSAFE_PATH')
+    for index, name in enumerate(out):
+        # Next's literal escaped private-folder name belongs only to source
+        # hashing. Do not decode it or admit percent names to artifact I/O.
+        next_source = source and index == 3 and out[:3] == ['terminal', 'app', 'api'] and name == '%5F_e2e__'
+        if (not re.fullmatch(r'[A-Za-z0-9_.()\[\]@-]+', name) and not next_source) or name in ('.', '..'):
+            raise ValueError('UNSAFE_PATH')
     return out
 
 
-def open_dir(root, rel, create=False):
+def open_dir(root, rel, create=False, *, source=False):
+    if source and create:
+        raise ValueError('WRITE_SCOPE')
     if not isinstance(root, str) or not os.path.isabs(root) or os.path.normpath(root) != root:
         raise ValueError('UNSAFE_DIRECTORY')
     fd = os.open('/', FLAGS)
@@ -29,7 +35,7 @@ def open_dir(root, rel, create=False):
             new = os.open(name, FLAGS, dir_fd=fd)
             os.close(fd)
             fd = new
-        for name in parts(rel):
+        for name in parts(rel, source=source):
             if create:
                 try:
                     os.mkdir(name, 0o700, dir_fd=fd)
@@ -53,8 +59,8 @@ def same_stat(a, b):
     return (a.st_dev, a.st_ino, a.st_size, a.st_mtime_ns, a.st_ctime_ns) == (b.st_dev, b.st_ino, b.st_size, b.st_mtime_ns, b.st_ctime_ns)
 
 
-def check_parent(root, rel, fd):
-    current = open_dir(root, rel)
+def check_parent(root, rel, fd, *, source=False):
+    current = open_dir(root, rel, source=source)
     try:
         if identity(current) != identity(fd):
             raise ValueError('DIRECTORY_REPLACED')
@@ -133,13 +139,13 @@ def main(req):
         if len(locked) > 4096:
             raise ValueError('SOURCE_BOUND')
         def scan(relative):
-            directory = open_dir(root, relative)
+            directory = open_dir(root, relative, source=True)
             try:
                 names = sorted(os.listdir(directory))
                 for name in names:
                     if name == '__tests__' and relative != 'terminal/e2e':
                         continue
-                    parts(name)
+                    parts(relative + '/' + name, source=True)
                     item = os.stat(name, dir_fd=directory, follow_symlinks=False)
                     child = relative + '/' + name
                     if stat.S_ISLNK(item.st_mode):
@@ -156,10 +162,15 @@ def main(req):
             scan(source_root)
         result, total = {}, 0
         for relative in sorted(locked):
-            segments = parts(relative)
-            encoded = main({'root': root, 'relative': '/'.join(segments[:-1]), 'action': 'read',
-                            'name': segments[-1], 'maximum': min(2 * 1024 * 1024, 32 * 1024 * 1024 - total)})
-            data = base64.b64decode(encoded, validate=True)
+            segments = parts(relative, source=True)
+            parts(segments[-1])  # The source exception is never a leaf/member name.
+            parent = '/'.join(segments[:-1])
+            directory = open_dir(root, parent, source=True)
+            try:
+                data, _ = read_member(directory, segments[-1], min(2 * 1024 * 1024, 32 * 1024 * 1024 - total))
+                check_parent(root, parent, directory, source=True)
+            finally:
+                os.close(directory)
             total += len(data)
             result[relative] = hashlib.sha256(data).hexdigest()
         return result

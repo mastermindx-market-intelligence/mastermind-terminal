@@ -1,10 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { fixtureAuthSetup } from "./fixtures/investigation-auth";
 import { response } from "../lib/__tests__/fixtures/optionsPlanPayoff";
 import type { PlanExpiryRequest } from "../lib/optionsPlanPayoff";
 
 // Exercise the production component tree on /options. Auth, source acquisition
 // and the dated reference response are explicit local fixtures, not live proof.
-const user = { id: "00000000-0000-4000-8000-000000000001", aud: "authenticated", role: "authenticated", email: "responsive@example.com", app_metadata: {}, user_metadata: {}, created_at: "2026-10-20T00:00:00Z" };
 const row = { root: "SPY", right: "C", exp: "2026-10-30", strike: 765, mid: 9, oi: 40, oi_prev: 20, d_oi: 20 };
 const sharedShell = process.env.MMX_SHARED_SHELL === "1";
 const themes = sharedShell ? ["dark", "light"] as const : ["dark"] as const;
@@ -12,23 +12,11 @@ for (const lang of ["en", "zh"] as const) for (const theme of themes) {
   test(`D08C mounted shortlist → Plan → comparison ${lang} ${theme}`, async ({ page, context, baseURL }, info) => {
     test.setTimeout(90_000);
     const t = (en: string, zh: string) => lang === "zh" ? zh : en;
-    const session = { access_token: "local-plan-fixture-only", refresh_token: "local-plan-fixture-only", token_type: "bearer", expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, user };
-    await context.addCookies([
-      { name: "mm_e2e_rs30", value: "1", url: baseURL! },
-      { name: "sb-127-auth-token.0", value: "base64-" + Buffer.from(JSON.stringify(session)).toString("base64url"), url: baseURL! },
-    ]);
-    await page.addInitScript(({ lang, theme, user }) => {
+    await fixtureAuthSetup(page, baseURL!);
+    await context.addCookies([{ name: "mm_e2e_rs30", value: "1", url: baseURL! }]);
+    await page.addInitScript(({ lang, theme }) => {
       localStorage.setItem("mm.lang", lang); localStorage.setItem("mmx.shell.theme", theme);
-      const originalFetch = window.fetch.bind(window);
-      window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-        const url = new URL(typeof input === "string" ? input : input instanceof Request ? input.url : input.toString(), window.location.href);
-        if (url.pathname.startsWith("/auth/v1/")) {
-          if (url.origin !== "http://127.0.0.1:54321" || url.pathname !== "/auth/v1/user") throw Error("Unexpected fixture Auth operation");
-          return new Response(JSON.stringify(user), { headers: { "content-type": "application/json" } });
-        }
-        return originalFetch(input, init);
-      };
-    }, { lang, theme, user });
+    }, { lang, theme });
     await page.route(/\/api\/flow\?f=oi$/, route => route.fulfill({ json: { schema: "options_hub.oi_movers/v1", asof: "2026-10-23T20:00:00Z", stale: true, movers: [row] } }));
     let calculations = 0, persistence = 0;
     page.on("request", req => { if (/\/api\/(investigations|alerts|orders)(?:[/?]|$)/.test(req.url()) && ["POST", "PUT", "DELETE", "PATCH"].includes(req.method())) persistence++; });
@@ -49,6 +37,9 @@ for (const lang of ["en", "zh"] as const) for (const theme of themes) {
     });
     await page.goto("/options?tab=screener");
     await page.getByRole("button", { name: t("ΔOI Builds", "持仓增长"), exact: true }).click();
+    await expect(page.getByTestId("shortlist-plan-path").getByRole("button", {
+      name: t("Open saved research", "打开已保存研究"), exact: true,
+    })).toBeEnabled();
     const pin = page.locator("table.scr [data-contract-pin]"); await expect(pin).toHaveCount(1); await pin.click();
     const tray = page.locator("[data-contract-shortlist]");
     const open = tray.getByRole("button", { name: t("Plan from pinned contracts", "用固定合约创建计划"), exact: true });

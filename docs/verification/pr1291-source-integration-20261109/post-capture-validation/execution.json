@@ -1,0 +1,94 @@
+{
+  "branchHead": "797e8fed41963c6757dd35db8d77dd71e5d58fba",
+  "captureReceipt": "docs/verification/pr1291-source-integration-20261109/capture-r1-continuation/capture-execution.json",
+  "captureReceiptSha256": "0c79a592fb01ccee3fd2972c991fbd9fb6aac69d40a28a36f0d88c633f4ebd4f",
+  "completedAt": "2026-11-09T15:09:34.081252+00:00",
+  "composition": {
+    "actualCases": 54,
+    "operations": [
+      {
+        "path": "terminal/docs/pr-crops/b-pl-6-batch-1/terminal-pr1291-source-integration-20261109-r1-pl6--operation.json",
+        "sha256": "f40e2975e1c658c4f349ecc7fa93c0a3a70bc375d7212c1ff0f948a3f165a03f"
+      },
+      {
+        "path": "terminal/docs/pr-crops/terminal-visual-intelligence/terminal-pr1291-source-integration-20261109-r1-vi--operation.json",
+        "sha256": "43e1b97cbca1e708c63efb79ca91e4c0d68b6a0bd775f7eaf199949717868160"
+      }
+    ],
+    "path": "terminal/docs/pr-crops/b-pl-6-batch-1/terminal-pr1291-source-integration-20261109-r1-current.composition.json",
+    "selectedCases": 50,
+    "sha256": "1005541873396cd2c7fd21725a59f17a3a59f76918e40c55738db1a106f914ca"
+  },
+  "error": "er-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-light-mobile/error-context.md\n\n    attachment #3: trace (application/zip) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    ../docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-light-mobile/trace.zip\n    Usage:\n\n        npx playwright show-trace ../docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-light-mobile/trace.zip\n\n    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n  11) [mobile] \u203a e2e/options-lab-plan-handoff.spec.ts:4:7 \u203a Lab Scenario to exact Plan zh dark \u2500\u2500\u2500\u2500\u2500\n\n    Error: expect(locator).toBeVisible() failed\n\n    Locator: getByTestId('options-plan-draft')\n    Expected: visible\n    Timeout: 5000ms\n    Error: element(s) not found\n\n    Call log:\n      - Expect \"toBeVisible\" with timeout 5000ms\n      - waiting for getByTestId('options-plan-draft')\n\n\n      39 |     await open.click();\n      40 |     const editor = page.getByTestId(\"options-plan-draft\");\n    > 41 |     await expect(editor).toBeVisible(); await expect(editor).toContainText(\"765\"); await expect(editor).not.toContainText(\"785\");\n         |                          ^\n      42 |     await expect(editor.locator('input[id*=\"entry\"]')).toHaveValue(\"\");\n      43 |     await expect(editor.locator('input[id*=\"quantity\"]')).toHaveValue(\"\");\n      44 |     await editor.locator('input[id*=\"quantity\"]').fill(\"2\");\n        at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26\n\n    attachment #1: screenshot (image/png) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    ../docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-dark-mobile/test-failed-1.png\n    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n    Error Context: ../docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-dark-mobile/error-context.md\n\n    attachment #3: trace (application/zip) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    ../docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-dark-mobile/trace.zip\n    Usage:\n\n        npx playwright show-trace ../docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-dark-mobile/trace.zip\n\n    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n  12) [mobile] \u203a e2e/options-lab-plan-handoff.spec.ts:4:7 \u203a Lab Scenario to exact Plan zh light \u2500\u2500\u2500\u2500\n\n    Error: expect(locator).toBeVisible() failed\n\n    Locator: getByTestId('options-plan-draft')\n    Expected: visible\n    Timeout: 5000ms\n    Error: element(s) not found\n\n    Call log:\n      - Expect \"toBeVisible\" with timeout 5000ms\n      - waiting for getByTestId('options-plan-draft')\n\n\n      39 |     await open.click();\n      40 |     const editor = page.getByTestId(\"options-plan-draft\");\n    > 41 |     await expect(editor).toBeVisible(); await expect(editor).toContainText(\"765\"); await expect(editor).not.toContainText(\"785\");\n         |                          ^\n      42 |     await expect(editor.locator('input[id*=\"entry\"]')).toHaveValue(\"\");\n      43 |     await expect(editor.locator('input[id*=\"quantity\"]')).toHaveValue(\"\");\n      44 |     await editor.locator('input[id*=\"quantity\"]').fill(\"2\");\n        at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26\n\n    attachment #1: screenshot (image/png) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    ../docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-light-mobile/test-failed-1.png\n    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n    Error Context: ../docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-light-mobile/error-context.md\n\n    attachment #3: trace (application/zip) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    ../docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-light-mobile/trace.zip\n    Usage:\n\n        npx playwright show-trace ../docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-light-mobile/trace.zip\n\n    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n  12 failed\n    [desktop] \u203a e2e/options-lab-plan-handoff.spec.ts:4:7 \u203a Lab Scenario to exact Plan en dark \u2500\u2500\u2500\u2500\u2500\u2500\n    [desktop] \u203a e2e/options-lab-plan-handoff.spec.ts:4:7 \u203a Lab Scenario to exact Plan en light \u2500\u2500\u2500\u2500\u2500\n    [desktop] \u203a e2e/options-lab-plan-handoff.spec.ts:4:7 \u203a Lab Scenario to exact Plan zh dark \u2500\u2500\u2500\u2500\u2500\u2500\n    [desktop] \u203a e2e/options-lab-plan-handoff.spec.ts:4:7 \u203a Lab Scenario to exact Plan zh light \u2500\u2500\u2500\u2500\u2500\n    [tablet] \u203a e2e/options-lab-plan-handoff.spec.ts:4:7 \u203a Lab Scenario to exact Plan en dark \u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    [tablet] \u203a e2e/options-lab-plan-handoff.spec.ts:4:7 \u203a Lab Scenario to exact Plan en light \u2500\u2500\u2500\u2500\u2500\u2500\n    [tablet] \u203a e2e/options-lab-plan-handoff.spec.ts:4:7 \u203a Lab Scenario to exact Plan zh dark \u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    [tablet] \u203a e2e/options-lab-plan-handoff.spec.ts:4:7 \u203a Lab Scenario to exact Plan zh light \u2500\u2500\u2500\u2500\u2500\u2500\n    [mobile] \u203a e2e/options-lab-plan-handoff.spec.ts:4:7 \u203a Lab Scenario to exact Plan en dark \u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    [mobile] \u203a e2e/options-lab-plan-handoff.spec.ts:4:7 \u203a Lab Scenario to exact Plan en light \u2500\u2500\u2500\u2500\u2500\u2500\n    [mobile] \u203a e2e/options-lab-plan-handoff.spec.ts:4:7 \u203a Lab Scenario to exact Plan zh dark \u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    [mobile] \u203a e2e/options-lab-plan-handoff.spec.ts:4:7 \u203a Lab Scenario to exact Plan zh light \u2500\u2500\u2500\u2500\u2500\u2500\n  15 passed (2.6m)\n",
+  "protectedMaster": "1c0bf028cf72539a4d3fcb17fa137ee474d764f9",
+  "schema": "terminal_pr1291_current_consumer_validation.v1",
+  "sourceDeltaSincePreCaptureChecks": [],
+  "sourceFiles": 1983,
+  "stages": [
+    {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+        "lib/__tests__/visualIntelligenceEvidence.test.ts",
+        "lib/__tests__/optionsLevelAxisEvidence.test.ts",
+        "lib/__tests__/b_pl_6Batch2Evidence.test.ts",
+        "lib/__tests__/pineBootPendingEvidence.test.ts",
+        "--reporter=default",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/native-readers.json"
+      ],
+      "exit": 0,
+      "logSha256": "fbc90af1b33ab312ecf33a581bbc1139c4dfbd02f34f0205462649386ef15347",
+      "name": "current-native-readers",
+      "passed": 18,
+      "port": null,
+      "reportSha256": "4b476ce721ae0c3d40ec7cfd6821990c4f63d601a977106b80663c1f11ef4abe",
+      "seconds": 17.93,
+      "sourceStable": true,
+      "startedAt": "2026-11-09T15:06:30.001517+00:00",
+      "state": "CLOSED",
+      "testCompletedAt": "2026-11-09T15:06:47.930585+00:00"
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "e2e/options-plan-save-reopen.spec.ts",
+        "e2e/options-lab-plan-handoff.spec.ts",
+        "e2e/options-lab-plan-composition.spec.ts",
+        "e2e/investigation-workspace.spec.ts",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--grep",
+        "whole Plan explicit transfer, Save, exact reopen and recalculation|Lab Scenario to exact Plan|admitted Lab round trip preserves pins, requires native New/Add and retires the old account|evidence review advances only through an explicit saved revision",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=list,json",
+        "--output=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts"
+      ],
+      "exit": 1,
+      "initialOwnedServerStopped": false,
+      "lifecycle": {
+        "initialLockPresent": true,
+        "reconciliation": "docs/verification/pr1291-source-integration-20261109/post-capture-validation/original-acceptance-browser-lifecycle.json",
+        "serverAbsenceVerifiedAt": "2026-11-09T15:09:34.079438+00:00",
+        "sha256": "569c1339c81aab7bbbe1c577ee09d9d8768888b291946f6d2499268914e11d9b"
+      },
+      "logSha256": "37e713a9086e4d0c93a409cdc3c7bf4696fccdbc4dce49fe68a0c5ac0c8c8dfb",
+      "name": "original-acceptance-browser",
+      "ownedServerStopped": true,
+      "port": 3539,
+      "seconds": 155.56,
+      "sourceStable": true,
+      "startedAt": "2026-11-09T15:06:49.280825+00:00",
+      "state": "FAILED",
+      "testCompletedAt": "2026-11-09T15:09:24.838107+00:00"
+    }
+  ],
+  "startedAt": "2026-11-09T15:06:30.000410+00:00",
+  "state": "FAILED"
+}

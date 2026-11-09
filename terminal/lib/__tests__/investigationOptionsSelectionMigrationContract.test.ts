@@ -8,9 +8,10 @@
  * guard on the 0042-only marker token, plus one boolean admission probe
  * investigation_evidence_admitted_v2(owner, object_type) that is stable security definer over an
  * empty search_path, reads no table, and is granted to authenticated only. The SQL allow-list and
- * INVESTIGATION_ADMISSION.evidence must stay exactly equal, because a save the Terminal admits
- * and the database refuses settles as a definitive invalid_payload; that registry-equality pin
- * moved here from the 0039 contract test, which now pins only 0039's own list as a subset.
+ * the source registry must retain that exact installed subset. The source-only IW2
+ * kernel adds separately held Screen/Intl namespaces; this historical migration
+ * must not be restamped or widened to claim their admission. The request-time
+ * API gate and actual boolean owner probe retain their separate controls.
  * No table, policy or row DDL, no retention, no entitlement, no source read, no result
  * computation, and no second save path may ride in this file.
  */
@@ -166,11 +167,14 @@ describe("0047 investigation options selection evidence admission contract", () 
     expect(downBody(sql).toLowerCase()).toContain("drop function if exists public.investigation_evidence_admitted_v2(text,text);");
   });
 
-  it("keeps the SQL allow-list and the Terminal registry exactly equal", () => {
+  it("keeps the historical SQL namespace exact and the source-only kernel extensions unadmitted here", () => {
     const fromSql = allowList(liveBody(sql));
     const fromRegistry = registry();
-    expect(Object.keys(fromSql).sort()).toEqual(Object.keys(fromRegistry).sort());
-    expect(fromSql).toEqual(fromRegistry);
+    expect(Object.keys(fromSql).sort()).toEqual(["earnings.workspace_generation", "terminal.options_exposure"]);
+    expect(Object.fromEntries(Object.keys(fromSql).map(owner => [owner, fromRegistry[owner]]))).toEqual(fromSql);
+    expect(Object.keys(fromRegistry).filter(owner => !Object.hasOwn(fromSql, owner)).sort()).toEqual(["intl.workspace_generation", "terminal.smart_screen"]);
+    expect(liveBody(sql)).not.toContain("intl.workspace_generation");
+    expect(liveBody(sql)).not.toContain("terminal.smart_screen");
     expect(fromSql["terminal.options_exposure"]).toEqual(["exposure_chart_request", "options_matrix_selection", "rotation_measurement", "sector_origin"]);
     expect(fromSql["earnings.workspace_generation"]).toEqual(["event_workspace"]);
   });

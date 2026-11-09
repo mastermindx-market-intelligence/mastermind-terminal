@@ -1,0 +1,46 @@
+{
+  "schema": "terminal_pr1291_r2_readonly_refusal_census.v1",
+  "ownedWorkspaceCwds": {
+    "command": [
+      "lsof",
+      "-a",
+      "-u",
+      "chriswong",
+      "-d",
+      "cwd",
+      "-F",
+      "pcn"
+    ],
+    "exit": 0,
+    "stdout": [],
+    "stderr": "",
+    "at": "2026-11-09T15:26:10.546897+00:00"
+  },
+  "listener": {
+    "command": [
+      "lsof",
+      "-nP",
+      "-iTCP:3536",
+      "-sTCP:LISTEN"
+    ],
+    "exit": 1,
+    "stdout": "",
+    "stderr": "",
+    "at": "2026-11-09T15:26:10.771336+00:00"
+  },
+  "lockPresent": false,
+  "captureProcess": {
+    "command": [
+      "ps",
+      "-p",
+      "1634",
+      "-o",
+      "pid=,ppid=,comm="
+    ],
+    "exit": 1,
+    "stdout": "",
+    "stderr": "",
+    "at": "2026-11-09T15:26:10.786115+00:00"
+  },
+  "scope": "Read-only census only. Original refused process-group identity was not persisted by standalone producer. No signal, unlink, retry, operation completion or group-absence claim."
+}

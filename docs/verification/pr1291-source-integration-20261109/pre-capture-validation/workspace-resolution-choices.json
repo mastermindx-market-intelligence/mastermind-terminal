@@ -1,0 +1,19 @@
+{
+  "source": "797e8fed41963c6757dd35db8d77dd71e5d58fba",
+  "restored": [
+    "terminal/components/workspaces/InvestigationWorkspace.tsx",
+    "terminal/components/workspaces/InvestigationEvidenceReview.tsx",
+    "terminal/lib/__tests__/investigationEvidenceReview.test.tsx",
+    "terminal/e2e/investigation-workspace.spec.ts"
+  ],
+  "removedCleanMergeDuplicates": [
+    "second EvidenceReview panel",
+    "second bilingual evidence-review browser block"
+  ],
+  "additionalProtectedTest": {
+    "source": "1c0bf028cf72539a4d3fcb17fa137ee474d764f9",
+    "path": "terminal/lib/__tests__/investigationSelectionRace.test.tsx",
+    "title": "an assessment save cancels pending baseline selection while retaining Options and scenario references",
+    "adaptation": "Journal lookup uses current authenticated fixture storageKeyOf()"
+  }
+}

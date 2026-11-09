@@ -1,0 +1,289 @@
+{
+  "artifacts": {
+    ".last-run.json": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-desktop/attachments/saved-theme-cold-return-json-d1a485e305e8d3b0e442dc1a7ef0e3dd6e054d9a.json": "ec95dd214b8ad3e42350e8040251205f455b5c58cd5fd8053624ae74d30e21b5",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-desktop/attachments/synthetic-light-control-s14-dark-control-json-58d12aaf5baaf0b74baf49327ee5b558e9e69ff4.json": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-desktop/attachments/synthetic-light-control-s14-first-intent-json-448b7b96aedc49b62bceeb791d003943b396a123.json": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-desktop/saved-theme-cold-return.json": "ec95dd214b8ad3e42350e8040251205f455b5c58cd5fd8053624ae74d30e21b5",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-desktop/saved-theme-main-reloaded.png": "e854e78ee223b26a2808f7b6b28b81700360046e6e7fc6c116911d2384db392f",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-desktop/saved-theme-return-reloaded.png": "8e0a9cb8ea829e35f99f5a783a23e26e5c69c7746ea0a8f4fe111abba03177e5",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-desktop/synthetic-light-control-s14-dark-control.json": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-desktop/synthetic-light-control-s14-first-intent.json": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-mobile/attachments/saved-theme-cold-return-json-dc6c7589742de349f4b84e091fb69565da1fefe1.json": "1207d10a6030722d8b79c4c458f401962667f79efe676dad03d71f8023a30244",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-mobile/attachments/synthetic-light-control-s14-dark-control-json-576053be5b39b13adb555d3b5ed2ff64594a12a4.json": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-mobile/attachments/synthetic-light-control-s14-first-intent-json-69134d0960b13aaedbaf4c7f0f152541811ac1dc.json": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-mobile/saved-theme-cold-return.json": "1207d10a6030722d8b79c4c458f401962667f79efe676dad03d71f8023a30244",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-mobile/saved-theme-main-reloaded.png": "900e356a8aa3cbfae514abc56569408f1ddd750c63bf5cc6ee0523b4f53104fa",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-mobile/saved-theme-return-reloaded.png": "c0b2782cfad80c5912d70474d4cd53b496171cb18464676cfe6db38b52b77bda",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-mobile/synthetic-light-control-s14-dark-control.json": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-mobile/synthetic-light-control-s14-first-intent.json": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-tablet/attachments/saved-theme-cold-return-json-fc0fe937095a6385fd0a11bdd11fc8de5f17fb75.json": "0a54f89f481fd04eade3680ac5a368a57b6b8c691da5582d036ef83dc6195cab",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-tablet/attachments/synthetic-light-control-s14-dark-control-json-97fb90e1fb23858d0e7d032714c1193565b6c9d8.json": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-tablet/attachments/synthetic-light-control-s14-first-intent-json-0a3d36da7e9a7eb7e3690645ba964f46da273efb.json": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-tablet/saved-theme-cold-return.json": "0a54f89f481fd04eade3680ac5a368a57b6b8c691da5582d036ef83dc6195cab",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-tablet/saved-theme-main-reloaded.png": "2e74eedbef2cc78a380f14d600b65e38bbfae1bc342b8d3aa8ab3ba1f77dd455",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-tablet/saved-theme-return-reloaded.png": "e8f4d7ce7456b8afa2b9e83d5347403459517e2bfa0d8f9e2597f1645fbab4ba",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-tablet/synthetic-light-control-s14-dark-control.json": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-tablet/synthetic-light-control-s14-first-intent.json": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/attachments/saved-theme-cold-return-json-8d93e6c81aa3ec840ffbf17b20defe5b0030ffdd.json": "8578600ecab6e11c75cb01c308d427d3c7db711b399efae42dcf331ec0edbecd",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/attachments/synthetic-light-control-s14-dark-control-json-0a1c32d81ac419aec48d19353a86f454ee555cdd.json": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/attachments/synthetic-light-control-s14-first-intent-json-35bec8905ef9167cc6e1b4c57bfcc4559cfb503a.json": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/saved-theme-cold-return.json": "8578600ecab6e11c75cb01c308d427d3c7db711b399efae42dcf331ec0edbecd",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/saved-theme-main-reloaded.png": "0eca76df15555648f3a2f9d079a2265b68fd74d2cfed781c3f7884b13b091009",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/saved-theme-return-reloaded.png": "c882e821a05a665244a3b956e0d435a68932ff5daca5629deb0decf9499d7e91",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/synthetic-light-control-s14-dark-control.json": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/synthetic-light-control-s14-first-intent.json": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/attachments/saved-theme-cold-return-json-97a76b35cf0fffad719c50f74b77592a44b63a9f.json": "a8df32b484069caf63f779c9119739120958cd90024f520daf0fd3614155ebb7",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/attachments/synthetic-light-control-s14-dark-control-json-43d2160debf3cb40ba6483e15870ddca2b5a0b36.json": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/attachments/synthetic-light-control-s14-first-intent-json-d49312ef120697f2a64fd140632e900e3903e70a.json": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/saved-theme-cold-return.json": "a8df32b484069caf63f779c9119739120958cd90024f520daf0fd3614155ebb7",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/saved-theme-main-reloaded.png": "24ffc7d37b0baccfd54d9adf91fc1f0bc023f7a8b05a392bef48837d97903dd8",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/saved-theme-return-reloaded.png": "acce7a088a936b2e9dbd0d24a00299c72579a819f58ed201b549d42f00857fbd",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/synthetic-light-control-s14-dark-control.json": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/synthetic-light-control-s14-first-intent.json": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/attachments/saved-theme-cold-return-json-5d1f6b8165180e9bfe69c0525fc25cf7a5019abc.json": "8682e149d105fd38ece2c233324442fbd0792de30dc3cbeb80741af57b43337b",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/attachments/synthetic-light-control-s14-dark-control-json-5407de7be2959c31bf246545abecab9496edb06f.json": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/attachments/synthetic-light-control-s14-first-intent-json-0e8018741101954a870fd97af113f6df414494bb.json": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/saved-theme-cold-return.json": "8682e149d105fd38ece2c233324442fbd0792de30dc3cbeb80741af57b43337b",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/saved-theme-main-reloaded.png": "56d4d2a206d06e1ae2800454231354baa52de27f9c0d915a1beba2c004fc2c18",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/saved-theme-return-reloaded.png": "120fef3e2e39efa66ab2810b47afb43ab8ba33404e454c0ab99476e7ac34c8a6",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/synthetic-light-control-s14-dark-control.json": "8b552e94a90d8a89f6c48bab78f34e4a124810a395e91fdde69b7723b8f56013",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-tablet/synthetic-light-control-s14-first-intent.json": "4c9eb3c91a14037372b088e87c440754198866f85b985d9b25bb187ab77799b4",
+    "options-plan-compare-mount-3ba18-\u2192-Plan-\u2192-comparison-en-dark-desktop/mounted-compare-en-dark-desktop-chart.png": "a0bf63cfa2b474cbeaa8e67ace9a8f495bc364ca7a99645bea73eea75b2341fa",
+    "options-plan-compare-mount-3ba18-\u2192-Plan-\u2192-comparison-en-dark-desktop/mounted-compare-en-dark-desktop-header.png": "ca243036e839ff796516b35190e1ae9704ff3b74f3ed15a28eedcba04ec98153",
+    "options-plan-compare-mount-3ba18-\u2192-Plan-\u2192-comparison-en-dark-mobile/mounted-compare-en-dark-320-controls.png": "0c0aba3130aba53fdcf2706220c014d86c4f851c3621325e47d3b0189f40d3c2",
+    "options-plan-compare-mount-3ba18-\u2192-Plan-\u2192-comparison-en-dark-mobile/mounted-compare-en-dark-mobile-chart.png": "6ac896f7c985c200d2ae3bbb21c5fca206bd5555c4cbb2a625ea3f5852e9f712",
+    "options-plan-compare-mount-3ba18-\u2192-Plan-\u2192-comparison-en-dark-mobile/mounted-compare-en-dark-mobile-header.png": "8a01be56b30557597cb1eea55aeaaa75591e48e622940caa586a06c01023d73b",
+    "options-plan-compare-mount-3ba18-\u2192-Plan-\u2192-comparison-en-dark-tablet/mounted-compare-en-dark-tablet-chart.png": "fcd290990b166727887b03ef65b947a8c9838ea84b127f677ac560bc0d214dbc",
+    "options-plan-compare-mount-3ba18-\u2192-Plan-\u2192-comparison-en-dark-tablet/mounted-compare-en-dark-tablet-header.png": "fcd290990b166727887b03ef65b947a8c9838ea84b127f677ac560bc0d214dbc",
+    "options-plan-compare-mount-e748d-\u2192-Plan-\u2192-comparison-zh-dark-desktop/mounted-compare-zh-dark-desktop-chart.png": "b2eadcd0d0f3d3ebc8b8f7afe5102cc9dfb8b90d2625ac60c711582c101188f9",
+    "options-plan-compare-mount-e748d-\u2192-Plan-\u2192-comparison-zh-dark-desktop/mounted-compare-zh-dark-desktop-header.png": "167a4c422742bf74123f7826103cd2e5bc2e88a63221f81757783a59b0d81216",
+    "options-plan-compare-mount-e748d-\u2192-Plan-\u2192-comparison-zh-dark-mobile/mounted-compare-zh-dark-320-controls.png": "e2a12029f5c71e3762a84eed277d485e9935e30c8455d7590b95eec79b92e941",
+    "options-plan-compare-mount-e748d-\u2192-Plan-\u2192-comparison-zh-dark-mobile/mounted-compare-zh-dark-mobile-chart.png": "f31c39e9689c26a16ffa457675e2952379b8d6022403b1dde5595806cc6af6f6",
+    "options-plan-compare-mount-e748d-\u2192-Plan-\u2192-comparison-zh-dark-mobile/mounted-compare-zh-dark-mobile-header.png": "ec1087840ccf16f269677be06f4fbe18f2e8e87116c3bda6d650ce7dbd2fedb5",
+    "options-plan-compare-mount-e748d-\u2192-Plan-\u2192-comparison-zh-dark-tablet/mounted-compare-zh-dark-tablet-chart.png": "3aff03f8429b9e3bcf79fa57a44f7eac09aa7cf8270db8d740a904373feff078",
+    "options-plan-compare-mount-e748d-\u2192-Plan-\u2192-comparison-zh-dark-tablet/mounted-compare-zh-dark-tablet-header.png": "3aff03f8429b9e3bcf79fa57a44f7eac09aa7cf8270db8d740a904373feff078"
+  },
+  "cases": [
+    {
+      "expectedStatus": "passed",
+      "file": "options-exposure-surface-journey.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "synthetic exposure saved theme cold return en"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "options-exposure-surface-journey.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "synthetic exposure saved theme cold return zh"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "options-exposure-surface-journey.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "synthetic exposure saved theme cold return en"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "options-exposure-surface-journey.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "synthetic exposure saved theme cold return zh"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "options-exposure-surface-journey.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "synthetic exposure saved theme cold return en"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "options-exposure-surface-journey.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "synthetic exposure saved theme cold return zh"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "options-plan-compare-mounted.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "D08C mounted shortlist \u2192 Plan \u2192 comparison en dark"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "options-plan-compare-mounted.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "D08C mounted shortlist \u2192 Plan \u2192 comparison zh dark"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "options-plan-compare-mounted.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "D08C mounted shortlist \u2192 Plan \u2192 comparison en dark"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "options-plan-compare-mounted.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "D08C mounted shortlist \u2192 Plan \u2192 comparison zh dark"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "options-plan-compare-mounted.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "D08C mounted shortlist \u2192 Plan \u2192 comparison en dark"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "options-plan-compare-mounted.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "D08C mounted shortlist \u2192 Plan \u2192 comparison zh dark"
+    }
+  ],
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/options-exposure-surface-journey.spec.ts",
+    "e2e/options-plan-compare-mounted.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--grep",
+    "synthetic exposure saved theme cold return en|synthetic exposure saved theme cold return zh|D08C mounted shortlist \u2192 Plan \u2192 comparison en dark|D08C mounted shortlist \u2192 Plan \u2192 comparison zh dark",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-consumer-fixtures-20261109/terminal/test-results/pr1291-consumer-browser-r2"
+  ],
+  "completedAt": "2026-11-09T18:09:02.396861+00:00",
+  "exit": 0,
+  "expectedCases": [
+    "synthetic exposure saved theme cold return en",
+    "synthetic exposure saved theme cold return zh",
+    "D08C mounted shortlist \u2192 Plan \u2192 comparison en dark",
+    "D08C mounted shortlist \u2192 Plan \u2192 comparison zh dark"
+  ],
+  "extraArtifacts": {},
+  "head": "0616efc99babb713394a34124279cf35b519cb1b",
+  "lifecycle": {
+    "initialLockPresent": true,
+    "reconciliation": "docs/verification/pr1291-consumer-fixtures-20261109/consumer-browser-r2-lifecycle.json",
+    "serverAbsenceVerifiedAt": "2026-11-09T18:09:02.263604+00:00",
+    "sha256": "8b638a957e6c177782e9c3fade8cf2f03b80558468e63270d5a7c780e34e4488"
+  },
+  "logSha256": "0da339cb0383b091c6ce8e7abdb085aaacf56ec20eb54ea406062d2ac726467a",
+  "nextLockAbsent": true,
+  "ownedPortClosed": true,
+  "port": 3898,
+  "reportErrors": [],
+  "schema": "terminal_pr1291_consumer_responsive_qualification.v1",
+  "seconds": 101.6,
+  "sourceEntries": 1983,
+  "sourceStable": true,
+  "startedAt": "2026-11-09T18:07:14.399212+00:00",
+  "state": "QUALIFIED",
+  "stats": {
+    "duration": 101165.78899999999,
+    "expected": 12,
+    "flaky": 0,
+    "skipped": 0,
+    "startTime": "2026-11-09T18:07:14.753Z",
+    "unexpected": 0
+  },
+  "testedHostedMerge": "1d3a9717fdc988d3e724758fcfa7a8532abc70e8"
+}

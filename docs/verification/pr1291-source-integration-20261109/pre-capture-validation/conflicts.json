@@ -1,0 +1,17 @@
+[
+  ".github/workflows/ci.yml",
+  "ops/terminal-build.sh",
+  "terminal/app/api/investigations/review/route.ts",
+  "terminal/components/options/OptionsPlanPayoffPanel.tsx",
+  "terminal/components/workspaces/InvestigationEvidenceReview.tsx",
+  "terminal/components/workspaces/InvestigationWorkspace.tsx",
+  "terminal/e2e/investigation-workspace.spec.ts",
+  "terminal/e2e/tools/capture_ci_evidence.test.cjs",
+  "terminal/lib/__tests__/investigationEarningsReview.test.ts",
+  "terminal/lib/__tests__/investigationEvidenceReview.test.tsx",
+  "terminal/lib/__tests__/investigationReviewRoute.test.ts",
+  "terminal/lib/__tests__/investigationSelectionRace.test.tsx",
+  "terminal/lib/__tests__/optionsPlanPayoffPanel.test.tsx",
+  "terminal/lib/investigationEarningsReview.ts",
+  "tests/test_terminal_investigation_install_admission.py"
+]

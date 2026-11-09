@@ -39,6 +39,7 @@ const manifestOk = (ref: InvestigationEvidenceRef): boolean =>
       thesis_refs: [],
       evidence_refs: [ref],
       continuation: {},
+      argument_relations: [],
     },
     INVESTIGATION_ADMISSION,
   ).ok;

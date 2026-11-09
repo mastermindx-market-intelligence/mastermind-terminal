@@ -1,0 +1,152 @@
+{
+  "artifacts": {
+    ".last-run.json": "c8fb7016b15bf9cf1733ba57ce1a2d2bc7bab5dbe392760bfa2d427eb61e6536",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-desktop/attachments/saved-theme-cold-return-json-51f5013f6f991ba33b3d763368171a21e876fba4.json": "b6abe01244d53765a2113d5fcf7d4aa76225b3fa3edaf54af46655c0bbb3e82c",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-desktop/error-context.md": "426057e26ae22c9e029fbe25e9b09221a6f422f0c34244ef9f639fa2d20e6cf1",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-desktop/saved-theme-cold-return.json": "b6abe01244d53765a2113d5fcf7d4aa76225b3fa3edaf54af46655c0bbb3e82c",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-desktop/test-failed-1.png": "0d67b844c7489ef85106f85e364da0061594a7f63bc40d6d894d276ab0442410",
+    "options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-desktop/trace.zip": "1aa0a9784418e8681da70eacf3906e8556f06d4a0415b1665f459a7a05499013",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/attachments/saved-theme-cold-return-json-0d04548e1e0fdfc5b54c0b07fa5daad1d2107c0c.json": "b6abe01244d53765a2113d5fcf7d4aa76225b3fa3edaf54af46655c0bbb3e82c",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/error-context.md": "86011332c703851bdc22bd19f9b68f0cb88e76a44a0dc72d91d7b4f097871dce",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/saved-theme-cold-return.json": "b6abe01244d53765a2113d5fcf7d4aa76225b3fa3edaf54af46655c0bbb3e82c",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/test-failed-1.png": "354eae42a18ec0ba4b16e117691103cf155b715b6baec531909c329b51102614",
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/trace.zip": "0b4419c456abce4e8d95270046f4f24c4f9bb112b9765e2311abf2e0e13039b1",
+    "options-plan-compare-mount-3ba18-\u2192-Plan-\u2192-comparison-en-dark-desktop/error-context.md": "13a61ea2368e2ca80de56c07d43c866b3a767ca2556de9ed27d21476164388a6",
+    "options-plan-compare-mount-3ba18-\u2192-Plan-\u2192-comparison-en-dark-desktop/test-failed-1.png": "e488957865ab0f1cbca1cad798c5f540dbf5aff83b4896b21f3e78a166149fb7",
+    "options-plan-compare-mount-3ba18-\u2192-Plan-\u2192-comparison-en-dark-desktop/trace.zip": "19ba49914654208176434d7410fb8d6462efded81cc2a4cc52349ff68f0118dc",
+    "options-plan-compare-mount-e748d-\u2192-Plan-\u2192-comparison-zh-dark-desktop/error-context.md": "6210de2adeec859686595a6d5884282ada31ba0aee280226dc7644b05f23e93d",
+    "options-plan-compare-mount-e748d-\u2192-Plan-\u2192-comparison-zh-dark-desktop/test-failed-1.png": "2b67f2f8d68fbebd4f4833a5016f9a5e8d6d1db69357ab46e0eece8e85af55ac",
+    "options-plan-compare-mount-e748d-\u2192-Plan-\u2192-comparison-zh-dark-desktop/trace.zip": "daf38e688c9d6c03e9276fb028c1b5cf64fc24d4fb72329df007a7a4e765a983"
+  },
+  "cases": [
+    {
+      "expectedStatus": "passed",
+      "file": "options-exposure-surface-journey.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "error": {
+            "location": {
+              "column": 100,
+              "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-consumer-fixtures-20261109/terminal/e2e/options-exposure-surface-journey.spec.ts",
+              "line": 1508
+            },
+            "message": "Error: canonical fixture account actually loaded\n\ncanonical fixture account actually loaded\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+            "snippet": "\u001b[0m \u001b[90m 1506 |\u001b[39m       \u001b[36mawait\u001b[39m expect(map)\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m\"data-source-session\"\u001b[39m\u001b[33m,\u001b[39m \u001b[33mSESSION\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 1507 |\u001b[39m       \u001b[36mawait\u001b[39m expect(map)\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m\"data-chart-ready\"\u001b[39m\u001b[33m,\u001b[39m \u001b[32m\"true\"\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[35m30\u001b[39m_000 })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 1508 |\u001b[39m       \u001b[36mawait\u001b[39m expect\u001b[33m.\u001b[39mpoll(() \u001b[33m=>\u001b[39m authReads\u001b[33m,\u001b[39m { message\u001b[33m:\u001b[39m \u001b[32m\"canonical fixture account actually loaded\"\u001b[39m })\u001b[33m.\u001b[39mtoBeGreaterThan(\u001b[35m0\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m      |\u001b[39m                                                                                                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 1509 |\u001b[39m       \u001b[36mawait\u001b[39m selectActualLight(page\u001b[33m,\u001b[39m lang\u001b[33m,\u001b[39m \u001b[32m\"s14-first-intent\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 1510 |\u001b[39m       \u001b[36mawait\u001b[39m expect\u001b[33m.\u001b[39mpoll(() \u001b[33m=>\u001b[39m user\u001b[33m.\u001b[39muser_metadata\u001b[33m.\u001b[39mtheme\u001b[33m,\u001b[39m { message\u001b[33m:\u001b[39m \u001b[32m\"Settings preference write acknowledged by local fixture\"\u001b[39m })\u001b[33m.\u001b[39mtoBe(\u001b[32m\"light\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 1511 |\u001b[39m       expect(user\u001b[33m.\u001b[39muser_metadata\u001b[33m.\u001b[39mtheme_auto\u001b[33m,\u001b[39m \u001b[32m\"explicit Settings choice is acknowledged, not auto mode\"\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[32m\"0\"\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m",
+            "stack": "Error: canonical fixture account actually loaded\n\ncanonical fixture account actually loaded\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-consumer-fixtures-20261109/terminal/e2e/options-exposure-surface-journey.spec.ts:1508:100"
+          },
+          "retry": 0,
+          "status": "failed"
+        }
+      ],
+      "status": "unexpected",
+      "title": "synthetic exposure saved theme cold return en"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "options-exposure-surface-journey.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "error": {
+            "location": {
+              "column": 100,
+              "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-consumer-fixtures-20261109/terminal/e2e/options-exposure-surface-journey.spec.ts",
+              "line": 1508
+            },
+            "message": "Error: canonical fixture account actually loaded\n\ncanonical fixture account actually loaded\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+            "snippet": "\u001b[0m \u001b[90m 1506 |\u001b[39m       \u001b[36mawait\u001b[39m expect(map)\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m\"data-source-session\"\u001b[39m\u001b[33m,\u001b[39m \u001b[33mSESSION\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 1507 |\u001b[39m       \u001b[36mawait\u001b[39m expect(map)\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m\"data-chart-ready\"\u001b[39m\u001b[33m,\u001b[39m \u001b[32m\"true\"\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[35m30\u001b[39m_000 })\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 1508 |\u001b[39m       \u001b[36mawait\u001b[39m expect\u001b[33m.\u001b[39mpoll(() \u001b[33m=>\u001b[39m authReads\u001b[33m,\u001b[39m { message\u001b[33m:\u001b[39m \u001b[32m\"canonical fixture account actually loaded\"\u001b[39m })\u001b[33m.\u001b[39mtoBeGreaterThan(\u001b[35m0\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m      |\u001b[39m                                                                                                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 1509 |\u001b[39m       \u001b[36mawait\u001b[39m selectActualLight(page\u001b[33m,\u001b[39m lang\u001b[33m,\u001b[39m \u001b[32m\"s14-first-intent\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 1510 |\u001b[39m       \u001b[36mawait\u001b[39m expect\u001b[33m.\u001b[39mpoll(() \u001b[33m=>\u001b[39m user\u001b[33m.\u001b[39muser_metadata\u001b[33m.\u001b[39mtheme\u001b[33m,\u001b[39m { message\u001b[33m:\u001b[39m \u001b[32m\"Settings preference write acknowledged by local fixture\"\u001b[39m })\u001b[33m.\u001b[39mtoBe(\u001b[32m\"light\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 1511 |\u001b[39m       expect(user\u001b[33m.\u001b[39muser_metadata\u001b[33m.\u001b[39mtheme_auto\u001b[33m,\u001b[39m \u001b[32m\"explicit Settings choice is acknowledged, not auto mode\"\u001b[39m)\u001b[33m.\u001b[39mtoBe(\u001b[32m\"0\"\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m",
+            "stack": "Error: canonical fixture account actually loaded\n\ncanonical fixture account actually loaded\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-consumer-fixtures-20261109/terminal/e2e/options-exposure-surface-journey.spec.ts:1508:100"
+          },
+          "retry": 0,
+          "status": "failed"
+        }
+      ],
+      "status": "unexpected",
+      "title": "synthetic exposure saved theme cold return zh"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "options-plan-compare-mounted.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "error": {
+            "message": "\u001b[31mTest timeout of 90000ms exceeded.\u001b[39m",
+            "stack": "\u001b[31mTest timeout of 90000ms exceeded.\u001b[39m"
+          },
+          "retry": 0,
+          "status": "timedOut"
+        }
+      ],
+      "status": "unexpected",
+      "title": "D08C mounted shortlist \u2192 Plan \u2192 comparison en dark"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "options-plan-compare-mounted.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "error": {
+            "message": "\u001b[31mTest timeout of 90000ms exceeded.\u001b[39m",
+            "stack": "\u001b[31mTest timeout of 90000ms exceeded.\u001b[39m"
+          },
+          "retry": 0,
+          "status": "timedOut"
+        }
+      ],
+      "status": "unexpected",
+      "title": "D08C mounted shortlist \u2192 Plan \u2192 comparison zh dark"
+    }
+  ],
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/options-exposure-surface-journey.spec.ts",
+    "e2e/options-plan-compare-mounted.spec.ts",
+    "--project=desktop",
+    "--workers=1",
+    "--retries=0",
+    "--grep",
+    "synthetic exposure saved theme cold return en|synthetic exposure saved theme cold return zh|D08C mounted shortlist \u2192 Plan \u2192 comparison en dark|D08C mounted shortlist \u2192 Plan \u2192 comparison zh dark",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-consumer-fixtures-20261109/terminal/test-results/pr1291-consumer-browser-r1"
+  ],
+  "completedAt": "2026-11-09T18:04:00.897189+00:00",
+  "exit": 1,
+  "expectedCases": [
+    "synthetic exposure saved theme cold return en",
+    "synthetic exposure saved theme cold return zh",
+    "D08C mounted shortlist \u2192 Plan \u2192 comparison en dark",
+    "D08C mounted shortlist \u2192 Plan \u2192 comparison zh dark"
+  ],
+  "head": "0616efc99babb713394a34124279cf35b519cb1b",
+  "lifecycle": {
+    "initialLockPresent": true,
+    "reconciliation": "docs/verification/pr1291-consumer-fixtures-20261109/consumer-browser-r1-lifecycle.json",
+    "serverAbsenceVerifiedAt": "2026-11-09T18:04:00.764374+00:00",
+    "sha256": "44c6f31e8fb1368b75b45a64dd2cbd1805b20c8198adc4643b15c776ded7c4c0"
+  },
+  "logSha256": "0cf6c945138d8efd08756dfe4b1d2d140e1c190c4bef50aea8ec2eb3974ae4bb",
+  "nextLockAbsent": true,
+  "ownedPortClosed": true,
+  "port": 3898,
+  "reportErrors": [],
+  "schema": "terminal_pr1291_independent_consumer_reproduction.v1",
+  "seconds": 217.28,
+  "sourceEntries": 1983,
+  "sourceStable": true,
+  "startedAt": "2026-11-09T18:00:16.436483+00:00",
+  "state": "FAILED_REPRODUCTION_RETAINED",
+  "stats": {
+    "duration": 216389.688,
+    "expected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "startTime": "2026-11-09T18:00:17.046Z",
+    "unexpected": 4
+  },
+  "testedHostedMerge": "1d3a9717fdc988d3e724758fcfa7a8532abc70e8"
+}

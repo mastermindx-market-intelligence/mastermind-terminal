@@ -1,0 +1,69 @@
+{
+  "affectedLint": true,
+  "autoMergeEligible": false,
+  "browserAcceptance": {
+    "originalFailed": 12,
+    "repairedPassed": 12,
+    "retainedPassed": 15,
+    "singleGreenRun": false,
+    "totalCaseIdentities": 27
+  },
+  "currentTypecheck": true,
+  "focusedUnitPassed": 277,
+  "historicalNative": {
+    "composition": {
+      "actualCases": 54,
+      "operations": [
+        {
+          "path": "terminal/docs/pr-crops/b-pl-6-batch-1/terminal-pr1291-source-integration-20261109-r1-pl6--operation.json",
+          "sha256": "f40e2975e1c658c4f349ecc7fa93c0a3a70bc375d7212c1ff0f948a3f165a03f"
+        },
+        {
+          "path": "terminal/docs/pr-crops/terminal-visual-intelligence/terminal-pr1291-source-integration-20261109-r1-vi--operation.json",
+          "sha256": "43e1b97cbca1e708c63efb79ca91e4c0d68b6a0bd775f7eaf199949717868160"
+        }
+      ],
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/terminal-pr1291-source-integration-20261109-r1-current.composition.json",
+      "selectedCases": 50,
+      "sha256": "1005541873396cd2c7fd21725a59f17a3a59f76918e40c55738db1a106f914ca"
+    },
+    "pl6": 24,
+    "selected": 50,
+    "vi": 30
+  },
+  "historicalNativeReaderAssertionsPassed": 18,
+  "nodeControlsPassed": 139,
+  "originalExecutionRecords": {
+    "capture-r1-continuation/capture-execution.json": "0c79a592fb01ccee3fd2972c991fbd9fb6aac69d40a28a36f0d88c633f4ebd4f",
+    "capture-r1/capture-execution.json": "84a8ee82485c9cdb4f377c1d6361a23e35d825a39df470a0ab502bb02e510c0c",
+    "capture-r2/capture-execution.json": "8450485600a21e79dd31d2b1e8b3b778be7c78c4fa28f4907514a52882bb32e9",
+    "capture-r2/refusal-readonly-census.json": "aea9e861e4fae590e54c1718195a3798904ca127ab2739fdc4d47c084c2e6fa4",
+    "handoff-fixture-repair/repair.json": "19300fe65d5ec297d7cc588aa25454d77675cdbcae28b085c0ae051198edefc7",
+    "handoff-fixture-repair/validation-r1/execution.json": "e09ca52ebb0985c19521b205c383752739e3f225270f8c16ace26ad9b4836dd8",
+    "post-capture-validation/execution.json": "1e4fda9ecbed39c285751e75407b9d29b1ce9bfc07bc2aa9f539261a4132d5fc",
+    "pre-capture-validation/focused-checks.json": "b92316ec79bd5f913e19147b0122585cab723a7fd37c687294f577af04858871",
+    "visual-review.json": "2ceb1c1fa97e5c1e461dbc511d4d01570cf1ea78eb0f7fcc206b37cf97441dbd"
+  },
+  "originalHead": "797e8fed41963c6757dd35db8d77dd71e5d58fba",
+  "postCaptureSourceDelta": [
+    "terminal/e2e/options-lab-plan-handoff.spec.ts"
+  ],
+  "preparedAt": "2026-11-09T15:35:42.957137+00:00",
+  "protectedBase": "1c0bf028cf72539a4d3fcb17fa137ee474d764f9",
+  "r2": {
+    "cleanupRetried": false,
+    "code": "EPERM",
+    "completedOperation": false,
+    "composition": false,
+    "deniedPrimitive": "process.kill(-child.pid, 0)",
+    "missingOriginalProcessGroupIdentity": true,
+    "state": "FAILED_AFTER_24_OBSERVATIONS",
+    "viStarted": false
+  },
+  "requiredNext": "Normal configured PR CI must independently produce and validate current-source native evidence and required checks before Ready/auto/queue.",
+  "schema": "terminal_pr1291_source_candidate.v1",
+  "sourceEntries": 1983,
+  "sourceSha256": "78733a30ecb1815ba234281c48c7ddc55f018b79421d349a377fd4f37444eb9f",
+  "state": "SOURCE_VALIDATED_HOSTED_EVIDENCE_PENDING",
+  "writerReaderPassed": 38
+}

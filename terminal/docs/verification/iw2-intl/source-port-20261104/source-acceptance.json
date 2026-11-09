@@ -1,0 +1,168 @@
+{
+  "scope": "LOCAL_SOURCE_BROWSER_AND_IN_MEMORY_SOURCE_INTEGRATION_ONLY",
+  "source_commit": "f6874b38e29926664380816874623604a9c5bf34",
+  "base": "3832ec6699062aafe58d5d2f69e7bccfb0b19275",
+  "unit": {
+    "files": 95,
+    "passed": 1812,
+    "failed": 0
+  },
+  "browser": {
+    "passed": 6,
+    "failed": 0,
+    "workers": 1,
+    "retries": 0,
+    "local_http_rpc_auth_fixtures": true,
+    "viewports": [
+      "1440x900",
+      "820x1180",
+      "390x844"
+    ],
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "assertions": [
+      "explicit wholePlan transfer",
+      "one native Save",
+      "exact acknowledged revision reopen",
+      "no implicit calculation or Save",
+      "calculation separately requested"
+    ]
+  },
+  "typescript_exit": 0,
+  "lint": {
+    "errors": 31,
+    "warnings": 20,
+    "accepted_source_same_current_config_errors": 31,
+    "accepted_source_same_current_config_warnings": 23,
+    "new_rule_message_findings": 0,
+    "whole_lint_pass": false
+  },
+  "actual_normal_publisher": {
+    "hrefs": 50,
+    "html_sha256": "f95fa7d293d1fb3ebe53192e98305a4d38e5e8ae02b73b32a56ba772ac44ec74",
+    "handoff_sha256": "77dea2c2ac9aedd6cc6edcaca6aa48ca139799d5a580155c6bc4549e5f670acf",
+    "all_hrefs_equal_original_html_links": true,
+    "strict_native_intake_and_baseline_pass": true,
+    "source_fetch_and_principal_doubles": true,
+    "derived_controls_not_page_evidence": 2
+  },
+  "pixels": [
+    {
+      "file": "canonical-plan-source-en-desktop.png",
+      "sha256": "a27f84eda3266d21b74aa593bb925f73d0f31cd6ce89fab1e2656271b1ba4d05",
+      "parent_viewed": true
+    },
+    {
+      "file": "canonical-plan-source-en-mobile.png",
+      "sha256": "f433a7c6aa498cbc09aef84cb7d610f6c29f2b16bdf30bed79e6786878e0bd93",
+      "parent_viewed": true
+    },
+    {
+      "file": "canonical-plan-source-en-tablet.png",
+      "sha256": "baef3ed575ed8e25092f788f7b1b67f2f4f9a89b172465f922db3444013db54c",
+      "parent_viewed": true
+    },
+    {
+      "file": "canonical-plan-source-zh-desktop.png",
+      "sha256": "753e8bab7f32ceba8a6806e28bb84f33266fe925d1e0a2ec8f78a1a274f63652",
+      "parent_viewed": true
+    },
+    {
+      "file": "canonical-plan-source-zh-mobile.png",
+      "sha256": "91978a5c5a7707df1d59c3f66165dc0dd6a85a9620fb918d0872b4d6d7b7022f",
+      "parent_viewed": true
+    },
+    {
+      "file": "canonical-plan-source-zh-tablet.png",
+      "sha256": "279601aa437d6bff298d70788a8f2222137f0a61b9f5c89963b4d13138655984",
+      "parent_viewed": true
+    }
+  ],
+  "holds": [
+    "T03k original refusal / EFFECT_UNKNOWN",
+    "SQL0030 and0043 unqualified",
+    "all-ingress closure/drain/directRPC exclusion",
+    "release5989604142",
+    "no installation/admission/live Saved or auth acceptance",
+    "1275 next landing; candidate Draft/unarmed"
+  ],
+  "corpus_placement_repair": {
+    "historical_fixture_exact_master_sha256": "4ebec87f1c3c20d53d1795b3a4edfb14107987362265e161d9a19811a5384124",
+    "affected_typescript_pass": 159,
+    "affected_files": 3,
+    "python_in_memory_pass": 48,
+    "sql_bodies_or_queries_changed": false,
+    "native_runtime_changed": false,
+    "overlap_with_initial1812_not_summed": true
+  },
+  "nonauthor_source_review": {
+    "verdict": "PASS_SCOPED",
+    "snapshot": "f6874b38e29926664380816874623604a9c5bf34",
+    "tests": "NOT_RUN",
+    "result_sha256": "34156be9dcf83d947d0af0231354bd8a5f21b4c12e7a545b5169a13949f0c3b0"
+  },
+  "native_interface_restoration": {
+    "source": "e90ec466a050a5a636f0efc0de4a0176bb4a3445",
+    "component_sha256": "8ec7b34ab28efffeb7c83b2e5072e26071d925be76ff7d3049ee1d69a0542fb5",
+    "byte_exact": true,
+    "mounted_pass": 35,
+    "typescript_exit": 0,
+    "central_journal_save_scenario_helpers_unchanged": true,
+    "original_raw_worker": "NOT_ACCEPTED",
+    "independent_review": "FINDING_CONSUMED_RESOLVED; not a blanket final-source approval"
+  },
+  "composed_browser_regressions": {
+    "passed": 69,
+    "failed": 3,
+    "cause": "obsolete malformed-session control bypassed by stronger current shell admission",
+    "corrected_negative_controls": {
+      "passed": 3,
+      "failed": 0,
+      "scope": "DTM account service unavailable; Options not mounted; payoff request count0"
+    },
+    "prior_native_workspace_exact_save_reopen": 3,
+    "prior_whole_plan_enzh_dtm": 6,
+    "counts_overlap_possible": "Do not sum with other receipts"
+  },
+  "whole_node20_diagnostic": {
+    "source": "intermediate parent correction before accepted component restoration",
+    "files": 1154,
+    "passed": 20097,
+    "failed_timeout": 2,
+    "skipped": 47,
+    "todo": 4,
+    "source_snapshot_suite_errors": 2,
+    "timeout_isolation": {
+      "files": 2,
+      "passed": 59,
+      "failed": 0,
+      "workers": 1,
+      "timeouts_unchanged": true
+    },
+    "current_delta": "35 mounted cases plus restored final TypeScript; final evidence selection owed; no single whole-run green claim"
+  },
+  "ci_failure_consumed": {
+    "run": 41847928588,
+    "head": "df1a04013ebf85bcde99b054349c96da46689cb2",
+    "metadata_only": true,
+    "conclusion": "failure",
+    "pg_invariant_job": "success",
+    "observer_exit": 0,
+    "state": "RETIRED",
+    "no_payload_collection": true
+  },
+  "final_visual_composition": {
+    "path": "terminal/docs/pr-crops/b-pl-6-batch-1/iw2-source-port-current-20261104-r3.composition.json",
+    "actual_cases": 54,
+    "selected_required_cases": 50,
+    "pl6_pass": 24,
+    "vi_pass": 30,
+    "evidence_tests_pass": 2,
+    "failed": 0,
+    "changed_pixel_contact_review": 15,
+    "identical_predecessor_review_reuse": 39,
+    "historical_captures": "r1 and r2 retained under actual source snapshots, not selected or relabeled"
+  }
+}

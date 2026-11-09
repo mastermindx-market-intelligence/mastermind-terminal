@@ -340,6 +340,9 @@ for (const failure of [false, true]) test(`VI outputDir cleanup preserves ${fail
   assert.equal(Boolean(f.selected()), !failure);
 });
 
+// Source snapshot compatibility and artifact-path negative controls run in the required tool check.
+require("./visualEvidenceSourcePaths.test.cjs");
+
 test("the stale Pine packet runs all30 cases, retain complete prior bytes and leave validation with native readers", async t => {
   const f = fixture(t, { legacyStale: true }), result = await f.invoke();
   assert.deepEqual(f.legacyCalls, ["pine"]);

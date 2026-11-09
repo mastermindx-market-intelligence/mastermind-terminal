@@ -1,0 +1,46 @@
+[
+  {
+    "path": "ops/terminal-build.sh",
+    "stages": [
+      "100755 9af75ffa6a9449cd487697516b76ba4b7e46c30f 1\tops/terminal-build.sh",
+      "100755 fe81f46a02548eeaf59b831858929b7984165270 2\tops/terminal-build.sh",
+      "100755 3acacc322d25ab01069b6a506aa69d73f5911bc8 3\tops/terminal-build.sh"
+    ],
+    "selected": "protected-master",
+    "source": "1c0bf028cf72539a4d3fcb17fa137ee474d764f9",
+    "reason": "Current protected pre-hook safety/environment/path/race admission supersedes older branch PATH allowlist."
+  },
+  {
+    "path": "tests/test_terminal_investigation_install_admission.py",
+    "stages": [
+      "100644 569ff6204316c7c2c576db6c800e9d180faff472 1\ttests/test_terminal_investigation_install_admission.py",
+      "100644 c906b5c4946dea6473c0ae4363b6819e97e9ccc5 2\ttests/test_terminal_investigation_install_admission.py",
+      "100644 715c60ca077a7ae1adfcb0cde8b68d962f9143fb 3\ttests/test_terminal_investigation_install_admission.py"
+    ],
+    "selected": "protected-master",
+    "source": "1c0bf028cf72539a4d3fcb17fa137ee474d764f9",
+    "reason": "Keep the paired current protected fake-host admission tests."
+  },
+  {
+    "path": "terminal/components/options/OptionsPlanPayoffPanel.tsx",
+    "stages": [
+      "100644 fb46e15b98e8221beb402f5558651a943b3f981f 1\tterminal/components/options/OptionsPlanPayoffPanel.tsx",
+      "100644 52c5d113fe273dc104476acb2cc9a341df9774c7 2\tterminal/components/options/OptionsPlanPayoffPanel.tsx",
+      "100644 bab6a111a394ae29af5eefd8a86de03d96c3ff19 3\tterminal/components/options/OptionsPlanPayoffPanel.tsx"
+    ],
+    "selected": "protected-master",
+    "source": "1c0bf028cf72539a4d3fcb17fa137ee474d764f9",
+    "reason": "Current isScopeCurrent checks after callbacks/JSON and full retired-lifetime withdrawal supersede the older branch boundary."
+  },
+  {
+    "path": "terminal/lib/__tests__/optionsPlanPayoffPanel.test.tsx",
+    "stages": [
+      "100644 8523e3de0aac95d006a8178e849364da243af464 1\tterminal/lib/__tests__/optionsPlanPayoffPanel.test.tsx",
+      "100644 a31b6f043ed868c51f46c6add11f925d8666fa21 2\tterminal/lib/__tests__/optionsPlanPayoffPanel.test.tsx",
+      "100644 9d37f020d126e7a031538c8e4ef76c79c666bfb1 3\tterminal/lib/__tests__/optionsPlanPayoffPanel.test.tsx"
+    ],
+    "selected": "protected-master",
+    "source": "1c0bf028cf72539a4d3fcb17fa137ee474d764f9",
+    "reason": "Keep the paired current protected retired-lifetime and scope regression tests."
+  }
+]

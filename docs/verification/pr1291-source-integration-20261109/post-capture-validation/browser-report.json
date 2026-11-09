@@ -1,0 +1,1660 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/options-plan-save-reopen.spec.ts",
+      "e2e/options-lab-plan-handoff.spec.ts",
+      "e2e/options-lab-plan-composition.spec.ts",
+      "e2e/investigation-workspace.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--grep",
+      "whole Plan explicit transfer, Save, exact reopen and recalculation|Lab Scenario to exact Plan|admitted Lab round trip preserves pins, requires native New/Add and retires the old account|evidence review advances only through an explicit saved revision",
+      "--workers=1",
+      "--retries=0",
+      "--reporter=list,json",
+      "--output=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts"
+    ],
+    "configFile": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.spec.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.spec.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.spec.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3539",
+      "url": "http://127.0.0.1:3539/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_VERIFIED_AUTH": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:3539/api/__e2e__/supabase",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "investigation-workspace.spec.ts",
+      "file": "investigation-workspace.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "evidence review advances only through an explicit saved revision (en, Terminal dark theme)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3020,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:06:58.902Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "577fc3e797c89cf3cceb-cbe8fc3b6c7519892385",
+          "file": "investigation-workspace.spec.ts",
+          "line": 193,
+          "column": 45
+        },
+        {
+          "title": "evidence review advances only through an explicit saved revision (zh, Terminal dark theme)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2435,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:07:02.313Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "577fc3e797c89cf3cceb-5950768caf2e6678fb65",
+          "file": "investigation-workspace.spec.ts",
+          "line": 193,
+          "column": 45
+        },
+        {
+          "title": "evidence review advances only through an explicit saved revision (en, Terminal dark theme)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2200,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:07:48.856Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "577fc3e797c89cf3cceb-a7e2b7a86fc2ef5b8601",
+          "file": "investigation-workspace.spec.ts",
+          "line": 193,
+          "column": 45
+        },
+        {
+          "title": "evidence review advances only through an explicit saved revision (zh, Terminal dark theme)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2123,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:07:51.273Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "577fc3e797c89cf3cceb-f2f6a6f93747f2856ca7",
+          "file": "investigation-workspace.spec.ts",
+          "line": 193,
+          "column": 45
+        },
+        {
+          "title": "evidence review advances only through an explicit saved revision (en, Terminal dark theme)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 10,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2798,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:08:39.351Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "577fc3e797c89cf3cceb-4f6032468a8883ba950c",
+          "file": "investigation-workspace.spec.ts",
+          "line": 193,
+          "column": 45
+        },
+        {
+          "title": "evidence review advances only through an explicit saved revision (zh, Terminal dark theme)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 10,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2433,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:08:42.451Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "577fc3e797c89cf3cceb-765df77440e46834603e",
+          "file": "investigation-workspace.spec.ts",
+          "line": 193,
+          "column": 45
+        }
+      ]
+    },
+    {
+      "title": "options-lab-plan-composition.spec.ts",
+      "file": "options-lab-plan-composition.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "admitted Lab round trip preserves pins, requires native New/Add and retires the old account",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3508,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:07:04.759Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1c33989eb8d1a65c8797-7ea79e1299c01faad8c1",
+          "file": "options-lab-plan-composition.spec.ts",
+          "line": 6,
+          "column": 5
+        },
+        {
+          "title": "admitted Lab round trip preserves pins, requires native New/Add and retires the old account",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3152,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:07:53.410Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1c33989eb8d1a65c8797-ffcaa4cf1970e368a864",
+          "file": "options-lab-plan-composition.spec.ts",
+          "line": 6,
+          "column": 5
+        },
+        {
+          "title": "admitted Lab round trip preserves pins, requires native New/Add and retires the old account",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 10,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2524,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:08:44.901Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1c33989eb8d1a65c8797-8ea28b7167e67d981dbb",
+          "file": "options-lab-plan-composition.spec.ts",
+          "line": 6,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "options-lab-plan-handoff.spec.ts",
+      "file": "options-lab-plan-handoff.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Lab Scenario to exact Plan en dark",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7133,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                      "column": 26,
+                      "line": 41
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 39 |\u001b[39m     \u001b[36mawait\u001b[39m open\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\n \u001b[90m 40 |\u001b[39m     \u001b[36mconst\u001b[39m editor \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByTestId(\u001b[32m\"options-plan-draft\"\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 41 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mtoContainText(\u001b[32m\"765\"\u001b[39m)\u001b[33m;\u001b[39m \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoContainText(\u001b[32m\"785\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 42 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"entry\"]'\u001b[39m))\u001b[33m.\u001b[39mtoHaveValue(\u001b[32m\"\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 43 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"quantity\"]'\u001b[39m))\u001b[33m.\u001b[39mtoHaveValue(\u001b[32m\"\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 44 |\u001b[39m     \u001b[36mawait\u001b[39m editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"quantity\"]'\u001b[39m)\u001b[33m.\u001b[39mfill(\u001b[32m\"2\"\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                        "column": 26,
+                        "line": 41
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n\n\n  39 |     await open.click();\n  40 |     const editor = page.getByTestId(\"options-plan-draft\");\n> 41 |     await expect(editor).toBeVisible(); await expect(editor).toContainText(\"765\"); await expect(editor).not.toContainText(\"785\");\n     |                          ^\n  42 |     await expect(editor.locator('input[id*=\"entry\"]')).toHaveValue(\"\");\n  43 |     await expect(editor.locator('input[id*=\"quantity\"]')).toHaveValue(\"\");\n  44 |     await editor.locator('input[id*=\"quantity\"]').fill(\"2\");\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:07:08.278Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-dark-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-dark-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-dark-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                    "column": 26,
+                    "line": 41
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "6bb04ea44578feeef6e0-676464fdd87cc36f0f55",
+          "file": "options-lab-plan-handoff.spec.ts",
+          "line": 4,
+          "column": 7
+        },
+        {
+          "title": "Lab Scenario to exact Plan en light",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7111,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                      "column": 26,
+                      "line": 41
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 39 |\u001b[39m     \u001b[36mawait\u001b[39m open\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\n \u001b[90m 40 |\u001b[39m     \u001b[36mconst\u001b[39m editor \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByTestId(\u001b[32m\"options-plan-draft\"\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 41 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mtoContainText(\u001b[32m\"765\"\u001b[39m)\u001b[33m;\u001b[39m \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoContainText(\u001b[32m\"785\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 42 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"entry\"]'\u001b[39m))\u001b[33m.\u001b[39mtoHaveValue(\u001b[32m\"\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 43 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"quantity\"]'\u001b[39m))\u001b[33m.\u001b[39mtoHaveValue(\u001b[32m\"\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 44 |\u001b[39m     \u001b[36mawait\u001b[39m editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"quantity\"]'\u001b[39m)\u001b[33m.\u001b[39mfill(\u001b[32m\"2\"\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                        "column": 26,
+                        "line": 41
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n\n\n  39 |     await open.click();\n  40 |     const editor = page.getByTestId(\"options-plan-draft\");\n> 41 |     await expect(editor).toBeVisible(); await expect(editor).toContainText(\"765\"); await expect(editor).not.toContainText(\"785\");\n     |                          ^\n  42 |     await expect(editor.locator('input[id*=\"entry\"]')).toHaveValue(\"\");\n  43 |     await expect(editor.locator('input[id*=\"quantity\"]')).toHaveValue(\"\");\n  44 |     await editor.locator('input[id*=\"quantity\"]').fill(\"2\");\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:07:15.915Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-light-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-light-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-light-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                    "column": 26,
+                    "line": 41
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "6bb04ea44578feeef6e0-71a6c50b4c44d6ad6164",
+          "file": "options-lab-plan-handoff.spec.ts",
+          "line": 4,
+          "column": 7
+        },
+        {
+          "title": "Lab Scenario to exact Plan zh dark",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7252,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                      "column": 26,
+                      "line": 41
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 39 |\u001b[39m     \u001b[36mawait\u001b[39m open\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\n \u001b[90m 40 |\u001b[39m     \u001b[36mconst\u001b[39m editor \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByTestId(\u001b[32m\"options-plan-draft\"\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 41 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mtoContainText(\u001b[32m\"765\"\u001b[39m)\u001b[33m;\u001b[39m \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoContainText(\u001b[32m\"785\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 42 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"entry\"]'\u001b[39m))\u001b[33m.\u001b[39mtoHaveValue(\u001b[32m\"\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 43 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"quantity\"]'\u001b[39m))\u001b[33m.\u001b[39mtoHaveValue(\u001b[32m\"\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 44 |\u001b[39m     \u001b[36mawait\u001b[39m editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"quantity\"]'\u001b[39m)\u001b[33m.\u001b[39mfill(\u001b[32m\"2\"\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                        "column": 26,
+                        "line": 41
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n\n\n  39 |     await open.click();\n  40 |     const editor = page.getByTestId(\"options-plan-draft\");\n> 41 |     await expect(editor).toBeVisible(); await expect(editor).toContainText(\"765\"); await expect(editor).not.toContainText(\"785\");\n     |                          ^\n  42 |     await expect(editor.locator('input[id*=\"entry\"]')).toHaveValue(\"\");\n  43 |     await expect(editor.locator('input[id*=\"quantity\"]')).toHaveValue(\"\");\n  44 |     await editor.locator('input[id*=\"quantity\"]').fill(\"2\");\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:07:23.698Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-dark-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-dark-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-dark-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                    "column": 26,
+                    "line": 41
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "6bb04ea44578feeef6e0-bbea84305cc5d781acf8",
+          "file": "options-lab-plan-handoff.spec.ts",
+          "line": 4,
+          "column": 7
+        },
+        {
+          "title": "Lab Scenario to exact Plan zh light",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7416,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                      "column": 26,
+                      "line": 41
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 39 |\u001b[39m     \u001b[36mawait\u001b[39m open\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\n \u001b[90m 40 |\u001b[39m     \u001b[36mconst\u001b[39m editor \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByTestId(\u001b[32m\"options-plan-draft\"\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 41 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mtoContainText(\u001b[32m\"765\"\u001b[39m)\u001b[33m;\u001b[39m \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoContainText(\u001b[32m\"785\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 42 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"entry\"]'\u001b[39m))\u001b[33m.\u001b[39mtoHaveValue(\u001b[32m\"\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 43 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"quantity\"]'\u001b[39m))\u001b[33m.\u001b[39mtoHaveValue(\u001b[32m\"\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 44 |\u001b[39m     \u001b[36mawait\u001b[39m editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"quantity\"]'\u001b[39m)\u001b[33m.\u001b[39mfill(\u001b[32m\"2\"\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                        "column": 26,
+                        "line": 41
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n\n\n  39 |     await open.click();\n  40 |     const editor = page.getByTestId(\"options-plan-draft\");\n> 41 |     await expect(editor).toBeVisible(); await expect(editor).toContainText(\"765\"); await expect(editor).not.toContainText(\"785\");\n     |                          ^\n  42 |     await expect(editor.locator('input[id*=\"entry\"]')).toHaveValue(\"\");\n  43 |     await expect(editor.locator('input[id*=\"quantity\"]')).toHaveValue(\"\");\n  44 |     await editor.locator('input[id*=\"quantity\"]').fill(\"2\");\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:07:31.778Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-light-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-light-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-light-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                    "column": 26,
+                    "line": 41
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "6bb04ea44578feeef6e0-a0103d8da57496483b3e",
+          "file": "options-lab-plan-handoff.spec.ts",
+          "line": 4,
+          "column": 7
+        },
+        {
+          "title": "Lab Scenario to exact Plan en dark",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 5,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6901,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                      "column": 26,
+                      "line": 41
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 39 |\u001b[39m     \u001b[36mawait\u001b[39m open\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\n \u001b[90m 40 |\u001b[39m     \u001b[36mconst\u001b[39m editor \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByTestId(\u001b[32m\"options-plan-draft\"\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 41 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mtoContainText(\u001b[32m\"765\"\u001b[39m)\u001b[33m;\u001b[39m \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoContainText(\u001b[32m\"785\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 42 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"entry\"]'\u001b[39m))\u001b[33m.\u001b[39mtoHaveValue(\u001b[32m\"\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 43 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"quantity\"]'\u001b[39m))\u001b[33m.\u001b[39mtoHaveValue(\u001b[32m\"\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 44 |\u001b[39m     \u001b[36mawait\u001b[39m editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"quantity\"]'\u001b[39m)\u001b[33m.\u001b[39mfill(\u001b[32m\"2\"\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                        "column": 26,
+                        "line": 41
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n\n\n  39 |     await open.click();\n  40 |     const editor = page.getByTestId(\"options-plan-draft\");\n> 41 |     await expect(editor).toBeVisible(); await expect(editor).toContainText(\"765\"); await expect(editor).not.toContainText(\"785\");\n     |                          ^\n  42 |     await expect(editor.locator('input[id*=\"entry\"]')).toHaveValue(\"\");\n  43 |     await expect(editor.locator('input[id*=\"quantity\"]')).toHaveValue(\"\");\n  44 |     await editor.locator('input[id*=\"quantity\"]').fill(\"2\");\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:07:56.573Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-dark-tablet/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-dark-tablet/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-dark-tablet/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                    "column": 26,
+                    "line": 41
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "6bb04ea44578feeef6e0-52fea0a8893be83a06f8",
+          "file": "options-lab-plan-handoff.spec.ts",
+          "line": 4,
+          "column": 7
+        },
+        {
+          "title": "Lab Scenario to exact Plan en light",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 6,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7888,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                      "column": 26,
+                      "line": 41
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 39 |\u001b[39m     \u001b[36mawait\u001b[39m open\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\n \u001b[90m 40 |\u001b[39m     \u001b[36mconst\u001b[39m editor \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByTestId(\u001b[32m\"options-plan-draft\"\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 41 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mtoContainText(\u001b[32m\"765\"\u001b[39m)\u001b[33m;\u001b[39m \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoContainText(\u001b[32m\"785\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 42 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"entry\"]'\u001b[39m))\u001b[33m.\u001b[39mtoHaveValue(\u001b[32m\"\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 43 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"quantity\"]'\u001b[39m))\u001b[33m.\u001b[39mtoHaveValue(\u001b[32m\"\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 44 |\u001b[39m     \u001b[36mawait\u001b[39m editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"quantity\"]'\u001b[39m)\u001b[33m.\u001b[39mfill(\u001b[32m\"2\"\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                        "column": 26,
+                        "line": 41
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n\n\n  39 |     await open.click();\n  40 |     const editor = page.getByTestId(\"options-plan-draft\");\n> 41 |     await expect(editor).toBeVisible(); await expect(editor).toContainText(\"765\"); await expect(editor).not.toContainText(\"785\");\n     |                          ^\n  42 |     await expect(editor.locator('input[id*=\"entry\"]')).toHaveValue(\"\");\n  43 |     await expect(editor.locator('input[id*=\"quantity\"]')).toHaveValue(\"\");\n  44 |     await editor.locator('input[id*=\"quantity\"]').fill(\"2\");\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:08:04.335Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-light-tablet/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-light-tablet/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-light-tablet/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                    "column": 26,
+                    "line": 41
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "6bb04ea44578feeef6e0-1c9075726a5f9d9a6d47",
+          "file": "options-lab-plan-handoff.spec.ts",
+          "line": 4,
+          "column": 7
+        },
+        {
+          "title": "Lab Scenario to exact Plan zh dark",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 7,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7439,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                      "column": 26,
+                      "line": 41
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 39 |\u001b[39m     \u001b[36mawait\u001b[39m open\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\n \u001b[90m 40 |\u001b[39m     \u001b[36mconst\u001b[39m editor \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByTestId(\u001b[32m\"options-plan-draft\"\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 41 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mtoContainText(\u001b[32m\"765\"\u001b[39m)\u001b[33m;\u001b[39m \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoContainText(\u001b[32m\"785\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 42 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"entry\"]'\u001b[39m))\u001b[33m.\u001b[39mtoHaveValue(\u001b[32m\"\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 43 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"quantity\"]'\u001b[39m))\u001b[33m.\u001b[39mtoHaveValue(\u001b[32m\"\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 44 |\u001b[39m     \u001b[36mawait\u001b[39m editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"quantity\"]'\u001b[39m)\u001b[33m.\u001b[39mfill(\u001b[32m\"2\"\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                        "column": 26,
+                        "line": 41
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n\n\n  39 |     await open.click();\n  40 |     const editor = page.getByTestId(\"options-plan-draft\");\n> 41 |     await expect(editor).toBeVisible(); await expect(editor).toContainText(\"765\"); await expect(editor).not.toContainText(\"785\");\n     |                          ^\n  42 |     await expect(editor.locator('input[id*=\"entry\"]')).toHaveValue(\"\");\n  43 |     await expect(editor.locator('input[id*=\"quantity\"]')).toHaveValue(\"\");\n  44 |     await editor.locator('input[id*=\"quantity\"]').fill(\"2\");\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:08:13.216Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-dark-tablet/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-dark-tablet/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-dark-tablet/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                    "column": 26,
+                    "line": 41
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "6bb04ea44578feeef6e0-92dd46cd7f1e2fcfdf0f",
+          "file": "options-lab-plan-handoff.spec.ts",
+          "line": 4,
+          "column": 7
+        },
+        {
+          "title": "Lab Scenario to exact Plan zh light",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 8,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7718,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                      "column": 26,
+                      "line": 41
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 39 |\u001b[39m     \u001b[36mawait\u001b[39m open\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\n \u001b[90m 40 |\u001b[39m     \u001b[36mconst\u001b[39m editor \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByTestId(\u001b[32m\"options-plan-draft\"\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 41 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mtoContainText(\u001b[32m\"765\"\u001b[39m)\u001b[33m;\u001b[39m \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoContainText(\u001b[32m\"785\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 42 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"entry\"]'\u001b[39m))\u001b[33m.\u001b[39mtoHaveValue(\u001b[32m\"\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 43 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"quantity\"]'\u001b[39m))\u001b[33m.\u001b[39mtoHaveValue(\u001b[32m\"\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 44 |\u001b[39m     \u001b[36mawait\u001b[39m editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"quantity\"]'\u001b[39m)\u001b[33m.\u001b[39mfill(\u001b[32m\"2\"\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                        "column": 26,
+                        "line": 41
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n\n\n  39 |     await open.click();\n  40 |     const editor = page.getByTestId(\"options-plan-draft\");\n> 41 |     await expect(editor).toBeVisible(); await expect(editor).toContainText(\"765\"); await expect(editor).not.toContainText(\"785\");\n     |                          ^\n  42 |     await expect(editor.locator('input[id*=\"entry\"]')).toHaveValue(\"\");\n  43 |     await expect(editor.locator('input[id*=\"quantity\"]')).toHaveValue(\"\");\n  44 |     await editor.locator('input[id*=\"quantity\"]').fill(\"2\");\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:08:21.584Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-light-tablet/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-light-tablet/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-light-tablet/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                    "column": 26,
+                    "line": 41
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "6bb04ea44578feeef6e0-2ffedcf331fc33acb8e9",
+          "file": "options-lab-plan-handoff.spec.ts",
+          "line": 4,
+          "column": 7
+        },
+        {
+          "title": "Lab Scenario to exact Plan en dark",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 10,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6618,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                      "column": 26,
+                      "line": 41
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 39 |\u001b[39m     \u001b[36mawait\u001b[39m open\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\n \u001b[90m 40 |\u001b[39m     \u001b[36mconst\u001b[39m editor \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByTestId(\u001b[32m\"options-plan-draft\"\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 41 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mtoContainText(\u001b[32m\"765\"\u001b[39m)\u001b[33m;\u001b[39m \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoContainText(\u001b[32m\"785\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 42 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"entry\"]'\u001b[39m))\u001b[33m.\u001b[39mtoHaveValue(\u001b[32m\"\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 43 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"quantity\"]'\u001b[39m))\u001b[33m.\u001b[39mtoHaveValue(\u001b[32m\"\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 44 |\u001b[39m     \u001b[36mawait\u001b[39m editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"quantity\"]'\u001b[39m)\u001b[33m.\u001b[39mfill(\u001b[32m\"2\"\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                        "column": 26,
+                        "line": 41
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n\n\n  39 |     await open.click();\n  40 |     const editor = page.getByTestId(\"options-plan-draft\");\n> 41 |     await expect(editor).toBeVisible(); await expect(editor).toContainText(\"765\"); await expect(editor).not.toContainText(\"785\");\n     |                          ^\n  42 |     await expect(editor.locator('input[id*=\"entry\"]')).toHaveValue(\"\");\n  43 |     await expect(editor.locator('input[id*=\"quantity\"]')).toHaveValue(\"\");\n  44 |     await editor.locator('input[id*=\"quantity\"]').fill(\"2\");\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:08:47.439Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-dark-mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-dark-mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-dark-mobile/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                    "column": 26,
+                    "line": 41
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "6bb04ea44578feeef6e0-b49da0b7436ba1320504",
+          "file": "options-lab-plan-handoff.spec.ts",
+          "line": 4,
+          "column": 7
+        },
+        {
+          "title": "Lab Scenario to exact Plan en light",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 11,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6602,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                      "column": 26,
+                      "line": 41
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 39 |\u001b[39m     \u001b[36mawait\u001b[39m open\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\n \u001b[90m 40 |\u001b[39m     \u001b[36mconst\u001b[39m editor \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByTestId(\u001b[32m\"options-plan-draft\"\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 41 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mtoContainText(\u001b[32m\"765\"\u001b[39m)\u001b[33m;\u001b[39m \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoContainText(\u001b[32m\"785\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 42 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"entry\"]'\u001b[39m))\u001b[33m.\u001b[39mtoHaveValue(\u001b[32m\"\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 43 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"quantity\"]'\u001b[39m))\u001b[33m.\u001b[39mtoHaveValue(\u001b[32m\"\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 44 |\u001b[39m     \u001b[36mawait\u001b[39m editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"quantity\"]'\u001b[39m)\u001b[33m.\u001b[39mfill(\u001b[32m\"2\"\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                        "column": 26,
+                        "line": 41
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n\n\n  39 |     await open.click();\n  40 |     const editor = page.getByTestId(\"options-plan-draft\");\n> 41 |     await expect(editor).toBeVisible(); await expect(editor).toContainText(\"765\"); await expect(editor).not.toContainText(\"785\");\n     |                          ^\n  42 |     await expect(editor.locator('input[id*=\"entry\"]')).toHaveValue(\"\");\n  43 |     await expect(editor.locator('input[id*=\"quantity\"]')).toHaveValue(\"\");\n  44 |     await editor.locator('input[id*=\"quantity\"]').fill(\"2\");\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:08:54.635Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-light-mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-light-mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-light-mobile/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                    "column": 26,
+                    "line": 41
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "6bb04ea44578feeef6e0-826e235db85284c2f606",
+          "file": "options-lab-plan-handoff.spec.ts",
+          "line": 4,
+          "column": 7
+        },
+        {
+          "title": "Lab Scenario to exact Plan zh dark",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 12,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6621,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                      "column": 26,
+                      "line": 41
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 39 |\u001b[39m     \u001b[36mawait\u001b[39m open\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\n \u001b[90m 40 |\u001b[39m     \u001b[36mconst\u001b[39m editor \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByTestId(\u001b[32m\"options-plan-draft\"\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 41 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mtoContainText(\u001b[32m\"765\"\u001b[39m)\u001b[33m;\u001b[39m \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoContainText(\u001b[32m\"785\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 42 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"entry\"]'\u001b[39m))\u001b[33m.\u001b[39mtoHaveValue(\u001b[32m\"\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 43 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"quantity\"]'\u001b[39m))\u001b[33m.\u001b[39mtoHaveValue(\u001b[32m\"\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 44 |\u001b[39m     \u001b[36mawait\u001b[39m editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"quantity\"]'\u001b[39m)\u001b[33m.\u001b[39mfill(\u001b[32m\"2\"\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                        "column": 26,
+                        "line": 41
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n\n\n  39 |     await open.click();\n  40 |     const editor = page.getByTestId(\"options-plan-draft\");\n> 41 |     await expect(editor).toBeVisible(); await expect(editor).toContainText(\"765\"); await expect(editor).not.toContainText(\"785\");\n     |                          ^\n  42 |     await expect(editor.locator('input[id*=\"entry\"]')).toHaveValue(\"\");\n  43 |     await expect(editor.locator('input[id*=\"quantity\"]')).toHaveValue(\"\");\n  44 |     await editor.locator('input[id*=\"quantity\"]').fill(\"2\");\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:09:02.073Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-dark-mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-dark-mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-dark-mobile/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                    "column": 26,
+                    "line": 41
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "6bb04ea44578feeef6e0-f4bdf01897d146f98932",
+          "file": "options-lab-plan-handoff.spec.ts",
+          "line": 4,
+          "column": 7
+        },
+        {
+          "title": "Lab Scenario to exact Plan zh light",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 13,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6606,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                      "column": 26,
+                      "line": 41
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 39 |\u001b[39m     \u001b[36mawait\u001b[39m open\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\n \u001b[90m 40 |\u001b[39m     \u001b[36mconst\u001b[39m editor \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39mgetByTestId(\u001b[32m\"options-plan-draft\"\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 41 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mtoContainText(\u001b[32m\"765\"\u001b[39m)\u001b[33m;\u001b[39m \u001b[36mawait\u001b[39m expect(editor)\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoContainText(\u001b[32m\"785\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 42 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"entry\"]'\u001b[39m))\u001b[33m.\u001b[39mtoHaveValue(\u001b[32m\"\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 43 |\u001b[39m     \u001b[36mawait\u001b[39m expect(editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"quantity\"]'\u001b[39m))\u001b[33m.\u001b[39mtoHaveValue(\u001b[32m\"\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 44 |\u001b[39m     \u001b[36mawait\u001b[39m editor\u001b[33m.\u001b[39mlocator(\u001b[32m'input[id*=\"quantity\"]'\u001b[39m)\u001b[33m.\u001b[39mfill(\u001b[32m\"2\"\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                        "column": 26,
+                        "line": 41
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('options-plan-draft')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('options-plan-draft')\u001b[22m\n\n\n  39 |     await open.click();\n  40 |     const editor = page.getByTestId(\"options-plan-draft\");\n> 41 |     await expect(editor).toBeVisible(); await expect(editor).toContainText(\"765\"); await expect(editor).not.toContainText(\"785\");\n     |                          ^\n  42 |     await expect(editor.locator('input[id*=\"entry\"]')).toHaveValue(\"\");\n  43 |     await expect(editor.locator('input[id*=\"quantity\"]')).toHaveValue(\"\");\n  44 |     await editor.locator('input[id*=\"quantity\"]').fill(\"2\");\n    at /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts:41:26"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:09:09.400Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-light-mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-light-mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-light-mobile/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/e2e/options-lab-plan-handoff.spec.ts",
+                    "column": 26,
+                    "line": 41
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "6bb04ea44578feeef6e0-55a9acc2bab388521119",
+          "file": "options-lab-plan-handoff.spec.ts",
+          "line": 4,
+          "column": 7
+        }
+      ]
+    },
+    {
+      "title": "options-plan-save-reopen.spec.ts",
+      "file": "options-plan-save-reopen.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "whole Plan explicit transfer, Save, exact reopen and recalculation (en)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3782,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:07:40.001Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59662fbc52604e865709-23ce91708ee9fa06322b",
+          "file": "options-plan-save-reopen.spec.ts",
+          "line": 11,
+          "column": 7
+        },
+        {
+          "title": "whole Plan explicit transfer, Save, exact reopen and recalculation (zh)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 4,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4049,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:07:44.059Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59662fbc52604e865709-822a6d282b0acb492cc2",
+          "file": "options-plan-save-reopen.spec.ts",
+          "line": 11,
+          "column": 7
+        },
+        {
+          "title": "whole Plan explicit transfer, Save, exact reopen and recalculation (en)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 9,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3924,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:08:30.388Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59662fbc52604e865709-274af14fe19761114085",
+          "file": "options-plan-save-reopen.spec.ts",
+          "line": 11,
+          "column": 7
+        },
+        {
+          "title": "whole Plan explicit transfer, Save, exact reopen and recalculation (zh)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 9,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4034,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:08:34.612Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59662fbc52604e865709-16e89c9332ddf8c5c292",
+          "file": "options-plan-save-reopen.spec.ts",
+          "line": 11,
+          "column": 7
+        },
+        {
+          "title": "whole Plan explicit transfer, Save, exact reopen and recalculation (en)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 14,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3768,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:09:16.813Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59662fbc52604e865709-047b7ae481dec6525c5e",
+          "file": "options-plan-save-reopen.spec.ts",
+          "line": 11,
+          "column": 7
+        },
+        {
+          "title": "whole Plan explicit transfer, Save, exact reopen and recalculation (zh)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 14,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3826,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:09:20.820Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "59662fbc52604e865709-83c1097a914550716292",
+          "file": "options-plan-save-reopen.spec.ts",
+          "line": 11,
+          "column": 7
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-09T15:06:49.778Z",
+    "duration": 155038.625,
+    "expected": 15,
+    "skipped": 0,
+    "unexpected": 12,
+    "flaky": 0
+  }
+}

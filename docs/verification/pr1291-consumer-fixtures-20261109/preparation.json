@@ -1,0 +1,8 @@
+{
+  "schema": "terminal_pr1291_consumer_recovery_preparation.v1",
+  "head": "0616efc99babb713394a34124279cf35b519cb1b",
+  "originalCaptureRootPreserved": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109",
+  "originalEPERMEffectRetried": false,
+  "sourceAcquisitionRecovery": "First acquire was NOT_APPLIED because the GitHub-created published commit object was absent locally. Read-only object diagnosis confirmed absence and no operation worktree; explicit fetch of that exact commit completed before one materially changed acquire succeeded.",
+  "newSourceChangesAtPreparation": false
+}

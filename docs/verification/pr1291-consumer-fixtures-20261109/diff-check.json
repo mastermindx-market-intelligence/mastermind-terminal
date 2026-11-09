@@ -1,0 +1,47 @@
+{
+  "affectedSourceCheckExit": 0,
+  "affectedSourcePaths": [
+    "terminal/e2e/options-exposure-surface-journey.spec.ts",
+    "terminal/e2e/options-plan-compare-mounted.spec.ts"
+  ],
+  "fullCheckExit": 2,
+  "inheritedOrArtifactFindings": [
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 521,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr1291-consumer-fixtures-20261109/consumer-browser-r1/artifacts/options-exposure-surface-j-3c1be--saved-theme-cold-return-zh-desktop/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 521,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr1291-consumer-fixtures-20261109/consumer-browser-r1/artifacts/options-exposure-surface-j-7475b--saved-theme-cold-return-en-desktop/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 177,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr1291-consumer-fixtures-20261109/consumer-browser-r1/artifacts/options-plan-compare-mount-3ba18-\u2192-Plan-\u2192-comparison-en-dark-desktop/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 280,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr1291-consumer-fixtures-20261109/consumer-browser-r1/artifacts/options-plan-compare-mount-3ba18-\u2192-Plan-\u2192-comparison-en-dark-desktop/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 177,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr1291-consumer-fixtures-20261109/consumer-browser-r1/artifacts/options-plan-compare-mount-e748d-\u2192-Plan-\u2192-comparison-zh-dark-desktop/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 280,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr1291-consumer-fixtures-20261109/consumer-browser-r1/artifacts/options-plan-compare-mount-e748d-\u2192-Plan-\u2192-comparison-zh-dark-desktop/error-context.md"
+    }
+  ],
+  "note": "Protected or original source bytes and exact evidence artifacts are preserved; no unrelated accepted code is restyled."
+}

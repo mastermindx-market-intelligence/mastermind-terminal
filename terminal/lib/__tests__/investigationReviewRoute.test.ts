@@ -1,16 +1,17 @@
 import {afterEach,beforeEach,describe,expect,it,vi} from "vitest";
 import fixture from "./fixtures/aapl-event-workspace.json";
-const {createDb,getUser,read,current,retained,authorize}=vi.hoisted(()=>({createDb:vi.fn(),getUser:vi.fn(),read:vi.fn(),current:vi.fn(),retained:vi.fn(),authorize:vi.fn()}));
+const {createDb,getUser,read,current,retained,authorize,selected}=vi.hoisted(()=>({createDb:vi.fn(),getUser:vi.fn(),read:vi.fn(),current:vi.fn(),retained:vi.fn(),authorize:vi.fn(),selected:vi.fn()}));
 vi.mock("@/lib/supabase/server",()=>({createClient:createDb}));
 vi.mock("@/lib/investigations",async()=>({...await vi.importActual<typeof import("@/lib/investigations")>("@/lib/investigations"),readInvestigation:read}));
 vi.mock("@/lib/eventWorkspace",async()=>({...await vi.importActual<typeof import("@/lib/eventWorkspace")>("@/lib/eventWorkspace"),resolveCurrentEventWorkspaceFromR2:current,resolveRetainedEventWorkspaceFromR2:retained,authorizeRetainedPublicEventContext:authorize}));
+vi.mock("@/lib/investigationIssuerRelease",async()=>({...await vi.importActual<typeof import("@/lib/investigationIssuerRelease")>("@/lib/investigationIssuerRelease"),resolveInvestigationIssuerRelease:selected}));
 import {GET} from "@/app/api/investigations/review/route";
 const id="10000000-0000-4000-8000-000000000001";
 const reference={owner:"earnings.workspace_generation",object_type:"event_workspace",object_id:fixture.event_id,mode:"pinned",version_ref:fixture.generation_id,fingerprint:"a".repeat(64)};
 const manifest={schema:"investigation_manifest.v2",intent:{title:"Research",question:"What changed?",subjects:[{owner:"data_os.security_master",kind:"issuer",object_id:fixture.issuer.company_id}]},layout_refs:[],thesis_refs:[],evidence_refs:[reference],review_baseline_ref:reference,continuation:{}};
 const owner={ok:true,workspace:fixture,receipt:{owner:"earnings.workspace_generation",company_id:fixture.issuer.company_id,event_id:fixture.event_id,generation_id:fixture.generation_id,workspace_schema:fixture.schema,authority:fixture.authority,rights:{allowed:true}}};
 const request=(query=`id=${id}&revision=1`)=>new Request(`https://terminal.test/api/investigations/review?${query}`);
-beforeEach(()=>{vi.clearAllMocks();vi.stubEnv("INVESTIGATION_API_ADMISSION","open");createDb.mockResolvedValue({auth:{getUser}});getUser.mockResolvedValue({data:{user:{id:"unit-owner"}},error:null});read.mockResolvedValue({status:"found",id,revision:1,manifest});current.mockResolvedValue({ok:true,state:"ready",workspace:fixture});retained.mockResolvedValue(owner);});
+beforeEach(()=>{vi.clearAllMocks();vi.stubEnv("INVESTIGATION_API_ADMISSION","open");createDb.mockResolvedValue({auth:{getUser}});getUser.mockResolvedValue({data:{user:{id:"11111111-1111-4111-8111-111111111111"}},error:null});read.mockResolvedValue({status:"found",id,revision:1,manifest});current.mockResolvedValue({ok:true,state:"ready",workspace:fixture});retained.mockResolvedValue(owner);});
 afterEach(()=>vi.unstubAllEnvs());
 describe("authenticated read-only Investigation evidence review",()=>{
  it.each([undefined,"","closed","OPEN"," open "])("honors the incumbent closed admission before auth or evidence I/O (%s)",async gate=>{
@@ -19,7 +20,7 @@ describe("authenticated read-only Investigation evidence review",()=>{
   expect(result.status).toBe(503);
   expect(result.headers.get("cache-control")).toBe("private, no-store");expect(result.headers.get("vary")).toBe("Cookie");
   expect(createDb).not.toHaveBeenCalled();expect(getUser).not.toHaveBeenCalled();expect(read).not.toHaveBeenCalled();
-  expect(current).not.toHaveBeenCalled();expect(retained).not.toHaveBeenCalled();expect(authorize).not.toHaveBeenCalled();
+  expect(current).not.toHaveBeenCalled();expect(retained).not.toHaveBeenCalled();expect(authorize).not.toHaveBeenCalled();expect(selected).not.toHaveBeenCalled();
  });
  it("rechecks admission for each request while retaining normal authenticated behavior when open",async()=>{
   expect((await GET(request())).status).toBe(200);
@@ -52,4 +53,21 @@ describe("authenticated read-only Investigation evidence review",()=>{
   for(const query of [`id=${id}`,`id=${id}&revision=1&revision=1`,`id=no&revision=1`,`id=${id}&revision=2147483648`])expect((await GET(request(query))).status).toBe(400);
   expect(read).not.toHaveBeenCalled();
  });
+});
+
+it("routes a selected reference through the scoped receipt-gated selection adapter",async()=>{
+ const ref={...reference,selection:{field:"issuer_release"}};
+ read.mockResolvedValue({status:"found",id,revision:1,manifest:{...manifest,evidence_refs:[ref],review_baseline_ref:ref}});
+ selected.mockResolvedValue({ok:false,code:"HISTORICAL_UNAVAILABLE",reason:"rights_unavailable"});
+ expect((await GET(request())).status).toBe(503);
+ expect(selected.mock.calls[0][0]).toMatchObject({fingerprint:reference.fingerprint,generation_id:reference.version_ref});
+ expect(typeof selected.mock.calls[0][2].authorize).toBe("function");expect(selected.mock.calls[0][2].requestScope.principal_id).toBe("11111111-1111-4111-8111-111111111111");
+ expect(retained).not.toHaveBeenCalled();expect(current).not.toHaveBeenCalled();
+});
+
+it("keeps a mixed-owner manifest's selected Earnings baseline with its existing owner",async()=>{
+ const ref={owner:"intl.workspace_generation",object_type:"selected_generation",object_id:"intl-workspace-context:sha256:"+"c".repeat(64),mode:"pinned",version_ref:"im-workspace-generation:11111111-1111-4111-8111-111111111111",fingerprint:"b".repeat(64),selection:{field:"EZ.gdp_yoy"}};
+ const mixed={...manifest,schema:"investigation_manifest.v3",argument_relations:[],intent:{...manifest.intent,subjects:[...manifest.intent.subjects,{owner:"intl.workspace_context",kind:"economy",object_id:ref.object_id}]},evidence_refs:[reference,ref]};
+ read.mockResolvedValue({status:"found",id,revision:1,manifest:mixed,committed_at:"2026-11-04T10:00:00.000Z"});const forbiddenFetch=vi.fn(()=>{throw Error("Unexpected International owner read");});vi.stubGlobal("fetch",forbiddenFetch);
+ try{const response=await GET(request());expect(response.status).toBe(200);expect(await response.json()).toMatchObject({status:"reviewed",baseline:owner.receipt});expect(retained).toHaveBeenCalled();expect(forbiddenFetch).not.toHaveBeenCalled();}finally{vi.unstubAllGlobals();}
 });
