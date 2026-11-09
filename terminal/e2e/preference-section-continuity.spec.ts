@@ -59,8 +59,9 @@ for (const lang of ["en", "zh"] as const) {
     await panel.getByRole("tab", { name: lang === "zh" ? "终端" : "Terminal", exact: true }).click();
     await expect(group).toHaveCount(0);
     await preferences.click(); await expect(crypto).toHaveAttribute("aria-pressed", "true");
+    await expect(panel.locator(".acs-sect.on")).toHaveCSS("opacity", "1");
     const crop = info.outputPath(`preference-section-return-${lang}.png`);
-    await page.screenshot({ path: crop }); await info.attach("preference-section-return", { path: crop, contentType: "image/png" });
+    await page.screenshot({ path: crop, animations: "disabled" }); await info.attach("preference-section-return", { path: crop, contentType: "image/png" });
     release(); await expect.poll(() => acknowledged.length).toBe(1);
     expect(acknowledged).toEqual([{ trade_types: ["stocks", "options", "crypto"] }]);
     await page.reload(); await page.locator(".avatar:visible").first().click();
