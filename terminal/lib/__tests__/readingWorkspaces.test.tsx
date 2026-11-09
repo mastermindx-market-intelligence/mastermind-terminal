@@ -22,7 +22,7 @@ vi.mock("@/components/workspaces/TodayWatchAttention",()=>({default:()=>null}));
 vi.mock("@/components/workspaces/TodaySinceLastVisit",()=>({default:({render}:{render?:(parts:{priority:React.ReactNode;teaser:React.ReactNode;phase:string})=>React.ReactNode})=>render?.({priority:null,teaser:null,phase:"ready"})??null}));
 vi.mock("@/components/workspaces/TodayBreadthReading",()=>({default:({render}:{render?:(cell:React.ReactNode)=>React.ReactNode})=>render?.(null)??null}));
 vi.mock("@/lib/useMediaQuery",()=>({useMediaQuery:()=>false}));
-vi.mock("next/link",()=>({default:({children,...props}:React.AnchorHTMLAttributes<HTMLAnchorElement>)=><a {...props}>{children}</a>}));
+vi.mock("next/link",()=>({default:({children,prefetch,...props}:React.AnchorHTMLAttributes<HTMLAnchorElement> & {prefetch?:boolean})=><a {...props} data-prefetch={String(prefetch)}>{children}</a>}));
 const selection:ReadingSelection={docId:"report-one",sourcePdfSha256:"a".repeat(64),extractedTextSha256:"b".repeat(64),extractorVersion:"research_vault.ingest.extract_pdf_text.v1",segmenterVersion:"page-byte-v1"};
 function body(text="PRIVATE SELECTED SOURCE",start=0,total=3,docId=selection.docId){return{
  schema:"research_vault.browser_read.v1",report_id:docId,selection:{source_pdf_sha256:selection.sourcePdfSha256,extracted_text_sha256:selection.extractedTextSha256,extractor_version:selection.extractorVersion,segmenter_version:selection.segmenterVersion,segment_max_bytes:4000},

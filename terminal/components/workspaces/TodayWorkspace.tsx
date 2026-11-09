@@ -12,13 +12,14 @@ import TodayResearchAttention from "./TodayResearchAttention";
 import TodayWatchAttention from "./TodayWatchAttention";
 import TodaySinceLastVisit from "./TodaySinceLastVisit";
 import TodayBreadthReading from "./TodayBreadthReading";
+import TodayDeskDestinations from "./TodayDeskDestinations";
 import { ageLabel, freshnessLabel, readingFreshness } from "@/lib/shared-shell/readingFreshness";
 import { useReadingClock } from "@/lib/shared-shell/useReadingClock";
 
 const COPY = {
  en: {
   title: "Today", intro: "Your markets, saved changes and research.", owner: "United States · Macro",
-  snapshot: "Market snapshot", sourceSummary: "Macro reading & source dates",
+  snapshot: "Market snapshot", oldest: "Oldest dated reading", sourceSummary: "Macro reading & source dates",
   loading: "Checking published source coverage…", unavailable: "The Macro Command reading is unavailable. This does not mean markets are quiet.",
   unavailableTitle: "Market reading unavailable", auth: "Your account changed or your session ended. Private readings have been cleared.",
   accountUnavailable: "The account service is unavailable. Private readings are hidden.",
@@ -41,7 +42,7 @@ const COPY = {
  },
  zh: {
   title: "今日", intro: "市场概况、已保存读数的变化与研究。", owner: "美国 · 宏观",
-  snapshot: "市场概况", sourceSummary: "宏观解读与来源日期",
+  snapshot: "市场概况", oldest: "最早已标日期的读数", sourceSummary: "宏观解读与来源日期",
   loading: "正在核验已发布来源覆盖…", unavailable: "宏观指挥台读数暂不可用。这并不代表市场平静。",
   unavailableTitle: "市场读数暂不可用", auth: "账户已更改或会话已结束。私人读数已清除。",
   accountUnavailable: "账户服务暂不可用。私人读数已隐藏。",
@@ -178,7 +179,6 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
   return <main id="shared-shell-content" tabIndex={-1} className={`${styles.root} ${today.today}`}>
   <header className={`${styles.heading} ${today.pageHeading}`}>
    <div><h1>{c.title}</h1><p>{c.intro}</p></div>
-   <Link className={today.overviewLink} href="/macro.html">{c.overview}<Arrow /></Link>
   </header>
   {ended || phase === "auth" ? <div role="status" className={styles.notice}>
    <p>{c.auth}</p><div className={styles.actions}><button onClick={() => onboarding.open("signin")}>{c.signIn}</button>
@@ -192,6 +192,7 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
    {phase === "loading" ? <div role="status" className={styles.loading}>{c.loading}<div className={styles.skeleton} /></div> : !data ? <section role="status" className={`${styles.notice} ${today.unavailable}`}>
     <div className={styles.eyebrow}>{c.owner}</div><h2>{c.unavailableTitle}</h2><p>{c.unavailable}</p>
     <div className={styles.actions}><button onClick={() => void load()}>{c.retry}</button>
+    <Link href="/macro.html">{c.overview} →</Link>
     <Link href="/macro_monetary.html">{c.command} →</Link></div>
    </section> : <section className={today.brief} data-today-market-snapshot aria-labelledby="today-command">
     <div className={today.snapshotHeader}>
@@ -199,7 +200,7 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
      <div className={today.snapshotMeta}>
       <span className={today.verification} title={c.published}>{data.coverage.available} {c.of} {data.coverage.total} {c.sections}</span>
       {data.read.as_of && <span className={today.readingAge} data-kind={readAge.kind}>
-       {c.asof}: {localText(data.read.as_of_display, lang) || data.read.as_of}
+       {c.oldest}: {localText(data.read.as_of_display, lang) || data.read.as_of}
        {readAge.kind !== "undated" && ` · ${freshnessLabel(readAge, lang)}`}
       </span>}
      </div>
@@ -234,12 +235,13 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
        briefing. The holder renders the jobs itself, so no phase change remounts anything. */}
    <TodayResearchAttention ownerKey={ownerKey} scope={scope} onUnauthenticated={endAttention}
     render={({ continuation, briefing }) => <TodaySinceLastVisit ownerKey={ownerKey} scope={scope}
-    onUnauthenticated={endAttention} render={({ priority, teaser, phase: sincePhase }) => <div className={today.jobs} data-since-state={sincePhase}>
+    onUnauthenticated={endAttention} render={({ priority, teaser, context, phase: sincePhase }) => <div className={today.jobs} data-since-state={sincePhase} data-has-context={Boolean(context)}>
      {priority}
+     {context}
      <section className={today.watchJob} aria-label={c.attentionLabel}>
       <TodayWatchAttention ownerKey={ownerKey} scope={scope} onUnauthenticated={endAttention} />
      </section>
-     <aside className={today.continuationJob}>{continuation}</aside>
+     <aside className={today.continuationJob}>{continuation}<TodayDeskDestinations /></aside>
      <div className={today.researchJob}>{briefing}</div>
      {teaser}
      <section className={today.coverageJob} aria-labelledby="today-coverage">
