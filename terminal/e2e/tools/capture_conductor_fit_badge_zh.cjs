@@ -26,7 +26,7 @@ const { spawn, execFileSync } = require("node:child_process");
 const { createHash } = require("node:crypto");
 const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
-const { chromium } = require("@playwright/test");
+const { chromium, expect } = require("@playwright/test");
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
@@ -190,15 +190,21 @@ function chipProblems(lang, chip) {
 async function captureRail(page, lang, outPath) {
   await page.goto(`${BASE}/dev/theater`, { waitUntil: "domcontentloaded", timeout: 90_000 });
   await ensureLang(page, lang);
-  await page.waitForTimeout(400);
   const play = page.getByRole("button", { name: /Play demo|Playing/ });
   await play.waitFor({ state: "visible", timeout: 20_000 });
-  await play.click();
+  // SSR exposes the button before its handler hydrates. A click can be lost
+  // while the theater remains idle; wait for real conductor feedback, retrying
+  // only that idle state so an already-running demo is never restarted.
+  await expect.poll(async () => {
+    if (await page.locator(".cmx-plate.show").isVisible()) return true;
+    if (await play.isEnabled() && (await play.textContent())?.includes("Play demo")) await play.click();
+    return page.locator(".cmx-plate.show").isVisible();
+  }, { timeout: 20_000, intervals: [200, 400, 600] }).toBe(true);
   await page.waitForFunction(() => {
     const el = document.querySelector(".cmx-plate.show");
     return !!el && getComputedStyle(el).opacity === "1";
   }, null, { timeout: 15_000 });
-  const toggle = page.locator(".cmx-plate-ctl .cmx-btn:not(.cmx-skip)").first();
+  const toggle = page.locator(".cmx-plate-ctl button[aria-expanded]").first();
   await toggle.waitFor({ state: "attached", timeout: 15_000 });
   const show = lang === "zh" ? "显示实时步骤" : "Show live steps";
   const hide = lang === "zh" ? "隐藏实时步骤" : "Hide live steps";
@@ -211,7 +217,9 @@ async function captureRail(page, lang, outPath) {
 
   // Drained: every demo step is in the rail and the done plate is up, so nothing still animates in.
   await page.waitForFunction((n) => document.querySelectorAll(".cmx-rail .cmx-row").length === n, DEMO_ROWS, { timeout: 30_000 });
-  const done = lang === "zh" ? "完成" : "Done";
+  // The outcome summary now names accepted commands and actual live marks.
+  // Require both exact demo counts, rather than the retired generic “Done” label.
+  const done = lang === "zh" ? "7 项已接受 · 6 个 AI 标注" : "7 accepted · 6 AI marks";
   await page.waitForFunction((needle) => {
     const cap = document.querySelector(".cmx-plate.show .cmx-cap");
     return !!cap && (cap.textContent ?? "").includes(needle);

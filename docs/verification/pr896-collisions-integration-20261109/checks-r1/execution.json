@@ -1,0 +1,51 @@
+{
+  "completedAt": "2026-11-09T16:37:41.222517+00:00",
+  "results": {
+    "lint": {
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "e2e/tools/capture_b_f08_b5_3_collisions.cjs",
+        "lib/__tests__/b_f08_b5_3CollisionsEvidence.test.ts"
+      ],
+      "exit": 1,
+      "logSha256": "08c28cf632697d3cd87bb833f6e8fc35881ec6717bbdeaa2250ddb10000a7b1c",
+      "seconds": 3.18
+    },
+    "reader": {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/b_f08_b5_3CollisionsEvidence.test.ts",
+        "--pool=forks",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr896-collisions-integration-20261109/docs/verification/pr896-collisions-integration-20261109/checks-r1/reader.json"
+      ],
+      "exit": 0,
+      "logSha256": "3cac20d7adc679917cde6ee7bc225b365af866a586bbf2c5a208998f7a1b4e63",
+      "report": {
+        "numFailedTests": 0,
+        "numPassedTests": 4,
+        "numPendingTests": 0,
+        "numTotalTests": 4,
+        "success": true
+      },
+      "seconds": 1.28
+    },
+    "typecheck": {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seconds": 43.15
+    }
+  },
+  "schema": "terminal_pr896_affected_checks.v1",
+  "state": "FAILED"
+}

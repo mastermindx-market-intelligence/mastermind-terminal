@@ -1,0 +1,562 @@
+[
+  {
+    "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-field-error-1440-zh.png",
+    "packet": "b-f08-6-alert-prefs",
+    "file": "SectionAlertDelivery-field-error-1440-zh.png",
+    "bytes": 120186,
+    "width": 1140,
+    "height": 772,
+    "sha256": "d9f6a56438bc84c7f48b8f96f76aede34c5e47a2265a2f7d0f4d67c8cbd4940f",
+    "blobSha": "91fc47cdc422bfbea93ed3ee7578c1684bf929a2"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-field-error-1440.png",
+    "packet": "b-f08-6-alert-prefs",
+    "file": "SectionAlertDelivery-field-error-1440.png",
+    "bytes": 110050,
+    "width": 1140,
+    "height": 772,
+    "sha256": "66696e037bda603edfb4019faaffb691653060329598cbf600d29e1ba5b6413e",
+    "blobSha": "8f91367261218ac6acc434295bc2854cb920221c"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-field-error-390-zh.png",
+    "packet": "b-f08-6-alert-prefs",
+    "file": "SectionAlertDelivery-field-error-390-zh.png",
+    "bytes": 93173,
+    "width": 390,
+    "height": 844,
+    "sha256": "8aea9222f94f9c11fdd208df8ef4925d7d9679916565acacf42be27fa54dc80e",
+    "blobSha": "efc70c7671c5f62bc93b45d70b004757350c51f2"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-field-error-390.png",
+    "packet": "b-f08-6-alert-prefs",
+    "file": "SectionAlertDelivery-field-error-390.png",
+    "bytes": 80540,
+    "width": 390,
+    "height": 844,
+    "sha256": "263d53ed26fb10148faacacc8b8af3ac16e7990de5ea09d0b352339fd7481b69",
+    "blobSha": "75f0a4ba3c8937742ca8f63fed701a8ed20ee23d"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-populated-1440-zh.png",
+    "packet": "b-f08-6-alert-prefs",
+    "file": "SectionAlertDelivery-populated-1440-zh.png",
+    "bytes": 118313,
+    "width": 1140,
+    "height": 772,
+    "sha256": "59dd58c242d99673cfc8c0e4d9a8327cd62c5048ace6076c9432dc381fa0b209",
+    "blobSha": "298d71c919ad2dca59f32197642d6f8a51bb927c"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-populated-1440.png",
+    "packet": "b-f08-6-alert-prefs",
+    "file": "SectionAlertDelivery-populated-1440.png",
+    "bytes": 108739,
+    "width": 1140,
+    "height": 772,
+    "sha256": "f5b8c74e80c07d5735ca113fada69ac3079dd4c58fced1b00baad7ab261fa523",
+    "blobSha": "88072d33c7d64a09d8442fdf2a6cfa90fed84ae3"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-populated-390-zh.png",
+    "packet": "b-f08-6-alert-prefs",
+    "file": "SectionAlertDelivery-populated-390-zh.png",
+    "bytes": 89863,
+    "width": 390,
+    "height": 844,
+    "sha256": "b3bd52a1367150ed288163f63e83eb9ae8ac99aef11422c5202d363456fab670",
+    "blobSha": "3481430490e1292e98bd619fa3ec0e726ebb3164"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-populated-390.png",
+    "packet": "b-f08-6-alert-prefs",
+    "file": "SectionAlertDelivery-populated-390.png",
+    "bytes": 78900,
+    "width": 390,
+    "height": 844,
+    "sha256": "97491bbd734ac93d80389f991aee91baffc648a96a927a527c76bd782ddb8be3",
+    "blobSha": "e62c0b439c166e5848be3f86d4102216978f8816"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-quiet-hours-1440-zh.png",
+    "packet": "b-f08-6-alert-prefs",
+    "file": "SectionAlertDelivery-quiet-hours-1440-zh.png",
+    "bytes": 117870,
+    "width": 1140,
+    "height": 772,
+    "sha256": "28757ece5a9d16f4d67d2a00cbc0e31f7356404f3cc2eda5354f1213dd8fd089",
+    "blobSha": "dfe5ad9a3b04a046d4199f565a22d2066291029b"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-quiet-hours-1440.png",
+    "packet": "b-f08-6-alert-prefs",
+    "file": "SectionAlertDelivery-quiet-hours-1440.png",
+    "bytes": 107617,
+    "width": 1140,
+    "height": 772,
+    "sha256": "0ab8ac8e6438546aa2afdcc51af5196858de204790adb2fbbabc00f26868f9f1",
+    "blobSha": "f336609c1eb544d50b7add73126d227c990334be"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-quiet-hours-390-zh.png",
+    "packet": "b-f08-6-alert-prefs",
+    "file": "SectionAlertDelivery-quiet-hours-390-zh.png",
+    "bytes": 89279,
+    "width": 390,
+    "height": 844,
+    "sha256": "2a491f01775ae1bcf76131f04a5b6ae6a28c08d03461e3a0fd85670ebcc9fdf5",
+    "blobSha": "7f42fd724ab9f80c086402a16a6823084a6ff198"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-quiet-hours-390.png",
+    "packet": "b-f08-6-alert-prefs",
+    "file": "SectionAlertDelivery-quiet-hours-390.png",
+    "bytes": 79137,
+    "width": 390,
+    "height": 844,
+    "sha256": "0a595727a197c69ab7d9074033116afbe70577b71172d188c2d4322f1991ee40",
+    "blobSha": "8d6d84748e64c44736ab43b9092cc78f06400d05"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-unavailable-1440-zh.png",
+    "packet": "b-f08-6-alert-prefs",
+    "file": "SectionAlertDelivery-unavailable-1440-zh.png",
+    "bytes": 65078,
+    "width": 1140,
+    "height": 772,
+    "sha256": "bc9e2aa33156b7347f0f7dd3825e086288ebd045e3d5e4526271c65c48b276e4",
+    "blobSha": "672c61a3ec0c32535fc58b7fb002b3b671f1deaa"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-unavailable-1440.png",
+    "packet": "b-f08-6-alert-prefs",
+    "file": "SectionAlertDelivery-unavailable-1440.png",
+    "bytes": 64138,
+    "width": 1140,
+    "height": 772,
+    "sha256": "72fd9f7954e637a3bad80a84d0aeb30b79b8dede6534b4f3e33e682f411e0867",
+    "blobSha": "680c3ef245ac2df2b7d5cb8ee5e60f3631d9feb0"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-unavailable-390-zh.png",
+    "packet": "b-f08-6-alert-prefs",
+    "file": "SectionAlertDelivery-unavailable-390-zh.png",
+    "bytes": 44302,
+    "width": 390,
+    "height": 844,
+    "sha256": "9a86ae2a26443394ef2a1ea911ac1e1c8e7231f3bb0c631b321c855e158d66d3",
+    "blobSha": "fa8c9c0798b1f8f874d5e864cb54aa60143566da"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-unavailable-390.png",
+    "packet": "b-f08-6-alert-prefs",
+    "file": "SectionAlertDelivery-unavailable-390.png",
+    "bytes": 42348,
+    "width": 390,
+    "height": 844,
+    "sha256": "b90db3010a8702870adea3c999cc15ac95a37615c87fbb76db0e6e9d5f255552",
+    "blobSha": "bc07c727fd30430f332fa44ad49290c488c80241"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-cleared-1440-zh.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-cleared-1440-zh.png",
+    "bytes": 19978,
+    "width": 1212,
+    "height": 297,
+    "sha256": "3d281854b41266dc65bbb3b22bc196c3ca99e2847d8d7a92100fa71f58843964",
+    "blobSha": "b2e2aa027ae9317279956dd5297f7ea21e4b7d2c"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-cleared-1440.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-cleared-1440.png",
+    "bytes": 17265,
+    "width": 1212,
+    "height": 297,
+    "sha256": "23d0f2513229560b94025d7b4e84d0922b7a8f90d282da206f323571f701c8ee",
+    "blobSha": "0856a9979c9ccde2e74f3d7466eabeac8f87dbf8"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-cleared-390-zh.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-cleared-390-zh.png",
+    "bytes": 18251,
+    "width": 378,
+    "height": 309,
+    "sha256": "ff6749967d3af38d0f5d6fd079642f76628ff3f80b8f44f871df7d69e53848ce",
+    "blobSha": "999ef3a7345d564162f959e8dba29b8a6587e775"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-cleared-390.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-cleared-390.png",
+    "bytes": 15787,
+    "width": 378,
+    "height": 309,
+    "sha256": "e352fa63eb75827518e7f07372df4397e28e5f5d897a8ac97aa929425684a05d",
+    "blobSha": "ddb7e4a49063c8251727b94ca4725c11be3d431d"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-empty-1440-zh.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-empty-1440-zh.png",
+    "bytes": 21182,
+    "width": 1212,
+    "height": 265,
+    "sha256": "1cc7c889dbc0868875bab637de4789c4bb09dbaa6922d9c31e6e3a4342148a6d",
+    "blobSha": "b1a21419c81dab7c28c94315bc3d6ca9ac7b6fc1"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-empty-1440.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-empty-1440.png",
+    "bytes": 17836,
+    "width": 1212,
+    "height": 265,
+    "sha256": "317d666ccff1d5cce5d7b5e549a84f3ee219a4bb820ba607b95c0894fd3884ca",
+    "blobSha": "7a2eb0f8d3b4ce98c82a79a1889dc1a671bd31c5"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-empty-390-zh.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-empty-390-zh.png",
+    "bytes": 19453,
+    "width": 378,
+    "height": 281,
+    "sha256": "edf89ea4603db75aeafa83c39d8079fd97fa85a14ec636e6687438fdd81786fb",
+    "blobSha": "5641ad110699cc45e9b1182170cc9b27afeb7461"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-empty-390.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-empty-390.png",
+    "bytes": 16342,
+    "width": 378,
+    "height": 281,
+    "sha256": "517c6fec61f38ee7088e87bd4d8a3ccd5be3d6ab809596e097e402130a7b5c90",
+    "blobSha": "7a2b199b8c5630e42e8165ecb6126606fdf89d47"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-orphaned-empty-book-1440-zh.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-orphaned-empty-book-1440-zh.png",
+    "bytes": 39139,
+    "width": 1212,
+    "height": 268,
+    "sha256": "97b8e58361179760cf38239e01fb790c3ee891cebadd0544609a49cab4d1a881",
+    "blobSha": "8cf761562179c00d79184a7583081f0d4440e5fb"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-orphaned-empty-book-1440.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-orphaned-empty-book-1440.png",
+    "bytes": 25275,
+    "width": 1212,
+    "height": 268,
+    "sha256": "8cb1078a7fb8770b93dee3513593580d0de74adeba32dd0c8e441c266c8289e5",
+    "blobSha": "c797232885c25e3a71e3f88d82aa86ba2ac3ea61"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-orphaned-empty-book-390-zh.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-orphaned-empty-book-390-zh.png",
+    "bytes": 35960,
+    "width": 378,
+    "height": 328,
+    "sha256": "004d799f11aa16de8eadfcf37cc26c6ecd08f2f82445097e28851b0505da9689",
+    "blobSha": "6471b65a2fd7e13ae6d1bd80bd99742e7791d25d"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-orphaned-empty-book-390.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-orphaned-empty-book-390.png",
+    "bytes": 23799,
+    "width": 378,
+    "height": 292,
+    "sha256": "a4fd9cde12ed1015b2d250b55f3a897ca30bc7c0af3ab91af3061461dc7a40b3",
+    "blobSha": "154930dadddd00135d300a846f35d45aa49c4a51"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-orphaned-target-disclosed-1440-zh.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-orphaned-target-disclosed-1440-zh.png",
+    "bytes": 52971,
+    "width": 1212,
+    "height": 406,
+    "sha256": "129fdd5b4590532c308b8b83952f996e68a8018af1c55d1f9fc893be153f7bc3",
+    "blobSha": "c988106a37f7865a33597167d7872f4b84a7adb0"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-orphaned-target-disclosed-1440.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-orphaned-target-disclosed-1440.png",
+    "bytes": 35422,
+    "width": 1212,
+    "height": 406,
+    "sha256": "fe5f8383df2aadacdba414bc4ba82b870106be85e9ee5d8c5ef5efc4d18f8f28",
+    "blobSha": "02ebbcaf2c72722b197781dd509f8dc3ad8f48de"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-orphaned-target-disclosed-390-zh.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-orphaned-target-disclosed-390-zh.png",
+    "bytes": 49358,
+    "width": 378,
+    "height": 513,
+    "sha256": "ff52c91937073a9aef8fd2fa531d64edcf32a000c03f431d02251950979dc74e",
+    "blobSha": "2de526dd46d4ea450313ba203990caa0500d98e3"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-orphaned-target-disclosed-390.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-orphaned-target-disclosed-390.png",
+    "bytes": 33278,
+    "width": 378,
+    "height": 459,
+    "sha256": "35fd138da20f952f3adce95c513a1ea12663c17a1806178a537757d475b3edc4",
+    "blobSha": "c1c7defda20c18c82451f79e15fc68ecb3267cd2"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-populated-outside-band-1440-zh.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-populated-outside-band-1440-zh.png",
+    "bytes": 44639,
+    "width": 1212,
+    "height": 484,
+    "sha256": "6add7795bac23009ba260a5eb25d4b97c71a13ee26bcb600b4f383c0bf40224f",
+    "blobSha": "912d919f82fc1a24075644ceec3ae6b6c4bc9f3e"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-populated-outside-band-1440.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-populated-outside-band-1440.png",
+    "bytes": 35445,
+    "width": 1212,
+    "height": 484,
+    "sha256": "839c2f280d23ef789753e7968e6ace73624f115f3351d5fd8818f0fe7e990116",
+    "blobSha": "74ec4586f21c450288d1f5a7c9c7fc7f010630f9"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-populated-outside-band-390-zh.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-populated-outside-band-390-zh.png",
+    "bytes": 42434,
+    "width": 378,
+    "height": 666,
+    "sha256": "8102cf86c0089d104defe01899356a52bc12b619738fc87a9aa3fe0ec11583d1",
+    "blobSha": "3d05fc808d88254be55103ade5a626c76ddd6ad8"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-populated-outside-band-390.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-populated-outside-band-390.png",
+    "bytes": 34310,
+    "width": 378,
+    "height": 666,
+    "sha256": "8a38e353706baddab94c27e9fe8fb92bf6f7c6e7e714d3276843fb5cbda00507",
+    "blobSha": "39ec74527e73f176acdef34127b9cc6472ac9bd8"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-populated-within-band-1440-zh.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-populated-within-band-1440-zh.png",
+    "bytes": 45668,
+    "width": 1212,
+    "height": 484,
+    "sha256": "8dc4c33b12a4c69d49398af6dc9721e947c4b8573dab6725287e63bf40fca05c",
+    "blobSha": "b74ad64ff8abba5f9f7ff10f886746a0d989c255"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-populated-within-band-1440.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-populated-within-band-1440.png",
+    "bytes": 35103,
+    "width": 1212,
+    "height": 484,
+    "sha256": "eb6c6545763c6b6fda9b25b9759952aa6e546f37ccc6d5b26fcdc2af60016cd8",
+    "blobSha": "b84e600a981c70d355423326766df962aa293edb"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-populated-within-band-390-zh.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-populated-within-band-390-zh.png",
+    "bytes": 42021,
+    "width": 378,
+    "height": 666,
+    "sha256": "e500166899fd64012e33d464156da47987bdadb898a752df3f9cad83dedfa890",
+    "blobSha": "d95dc47af67507bc5c099cde40f96c765f3cda70"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-populated-within-band-390.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-populated-within-band-390.png",
+    "bytes": 33755,
+    "width": 378,
+    "height": 666,
+    "sha256": "65f45cf8ee344a031d503fa6a051f25d2bca0ba196abcae360daa8bd68154605",
+    "blobSha": "067bacc44c851e76cbfaddd8f4bbb8beb4c8f073"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-unavailable-1440-zh.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-unavailable-1440-zh.png",
+    "bytes": 7620,
+    "width": 1212,
+    "height": 76,
+    "sha256": "3a9e3f7760c7172304560a73619a90105e14f55f6e5159aa4461afe81b701dd1",
+    "blobSha": "347646f83e9d9fa20fcd79e8e47a3e873b4603d2"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-unavailable-1440.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-unavailable-1440.png",
+    "bytes": 5929,
+    "width": 1212,
+    "height": 76,
+    "sha256": "fec59264fde4cefd1221e30a2edf8266f4edd2a53a361986962b25afcec9d6a3",
+    "blobSha": "9f1b3bdd9178e5b4e5a8a5fc41a5aae741b96d96"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-unavailable-390-zh.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-unavailable-390-zh.png",
+    "bytes": 6807,
+    "width": 378,
+    "height": 64,
+    "sha256": "6ad35f2f02bb3f393d39e09821d566eec4adfc119a6b1d095c818ac2ac5f1ed0",
+    "blobSha": "d59bec1df8b7909eec069c55b84ca08fde95cbf2"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-unavailable-390.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-unavailable-390.png",
+    "bytes": 5727,
+    "width": 378,
+    "height": 82,
+    "sha256": "8b9db0a5773bcd2f7ab77628f4a6d89926751e035ab5c54392ae0be0d3e63a2b",
+    "blobSha": "84d27d215395ec82f68a94d6a8eab9e52e0fcfb6"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-unweighable-1440-zh.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-unweighable-1440-zh.png",
+    "bytes": 81133,
+    "width": 1212,
+    "height": 980,
+    "sha256": "19d1b5da7c076643f773b48c71b91f8a8f884cfd4405bb1e91695f697bed8436",
+    "blobSha": "3a400a689c7bbec8d71247ebf20056832eb7b268"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-unweighable-1440.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-unweighable-1440.png",
+    "bytes": 65405,
+    "width": 1212,
+    "height": 980,
+    "sha256": "5c38dfe9cbc1f41d225b086be36ee8a59c6437ab5065d7a13f01a3071f1f23cc",
+    "blobSha": "622939527fd823cab3aad9a0de3d52e858317a87"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-unweighable-390-zh.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-unweighable-390-zh.png",
+    "bytes": 76886,
+    "width": 378,
+    "height": 1366,
+    "sha256": "0af38583f1f0c126ee7b22f15c567b07e0be9ade102d70077376ac4471da2913",
+    "blobSha": "caba43c7cfd9047dc28e8165949e4063f3d17478"
+  },
+  {
+    "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-unweighable-390.png",
+    "packet": "b-f08-b5-1-targets",
+    "file": "PortfolioTargets-unweighable-390.png",
+    "bytes": 63290,
+    "width": 378,
+    "height": 1366,
+    "sha256": "f529f80846b9680c00ffa21ce3a4893a64faf5f719585770f335b13bebfd8009",
+    "blobSha": "7a2f6152badace32a8b613d44b49f72107b0fa82"
+  },
+  {
+    "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-empty-1440-en.png",
+    "packet": "w9t-f08-13-targets-readout",
+    "file": "PortfolioTargetsSettings-empty-1440-en.png",
+    "bytes": 237554,
+    "width": 2280,
+    "height": 1544,
+    "sha256": "6096a7dff3f68cec58e64a9e26c6b2d85e99e2fd1bec1d59ef3582b86d3d848a",
+    "blobSha": "dcac35bb26a056784e6ac9f518e5f838cf9b6c1d"
+  },
+  {
+    "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-empty-1440-zh.png",
+    "packet": "w9t-f08-13-targets-readout",
+    "file": "PortfolioTargetsSettings-empty-1440-zh.png",
+    "bytes": 238673,
+    "width": 2280,
+    "height": 1544,
+    "sha256": "d1d3e5204bdbd197e0ada930a813181859f2de97159c37da2695193681111bd7",
+    "blobSha": "72139fff19cdab921831cb7cd950bba6dda1c96b"
+  },
+  {
+    "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-empty-390-en.png",
+    "packet": "w9t-f08-13-targets-readout",
+    "file": "PortfolioTargetsSettings-empty-390-en.png",
+    "bytes": 144918,
+    "width": 780,
+    "height": 1688,
+    "sha256": "932faf8fe36348acd21982f16d5814a9c27096b71003e660275ab3e4e7f50fb3",
+    "blobSha": "5daf62e09576638cfdf4ec3be5de2d04ec193d79"
+  },
+  {
+    "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-empty-390-zh.png",
+    "packet": "w9t-f08-13-targets-readout",
+    "file": "PortfolioTargetsSettings-empty-390-zh.png",
+    "bytes": 154283,
+    "width": 780,
+    "height": 1688,
+    "sha256": "faf4819f5d3fdf06d0b203dc8b0f0b17bc23d64ce2ee23e570b483d8cd8ca555",
+    "blobSha": "43f7ee8c4cbb5a3525168051e1a9c678fcbadfe0"
+  },
+  {
+    "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-populated-1440-en.png",
+    "packet": "w9t-f08-13-targets-readout",
+    "file": "PortfolioTargetsSettings-populated-1440-en.png",
+    "bytes": 255142,
+    "width": 2280,
+    "height": 1544,
+    "sha256": "d891872dab9b00ac95002106b4c5d6cb4e089d67c9a4723355b570e8e30bab4f",
+    "blobSha": "c79e4e1455920e4054e7f91e1bcd93aa1b5e39ba"
+  },
+  {
+    "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-populated-1440-zh.png",
+    "packet": "w9t-f08-13-targets-readout",
+    "file": "PortfolioTargetsSettings-populated-1440-zh.png",
+    "bytes": 261775,
+    "width": 2280,
+    "height": 1544,
+    "sha256": "87a5ec4ca26e183c8050c01091722241138902afe007997302acafab5be89fcb",
+    "blobSha": "5d637ec0a8ec40504e8d990477a33d2af90b4af5"
+  },
+  {
+    "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-populated-390-en.png",
+    "packet": "w9t-f08-13-targets-readout",
+    "file": "PortfolioTargetsSettings-populated-390-en.png",
+    "bytes": 154685,
+    "width": 780,
+    "height": 1688,
+    "sha256": "26ca3144d5550b04a50dadc4e21c0a0affdf812cdd0653792a8e6ca993249086",
+    "blobSha": "d60c8cf580875b1a4bcb26e2437135943b23fb54"
+  },
+  {
+    "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-populated-390-zh.png",
+    "packet": "w9t-f08-13-targets-readout",
+    "file": "PortfolioTargetsSettings-populated-390-zh.png",
+    "bytes": 162094,
+    "width": 780,
+    "height": 1688,
+    "sha256": "27a5d74d1c318cc4db6fc3bcb279bc20dee7e37205e4cc86c32422ded715f575",
+    "blobSha": "de8a5b3e234489c1f36c94f7307df07a6be70a38"
+  }
+]

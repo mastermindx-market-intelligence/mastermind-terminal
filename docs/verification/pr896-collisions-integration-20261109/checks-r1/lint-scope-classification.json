@@ -1,0 +1,17 @@
+{
+  "at": "2026-11-09T16:39:52.310709+00:00",
+  "baselineProducerLintExit": 1,
+  "baselineReportSha256": "1b402065ee39ee1aa0de30181933052fd975cbe241f70a4367fa5849eb97a4c8",
+  "baselineRequireFindings": 5,
+  "currentRequireFindings": 6,
+  "moduleConfigurationChanged": false,
+  "newFinding": "Intentional CommonJS import of the existing capture lifecycle owner in a .cjs file.",
+  "otherFindings": 0,
+  "producerSyntaxExit": 0,
+  "qualificationBasis": "Existing CommonJS producer syntax validation and TS guard lint, matching the proportionate protected #900 precedent. Raw ESLint failure is retained and is not represented as PASS.",
+  "rawProducerLintExit": 1,
+  "rawReportSha256": "08c28cf632697d3cd87bb833f6e8fc35881ec6717bbdeaa2250ddb10000a7b1c",
+  "schema": "terminal_pr896_lint_scope_classification.v1",
+  "testLintExit": 0,
+  "testLintSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

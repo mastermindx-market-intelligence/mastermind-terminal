@@ -1,0 +1,22 @@
+{
+  "checked_at": "2026-10-13T02:24:09.026046+00:00",
+  "base_head": "157bafab3a1a3f61746d5719cdb2cad5c9e9135d",
+  "tests": {
+    "new_terminal_source_api": 62,
+    "new_hub_publication": 15,
+    "typecheck_exit": 0,
+    "plain_language_guard_exit": 0
+  },
+  "source_sha256": {
+    "terminal/lib/futuresRequest.ts": "2c2d4c9f5f6c2c8c4cea70994e0e4db9fc9cfd49eeabfe0b05fe7b34c75cd4f1",
+    "terminal/lib/futuresTransport.ts": "10352bd40f11a983668473841a4e6251c3786bd27f58e1cd5400f35152251508",
+    "terminal/lib/futuresSourceJoin.ts": "a6ae6dd320f47cd5a796c9356fb5842f84bdea6f5ff84eab347e87d8378fbb34",
+    "terminal/lib/futuresSourceRead.ts": "a10154596b3052e0855a01baa6a3d023160e8cd602db462ab807951f355857dc",
+    "terminal/app/api/futures/route.ts": "59ea3b71995fb695faf448b9b0afacdb6295b8267228f0448f086d335014e66e",
+    "hub/lib/futuresPublication.js": "5916dead44601c03c0c92ece5a0566c080a4d3f2ce11b426516b86902b139cd1",
+    "hub/hub.js": "e0db24f7e4a9c54cfa9b4909aac2b31cafd1ef9779f9a0872233a9f33eddf067"
+  },
+  "live_source_configured": false,
+  "source_rights_established": false,
+  "review": "prior refused review-discovery action remains held; no independent review claimed"
+}

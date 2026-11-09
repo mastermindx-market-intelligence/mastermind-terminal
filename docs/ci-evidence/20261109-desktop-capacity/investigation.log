@@ -1,0 +1,39 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/2fe663974ce0/validation-pr801-capacity/terminal
+
+ ✓ lib/__tests__/investigationScenario.test.ts (24 tests) 17ms
+ ✓ lib/__tests__/investigationCommodityContext.test.ts (69 tests) 101ms
+ ✓ lib/__tests__/investigationOptionsSelectionEvidence.test.ts (10 tests) 11ms
+ ✓ lib/__tests__/investigationOptionsSelectionMigrationContract.test.ts (12 tests) 31ms
+ ✓ lib/__tests__/investigationEvidenceOptions.test.ts (13 tests) 29ms
+ ✓ lib/__tests__/investigationReview.test.ts (8 tests) 38ms
+ ✓ lib/__tests__/investigationContracts.test.ts (115 tests) 88ms
+ ✓ lib/__tests__/investigationWatch.test.ts (7 tests) 11ms
+ ✓ lib/__tests__/investigationOptionsReference.test.ts (64 tests) 28ms
+ ✓ lib/__tests__/investigationEvidenceOwnersMigrationContract.test.ts (5 tests) 9ms
+ ✓ lib/__tests__/investigationApiAdmission.test.ts (50 tests) 114ms
+ ✓ lib/__tests__/investigationsAdmissionRoute.test.ts (17 tests) 69ms
+ ✓ lib/__tests__/investigationReviewRoute.test.ts (11 tests) 68ms
+ ✓ lib/__tests__/investigationEvidenceDiff.test.ts (14 tests) 12ms
+ ✓ lib/__tests__/investigationEarningsReview.test.ts (7 tests) 44ms
+ ✓ lib/__tests__/investigationScenarioServer.test.ts (8 tests) 14ms
+ ✓ lib/__tests__/investigationJournal.test.ts (6 tests) 31ms
+ ✓ lib/__tests__/investigationSave.test.ts (6 tests) 9ms
+ ✓ lib/__tests__/investigationReviewMigrationContract.test.ts (3 tests) 5ms
+ ✓ lib/__tests__/investigationScenarioResolutionServer.test.ts (5 tests) 22ms
+ ✓ lib/__tests__/investigations.test.ts (5 tests) 13ms
+ ✓ lib/__tests__/investigationV2.test.ts (15 tests) 32ms
+ ✓ lib/__tests__/investigationBaselineRoute.test.ts (4 tests) 24ms
+ ✓ lib/__tests__/investigationEvidenceOptionsAdmission.test.ts (2 tests) 9ms
+ ✓ lib/__tests__/investigationsRoute.test.ts (5 tests) 26ms
+ ✓ lib/__tests__/investigationManifestParity.test.ts (47 tests) 43ms
+ ✓ lib/__tests__/investigationWatchReviewView.test.tsx (6 tests) 155ms
+ ✓ lib/__tests__/investigationEvidenceReview.test.tsx (6 tests) 143ms
+ ✓ lib/__tests__/investigationSelectionRace.test.tsx (5 tests) 304ms
+
+ Test Files  29 passed (29)
+      Tests  549 passed (549)
+   Start at  01:00:57
+   Duration  4.17s (transform 3.33s, setup 0ms, collect 6.86s, tests 1.50s, environment 1.61s, prepare 2.82s)
+

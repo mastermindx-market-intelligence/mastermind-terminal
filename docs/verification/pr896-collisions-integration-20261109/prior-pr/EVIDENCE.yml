@@ -1,0 +1,48 @@
+# B-F08-B5-3 collisions — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: b7a3357b06847f560022a829b8fd6c4fea3d4d47
+# capturedAt: 2026-10-10T00:13:13.413Z
+# capturedAtHead is informational. The lock is layoutFiles.
+# 2026-10-10 recapture: all 16 crops re-shot by the unmodified script; the AlertsCockpit.tsx row had
+# been stale since #762 (a7447db07). Pixel diff against the 2026-10-03 set: the left rail gained the
+# #808 Dislocations slot (AppNav.tsx, outside this lock set), the check times move with capture time,
+# and zh glyphs rasterize narrower in this capture environment, so some wrapped zh lines in the 390
+# crops break one character later. Every string is unchanged and no other pixel moved. A second run
+# on the same machine matched this set in every pixel except the check times.
+layoutFiles:
+  terminal/components/alerts/AlertsCockpit.tsx: "6f10a31635043273d4f77cb812aaca671af36a5732eca54e0f4ada1796ce9040"
+  terminal/components/alerts/WatchingList.tsx: "642c8c76062fefb5ff06d8496bfea50f45de5af1aaf7a989e82e10f7b36d483b"
+  terminal/components/alerts/AnswerLine.tsx: "f3bf1f587566c521b66d210b84ec316ed1e5809f2f5ce758c6c0c81f77e4dbdb"
+  terminal/components/alerts/CouldNotWatch.tsx: "bedf3678d07a9c1f767df5b87a59648e69e8167df493d63412210a088d95d3a8"
+  terminal/lib/alertsView.ts: "7885c00404c3b09eaf188eac79ea48ff3845c3a55de2596e31bb98d0490c783f"
+  terminal/app/api/alerts/receipts/route.ts: "e90838781925cd4035cf913a3f011ad0e79a2f2fb4528fa1518a392144f44d82"
+  terminal/app/api/alerts/route.ts: "7b7ff8a30555230b344027385b24fcb488871bace93cf8b51e6a47c0433e66d3"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [AlertsCockpit]
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+states: [watching, suite-degraded, suite-never-ran, unresolved]
+command: |
+  node e2e/tools/capture_b_f08_b5_3_collisions.cjs
+files:
+  - suite-degraded-1440-zh.png
+  - suite-degraded-1440.png
+  - suite-degraded-390-zh.png
+  - suite-degraded-390.png
+  - suite-never-ran-1440-zh.png
+  - suite-never-ran-1440.png
+  - suite-never-ran-390-zh.png
+  - suite-never-ran-390.png
+  - unresolved-1440-zh.png
+  - unresolved-1440.png
+  - unresolved-390-zh.png
+  - unresolved-390.png
+  - watching-1440-zh.png
+  - watching-1440.png
+  - watching-390-zh.png
+  - watching-390.png

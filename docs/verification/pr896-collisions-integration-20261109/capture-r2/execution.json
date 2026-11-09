@@ -1,0 +1,204 @@
+{
+  "captureOnly": null,
+  "command": [
+    "node",
+    "e2e/tools/capture_b_f08_b5_3_collisions.cjs"
+  ],
+  "completedAt": "2026-11-09T16:35:31.778519+00:00",
+  "exit": 0,
+  "expectedImages": [
+    "suite-degraded-1440-zh.png",
+    "suite-degraded-1440.png",
+    "suite-degraded-390-zh.png",
+    "suite-degraded-390.png",
+    "suite-never-ran-1440-zh.png",
+    "suite-never-ran-1440.png",
+    "suite-never-ran-390-zh.png",
+    "suite-never-ran-390.png",
+    "unresolved-1440-zh.png",
+    "unresolved-1440.png",
+    "unresolved-390-zh.png",
+    "unresolved-390.png",
+    "watching-1440-zh.png",
+    "watching-1440.png",
+    "watching-390-zh.png",
+    "watching-390.png"
+  ],
+  "head": "cb3b9a937c9eeb8d8cb2b10c9f1a0d1e8510bfa0",
+  "images": {
+    "suite-degraded-1440-zh.png": {
+      "bytes": 147147,
+      "height": 900,
+      "sha256": "bc1f5fa5fd9cf5b2e0a0d4167e635c7fd918323e407ed2f9c87a6fd3637880b8",
+      "width": 1440
+    },
+    "suite-degraded-1440.png": {
+      "bytes": 139732,
+      "height": 900,
+      "sha256": "6e53b8fa57d10fc8b6f2ca93c3b33c9afc9576e690ed79d80a470109cad55b7d",
+      "width": 1440
+    },
+    "suite-degraded-390-zh.png": {
+      "bytes": 85744,
+      "height": 844,
+      "sha256": "ae833ed612fd3d2c54081aec1089e79a5a061d2c7ead66b0dd1d857dce70741f",
+      "width": 390
+    },
+    "suite-degraded-390.png": {
+      "bytes": 69332,
+      "height": 844,
+      "sha256": "2ae6a4fc55a4a4ea3c8aaf9bcb5f84f54be75f1612ba1c1911b27cef9c4a47aa",
+      "width": 390
+    },
+    "suite-never-ran-1440-zh.png": {
+      "bytes": 126856,
+      "height": 900,
+      "sha256": "a8353e11511f98c3377f0c4a0acf4721b07a42e2e666bc136765f3125080d21e",
+      "width": 1440
+    },
+    "suite-never-ran-1440.png": {
+      "bytes": 118922,
+      "height": 900,
+      "sha256": "1c26409de998ae6931af69bf8106e9c8b6301402a3a2079eba92866ed50a6d95",
+      "width": 1440
+    },
+    "suite-never-ran-390-zh.png": {
+      "bytes": 78351,
+      "height": 844,
+      "sha256": "6d91eb71e939d9b87c44c527fb943f733312109cf5cf8de94b937bc084779ebd",
+      "width": 390
+    },
+    "suite-never-ran-390.png": {
+      "bytes": 63900,
+      "height": 844,
+      "sha256": "9b29090951534f7c08cacc795a7aa19ba2dfb2efc789b6da0490dca6614cf6e6",
+      "width": 390
+    },
+    "unresolved-1440-zh.png": {
+      "bytes": 129003,
+      "height": 900,
+      "sha256": "12b67c8edd5c842060b94c7721f3406b095fe7d1a18bb1abb07ea3f0dc688a2b",
+      "width": 1440
+    },
+    "unresolved-1440.png": {
+      "bytes": 118312,
+      "height": 900,
+      "sha256": "3b2a300d777d3786dba5d64bb35e5acff3a54668af01d1f97fb7f5ffdd27cf28",
+      "width": 1440
+    },
+    "unresolved-390-zh.png": {
+      "bytes": 84569,
+      "height": 844,
+      "sha256": "79f09f4619a97cca3041b17e69e541c0a287b6b8994bc73c6e6eb51a43f3d444",
+      "width": 390
+    },
+    "unresolved-390.png": {
+      "bytes": 71655,
+      "height": 844,
+      "sha256": "6df1b48c2626b062947b9461fd5238e2512faf9a1a4d83d1385edbb61bac143c",
+      "width": 390
+    },
+    "watching-1440-zh.png": {
+      "bytes": 119215,
+      "height": 900,
+      "sha256": "c0b97853a148c905277ecc764a441c13ac77b096aaccdb4746c4e07798526570",
+      "width": 1440
+    },
+    "watching-1440.png": {
+      "bytes": 108476,
+      "height": 900,
+      "sha256": "31922fd0a71b3ae9292f049b6e059b6f550d5c715a91687e8dc61a30c15d289f",
+      "width": 1440
+    },
+    "watching-390-zh.png": {
+      "bytes": 74630,
+      "height": 844,
+      "sha256": "121694daa218b658292332bfe9b764ec65d32acc404c56c2fb7bd3aa5fa9baaa",
+      "width": 390
+    },
+    "watching-390.png": {
+      "bytes": 61774,
+      "height": 844,
+      "sha256": "4c61e70995dbe1f77b18ae4a97e1d13aa8b7773957f9dab8262b2b49600a96d4",
+      "width": 390
+    }
+  },
+  "layoutSources": {
+    "terminal/app/api/alerts/receipts/route.ts": "e90838781925cd4035cf913a3f011ad0e79a2f2fb4528fa1518a392144f44d82",
+    "terminal/app/api/alerts/route.ts": "63f90d301d329e0854773236bf56494e466a8c626acc16c8ba2b9f37d7cfb216",
+    "terminal/components/alerts/AlertsCockpit.tsx": "16bcae31ac1b6c2c181afd35d96a8d5d6db18aa37d51dca47a65c6d9178aa71b",
+    "terminal/components/alerts/AnswerLine.tsx": "f3bf1f587566c521b66d210b84ec316ed1e5809f2f5ce758c6c0c81f77e4dbdb",
+    "terminal/components/alerts/CouldNotWatch.tsx": "bedf3678d07a9c1f767df5b87a59648e69e8167df493d63412210a088d95d3a8",
+    "terminal/components/alerts/WatchingList.tsx": "642c8c76062fefb5ff06d8496bfea50f45de5af1aaf7a989e82e10f7b36d483b",
+    "terminal/lib/alertsView.ts": "ed0b6be7338a71f6c5fef504f49f38a549b223a53f83408c232e5653da98b496"
+  },
+  "lifecycle": {
+    "initialLockPresent": false,
+    "serverAbsenceVerifiedAt": "2026-11-09T16:35:30.251302+00:00"
+  },
+  "logSha256": "27ec87564d547f959e17d1f0f1ae36b75330667740d236a032de4d2f60956154",
+  "manifestSha256": "a5e7a93c020cbc4086127ae63e5255d4f191355ab953af692b4e5451e880cfb7",
+  "nextLockAbsent": true,
+  "observedNativeNextLocks": [
+    {
+      "appUrl": "http://localhost:3868",
+      "hostname": "localhost",
+      "pid": 71736,
+      "port": 3868,
+      "startedAt": 1794242078145
+    }
+  ],
+  "ownedPortClosed": true,
+  "ownedRecordedProcessesAbsent": {
+    "command": [
+      "ps",
+      "-p",
+      "71584,71590,71633,71736",
+      "-o",
+      "pid=,ppid=,comm="
+    ],
+    "exit": 1,
+    "observedAt": "2026-11-09T16:35:30.272420+00:00",
+    "stderr": "",
+    "stdout": ""
+  },
+  "ownedWorkspaceCwdsAbsent": {
+    "exit": 0,
+    "observedAt": "2026-11-09T16:35:31.616786+00:00"
+  },
+  "port": 3868,
+  "producerSha256": "799930ffbff45bdd401b321e021f2877d454ef28bf002f0fb5fb69613c360894",
+  "protectedMaster": "03af393ce05c12282003a3919cc473c032264922",
+  "schema": "terminal_pr896_collisions_capture.v1",
+  "seconds": 57.25,
+  "sourceAfterSha256": "508e88f4846d5812e07e68d8f1136a8fd74953f7985f461b208ffcf91aca7068",
+  "sourceBeforeSha256": "508e88f4846d5812e07e68d8f1136a8fd74953f7985f461b208ffcf91aca7068",
+  "sourceEntries": 1935,
+  "sourceStable": true,
+  "startedAt": "2026-11-09T16:34:32.718641+00:00",
+  "state": "FULL_16_CAPTURE_QUALIFIED",
+  "successfulImages": 16,
+  "supervisionResult": {
+    "closed": true,
+    "error": null,
+    "errorCode": null,
+    "pid": 71590,
+    "serverPid": 71633,
+    "serverRefused": null,
+    "serverReportedStopped": true,
+    "serverSettled": true,
+    "signal": null,
+    "status": 0,
+    "timedOut": false
+  },
+  "supervisionSha256": "17b59616d979ba999ff549842b29ca93e070270add0f29a3de053e957a0dbe7e",
+  "supervisionState": "CLOSED",
+  "supervisorCommand": [
+    "node",
+    "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr896-collisions-integration-20261109/docs/verification/pr896-collisions-integration-20261109/supervise-full.cjs",
+    "3868",
+    "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr896-collisions-integration-20261109/docs/verification/pr896-collisions-integration-20261109/capture-r2/supervision.json",
+    "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr896-collisions-integration-20261109/docs/verification/pr896-collisions-integration-20261109/capture-r2/capture.log"
+  ],
+  "supervisorPid": 71584
+}

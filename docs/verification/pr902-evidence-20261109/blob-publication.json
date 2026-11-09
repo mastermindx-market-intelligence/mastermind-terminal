@@ -1,0 +1,1031 @@
+{
+  "sourceHead": "2064cc9ed0588d4a27ba40a0b3e150bc76cc0d84",
+  "blobs": [
+    {
+      "path": "docs/verification/pr902-evidence-20261109/portfolio-attempt1-failure.png",
+      "blobSha": "2bb5386fdd858f768f94ffbc967fd839e3133c50",
+      "sha256": "905ebb9e738c78578564c8b4ac44661c29a94d240e37e3215e1b6c9e22499df2",
+      "bytes": 119369,
+      "startedAt": "2026-11-09T07:03:30.779621+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"2bb5386fdd858f768f94ffbc967fd839e3133c50\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/2bb5386fdd858f768f94ffbc967fd839e3133c50\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:03:31.867851+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "2bb5386fdd858f768f94ffbc967fd839e3133c50",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-field-error-1440-zh.png",
+      "blobSha": "91fc47cdc422bfbea93ed3ee7578c1684bf929a2",
+      "sha256": "d9f6a56438bc84c7f48b8f96f76aede34c5e47a2265a2f7d0f4d67c8cbd4940f",
+      "bytes": 120186,
+      "startedAt": "2026-11-09T07:03:32.435691+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"91fc47cdc422bfbea93ed3ee7578c1684bf929a2\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/91fc47cdc422bfbea93ed3ee7578c1684bf929a2\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:03:33.591071+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "91fc47cdc422bfbea93ed3ee7578c1684bf929a2",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-field-error-1440.png",
+      "blobSha": "8f91367261218ac6acc434295bc2854cb920221c",
+      "sha256": "66696e037bda603edfb4019faaffb691653060329598cbf600d29e1ba5b6413e",
+      "bytes": 110050,
+      "startedAt": "2026-11-09T07:03:34.139586+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"8f91367261218ac6acc434295bc2854cb920221c\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/8f91367261218ac6acc434295bc2854cb920221c\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:03:35.073015+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "8f91367261218ac6acc434295bc2854cb920221c",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-field-error-390-zh.png",
+      "blobSha": "efc70c7671c5f62bc93b45d70b004757350c51f2",
+      "sha256": "8aea9222f94f9c11fdd208df8ef4925d7d9679916565acacf42be27fa54dc80e",
+      "bytes": 93173,
+      "startedAt": "2026-11-09T07:03:35.852103+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"efc70c7671c5f62bc93b45d70b004757350c51f2\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/efc70c7671c5f62bc93b45d70b004757350c51f2\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:03:36.774220+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "efc70c7671c5f62bc93b45d70b004757350c51f2",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-field-error-390.png",
+      "blobSha": "75f0a4ba3c8937742ca8f63fed701a8ed20ee23d",
+      "sha256": "263d53ed26fb10148faacacc8b8af3ac16e7990de5ea09d0b352339fd7481b69",
+      "bytes": 80540,
+      "startedAt": "2026-11-09T07:03:37.333484+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"75f0a4ba3c8937742ca8f63fed701a8ed20ee23d\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/75f0a4ba3c8937742ca8f63fed701a8ed20ee23d\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:03:38.178547+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "75f0a4ba3c8937742ca8f63fed701a8ed20ee23d",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-populated-1440-zh.png",
+      "blobSha": "298d71c919ad2dca59f32197642d6f8a51bb927c",
+      "sha256": "59dd58c242d99673cfc8c0e4d9a8327cd62c5048ace6076c9432dc381fa0b209",
+      "bytes": 118313,
+      "startedAt": "2026-11-09T07:03:38.881161+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"298d71c919ad2dca59f32197642d6f8a51bb927c\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/298d71c919ad2dca59f32197642d6f8a51bb927c\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:03:39.953990+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "298d71c919ad2dca59f32197642d6f8a51bb927c",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-populated-1440.png",
+      "blobSha": "88072d33c7d64a09d8442fdf2a6cfa90fed84ae3",
+      "sha256": "f5b8c74e80c07d5735ca113fada69ac3079dd4c58fced1b00baad7ab261fa523",
+      "bytes": 108739,
+      "startedAt": "2026-11-09T07:03:40.553867+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"88072d33c7d64a09d8442fdf2a6cfa90fed84ae3\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/88072d33c7d64a09d8442fdf2a6cfa90fed84ae3\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:03:41.492682+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "88072d33c7d64a09d8442fdf2a6cfa90fed84ae3",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-populated-390-zh.png",
+      "blobSha": "3481430490e1292e98bd619fa3ec0e726ebb3164",
+      "sha256": "b3bd52a1367150ed288163f63e83eb9ae8ac99aef11422c5202d363456fab670",
+      "bytes": 89863,
+      "startedAt": "2026-11-09T07:03:41.942491+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"3481430490e1292e98bd619fa3ec0e726ebb3164\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/3481430490e1292e98bd619fa3ec0e726ebb3164\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:03:42.972199+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "3481430490e1292e98bd619fa3ec0e726ebb3164",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-populated-390.png",
+      "blobSha": "e62c0b439c166e5848be3f86d4102216978f8816",
+      "sha256": "97491bbd734ac93d80389f991aee91baffc648a96a927a527c76bd782ddb8be3",
+      "bytes": 78900,
+      "startedAt": "2026-11-09T07:03:43.586874+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"e62c0b439c166e5848be3f86d4102216978f8816\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/e62c0b439c166e5848be3f86d4102216978f8816\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:03:44.714297+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "e62c0b439c166e5848be3f86d4102216978f8816",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-quiet-hours-1440-zh.png",
+      "blobSha": "dfe5ad9a3b04a046d4199f565a22d2066291029b",
+      "sha256": "28757ece5a9d16f4d67d2a00cbc0e31f7356404f3cc2eda5354f1213dd8fd089",
+      "bytes": 117870,
+      "startedAt": "2026-11-09T07:03:45.301944+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"dfe5ad9a3b04a046d4199f565a22d2066291029b\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/dfe5ad9a3b04a046d4199f565a22d2066291029b\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:03:46.274456+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "dfe5ad9a3b04a046d4199f565a22d2066291029b",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-quiet-hours-1440.png",
+      "blobSha": "f336609c1eb544d50b7add73126d227c990334be",
+      "sha256": "0ab8ac8e6438546aa2afdcc51af5196858de204790adb2fbbabc00f26868f9f1",
+      "bytes": 107617,
+      "startedAt": "2026-11-09T07:03:46.979671+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"f336609c1eb544d50b7add73126d227c990334be\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/f336609c1eb544d50b7add73126d227c990334be\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:03:48.232268+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "f336609c1eb544d50b7add73126d227c990334be",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-quiet-hours-390-zh.png",
+      "blobSha": "7f42fd724ab9f80c086402a16a6823084a6ff198",
+      "sha256": "2a491f01775ae1bcf76131f04a5b6ae6a28c08d03461e3a0fd85670ebcc9fdf5",
+      "bytes": 89279,
+      "startedAt": "2026-11-09T07:03:48.750360+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"7f42fd724ab9f80c086402a16a6823084a6ff198\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/7f42fd724ab9f80c086402a16a6823084a6ff198\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:03:49.799005+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "7f42fd724ab9f80c086402a16a6823084a6ff198",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-quiet-hours-390.png",
+      "blobSha": "8d6d84748e64c44736ab43b9092cc78f06400d05",
+      "sha256": "0a595727a197c69ab7d9074033116afbe70577b71172d188c2d4322f1991ee40",
+      "bytes": 79137,
+      "startedAt": "2026-11-09T07:03:50.367349+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"8d6d84748e64c44736ab43b9092cc78f06400d05\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/8d6d84748e64c44736ab43b9092cc78f06400d05\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:03:51.376813+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "8d6d84748e64c44736ab43b9092cc78f06400d05",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-unavailable-1440-zh.png",
+      "blobSha": "672c61a3ec0c32535fc58b7fb002b3b671f1deaa",
+      "sha256": "bc9e2aa33156b7347f0f7dd3825e086288ebd045e3d5e4526271c65c48b276e4",
+      "bytes": 65078,
+      "startedAt": "2026-11-09T07:03:51.824912+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"672c61a3ec0c32535fc58b7fb002b3b671f1deaa\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/672c61a3ec0c32535fc58b7fb002b3b671f1deaa\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:03:52.787075+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "672c61a3ec0c32535fc58b7fb002b3b671f1deaa",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-unavailable-1440.png",
+      "blobSha": "680c3ef245ac2df2b7d5cb8ee5e60f3631d9feb0",
+      "sha256": "72fd9f7954e637a3bad80a84d0aeb30b79b8dede6534b4f3e33e682f411e0867",
+      "bytes": 64138,
+      "startedAt": "2026-11-09T07:03:53.332558+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"680c3ef245ac2df2b7d5cb8ee5e60f3631d9feb0\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/680c3ef245ac2df2b7d5cb8ee5e60f3631d9feb0\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:03:54.219531+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "680c3ef245ac2df2b7d5cb8ee5e60f3631d9feb0",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-unavailable-390-zh.png",
+      "blobSha": "fa8c9c0798b1f8f874d5e864cb54aa60143566da",
+      "sha256": "9a86ae2a26443394ef2a1ea911ac1e1c8e7231f3bb0c631b321c855e158d66d3",
+      "bytes": 44302,
+      "startedAt": "2026-11-09T07:03:54.774554+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"fa8c9c0798b1f8f874d5e864cb54aa60143566da\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/fa8c9c0798b1f8f874d5e864cb54aa60143566da\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:03:55.537014+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "fa8c9c0798b1f8f874d5e864cb54aa60143566da",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-unavailable-390.png",
+      "blobSha": "bc07c727fd30430f332fa44ad49290c488c80241",
+      "sha256": "b90db3010a8702870adea3c999cc15ac95a37615c87fbb76db0e6e9d5f255552",
+      "bytes": 42348,
+      "startedAt": "2026-11-09T07:03:55.992091+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"bc07c727fd30430f332fa44ad49290c488c80241\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/bc07c727fd30430f332fa44ad49290c488c80241\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:03:56.928634+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "bc07c727fd30430f332fa44ad49290c488c80241",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-cleared-1440-zh.png",
+      "blobSha": "b2e2aa027ae9317279956dd5297f7ea21e4b7d2c",
+      "sha256": "3d281854b41266dc65bbb3b22bc196c3ca99e2847d8d7a92100fa71f58843964",
+      "bytes": 19978,
+      "startedAt": "2026-11-09T07:03:57.414515+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"b2e2aa027ae9317279956dd5297f7ea21e4b7d2c\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/b2e2aa027ae9317279956dd5297f7ea21e4b7d2c\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:03:58.170542+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "b2e2aa027ae9317279956dd5297f7ea21e4b7d2c",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-cleared-1440.png",
+      "blobSha": "0856a9979c9ccde2e74f3d7466eabeac8f87dbf8",
+      "sha256": "23d0f2513229560b94025d7b4e84d0922b7a8f90d282da206f323571f701c8ee",
+      "bytes": 17265,
+      "startedAt": "2026-11-09T07:03:58.703972+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"0856a9979c9ccde2e74f3d7466eabeac8f87dbf8\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/0856a9979c9ccde2e74f3d7466eabeac8f87dbf8\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:03:59.788712+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "0856a9979c9ccde2e74f3d7466eabeac8f87dbf8",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-cleared-390-zh.png",
+      "blobSha": "999ef3a7345d564162f959e8dba29b8a6587e775",
+      "sha256": "ff6749967d3af38d0f5d6fd079642f76628ff3f80b8f44f871df7d69e53848ce",
+      "bytes": 18251,
+      "startedAt": "2026-11-09T07:04:00.360818+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"999ef3a7345d564162f959e8dba29b8a6587e775\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/999ef3a7345d564162f959e8dba29b8a6587e775\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:01.204071+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "999ef3a7345d564162f959e8dba29b8a6587e775",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-cleared-390.png",
+      "blobSha": "ddb7e4a49063c8251727b94ca4725c11be3d431d",
+      "sha256": "e352fa63eb75827518e7f07372df4397e28e5f5d897a8ac97aa929425684a05d",
+      "bytes": 15787,
+      "startedAt": "2026-11-09T07:04:01.683451+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"ddb7e4a49063c8251727b94ca4725c11be3d431d\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/ddb7e4a49063c8251727b94ca4725c11be3d431d\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:02.572616+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "ddb7e4a49063c8251727b94ca4725c11be3d431d",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-empty-1440-zh.png",
+      "blobSha": "b1a21419c81dab7c28c94315bc3d6ca9ac7b6fc1",
+      "sha256": "1cc7c889dbc0868875bab637de4789c4bb09dbaa6922d9c31e6e3a4342148a6d",
+      "bytes": 21182,
+      "startedAt": "2026-11-09T07:04:03.132900+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"b1a21419c81dab7c28c94315bc3d6ca9ac7b6fc1\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/b1a21419c81dab7c28c94315bc3d6ca9ac7b6fc1\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:04.598396+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "b1a21419c81dab7c28c94315bc3d6ca9ac7b6fc1",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-empty-1440.png",
+      "blobSha": "7a2eb0f8d3b4ce98c82a79a1889dc1a671bd31c5",
+      "sha256": "317d666ccff1d5cce5d7b5e549a84f3ee219a4bb820ba607b95c0894fd3884ca",
+      "bytes": 17836,
+      "startedAt": "2026-11-09T07:04:05.144316+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"7a2eb0f8d3b4ce98c82a79a1889dc1a671bd31c5\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/7a2eb0f8d3b4ce98c82a79a1889dc1a671bd31c5\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:06.317770+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "7a2eb0f8d3b4ce98c82a79a1889dc1a671bd31c5",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-empty-390-zh.png",
+      "blobSha": "5641ad110699cc45e9b1182170cc9b27afeb7461",
+      "sha256": "edf89ea4603db75aeafa83c39d8079fd97fa85a14ec636e6687438fdd81786fb",
+      "bytes": 19453,
+      "startedAt": "2026-11-09T07:04:06.757287+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"5641ad110699cc45e9b1182170cc9b27afeb7461\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/5641ad110699cc45e9b1182170cc9b27afeb7461\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:07.611486+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "5641ad110699cc45e9b1182170cc9b27afeb7461",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-empty-390.png",
+      "blobSha": "7a2b199b8c5630e42e8165ecb6126606fdf89d47",
+      "sha256": "517c6fec61f38ee7088e87bd4d8a3ccd5be3d6ab809596e097e402130a7b5c90",
+      "bytes": 16342,
+      "startedAt": "2026-11-09T07:04:08.014856+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"7a2b199b8c5630e42e8165ecb6126606fdf89d47\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/7a2b199b8c5630e42e8165ecb6126606fdf89d47\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:08.908067+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "7a2b199b8c5630e42e8165ecb6126606fdf89d47",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-orphaned-empty-book-1440-zh.png",
+      "blobSha": "8cf761562179c00d79184a7583081f0d4440e5fb",
+      "sha256": "97b8e58361179760cf38239e01fb790c3ee891cebadd0544609a49cab4d1a881",
+      "bytes": 39139,
+      "startedAt": "2026-11-09T07:04:09.299372+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"8cf761562179c00d79184a7583081f0d4440e5fb\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/8cf761562179c00d79184a7583081f0d4440e5fb\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:10.315642+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "8cf761562179c00d79184a7583081f0d4440e5fb",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-orphaned-empty-book-1440.png",
+      "blobSha": "c797232885c25e3a71e3f88d82aa86ba2ac3ea61",
+      "sha256": "8cb1078a7fb8770b93dee3513593580d0de74adeba32dd0c8e441c266c8289e5",
+      "bytes": 25275,
+      "startedAt": "2026-11-09T07:04:10.975714+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"c797232885c25e3a71e3f88d82aa86ba2ac3ea61\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/c797232885c25e3a71e3f88d82aa86ba2ac3ea61\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:11.757074+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "c797232885c25e3a71e3f88d82aa86ba2ac3ea61",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-orphaned-empty-book-390-zh.png",
+      "blobSha": "6471b65a2fd7e13ae6d1bd80bd99742e7791d25d",
+      "sha256": "004d799f11aa16de8eadfcf37cc26c6ecd08f2f82445097e28851b0505da9689",
+      "bytes": 35960,
+      "startedAt": "2026-11-09T07:04:12.277293+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"6471b65a2fd7e13ae6d1bd80bd99742e7791d25d\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/6471b65a2fd7e13ae6d1bd80bd99742e7791d25d\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:13.236177+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "6471b65a2fd7e13ae6d1bd80bd99742e7791d25d",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-orphaned-empty-book-390.png",
+      "blobSha": "154930dadddd00135d300a846f35d45aa49c4a51",
+      "sha256": "a4fd9cde12ed1015b2d250b55f3a897ca30bc7c0af3ab91af3061461dc7a40b3",
+      "bytes": 23799,
+      "startedAt": "2026-11-09T07:04:13.816043+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"154930dadddd00135d300a846f35d45aa49c4a51\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/154930dadddd00135d300a846f35d45aa49c4a51\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:14.625943+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "154930dadddd00135d300a846f35d45aa49c4a51",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-orphaned-target-disclosed-1440-zh.png",
+      "blobSha": "c988106a37f7865a33597167d7872f4b84a7adb0",
+      "sha256": "129fdd5b4590532c308b8b83952f996e68a8018af1c55d1f9fc893be153f7bc3",
+      "bytes": 52971,
+      "startedAt": "2026-11-09T07:04:15.054772+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"c988106a37f7865a33597167d7872f4b84a7adb0\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/c988106a37f7865a33597167d7872f4b84a7adb0\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:16.007892+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "c988106a37f7865a33597167d7872f4b84a7adb0",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-orphaned-target-disclosed-1440.png",
+      "blobSha": "02ebbcaf2c72722b197781dd509f8dc3ad8f48de",
+      "sha256": "fe5f8383df2aadacdba414bc4ba82b870106be85e9ee5d8c5ef5efc4d18f8f28",
+      "bytes": 35422,
+      "startedAt": "2026-11-09T07:04:16.612656+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"02ebbcaf2c72722b197781dd509f8dc3ad8f48de\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/02ebbcaf2c72722b197781dd509f8dc3ad8f48de\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:17.683547+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "02ebbcaf2c72722b197781dd509f8dc3ad8f48de",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-orphaned-target-disclosed-390-zh.png",
+      "blobSha": "2de526dd46d4ea450313ba203990caa0500d98e3",
+      "sha256": "ff52c91937073a9aef8fd2fa531d64edcf32a000c03f431d02251950979dc74e",
+      "bytes": 49358,
+      "startedAt": "2026-11-09T07:04:18.357230+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"2de526dd46d4ea450313ba203990caa0500d98e3\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/2de526dd46d4ea450313ba203990caa0500d98e3\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:19.278166+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "2de526dd46d4ea450313ba203990caa0500d98e3",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-orphaned-target-disclosed-390.png",
+      "blobSha": "c1c7defda20c18c82451f79e15fc68ecb3267cd2",
+      "sha256": "35fd138da20f952f3adce95c513a1ea12663c17a1806178a537757d475b3edc4",
+      "bytes": 33278,
+      "startedAt": "2026-11-09T07:04:19.756543+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"c1c7defda20c18c82451f79e15fc68ecb3267cd2\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/c1c7defda20c18c82451f79e15fc68ecb3267cd2\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:20.791413+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "c1c7defda20c18c82451f79e15fc68ecb3267cd2",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-populated-outside-band-1440-zh.png",
+      "blobSha": "912d919f82fc1a24075644ceec3ae6b6c4bc9f3e",
+      "sha256": "6add7795bac23009ba260a5eb25d4b97c71a13ee26bcb600b4f383c0bf40224f",
+      "bytes": 44639,
+      "startedAt": "2026-11-09T07:04:21.427735+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"912d919f82fc1a24075644ceec3ae6b6c4bc9f3e\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/912d919f82fc1a24075644ceec3ae6b6c4bc9f3e\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:22.400342+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "912d919f82fc1a24075644ceec3ae6b6c4bc9f3e",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-populated-outside-band-1440.png",
+      "blobSha": "74ec4586f21c450288d1f5a7c9c7fc7f010630f9",
+      "sha256": "839c2f280d23ef789753e7968e6ace73624f115f3351d5fd8818f0fe7e990116",
+      "bytes": 35445,
+      "startedAt": "2026-11-09T07:04:22.907975+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"74ec4586f21c450288d1f5a7c9c7fc7f010630f9\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/74ec4586f21c450288d1f5a7c9c7fc7f010630f9\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:23.813618+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "74ec4586f21c450288d1f5a7c9c7fc7f010630f9",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-populated-outside-band-390-zh.png",
+      "blobSha": "3d05fc808d88254be55103ade5a626c76ddd6ad8",
+      "sha256": "8102cf86c0089d104defe01899356a52bc12b619738fc87a9aa3fe0ec11583d1",
+      "bytes": 42434,
+      "startedAt": "2026-11-09T07:04:24.433074+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"3d05fc808d88254be55103ade5a626c76ddd6ad8\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/3d05fc808d88254be55103ade5a626c76ddd6ad8\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:25.395797+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "3d05fc808d88254be55103ade5a626c76ddd6ad8",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-populated-outside-band-390.png",
+      "blobSha": "39ec74527e73f176acdef34127b9cc6472ac9bd8",
+      "sha256": "8a38e353706baddab94c27e9fe8fb92bf6f7c6e7e714d3276843fb5cbda00507",
+      "bytes": 34310,
+      "startedAt": "2026-11-09T07:04:25.832776+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"39ec74527e73f176acdef34127b9cc6472ac9bd8\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/39ec74527e73f176acdef34127b9cc6472ac9bd8\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:26.864368+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "39ec74527e73f176acdef34127b9cc6472ac9bd8",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-populated-within-band-1440-zh.png",
+      "blobSha": "b74ad64ff8abba5f9f7ff10f886746a0d989c255",
+      "sha256": "8dc4c33b12a4c69d49398af6dc9721e947c4b8573dab6725287e63bf40fca05c",
+      "bytes": 45668,
+      "startedAt": "2026-11-09T07:04:27.287329+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"b74ad64ff8abba5f9f7ff10f886746a0d989c255\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/b74ad64ff8abba5f9f7ff10f886746a0d989c255\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:28.316156+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "b74ad64ff8abba5f9f7ff10f886746a0d989c255",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-populated-within-band-1440.png",
+      "blobSha": "b84e600a981c70d355423326766df962aa293edb",
+      "sha256": "eb6c6545763c6b6fda9b25b9759952aa6e546f37ccc6d5b26fcdc2af60016cd8",
+      "bytes": 35103,
+      "startedAt": "2026-11-09T07:04:28.845059+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"b84e600a981c70d355423326766df962aa293edb\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/b84e600a981c70d355423326766df962aa293edb\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:29.698845+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "b84e600a981c70d355423326766df962aa293edb",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-populated-within-band-390-zh.png",
+      "blobSha": "d95dc47af67507bc5c099cde40f96c765f3cda70",
+      "sha256": "e500166899fd64012e33d464156da47987bdadb898a752df3f9cad83dedfa890",
+      "bytes": 42021,
+      "startedAt": "2026-11-09T07:04:30.185772+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"d95dc47af67507bc5c099cde40f96c765f3cda70\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/d95dc47af67507bc5c099cde40f96c765f3cda70\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:31.397708+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "d95dc47af67507bc5c099cde40f96c765f3cda70",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-populated-within-band-390.png",
+      "blobSha": "067bacc44c851e76cbfaddd8f4bbb8beb4c8f073",
+      "sha256": "65f45cf8ee344a031d503fa6a051f25d2bca0ba196abcae360daa8bd68154605",
+      "bytes": 33755,
+      "startedAt": "2026-11-09T07:04:32.011352+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"067bacc44c851e76cbfaddd8f4bbb8beb4c8f073\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/067bacc44c851e76cbfaddd8f4bbb8beb4c8f073\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:32.854014+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "067bacc44c851e76cbfaddd8f4bbb8beb4c8f073",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-unavailable-1440-zh.png",
+      "blobSha": "347646f83e9d9fa20fcd79e8e47a3e873b4603d2",
+      "sha256": "3a9e3f7760c7172304560a73619a90105e14f55f6e5159aa4461afe81b701dd1",
+      "bytes": 7620,
+      "startedAt": "2026-11-09T07:04:33.314800+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"347646f83e9d9fa20fcd79e8e47a3e873b4603d2\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/347646f83e9d9fa20fcd79e8e47a3e873b4603d2\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:34.470494+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "347646f83e9d9fa20fcd79e8e47a3e873b4603d2",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-unavailable-1440.png",
+      "blobSha": "9f1b3bdd9178e5b4e5a8a5fc41a5aae741b96d96",
+      "sha256": "fec59264fde4cefd1221e30a2edf8266f4edd2a53a361986962b25afcec9d6a3",
+      "bytes": 5929,
+      "startedAt": "2026-11-09T07:04:35.220577+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"9f1b3bdd9178e5b4e5a8a5fc41a5aae741b96d96\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/9f1b3bdd9178e5b4e5a8a5fc41a5aae741b96d96\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:36.220043+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "9f1b3bdd9178e5b4e5a8a5fc41a5aae741b96d96",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-unavailable-390-zh.png",
+      "blobSha": "d59bec1df8b7909eec069c55b84ca08fde95cbf2",
+      "sha256": "6ad35f2f02bb3f393d39e09821d566eec4adfc119a6b1d095c818ac2ac5f1ed0",
+      "bytes": 6807,
+      "startedAt": "2026-11-09T07:04:36.702286+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"d59bec1df8b7909eec069c55b84ca08fde95cbf2\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/d59bec1df8b7909eec069c55b84ca08fde95cbf2\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:37.348967+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "d59bec1df8b7909eec069c55b84ca08fde95cbf2",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-unavailable-390.png",
+      "blobSha": "84d27d215395ec82f68a94d6a8eab9e52e0fcfb6",
+      "sha256": "8b9db0a5773bcd2f7ab77628f4a6d89926751e035ab5c54392ae0be0d3e63a2b",
+      "bytes": 5727,
+      "startedAt": "2026-11-09T07:04:37.786988+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"84d27d215395ec82f68a94d6a8eab9e52e0fcfb6\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/84d27d215395ec82f68a94d6a8eab9e52e0fcfb6\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:38.549033+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "84d27d215395ec82f68a94d6a8eab9e52e0fcfb6",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-unweighable-1440-zh.png",
+      "blobSha": "3a400a689c7bbec8d71247ebf20056832eb7b268",
+      "sha256": "19d1b5da7c076643f773b48c71b91f8a8f884cfd4405bb1e91695f697bed8436",
+      "bytes": 81133,
+      "startedAt": "2026-11-09T07:04:38.927747+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"3a400a689c7bbec8d71247ebf20056832eb7b268\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/3a400a689c7bbec8d71247ebf20056832eb7b268\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:39.748187+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "3a400a689c7bbec8d71247ebf20056832eb7b268",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-unweighable-1440.png",
+      "blobSha": "622939527fd823cab3aad9a0de3d52e858317a87",
+      "sha256": "5c38dfe9cbc1f41d225b086be36ee8a59c6437ab5065d7a13f01a3071f1f23cc",
+      "bytes": 65405,
+      "startedAt": "2026-11-09T07:04:40.247769+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"622939527fd823cab3aad9a0de3d52e858317a87\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/622939527fd823cab3aad9a0de3d52e858317a87\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:41.281515+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "622939527fd823cab3aad9a0de3d52e858317a87",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-unweighable-390-zh.png",
+      "blobSha": "caba43c7cfd9047dc28e8165949e4063f3d17478",
+      "sha256": "0af38583f1f0c126ee7b22f15c567b07e0be9ade102d70077376ac4471da2913",
+      "bytes": 76886,
+      "startedAt": "2026-11-09T07:04:42.017188+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"caba43c7cfd9047dc28e8165949e4063f3d17478\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/caba43c7cfd9047dc28e8165949e4063f3d17478\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:42.907730+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "caba43c7cfd9047dc28e8165949e4063f3d17478",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-unweighable-390.png",
+      "blobSha": "7a2f6152badace32a8b613d44b49f72107b0fa82",
+      "sha256": "f529f80846b9680c00ffa21ce3a4893a64faf5f719585770f335b13bebfd8009",
+      "bytes": 63290,
+      "startedAt": "2026-11-09T07:04:43.411041+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"7a2f6152badace32a8b613d44b49f72107b0fa82\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/7a2f6152badace32a8b613d44b49f72107b0fa82\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:44.368242+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "7a2f6152badace32a8b613d44b49f72107b0fa82",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-empty-1440-en.png",
+      "blobSha": "dcac35bb26a056784e6ac9f518e5f838cf9b6c1d",
+      "sha256": "6096a7dff3f68cec58e64a9e26c6b2d85e99e2fd1bec1d59ef3582b86d3d848a",
+      "bytes": 237554,
+      "startedAt": "2026-11-09T07:04:44.816906+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"dcac35bb26a056784e6ac9f518e5f838cf9b6c1d\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/dcac35bb26a056784e6ac9f518e5f838cf9b6c1d\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:45.784892+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "dcac35bb26a056784e6ac9f518e5f838cf9b6c1d",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-empty-1440-zh.png",
+      "blobSha": "72139fff19cdab921831cb7cd950bba6dda1c96b",
+      "sha256": "d1d3e5204bdbd197e0ada930a813181859f2de97159c37da2695193681111bd7",
+      "bytes": 238673,
+      "startedAt": "2026-11-09T07:04:46.689940+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"72139fff19cdab921831cb7cd950bba6dda1c96b\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/72139fff19cdab921831cb7cd950bba6dda1c96b\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:47.798475+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "72139fff19cdab921831cb7cd950bba6dda1c96b",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-empty-390-en.png",
+      "blobSha": "5daf62e09576638cfdf4ec3be5de2d04ec193d79",
+      "sha256": "932faf8fe36348acd21982f16d5814a9c27096b71003e660275ab3e4e7f50fb3",
+      "bytes": 144918,
+      "startedAt": "2026-11-09T07:04:48.539527+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"5daf62e09576638cfdf4ec3be5de2d04ec193d79\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/5daf62e09576638cfdf4ec3be5de2d04ec193d79\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:49.590185+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "5daf62e09576638cfdf4ec3be5de2d04ec193d79",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-empty-390-zh.png",
+      "blobSha": "43f7ee8c4cbb5a3525168051e1a9c678fcbadfe0",
+      "sha256": "faf4819f5d3fdf06d0b203dc8b0f0b17bc23d64ce2ee23e570b483d8cd8ca555",
+      "bytes": 154283,
+      "startedAt": "2026-11-09T07:04:50.156330+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"43f7ee8c4cbb5a3525168051e1a9c678fcbadfe0\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/43f7ee8c4cbb5a3525168051e1a9c678fcbadfe0\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:51.342127+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "43f7ee8c4cbb5a3525168051e1a9c678fcbadfe0",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-populated-1440-en.png",
+      "blobSha": "c79e4e1455920e4054e7f91e1bcd93aa1b5e39ba",
+      "sha256": "d891872dab9b00ac95002106b4c5d6cb4e089d67c9a4723355b570e8e30bab4f",
+      "bytes": 255142,
+      "startedAt": "2026-11-09T07:04:51.959123+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"c79e4e1455920e4054e7f91e1bcd93aa1b5e39ba\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/c79e4e1455920e4054e7f91e1bcd93aa1b5e39ba\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:53.264821+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "c79e4e1455920e4054e7f91e1bcd93aa1b5e39ba",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-populated-1440-zh.png",
+      "blobSha": "5d637ec0a8ec40504e8d990477a33d2af90b4af5",
+      "sha256": "87a5ec4ca26e183c8050c01091722241138902afe007997302acafab5be89fcb",
+      "bytes": 261775,
+      "startedAt": "2026-11-09T07:04:53.812085+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"5d637ec0a8ec40504e8d990477a33d2af90b4af5\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/5d637ec0a8ec40504e8d990477a33d2af90b4af5\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:54.904050+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "5d637ec0a8ec40504e8d990477a33d2af90b4af5",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-populated-390-en.png",
+      "blobSha": "d60c8cf580875b1a4bcb26e2437135943b23fb54",
+      "sha256": "26ca3144d5550b04a50dadc4e21c0a0affdf812cdd0653792a8e6ca993249086",
+      "bytes": 154685,
+      "startedAt": "2026-11-09T07:04:55.776324+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"d60c8cf580875b1a4bcb26e2437135943b23fb54\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/d60c8cf580875b1a4bcb26e2437135943b23fb54\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:56.913845+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "d60c8cf580875b1a4bcb26e2437135943b23fb54",
+        "error": ""
+      }
+    },
+    {
+      "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-populated-390-zh.png",
+      "blobSha": "de8a5b3e234489c1f36c94f7307df07a6be70a38",
+      "sha256": "27a5d74d1c318cc4db6fc3bcb279bc20dee7e37205e4cc86c32422ded715f575",
+      "bytes": 162094,
+      "startedAt": "2026-11-09T07:04:57.408129+00:00",
+      "carrier": "native gh authenticated mastermindxryan/333722846",
+      "state": "APPLIED_READBACK",
+      "exit": 0,
+      "rawResponse": "{\"sha\":\"de8a5b3e234489c1f36c94f7307df07a6be70a38\",\"url\":\"https://api.github.com/repos/mastermindx-market-intelligence/mastermind-terminal/git/blobs/de8a5b3e234489c1f36c94f7307df07a6be70a38\"}",
+      "error": "",
+      "returnedAt": "2026-11-09T07:04:58.422090+00:00",
+      "readback": {
+        "exit": 0,
+        "sha": "de8a5b3e234489c1f36c94f7307df07a6be70a38",
+        "error": ""
+      }
+    }
+  ]
+}

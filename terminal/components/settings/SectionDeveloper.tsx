@@ -27,6 +27,7 @@ export default function SectionDeveloper({ t, lang, onClose }: SectionProps) {
   const [state, setState] = useState<LoadState>("loading");
   const [err, setErr] = useState("");
   const [label, setLabel] = useState("");
+  const [watchlistWrite, setWatchlistWrite] = useState(false);
   const [busy, setBusy] = useState(false);
   const [formMsg, setFormMsg] = useState<{ text: string; kind: "ok" | "err" | "wait" } | null>(null);
   const [secret, setSecret] = useState<string | null>(null);
@@ -69,7 +70,7 @@ export default function SectionDeveloper({ t, lang, onClose }: SectionProps) {
       const r = await fetch("/api/account/api-keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ label: label.trim() }),
+        body: JSON.stringify({ label: label.trim(), scopes: watchlistWrite ? ["read", "watchlists:write"] : ["read"] }),
       });
       const body = await r.json().catch(() => ({}));
       if (!r.ok) {
@@ -84,6 +85,7 @@ export default function SectionDeveloper({ t, lang, onClose }: SectionProps) {
         setRevealMasked(false);
       }
       setLabel("");
+      setWatchlistWrite(false);
       setFormMsg(null);
       await load();
     } catch {
@@ -143,7 +145,7 @@ export default function SectionDeveloper({ t, lang, onClose }: SectionProps) {
 
   return (
     <>
-      <SectionHead title={t("acsDeveloper")} sub={t("acsDeveloperSub")} closeLabel={t("acsClose")} onClose={onClose} />
+      <SectionHead title={t("acsDeveloper")} sub={apiKeyCopy("intro", lang)} closeLabel={t("acsClose")} onClose={onClose} />
       <div className="acs-body" data-testid="developer-access">
         <Group>
           <Row desc={apiKeyCopy("truth", lang)} />
@@ -197,6 +199,15 @@ export default function SectionDeveloper({ t, lang, onClose }: SectionProps) {
             aria-label={apiKeyCopy("mintLabel", lang)}
             onChange={(e) => setLabel(e.target.value)}
           />
+          <Row
+            label={apiKeyCopy("writeScope", lang)}
+            desc={apiKeyCopy("writeScopeHelp", lang)}
+            control={<label style={{ minWidth: 44, minHeight: 44, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+              <input type="checkbox" style={{ width: 20, height: 20, colorScheme: "dark", accentColor: "var(--blue)" }} aria-label={apiKeyCopy("writeScope", lang)}
+                checked={watchlistWrite} disabled={busy}
+                onChange={(e) => setWatchlistWrite(e.target.checked)} />
+            </label>}
+          />
           <Row desc={apiKeyCopy("rotateHelp", lang)} />
           <Msg text={formMsg?.text || ""} kind={formMsg?.kind || "err"} />
           <div className="acs-btns" style={{ justifyContent: "flex-start" }}>
@@ -226,7 +237,7 @@ export default function SectionDeveloper({ t, lang, onClose }: SectionProps) {
                 key={k.keyId}
                 userId={k.keyId}
                 label={k.label}
-                desc={`${apiKeyCopy("prefix", lang)} mmx_${k.keyPrefix} · ${apiKeyCopy("created", lang)} ${k.createdAt ? k.createdAt.slice(0, 10) : "—"} · ${k.lastUsedAt ? `${apiKeyCopy("lastUsed", lang)} ${k.lastUsedAt.slice(0, 10)}` : apiKeyCopy("neverUsed", lang)}`}
+                desc={`${apiKeyCopy(k.scopes.includes("watchlists:write") ? "readWriteScope" : "readScope", lang)} · ${apiKeyCopy("prefix", lang)} mmx_${k.keyPrefix} · ${apiKeyCopy("created", lang)} ${k.createdAt ? k.createdAt.slice(0, 10) : "—"} · ${k.lastUsedAt ? `${apiKeyCopy("lastUsed", lang)} ${k.lastUsedAt.slice(0, 10)}` : apiKeyCopy("neverUsed", lang)}`}
                 control={
                   <button
                     type="button"

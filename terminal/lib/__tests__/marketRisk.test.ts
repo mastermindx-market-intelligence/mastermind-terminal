@@ -235,3 +235,23 @@ it.each(["2026-10-09T01:00:00Z", "2026-12-09T04:30:00Z"])(
     }
   },
 );
+
+
+describe("multi-asset context through the actual ingest-to-Oracle path", () => {
+  it("carries the producer's synthetic eleven-proxy context through Python and TypeScript", async () => {
+    const context = JSON.parse(await fs.readFile(path.join(process.cwd(), "lib/__tests__/fixtures/multiAssetDaily.synthetic.json"), "utf8"));
+    const envelope = { ...riskEnvelopeFixture(), multi_asset_context: context };
+    const raw = pythonBridge(marketRiskSourceFixture(), envelope);
+    expect(raw.risk_envelope).toHaveProperty("multi_asset_context");
+    const read = normalizeMarketRisk(raw, NOW)!;
+    expect(read.risk_envelope_freshness.qualified).toBe(true);
+    expect(read.risk_envelope?.multi_asset_context).toMatchObject({
+      context_digest: context.context_digest, coverage: { requested: 11, observed: 11, comparable: 10 },
+      authority: { can_rank: false, can_gate: false, can_size: false, can_trade: false },
+    });
+    expect(riskEnvelopeCopy(read.risk_envelope, false, NOW).details.join(" ")).toContain("not an absolute gain");
+    expect(riskEnvelopeCopy(read.risk_envelope, true, NOW).details.join(" ")).toContain("绝对收益未上涨");
+    expect(read.verdict).toBe("MIXED"); expect(read.score).toBe(51);
+    expect(read.risk_envelope?.hazard_summary).toEqual(envelope.hazard_summary);
+  });
+});

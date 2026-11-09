@@ -1,0 +1,43 @@
+/* Screener technical screen (E01). Controls reuse the shared .chip / .scr2-select / .fin-tag
+   primitives; only the disclosure lines and the technical column live here. */
+
+.wrap{display:flex;flex-direction:column;gap:6px;min-width:0}
+
+.line{display:flex;align-items:center;flex-wrap:wrap;gap:4px 12px;min-width:0;font:500 11.5px/1.4 var(--font-ui);color:var(--muted);overflow-wrap:anywhere}
+.line b{color:var(--text);font-family:var(--font-num);font-variant-numeric:tabular-nums}
+.lead{color:var(--text-2);font-weight:600}
+.dim{color:var(--text-dim)}
+/* A sentence-length warning tag wraps instead of running past a 390px phone edge. */
+.line .longTag{white-space:normal;line-height:1.35;max-width:100%;border-radius:var(--r-md)}
+
+.fault{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font:500 12px/1.4 var(--font-ui);color:var(--text-2);overflow-wrap:anywhere}
+
+.reasons{flex-basis:100%;min-width:0}
+.reasons summary{cursor:pointer;color:var(--brand-2);font-weight:600;width:max-content;max-width:100%}
+.reasons ul{margin:4px 0 0;padding:0 0 0 16px;display:flex;flex-direction:column;gap:2px}
+
+/* ── technical column ── */
+/* Pinned to the right edge of the table's horizontal scroll (.scr2-table overflow:auto): on a
+   tablet the shared columns are wider than the viewport, and an appended column would otherwise
+   sit off-screen. The header keeps its sticky-top role and sits above the pinned cells. */
+.techTh{cursor:default !important;right:0;z-index:3 !important;box-shadow:inset 1px 0 0 var(--line)}
+.techCell{font-family:var(--font-ui) !important;position:sticky;right:0;z-index:1;background:var(--bg);box-shadow:inset 1px 0 0 var(--line-2)}
+:global(table.scr2) tbody tr:hover td.techCell{background:var(--panel-2)}
+.techInner{display:inline-flex;align-items:center;gap:6px;justify-content:flex-end}
+.techPos{color:var(--text-2);font-size:11.5px}
+.techBars{color:var(--text-2);font:500 11.5px/1 var(--font-num);font-variant-numeric:tabular-nums}
+.techForming{color:var(--warn);font-size:10.5px}
+.techStatus{color:var(--text-dim);font-size:11.5px}
+.techStatus[data-st="stale"]{color:var(--warn)}
+.techStaleVal{opacity:.55}
+
+/* Phone: the shared rule keeps Symbol·Last·Chg·$Vol (u-view) or Symbol·Last·Signal (s-view)
+   by POSITION, which would hide an appended column. While the technical column is on, keep
+   Symbol·Last·Technical instead; the position word folds away to fit 390px. */
+@media (max-width:640px){
+  .techOn :global(table.scr2) th:not(:first-child):not(:nth-child(2)):not(.techTh),
+  .techOn :global(table.scr2) td:not(:first-child):not(:nth-child(2)):not(.techCell){display:none !important}
+  .techOn :global(table.scr2) th.techTh,
+  .techOn :global(table.scr2) td.techCell{display:table-cell !important}
+  .techPos{display:none}
+}

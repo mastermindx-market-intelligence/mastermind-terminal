@@ -6,6 +6,9 @@ const ROOT = join(__dirname, "..", "..");
 const PLANE_FIXTURE = JSON.parse(
   readFileSync(join(ROOT, "public", "data", "nw_plane_fixture.json"), "utf8"),
 );
+const BOTTOM_FIXTURE = JSON.parse(
+  readFileSync(join(ROOT, "lib", "__tests__", "fixtures", "nw_bottom_pivot_fixture.json"), "utf8"),
+);
 
 const envSnapshot = { ...process.env };
 
@@ -70,6 +73,93 @@ describe("/api/nw fixture mode (unchanged)", () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual(PLANE_FIXTURE);
     expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
+describe("/api/nw Bottom Pivot read-only selection", () => {
+  it("fixture mode sends only the selected name, without touching the upstream", async () => {
+    process.env.NW_FIXTURE = "1";
+    const { GET } = await import("@/app/api/nw/route");
+    const res = await GET(req("bottom_sensors&symbol=AAPL"));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("X-NW-Source")).toBe("fixture");
+    const data = await res.json();
+    expect(data).toMatchObject({
+      schema: "bottom_pivot_selection.v1", symbol: "AAPL",
+      context: { schema: "bottom_pivot_context.v1", quality: "partial" },
+    });
+    expect(JSON.stringify(data)).not.toContain("NEVER-SEND-OTHER-SYMBOL");
+    expectPrivate(res);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("rejects an invalid explicit symbol before auth or I/O", async () => {
+    const { GET } = await import("@/app/api/nw/route");
+    for (const f of ["bottom_sensors&symbol=", "bottom_sensors&symbol=..", "bottom_sensors&symbol=AAPL%2FMSFT"]) {
+      const res = await GET(req(f, ENTITLED));
+      expect(res.status).toBe(400);
+      expect(await res.json()).toEqual({ error: "bad symbol" });
+      expectPrivate(res);
+    }
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("keeps legacy full-feed and selected responses separate for the same caller", async () => {
+    vi.mocked(fetch).mockResolvedValue(upstream(200, BOTTOM_FIXTURE));
+    const { GET } = await import("@/app/api/nw/route");
+    const full = await GET(req("bottom_sensors", ENTITLED));
+    expect(await full.json()).toEqual(BOTTOM_FIXTURE);
+    vi.mocked(fetch).mockResolvedValue(upstream(200, BOTTOM_FIXTURE));
+    const selected = await GET(req("bottom_sensors&symbol=UBER", ENTITLED));
+    const data = await selected.json();
+    expect(data).toMatchObject({ schema: "bottom_pivot_selection.v1", symbol: "UBER" });
+    expect(data).not.toHaveProperty("rows");
+    expect(JSON.stringify(data)).not.toContain("NEVER-SEND-OTHER-SYMBOL");
+    expect(JSON.stringify(data)).not.toContain("AAPL");
+    for (const response of [full, selected]) {
+      expect(response.status).toBe(200);
+      expectPrivate(response);
+      expect(response.headers.get("vary")).toBe("Cookie");
+    }
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(sentCookie(0)).toBe(ENTITLED);
+    expect(sentCookie(1)).toBe(ENTITLED);
+  });
+
+  it("relays only caller Supabase cookies; upstream returns one sanitized context", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(upstream(200, BOTTOM_FIXTURE));
+    const { GET } = await import("@/app/api/nw/route");
+    const res = await GET(req("bottom_sensors&symbol=MSFT", "theme=dark; " + SB_WHOLE));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({
+      schema: "bottom_pivot_selection.v1",
+      symbol: "MSFT",
+      context: null, reason: "context_unavailable",
+    });
+    expect(String(vi.mocked(fetch).mock.calls[0][0])).toBe(
+      "https://www.mastermind-x.com/neuralwebdata/bottom_sensors.json",
+    );
+    expect(sentCookie()).toBe(SB_WHOLE);
+    expect(fetchInit()).toMatchObject({ cache: "no-store", redirect: "manual" });
+    expectPrivate(res);
+  });
+
+  it("anonymous cannot fetch; 403 remains private; malformed feed fails closed", async () => {
+    const { GET } = await import("@/app/api/nw/route");
+    const noCookie = await GET(req("bottom_sensors&symbol=AAPL"));
+    expect(noCookie.status).toBe(401);
+    expect(fetch).not.toHaveBeenCalled();
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(upstream(403, { secret_marker: "PRIVATE" }))
+      .mockResolvedValueOnce(upstream(200, { rows: [], is_display_only: false }));
+    const denied = await GET(req("bottom_sensors&symbol=AAPL", ENTITLED));
+    expect(denied.status).toBe(403);
+    expect(await denied.json()).toEqual({ error: "not_entitled" });
+    const malformed = await GET(req("bottom_sensors&symbol=AAPL", ENTITLED));
+    expect(malformed.status).toBe(503);
+    expect(await malformed.json()).toEqual({ error: "feed unavailable" });
+    expectPrivate(denied);
+    expectPrivate(malformed);
   });
 });
 
@@ -210,5 +300,41 @@ describe("/api/nw entitlement relay (T-NW-AUTH)", () => {
       expect(await res.json()).toEqual({ error: "feed unavailable" });
       expectPrivate(res);
     }
+  });
+});
+
+
+describe("Bottom-pivot feed uses the existing private relay", () => {
+  it("does not contact upstream for an anonymous bottom-pivot read", async () => {
+    const { GET } = await import("@/app/api/nw/route");
+    const res = await GET(req("bottom_sensors"));
+    expect(res.status).toBe(401); expectPrivate(res); expect(fetch).not.toHaveBeenCalled();
+  });
+  it("relays only this caller's cookie, with no shared cache or redirect following", async () => {
+    vi.mocked(fetch).mockResolvedValue(upstream(200, PAYLOAD));
+    const { GET } = await import("@/app/api/nw/route");
+    const res = await GET(req("bottom_sensors", `theme=dark; ${ENTITLED}`));
+    expect(res.status).toBe(200); expectPrivate(res);
+    expect(await res.json()).toEqual(PAYLOAD);
+    expect(res.headers.get("vary")).toBe("Cookie");
+    expect(vi.mocked(fetch).mock.calls[0][0]).toBe("https://www.mastermind-x.com/neuralwebdata/bottom_sensors.json");
+    expect(sentCookie()).toBe(ENTITLED);
+    expect(fetchInit()).toMatchObject({ cache: "no-store", redirect: "manual" });
+    expect((await GET(req("bottom_sensors"))).status).toBe(401);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+  it.each([[401, 401], [402, 403], [403, 403], [302, 503], [500, 503]])("preserves access/failure boundary %s -> %s", async (status, expected) => {
+    vi.mocked(fetch).mockResolvedValue(upstream(status));
+    const { GET } = await import("@/app/api/nw/route");
+    const res = await GET(req("bottom_sensors", ENTITLED));
+    expect(res.status).toBe(expected); expectPrivate(res);
+    expect(await res.text()).not.toContain("PAID-BYTES");
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+  it("does not invent a bottom-pivot fixture in the production proxy", async () => {
+    process.env.NW_FIXTURE = "1";
+    const { GET } = await import("@/app/api/nw/route");
+    const res = await GET(req("bottom_sensors", ENTITLED));
+    expect(res.status).toBe(503); expect(fetch).not.toHaveBeenCalled();
   });
 });

@@ -1,0 +1,42 @@
+# B-F08-B5-3 collisions — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: cb3b9a937c9eeb8d8cb2b10c9f1a0d1e8510bfa0
+# capturedAt: 2026-11-09T16:30:13.852Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/alerts/AlertsCockpit.tsx: "16bcae31ac1b6c2c181afd35d96a8d5d6db18aa37d51dca47a65c6d9178aa71b"
+  terminal/components/alerts/WatchingList.tsx: "642c8c76062fefb5ff06d8496bfea50f45de5af1aaf7a989e82e10f7b36d483b"
+  terminal/components/alerts/AnswerLine.tsx: "f3bf1f587566c521b66d210b84ec316ed1e5809f2f5ce758c6c0c81f77e4dbdb"
+  terminal/components/alerts/CouldNotWatch.tsx: "bedf3678d07a9c1f767df5b87a59648e69e8167df493d63412210a088d95d3a8"
+  terminal/lib/alertsView.ts: "ed0b6be7338a71f6c5fef504f49f38a549b223a53f83408c232e5653da98b496"
+  terminal/app/api/alerts/receipts/route.ts: "e90838781925cd4035cf913a3f011ad0e79a2f2fb4528fa1518a392144f44d82"
+  terminal/app/api/alerts/route.ts: "63f90d301d329e0854773236bf56494e466a8c626acc16c8ba2b9f37d7cfb216"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [AlertsCockpit]
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+states: [watching, suite-degraded, suite-never-ran, unresolved]
+command: |
+  node e2e/tools/capture_b_f08_b5_3_collisions.cjs
+files:
+  - suite-degraded-1440-zh.png
+  - suite-degraded-1440.png
+  - suite-degraded-390-zh.png
+  - suite-degraded-390.png
+  - suite-never-ran-1440-zh.png
+  - suite-never-ran-1440.png
+  - suite-never-ran-390-zh.png
+  - suite-never-ran-390.png
+  - unresolved-1440-zh.png
+  - unresolved-1440.png
+  - unresolved-390-zh.png
+  - unresolved-390.png
+  - watching-1440-zh.png
+  - watching-1440.png
+  - watching-390-zh.png
+  - watching-390.png
