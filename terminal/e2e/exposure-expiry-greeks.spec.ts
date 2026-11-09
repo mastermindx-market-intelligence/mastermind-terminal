@@ -129,6 +129,19 @@ test(`Exposure desk carries expiry Vanna/Charm through bars and drawer in ${lang
   await expect(partial).toContainText("-250K");
   await expect(expiryRegion.getByTestId("expiry-support")).toContainText("4/5");
 
+  // Follow the actual scroll container and require the values to reach the viewport.
+  // DOM visibility alone can pass for clipped/off-screen rows.
+  for (const exp of GEX.by_expiry.map(row => row.exp)) {
+    const value = expiryRegion.locator(`[data-expiry="${exp}"] .num`);
+    await value.scrollIntoViewIfNeeded();
+    await expect(value).toBeInViewport();
+  }
+  await expiryRegion.scrollIntoViewIfNeeded();
+  await page.screenshot({
+    path: testInfo.outputPath(`${testInfo.project.name}-${lang}-expiry-vanna-bars.png`),
+    fullPage: false,
+  });
+
   // Open the existing term-structure drawer: it must consume the SAME selected
   // Greek and the SAME by_expiry payload, not a parallel derived fixture.
   const drawer = page.locator(".obs-xdrawer-hd");
@@ -142,8 +155,14 @@ test(`Exposure desk carries expiry Vanna/Charm through bars and drawer in ${lang
   const headerCount = await page.locator(".obs-xdrawer-count").textContent();
   expect(headerCount).toContain("5");
   await expect(page.getByTestId("xdrawer-unresolved")).toContainText("1");
+  const plot = page.locator(".obs-xdrawer-plot");
+  for (const exp of ["2026-09-19", "2026-09-26", "2026-10-17", "2026-10-24"]) {
+    const value = plot.locator(`[data-expiry="${exp}"] text`).first();
+    await value.scrollIntoViewIfNeeded();
+    await expect(value).toBeInViewport();
+  }
   await page.screenshot({
-    path: testInfo.outputPath(`${testInfo.project.name}-${lang}-expiry-vanna-population.png`),
+    path: testInfo.outputPath(`${testInfo.project.name}-${lang}-expiry-vanna-drawer.png`),
     fullPage: false,
   });
 
@@ -162,8 +181,25 @@ test(`Exposure desk carries expiry Vanna/Charm through bars and drawer in ${lang
   // from an unavailable field and from a directional +/- exposure.
   await expect(page.getByText("0", { exact: true }).first()).toBeVisible();
 
+  for (const exp of GEX.by_expiry.map(row => row.exp)) {
+    const value = plot.locator(`[data-expiry="${exp}"] text`).first();
+    await value.scrollIntoViewIfNeeded();
+    await expect(value).toBeInViewport();
+  }
   await page.screenshot({
-    path: testInfo.outputPath(`${testInfo.project.name}-${lang}-expiry-charm-population.png`),
+    path: testInfo.outputPath(`${testInfo.project.name}-${lang}-expiry-charm-drawer.png`),
+    fullPage: false,
+  });
+  await drawer.click();
+  await expect(drawer).toHaveAttribute("aria-expanded", "false");
+  for (const exp of GEX.by_expiry.map(row => row.exp)) {
+    const value = expiryRegion.locator(`[data-expiry="${exp}"] .num`);
+    await value.scrollIntoViewIfNeeded();
+    await expect(value).toBeInViewport();
+  }
+  await expiryRegion.scrollIntoViewIfNeeded();
+  await page.screenshot({
+    path: testInfo.outputPath(`${testInfo.project.name}-${lang}-expiry-charm-bars.png`),
     fullPage: false,
   });
 });

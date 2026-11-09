@@ -1480,6 +1480,11 @@ test("Exposure desk renders expiry VEX and CHEX from the enriched owner payload"
   }));
   expect(overflow.document).toBeLessThanOrEqual(overflow.viewport + 1);
 
+  await drawerHeader.click();
+  await expect(drawerHeader).toHaveAttribute("aria-expanded", "false");
+  await expiryRegion.scrollIntoViewIfNeeded();
+  await expect(expiryRegion.getByText("+700K", { exact: true })).toBeInViewport();
+  await expect(expiryRegion.getByText("-400K", { exact: true })).toBeInViewport();
   await page.screenshot({
     path: testInfo.outputPath(`${testInfo.project.name}-expiry-vex-chex.png`),
     fullPage: false,
