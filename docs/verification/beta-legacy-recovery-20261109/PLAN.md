@@ -19,3 +19,8 @@ The acquire response was unqualified; same-operation publisher status and mmx-wo
 #1364 is already merged; its beta deployment is separately in progress. #1369 owns company snapshot/loading changes and has fresh CI; do not duplicate or replace it. #1352/#1353 own navigationRecovery/Settings, and #1244 owns intelligence integration. This phase edits neither those paths nor authentication, entitlements, market data, release/CI policies or trade logic.
 
 Execution reason: LOWER_TOTAL_OVERHEAD for a bounded principal-owned mounted-component repair using the existing tests. No worker was dispatched and no independent review is claimed.
+
+## Reproduction and overlap reconciliation
+All eight additional mounted-host regressions fail on the protected base while the existing 23 pass. The exact patch and test result are retained alongside this plan. Before product changes, live census found #1384 (head a5a7c9ccdeb1efa928ca6f79083dbb564c607799) already owns failed-attempt retirement in this component. Its source must not be duplicated or overwritten. #1276 remains explicitly held; none of its held work was adopted.
+
+The new patch is diagnostic evidence, not an active test-suite change or a product repair. The original test path was restored byte-for-byte after preserving the patch. The foreground revalidation path still merits qualification: HTTP 503 versus version change, overlapping visibility requests, a hanging response and cancellation on navigation. Route these findings to #1384 without claiming its candidate failed tests that were run only on the protected base. Continue independent live-beta route/interaction probes while that carrier progresses.

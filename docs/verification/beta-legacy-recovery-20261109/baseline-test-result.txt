@@ -1,0 +1,167 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/beta-legacy-recovery-20261109-astra-01/terminal
+
+ ❯ lib/__tests__/sharedShellNavigationCommit.test.tsx (31 tests | 8 failed) 2019ms
+   ✓ Shared Shell committed navigation > H05: evicts the first of 65 saved entries rather than borrowing an unrelated view 975ms
+   × Shared Shell failure recovery lifetime > keeps an expired frame hidden until a fresh retry is admitted 47ms
+     → expected 'visible' to be 'hidden' // Object.is equality
+   × Shared Shell failure recovery lifetime > aborts a pending admission request when its original deadline expires 15ms
+     → expected false to be true // Object.is equality
+   × Shared Shell failure recovery lifetime > does not let a late READY erase a rejected child version 21ms
+     → expected 'visible' to be 'hidden' // Object.is equality
+   × Shared Shell failure recovery lifetime > does not let a late READY erase an explicit child error 24ms
+     → expected 'visible' to be 'hidden' // Object.is equality
+   × Shared Shell failure recovery lifetime > offers a route-preserving retry rather than a false version refresh after HTTP 503 22ms
+     → expected 'gate-mismatch' to be 'gate-http' // Object.is equality
+   × Shared Shell failure recovery lifetime > keeps a verified server version change fenced against old frame messages 23ms
+     → expected 'visible' to be 'hidden' // Object.is equality
+   × Shared Shell failure recovery lifetime > ignores a superseded visibility check instead of hiding a freshly confirmed page 26ms
+     → expected 'hidden' to be 'visible' // Object.is equality
+   × Shared Shell failure recovery lifetime > bounds an unresolved visibility check and ignores its late success 18ms
+     → expected 'visible' to be 'hidden' // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/sharedShellNavigationCommit.test.tsx > Shared Shell failure recovery lifetime > keeps an expired frame hidden until a fresh retry is admitted
+AssertionError: expected 'visible' to be 'hidden' // Object.is equality
+
+Expected: "hidden"
+Received: "visible"
+
+ ❯ expectVisible lib/__tests__/sharedShellNavigationCommit.test.tsx:148:37
+    146| }
+    147| function expectVisible(value: boolean) {
+    148|   expect(iframe().style.visibility).toBe(value ? "visible" : "hidden");
+       |                                     ^
+    149| }
+    150| async function start() {
+ ❯ lib/__tests__/sharedShellNavigationCommit.test.tsx:647:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  lib/__tests__/sharedShellNavigationCommit.test.tsx > Shared Shell failure recovery lifetime > aborts a pending admission request when its original deadline expires
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ lib/__tests__/sharedShellNavigationCommit.test.tsx:659:35
+    657|       const gate = requests.at(-1)!;
+    658|       await act(async () => { await vi.advanceTimersByTimeAsync(15001)…
+    659|       expect(gate.signal.aborted).toBe(true);
+       |                                   ^
+    660|       await resolveGate(gate);
+    661|       expect(replaceFrame).not.toHaveBeenCalled(); expectVisible(false…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  lib/__tests__/sharedShellNavigationCommit.test.tsx > Shared Shell failure recovery lifetime > does not let a late READY erase a rejected child version
+AssertionError: expected 'visible' to be 'hidden' // Object.is equality
+
+Expected: "hidden"
+Received: "visible"
+
+ ❯ expectVisible lib/__tests__/sharedShellNavigationCommit.test.tsx:148:37
+    146| }
+    147| function expectVisible(value: boolean) {
+    148|   expect(iframe().style.visibility).toBe(value ? "visible" : "hidden");
+       |                                     ^
+    149| }
+    150| async function start() {
+ ❯ lib/__tests__/sharedShellNavigationCommit.test.tsx:669:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  lib/__tests__/sharedShellNavigationCommit.test.tsx > Shared Shell failure recovery lifetime > does not let a late READY erase an explicit child error
+AssertionError: expected 'visible' to be 'hidden' // Object.is equality
+
+Expected: "hidden"
+Received: "visible"
+
+ ❯ expectVisible lib/__tests__/sharedShellNavigationCommit.test.tsx:148:37
+    146| }
+    147| function expectVisible(value: boolean) {
+    148|   expect(iframe().style.visibility).toBe(value ? "visible" : "hidden");
+       |                                     ^
+    149| }
+    150| async function start() {
+ ❯ lib/__tests__/sharedShellNavigationCommit.test.tsx:676:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  lib/__tests__/sharedShellNavigationCommit.test.tsx > Shared Shell failure recovery lifetime > offers a route-preserving retry rather than a false version refresh after HTTP 503
+AssertionError: expected 'gate-mismatch' to be 'gate-http' // Object.is equality
+
+Expected: "gate-http"
+Received: "gate-mismatch"
+
+ ❯ lib/__tests__/sharedShellNavigationCommit.test.tsx:682:45
+    680|     vi.mocked(fetch).mockResolvedValueOnce({ ok: false, status: 503, j…
+    681|     await visibleAgain();
+    682|     expectVisible(false); expect(failure()).toBe("gate-http");
+       |                                             ^
+    683|     expect(container.textContent).not.toContain("shellRefreshTitle");
+    684|     await retryFrame(); expect(browserHref()).toBe(INITIAL);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+ FAIL  lib/__tests__/sharedShellNavigationCommit.test.tsx > Shared Shell failure recovery lifetime > keeps a verified server version change fenced against old frame messages
+AssertionError: expected 'visible' to be 'hidden' // Object.is equality
+
+Expected: "hidden"
+Received: "visible"
+
+ ❯ expectVisible lib/__tests__/sharedShellNavigationCommit.test.tsx:148:37
+    146| }
+    147| function expectVisible(value: boolean) {
+    148|   expect(iframe().style.visibility).toBe(value ? "visible" : "hidden");
+       |                                     ^
+    149| }
+    150| async function start() {
+ ❯ lib/__tests__/sharedShellNavigationCommit.test.tsx:691:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯
+
+ FAIL  lib/__tests__/sharedShellNavigationCommit.test.tsx > Shared Shell failure recovery lifetime > ignores a superseded visibility check instead of hiding a freshly confirmed page
+AssertionError: expected 'hidden' to be 'visible' // Object.is equality
+
+Expected: "visible"
+Received: "hidden"
+
+ ❯ expectVisible lib/__tests__/sharedShellNavigationCommit.test.tsx:148:37
+    146| }
+    147| function expectVisible(value: boolean) {
+    148|   expect(iframe().style.visibility).toBe(value ? "visible" : "hidden");
+       |                                     ^
+    149| }
+    150| async function start() {
+ ❯ lib/__tests__/sharedShellNavigationCommit.test.tsx:699:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯
+
+ FAIL  lib/__tests__/sharedShellNavigationCommit.test.tsx > Shared Shell failure recovery lifetime > bounds an unresolved visibility check and ignores its late success
+AssertionError: expected 'visible' to be 'hidden' // Object.is equality
+
+Expected: "hidden"
+Received: "visible"
+
+ ❯ expectVisible lib/__tests__/sharedShellNavigationCommit.test.tsx:148:37
+    146| }
+    147| function expectVisible(value: boolean) {
+    148|   expect(iframe().style.visibility).toBe(value ? "visible" : "hidden");
+       |                                     ^
+    149| }
+    150| async function start() {
+ ❯ lib/__tests__/sharedShellNavigationCommit.test.tsx:707:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯
+
+ Test Files  1 failed (1)
+      Tests  8 failed | 23 passed (31)
+   Start at  03:30:40
+   Duration  5.21s (transform 316ms, setup 0ms, collect 505ms, tests 2.02s, environment 932ms, prepare 216ms)
+
