@@ -47,3 +47,16 @@ TERMINAL_E2E_PORT=3291 npm run test:e2e:responsive -- e2e/alert-detail-keyboard.
 - [After: full expanded receipt in the same short viewport](after-receipt-568x320.png)
 
 Deterministic local data, not a live alert, protected merge or beta deployment.
+
+## Composed-consumer CI repair
+
+The Terminal unit job [129070542484](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/42590127401/job/129070542484) at `f2c2a861d2ac8a1144aab4c50f20559480fa3dd3` found ten failures in three existing composed-consumer suites. Each queried the old page-container location and returned null after the modal moved to the document-body portal. The same ten failures reproduced locally (15 other cases passed).
+
+The repair updates nine modal lookups in `alertsCockpitThesisSummary.test.tsx`, `alertsCockpitZhParity.test.ts`, and `heldMaterialConsumer.test.tsx`. All content, localization, numeric-value, evidence-link and no-invented-price assertions remain intact. Existing teardown unmounts each root and therefore removes its portal.
+
+The three composed suites plus the original alert-data, detail and nested-focus suites now pass **144 tests across six files**. TypeScript and diff whitespace checks pass. The three-file ESLint run reports only the pre-existing `no-explicit-any` at `heldMaterialConsumer.test.tsx:8`; running ESLint against that file's unchanged HEAD bytes confirms the identical finding. No production code changes in this repair, so the existing seven browser cases and images still qualify the unchanged UI.
+
+```sh
+npx vitest run lib/__tests__/alertsCockpitThesisSummary.test.tsx lib/__tests__/alertsCockpitZhParity.test.ts lib/__tests__/heldMaterialConsumer.test.tsx lib/__tests__/thesisDetailSurface.test.ts lib/__tests__/alertsView.test.ts lib/__tests__/dialogFocusNestedOwnership.test.tsx --reporter=dot
+npx tsc --noEmit --pretty false
+```

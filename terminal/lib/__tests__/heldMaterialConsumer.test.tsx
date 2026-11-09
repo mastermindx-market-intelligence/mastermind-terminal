@@ -25,7 +25,7 @@ describe.each(["en", "zh"] as const)("held result receipt in existing %s timelin
       expect(container.textContent).toContain(lang === "zh" ? "公司发布了新业绩。" : "New company results are available.");
       const trigger = Array.from(container.querySelectorAll<HTMLElement>('[role="button"]')).find(b => b.textContent?.includes("TOL"));
       expect(trigger).toBeTruthy(); await act(async () => trigger!.click());
-      const dialog = container.querySelector('[role="dialog"]'); expect(dialog).toBeTruthy();
+      const dialog = document.body.querySelector('[role="dialog"]'); expect(dialog).toBeTruthy();
       expect(dialog!.textContent).toContain(lang === "zh" ? "来源观察于" : "Source observed");
       expect(dialog!.textContent).not.toMatch(/触发时价格|armed /);
       expect(dialog!.querySelector('a[href="https://example.invalid/evidence"]')).toBeTruthy();
