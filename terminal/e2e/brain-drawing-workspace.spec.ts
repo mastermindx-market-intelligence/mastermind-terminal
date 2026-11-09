@@ -735,10 +735,28 @@ for (const saveMode of ["failed", "legacy"] as const) {
     expect(remaining[0].drawings).toHaveLength(3);
     expect(remaining[0].attempt).toEqual(originalAttempt);
 
-    // The next reload can acknowledge the recovered snapshot. Dequeueing and
-    // clearing recovery must leave the independently owned chart collection intact.
+    // Recovery may first settle the immutable older attempt, then save the
+    // newer collection. Observe that complete collection's real receipt before
+    // checking retirement; visual readiness does not acknowledge persistence.
+    const latestDrawings = JSON.stringify(remaining[0].drawings);
+    const latestSaveResponse = page.waitForResponse(response => {
+      if (new URL(response.url()).pathname !== "/api/drawings"
+        || response.request().method() !== "PUT") return false;
+      const payload = response.request().postDataJSON() as DrawingSave & { symbol: string };
+      return payload.ownerKey === owner && payload.symbol === "NVDA"
+        && JSON.stringify(payload.drawings) === latestDrawings;
+    });
     resumeSaves();
-    await page.reload();
+    const [, response] = await Promise.all([page.reload(), latestSaveResponse]);
+    const sent = response.request().postDataJSON() as DrawingSave;
+    expect(response.ok()).toBe(true);
+    const receipt = await response.json();
+    expect(receipt).toMatchObject({
+      ok: true, operationId: sent.operationId,
+      count: remaining[0].drawings.length, superseded: false,
+    });
+    expect(validDrawingOperationId(receipt.revision)).toBe(true);
+    expect(typeof receipt.idempotentReplay).toBe("boolean");
     await expect.poll(() => page.evaluate(() => !!(window as Host).__drawingWorkspaceReady), { timeout: 30_000 }).toBe(true);
     await expect.poll(() => page.evaluate(owner =>
       JSON.parse(localStorage.getItem("mm.drawing.account-outbox.v2") || "{}")[owner]?.NVDA, owner)).toBeUndefined();

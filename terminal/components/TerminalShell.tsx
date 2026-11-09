@@ -2928,7 +2928,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     abandonAllDrawingLoads(drawLoadGeneration.current);
     drawHistory.current = {};
     prevPaneSyms.current.clear();
-    publishDrawingStore(pending);
+    // Retiring a queued save must not delete the rendered symbol collection.
+    publishDrawingStore({ ...pending });
     setDrawingLoadFailures(new Set());
     setDrawingSaveIssues(Object.fromEntries(Object.entries(recovered).filter(([, entry]) => entry.blocked).map(([sym, entry]) => [sym, drawingSaveIssueFromEntry(entry)!])));
     setDrawingCloudCopies({});
