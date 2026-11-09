@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { applicationMetadata, applicationViewport } from "@/lib/shared-shell/metadata";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import "./fin.css";
@@ -21,19 +22,9 @@ const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "sw
 // no longer needs to preload on pages that never render a character cell.
 const jetbrainsMono = JetBrains_Mono({ variable: "--font-jetbrains-mono", subsets: ["latin"], display: "swap", preload: false });
 
-// Viewport config: device-width, no zoom (full-bleed chart UX), safe-area insets via viewportFit.
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  viewportFit: "cover",
-};
-
-export const metadata: Metadata = {
-  title: "Mastermind Terminal",
-  description: "Institutional charting — proprietary confluence signals, macro regime, and an AI copilot.",
-};
+// Beta research pages retain browser zoom; the standalone chart keeps its contract.
+export const viewport: Viewport = applicationViewport();
+export const metadata: Metadata = applicationMetadata();
 
 // Runs before first paint (no flash): pick the up/down color scheme + language from a saved
 // override, else from the browser locale. CN/HK/TW/MO (red = up) → "east"; everywhere else → "west".
