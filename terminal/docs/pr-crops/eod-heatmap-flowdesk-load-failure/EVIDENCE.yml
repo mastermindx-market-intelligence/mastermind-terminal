@@ -1,8 +1,8 @@
 # EOD belt, Flow Desk chain heat and Heatmap flow layer failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: daab948465d37a18f42a0682cf56a3ea2426e4fb
-# capturedAt: 2026-11-01T13:04:34.676Z
+# capturedAtHead: a842de07ad2b6e5b2a8c29cbb39226a5443eb490
+# capturedAt: 2026-11-05T12:17:25.344Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
@@ -11,12 +11,12 @@ layoutFiles:
   terminal/components/eodcontext/StructureStrip.tsx: "0baf8c1d09fe4427569c92360081d842018d81d978a8b98d76fb283f950f31d4"
   terminal/components/eodcontext/eodStrings.ts: "4395f953dcc0f4beca53422786393ee792f297211a0eef655c64762f2b34f99f"
   terminal/components/flowdesk/FlowDeskView.tsx: "801cf41437b4749d3ad449e60ab35be8ffcc7f0e193ce5773b9c1ec7e49c01c0"
-  terminal/components/gexdesk/GexDeskView.tsx: "391513c29185cbcce2d9a121ae60d6413ccd5bba2fd89ebc5046bf48a5ebff2b"
+  terminal/components/gexdesk/GexDeskView.tsx: "45e534f221754d1bf3a3214d9a1cbaa4e297623482cb0c9832f8e904ed944bb9"
   terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
   terminal/lib/dataCache.ts: "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a"
   terminal/lib/eodContext.ts: "1d0ce3ccde7a2fa05948cc0ac2ee93d16ec06724a7edcbd8c95c61e39d98b9e7"
   terminal/lib/flowdeskStrings.ts: "580399a47bae6ab6aa16368d25ed54c94047799e4a600352385b5a9b7cc25c10"
-  terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
+  terminal/lib/heatmapStrings.ts: "d24d5cff73246b1a426fe4034723dae30968cd6779d35cef29a4eaf3b55315b7"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -368,3 +368,17 @@ sectorArchiveComposition1254:
   report: "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/1254-sector-c82b70d2/result.json"
   reportSha256: "3b011660dc0ec923ca5c19d72a156fdb75e829e74b8ba0b1ecb3c2973786a889"
   scope: "Actual scoped recapture on combined Sector and archive source. Both earlier histories and other boards remain unchanged."
+
+labGammaMountedRecapture20261104:
+  sourceHead: "3bd342b59cb3df2cb920725870e41ff582581a48"
+  actualCases: 42
+  qualification: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/lab-gamma-recapture-20261104.json"
+  qualificationSha256: "58ffdbfc7821e7a59baff21c0afb99b582c9aa0f505bc18539f85fcebcb37955"
+  scope: "Actual scoped GEX/EOD capture; unrelated sources, historical packets and assertions preserved; not production."
+
+terminal610CaptureRepair20261105:
+  sourceHead: "a842de07ad2b6e5b2a8c29cbb39226a5443eb490"
+  actualCases: 126
+  command: "cd terminal && node e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs"
+  capturedAt: "2026-11-05T12:17:25.344Z"
+  scope: "Actual full capture of every state at 1440/820/390 in en and zh against the current source, because heatmapStrings.ts changed the sizeCap label to Price x volume / 价格 x 成交量. The scoped Heatmap mode was refused by its own guard (heatmapStrings.ts is outside HeatmapView.tsx), so the full owner ran. Historical trailing records above are preserved unchanged."

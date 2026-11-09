@@ -42,6 +42,41 @@ correct error/permission states, full repository checks and protected
 non-author review. Paper screenshots and local fixture-browser captures
 are separate from deployed production acceptance.
 
+## R6 Evidence Desk
+
+R6 is an incremental implementation on the accepted R5 source, not a replacement
+chart or a second intelligence engine. The editable Paper reference is artboard
+`1SNP-0`, in the same Terminal file/page above: compact Summary and searchable
+Activity, with dated AMZN reference observations. Its R5 predecessors remain intact.
+
+The current-entry qualification stays explicit but is compact. Oracle and Research
+are compared in separate cards; each retains its own source-owned wording and date.
+In particular, an older accepted Oracle anchor **must retain the canonical subtitle
+about a newer refused entry**. The latest marker's quality cannot be borrowed to
+describe another anchor. Prophet remains separate early evidence with its own
+permission and publication states. Historical sample statistics and recent
+observations are context, never a new current-entry instruction.
+
+The Sources & freshness inspector distinguishes loaded data from current qualified
+evidence and routes explicit refresh to the existing source/cache owner. Opening
+the inspector does not fetch or change qualification. Absence, wrong-symbol data,
+refresh failure and a recovered stale payload remain different states.
+
+Activity search is literal, bounded to 160 normalized characters, and recognizes
+the shared visible event labels in English and Chinese, displayed/ISO dates,
+source names and prices. All query terms must match. Counts describe the searched
+cohort before the category filter. Newest/oldest ordering is stable; undated records
+stay last in either order. Original signal/receipt identity, known time, chart
+coordinate and zero prices are preserved. Search, ordering, filter and pagination
+reset synchronously when the real selected symbol changes. Clearing search returns
+keyboard focus to the input. Historical/retrospective disclaimers survive searching.
+
+`StockEvidenceOverview` and its CSS module are stock-workspace scoped. Sector and
+Shared Shell consumers of the existing Intelligence stylesheet are unchanged. At
+320px the cards stack instead of compressing; at standard 390px phone width they
+remain side by side. Light-token screenshots are labeled component specimens,
+not proof of a new production Terminal theme.
+
 ## Product behavior
 
 One Intelligence launcher replaces the Research Desk and Golden Oracle popup pair.

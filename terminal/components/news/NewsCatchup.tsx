@@ -1,5 +1,7 @@
 "use client";
 
+import type { MouseEventHandler } from "react";
+
 import styles from "@/components/news/NewsCatchup.module.css";
 import type { NewsCatchup, NewsReviewFilter } from "@/components/news/useNewsCatchup";
 import {
@@ -34,11 +36,13 @@ export function NewsCatchupBar({
   lang,
   labelForSource,
   curated = false,
+  onMarkShown,
 }: {
   catchup: NewsCatchup;
   lang: NewsCatchupLang;
   labelForSource: (source: string) => string;
   curated?: boolean;
+  onMarkShown?: MouseEventHandler<HTMLButtonElement>;
 }) {
   const t = (key: NewsCatchupKey, vars?: Record<string, string | number>) => newsCatchupText(key, lang, vars);
 
@@ -62,7 +66,7 @@ export function NewsCatchupBar({
         <button
           type="button"
           className={styles.markShown}
-          onClick={catchup.markShown}
+          onClick={onMarkShown ?? catchup.markShown}
           disabled={catchup.unreadShown === 0}
           data-news-mark-shown
         >
@@ -187,7 +191,7 @@ export function NewsMarkReviewed({
 }: {
   cls: ReviewClass | null;
   lang: NewsCatchupLang;
-  onMark: () => void;
+  onMark: MouseEventHandler<HTMLButtonElement>;
   title?: string;
 }) {
   if (!cls || cls.status === "reviewed") return null;

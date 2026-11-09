@@ -1,12 +1,12 @@
 "use client";
+import { acquireScrollLock } from "@/lib/scrollLock";
 
 // Provenance: PR697 MobileNavModal repair — commit 0023bffa7c6c0370f15ec1e3a16398d82fe2cf33.
 // Integrated into the Shared Shell beta branch as bounded source assembly (run
 // shared-shell-mobile-integration-20261018-c1-r1). This is not a release of PR697 and does
-// not lift its independent release hold. The dialog implementation below — including the
-// capture-phase release that lets Settings, All tools and AI handoffs run AFTER
-// modality/scroll-lock release — is retained exactly as authored. Sole adaptation: the
-// additive breakpointPx prop, defaulting to 860 (PR697's original viewport behavior).
+// not lift its independent release hold. The capture-phase handoff still releases
+// modality before Settings, All tools or AI opens. The shared scroll owner now keeps
+// sibling overlays locked; breakpointPx retains PR697's default viewport behavior.
 
 import {
   useCallback,
@@ -67,8 +67,7 @@ export default function MobileNavModal({
     const opener = openerRef.current;
     const scrollX = window.scrollX;
     const scrollY = window.scrollY;
-    const htmlOverflow = html.style.overflow;
-    const bodyOverflow = body.style.overflow;
+    const releaseScroll = acquireScrollLock();
     const htmlScrollBehavior = html.style.scrollBehavior;
     const bodyScrollBehavior = body.style.scrollBehavior;
     let released = false;
@@ -79,8 +78,7 @@ export default function MobileNavModal({
 
       if (dialog.open) dialog.close();
 
-      html.style.overflow = htmlOverflow;
-      body.style.overflow = bodyOverflow;
+      releaseScroll();
 
       const samePathname = window.location.pathname === openedPathnameRef.current;
       if (samePathname) {
@@ -96,8 +94,6 @@ export default function MobileNavModal({
     };
 
     releaseRef.current = release;
-    html.style.overflow = "hidden";
-    body.style.overflow = "hidden";
     html.style.scrollBehavior = "auto";
     body.style.scrollBehavior = "auto";
 

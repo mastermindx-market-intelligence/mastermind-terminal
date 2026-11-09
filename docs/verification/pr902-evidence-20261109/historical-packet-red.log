@@ -1,0 +1,204 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/2fe663974ce0/validation-pr902/terminal
+
+ ❯ lib/__tests__/b_f08_6AlertPrefsEvidence.test.ts (6 tests | 3 failed) 16ms
+   × B-F08-6 alert-delivery evidence lock is the sha256 of the layout sources > EVIDENCE.yml records a sha256 for every source the capture script stamps 6ms
+     → layoutFiles is missing terminal/app/globals.css: expected '' to match /^[0-9a-f]{64}$/
+   × B-F08-6 alert-delivery evidence lock is the sha256 of the layout sources > each layoutFiles sha256 matches the file on disk 4ms
+     → terminal/components/settings/SectionAlertDelivery.tsx changed without a recapture: expected 'e00be6ea3da63540441608366b08bbedad325…' to be '9c770be9ef78bc2bb9f1fa3c0b21824632ba6…' // Object.is equality
+   × B-F08-6 alert-delivery evidence lock is the sha256 of the layout sources > binds every actual PNG to its unique capture hash 1ms
+     → missing actual capture image hashes: expected undefined to be defined
+ ❯ lib/__tests__/w9t_f08_13TargetsReadoutEvidence.test.ts (6 tests | 3 failed) 20ms
+   × W9T-F08-13 Settings targets evidence lock is the sha256 of the layout sources > EVIDENCE.yml records a sha256 for every source the capture script stamps 6ms
+     → layoutFiles is missing terminal/components/PortfolioView.tsx: expected '' to match /^[0-9a-f]{64}$/
+   × W9T-F08-13 Settings targets evidence lock is the sha256 of the layout sources > each layoutFiles sha256 matches the file on disk 7ms
+     → terminal/components/settings/SectionPortfolioTargets.tsx changed without a recapture: expected 'e5b24bd5c0ba54c4f5bd1e2d43bf52ac86d76…' to be '780b6a21eea9bac3df42e0b5092a40ed1d27a…' // Object.is equality
+   × W9T-F08-13 Settings targets evidence lock is the sha256 of the layout sources > binds all actual PNG bytes to their capture hashes 2ms
+     → expected [] to deeply equal [ …(8) ]
+ ❯ lib/__tests__/b_f08_b5_1TargetsEvidence.test.ts (7 tests | 4 failed) 26ms
+   × B-F08-B5-1 targets evidence lock is the sha256 of the layout sources > EVIDENCE.yml records a sha256 for every source the capture script stamps 8ms
+     → layoutFiles is missing terminal/lib/portfolioMoney.ts: expected '' to match /^[0-9a-f]{64}$/
+   × B-F08-B5-1 targets evidence lock is the sha256 of the layout sources > each layoutFiles sha256 matches the file on disk 10ms
+     → terminal/components/PortfolioView.tsx changed without a recapture: expected 'b64d934a2cd1a05dedfac6213bcabb15683b2…' to be '4a08c45bdd7a9867a10ba4102cd358f02f4ff…' // Object.is equality
+   × B-F08-B5-1 targets evidence lock is the sha256 of the layout sources > binds every actual PNG to its unique capture hash 1ms
+     → missing actual capture image hashes: expected undefined to be defined
+   × B-F08-B5-1 targets evidence lock is the sha256 of the layout sources > records truthful complete native crop geometry for every matrix cell 1ms
+     → ENOENT: no such file or directory, open '/workspace/scratch/2fe663974ce0/validation-pr902/terminal/docs/pr-crops/b-f08-b5-1-targets/CROP_GEOMETRY.json'
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 10 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/b_f08_6AlertPrefsEvidence.test.ts > B-F08-6 alert-delivery evidence lock is the sha256 of the layout sources > EVIDENCE.yml records a sha256 for every source the capture script stamps
+AssertionError: layoutFiles is missing terminal/app/globals.css: expected '' to match /^[0-9a-f]{64}$/
+
+- Expected: 
+/^[0-9a-f]{64}$/
+
++ Received: 
+""
+
+ ❯ lib/__tests__/b_f08_6AlertPrefsEvidence.test.ts:60:68
+     58|     const recorded = layoutFileMap(evidenceText());
+     59|     for (const rel of LAYOUT_FILES) {
+     60|       expect(recorded[rel] ?? "", `layoutFiles is missing ${rel}`).toM…
+       |                                                                    ^
+     61|     }
+     62|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/10]⎯
+
+ FAIL  lib/__tests__/b_f08_6AlertPrefsEvidence.test.ts > B-F08-6 alert-delivery evidence lock is the sha256 of the layout sources > each layoutFiles sha256 matches the file on disk
+AssertionError: terminal/components/settings/SectionAlertDelivery.tsx changed without a recapture: expected 'e00be6ea3da63540441608366b08bbedad325…' to be '9c770be9ef78bc2bb9f1fa3c0b21824632ba6…' // Object.is equality
+
+Expected: "9c770be9ef78bc2bb9f1fa3c0b21824632ba63bc061f852264e3bc412d719aa0"
+Received: "e00be6ea3da63540441608366b08bbedad325f4aa25990e8075e61650d6f1142"
+
+ ❯ lib/__tests__/b_f08_6AlertPrefsEvidence.test.ts:69:67
+     67|       const abs = join(REPO, rel);
+     68|       expect(existsSync(abs), `${rel} is recorded in layoutFiles but a…
+     69|       expect(sha256Of(abs), `${rel} changed without a recapture`).toBe…
+       |                                                                   ^
+     70|     }
+     71|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/10]⎯
+
+ FAIL  lib/__tests__/b_f08_6AlertPrefsEvidence.test.ts > B-F08-6 alert-delivery evidence lock is the sha256 of the layout sources > binds every actual PNG to its unique capture hash
+AssertionError: missing actual capture image hashes: expected undefined to be defined
+ ❯ lib/__tests__/b_f08_6AlertPrefsEvidence.test.ts:95:57
+     93|   it("binds every actual PNG to its unique capture hash", () => {
+     94|     const rows = evidenceText().match(/^captureFiles:\n((?:  [^\n]*\n)…
+     95|     expect(rows, "missing actual capture image hashes").toBeDefined();
+       |                                                         ^
+     96|     const entries = rows!.trimEnd().split("\n").map(line => {
+     97|       const match = line.match(/^  ([A-Za-z0-9-]+\.png): "([0-9a-f]{64…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/10]⎯
+
+ FAIL  lib/__tests__/b_f08_b5_1TargetsEvidence.test.ts > B-F08-B5-1 targets evidence lock is the sha256 of the layout sources > EVIDENCE.yml records a sha256 for every source the capture script stamps
+AssertionError: layoutFiles is missing terminal/lib/portfolioMoney.ts: expected '' to match /^[0-9a-f]{64}$/
+
+- Expected: 
+/^[0-9a-f]{64}$/
+
++ Received: 
+""
+
+ ❯ lib/__tests__/b_f08_b5_1TargetsEvidence.test.ts:70:68
+     68|     const recorded = layoutFileMap(evidenceText());
+     69|     for (const rel of LAYOUT_FILES) {
+     70|       expect(recorded[rel] ?? "", `layoutFiles is missing ${rel}`).toM…
+       |                                                                    ^
+     71|     }
+     72|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/10]⎯
+
+ FAIL  lib/__tests__/b_f08_b5_1TargetsEvidence.test.ts > B-F08-B5-1 targets evidence lock is the sha256 of the layout sources > each layoutFiles sha256 matches the file on disk
+AssertionError: terminal/components/PortfolioView.tsx changed without a recapture: expected 'b64d934a2cd1a05dedfac6213bcabb15683b2…' to be '4a08c45bdd7a9867a10ba4102cd358f02f4ff…' // Object.is equality
+
+Expected: "4a08c45bdd7a9867a10ba4102cd358f02f4ffdf4d1013a951dc6b892ed102d90"
+Received: "b64d934a2cd1a05dedfac6213bcabb15683b22967e86476dc970ad9994018aec"
+
+ ❯ lib/__tests__/b_f08_b5_1TargetsEvidence.test.ts:79:67
+     77|       const abs = join(REPO, rel);
+     78|       expect(existsSync(abs), `${rel} is recorded in layoutFiles but a…
+     79|       expect(sha256Of(abs), `${rel} changed without a recapture`).toBe…
+       |                                                                   ^
+     80|     }
+     81|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/10]⎯
+
+ FAIL  lib/__tests__/b_f08_b5_1TargetsEvidence.test.ts > B-F08-B5-1 targets evidence lock is the sha256 of the layout sources > binds every actual PNG to its unique capture hash
+AssertionError: missing actual capture image hashes: expected undefined to be defined
+ ❯ lib/__tests__/b_f08_b5_1TargetsEvidence.test.ts:105:57
+    103|   it("binds every actual PNG to its unique capture hash", () => {
+    104|     const rows = evidenceText().match(/^captureFiles:\n((?:  [^\n]*\n)…
+    105|     expect(rows, "missing actual capture image hashes").toBeDefined();
+       |                                                         ^
+    106|     const entries = rows!.trimEnd().split("\n").map(line => {
+    107|       const match = line.match(/^  ([A-Za-z0-9-]+\.png): "([0-9a-f]{64…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/10]⎯
+
+ FAIL  lib/__tests__/b_f08_b5_1TargetsEvidence.test.ts > B-F08-B5-1 targets evidence lock is the sha256 of the layout sources > records truthful complete native crop geometry for every matrix cell
+Error: ENOENT: no such file or directory, open '/workspace/scratch/2fe663974ce0/validation-pr902/terminal/docs/pr-crops/b-f08-b5-1-targets/CROP_GEOMETRY.json'
+ ❯ lib/__tests__/b_f08_b5_1TargetsEvidence.test.ts:121:32
+    119| 
+    120|   it("records truthful complete native crop geometry for every matrix …
+    121|     const receipt = JSON.parse(readFileSync(join(CROP_DIR, "CROP_GEOME…
+       |                                ^
+    122|       crops: Array<{ file: string; requestedViewport: { width: number;…
+    123|         cropRectCss: { width: number; height: number }; clippedBy: unk…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/10]⎯
+
+ FAIL  lib/__tests__/w9t_f08_13TargetsReadoutEvidence.test.ts > W9T-F08-13 Settings targets evidence lock is the sha256 of the layout sources > EVIDENCE.yml records a sha256 for every source the capture script stamps
+AssertionError: layoutFiles is missing terminal/components/PortfolioView.tsx: expected '' to match /^[0-9a-f]{64}$/
+
+- Expected: 
+/^[0-9a-f]{64}$/
+
++ Received: 
+""
+
+ ❯ lib/__tests__/w9t_f08_13TargetsReadoutEvidence.test.ts:62:68
+     60|     const recorded = layoutFileMap(evidence());
+     61|     for (const rel of LAYOUT_FILES) {
+     62|       expect(recorded[rel] ?? "", `layoutFiles is missing ${rel}`).toM…
+       |                                                                    ^
+     63|     }
+     64|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/10]⎯
+
+ FAIL  lib/__tests__/w9t_f08_13TargetsReadoutEvidence.test.ts > W9T-F08-13 Settings targets evidence lock is the sha256 of the layout sources > each layoutFiles sha256 matches the file on disk
+AssertionError: terminal/components/settings/SectionPortfolioTargets.tsx changed without a recapture: expected 'e5b24bd5c0ba54c4f5bd1e2d43bf52ac86d76…' to be '780b6a21eea9bac3df42e0b5092a40ed1d27a…' // Object.is equality
+
+Expected: "780b6a21eea9bac3df42e0b5092a40ed1d27a02f4d8f62a9618393fa137801b6"
+Received: "e5b24bd5c0ba54c4f5bd1e2d43bf52ac86d766840534f99577d9081363d765e9"
+
+ ❯ lib/__tests__/w9t_f08_13TargetsReadoutEvidence.test.ts:71:67
+     69|       const abs = join(REPO, rel);
+     70|       expect(existsSync(abs), `${rel} is recorded in layoutFiles but a…
+     71|       expect(sha256Of(abs), `${rel} changed without a recapture`).toBe…
+       |                                                                   ^
+     72|     }
+     73|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/10]⎯
+
+ FAIL  lib/__tests__/w9t_f08_13TargetsReadoutEvidence.test.ts > W9T-F08-13 Settings targets evidence lock is the sha256 of the layout sources > binds all actual PNG bytes to their capture hashes
+AssertionError: expected [] to deeply equal [ …(8) ]
+
+- Expected
++ Received
+
+- Array [
+-   "PortfolioTargetsSettings-empty-1440-en.png",
+-   "PortfolioTargetsSettings-empty-1440-zh.png",
+-   "PortfolioTargetsSettings-empty-390-en.png",
+-   "PortfolioTargetsSettings-empty-390-zh.png",
+-   "PortfolioTargetsSettings-populated-1440-en.png",
+-   "PortfolioTargetsSettings-populated-1440-zh.png",
+-   "PortfolioTargetsSettings-populated-390-en.png",
+-   "PortfolioTargetsSettings-populated-390-zh.png",
+- ]
++ Array []
+
+ ❯ lib/__tests__/w9t_f08_13TargetsReadoutEvidence.test.ts:93:40
+     91|   it("binds all actual PNG bytes to their capture hashes", () => {
+     92|     const hashes = evidence().captureFiles ?? {};
+     93|     expect(Object.keys(hashes).sort()).toEqual([...CROPS].sort());
+       |                                        ^
+     94|     const rows = readFileSync(EVIDENCE, "utf8").match(/"captureFiles":…
+     95|     expect(rows).toBeDefined();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/10]⎯
+
+ Test Files  3 failed (3)
+      Tests  10 failed | 9 passed (19)
+   Start at  01:34:34
+   Duration  625ms (transform 155ms, setup 0ms, collect 196ms, tests 62ms, environment 0ms, prepare 317ms)
+

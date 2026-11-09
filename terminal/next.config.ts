@@ -4,6 +4,10 @@ import { readFileSync, readdirSync } from "node:fs";
 import path from "path";
 
 const isProd = process.env.NODE_ENV === "production";
+// Only the closed canonical fixture transport denies the optional debug WebSocket.
+const isClosedCanonicalTransport = process.env.NODE_ENV === "development"
+  && process.env.TERMINAL_E2E_FIXTURE === "1"
+  && process.env.TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT === "intl-fixture-v1";
 
 // ── Deployment id (version-skew protection / stale-chunk self-heal) ───────────
 // Each production deploy gets a DISTINCT id: prefer the git sha wired in by
@@ -166,6 +170,7 @@ const embedChartHeaders = embedHeaders.map((header) =>
 );
 
 const nextConfig: NextConfig = {
+  ...(isClosedCanonicalTransport ? { experimental: { reactDebugChannel: false } } : {}),
   // Internal public-sample diagnostics must never be copied into a deploy artifact.
   // Turbopack globs are project-relative; parent-traversal excludes panic at build time.
   // The pinned terminal root already excludes its parent; cover any nested diagnostic copy too.
@@ -203,6 +208,9 @@ const nextConfig: NextConfig = {
   // tsc --noEmit is clean as of 2026-07-11, so builds enforce types again — the
   // 2026-07-07 `typescript.ignoreBuildErrors` escape hatch (FinPage union nits)
   // is removed; CI (.github/workflows/ci.yml) also gates PRs on tsc + vitest.
+  // Production checks application + generated Next contracts in a bounded project.
+  // The unchanged full tsconfig.json remains the required CI typecheck (tests/tools included).
+  typescript: { tsconfigPath: isProd ? "tsconfig.build.json" : "tsconfig.json" },
   // Note: `eslint` key was removed in Next.js 16 — ESLint is no longer built-in.
   // ── Wave-2 IA redirect contract (permanent 308) ────────────────────────────
   // The old single-purpose route dirs (screener/heatmap/alerts/scripts/flow) were
