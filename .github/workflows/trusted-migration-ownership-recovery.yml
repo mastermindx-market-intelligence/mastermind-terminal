@@ -9,8 +9,9 @@ run-name: Migration owner recovery ${{ inputs.ci_run_id }} ${{ github.sha }}
 # default-branch bytes (github.sha), like the automatic issuer: there is NO
 # caller-selected revision input, and a dispatch whose executing protected
 # modules no longer match current master is refused as stale before any mint.
-# While repository selectors are 0/0 (or partially configured) the guard job
-# fails loudly BEFORE any environment allocation (no silent skip).
+# Unless BOTH repository selectors are strict positive integers — 0, empty,
+# missing and non-numeric are all dormant/invalid — the guard job fails
+# loudly BEFORE any environment allocation (no silent skip).
 on:
   workflow_dispatch:
     inputs:
@@ -25,18 +26,26 @@ concurrency:
 
 jobs:
   dormancy-guard:
-    # Refuse loudly while the publisher identity is pinned to the explicit
-    # disabled state (either selector 0, including partial configuration).
-    # This job has NO environment, so a dormant or misconfigured dispatch can
+    # Refuse loudly unless BOTH selectors are strict positive integers: 0,
+    # empty, missing and non-numeric values are all dormant/invalid. The
+    # selectors reach the shell only through env: (never interpolated into
+    # the run body), and the recover job needs this guard's success. This
+    # job has NO environment, so a dormant or misconfigured dispatch can
     # never allocate the credential environment or its key.
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Refuse recovery while the ownership publisher is dormant
-        if: vars.MIGRATION_OWNER_APP_ID == '0' || vars.MIGRATION_OWNER_INSTALLATION_ID == '0'
+      - name: Refuse recovery while the ownership publisher is dormant or misconfigured
+        env:
+          APP_ID: ${{ vars.MIGRATION_OWNER_APP_ID }}
+          INSTALLATION_ID: ${{ vars.MIGRATION_OWNER_INSTALLATION_ID }}
         run: |
-          echo "::error::Migration owner recovery is dormant: MIGRATION_OWNER_APP_ID/MIGRATION_OWNER_INSTALLATION_ID is pinned to 0. Nothing to recover; refusing before any environment allocation."
-          exit 1
+          for selector in APP_ID INSTALLATION_ID; do
+            if ! printf '%s\n' "${!selector}" | grep -Eq '^[1-9][0-9]*$'; then
+              echo "::error::Migration owner recovery is dormant: $selector is 0, empty, missing or non-numeric; the ownership publisher is not configured. Nothing to recover; refusing before any environment allocation."
+              exit 1
+            fi
+          done
   recover:
     needs: dormancy-guard
     if: >-

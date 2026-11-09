@@ -242,44 +242,57 @@ which bytes execute, so old weaker rules cannot be selected. The same
 grant set, check name, required context and validator are reused; recovery
 adds no new publisher, scheduler or credential path.
 
-Dormancy: while either repository selector is `0` — the explicit disabled pair
-or any partial configuration — there is nothing to recover, and a manual
-dispatch fails loudly before any API client, environment allocation or mint.
-The workflow splits this refusal into a `dormancy-guard` job with **no**
-`environment:` that exits non-zero while a selector is `0`, and the credential
-job (`terminal-migration-owner` environment) whose `if:` additionally requires
-both selectors non-zero on top of the repository/ref/default-branch guards, so
-a dormant or misconfigured dispatch can never allocate the environment or its
-key. Recovery never forges workflow_run identity: the original run is re-read
-and qualified, and the published check honestly records the recovery run, its
-dispatching actor (sender, authenticated `triggering_actor`, and their
-repository permission, which must be admin/maintain/write — proven in
-`--recover-preflight` before the mint as well as after it) and the
-dispatch-time protected revision in `external_id`, `details_url` and the check
-output.
+Dormancy: unless both repository selectors are strict positive integers — `0`,
+empty, missing and non-numeric values are all dormant/invalid — there is
+nothing to recover, and a manual dispatch fails loudly before any API client,
+environment allocation or mint. The workflow splits this refusal into a
+`dormancy-guard` job with **no** `environment:` that validates both selectors
+against the shell regex `^[1-9][0-9]*$` on every dispatch (the vars are passed
+through step `env:`, never interpolated into the shell body) and exits
+non-zero otherwise, and the credential job (`terminal-migration-owner`
+environment), which needs the guard's success and whose `if:` additionally
+requires both selectors non-zero on top of the repository/ref/default-branch
+guards, so a dormant or misconfigured dispatch can never allocate the
+environment or its key. Recovery never forges workflow_run identity: the
+original run is re-read and qualified, and the published check honestly
+records the recovery run, its dispatching actor (sender, authenticated
+`triggering_actor`, and their repository permission, which must be
+admin/maintain/write — proven in `--recover-preflight` before the mint as well
+as after it) and the dispatch-time protected revision in `external_id`,
+`details_url` and the check output.
 
 Anti-rollback/staleness: recovery executes exactly the dispatch-time
 default-branch bytes and refuses unless those modules
 (`check_supabase_migration_namespace.py`, `migration_merge_group.py`) **and the
 issuer module `trusted_migration_ownership.py` itself** still carry exactly
-the same content-addressed blob identity as **current `master`** at run time.
-A dispatch whose executing law has since been changed on master is a stale run
-and refuses before any mint; because no revision input exists, a revision that
-predates the currently accepted validator/issuer-law identity can never mint a
-green check under old law. Original-operation reconciliation runs before any
-write: an existing check for the same `migration-owner:v1:{run}:{attempt}:
-{head}` operation from either the automatic issuer or a prior recovery is read
-back, its claimed issuer run is authenticated against Actions metadata at its
-original attempt identity (a rerun — `run_attempt != 1` — of that prior issuer
-run leaves later reconciliations refused, fail-closed like the automatic
-path), a settled outcome is only reconciled, and an unsettled or unknown one
-is never replayed; a rerun of the recovery run itself is likewise
-reconcile-only. Recovery also refuses while the target CI run is still in
-progress (its original issuer keeps the turn), while ANY not-yet-completed
-automatic issuer attempt for the same target exists — queued, waiting,
-pending, requested, action-required or in-progress, with that scan repeated
-immediately before publication — and when an earlier recovery dispatch for the
-same target is unsettled or already reached the publication step. For
+the same content-addressed blob identity as the current `refs/heads/master`
+branch tip — resolved explicitly so a same-named tag cannot shadow the branch —
+at run time. A dispatch whose executing law has since been changed on master
+is a stale run and refuses before any mint; because no revision input exists,
+a revision that predates the currently accepted validator/issuer-law identity
+can never mint a green check under old law. Original-operation reconciliation
+runs before any write: an existing check for the same
+`migration-owner:v1:{run}:{attempt}:{head}` operation from either the
+automatic issuer or a prior recovery is read back, its claimed issuer run is
+authenticated against Actions metadata at its original attempt identity (a
+rerun — `run_attempt != 1` — of that prior issuer run leaves later
+reconciliations refused, fail-closed like the automatic path), a settled
+outcome is only reconciled, and an unsettled or unknown one is never replayed;
+a rerun of the recovery run itself is likewise reconcile-only. Recovery also
+refuses while the target CI run is still in progress (its original issuer
+keeps the turn), while ANY not-yet-completed automatic issuer attempt for the
+same target exists — queued, waiting, pending, requested, action-required or
+in-progress, with that scan scoped to the issuer workflow, paginated
+fail-closed, and repeated immediately before publication — and when an earlier
+recovery dispatch for the same target is unsettled or already reached the
+publication step. The prior-recovery scan is scoped to this recovery
+workflow's `master` `workflow_dispatch` runs created no earlier than the
+target CI run, paginated under a hard page cap that fails closed, considers a
+run only when its event, branch and repository identity match, and reads
+prior-recovery jobs with `filter=all` across every attempt so a re-run cannot
+hide attempt 1's publication. Immediately before the POST, the check-runs
+listing is re-read and must show no owner operation for this target; the write
+order is scan → re-read checks → POST. For
 pull-request targets the source PR must still be OPEN (a merged PR has no
 remaining gate to supply). Merge-group recovery only works while the entry is
 still queued: the authenticated queue snapshot must still carry the candidate

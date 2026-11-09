@@ -58,6 +58,10 @@ API = "https://api.github.com"
 MAX_RESPONSE = 8 * 1024 * 1024
 MAX_BLOB = 1024 * 1024
 MAX_FILES = 512
+# Hard page cap for every paginated Actions listing scan. Reaching it with the
+# set still incomplete is an incomplete scan: the caller must refuse, never
+# publish over records it did not see.
+MAX_SCAN_PAGES = 10
 _COMPLETED_CONCLUSIONS = frozenset({"success", "failure", "neutral", "cancelled", "skipped",
                                     "timed_out", "action_required", "stale", "startup_failure"})
 require = group.require
@@ -584,9 +588,13 @@ def _recovery_context(event: dict, env: dict):
 def _validator_identity(api, ref: str):
     """Content-addressed identity of the three executed modules at one revision.
 
-    `ref` is the dispatch-time anchor SHA or the moving "master" tip; comparing
+    `ref` is the dispatch-time anchor SHA or the moving default branch; comparing
     the two refuses a dispatch whose executing bytes are no longer current
-    protected law (any of the three modules differing makes the run stale)."""
+    protected law (any of the three modules differing makes the run stale).
+    A moving ref must be the fully qualified `refs/heads/master`: a bare
+    `master` is a revision expression that a same-named tag could shadow."""
+    require(re.fullmatch(r"[0-9a-f]{40}", ref) or ref == "refs/heads/master",
+            "validator comparison ref must be a full OID or refs/heads/master")
     data = api.graphql(VALIDATOR_QUERY, _variables()
                        | {f"p{i}": f"{ref}:{path}" for i, path in enumerate(VALIDATOR_PATHS)})
     repo = data.get("repository") or {}
@@ -599,7 +607,7 @@ def _validator_identity(api, ref: str):
     return tuple(identities)
 
 
-def _recovery_origin(target_id: int, anchor: str, api) -> _VerifiedRun:
+def _recovery_origin(target_id: int, anchor: str, api):
     value = api.request("GET", f"/repos/{REPO}/actions/runs/{target_id}")
     identity = _run_identity(value)
     run_id, attempt, workflow_id, head, branch, event, repo_id = identity
@@ -612,7 +620,13 @@ def _recovery_origin(target_id: int, anchor: str, api) -> _VerifiedRun:
     # will never mint. A still-running target keeps its original issuer's turn.
     require(value.get("status") == "completed" and value.get("conclusion") in _COMPLETED_CONCLUSIONS,
             "recovery target has not completed; the original issuer may still publish")
-    return _VerifiedRun(run_id, attempt, workflow_id, head, branch, event, anchor, repo_id)
+    # The target's immutable creation time bounds the prior-recovery scan:
+    # no earlier recovery dispatch for this target can exist.
+    created = value.get("created_at")
+    require(isinstance(created, str)
+            and re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z", created),
+            "recovery target creation time unavailable")
+    return _VerifiedRun(run_id, attempt, workflow_id, head, branch, event, anchor, repo_id), created
 
 
 def _recovery_record(value, origin: _VerifiedRun, anchor: str, issuer_id: int, attempt: int):
@@ -703,52 +717,92 @@ def _prior_issuer(check: dict, origin: _VerifiedRun, api):
         require(False, "prior check issuer is not a qualified ownership publisher")
 
 
+def _paged_listing(api, base: str, key: str, label: str) -> list:
+    """Bounded fail-closed pagination for one Actions listing query.
+
+    Every page carries the whole filtered set's total_count; the collected
+    items must equal it within MAX_SCAN_PAGES pages. A page-cap hit, a
+    shortened page before the set is complete, or any count mismatch is an
+    incomplete scan: the caller refuses instead of acting on records it did
+    not fully see."""
+    items = []
+    total = None
+    for page in range(1, MAX_SCAN_PAGES + 1):
+        value = api.request("GET", f"{base}&page={page}")
+        listed = value.get(key)
+        require(isinstance(listed, list) and len(listed) <= 100
+                and type(value.get("total_count")) is int
+                and value["total_count"] >= 0, f"incomplete {label} scan")
+        require(total is None or total == value["total_count"], f"inconsistent {label} scan")
+        total = value["total_count"]
+        items.extend(listed)
+        if len(listed) < 100:
+            break
+    require(type(total) is int and len(items) == total, f"incomplete {label} scan")
+    return items
+
+
 def _no_live_issuer(origin: _VerifiedRun, api):
     """Any not-yet-completed automatic issuer run for this operation owns it.
 
     The list endpoint has no not-completed filter, so every non-completed
     status is scanned separately: a queued, waiting, pending, requested,
     action-required or in-progress issuer attempt still gets its turn, and
-    recovery must not publish over it."""
+    recovery must not publish over it. The listing is scoped to the issuer
+    workflow itself and paginated fail-closed, so unrelated workflow_run
+    volume can neither wedge nor silently truncate the scan."""
     title = _issuer_title(origin)
     for status in _LIVE_ISSUER_STATUSES:
-        value = api.request("GET",
-                            f"/repos/{REPO}/actions/runs?event=workflow_run&status={status}&per_page=100")
-        runs = value.get("workflow_runs")
-        require(isinstance(runs, list) and type(value.get("total_count")) is int
-                and value["total_count"] == len(runs) <= 100, "incomplete live issuer scan")
+        runs = _paged_listing(api, f"/repos/{REPO}/actions/workflows/{Path(ISSUER_WORKFLOW).name}"
+                              f"/runs?event=workflow_run&status={status}&per_page=100",
+                              "workflow_runs", "live issuer")
         require(not any(isinstance(run, dict) and run.get("path") == ISSUER_WORKFLOW
                         and run.get("display_title") == title for run in runs),
                 "a pending or live issuer owns this operation")
 
 
-def _prior_recovery_completed(origin: _VerifiedRun, recovery: _VerifiedRecovery, api):
+def _prior_recovery_completed(origin: _VerifiedRun, recovery: _VerifiedRecovery,
+                              target_created: str, api):
     """Duplicate-publication guard: an earlier recovery dispatch for the same
     target (matched by run title) must be settled and must not have reached
-    the publication step, unless its check was already reconciled above."""
-    value = api.request("GET",
-                        f"/repos/{REPO}/actions/runs?event=workflow_dispatch&per_page=100")
-    runs = value.get("workflow_runs")
-    require(isinstance(runs, list) and type(value.get("total_count")) is int
-            and value["total_count"] == len(runs) <= 100, "incomplete prior recovery scan")
+    the publication step, unless its check was already reconciled above.
+
+    The scan is scoped to THIS recovery workflow's master workflow_dispatch
+    runs created no earlier than the target CI run (the earliest dispatch that
+    could matter), paginated with a hard page cap, and fail-closed on any
+    count mismatch. Runs whose event, branch or repository identity do not
+    match this operation are ignored: a hostile-branch copy of the workflow
+    must not be able to block recovery. Prior-recovery jobs are read with
+    filter=all across every attempt, so a re-run whose latest attempt skipped
+    the publish step cannot hide attempt 1's publication."""
+    query = ("event=workflow_dispatch&branch=master&per_page=100&created="
+             + urllib.parse.quote(">=" + target_created, safe=""))
+    runs = _paged_listing(api, f"/repos/{REPO}/actions/workflows/"
+                          f"{Path(RECOVERY_ISSUER_WORKFLOW).name}/runs?{query}",
+                          "workflow_runs", "prior recovery")
     prefix = f"Migration owner recovery {origin.run_id} "
     for run in runs:
-        if not (isinstance(run, dict) and run.get("path") == RECOVERY_ISSUER_WORKFLOW
+        if not isinstance(run, dict):
+            continue
+        repo = run.get("repository") or {}
+        if not (run.get("path") == RECOVERY_ISSUER_WORKFLOW
+                and run.get("event") == "workflow_dispatch"
+                and run.get("head_branch") == "master"
                 and isinstance(run.get("display_title"), str)
-                and run.get("display_title").startswith(prefix)):
+                and run.get("display_title").startswith(prefix)
+                and repo.get("full_name") == REPO
+                and type(repo.get("id")) is int and 0 < repo["id"] == origin.repository_id):
             continue
         prior_id = positive(run.get("id"))
         if prior_id == recovery.run_id:
             continue
         require(run.get("status") == "completed", "an earlier recovery for this target is not settled")
-        jobs = api.request("GET", f"/repos/{REPO}/actions/runs/{prior_id}/jobs?per_page=100")
-        listed = jobs.get("jobs")
-        require(isinstance(listed, list) and type(jobs.get("total_count")) is int
-                and jobs["total_count"] == len(listed) <= 100, "incomplete prior recovery job scan")
+        jobs = _paged_listing(api, f"/repos/{REPO}/actions/runs/{prior_id}/jobs"
+                              f"?filter=all&per_page=100", "jobs", "prior recovery job")
         reached = any(isinstance(job, dict) and isinstance(job.get("steps"), list)
                       and any(isinstance(step, dict) and step.get("name") == RECOVERY_PUBLISH_STEP
                               and step.get("conclusion") not in (None, "skipped")
-                              for step in job["steps"]) for job in listed)
+                              for step in job["steps"]) for job in jobs)
         require(not reached, "an earlier recovery reached publication for this target")
 
 
@@ -775,9 +829,11 @@ def execute_recovery(event: dict, env: dict, api, app_id: int):
     anchor, target_id = _recovery_context(event, env)
     # ANTI-ROLLBACK/STALENESS: the executing bytes must still be exactly the
     # current protected law on master; older or divergent law cannot be selected.
-    require(_validator_identity(api, anchor) == _validator_identity(api, "master"),
+    # The moving side resolves refs/heads/master explicitly, so a same-named
+    # tag can never shadow the branch comparison.
+    require(_validator_identity(api, anchor) == _validator_identity(api, "refs/heads/master"),
             "dispatch-time protected law differs from current master")
-    origin = _recovery_origin(target_id, anchor, api)
+    origin, target_created = _recovery_origin(target_id, anchor, api)
     require(env.get("GITHUB_REPOSITORY_ID") == str(origin.repository_id), "repository identity changed")
     recovery, record = _qualify_recovery(origin, anchor, env, api)
     actor, level = _actor(event, record, api)
@@ -793,15 +849,26 @@ def execute_recovery(event: dict, env: dict, api, app_id: int):
         require(prior.get("status") == "completed", "original check outcome unsettled; no replay")
         return {"state": "RECONCILED", "conclusion": prior.get("conclusion")}
     _no_live_issuer(origin, api)
-    _prior_recovery_completed(origin, recovery, api)
+    _prior_recovery_completed(origin, recovery, target_created, api)
     require(recovery.attempt == 1, "original recovery outcome unknown; later attempts are reconcile-only")
     evidence = _qualify_contents(origin, api)
-    require(_recovery_origin(target_id, anchor, api) == origin, "target changed before check creation")
+    require(_recovery_origin(target_id, anchor, api) == (origin, target_created),
+            "target changed before check creation")
     require(_qualify_recovery(origin, anchor, env, api)[0] == recovery,
             "recovery attempt changed before check creation")
     # M1: the live-issuer scan repeats immediately before the write, so an
     # issuer attempt that appeared during the material read still keeps the turn.
     _no_live_issuer(origin, api)
+    # mi3: a check created by a concurrent publisher between the first read and
+    # this boundary keeps its turn. The write order is scan -> re-read checks
+    # -> POST; a fresh owner operation for this target never gets a second one.
+    final_response = api.request("GET",
+                                 f"/repos/{REPO}/commits/{origin.head}/check-runs?filter=all&per_page=100")
+    final_checks = final_response.get("check_runs")
+    require(isinstance(final_checks, list) and type(final_response.get("total_count")) is int
+            and final_response["total_count"] == len(final_checks) < 100, "incomplete final prior checks")
+    require(_prior_operation(final_checks, origin, app_id) is None,
+            "an owner operation appeared after the first scan; reconcile instead")
     check = api.request("POST", f"/repos/{REPO}/check-runs", {
         "name": CONTEXT, "head_sha": origin.head, "external_id": origin.external_id,
         "details_url": recovery.original_details_url,
@@ -813,7 +880,8 @@ def execute_recovery(event: dict, env: dict, api, app_id: int):
     require(check.get("status") == "in_progress" and "conclusion" in check
             and check["conclusion"] is None, "created check state unconfirmed; no retry")
     try:
-        require(_recovery_origin(target_id, anchor, api) == origin, "target superseded; no settlement")
+        require(_recovery_origin(target_id, anchor, api) == (origin, target_created),
+                "target superseded; no settlement")
         require(_qualify_recovery(origin, anchor, env, api)[0] == recovery,
                 "recovery superseded; no settlement")
         require(_qualify_contents(origin, api) == evidence, "source or queue changed before publication")
@@ -823,7 +891,8 @@ def execute_recovery(event: dict, env: dict, api, app_id: int):
     except group.OwnershipUnqualified:
         # Only a known, acknowledged check can be failed, and only while both
         # principals still qualify; otherwise the outcome stays unsettled.
-        require(_recovery_origin(target_id, anchor, api) == origin, "target superseded; no settlement")
+        require(_recovery_origin(target_id, anchor, api) == (origin, target_created),
+                "target superseded; no settlement")
         require(_qualify_recovery(origin, anchor, env, api)[0] == recovery,
                 "recovery superseded; no settlement")
         result = api.request("PATCH", f"/repos/{REPO}/check-runs/{check['id']}", {
@@ -867,9 +936,9 @@ def main():
                     "recovery requires an enrolled independent installation")
             api = Api(os.environ.get("OWNERSHIP_RUN_TOKEN", ""))
             anchor, target_id = _recovery_context(event, dict(os.environ))
-            require(_validator_identity(api, anchor) == _validator_identity(api, "master"),
+            require(_validator_identity(api, anchor) == _validator_identity(api, "refs/heads/master"),
                     "dispatch-time protected law differs from current master")
-            origin = _recovery_origin(target_id, anchor, api)
+            origin, _ = _recovery_origin(target_id, anchor, api)
             recovery, record = _qualify_recovery(origin, anchor, dict(os.environ), api)
             # m3: dispatcher provenance must qualify here too, BEFORE the key
             # mint step that runs only after this preflight succeeds.

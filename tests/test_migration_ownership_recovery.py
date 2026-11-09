@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import copy
 import json
+import re
 import socket
 from pathlib import Path
 
@@ -28,6 +29,18 @@ ACTOR = "recovery-admin"
 OTHER_ANCHOR = "7" * 40
 RECOVERY_RUN = 85
 PRIOR_RECOVERY_RUN = 86
+# The target CI run's immutable creation time bounds the prior-recovery scan
+# (created=>=<target created_at>), sent percent-encoded by the module.
+TARGET_CREATED = "2026-11-01T12:00:00Z"
+CREATED_FILTER = "%3E%3D2026-11-01T12%3A00%3A00Z"
+ISSUER_SCAN = (f"/repos/{owner.REPO}/actions/workflows/"
+               "trusted-migration-ownership.yml/runs?")
+RECOVERY_SCAN = (f"/repos/{owner.REPO}/actions/workflows/"
+                 "trusted-migration-ownership-recovery.yml/runs?")
+
+
+def _query(path):
+    return dict(part.split("=", 1) for part in path.split("?", 1)[1].split("&"))
 
 
 def recovery_event(**sender):
@@ -51,7 +64,7 @@ class RecoveryService(Service):
 
     def __init__(self, event="merge_group"):
         super().__init__(event)
-        self.run.update(status="completed", conclusion="success")
+        self.run.update(status="completed", conclusion="success", created_at=TARGET_CREATED)
         self.recovery = {"id": RECOVERY_RUN, "run_attempt": 1, "workflow_id": 19,
                          "path": owner.RECOVERY_ISSUER_WORKFLOW,
                          "name": owner.RECOVERY_ISSUER_NAME, "event": "workflow_dispatch",
@@ -76,7 +89,15 @@ class RecoveryService(Service):
         self.dispatch_runs = {"total_count": 0, "workflow_runs": []}
         self.prior_jobs = {}
         self.validators = {}
+        self.checks_read = 0
+        self.checks_after = None
         self.created = None
+
+    @staticmethod
+    def _page(document, key, page, size=100):
+        items = document.get(key) or []
+        return {"total_count": document.get("total_count"),
+                key: copy.deepcopy(items[(page - 1) * size:page * size])}
 
     def request(self, method, path, body=None):
         if method != "GET":
@@ -96,26 +117,47 @@ class RecoveryService(Service):
                 return result
             assert self.created is not None, "PATCH before POST"
             return copy.deepcopy(self.created) | (body or {})
-        if path.startswith(f"/repos/{owner.REPO}/actions/runs?"):
-            query = dict(part.split("=", 1) for part in path.split("?", 1)[1].split("&"))
-            if query.get("event") == "workflow_run":
-                status = query.get("status")
-                assert query == {"event": "workflow_run", "status": status, "per_page": "100"}
-                assert status in owner._LIVE_ISSUER_STATUSES
-                self.live_queries += 1
-                source = self.live_issuers
-                # Results served after the first complete sweep model an issuer
-                # attempt appearing between preflight and the pre-POST re-scan.
-                if self.live_after is not None and self.live_queries > len(owner._LIVE_ISSUER_STATUSES):
-                    source = self.live_after
-                return copy.deepcopy(source.get(status, {"total_count": 0, "workflow_runs": []}))
-            assert query == {"event": "workflow_dispatch", "per_page": "100"}
-            return copy.deepcopy(self.dispatch_runs)
+        if path.startswith(ISSUER_SCAN):
+            # n-c: the live-issuer scan is scoped to the issuer workflow's own
+            # workflow_run runs, one fail-closed paginated listing per status.
+            query = _query(path)
+            status = query.get("status")
+            assert set(query) == {"event", "status", "per_page", "page"}
+            assert query["event"] == "workflow_run" and query["per_page"] == "100"
+            assert query["page"].isdigit() and status in owner._LIVE_ISSUER_STATUSES
+            self.live_queries += 1
+            source = self.live_issuers
+            # Results served after the first complete sweep model an issuer
+            # attempt appearing between preflight and the pre-POST re-scan.
+            if self.live_after is not None and self.live_queries > len(owner._LIVE_ISSUER_STATUSES):
+                source = self.live_after
+            return self._page(source.get(status, {"total_count": 0, "workflow_runs": []}),
+                              "workflow_runs", int(query["page"]))
+        if path.startswith(RECOVERY_SCAN):
+            # MJ1: the prior-recovery scan is scoped to THIS workflow's master
+            # dispatches created no earlier than the target CI run.
+            query = _query(path)
+            assert query == {"event": "workflow_dispatch", "branch": "master",
+                             "created": CREATED_FILTER, "per_page": "100",
+                             "page": query.get("page")}
+            assert query["page"].isdigit()
+            return self._page(self.dispatch_runs, "workflow_runs", int(query["page"]))
         if "/jobs?" in path:
+            # mi1: every attempt's jobs are listed (filter=all), so a re-run
+            # cannot hide attempt 1's publish step.
             assert path.startswith(f"/repos/{owner.REPO}/actions/runs/")
-            assert path.endswith("/jobs?per_page=100")
+            query = _query(path)
+            assert query == {"filter": "all", "per_page": "100", "page": query.get("page")}
             prior_id = int(path.split("/runs/", 1)[1].split("/jobs", 1)[0])
-            return copy.deepcopy(self.prior_jobs.get(prior_id, {"total_count": 0, "jobs": []}))
+            return self._page(self.prior_jobs.get(prior_id, {"total_count": 0, "jobs": []}),
+                              "jobs", int(query["page"]))
+        if "/check-runs?" in path:
+            # mi3: the check-runs listing is re-read immediately before the
+            # POST; checks_after models an operation appearing mid-flight.
+            self.checks_read += 1
+            source = self.checks_after if self.checks_after is not None and self.checks_read > 1 \
+                else self.previous
+            return copy.deepcopy(source)
         if "/collaborators/" in path:
             assert path == f"/repos/{owner.REPO}/collaborators/{ACTOR}/permission"
             return copy.deepcopy(self.permission)
@@ -262,7 +304,7 @@ def test_stale_dispatch_refuses_when_anchor_is_not_current_law():
 def test_current_master_diverging_after_dispatch_refuses():
     """Master moved on to different protected law after this dispatch."""
     api = RecoveryService()
-    api.validators["master"] = ("5" * 40, "6" * 40, "3" * 40)
+    api.validators["refs/heads/master"] = ("5" * 40, "6" * 40, "3" * 40)
     with pytest.raises(group.OwnershipUnqualified):
         owner.execute_recovery(recovery_event(), recovery_env(), api, APP)
     assert not api.mutations
@@ -282,8 +324,39 @@ def test_any_single_changed_module_identity_makes_the_dispatch_stale(module):
 def test_dispatch_on_current_law_with_identical_identity_qualifies():
     """Master may have moved; only differing protected module bytes stale the run."""
     api = RecoveryService()
-    api.validators[ANCHOR] = api.validators["master"] = ("a" * 40, "b" * 40, "c" * 40)
+    api.validators[ANCHOR] = api.validators["refs/heads/master"] = ("a" * 40, "b" * 40, "c" * 40)
     assert owner.execute_recovery(recovery_event(), recovery_env(), api, APP)["state"] == "PUBLISHED"
+
+
+def test_branch_law_is_resolved_through_refs_heads_master_not_a_same_named_tag():
+    """mi4: a tag named `master` is a different object than the branch. The
+    moving side of the staleness comparison resolves refs/heads/master
+    explicitly, so the tag cannot shadow the branch the dispatch must match."""
+    api = RecoveryService()
+    shared = ("5" * 40, "6" * 40, "4" * 40)
+    api.validators[ANCHOR] = shared
+    api.validators["refs/heads/master"] = shared
+    api.validators["master"] = ("1" * 40, "2" * 40, "3" * 40)  # a tag named master
+    expressions = []
+    original = api.graphql
+    def recording(query, variables):
+        if query == owner.VALIDATOR_QUERY:
+            expressions.append(variables["p0"])
+        return original(query, variables)
+    api.graphql = recording
+    assert owner.execute_recovery(recovery_event(), recovery_env(), api, APP)["state"] == "PUBLISHED"
+    assert any(e.startswith("refs/heads/master:") for e in expressions)
+    assert not any(e.startswith("master:") for e in expressions)
+
+
+def test_validator_comparison_rejects_a_bare_symbolic_ref():
+    """mi4 structural guard: the module itself refuses to compare anything but
+    a full OID or the fully qualified default branch ref."""
+    api = RecoveryService()
+    with pytest.raises(group.OwnershipUnqualified):
+        owner._validator_identity(api, "master")
+    with pytest.raises(group.OwnershipUnqualified):
+        owner._validator_identity(api, "refs/tags/master")
 
 
 @pytest.mark.parametrize("shape", ["missing-at-anchor", "missing-at-master"])
@@ -293,7 +366,7 @@ def test_validator_module_unavailable_refuses(shape):
             if query == owner.VALIDATOR_QUERY:
                 ref = variables["p0"].split(":", 1)[0]
                 data = super().graphql(query, variables)
-                if ref == (ANCHOR if shape == "missing-at-anchor" else "master"):
+                if ref == (ANCHOR if shape == "missing-at-anchor" else "refs/heads/master"):
                     data["repository"]["p1"] = {"__typename": "Tree"}
                 return data
             return super().graphql(query, variables)
@@ -453,11 +526,50 @@ def test_any_not_completed_issuer_attempt_blocks_recovery(status):
     assert not api.mutations
 
 
+def test_live_issuer_status_set_is_pinned_literally():
+    """mi5: the scan's load-bearing status set is pinned literally, not derived
+    from the implementation constant: dropping or renaming any not-completed
+    status would silently narrow the live-issuer scan."""
+    assert set(owner._LIVE_ISSUER_STATUSES) == {"queued", "requested", "pending",
+                                                "waiting", "in_progress", "action_required"}
+    assert len(owner._LIVE_ISSUER_STATUSES) == 6
+
+
+def test_live_issuer_scan_pages_beyond_the_first_page_and_still_blocks():
+    """n-c: the workflow-scoped listing is paginated fail-closed; a matching
+    issuer buried on page two is still found and keeps the turn."""
+    api = RecoveryService()
+    unrelated = []
+    for i in range(100):
+        run = copy.deepcopy(api.issuer)
+        run.update(id=900 + i, display_title=f"Migration owner {500 + i}/1 {'9' * 40}")
+        unrelated.append(run)
+    target = copy.deepcopy(api.issuer)
+    target["status"] = "queued"
+    api.live_issuers["queued"] = {"total_count": 101, "workflow_runs": unrelated + [target]}
+    with pytest.raises(group.OwnershipUnqualified):
+        owner.execute_recovery(recovery_event(), recovery_env(), api, APP)
+    assert not api.mutations
+
+
 def test_issuer_appearing_during_the_material_read_is_caught_by_the_pre_post_rescan():
     """An issuer attempt created between preflight and the POST keeps the turn:
     the scan repeats immediately before the write (M1)."""
     api = RecoveryService()
     api.live_after = {"in_progress": {"total_count": 1, "workflow_runs": [copy.deepcopy(api.issuer)]}}
+    with pytest.raises(group.OwnershipUnqualified):
+        owner.execute_recovery(recovery_event(), recovery_env(), api, APP)
+    assert not api.mutations
+
+
+@pytest.mark.parametrize("status,conclusion", [("in_progress", None), ("completed", "success")])
+def test_owner_operation_appearing_after_the_first_scan_blocks_the_post(status, conclusion):
+    """mi3: the write order is scan -> re-read checks -> POST. A check for this
+    operation that appears between the first read and the write boundary keeps
+    its turn; this dispatch never publishes a second one over it."""
+    api = RecoveryService()
+    api.checks_after = {"total_count": 1,
+                        "check_runs": [check_data(status=status, conclusion=conclusion)]}
     with pytest.raises(group.OwnershipUnqualified):
         owner.execute_recovery(recovery_event(), recovery_env(), api, APP)
     assert not api.mutations
@@ -508,6 +620,95 @@ def test_prior_recovery_for_a_different_target_does_not_block():
     api = RecoveryService()
     api.dispatch_runs = {"total_count": 1, "workflow_runs": [prior_recovery_run(target=72)]}
     assert owner.execute_recovery(recovery_event(), recovery_env(), api, APP)["state"] == "PUBLISHED"
+
+
+def high_volume_dispatch_history(count):
+    """A realistic repo-wide dispatch history served by the workflow-scoped
+    listing: unrelated earlier recoveries for other targets, unrelated
+    workflows, hostile-branch copies and the running recovery itself."""
+    runs = [prior_recovery_run(run_id=2000 + i, target=500 + i) for i in range(count - 36)]
+    runs += [{"id": 3000 + i, "run_attempt": 1, "workflow_id": 30,
+              "path": ".github/workflows/other-dispatch.yml", "name": "Other",
+              "event": "workflow_dispatch", "head_branch": "master", "head_sha": OTHER_ANCHOR,
+              "status": "completed", "conclusion": "success",
+              "display_title": "Unrelated dispatch", "run_number": 100 + i,
+              "repository": {"id": 123, "full_name": owner.REPO},
+              "head_repository": {"id": 123, "full_name": owner.REPO}} for i in range(30)]
+    runs += [prior_recovery_run(run_id=4000 + i, target=71, status="in_progress",
+                                conclusion=None, head_branch=f"evil/copy-{i}") for i in range(5)]
+    runs.append(prior_recovery_run(run_id=RECOVERY_RUN, target=71, code=ANCHOR,
+                                   status="in_progress", conclusion=None))
+    return runs
+
+
+def test_prior_recovery_scan_pages_a_high_volume_history_to_a_clean_result():
+    """MJ1: 736 workflow_dispatch runs exist repo-wide (the live terminal
+    count); the scoped, paginated scan still reaches a clean result instead of
+    refusing every recovery as an incomplete scan."""
+    runs = high_volume_dispatch_history(736)
+    assert len(runs) == 736
+    api = RecoveryService()
+    api.dispatch_runs = {"total_count": 736, "workflow_runs": runs}
+    assert owner.execute_recovery(recovery_event(), recovery_env(), api, APP)["state"] == "PUBLISHED"
+    assert [m[0] for m in api.mutations] == ["POST", "PATCH"]
+
+
+def test_prior_recovery_scan_fails_closed_when_the_page_cap_is_exceeded():
+    """MJ1: more qualifying pages than the hard cap is an incomplete scan; the
+    dispatch refuses instead of publishing over runs it did not fully see."""
+    runs = high_volume_dispatch_history(1001)
+    api = RecoveryService()
+    api.dispatch_runs = {"total_count": 1001, "workflow_runs": runs}
+    with pytest.raises(group.OwnershipUnqualified):
+        owner.execute_recovery(recovery_event(), recovery_env(), api, APP)
+    assert not api.mutations
+
+
+def test_prior_recovery_scan_count_mismatch_fails_closed():
+    """MJ1: a listing whose collected pages never add up to its own
+    total_count is incomplete; recovery refuses."""
+    api = RecoveryService()
+    api.dispatch_runs = {"total_count": 5,
+                         "workflow_runs": [prior_recovery_run(target=72 + i) for i in range(3)]}
+    with pytest.raises(group.OwnershipUnqualified):
+        owner.execute_recovery(recovery_event(), recovery_env(), api, APP)
+    assert not api.mutations
+
+
+def test_prior_recovery_publish_in_attempt_1_is_not_hidden_by_a_rerun():
+    """mi1: prior-recovery jobs are listed with filter=all, so a re-run whose
+    latest attempt skipped the publish step cannot hide attempt 1's publish."""
+    api = RecoveryService()
+    api.dispatch_runs = {"total_count": 1,
+                         "workflow_runs": [prior_recovery_run(run_attempt=2)]}
+    api.prior_jobs[PRIOR_RECOVERY_RUN] = {
+        "total_count": 2,
+        "jobs": [
+            {"id": 6202, "run_attempt": 2, "conclusion": "failure", "steps": [
+                {"name": owner.RECOVERY_PUBLISH_STEP, "conclusion": "skipped"}]},
+            {"id": 6201, "run_attempt": 1, "conclusion": "success", "steps": [
+                {"name": owner.RECOVERY_PUBLISH_STEP, "conclusion": "success"}]},
+        ]}
+    with pytest.raises(group.OwnershipUnqualified):
+        owner.execute_recovery(recovery_event(), recovery_env(), api, APP)
+    assert not api.mutations
+
+
+@pytest.mark.parametrize("fields", [
+    {"head_branch": "evil/hostile-copy"},
+    {"event": "push"},
+    {"repository": {"id": 999, "full_name": owner.REPO}},
+    {"repository": {"id": 123, "full_name": "foreign/repo"}},
+])
+def test_prior_recovery_from_a_foreign_branch_event_or_repository_is_ignored(fields):
+    """mi2: only master workflow_dispatch runs of this repository are prior
+    recoveries for this target; a hostile-branch copy of the workflow (here
+    even an unsettled one) must not be able to block recovery."""
+    api = RecoveryService()
+    api.dispatch_runs = {"total_count": 1, "workflow_runs": [
+        prior_recovery_run(status="in_progress", conclusion=None) | fields]}
+    assert owner.execute_recovery(recovery_event(), recovery_env(), api, APP)["state"] == "PUBLISHED"
+    assert [m[0] for m in api.mutations] == ["POST", "PATCH"]
 
 
 def test_interrupted_publication_is_read_back_before_any_retry():
@@ -651,6 +852,22 @@ def test_recover_preflight_qualifies_without_mint(tmp_path, monkeypatch):
     assert not api.mutations
 
 
+@pytest.mark.parametrize("module", range(3))
+def test_recover_preflight_with_differing_module_identities_exits_1_without_mint(
+        tmp_path, monkeypatch, module):
+    """mi5: a dispatch whose executing protected law differs from current
+    master is stale; --recover-preflight exits 1 and the workflow's key-mint
+    step (which runs only after preflight success) never executes."""
+    api = RecoveryService()
+    identities = ["5" * 40, "6" * 40, "4" * 40]
+    identities[module] = "1" * 40
+    api.validators[ANCHOR] = tuple(identities)
+    env = recovery_env(OWNERSHIP_APP_ID=str(APP), EXPECTED_INSTALLATION="999",
+                       OWNERSHIP_RUN_TOKEN="INERT_RUN")
+    assert run_main(monkeypatch, tmp_path, ["--recover-preflight"], env, api) == 1
+    assert not api.mutations
+
+
 @pytest.mark.parametrize("which", ["read-permission", "mismatched-trigger", "bot"])
 def test_recover_preflight_refuses_unqualified_dispatch_before_mint(tmp_path, monkeypatch, which):
     """m3: dispatcher provenance is proven in preflight too, so an unqualified
@@ -701,15 +918,21 @@ def test_recovery_workflow_contract():
     assert workflow["permissions"] == {}
     assert workflow["concurrency"]["group"] == "protected-migration-owner-recovery-${{ inputs.ci_run_id }}"
     assert workflow["concurrency"]["cancel-in-progress"] is False
-    # m1: dormancy is refused loudly by an environment-free guard job BEFORE
-    # any credential allocation; the credential job additionally requires both
-    # selectors non-zero on top of the repository/ref/default-branch guards.
+    # mi6: dormancy is refused loudly by an environment-free guard job BEFORE
+    # any credential allocation. Both selectors are validated as strict
+    # positive integers on EVERY dispatch (0, empty, missing and non-numeric
+    # are all dormant/invalid), the vars reach the shell only through env:
+    # (never interpolated into the run body), and the credential job needs the
+    # guard's success on top of its own non-zero selector and repo/ref guards.
     guard, job = workflow["jobs"]["dormancy-guard"], workflow["jobs"]["recover"]
     assert "environment" not in guard and guard.get("permissions") in (None, {})
     guard_step, = guard["steps"]
-    assert guard_step["if"] == ("vars.MIGRATION_OWNER_APP_ID == '0' || "
-                                "vars.MIGRATION_OWNER_INSTALLATION_ID == '0'")
+    assert "if" not in guard_step  # validated on every dispatch, never skipped
+    assert guard_step["env"] == {"APP_ID": "${{ vars.MIGRATION_OWNER_APP_ID }}",
+                                 "INSTALLATION_ID": "${{ vars.MIGRATION_OWNER_INSTALLATION_ID }}"}
+    assert "^[1-9][0-9]*$" in guard_step["run"]
     assert "exit 1" in guard_step["run"]
+    assert "${{ vars." not in guard_step["run"]
     assert job["needs"] in (["dormancy-guard"], "dormancy-guard")
     assert job["environment"] == "terminal-migration-owner"
     # A dispatch can target any ref carrying this file; only the environment's
@@ -754,12 +977,16 @@ def test_recovery_workflow_contract():
         assert forbidden not in text
 
 
-def test_no_dispatch_input_expression_reaches_any_step_before_the_mint():
-    """C1 contract: dispatcher-typed input text may never reach a checkout ref,
-    shell body, working directory or action input before the token mint."""
+def test_no_dispatch_input_expression_reaches_any_step_surface():
+    """C1 contract (n-a): dispatcher-typed input text may never reach a checkout
+    ref, shell body, working directory or action input in ANY step of the
+    workflow. The only allowed carrier is a step env: value, which is data."""
     workflow = yaml.safe_load(recovery_workflow())
+    leak = re.compile(r"\$\{\{\s*(github\.event\.)?inputs\.")
     steps = [step for job in workflow["jobs"].values() for step in job["steps"]]
-    mint_index = next(i for i, step in enumerate(steps) if step.get("id") == "installation")
-    for step in steps[:mint_index + 1]:
-        exposed = {key: step[key] for key in ("ref", "run", "working-directory", "with") if key in step}
-        assert "${{ inputs." not in json.dumps(exposed), step.get("name")
+    assert any(step.get("id") == "installation" for step in steps)  # mint step still present
+    for step in steps:
+        for key in ("ref", "run", "working-directory", "with"):
+            value = step.get(key)
+            if value is not None:
+                assert leak.search(json.dumps(value)) is None, (step.get("name"), key)
