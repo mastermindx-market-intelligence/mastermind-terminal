@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useLang } from "@/lib/i18n";
+import { pickLang } from "@/lib/portfolioBrief";
 import { SHARED_SHELL_MARKETS } from "@/lib/sharedShellNavigation";
 import { SHARED_SHELL_COPY } from "@/lib/sharedShellCopy";
 import today from "./TodayWorkspace.module.css";
@@ -28,9 +29,10 @@ function DestinationIcon({ icon }: { icon: typeof DESTINATIONS[number]["icon"] }
 export default function TodayDeskDestinations() {
   const { lang } = useLang();
   const zh = lang === "zh";
+  const pick = (en: string, zh: string) => pickLang({ en, zh }, lang);
   return <section className={today.deskDestinations} aria-labelledby="today-explore">
-    <h2 id="today-explore">{zh ? "从市场到公司" : "From market to company"}</h2>
-    <nav aria-label={zh ? "研究工作流" : "Research workflows"}>
+    <h2 id="today-explore">{pick("From market to company", "从市场到公司")}</h2>
+    <nav aria-label={pick("Research workflows", "研究工作流")}>
       {DESTINATIONS.map(item => <Link key={item.href} href={item.href} prefetch={false} className={today.deskDestination}>
         <DestinationIcon icon={item.icon} />
         <span><strong>{zh ? item.zh : item.en}</strong><small>{zh ? item.detailZh : item.detail}</small></span>
@@ -38,8 +40,8 @@ export default function TodayDeskDestinations() {
       </Link>)}
     </nav>
     <div className={today.marketDestinations}>
-      <h3>{zh ? "其他市场" : "Other markets"}</h3>
-      <nav aria-label={zh ? "其他市场概览" : "Other market overviews"}>
+      <h3>{pick("Other markets", "其他市场")}</h3>
+      <nav aria-label={pick("Other market overviews", "其他市场概览")}>
         {SHARED_SHELL_MARKETS.filter(market => market.code !== "US").map(market =>
           <Link key={market.code} href={market.href} prefetch={false}>{SHARED_SHELL_COPY[market.k]?.(lang) ?? market.label}</Link>)}
       </nav>
