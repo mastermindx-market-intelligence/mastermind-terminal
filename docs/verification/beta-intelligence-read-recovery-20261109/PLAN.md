@@ -13,3 +13,7 @@ The standard Company Intelligence reader used by beta's unpinned fallback must n
 No new data, authentication, entitlement, historical-pin fallback, source-admission, API, retry queue or release owner. The intentionally closed Investigation gate stays closed. No evidence that a native NVDA current event has been published is created by a UI timeout fix.
 
 Seven open Intelligence-titled PRs plus #1275/#1276/#1244/#1369 were checked for these component/reader paths; none owns them. #1384 owns frame revalidation and remains a separate exact source carrier. #10845's parked worker/refusal boundary is preserved. The current source branch is new and isolated, not a replacement for another operation. Direct execution: LOWER_TOTAL_OVERHEAD for this bounded component regression and repair.
+
+## Implemented and locally qualified
+
+The six failing-before cases now pass; final focused qualification is 116 tests, with 12 new cases. Actual Next/browser proof passes 12 beta and 12 default-shell cases in EN/ZH across all three contract viewports, zero retries/skips; 24 screenshots were inspected. Final TypeScript succeeds after bounded cleanup of a malformed owned generated type cache. The original component lint debt remains four unchanged errors; new tests pass. See README.md and manifest.json for exact source/evidence, fixture correction and failure records. Source publication, hosted CI and final beta deployment remain separate next obligations.
