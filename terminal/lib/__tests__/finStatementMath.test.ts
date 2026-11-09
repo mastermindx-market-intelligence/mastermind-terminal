@@ -613,8 +613,8 @@ describe("nullable statement-set consumers", () => {
       sym: "0005.HK",
     }));
 
-    expect(html).toContain('<button class="" disabled="">Annual</button>');
-    expect(html).toContain('<button class="on">Semiannual</button>');
+    expect(html).toContain('<button type="button" aria-pressed="false" class="" disabled="">Annual</button>');
+    expect(html).toContain('<button type="button" aria-pressed="true" class="on">Semiannual</button>');
     expect(html).not.toContain('scope="row">Gross margin</th>');
     expect(html).toContain("omitted for financial-services statement formats");
   });
