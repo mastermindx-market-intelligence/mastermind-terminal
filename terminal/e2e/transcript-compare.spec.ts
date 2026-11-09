@@ -710,14 +710,15 @@ test.describe("Transcript drawer copy feedback", () => {
   for (const lang of ["en", "zh"] as const) {
     test(`failed copy offers a manual retry in ${lang}`, async ({ page }, testInfo) => {
       const zh = lang === "zh";
+      const theme = process.env.MMX_SHARED_SHELL === "1" && zh ? "light" : "dark";
       if (testInfo.project.name === "mobile") await page.setViewportSize({ width: 320, height: 568 });
       await page.addInitScript(({ lang, theme }) => {
         localStorage.setItem("mm.lang", lang);
         localStorage.setItem("mmx.shell.theme", theme);
-      }, { lang, theme: zh ? "light" : "dark" });
+      }, { lang, theme });
       const { drawer, source } = await openSourceForCopy(page, zh);
       await expect(page.locator("html")).toHaveAttribute("data-lang", lang);
-      await expect(page.locator("html")).toHaveAttribute("data-theme", zh ? "light" : "dark");
+      await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
       const link = drawer.getByRole("button", { name: zh ? "复制链接" : "Copy link", exact: true });
       const status = drawer.locator(".fin-tx-toolbar").getByRole("status");
       const failed = zh ? "复制失败，请再次点击复制按钮。" : "Couldn’t copy. Try the copy button again.";
