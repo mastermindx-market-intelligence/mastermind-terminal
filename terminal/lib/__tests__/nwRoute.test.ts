@@ -93,15 +93,37 @@ describe("/api/nw Bottom Pivot read-only selection", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("requires a bounded symbol before auth or I/O", async () => {
+  it("rejects an invalid explicit symbol before auth or I/O", async () => {
     const { GET } = await import("@/app/api/nw/route");
-    for (const f of ["bottom_sensors", "bottom_sensors&symbol=..", "bottom_sensors&symbol=AAPL%2FMSFT"]) {
+    for (const f of ["bottom_sensors&symbol=", "bottom_sensors&symbol=..", "bottom_sensors&symbol=AAPL%2FMSFT"]) {
       const res = await GET(req(f, ENTITLED));
       expect(res.status).toBe(400);
       expect(await res.json()).toEqual({ error: "bad symbol" });
       expectPrivate(res);
     }
     expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("keeps legacy full-feed and selected responses separate for the same caller", async () => {
+    vi.mocked(fetch).mockResolvedValue(upstream(200, BOTTOM_FIXTURE));
+    const { GET } = await import("@/app/api/nw/route");
+    const full = await GET(req("bottom_sensors", ENTITLED));
+    expect(await full.json()).toEqual(BOTTOM_FIXTURE);
+    vi.mocked(fetch).mockResolvedValue(upstream(200, BOTTOM_FIXTURE));
+    const selected = await GET(req("bottom_sensors&symbol=UBER", ENTITLED));
+    const data = await selected.json();
+    expect(data).toMatchObject({ schema: "bottom_pivot_selection.v1", symbol: "UBER" });
+    expect(data).not.toHaveProperty("rows");
+    expect(JSON.stringify(data)).not.toContain("NEVER-SEND-OTHER-SYMBOL");
+    expect(JSON.stringify(data)).not.toContain("AAPL");
+    for (const response of [full, selected]) {
+      expect(response.status).toBe(200);
+      expectPrivate(response);
+      expect(response.headers.get("vary")).toBe("Cookie");
+    }
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(sentCookie(0)).toBe(ENTITLED);
+    expect(sentCookie(1)).toBe(ENTITLED);
   });
 
   it("relays only caller Supabase cookies; upstream returns one sanitized context", async () => {
@@ -278,5 +300,41 @@ describe("/api/nw entitlement relay (T-NW-AUTH)", () => {
       expect(await res.json()).toEqual({ error: "feed unavailable" });
       expectPrivate(res);
     }
+  });
+});
+
+
+describe("Bottom-pivot feed uses the existing private relay", () => {
+  it("does not contact upstream for an anonymous bottom-pivot read", async () => {
+    const { GET } = await import("@/app/api/nw/route");
+    const res = await GET(req("bottom_sensors"));
+    expect(res.status).toBe(401); expectPrivate(res); expect(fetch).not.toHaveBeenCalled();
+  });
+  it("relays only this caller's cookie, with no shared cache or redirect following", async () => {
+    vi.mocked(fetch).mockResolvedValue(upstream(200, PAYLOAD));
+    const { GET } = await import("@/app/api/nw/route");
+    const res = await GET(req("bottom_sensors", `theme=dark; ${ENTITLED}`));
+    expect(res.status).toBe(200); expectPrivate(res);
+    expect(await res.json()).toEqual(PAYLOAD);
+    expect(res.headers.get("vary")).toBe("Cookie");
+    expect(vi.mocked(fetch).mock.calls[0][0]).toBe("https://www.mastermind-x.com/neuralwebdata/bottom_sensors.json");
+    expect(sentCookie()).toBe(ENTITLED);
+    expect(fetchInit()).toMatchObject({ cache: "no-store", redirect: "manual" });
+    expect((await GET(req("bottom_sensors"))).status).toBe(401);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+  it.each([[401, 401], [402, 403], [403, 403], [302, 503], [500, 503]])("preserves access/failure boundary %s -> %s", async (status, expected) => {
+    vi.mocked(fetch).mockResolvedValue(upstream(status));
+    const { GET } = await import("@/app/api/nw/route");
+    const res = await GET(req("bottom_sensors", ENTITLED));
+    expect(res.status).toBe(expected); expectPrivate(res);
+    expect(await res.text()).not.toContain("PAID-BYTES");
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+  it("does not invent a bottom-pivot fixture in the production proxy", async () => {
+    process.env.NW_FIXTURE = "1";
+    const { GET } = await import("@/app/api/nw/route");
+    const res = await GET(req("bottom_sensors", ENTITLED));
+    expect(res.status).toBe(503); expect(fetch).not.toHaveBeenCalled();
   });
 });

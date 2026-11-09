@@ -20,11 +20,11 @@ const FIXTURE_DIR = path.join(process.cwd(), "public", "data");
 
 const FEEDS: Record<string, string> = {
   market_plane: "market_plane.json",
+  // PR10785 daily display context, through the SAME caller-bound entitlement relay.
+  bottom_sensors: "bottom_sensors.json",
   // Gate #8: macro's read-only projection of the latest finalized U.S. picks
   // (mastermind.selection_cohort_projection.v1). Same proxy, same entitlement relay, same 503 honesty.
   selection_cohort_us: "selection_cohort/us.json",
-  // On-demand, single-symbol read-only evidence. Never return the full paid row feed.
-  bottom_sensors: "bottom_sensors.json",
 };
 
 // Checked-in samples served when NW_FIXTURE=1, one per feed.
@@ -67,16 +67,20 @@ export async function GET(req: Request): Promise<Response> {
   if (!file) {
     return NextResponse.json({ error: "bad f param" }, { status: 400 });
   }
-  // Single-symbol projection keeps a potentially large paid producer feed off the client.
-  // Reject invalid symbols before auth/network; the proxy never accepts a path from input.
-  const symbol = f === "bottom_sensors" ? canonicalBottomSymbol(url.searchParams.get("symbol")) : null;
-  if (f === "bottom_sensors" && !symbol) {
+  // The existing Company consumer uses the caller-entitled full feed. Prophet opts
+  // into a single-symbol projection explicitly; an invalid selection never falls
+  // back to the full feed. Neither form accepts a source path from the caller.
+  const selectsSymbol = f === "bottom_sensors" && url.searchParams.has("symbol");
+  const symbol = selectsSymbol ? canonicalBottomSymbol(url.searchParams.get("symbol")) : null;
+  if (selectsSymbol && !symbol) {
     return NextResponse.json({ error: "bad symbol" }, { status: 400, headers: PRIVATE_HEADERS });
   }
 
   // Dev fixture mode: serve the checked-in sample without touching the upstream.
   if (process.env.NW_FIXTURE === "1") {
-    const fixtureFile = FIXTURES[f];
+    // Preserve the existing full-feed fixture-unavailable contract. Only the
+    // explicit selected-symbol test seam has a checked-in pivot fixture.
+    const fixtureFile = f === "bottom_sensors" && !selectsSymbol ? undefined : FIXTURES[f];
     if (!fixtureFile) {
       return NextResponse.json({ error: "fixture unavailable" }, { status: 503 });
     }
@@ -86,7 +90,7 @@ export async function GET(req: Request): Promise<Response> {
         : path.join(FIXTURE_DIR, fixtureFile);
       const raw = JSON.parse(await fs.readFile(fixturePath, "utf8")) as Record<string, unknown>;
       const data = symbol ? selectBottomPivotFeed(raw, symbol) : raw;
-      if (!data) return refuse(503);
+      if (selectsSymbol && !data) return refuse(503);
       return NextResponse.json(data, {
         headers: { ...PRIVATE_HEADERS, "X-NW-Source": "fixture" },
       });
@@ -115,7 +119,7 @@ export async function GET(req: Request): Promise<Response> {
     if (!res.ok) return refuse(503);
     const raw = (await res.json()) as Record<string, unknown>;
     const data = symbol ? selectBottomPivotFeed(raw, symbol) : raw;
-    if (!data) return refuse(503);
+    if (selectsSymbol && !data) return refuse(503);
     return NextResponse.json(data, { headers: PRIVATE_HEADERS });
   } catch {
     // Network error, timeout or unparseable body. No stale copy exists to fall back to, by design.

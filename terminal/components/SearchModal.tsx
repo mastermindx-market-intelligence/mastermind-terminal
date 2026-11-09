@@ -514,9 +514,12 @@ export default function SearchModal({
   }
 
   function key(e: React.KeyboardEvent) {
+    if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) return;
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault();
-      const next = e.key === "ArrowDown" ? Math.min(sel + 1, totalRows - 1) : Math.max(sel - 1, 0);
+      const next = e.key === "ArrowDown"
+        ? (totalRows > 0 ? Math.min(sel + 1, totalRows - 1) : sel)
+        : Math.max(sel - 1, 0);
       setSel(next);
       setCompanyPreview(companyScope && isPick ? displayRows[next]?.[0] ?? null : null);
     }

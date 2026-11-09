@@ -203,6 +203,9 @@ const nextConfig: NextConfig = {
   // tsc --noEmit is clean as of 2026-07-11, so builds enforce types again — the
   // 2026-07-07 `typescript.ignoreBuildErrors` escape hatch (FinPage union nits)
   // is removed; CI (.github/workflows/ci.yml) also gates PRs on tsc + vitest.
+  // Production checks application + generated Next contracts in a bounded project.
+  // The unchanged full tsconfig.json remains the required CI typecheck (tests/tools included).
+  typescript: { tsconfigPath: isProd ? "tsconfig.build.json" : "tsconfig.json" },
   // Note: `eslint` key was removed in Next.js 16 — ESLint is no longer built-in.
   // ── Wave-2 IA redirect contract (permanent 308) ────────────────────────────
   // The old single-purpose route dirs (screener/heatmap/alerts/scripts/flow) were
