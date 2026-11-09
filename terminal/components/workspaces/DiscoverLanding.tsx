@@ -2,15 +2,17 @@
 
 import { pick } from "@/lib/finFormat";
 import Link from 'next/link';
+import type { Ref } from 'react';
 import { useLang } from '@/lib/i18n';
 import styles from './DiscoverLanding.module.css';
 
 interface DiscoverLandingProps {
   onSelect: (key: string) => void;
   onSearchCompanies: () => void;
+  headingRef?: Ref<HTMLHeadingElement>;
 }
 
-export default function DiscoverLanding({ onSelect, onSearchCompanies }: DiscoverLandingProps) {
+export default function DiscoverLanding({ onSelect, onSearchCompanies, headingRef }: DiscoverLandingProps) {
   const { lang } = useLang();
   const zh = lang === 'zh';
 
@@ -18,7 +20,7 @@ export default function DiscoverLanding({ onSelect, onSearchCompanies }: Discove
     <main className={styles.landing}>
       <header className={styles.header}>
         <div className={styles.headerText}>
-          <h1 className={styles.title}>{pick(zh, 'Discover', '发现')}</h1>
+          <h1 ref={headingRef} tabIndex={-1} className={styles.title}>{pick(zh, 'Discover', '发现')}</h1>
           <p className={styles.subtitle}>
             {pick(zh, 'Choose a question. Open the right workspace.', '选择问题，打开合适的工作区。')}
           </p>
