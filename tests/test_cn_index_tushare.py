@@ -255,3 +255,62 @@ def test_missing_macro_client_cannot_accidentally_fetch_anything(monkeypatch):
     monkeypatch.setenv("MACRO_REPO", "/definitely-not-a-real-macro-repo")
     assert fetch_cn_index_history("000905.SS", as_of=AS_OF) == []
     x._macro_tushare_client.cache_clear()
+
+@pytest.mark.parametrize("sym", sorted(CN_INDEX_SYMBOLS))
+@pytest.mark.parametrize(("price", "expected"), [
+    (0.0000001, []),
+    (0.00000049, []),
+    (0.00000051, [["2026-11-04", 0.000001, 0.000001, 0.000001, 0.000001, 0]]),
+])
+def test_serialized_prices_remain_positive_for_each_native_index(sym, price, expected):
+    candidate = [item(sym=sym, o=price, h=price, l=price, c=price, vol=0)]
+    assert normalize_index_daily(sym, candidate, as_of=AS_OF, min_bars=1) == expected
+
+
+@pytest.mark.parametrize("valid_count", [MIN_VALID_DAILY_BARS - 1, MIN_VALID_DAILY_BARS])
+def test_serialized_zero_cannot_satisfy_history_depth(valid_count):
+    candidate = rows(n=valid_count)
+    earlier = (AS_OF - dt.timedelta(days=valid_count)).strftime("%Y%m%d")
+    candidate.append(item(date=earlier, o=0.0000001, h=0.0000001, l=0.0000001, c=0.0000001))
+    got = fetch_cn_index_history(
+        "000300.SS", query=lambda *args, **kwargs: FakeFrame(candidate), as_of=AS_OF,
+    )
+    if valid_count < MIN_VALID_DAILY_BARS:
+        assert got == []
+    else:
+        assert len(got) == valid_count
+        assert all(macro._valid_deep_bar(bar) for bar in got)
+
+
+@pytest.mark.parametrize("invalid_first", [False, True])
+def test_serialized_zero_never_claims_an_admitted_duplicate_date(invalid_first):
+    invalid = item(o=0.0000001, h=0.0000001, l=0.0000001, c=0.0000001)
+    valid = item()
+    candidate = [invalid, valid] if invalid_first else [valid, invalid]
+    assert normalize_index_daily("000300.SS", candidate, as_of=AS_OF, min_bars=1) == [
+        ["2026-11-04", 4000, 4100, 3900, 4050, 4191844987],
+    ]
+
+
+@pytest.mark.parametrize("prior", [None, "unreadable", "yahoo", "tushare"])
+def test_writer_keeps_prior_when_serialized_zero_would_complete_depth(tmp_path, monkeypatch, prior):
+    sym = "000300.SS"
+    path = tmp_path / (sym + ".json")
+    before = None
+    if prior is not None:
+        before = b"not valid JSON" if prior == "unreadable" else json.dumps({
+            "t": sym, "src": prior, "bars": [["2021-11-03", 1, 2, 1, 1, 100]],
+        }).encode()
+        path.write_bytes(before)
+    candidate = rows(n=MIN_VALID_DAILY_BARS - 1)
+    candidate.append(item(date="20000103", o=0.0000001, h=0.0000001, l=0.0000001, c=0.0000001))
+    fetched = normalize_index_daily(sym, candidate, as_of=AS_OF)
+    run_macro(monkeypatch, tmp_path, sym, fetched)
+    if before is None:
+        assert not path.exists()
+    else:
+        assert path.read_bytes() == before
+
+def test_serialized_low_cannot_be_zero_when_other_prices_remain_valid():
+    candidate = [item(o=1, h=2, l=0.0000001, c=1.5)]
+    assert normalize_index_daily("000300.SS", candidate, as_of=AS_OF, min_bars=1) == []

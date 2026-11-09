@@ -115,6 +115,10 @@ def normalize_index_daily(
         if not math.isfinite(shares) or shares > 9_007_199_254_740_991:
             continue  # prevent precision-unsafe JS volume integers
         row = [date, *(round(value, 6) for value in prices), int(round(shares))]
+        # The published values, not just the raw prices, must remain usable OHLC.
+        # Exclude sub-precision prices before admitting a date or counting depth.
+        if any(value <= 0 for value in row[1:5]):
+            continue
         if date in by_day and by_day[date] != row:
             return []
         by_day[date] = row
