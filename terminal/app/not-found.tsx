@@ -1,20 +1,16 @@
-// Root not-found page — caught by the root layout (LangProvider + globals.css available).
-// Server component, so the copy goes through the <T> client leaf: the language lives in
-// localStorage / <html data-lang> and is unreadable at server render time.
-import Link from "next/link";
+// Root not-found page retains the root layout and its existing language provider.
 import { BrandMark } from "@/components/BrandMark";
 import { T } from "@/components/LocalizedCopy";
+import NotFoundActions from "./not-found-actions";
+import styles from "./not-found.module.css";
 
 export default function NotFound() {
   return (
-    <main className="center">
-      <div className="hero">
-        <div className="mk"><BrandMark size={48} /></div>
-        <T as="h1" k="nfTitle" style={{ fontSize: 22, marginBottom: 8 }} />
-        <T as="p" k="nfBody" className="tag" style={{ marginBottom: 20 }} />
-        <div className="cta">
-          <Link href="/terminal" className="btn btn-primary"><T k="errGoToChart" /></Link>
-        </div>
+    <main id="shared-shell-content" tabIndex={-1} className={styles.page}>
+      <div className={styles.card}>
+        <div className={styles.mark} aria-hidden="true"><BrandMark size={40} /></div>
+        <T as="h1" k="nfTitle" className={styles.title} />
+        <NotFoundActions />
       </div>
     </main>
   );

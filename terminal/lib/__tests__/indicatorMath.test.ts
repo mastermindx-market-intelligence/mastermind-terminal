@@ -13,6 +13,7 @@ import {
   trendRibbon,
   rollingPercentile,
   volbox,
+  weekAnchoredVwap,
   type Bar,
 } from "../indicatorMath";
 
@@ -138,6 +139,22 @@ describe("rollingPercentile", () => {
     // complete until index 6 (2,3,4,5,6), so no squeeze classification may appear earlier.
     expect(result.inSqueeze.slice(0, 6)).toEqual(Array(6).fill(false));
     expect(result.inSqueeze[6]).toBe(true);
+  });
+});
+
+// ─── Weekly VWAP timestamp compatibility ──────────────────────────────────────
+
+describe("weekAnchoredVwap", () => {
+  it("accepts numeric display-epoch intraday timestamps and resets at the next W-FRI week", () => {
+    const at = (y: number, m: number, d: number, hour = 10) =>
+      Math.floor(Date.UTC(y, m - 1, d, hour, 0, 0) / 1000);
+    const numericBars = [
+      { time: at(2024, 1, 2), o: 100, h: 100, l: 100, c: 100, v: 1 },
+      { time: at(2024, 1, 3), o: 110, h: 110, l: 110, c: 110, v: 1 },
+      { time: at(2024, 1, 8), o: 200, h: 200, l: 200, c: 200, v: 1 },
+    ] as unknown as Bar[];
+
+    expect(weekAnchoredVwap(numericBars)).toEqual([100, 105, 200]);
   });
 });
 
@@ -289,6 +306,34 @@ describe("rsiStack", () => {
           expect(v).toBeLessThanOrEqual(100);
         }
       }
+    }
+  });
+
+  it("reads a flat market as neutral RSI 50 instead of overbought 100", () => {
+    const bars = constBars(80, 50);
+    const result = rsiStack(bars, 7, 14, 21);
+    for (const [series, len] of [[result.r1, 7], [result.r2, 14], [result.r3, 21]] as const) {
+      // Warmup stays null (bar 0 has no change; RMA seeds on the len-th change), never a fabricated 50.
+      expect(series.slice(0, len).every((v) => v === null)).toBe(true);
+      expect(new Set(series.slice(len))).toEqual(new Set([50]));
+    }
+  });
+
+  it("leaves history too short to warm null rather than neutral", () => {
+    const result = rsiStack(constBars(7, 50), 7, 14, 21);
+    for (const series of [result.r1, result.r2, result.r3]) {
+      expect(series.every((v) => v === null)).toBe(true);
+    }
+  });
+
+  it("keeps the one-sided limits: gains only → 100, losses only → 0", () => {
+    const up = rsiStack(stairBars(80, 50, 1), 7, 14, 21);
+    const down = rsiStack(stairBars(80, 200, -1), 7, 14, 21);
+    for (const [series, len] of [[up.r1, 7], [up.r2, 14], [up.r3, 21]] as const) {
+      expect(new Set(series.slice(len))).toEqual(new Set([100]));
+    }
+    for (const [series, len] of [[down.r1, 7], [down.r2, 14], [down.r3, 21]] as const) {
+      expect(new Set(series.slice(len))).toEqual(new Set([0]));
     }
   });
 

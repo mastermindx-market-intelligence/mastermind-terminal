@@ -1,0 +1,18 @@
+{
+  "schema": "futures.review_recovery/v1",
+  "failedRun": "terminal-futures-pr964-domain-review-20261014-r1",
+  "root": "terminal-futures-gex-pr964",
+  "rc": 1,
+  "lineageState": "VERIFIED_TERMINAL",
+  "failure": "provider output-token maximum; no review findings delivered",
+  "resultSha256": "fcf2cdab6b37de238fa09a1a57d3f3e37c807db66c69ae096eca6a43634ce1d3",
+  "resultBytes": 271,
+  "accepted": false,
+  "harnessLimitsChanged": false,
+  "replacementStrategy": "three smaller disjoint immutable scopes after original worker terminal receipt; not duplicate active review",
+  "replacementRuns": [
+    "terminal-futures-pr964-book-review-20261014-r2",
+    "terminal-futures-pr964-aggregation-review-20261014-r2",
+    "terminal-futures-pr964-gamma-review-20261014-r2"
+  ]
+}

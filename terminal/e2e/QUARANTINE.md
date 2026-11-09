@@ -22,32 +22,18 @@ Rules (Meta-CEO ruling 2026-09-05, under issue #485):
 | Spec:line | Test title | Project | Evidence runs | Owner | Re-enable condition |
 | --- | --- | --- | --- | --- | --- |
 
-_The table is empty._ The Path double-click journey that used to sit here was repaired under
-issue #510 rather than re-quarantined, so no coverage is currently given up.
-
-## Resolved: the Path double-click finish (was quarantined 2026-09-05 — 2026-09-18)
-
-The quarantined row asserted that three Path clicks plus a finishing double-click leave one
-committed `g[data-drawing-kind="path"]:not([data-id="_p"])`. Its stated leading hypothesis — a
-pointerup lost under contention stranding `pending.pointerId` — was **not** the cause and did not
-reproduce: instrumenting a real Path journey (wheel-pan and a window blur mid-gesture included)
-shows `lostpointercapture` always following a delivered `pointerup`, never stranding the id.
-
-The real cause was deterministic, not contention. A segmented tool's closing click was recognised
-as a repeat by RAW cursor distance to the previous PROJECTED anchor within a 3px desktop radius,
-so snapping — the magnet parking a price on an OHLC level, or x quantised to a bar centre — made
-the closing click miss a placement it in fact meant, appending a duplicate anchor and leaving the
-draft uncommitted. The native `dblclick` that used to rescue that is not dispatched at all when the
-closing press hit-tests onto an existing drawing: the creation pointerdown's own re-render detaches
-that node, press and release share no live ancestor, and Chromium emits neither `click` nor
-`dblclick`. A Path closed over any existing object therefore committed nothing, 3/3, exactly as run
-33942726252 recorded.
-
-The repair reads the closing click's SNAPPED placement (`samePlacement`) as authoritative for
-variable-multi repeat completion, keeping raw proximity as the coarse-pointer fallback, and
-consumes the gesture's own trailing native `dblclick` so completion stays exactly-once. The
-discriminating contract is `drawing-system.spec.ts`'s "a desktop Path finishes exactly once when
-its closing double-click has no native dblclick", which fails on the unrepaired base.
+No journey is quarantined. The last row — `drawing-system.spec.ts:992` ("flagship geometry,
+editing, and path limits survive adversarial interaction", desktop, evidence run 33942726252) —
+was closed under rule 2 on 2026-10-18: the Path tool's double-click finisher was repaired in
+`terminal/components/ChartPanel.tsx` (40 changed lines) and the whole test body, including the
+nine contracts that the `test.fixme` had been aborting, asserts again. The defect was real and
+position-dependent, not a harness race: the `pointerup` finish check compared the RAW pointer
+against the already bar-SNAPPED previous anchor, so a double-click more than 3px from its bar
+centre appended a fifth anchor instead of finishing, and the repaint that followed detached the
+element the mousedown was recorded on, which makes Blink drop the native `click`/`dblclick` pair
+outright. `e2e/drawing-system.spec.ts` ends with a regression test that places the finishing
+double-click deliberately off-centre on a coarse monthly grid; it fails on the unrepaired
+component.
 
 ## Observed but NOT quarantined (watch list — no coverage given up)
 

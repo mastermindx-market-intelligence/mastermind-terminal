@@ -1,0 +1,27 @@
+# Actual native TOL render. Base head is informational; locks are actual rendered bytes.
+# baseHead: 5cd4809129e499b2814ed275402b6ba4f3173fcc
+# capturedAt: 2026-10-19T08:15:05.300Z
+layoutFiles:
+  terminal/components/fin/CompanyIntelligenceV2Current.tsx: "44be821def6a3afd3a430a899592cc753c029a4a8bd5033709ce3c1cbffa7c3f"
+  terminal/components/fin/CompanyIntelligenceResultsLayout.tsx: "461f1a29d14377ea49ce3fc5d9aaab8a7269fb2582070bbdee6d868833b3e0c2"
+  terminal/components/fin/CompanyIntelligenceResultsLayout.module.css: "232b4c873b527145c8638516dcf180a5cad515ea445d195ce428e05fc41e0b7e"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [CompanyIntelligenceV2Current, CompanyIntelligenceResultsLayout]
+states: [native-TOL-results, denominator-receipt]
+capture_flag: TERMINAL_E2E_FIXTURE
+source_object_sha256: "ef8eeb4bc5572f0bda12ce7933d47fe8cae25093ce29f07f32c350a4a5db8d16"
+source_generation: "876dda0e52227fe861196065"
+source_available_at: "2026-08-18T20:46:57Z"
+source_clocks_changed: false
+notification_rows_planned: 0
+browser_report: browser-report.json
+command: "Disposable inline Playwright capture through existing /analysis Company Intelligence API fixture seam; no persistent harness."
+files:
+  - tol-1440-en-results.png
+  - tol-1440-zh-results.png
+  - tol-390-en-results.png
+  - tol-390-zh-results.png

@@ -1,0 +1,87 @@
+{
+  "artifacts": {
+    ".last-run.json": "d6400d01a1eab58081231ee5106935e5463cacc0516e8a1f0bc8c1317cddefa3",
+    "drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/error-context.md": "7775d572267c4a67d3e0688d879ac915fc16087d090277e37f5c2aba6c187cf7",
+    "drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/test-failed-1.png": "ac07c447004cd3a250d73339c4d40612e68394317dc18186b2d4b8e03c85d2c7",
+    "drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/trace.zip": "e2e868f5c5528502049acdf49a2c82a424b02c6e6216af3b73f06300c6bd4bb0"
+  },
+  "cases": [
+    {
+      "expectedStatus": "passed",
+      "file": "drawing-system.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "error": {
+            "location": {
+              "column": 115,
+              "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/e2e/drawing-system.spec.ts",
+              "line": 3123
+            },
+            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoHaveLength\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected length: \u001b[32m1\u001b[39m\nReceived length: \u001b[31m0\u001b[39m\nReceived array:  \u001b[31m[]\u001b[39m",
+            "snippet": "\u001b[0m \u001b[90m 3121 |\u001b[39m   expect(freshDowns)\u001b[33m.\u001b[39mtoHaveLength(\u001b[35m2\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 3122 |\u001b[39m   expect(freshDowns[\u001b[35m0\u001b[39m]\u001b[33m.\u001b[39mtargetId)\u001b[33m.\u001b[39mtoBe(phaseTwoId)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 3123 |\u001b[39m   expect(gesture\u001b[33m.\u001b[39mevents\u001b[33m.\u001b[39mfilter(event \u001b[33m=>\u001b[39m event\u001b[33m.\u001b[39mphase \u001b[33m===\u001b[39m \u001b[32m\"editing\"\u001b[39m \u001b[33m&&\u001b[39m event\u001b[33m.\u001b[39mtype \u001b[33m===\u001b[39m \u001b[32m\"dblclick\"\u001b[39m \u001b[33m&&\u001b[39m event\u001b[33m.\u001b[39mtrusted))\u001b[33m.\u001b[39mtoHaveLength(\u001b[35m1\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m      |\u001b[39m                                                                                                                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 3124 |\u001b[39m   \u001b[36mawait\u001b[39m expect(inspector)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 3125 |\u001b[39m   \u001b[36mawait\u001b[39m expect(inspector)\u001b[33m.\u001b[39mtoHaveAttribute(\u001b[32m\"data-drawing-id\"\u001b[39m\u001b[33m,\u001b[39m phaseTwoId\u001b[33m!\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 3126 |\u001b[39m   \u001b[36mawait\u001b[39m expect(inspector)\u001b[33m.\u001b[39mtoHaveClass(\u001b[35m/(?:^|\\s)settings-open(?:\\s|$)/\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m",
+            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoHaveLength\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected length: \u001b[32m1\u001b[39m\nReceived length: \u001b[31m0\u001b[39m\nReceived array:  \u001b[31m[]\u001b[39m\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/e2e/drawing-system.spec.ts:3123:115"
+          },
+          "errors": [
+            {
+              "location": {
+                "column": 115,
+                "file": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/e2e/drawing-system.spec.ts",
+                "line": 3123
+              },
+              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoHaveLength\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected length: \u001b[32m1\u001b[39m\nReceived length: \u001b[31m0\u001b[39m\nReceived array:  \u001b[31m[]\u001b[39m\n\n  3121 |   expect(freshDowns).toHaveLength(2);\n  3122 |   expect(freshDowns[0].targetId).toBe(phaseTwoId);\n> 3123 |   expect(gesture.events.filter(event => event.phase === \"editing\" && event.type === \"dblclick\" && event.trusted)).toHaveLength(1);\n       |                                                                                                                   ^\n  3124 |   await expect(inspector).toBeVisible();\n  3125 |   await expect(inspector).toHaveAttribute(\"data-drawing-id\", phaseTwoId!);\n  3126 |   await expect(inspector).toHaveClass(/(?:^|\\s)settings-open(?:\\s|$)/);\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/e2e/drawing-system.spec.ts:3123:115"
+            }
+          ],
+          "retry": 0,
+          "status": "failed"
+        }
+      ],
+      "status": "unexpected",
+      "title": "a desktop Path finishes exactly once when its closing double-click has no native dblclick"
+    }
+  ],
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/drawing-system.spec.ts",
+    "--project=desktop",
+    "--workers=1",
+    "--retries=0",
+    "--grep",
+    "a desktop Path finishes exactly once when its closing double-click has no native dblclick",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/test-results/pr632-drawing-guard-r2"
+  ],
+  "completedAt": "2026-11-09T18:37:53.027775+00:00",
+  "exit": 1,
+  "expectedDiscriminatorLine": 3054,
+  "head": "9aa40ffb0b640afeac794d6fa2ca0aaf61d4d3e4",
+  "integratedDependency": "d03e7587711f1182531f25459fa1f60c679bac10",
+  "lifecycle": {
+    "initialLockPresent": true,
+    "reconciliation": "docs/verification/pr632-path-finalization-integration-20261109/drawing-guard-r2-lifecycle.json",
+    "serverAbsenceVerifiedAt": "2026-11-09T18:37:52.890837+00:00",
+    "sha256": "350c6a88a5e673568e8cf65405e9100e4653658f60f43d84b3c603c59189e0b9"
+  },
+  "logSha256": "093e59636e7ce3f8af6a7da12b790b528fedce863e928c7f92034028bd1845a0",
+  "nextLockAbsent": true,
+  "ownedPortClosed": true,
+  "port": 3902,
+  "protectedMaster": "156c4b3ecfa27b9137c64068b3ed969e07efbe49",
+  "reportErrors": [],
+  "schema": "terminal_pr632_current_drawing_guard.v1",
+  "seconds": 21.34,
+  "sourceEntries": 1938,
+  "sourceStable": true,
+  "startedAt": "2026-11-09T18:37:25.742780+00:00",
+  "state": "FAILED_DISCRIMINATOR_RETAINED",
+  "stats": {
+    "duration": 20877.758,
+    "expected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "startTime": "2026-11-09T18:37:26.117Z",
+    "unexpected": 1
+  }
+}
