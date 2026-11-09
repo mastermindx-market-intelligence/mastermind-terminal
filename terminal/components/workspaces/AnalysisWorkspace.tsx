@@ -17,12 +17,13 @@ import {
   parseMarketOntologyContext,
   serializeMarketOntologyContext,
   stripMarketOntologyParams,
-  type MarketOntologyContext,
 } from "@/lib/marketOntologyContext";
 import { ANALYSIS_DEFAULT_SYMBOL, normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
 import { announceShellBrainSymbol } from "@/lib/shellBrainSymbol";
 import { readActiveSymbol, writeActiveSymbol } from "@/lib/activeSymbol";
 import SymbolPicker from "@/components/SymbolPicker";
+import CompanyListingIdentity from "@/components/CompanyListingIdentity";
+import { normalizeCompanySearchQuery, readCompanySearchQuery } from "@/lib/companySearchContext";
 import MarketOntologyContextStrip from "./MarketOntologyContextStrip";
 import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
 import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
@@ -103,8 +104,15 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   );
   const [page, setPage] = useState<FinPage>(seededPage);
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [marketOntologyContext, setMarketOntologyContext] = useState<MarketOntologyContext | null>(null);
   const routeQuery = searchParams.toString();
+  // A picker action invalidates the rendered origin immediately, including a
+  // same-company pick while the router still exposes its previous query.
+  const [clearedOntologyQuery, setClearedOntologyQuery] = useState<string | null>(null);
+  if (clearedOntologyQuery !== null && clearedOntologyQuery !== routeQuery) {
+    // The query changed; a later arrival at the original URL is valid again.
+    setClearedOntologyQuery(null);
+  }
+  const companySearchQuery = readCompanySearchQuery(new URLSearchParams(routeQuery));
   useLayoutEffect(() => {
     // Router navigation and Back/Forward reuse this mounted workspace. Reconcile
     // URL identity before paint; a useState seed alone would leave the old company.
@@ -146,10 +154,9 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
       const url = new URL(window.location.href);
       url.search = stripMarketOntologyParams(params).toString();
       window.history.replaceState(null, "", url.toString());
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- invalid context is dropped at the hydration boundary.
-      setMarketOntologyContext(null);
     }
     const cursor = normalizeAnalysisSymbol(readActiveSymbol() ?? undefined);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resolve the external cursor before paint and before company-data effects.
     if (cursor && cursor !== sym) setSym(cursor);
     setSymbolSettled(true);
     // Mount-only: once settled, the picker owns the symbol and re-running would undo a pick.
@@ -173,16 +180,14 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
     window.history.replaceState(null, "", u.toString());
   }, []);
 
-  const contextParams = useMemo(() => {
-    const params = new URLSearchParams();
-    for (const [key, value] of searchParams.entries()) params.append(key, value);
-    return params;
-  }, [searchParams]);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMarketOntologyContext(parseMarketOntologyContext(contextParams));
-  }, [contextParams]);
+  const marketOntologyContext = useMemo(() => {
+    const params = new URLSearchParams(routeQuery);
+    const routeSymbol = normalizeAnalysisSymbol(params.get("symbol") ?? undefined);
+    // The first actionable link must already carry its validated origin. Never
+    // attach an unscoped arrival to the cursor/default or another selected company.
+    if (invalidSymbol || !routeSymbol || routeSymbol !== sym || clearedOntologyQuery === routeQuery) return null;
+    return parseMarketOntologyContext(params);
+  }, [clearedOntologyQuery, invalidSymbol, routeQuery, sym]);
 
   // ── symbol change → rewrite ?symbol= shallowly, and tell AppShell's Brain host ──
   // `writeParam` uses `history.replaceState`, which fires no Next.js navigation and no
@@ -242,10 +247,13 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   // can be found by English or Chinese name, browsed by asset class, or taken straight from
   // Recently viewed. Every commit also moves the cross-route cursor via the effect above, which
   // is what makes this "change the ticker globally", not just on this desk.
-  const openSymbol = useCallback((next: string) => {
+  const openSymbol = useCallback((next: string, query?: string) => {
     const valid = normalizeAnalysisSymbol(next);
     if (!valid) return;   // the picker only ever yields manifest symbols; belt and braces
     const params = new URLSearchParams(window.location.search);
+    params.delete("company_query");
+    const selectedQuery = normalizeCompanySearchQuery(query);
+    if (selectedQuery !== null) params.set("company_query", selectedQuery);
     for (const key of ["ci_event", "ci_generation", "ci_company", "ci_fingerprint", "ci_lens", "ci_evidence"]) params.delete(key);
     const investigationUrl = new URL(window.location.href);
     investigationUrl.search = params.toString();
@@ -255,10 +263,10 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
       url.search = stripMarketOntologyParams(params).toString();
       window.history.replaceState(null, "", url.toString());
     }
-    setMarketOntologyContext(null);
+    setClearedOntologyQuery(routeQuery);
     setInvalidSymbol(null);
     setSym(valid);
-  }, []);
+  }, [routeQuery, setClearedOntologyQuery]);
 
   // ── onClose (workspace) → jump to the chart for this symbol ──
   const onClose = useCallback(() => {
@@ -306,6 +314,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
           open={pickerOpen}
           onOpenChange={setPickerOpen}
           onPick={openSymbol}
+          onCompanyPick={openSymbol}
           trackSource="analysis-search"
           className={invalidSymbol ? "sym-pick--invalid" : undefined}
         />
@@ -331,6 +340,9 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
         )}
       </div>
 
+      {!invalidSymbol && companySearchQuery !== null && (
+        <CompanyListingIdentity key={sym} symbol={sym} query={companySearchQuery} fund={fund} loading={fundLoading} />
+      )}
       {invalidSymbol ? (
         <section className="analysis-invalid-state" role="status" aria-live="polite">
           <span className="analysis-invalid-mark" aria-hidden>!</span>

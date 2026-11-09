@@ -71,17 +71,175 @@ test("light and Chinese presentation stay coherent through the tools directory",
  await expect(directory).toHaveCount(0);
 });
 
-test("320px layout keeps every global control and the primary workflow usable",async({page},info)=>{
+test("mobile chrome keeps every target usable at 320px and contract widths",async({page},info)=>{
  test.skip(info.project.name!=="desktop","One explicit smallest-width stress case");
- await page.setViewportSize({width:320,height:760});
  await page.goto("/discover");
  await expect(page.getByRole("heading",{name:"Discover",exact:true})).toBeVisible();
- await expect(page.getByRole("button",{name:"Open Stock Screener",exact:true})).toBeVisible();
- const controls=page.locator(".mobilebar .shared-shell-presentation-toggle");
- await expect(controls).toHaveCount(2);
- for(const control of await controls.all()){
-  const box=await control.boundingBox();expect(box!.width).toBeGreaterThanOrEqual(44);expect(box!.height).toBeGreaterThanOrEqual(44);
+ for(const width of [320,390,641,820,860]){
+  await page.setViewportSize({width,height:844});
+  for(const chinese of [false,true]){
+   const bar=page.locator(".mobilebar");
+   const presentation=bar.locator(".shared-shell-presentation-toggle");
+   if((await presentation.nth(0).getAttribute("aria-pressed")==="true")!==chinese)await presentation.nth(0).click();
+   if((await presentation.nth(1).getAttribute("aria-pressed")==="true")!==chinese)await presentation.nth(1).click();
+   await expect(page.locator("html")).toHaveAttribute("data-lang",chinese?"zh":"en");
+   await expect(page.locator("html")).toHaveAttribute("data-theme",chinese?"light":"dark");
+   const controls=bar.locator("button:visible");
+   // Menu, company search, appearance, locale and the incumbent account owner.
+   await expect(controls).toHaveCount(5);
+   const boxes=await controls.evaluateAll(buttons=>buttons.map(button=>{
+    const box=button.getBoundingClientRect();
+    const after=getComputedStyle(button,"::after");
+    // The account owner's existing centred ::after expands its painted 30px avatar
+    // to a 44px hit area. Verify the browser hit test, not just the declared width.
+    const width=Math.max(box.width,after.content!=="none"?parseFloat(after.width)||0:0);
+    const height=Math.max(box.height,after.content!=="none"?parseFloat(after.height)||0:0);
+    const x=box.x+(box.width-width)/2,y=box.y+(box.height-height)/2;
+    // Probe each edge midpoint; the canonical rounded buttons intentionally do
+    // not paint their bounding rectangle's extreme corners.
+    const reachable=[[x+1,y+height/2],[x+width-1,y+height/2],[x+width/2,y+1],[x+width/2,y+height-1]].every(([px,py])=>{
+     const hit=document.elementFromPoint(px,py);return hit===button||button.contains(hit);
+    });
+    return {x,y,width,height,reachable,label:button.getAttribute("aria-label")};
+   }));
+   for(const box of boxes){
+    expect(box.width,box.label??"").toBeGreaterThanOrEqual(44);
+    expect(box.height,box.label??"").toBeGreaterThanOrEqual(44);
+    expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(width);
+    expect(box.reachable,box.label??"").toBe(true);
+   }
+   for(let i=1;i<boxes.length;i++)expect(boxes[i].x).toBeGreaterThanOrEqual(boxes[i-1].x+boxes[i-1].width);
+   await page.keyboard.press("Tab");
+   for(const control of await controls.all()){
+    await control.focus();await expect(control).toBeFocused();
+    await expect(control).toHaveCSS("outline-style","solid");
+    await expect(control).toHaveCSS("outline-width","2px");
+   }
+   const menu=bar.getByRole("button",{name:chinese?"打开导航":"Open navigation",exact:true});
+   await menu.click();await expect(page.locator(".m-drawer.open")).toBeVisible();
+   await page.keyboard.press("Escape");await expect(page.locator(".m-drawer.open")).toBeHidden();
+   await expect(menu).toBeFocused();
+   const search=bar.getByRole("button",{name:chinese?"搜索公司":"Search companies",exact:true});
+   await search.focus();await page.keyboard.press("Enter");
+   await expect(page.getByRole("dialog")).toHaveCount(1);
+   await expect(page.getByRole("dialog")).toBeVisible();
+   await expect(page.getByRole("dialog").getByRole("combobox")).toBeFocused();
+   expect(await page.getByRole("dialog").evaluate(node=>node.closest(".topbar")===null)).toBe(true);
+   const scopes=page.getByRole("dialog").getByRole("group",{name:chinese?"搜索范围":"Search scope",exact:true});
+   const companies=scopes.getByRole("button",{name:chinese?/^公司(?:\s|$)/:/^Companies(?:\s|$)/});
+   const tools=scopes.getByRole("button",{name:chinese?/^工具(?:\s|$)/:/^Tools(?:\s|$)/});
+   await expect(companies).toBeVisible();await expect(companies).toHaveAttribute("aria-pressed","true");
+   await expect(tools).toBeVisible();await expect(tools).toHaveAttribute("aria-pressed","false");
+   await expect(page.getByRole("dialog").getByRole("region",{name:chinese?"公司结果":"Company results",exact:true})).toBeVisible();
+   const skin=await page.getByRole("dialog").evaluate(node=>{
+    const surface=node.matches(".msheet")?node:node.querySelector(".smodal");
+    const probe=document.createElement("div");probe.style.backgroundColor="var(--panel)";document.body.append(probe);
+    const expected=getComputedStyle(probe).backgroundColor;probe.remove();
+    return {expected,actual:surface?getComputedStyle(surface).backgroundColor:null,
+     inherited:surface?getComputedStyle(surface).getPropertyValue("--panel"):null,
+     token:getComputedStyle(document.documentElement).getPropertyValue("--panel")};
+   });
+   expect(skin.inherited).toBe(skin.token);
+   // Light uses the canonical white research surface; dark retains the native
+   // sheet's glass treatment while inheriting the same document token owner.
+   if(chinese)expect(skin.actual).toBe(skin.expected);
+   await page.screenshot({animations:"disabled",path:info.outputPath(`search-${width}-${chinese?"light-zh":"dark-en"}.png`)});
+   await page.keyboard.press("Escape");await expect(page.getByRole("dialog")).toHaveCount(0);
+   await expect(search).toBeFocused();
+   await noOverflow(page);
+   await page.screenshot({animations:"disabled",path:info.outputPath(`chrome-${width}-${chinese?"light-zh":"dark-en"}.png`)});
+  }
  }
+});
+
+test("company search selects one canonical company from desktop, tablet and phone chrome",async({page},info)=>{
+ await page.route("**/data/manifest.json",route=>route.fulfill({json:{as_of:null,symbols:{
+  AAPL:{name:"Apple Inc.",zh:"苹果公司",col:"#aaa",verdict:null,mkt:"NASDAQ",sec:"Equities"},
+ }}}));
+ await page.goto("/discover");
+ await expect(page.getByRole("heading",{name:"Discover",exact:true})).toBeVisible();
+ const opener=info.project.name==="desktop"
+  ? page.locator(".topbar .shared-shell-company-search")
+  : page.locator(".mobilebar").getByRole("button",{name:"Search companies",exact:true});
+ await opener.click();
+ const dialog=page.getByRole("dialog");await expect(dialog).toHaveCount(1);await expect(dialog).toBeVisible();
+ await expect(dialog).toHaveAccessibleName("Search companies and tools");
+ const panel=dialog.locator(".smodal").count().then(count=>count?dialog.locator(".smodal"):dialog);
+ const box=await (await panel).boundingBox();
+ expect(box!.x).toBeGreaterThanOrEqual(0);expect(box!.x+box!.width).toBeLessThanOrEqual(page.viewportSize()!.width+1);
+ await dialog.getByRole("combobox").fill("Apple");
+ await expect(dialog.locator('[data-company-symbol="AAPL"]')).toContainText("AAPL");
+ await page.screenshot({animations:"disabled",path:info.outputPath("company-search-selection.png")});
+ await dialog.getByRole("combobox").press("Enter");
+ await expect(dialog.getByRole("button",{name:"Open Analysis",exact:true})).toBeVisible();
+ await dialog.getByRole("button",{name:"Open Analysis",exact:true}).click();
+ await expect(page).toHaveURL(/\/analysis\?symbol=AAPL&company_query=Apple$/);
+ await expect(page.getByRole("dialog")).toHaveCount(0);
  await noOverflow(page);
- await page.screenshot({animations:"disabled",path:info.outputPath("discover-320.png")});
+});
+
+test("phone company search keeps its scope in both languages and dismisses by touch",async({page},info)=>{
+ test.skip(info.project.name!=="mobile","Actual phone sheet and touch context");
+ await page.goto("/discover");
+ await expect(page.getByRole("heading",{name:"Discover",exact:true})).toBeVisible();
+ const bar=page.locator(".mobilebar");
+ for(const chinese of [false,true]){
+  if(chinese){await bar.getByRole("button",{name:"Light theme",exact:true}).click();await bar.getByRole("button",{name:"Chinese language",exact:true}).click();}
+  const opener=bar.getByRole("button",{name:chinese?"搜索公司":"Search companies",exact:true});
+  await opener.tap();
+  const dialog=page.getByRole("dialog");await expect(dialog).toHaveCount(1);
+  await expect(dialog).toHaveAccessibleName(chinese?"搜索公司和工具":"Search companies and tools");
+  await expect(dialog).toBeVisible();
+  await page.screenshot({animations:"disabled",path:info.outputPath(`phone-scope-${chinese?"light-zh":"dark-en"}.png`)});
+  await page.setViewportSize({width:320,height:844});
+  await expect(dialog).toBeVisible();
+  await page.screenshot({animations:"disabled",path:info.outputPath(`phone-scope-320-${chinese?"light-zh":"dark-en"}.png`)});
+  await page.locator(".msheet-scrim").tap({position:{x:10,y:10}});
+  await expect(dialog).toHaveCount(0);await expect(opener).toBeFocused();
+  await page.setViewportSize({width:390,height:844});
+ }
+});
+
+
+test("Tools opens an admitted public page and Back restores query, scope and selection",async({page},info)=>{
+ // /learn is an existing canonical public native member, not a fabricated fixture route.
+ // Its real static page needs neither an entitlement appointment nor a data response.
+ await page.goto("/discover");
+ await expect(page.getByRole("heading",{name:"Discover",exact:true})).toBeVisible();
+ const origin=page.url();
+ const opener=info.project.name==="desktop"
+  ? page.locator(".topbar .shared-shell-company-search")
+  : page.locator(".mobilebar").getByRole("button",{name:"Search companies",exact:true});
+ await opener.click();
+ const dialog=page.getByRole("dialog");
+ await expect(dialog).toHaveAccessibleName("Search companies and tools");
+ const scopes=dialog.getByRole("group",{name:"Search scope",exact:true});
+ await scopes.getByRole("button",{name:/^Tools(?:\s|$)/}).click();
+ await dialog.getByRole("combobox").fill("/learn");
+ const selected=dialog.getByRole("option",{name:"Learn Workspaces",exact:true}).filter({has:page.locator("strong",{hasText:/^Learn$/})});
+ await expect(selected).toHaveCount(1);
+ await selected.click();
+ await expect(selected).toHaveAttribute("aria-selected","true");
+ await expect(dialog.getByRole("complementary",{name:"Selected tool",exact:true}).getByRole("heading",{name:"Learn",exact:true})).toBeVisible();
+ await expect(dialog.getByRole("complementary",{name:"Selected tool",exact:true}).getByText("/learn",{exact:true})).toBeVisible();
+ await page.screenshot({animations:"disabled",path:info.outputPath("tools-selected-public-learn.png")});
+ await dialog.getByRole("button",{name:"Open tool",exact:false}).click();
+ await expect(page).toHaveURL(/\/learn$/);
+ await expect(page.getByRole("heading",{level:1,name:"The gamma weather map, in six reads",exact:true})).toBeVisible();
+ const lessons=page.locator("main ol > li details");
+ await expect(lessons).toHaveCount(6);
+ await expect(lessons.first()).toHaveAttribute("open","");
+ await expect(lessons.first().locator("p")).toBeVisible();
+ await expect(page.getByRole("dialog")).toHaveCount(0);
+ await page.screenshot({animations:"disabled",path:info.outputPath("tools-public-learn-destination.png")});
+ await page.goBack();
+ await expect(page).toHaveURL(origin);
+ await expect(dialog).toBeVisible();
+ await expect(dialog.getByRole("combobox")).toHaveValue("/learn");
+ await expect(scopes.getByRole("button",{name:/^Tools(?:\s|$)/})).toHaveAttribute("aria-pressed","true");
+ await expect(scopes.getByRole("button",{name:/^Companies(?:\s|$)/})).toHaveAttribute("aria-pressed","false");
+ await expect(selected).toHaveAttribute("aria-selected","true");
+ await expect(dialog.getByRole("complementary",{name:"Selected tool",exact:true}).getByRole("heading",{name:"Learn",exact:true})).toBeVisible();
+ await noOverflow(page);
+ await page.screenshot({animations:"disabled",path:info.outputPath("tools-public-learn-back-restored.png")});
 });

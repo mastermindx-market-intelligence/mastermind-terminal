@@ -6,13 +6,15 @@ import { companyHref } from "@/lib/sectorIntelligence";
 import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
 import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
 import { useLang, useT } from "@/lib/i18n";
-import { marketValue, sinceEntryPct, type BookTotals, type Position } from "@/lib/portfolio";
+import { marketValue, sinceEntryPct, sinceEntryValue, type BookTotals, type Position } from "@/lib/portfolio";
 import { finite, nativePrice } from "@/lib/portfolioMoney";
 import type { PortfolioRisk } from "@/lib/portfolioRisk";
 import {
   portfolioCopy, recordIssues, needsEntryDetails, needsPriceCoverage, selectPortfolioRecords,
   type PortfolioSection, type RecordFilter, type RecordIssue, type WorkspaceQuote, type WorkspaceManifest,
 } from "@/lib/portfolioWorkspace";
+import { parseSectorPortfolioContext } from "@/lib/sectorPortfolioContext";
+import PortfolioSectorContext from "@/components/PortfolioSectorContext";
 import s from "./PortfolioWorkspace.module.css";
 
 type Props = {
@@ -72,9 +74,17 @@ export default function PortfolioWorkspace(p: Props) {
   const t = useT();
   const { lang } = useLang();
   const c = portfolioCopy(lang);
+  const { onSectionChange } = p;
   const shellPresentation = useOptionalSharedShellPresentation();
   const currentHref = useSyncExternalStore(subscribeToLocation, browserLocationSnapshot, serverLocationSnapshot);
-  const [section, setSection] = useState<PortfolioSection>("overview");
+  const sectorContext = useMemo(() => parseSectorPortfolioContext(currentHref), [currentHref]);
+  const navigationKey = sectorContext ? JSON.stringify([sectorContext.etf, sectorContext.snapshot]) : "";
+  // Preserve the reader's choice within this visit; another admitted selection
+  // starts a new landing lifetime and cannot revive a previous tab choice.
+  const [sectionChoice, setSectionChoice] = useState<{ key: string; value: PortfolioSection | null }>(
+    () => ({ key: navigationKey, value: null }));
+  if (sectionChoice.key !== navigationKey) setSectionChoice({ key: navigationKey, value: null });
+  const chosenSection = sectionChoice.key === navigationKey ? sectionChoice.value : null;
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<RecordFilter>("all");
   const [status, setStatus] = useState<"open" | "closed">("open");
@@ -98,7 +108,7 @@ export default function PortfolioWorkspace(p: Props) {
   const visibleRows = filtered.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
   const selected = p.positions.find(row => row.id === selectedId);
   const nameFor = (ticker: string) => (lang === "zh" ? p.manifest[ticker]?.zh : null) || p.manifest[ticker]?.name || ticker;
-  const switchSection = (next: PortfolioSection) => { setSection(next); p.onSectionChange(next); };
+  const switchSection = (next: PortfolioSection) => { setSectionChoice({ key: navigationKey, value: next }); onSectionChange(next); };
   const showHoldings = (nextFilter: RecordFilter = "all") => {
     setFilter(nextFilter); setQuery(""); setStatus("open"); setPage(0); switchSection("holdings");
     requestAnimationFrame(() => tabRefs.current[1]?.focus());
@@ -111,6 +121,14 @@ export default function PortfolioWorkspace(p: Props) {
     if (event.key === "End") next = SECTIONS.length - 1;
     if (next !== null) { event.preventDefault(); tabRefs.current[next]?.focus(); switchSection(SECTIONS[next]); }
   };
+  // An admitted sector→Portfolio context names one native sector ETF and one bounded opener.
+  // It is untrusted navigation context: it selects the Risk section and nothing else.
+  const section = chosenSection ?? (sectorContext ? "risk" : "overview");
+  useEffect(() => {
+    // The Risk section is now on screen, so the Portfolio owes its own risk-history read.
+    if (!sectorContext || section !== "risk" || chosenSection !== null) return;
+    onSectionChange("risk");
+  }, [sectorContext, section, chosenSection, onSectionChange]);
   const rowTable = (rows: Position[], preview = false) => <div className={s.tableWrap}>
     <table className={`pf-table ${s.table} ${preview ? s.previewTable : ""}`}>
       <thead><tr>
@@ -123,6 +141,7 @@ export default function PortfolioWorkspace(p: Props) {
         const quote = nativePrice(p.quotes[position.ticker], p.manifest[position.ticker]);
         const value = marketValue(position, quote?.last ?? null, quote?.currency);
         const change = sinceEntryPct(position, quote?.last ?? null, quote?.currency);
+        const monetaryChange = sinceEntryValue(position, quote?.last ?? null, quote?.currency);
         return <tr key={position.id} data-position-id={position.id} data-ticker={position.ticker} data-status={position.status}
           className={`pf-row ${p.busyId === position.id ? s.busy : ""}`}>
           <td className={s.securityCell}>
@@ -137,7 +156,10 @@ export default function PortfolioWorkspace(p: Props) {
           {!preview && <td data-label={c("last")}>{number(quote?.last, quote && quote.last < 10 ? 4 : 2)}
             {quote && <small>{quote.currency || c("currencyUnknown")}</small>}</td>}
           <td data-label={c("value")}>{amount(value, quote?.currency)}</td>
-          <td data-label={c("change")} className={change === null ? "" : change >= 0 ? s.positive : s.negative}>{percent(change)}</td>
+          <td data-label={c("change")}>
+            <span className={change === null ? "" : change >= 0 ? s.positive : s.negative}>{percent(change)}</span>
+            {monetaryChange !== null && <small className={monetaryChange >= 0 ? s.positive : s.negative}>{amount(monetaryChange, quote?.currency, true)}</small>}
+          </td>
           <td className={s.rowActions}><button type="button" className={s.reviewButton}
             aria-label={`${c("inspect")} ${position.ticker}`} onClick={() => setSelectedId(position.id)}>
             <span>{c("inspect")}</span><Icon name="arrow" /></button></td>
@@ -171,6 +193,10 @@ export default function PortfolioWorkspace(p: Props) {
           <div className={s.emptyIcon}><Icon name="book" /></div><h2>{t("portfolioUnreadableTitle")}</h2>
           <p>{t("portfolioUnreadableBody")}</p><button type="button" className="pf-btn primary" onClick={p.onRetry} disabled={p.retrying}>
             {p.retrying ? c("refreshing") : c("refresh")}</button>
+          {/* The book's own numbers are gone, but the selected sector's evidence is its own
+              owner's read and stays available — with every book number withheld. */}
+          {sectorContext && <PortfolioSectorContext context={sectorContext} positions={p.positions}
+            unreadable={p.unreadable} stale={p.stale} />}
         </section> : <>
           <div className={s.tabs} role="tablist" aria-label={t("portfolio")}>
             {SECTIONS.map((key, index) => <button key={key} type="button" role="tab" id={`portfolio-tab-${key}`}
@@ -273,6 +299,10 @@ export default function PortfolioWorkspace(p: Props) {
           </section>
 
           <section className={`${s.tabPanel} ${s.analysisPanel}`} role="tabpanel" id="portfolio-panel-risk" aria-labelledby="portfolio-tab-risk" hidden={section !== "risk"} tabIndex={0}>
+            {/* The selected sector, when the address admitted one. It stands apart from the
+                market-global readout below: its own heading, its own evidence, its own card. */}
+            {sectorContext && <PortfolioSectorContext context={sectorContext} positions={p.positions}
+              unreadable={p.unreadable} stale={p.stale} />}
             <header className={s.sectionIntro}><h2>{c("riskIntro")}</h2><p>{c("concentrationHint")} {c("commonUnits")}</p></header>
             {p.riskContent}
             <section className={s.history}><header className={s.sectionIntro}><h2>{c("historyTitle")}</h2><p>{c("historyHint")}</p></header><p className={s.methodNote}>{c("historyNotPerformance")}</p>{p.historyContent}</section>

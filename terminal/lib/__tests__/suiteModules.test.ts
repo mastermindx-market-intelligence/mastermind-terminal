@@ -2847,6 +2847,28 @@ const macdOf = (bars: SuiteBar[]) => {
 };
 
 describe("macdEngine", () => {
+  it("seeds the EMA signal from the first signalLen real normalized MACD observations", () => {
+    const d = MACDX_ENGINE_DEFAULTS;
+    const { macd, signal } = computeUltimateMacd(
+      MACD_BARS,
+      d.fast,
+      d.slow,
+      d.signalLen,
+      d.oscMa,
+      "ema",
+    );
+    const first = Array.from(macd).findIndex(Number.isFinite);
+    expect(first).toBeGreaterThanOrEqual(0);
+    const seedAt = first + d.signalLen - 1;
+    const seedWindow = Array.from(macd.slice(first, seedAt + 1));
+    expect(seedWindow).toHaveLength(d.signalLen);
+    expect(seedWindow.every(Number.isFinite)).toBe(true);
+    const expectedSeed = seedWindow.reduce((sum, value) => sum + value, 0) / d.signalLen;
+
+    expect(Array.from(signal.slice(0, seedAt)).every((value) => !Number.isFinite(value))).toBe(true);
+    expect(signal[seedAt]).toBeCloseTo(expectedSeed, 10);
+  });
+
   it("draws the normalized curve and its signal line on one ±100 scale", () => {
     const { macd, signal } = macdOf(MACD_BARS);
     const res = run(MACD_ENGINE_MODULE, MACD_BARS);
