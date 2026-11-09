@@ -33,6 +33,7 @@ PRIOR_RECOVERY_RUN = 86
 # (created=>=<target created_at>), sent percent-encoded by the module.
 TARGET_CREATED = "2026-11-01T12:00:00Z"
 CREATED_FILTER = "%3E%3D2026-11-01T12%3A00%3A00Z"
+RECOVERY_CREATED = "2026-11-01T12:30:00Z"
 ISSUER_SCAN = (f"/repos/{owner.REPO}/actions/workflows/"
                "trusted-migration-ownership.yml/runs?")
 RECOVERY_SCAN = (f"/repos/{owner.REPO}/actions/workflows/"
@@ -69,6 +70,7 @@ class RecoveryService(Service):
                          "path": owner.RECOVERY_ISSUER_WORKFLOW,
                          "name": owner.RECOVERY_ISSUER_NAME, "event": "workflow_dispatch",
                          "head_branch": "master", "head_sha": ANCHOR, "status": "in_progress",
+                         "created_at": RECOVERY_CREATED,
                          "display_title": f"Migration owner recovery {self.run['id']} {ANCHOR}",
                          "triggering_actor": {"login": ACTOR},
                          "repository": {"id": 123, "full_name": owner.REPO},
@@ -931,6 +933,8 @@ def test_recovery_workflow_contract():
     assert guard_step["env"] == {"APP_ID": "${{ vars.MIGRATION_OWNER_APP_ID }}",
                                  "INSTALLATION_ID": "${{ vars.MIGRATION_OWNER_INSTALLATION_ID }}"}
     assert "^[1-9][0-9]*$" in guard_step["run"]
+    # The whole value must match; a line-wise grep accepts multi-line values.
+    assert "=~ ^[1-9][0-9]*$" in guard_step["run"] and "grep" not in guard_step["run"]
     assert "exit 1" in guard_step["run"]
     assert "${{ vars." not in guard_step["run"]
     assert job["needs"] in (["dormancy-guard"], "dormancy-guard")
@@ -990,3 +994,53 @@ def test_no_dispatch_input_expression_reaches_any_step_surface():
             value = step.get(key)
             if value is not None:
                 assert leak.search(json.dumps(value)) is None, (step.get("name"), key)
+
+
+@pytest.mark.parametrize("created", ["2026-11-01T11:59:59Z", None, "2026-11-01 12:30:00"])
+def test_recovery_dispatch_created_before_its_target_or_untimed_cannot_publish(created):
+    """A dispatch may name a target before that CI run exists. Such a
+    recovery is outside the created>=target scan window, so it must never
+    publish; a missing or malformed creation time fails closed too."""
+    api = RecoveryService()
+    if created is None:
+        api.recovery.pop("created_at")
+    else:
+        api.recovery["created_at"] = created
+    with pytest.raises(group.OwnershipUnqualified):
+        owner.execute_recovery(recovery_event(), recovery_env(), api, APP)
+    assert not api.mutations
+
+
+@pytest.mark.parametrize("created", [None, "2026-11-01 12:00:00", "2026-11-01T12:00:00+00:00"])
+def test_recovery_target_without_strict_creation_time_fails_closed(created):
+    """GitHub's created= filter silently returns zero results for a garbage
+    value, so a malformed target creation time must refuse, never scan."""
+    api = RecoveryService()
+    if created is None:
+        api.run.pop("created_at")
+    else:
+        api.run["created_at"] = created
+    with pytest.raises(group.OwnershipUnqualified):
+        owner.execute_recovery(recovery_event(), recovery_env(), api, APP)
+    assert not api.mutations
+
+
+def test_prior_recovery_scan_total_change_between_pages_fails_closed():
+    """A run inserted while paging shifts items between pages; the listing's
+    total_count must agree on every page or the scan is incomplete."""
+    api = RecoveryService()
+    api.dispatch_runs = {"total_count": 150,
+                         "workflow_runs": [prior_recovery_run(target=72 + i) for i in range(150)]}
+    original = api._page
+
+    def shifting(document, key, page, size=100):
+        result = original(document, key, page, size)
+        if document is api.dispatch_runs and page == 2:
+            result["total_count"] = 149
+            result[key] = result[key][:49]
+        return result
+
+    api._page = shifting
+    with pytest.raises(group.OwnershipUnqualified, match="inconsistent"):
+        owner.execute_recovery(recovery_event(), recovery_env(), api, APP)
+    assert not api.mutations

@@ -41,7 +41,9 @@ jobs:
           INSTALLATION_ID: ${{ vars.MIGRATION_OWNER_INSTALLATION_ID }}
         run: |
           for selector in APP_ID INSTALLATION_ID; do
-            if ! printf '%s\n' "${!selector}" | grep -Eq '^[1-9][0-9]*$'; then
+            # [[ =~ ]] anchors to the whole value; a line-wise matcher would accept
+            # a multi-line or trailing-newline value with one numeric line.
+            if ! [[ ${!selector} =~ ^[1-9][0-9]*$ ]]; then
               echo "::error::Migration owner recovery is dormant: $selector is 0, empty, missing or non-numeric; the ownership publisher is not configured. Nothing to recover; refusing before any environment allocation."
               exit 1
             fi

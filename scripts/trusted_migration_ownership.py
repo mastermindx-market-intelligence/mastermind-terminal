@@ -607,6 +607,9 @@ def _validator_identity(api, ref: str):
     return tuple(identities)
 
 
+_CREATED_AT = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z")
+
+
 def _recovery_origin(target_id: int, anchor: str, api):
     value = api.request("GET", f"/repos/{REPO}/actions/runs/{target_id}")
     identity = _run_identity(value)
@@ -620,16 +623,18 @@ def _recovery_origin(target_id: int, anchor: str, api):
     # will never mint. A still-running target keeps its original issuer's turn.
     require(value.get("status") == "completed" and value.get("conclusion") in _COMPLETED_CONCLUSIONS,
             "recovery target has not completed; the original issuer may still publish")
-    # The target's immutable creation time bounds the prior-recovery scan:
-    # no earlier recovery dispatch for this target can exist.
+    # The target's immutable creation time bounds the prior-recovery scan.
+    # A recovery dispatch can name a target before that run exists, so
+    # _recovery_record refuses to publish from any recovery run created
+    # earlier than its target: every run that can publish is inside the scan.
     created = value.get("created_at")
-    require(isinstance(created, str)
-            and re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z", created),
+    require(isinstance(created, str) and _CREATED_AT.fullmatch(created) is not None,
             "recovery target creation time unavailable")
     return _VerifiedRun(run_id, attempt, workflow_id, head, branch, event, anchor, repo_id), created
 
 
-def _recovery_record(value, origin: _VerifiedRun, anchor: str, issuer_id: int, attempt: int):
+def _recovery_record(value, origin: _VerifiedRun, anchor: str, issuer_id: int, attempt: int,
+                     target_created: str):
     require(isinstance(value, dict) and positive(value.get("id")) == issuer_id
             and positive(value.get("run_attempt")) == attempt, "recovery attempt identity changed")
     for key in ("repository", "head_repository"):
@@ -641,10 +646,15 @@ def _recovery_record(value, origin: _VerifiedRun, anchor: str, issuer_id: int, a
             and value.get("head_sha") == anchor and value.get("display_title") == _recovery_title(origin)
             and value.get("status") == "in_progress",
             "recovery run target or dispatch revision differs")
+    created = value.get("created_at")
+    # Fixed-format UTC timestamps order lexicographically.
+    require(isinstance(created, str) and _CREATED_AT.fullmatch(created) is not None
+            and created >= target_created,
+            "recovery dispatch predates its target run; it is outside the prior-recovery scan")
     return _VerifiedRecovery(issuer_id, attempt, positive(value.get("workflow_id")))
 
 
-def _qualify_recovery(origin: _VerifiedRun, anchor: str, env: dict, api):
+def _qualify_recovery(origin: _VerifiedRun, anchor: str, env: dict, api, target_created: str):
     values = []
     for name in ("GITHUB_RUN_ID", "GITHUB_RUN_ATTEMPT"):
         raw = env.get(name)
@@ -653,7 +663,7 @@ def _qualify_recovery(origin: _VerifiedRun, anchor: str, env: dict, api):
         values.append(positive(int(raw)))
     issuer_id, attempt = values
     current = api.request("GET", f"/repos/{REPO}/actions/runs/{issuer_id}")
-    recovery = _recovery_record(current, origin, anchor, issuer_id, attempt)
+    recovery = _recovery_record(current, origin, anchor, issuer_id, attempt, target_created)
     workflow = api.request("GET", f"/repos/{REPO}/actions/workflows/{recovery.workflow_id}")
     require(positive(workflow.get("id")) == recovery.workflow_id
             and workflow.get("path") == RECOVERY_ISSUER_WORKFLOW
@@ -835,7 +845,7 @@ def execute_recovery(event: dict, env: dict, api, app_id: int):
             "dispatch-time protected law differs from current master")
     origin, target_created = _recovery_origin(target_id, anchor, api)
     require(env.get("GITHUB_REPOSITORY_ID") == str(origin.repository_id), "repository identity changed")
-    recovery, record = _qualify_recovery(origin, anchor, env, api)
+    recovery, record = _qualify_recovery(origin, anchor, env, api, target_created)
     actor, level = _actor(event, record, api)
     prior_response = api.request("GET", f"/repos/{REPO}/commits/{origin.head}/check-runs?filter=all&per_page=100")
     checks = prior_response.get("check_runs")
@@ -854,7 +864,7 @@ def execute_recovery(event: dict, env: dict, api, app_id: int):
     evidence = _qualify_contents(origin, api)
     require(_recovery_origin(target_id, anchor, api) == (origin, target_created),
             "target changed before check creation")
-    require(_qualify_recovery(origin, anchor, env, api)[0] == recovery,
+    require(_qualify_recovery(origin, anchor, env, api, target_created)[0] == recovery,
             "recovery attempt changed before check creation")
     # M1: the live-issuer scan repeats immediately before the write, so an
     # issuer attempt that appeared during the material read still keeps the turn.
@@ -882,7 +892,7 @@ def execute_recovery(event: dict, env: dict, api, app_id: int):
     try:
         require(_recovery_origin(target_id, anchor, api) == (origin, target_created),
                 "target superseded; no settlement")
-        require(_qualify_recovery(origin, anchor, env, api)[0] == recovery,
+        require(_qualify_recovery(origin, anchor, env, api, target_created)[0] == recovery,
                 "recovery superseded; no settlement")
         require(_qualify_contents(origin, api) == evidence, "source or queue changed before publication")
     except CapabilityUnavailable:
@@ -893,7 +903,7 @@ def execute_recovery(event: dict, env: dict, api, app_id: int):
         # principals still qualify; otherwise the outcome stays unsettled.
         require(_recovery_origin(target_id, anchor, api) == (origin, target_created),
                 "target superseded; no settlement")
-        require(_qualify_recovery(origin, anchor, env, api)[0] == recovery,
+        require(_qualify_recovery(origin, anchor, env, api, target_created)[0] == recovery,
                 "recovery superseded; no settlement")
         result = api.request("PATCH", f"/repos/{REPO}/check-runs/{check['id']}", {
             "status": "completed", "conclusion": "failure",
@@ -938,8 +948,9 @@ def main():
             anchor, target_id = _recovery_context(event, dict(os.environ))
             require(_validator_identity(api, anchor) == _validator_identity(api, "refs/heads/master"),
                     "dispatch-time protected law differs from current master")
-            origin, _ = _recovery_origin(target_id, anchor, api)
-            recovery, record = _qualify_recovery(origin, anchor, dict(os.environ), api)
+            origin, target_created = _recovery_origin(target_id, anchor, api)
+            recovery, record = _qualify_recovery(origin, anchor, dict(os.environ), api,
+                                                 target_created)
             # m3: dispatcher provenance must qualify here too, BEFORE the key
             # mint step that runs only after this preflight succeeds.
             _actor(event, record, api)
