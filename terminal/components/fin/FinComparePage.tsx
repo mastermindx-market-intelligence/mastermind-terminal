@@ -221,6 +221,8 @@ export default function FinComparePage({ sym, fund, fundLoading = false, onOpenT
   const [peerMessage, setPeerMessage] = useState<string | null>(null);
   const [open, setOpen] = useState<OpenSource | null>(null);
   const panelRef = useRef<HTMLElement | null>(null);
+  const peerButtonRefs = useRef(new Map<string, HTMLButtonElement>());
+  const addPeerInputRef = useRef<HTMLInputElement>(null);
 
   const annualAvailable = statementBasisAvailable(fund?.statements?.annual);
   const interimAvailable = statementBasisAvailable(fund?.statements?.quarterly);
@@ -292,6 +294,14 @@ export default function FinComparePage({ sym, fund, fundLoading = false, onOpenT
   };
 
   const dropPeer = (peer: string) => {
+    // Move focus before its button unmounts, retaining the user's place in the
+    // peer list. Pointer removal must not steal focus from another active field.
+    if (peerButtonRefs.current.get(peer) === document.activeElement) {
+      const index = peers.findIndex((p) => p.sym === peer);
+      const neighbor = peers[index + 1] ?? peers[index - 1];
+      const target = (neighbor && peerButtonRefs.current.get(neighbor.sym)) ?? addPeerInputRef.current;
+      target?.focus();
+    }
     setPeers((ps) => removePeer(ps, peer));
     setPeerMessage(null);
     setOpen((o) => (o && o.source.sym === peer ? null : o));
@@ -473,6 +483,10 @@ export default function FinComparePage({ sym, fund, fundLoading = false, onOpenT
                 <button
                   type="button"
                   className={styles.chipRemove}
+                  ref={(button) => {
+                    if (button) peerButtonRefs.current.set(p.sym, button);
+                    else peerButtonRefs.current.delete(p.sym);
+                  }}
                   aria-label={t("fcRemovePeer", { sym: p.sym })}
                   onClick={() => dropPeer(p.sym)}
                 >
@@ -485,6 +499,7 @@ export default function FinComparePage({ sym, fund, fundLoading = false, onOpenT
             <label className={styles.srOnly} htmlFor="fc-add-peer">{t("fcAddPeerLabel")}</label>
             <input
               id="fc-add-peer"
+              ref={addPeerInputRef}
               className={styles.addInput}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
