@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import React, { act } from "react";
+import React, { act, Profiler } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { OptionsPlanPayoffPanel } from "@/components/options/OptionsPlanPayoffPanel";
@@ -13,6 +13,17 @@ async function submit() { await act(async () => { host.querySelector("form")!.di
 async function changeEntry(value: string) {
   const el = host.querySelector<HTMLInputElement>('input[id*="entry"]')!;
   await act(async () => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(el, value); el.dispatchEvent(new Event("input", { bubbles: true })); });
+}
+async function retirementHarness(onApply?: (candidate: ReturnType<typeof draft>) => void) {
+  let current = true;
+  const initialDraft = draft(), saved = vi.fn((candidate: ReturnType<typeof draft>) => onApply?.(candidate));
+  const edited = vi.fn(), closed = vi.fn(), commits = vi.fn();
+  const render = async () => { await act(async () => root.render(<Profiler id="retained-plan" onRender={commits}>
+    <OptionsPlanPayoffPanel scopeKey="same-account-lifetime/selection" draft={initialDraft} lang="en"
+      isScopeCurrent={() => current} onDraftChange={saved} onDraftInputChange={edited} onClose={closed} />
+  </Profiler>)); };
+  await render();
+  return { saved, edited, closed, commits, render, retire: () => { current = false; } };
 }
 describe("Plan editor to conditional curve", () => {
   it("returns current edited inputs for a handoff, never the previous calculation or invalid text", async () => {
@@ -134,4 +145,99 @@ describe("Plan editor to conditional curve", () => {
     expect(host.querySelector('[data-testid="plan-compare-overlay"]')).toBeNull();
   });
 
+});
+
+describe("retired account lifetime with an unchanged scope key", () => {
+  it("withdraws the complete editor, result, reference coverage and pinned comparison", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (_url, init) => new Response(JSON.stringify(response(JSON.parse(init.body) as PlanExpiryRequest)), { status: 200 })));
+    const panel = await retirementHarness();
+    await submit();
+    await act(async () => { (host.querySelector('[data-testid="plan-pin-baseline"]') as HTMLButtonElement).click(); });
+    await changeEntry("4");
+    await submit();
+    expect(host.querySelector('[data-testid="plan-compare-overlay"]')).not.toBeNull();
+    expect(host.querySelector('[data-testid="plan-expiry-chart"]')).not.toBeNull();
+    expect(host.querySelector('[data-testid="plan-reference-coverage"]')).not.toBeNull();
+    panel.retire();
+    await panel.render();
+    expect(host.childElementCount).toBe(0);
+    await panel.render();
+    expect(host.childElementCount).toBe(0);
+  });
+
+  it("refuses a retained submit before the owner has rerendered", async () => {
+    const fetcher = vi.fn(); vi.stubGlobal("fetch", fetcher);
+    const panel = await retirementHarness();
+    panel.retire();
+    await submit();
+    expect(panel.saved).not.toHaveBeenCalled();
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("refuses retained editor and close callbacks before the owner has rerendered", async () => {
+    const panel = await retirementHarness();
+    const close = Array.from(host.querySelectorAll<HTMLButtonElement>("button")).find(button => button.textContent === "Close draft")!;
+    panel.retire();
+    await changeEntry("9");
+    await act(async () => close.click());
+    expect(panel.edited).not.toHaveBeenCalled();
+    expect(panel.closed).not.toHaveBeenCalled();
+    expect(panel.saved).not.toHaveBeenCalled();
+  });
+
+  it("rechecks the lifetime after the owner's synchronous apply callback", async () => {
+    const fetcher = vi.fn(); vi.stubGlobal("fetch", fetcher);
+    let retire: () => void = () => undefined;
+    const panel = await retirementHarness(() => retire());
+    retire = panel.retire;
+    await submit();
+    expect(panel.saved).toHaveBeenCalledOnce();
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("does not consume response data after the lifetime retires while headers are pending", async () => {
+    let finish!: (value: Response) => void;
+    const json = vi.fn(async () => ({}));
+    vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>(resolve => { finish = resolve; })));
+    const panel = await retirementHarness();
+    await submit();
+    panel.retire(); await panel.render();
+    const commits = panel.commits.mock.calls.length;
+    await act(async () => finish(Object.assign(new Response(null, { status: 200 }), { json })));
+    expect(json).not.toHaveBeenCalled();
+    expect(panel.commits).toHaveBeenCalledTimes(commits);
+    expect(host.childElementCount).toBe(0);
+  });
+
+  it.each([200, 422])("does not publish a late HTTP %s response body into a retired lifetime", async status => {
+    let finish!: (value: unknown) => void;
+    let requested!: PlanExpiryRequest;
+    const json = vi.fn(() => new Promise<unknown>(resolve => { finish = resolve; }));
+    vi.stubGlobal("fetch", vi.fn(async (_url, init) => { requested = JSON.parse(init.body); return Object.assign(new Response(null, { status }), { json }); }));
+    const panel = await retirementHarness();
+    await submit();
+    expect(json).toHaveBeenCalledOnce();
+    panel.retire(); await panel.render();
+    const commits = panel.commits.mock.calls.length;
+    await act(async () => finish(status === 200 ? response(requested) : { coverage: {
+      root: "SPY", contract_count: 20, expirations: ["2026-10-23"], as_of: "2026-10-19", captured_at: "2026-10-20T08:43:25Z",
+    } }));
+    expect(panel.commits).toHaveBeenCalledTimes(commits);
+    expect(host.childElementCount).toBe(0);
+  });
+
+  it.each(["headers", "success body", "error body"])("does not publish unavailable after a retired request rejects at %s", async boundary => {
+    let reject!: (error: Error) => void;
+    const pending = new Promise<never>((_resolve, fail) => { reject = fail; });
+    vi.stubGlobal("fetch", vi.fn(() => boundary === "headers" ? pending : Promise.resolve(Object.assign(
+      new Response(null, { status: boundary === "success body" ? 200 : 422 }), { json: () => pending },
+    ))));
+    const panel = await retirementHarness();
+    await submit();
+    panel.retire(); await panel.render();
+    const commits = panel.commits.mock.calls.length;
+    await act(async () => reject(new Error("late request failure")));
+    expect(panel.commits).toHaveBeenCalledTimes(commits);
+    expect(host.childElementCount).toBe(0);
+  });
 });
