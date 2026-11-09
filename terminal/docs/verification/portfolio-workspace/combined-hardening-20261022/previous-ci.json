@@ -1,0 +1,133 @@
+{
+  "schema": "portfolio.previous_ci_receipt.v1",
+  "repository": "mastermindx-market-intelligence/mastermind-terminal",
+  "pr": 1114,
+  "head": "f5ed1f931b58cfff537efa46c07e70e771ed580b",
+  "tested_base": "e54fc7f02481d7f66ae962bf8ddf03453382a5cf",
+  "run_id": 39725164420,
+  "status": "completed",
+  "conclusion": "success",
+  "completed_at_utc": "2026-10-22T05:49:23Z",
+  "all_jobs": 17,
+  "unit": {
+    "files": 930,
+    "passed": 15760,
+    "todo": 4
+  },
+  "browser": {
+    "passed": 2748,
+    "skipped": 808,
+    "flaky": 3,
+    "failed": 0
+  },
+  "shards": [
+    {
+      "id": 119647637279,
+      "summary": [
+        "2026-10-22T05:25:42.5888031Z   66 skipped",
+        "2026-10-22T05:25:42.5888409Z   162 passed (25.3m)"
+      ],
+      "failures": []
+    },
+    {
+      "id": 119647637317,
+      "summary": [
+        "2026-10-22T05:42:35.4548787Z   135 skipped",
+        "2026-10-22T05:42:35.4549043Z   245 passed (40.2m)"
+      ],
+      "failures": []
+    },
+    {
+      "id": 119647637334,
+      "summary": [
+        "2026-10-22T05:37:47.6681002Z   76 skipped",
+        "2026-10-22T05:37:47.6681327Z   304 passed (34.7m)"
+      ],
+      "failures": []
+    },
+    {
+      "id": 119647637369,
+      "summary": [
+        "2026-10-22T05:15:42.6333184Z   33 skipped",
+        "2026-10-22T05:15:42.6333549Z   79 passed (12.6m)",
+        "2026-10-22T05:16:34.3730587Z   8 skipped",
+        "2026-10-22T05:16:34.3730987Z   16 passed (50.9s)"
+      ],
+      "failures": []
+    },
+    {
+      "id": 119647637384,
+      "summary": [
+        "2026-10-22T05:43:13.3413221Z   1 flaky",
+        "2026-10-22T05:43:13.3414512Z   86 skipped",
+        "2026-10-22T05:43:13.3414768Z   293 passed (42.7m)"
+      ],
+      "failures": [
+        "::error file=terminal/e2e/transcript-compare.spec.ts,title=[mobile] › e2e/transcript-compare.spec.ts:480:7 › E12 two-call transcript comparison › the deadline notice reads in Chinese,line=489,col=26::  1) [mobile] › e2e/transcript-compare.spec.ts:480:7 › E12 two-call transcript comparison › the deadline notice reads in Chinese "
+      ]
+    },
+    {
+      "id": 119647637407,
+      "summary": [
+        "2026-10-22T05:42:54.5081861Z   99 skipped",
+        "2026-10-22T05:42:54.5082317Z   282 passed (40.1m)"
+      ],
+      "failures": []
+    },
+    {
+      "id": 119647637439,
+      "summary": [
+        "2026-10-22T05:30:07.3351600Z   1 flaky",
+        "2026-10-22T05:30:07.3354182Z   27 skipped",
+        "2026-10-22T05:30:07.3354519Z   200 passed (26.9m)"
+      ],
+      "failures": [
+        "::error file=terminal/e2e/portfolio-workspace.spec.ts,title=[desktop] › e2e/portfolio-workspace.spec.ts:135:5 › tabs, filters and malformed optional analysis leave holdings usable,line=140,col=57::  1) [desktop] › e2e/portfolio-workspace.spec.ts:135:5 › tabs, filters and malformed optional analysis leave holdings usable "
+      ]
+    },
+    {
+      "id": 119647637445,
+      "summary": [
+        "2026-10-22T05:49:13.4517263Z   28 skipped",
+        "2026-10-22T05:49:13.4517541Z   201 passed (45.6m)"
+      ],
+      "failures": []
+    },
+    {
+      "id": 119647637465,
+      "summary": [
+        "2026-10-22T05:41:49.4868825Z   103 skipped",
+        "2026-10-22T05:41:49.4869232Z   278 passed (38.6m)"
+      ],
+      "failures": []
+    },
+    {
+      "id": 119647637511,
+      "summary": [
+        "2026-10-22T05:48:59.7270789Z   109 skipped",
+        "2026-10-22T05:48:59.7271083Z   271 passed (44.2m)"
+      ],
+      "failures": []
+    },
+    {
+      "id": 119647637528,
+      "summary": [
+        "2026-10-22T05:46:55.2153302Z   1 flaky",
+        "2026-10-22T05:46:55.2154678Z   11 skipped",
+        "2026-10-22T05:46:55.2155248Z   216 passed (42.2m)"
+      ],
+      "failures": [
+        "::error file=terminal/e2e/watchlist-bulk-actions.spec.ts,title=[desktop] › e2e/watchlist-bulk-actions.spec.ts:143:5 › right-click moves, deletes, and creates a watchlist from the selected symbols,line=157,col=22::  1) [desktop] › e2e/watchlist-bulk-actions.spec.ts:143:5 › right-click moves, deletes, and creates a watchlist from the selected symbols "
+      ]
+    },
+    {
+      "id": 119647637813,
+      "summary": [
+        "2026-10-22T05:38:35.6171492Z   27 skipped",
+        "2026-10-22T05:38:35.6171720Z   201 passed (33.4m)"
+      ],
+      "failures": []
+    }
+  ],
+  "qualification": "Supporting evidence for the previous candidate only. Portfolio keyboard readiness is repaired in the combined candidate. Transcript and Watchlist retry successes are retained; this run was not retry-free."
+}

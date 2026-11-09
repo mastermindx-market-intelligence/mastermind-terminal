@@ -11,6 +11,7 @@ const CROP_DIR = join(__dirname, "../../docs/pr-crops/b-f08-6-alert-prefs");
 const EVIDENCE = join(CROP_DIR, "EVIDENCE.yml");
 // The sources e2e/tools/capture_f08_6_alert_prefs.cjs stamps (its LAYOUT_FILES).
 const LAYOUT_FILES = [
+  "terminal/app/globals.css",
   "terminal/components/settings/SectionAlertDelivery.tsx",
   "terminal/components/settings/SettingsPanel.tsx",
   "terminal/components/settings/icons.tsx",
@@ -41,6 +42,7 @@ function layoutFileMap(yml: string): Record<string, string> {
     if (!line.startsWith("  ")) break;
     const match = line.match(/^  (\S+): "?([0-9a-f]{64})"?$/);
     if (!match) throw new Error(`layoutFiles row is not path: sha256: ${line}`);
+    if (Object.hasOwn(map, match[1])) throw new Error(`Duplicate layout source: ${match[1]}`);
     map[match[1]] = match[2];
   }
   if (Object.keys(map).length === 0) throw new Error("EVIDENCE.yml layoutFiles is empty");
@@ -74,6 +76,34 @@ describe("B-F08-6 alert-delivery evidence lock is the sha256 of the layout sourc
       const abs = join(CROP_DIR, file);
       expect(existsSync(abs), file).toBe(true);
       expect(statSync(abs).size, file).toBeGreaterThan(0);
+    }
+  });
+
+  it("lists exactly the complete matrix without duplicate filenames", () => {
+    const rows = evidenceText().match(/^files:\n((?:  - [^\n]+\n)+)/m)?.[1];
+    expect(rows).toBeDefined();
+    const files = rows!.trimEnd().split("\n").map(line => {
+      const match = line.match(/^  - ([A-Za-z0-9-]+\.png)$/);
+      expect(match, line).not.toBeNull(); return match![1];
+    });
+    expect(new Set(files).size).toBe(CROPS.length);
+    expect(files.sort()).toEqual([...CROPS].sort());
+  });
+
+  it("binds every actual PNG to its unique capture hash", () => {
+    const rows = evidenceText().match(/^captureFiles:\n((?:  [^\n]*\n)+)/m)?.[1];
+    expect(rows, "missing actual capture image hashes").toBeDefined();
+    const entries = rows!.trimEnd().split("\n").map(line => {
+      const match = line.match(/^  ([A-Za-z0-9-]+\.png): "([0-9a-f]{64})"$/);
+      expect(match, line).not.toBeNull(); return [match![1], match![2]] as const;
+    });
+    expect(entries).toHaveLength(CROPS.length);
+    expect(new Set(entries.map(([file]) => file)).size).toBe(CROPS.length);
+    expect(entries.map(([file]) => file).sort()).toEqual([...CROPS].sort());
+    for (const [file, hash] of entries) {
+      const bytes = readFileSync(join(CROP_DIR, file));
+      expect(bytes.subarray(0, 8).toString("hex"), file).toBe("89504e470d0a1a0a");
+      expect(createHash("sha256").update(bytes).digest("hex"), file).toBe(hash);
     }
   });
 

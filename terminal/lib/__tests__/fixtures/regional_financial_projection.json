@@ -1,0 +1,115 @@
+{
+  "schema": "mastermind.fund/v1",
+  "ticker": "600519.SS",
+  "stmt_currency": "CNY",
+  "quote_currency": "CNY",
+  "src": {
+    "statements": "tushare",
+    "legacy_note": "贵州茅台"
+  },
+  "profile": {
+    "sector": "Consumer Defensive",
+    "industry": "Beverages"
+  },
+  "stats": {
+    "mktcap": 1000.0
+  },
+  "statements": {
+    "annual": {
+      "periods": [
+        "2024-12-31",
+        "2025-12-31"
+      ],
+      "period_end": [
+        "2024-12-31",
+        "2025-12-31"
+      ],
+      "income": {
+        "revenue": [
+          100,
+          110
+        ],
+        "net_income": [
+          30,
+          30
+        ],
+        "eps_basic": [
+          4,
+          5
+        ],
+        "edge_values": [
+          0.1,
+          -0.0
+        ]
+      },
+      "balance": {
+        "assets": [
+          180,
+          180
+        ]
+      },
+      "cashflow": {
+        "cfo": [
+          25,
+          25
+        ]
+      }
+    },
+    "quarterly": {
+      "periods": [
+        "2025-06-30",
+        "2025-09-30",
+        "2026-03-31"
+      ],
+      "period_end": [
+        "2025-06-30",
+        "2025-09-30",
+        "2026-03-31"
+      ],
+      "income": {
+        "revenue": [
+          50,
+          80,
+          30
+        ],
+        "net_income": [
+          30,
+          30,
+          30
+        ],
+        "eps_basic": [
+          2,
+          3,
+          1
+        ]
+      },
+      "balance": {
+        "assets": [
+          180,
+          180,
+          180
+        ]
+      },
+      "cashflow": {
+        "cfo": [
+          25,
+          25,
+          25
+        ]
+      }
+    }
+  },
+  "earnings": {
+    "q": [],
+    "fy": []
+  },
+  "asof": "2026-10-22",
+  "asof_semantics": "build_date",
+  "regional_financials": {
+    "schema": "mastermind.regional-financials/v1",
+    "ticker": "600519.SS",
+    "base_sha256": "362bfda9158288e1029d3c3026c1b363b42c484857e03a23eb13bbd86039b5fd",
+    "payload_json": "{\"statements\":{\"annual\":{\"periods\":[\"FY2024\",\"FY2025\"],\"period_end\":[\"2024-12-31\",\"2025-12-31\"],\"period_start\":[\"2024-01-01\",\"2025-01-01\"],\"source_period_start\":[null,null],\"fiscal_year\":[\"2024\",\"2025\"],\"period_kind\":[\"full_year\",\"full_year\"],\"period_number\":[null,null],\"period_duration_months\":[12,12],\"source_period_label\":[\"FY2024\",\"FY2025\"],\"is_cumulative\":[false,false],\"normalization_method\":[\"as_reported\",\"as_reported\"],\"src_by_period\":[\"tushare\",\"tushare\"],\"comparison_basis\":[\"tushare:other:legacy_ytd\",\"tushare:other:legacy_ytd\"],\"source_family_by_period\":[\"other\",\"other\"],\"filed_by_period\":[null,null],\"restated_by_period\":[null,null],\"flow_basis\":\"mixed_period\",\"source_market\":\"cn\",\"reporting_cadence\":\"annual\",\"source_family\":\"industrial\",\"period_provenance\":{\"income\":[{\"origin\":\"retained_history\",\"provider\":\"tushare\",\"acquired_at\":null,\"scope\":\"legacy_unknown\",\"raw_input_sha256\":null},{\"origin\":\"retained_history\",\"provider\":\"tushare\",\"acquired_at\":null,\"scope\":\"legacy_unknown\",\"raw_input_sha256\":null}],\"balance\":[{\"origin\":\"retained_history\",\"provider\":\"tushare\",\"acquired_at\":null,\"scope\":\"legacy_unknown\",\"raw_input_sha256\":null},{\"origin\":\"retained_history\",\"provider\":\"tushare\",\"acquired_at\":null,\"scope\":\"legacy_unknown\",\"raw_input_sha256\":null}],\"cashflow\":[{\"origin\":\"retained_history\",\"provider\":\"tushare\",\"acquired_at\":null,\"scope\":\"legacy_unknown\",\"raw_input_sha256\":null},{\"origin\":\"retained_history\",\"provider\":\"tushare\",\"acquired_at\":null,\"scope\":\"legacy_unknown\",\"raw_input_sha256\":null}]},\"income\":{\"revenue\":[100,110],\"cogs\":[null,null],\"gross_profit\":[null,null],\"opex\":[null,null],\"op_income\":[null,null],\"nonop_income\":[null,null],\"pretax_income\":[null,null],\"taxes\":[null,null],\"net_income\":[30,30],\"eps_basic\":[4,5],\"eps_diluted\":[null,null],\"ebitda\":[null,null],\"edge_values\":[0.1,-0.0]},\"balance\":{\"assets\":[180,180],\"assets_st\":[null,null],\"assets_lt\":[null,null],\"liabilities\":[null,null],\"liab_st\":[null,null],\"liab_lt\":[null,null],\"equity\":[null,null],\"debt\":[null,null],\"cash\":[null,null],\"net_debt\":[null,null]},\"cashflow\":{\"cfo\":[25,25],\"cfi\":[null,null],\"cff\":[null,null],\"capex\":[null,null],\"fcf\":[null,null]}},\"quarterly\":{\"periods\":[\"H1 2025\",\"9M 2025\",\"Q1 2026\",\"Q2 2026\"],\"period_end\":[\"2025-06-30\",\"2025-09-30\",\"2026-03-31\",\"2026-06-30\"],\"period_start\":[\"2025-01-01\",\"2025-01-01\",\"2026-01-01\",\"2026-04-01\"],\"source_period_start\":[null,null,null,null],\"fiscal_year\":[\"2025\",\"2025\",\"2026\",\"2026\"],\"period_kind\":[\"half_year\",\"year_to_date\",\"quarter\",\"quarter\"],\"period_number\":[1,null,1,2],\"period_duration_months\":[6,9,3,3],\"source_period_label\":[\"H1 2025\",\"9M 2025\",\"Q1 2026\",\"Q2 2026\"],\"is_cumulative\":[true,true,true,false],\"normalization_method\":[\"as_reported_ytd\",\"as_reported_ytd\",\"as_reported_ytd\",\"as_reported\"],\"src_by_period\":[\"tushare\",\"tushare\",\"tushare\",\"yahoo_timeseries\"],\"comparison_basis\":[\"tushare:other:legacy_ytd\",\"tushare:other:legacy_ytd\",\"tushare:other:legacy_ytd\",\"yahoo_timeseries:industrial:v1\"],\"source_family_by_period\":[\"other\",\"other\",\"other\",\"industrial\"],\"filed_by_period\":[null,null,null,null],\"restated_by_period\":[null,null,null,null],\"flow_basis\":\"mixed_period\",\"source_market\":\"cn\",\"reporting_cadence\":\"mixed\",\"source_family\":\"industrial\",\"period_provenance\":{\"income\":[{\"origin\":\"retained_history\",\"provider\":\"tushare\",\"acquired_at\":null,\"scope\":\"legacy_unknown\",\"raw_input_sha256\":null},{\"origin\":\"retained_history\",\"provider\":\"tushare\",\"acquired_at\":null,\"scope\":\"legacy_unknown\",\"raw_input_sha256\":null},{\"origin\":\"retained_history\",\"provider\":\"tushare\",\"acquired_at\":null,\"scope\":\"legacy_unknown\",\"raw_input_sha256\":null},{\"origin\":\"qualified_coverage_extension\",\"provider\":\"yahoo_timeseries\",\"acquired_at\":\"2026-10-22T06:00:00Z\",\"scope\":\"vendor_reported_unverified\",\"raw_input_sha256\":\"57eef39dc19397bbf49a1556dd3f98c9d8fc33d2013e14a1152e774fa8c337d6\",\"source_period_type\":\"3M\",\"publication_at\":null}],\"balance\":[{\"origin\":\"retained_history\",\"provider\":\"tushare\",\"acquired_at\":null,\"scope\":\"legacy_unknown\",\"raw_input_sha256\":null},{\"origin\":\"retained_history\",\"provider\":\"tushare\",\"acquired_at\":null,\"scope\":\"legacy_unknown\",\"raw_input_sha256\":null},{\"origin\":\"retained_history\",\"provider\":\"tushare\",\"acquired_at\":null,\"scope\":\"legacy_unknown\",\"raw_input_sha256\":null},{\"origin\":\"qualified_coverage_extension\",\"provider\":\"yahoo_timeseries\",\"acquired_at\":\"2026-10-22T06:00:00Z\",\"scope\":\"vendor_reported_unverified\",\"raw_input_sha256\":\"57eef39dc19397bbf49a1556dd3f98c9d8fc33d2013e14a1152e774fa8c337d6\",\"source_period_type\":\"3M\",\"publication_at\":null}],\"cashflow\":[{\"origin\":\"retained_history\",\"provider\":\"tushare\",\"acquired_at\":null,\"scope\":\"legacy_unknown\",\"raw_input_sha256\":null},{\"origin\":\"retained_history\",\"provider\":\"tushare\",\"acquired_at\":null,\"scope\":\"legacy_unknown\",\"raw_input_sha256\":null},{\"origin\":\"retained_history\",\"provider\":\"tushare\",\"acquired_at\":null,\"scope\":\"legacy_unknown\",\"raw_input_sha256\":null},{\"origin\":\"qualified_coverage_extension\",\"provider\":\"yahoo_timeseries\",\"acquired_at\":null,\"scope\":\"unavailable\",\"raw_input_sha256\":null,\"source_period_type\":\"3M\",\"publication_at\":null}]},\"income\":{\"revenue\":[50,80,30,40],\"cogs\":[null,null,null,null],\"gross_profit\":[null,null,null,null],\"opex\":[null,null,null,null],\"op_income\":[null,null,null,null],\"nonop_income\":[null,null,null,null],\"pretax_income\":[null,null,null,null],\"taxes\":[null,null,null,null],\"net_income\":[30,30,30,20],\"eps_basic\":[2,3,1,null],\"eps_diluted\":[null,null,null,null],\"ebitda\":[null,null,null,null]},\"balance\":{\"assets\":[180,180,180,200],\"assets_st\":[null,null,null,null],\"assets_lt\":[null,null,null,null],\"liabilities\":[null,null,null,null],\"liab_st\":[null,null,null,null],\"liab_lt\":[null,null,null,null],\"equity\":[null,null,null,null],\"debt\":[null,null,null,null],\"cash\":[null,null,null,null],\"net_debt\":[null,null,null,null]},\"cashflow\":{\"cfo\":[25,25,25,null],\"cfi\":[null,null,null,null],\"cff\":[null,null,null,null],\"capex\":[null,null,null,null],\"fcf\":[null,null,null,null]}}},\"earnings\":{\"q\":[{\"period\":\"Q2 2025\",\"end\":\"2025-06-30\",\"eps_a\":null,\"eps_e\":null,\"rev_a\":null,\"rev_e\":null,\"surp_pct\":null,\"actuals_provenance\":{\"origin\":\"retained_history\",\"provider\":\"tushare\",\"acquired_at\":null,\"scope\":\"legacy_unknown\",\"raw_input_sha256\":null},\"report_date\":null,\"tx\":null,\"eps_basis\":\"discrete_eps_unavailable\",\"rev_basis\":\"unqualified_discrete_period\"},{\"period\":\"Q3 2025\",\"end\":\"2025-09-30\",\"eps_a\":null,\"eps_e\":null,\"rev_a\":null,\"rev_e\":null,\"surp_pct\":null,\"actuals_provenance\":{\"origin\":\"retained_history\",\"provider\":\"tushare\",\"acquired_at\":null,\"scope\":\"legacy_unknown\",\"raw_input_sha256\":null},\"report_date\":null,\"tx\":null,\"eps_basis\":\"discrete_eps_unavailable\",\"rev_basis\":\"unqualified_discrete_period\"},{\"period\":\"Q1 2026\",\"end\":\"2026-03-31\",\"eps_a\":1,\"eps_e\":null,\"rev_a\":30,\"rev_e\":null,\"surp_pct\":null,\"actuals_provenance\":{\"origin\":\"retained_history\",\"provider\":\"tushare\",\"acquired_at\":null,\"scope\":\"legacy_unknown\",\"raw_input_sha256\":null},\"report_date\":null,\"tx\":null,\"eps_basis\":\"reported_discrete\",\"rev_basis\":\"reported_discrete\"},{\"period\":\"Q2 2026\",\"end\":\"2026-06-30\",\"eps_a\":null,\"eps_e\":null,\"rev_a\":40,\"rev_e\":null,\"surp_pct\":null,\"actuals_provenance\":{\"origin\":\"qualified_coverage_extension\",\"provider\":\"yahoo_timeseries\",\"acquired_at\":\"2026-10-22T06:00:00Z\",\"scope\":\"vendor_reported_unverified\",\"raw_input_sha256\":\"57eef39dc19397bbf49a1556dd3f98c9d8fc33d2013e14a1152e774fa8c337d6\",\"source_period_type\":\"3M\",\"publication_at\":null},\"report_date\":null,\"tx\":null,\"eps_basis\":\"discrete_eps_unavailable\",\"rev_basis\":\"reported_discrete\"}],\"fy\":[{\"period\":\"FY2024\",\"end\":\"2024-12-31\",\"eps_a\":4,\"eps_e\":null,\"rev_a\":100,\"rev_e\":null,\"surp_pct\":null,\"actuals_provenance\":{\"origin\":\"retained_history\",\"provider\":\"tushare\",\"acquired_at\":null,\"scope\":\"legacy_unknown\",\"raw_input_sha256\":null}},{\"period\":\"FY2025\",\"end\":\"2025-12-31\",\"eps_a\":5,\"eps_e\":null,\"rev_a\":110,\"rev_e\":null,\"surp_pct\":null,\"actuals_provenance\":{\"origin\":\"retained_history\",\"provider\":\"tushare\",\"acquired_at\":null,\"scope\":\"legacy_unknown\",\"raw_input_sha256\":null}}]},\"src\":{\"statements\":\"tushare+yahoo_timeseries\",\"legacy_note\":\"贵州茅台\",\"statement_coverage_policy\":\"yahoo_append_only\",\"fallback_acquired_at\":\"2026-10-22T06:00:00Z\",\"fallback_raw_input_sha256\":\"57eef39dc19397bbf49a1556dd3f98c9d8fc33d2013e14a1152e774fa8c337d6\",\"profile_acquired_at\":\"2026-10-22T06:00:00Z\",\"stats_acquired_at\":\"2026-10-22T06:00:00Z\"},\"data_freshness\":{\"latest_report_period\":\"2026-06-30\",\"source_mode\":\"yahoo_append_only\",\"coverage_extension_acquired_at\":\"2026-10-22T06:00:00Z\",\"historical_source_acquisition\":\"per_period_or_unknown\",\"added_periods\":{\"annual\":[],\"quarterly\":[\"2026-06-30\"]}}}",
+    "payload_sha256": "d784f0204bcb2a163b53021678a5325af5dba09c082899af1fc1d0d0663d10a4"
+  }
+}

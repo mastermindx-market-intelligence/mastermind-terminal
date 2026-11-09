@@ -11,20 +11,22 @@ import {
   T_BASIS,
   T_BASIS_SHORT,
   T_EMPTY_BOOK,
+  T_POSITIVE_COST_NEEDED,
   T_NO_TARGETS,
   T_UNTARGETED_HINT_UNWEIGHABLE,
   T_UNWEIGHABLE,
   type PortfolioTarget,
   type PortfolioTargetsSummary,
 } from "@/lib/portfolioTargets";
-import { computePortfolioRisk, type RiskInputPosition } from "@/lib/portfolioRisk";
+import { computePortfolioRisk, riskCopy, type RiskInputPosition } from "@/lib/portfolioRisk";
 
+// Mathematical controls declare a fictional shared USD entry unit.
 const pos = (
   ticker: string,
   shares: number | null,
   entryPrice: number | null,
   status: "open" | "closed" = "open",
-): RiskInputPosition => ({ ticker, shares, entryPrice, status });
+): RiskInputPosition => ({ ticker, shares, entryPrice, entryCurrency: "USD", status });
 
 const tgt = (ticker: string, targetWeightPct: number, bandPct = 5): PortfolioTarget => ({
   ticker, targetWeightPct, bandPct, updatedAt: null,
@@ -57,6 +59,7 @@ function allRenderedStrings(summary: PortfolioTargetsSummary, shapeReadoutVisibl
   collectBilingual(copy.basis, out);
   collectBilingual(copy.sumNote, out);
   collectBilingual(copy.emptyState, out);
+  collectBilingual(copy.costNotice, out);
   for (const row of copy.rows) {
     collectBilingual(row.current, out);
     collectBilingual(row.target, out);
@@ -90,7 +93,7 @@ function allExportedCopy(): { name: string; value: { en: string; zh: string } }[
     .map(([name, value]) => ({ name, value: value as { en: string; zh: string } }));
 }
 
-/** The six states R6 (g) names, each produced by a real fixture through the real pipeline. */
+/** Consumer states, each produced by a real fixture through the real pipeline. */
 const STATE_FIXTURES: { state: string; summary: PortfolioTargetsSummary; shapeReadoutVisible: boolean }[] = [
   {
     state: "populated (mixed within/outside band)",
@@ -124,6 +127,27 @@ const STATE_FIXTURES: { state: string; summary: PortfolioTargetsSummary; shapeRe
     state: "no targets yet (sized holdings, none targeted)",
     summary: computePortfolioTargets([pos("AAA", 10, 100), pos("BBB", 10, 100)], []),
     shapeReadoutVisible: true,
+  },
+  {
+    state: "unknown entry currency",
+    summary: computePortfolioTargets(
+      [pos("AAA", 10, 100), { ...pos("BBB", 10, 100), entryCurrency: null }],
+      [tgt("AAA", 70, 6)],
+    ),
+    shapeReadoutVisible: false,
+  },
+  {
+    state: "mixed entry currencies",
+    summary: computePortfolioTargets(
+      [pos("AAA", 10, 100), { ...pos("BBB", 10, 100), entryCurrency: "HKD" }],
+      [tgt("AAA", 70, 6)],
+    ),
+    shapeReadoutVisible: false,
+  },
+  {
+    state: "entry cost overflow",
+    summary: computePortfolioTargets([pos("AAA", 10, 100), pos("BBB", 2, Number.MAX_VALUE)], [tgt("AAA", 70, 6)]),
+    shapeReadoutVisible: false,
   },
   {
     state: "sum mismatch",
@@ -483,7 +507,20 @@ describe("computePortfolioTargets — one weight formula, agreeing with computeP
   it("treats two lots of the same ticker as one holding: AAA 100@100 + AAA 50@100 + BBB 50@100 is AAA 75.0% on both sides", () => {
     const book = [pos("AAA", 100, 100), pos("AAA", 50, 100), pos("BBB", 50, 100)];
     const summary = computePortfolioTargets(book, [tgt("AAA", 70, 5), tgt("BBB", 30, 5)]);
-    const risk = computePortfolioRisk(book, {});
+    const risk = computePortfolioRisk(book, {
+      AAA: { kind: "read", facts: { ticker: "AAA", sector: "Information Technology", marketCap: 1e12, thinlyTraded: null } },
+      BBB: { kind: "read", facts: { ticker: "BBB", sector: "Health Care", marketCap: 5e9, thinlyTraded: null } },
+    });
+    // One holding is one ticker: three input records survive, fold to TWO securities, and the
+    // coverage sentence counts securities — never the lot rows underneath them.
+    expect(book).toHaveLength(3);
+    expect(risk.totalCost).toBe(20000);
+    expect(risk.counts).toEqual({ total: 2, sized: 2, read: 2 });
+    expect(risk.gaps).toEqual([]);
+    expect(riskCopy(risk).coverage).toEqual({
+      en: "Read data for 2 of 2 securities. Record valuation may still be incomplete.",
+      zh: "已读取 2 只证券中 2 只的数据。持仓记录的估值仍可能不完整。",
+    });
     expect(summary.drifts.find((d) => d.ticker === "AAA")?.currentWeightPct).toBe(75);
     expect(summary.drifts.find((d) => d.ticker === "BBB")?.currentWeightPct).toBe(25);
     expect(risk.concentration?.top1).toEqual({ ticker: "AAA", weightPct: 75 });
@@ -535,9 +572,17 @@ describe("targetsCopy — empty-state sentence", () => {
     expect(targetsCopy(computePortfolioTargets([], []), "en").emptyState).toEqual(T_EMPTY_BOOK);
   });
 
-  it("renders T_EMPTY_BOOK, not T_NO_TARGETS, when the only holdings are unweighable", () => {
-    const summary = computePortfolioTargets([pos("AAA", null, null)], []);
-    expect(targetsCopy(summary, "en").emptyState).toEqual(T_EMPTY_BOOK);
+  it.each([
+    ["missing size and price", pos("AAA", null, null)],
+    ["zero entry cost", pos("AAA", 0, 100)],
+    ["negative entry cost", pos("AAA", -10, 100)],
+  ] as const)("keeps existing holdings distinct from an empty book when there is %s", (_case, holding) => {
+    const summary = computePortfolioTargets([holding], []);
+    const copy = targetsCopy(summary, "en");
+    expect(copy.emptyState).toEqual(T_POSITIVE_COST_NEEDED);
+    expect(copy.emptyState).not.toEqual(T_EMPTY_BOOK);
+    expect(copy.costNotice).toBeNull();
+    expect(copy.untargeted?.rows).toHaveLength(1);
   });
 
   it("renders no lead sentence once a weighable target exists", () => {
@@ -551,8 +596,8 @@ describe("targetsCopy — untargeted hint", () => {
   it("uses the unweighable hint for a null-weight row, never an em dash beside a percent sign", () => {
     const summary = computePortfolioTargets([pos("AAA", 100, 100), pos("SHORT", -50, 100)], []);
     const row = targetsCopy(summary, "en").untargeted?.rows.find((r) => r.ticker === "SHORT");
-    expect(row?.hint.en).toBe("SHORT — not weighable yet (size or price missing).");
-    expect(row?.hint.zh).toBe("SHORT——暂时无法计算权重（缺少数量或价格）。");
+    expect(row?.hint.en).toBe("SHORT — current weight unavailable.");
+    expect(row?.hint.zh).toBe("SHORT · 暂无法计算当前权重。");
     expect(row?.hint.en).not.toContain("—%");
     expect(row?.hint.zh).not.toContain("—%");
   });
@@ -640,5 +685,56 @@ describe("computePortfolioTargets + targetsCopy — a closed last holding keeps 
     // above the empty-book sentence, because orphaned targets still entered the sum. It must not
     // render when nothing weighable is held.
     expect(copy.sumNote).toBeNull();
+  });
+});
+
+
+describe("targetsCopy — common cost-basis refusals", () => {
+  const costCases = [
+  {
+    gap: "currency_unknown",
+    positions: [pos("AAA", 10, 100), { ...pos("BBB", 10, 100), entryCurrency: null }],
+    notice: {
+      en: "Current weights are unavailable because some entry currencies are not recorded.",
+      zh: "部分入场价格未记录币种，暂无法计算当前权重。",
+    },
+  },
+  {
+    gap: "currency_mismatch",
+    positions: [pos("AAA", 10, 100), { ...pos("BBB", 10, 100), entryCurrency: "HKD" }],
+    notice: {
+      en: "Current weights are unavailable because entry costs use different currencies. No currency conversion is applied.",
+      zh: "入场成本使用不同币种，暂无法计算当前权重。未进行货币换算。",
+    },
+  },
+  {
+    gap: "amount_overflow",
+    positions: [pos("AAA", 10, 100), pos("BBB", 2, Number.MAX_VALUE)],
+    notice: {
+      en: "Current weights are unavailable because recorded entry costs exceed the supported numeric range.",
+      zh: "记录的入场成本超出支持的数值范围，暂无法计算当前权重。",
+    },
+  },
+] as const;
+
+  it.each(costCases)("exposes $gap without an empty-book or missing-size diagnosis", ({ positions, gap, notice }) => {
+    const summary = computePortfolioTargets(positions, [tgt("AAA", 70, 6)]);
+    expect(summary.costGap).toBe(gap);
+    const copy = targetsCopy(summary, "en");
+    expect(copy.costNotice).toEqual(notice);
+    expect(copy.emptyState).toBeNull();
+    expect(copy.rows).toHaveLength(1);
+    expect(copy.rows[0].current).toBeNull();
+    expect(copy.rows[0].drift).toBeNull();
+    expect(copy.rows[0].status).toEqual(T_UNWEIGHABLE);
+    expect(copy.untargeted?.rows).toHaveLength(1);
+    const strings = allRenderedStrings(summary, false).join("\n");
+    expect(strings).toContain(notice.en);
+    expect(strings).toContain(notice.zh);
+    expect(strings).not.toContain(T_EMPTY_BOOK.en);
+    expect(strings).not.toContain(T_EMPTY_BOOK.zh);
+    expect(strings).not.toContain("size or price missing");
+    expect(strings).not.toContain("No share count or entry price yet");
+    expect(strings).not.toContain("缺少数量或价格");
   });
 });

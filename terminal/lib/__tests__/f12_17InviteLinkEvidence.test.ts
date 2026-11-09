@@ -1,3 +1,5 @@
+import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
+// Preserve the raw capture pin; only unused onboarding copy has an AST dependency projection.
 // W9T_F12_17 (MO-PAID-081): the invitation-link evidence lock. Same shape as the
 // other locks in this folder: layoutFiles carry the sha256 of every source file
 // the crops depend on, so editing one of them without a recapture turns this RED.
@@ -103,7 +105,11 @@ describe("W9T_F12_17 evidence lock is the sha256 of the invitation layout source
     for (const [rel, expected] of Object.entries(recorded)) {
       const abs = join(REPO, rel);
       expect(existsSync(abs), `${rel} is recorded in layoutFiles but absent from the tree`).toBe(true);
-      expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
+      if (rel === "terminal/lib/i18n.tsx") {
+        assertCapturedLexProjection(readFileSync(abs, "utf8"), expected, readFileSync(EVIDENCE, "utf8"));
+      } else {
+        expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
+      }
     }
   });
 

@@ -1,0 +1,17 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_____________ test_pr_state_matches_file_presence_on_the_real_tree _____________
+tests/test_supabase_migration_namespace.py:760: in test_pr_state_matches_file_presence_on_the_real_tree
+    assert findings == [], f"ran in {mode} mode\n" + format_report(findings, [])
+E   AssertionError: ran in PULL_REQUEST (#945) mode
+E     1 finding(s):
+E       [OPEN_PR_STATE_STALE] 0032: prefix 0032's file is present on the branch of pull request #945, but RESERVATIONS.json records it as pr_state 'open' on pull request 946 -- a pull request branch legitimately carries its OWN migration with an open row and no other, so either that pull request merged and this row was never flipped to 'merged', or this branch is carrying a file it does not own
+E
+E     disclosures (nulls printed in plain words, never hidden):
+E   assert [Finding(code...oes not own")] == []
+E
+E     Left contains one more item: Finding(code='OPEN_PR_STATE_STALE', prefix='0032', detail="prefix 0032's file is present on the branch of pull request...hat pull request merged and this row was never flipped to 'merged', or this branch is carrying a file it does not own")
+E     Use -v to get more diff
+=========================== short test summary info ============================
+FAILED tests/test_supabase_migration_namespace.py::test_pr_state_matches_file_presence_on_the_real_tree
+1 failed in 0.52s

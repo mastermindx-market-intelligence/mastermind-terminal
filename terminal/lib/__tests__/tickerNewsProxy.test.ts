@@ -206,3 +206,237 @@ describe("SSE BFF", () => {
     expect(await res.json()).toEqual({ error: "gateway_unreachable" });
   });
 });
+
+// ---- Wave B3: the proxy re-serializes the PARSED object (lib/server/tickerNews.ts
+// returns Response.json(parse(decoded))), so any flow the parser does not carry is
+// silently dropped at the proxy. These pins hold flow through that round trip.
+
+describe("ticker news snapshot BFF — news-flow passthrough (Wave B3)", () => {
+  const FLOW_METHOD =
+    "distinct reports by source + source_item_id; active status only; " +
+    "rights-allowed sources only; UTC calendar days; median of 28 prior days";
+
+  const FLOW_PROVENANCE = {
+    velocity_schema: "qbus.news_velocity.v1",
+    sources_counted: ["benzinga"],
+    status_counted: "active",
+    distinct_by: "source + source_item_id",
+    story_grouping: "news_cluster_members.cluster_id; a report in no cluster is its own story",
+    cluster_policy_version: "qbus_news_cluster.v2",
+    windows: {
+      reports_24h: "rolling, closed at both ends: [as_of - 24h, as_of]",
+      reports_7d: "rolling, closed at both ends: [as_of - 7d, as_of]",
+      daily_28d: {
+        start_date: "2026-09-14",
+        end_date: "2026-10-11",
+        unit: "UTC calendar day",
+        excludes: "the current UTC day",
+        order: "oldest first",
+      },
+    },
+    calculation: { method: FLOW_METHOD, comparison_rule: "flow_compare.v1" },
+    time_basis_counts_24h: { published_at: 6, received_at: 1 },
+  };
+
+  // Contract section 5 FLOW_OK, verbatim.
+  const FLOW_OK = {
+    schema: "ticker_news.flow.v1",
+    state: "ok",
+    reason: null,
+    coverage: "complete",
+    as_of: "2026-10-12T10:30:00Z",
+    reports_24h: 7,
+    reports_7d: 21,
+    stories_24h: 4,
+    median_daily_28d: 2.5,
+    daily_counts_28d: [2, 3, 1, 4, 2, 3, 0, 5, 2, 3, 2, 3, 1, 4, 2, 3, 2, 3, 1, 3, 2, 4, 2, 3, 2, 3, 2, 3],
+    history_days_observed: 28,
+    comparison: "busier",
+    provenance: FLOW_PROVENANCE,
+  };
+
+  const snapshotWithFlow = (flow?: unknown) => ({
+    schema: "ticker_news.snapshot.v1",
+    ticker: "NVDA",
+    security_id: "SEC:US-XNAS-NVDA",
+    state: "quiet",
+    rows: [],
+    next_cursor: null,
+    has_more: false,
+    source_health: { state: "live" },
+    ...(flow === undefined ? {} : { flow }),
+  });
+
+  it("re-serializes a valid flow deep-equal through the parser round trip", async () => {
+    signedIn();
+    installJson(200, snapshotWithFlow(FLOW_OK));
+    const res = await snapshotGET(
+      new Request("https://app.test/api/news/NVDA"),
+      { params: Promise.resolve({ symbol: "NVDA" }) },
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.flow).toEqual(FLOW_OK);
+  });
+
+  it("a malformed flow degrades to the terminal unavailable/malformed flow, never a 502", async () => {
+    signedIn();
+    installJson(200, snapshotWithFlow({ ...FLOW_OK, state: "weird" }));
+    const res = await snapshotGET(
+      new Request("https://app.test/api/news/NVDA"),
+      { params: Promise.resolve({ symbol: "NVDA" }) },
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { flow: Record<string, unknown> };
+    expect(body.flow.state).toBe("unavailable");
+    expect(body.flow.reason).toBe("malformed");
+  });
+
+  it("an upstream snapshot with no flow key is serialized with flow null (the panel hides the strip for it)", async () => {
+    signedIn();
+    installJson(200, snapshotWithFlow(undefined));
+    const res = await snapshotGET(
+      new Request("https://app.test/api/news/NVDA"),
+      { params: Promise.resolve({ symbol: "NVDA" }) },
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    // parseTickerNewsSnapshot always carries the typed key, so the proxy body has
+    // flow: null. The strip's mount rule treats null as absent (design pin P6).
+    expect(Object.prototype.hasOwnProperty.call(body, "flow")).toBe(true);
+    expect(body.flow).toBeNull();
+  });
+});
+
+describe("editorial view transport", () => {
+  const revision = "b".repeat(64);
+  const metadata = {
+    schema: "ticker_news.editorial_view.v1", rules: "ticker_news.editorial_rules.v1",
+    mode: "company", revision, name_coverage: "names_and_symbols",
+  };
+
+  it("forwards snapshot view and continuation revision without unrelated inputs", async () => {
+    signedIn();
+    installJson(200, {
+      schema: "ticker_news.snapshot.v1", editorial_view: metadata, change_sequence: 31,
+      ticker: "NVDA", security_id: "SEC:NVDA", state: "quiet", rows: [],
+      next_cursor: null, has_more: false, source_health: { state: "live" },
+    });
+    const res = await snapshotGET(
+      new Request("https://app.test/api/news/NVDA?limit=20&view=company&view_revision=" + revision + "&source=fool"),
+      { params: Promise.resolve({ symbol: "NVDA" }) },
+    );
+    expect(res.status).toBe(200);
+    const sent = new URL(calls[0].url);
+    expect(sent.searchParams.get("view")).toBe("company");
+    expect(sent.searchParams.get("view_revision")).toBe(revision);
+    expect(sent.searchParams.has("source")).toBe(false);
+    expect((await res.json()).editorial_view).toEqual(metadata);
+  });
+
+  it("binds grouped detail to ticker, view and revision", async () => {
+    signedIn();
+    installJson(200, {
+      schema: "ticker_news.story.v1", editorial_view: metadata, story_id: "ev2_group",
+      source_count: 0, item_count: 0, members: [],
+    });
+    const res = await storyGET(
+      new Request("https://app.test/api/news/stories/ev2_group?ticker=nvda&view=company&view_revision=" + revision),
+      { params: Promise.resolve({ storyId: "ev2_group" }) },
+    );
+    expect(res.status).toBe(200);
+    const sent = new URL(calls[0].url);
+    expect(sent.searchParams.get("ticker")).toBe("NVDA");
+    expect(sent.searchParams.get("view")).toBe("company");
+    expect(sent.searchParams.get("view_revision")).toBe(revision);
+  });
+
+  it("forwards stream context and the explicit reset event unchanged", async () => {
+    signedIn();
+    const frame = 'event: reset\ndata: {"schema":"ticker_news.reset.v1"}\n\n';
+    const fetcher = vi.fn().mockResolvedValue(new Response(frame, {
+      headers: { "content-type": "text/event-stream" },
+    }));
+    globalThis.fetch = fetcher;
+    const res = await streamGET(new Request(
+      "https://app.test/api/news/stream?symbol=NVDA&after_sequence=29&view=company&view_revision=" + revision,
+    ));
+    const sent = new URL(String(fetcher.mock.calls[0][0]));
+    expect(sent.searchParams.get("view")).toBe("company");
+    expect(sent.searchParams.get("view_revision")).toBe(revision);
+    expect(await res.text()).toBe(frame);
+  });
+
+  it("rejects a filtered detail request without ticker context before upstream access", async () => {
+    signedIn();
+    const res = await storyGET(
+      new Request("https://app.test/api/news/stories/ev2_group?view=company"),
+      { params: Promise.resolve({ storyId: "ev2_group" }) },
+    );
+    expect(res.status).toBe(400);
+    expect(calls).toHaveLength(0);
+  });
+});
+
+describe("editorial acknowledgement at the proxy boundary", () => {
+  const revision = "b".repeat(64);
+  const correct = {
+    schema: "ticker_news.editorial_view.v1", rules: "ticker_news.editorial_rules.v1",
+    mode: "company", revision, name_coverage: "names_and_symbols",
+  };
+  it.each([
+    ["snapshot", undefined],
+    ["snapshot", { ...correct, mode: "all" }],
+    ["snapshot", { ...correct, revision: "c".repeat(64) }],
+    ["story", undefined],
+    ["story", { ...correct, mode: "all" }],
+    ["story", { ...correct, revision: "c".repeat(64) }],
+  ])("rejects missing or wrong %s acknowledgement without returning its payload", async (kind, acknowledgement) => {
+    signedIn();
+    const isSnapshot = kind === "snapshot";
+    installJson(200, isSnapshot ? {
+      schema: "ticker_news.snapshot.v1", editorial_view: acknowledgement,
+      ticker: "NVDA", security_id: "SEC:NVDA", state: "quiet", rows: [],
+      next_cursor: null, has_more: false, source_health: { state: "live" },
+    } : {
+      schema: "ticker_news.story.v1", editorial_view: acknowledgement, story_id: "ev2_group",
+      source_count: 0, item_count: 0, members: [],
+    });
+    const query = "?ticker=NVDA&view=company&view_revision=" + revision;
+    const response = isSnapshot
+      ? await snapshotGET(new Request("https://app.test/api/news/NVDA" + query),
+        { params: Promise.resolve({ symbol: "NVDA" }) })
+      : await storyGET(new Request("https://app.test/api/news/stories/ev2_group" + query),
+        { params: Promise.resolve({ storyId: "ev2_group" }) });
+    expect(response.status).toBe(502);
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(await response.json()).toEqual({ error: "invalid_upstream_payload" });
+  });
+
+  it("rejects a valid snapshot for another ticker", async () => {
+    signedIn();
+    installJson(200, {
+      schema: "ticker_news.snapshot.v1", editorial_view: correct,
+      ticker: "MSFT", security_id: "SEC:MSFT", state: "quiet", rows: [],
+      next_cursor: null, has_more: false, source_health: { state: "live" },
+    });
+    const response = await snapshotGET(
+      new Request("https://app.test/api/news/NVDA?view=company"),
+      { params: Promise.resolve({ symbol: "NVDA" }) },
+    );
+    expect(response.status).toBe(502);
+  });
+
+  it("rejects a valid detail for another story", async () => {
+    signedIn();
+    installJson(200, {
+      schema: "ticker_news.story.v1", editorial_view: correct, story_id: "ev2_other",
+      source_count: 0, item_count: 0, members: [],
+    });
+    const response = await storyGET(
+      new Request("https://app.test/api/news/stories/ev2_group?ticker=NVDA&view=company"),
+      { params: Promise.resolve({ storyId: "ev2_group" }) },
+    );
+    expect(response.status).toBe(502);
+  });
+});

@@ -536,7 +536,14 @@ SHIMS = {
     "git": (
         '#!/bin/sh\n'
         'printf "git %s\\n" "$*" >> "$MMX_EFFECT_LOG"\n'
-        'case "$*" in *rev-parse*) echo "$FAKE_SHA" ;; esac\n'
+        # These two fixture revisions are valid old commits with no IW2 gate.
+        # Unknown identities remain errors; the real candidate cases live in
+        # test_terminal_investigation_install_admission.py.
+        'case "$*" in\n'
+        '  *"cat-file -t "*) case "$*" in *'
+        + OLD_SHA + '|*' + NEW_SHA + ') echo commit ;; *) exit 1 ;; esac ;;\n'
+        '  *rev-parse*) echo "$FAKE_SHA" ;;\n'
+        'esac\n'
         'exit 0\n'
     ),
     "npm": (
@@ -549,7 +556,7 @@ SHIMS = {
     "systemctl": (
         '#!/bin/sh\n'
         'printf "systemctl %s\\n" "$*" >> "$MMX_EFFECT_LOG"\n'
-        '[ -n "${FAIL_RESTART:-}" ] && { echo "systemctl: simulated failure" >&2; exit 1; }\n'
+        '[ "$1" = restart ] && [ -n "${FAIL_RESTART:-}" ] && { echo "systemctl: simulated failure" >&2; exit 1; }\n'
         'exit 0\n'
     ),
     "curl": '#!/bin/sh\n[ -n "${FAIL_HEALTH:-}" ] && exit 22\nexit 0\n',

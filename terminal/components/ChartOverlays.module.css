@@ -1,0 +1,60 @@
+/* Pine legend-row run state (ChartOverlays). A script whose run is still in flight, or whose
+   engine failed, says so beside its name instead of rendering as an active row with no plot.
+   Sits AFTER .lg-name (never inside it) so the name's ellipsis cannot clip the state away. */
+
+.stateChip {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .55);
+}
+
+.pending { color: var(--text-2); }
+.unavail { color: var(--warn); }
+
+/* Always visible (not hover- or arm-gated): the failed state is only honest if the way out is on it. */
+.retry {
+  flex: none;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 7px;
+  border: 1px solid color-mix(in srgb, var(--warn) 55%, transparent);
+  border-radius: 5px;
+  background: rgba(6, 9, 14, .6);
+  color: var(--warn);
+  font: 600 11px/1 var(--font-ui);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.retry:hover { background: color-mix(in srgb, var(--warn) 16%, rgba(6, 9, 14, .8)); }
+.retry:focus-visible { outline: 2px solid var(--warn); outline-offset: 1px; }
+
+/* Phone: the chart spans the viewport, and a row carrying a state + Retry is the only legend row
+   long enough to reach the 46ch row cap, which on a 390px screen runs under the price scale. End it
+   before the scale; the state text ellipsizes first (Retry is flex:none). An armed row keeps its own
+   wider cap (globals.css .lg-row.is-armed). */
+@media (max-width: 640px) {
+  :global(.lg-row).stateRow:not(:global(.is-armed)) { max-width: calc(100vw - 96px); }
+}
+
+@media (max-width: 860px) {
+  .stateChip { font-size: 12px; }
+  .retry { height: 24px; padding: 0 9px; font-size: 12px; }
+  /* >=40px effective tap target without inflating the drawn button out of the 28px row
+     (same hit-area idiom as .lg-ic on the Static Legend). */
+  .retry::before { content: ""; position: absolute; inset: -8px; }
+}
+
+:global(html[data-shell="app"]) .stateChip { font-size: 13px; font-weight: 550; text-shadow: 0 1px 3px rgba(0, 0, 0, .8); }
+:global(html[data-shell="app"]) .retry { height: 24px; font-size: 13px; }
+
+@media (min-width: 700px) {
+  :global(html[data-shell="app"]) .stateChip { font-size: 14px; }
+}

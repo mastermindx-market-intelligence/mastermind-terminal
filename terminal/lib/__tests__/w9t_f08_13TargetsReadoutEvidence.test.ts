@@ -12,6 +12,13 @@ const CROP_DIR = join(__dirname, "../../docs/pr-crops/w9t-f08-13-targets-readout
 const EVIDENCE = join(CROP_DIR, "EVIDENCE.yml");
 // The sources e2e/tools/capture_w9t_f08_13_targets.cjs stamps (its LAYOUT_FILES).
 const LAYOUT_FILES = [
+  "terminal/components/PortfolioView.tsx",
+  "terminal/components/PortfolioTargets.module.css",
+  "terminal/lib/portfolioTargets.ts",
+  "terminal/lib/portfolioMoney.ts",
+  "terminal/lib/portfolioWorkspace.ts",
+  "terminal/app/settings.css",
+  "terminal/app/globals.css",
   "terminal/components/settings/SectionPortfolioTargets.tsx",
   "terminal/components/settings/SettingsPanel.tsx",
   "terminal/components/settings/SettingsProvider.tsx",
@@ -31,6 +38,7 @@ type Evidence = {
   capture_flag?: string;
   viewports?: { name: string; width: number; height: number }[];
   files?: string[];
+  captureFiles?: Record<string, string>;
 };
 
 function evidence(): Evidence {
@@ -72,6 +80,25 @@ describe("W9T-F08-13 Settings targets evidence lock is the sha256 of the layout 
       expect(statSync(abs).size, file).toBeGreaterThan(0);
     }
     expect([...(evidence().files ?? [])].sort()).toEqual([...CROPS].sort());
+  });
+
+  it("lists exactly eight unique captures", () => {
+    const files = evidence().files ?? [];
+    expect(new Set(files).size).toBe(CROPS.length);
+    expect([...files].sort()).toEqual([...CROPS].sort());
+  });
+
+  it("binds all actual PNG bytes to their capture hashes", () => {
+    const hashes = evidence().captureFiles ?? {};
+    expect(Object.keys(hashes).sort()).toEqual([...CROPS].sort());
+    const rows = readFileSync(EVIDENCE, "utf8").match(/"captureFiles": \{([^}]+)\}/m)?.[1];
+    expect(rows).toBeDefined();
+    expect(rows!.match(/"[A-Za-z0-9-]+\.png": "[0-9a-f]{64}"/g)).toHaveLength(CROPS.length);
+    for (const file of CROPS) {
+      const bytes = readFileSync(join(CROP_DIR, file));
+      expect(bytes.subarray(0, 8).toString("hex"), file).toBe("89504e470d0a1a0a");
+      expect(createHash("sha256").update(bytes).digest("hex"), file).toBe(hashes[file]);
+    }
   });
 
   it("EVIDENCE.yml declares the capture flag, the dark theme and the two viewports", () => {

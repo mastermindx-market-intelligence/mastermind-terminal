@@ -1,0 +1,96 @@
+{
+  "classification": "LOCAL_CONTROLLED_FEED_BROWSER_NOT_PRODUCTION_DATA",
+  "base": "919114d1c27f0f588d9d5a4d52574f19b0137d6d",
+  "root": "01a10340-ddc1-7e41-9b42-9c8543c28c3d",
+  "coordinator": "01a16c6c-f91e-7bd2-9b0e-734172a3dd7d",
+  "files_sha256": {
+    "terminal/components/OptionsHubView.tsx": "5c54df6f4939a966262323325f7abba196599abbce8a137882b8dc13068c72bb",
+    "terminal/components/options/OptionsTapeSavedViews.tsx": "aa5d8ef99766aa9d4bf5659b936a8433ed7ee611dcf64bd55c856f8b098ac3c0",
+    "terminal/components/options/OptionsTapeViewLink.module.css": "4ff18d21d636476512f95e165d4044c98cb2af9205c8c91246c0c7f4cf01a154",
+    "terminal/lib/optionsTapeSavedViews.ts": "8203203edad03f5d2dae0006db7e9c258b84617b22ca47377a4c0213650c14df",
+    "terminal/lib/__tests__/optionsTapeSavedViews.test.ts": "2e11f728abc0ee2ec3ec0378b0b3380670faebc939452b1ddbcffb9433462d85",
+    "terminal/e2e/options-tape-saved-views.spec.ts": "714545cac39a386e36121d2bf6679f0b6557361b5696079cb150a67855357199"
+  },
+  "screenshots_sha256": {
+    "docs/pr-crops/options-tape-saved-views/desktop-en-dark.png": "224167a379400fc5bf57e04082070d585e2a1aa3053c3de0ab234900da4457f2",
+    "docs/pr-crops/options-tape-saved-views/desktop-zh-dark.png": "6d17a316fe8bc81c2f8bcf59ab0eb629016b88703b66b95e06a9b445873c8a9b",
+    "docs/pr-crops/options-tape-saved-views/tablet-en-dark.png": "57c924993b53a127be22a3555224ff4a3a15d99636ebab8a378a72b8814f3843",
+    "docs/pr-crops/options-tape-saved-views/tablet-zh-dark.png": "f8cec3302582367e895d5352c08ce27552fea7ce017ae00a45e0fd0b8c1612e0",
+    "docs/pr-crops/options-tape-saved-views/mobile-en-dark.png": "9db201aeb74700020bb6ac7a0e9bcfe2c90832df6b1e05a1e4e582489f7d65d1",
+    "docs/pr-crops/options-tape-saved-views/mobile-zh-dark.png": "ae116732cc2d75a4af4031397ef50e8a62eac0a64657f7da0497c9391cab2ddf"
+  },
+  "verification": {
+    "units": 28,
+    "affected_existing_units": 124,
+    "new_browser_cases": 15,
+    "existing_tape_share_history_hydration_cases_reused": 15,
+    "tsc": "PASS",
+    "new_files_lint": "PASS",
+    "hub_lint_baseline": 29,
+    "hub_lint_current": 29,
+    "new_hub_lint_diagnostics": 0,
+    "browser_retries": 0,
+    "browser_skips": 0,
+    "parent_pixels": "Accepted mobile ZH and desktop EN; remaining frames retained",
+    "light": "UNAVAILABLE: existing Terminal hardcodes dark; parent scoped this workflow to actual dark product"
+  },
+  "cases": [
+    "A-local-edit-A with identical URL",
+    "two screens with Back/Forward",
+    "latest matching feed event appears after reopening",
+    "save rename delete reload",
+    "keyboard Escape and logical focus return",
+    "malformed preference bytes preserved and explicit recovery",
+    "failed storage is visibly unsaved",
+    "invalid shared URL keeps results withheld",
+    "no horizontal document overflow",
+    "saved-screen controls >=40px (scoped44px)",
+    "suggested multilingual name preserves complete Unicode code points"
+  ],
+  "initial_failure": {
+    "product": "Global narrow-screen .chip !important overrode44px to36px; fixed with module-scoped rule",
+    "test_assumption": "Whole-row text changed when independent OI-confirmation badge arrived; stable identity/order fields now compared",
+    "obsolete_theme_request": "mm.theme did not enable light; redundant requested-light cases removed and no light claim retained",
+    "unicode": "UTF-16 truncation could split an emoji; default name now truncates by code points; actual browser case saves unchanged suggestion"
+  },
+  "fabric": {
+    "public_census": "fable-week-competitor-census-20261023 TERMINAL rc1 QWEN_FINAL_RESPONSE_UNCONFIRMED429 not accepted",
+    "store": "fable-tape-screens-store-20261024 TERMINAL rc1 QWEN_FINAL_RESPONSE_UNCONFIRMED429 not accepted",
+    "implementation": "Explicit root-authorized direct coordinator implementation after settled provider failures; no replacement request"
+  },
+  "limits": [
+    "browser-local display preference only",
+    "no market rows or data snapshot persisted",
+    "no source or pricing/model/rights/alert change",
+    "no Lab or server persistence",
+    "full programme remains under original root"
+  ],
+  "integrationRepair20261024": {
+    "coordinator": "01a16c6d-4308-7151-a458-54c49ab7a2a1",
+    "preimage": "063dc38ff38b19def4f64a00df62745b333bbabb",
+    "hosted_run": 40071543751,
+    "failed_job": 120806181135,
+    "cause": "Saved-screen 44px launchers increased the wrapped phone filter bar height; first settled Tape row ended at 852.09375 beyond the 844px viewport.",
+    "repair": "Only phone filter bars containing saved-screen controls use a 2px vertical row gap instead of 6px. Horizontal gaps and 44px targets remain unchanged.",
+    "red": "Existing workspace-refinement Options test reproduced unchanged locally.",
+    "green": {
+      "responsive_cases": 57,
+      "viewports": [
+        "1440x900",
+        "820x1180",
+        "390x844"
+      ],
+      "languages": [
+        "en",
+        "zh"
+      ],
+      "retries": 0,
+      "skips": 0,
+      "affected_unit_and_evidence_checks": 50,
+      "typecheck": "PASS",
+      "lint": "PASS"
+    },
+    "captures": "All six named-screen panel frames recaptured on repaired source; closed Tape EN/ZH phone pixels also inspected and retained in root artifacts.",
+    "scope": "LOCAL_FIXTURE_ONLY; no production data/authenticated acceptance claimed"
+  }
+}
