@@ -15,6 +15,8 @@ The rename input canceled on every blur, including Tab to its own visible Save o
 
 The existing rename group now treats focus movement within its input/buttons as continued editing. Leaving the group still cancels without writing or taking focus back. Enter and Save remain explicit submissions; Escape and Cancel return focus to the row after its DOM is restored. IME confirmation/cancellation remains native. The phone Workspaces sheet uses its existing opt-in bubbled Escape contract so the editor, row and sheet close in stages.
 
+The adjacent CREATE name input previously treated composing Enter as a save and allowed composing Escape to reach the enclosing menu. It now uses the same composition/key-code guard as rename, stopping propagation without preventing the IME default action. Ordinary Enter still saves once and ordinary Escape still reaches the existing menu owner. Browser proof dispatches composition signals; it does not claim to operate a system IME.
+
 The existing write owner supplies the confirmed row ID and requested name with successful rename feedback. The component consumes that result once and matches it against its current editor/request before closing, so another row or newer draft is preserved. Typing through an old successful name cannot replay the close request. The rename conflict member already has exactly one constructor supplying the row ID; its type is made required. There is no new write, retry, optimistic data store, response watcher or lifecycle owner. Equal ID/name confirms the requested visible result, not uniqueness of an overlapping network operation. The existing list refresh and its failure presentation are unchanged.
 
 ## Source boundaries

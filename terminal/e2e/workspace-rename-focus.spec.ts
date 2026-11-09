@@ -10,7 +10,19 @@ for (const lang of ["en", "zh"] as const) {
     await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
     let menu = await openLayoutMenu(page);
     const create = menu.locator("[data-layout-save] input");
-    await create.fill("Alpha"); await menu.locator("[data-layout-save-btn]").click();
+    await create.fill("Alpha");
+    // Exercise browser composition signals without pretending to operate an OS IME.
+    for (const signal of [{ isComposing: true }, { keyCode: 229 }]) {
+      for (const key of ["Enter", "Escape"]) {
+        const defaultAllowed = await create.evaluate((node, options) => node.dispatchEvent(new KeyboardEvent("keydown", {
+          ...options, bubbles: true, cancelable: true,
+        })), { key, ...signal });
+        expect(defaultAllowed).toBe(true);
+        await expect(menu).toBeVisible(); await expect(create).toBeFocused();
+        await expect(menu.locator('[data-layout-row="Alpha"]')).toHaveCount(0);
+      }
+    }
+    await create.press("Enter");
     let row = menu.locator('[data-layout-row="Alpha"]');
     await expect(row).toBeVisible();
     await row.locator("[data-ws-more]").click(); await row.locator('[data-ws-act="rename"]').click();

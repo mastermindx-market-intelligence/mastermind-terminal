@@ -46,8 +46,42 @@ async function edit(value: string) {
   });
 }
 async function key(target: HTMLElement, key: string, options: KeyboardEventInit = {}) {
-  await act(async () => target.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true, ...options })));
+  const event = new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true, ...options });
+  await act(async () => target.dispatchEvent(event));
+  return event;
 }
+
+describe("workspace creation composition", () => {
+  it.each([
+    ["Enter", { isComposing: true }], ["Escape", { isComposing: true }],
+    ["Enter", { keyCode: 229 }], ["Escape", { keyCode: 229 }],
+  ] as const)("preserves the IME default for %s (%j)", async (name, signal) => {
+    await render({ name: "新工作区", onSave: vi.fn() });
+    const create = host.querySelector<HTMLInputElement>("[data-layout-save] input")!;
+    await act(async () => create.focus());
+    const outer = vi.fn(); document.addEventListener("keydown", outer);
+    let event: KeyboardEvent;
+    try { event = await key(create, name, signal); }
+    finally { document.removeEventListener("keydown", outer); }
+    expect(event.defaultPrevented).toBe(false);
+    expect(props.onSave).not.toHaveBeenCalled(); expect(outer).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(create);
+  });
+
+  it("submits ordinary Enter once", async () => {
+    await render({ name: "New workspace", onSave: vi.fn() });
+    await key(host.querySelector<HTMLInputElement>("[data-layout-save] input")!, "Enter");
+    expect(props.onSave).toHaveBeenCalledTimes(1);
+  });
+
+  it("leaves ordinary Escape to the existing menu owner", async () => {
+    await render({ name: "New workspace", onSave: vi.fn() });
+    const outer = vi.fn(); document.addEventListener("keydown", outer);
+    try { await key(host.querySelector<HTMLInputElement>("[data-layout-save] input")!, "Escape"); }
+    finally { document.removeEventListener("keydown", outer); }
+    expect(outer).toHaveBeenCalledTimes(1); expect(props.onSave).not.toHaveBeenCalled();
+  });
+});
 
 describe("workspace rename keyboard continuity", () => {
   it("retains the draft when focus traverses input, Save and Cancel", async () => {

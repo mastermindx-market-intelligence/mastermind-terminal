@@ -328,7 +328,10 @@ export default function LayoutMenu({
           disabled={isGuest || saving}
           aria-label={t("saveCurrentAs")}
           onChange={(e) => onNameChange(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && !isGuest && !saving) onSave(); }}
+          onKeyDown={(e) => {
+            if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) { e.stopPropagation(); return; }
+            if (e.key === "Enter" && !isGuest && !saving) onSave();
+          }}
         />
         <button
           type="button"
