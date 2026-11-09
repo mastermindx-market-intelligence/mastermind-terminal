@@ -16,7 +16,7 @@ Represent the existing interaction as idle, pending, or open. Install dismissal 
 
 ## Qualification and boundaries
 
-38 mounted/placement regressions passed during implementation, including pending and open cancellation, warm behavior, child handlers, nested scroll scope, visual viewport, enter-frame cleanup, disabled transitions and StrictMode listener cleanup. Tip's two existing ref/immutability lint findings are present in the exact base; no new lint finding is introduced. Browser Escape/resize/focus and touch-boundary proof, full typecheck and final evidence are required before Ready.
+38 mounted/placement regressions passed during implementation, including pending and open cancellation, warm behavior, child handlers, nested scroll scope, visual viewport, enter-frame cleanup, disabled transitions and StrictMode listener cleanup. Tip's two existing ref/immutability lint findings are present in the exact base; no new lint finding is introduced. Exact-product browser Escape/resize/focus and touch-boundary proof passed: 4 cases, with 2 intentional skips for the desktop-only rail. The full combined TypeScript check exited 0. [Source receipts, test details and screenshots](pr-crops/terminal-tooltip-20261109/verification.md) are attached; native enrollment is recorded in PR #1378.
 
 This changes the existing Tip primitive only; canvas chart tooltips have separate owners and are not altered. No new global tooltip manager, observer, timer loop or idle listener set is introduced.
 
