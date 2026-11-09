@@ -34,7 +34,7 @@ export default function SharedSearchWorkspace({ query, onQueryChange, companies,
   const [toolState, setToolState] = useState<State>("loading");
   const [revision, setRevision] = useState(0);
   const [selectedTool, setSelectedTool] = useState(options.selectedTool ?? "");
-  const input = useRef<HTMLInputElement>(null); const uid = useId();
+  const input = useRef<HTMLInputElement>(null); const toolResults = useRef<HTMLDivElement>(null); const uid = useId();
   useEffect(() => {
     let current = true;
     const timer = window.setTimeout(() => { if (current) { current = false; setToolState("unavailable"); } }, 10000);
@@ -58,6 +58,18 @@ export default function SharedSearchWorkspace({ query, onQueryChange, companies,
   const activeId = scope === "companies"
     ? companies[activeCompanyIndex] ? `${companyList}-${activeCompanyIndex}` : undefined
     : tool ? `${toolList}-${shownTools.indexOf(tool)}` : undefined;
+  useEffect(() => {
+    if (scope !== "tools" || toolState !== "ready" || !activeId) return;
+    const list = toolResults.current;
+    const option = list?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (!list || !option || !list.clientHeight) return;
+    const top = list.getBoundingClientRect().top + list.clientTop;
+    const bottom = top + list.clientHeight;
+    const bounds = option.getBoundingClientRect();
+    // Keep the combobox focused and reveal only this list, never the page/dialog ancestors.
+    if (bounds.top < top) list.scrollTop -= top - bounds.top;
+    else if (bounds.bottom > bottom) list.scrollTop += bounds.bottom - bottom;
+  }, [scope, toolState, activeId, query]);
   const toolKey = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
@@ -108,7 +120,7 @@ export default function SharedSearchWorkspace({ query, onQueryChange, companies,
       <section className={styles.results} aria-label={pick(zh, "Tool results", "工具结果")}>
         {toolState === "loading" && <p role="status">{pick(zh, "Loading the tool directory…", "正在读取工具目录…")}</p>}
         {toolState === "unavailable" && <div role="status"><h3>{pick(zh, "The tool directory could not be searched.", "工具目录暂时无法搜索。")}</h3><p>{pick(zh, "Companies has its own status. Retry tools without clearing your query.", "公司搜索单独显示其状态。重试工具不会清除查询。")}</p><button className={styles.secondary} type="button" onClick={retryTools}>{pick(zh, "Retry tools", "重试工具")}</button></div>}
-        <div id={toolList} role="listbox" aria-label={pick(zh, "Published tools and pages", "已发布工具和页面")}>
+        <div ref={toolResults} id={toolList} role="listbox" aria-label={pick(zh, "Published tools and pages", "已发布工具和页面")}>
           {toolState === "ready" && shownTools.map((row, index) => <button type="button" key={row.href} id={`${toolList}-${index}`} role="option" aria-selected={row.href === selectedTool}
             className={`${styles.result}${row.href === selectedTool ? ` ${styles.active}` : ""}`} onClick={() => setSelectedTool(row.href)}>
             <span aria-hidden="true" className={styles.monogram}>↗</span><span><strong>{directoryEntryTitle(row, lang, t)}</strong><small>{t("shellSection_" + directorySection(row))}</small></span><span aria-hidden="true">↵</span>
