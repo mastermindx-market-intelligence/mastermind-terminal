@@ -215,3 +215,10 @@ const manifest = {
 };
 writeFileSync(resolve(here, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
 console.log(JSON.stringify({ sourceHead, captures: captures.length, allPass: captures.every((capture) => capture.proof.exactLines && !capture.proof.overlaps.length) }, null, 2));
+
+if (process.env.TERMINAL_CI_OPTIONS_CAPTURE_ID) console.log(JSON.stringify({ optionsEvidence: {
+  captureId: process.env.TERMINAL_CI_OPTIONS_CAPTURE_ID,
+  capturedAtHead: sourceHead,
+  manifestSha256: sha256(resolve(here, "manifest.json")),
+  files: captures.map(capture => ({ file: capture.screenshot, sha256: capture.sha256 })),
+} }));

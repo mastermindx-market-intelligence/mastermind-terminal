@@ -1,4 +1,5 @@
 "use client";
+import { acquireScrollLock } from "@/lib/scrollLock";
 
 import {
   useCallback,
@@ -280,12 +281,11 @@ export default function GuidePanel({
 
   useEffect(() => {
     returnFocusRef.current = documentActiveElement();
-    const previousBodyOverflow = globalThis.document.body.style.overflow;
-    globalThis.document.body.style.overflow = "hidden";
+    const releaseScroll = acquireScrollLock();
     const frame = window.requestAnimationFrame(() => dialogRef.current?.focus({ preventScroll: true }));
     return () => {
       window.cancelAnimationFrame(frame);
-      globalThis.document.body.style.overflow = previousBodyOverflow;
+      releaseScroll();
       const target = returnFocusRef.current;
       window.requestAnimationFrame(() => {
         const libraryGuide = Array.from(

@@ -1,0 +1,26 @@
+{
+  "schema": "mastermind.large_trades.followup_code_review.v1",
+  "reviewer": "/root/lt16_admission_judgment",
+  "verdict": "PASS",
+  "baseline": "a0b8c735062cb6ff8ebe13f9e3aef19e845450b8",
+  "patchBytes": 18813,
+  "patchSha256": "1b8b123820e5b65c31783878b24031ff6b2c3d1ff526fc88ca146a9f012c3472",
+  "reviewedPaths": [
+    "terminal/scripts/verify-large-trades.mjs",
+    "terminal/lib/chart-engine/canvas/index.ts",
+    "terminal/lib/chart-engine/api.ts",
+    "terminal/e2e/chart-engine-screenshot.spec.ts",
+    "terminal/e2e/large-trades.spec.ts"
+  ],
+  "findings": [
+    "All three engine dependency pins match independently hashed accepted GitHub source.",
+    "Explicit decoder/protocol lookup avoids positional binding error; bundle and final input/source rehash guards preserved.",
+    "Legacy unknown correction metadata checked before acquisition and across full/prefix replay without changing conservation or OOS scope.",
+    "Pending paint flush correctly cancels consumed callback, preserves generations/deferred invalidation, uses existing paintFrame.",
+    "New browser pixel tests discriminate pre-RAF stale raster for range and historical chart-series replacement; no trade-cancel evidence claim.",
+    "PNG metadata fixture waits for React title; full pixel equality retained without masking or retry changes.",
+    "MM TP1 variant verifies mounted renderer and all existing provisional/unknown/replay disclosures."
+  ],
+  "blockers": [],
+  "limits": "Read-only review; no tests run, runtime artifacts re-created, source writes or publishing by reviewer."
+}
