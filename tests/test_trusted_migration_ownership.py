@@ -135,8 +135,15 @@ class Service:
         if query == owner.CONTENTS_QUERY:
             values = self.sql | {"RESERVATIONS.json": json.dumps(self.doc).encode(), "README.md": b"fixture\n"}
             entries = [{"name": n, "type": "blob", "mode": 0o100644, "object": blob(b)} for n, b in values.items()]
+            # The material tree is the queue entry's integrated tree for a
+            # group candidate; PR-scope reads have no queue binding.
+            tree_oid = TREE
+            if self.run["event"] == "merge_group":
+                tree_oid = next((entry.get("headCommit") or {}).get("tree", {}).get("oid")
+                                for entry in self.queue["repository"]["mergeQueue"]["entries"]["nodes"]
+                                if (entry.get("headCommit") or {}).get("oid") == self.run["head_sha"])
             value = {"repository": {"nameWithOwner": owner.REPO,
-                     "object": {"__typename": "Tree", "oid": TREE, "entries": entries}}}
+                     "object": {"__typename": "Tree", "oid": tree_oid, "entries": entries}}}
             if self.contents_override:
                 self.contents_override(value)
             return value

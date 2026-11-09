@@ -1,0 +1,95 @@
+name: Protected migration ownership recovery
+run-name: Migration owner recovery ${{ inputs.ci_run_id }} ${{ inputs.issuer_revision }}
+
+# Dormant manual recovery entry of the SAME ownership publisher. This is a
+# separate workflow so a broken default-branch trusted-migration-ownership.yml
+# cannot disable recovery; no switch inside that mutable workflow qualifies.
+# SOURCE PROPOSAL ONLY: dispatch/credential enrollment and App activation are
+# separate administrator effects. While repository selectors are 0/0 the run
+# refuses in preflight BEFORE any key mint or write (no silent skip: a manual
+# dispatch during dormancy must fail loudly). Eligible pinned revisions are
+# known-good immutable protected commits reachable on master that already
+# contain this recovery entry; older trees have no recovery command and refuse.
+on:
+  workflow_dispatch:
+    inputs:
+      issuer_revision:
+        description: 'Known-good immutable protected issuer revision (40-hex SHA reachable on master)'
+        required: true
+      ci_run_id:
+        description: 'Completed original CI run id whose candidate head needs the ownership check'
+        required: true
+
+permissions: {}
+concurrency:
+  group: protected-migration-owner-recovery-${{ inputs.ci_run_id }}
+  cancel-in-progress: false
+
+jobs:
+  recover:
+    if: >-
+      github.repository == 'mastermindx-market-intelligence/mastermind-terminal' &&
+      github.ref == 'refs/heads/master' &&
+      github.event.repository.default_branch == 'master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Same restricted environment and key as the automatic issuer. The dispatch
+    # actor and their repository permission are recorded on every publication.
+    environment: terminal-migration-owner
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Check out the pinned immutable issuer revision
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ inputs.issuer_revision }}
+          persist-credentials: false
+          path: trusted
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            scripts/trusted_migration_ownership.py
+            scripts/migration_merge_group.py
+            scripts/check_supabase_migration_namespace.py
+      - name: Recovery preflight before key mint
+        working-directory: trusted
+        env:
+          OWNERSHIP_RUN_TOKEN: ${{ github.token }}
+          OWNERSHIP_APP_ID: ${{ vars.MIGRATION_OWNER_APP_ID }}
+          EXPECTED_INSTALLATION: ${{ vars.MIGRATION_OWNER_INSTALLATION_ID }}
+          RECOVERY_ISSUER_REVISION: ${{ inputs.issuer_revision }}
+          RECOVERY_TARGET_RUN: ${{ inputs.ci_run_id }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$RECOVERY_ISSUER_REVISION"
+          export TRUSTED_CHECKOUT_SHA="$RECOVERY_ISSUER_REVISION"
+          python3 -I -S -c 'import sys; sys.path.insert(0, "."); from scripts.trusted_migration_ownership import main; raise SystemExit(main())' --recover-preflight
+      - name: Mint repository-scoped installation token
+        id: installation
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510
+        with:
+          # Same expected numeric App issuer and grant set as the automatic
+          # issuer: checks:write on this repository only, nothing wider.
+          app-id: ${{ vars.MIGRATION_OWNER_APP_ID }}
+          private-key: ${{ secrets.MIGRATION_OWNER_PRIVATE_KEY }}
+          owner: mastermindx-market-intelligence
+          repositories: mastermind-terminal
+          permission-merge-queues: read
+          permission-contents: read
+          permission-pull-requests: read
+          permission-checks: write
+      - name: Recover namespace ownership publication
+        working-directory: trusted
+        env:
+          OWNERSHIP_RUN_TOKEN: ${{ github.token }}
+          OWNERSHIP_TOKEN: ${{ steps.installation.outputs.token }}
+          OWNERSHIP_APP_ID: ${{ vars.MIGRATION_OWNER_APP_ID }}
+          EXPECTED_INSTALLATION: ${{ vars.MIGRATION_OWNER_INSTALLATION_ID }}
+          ACTUAL_INSTALLATION: ${{ steps.installation.outputs.installation-id }}
+          RECOVERY_ISSUER_REVISION: ${{ inputs.issuer_revision }}
+          RECOVERY_TARGET_RUN: ${{ inputs.ci_run_id }}
+        run: |
+          test -n "$EXPECTED_INSTALLATION"
+          test "$ACTUAL_INSTALLATION" = "$EXPECTED_INSTALLATION"
+          test "$(git rev-parse HEAD)" = "$RECOVERY_ISSUER_REVISION"
+          export TRUSTED_CHECKOUT_SHA="$RECOVERY_ISSUER_REVISION"
+          python3 -I -S -c 'import sys; sys.path.insert(0, "."); from scripts.trusted_migration_ownership import main; raise SystemExit(main())' --recover

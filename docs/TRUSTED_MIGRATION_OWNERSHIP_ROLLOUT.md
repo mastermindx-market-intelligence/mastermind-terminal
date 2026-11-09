@@ -224,6 +224,56 @@ need their own evidence. Do not repeat completed bootstrap effects.
 8. A subsequent new candidate's normal head/group checks and release are still
    owed. There is no authorization here to rearm or retry PR1290.
 
+## Recovery entry (dormant, same publisher)
+
+`trusted-migration-ownership-recovery.yml` is the manually invoked recovery
+entry of the SAME ownership publisher, required by rollout step 4. It is a
+separate `workflow_dispatch` workflow, because a switch inside the mutable
+default-branch `trusted-migration-ownership.yml` cannot survive that workflow
+being broken. Its two inputs are a pinned 40-hex `issuer_revision` and the
+completed original `ci_run_id` whose candidate head needs the check. The job
+checks out exactly that pinned revision (sparse, no persisted credentials) and
+runs the same three protected modules from it with `--recover-preflight` before
+the key mint, then `--recover` after it. The same `terminal-migration-owner`
+environment, App, installation binding, minted grant set, check name, required
+context and validator are reused; recovery adds no new publisher, scheduler or
+credential path.
+
+Dormancy: while repository selectors are 0/0 there is nothing to recover, and
+a manual dispatch fails loudly in preflight before any API client or mint —
+the job deliberately has no 0/0 skip. Eligible pinned revisions are known-good
+immutable protected commits, reachable on `master` (verified through the
+compare API at run time), that already contain this recovery entry; an older
+known-good tree has no recovery command and refuses before mint. Recovery
+never forges workflow_run identity: the original run is re-read and qualified,
+and the published check honestly records the recovery run, its dispatching
+actor (sender, authenticated `triggering_actor`, and their repository
+permission, which must be admin/maintain/write) and the pinned issuer revision
+in `external_id`, `details_url` and the check output.
+
+Anti-rollback: the pinned revision is refused unless its two validator modules
+(`check_supabase_migration_namespace.py`, `migration_merge_group.py`) have
+exactly the same content-addressed blob identity as at the dispatch-time
+default-branch tip (`GITHUB_SHA`). A revision that predates (or postdates) the
+currently accepted validator policy/schema identity can never mint a green
+check under old law. Original-operation reconciliation runs before any write:
+an existing check for the same `migration-owner:v1:{run}:{attempt}:{head}`
+operation from either the automatic issuer or a prior recovery is read back,
+its claimed issuer run is authenticated against Actions metadata, a settled
+outcome is only reconciled, and an unsettled or unknown one is never replayed.
+Recovery also refuses while the target CI run is still in progress (its
+original issuer keeps the turn), while a live issuer run for the same target
+exists, and on any rerun attempt later than the first. Mixed-group bootstrap
+is shared law: the queue snapshot's ordered contributing prefix (migration-
+bearing predecessors included) is bound to the candidate's integrated tree
+identity before any namespace material is accepted.
+
+Administrator effects that remain outside this source: dispatching the
+workflow, qualifying that the installation token may actually read the
+collaborator permission endpoint and the compare endpoint under its granted
+scopes, App approval/activation, and any required-check or environment
+change. Inert tests prove none of those live behaviors.
+
 ## Rollback
 
 Restore the stage-2 patch in reverse through normal reviewed protected source
