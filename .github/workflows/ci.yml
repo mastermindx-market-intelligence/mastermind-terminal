@@ -240,7 +240,7 @@ jobs:
       - run: npx tsc --noEmit
       - name: Check immutable evidence orchestration (synthetic)
         timeout-minutes: 1
-        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs
+        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs
       - name: Plan current-source evidence capture
         id: evidence_plan
         run: node scripts/ci/plan-evidence-capture.cjs
@@ -520,16 +520,39 @@ jobs:
           --workers=1 --retries=0
           --output=test-results/investor-shell-preview
       - name: Qualify Shared Shell beta presentation
+        id: shared_shell_qa
         if: matrix.shard == 'serial'
         env:
           MMX_SHARED_SHELL: '1'
+          TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT: 'intl-fixture-v1'
           CI: '1'
           TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port_shared }}
         run: >-
-          npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts
+          npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts e2e/intl-history-date-intent.spec.ts
           --project=desktop --project=tablet --project=mobile
           --workers=1 --retries=0
           --output=test-results/shared-shell-refinement
+          --reporter=github,./e2e/tools/sharedShellSafeReporter.cjs
+      - name: Validate bounded Shared Shell outcome
+        id: safe_shared_shell_summary
+        if: ${{ always() && matrix.shard == 'serial' && steps.shared_shell_qa.outputs.safe_shared_shell_initialized == 'true' }}
+        continue-on-error: true
+        timeout-minutes: 1
+        env:
+          SAFE_DIRECTORY_DEV: ${{ steps.shared_shell_qa.outputs.safe_shared_shell_directory_dev }}
+          SAFE_DIRECTORY_INO: ${{ steps.shared_shell_qa.outputs.safe_shared_shell_directory_ino }}
+          SAFE_FILE_DEV: ${{ steps.shared_shell_qa.outputs.safe_shared_shell_file_dev }}
+          SAFE_FILE_INO: ${{ steps.shared_shell_qa.outputs.safe_shared_shell_file_ino }}
+          SAFE_FILE_SHA256: ${{ steps.shared_shell_qa.outputs.safe_shared_shell_file_sha256 }}
+          SAFE_STEP_OUTCOME: ${{ steps.shared_shell_qa.outcome }}
+        run: node e2e/tools/sharedShellSafeReporter.cjs --publish-safe-summary
+      - name: Retain bounded Shared Shell outcome
+        if: ${{ always() && matrix.shard == 'serial' && steps.safe_shared_shell_summary.outcome == 'success' && steps.safe_shared_shell_summary.outputs.safe_shared_shell_summary_ready == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: responsive-qa-${{ github.run_id }}-serial-safe-summary-${{ github.run_attempt }}
+          path: ${{ steps.safe_shared_shell_summary.outputs.safe_shared_shell_summary_path }}
+          if-no-files-found: warn
       - name: Upload responsive QA screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -675,6 +698,7 @@ jobs:
       # on that trigger github.event.pull_request.number is empty, and that
       # dispatched run is then the only CI run for the sha that merges.
       - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        id: ingest_tests
         run: python -m pytest tests/ -q
         env:
           PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
@@ -683,6 +707,26 @@ jobs:
           # strict guard needs no API; with one it refuses before network.
           # The separate protected issuer/required-gate transfer is not active.
           GH_TOKEN: ''
+      - name: Validate safe Ingest outcome publication
+        id: safe_ingest_summary
+        if: ${{ always() && steps.ingest_tests.outputs.safe_pytest_report_initialized == 'true' }}
+        continue-on-error: true
+        timeout-minutes: 1
+        env:
+          PYTEST_DIRECTORY_DEV: ${{ steps.ingest_tests.outputs.safe_pytest_directory_dev }}
+          PYTEST_DIRECTORY_INO: ${{ steps.ingest_tests.outputs.safe_pytest_directory_ino }}
+          PYTEST_FILE_DEV: ${{ steps.ingest_tests.outputs.safe_pytest_file_dev }}
+          PYTEST_FILE_INO: ${{ steps.ingest_tests.outputs.safe_pytest_file_ino }}
+          PYTEST_FILE_SHA256: ${{ steps.ingest_tests.outputs.safe_pytest_file_sha256 }}
+          PYTEST_STEP_OUTCOME: ${{ steps.ingest_tests.outcome }}
+        run: python scripts/ci_pytest_results.py --publish-safe-summary
+      - name: Retain bounded Ingest pytest outcome
+        if: ${{ always() && steps.safe_ingest_summary.outcome == 'success' && steps.safe_ingest_summary.outputs.safe_pytest_summary_ready == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ingest-safe-result-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.safe_ingest_summary.outputs.safe_pytest_summary_path }}
+          if-no-files-found: warn
 
   investigation-postgres:
     concurrency:
