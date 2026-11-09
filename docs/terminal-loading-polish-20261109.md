@@ -19,7 +19,8 @@ Restore scoped placeholder styling with existing Terminal tokens, bounded table/
 
 - Existing admin status contract: 7 tests passed, including no ancestor loading boundary.
 - Changed component lint: no errors or warnings.
-- Real browser coverage holds the destination module during an actual navigation, checks visible status and painted shapes, retained chrome, responsive bounds, eventual ready state, and reduced motion. Exact candidate results and inspected crops are recorded in the final verification evidence before Ready.
+- Final product `2e543db9236c5a344ffeb223b7bca56485d34a2a`: 9 real-browser journeys passed on desktop/tablet/phone, English/Chinese and reduced motion. Captures inspected; ready-state replacement verified. Full TypeScript integration check passed.
+- [Detailed verification and receipts](pr-crops/terminal-loading-20261109/verification.md).
 
 ## Continuation
 
