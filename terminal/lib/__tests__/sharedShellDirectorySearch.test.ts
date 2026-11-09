@@ -56,3 +56,17 @@ it("keeps the separately entitled model-plan/options entrance distinct from the 
  expect(directoryEntryTitle(board, "en", (key, fallback) => fallback ?? key)).toBe("Prophet");
  expect(searchDirectoryEntries(sharedShellDirectory, sharedShellCatalog.legacyPaths, "模型计划").some(entry => entry.href === "/prophet")).toBe(true);
 });
+
+it("finds the existing Equity Replay workspace by its native English and Chinese titles", () => {
+ const href = "/options/equity-replay";
+ const chineseTitle = "股票深度回放";
+ const englishTitle = "Equity depth replay";
+ const findReplay = (query: string) =>
+  searchDirectoryEntries(sharedShellDirectory, sharedShellCatalog.legacyPaths, query).find(entry => entry.href === href);
+ const chinese = findReplay(chineseTitle);
+ expect(chinese?.href).toBe(href);
+ expect(directoryEntryTitle(chinese!, "zh", t)).toBe(chineseTitle);
+ expect(findReplay(englishTitle)).toBe(chinese);
+ expect(findReplay("Equity Replay")).toBe(chinese);
+ expect(directoryEntryTitle(chinese!, "en", (key, fallback) => fallback ?? key)).toBe(englishTitle);
+});
