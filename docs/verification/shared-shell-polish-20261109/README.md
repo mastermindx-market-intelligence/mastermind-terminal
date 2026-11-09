@@ -77,3 +77,7 @@ The adjacent manifest binds source and screenshot bytes. Raw local logs and trac
 ## Delivery boundary
 
 This packet establishes the local candidate and affected consumer paths. Protected CI, native merge, the beta release transaction and live beta acceptance require their own readbacks. Production activation is outside this Beta polish change. The original managed branch remains the single source carrier.
+
+## Status-revalidation continuation - 2026-11-09
+
+The assigned beta sweep reconciled the original clean local/remote candidate and continued the same operation/PR after reproducing four additional status-request defects. [Supplemental source-bound proof](status-revalidation/README.md) records 118 unit tests, 24 browser passes / six existing skips, clean TypeScript and unchanged component lint debt. The preceding source/image manifest remains historical. No held F01 work, authentication, source data, CI controls or production setting was changed.

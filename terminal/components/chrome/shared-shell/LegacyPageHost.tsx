@@ -56,6 +56,7 @@ export default function LegacyPageHost({
   const contextRef = useRef(context);
   const timeout = useRef<number | null>(null);
   const bootstrap = useRef<number | null>(null);
+  const statusRecheck = useRef<{ controller: AbortController; deadline: number } | null>(null);
   const views = useRef(new Map<string, ShellViewState>());
   const previousEntry = useRef<{ key: string; canonical: string } | null>(null);
   const traversal = useRef(false);
@@ -77,17 +78,25 @@ export default function LegacyPageHost({
     timeout.current = null;
     bootstrap.current = null;
   }, []);
+  const cancelStatusRecheck = useCallback(() => {
+    const pending = statusRecheck.current;
+    statusRecheck.current = null;
+    if (!pending) return;
+    window.clearTimeout(pending.deadline);
+    pending.controller.abort();
+  }, []);
   const finishAttempt = useCallback((current: LiveFrame, next: "failed" | "changed", patch: Partial<FrameDiagnostic>) => {
     if (live.current !== current) return;
     // Recovery ends this attempt. A late READY or action from this document
     // must not replace the recovery screen or act before a fresh admission.
     current.admitted = false;
     current.initialized = false;
+    cancelStatusRecheck();
     clearDeadline();
     if (document.activeElement === frame.current) recoveryFocus.current = frame.current;
     diagnose(patch);
     setStatus(next);
-  }, [clearDeadline, diagnose]);
+  }, [cancelStatusRecheck, clearDeadline, diagnose]);
 
   useLayoutEffect(() => {
     const pending = status === "ready" || status === "restricted" ? readyFocus : recoveryFocus;
@@ -168,6 +177,7 @@ export default function LegacyPageHost({
   }, [path, params, revision]);
 
   useEffect(() => {
+    cancelStatusRecheck();
     clearDeadline();
     // A new route can render before the committed-location state update lands.
     // Retire the previous transaction without admitting its old document again.
@@ -220,6 +230,7 @@ export default function LegacyPageHost({
     timeout.current = window.setTimeout(() => {
       if (live.current === current) {
         expired = true;
+        abort.abort();
         finishAttempt(current, "failed", { failure: "deadline" });
       }
     }, 15000);
@@ -256,8 +267,8 @@ export default function LegacyPageHost({
           finishAttempt(current, "failed", { failure: gateHttpFailed ? "gate-http" : frameRequested ? "frame-navigation" : "gate-network" });
         }
       });
-    return () => { abort.abort(); clearDeadline(); };
-  }, [active, canonical, retry, identityKey, legacyOrigin, path, onTitle, clearDeadline, initialize, diagnose, finishAttempt]);
+    return () => { abort.abort(); clearDeadline(); cancelStatusRecheck(); };
+  }, [active, canonical, retry, identityKey, legacyOrigin, path, onTitle, clearDeadline, initialize, diagnose, finishAttempt, cancelStatusRecheck]);
 
   useEffect(() => {
     const receive = (event: MessageEvent) => {
@@ -328,23 +339,46 @@ export default function LegacyPageHost({
 
   useEffect(() => {
     const visibility = () => {
+      // A new visibility edge supersedes only this frame's outstanding check.
+      // Native navigation and attempt retirement use the same cancellation owner.
+      cancelStatusRecheck();
       const current = live.current;
-      if (!current?.initialized) return;
+      if (!current?.initialized || !current.admitted) return;
       post({ protocol: SHARED_SHELL_PROTOCOL, frameGeneration: current.generation,
         type: "VISIBILITY", visible: document.visibilityState === "visible" });
-      if (document.visibilityState === "visible") {
-        fetch("/api/shared-shell/status", { cache: "no-store", credentials: "same-origin" })
-          .then(async r => r.ok ? r.json() : null)
-          .then(gate => {
-            if (live.current === current && current.admitted && (!gate?.enabled || gate.buildId !== SHARED_SHELL_BUILD || gate.registrySha256 !== sharedShellSource.registrySha256
-              || gate.protocol !== SHARED_SHELL_PROTOCOL || gate.bridgeVersion !== SHARED_SHELL_BRIDGE_VERSION
-              || gate.documentVersion !== SHARED_SHELL_DOCUMENT_VERSION)) finishAttempt(current, "changed", { failure: "gate-mismatch" });
-          }).catch(() => { /* The next navigation performs the required admission check. */ });
-      }
+      if (document.visibilityState !== "visible") return;
+      const controller = new AbortController();
+      const ownsCheck = () => statusRecheck.current?.controller === controller
+        && live.current === current && current.admitted && !controller.signal.aborted;
+      const deadline = window.setTimeout(() => {
+        if (ownsCheck()) finishAttempt(current, "failed", { failure: "deadline" });
+      }, 15000);
+      statusRecheck.current = { controller, deadline };
+      let httpFailed = false;
+      fetch("/api/shared-shell/status", { cache: "no-store", credentials: "same-origin", signal: controller.signal })
+        .then(async response => {
+          if (!response.ok) { httpFailed = true; throw new Error("Shared Shell unavailable"); }
+          return response.json();
+        })
+        .then(gate => {
+          if (!ownsCheck()) return;
+          if (gate?.enabled !== true || gate.buildId !== SHARED_SHELL_BUILD || gate.registrySha256 !== sharedShellSource.registrySha256
+            || gate.protocol !== SHARED_SHELL_PROTOCOL || gate.bridgeVersion !== SHARED_SHELL_BRIDGE_VERSION
+            || gate.documentVersion !== SHARED_SHELL_DOCUMENT_VERSION) finishAttempt(current, "changed", { failure: "gate-mismatch" });
+        })
+        .catch(error => {
+          if (ownsCheck() && error?.name !== "AbortError")
+            finishAttempt(current, "failed", { failure: httpFailed ? "gate-http" : "gate-network" });
+        })
+        .finally(() => {
+          if (statusRecheck.current?.controller !== controller) return;
+          window.clearTimeout(deadline);
+          statusRecheck.current = null;
+        });
     };
     document.addEventListener("visibilitychange", visibility);
-    return () => document.removeEventListener("visibilitychange", visibility);
-  }, [post, finishAttempt]);
+    return () => { document.removeEventListener("visibilitychange", visibility); cancelStatusRecheck(); };
+  }, [post, finishAttempt, cancelStatusRecheck]);
 
   if (!active) return null;
   const title = shellPageLabel(path, context.locale);

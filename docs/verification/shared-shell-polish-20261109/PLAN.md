@@ -36,3 +36,7 @@ Local implementation and affected real-route proof are complete: stable workspac
 Plan is not an Agent OS lifecycle record (`PLAN_NOT_ORG_LINKED`). Native reasoning assistance is accepted and terminal; no worker, watcher or external message is outstanding. The next action is to publish this exact qualified source through the original publisher, open a Ready PR, consume required CI and protected merge controls, and then qualify the existing beta release owner and live consumer path. A PR or auto-merge request is not completion.
 
 DO_NOT_REDO: accepted local proofs unless relevant source/composition changes. Preserve all other active/held Shared Shell lanes. No independent review is required solely by this checkpoint. Source custody, real native approvals, protected checks and release holds continue to bind.
+
+## Status-revalidation continuation - 2026-11-09
+
+The assigned beta sweep reconciled the original clean local/remote candidate and continued the same operation/PR after reproducing four additional status-request defects. [Supplemental source-bound proof](status-revalidation/README.md) records 118 unit tests, 24 browser passes / six existing skips, clean TypeScript and unchanged component lint debt. The preceding source/image manifest remains historical. No held F01 work, authentication, source data, CI controls or production setting was changed.

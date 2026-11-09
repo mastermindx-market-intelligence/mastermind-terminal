@@ -293,6 +293,35 @@ test.describe("legacy workspace recovery",()=>{
   return {frame,child,holdNext:()=>{hold=true;}};
  }
 
+ test("temporary status failure on tab return retries the same workspace without reloading the shell",async({page,baseURL},info)=>{
+  const {frame,child}=await setup(page,baseURL!);
+  const originalUrl=page.url();
+  const generation=new URL(child().url()).searchParams.get("mmx_generation");
+  await page.evaluate(()=>{document.documentElement.dataset.recheckLifetime="preserved";});
+  let failOnce=true;
+  await page.route("**/api/shared-shell/status",async route=>{
+   if(failOnce){failOnce=false;await route.fulfill({status:503,json:{status:"unavailable"}});}
+   else await route.continue();
+  });
+  await child().locator("#workspace-action").focus();
+  await page.evaluate(()=>{document.dispatchEvent(new Event("visibilitychange"));});
+  await expect(page.locator('[data-shared-shell-failure="gate-http"]')).toBeVisible();
+  const retry=page.locator(".shared-shell-boundary").getByRole("button",{name:"Try again",exact:true});
+  await expect(retry).toBeVisible();await expect(frame).toBeHidden();
+  await child().evaluate(()=>{(window as unknown as FixtureWindow).shellRecoveryFixture.ready();});
+  await expect(retry).toBeVisible();await expect(frame).toBeHidden();
+  await noOverflow(page);
+  await page.screenshot({animations:"disabled",path:info.outputPath("status-unavailable-retry.png")});
+  await retry.click();
+  await expect(frame).toBeVisible();
+  await expect.poll(()=>new URL(child().url()).searchParams.get("mmx_generation")).not.toBe(generation);
+  await expect(page).toHaveURL(originalUrl);
+  await expect(page.locator("html")).toHaveAttribute("data-recheck-lifetime","preserved");
+  await expect(frame).toBeFocused();
+  await noOverflow(page);
+  await page.screenshot({animations:"disabled",path:info.outputPath("status-workspace-recovered.png")});
+ });
+
  test("failure stays stable, then explicit retry transfers keyboard focus into the new workspace",async({page,baseURL},info)=>{
   const {frame,child,holdNext}=await setup(page,baseURL!);
   await child().locator("#workspace-action").focus();
