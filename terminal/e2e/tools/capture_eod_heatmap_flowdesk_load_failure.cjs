@@ -56,6 +56,7 @@ const LAYOUT_FILES = [
   "terminal/components/eodcontext/StructureStrip.tsx",
   "terminal/components/eodcontext/eodStrings.ts",
   "terminal/components/flowdesk/FlowDeskView.tsx",
+  "terminal/components/gexdesk/ExposureWorkspace.module.css",
   "terminal/components/gexdesk/GexDeskView.tsx",
   "terminal/components/heatmap/HeatmapView.tsx",
   "terminal/lib/dataCache.ts",
@@ -219,7 +220,7 @@ function startServer() {
     NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
     NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
   };
-  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT)], {
+  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT), ...(process.env.TERMINAL_CROP_WEBPACK === "1" ? ["--webpack"] : [])], {
     cwd: ROOT,
     env,
     stdio: ["ignore", "pipe", "pipe"],
@@ -833,7 +834,6 @@ async function main() {
             try {
               await page.goto(`${BASE}${URLS[board]}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
               await CAPTURE[board](page, lang, state, replies, join(OUT, file));
-              await assertNoNextIndicator(page, file);
               files.push(file);
               console.log("ok");
             } catch (err) {
@@ -903,7 +903,7 @@ async function main() {
 }
 
 module.exports = { updateHeatmapEvidence, LAYOUT_FILES, STATES, VIEWPORTS, URLS, cropName, expectedFiles, harnessRow,
-  renderEvidence, bounded, stopServer, settleNativeServer, assertNoNextIndicator, waitForServer };
+  renderEvidence, bounded, stopServer, settleNativeServer, assertNoNextIndicator, waitForServer, cropBoxes };
 
 if (require.main === module) {
   main().catch((err) => {

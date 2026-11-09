@@ -1,26 +1,14 @@
 # Volatility tab failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 59b4ec01d3afd39c855661d57f1db7ca7b8c4d51
-# capturedAt: 2026-10-21T18:16:18.979Z
+# capturedAtHead: 0f03615e86ed63f00ad9b294c7a5c909bad7b70a
+# capturedAt: 2026-11-04T20:40:39.170Z
 # capturedAtHead is informational. The lock is layoutFiles.
-# volStrings.ts restamped by AC40 (two added compare-panel keys, no existing string changed): a same-day
-# master-vs-head recapture of all 48 crops was 45 sha-identical and 3 sub-pixel antialiasing deltas
-# (<= 19 px, on rounded borders), so the crops below were not re-committed.
-# volStrings.ts restamped again by AC40 (one added key, cmpStripBasisNoClock, read only by the
-# compare-panel strip when no asof is published; no existing string changed). Every crop below
-# clips the snapshot or spread surface and none renders the compare strip, so none was re-committed.
-# VolView.tsx and volStrings.ts restamped by #1200 H (validated chip/age; a no-clock term subtitle key).
-# Same-tree renders, two with the H files and two with the pre-H files, 48 crops each: 46 equal in all four;
-# spread-retried-1440-zh differs between the two H renders (same-code jitter); snapshot-absent-820-zh differs
-# H vs pre-H by 2 px, a one-level colour change on the search box's rounded corner. No crop was re-committed.
-# The committed crops (capture head 59b4ec01) already differ on this host at master code: 39 of 48 (#1200 r4
-# control: master and head renders 45 of 48 equal, 3 jitter). That drift predates #1200; see terminal #1202 item 7.
 layoutFiles:
   terminal/components/vol/VolView.tsx: "167729cef3c6a64d419355e49c15f9d4ede068fd2a9dbe74f31d6c202d6ff9e3"
   terminal/components/vol/VolVrpPanel.tsx: "8361849dfc7ad7a45f801b8aa66022c618e667a6ff113ef9e36064fa330a8cf5"
   terminal/components/vol/volShared.tsx: "e77a4159b46c9670201a03ab22e0408ec5eeb03725dc9e7dad54b49a07cfdd50"
-  terminal/components/vol/volStrings.ts: "23f9b84cd166fd28155eee15122ff0774744e445208a6345bdaabe270c9a33ff"
+  terminal/components/vol/volStrings.ts: "19615ec660380f750066188249e6271163eafb0f99d770869c06890da87f6572"
 theme: dark
 languages: [en, zh]
 viewports:

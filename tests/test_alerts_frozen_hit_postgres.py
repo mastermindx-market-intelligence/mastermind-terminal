@@ -4,6 +4,7 @@ import hashlib
 import json
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from threading import Event
 
 import pytest
 import test_alerts_frozen_lifecycle_postgres as b
@@ -95,6 +96,17 @@ def candidate(pg,symbol='QQQ'):
 
 def effects(pg):
     return tuple(int(pg(f'select count(*) from public.{name}')) for name in ('alert_outbox','webhook_deliveries'))
+
+
+def outbox_rows(pg):
+    return json.loads(pg("""
+        select coalesce(jsonb_agg(to_jsonb(o)), '[]'::jsonb)
+        from (
+            select user_id, alert_id, fire_event_id, channel, status, payload
+            from public.alert_outbox
+            order by id
+        ) o
+    """))
 
 
 def test_atomic_commit_replay_and_full_projection(pg):
@@ -350,9 +362,81 @@ def test_actual_owner_pause_or_service_rearm_races_hit(pg,competitor):
         result,other_result=fire.result(),other.result()
     if competitor=='rearm':
         assert (result['kind']=='committed') != (other_result['kind']=='data')
-    assert effects(pg)==((1,1) if result['kind']=='committed' else (0,0))
+    prepared_row={'user_id':runtime.principal,'alert_id':runtime.alert_id,
+                  'fire_event_id':receipt['fireEventId'],'channel':'email',
+                  'status':'prepared','payload':payload}
+    rows=outbox_rows(pg)
+    if result['kind']=='committed':
+        assert result=={'kind':'committed','fireEventId':receipt['fireEventId']}
+        assert effects(pg)==(1,1)
+        assert rows==[{**prepared_row,'status':'pending'}]
+        assert pg('select event_id from public.webhook_deliveries')==receipt['fireEventId']
+    elif competitor=='pause':
+        assert result=={'kind':'unavailable','reason':'inactive'}
+        # Pause can precede prepare, or retain its completed intent before commit.
+        # Compare every row and the complete receipt/payload; pending is not allowed.
+        assert rows==[] or rows==[prepared_row]
+        assert effects(pg)==(len(rows),0)
+    else:
+        assert effects(pg)==(0,0)
     if competitor=='pause' or result['kind']=='committed':
         assert not b.get_active(pg,alert['id']) and b.get_runtime(pg,alert['id']) is None
+
+
+@pytest.mark.parametrize('ordering',['before_prepare','after_prepare','after_commit'])
+def test_owner_pause_at_publication_boundaries(pg,ordering):
+    _,adapter,runtime,state,receipt,payload=candidate(pg)
+    real_rpc=adapter.rpc
+    prepared_ack,release=Event(),Event()
+    modes=[]
+
+    def observed_rpc(name,params):
+        reply=real_rpc(name,params)
+        mode=(params.get('p_hit') or {}).get('mode')
+        modes.append(mode)
+        if ordering=='after_prepare' and mode=='prepare' and reply.get('kind')=='prepared':
+            # The actual prepare transaction has returned and released its locks.
+            prepared_ack.set()
+            assert release.wait(timeout=30),'prepare/commit test gate timed out'
+        return reply
+
+    def pause():
+        pg(f'update public.alerts set active=false where id={b.q(runtime.alert_id)}',
+           role='authenticated',claims={'sub':runtime.principal})
+
+    adapter.rpc=observed_rpc
+    publisher=FrozenNodeHitPublisher(adapter)
+    if ordering=='before_prepare':
+        pause()
+        result=publisher.publish(runtime,state,receipt,payload)
+    elif ordering=='after_prepare':
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            future=pool.submit(publisher.publish,runtime,state,receipt,payload)
+            try:
+                assert prepared_ack.wait(timeout=30),'real prepare ACK was not observed'
+                pause()
+            finally:
+                release.set()
+            result=future.result(timeout=30)
+    else:
+        result=publisher.publish(runtime,state,receipt,payload)
+        pause()
+
+    prepared_row={'user_id':runtime.principal,'alert_id':runtime.alert_id,
+                  'fire_event_id':receipt['fireEventId'],'channel':'email',
+                  'status':'prepared','payload':payload}
+    if ordering=='after_commit':
+        assert result=={'kind':'committed','fireEventId':receipt['fireEventId']}
+        assert effects(pg)==(1,1)
+        assert outbox_rows(pg)==[{**prepared_row,'status':'pending'}]
+        assert pg('select event_id from public.webhook_deliveries')==receipt['fireEventId']
+    else:
+        assert result=={'kind':'unavailable','reason':'inactive'}
+        assert effects(pg)==((1,0) if ordering=='after_prepare' else (0,0))
+        assert outbox_rows(pg)==([prepared_row] if ordering=='after_prepare' else [])
+    assert modes==(['prepare'] if ordering=='before_prepare' else ['prepare','commit'])
+    assert not b.get_active(pg,runtime.alert_id)
+    assert b.get_runtime(pg,runtime.alert_id) is None
 
 
 def test_read_reconciliation_failure_is_unavailable_not_effect_unknown(pg,monkeypatch):

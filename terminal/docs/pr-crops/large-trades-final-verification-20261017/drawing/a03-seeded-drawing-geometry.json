@@ -1,0 +1,27 @@
+{
+  "drawingId": "e2e-engine-trend",
+  "fixtureOnly": true,
+  "productionProof": false,
+  "measurement": "DOM client rectangles without stroke inflation; offscreen permitted",
+  "witness": {
+    "matches": 1,
+    "connected": true,
+    "cssVisible": true,
+    "painted": true,
+    "groupRect": {
+      "x": -988.3640747070312,
+      "y": 443.1151123046875,
+      "width": 6.7281494140625,
+      "height": 38.678314208984375
+    },
+    "lineRect": {
+      "x": -988.3640747070312,
+      "y": 443.1151123046875,
+      "width": 6.7281494140625,
+      "height": 38.678314208984375
+    },
+    "stroke": "rgb(77, 130, 255)",
+    "strokeWidth": 2,
+    "strokeOpacity": 1
+  }
+}

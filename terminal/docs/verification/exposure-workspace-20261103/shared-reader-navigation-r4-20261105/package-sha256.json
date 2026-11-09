@@ -1,0 +1,12 @@
+{
+  "README.md": "c865704f04b84dfeaf22c544b6f92c7c95878ffb0cdee7d520b99649a6f28177",
+  "archives.json": "047a1f91e37c66e119b11ea91d0e6aa3b04cd920e1e49c6e5807abbe73f70990",
+  "joint-source-input-pins.json": "f0984acc3ab8b0d063b2517d1a4e975cbf837aafb0e8459a2643818baedf96f0",
+  "lint.log.gz": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+  "local-qualification.json": "e13b5c6f896352933e552da5a75527d0de48e8b46c29a264fee8429bc6704177",
+  "native-source-contract.json": "a7cd2ce244a0ae278fc24bf25a51566c0053c89f9ce3fb17ae12b350f1541db7",
+  "publication-precheck-reconciliation.json": "060757746c49a0657f5bdee413fd3b0e77b121fa254e49245c20e6b05223993e",
+  "unit.log.gz": "67540e720f034b43775a53d8f14750ad2282e8723913d3c2087a3a9a7b04d2f5",
+  "verify-reader-navigation-r4.py": "650a77309230e1623b5f58d7960f815150bb9d6cc9b8fd42c43275d9ec706599",
+  "visual-source-contract.json": "ae18b1cea284e9258e84bcc289939d293f60d80e82b24b6cb6cb029c35a0b9e9"
+}

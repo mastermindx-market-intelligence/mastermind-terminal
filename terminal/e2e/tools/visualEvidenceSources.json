@@ -65,6 +65,7 @@
   "terminal/components/chrome/investor-shell-preview.css",
   "terminal/components/chrome/shared-shell/ShellSearch.tsx",
   "terminal/components/chrome/shared-shell/shared-shell.css",
+  "terminal/components/fin/FinCharts.tsx",
   "terminal/components/mobile/AnalysisHubSheet.module.css",
   "terminal/components/mobile/AnalysisHubSheet.tsx",
   "terminal/components/options-companion/OptionsCompanion.module.css",
@@ -142,6 +143,7 @@
   "terminal/lib/plainLabels.ts",
   "terminal/lib/scriptsFixtureDb.ts",
   "terminal/lib/sharedShellContracts.ts",
+  "terminal/lib/stockVolatility.ts",
   "terminal/lib/suites/trend/candlePainter.ts",
   "terminal/lib/visualIntelligence.ts",
   "terminal/lib/visualIntelligenceCopy.ts",
@@ -152,5 +154,10 @@
   "terminal/package.json",
   "terminal/playwright.config.ts",
   "terminal/postcss.config.mjs",
-  "terminal/tsconfig.json"
+  "terminal/tsconfig.json",
+  "terminal/components/SharedSearchWorkspace.module.css",
+  "terminal/components/SharedSearchWorkspace.tsx",
+  "terminal/components/chrome/shared-shell/ShellDirectory.tsx",
+  "terminal/lib/sharedShellDirectorySearch.ts",
+  "terminal/lib/sharedShellSearchCatalog.ts"
 ]

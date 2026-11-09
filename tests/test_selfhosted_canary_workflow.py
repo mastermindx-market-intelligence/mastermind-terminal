@@ -87,15 +87,28 @@ def test_no_run_step_touches_raw_inputs_or_eval() -> None:
 
 
 def test_shard_table_mirrors_hosted_e2e_matrix() -> None:
+    # The CI workflow now evaluates the dynamic, protected-parent scope selector.
+    # Compare the canary against the complete FULL matrix that selector emits,
+    # while also proving CI still consumes the selector's output rather than an
+    # unrelated/hand-edited matrix. This cannot be reduced by a focused PR.
+    from scripts.ci_e2e_scope import FULL_MATRIX
+
+    workflow = yaml.safe_load(CI_WORKFLOW.read_text(encoding="utf-8"))
+    browser = workflow["jobs"]["terminal-e2e"]
+    assert browser["needs"] == ["pr_scope", "e2e-scope"]
+    assert browser["strategy"]["matrix"] == "${{ fromJSON(needs.e2e-scope.outputs.matrix) }}"
+    assert "scripts/ci_e2e_scope.py" in workflow["jobs"]["e2e-scope"]["steps"][-1]["run"]
     hosted = {
         entry["shard"]: " ".join(str(entry["projects"]).split())
-        for entry in yaml.safe_load(CI_WORKFLOW.read_text(encoding="utf-8"))["jobs"]["terminal-e2e"]["strategy"]["matrix"]["include"]
+        for entry in FULL_MATRIX
     }
+    assert len(hosted) == len(FULL_MATRIX) == 14
+    assert all(entry["specs"] == "" for entry in FULL_MATRIX)
     table = dict(TABLE_LINE.findall(VALIDATOR.read_text(encoding="utf-8")))
     assert table == hosted
 
 
-@pytest.mark.parametrize("shard", ["desktop-1", "tablet-3", "serial"])
+@pytest.mark.parametrize("shard", ["desktop-1", "desktop-6", "tablet-3", "tablet-4", "serial"])
 def test_valid_inputs_emit_fixed_selector(shard: str, tmp_path: Path) -> None:
     rc, written = run_validator(shard, "4", tmp_path)
     assert rc == 0
@@ -112,7 +125,8 @@ def test_valid_inputs_emit_fixed_selector(shard: str, tmp_path: Path) -> None:
         "desktop-1`id`",
         "desktop-1\nid",
         "--project=desktop --shard=1/5",
-        "desktop-6",
+        "desktop-7",
+        "tablet-5",
         "",
     ],
 )
@@ -301,7 +315,7 @@ def test_untrusted_source_cannot_publish_any_admission_output(
 
 
 @pytest.mark.parametrize(("shard", "workers"), [
-    ("desktop-6", "1"), ("desktop-1; id", "1"),
+    ("desktop-7", "1"), ("desktop-1; id", "1"),
     ("desktop-1\nid", "1"), ("--project=desktop --shard=1/5", "1"),
     ("desktop-1", "0"), ("desktop-1", "17"), ("desktop-1", "08"),
     ("desktop-1", "99999999999999999999"), ("desktop-1", "1 $(id)"),
@@ -315,7 +329,7 @@ def test_invalid_inputs_never_publish_selfhosted_admission(
 
 
 @pytest.mark.parametrize(("shard", "workers"), [
-    ("desktop-1", "1"), ("tablet-3", "4"), ("serial", "16"),
+    ("desktop-1", "1"), ("desktop-6", "1"), ("tablet-3", "4"), ("serial", "16"),
 ])
 def test_valid_admission_binds_fixed_inputs_and_same_immutable_sha(
     shard: str, workers: str, tmp_path: Path,

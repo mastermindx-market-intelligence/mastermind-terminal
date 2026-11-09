@@ -1,0 +1,18 @@
+{
+  "phase": "ARCHIVED_STAGE_ONLY_FAILURE",
+  "at": "2026-11-05T09:29:01.396067+00:00",
+  "reason": "Exposure branch lacks Options momentum-comment insertion anchor; use the common pre-existing distance assertion instead",
+  "live_source_unchanged": true,
+  "prior_stage_files": {
+    "before/exposure/terminal/components/exposure-map/ExposureMap.tsx.gz": "baed431d8126cbf735ac5d3815ca67f0b70c735db6ed28dc9e5e2d72c6525171",
+    "before/original/terminal/components/exposure-map/ExposureMap.tsx.gz": "baed431d8126cbf735ac5d3815ca67f0b70c735db6ed28dc9e5e2d72c6525171",
+    "before/original/terminal/e2e/options-exposure-workspace.spec.ts.gz": "1b39049048ab5088d9939bfb52a86a254ae278572a3c0d0dfaebbcd0c7a47b86",
+    "before/preview/terminal/components/exposure-map/ExposureMap.tsx.gz": "a121d6a2d73f2659d6ad258654fe68b4cc97f6bd417d1228f5572c2b0f3d87cf",
+    "before/preview/terminal/e2e/options-exposure-workspace.spec.ts.gz": "18f5d86c2c8a4256d0f1c106e831517563f6d9117cc14e1ad6f990a5a59f9e30",
+    "target/exposure/terminal/components/exposure-map/ExposureMap.tsx": "de3e781dedac67c2c0aadeb1142ed2f6d3d3e2075063329e55d9cf88444121e7",
+    "target/original/terminal/components/exposure-map/ExposureMap.tsx": "de3e781dedac67c2c0aadeb1142ed2f6d3d3e2075063329e55d9cf88444121e7",
+    "target/original/terminal/e2e/options-exposure-workspace.spec.ts": "f63652e8591ca02d3172f6f37081b0c17ee249c6e9f05ee2b0d178fb41a365d2",
+    "target/preview/terminal/components/exposure-map/ExposureMap.tsx": "50bdfadd453747170d597b8f1a2a11853fe864ef08c6b2ffb561299f8a3dd60c",
+    "target/preview/terminal/e2e/options-exposure-workspace.spec.ts": "ebf333b7130cc7d0c3fc057045afa67a1f1b59b3e0df7bcf088ab67239983ee0"
+  }
+}

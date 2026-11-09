@@ -2,6 +2,7 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { resolveDetentRelease } from "@/lib/sheetDetent";
+import { acquireScrollLock } from "@/lib/scrollLock";
 
 export interface MobileSheetProps {
   open: boolean;
@@ -178,12 +179,11 @@ export default function MobileSheet({
     closeTimerRef.current = null;
   }, [open]);
 
-  // Lock body scroll while open
+  // Participate in the same lock as the research pane and nested inspectors.
+  // Parking or closing this sheet releases only its own holder.
   useEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = prev; };
+    return acquireScrollLock();
   }, [open]);
 
   // Move focus into the modal, contain keyboard navigation, and return focus to
