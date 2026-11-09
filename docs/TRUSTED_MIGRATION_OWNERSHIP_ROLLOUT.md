@@ -1,25 +1,39 @@
-# Prospective protected migration owner
+# Protected migration owner rollout
 
-This source proposal does not enroll an App, activate a workflow, change a rule,
-or clear PR1290's denied `GITHUB_TOKEN` queue read. All original groups are
-terminal. A future operation needs its own explicit release authorization.
-The existing Ingest guard and its permissions are unchanged in stage 1.
+Dormant protected source was installed by [PR1337](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1337).
+The early-issuer lifecycle below is implemented by
+[PR1356](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1356);
+verify its exact protected-default source before activation. The
+[2026-11-09 bootstrap observation](https://github.com/mastermindx-market-intelligence/Mastermind/issues/1607#issuecomment-6732916673)
+records the named environment and explicit zero identity selectors. It does not
+establish App enrollment, credential qualification, production issuance,
+recovery, enforcement or consumer transfer. Recheck the actual environment's
+master-only branch policy and administrator-bypass setting before activation.
+
+This guide grants no App, credential, permission or release action and does not
+clear PR1290's denied `GITHUB_TOKEN` queue read. All original groups are terminal;
+a future operation needs its own applicable release authority. The existing
+Ingest guard and its permissions remain unchanged in stage 1.
 
 ## Trust and identity
 
-`trusted-migration-ownership.yml` is an ordinary `workflow_run` consumer of the
-fixed CI workflow. GitHub executes it from the default branch. It checks out
+`trusted-migration-ownership.yml` consumes the fixed CI workflow's original
+`workflow_run: in_progress` event. GitHub executes it from the default branch.
+It checks out
 exactly that protected event's `github.sha`, sparsely including three protected
 Python modules, with no persisted checkout credential. It runs stdlib-only
 Python with `-I -S`. There is no candidate checkout, dependency install, cache,
 artifact extraction, caller code, supplied receipt, callback, dispatch trigger,
 new scheduler or result store.
 
-Before token mint, protected code authenticates the original run against the
-Actions API: repository name/numeric ID, workflow ID/path/name, source event,
-head SHA/ref, run ID/attempt and successful completion. Actions metadata uses
-the issuer job's separate built-in token with **Actions read**. It never uses
-that token for the denied queue query.
+Before token mint, protected code authenticates the original in-progress event
+and immutable run identity against the Actions API: repository name/numeric ID,
+workflow ID/path/name, source event, head SHA/ref and run ID/attempt. The event
+must have no conclusion. Fresh service metadata must describe that same attempt,
+which may still be in progress or already completed with a recognized outcome.
+Ownership qualification does not depend on overall source-CI success. Actions
+metadata uses the issuer job's separate built-in token with **Actions read**;
+that token is never used for the denied queue query.
 
 The private key belongs only in the prospective `terminal-migration-owner`
 environment. Configure a selected **branch** rule for `master` only, no tag
@@ -50,7 +64,7 @@ lawful qualification. This selection is not an execution grant: the key,
 installation, service/run/source and full namespace predicates still apply.
 
 The immutable GitHub-owned token action supports its numeric `app-id` input.
-This proposal deliberately uses the same expected numeric App issuer as the
+The issuer uses the same expected numeric App issuer as the
 required check source, so a private key for a different App cannot mint for it.
 The input is deprecated in favor of client IDs in that pinned revision but is
 still explicitly supported there. If adopting the preferred client-ID form in
@@ -80,24 +94,37 @@ merge-group event. The code never fabricates `checks_requested` or claims the
 old `event.base_sha` was observed. For the new route, B is the current protected
 tip from the issuer's actual authenticated queue snapshot.
 
-Both original event validators and the new route use the same extracted queue
-predicates. They retain exact repository/base, serial or 8/4 ALLGREEN profile,
-complete queue page, contiguous unique positions, unique H, complete native
-predecessor chain, current OPEN same-repository/master PRs and immutable source
-SHAs, first potential-merge tree/parent checks, source ledger equality, migration
-Blob equality, complete base directory/prefix absence and per-file absence.
+Both original event validators and the protected route use the same extracted
+queue predicates. The complete queue response is validated first, including
+exact repository/base, serial or 8/4 ALLGREEN profile, a complete queue page,
+contiguous unique positions and unique H. Only then is the sorted contributing
+prefix through that exact candidate retained for repeated proof. API order or
+unrelated suffix changes alone do not invalidate that prefix. Protected tip,
+configuration, entry IDs, predecessors, heads, trees and source identity remain
+bound. Qualification retains the complete native predecessor chain, current
+OPEN same-repository/master PRs and immutable source SHAs, first potential-merge
+tree/parent checks, source ledger equality, migration Blob equality, complete
+base directory/prefix absence and per-file absence.
 All namespace schema/header/collision/application/redaction rules run in the
 protected owner over bounded, complete, hash-checked immutable Git DATA. No
 candidate SQL is executed. Ordinary PR/refresh heads are authenticated via the
 current exact-head associated PR, not `PR_NUMBER`, branch-name parsing or a
 downloaded artifact. An ambiguous/incomplete source PR set refuses.
 
-The actual run, full current namespace and queue/PR observations are checked
-again before success publication. Failure produces no success. HTTP requests
-do not retry or follow redirects. Lost check POST/PATCH response remains
-unconfirmed. A matching unsettled check or changed source-code identity refuses
-another POST; a completed matching original operation can only be reconciled.
-No native queue admission or retry primitive is present.
+The source run and original issuer are revalidated immediately before check
+creation and completion; current namespace and contributing queue/PR evidence
+are checked again before success publication. A deterministic post-create
+qualification failure may complete only the exactly acknowledged original
+in-progress check as failure, after the source and original issuer identities
+are revalidated. Both failure and success PATCH acknowledgements must identify
+that exact original check ID. Unavailable reads, superseded source/issuer and
+unknown POST/PATCH effects remain unreplayed.
+
+HTTP requests do not retry or follow redirects. A matching unsettled check or
+changed source-code identity refuses another POST; a completed matching original
+operation can only be reconciled. The acknowledged-check failure path grants no
+recovery authority over historical pending checks. No native queue admission or
+retry primitive is present.
 
 The actual issuer's `GITHUB_RUN_ID` and `GITHUB_RUN_ATTEMPT` are separately
 authenticated against Actions metadata: exact repository, issuer workflow
@@ -118,16 +145,23 @@ primitive here. The protected workflow invokes the mutation owner once, has no
 manual trigger/retry wrapper, and the HTTP client does not retry it. This is an
 enforced original-attempt boundary, not an assertion that a lost POST was unsent.
 
-## Complete two-stage rollout (none executed)
+## Two-stage rollout and activation gates
 
-1. Root reviews the exact source, grants and scoped independent consequence
-   review. Current PR1290, its SQL/ACL bytes and source branch stay untouched.
-   The denied built-in-token read cannot be retested with this proposal.
-2. Publish the reviewed stage-1 source as a draft first. Before default-branch
-   merge, separately authorize and qualify the empty restricted environment and
-   zero repository identity selectors described above. Then use the normal
-   protected source path. Its new owner is supplementary: current Ingest still
-   enforces live membership. Do not
+Dormant source/bootstrap configuration and live activation are separate states.
+The dated observation above establishes only the former. Real App identity,
+production check issuance, recovery, enforcement and consumer transfer still
+need their own evidence. Do not repeat completed bootstrap effects.
+
+1. Review the exact source and grants against actual repository, security and
+   release holds. Apply the governing Web self-check waiver where applicable;
+   actual required non-author approvals remain binding. Current PR1290, its
+   SQL/ACL bytes and source branch stay untouched. The denied built-in-token
+   read cannot be retested through this route.
+2. For initial source installation, qualify the authorized empty restricted
+   environment and zero repository identity selectors described above, then use
+   the normal protected source path. For the early-issuer followup, confirm
+   PR1356's qualified bytes have actually landed on protected master. The owner
+   remains supplementary: current Ingest still enforces live membership. Do not
    claim stage 1 alone can repair the held open-migration PR. A normal healthy
    source/CI candidate without that old membership failure is needed to prove
    the prospective owner, rather than replaying an old terminal group.
@@ -141,7 +175,10 @@ enforced original-attempt boundary, not an assertion that a lost POST was unsent
    App check producer. A new denial holds its exact action; no automatic extra
    grant, alternate identity or old-read retry. Verify real successful checks
    on both an ordinary PR/refresh head and a native group using the same
-   protected issuer bytes. Fixture responses are not that proof.
+   protected issuer bytes. Fixture responses are not that proof. A successful
+   supplementary ownership check may be issued while source CI is running or
+   ultimately fails; this proves the independent producer only. It does not
+   satisfy the successful-CI cutover proof required in step 6.
 5. Make `Migration namespace / protected owner` required on `master`, pinned
    to the actual App ID, never Any source. Preserve all three original strict
    GitHub Actions checks and the native merge queue. Read back the effective
@@ -164,7 +201,11 @@ enforced original-attempt boundary, not an assertion that a lost POST was unsent
    GitHub mutation, then exclusively writes an unapplied source patch. It
    requires strict old checks plus the pinned new gate, the native queue,
    genuine App successes for both source modes, and exact current protected
-   issuer bytes. It repeats the rule/source/proof checks before returning.
+   issuer bytes. Independently of early issuance,
+   `migration_ownership_transition._proof()` still requires each original source
+   CI run to be **completed and successful**, together with its completed
+   successful App check and authenticated original issuer attempt. It repeats
+   the rule/source/proof checks before returning.
 7. Review and normally merge that complete six-path patch. It changes the
    real-tree merge-group test's membership-dependent assertion to content
    enforcement and extends the existing controller's exact context-to-App map.
