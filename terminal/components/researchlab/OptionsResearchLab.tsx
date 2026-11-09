@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo, useRef, useState } from "react";
+import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import type { Lang } from "@/lib/i18n";
 import { adaptResearchMatrix, buildResearchDomain, buildResearchMarks, filterResearchRows, reconcileResearchSelection, toggleComparison,
@@ -7,6 +7,7 @@ import { adaptResearchMatrix, buildResearchDomain, buildResearchMarks, filterRes
 import styles from "./ResearchLab.module.css";
 import { adaptResearchVolatility } from "./researchVolatility";
 import { ResearchVolatilitySlice } from "./ResearchVolatilitySlice";
+import { ResearchQuestionAction } from "./ResearchQuestionAction";
 import { GexMarketMemory } from "@/components/options-companion/GexMarketMemory";
 import { optionsT } from "@/components/options-companion/optionsStrings";
 import { ResearchReportedGammaPanel } from "./ResearchReportedGammaPanel";
@@ -70,9 +71,11 @@ class SceneBoundary extends React.Component<{ children: React.ReactNode; fallbac
 /** No I/O, clock, cache, valuation or persistence ownership lives in this consumer. */
 export function OptionsResearchLab({
   root, matrix, volatility = null, matrixReadStatus = "data", onRetryMatrix,
-  volReadStatus = "data", onRetryVol, currentGexSnapshot = null, lang, onClose, onOpenPlan,
+  volReadStatus = "data", onRetryVol, currentGexSnapshot = null, lang, onClose, onOpenPlan, questionOwnerKey = null,
 }: {
   root: string;
+  /** Existing admitted shell owner; absent means no assistant staging. */
+  questionOwnerKey?: string | null;
   matrix: unknown;
   volatility?: unknown;
   /** Same root-fenced outcome as the incumbent Exposure reader, never a new fetch. */
@@ -113,6 +116,17 @@ export function OptionsResearchLab({
   if (safeSelection.selected !== selection.selected || safeSelection.comparisons.length !== selection.comparisons.length) setSelection(safeSelection);
   const focusOrigin = useRef<HTMLElement | null>(null);
   const backRef = useRef<HTMLButtonElement>(null);
+  const focusedControl = useRef<HTMLElement | null>(null);
+  // A source refresh can remove the keyboard user's row or inspector action.
+  // Restore a stable in-Lab target only when that removal left focus on body;
+  // never take focus from a surviving control or another part of the shell.
+  useLayoutEffect(() => {
+    const previous = focusedControl.current;
+    if (previous && !previous.isConnected) {
+      focusedControl.current = null;
+      if (previous.ownerDocument.activeElement === previous.ownerDocument.body) backRef.current?.focus();
+    }
+  });
   const rows = useMemo(() => filterResearchRows(data.rows, { side, expiry }), [data.rows, side, expiry]);
   const marks = useMemo(() => buildResearchMarks(rows, metric), [rows, metric]);
   const domain = useMemo(() => buildResearchDomain(data.rows, metric), [data.rows, metric]);
@@ -145,7 +159,11 @@ export function OptionsResearchLab({
           originMs={originMs} selected={selected ?? null} lang={lang} />} />
     : null;
   const unavailable = <p className={styles.notice} role="status">{t("rendererFailed")}</p>;
-  return <section className={styles.lab} aria-label={t("title")}>
+  return <section className={styles.lab} aria-label={t("title")}
+    onFocusCapture={event => { focusedControl.current = event.target as HTMLElement; }}
+    onBlurCapture={event => {
+      if (event.relatedTarget instanceof Node && !event.currentTarget.contains(event.relatedTarget)) focusedControl.current = null;
+    }}>
     <header className={styles.header}>
       <div><button ref={backRef} className={styles.back} onClick={onClose}>{t("back")}</button><h2>{t("title")} <span>{root}</span></h2></div>
       <div className={styles.context}><span>{t("session")}: {data.session ?? t("unknown")}</span><span>{t("oi")}</span><a href="#research-sources">{t("sources")}</a></div>
@@ -213,6 +231,10 @@ export function OptionsResearchLab({
           <button disabled={comparisons.length >= 3 && !safeSelection.comparisons.includes(selected.key)} onClick={() => setSelection(s => ({ ...s, comparisons: toggleComparison(safeSelection.comparisons, selected.key) }))}>{t(safeSelection.comparisons.includes(selected.key) ? "removeCompare" : "compare")}</button>
           <button onClick={dismiss}>{t("dismiss")}</button></> : <p>{t("choose")}</p>}
         {comparisons.length > 0 && <ul className={styles.comparisons}>{comparisons.map(r => <li key={r.key}><button onClick={e => { focusOrigin.current = e.currentTarget; pin(r.key); }}>{label(r)}</button><strong>{t(metric)}: {number(r[metric])}</strong></li>)}</ul>}
+        <ResearchQuestionAction root={root} matrix={matrix} session={data.session}
+          sourceReady={data.status === "available" && matrixReadStatus === "data"}
+          lens={lens} primary={selected ?? null} comparisons={comparisons}
+          view={{ metric, side, expiry, displayMode: mode }} ownerKey={questionOwnerKey} lang={lang} />
         <div className={styles.save}><button disabled>{t("save")}</button><p>{t("saveGap")}</p></div>
       </aside>
     </div>

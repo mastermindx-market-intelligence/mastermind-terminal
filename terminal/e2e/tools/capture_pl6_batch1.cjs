@@ -21,6 +21,7 @@ const { join } = require("node:path");
 const { chromium, expect } = require("@playwright/test");
 const { warmFixtureRoutes } = require("../fixtureWarmup.cjs");
 const evidence = require("./visualEvidence.cjs");
+const { captureOptions } = require("./capture_ci_evidence.cjs");
 const IMMUTABLE_ID = process.env.TERMINAL_PL6_EVIDENCE_OPERATION_ID;
 let immutablePng = null;
 
@@ -381,6 +382,8 @@ function shouldCapture(surfaceName, width, lang) {
 async function main() {
   const capturedAtHead = currentGitHead();
   const operation = IMMUTABLE_ID === undefined ? null : evidence.beginOperation({ repoRoot: REPO, packet: "pl6", operationId: IMMUTABLE_ID });
+  const captureOptionsAxis = process.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE === "1";
+  if (captureOptionsAxis && (!operation || ONLY.length)) throw new Error("CI_OPTIONS_REQUIRES_FULL_OWNED_CAPTURE");
   const executionRows = [];
   const child = startServer();
   const files = [];
@@ -429,6 +432,9 @@ async function main() {
       }
     } finally {
       await browser.close();
+    }
+    if (captureOptionsAxis && failed === 0) {
+      await captureOptions({ server: child, ownedServer, baseURL: BASE, terminal: ROOT });
     }
   } finally {
     stopServer(child);

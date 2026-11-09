@@ -153,3 +153,47 @@ test("Options Alpha visibly marks an API-served stale artifact", async ({ page }
   await expect(warning).toContainText("Cached or aged evidence");
   await expect(warning).toContainText("stale research context");
 });
+
+test("Macro Plans shows the producer plan status pulse in both languages", async ({ page }, testInfo) => {
+  let pulseAsset = "";
+  await page.route("**/api/flow?f=prophet_idx", async (route) => {
+    const response = await route.fetch();
+    const payload = await response.json() as { plans?: Array<Record<string, unknown>> };
+    const plans = Array.isArray(payload.plans) ? payload.plans.map((plan) => ({ ...plan })) : [];
+    if (plans.length > 0) {
+      pulseAsset = String(plans[0].asset ?? "");
+      plans[0].pulse = "1d · pre-trigger · awaiting trigger";
+      plans[0].pulse_zh = "1天 · 触发前 · 等待触发";
+    }
+    await route.fulfill({ response, json: { ...payload, plans } });
+  });
+
+  await page.goto("/options?tab=prophet");
+  await expect.poll(() => pulseAsset).not.toBe("");
+  const card = page.locator(".obs-prophet-signal").filter({ hasText: pulseAsset }).first();
+  await expect(card).toBeVisible({ timeout: 15_000 });
+
+  const pulse = card.locator(".obs-prophet-pulse");
+  await expect(pulse).toContainText("Plan status");
+  await expect(pulse).toContainText("1d · pre-trigger · awaiting trigger");
+
+  const containment = await pulse.evaluate((element) => ({
+    clientWidth: element.clientWidth,
+    scrollWidth: element.scrollWidth,
+  }));
+  expect(containment.scrollWidth).toBeLessThanOrEqual(containment.clientWidth + 1);
+
+  await page.evaluate(() => {
+    document.documentElement.setAttribute("data-lang", "zh");
+    window.dispatchEvent(new CustomEvent("mm:lang"));
+  });
+  await expect(pulse).toContainText("计划状态");
+  await expect(pulse).toContainText("1天 · 触发前 · 等待触发");
+  await expect(pulse).not.toContainText("Plan status");
+  await expect(pulse).not.toContainText("awaiting trigger");
+
+  await page.screenshot({
+    path: testInfo.outputPath(testInfo.project.name + "-prophet-plan-status-zh.png"),
+    fullPage: false,
+  });
+});
