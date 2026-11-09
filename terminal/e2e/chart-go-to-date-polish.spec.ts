@@ -42,6 +42,10 @@ for (const lang of ["en", "zh"] as const) {
     const box = await popup.boundingBox();
     expect(box!.x).toBeGreaterThanOrEqual(0); expect(box!.y).toBeGreaterThanOrEqual(0);
     expect(box!.x + box!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+    await page.evaluate(() => document.documentElement.setAttribute("data-theme", "light"));
+    await expect(input).toHaveCSS("color-scheme", "light");
+    await page.evaluate(() => document.documentElement.setAttribute("data-theme", "dark"));
+    await expect(input).toHaveCSS("color-scheme", "dark");
     if (info.project.use.hasTouch) {
       for (const control of [calendar, input, go]) {
         const b = await control.boundingBox(); expect(b!.height).toBeGreaterThanOrEqual(44);

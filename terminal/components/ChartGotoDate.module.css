@@ -3,6 +3,8 @@
   outline-offset: 2px;
 }
 .popup button:disabled { opacity: .4; cursor: default; }
+.popup input { color-scheme: dark; }
+:global(html[data-theme="light"]) .popup input { color-scheme: light; }
 
 @media (pointer: coarse) {
   .frame { min-height: 44px; }
