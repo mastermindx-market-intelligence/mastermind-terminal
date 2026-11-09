@@ -19,4 +19,4 @@ Ordinary tab navigation, initial/deep-link loads, external URL changes and later
 
 Read-only reconciliation of #654, #1244, #1249, #1312, #1276 and #1188 found no changes to this composer/landing pair. Preserve #1362's accepted CSS and gate improvements. No held source is adopted or hold changed.
 
-Mounted composer tests and real-route EN/ZH desktop/tablet/phone journeys must qualify the exact product before Ready. Loading #1373, search #1376, tooltip #1378 and navigation #1380 continue independently. Native enrollment, merge, deployment and live acceptance remain distinct.
+Qualification completed: 10 mounted cases, 6 EN/ZH real-route desktop/tablet/phone cases, clean lint and full combined TypeScript. [Exact source, proof and captures](pr-crops/terminal-discover-focus-20261109/verification.md) are attached. Loading #1373, search #1376, tooltip #1378 and navigation #1380 continue independently. Native enrollment, merge, deployment and live acceptance remain distinct.
