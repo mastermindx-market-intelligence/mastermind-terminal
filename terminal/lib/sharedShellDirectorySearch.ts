@@ -2,6 +2,7 @@ import { LEX } from "@/lib/i18n";
 import { futuresTextFor } from "@/lib/futuresUiCopy";
 import { SHARED_SHELL_COPY } from "@/lib/sharedShellCopy";
 import { SHARED_SHELL_NAV } from "@/lib/sharedShellNavigation";
+import { INTELLIGENCE_DESTINATIONS } from "@/lib/shared-shell/intelligenceNavigation";
 export type DirectoryEntry = { href: string; kind: string; title: { en: string; zh: string }; group: string };
 export function directorySection(entry: DirectoryEntry): string {
   if (entry.kind === "native") return "workspaces";
@@ -15,7 +16,10 @@ export const normalizeDirectoryQuery = (value: string) => value.normalize("NFKC"
 // These native tools already use these keys in AppShell's title owner. Keep
 // directory presentation on those keys; the projection still owns admission.
 const nativeTitle = (entry: DirectoryEntry): { k?: string; label: string; copy?: DirectoryEntry["title"] } | undefined => {
+  const intelligence = INTELLIGENCE_DESTINATIONS.find(item => item.href === entry.href);
+  if (intelligence) return { label: intelligence.label[0], copy: { en: intelligence.label[0], zh: intelligence.label[1] } };
   if (entry.kind !== "native") return undefined;
+  if (entry.href === "/prophet") return { k: "shellProphet", label: "Model plans & options" };
   const job = SHARED_SHELL_NAV.find(job => job.href === entry.href);
   if (job) return job;
   if (entry.href === "/options/futures") return {

@@ -31,3 +31,28 @@ it.each(prospectiveCalculators.directoryOnlyAdditions)("uses the canonical bilin
   expect(result?.title[lang]).not.toContain("tools / calculators /");
  }
 });
+
+
+// Original intelligence integration must extend the current directory owner,
+// not resurrect the removed component-local matcher or admit a second route set.
+it.each([
+ ["/intelligence", "Overview", "总览"],
+ ["/macro.html", "Macro Dashboard", "宏观仪表盘"],
+ ["/sector_cycles.html", "Sector Cycles", "行业周期"],
+ ["/sectors", "Sector Intelligence", "行业情报"],
+])("keeps intelligence title/search parity at the existing directory owner: %s", (href, en, zh) => {
+ const canonical = sharedShellDirectory.find(entry => entry.href === href);
+ expect(canonical).toBeTruthy();
+ expect(directoryEntryTitle(canonical as DirectoryEntry, "en", (key, fallback) => SHARED_SHELL_COPY[key]?.("en") ?? fallback ?? key)).toBe(en);
+ expect(directoryEntryTitle(canonical as DirectoryEntry, "zh", t)).toBe(zh);
+ for (const query of [en, zh]) expect(searchDirectoryEntries(sharedShellDirectory, sharedShellCatalog.legacyPaths, query).some(entry => entry.href === href)).toBe(true);
+ expect(searchDirectoryEntries([], [], zh)).toEqual([]);
+});
+it("keeps the separately entitled model-plan/options entrance distinct from the primary Prophet stock board", () => {
+ const paid = sharedShellDirectory.find(entry => entry.href === "/prophet") as DirectoryEntry;
+ const board = sharedShellDirectory.find(entry => entry.href === "/us_stocks.html") as DirectoryEntry;
+ expect(paid).toBeTruthy(); expect(board).toBeTruthy();
+ expect(directoryEntryTitle(paid, "en", (key, fallback) => SHARED_SHELL_COPY[key]?.("en") ?? fallback ?? key)).toBe("Model plans & options");
+ expect(directoryEntryTitle(board, "en", (key, fallback) => fallback ?? key)).toBe("Prophet");
+ expect(searchDirectoryEntries(sharedShellDirectory, sharedShellCatalog.legacyPaths, "模型计划").some(entry => entry.href === "/prophet")).toBe(true);
+});
