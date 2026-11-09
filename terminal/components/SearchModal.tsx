@@ -407,8 +407,8 @@ export default function SearchModal({
   useEffect(() => {
     const bounded = Math.max(0, Math.min(sel, totalRows - 1));
     // eslint-disable-next-line react-hooks/set-state-in-effect -- external universe/preferences can remove the selected result.
-    if (open && resultsCurrent && sel !== bounded) selectResult(bounded);
-  }, [open, resultsCurrent, sel, totalRows, selectResult]);
+    if (open && !isHome && resultsCurrent && sel !== bounded) selectResult(bounded);
+  }, [open, isHome, resultsCurrent, sel, totalRows, selectResult]);
 
   // MobileSheet attaches its portal after the parent commit. Reveal at actual
   // list attachment as well as result/request changes, not on a parent-only tick.
@@ -419,10 +419,13 @@ export default function SearchModal({
     }
     if (!list || !open || isHome || sharedSearch || !resultsCurrent || !revealSelection || revealedSelection.current === revealSelection) return;
     if (revealSelection.index >= displayRows.length + (showCompositeRow ? 1 : 0)) return;
-    if (revealListOption(list, `${uid}-opt-${revealSelection.index}`)) {
+    // The phone sheet deliberately owns one column scroller for its detent
+    // gestures. Respect that owner and its sticky-input scroll padding.
+    const scrollOwner = phoneDrawer ? list.closest<HTMLElement>(".msheet-body") : list;
+    if (revealListOption(list, `${uid}-opt-${revealSelection.index}`, scrollOwner)) {
       revealedSelection.current = revealSelection;
     }
-  }, [open, isHome, sharedSearch, resultsCurrent, revealSelection, displayRows, showCompositeRow, uid]);
+  }, [open, isHome, sharedSearch, resultsCurrent, revealSelection, displayRows, showCompositeRow, phoneDrawer, uid]);
 
   useEffect(() => {
     if (picker && (isHome || !displayRows.some(([symbol]) => symbol === picker))) {
@@ -927,107 +930,7 @@ export default function SearchModal({
                     <div className="tk">{compositeLabel(compositeExprStr)}</div>
                     <div className="nm">{compositeExprStr}</div>
                   </div>
-                  <div className="vr">
-                    <span className="mkt">{t("compositeType")}</span>
-                    {inWatchlist.has(compositeExprStr) && (
-                      <span className="s-flag-dot" style={{ background: flags[compositeExprStr] || "#888" }} />
-                    )}
-                  </div>
-                </div>
-                <div className="r-act">
-                  {isAdd && inWatchlist.has(compositeExprStr)
-                    ? <WlMemberActions sym={compositeExprStr} t={t} onRemove={onRemove} onGo={() => { onPick(compositeExprStr); onClose(); }} />
-                    : !isAdd && <button className={`add${inWatchlist.has(compositeExprStr) ? " added" : ""}`}
-                        title={inWatchlist.has(compositeExprStr) ? t("inWatchlist") : t("addToWatchlist")}
-                        onClick={(e) => { e.stopPropagation(); track(compositeExprStr); onAdd?.(compositeExprStr); }}>
-                        {inWatchlist.has(compositeExprStr)
-                          ? <svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg>
-                          : <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>}
-                      </button>
-                  }
-                </div>
-              </div>
-            )}
-
-            {/* Invalid composite warning */}
-            {compositeLegs && !compositeLegs.valid && compositeLegs.unknown && (
-              <div className="sres-warn" role="presentation">
-                {t("compositeInvalid").replace("{syms}", compositeLegs.unknown.join(", "))}
-              </div>
-            )}
-
-            {/* Recently viewed header */}
-            {showRecentRows && recentResults.length > 0 && (
-              <div className="sres-section-hd" role="presentation">{t("searchRecentHeader")}</div>
-            )}
-
-            {/* The universe is a separate read from this dialog. Until it lands, NEITHER empty
-                state below is a true statement about the market — see `universeState`. */}
-            {universeState !== "ready" && displayRows.length === 0 && (
-              universeState === "loading"
-                ? <div className="s-type-hint" role="presentation">{t("searchUniverseLoading")}</div>
-                : <div className="s-universe-failed" role="presentation">
-                    <span>{t("searchUniverseFailed")}</span>
-                    {onRetryUniverse && (
-                      <button type="button" className="s-mkt-show" onClick={onRetryUniverse}>{t("searchUniverseRetry")}</button>
-                    )}
-                  </div>
-            )}
-
-            {/* Recent is navigation history, so an empty list says that plainly. Category browse
-                content replaces this state whenever a category tab has rows. */}
-            {universeState === "ready" && !cmp && !isAdd && showRecentRows && displayRows.length === 0 && (
-              <div className="s-type-hint" role="presentation" aria-hidden={!resultsCurrent} style={resultsCurrent ? undefined : { visibility: "hidden" }}>{t("searchRecentEmpty")}</div>
-            )}
-
-            {/* Empty state */}
-            {universeState === "ready" && !showCompositeRow && displayRows.length === 0 && !showRecentRows && (
-              <div className="empty" role="presentation" aria-hidden={!resultsCurrent} style={resultsCurrent ? undefined : { visibility: "hidden" }}>{t("noSymbolMatch")} &quot;{q}&quot;.</div>
-            )}
-
-            {/* Market-filter disclosure. A user who cannot find 0700.HK must be told it is their
-                own setting doing it — and be able to undo it right here, without hunting through
-                settings. Renders only when a switched-off market actually has matches. */}
-            {hiddenByMarket && (
-              <div className="s-mkt-hidden" role="presentation">
-                <span>
-                  {t("mktHiddenLead")} {hiddenByMarket.n} {t("mktHiddenMore")}{" "}
-                  {hiddenByMarket.from.map((m) => t(MARKET_TKEY[m])).join(" · ")}
-                </span>
-                {onShowAllMarkets && (
-                  <button type="button" className="s-mkt-show" onClick={onShowAllMarkets}>{t("mktShowAll")}</button>
-                )}
-              </div>
-            )}
-            {universeState === "ready" && (cmp || isAdd) && showRecentRows && displayRows.length === 0 && (
-              <div className="empty" role="presentation">{t("searchRecentEmpty")}</div>
-            )}
-
-            {displayRows.map(([s, r], i) => {
-              const rowSel = showCompositeRow ? i + 1 : i;
-              // The category-browse block gets its own header, at the seam after the RECENT rows
-              // (index 0 when there are no recent views). Rendered inside the map so one flat row list
-              // keeps driving `sel`/arrow-key nav across the seam.
-              const seamHd = showRecentRows && browseResults.length > 0 && i === recentResults.length && catLabelKey
-                ? <div className="sres-section-hd" role="presentation">{t(catLabelKey)}</div>
-                : null;
-              // compare/add modes keep their bespoke row actions; go mode uses the shared symRow w/ add.
-              if (!cmp && !isAdd) {
-                return seamHd
-                  ? <Fragment key={`seam-${s}`}>{seamHd}{symRow(s, r, rowSel, !isPick, false, optionDomId(rowSel))}</Fragment>
-                  : symRow(s, r, rowSel, !isPick, false, optionDomId(rowSel));
-              }
-              const buy = isBuy(r.verdict);
-              const inCmp = cmp && compare.includes(s);
-              const inWl = inWatchlist.has(s);
-              const flagColor = flags[s];
-              return (
-                <Fragment key={s}>
-                {seamHd}
-                <div
-                  className={`r${rowSel === sel ? " sel" : ""}${inCmp ? " r-on" : ""}`}
-                  onMouseEnter={() => { if (resultsCurrent) selectResult(rowSel, false); }}
-                  onClick={(e) => choose(s, e.shiftKey)}
+            …1552 tokens truncated… e.shiftKey)}
                 >
                   <div className="r-opt" {...optionProps(optionDomId(rowSel), rowSel)}>
                     {inWl && (
