@@ -1,16 +1,16 @@
 # B-F11-4 research management views — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 5688cfa07b176995a9174a6f67eeb0049eef7c6f
-# capturedAt: 2026-10-11T12:01:34.085Z
+# capturedAtHead: aafc16cef1635e851a9cbb95966c5cfbe1e657a0
+# capturedAt: 2026-11-09T01:33:02.899Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/workspaces/ThesisWorkspace.tsx: "3d52b675f5784dac1f2868cd4c3c7bed5127cd18262ce5256727a4c0127be167"
+  terminal/components/workspaces/ThesisWorkspace.tsx: "afabf2e3251975c419a0d8247c44c94757cc51c3470507f199413e371c4033dc"
   terminal/components/workspaces/ThesisWorkspace.module.css: "c7fcd07d13cf3d7453bb51cd47ffb13c80af05e327bf9662368e97988023320c"
-  terminal/lib/rmsViews.ts: "fd5f025806c5a4b1b27e7d99a026e82f555767f0d96b6a2766a5b363961897cb"
+  terminal/lib/rmsViews.ts: "bab307d0762d76d31a4d9b7de07f4c9c15c2e4c9915b60e8d971171b3e19def0"
   terminal/lib/savedViews.ts: "16e2914a032cba50cce999d1802c53e51098ce76dd82931925ef41b8e0f7af54"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
-  terminal/lib/i18n.tsx: "cfad0a8290b9b872fe919b7b9855bbd3a4cee095eb26ebd902c399942196a65d"
+  terminal/lib/i18n.tsx: "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -34,7 +34,18 @@ window_closed_data: |
 capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
 command: |
   cd terminal
-  node e2e/tools/capture_f11_4_research_views.cjs
+  CAPTURE_ONLY=window-closed TERMINAL_CROP_PORT=43102 node e2e/tools/capture_f11_4_research_views.cjs
+capture_scope: |
+  The 2026-11-09T01:33:02.899Z run regenerated the four window-closed
+  crops: EN and ZH at 1440x900 and 390x844. The checkout was protected
+  aafc16cef1635e851a9cbb95966c5cfbe1e657a0 with the exact route,
+  rmsViews.ts and route-test postimages from PR #1302 head
+  363853f8d7d6fb0635996ed0ffc7ea6bbf9bc4f2.
+  The other sixteen PNGs are retained byte-for-byte from protected
+  aafc16cef1635e851a9cbb95966c5cfbe1e657a0. Their prior manifest recorded
+  capturedAtHead 24c8032378e3374f3aae9f02b005659b38edcd54 and capturedAt
+  2026-11-06T20:27:05.748Z. The capture fields above describe this
+  partial run; files lists the complete twenty-image packet.
 files:
   - empty-1440-zh.png
   - empty-1440.png

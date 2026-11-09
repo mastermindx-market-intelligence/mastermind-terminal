@@ -1,0 +1,26 @@
+{
+  "source_head": "da02d533f17e209abd63f8c23bcc8b68952d49ae",
+  "command": [
+    "npm",
+    "exec",
+    "--",
+    "playwright",
+    "test",
+    "e2e/visual-intelligence.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--max-failures=1",
+    "--reporter=line,json",
+    "--output=/tmp/portfolio-terminal-owner-recovery-20261021/visual-intelligence-artifacts"
+  ],
+  "cwd": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal",
+  "port": 59729,
+  "environment": {
+    "CI": "1",
+    "TERMINAL_E2E_PORT": "59729",
+    "PLAYWRIGHT_JSON_OUTPUT_FILE": "/tmp/portfolio-terminal-owner-recovery-20261021/visual-intelligence-report.json"
+  }
+}

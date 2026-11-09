@@ -14,6 +14,12 @@ const LAYOUT_FILES = [
   "terminal/lib/eventImpact.ts",
   "terminal/components/EventImpactPanel.tsx",
   "terminal/components/EventImpactPanel.module.css",
+  "terminal/components/PortfolioView.tsx",
+  "terminal/components/PortfolioWorkspace.tsx",
+  "terminal/components/PortfolioWorkspace.module.css",
+  "terminal/app/globals.css",
+  "terminal/e2e/tools/portfolioEvidenceCapture.cjs",
+  "terminal/e2e/tools/capture_b_f08_8_invalidation.cjs",
 ];
 const CROPS = ["desktop", "mobile"].flatMap((device) =>
   ["en", "zh"].flatMap((lang) => [`${device}-${lang}-condition.png`, `${device}-${lang}-typed-null.png`]),

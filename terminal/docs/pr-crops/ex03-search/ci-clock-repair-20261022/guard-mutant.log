@@ -1,0 +1,74 @@
+.FF.                                                                     [100%]
+=================================== FAILURES ===================================
+_____ test_publication_hold_is_exactly_2100_through_2230_utc[21-0-0-True] ______
+
+tmp_path = PosixPath('/Users/chriswong/.cache/mastermind/terminal-ex03-release-20261022/pytest-guard-mutant/test_publication_hold_is_exact1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x109181a70>, hh = 21
+mm = 0, ss = 0, held = True
+
+    @pytest.mark.parametrize("hh,mm,ss,held", [
+        (20, 59, 59, False),   # one second before the window opens
+        (21, 0, 0, True),      # inclusive lower bound: 2100
+        (22, 29, 59, True),    # one second before the window closes
+        (22, 30, 0, False),    # exclusive upper bound: 2230
+    ])
+    def test_publication_hold_is_exactly_2100_through_2230_utc(tmp_path, monkeypatch, hh, mm, ss, held):
+        """The hold is a production publication guard, so it gets its own boundary coverage rather
+        than being incidental to whichever clock the suite happens to run under. A test that runs
+        inside the window must still be able to prove the window stops publication — that is the
+        behaviour CI39863344495 could not observe, because its clock was inside the window."""
+        monkeypatch.setattr(rr, "dt", frozen_datetime_module(
+            dt.datetime(2026, 10, 21, hh, mm, ss, tzinfo=dt.timezone.utc)))
+        args = args_for(tmp_path)
+        fake = FakeStages()
+        outcome, code = rr.refresh_market(args, "hk", runner=fake)
+    
+        if held:
+            # The hold returns before publish_stage, so no remote transfer is attempted at all,
+            # and the run is reported as a failure rather than a success it did not achieve.
+>           assert code == 1
+E           assert 0 == 1
+
+tests/test_regional_runtime_integration.py:408: AssertionError
+----------------------------- Captured stdout call -----------------------------
+regional stage: /Users/chriswong/.cache/mastermind/terminal-ex03-release-20261022/python-env/bin/python /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/ingest/collect_cn_hk_fund.py --market hk
+regional stage: /Users/chriswong/.cache/mastermind/terminal-ex03-release-20261022/python-env/bin/python /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/ingest/run_bounded.py --seconds 1800 -- /Users/chriswong/.cache/mastermind/terminal-ex03-release-20261022/python-env/bin/python /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/ingest/collect_reported_ownership.py --market hk --deadline-seconds 1795
+regional stage: /Users/chriswong/.cache/mastermind/terminal-ex03-release-20261022/python-env/bin/python /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/ingest/gen_fund_hk.py --out /tmp/mm-regional-hk-fund-z4ha6row --previous-dir /tmp/mm-regional-hk-fund-z4ha6row/previous
+____ test_publication_hold_is_exactly_2100_through_2230_utc[22-29-59-True] _____
+
+tmp_path = PosixPath('/Users/chriswong/.cache/mastermind/terminal-ex03-release-20261022/pytest-guard-mutant/test_publication_hold_is_exact2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1090f71d0>, hh = 22
+mm = 29, ss = 59, held = True
+
+    @pytest.mark.parametrize("hh,mm,ss,held", [
+        (20, 59, 59, False),   # one second before the window opens
+        (21, 0, 0, True),      # inclusive lower bound: 2100
+        (22, 29, 59, True),    # one second before the window closes
+        (22, 30, 0, False),    # exclusive upper bound: 2230
+    ])
+    def test_publication_hold_is_exactly_2100_through_2230_utc(tmp_path, monkeypatch, hh, mm, ss, held):
+        """The hold is a production publication guard, so it gets its own boundary coverage rather
+        than being incidental to whichever clock the suite happens to run under. A test that runs
+        inside the window must still be able to prove the window stops publication — that is the
+        behaviour CI39863344495 could not observe, because its clock was inside the window."""
+        monkeypatch.setattr(rr, "dt", frozen_datetime_module(
+            dt.datetime(2026, 10, 21, hh, mm, ss, tzinfo=dt.timezone.utc)))
+        args = args_for(tmp_path)
+        fake = FakeStages()
+        outcome, code = rr.refresh_market(args, "hk", runner=fake)
+    
+        if held:
+            # The hold returns before publish_stage, so no remote transfer is attempted at all,
+            # and the run is reported as a failure rather than a success it did not achieve.
+>           assert code == 1
+E           assert 0 == 1
+
+tests/test_regional_runtime_integration.py:408: AssertionError
+----------------------------- Captured stdout call -----------------------------
+regional stage: /Users/chriswong/.cache/mastermind/terminal-ex03-release-20261022/python-env/bin/python /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/ingest/collect_cn_hk_fund.py --market hk
+regional stage: /Users/chriswong/.cache/mastermind/terminal-ex03-release-20261022/python-env/bin/python /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/ingest/run_bounded.py --seconds 1800 -- /Users/chriswong/.cache/mastermind/terminal-ex03-release-20261022/python-env/bin/python /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/ingest/collect_reported_ownership.py --market hk --deadline-seconds 1795
+regional stage: /Users/chriswong/.cache/mastermind/terminal-ex03-release-20261022/python-env/bin/python /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-masterplan-20261022/ingest/gen_fund_hk.py --out /tmp/mm-regional-hk-fund-4vs41obp --previous-dir /tmp/mm-regional-hk-fund-4vs41obp/previous
+=========================== short test summary info ============================
+FAILED tests/test_regional_runtime_integration.py::test_publication_hold_is_exactly_2100_through_2230_utc[21-0-0-True]
+FAILED tests/test_regional_runtime_integration.py::test_publication_hold_is_exactly_2100_through_2230_utc[22-29-59-True]
+2 failed, 2 passed in 0.08s

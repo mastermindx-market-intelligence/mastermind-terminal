@@ -14,6 +14,11 @@ const LAYOUT_FILES = [
   "terminal/components/PortfolioView.tsx",
   "terminal/lib/portfolioRiskHistory.ts",
   "terminal/components/PortfolioRiskHistory.module.css",
+  "terminal/components/PortfolioWorkspace.tsx",
+  "terminal/components/PortfolioWorkspace.module.css",
+  "terminal/app/globals.css",
+  "terminal/e2e/tools/portfolioEvidenceCapture.cjs",
+  "terminal/e2e/tools/capture_b_f08_9_risk_history.cjs",
 ];
 const STATES = ["empty-book", "not-enough-history", "populated"];
 const CROPS = STATES.flatMap((state) =>

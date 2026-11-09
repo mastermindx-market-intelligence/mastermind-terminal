@@ -1,0 +1,432 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/node_modules/.bin/playwright",
+      "test",
+      "e2e/options-companion.spec.ts",
+      "--grep",
+      "PP2-UI-b chart return keeps held build identity",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--reporter=json"
+    ],
+    "configFile": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/playwright.config.ts",
+    "rootDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/chart-context-reader-20261018/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3137",
+      "url": "http://127.0.0.1:3137/terminal?symbol=NVDA",
+      "reuseExistingServer": true,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "options-companion.spec.ts",
+      "file": "options-companion.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "[en] PP2-UI-b chart return keeps held build identity",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5848,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-18T08:39:12.289Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "cec25b5a6f795a3ef450-fc563e294fbdb6339f7c",
+          "file": "options-companion.spec.ts",
+          "line": 931,
+          "column": 7
+        },
+        {
+          "title": "[zh] PP2-UI-b chart return keeps held build identity",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6259,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-18T08:39:18.505Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "cec25b5a6f795a3ef450-41466e24e9150ebee28c",
+          "file": "options-companion.spec.ts",
+          "line": 931,
+          "column": 7
+        },
+        {
+          "title": "[en] PP2-UI-b chart return keeps held build identity",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8571,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-18T08:39:25.381Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "cec25b5a6f795a3ef450-924cb8612289888fb5cd",
+          "file": "options-companion.spec.ts",
+          "line": 931,
+          "column": 7
+        },
+        {
+          "title": "[zh] PP2-UI-b chart return keeps held build identity",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9670,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-18T08:39:34.114Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "cec25b5a6f795a3ef450-e1f16c3d8b882d59e27b",
+          "file": "options-companion.spec.ts",
+          "line": 931,
+          "column": 7
+        },
+        {
+          "title": "[en] PP2-UI-b chart return keeps held build identity",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8870,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-18T08:39:44.121Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "cec25b5a6f795a3ef450-0c7a4071ebdfac5fb574",
+          "file": "options-companion.spec.ts",
+          "line": 931,
+          "column": 7
+        },
+        {
+          "title": "[zh] PP2-UI-b chart return keeps held build identity",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10246,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-18T08:39:53.150Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "cec25b5a6f795a3ef450-ebee6ae45abcf26362da",
+          "file": "options-companion.spec.ts",
+          "line": 931,
+          "column": 7
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-18T08:39:10.175Z",
+    "duration": 53364.64000000001,
+    "expected": 6,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

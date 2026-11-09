@@ -1,0 +1,64 @@
+/* Only the compact Web chart surface exposes these controls. Keep the global
+   chart stylesheet and its captured layout evidence completely unchanged. */
+.root {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .root {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 8px;
+    padding: 12px;
+    min-width: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .root label {
+    display: flex;
+    flex: 1 1 230px;
+    min-width: 0;
+    flex-direction: column;
+    gap: 6px;
+    color: var(--muted);
+    font: 650 12px/1.3 var(--font-ui);
+  }
+
+  .root select {
+    appearance: auto;
+    display: block;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--line-3);
+    border-radius: var(--r-md);
+    background: var(--panel);
+    color: var(--text);
+    font: 600 14px/1 var(--font-ui);
+  }
+
+  .root button {
+    flex: 1 0 116px;
+    min-height: 44px;
+    padding: 8px 12px;
+    border: 1px solid var(--line-3);
+    border-radius: var(--r-md);
+    background: var(--panel-2);
+    color: var(--text);
+    font: 650 13px/1.2 var(--font-ui);
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .root button:hover {
+    border-color: var(--brand-2);
+    color: var(--brand-2);
+  }
+
+  .root :is(select, button):focus-visible {
+    outline: 2px solid var(--brand-2);
+    outline-offset: 2px;
+  }
+}

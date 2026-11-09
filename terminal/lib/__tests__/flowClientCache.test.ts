@@ -53,6 +53,21 @@ describe("flowClientCache fresh revalidation", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it("explicit user refresh revalidates inside TTL through the same deduplicated owner", async () => {
+    let release!: (value: ReturnType<typeof response>) => void;
+    const pending = new Promise<ReturnType<typeof response>>(resolve => { release = resolve; });
+    const fetchMock = vi.fn().mockResolvedValueOnce(response({ root: "QQQ" })).mockImplementationOnce(() => pending);
+    vi.stubGlobal("fetch", fetchMock);
+    expect(await flowGetFresh("matrix:SPY")).toEqual({ root: "QQQ" });
+    now = 1000;
+    const a = flowGetFresh("matrix:SPY", true), b = flowGetFresh("matrix:SPY", true);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    release(response({ root: "SPY" }));
+    expect(await a).toEqual({ root: "SPY" }); expect(await b).toEqual({ root: "SPY" });
+    expect(await flowGet("matrix:SPY")).toEqual({ root: "SPY" });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it("a manual Leaders check forces the server upstream even inside both TTLs", async () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(response({ session_date: "2026-08-12", stale: true }))
