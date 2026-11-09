@@ -59,6 +59,10 @@ export interface ExpiryTermStructure {
   splitAvailable: false; // by_expiry never carries a calls/puts split → always Net-only
   nodes: ExpiryNode[]; // sorted nearest-expiration first; empty when no data
   maxAbs: number; // max |net| across nodes (0 when empty)
+  /** All source expiries, including those without an active-lens value. */
+  rowCount: number;
+  /** Sorted expiry keys with unavailable observations for an available lens. */
+  unresolved: string[];
   sourceCount: number;
   missingCount: number;
   partialCount: number;
@@ -108,7 +112,8 @@ export function expiryObservationFor(r: ExpiryRow, lens: ExpiryLens): ExpiryObse
 /**
  * Transform a payload's `by_expiry` into the drawer's plot nodes for one lens.
  *
- * - Rows whose lens value is null/non-finite are dropped. An old payload that lacks
+ * - Rows whose lens value is unavailable are excluded from plot nodes and retained in
+ *   the source count and unresolved list. An old payload that lacks
  *   vanna/charm therefore stays `available:false` and renders the existing honest
  *   "not per-expiration" state instead of inventing zeros.
  * - `frac` normalizes each node's magnitude to the max |net| so bubbles/bars share one scale.
@@ -134,15 +139,19 @@ export function byExpiryToTermStructure(
     splitAvailable: false,
     nodes: [],
     maxAbs: 0,
+    rowCount: rows.length, unresolved: [],
     sourceCount: rows.length, missingCount: rows.length, partialCount: 0,
   };
   if (!available || rows.length === 0) return base;
 
-  const kept = rows
+  const valued = rows
     .map((r) => ({ r, ...expiryObservationFor(r, lens) }))
-    .filter((x): x is { r: ExpiryRow; net: number; partial: boolean; knownContracts: number | null; admittedContracts: number | null } => x.net != null)
     .sort((a, b) => a.r.exp.localeCompare(b.r.exp));
-  if (kept.length === 0) return base;
+  const unresolved = valued.filter((x) => x.net == null).map((x) => x.r.exp);
+  const kept = valued.filter(
+    (x): x is { r: ExpiryRow; net: number; partial: boolean; knownContracts: number | null; admittedContracts: number | null } => x.net != null,
+  );
+  if (kept.length === 0) return { ...base, unresolved };
 
   const maxAbs = kept.reduce((m, x) => Math.max(m, Math.abs(x.net)), 0);
   const denom = maxAbs > 0 ? maxAbs : 1;
@@ -159,6 +168,6 @@ export function byExpiryToTermStructure(
       frac: Math.abs(net) / denom,
     };
   });
-  return { lens, available, splitAvailable: false, nodes, maxAbs, sourceCount: rows.length,
+  return { ...base, nodes, maxAbs, unresolved,
     missingCount: rows.length - nodes.length, partialCount: nodes.filter(n => n.partial).length };
 }

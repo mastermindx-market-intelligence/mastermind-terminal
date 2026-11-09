@@ -1,0 +1,89 @@
+{
+  "identical_findings": true,
+  "results": [
+    {
+      "label": "base",
+      "exit_code": 1,
+      "source_sha256": "e1d68442c5c4fde0a5789b8e93e89a435aff85cbf413d1f61a111a82f4d14725",
+      "messages": [
+        {
+          "line": 69,
+          "column": 7,
+          "ruleId": "react-hooks/refs",
+          "severity": 2,
+          "message": "Error: Cannot access refs during render\n\nReact refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).\n\n/Volumes/Mastermind 2/agent-workspaces/terminal/web/portfolio-target-feedback-20261022/terminal/components/settings/SectionPortfolioTargets.tsx:69:7\n  67 |   // accuracy / usage panels use, so a sign-out or account switch leaves no\n  68 |   // row from another owner visible.\n> 69 |   if (lastLoadedOwner.current !== null && lastLoadedOwner.current !== ownerKey) {\n     |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render\n  70 |     lastLoadedOwner.current = null;\n  71 |     if (state.kind === \"loaded\") setState({ kind: \"idle\" });\n  72 |   }"
+        },
+        {
+          "line": 69,
+          "column": 7,
+          "ruleId": "react-hooks/refs",
+          "severity": 2,
+          "message": "Error: Cannot access refs during render\n\nReact refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).\n\n/Volumes/Mastermind 2/agent-workspaces/terminal/web/portfolio-target-feedback-20261022/terminal/components/settings/SectionPortfolioTargets.tsx:69:7\n  67 |   // accuracy / usage panels use, so a sign-out or account switch leaves no\n  68 |   // row from another owner visible.\n> 69 |   if (lastLoadedOwner.current !== null && lastLoadedOwner.current !== ownerKey) {\n     |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render\n  70 |     lastLoadedOwner.current = null;\n  71 |     if (state.kind === \"loaded\") setState({ kind: \"idle\" });\n  72 |   }"
+        },
+        {
+          "line": 69,
+          "column": 7,
+          "ruleId": "react-hooks/refs",
+          "severity": 2,
+          "message": "Error: Cannot access refs during render\n\nReact refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).\n\n/Volumes/Mastermind 2/agent-workspaces/terminal/web/portfolio-target-feedback-20261022/terminal/components/settings/SectionPortfolioTargets.tsx:69:7\n  67 |   // accuracy / usage panels use, so a sign-out or account switch leaves no\n  68 |   // row from another owner visible.\n> 69 |   if (lastLoadedOwner.current !== null && lastLoadedOwner.current !== ownerKey) {\n     |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render\n  70 |     lastLoadedOwner.current = null;\n  71 |     if (state.kind === \"loaded\") setState({ kind: \"idle\" });\n  72 |   }"
+        },
+        {
+          "line": 69,
+          "column": 43,
+          "ruleId": "react-hooks/refs",
+          "severity": 2,
+          "message": "Error: Cannot access refs during render\n\nReact refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).\n\n/Volumes/Mastermind 2/agent-workspaces/terminal/web/portfolio-target-feedback-20261022/terminal/components/settings/SectionPortfolioTargets.tsx:69:43\n  67 |   // accuracy / usage panels use, so a sign-out or account switch leaves no\n  68 |   // row from another owner visible.\n> 69 |   if (lastLoadedOwner.current !== null && lastLoadedOwner.current !== ownerKey) {\n     |                                           ^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render\n  70 |     lastLoadedOwner.current = null;\n  71 |     if (state.kind === \"loaded\") setState({ kind: \"idle\" });\n  72 |   }"
+        },
+        {
+          "line": 81,
+          "column": 5,
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 2,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind 2/agent-workspaces/terminal/web/portfolio-target-feedback-20261022/terminal/components/settings/SectionPortfolioTargets.tsx:81:5\n  79 |     // re-fetch exactly once.\n  80 |     const ac = new AbortController();\n> 81 |     setState({ kind: \"loading\" });\n     |     ^^^^^^^^ Avoid calling setState() directly within an effect\n  82 |     fetch(\"/api/portfolio/targets\", { headers: { Accept: \"application/json\" }, signal: ac.signal })\n  83 |       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))\n  84 |       .then((body: { summary?: unknown } | null) => {"
+        }
+      ]
+    },
+    {
+      "label": "candidate",
+      "exit_code": 1,
+      "source_sha256": "e5b24bd5c0ba54c4f5bd1e2d43bf52ac86d766840534f99577d9081363d765e9",
+      "messages": [
+        {
+          "line": 69,
+          "column": 7,
+          "ruleId": "react-hooks/refs",
+          "severity": 2,
+          "message": "Error: Cannot access refs during render\n\nReact refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).\n\n/Volumes/Mastermind 2/agent-workspaces/terminal/web/portfolio-target-feedback-20261022/terminal/components/settings/SectionPortfolioTargets.tsx:69:7\n  67 |   // accuracy / usage panels use, so a sign-out or account switch leaves no\n  68 |   // row from another owner visible.\n> 69 |   if (lastLoadedOwner.current !== null && lastLoadedOwner.current !== ownerKey) {\n     |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render\n  70 |     lastLoadedOwner.current = null;\n  71 |     if (state.kind === \"loaded\") setState({ kind: \"idle\" });\n  72 |   }"
+        },
+        {
+          "line": 69,
+          "column": 7,
+          "ruleId": "react-hooks/refs",
+          "severity": 2,
+          "message": "Error: Cannot access refs during render\n\nReact refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).\n\n/Volumes/Mastermind 2/agent-workspaces/terminal/web/portfolio-target-feedback-20261022/terminal/components/settings/SectionPortfolioTargets.tsx:69:7\n  67 |   // accuracy / usage panels use, so a sign-out or account switch leaves no\n  68 |   // row from another owner visible.\n> 69 |   if (lastLoadedOwner.current !== null && lastLoadedOwner.current !== ownerKey) {\n     |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render\n  70 |     lastLoadedOwner.current = null;\n  71 |     if (state.kind === \"loaded\") setState({ kind: \"idle\" });\n  72 |   }"
+        },
+        {
+          "line": 69,
+          "column": 7,
+          "ruleId": "react-hooks/refs",
+          "severity": 2,
+          "message": "Error: Cannot access refs during render\n\nReact refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).\n\n/Volumes/Mastermind 2/agent-workspaces/terminal/web/portfolio-target-feedback-20261022/terminal/components/settings/SectionPortfolioTargets.tsx:69:7\n  67 |   // accuracy / usage panels use, so a sign-out or account switch leaves no\n  68 |   // row from another owner visible.\n> 69 |   if (lastLoadedOwner.current !== null && lastLoadedOwner.current !== ownerKey) {\n     |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render\n  70 |     lastLoadedOwner.current = null;\n  71 |     if (state.kind === \"loaded\") setState({ kind: \"idle\" });\n  72 |   }"
+        },
+        {
+          "line": 69,
+          "column": 43,
+          "ruleId": "react-hooks/refs",
+          "severity": 2,
+          "message": "Error: Cannot access refs during render\n\nReact refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).\n\n/Volumes/Mastermind 2/agent-workspaces/terminal/web/portfolio-target-feedback-20261022/terminal/components/settings/SectionPortfolioTargets.tsx:69:43\n  67 |   // accuracy / usage panels use, so a sign-out or account switch leaves no\n  68 |   // row from another owner visible.\n> 69 |   if (lastLoadedOwner.current !== null && lastLoadedOwner.current !== ownerKey) {\n     |                                           ^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render\n  70 |     lastLoadedOwner.current = null;\n  71 |     if (state.kind === \"loaded\") setState({ kind: \"idle\" });\n  72 |   }"
+        },
+        {
+          "line": 81,
+          "column": 5,
+          "ruleId": "react-hooks/set-state-in-effect",
+          "severity": 2,
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\n/Volumes/Mastermind 2/agent-workspaces/terminal/web/portfolio-target-feedback-20261022/terminal/components/settings/SectionPortfolioTargets.tsx:81:5\n  79 |     // re-fetch exactly once.\n  80 |     const ac = new AbortController();\n> 81 |     setState({ kind: \"loading\" });\n     |     ^^^^^^^^ Avoid calling setState() directly within an effect\n  82 |     fetch(\"/api/portfolio/targets\", { headers: { Accept: \"application/json\" }, signal: ac.signal })\n  83 |       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))\n  84 |       .then((body: { summary?: unknown } | null) => {"
+        }
+      ]
+    }
+  ]
+}

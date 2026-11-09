@@ -1,5 +1,3 @@
-[Reading 168 lines from start (total: 168 lines, 0 remaining)]
-
 {
   "schema": "mastermind.terminal.source_audit_policy.v1",
   "accepted_ref": "refs/remotes/origin/master",
@@ -63,6 +61,11 @@
         },
         {
           "path": "scripts/dist/score_personal_accuracy.mjs",
+          "classification": "generated_sidecar_bundle",
+          "expected_live_type": "file"
+        },
+        {
+          "path": "scripts/dist/gen_fundamental_scan.mjs",
           "classification": "generated_sidecar_bundle",
           "expected_live_type": "file"
         }

@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { makeGexT } from "../components/gexdesk/gexStrings";
 
 const GEX = {
   schema: "options_hub.gex/v1",
@@ -53,11 +54,27 @@ const GEX = {
       vanna_net: 0,
       charm_net: 0,
     },
+    {
+      exp: "2026-10-24",
+      gamma_net: 4,
+      delta_net: 2,
+      vanna_net: null,
+      charm_net: 0.2,
+      exposure_support: {
+        basis: "admitted_input_contracts",
+        vanna: { known_contracts: 1, admitted_contracts: 2, known_net: -0.25 },
+        charm: { known_contracts: 2, admitted_contracts: 2, known_net: 0.2 },
+      },
+    },
+    { exp: "2026-10-31", gamma_net: 1, delta_net: 4, vanna_net: null, charm_net: 0.3 },
   ],
 };
 
-test("Exposure desk carries expiry Vanna/Charm through bars and drawer", async ({ page }, testInfo) => {
+for (const lang of ["en", "zh"] as const) {
+test(`Exposure desk carries expiry Vanna/Charm through bars and drawer in ${lang}`, async ({ page }, testInfo) => {
   test.setTimeout(60_000);
+  const t = makeGexT(lang);
+  await page.addInitScript(value => localStorage.setItem("mm.lang", value), lang);
 
   // Exercise the real GexDeskView transport entry point. EventSource requests and
   // the polling fallback receive the same deterministic enriched payload.
@@ -87,38 +104,67 @@ test("Exposure desk carries expiry Vanna/Charm through bars and drawer", async (
   await page.goto("/options?tab=gex");
   await expect(page.locator("#wtab-gex")).toHaveAttribute("aria-selected", "true", { timeout: 15_000 });
 
-  await page.getByRole("button", { name: "Vanna exposure", exact: true }).click();
-  await page.getByRole("button", { name: "By Expiration", exact: true }).click();
+  await page.getByRole("button", { name: t("greekVannaFull"), exact: true }).click();
+  await page.getByRole("button", { name: t("viewByExpiry"), exact: true }).click();
 
   // The existing expiry bar view must consume the enriched by_expiry fields rather
   // than fall back to the legacy "gamma & delta only" state.
   await expect(page.getByText("+2.4M", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("-1.2M", { exact: true }).first()).toBeVisible();
   await expect(
-    page.getByText("This snapshot does not provide Vanna or Charm by expiration.", { exact: true }),
+    page.getByText(t("expiryLensNA"), { exact: true }),
   ).toHaveCount(0);
+
+  const expiryRegion = page.locator(".obs-gexdesk-ladder-region");
+  await expect(expiryRegion.locator("[data-expiry]")).toHaveCount(5);
+  const missing = expiryRegion.locator('[data-expiry="2026-10-31"]');
+  await expect(missing.locator(".num")).toHaveText("—");
+  expect(await missing.evaluate(row => row.children[1].childElementCount)).toBe(0);
+  const zero = expiryRegion.locator('[data-expiry="2026-10-17"]');
+  await expect(zero.locator(".num")).toHaveText("0");
+  expect(await zero.evaluate(row => row.children[1].childElementCount)).toBe(0);
+  const partial = expiryRegion.locator('[data-expiry="2026-10-24"]');
+  await expect(partial).toHaveAttribute("data-partial", "true");
+  await expect(partial).toContainText(t("expiryKnownSubtotal"));
+  await expect(partial).toContainText("-250K");
+  await expect(expiryRegion.getByTestId("expiry-support")).toContainText("4/5");
 
   // Open the existing term-structure drawer: it must consume the SAME selected
   // Greek and the SAME by_expiry payload, not a parallel derived fixture.
-  const drawer = page.getByRole("button", { name: /Exposure by expiry/ });
+  const drawer = page.locator(".obs-xdrawer-hd");
   await expect(drawer).toBeVisible();
   await drawer.click();
   await expect(drawer).toHaveAttribute("aria-expanded", "true");
-  await expect(page.getByRole("img", { name: "Exposure by expiry term structure" })).toBeVisible();
+  await expect(page.getByRole("img", { name: t("exposureByExpiry") })).toBeVisible();
   await expect(page.getByText("+2.4M", { exact: true }).last()).toBeVisible();
   await expect(page.getByText("-1.2M", { exact: true }).last()).toBeVisible();
 
+  const headerCount = await page.locator(".obs-xdrawer-count").textContent();
+  expect(headerCount).toContain("5");
+  await expect(page.getByTestId("xdrawer-unresolved")).toContainText("1");
+  await page.screenshot({
+    path: testInfo.outputPath(`${testInfo.project.name}-${lang}-expiry-vanna-population.png`),
+    fullPage: false,
+  });
+
   // Change only the lens. Both the bars and drawer must now show owner-native CHEX.
-  await page.getByRole("button", { name: "Charm exposure", exact: true }).click();
+  await page.getByRole("button", { name: t("greekCharmFull"), exact: true }).click();
   await expect(page.getByText("-600K", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("+400K", { exact: true }).first()).toBeVisible();
+
+  await expect(page.locator(".obs-xdrawer-count")).toHaveText(headerCount!);
+  await expect(expiryRegion.locator("[data-expiry]")).toHaveCount(5);
+  await expect(expiryRegion.locator('[data-expiry="2026-10-31"] .num')).toHaveText("+300K");
+  await expect(page.getByTestId("xdrawer-unresolved")).toHaveCount(0);
+  await expect(expiryRegion.getByTestId("expiry-support")).toHaveCount(0);
 
   // Exact zero is a third, neutral state — it must remain visually/data-distinct
   // from an unavailable field and from a directional +/- exposure.
   await expect(page.getByText("0", { exact: true }).first()).toBeVisible();
 
   await page.screenshot({
-    path: testInfo.outputPath(`${testInfo.project.name}-expiry-vanna-charm.png`),
+    path: testInfo.outputPath(`${testInfo.project.name}-${lang}-expiry-charm-population.png`),
     fullPage: false,
   });
 });
+}

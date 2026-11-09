@@ -248,10 +248,36 @@ def test_t08_exit_constants():
     assert mod.EXIT_STORE_FAILURES == 1
     assert mod.EXIT_NO_STORES == 2
     assert mod.EXIT_BREAKER_TRIPPED == 3
+    assert mod.EXIT_STALE_VENDOR == 4
     assert mod.EXIT_USAGE == 64
     assert issubclass(mod.TransportExhausted, RuntimeError)
     assert issubclass(mod.EmptyOverlap, RuntimeError)
     assert issubclass(mod.AdjustmentMismatch, RuntimeError)
+
+
+def test_fu_n4_stale_vendor_loses_to_breaker(intraday_env, monkeypatch, capsys):
+    monkeypatch.setattr(mod, "BREAKER_CONSECUTIVE", 2)
+    stores(intraday_env, 4)
+
+    def fake(sym, tf, frm=None, **kwargs):
+        raise mod.TransportExhausted("vendor down")
+
+    rc = run(fake, ["--existing-only", "--expect-advance", "--tf", "1h", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert rc == mod.EXIT_BREAKER_TRIPPED == 3
+    assert "STALE:" not in out
+
+
+def test_fu_n4_stale_vendor_loses_to_store_failures(intraday_env, capsys):
+    stores(intraday_env, 1)
+
+    def fake(sym, tf, frm=None, **kwargs):
+        raise RuntimeError("synthetic store failure")
+
+    rc = run(fake, ["--existing-only", "--expect-advance", "--tf", "1h", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert rc == mod.EXIT_STORE_FAILURES == 1
+    assert "STALE:" not in out
 
 
 @pytest.mark.parametrize(

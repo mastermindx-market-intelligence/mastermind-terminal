@@ -20,7 +20,8 @@ const render = async (node: React.ReactNode) => { await act(async () => root.ren
 describe("actual source outputs become truthful expiry analysis", () => {
   it.each(["vanna", "charm"] as const)("preserves missing, zero, signed complete values and cancellation for %s", lens => {
     const missing = byExpiryToTermStructure(payloads.all_missing.by_expiry, lens, payloads.all_missing.asof);
-    expect(missing.nodes).toEqual([]); expect(missing.sourceCount).toBe(1); expect(missing.missingCount).toBe(1);
+    expect(missing.nodes).toEqual([]); expect(missing.rowCount).toBe(1); expect(missing.sourceCount).toBe(1); expect(missing.missingCount).toBe(1);
+    expect(missing.unresolved).toEqual(payloads.all_missing.by_expiry.map(row => row.exp));
     const zero = byExpiryToTermStructure(payloads.true_zero.by_expiry, lens, payloads.true_zero.asof);
     expect(zero.nodes[0]).toMatchObject({ net: 0, sign: 0, partial: false, knownContracts: 1, admittedContracts: 1 });
     const cancellation = byExpiryToTermStructure(payloads.cancellation.by_expiry, lens, payloads.cancellation.asof);
@@ -68,7 +69,13 @@ describe("actual source outputs become truthful expiry analysis", () => {
     expect(element.querySelector('.num')?.textContent).toBe("0"); expect((element.querySelector('.num') as HTMLElement).style.color).toBe("var(--muted)");
     await render(<ExpiryBars byExpiry={payloads.two_expiries.by_expiry} greek="vanna" asOf="2026-09-25" lang={lang} />);
     expect(element.querySelector('[data-testid="expiry-support"]')?.textContent).toContain("1/2");
-    expect(element.querySelectorAll('[data-expiry]')).toHaveLength(1);
+    expect([...element.querySelectorAll('[data-expiry]')].map(row => row.getAttribute("data-expiry")))
+      .toEqual(payloads.two_expiries.by_expiry.map(row => row.exp).sort());
+    const missingExpiry = payloads.two_expiries.by_expiry.find(row => expiryObservationFor(row, "vanna").net === null)!;
+    const missingRow = element.querySelector(`[data-expiry="${missingExpiry.exp}"]`)!;
+    expect(missingRow.querySelector(".num")?.textContent).toBe("—");
+    expect((missingRow.querySelector(".num") as HTMLElement).style.color).toBe("var(--text-dim)");
+    expect(missingRow.children[1].childElementCount).toBe(0);
   });
 });
 
@@ -94,5 +101,43 @@ describe("support metadata is not permission to invent exposure", () => {
       const after=byExpiryToTermStructure(payloads[name].by_expiry,lens,payloads[name].asof);
       expect(after.nodes.map(n=>n.net)).toEqual(before.nodes.map(n=>n.net));
     }
+  });
+});
+
+describe("mounted support admission remains authoritative", () => {
+  it.each(["vanna", "charm"] as const)("shows no-data for a declared all-missing %s population", async lens => {
+    const p = payloads.all_missing; const t = makeGexT("en");
+    await render(<ExpiryBars byExpiry={p.by_expiry} greek={lens} asOf={p.asof} lang="en" />);
+    expect(element.textContent).toBe(t("expiryNoData"));
+    await render(<ExposureExpiryDrawer byExpiry={p.by_expiry} greek={lens} asOf={p.asof} lang="en" />);
+    await act(async () => (element.querySelector('button[aria-expanded]') as HTMLButtonElement).click());
+    expect(element.querySelector(".obs-xdrawer-empty")?.textContent).toBe(t("xdrawerEmpty"));
+    expect(element.querySelector("svg")).toBeNull();
+  });
+
+  it.each(["en", "zh"] as const)("keeps partial zero neutral and rejects conflicting raw values in %s", async lang => {
+    const source = payloads.partial_vanna.by_expiry[0];
+    const partialZero: ExpiryRow = {
+      ...source,
+      exposure_support: { basis: "admitted_input_contracts", vanna: { known_contracts: 1, admitted_contracts: 2, known_net: 0 } },
+    };
+    const rejected: ExpiryRow = { ...source, exp: "2026-10-30", vanna_net: 0.1 };
+    const rows = [rejected, partialZero]; const t = makeGexT(lang);
+    const ts = byExpiryToTermStructure(rows, "vanna", "2026-09-25");
+    expect(ts.nodes).toHaveLength(1);
+    expect(ts.nodes[0]).toMatchObject({ net: 0, sign: 0, partial: true, knownContracts: 1, admittedContracts: 2 });
+    expect(ts.unresolved).toEqual(["2026-10-30"]);
+    await render(<ExpiryBars byExpiry={rows} greek="vanna" asOf="2026-09-25" lang={lang} />);
+    const zero = element.querySelector('[data-partial="true"]')!;
+    expect(zero.querySelector(".num")?.textContent).toBe(t("expiryKnownSubtotal") + "0");
+    expect((zero.querySelector(".num") as HTMLElement).style.color).toBe("var(--muted)");
+    expect(zero.children[1].childElementCount).toBe(0);
+    const missing = element.querySelector('[data-expiry="2026-10-30"]')!;
+    expect(missing.querySelector(".num")?.textContent).toBe("—");
+    expect(missing.children[1].childElementCount).toBe(0);
+    await render(<ExposureExpiryDrawer byExpiry={rows} greek="vanna" asOf="2026-09-25" lang={lang} />);
+    await act(async () => (element.querySelector('button[aria-expanded]') as HTMLButtonElement).click());
+    expect(element.querySelectorAll('svg [data-partial="true"]')).toHaveLength(1);
+    expect(element.querySelector('svg [data-partial="true"] circle')?.getAttribute("stroke-dasharray")).toBe("3 2");
   });
 });

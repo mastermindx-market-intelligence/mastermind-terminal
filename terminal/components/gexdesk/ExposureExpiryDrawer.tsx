@@ -55,7 +55,10 @@ export function ExposureExpiryDrawer({ byExpiry, greek, asOf, lang }: Props) {
     [byExpiry, greek, asOf],
   );
 
-  const count = ts.nodes.length;
+  // The header counts the whole expiration population, so switching greeks never changes it;
+  // rows with no value for this greek are disclosed in the body instead of being dropped.
+  const count = ts.rowCount;
+  const known = ts.nodes.length;
 
   return (
     /* --inline: the drawer now sits inside the desk's LEFT column (see GexDeskView
@@ -73,7 +76,7 @@ export function ExposureExpiryDrawer({ byExpiry, greek, asOf, lang }: Props) {
         <span className={`obs-xdrawer-caret${open ? " open" : ""}`} aria-hidden>▶</span>
         <span className="obs-lbl">{t("xdrawerTitle")}</span>
         <span className="obs-xdrawer-count">
-          {count}{ts.missingCount > 0 ? `/${ts.sourceCount}` : ""} {t("xdrawerExp")} · {t("dataEod")}
+          {count} {t("xdrawerExp")} · {t("dataEod")}
         </span>
         {/* On the header, not in the body — the tag has to be true whether the drawer is
             open or collapsed. */}
@@ -111,11 +114,11 @@ export function ExposureExpiryDrawer({ byExpiry, greek, asOf, lang }: Props) {
             <div className="obs-xdrawer-empty">{t("xdrawerEmpty")}</div>
           ) : !ts.available ? (
             <div className="obs-xdrawer-empty">{t("xdrawerNA")}</div>
-          ) : count === 0 ? (
+          ) : known === 0 ? (
             <div className="obs-xdrawer-empty">{t("xdrawerEmpty")}</div>
           ) : view === "bubbles" ? (
             <>
-              {(ts.missingCount > 0 || ts.partialCount > 0) && <p role="status" data-testid="expiry-support" className="obs-note">{t("expirySupportSummary").replace("{known}", String(count)).replace("{total}", String(ts.sourceCount)).replace("{partial}", String(ts.partialCount))}</p>}
+              {(ts.missingCount > 0 || ts.partialCount > 0) && <p role="status" data-testid="expiry-support" className="obs-note">{t("expirySupportSummary").replace("{known}", String(known)).replace("{total}", String(ts.sourceCount)).replace("{partial}", String(ts.partialCount))}</p>}
               <div data-testid="expiry-unit" className="obs-note">{t(EXPIRY_UNIT_KEYS[greek])}</div>
               <BubbleField ts={ts} knownLabel={t("expiryKnownSubtotal")} label={t("exposureByExpiry")} />
             </>
@@ -123,6 +126,14 @@ export function ExposureExpiryDrawer({ byExpiry, greek, asOf, lang }: Props) {
             // Bars view reuses the existing ExpiryBars component unchanged.
             <div style={{ display: "flex", flexDirection: "column", maxHeight: 168, overflowY: "auto" }}>
               <ExpiryBars byExpiry={byExpiry} greek={greek} asOf={asOf} lang={lang} />
+            </div>
+          )}
+
+          {ts.available && known > 0 && ts.unresolved.length > 0 && (
+            <div className="obs-note obs-xdrawer-note" data-testid="xdrawer-unresolved" role="note">
+              {t("xdrawerUnresolved")
+                .replace("{n}", String(ts.unresolved.length))
+                .replace("{m}", String(ts.rowCount))}
             </div>
           )}
 
