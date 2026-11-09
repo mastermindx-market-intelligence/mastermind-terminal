@@ -1,5 +1,7 @@
 "use client";
 
+import type { MouseEventHandler } from "react";
+
 import styles from "@/components/news/NewsCatchup.module.css";
 import type { NewsCatchup, NewsReviewFilter } from "@/components/news/useNewsCatchup";
 import {
@@ -7,7 +9,7 @@ import {
   type NewsCatchupKey,
   type NewsCatchupLang,
 } from "@/lib/newsCatchupLex";
-import type { ReviewClass } from "@/lib/newsReviewState";
+import type { ReviewClass, SavedDrift } from "@/lib/newsReviewState";
 
 const FILTERS: readonly NewsReviewFilter[] = ["all", "new", "updated", "reviewed"];
 const FILTER_KEY: Record<NewsReviewFilter, NewsCatchupKey> = {
@@ -34,11 +36,13 @@ export function NewsCatchupBar({
   lang,
   labelForSource,
   curated = false,
+  onMarkShown,
 }: {
   catchup: NewsCatchup;
   lang: NewsCatchupLang;
   labelForSource: (source: string) => string;
   curated?: boolean;
+  onMarkShown?: MouseEventHandler<HTMLButtonElement>;
 }) {
   const t = (key: NewsCatchupKey, vars?: Record<string, string | number>) => newsCatchupText(key, lang, vars);
 
@@ -62,7 +66,7 @@ export function NewsCatchupBar({
         <button
           type="button"
           className={styles.markShown}
-          onClick={catchup.markShown}
+          onClick={onMarkShown ?? catchup.markShown}
           disabled={catchup.unreadShown === 0}
           data-news-mark-shown
         >
@@ -124,6 +128,58 @@ export function NewsReviewChange({ cls, lang }: { cls: ReviewClass | null; lang:
   return <p className={styles.change} data-news-change>{text}</p>;
 }
 
+/** `source:…<last 6 of the id>` — enough of a saved report key to recognize, never to fetch. */
+function abbreviateReportKey(reportKey: string): string {
+  const at = reportKey.indexOf(":");
+  const source = at > 0 ? reportKey.slice(0, at) : "";
+  const id = at > 0 ? reportKey.slice(at + 1) : reportKey;
+  return `${source}:${id.length > 6 ? "…" + id.slice(-6) : id}`;
+}
+
+/**
+ * Journey 6 (E5): "updated since you saved" — the presentation now differs from the basis the
+ * user's mark captured. The ORIGINAL basis stays visible (saved revision, saved report count,
+ * receipt time, abbreviated report key and rights receipt — never the current values), and the
+ * current revision is one action away through the existing ladder toggle. An out-of-order older
+ * copy has no facets and renders nothing.
+ */
+export function NewsSavedBasis({
+  drift,
+  lang,
+  onOpenCurrent,
+}: {
+  drift: SavedDrift | null;
+  lang: NewsCatchupLang;
+  onOpenCurrent: () => void;
+}) {
+  if (!drift || drift.out_of_order || drift.facets.length === 0) return null;
+  const t = (key: NewsCatchupKey, vars?: Record<string, string | number>) => newsCatchupText(key, lang, vars);
+  const { basis } = drift;
+  const time = receiptTime(basis.at, lang);
+  const report = abbreviateReportKey(basis.report_key);
+  const receipt = basis.rights ? `…${basis.rights.receipt_id.slice(-6)}` : null;
+  return (
+    <div className={styles.savedBasis} data-news-saved-basis>
+      <div className={styles.savedBasisRow}>
+        <span className={styles.savedBasisNote}>{t("ncUpdatedSince")}</span>
+        <button
+          type="button"
+          className={styles.openCurrent}
+          onClick={onOpenCurrent}
+          data-news-open-current
+          aria-label={t("ncOpenCurrentAria")}
+        >
+          {t("ncOpenCurrent")}
+        </button>
+      </div>
+      <p className={styles.savedBasisDetail}>
+        {t("ncSavedBasis", { seq: basis.sequence, count: basis.item_count, time, report })}
+        {receipt ? ` · ${t("ncSavedRights", { receipt })}` : null}
+      </p>
+    </div>
+  );
+}
+
 /** Per-story "Mark reviewed" — a local write only; it never touches the story or the network.
  *  `title` (the story headline) only feeds the accessible name, so each button is
  *  distinguishable in a screen-reader button list; the visible text stays ncMarkOne. */
@@ -135,7 +191,7 @@ export function NewsMarkReviewed({
 }: {
   cls: ReviewClass | null;
   lang: NewsCatchupLang;
-  onMark: () => void;
+  onMark: MouseEventHandler<HTMLButtonElement>;
   title?: string;
 }) {
   if (!cls || cls.status === "reviewed") return null;

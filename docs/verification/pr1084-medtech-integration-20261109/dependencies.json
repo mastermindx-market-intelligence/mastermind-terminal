@@ -1,0 +1,8 @@
+{
+  "clonedAt": "2026-11-09T15:23:18.976821+00:00",
+  "sameDevice": true,
+  "source": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1369-analysis-integration-20261109/terminal",
+  "packageSha256": "49a5d19c384aa136867ae093093c303aa49c8f5078ac6e59b8a5a3ea88e3f59e",
+  "lockSha256": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9",
+  "ownedCache": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/terminal/node_modules/.cache/pr1084-playwright"
+}

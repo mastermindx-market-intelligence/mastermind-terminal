@@ -1,0 +1,96 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal
+
+ ❯ lib/__tests__/optionsPlanComparePanel.test.tsx (5 tests | 4 failed) 320ms
+   × Plan comparison preserves evidence and native-owner truth > shows every raw API decimal rather than rounding a tiny nonzero outcome to zero 92ms
+     → expected '$0.00' to be '0.000012345678' // Object.is equality
+   × Plan comparison preserves evidence and native-owner truth > does not declare an existing saved-research input unsaved 98ms
+     → expected 'Compare assumptionsSame contracts, sa…' not to contain 'Neither scenario is saved'
+   × Plan comparison preserves evidence and native-owner truth > localizes buy/sell assumptions and call/put contract labels in Chinese 68ms
+     → expected '差异来自用户假设，不代表市场价格变动。合约基线修订SPY 2026-10-…' to contain '买入'
+   × Plan comparison preserves evidence and native-owner truth > returns keyboard focus to the comparison heading when Clear removes its own control 50ms
+     → expected <button type="button" …(2)></button> to be <h3></h3> // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/optionsPlanComparePanel.test.tsx > Plan comparison preserves evidence and native-owner truth > shows every raw API decimal rather than rounding a tiny nonzero outcome to zero
+AssertionError: expected '$0.00' to be '0.000012345678' // Object.is equality
+
+Expected: "0.000012345678"
+Received: "$0.00"
+
+ ❯ lib/__tests__/optionsPlanComparePanel.test.tsx:32:43
+     30|     await render(a, b);
+     31|     const first = host.querySelector('[data-testid="plan-comparison-po…
+     32|     expect(first.children[1].textContent).toBe(String(a.payoff.curve.p…
+       |                                           ^
+     33|     expect(first.children[2].textContent).toBe(String(b.payoff.curve.p…
+     34|     expect(first.children[3].textContent).toBe(String(b.payoff.curve.p…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  lib/__tests__/optionsPlanComparePanel.test.tsx > Plan comparison preserves evidence and native-owner truth > does not declare an existing saved-research input unsaved
+AssertionError: expected 'Compare assumptionsSame contracts, sa…' not to contain 'Neither scenario is saved'
+
+Expected: "Neither scenario is saved"
+Received: "Compare assumptionsSame contracts, same dated terms. Hypothetical research only.Replace baselineClear baselineShared dated terms: SPY · 2026-10-30 · 2026-10-23 · Captured 2026-10-23T20:00:00ZPinned baselineRevised hypothesisAt sampled underlying $765.00Baseline P/L-$200.00Revised P/L-$400.00Scenario difference-$200.00Two hypothetical expiry P/L curves on identical underlying pricesBaseline dashed; revised calculation solid. Lines connect actual samples; no repricing or interpolation is used to calculate P/L.-5000500760765770Underlying at expiry (USD)Show full sampled rangeWhat changedDifferences are user-authored assumptions, not market-price moves.ContractBaselineRevisedSPY 2026-10-30 765CSide: buy · Contracts: 1 · Entry USD/unit: 2Side: buy · Contracts: 1 · Entry USD/unit: 4All exact scenario prices and P/LSampled expiry outcomes; current minus baseline is a difference between hypotheses, not an executable return.UnderlyingBaseline P/LRevised P/LDifference$612.00-$200.00-$400.00-$200.00$615.06-$200.00-$400.00-$200.00$618.12-$200.00-$400.00-$200.00$621.18-$200.00-$400.00-$200.00$624.24-$200.00-$400.00-$200.00$627.30-$200.00-$400.00-$200.00$630.36-$200.00-$400.00-$200.00$633.42-$200.00-$400.00-$200.00$636.48-$200.00-$400.00-$200.00$639.54-$200.00-$400.00-$200.00$642.60-$200.00-$400.00-$200.00$645.66-$200.00-$400.00-$200.00$648.72-$200.00-$400.00-$200.00$651.78-$200.00-$400.00-$200.00$654.84-$200.00-$400.00-$200.00$657.90-$200.00-$400.00-$200.00$660.96-$200.00-$400.00-$200.00$664.02-$200.00-$400.00-$200.00$667.08-$200.00-$400.00-$200.00$670.14-$200.00-$400.00-$200.00$673.20-$200.00-$400.00-$200.00$676.26-$200.00-$400.00-$200.00$679.32-$200.00-$400.00-$200.00$682.38-$200.00-$400.00-$200.00$685.44-$200.00-$400.00-$200.00$688.50-$200.00-$400.00-$200.00$691.56-$200.00-$400.00-$200.00$694.62-$200.00-$400.00-$200.00$697.68-$200.00-$400.00-$200.00$700.74-$200.00-$400.00-$200.00$703.80-$200.00-$400.00-$200.00$706.86-$200.00-$400.00-$200.00$709.92-$200.00-$400.00-$200.00$712.98-$200.00-$400.00-$200.00$716.04-$200.00-$400.00-$200.00$719.10-$200.00-$400.00-$200.00$722.16-$200.00-$400.00-$200.00$725.22-$200.00-$400.00-$200.00$728.28-$200.00-$400.00-$200.00$731.34-$200.00-$400.00-$200.00$734.40-$200.00-$400.00-$200.00$737.46-$200.00-$400.00-$200.00$740.52-$200.00-$400.00-$200.00$743.58-$200.00-$400.00-$200.00$746.64-$200.00-$400.00-$200.00$749.70-$200.00-$400.00-$200.00$752.76-$200.00-$400.00-$200.00$755.82-$200.00-$400.00-$200.00$758.88-$200.00-$400.00-$200.00$761.94-$200.00-$400.00-$200.00$765.00-$200.00-$400.00-$200.00$768.06$106.00-$94.00-$200.00$771.12$412.00$212.00-$200.00$774.18$718.00$518.00-$200.00$777.24$1,024.00$824.00-$200.00$780.30$1,330.00$1,130.00-$200.00$783.36$1,636.00$1,436.00-$200.00$786.42$1,942.00$1,742.00-$200.00$789.48$2,248.00$2,048.00-$200.00$792.54$2,554.00$2,354.00-$200.00$795.60$2,860.00$2,660.00-$200.00$798.66$3,166.00$2,966.00-$200.00$801.72$3,472.00$3,272.00-$200.00$804.78$3,778.00$3,578.00-$200.00$807.84$4,084.00$3,884.00-$200.00$810.90$4,390.00$4,190.00-$200.00$813.96$4,696.00$4,496.00-$200.00$817.02$5,002.00$4,802.00-$200.00$820.08$5,308.00$5,108.00-$200.00$823.14$5,614.00$5,414.00-$200.00$826.20$5,920.00$5,720.00-$200.00$829.26$6,226.00$6,026.00-$200.00$832.32$6,532.00$6,332.00-$200.00$835.38$6,838.00$6,638.00-$200.00$838.44$7,144.00$6,944.00-$200.00$841.50$7,450.00$7,250.00-$200.00$844.56$7,756.00$7,556.00-$200.00$847.62$8,062.00$7,862.00-$200.00$850.68$8,368.00$8,168.00-$200.00$853.74$8,674.00$8,474.00-$200.00$856.80$8,980.00$8,780.00-$200.00$859.86$9,286.00$9,086.00-$200.00$862.92$9,592.00$9,392.00-$200.00$865.98$9,898.00$9,698.00-$200.00$869.04$10,204.00$10,004.00-$200.00$872.10$10,510.00$10,310.00-$200.00$875.16$10,816.00$10,616.00-$200.00$878.22$11,122.00$10,922.00-$200.00$881.28$11,428.00$11,228.00-$200.00$884.34$11,734.00$11,534.00-$200.00$887.40$12,040.00$11,840.00-$200.00$890.46$12,346.00$12,146.00-$200.00$893.52$12,652.00$12,452.00-$200.00$896.58$12,958.00$12,758.00-$200.00$899.64$13,264.00$13,064.00-$200.00$902.70$13,570.00$13,370.00-$200.00$905.76$13,876.00$13,676.00-$200.00$908.82$14,182.00$13,982.00-$200.00$911.88$14,488.00$14,288.00-$200.00$914.94$14,794.00$14,594.00-$200.00$918.00$15,100.00$14,900.00-$200.00No fees, early exercise, assignment, current quotes or trading execution. Neither scenario is saved to an account."
+
+ ❯ lib/__tests__/optionsPlanComparePanel.test.tsx:38:34
+     36|   it("does not declare an existing saved-research input unsaved", asyn…
+     37|     await render();
+     38|     expect(host.textContent).not.toContain("Neither scenario is saved"…
+       |                                  ^
+     39|     expect(host.textContent).toContain("Pinning does not save");
+     40|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  lib/__tests__/optionsPlanComparePanel.test.tsx > Plan comparison preserves evidence and native-owner truth > localizes buy/sell assumptions and call/put contract labels in Chinese
+AssertionError: expected '差异来自用户假设，不代表市场价格变动。合约基线修订SPY 2026-10-…' to contain '买入'
+
+Expected: "买入"
+Received: "差异来自用户假设，不代表市场价格变动。合约基线修订SPY 2026-10-30 765C方向: buy · 张数: 1 · 入场美元/单位: 2方向: buy · 张数: 1 · 入场美元/单位: 4"
+
+ ❯ lib/__tests__/optionsPlanComparePanel.test.tsx:44:33
+     42|     await render(scenario(), scenario(4), "zh");
+     43|     const changes = host.querySelector('[data-testid="plan-assumption-…
+     44|     expect(changes.textContent).toContain("买入");
+       |                                 ^
+     45|     expect(changes.textContent).toContain("看涨");
+     46|     expect(changes.textContent).not.toMatch(/\bbuy\b|\bsell\b/);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  lib/__tests__/optionsPlanComparePanel.test.tsx > Plan comparison preserves evidence and native-owner truth > returns keyboard focus to the comparison heading when Clear removes its own control
+AssertionError: expected <button type="button" …(2)></button> to be <h3></h3> // Object.is equality
+
+- Expected
++ Received
+
+- <h3>
+-   Compare assumptions
+- </h3>
++ <button
++   class="_actionSecondary_22dcaf"
++   data-testid="plan-clear-baseline"
++   type="button"
++ >
++   Clear baseline
++ </button>
+
+ ❯ lib/__tests__/optionsPlanComparePanel.test.tsx:53:36
+     51|     button.focus(); await act(async () => button.click());
+     52|     expect(clear).toHaveBeenCalledOnce();
+     53|     expect(document.activeElement).toBe(host.querySelector("h3"));
+       |                                    ^
+     54|   });
+     55|   it("withholds the overlay and exact differences when the dated refer…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 1 passed (5)
+   Start at  20:54:58
+   Duration  6.93s (transform 367ms, setup 0ms, collect 557ms, tests 320ms, environment 4.53s, prepare 251ms)
+

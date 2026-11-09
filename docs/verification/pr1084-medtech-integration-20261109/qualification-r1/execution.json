@@ -1,0 +1,546 @@
+{
+  "appliedReceiptSha256": "087902b037282c94aefab098839f52217342075ddf6d109e419fd00a15c6bf65",
+  "branchHead": "00381734b54d2ada1f777b5a7b3a15b12f57981a",
+  "completedAt": "2026-11-09T15:28:36.698403+00:00",
+  "error": "",
+  "immutableSqlSha256": "c2e4831534fe2af7f835b19210020544b56b01866109a06b965ea656d87b8406",
+  "preservedHistoricalImages": {
+    "desktop-change-review.png": "badc0f63022744e5af5d25bf996b3e90917879edebc6abd7a5d564bee2e6c020",
+    "desktop-record-dark.png": "c9c5a9e0e5e5581687d0eef96cadafaac59fd20477ebd7c1972e0fb24f165046",
+    "desktop-review-after-refresh-and-back.png": "430534fa475f1913c44ef26dc81044c50ab6a8bbe2e621f19eb54224ab17f477",
+    "desktop-saved-watches-retained.png": "a7dd20475b9f6e1803a909b0c5b8dab556e27e403a2cb55be6ebc375a63c8842",
+    "desktop-watchdesk-dark.png": "d0ce019d9c9a769bf7b28324c80778af7f8a73844334f1db096017b643be7063",
+    "mobile-change-review.png": "168a4de497e8ebf2c34259533f27dec6d020010dee249545810dd60c9bc82b8c",
+    "mobile-record-dark.png": "009bfe2647d841f436a639d4a3df0eceb88bdd3825bd3f16174ed6e64042fe8a",
+    "mobile-review-after-refresh-and-back.png": "dc458c9cffac547e4faa90e992a34ecf0b2567e0ca59d87ac3c08e1938f23770",
+    "mobile-saved-watches-retained.png": "725dd5301b401b9fa9330d61fca7f4af756a5d52d1d02e6ec02d44763c4f9e6f",
+    "mobile-watchdesk-dark.png": "23d4f4053e7098b4980e804cc8f6b913eec2eddcf980fe7d3df7146a213aa357"
+  },
+  "protectedBase": "03af393ce05c12282003a3919cc473c032264922",
+  "protectedLedgerSha256": "b8346843d4400e753bd563e2b107a8b88b0474e1805b86bda538b2f594299baa",
+  "releaseBoundary": "Migration queue ownership remains unqualified; no auto-merge admission, DDL, ledger landing stamp, activation or live authenticated acceptance is authorized by this local qualification.",
+  "resolvedIndexTree": "bc413f6608d3c257587f4a7efaa76668ff3d4f2c",
+  "schema": "terminal_pr1084_source_qualification.v1",
+  "sourceEntries": 1947,
+  "stages": [
+    {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/medtechServer.test.ts",
+        "lib/__tests__/medtechWatches.test.ts",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/unit-report.json"
+      ],
+      "exit": 0,
+      "logSha256": "a8d980926ff0a4bc421fc2f699f546864ad0095a86bef9194007ee4ec52052a4",
+      "name": "medtech-unit",
+      "passed": 58,
+      "port": null,
+      "reportSha256": "5f3bc8a77fc8ead1aecfc273587109062e59502afc0688401d7a3a72a9841664",
+      "seconds": 3.66,
+      "sourceStable": true,
+      "startedAt": "2026-11-09T15:24:30.933394+00:00",
+      "state": "CLOSED",
+      "testCompletedAt": "2026-11-09T15:24:34.595419+00:00"
+    },
+    {
+      "command": [
+        "python3",
+        "-m",
+        "pytest",
+        "tests/test_supabase_migration_namespace.py",
+        "-q"
+      ],
+      "exit": 0,
+      "logSha256": "ca14c8efa0e0e468eda6a5978cb3a4b5b8ea33c116f5f44764d97bd6821b6cdf",
+      "name": "migration-namespace",
+      "port": null,
+      "seconds": 0.95,
+      "sourceStable": true,
+      "startedAt": "2026-11-09T15:24:36.232254+00:00",
+      "state": "CLOSED",
+      "testCompletedAt": "2026-11-09T15:24:37.178278+00:00"
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "typecheck",
+      "port": null,
+      "seconds": 68.25,
+      "sourceStable": true,
+      "startedAt": "2026-11-09T15:24:38.792114+00:00",
+      "state": "CLOSED",
+      "testCompletedAt": "2026-11-09T15:25:47.036886+00:00"
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "components/workspaces/DiscoverWorkspace.tsx",
+        "e2e/large-trades.spec.ts"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "affected-lint",
+      "port": null,
+      "seconds": 6.16,
+      "sourceStable": true,
+      "startedAt": "2026-11-09T15:25:48.995110+00:00",
+      "state": "CLOSED",
+      "testCompletedAt": "2026-11-09T15:25:55.153327+00:00"
+    },
+    {
+      "artifacts": {
+        ".last-run.json": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+        "medtech-watchdesk-PMA-fami-06a05-flicts-require-a-fresh-read-desktop/attachments/watch-conflict-b3a6f491a12a8d9123b98c56c9329caafbba73bf.png": "2505d0b0fe0033b6c7284b15ef65e0ff6c98074713e34d3ec8445a9c618aa9a2",
+        "medtech-watchdesk-PMA-fami-06a05-flicts-require-a-fresh-read-desktop/watch-conflict.png": "2505d0b0fe0033b6c7284b15ef65e0ff6c98074713e34d3ec8445a9c618aa9a2",
+        "medtech-watchdesk-PMA-fami-06a05-flicts-require-a-fresh-read-mobile/attachments/watch-conflict-79820c0d2b67995d39ca1b9b5ba20e970731d4b9.png": "302a217dc504679fdc7331d2c60244d78e51bb25bb52a0970b4b2fa6c3bc995d",
+        "medtech-watchdesk-PMA-fami-06a05-flicts-require-a-fresh-read-mobile/watch-conflict.png": "302a217dc504679fdc7331d2c60244d78e51bb25bb52a0970b4b2fa6c3bc995d",
+        "medtech-watchdesk-PMA-fami-06a05-flicts-require-a-fresh-read-tablet/attachments/watch-conflict-eb78ea4683f6a50a325bea7eddc3eeac1c8d9474.png": "eb3d6c666874f0cb9f67843994844f4da1fa1aa441a841135499d8845453d16d",
+        "medtech-watchdesk-PMA-fami-06a05-flicts-require-a-fresh-read-tablet/watch-conflict.png": "eb3d6c666874f0cb9f67843994844f4da1fa1aa441a841135499d8845453d16d",
+        "medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-desktop/attachments/change-review-af0e05450268a944f1b9eb04c6e2aeca5447afea.png": "001288dd389b828b09f787876f0398b8729c455956f952457f54a7770a90dac8",
+        "medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-desktop/attachments/my-watches-3310a9033e0ad8d9c52a39dc75aa82ce4cd58a48.png": "1296a0c74f857bb589bdee80b0bdf0d66a230422ae85af80da4d35b25d886df4",
+        "medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-desktop/attachments/watch-dialog-ad2b4a58ed9d38037554f38ad615ccf98939f1c0.png": "cc16ed1f645c88a7142cf4e7172b033cac2802b9c529e46c51ea012bb60fec83",
+        "medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-desktop/change-review.png": "001288dd389b828b09f787876f0398b8729c455956f952457f54a7770a90dac8",
+        "medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-desktop/my-watches.png": "1296a0c74f857bb589bdee80b0bdf0d66a230422ae85af80da4d35b25d886df4",
+        "medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-desktop/watch-dialog.png": "cc16ed1f645c88a7142cf4e7172b033cac2802b9c529e46c51ea012bb60fec83",
+        "medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-mobile/attachments/change-review-90592cf6621bf9fc2dfb638980e4959fb512d206.png": "3966de89736e45c7f2a81508af29ffa2a337cc7e128e7d71e0b128ac28e87144",
+        "medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-mobile/attachments/my-watches-ae1532ed49d55956ba3e8c62f818e91c68cda405.png": "016be15fd149343cdd4fbd24c6472fa90580378a5858c5543f62e9775e21a3ff",
+        "medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-mobile/attachments/watch-dialog-5552f58475e1bc481029d587f0f27956a270eab8.png": "8ea9aa0a6ab5da5ca0eb5c7388ca15b987a6c725d79896b31b7915496848fa98",
+        "medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-mobile/change-review.png": "3966de89736e45c7f2a81508af29ffa2a337cc7e128e7d71e0b128ac28e87144",
+        "medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-mobile/my-watches.png": "016be15fd149343cdd4fbd24c6472fa90580378a5858c5543f62e9775e21a3ff",
+        "medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-mobile/watch-dialog.png": "8ea9aa0a6ab5da5ca0eb5c7388ca15b987a6c725d79896b31b7915496848fa98",
+        "medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-tablet/attachments/change-review-7e3023498022fb775aab36fa2d8a8f1b93c3e54e.png": "bd7e5972515006eb2dba800b09030d1276b0bafc2e4218462bd130e81ebe3383",
+        "medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-tablet/attachments/my-watches-b1dce7300c8cd874979fcf1d9c74c551c495881b.png": "bd67c39baacf4495b005ce25f182e471c75a2638a6cfff2cc81ef5d5ea515287",
+        "medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-tablet/attachments/watch-dialog-781345dc0370f644e6eab5e819a801c6c85c9987.png": "cc15108a9dfd0c0e174249d0b8ba93dab77b5435bc8b0a6047575e08f450fc8e",
+        "medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-tablet/change-review.png": "bd7e5972515006eb2dba800b09030d1276b0bafc2e4218462bd130e81ebe3383",
+        "medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-tablet/my-watches.png": "bd67c39baacf4495b005ce25f182e471c75a2638a6cfff2cc81ef5d5ea515287",
+        "medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-tablet/watch-dialog.png": "cc15108a9dfd0c0e174249d0b8ba93dab77b5435bc8b0a6047575e08f450fc8e",
+        "medtech-watchdesk-detail-a-2113a--a-replacement-detail-fails-desktop/attachments/detail-refresh-retained-4618bba2bbfa8ce13f5c8c2931db9bedc0023d12.png": "6b95009e1e62b225053692c11b26755599d00b1a07f9dc5044978b41016aae20",
+        "medtech-watchdesk-detail-a-2113a--a-replacement-detail-fails-desktop/detail-refresh-retained.png": "6b95009e1e62b225053692c11b26755599d00b1a07f9dc5044978b41016aae20",
+        "medtech-watchdesk-detail-a-2113a--a-replacement-detail-fails-mobile/attachments/detail-refresh-retained-ebafded1433cffdd157bfcf4c828618731f24eed.png": "a2717ec207137be16a81ff8bfc5705c0712bf811b0fddf2a226a3fccc3d81819",
+        "medtech-watchdesk-detail-a-2113a--a-replacement-detail-fails-mobile/detail-refresh-retained.png": "a2717ec207137be16a81ff8bfc5705c0712bf811b0fddf2a226a3fccc3d81819",
+        "medtech-watchdesk-detail-a-2113a--a-replacement-detail-fails-tablet/attachments/detail-refresh-retained-935112aa8ec59037784b43a9d9483fc255ca612f.png": "9bd12f18e1c572390cfb177465f1a07df4df37d7b930f438738c468b529c1422",
+        "medtech-watchdesk-detail-a-2113a--a-replacement-detail-fails-tablet/detail-refresh-retained.png": "9bd12f18e1c572390cfb177465f1a07df4df37d7b930f438738c468b529c1422",
+        "medtech-watchdesk-failed-w-f0a16-ved-rows-and-disables-edits-desktop/attachments/saved-watches-retained-7f35abfb15db5883c2cfd2b952b0365ccbe28320.png": "4902e6dc0d3c0e5d0d45d644ed571783575814d97362f2810155537a882c28fd",
+        "medtech-watchdesk-failed-w-f0a16-ved-rows-and-disables-edits-desktop/saved-watches-retained.png": "4902e6dc0d3c0e5d0d45d644ed571783575814d97362f2810155537a882c28fd",
+        "medtech-watchdesk-failed-w-f0a16-ved-rows-and-disables-edits-mobile/attachments/saved-watches-retained-1604afd69253f7071e91d2a4669d99d192740e6f.png": "ef22770f85a9c9e17ef4fae5ead292272251aeebd18b62b150e81a60eb2261dd",
+        "medtech-watchdesk-failed-w-f0a16-ved-rows-and-disables-edits-mobile/saved-watches-retained.png": "ef22770f85a9c9e17ef4fae5ead292272251aeebd18b62b150e81a60eb2261dd",
+        "medtech-watchdesk-failed-w-f0a16-ved-rows-and-disables-edits-tablet/attachments/saved-watches-retained-22c05f2f95f945adb7e51b11bda883d4102a612f.png": "83a19005eb46cc44f57e9c3c786ae846a6261592ff54eb466d030e91179fe48c",
+        "medtech-watchdesk-failed-w-f0a16-ved-rows-and-disables-edits-tablet/saved-watches-retained.png": "83a19005eb46cc44f57e9c3c786ae846a6261592ff54eb466d030e91179fe48c",
+        "medtech-watchdesk-generati-5c8ee-ly-without-a-browser-reload-desktop/attachments/generation-conflict-2b27036e4a17e5ffac7e5e5e9686dbb427894d1f.png": "b55f9b5273d21ddaf61d14922d07f7026a06ac1a09cde6eb87c25e8ab707bbae",
+        "medtech-watchdesk-generati-5c8ee-ly-without-a-browser-reload-desktop/attachments/refresh-unavailable-retained-71f9ecacfce43a01aa177c05cfcb31986e15a0b3.png": "4760c0d41caf1f19e268cebcaf900880eb45c54e3fdbcf6a0772f095799977d4",
+        "medtech-watchdesk-generati-5c8ee-ly-without-a-browser-reload-desktop/generation-conflict.png": "b55f9b5273d21ddaf61d14922d07f7026a06ac1a09cde6eb87c25e8ab707bbae",
+        "medtech-watchdesk-generati-5c8ee-ly-without-a-browser-reload-desktop/refresh-unavailable-retained.png": "4760c0d41caf1f19e268cebcaf900880eb45c54e3fdbcf6a0772f095799977d4",
+        "medtech-watchdesk-generati-5c8ee-ly-without-a-browser-reload-mobile/attachments/generation-conflict-cfedf9cf1b97d4b29844d5f75bffd19420cc79b2.png": "5cbbb2968078a373e3937dc44aa87d196f173bbe44140cd30532800a5a3be139",
+        "medtech-watchdesk-generati-5c8ee-ly-without-a-browser-reload-mobile/attachments/refresh-unavailable-retained-9c48649f701197e08b14d32ef019ba37bdc71a23.png": "cc6f62b51997413c976a44a2fecaea3a724cee2e559ab48ebc43b05be014e0dc",
+        "medtech-watchdesk-generati-5c8ee-ly-without-a-browser-reload-mobile/generation-conflict.png": "5cbbb2968078a373e3937dc44aa87d196f173bbe44140cd30532800a5a3be139",
+        "medtech-watchdesk-generati-5c8ee-ly-without-a-browser-reload-mobile/refresh-unavailable-retained.png": "cc6f62b51997413c976a44a2fecaea3a724cee2e559ab48ebc43b05be014e0dc",
+        "medtech-watchdesk-generati-5c8ee-ly-without-a-browser-reload-tablet/attachments/generation-conflict-b216e6d0b3b09bf0563de22a0b9ef022843b22ca.png": "dee22f476336fdf7f1bd988dd5e65c97760f1c09607e37ba4c09bc6252fb08e5",
+        "medtech-watchdesk-generati-5c8ee-ly-without-a-browser-reload-tablet/attachments/refresh-unavailable-retained-37aa26807d22f2c829b468ecfe175aa6f0d2667e.png": "ac63ecf045afd0db023ca577ba3b6b7d79f569b0807b5e0b89fabd16d60942b2",
+        "medtech-watchdesk-generati-5c8ee-ly-without-a-browser-reload-tablet/generation-conflict.png": "dee22f476336fdf7f1bd988dd5e65c97760f1c09607e37ba4c09bc6252fb08e5",
+        "medtech-watchdesk-generati-5c8ee-ly-without-a-browser-reload-tablet/refresh-unavailable-retained.png": "ac63ecf045afd0db023ca577ba3b6b7d79f569b0807b5e0b89fabd16d60942b2",
+        "medtech-watchdesk-paid-access-denial-clears-the-source-view-desktop/attachments/subscription-required-c264b584c21c21162f184ffe34b8d0c61ea08028.png": "b8d86656f4d153038cd4ba08ba1f45ffcfa9e68175779e382564b5e98d7331b1",
+        "medtech-watchdesk-paid-access-denial-clears-the-source-view-desktop/subscription-required.png": "b8d86656f4d153038cd4ba08ba1f45ffcfa9e68175779e382564b5e98d7331b1",
+        "medtech-watchdesk-paid-access-denial-clears-the-source-view-mobile/attachments/subscription-required-4c3c87e7da7ac675dea2e6bb2d772f5ac7fe3aa5.png": "a9157017ae8d56726f6df31eb553fa02660be4533b0c63df54c4cf3bf15a0bbf",
+        "medtech-watchdesk-paid-access-denial-clears-the-source-view-mobile/subscription-required.png": "a9157017ae8d56726f6df31eb553fa02660be4533b0c63df54c4cf3bf15a0bbf",
+        "medtech-watchdesk-paid-access-denial-clears-the-source-view-tablet/attachments/subscription-required-8bca1f25ac96bc94e88ad6bfd8abcbedcd77d602.png": "191e751f116f616c97c3dde8b770978f0a9a54007c60d7cb881025ced19245d4",
+        "medtech-watchdesk-paid-access-denial-clears-the-source-view-tablet/subscription-required.png": "191e751f116f616c97c3dde8b770978f0a9a54007c60d7cb881025ced19245d4",
+        "medtech-watchdesk-records--5813d-et-filters-and-browser-Back-desktop/attachments/empty-search-e3d2b3daa4769b8f8a79361d1bc5c01a55063d8b.png": "b104953729be1fa07fa8ee62ed0a9a17a42d184fe213a60cf78d5114e7e26516",
+        "medtech-watchdesk-records--5813d-et-filters-and-browser-Back-desktop/attachments/record-dark-e71fcfa2a8d2af307a4cdbedd851a0976fee0434.png": "a7e360a437be392e1d7398f9a723f12b5ce76e67d8b90bf7dc2736be9b897ffc",
+        "medtech-watchdesk-records--5813d-et-filters-and-browser-Back-desktop/attachments/source-dark-70a160d8ca344cee90a7e0631a0ff4973da385cb.png": "0b8004950bc12772113a90f8c57f503b6745c5788bec4a919edde811684e3add",
+        "medtech-watchdesk-records--5813d-et-filters-and-browser-Back-desktop/attachments/watchdesk-dark-7dc6a9b604c129302139f87ec529ad3548a1e35e.png": "b43877616f56d84f250511c6376e7cf5ba900457b3c6676eb32863e47f81f068",
+        "medtech-watchdesk-records--5813d-et-filters-and-browser-Back-desktop/empty-search.png": "b104953729be1fa07fa8ee62ed0a9a17a42d184fe213a60cf78d5114e7e26516",
+        "medtech-watchdesk-records--5813d-et-filters-and-browser-Back-desktop/record-dark.png": "a7e360a437be392e1d7398f9a723f12b5ce76e67d8b90bf7dc2736be9b897ffc",
+        "medtech-watchdesk-records--5813d-et-filters-and-browser-Back-desktop/source-dark.png": "0b8004950bc12772113a90f8c57f503b6745c5788bec4a919edde811684e3add",
+        "medtech-watchdesk-records--5813d-et-filters-and-browser-Back-desktop/watchdesk-dark.png": "b43877616f56d84f250511c6376e7cf5ba900457b3c6676eb32863e47f81f068",
+        "medtech-watchdesk-records--5813d-et-filters-and-browser-Back-mobile/attachments/empty-search-dd8658acf83ff8150f4f45392dae2111a73d2f1f.png": "0ab48dd926cb2429e4d6ee449ccfc67b1c3eac3ea063c358b6cee09ad831f522",
+        "medtech-watchdesk-records--5813d-et-filters-and-browser-Back-mobile/attachments/record-dark-998a7837b4f6c2faec32b750271fff6fbe882a3f.png": "1bc2c4e02056d464203a03a448c11afc32e06d6c8230374cd9e3fc9b14b59130",
+        "medtech-watchdesk-records--5813d-et-filters-and-browser-Back-mobile/attachments/source-dark-87e380895743c2b30fbfe4cde1f733f3b9e68f23.png": "d5b8eb27708825dbc78de5d3cb7e49d9099a752be9d69f4fbf26880e4d463d46",
+        "medtech-watchdesk-records--5813d-et-filters-and-browser-Back-mobile/attachments/watchdesk-dark-fbf98a89785962fbc095c5065a634a0e46b348fc.png": "c54e2ceffdb7d877400f49d27b416963b54af4601f507298e2b701722a047f52",
+        "medtech-watchdesk-records--5813d-et-filters-and-browser-Back-mobile/empty-search.png": "0ab48dd926cb2429e4d6ee449ccfc67b1c3eac3ea063c358b6cee09ad831f522",
+        "medtech-watchdesk-records--5813d-et-filters-and-browser-Back-mobile/record-dark.png": "1bc2c4e02056d464203a03a448c11afc32e06d6c8230374cd9e3fc9b14b59130",
+        "medtech-watchdesk-records--5813d-et-filters-and-browser-Back-mobile/source-dark.png": "d5b8eb27708825dbc78de5d3cb7e49d9099a752be9d69f4fbf26880e4d463d46",
+        "medtech-watchdesk-records--5813d-et-filters-and-browser-Back-mobile/watchdesk-dark.png": "c54e2ceffdb7d877400f49d27b416963b54af4601f507298e2b701722a047f52",
+        "medtech-watchdesk-records--5813d-et-filters-and-browser-Back-tablet/attachments/empty-search-0930ae56a7f08e5287c923abea955222e523f816.png": "f21c6b0275f5ba18bc86f00b5294717303272ab84cdd620a750d57e96df6b410",
+        "medtech-watchdesk-records--5813d-et-filters-and-browser-Back-tablet/attachments/record-dark-860776df042d4b4f39a64f6b29d98dea1375ecb1.png": "19db2dc1c370b32c3e91e8fc3be7a2da37e919fff685e0bd9c3f71a79dca2238",
+        "medtech-watchdesk-records--5813d-et-filters-and-browser-Back-tablet/attachments/source-dark-6207f0290dcb3e9d7b6de28e923bd61242dfc66d.png": "019c40321417e0c885d0c64a1344166a513a0350ef4cc8dc4706a33d0d119829",
+        "medtech-watchdesk-records--5813d-et-filters-and-browser-Back-tablet/attachments/watchdesk-dark-3e51d570ea0f4ddf84063265b9a95d22fffd0033.png": "5f77f26caf7db9974aece8587e8ab284beeb2b373c423e47238501942654f227",
+        "medtech-watchdesk-records--5813d-et-filters-and-browser-Back-tablet/empty-search.png": "f21c6b0275f5ba18bc86f00b5294717303272ab84cdd620a750d57e96df6b410",
+        "medtech-watchdesk-records--5813d-et-filters-and-browser-Back-tablet/record-dark.png": "19db2dc1c370b32c3e91e8fc3be7a2da37e919fff685e0bd9c3f71a79dca2238",
+        "medtech-watchdesk-records--5813d-et-filters-and-browser-Back-tablet/source-dark.png": "019c40321417e0c885d0c64a1344166a513a0350ef4cc8dc4706a33d0d119829",
+        "medtech-watchdesk-records--5813d-et-filters-and-browser-Back-tablet/watchdesk-dark.png": "5f77f26caf7db9974aece8587e8ab284beeb2b373c423e47238501942654f227",
+        "medtech-watchdesk-review-a-363d5-les-after-record-navigation-desktop/attachments/review-after-refresh-and-back-ce035410cff00a1232d689c9c632dc278fc77c6a.png": "d562e35d2a4d1f45198be5a454891506dd3c5060a3ae504c80ad3fc81a8a096c",
+        "medtech-watchdesk-review-a-363d5-les-after-record-navigation-desktop/review-after-refresh-and-back.png": "d562e35d2a4d1f45198be5a454891506dd3c5060a3ae504c80ad3fc81a8a096c",
+        "medtech-watchdesk-review-a-363d5-les-after-record-navigation-mobile/attachments/review-after-refresh-and-back-972f5a2e77e17202e90af226bc43817329573ef6.png": "4e44d1bf94e47af77411497811e7cf34819ab50cb8ce4dd7ac37c348be8e596e",
+        "medtech-watchdesk-review-a-363d5-les-after-record-navigation-mobile/review-after-refresh-and-back.png": "4e44d1bf94e47af77411497811e7cf34819ab50cb8ce4dd7ac37c348be8e596e",
+        "medtech-watchdesk-review-a-363d5-les-after-record-navigation-tablet/attachments/review-after-refresh-and-back-78c95833c9d351f138e2649a5639addce9ac9b22.png": "0c2b9e43310968a5adbb5df2d95dfd9e64d06b9af2a138b0a44d5f89f6ae0c75",
+        "medtech-watchdesk-review-a-363d5-les-after-record-navigation-tablet/review-after-refresh-and-back.png": "0c2b9e43310968a5adbb5df2d95dfd9e64d06b9af2a138b0a44d5f89f6ae0c75",
+        "medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-desktop/attachments/record-en-dark-646ec115eb36d8d6f1de9c5154911d5d8d19b117.png": "9877b15f951fe04a5961e94a50d72a7c55892d07538efe7de362f6d7183aec10",
+        "medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-desktop/attachments/watch-en-dark-066127b4361fb5e3c8a9c0e781160289a8661889.png": "d8d10659a24bfe21e0ab7192926dcc92d12b3dba4f0f1e27bec4082a012ac106",
+        "medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-desktop/attachments/watchdesk-en-dark-541d3c2d031f1389da4f02b977e8ab3f8f3e4c63.png": "69b4a27b74d14557558f41634281599a435e0a60cfc0fb92b9152d9a5f3ae291",
+        "medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-desktop/record-en-dark.png": "9877b15f951fe04a5961e94a50d72a7c55892d07538efe7de362f6d7183aec10",
+        "medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-desktop/watch-en-dark.png": "d8d10659a24bfe21e0ab7192926dcc92d12b3dba4f0f1e27bec4082a012ac106",
+        "medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-desktop/watchdesk-en-dark.png": "69b4a27b74d14557558f41634281599a435e0a60cfc0fb92b9152d9a5f3ae291",
+        "medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-mobile/attachments/record-en-dark-7e9178835b8391ecfd8724da512f38e406af4669.png": "8abfe18354b7ae77453128dfd13d4061340dc74753d820bf846f236d529bc036",
+        "medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-mobile/attachments/watch-en-dark-21fa479ef4d39a5d0127320b6fc31c2ffb949d5b.png": "e1e2cfb636380e52d84d6f1693d9d0ce34067564832d7101b747353681f17810",
+        "medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-mobile/attachments/watchdesk-en-dark-589981447db10f2d3409e500f019507ae958b96d.png": "c54e2ceffdb7d877400f49d27b416963b54af4601f507298e2b701722a047f52",
+        "medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-mobile/record-en-dark.png": "8abfe18354b7ae77453128dfd13d4061340dc74753d820bf846f236d529bc036",
+        "medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-mobile/watch-en-dark.png": "e1e2cfb636380e52d84d6f1693d9d0ce34067564832d7101b747353681f17810",
+        "medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-mobile/watchdesk-en-dark.png": "c54e2ceffdb7d877400f49d27b416963b54af4601f507298e2b701722a047f52",
+        "medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-tablet/attachments/record-en-dark-20a92f1a208df4be944fe73b193d60d3d097e91b.png": "c95fe0374a048e3bcf2e5d76009cac5dcdd6e54fe0f6dba85f09a709a578ff9c",
+        "medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-tablet/attachments/watch-en-dark-2202fce512e348ad7ac0ef16705e0db57fde1bf2.png": "a490360d6d5f6785e9af4df688ff087876721ad8c2a6e96e5899b3e4b9b14242",
+        "medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-tablet/attachments/watchdesk-en-dark-97e33ba938564124fc711591e4798e9580ed73f5.png": "10a87b20fd7b0db8fed3ad0bcff4d7e45f83aad65625768bf1c45978f71fce48",
+        "medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-tablet/record-en-dark.png": "c95fe0374a048e3bcf2e5d76009cac5dcdd6e54fe0f6dba85f09a709a578ff9c",
+        "medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-tablet/watch-en-dark.png": "a490360d6d5f6785e9af4df688ff087876721ad8c2a6e96e5899b3e4b9b14242",
+        "medtech-watchdesk-shared-l-3540c-the-supported-dark-shell-en-tablet/watchdesk-en-dark.png": "10a87b20fd7b0db8fed3ad0bcff4d7e45f83aad65625768bf1c45978f71fce48",
+        "medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-desktop/attachments/record-zh-dark-7199648f716b702eb7c6db9dbcc988e7a2a4b5d7.png": "2fe94e4bf5007e334a4e6357048f8073473f04a47422ed54349a949c541157cf",
+        "medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-desktop/attachments/watch-zh-dark-a66290358f2872278607d6b21dff5c7c7cbe3e9e.png": "e1c83fddd5d56de9cbfa86100e76da84f58a27974417817ea999a4a013738d79",
+        "medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-desktop/attachments/watchdesk-zh-dark-9c96a5ebfa3e2da005e8a2457daee2d134b157d1.png": "2810ffcb7f0580fb5b446716e9429549d92ec7ae8e37950193b92dba057133f0",
+        "medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-desktop/record-zh-dark.png": "2fe94e4bf5007e334a4e6357048f8073473f04a47422ed54349a949c541157cf",
+        "medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-desktop/watch-zh-dark.png": "e1c83fddd5d56de9cbfa86100e76da84f58a27974417817ea999a4a013738d79",
+        "medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-desktop/watchdesk-zh-dark.png": "2810ffcb7f0580fb5b446716e9429549d92ec7ae8e37950193b92dba057133f0",
+        "medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-mobile/attachments/record-zh-dark-6d756cfee8c27739c0ef779d436c2228a8802641.png": "97ca9f09a487a250ac4fde6f30582b8b829515a5c6e05bbe8618bea6c0f64ca8",
+        "medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-mobile/attachments/watch-zh-dark-f6a438662eb2d5357952e153ea5f0ba22d8302a4.png": "b0670400de094b3bdb08714ba19f422b73fe04f107f3142ea8327061e49f8daf",
+        "medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-mobile/attachments/watchdesk-zh-dark-2a2ee8757bee7249cb77bf24e22756dbb4335985.png": "87a487eda9cb993b984ce9f2b563f83c332c84138f434f848e114af193278750",
+        "medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-mobile/record-zh-dark.png": "97ca9f09a487a250ac4fde6f30582b8b829515a5c6e05bbe8618bea6c0f64ca8",
+        "medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-mobile/watch-zh-dark.png": "b0670400de094b3bdb08714ba19f422b73fe04f107f3142ea8327061e49f8daf",
+        "medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-mobile/watchdesk-zh-dark.png": "87a487eda9cb993b984ce9f2b563f83c332c84138f434f848e114af193278750",
+        "medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-tablet/attachments/record-zh-dark-9110107c19409901e325d4c46945550845c76688.png": "8e0ccc2701968b530c135a2dcf08a56d04e1c0da7790c8ccec0266500ffc0e3b",
+        "medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-tablet/attachments/watch-zh-dark-c4f388faefbe554642a20a476bf172df8385703e.png": "322d26bd15befaa1efb16b1f109d83ec6f4fb30cd8330a484e846f9599761a88",
+        "medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-tablet/attachments/watchdesk-zh-dark-d850c5aee8c58366d28451018e5ea890732f9647.png": "4c583a27dd2a04adabddd7b411254ffc51e7b1bad26f1b6766c842141fa36e4f",
+        "medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-tablet/record-zh-dark.png": "8e0ccc2701968b530c135a2dcf08a56d04e1c0da7790c8ccec0266500ffc0e3b",
+        "medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-tablet/watch-zh-dark.png": "322d26bd15befaa1efb16b1f109d83ec6f4fb30cd8330a484e846f9599761a88",
+        "medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-tablet/watchdesk-zh-dark.png": "4c583a27dd2a04adabddd7b411254ffc51e7b1bad26f1b6766c842141fa36e4f",
+        "medtech-watchdesk-signed-o-d37ee--does-not-load-account-data-desktop/attachments/sign-in-required-01accc27282c0d757cdfaf6fb191131aac3e7a10.png": "355ab2edee342950d4951870b41e5f0b60a5462ecea48ca589e6df5061fe8ec1",
+        "medtech-watchdesk-signed-o-d37ee--does-not-load-account-data-desktop/sign-in-required.png": "355ab2edee342950d4951870b41e5f0b60a5462ecea48ca589e6df5061fe8ec1",
+        "medtech-watchdesk-signed-o-d37ee--does-not-load-account-data-mobile/attachments/sign-in-required-efbff45b53853f122c56b755ca428433da6cb6ca.png": "8382d231db138e3d8cf2f6d54b864d2c716016d4d6f89a32b3163a25ec6ed430",
+        "medtech-watchdesk-signed-o-d37ee--does-not-load-account-data-mobile/sign-in-required.png": "8382d231db138e3d8cf2f6d54b864d2c716016d4d6f89a32b3163a25ec6ed430",
+        "medtech-watchdesk-signed-o-d37ee--does-not-load-account-data-tablet/attachments/sign-in-required-c0c0afed7d8f352e4634847b9c78c14a243f9a09.png": "0e91182833792e844b08728b6fdbfd64a6f003613bcb532936a6141c46f52274",
+        "medtech-watchdesk-signed-o-d37ee--does-not-load-account-data-tablet/sign-in-required.png": "0e91182833792e844b08728b6fdbfd64a6f003613bcb532936a6141c46f52274",
+        "medtech-watchdesk-source-a-60e6c-distinct-from-empty-results-desktop/attachments/source-and-account-unavailable-927fb67989b035d02aace1c4de42b50520d43676.png": "7e0bd47a31f123b19d84795500e634a4691aeb8758ddd09c12be1f7637a9308f",
+        "medtech-watchdesk-source-a-60e6c-distinct-from-empty-results-desktop/source-and-account-unavailable.png": "7e0bd47a31f123b19d84795500e634a4691aeb8758ddd09c12be1f7637a9308f",
+        "medtech-watchdesk-source-a-60e6c-distinct-from-empty-results-mobile/attachments/source-and-account-unavailable-04f37bbba94faaa8c08192edb5185062cef7f05d.png": "12379f2b96920f303d441b7f8b20ce054a46437ed250c2a59b841325e681624a",
+        "medtech-watchdesk-source-a-60e6c-distinct-from-empty-results-mobile/source-and-account-unavailable.png": "12379f2b96920f303d441b7f8b20ce054a46437ed250c2a59b841325e681624a",
+        "medtech-watchdesk-source-a-60e6c-distinct-from-empty-results-tablet/attachments/source-and-account-unavailable-b2d92d08f6a24d455752dd8b89915a961257dad4.png": "ecafb60e6ac38015fb6039925acc4e765de43bf62f4a5be8bf3fcc674dd685a2",
+        "medtech-watchdesk-source-a-60e6c-distinct-from-empty-results-tablet/source-and-account-unavailable.png": "ecafb60e6ac38015fb6039925acc4e765de43bf62f4a5be8bf3fcc674dd685a2",
+        "medtech-watchdesk-unconfir-f5555-hout-claiming-a-saved-watch-desktop/attachments/save-unavailable-329d748773bb02913117b87f58e7d7766904262b.png": "acceff56cb9c4ea4cd245fa3b43df192e3d236de073ed0b774129f807fb22e49",
+        "medtech-watchdesk-unconfir-f5555-hout-claiming-a-saved-watch-desktop/save-unavailable.png": "acceff56cb9c4ea4cd245fa3b43df192e3d236de073ed0b774129f807fb22e49",
+        "medtech-watchdesk-unconfir-f5555-hout-claiming-a-saved-watch-mobile/attachments/save-unavailable-45e92c66b5147b2e9b002c8d69699b611be09827.png": "2032ac43fb6ab862983cc3fd62b80beb69c4d50b519697b20db1f8ed190d3f29",
+        "medtech-watchdesk-unconfir-f5555-hout-claiming-a-saved-watch-mobile/save-unavailable.png": "2032ac43fb6ab862983cc3fd62b80beb69c4d50b519697b20db1f8ed190d3f29",
+        "medtech-watchdesk-unconfir-f5555-hout-claiming-a-saved-watch-tablet/attachments/save-unavailable-43fc2df6b7e710c6895ba39069f11d685edddf23.png": "c059ffca4e7de71559e5ef6accd0d1bc0a7a74403e009e13a0ffcc6f296feec7",
+        "medtech-watchdesk-unconfir-f5555-hout-claiming-a-saved-watch-tablet/save-unavailable.png": "c059ffca4e7de71559e5ef6accd0d1bc0a7a74403e009e13a0ffcc6f296feec7"
+      },
+      "cases": [
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "records, native De Novo detail, source sheet, filters and browser Back"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "confirmed exact watch persists and review applies to only one revision"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "review after a staged refresh reconciles after record navigation"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "PMA family settings preserve baseline and version conflicts require a fresh read"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "unconfirmed save keeps settings visible without claiming a saved watch"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "generation conflict retains rows and refreshes coherently without a browser reload"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "detail and history remain visible when a replacement detail fails"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "failed watch reconciliation retains the last saved rows and disables edits"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "source and watch failures are distinct from empty results"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "paid-access denial clears the source view"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "signed-out shell does not load account data"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "shared language in the supported dark shell en"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "shared language in the supported dark shell zh"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "records, native De Novo detail, source sheet, filters and browser Back"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "confirmed exact watch persists and review applies to only one revision"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "review after a staged refresh reconciles after record navigation"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "PMA family settings preserve baseline and version conflicts require a fresh read"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "unconfirmed save keeps settings visible without claiming a saved watch"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "generation conflict retains rows and refreshes coherently without a browser reload"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "detail and history remain visible when a replacement detail fails"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "failed watch reconciliation retains the last saved rows and disables edits"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "source and watch failures are distinct from empty results"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "paid-access denial clears the source view"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "signed-out shell does not load account data"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "shared language in the supported dark shell en"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "shared language in the supported dark shell zh"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "records, native De Novo detail, source sheet, filters and browser Back"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "confirmed exact watch persists and review applies to only one revision"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "review after a staged refresh reconciles after record navigation"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "PMA family settings preserve baseline and version conflicts require a fresh read"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "unconfirmed save keeps settings visible without claiming a saved watch"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "generation conflict retains rows and refreshes coherently without a browser reload"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "detail and history remain visible when a replacement detail fails"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "failed watch reconciliation retains the last saved rows and disables edits"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "source and watch failures are distinct from empty results"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "paid-access denial clears the source view"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "signed-out shell does not load account data"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "shared language in the supported dark shell en"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "shared language in the supported dark shell zh"
+        }
+      ],
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "e2e/medtech-watchdesk.spec.ts",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=list,json",
+        "--output=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts"
+      ],
+      "exit": 0,
+      "failed": 0,
+      "flaky": 0,
+      "initialOwnedServerStopped": false,
+      "lifecycle": {
+        "initialLockPresent": true,
+        "reconciliation": "docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-lifecycle.json",
+        "serverAbsenceVerifiedAt": "2026-11-09T15:28:00.211527+00:00",
+        "sha256": "33d307c0c3d4620f3c1e3ab356a5824de2985b2edfa4cdd584f98ab1b660c69a"
+      },
+      "logSha256": "ae03cd8cec07d95a204fbd9a27d65344128f2c09fa416917ecd0e9ee3d898db0",
+      "name": "medtech-browser",
+      "ownedServerStopped": true,
+      "passed": 39,
+      "port": 3540,
+      "reportSha256": "591afc7eb69bfc212eed560a655dbeaeb6c9dabe7c5de91c124d6496d2815799",
+      "retries": 0,
+      "seconds": 111.06,
+      "skipped": 0,
+      "sourceStable": true,
+      "startedAt": "2026-11-09T15:25:57.147740+00:00",
+      "state": "CLOSED",
+      "testCompletedAt": "2026-11-09T15:27:48.205758+00:00"
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "e2e/catalyst-opportunity.spec.ts",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=list,json",
+        "--output=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-r1/catalyst-browser-artifacts",
+        "--grep",
+        "usable discovery, evidence and coverage|failed sources do not pretend"
+      ],
+      "exit": 0,
+      "initialOwnedServerStopped": false,
+      "logSha256": "b9c3f11e78894dc7cb560b22aef277c097cd4d1d11954eb238624e8b1c20bdae",
+      "name": "catalyst-browser",
+      "port": 3541,
+      "seconds": 23.01,
+      "sourceStable": true,
+      "startedAt": "2026-11-09T15:28:00.284098+00:00",
+      "state": "RUNNING",
+      "testCompletedAt": "2026-11-09T15:28:23.293776+00:00"
+    }
+  ],
+  "startedAt": "2026-11-09T15:24:30.932911+00:00",
+  "state": "FAILED"
+}

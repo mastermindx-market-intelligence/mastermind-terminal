@@ -2,6 +2,7 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { resolveDetentRelease } from "@/lib/sheetDetent";
+import { acquireScrollLock } from "@/lib/scrollLock";
 
 export interface MobileSheetProps {
   open: boolean;
@@ -178,12 +179,11 @@ export default function MobileSheet({
     closeTimerRef.current = null;
   }, [open]);
 
-  // Lock body scroll while open
+  // Participate in the same lock as the research pane and nested inspectors.
+  // Parking or closing this sheet releases only its own holder.
   useEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = prev; };
+    return acquireScrollLock();
   }, [open]);
 
   // Move focus into the modal, contain keyboard navigation, and return focus to
@@ -247,8 +247,13 @@ export default function MobileSheet({
       const last = focusable[focusable.length - 1];
       const active = document.activeElement;
       const focusEscaped = !(active instanceof Node) || !sheet.contains(active);
+      // A dialog can deliberately park focus on an internal tabIndex=-1 element
+      // (e.g. the phone Command Palette body to avoid opening the keyboard).
+      // Such a node is inside the sheet but outside its native Tab order:
+      // Shift+Tab would otherwise jump to the background before focus reclaim.
+      const activeInTabOrder = active instanceof HTMLElement && focusable.includes(active);
 
-      if (active === sheet || focusEscaped) {
+      if (active === sheet || focusEscaped || !activeInTabOrder) {
         event.preventDefault();
         (event.shiftKey ? last : first).focus({ preventScroll: true });
       } else if (event.shiftKey && active === first) {

@@ -45,7 +45,7 @@
 #   global cron wrapper,     YES                         NO — never, on any path
 #   quote-hub service,
 #   owner self-install
-#   MMX_SHARED_SHELL         never inherited (unset)     exactly 1 (owner-declared)
+#   MMX_SHARED_SHELL         source/unit-qualified build exactly 1 (owner-declared)
 #
 # The beta profile still deploys only an exact full commit contained by the freshly
 # fetched protected ref, still requires a CLEAN (or sole-canonical-head-mismatch)
@@ -254,6 +254,141 @@ apply_profile_environment(){
       return 64
       ;;
   esac
+}
+
+# Production remains opt-in until the qualified source-owned unit drop-in is
+# installed by the attended host configuration lane. Its BUILD flag is inert in
+# an older runtime: Next pins the actual feature flag into each new build.
+# Caller environment is never activation authority. Derive the expected bytes from the admitted commit.
+production_shared_shell_state(){
+  [ "$TARGET" = production ] || { printf '0\n'; return 0; }
+  sanitize_git_environment
+  python3 -I - "$SRC" "$FULL_SHA" <<'PY_PRODUCTION_SHELL'
+import os
+from pathlib import Path
+import shlex
+import stat
+import subprocess
+import sys
+
+repository, revision = sys.argv[1:]
+installed = Path('/etc/systemd/system/terminal.service.d/shared-shell.conf')
+try:
+    def unit_property(name):
+        return subprocess.check_output(
+            ['systemctl', 'show', '-p', name, '--value', 'terminal.service'],
+            text=True, stderr=subprocess.DEVNULL).strip()
+
+    feature_keys = {'MMX_SHARED_SHELL', 'MMX_SHARED_SHELL_BUILD'}
+    def feature_assignments(text):
+        import re
+        return re.findall(r'(?m)^\s*(?:export\s+)?(MMX_SHARED_SHELL(?:_BUILD)?)(?:\s*=|:\s+)', text)
+
+    def inspect_env_file(path, optional=False):
+        # Read only for feature-key classification; no secret value is returned.
+        if not path.exists() and not path.is_symlink() and optional:
+            return
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+        try:
+            info = os.fstat(fd)
+            if (not stat.S_ISREG(info.st_mode) or info.st_uid != os.geteuid()
+                    or info.st_mode & 0o022 or info.st_size > 1024 * 1024):
+                raise ValueError('unsupported environment file')
+            text = os.read(fd, 1024 * 1024 + 1).decode('utf-8')
+        finally:
+            os.close(fd)
+        if feature_assignments(text):
+            raise ValueError('feature key in environment file')
+
+    environment = unit_property('Environment')
+    flags = [item.split('=', 1)[1] for item in shlex.split(environment)
+             if item.startswith('MMX_SHARED_SHELL_BUILD=')]
+    runtime_flags = [item for item in shlex.split(environment)
+                     if item.startswith('MMX_SHARED_SHELL=')]
+    if runtime_flags:
+        raise ValueError('production runtime flag must stay absent')
+    exists = installed.exists() or installed.is_symlink()
+    if not exists and not flags:
+        print('0')
+        sys.exit(0)
+    if flags != ['1'] or not exists:
+        raise ValueError('unit and promotion drop-in disagree')
+    passed = shlex.split(unit_property('PassEnvironment'))
+    unset = shlex.split(unit_property('UnsetEnvironment'))
+    if any(item.split('=', 1)[0] in feature_keys for item in passed + unset):
+        raise ValueError('feature key in indirect unit environment')
+    manager = subprocess.check_output(['systemctl', 'show-environment'],
+                                      text=True, stderr=subprocess.DEVNULL)
+    if feature_assignments(manager):
+        raise ValueError('feature key in manager environment')
+    import re
+    files = unit_property('EnvironmentFiles')
+    entry = re.compile(r'(/[-A-Za-z0-9_./]+) \(ignore_errors=(yes|no)\)')
+    if entry.sub('', files).strip():
+        raise ValueError('unsupported environment file topology')
+    for path, optional in entry.findall(files):
+        inspect_env_file(Path(path), optional == 'yes')
+    app = Path(repository).parent / 'terminal'
+    for name in ['.env.local', '.env.production.local', '.env.production', '.env']:
+        inspect_env_file(app / name, optional=True)
+    start = unit_property('ExecStart')
+    if (re.findall(r'path=([^ ;]+) ;', start) != ['/usr/bin/npm']
+            or start.count('argv[]=') != 1
+            or 'argv[]=/usr/bin/npm run start ;' not in start):
+        raise ValueError('unsupported production start wrapper')
+    import json
+    package = subprocess.check_output(
+        ['git', '-C', repository, 'cat-file', 'blob', revision + ':terminal/package.json'],
+        stderr=subprocess.DEVNULL)
+    if json.loads(package).get('scripts', {}).get('start') != 'next start':
+        raise ValueError('unsupported application start wrapper')
+    directory = installed.parent.lstat()
+    if (not stat.S_ISDIR(directory.st_mode) or directory.st_uid != os.geteuid()
+            or directory.st_mode & 0o022):
+        raise ValueError('promotion directory custody')
+    fd = os.open(installed, os.O_RDONLY | os.O_NOFOLLOW)
+    try:
+        info = os.fstat(fd)
+        if (not stat.S_ISREG(info.st_mode) or info.st_uid != os.geteuid()
+                or info.st_mode & 0o022 or info.st_size > 4096):
+            raise ValueError('promotion file custody')
+        actual = os.read(fd, 4097)
+        after = installed.lstat()
+        if (info.st_dev, info.st_ino) != (after.st_dev, after.st_ino):
+            raise ValueError('promotion file identity changed')
+    finally:
+        os.close(fd)
+    expected = subprocess.check_output(
+        ['git', '-C', repository, 'cat-file', 'blob', revision + ':ops/terminal-shared-shell.conf'],
+        stderr=subprocess.DEVNULL)
+    if expected != b'[Service]\nEnvironment=MMX_SHARED_SHELL_BUILD=1\n' or actual != expected:
+        raise ValueError('promotion file is not the admitted source')
+    print('1')
+except Exception:
+    print('FATAL: production Shared Shell activation is not source/unit/custody qualified', file=sys.stderr)
+    sys.exit(65)
+PY_PRODUCTION_SHELL
+}
+
+apply_production_shared_shell_profile(){
+  [ "$TARGET" = production ] || return 0
+  PRODUCTION_SHARED_SHELL_ENABLED=$(production_shared_shell_state) || return $?
+  case "$PRODUCTION_SHARED_SHELL_ENABLED" in
+    0) unset MMX_SHARED_SHELL ;;
+    1) export MMX_SHARED_SHELL=1 ;;
+    *) return 65 ;;
+  esac
+  log "production Shared Shell profile derived from admitted source and unit: enabled=$PRODUCTION_SHARED_SHELL_ENABLED"
+}
+
+production_shared_shell_profile_unchanged(){
+  [ "$TARGET" = production ] || return 0
+  local observed
+  observed=$(production_shared_shell_state) || return $?
+  [ "$observed" = "$PRODUCTION_SHARED_SHELL_ENABLED" ] || {
+    log "FATAL: production Shared Shell activation changed during the build"
+    return 65
+  }
 }
 
 # Beta runtime settings are verified against the source-managed unit, never
@@ -1626,19 +1761,32 @@ deploy_generation_abort(){
   log "DEPLOY FAILED: $reason"
   log "rolling back the deploy generation (build + identity)"
   deploy_generation_rollback "$app" "$swapped" || rc=$?
-  # Restart whenever the live .next moved, INCLUDING when the identity is
-  # unresolved. `next start` resolves .next/* at request time, so a server left
-  # bound to a renamed tree serves the restored build's chunks against the failed
-  # build's in-memory manifests. "Identity unresolved" is a reporting state; it is
-  # never a reason to leave the process pointed at a directory that moved.
+  # A process must never remain pointed at a tree that moved: reactivate a
+  # qualified prior generation, or stop the selected unit when prior identity
+  # or closed configuration cannot be proved. Restoration itself always runs.
   if [ "$DEPLOY_ROLLBACK_MOVED_BUILD" = 1 ]; then
-    if [ "$SERVICE_NAME" = terminal ]; then
-      # Incumbent anchor: the production unit is named literally here, and only
-      # when the resolved profile IS production. A beta rollback below can only
-      # ever name its own unit; beta never restarts terminal on any path.
-      systemctl restart terminal || { log "restart after rollback FAILED"; rc=1; }
+    # Build/marker restoration above always runs. Reactivation is separate:
+    # prove a known old target or a closed prior Investigation candidate.
+    local restored_sha restored_build
+    restored_sha=$(read_live_deployment_marker "$app/.deployment-id" 2>/dev/null) || restored_sha=
+    restored_build=$(cat "$app/.next/BUILD_ID" 2>/dev/null) || restored_build=
+    if investigation_restoration_activation_allowed "$restored_sha"; then
+      if [ "$SERVICE_NAME" = terminal ]; then
+        systemctl restart terminal || { log "restart after rollback FAILED"; rc=1; }
+      else
+        systemctl restart "$SERVICE_NAME" || { log "restart after rollback FAILED"; rc=1; }
+      fi
+      if ! require_investigation_closed_after_start "$restored_sha" "$restored_build"; then
+        systemctl stop "$SERVICE_NAME" || true
+        log "rollback activation unresolved: closed prior candidate process binding failed"
+        rc=1
+      fi
     else
-      systemctl restart "$SERVICE_NAME" || { log "restart after rollback FAILED"; rc=1; }
+      # Never leave an unqualified candidate serving against a restored tree.
+      # This is containment, not drain, SQL rollback or proof of no effects.
+      systemctl stop "$SERVICE_NAME" || true
+      log "rollback activation withheld: prior target identity or closure unqualified"
+      rc=1
     fi
   fi
   if [ "$rc" = 0 ]; then
@@ -4189,12 +4337,28 @@ beta_txn_abort(){
     git -C "$SRC" clean -qfd || rc=1
   fi
   if [ "$rc" = 0 ]; then
-    systemctl restart "$SERVICE_NAME" || rc=1
+    # Restoration activation gate: an old prior target keeps the incumbent
+    # rollback restart verbatim; a primitive-bearing prior may only be
+    # reactivated on a qualified closed installation. The source/build
+    # restoration above is never blocked by this gate — a refusal only stops
+    # the service instead of reactivating it, and lands in the unresolved
+    # branch below with evidence retained.
+    if investigation_restoration_activation_allowed "$BETA_PRIOR_SHA"; then
+      systemctl restart "$SERVICE_NAME" || rc=1
+    else
+      beta_txn_stop || rc=1
+      log "BETA UNRESOLVED: prior-generation Investigation installation admission is not qualified; stopped without reactivation"
+      rc=1
+    fi
   fi
   if [ "$rc" = 0 ]; then
     sleep 6 || rc=1
   fi
   if [ "$rc" = 0 ]; then
+    if ! require_investigation_closed_after_start "$BETA_PRIOR_SHA" "$BETA_PRIOR_BUILD"; then
+      beta_txn_stop || true
+      rc=1
+    fi
     deploy_identity_verified "$APP" "$BETA_PRIOR_SHA" "$BETA_PRIOR_BUILD" || rc=1
     shared_shell_status_verified "$BETA_STATUS_URL" "$BETA_PRIOR_SHA" "$SRC" || rc=1
     run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "$SRC" "$PREFLIGHT_RECEIPT_DIR" || rc=1
@@ -4224,6 +4388,14 @@ beta_txn_abort(){
 beta_txn_commit(){
   # All fatal beta source/dependency publication is complete before this call.
   [ "$TARGET" = beta ] || return 0
+  # Post-start admission before the existing transaction acceptance. This is the
+  # one acceptance gate for every beta entrance (ordinary, bootstrap, recovery
+  # and the final reflection restart, which is immediately followed by this
+  # commit); old targets decided absent keep the incumbent acceptance verbatim.
+  if ! require_investigation_closed_after_start "$FULL_SHA" "$NEW_BUILD_ID"; then
+    log "FATAL: beta acceptance refused: candidate Investigation installation admission failed"
+    return 75
+  fi
   shared_shell_status_verified "$BETA_STATUS_URL" "$FULL_SHA" "$SRC" || return $?
   deploy_identity_verified "$APP" "$FULL_SHA" "$NEW_BUILD_ID" || return $?
   run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" "$SRC" "$PREFLIGHT_RECEIPT_DIR" || return $?
@@ -4243,6 +4415,1357 @@ beta_txn_commit(){
     "$BETA_TXN_ID" committed >/dev/null || return $?
   BETA_TXN_ACTIVE=0
   log "beta transaction committed: accepted=$FULL_SHA attempt=$BETA_TXN_ID"
+}
+
+# ── Investigation candidate installation admission (IW2 cutover-0030 step 1) ──
+# The cutover contract requires the candidate to be EXPLICITLY configured closed
+# in its real service environment before it handles requests. Caller environment,
+# the current source identity or a staged dotenv copy never prove service
+# admission, so this owner verifies the SELECTED profile's unit (and only that
+# unit) directly, read-only, before and after every candidate start/restart.
+#
+# Target trigger: the admission primitive is detected ONLY from the exact
+# admitted Git tree at terminal/lib/investigationApiAdmission.ts via trusted
+# `git ls-tree -r -z` object reads of $SRC at the named revision, plus a
+# `git cat-file -t` commit proof before any gated classification. The mutable
+# checkout is never consulted (no working-tree substring scan). A missing
+# primitive in a PROVEN valid target keeps the incumbent deployment/rollback
+# behavior verbatim; an unresolvable tree read, a non-commit identity carrying
+# the path, or a primitive entry that is not a regular blob is a refusal —
+# never an old-target bypass.
+#
+# Classification (fail closed, bounded reason codes only — raw Environment,
+# dotenv/proc environ values, secret-bearing digests, arbitrary paths and
+# exception text are never printed, hashed or serialized):
+#   old-target          no primitive in the admitted tree; incumbent behavior
+#   explicitly-closed   exactly one literal `closed` declaration across the
+#                       unit Environment/approved EnvironmentFile, no duplicate
+#                       or indirect channel, supported launch wrapper and env
+#                       topology, silent Next dotenv sources — plus, for
+#                       poststart, an active unit whose MainPID and every
+#                       npm/Next serving child stay bound to the unit cgroup
+#                       with the closed literal in their initial environment.
+#                       The initial environment is corroboration only; no
+#                       per-request memory env is proven by any of this.
+# Trusted incumbent runtime assumption: host Node/npm binaries, global/user npm
+# configuration and dependency installation remain trusted release inputs. This
+# bounded prerequisite rejects project-local npm configuration and selected
+# launch overrides; it is not unconditional closed-before-first-request proof,
+# code integrity, a request-time env attestation or fleet/drain authorization.
+# Decisions: prestart may observe an inactive unit only with a qualified
+# configuration (bootstrap); poststart requires active; restoration gates only
+# the reactivation of a primitive-bearing prior generation and never blocks the
+# incumbent source/build restoration itself.
+investigation_install_state(){
+  local expected_sha=${1:-} phase=${2:-} decision
+  case "$phase" in
+    prestart|poststart|restoration) ;;
+    *) log "FATAL: Investigation admission needs a known phase (prestart/poststart/restoration)"; return 64 ;;
+  esac
+  if [ -z "$expected_sha" ]; then
+    log "FATAL: Investigation admission requires the exact admitted target identity"
+    return 65
+  fi
+  if ! [[ "$expected_sha" =~ ^[0-9a-f]{40}$ ]]; then
+    log "FATAL: Investigation admission requires one full lower-case commit SHA"
+    return 65
+  fi
+  sanitize_git_environment
+  if ! decision=$(python3 -I - "$SRC" "$expected_sha" "$phase" "$APP" "$SERVICE_NAME" \
+      "$ENV_SOURCE_DIR" "$TARGET" 2>&1 <<'PY_INVESTIGATION_INSTALL'
+import hashlib
+import json
+import os
+import re
+import shlex
+import stat
+import subprocess
+import sys
+
+# Read-only admission verifier for the Investigation candidate installation.
+# Runs as `python3 -I - repo revision phase app_root unit env_source_dir profile`
+# with the program on stdin. Prints exactly one decision token on stdout
+# (old-target | explicitly-closed); refusals exit 65 with one bounded
+# `reason=<code>` line. There is deliberately no flag, file or environment
+# variable that can widen, bypass or retarget any check below.
+
+ADMISSION_KEY = "INVESTIGATION_API_ADMISSION"
+PRIMITIVE_PATH = "terminal/lib/investigationApiAdmission.ts"
+CLOSED_VALUE = "closed"
+# These supported launch shapes do not permit alternate shells, Node preload
+# channels or npm configuration locations. Classification never emits values.
+LAUNCH_OVERRIDE_KEYS = frozenset({
+    "NODE_OPTIONS", "NODE_PATH", "BASH_ENV", "ENV", "LD_PRELOAD", "LD_LIBRARY_PATH",
+    "NPM_CONFIG_SCRIPT_SHELL", "NPM_CONFIG_NODE_OPTIONS", "NPM_CONFIG_USERCONFIG",
+    "NPM_CONFIG_GLOBALCONFIG", "NPM_CONFIG_PREFIX"})
+DOTENV_NAMES = (".env.local", ".env.production.local", ".env.production", ".env")
+REGULAR_TREE_MODES = frozenset({"100644", "100755"})
+MAX_TREE_LIST_BYTES = 16 * 1024 * 1024
+MAX_ENV_FILE_BYTES = 1024 * 1024
+MAX_PROC_ENVIRONMENT_BYTES = 256 * 1024
+MAX_PROCS = 32
+MAX_ANCESTRY_DEPTH = 8
+MAX_LAUNCH_TOKENS = 24
+MAX_SCAN_LINES = 4096
+PHASES = ("prestart", "poststart", "restoration")
+PROFILES = ("production", "beta")
+
+# The key must be followed by a separator/whitespace/end so a longer key that
+# merely shares this prefix is never classified as this key.
+CANONICAL_PRODUCTION_UNIT = "terminal"
+PREHOOK_INTERPRETER = "/bin/sh"
+PREHOOK_INTERPRETER_REALPATH = "/usr/bin/dash"
+PREHOOK_GUARD_PATH = "/usr/local/sbin/terminal-volume-guard"
+PREHOOK_GUARD_BYTES = 600
+PREHOOK_GUARD_SHA256 = (
+    "1a7e39a4188d9dcfd55907e741a1b27850ed65835f4525cc6bc3a48eca122de9")
+PREHOOK_FRAGMENT_PATH = "/etc/systemd/system/terminal.service"
+PREHOOK_SOURCE_DIR = "/etc/systemd/system/terminal.service.d"
+PREHOOK_DECLARATION_BASENAMES = ("hardening.conf", "storage.conf")
+PREHOOK_BUILD_ID_ARGV = (
+    "/bin/sh", "-c",
+    "test -f /opt/terminal/terminal/.next/BUILD_ID || "
+    "{ echo no-build-refusing-start; exit 1; }")
+PREHOOK_GUARD_ARGV = (PREHOOK_GUARD_PATH, "--service")
+PREHOOK_HARDENING_DECLARATION = (
+    '/bin/sh -c "test -f /opt/terminal/terminal/.next/BUILD_ID || '
+    '{ echo no-build-refusing-start; exit 1; }"')
+PREHOOK_STORAGE_DECLARATION = "/usr/local/sbin/terminal-volume-guard --service"
+MAX_PREHOOK_ROWS = 8
+MAX_PREHOOK_REPLY_BYTES = 64 * 1024
+MAX_UNIT_SOURCE_BYTES = 16 * 1024
+MAX_UNIT_SOURCES = 32
+PREHOOK_DEFAULT_SEARCH_DIRS = (
+    "/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin")
+
+KEY_LINE = re.compile(r"^(?:export\s+)?INVESTIGATION_API_ADMISSION(?![A-Za-z0-9_])")
+KEY_ASSIGNMENT = re.compile(
+    r"(?m)^\s*(?:export\s+)?INVESTIGATION_API_ADMISSION(?![A-Za-z0-9_])\s*(?:=|:)")
+ENVFILE_ENTRY = re.compile(r"(/[-A-Za-z0-9_./]+) \(ignore_errors=(yes|no)\)")
+
+
+class Refused(Exception):
+    def __init__(self, code):
+        super().__init__(code)
+        self.code = code
+
+
+# ── collectors: the only host-touching code; tests replace these by name ────
+def run_git(repository, arguments, failure_code):
+    try:
+        completed = subprocess.run(
+            ["git", "-C", repository, *arguments],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=60)
+    except (OSError, subprocess.SubprocessError):
+        raise Refused(failure_code)
+    if completed.returncode != 0:
+        raise Refused(failure_code)
+    return completed.stdout
+
+
+def unit_property(unit, prop):
+    try:
+        completed = subprocess.run(
+            ["systemctl", "show", "-p", prop, "--value", unit],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        raise Refused("unit-inspection-unavailable")
+    if completed.returncode != 0:
+        raise Refused("unit-inspection-unavailable")
+    return completed.stdout.decode("utf-8", "replace").strip("\n")
+
+
+def manager_environment():
+    try:
+        completed = subprocess.run(
+            ["systemctl", "show-environment"],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        raise Refused("manager-environment-unavailable")
+    if completed.returncode != 0:
+        raise Refused("manager-environment-unavailable")
+    return completed.stdout.decode("utf-8", "replace")
+
+
+def read_bounded_regular_file(path, limit, prefix):
+    flags = (os.O_RDONLY | getattr(os, "O_CLOEXEC", 0)
+             | getattr(os, "O_NOFOLLOW", 0) | os.O_NONBLOCK)
+    try:
+        fd = os.open(path, flags)
+    except OSError:
+        raise Refused(prefix + "-unreadable")
+    try:
+        before = os.fstat(fd)
+        if (not stat.S_ISREG(before.st_mode) or before.st_uid != os.geteuid()
+                or before.st_mode & 0o022 or before.st_size > limit):
+            if not stat.S_ISREG(before.st_mode):
+                raise Refused(prefix + "-not-regular")
+            if before.st_uid != os.geteuid():
+                raise Refused(prefix + "-foreign-owner")
+            if before.st_mode & 0o022:
+                raise Refused(prefix + "-group-or-other-writable")
+            raise Refused(prefix + "-oversized")
+        payload = os.read(fd, limit + 1)
+        after = os.fstat(fd)
+    finally:
+        os.close(fd)
+    identity = lambda item: (
+        item.st_dev, item.st_ino, item.st_mode, item.st_uid,
+        item.st_gid, item.st_size, item.st_mtime_ns, item.st_ctime_ns)
+    if identity(before) != identity(after):
+        raise Refused(prefix + "-changed-during-verification")
+    if len(payload) > limit:
+        raise Refused(prefix + "-oversized")
+    try:
+        return payload.decode("utf-8")
+    except UnicodeDecodeError:
+        raise Refused(prefix + "-malformed")
+
+
+def proc_bytes(pid, name, limit):
+    try:
+        fd = os.open("/proc/%d/%s" % (pid, name),
+                     os.O_RDONLY | getattr(os, "O_CLOEXEC", 0))
+    except OSError:
+        raise Refused("serving-process-unreadable")
+    try:
+        payload = os.read(fd, limit + 1)
+    except OSError:
+        raise Refused("serving-process-unreadable")
+    finally:
+        os.close(fd)
+    if len(payload) > limit:
+        raise Refused("serving-process-environment-oversized")
+    return payload
+
+
+def proc_starttime(pid):
+    fields = proc_bytes(pid, "stat", 4096).decode("utf-8", "replace")
+    tail = fields.rpartition(")")[2].split()
+    if len(tail) < 20:
+        raise Refused("serving-process-unreadable")
+    # tail[0] is state (field 3); starttime is field 22 → tail index 19.
+    return tail[19]
+
+
+def proc_ppid(pid):
+    fields = proc_bytes(pid, "stat", 4096).decode("utf-8", "replace")
+    tail = fields.rpartition(")")[2].split()
+    if len(tail) < 20:
+        raise Refused("serving-process-unreadable")
+    return int(tail[1])
+
+
+def proc_cmdline(pid):
+    payload = proc_bytes(pid, "cmdline", 8192)
+    return [item.decode("utf-8", "replace")
+            for item in payload.split(b"\0") if item]
+
+
+def proc_comm(pid):
+    payload = proc_bytes(pid, "comm", 256)
+    return payload.decode("utf-8", "replace").strip("\n")
+
+
+def proc_cgroup_path(pid):
+    payload = proc_bytes(pid, "cgroup", 4096).decode("utf-8", "replace")
+    paths = []
+    for line in payload.splitlines():
+        parts = line.split(":", 2)
+        if len(parts) == 3 and parts[2]:
+            paths.append(parts[2])
+    if not paths:
+        raise Refused("serving-process-unreadable")
+    return paths[0]
+
+
+def proc_children(pid):
+    try:
+        tasks = os.listdir("/proc/%d/task" % pid)
+    except OSError:
+        raise Refused("serving-process-unreadable")
+    if len(tasks) > 128:
+        raise Refused("serving-process-inventory-oversized")
+    children = []
+    for task in sorted(tasks):
+        try:
+            with open("/proc/%d/task/%s/children" % (pid, task),
+                      "rb") as handle:
+                payload = handle.read(4097)
+        except OSError:
+            raise Refused("serving-process-unreadable")
+        if len(payload) > 4096:
+            raise Refused("serving-process-inventory-oversized")
+        children.extend(int(item) for item in payload.split())
+    return children
+
+
+def proc_cwd_identity(pid):
+    try:
+        return os.stat("/proc/%d/cwd" % pid)
+    except OSError:
+        raise Refused("serving-process-foreign-working-directory")
+
+
+def app_root_identity(app_root):
+    try:
+        return os.stat(app_root)
+    except OSError:
+        raise Refused("app-root-unavailable")
+
+
+# ── pure classification ──────────────────────────────────────────────────────
+def refuse_launch_overrides(tokens):
+    for token in tokens:
+        key, separator, value = token.partition("=")
+        if separator and value and key.upper() in LAUNCH_OVERRIDE_KEYS:
+            raise Refused("unsupported-launch-environment-override")
+
+
+def refuse_selected_launch_overrides(tokens):
+    for token in tokens:
+        key = token.partition("=")[0].upper()
+        if (key in LAUNCH_OVERRIDE_KEYS or key in ("PATH", "HOME")
+                or key.startswith("NPM_CONFIG_")):
+            raise Refused("unsupported-launch-environment-override")
+    refuse_launch_overrides(tokens)
+
+
+def normalize_env_export_line(line):
+    # Match the already-supported Next dotenv export-whitespace lexical shape.
+    # Both admission and known override classification use this normalization.
+    # JavaScript \s additionally includes UTF-8 BOM (U+FEFF). Match that
+    # leading/export boundary so supported dotenv assignments cannot hide.
+    return re.sub(r"^[\s\ufeff]*(?:export[\s\ufeff]+)?", "", line).rstrip()
+
+
+def refuse_file_launch_overrides(text, selected=False):
+    for line in text.splitlines():
+        stripped = normalize_env_export_line(line)
+        if not stripped or stripped.startswith(("#", ";")):
+            continue
+        assignment = re.match(r"^([A-Za-z_][A-Za-z0-9_]*)\s*(?:=|:\s+)(.*)$", stripped)
+        if assignment:
+            token = assignment.group(1) + "=" + assignment.group(2)
+            if selected:
+                refuse_selected_launch_overrides([token])
+            else:
+                refuse_launch_overrides([token])
+
+
+def admission_values_in_unit_environment(text):
+    values = []
+    tokens = shlex.split(text)
+    refuse_selected_launch_overrides(tokens)
+    for token in tokens:
+        key, separator, value = token.partition("=")
+        if key != ADMISSION_KEY:
+            continue
+        if not separator:
+            raise Refused("malformed-admission-assignment")
+        values.append(value)
+    return values
+
+
+def admission_values_in_text(text):
+    """Scan one env-file/dotenv buffer for this key only. Values are returned
+    for classification and are never echoed anywhere."""
+    values = []
+    malformed = False
+    lines = text.splitlines()
+    if len(lines) > MAX_SCAN_LINES:
+        raise Refused("environment-scan-oversized")
+    for line in lines:
+        stripped = normalize_env_export_line(line)
+        if not stripped or stripped[0] in "#;":
+            continue
+        if not KEY_LINE.match(stripped):
+            continue
+        match = re.match(
+            r"^(?:export\s+)?INVESTIGATION_API_ADMISSION(?![A-Za-z0-9_])"
+            r"\s*(:|=)\s*(.*)$", stripped)
+        if match is None:
+            malformed = True
+            continue
+        value = match.group(2).strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "'\"":
+            value = value[1:-1]
+        values.append(value)
+    if malformed:
+        raise Refused("malformed-admission-assignment")
+    return values
+
+
+def admission_values_in_systemd_file(text):
+    # EnvironmentFile is not Next dotenv. Support a deliberately narrow,
+    # complete single-line assignment grammar; multiline/continuation context
+    # cannot turn an apparent later key into a declaration. Never emit content.
+    if "\x00" in text or "\ufeff" in text:
+        raise Refused("unsupported-env-file-syntax")
+    lines = text.split("\n")  # systemd lines, not Python's broader splitlines
+    if len(lines) > MAX_SCAN_LINES:
+        raise Refused("environment-scan-oversized")
+    assignment = re.compile(
+        r"""([A-Za-z_][A-Za-z0-9_]*)[ \t]*=[ \t]*(?:([^"'\\\r\n]*)|'([^'\\\r\n]*)'|"([^"\\\r\n]*)")[ \t]*""")
+    values = []
+    for line in lines:
+        stripped = line.strip(" \t\r")
+        if not stripped or stripped.startswith(("#", ";")):
+            continue
+        match = assignment.fullmatch(stripped)
+        if match is None:
+            raise Refused("unsupported-env-file-syntax")
+        key = match.group(1)
+        if match.group(2) is not None:
+            value = match.group(2).strip(" \t\r")
+        else:
+            # Whitespace inside quotes is literal systemd value content.
+            value = match.group(3) if match.group(3) is not None else match.group(4)
+        refuse_selected_launch_overrides([key + "=" + value])
+        if key == ADMISSION_KEY:
+            values.append(value)
+    return values
+
+
+def admission_values_in_proc_environ(payload):
+    values = []
+    for item in payload.split(b"\0"):
+        if not item:
+            continue
+        key, separator, value = item.partition(b"=")
+        if separator and key == ADMISSION_KEY.encode():
+            values.append(value.decode("utf-8", "replace"))
+    return values
+
+
+# These are prospective source-owned safety contracts, NOT a host allow-list.
+# The existing deployment refusal remains authoritative until this source is
+# reviewed, protected and adopted through the incumbent owner. Empty pre-hooks
+# retain the prior path; beta and unknown hooks remain unsupported.
+BUILD_ID_SAFETY_SCRIPT = (
+    "test -f /opt/terminal/terminal/.next/BUILD_ID || "
+    "{ echo no-build-refusing-start; exit 1; }")
+SAFETY_HOOK_ASSIGNMENTS = (
+    ("/etc/systemd/system/terminal.service.d/hardening.conf",
+     'ExecStartPre=/bin/sh -c "' + BUILD_ID_SAFETY_SCRIPT + '"'),
+    ("/etc/systemd/system/terminal.service.d/storage.conf",
+     "ExecStartPre=/usr/local/sbin/terminal-volume-guard --service"),
+)
+VOLUME_SAFETY_PATH = "/usr/local/sbin/terminal-volume-guard"
+# Retained host bytes alone did not grant this trust. Any change to this source
+# pin is a changed-risk review, never a runtime setting or environment override.
+VOLUME_SAFETY_SHA256 = "1a7e39a4188d9dcfd55907e741a1b27850ed65835f4525cc6bc3a48eca122de9"
+
+
+def safety_exec_projection(value):
+    """Recognize only two exact argv projections; never evaluate shell text.
+
+    systemctl appends execution metadata to each record. Ignore only this
+    fixed schema of status metadata, not arbitrary record fields or suffixes.
+    Unknown serialization fails closed rather than guessing argv boundaries.
+    """
+    commands = (
+        ("/bin/sh", "/bin/sh -c " + BUILD_ID_SAFETY_SCRIPT),
+        (VOLUME_SAFETY_PATH, VOLUME_SAFETY_PATH + " --service"),
+    )
+    metadata = (
+        r"(?:start_time=\[[^\]\r\n]*\] ; stop_time=\[[^\]\r\n]*\] ; "
+        r"pid=[0-9]+ ; code=(?:[a-zA-Z0-9_-]+|\(null\)) ; "
+        r"status=[0-9]+(?:/[A-Z0-9]+)?(?: ; | {1,2}))?")
+    records = []
+    for path, argv in commands:
+        records.append(
+            r"\{ path=" + re.escape(path) + r" ; argv\[\]="
+            + re.escape(argv) + r" ; ignore_errors=no ; " + metadata + r"\}")
+    if re.fullmatch(r"\s*" + r"\s+".join(records) + r"\s*", value) is None:
+        raise Refused("unsupported-service-launch-hook")
+
+
+def trusted_safety_file(path, limit):
+    # O_NOFOLLOW in the incumbent file reader protects the leaf; check all
+    # ancestors too so an accepted leaf cannot be reached through a symlink or
+    # a directory writable by a different principal. This path never executes.
+    current = os.path.dirname(path)
+    while True:
+        try:
+            info = os.lstat(current)
+        except OSError:
+            raise Refused("safety-hook-parent-unreadable")
+        if (not stat.S_ISDIR(info.st_mode) or info.st_uid != 0
+                or info.st_mode & 0o022):
+            raise Refused("safety-hook-parent-untrusted")
+        if current == "/":
+            break
+        current = os.path.dirname(current)
+    if os.geteuid() != 0:
+        raise Refused("safety-hook-owner-unqualified")
+    return read_bounded_regular_file(path, limit, "safety-hook")
+
+
+def loaded_safety_hook_sources(unit):
+    fragment = unit_property(unit, "FragmentPath")
+    dropins = unit_property(unit, "DropInPaths")
+    if fragment != "/etc/systemd/system/terminal.service":
+        raise Refused("safety-hook-fragment-unqualified")
+    try:
+        paths = shlex.split(dropins)
+    except ValueError:
+        raise Refused("safety-hook-dropins-unqualified")
+    if (len(paths) > 16 or len(set(paths)) != len(paths)
+            or any(re.fullmatch(
+                r"/etc/systemd/system/terminal\.service\.d/[A-Za-z0-9_-]+\.conf",
+                path) is None for path in paths)):
+        raise Refused("safety-hook-dropins-unqualified")
+    # systemd orders drop-ins lexically. Require that exact published order;
+    # a source list cannot reorder or reset the recognized hooks.
+    if paths != sorted(paths):
+        raise Refused("safety-hook-dropins-unqualified")
+    sources = tuple((path, trusted_safety_file(path, 64 * 1024))
+                    for path in [fragment, *paths])
+    assignments = []
+    for path, text in sources:
+        section = None
+        for line in text.splitlines():
+            line = line.strip()
+            if not line or line.startswith(("#", ";")):
+                continue
+            if line.endswith("\\") or "\x00" in line or "\ufeff" in line:
+                raise Refused("safety-hook-source-syntax-unsupported")
+            if line.startswith("[") and line.endswith("]"):
+                section = line
+                continue
+            if re.match(r"ExecStartPre\s*=", line):
+                if section != "[Service]":
+                    raise Refused("safety-hook-source-syntax-unsupported")
+                assignments.append((path, line))
+    if tuple(assignments) != SAFETY_HOOK_ASSIGNMENTS:
+        raise Refused("safety-hook-source-unqualified")
+    return fragment, dropins, sources
+
+
+# The pinned volume guard invokes these two operating-system programs by name.
+# Admit manager PATH only through root-custodied canonical directories and retain
+# both the ordered resolution and observed custody in the existing hook tuple.
+SAFETY_PATH_MAX_COMPONENTS = 6
+SAFETY_PATH_ALIASES = {"/bin": "/usr/bin", "/sbin": "/usr/sbin"}
+SAFETY_PATH_EXECUTABLE_LIMIT = 8 * 1024 * 1024
+
+
+def safety_path_identity(info):
+    return tuple(getattr(info, field) for field in (
+        "st_dev", "st_ino", "st_mode", "st_uid", "st_gid", "st_nlink",
+        "st_size", "st_mtime_ns", "st_ctime_ns"))
+
+
+def safety_path_components(value, code="safety-hook-manager-path-unsupported"):
+    """Admit literal, already-normalized absolute spellings; never rewrite PATH.
+
+    This lexical contract does not qualify a directory or program. Both
+    independent custody/resolution authorities still inspect the original order.
+    """
+    if type(value) is not str or not value or len(value) > 1024:
+        raise Refused(code)
+    components = tuple(value.split(":"))
+    if (len(components) > SAFETY_PATH_MAX_COMPONENTS
+            or len(set(components)) != len(components)
+            or any(re.fullmatch(r"/(?:[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*)?", item) is None
+                   or any(part in (".", "..") for part in item.split("/"))
+                   for item in components)):
+        raise Refused(code)
+    return components
+
+
+def qualify_manager_safety_path(value):
+    """Observe one declared PATH without executing or changing its programs."""
+    import hashlib
+    components = safety_path_components(value)
+    observed, absent = {}, []
+
+    def directory(path):
+        if path in observed:
+            return observed[path][2]
+        try:
+            info = os.lstat(path)
+            link = os.readlink(path) if stat.S_ISLNK(info.st_mode) else None
+        except OSError:
+            raise Refused("safety-hook-manager-path-unreadable")
+        if info.st_uid != 0 or info.st_gid != 0:
+            raise Refused("safety-hook-manager-path-untrusted")
+        if path != "/":
+            parent = os.path.dirname(path)
+            if directory(parent) != parent:
+                # Exact /bin and /sbin aliases do not admit aliased descendants.
+                raise Refused("safety-hook-manager-path-untrusted")
+        if link is not None:
+            target = SAFETY_PATH_ALIASES.get(path)
+            if target is None or link not in (target, target.lstrip("/")):
+                raise Refused("safety-hook-manager-path-untrusted")
+            canonical = directory(target)
+        else:
+            if not stat.S_ISDIR(info.st_mode) or info.st_mode & 0o022:
+                raise Refused("safety-hook-manager-path-untrusted")
+            canonical = path
+        observed[path] = (safety_path_identity(info), link, canonical)
+        return canonical
+
+    resolved = [(item, directory(item)) for item in components]
+    programs = []
+    for name in ("findmnt", "stat"):
+        selected = None
+        for spelling, canonical in resolved:
+            path = os.path.join(canonical, name)
+            try:
+                before = os.lstat(path)
+            except FileNotFoundError:
+                absent.append(path)
+                continue
+            except OSError:
+                raise Refused("safety-hook-manager-program-unreadable")
+            if (path not in ("/usr/bin/" + name, "/bin/" + name)
+                    or not stat.S_ISREG(before.st_mode)
+                    or before.st_uid != 0 or before.st_gid != 0
+                    or before.st_nlink != 1 or before.st_mode & 0o6022
+                    or not before.st_mode & 0o111
+                    or not 0 < before.st_size <= SAFETY_PATH_EXECUTABLE_LIMIT):
+                raise Refused("safety-hook-manager-program-untrusted")
+            descriptor = -1
+            try:
+                descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW |
+                                     os.O_NONBLOCK | os.O_CLOEXEC)
+                if safety_path_identity(os.fstat(descriptor)) != safety_path_identity(before):
+                    raise Refused("safety-hook-manager-path-changed")
+                payload = b""
+                while len(payload) <= SAFETY_PATH_EXECUTABLE_LIMIT:
+                    block = os.read(descriptor, min(65536,
+                        SAFETY_PATH_EXECUTABLE_LIMIT + 1 - len(payload)))
+                    if not block:
+                        break
+                    payload += block
+                if (len(payload) != before.st_size
+                        or safety_path_identity(os.fstat(descriptor)) != safety_path_identity(before)
+                        or safety_path_identity(os.lstat(path)) != safety_path_identity(before)):
+                    raise Refused("safety-hook-manager-path-changed")
+            except OSError:
+                raise Refused("safety-hook-manager-program-unreadable")
+            finally:
+                if descriptor >= 0:
+                    os.close(descriptor)
+            selected = (name, os.path.join(spelling, name), path,
+                        safety_path_identity(before), hashlib.sha256(payload).hexdigest())
+            break
+        if selected is None:
+            raise Refused("safety-hook-manager-program-missing")
+        programs.append(selected)
+    try:
+        for path, (identity, link, _) in observed.items():
+            info = os.lstat(path)
+            current_link = os.readlink(path) if stat.S_ISLNK(info.st_mode) else None
+            if safety_path_identity(info) != identity or current_link != link:
+                raise Refused("safety-hook-manager-path-changed")
+        for path in absent:
+            try:
+                os.lstat(path)
+            except FileNotFoundError:
+                continue
+            raise Refused("safety-hook-manager-path-changed")
+    except OSError:
+        raise Refused("safety-hook-manager-path-changed")
+    return tuple((path, *values) for path, values in sorted(observed.items())), tuple(programs)
+
+
+def safety_hook_environment(unit):
+    # Preserve the five observed fields for existing consumers; append the
+    # manager PATH custody/resolution proof to the same equality observation.
+    snapshot = (unit_property(unit, "Environment"), manager_environment(),
+                unit_property(unit, "ExecSearchPath"),
+                unit_property(unit, "PassEnvironment"),
+                unit_property(unit, "UnsetEnvironment"))
+    if snapshot[2]:
+        raise Refused("safety-hook-search-path-unsupported")
+    paths = []
+    for index in (0, 1, 3, 4):
+        try:
+            tokens = shlex.split(snapshot[index])
+        except ValueError:
+            raise Refused("safety-hook-environment-unsupported")
+        for token in tokens:
+            key, separator, value = token.partition("=")
+            if index == 1 and key == "PATH":
+                if not separator:
+                    raise Refused("safety-hook-manager-path-unsupported")
+                paths.append(value)
+            else:
+                refuse_selected_launch_overrides([token])
+            if (key.upper() in ("IFS", "SHELLOPTS", "BASHOPTS", "CDPATH", "GLOBIGNORE")
+                    or key.startswith("BASH_FUNC_")):
+                raise Refused("safety-hook-environment-unsupported")
+    if len(paths) != 1:
+        raise Refused("safety-hook-manager-path-unsupported")
+    return snapshot + (qualify_manager_safety_path(paths[0]),)
+
+
+def classify_production_safety_hooks(profile, unit):
+    before = unit_property(unit, "ExecStartPre")
+    if not before:
+        return None
+    if profile != "production" or unit not in ("terminal", "terminal.service"):
+        raise Refused("unsupported-service-launch-hook")
+    safety_exec_projection(before)
+    environment = safety_hook_environment(unit)
+    sources = loaded_safety_hook_sources(unit)
+    import hashlib
+    guard = trusted_safety_file(VOLUME_SAFETY_PATH, 4096)
+    if hashlib.sha256(guard.encode("utf-8")).hexdigest() != VOLUME_SAFETY_SHA256:
+        raise Refused("safety-hook-guard-source-unqualified")
+    # A changed loaded projection or source during this read is not a stable
+    # admission. The incumbent already repeats topology at each start and after
+    # serving-process validation; none of those call sites is removed.
+    if (unit_property(unit, "NeedDaemonReload") != "no"
+            or unit_property(unit, "ExecStartPre") != before
+            or loaded_safety_hook_sources(unit) != sources
+            or trusted_safety_file(VOLUME_SAFETY_PATH, 4096) != guard
+            or safety_hook_environment(unit) != environment):
+        raise Refused("safety-hook-changed-during-verification")
+    return environment
+
+
+def classify_environment_topology(profile, unit, app_root, env_source_dir):
+    if (unit_property(unit, "LoadState") != "loaded"
+            or unit_property(unit, "NeedDaemonReload") != "no"
+            or unit_property(unit, "ActiveState") not in ("active", "inactive")):
+        raise Refused("unit-configuration-unqualified")
+    expected_root = "/opt/terminal/terminal" if profile == "production" else "/opt/terminal/beta/terminal"
+    if unit_property(unit, "WorkingDirectory") != expected_root:
+        raise Refused("unsupported-working-directory")
+    prehooks = unit_property(unit, "ExecStartPre")
+    for prop in ("ExecStartPost", "ExecCondition", "ExecStopPost",
+                 "RootDirectory", "RootImage", "PAMName"):
+        if unit_property(unit, prop):
+            raise Refused("unsupported-service-launch-hook")
+    if prehooks:
+        # Zero-hook behavior is unchanged everywhere else: any ExecStartPre on
+        # a non-production target or any other unit stays refused outright.
+        if profile != "production" or unit != CANONICAL_PRODUCTION_UNIT:
+            raise Refused("unsupported-service-launch-hook")
+        classify_supported_prehooks(unit)
+    safety_environment = classify_production_safety_hooks(profile, unit)
+    files = unit_property(unit, "EnvironmentFiles")
+    entries = ENVFILE_ENTRY.findall(files)
+    if ENVFILE_ENTRY.sub("", files).strip():
+        raise Refused("unsupported-env-file-topology")
+    declared = []
+    if profile == "production":
+        if entries:
+            raise Refused("unsupported-env-file-topology")
+    else:
+        approved = env_source_dir.rstrip("/") + "/environment"
+        if len(entries) != 1 or entries[0] != (approved, "no"):
+            raise Refused("unsupported-env-file-topology")
+        declared.append(read_bounded_regular_file(
+            entries[0][0], MAX_ENV_FILE_BYTES, "env-file"))
+    for token in shlex.split(safety_environment[3] if safety_environment is not None
+                             else unit_property(unit, "PassEnvironment")):
+        refuse_selected_launch_overrides([token])
+        if token.split("=", 1)[0] == ADMISSION_KEY:
+            raise Refused("admission-key-in-indirect-unit-environment")
+    for token in shlex.split(safety_environment[4] if safety_environment is not None
+                             else unit_property(unit, "UnsetEnvironment")):
+        refuse_selected_launch_overrides([token])
+        if token.split("=", 1)[0] == ADMISSION_KEY:
+            raise Refused("admission-key-in-indirect-unit-environment")
+    manager = safety_environment[1] if safety_environment is not None else manager_environment()
+    refuse_file_launch_overrides(manager)
+    if prehooks:
+        classify_prehook_search_environment(unit, manager)
+    if KEY_ASSIGNMENT.search(manager):
+        raise Refused("admission-key-in-manager-environment")
+    values = admission_values_in_unit_environment(
+        safety_environment[0] if safety_environment is not None
+        else unit_property(unit, "Environment"))
+    for text in declared:
+        values.extend(admission_values_in_systemd_file(text))
+    if not values:
+        raise Refused("missing-explicit-closed")
+    if len(values) > 1:
+        raise Refused("conflicting-admission-declaration")
+    if values[0] != CLOSED_VALUE:
+        raise Refused("unit-admission-not-closed")
+    for name in DOTENV_NAMES:
+        path = os.path.join(app_root, name)
+        if not os.path.exists(path) and not os.path.islink(path):
+            continue
+        text = read_bounded_regular_file(path, MAX_ENV_FILE_BYTES, "dotenv")
+        refuse_file_launch_overrides(text, selected=True)
+        if admission_values_in_text(text):
+            raise Refused("dotenv-admission-conflict")
+    if (safety_environment is not None
+            and safety_hook_environment(unit) != safety_environment):
+        raise Refused("safety-hook-changed-during-verification")
+    # Both independent qualifiers must describe the same observed hook set.
+    # A hook appearing after the typed branch was skipped cannot be admitted
+    # only by the source snapshot, nor may a verified hook disappear mid-read.
+    if unit_property(unit, "ExecStartPre") != prehooks:
+        raise Refused("safety-hook-changed-during-verification")
+
+
+def unit_source_paths(property_value):
+    # DropInPaths renders as a space-separated path list. Whitespace inside a
+    # path would make the rendering ambiguous, so it is a refusal, never a
+    # guess. Loaded sources beyond the expected two stay un-pinned: they are
+    # read only to prove they declare no ExecStartPre.
+    entries = property_value.split(" ")
+    if len(entries) > MAX_UNIT_SOURCES or len(set(entries)) != len(entries):
+        raise Refused("unit-source-list-unusable")
+    paths = []
+    for entry in entries:
+        entry = entry.strip(" \t")
+        if not entry:
+            continue
+        if (not entry.startswith("/") or re.search(r"[\s\"']", entry)
+                or entry.endswith("/")):
+            raise Refused("unit-source-list-unusable")
+        paths.append(entry)
+    return paths
+
+def execstartpre_assignments(text, prefix):
+    # Narrow systemd directive scan: complete single-line assignments only.
+    # Continuations, NUL/BOM bytes and unrecognized line shapes fail closed so
+    # a prehook declaration can never hide behind unsupported syntax. Only
+    # ExecStartPre values are projected; unrelated fields are never pinned.
+    if "\x00" in text or "\ufeff" in text:
+        raise Refused(prefix + "-unsupported-syntax")
+    lines = text.split("\n")
+    if len(lines) > MAX_SCAN_LINES:
+        raise Refused(prefix + "-oversized")
+    values = []
+    section = None
+    for line in lines:
+        stripped = line.strip(" \t\r")
+        if not stripped or stripped.startswith(("#", ";")):
+            continue
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            continue
+        if stripped.endswith("\\"):
+            raise Refused(prefix + "-unsupported-syntax")
+        key, separator, value = stripped.partition("=")
+        key = key.strip(" \t")
+        if not separator or re.fullmatch(r"[A-Za-z][A-Za-z0-9]*", key) is None:
+            raise Refused(prefix + "-unsupported-syntax")
+        if key.lower() == "execstartpre":
+            if key != "ExecStartPre" or section != "Service":
+                raise Refused(prefix + "-unsupported-syntax")
+            values.append(value.strip(" \t"))
+    return values
+
+def unit_execstartpre_rows(unit):
+    # Typed effective ExecStartPre argv over D-Bus. The rendered systemctl
+    # argv[] vector is lossy for arguments containing whitespace, so approval
+    # is never based on rendered text. Read-only: hooks are never executed.
+    name = unit if unit.endswith(".service") else unit + ".service"
+    object_path = "/org/freedesktop/systemd1/unit/" + re.sub(
+        r"[^A-Za-z0-9]", lambda match: "_%02x" % ord(match.group(0)), name)
+    try:
+        completed = subprocess.run(
+            ["/usr/bin/busctl", "--json=short", "get-property", "org.freedesktop.systemd1",
+             object_path, "org.freedesktop.systemd1.Service", "ExecStartPre"],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        raise Refused("prehook-effective-argv-unavailable")
+    if completed.returncode != 0:
+        raise Refused("prehook-effective-argv-unavailable")
+    if len(completed.stdout) > MAX_PREHOOK_REPLY_BYTES:
+        raise Refused("prehook-inventory-oversized")
+    try:
+        return json.loads(completed.stdout.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        raise Refused("prehook-effective-argv-unavailable")
+
+def typed_prehook_rows(payload):
+    # busctl --json=short renders the reply body as the list of complete out
+    # arguments; here that is one argument holding the a(sasbttttuii) array.
+    # Row positions are the execution order. Anything else fails closed.
+    if (not isinstance(payload, dict) or set(payload) != {"type", "data"}
+            or payload["type"] != "a(sasbttttuii)"):
+        raise Refused("unsupported-prehook-shape")
+    rows = payload["data"]
+    if not isinstance(rows, list) or not rows:
+        raise Refused("unsupported-prehook-shape")
+    if (len(rows) == 1 and isinstance(rows[0], list)
+            and all(isinstance(row, list) for row in rows[0])):
+        rows = rows[0]
+    if len(rows) > MAX_PREHOOK_ROWS:
+        raise Refused("prehook-inventory-oversized")
+    typed = []
+    for row in rows:
+        if (not isinstance(row, list) or len(row) != 10
+                or not isinstance(row[0], str)
+                or not isinstance(row[1], list) or not row[1]
+                or not all(isinstance(item, str) for item in row[1])
+                or not isinstance(row[2], bool)):
+            raise Refused("unsupported-prehook-shape")
+        typed.append((row[0], tuple(row[1]), row[2]))
+    return typed
+
+def trusted_path_identity(path):
+    # Metadata-only custody reader for hook-referenced binaries. Identity is
+    # the evidence; nothing is executed and no content beyond custody is read.
+    try:
+        direct = os.lstat(path)
+        resolved = os.path.realpath(path)
+        target = os.stat(path)
+    except OSError:
+        raise Refused("prehook-custody-unavailable")
+    return (direct.st_uid, direct.st_gid, stat.S_ISLNK(direct.st_mode),
+            resolved, target.st_uid, target.st_gid, target.st_mode,
+            stat.S_ISREG(target.st_mode), target.st_size)
+
+def bind_prehook_interpreter_custody():
+    # The observed legitimate /bin/sh is a trusted root-owned symlink to the
+    # root-owned interpreter. That exact shape is bound by path and custody;
+    # unexpected interpreter, target or ownership changes fail closed.
+    trusted_uid = os.geteuid()
+    link = trusted_path_identity(PREHOOK_INTERPRETER)
+    (link_uid, link_gid, is_symlink, resolved,
+     target_uid, target_gid, target_mode, target_regular, _) = link
+    if (not is_symlink or link_uid != trusted_uid or link_gid != trusted_uid
+            or resolved != PREHOOK_INTERPRETER_REALPATH
+            or not target_regular or target_uid != trusted_uid
+            or target_gid != trusted_uid or target_mode & 0o022
+            or not target_mode & 0o100):
+        raise Refused("prehook-interpreter-custody")
+
+def guard_script_payload():
+    return read_bounded_regular_file(
+        PREHOOK_GUARD_PATH, PREHOOK_GUARD_BYTES, "guard-script")
+
+def bind_prehook_guard_custody():
+    # The volume guard is bound by exact body hash and custody: a root-owned,
+    # non-symlink, group/other-nonwritable, owner-executable regular file. A
+    # changed body - including one that mutates environment files - is refused
+    # here on hash and size alone, before anything could run it.
+    trusted_uid = os.geteuid()
+    guard = trusted_path_identity(PREHOOK_GUARD_PATH)
+    (link_uid, link_gid, is_symlink, resolved,
+     target_uid, target_gid, target_mode, target_regular, _) = guard
+    if (is_symlink or resolved != PREHOOK_GUARD_PATH
+            or link_uid != trusted_uid or link_gid != trusted_uid
+            or not target_regular or target_uid != trusted_uid
+            or target_gid != trusted_uid or target_mode & 0o022
+            or not target_mode & 0o100):
+        raise Refused("prehook-guard-custody")
+    payload = guard_script_payload()
+    if (len(payload.encode("utf-8")) != PREHOOK_GUARD_BYTES
+            or hashlib.sha256(payload.encode("utf-8")).hexdigest()
+            != PREHOOK_GUARD_SHA256):
+        raise Refused("prehook-guard-body-mismatch")
+
+def classify_supported_prehooks(unit):
+    # Production's canonical unit binds the two approved prehooks three ways:
+    # the declaring drop-in sources (owners, order, custody), the typed
+    # effective argv (order, argv, ignore_errors) and the guard script body.
+    if (unit_property(unit, "Id") != "terminal.service"
+            or unit_property(unit, "FragmentPath") != PREHOOK_FRAGMENT_PATH):
+        raise Refused("prehook-unit-source-unqualified")
+    entries = unit_source_paths(unit_property(unit, "DropInPaths"))
+    owners = {}
+    for entry in entries:
+        base = entry.rstrip("/").rpartition("/")[2]
+        if base in PREHOOK_DECLARATION_BASENAMES:
+            if base in owners:
+                raise Refused("prehook-declaration-ambiguous")
+            owners[base] = entry
+    if len(owners) != len(PREHOOK_DECLARATION_BASENAMES):
+        raise Refused("prehook-declaration-missing")
+    hardening_owner = owners["hardening.conf"]
+    storage_owner = owners["storage.conf"]
+    hardening_parent = hardening_owner.rpartition("/")[0]
+    storage_parent = storage_owner.rpartition("/")[0]
+    if (hardening_parent != storage_parent
+            or hardening_parent != PREHOOK_SOURCE_DIR
+            or entries.index(hardening_owner) > entries.index(storage_owner)):
+        raise Refused("prehook-declaration-ambiguous")
+    for entry in [PREHOOK_FRAGMENT_PATH, *entries]:
+        if entry != PREHOOK_FRAGMENT_PATH and os.path.dirname(entry) != PREHOOK_SOURCE_DIR:
+            raise Refused("prehook-declaration-ambiguous")
+        values = execstartpre_assignments(
+            read_bounded_regular_file(entry, MAX_UNIT_SOURCE_BYTES, "unit-source"),
+            "unit-source")
+        if entry == hardening_owner:
+            if values != [PREHOOK_HARDENING_DECLARATION]:
+                raise Refused("prehook-declaration-mismatch")
+        elif entry == storage_owner:
+            if values != [PREHOOK_STORAGE_DECLARATION]:
+                raise Refused("prehook-declaration-mismatch")
+        elif values:
+            raise Refused("prehook-declaration-extra")
+    rows = typed_prehook_rows(unit_execstartpre_rows(unit))
+    if len(rows) != 2:
+        raise Refused("unsupported-prehook-shape")
+    if rows[0] != (PREHOOK_BUILD_ID_ARGV[0], PREHOOK_BUILD_ID_ARGV, False):
+        raise Refused("unsupported-prehook-shape")
+    if rows[1] != (PREHOOK_GUARD_PATH, PREHOOK_GUARD_ARGV, False):
+        raise Refused("unsupported-prehook-shape")
+    bind_prehook_interpreter_custody()
+    bind_prehook_guard_custody()
+
+def prehook_search_directories(manager):
+    # systemctl show-environment is not a shell program. Recognize only its
+    # literal, bounded normalized absolute PATH form, never expand variables,
+    # quotes, escapes or relative/empty elements. Directory names alone confer
+    # no trust. An absent assignment uses systemd's documented default.
+    values = []
+    for line in manager.split("\n"):
+        stripped = line.strip(" \t\r")
+        if re.match(r"^(?:export\s+)?PATH(?![A-Za-z0-9_])", stripped):
+            match = re.fullmatch(r"PATH=([/A-Za-z0-9:_.-]+)", stripped)
+            if match is None:
+                raise Refused("prehook-search-path-unqualified")
+            values.append(match.group(1))
+    if len(values) > 1:
+        raise Refused("prehook-search-path-unqualified")
+    if not values:
+        return PREHOOK_DEFAULT_SEARCH_DIRS
+    return safety_path_components(values[0], "prehook-search-path-unqualified")
+
+def qualify_prehook_search_tools(directories):
+    # Read metadata only. Every directory/ancestor must be root-custodied
+    # and nonwritable by group/other; /bin and /sbin may use their normal
+    # root-owned aliases. Never execute a tool to qualify it. The first
+    # existing match must resolve to the canonical trusted /usr/bin tool,
+    # so an earlier PATH shadow is refused even when its file is root-owned.
+    trusted_uid = os.geteuid()
+    for directory in directories:
+        components = directory.strip("/").split("/")
+        paths = ["/"] + ["/" + "/".join(components[:n])
+                         for n in range(1, len(components) + 1)]
+        for path in paths:
+            identity = trusted_path_identity(path)
+            (owner, group, linked, resolved, target_owner, target_group,
+             mode, regular, size) = identity
+            expected = {"/bin": "/usr/bin", "/sbin": "/usr/sbin"}.get(path, path)
+            if (owner != trusted_uid or group != trusted_uid
+                    or target_owner != trusted_uid or target_group != trusted_uid
+                    or not stat.S_ISDIR(mode) or mode & 0o022
+                    or resolved != expected):
+                raise Refused("prehook-search-directory-custody")
+    for name in ("findmnt", "stat"):
+        for directory in directories:
+            path = os.path.join(directory, name)
+            if not os.path.lexists(path):
+                continue
+            identity = trusted_path_identity(path)
+            (owner, group, linked, resolved, target_owner, target_group,
+             mode, regular, size) = identity
+            if (owner != trusted_uid or group != trusted_uid
+                    or target_owner != trusted_uid or target_group != trusted_uid
+                    or not regular or mode & 0o022 or not mode & 0o100
+                    or resolved != "/usr/bin/" + name):
+                raise Refused("prehook-search-tool-custody")
+            break
+        else:
+            raise Refused("prehook-search-tool-unavailable")
+
+def classify_prehook_search_environment(unit, manager):
+    # ExecSearchPath can supply the hook's PATH independently of manager and
+    # unit Environment. This contract supports only the ordinary default.
+    if unit_property(unit, "ExecSearchPath"):
+        raise Refused("prehook-search-path-unqualified")
+    qualify_prehook_search_tools(prehook_search_directories(manager))
+
+
+def installed_package_json(app_root):
+    return read_bounded_regular_file(os.path.join(app_root, "package.json"),
+                                     MAX_ENV_FILE_BYTES, "installed-package")
+
+
+def classify_start_scripts(package):
+    try:
+        scripts = json.loads(package).get("scripts", {})
+    except (ValueError, TypeError, AttributeError):
+        raise Refused("unsupported-start-command")
+    if (not isinstance(scripts, dict) or scripts.get("start") != "next start"
+            or scripts.get("prestart") or scripts.get("poststart")):
+        raise Refused("unsupported-start-command")
+
+
+def classify_launch_wrapper(profile, unit, repository, revision, app_root_for_launch):
+    start = unit_property(unit, "ExecStart")
+    if (not start.strip().startswith("{") or not start.strip().endswith("}")
+            or start.count("{") != 1 or start.count("}") != 1):
+        raise Refused("unsupported-launch-wrapper")
+    if profile == "production":
+        if (re.findall(r"path=([^ ;]+) ;", start) != ["/usr/bin/npm"]
+                or start.count("argv[]=") != 1
+                or "argv[]=/usr/bin/npm run start ;" not in start):
+            raise Refused("unsupported-launch-wrapper")
+        package = run_git(repository, ["cat-file", "blob",
+                                        revision + ":terminal/package.json"],
+                          "unsupported-launch-wrapper")
+        classify_start_scripts(package)
+        # With an unchanged lockfile, the first production restart still reads
+        # the installed package before step8 source reflection. Bind that actual
+        # npm command too; the candidate Git package alone is insufficient.
+        classify_start_scripts(installed_package_json(app_root_for_launch))
+        return
+    # systemctl renders ONE argv[]= vector in an ExecStart record, not one
+    # repeated field per argument. Accept the source-owned beta unit shape.
+    if (not start.strip().startswith("{") or not start.strip().endswith("}")
+            or start.count("path=") != 1 or start.count("argv[]=") != 1):
+        raise Refused("unsupported-launch-wrapper")
+    path_match = re.search(r"\bpath=([^ ;]+)\s*;", start)
+    argv_match = re.search(r"argv\[\]=(.*?)\s*;", start)
+    if not path_match or not argv_match or path_match.group(1) != "/usr/bin/env":
+        raise Refused("unsupported-launch-wrapper")
+    argv = shlex.split(argv_match.group(1))
+    expected = ["/usr/bin/env", "node", "node_modules/next/dist/bin/next", "start",
+                "--port", "3001", "--hostname", "127.0.0.1"]
+    if argv != expected:
+        raise Refused("unsupported-launch-wrapper")
+
+
+def serving_role(argv, comm):
+    if comm.startswith("next-server"):
+        return "server"
+    for index in range(len(argv) - 1):
+        if argv[index].endswith("/next") or argv[index] == "next":
+            if argv[index + 1] == "start":
+                return "server"
+    base = os.path.basename(argv[0]) if argv else ""
+    if (base in ("npm", "npm-cli.js", "npm run start", "sh")
+            or (base == "node" and len(argv) >= 2
+                and os.path.basename(argv[1]) in ("npm", "npm-cli.js"))):
+        return "launcher"
+    return "unknown"
+
+
+def refuse_project_npm_config(text):
+    # No project-local npm overrides are part of the supported launch model.
+    # Refuse active content (including interpolation/indirection) instead of
+    # trying to resolve npm configuration or echoing a potentially secret line.
+    if any(line.strip() and not line.lstrip().startswith(("#", ";"))
+           for line in text.splitlines()):
+        raise Refused("unsupported-project-npm-configuration")
+
+
+def classify_project_npm_config(repository, revision, listing, app_root):
+    for record in listing.split(b"\0"):
+        meta, marker, path = record.partition(b"\t")
+        if marker and path == b"terminal/.npmrc":
+            fields = meta.decode("ascii", "replace").split()
+            if (len(fields) != 3 or fields[1] != "blob"
+                    or fields[0] not in REGULAR_TREE_MODES):
+                raise Refused("unsupported-project-npm-configuration")
+            content = run_git(repository, ["cat-file", "blob", revision + ":terminal/.npmrc"],
+                              "project-npm-configuration-unreadable")
+            if len(content) > MAX_ENV_FILE_BYTES:
+                raise Refused("project-npm-configuration-oversized")
+            refuse_project_npm_config(content.decode("utf-8"))
+    path = os.path.join(app_root, ".npmrc")
+    if os.path.exists(path) or os.path.islink(path):
+        refuse_project_npm_config(read_bounded_regular_file(
+            path, MAX_ENV_FILE_BYTES, "project-npm-configuration"))
+
+
+def classify_serving_processes(unit, app_root):
+    if unit_property(unit, "ActiveState") != "active":
+        raise Refused("service-not-active")
+    main_text = unit_property(unit, "MainPID")
+    if not main_text.isdigit() or int(main_text) <= 0:
+        raise Refused("mainpid-absent")
+    main_pid = int(main_text)
+    app = app_root_identity(app_root)
+    app_identity = (app.st_dev, app.st_ino)
+    expected_starttimes = {main_pid: proc_starttime(main_pid)}
+    main_cgroup = proc_cgroup_path(main_pid)
+    if unit_property(unit, "ControlGroup") != main_cgroup:
+        raise Refused("mainpid-outside-target-unit")
+    # systemd v1 unit cgroups and v2 scopes both end in the unit name, with or
+    # without the .service suffix (terminal vs terminal.service).
+    main_leaf = main_cgroup.rstrip("/").rpartition("/")[2]
+    if main_leaf not in (unit, unit + ".service"):
+        raise Refused("mainpid-outside-target-unit")
+    def descendants(capture=False):
+        collected = [main_pid]
+        frontier = [main_pid]
+        while frontier:
+            current = frontier.pop(0)
+            for child in proc_children(current):
+                if child in collected:
+                    continue
+                if len(collected) >= MAX_PROCS:
+                    raise Refused("serving-process-inventory-oversized")
+                if capture:
+                    expected_starttimes[child] = proc_starttime(child)
+                collected.append(child)
+                frontier.append(child)
+        return collected
+    collected = descendants(capture=True)
+    roles = {}
+    for pid in collected:
+        role = serving_role(proc_cmdline(pid), proc_comm(pid))
+        if role == "unknown":
+            raise Refused("unexpected-serving-process")
+        roles[pid] = role
+    servers = [pid for pid, role in roles.items() if role == "server"]
+    if not servers:
+        raise Refused("no-next-serving-process")
+    for pid in collected:
+        if proc_starttime(pid) != expected_starttimes[pid]:
+            raise Refused("process-identity-changed-during-verification")
+        if proc_cgroup_path(pid) != main_cgroup:
+            raise Refused("serving-process-outside-target-cgroup")
+    for pid in collected:
+        walker, hops = pid, 0
+        while walker != main_pid and walker > 1 and hops < MAX_ANCESTRY_DEPTH:
+            walker = proc_ppid(walker)
+            hops += 1
+        if walker != main_pid:
+            raise Refused("serving-process-ancestry-unknown")
+        cwd = proc_cwd_identity(pid)
+        if (cwd.st_dev, cwd.st_ino) != app_identity:
+            raise Refused("serving-process-foreign-working-directory")
+        initial_env = proc_bytes(pid, "environ", MAX_PROC_ENVIRONMENT_BYTES)
+        refuse_launch_overrides(item.decode("utf-8", "replace")
+                                for item in initial_env.split(b"\0") if item)
+        values = admission_values_in_proc_environ(initial_env)
+        if len(values) > 1:
+            raise Refused("serving-process-admission-conflict")
+        if not values or values[0] != CLOSED_VALUE:
+            raise Refused("serving-process-admission-not-closed")
+    if (unit_property(unit, "ActiveState") != "active"
+            or unit_property(unit, "MainPID") != main_text
+            or unit_property(unit, "ControlGroup") != main_cgroup
+            or descendants() != collected):
+        raise Refused("process-identity-changed-during-verification")
+    for pid in collected:
+        if proc_starttime(pid) != expected_starttimes[pid]:
+            raise Refused("process-identity-changed-during-verification")
+        if proc_cgroup_path(pid) != main_cgroup:
+            raise Refused("process-identity-changed-during-verification")
+
+
+def main(argv):
+    if len(argv) != 7:
+        raise Refused("verifier-invocation-invalid")
+    repository, revision, phase, app_root, unit = argv[:5]
+    env_source_dir, profile = argv[5], argv[6]
+    if phase not in PHASES or profile not in PROFILES:
+        raise Refused("verifier-invocation-invalid")
+    if re.fullmatch(r"[0-9a-f]{40}", revision) is None:
+        raise Refused("target-identity-missing")
+    # The exact admitted tree is read at the named revision only; a failed or
+    # oversized inventory is a refusal, and an inventory without the primitive
+    # decides old-target (identity provenance itself was already established by
+    # the incumbent exact-target admission before this verifier runs).
+    kind = run_git(repository, ["cat-file", "-t", revision],
+                   "target-identity-unresolvable").decode("ascii", "replace").strip()
+    if kind != "commit":
+        raise Refused("target-identity-unresolvable")
+    listing = run_git(repository, ["ls-tree", "-r", "-z", revision],
+                      "target-tree-unreadable")
+    if len(listing) > MAX_TREE_LIST_BYTES:
+        raise Refused("target-tree-oversized")
+    primitive = None
+    for record in listing.split(b"\0"):
+        if not record:
+            continue
+        meta, marker, path = record.partition(b"\t")
+        if marker and path == PRIMITIVE_PATH.encode():
+            primitive = meta.decode("ascii", "replace").split()
+            break
+    if primitive is None:
+        print("old-target")
+        return 0
+    if (len(primitive) != 3 or primitive[1] != "blob"
+            or primitive[0] not in REGULAR_TREE_MODES):
+        raise Refused("primitive-not-a-regular-blob")
+    classify_environment_topology(profile, unit, app_root, env_source_dir)
+    classify_launch_wrapper(profile, unit, repository, revision, app_root)
+    classify_project_npm_config(repository, revision, listing, app_root)
+    if phase == "poststart":
+        classify_serving_processes(unit, app_root)
+        classify_environment_topology(profile, unit, app_root, env_source_dir)
+        classify_launch_wrapper(profile, unit, repository, revision, app_root)
+        classify_project_npm_config(repository, revision, listing, app_root)
+    print("explicitly-closed")
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        main(sys.argv[1:])
+    except Refused as refusal:
+        sys.stderr.write("reason=%s\n" % refusal.code)
+        raise SystemExit(65)
+    except Exception:
+        sys.stderr.write("reason=verifier-unavailable\n")
+        raise SystemExit(65)
+PY_INVESTIGATION_INSTALL
+); then
+    # stderr on purpose: every caller captures this function's stdout, so the
+    # bounded refusal reason must reach the operator log directly.
+    log "FATAL: candidate Investigation installation admission refused: ${decision:-verifier-unavailable}" >&2
+    return 65
+  fi
+  printf '%s\n' "$decision"
+}
+
+# Prestart admission: run after target admission and again immediately before
+# every candidate start/restart. Refusals must route through the incumbent
+# abort path of the caller so source/build restoration is never blocked.
+require_investigation_closed_before_start(){
+  local expected_sha=${1:-${FULL_SHA:-}} decision
+  decision=$(investigation_install_state "$expected_sha" prestart) || return $?
+  if [ "$decision" != old-target ] && [ "$decision" != explicitly-closed ]; then
+    log "FATAL: unrecognized Investigation admission decision"
+    return 65
+  fi
+  [ "$decision" = old-target ] || log \
+    "candidate Investigation admission prestart: explicitly-closed (selected unit only; setting values are never logged)"
+  return 0
+}
+
+# Poststart admission: binds the deployed identity through the existing
+# three-identity gate, then requires the active selected unit and every
+# npm/Next serving child to carry the explicit closed installation. This
+# corroborates the initial process environment only; per-request memory env is
+# not proven by any admission decision.
+require_investigation_closed_after_start(){
+  local expected_sha=${1:-${FULL_SHA:-}} expected_build=${2:-${NEW_BUILD_ID:-}} decision
+  decision=$(investigation_install_state "$expected_sha" poststart) || return $?
+  if [ "$decision" = old-target ]; then
+    return 0
+  fi
+  if [ "$decision" != explicitly-closed ]; then
+    log "FATAL: unrecognized Investigation admission decision"
+    return 65
+  fi
+  if ! deploy_identity_verified "$APP" "$expected_sha" "$expected_build"; then
+    log "FATAL: candidate Investigation poststart could not bind the deployed identity"
+    return 65
+  fi
+  log \
+    "candidate Investigation admission poststart: explicitly-closed (active unit and serving children bound; process memory env is not proven)"
+  return 0
+}
+
+# Restoration/rollback activation: an old target keeps the incumbent rollback
+# restart verbatim; a primitive-bearing prior generation may only be
+# reactivated on a qualified closed installation. Never called for the
+# candidate's own start/restart, and never around the source/build restoration
+# steps themselves.
+investigation_restoration_activation_allowed(){
+  local expected_sha=${1:-} decision
+  if ! decision=$(investigation_install_state "$expected_sha" restoration); then
+    log "restoration activation withheld: Investigation admission refused (bounded reason on the refusal line)"
+    return 1
+  fi
+  if [ "$decision" = old-target ] || [ "$decision" = explicitly-closed ]; then
+    return 0
+  fi
+  log "restoration activation withheld: unrecognized Investigation admission decision"
+  return 1
 }
 
 # Before live identity begins moving, the current-generation W2A receipt owns the
@@ -4440,6 +5963,10 @@ if [ "$BOOTSTRAP_REQUESTED" != 1 ] && [ "$RECOVERY_REQUESTED" != 1 ]; then
     # build; activating here would cost the beta generation.
     beta_unit_declares_shared_shell active || exit $?
   fi
+  # Investigation candidate installation admission: after exact target admission,
+  # before any candidate source/build/marker mutation or start. Old targets are
+  # decided absent here and keep the incumbent behavior verbatim.
+  require_investigation_closed_before_start "$TARGET_SHA" || exit $?
   CANONICAL_RECOVERY_SHA=$PREFLIGHT_ACCEPTED_SHA
   CANONICAL_RECOVERY_ARMED=1
   git -C "$SRC" reset -q --hard "$TARGET_SHA"
@@ -4458,6 +5985,7 @@ elif [ "$BOOTSTRAP_REQUESTED" = 1 ]; then
   ACCEPTED_REF="refs/remotes/origin/$BRANCH"
   fetch_accepted_ref "$SRC" origin "$BRANCH" "$ACCEPTED_REF"
   admit_target_sha "$SRC" "$TARGET_SHA" "$ACCEPTED_REF_SHA"
+  require_investigation_closed_before_start "$TARGET_SHA" || exit $?
   sanitize_git_environment
   git -C "$SRC" reset -q --hard "$TARGET_SHA" || exit $?
   git -C "$SRC" clean -qfd || exit $?
@@ -4483,6 +6011,7 @@ else
   ACCEPTED_REF="refs/remotes/origin/$BRANCH"
   fetch_accepted_ref "$SRC" origin "$BRANCH" "$ACCEPTED_REF"
   admit_target_sha "$SRC" "$TARGET_SHA" "$ACCEPTED_REF_SHA"
+  require_investigation_closed_before_start "$TARGET_SHA" || exit $?
   beta_txn_recover || exit $?
 fi
 FULL_SHA=$(git -C "$SRC" rev-parse HEAD)
@@ -4491,6 +6020,7 @@ FULL_SHA=$(git -C "$SRC" rev-parse HEAD)
   exit 65
 }
 SHA=${FULL_SHA:0:12}
+apply_production_shared_shell_profile || exit $?
 if [ "$TARGET" = beta ] && [ "$RECOVERY_REQUESTED" != 1 ]; then
   beta_txn_begin || exit $?
 fi
@@ -4599,8 +6129,9 @@ log "next build (staging) ..."
 # deployment-id inputs to the ONE deployed commit so every HTML/RSC response and
 # every static chunk uses the same ?dpl= value. The Date.now fallback is only for
 # ad-hoc local builds. NODE_OPTIONS carries the heap ceiling (see build_node_options).
-# MMX_SHARED_SHELL is present only because apply_profile_environment declared it for
-# beta and removed it for production; the build command itself is identical for both.
+# MMX_SHARED_SHELL is owner-derived: beta declares it; production requires the
+# exact admitted activation drop-in and inert unit BUILD flag. Next pins the
+# value into this build, so restoring an older off build cannot enable it.
 BUILD_NODE_OPTIONS=$(build_node_options "${NODE_OPTIONS:-}")
 ( cd "$STAGE" && NODE_OPTIONS="$BUILD_NODE_OPTIONS" GIT_SHA="$FULL_SHA" NEXT_DEPLOYMENT_ID="$FULL_SHA" npm run build )
 
@@ -4620,6 +6151,17 @@ if [ "$TARGET" = beta ]; then
   if ! beta_prepare_build_output; then
     beta_txn_abort "could not qualify private beta build output" || exit 1
   fi
+fi
+
+# Running Next may resolve .next at request time. Repeat after the long build,
+# before the first live marker/build movement, as well as before each restart.
+# No generation has opened here: production EXIT cleanup restores its admitted
+# canonical source; beta uses its existing transaction abort/restoration path.
+if ! require_investigation_closed_before_start "$FULL_SHA"; then
+  if [ "$TARGET" = beta ]; then
+    beta_txn_abort "candidate Investigation admission refused before live generation swap" || exit 1
+  fi
+  exit 65
 fi
 
 # 5) Pin the same deployment id for `next start`, which evaluates next.config.ts
@@ -4696,12 +6238,22 @@ if [ "$TARGET" = beta ]; then
     beta_txn_abort "could not publish the beta runtime tree for the service user" || exit 1
   fi
   if ! beta_prepare_next_cache "$APP"; then beta_txn_abort "could not prepare beta cache" || exit 1; fi
+  # Immediate pre-start repeat: the effective service configuration is
+  # re-proven at the exact moment this candidate is about to be activated.
+  if ! require_investigation_closed_before_start "$FULL_SHA"; then
+    beta_txn_abort "candidate Investigation installation admission refused before beta activation" || exit 1
+  fi
   if [ "$BOOTSTRAP_REQUESTED" = 1 ]; then
     if ! systemctl start "$SERVICE_NAME"; then beta_txn_abort "systemctl start failed" || exit 1; fi
   else
     if ! systemctl restart "$SERVICE_NAME"; then beta_txn_abort "systemctl restart failed" || exit 1; fi
   fi
   sleep 6
+  # Post-start admission before the pending acceptance tuple: the active unit
+  # and every serving child must still carry the explicit closed installation.
+  if ! require_investigation_closed_after_start "$FULL_SHA" "$NEW_BUILD_ID"; then
+    beta_txn_abort "pending beta candidate failed the Investigation installation admission" || exit 1
+  fi
   if ! shared_shell_status_verified "$BETA_STATUS_URL" "$FULL_SHA" "$SRC" \
       || ! deploy_identity_verified "$APP" "$FULL_SHA" "$NEW_BUILD_ID" \
       || ! beta_unit_declares_shared_shell active disabled; then
@@ -4709,6 +6261,16 @@ if [ "$TARGET" = beta ]; then
   fi
   log "beta candidate active but pending: $FULL_SHA; accepted pointer has not advanced"
 else
+if ! production_shared_shell_profile_unchanged; then
+  deploy_generation_abort "$APP" "$FULL_SHA" "$SWAPPED" "production Shared Shell activation changed" || exit 1
+fi
+# Immediate pre-start repeat for the ordinary production restart: the effective
+# service configuration is re-proven at the exact moment this candidate is
+# about to be activated. A refusal aborts through the incumbent generation
+# rollback, same operation identity.
+if ! require_investigation_closed_before_start "$FULL_SHA"; then
+  deploy_generation_abort "$APP" "$FULL_SHA" "$SWAPPED" "candidate Investigation installation admission refused before production restart" || exit 1
+fi
 if ! systemctl restart terminal; then
   deploy_generation_abort "$APP" "$FULL_SHA" "$SWAPPED" "systemctl restart failed" || exit 1
 fi
@@ -4725,6 +6287,19 @@ if [ "$DEPLOY_OK" = 1 ] && ! deploy_identity_verified "$APP" "$FULL_SHA" "$NEW_B
   DEPLOY_OK=0
 fi
 
+# Production acceptance has the same closed-candidate prerequisite as beta,
+# independently of the Shared Shell ON/OFF classifier.
+if [ "$DEPLOY_OK" = 1 ] && ! require_investigation_closed_after_start "$FULL_SHA" "$NEW_BUILD_ID"; then
+  log "production candidate Investigation process binding failed"
+  DEPLOY_OK=0
+fi
+
+if [ "$DEPLOY_OK" = 1 ] && [ "$PRODUCTION_SHARED_SHELL_ENABLED" = 1 ]; then
+  if ! shared_shell_status_verified "http://127.0.0.1:3000/api/shared-shell/status" "$FULL_SHA" "$SRC"; then
+    log "production Shared Shell tuple verification failed"
+    DEPLOY_OK=0
+  fi
+fi
 if [ "$DEPLOY_OK" = 1 ]; then
   deploy_generation_commit "$APP"
   log "identity verified: $(deploy_identity_line "$APP" "$FULL_SHA")"
@@ -4826,6 +6401,10 @@ if [ "$TARGET" = beta ]; then
   if ! beta_prepare_next_cache "$APP"; then
     beta_txn_abort "could not finalize beta cache custody" || exit 1
   fi
+  # Immediate pre-start repeat before the final beta reflection restart.
+  if ! require_investigation_closed_before_start "$FULL_SHA"; then
+    beta_txn_abort "candidate Investigation installation admission refused before final beta restart" || exit 1
+  fi
   if ! systemctl restart "$SERVICE_NAME"; then
     beta_txn_abort "final beta restart after source reflection failed" || exit 1
   fi
@@ -4858,6 +6437,22 @@ if ( cd "$APP" && npx esbuild ../ingest/suite_alerts.ts --bundle --platform=node
 else
   log "WARN: suite_alerts bundle FAILED — cron keeps the previous bundle"
 fi
+
+# Frozen-node source reader bundle only. Packaging does not opt in the Python
+# evaluator, install lifecycle SQL, enroll alerts or authorize delivery.
+# BEGIN frozen-node source bundle
+log "bundling ingest/frozen_node_source_cli.ts -> ingest/dist/frozen_node_source.mjs"
+if ( cd "$APP" && npx esbuild ../ingest/frozen_node_source_cli.ts --bundle --platform=node --format=esm \
+      --conditions=react-server --outfile=../ingest/dist/frozen_node_source.mjs.new \
+      "--alias:@=." --log-level=warning ) && \
+    mv -f "$APP/../ingest/dist/frozen_node_source.mjs.new" \
+      "$APP/../ingest/dist/frozen_node_source.mjs"; then
+  log "installed ingest/dist/frozen_node_source.mjs (reader remains opt-in)"
+else
+  rm -f "$APP/../ingest/dist/frozen_node_source.mjs.new"
+  log "WARN: frozen_node_source bundle FAILED — previous bundle retained"
+fi
+# END frozen-node source bundle
 
 # personal-accuracy nightly worker: terminal-data invokes the generated artifact after the
 # US-equity OHLC refresh. Stage atomically so a failed bundle leaves the prior artifact in

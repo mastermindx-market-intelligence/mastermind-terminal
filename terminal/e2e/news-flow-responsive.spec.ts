@@ -149,10 +149,11 @@ const ROWS: NewsRow[] = [
 
 // ---- R2 fixtures (spec packet item 2; ROWS above is untouched) --------------------
 //
-// Five stories covering the evidence-ladder cells: an agreeing 3-report cluster
+// Six stories covering the evidence-ladder cells: an agreeing 3-report cluster
 // (ev2_r2_agree), a differing 2-report cluster (ev2_r2_differ), a company announcement
-// (ev2_r2_press), a 1-report static chain (ev2_r2_single) and a not-compared reporting row
-// (ev2_r2_notcompared) that only earns NEXT CHECK while the snapshot is catching up.
+// (ev2_r2_press), a 1-report static chain (ev2_r2_single), a not-compared reporting row
+// (ev2_r2_notcompared) that only earns NEXT CHECK while the snapshot is catching up, and —
+// R3 §4 — the comparison-limited row (ev2_r3_limited) whose ladder text the limited cell pins.
 
 type R2SnapshotState = "live" | "catching_up" | "restricted" | "unavailable";
 
@@ -247,6 +248,25 @@ const R2_ROWS: NewsRow[] = [
     received_at: "2026-10-05T18:06:01+00:00",
     universe_revision: "sp500-r1",
     reporting_state: "not_compared",
+    content_kind: "reporting",
+    publisher: "benzinga.com",
+    annotation: { event_type: null },
+  },
+  {
+    sequence: 16,
+    source: "benzinga",
+    source_item_id: "206",
+    story_id: "ev2_r3_limited",
+    source_count: 2,
+    item_count: 2,
+    title: "Nvidia export licence review timelines remain open between outlets",
+    url: "https://www.benzinga.com/news/206",
+    teaser: "",
+    published_at: "2026-10-05T17:50:00+00:00",
+    updated_at: "2026-10-05T17:51:00+00:00",
+    received_at: "2026-10-05T17:51:01+00:00",
+    universe_revision: "sp500-r1",
+    reporting_state: "comparison_limited",
     content_kind: "reporting",
     publisher: "benzinga.com",
     annotation: { event_type: null },
@@ -578,15 +598,14 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefin
     return route.fulfill({ json: snapshotFor(snapshotState, flow) });
   });
 
-  await page.goto("/terminal?symbol=NVDA");
-  await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
+  // Navigate after the locale and any scenario-specific routes are installed.
 }
 
 async function setPresentation(page: Page, lang: Lang) {
-  await page.evaluate((l) => {
+  await page.addInitScript((l) => {
     localStorage.setItem("mm.lang", l);
   }, lang);
-  await page.reload();
+  await page.goto("/terminal?symbol=NVDA");
   await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
   await expect(page.locator("html")).toHaveAttribute("data-lang", lang);
   await page.evaluate(() => document.documentElement.setAttribute("data-theme", "dark"));
@@ -818,6 +837,11 @@ const R2_LADDER_TEXT: Record<Lang, string> = {
   en: "Reporting › 3 outlets › 3 reports › Reports agree",
   zh: "媒体报道 › 3 家媒体 › 3 条报道 › 报道一致",
 };
+// R3 §4, the sixth fixture's ladder: 2 outlets / 2 reports, comparison limited.
+const R3_LADDER_LIMITED: Record<Lang, string> = {
+  en: "Reporting › 2 outlets › 2 reports › Comparison limited",
+  zh: "媒体报道 › 2 家媒体 › 2 条报道 › 比对受限",
+};
 const R2_CLOCK_LABELS: Record<Lang, string[]> = {
   en: ["Published", "Updated", "Received"],
   zh: ["发布", "更新", "接收"],
@@ -876,6 +900,11 @@ test.describe("R2 evidence ladder", () => {
       const ladder = agree.locator("[data-news-ladder]");
       await expect(ladder).toHaveAttribute("aria-expanded", "false");
       expect(await r2LadderText(ladder)).toBe(R2_LADDER_TEXT[lang]);
+      // rev4 item 5: the › separators are real text between the steps (steps − 1 of them).
+      const stepCount = await ladder.locator("[data-step]").count();
+      expect(((await ladder.textContent()) ?? "").split("›").length - 1).toBe(stepCount - 1);
+      // rev4 item 7: Mark reviewed sits below the ladder on its own line and is visible.
+      await expect(agree.locator("[data-news-mark-one]")).toBeVisible();
       // live + reports agree → no NEXT CHECK on this row; the neighbours show theirs.
       await expect(agree.locator("[data-next-check]")).toHaveCount(0);
       await expect(r2Row(panel, "ev2_r2_differ").locator("[data-next-check]"))
@@ -883,8 +912,9 @@ test.describe("R2 evidence ladder", () => {
       await expect(r2Row(panel, "ev2_r2_press").locator("[data-next-check]"))
         .toHaveAttribute("data-next-check", "next.announcement");
 
-      // Spec §3/§4 geometry: 650 13px/18px headline on a fine pointer, 15px/20px at
-      // max-width:860px or coarse pointer; ladder chip 24px tall, ≥40px wrapped.
+      // R3 §2/§4 geometry: 650 15px/21px headline at ALL widths; the ladder sentence is
+      // 24px tall on a fine pointer and ≥40px at max-width:860px or coarse pointer,
+      // measured with ≥ (a wrapped sentence may exceed the floor).
       const finePointer = project === "desktop";
       const geometry = await agree.evaluate((el) => {
         const headline = el.querySelector("[data-news-headline]");
@@ -898,10 +928,18 @@ test.describe("R2 evidence ladder", () => {
         };
       });
       if (!geometry) throw new Error("ev2_r2_agree headline/ladder not measurable");
-      expect(geometry.fontSize).toBe(finePointer ? "13px" : "15px");
-      expect(geometry.lineHeight).toBe(finePointer ? "18px" : "20px");
-      if (finePointer) expect(geometry.ladderHeight).toBe(24);
-      else expect(geometry.ladderHeight).toBeGreaterThanOrEqual(40);
+      expect(geometry.fontSize).toBe("15px");
+      expect(geometry.lineHeight).toBe("21px");
+      expect(geometry.ladderHeight).toBeGreaterThanOrEqual(finePointer ? 24 : 40);
+
+      // Spec §7 R5: the Mark reviewed control is present on every row and at least 44px
+      // tall on the coarse-pointer viewport (rev4 P1-1).
+      const markOne = agree.locator("[data-news-mark-one]");
+      await expect(markOne).toBeVisible();
+      if (project === "mobile") {
+        const markBox = await markOne.boundingBox();
+        expect(markBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+      }
 
       await assertFocusRing(page, ladder);
       expect(await r2Overflow(page)).toBeLessThanOrEqual(0);
@@ -938,6 +976,24 @@ test.describe("R2 evidence ladder", () => {
       await expect(evidence.locator(R2_CLS.sourceLink)).toHaveCount(2);
       const more = evidence.locator(R2_CLS.moreReports);
       await expect(more).toHaveText(R2_MORE[lang]);
+
+      // Spec §3.6: inside the evidence view the clocks come first, then the group note,
+      // then the members, then "Show n more" (rev4 P1-2); checked before the click removes it.
+      const innerOrder = await evidence.evaluate((el, cls) => {
+        const clocksEl = el.querySelector(cls.clocks);
+        const noteEl = el.querySelector(cls.groupNote);
+        const linkEl = el.querySelector(cls.sourceLink);
+        const moreEl = el.querySelector(cls.moreReports);
+        if (!clocksEl || !noteEl || !linkEl || !moreEl) return null;
+        const following = (a: Element, b: Element) =>
+          !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+        return {
+          clocksThenNote: following(clocksEl, noteEl),
+          noteThenMember: following(noteEl, linkEl),
+          memberThenMore: following(linkEl, moreEl),
+        };
+      }, R2_CLS);
+      expect(innerOrder).toEqual({ clocksThenNote: true, noteThenMember: true, memberThenMore: true });
       await more.click();
       await expect(evidence.locator(R2_CLS.sourceLink)).toHaveCount(3);
       await expect(more).toHaveCount(0);
@@ -1012,6 +1068,27 @@ test.describe("R2 evidence ladder", () => {
       await expect(panel.getByRole("button", { name: R2_RETRY[lang] })).toBeVisible();
       expect(await r2Overflow(page)).toBeLessThanOrEqual(0);
     });
+
+    test(`limited cell (${lang})`, async ({ page, baseURL }, testInfo) => {
+      const project = testInfo.project.name as ProjectName;
+      await prepare(page, testInfo, baseURL, FLOW_OK, "live", "live");
+      await setPresentation(page, lang);
+      const panel = await openNews(page);
+      const limited = r2Row(panel, "ev2_r3_limited");
+      await limited.scrollIntoViewIfNeeded();
+
+      await panel.screenshot({ path: join(R2_CROPS_DIR, `R3-${project}-${lang}-limited.png`) });
+
+      // R3 §4, the sixth fixture: the comparison-limited ladder sentence with its
+      // aria-hidden glyph, and the frozen lexicon's rule-2 NEXT CHECK (next.limited),
+      // which fires for comparison_limited in any snapshot state.
+      const ladder = limited.locator("[data-news-ladder]");
+      await expect(ladder).toHaveAttribute("aria-expanded", "false");
+      expect(await r2LadderText(ladder)).toBe(R3_LADDER_LIMITED[lang]);
+      await expect(limited.locator("[data-agreement]")).toHaveAttribute("data-agreement", "comparison_limited");
+      await expect(limited.locator("[data-next-check]")).toHaveAttribute("data-next-check", "next.limited");
+      expect(await r2Overflow(page)).toBeLessThanOrEqual(0);
+    });
   }
 
   test("static cell (en)", async ({ page, baseURL }, testInfo) => {
@@ -1022,15 +1099,45 @@ test.describe("R2 evidence ladder", () => {
     const single = r2Row(panel, "ev2_r2_single");
     await single.scrollIntoViewIfNeeded();
 
-    await panel.screenshot({ path: join(R2_CROPS_DIR, `R2-${project}-en-static.png`) });
+    // rev4 items 3+4: a crop of the static ROW, not the panel at scroll 0 (which was
+    // byte-identical to the collapsed panel crop at 820 px).
+    await single.screenshot({ path: join(R2_CROPS_DIR, `R2-${project}-en-static.png`) });
 
     // A 1-report row renders the static chain: not a button, three steps, nothing
     // to expand and no NEXT CHECK (never on a 1-report row).
     const staticLadder = single.locator('[data-news-ladder="static"]');
     expect(await staticLadder.evaluate((el) => el.tagName)).not.toBe("BUTTON");
     await expect(staticLadder.locator("[data-step]")).toHaveCount(3);
+    // rev4 item 6: the exact static label (lexicon kind.reporting › outlets.one › reports.one).
+    expect(await r2LadderText(staticLadder)).toBe("Reporting › 1 outlet › 1 report");
     expect(await staticLadder.getAttribute("aria-expanded")).toBeNull();
     await expect(single.locator("[data-next-check]")).toHaveCount(0);
+    expect(await r2Overflow(page)).toBeLessThanOrEqual(0);
+  });
+
+  test("wrap cell (mobile)", async ({ page, baseURL }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile", "the wrap cell pins mobile ladder wrapping (R3 §4).");
+    await prepare(page, testInfo, baseURL, FLOW_OK, "live", "live");
+    await setPresentation(page, "en");
+    const panel = await openNews(page);
+    const press = r2Row(panel, "ev2_r2_press");
+    await press.scrollIntoViewIfNeeded();
+
+    // R3 §4: at mobile the press row's ladder never clips — the sentence wraps at
+    // step boundaries inside its own box (scrollWidth ≤ clientWidth) and its right
+    // edge stays inside the panel's right edge minus the row's 11px inset floor.
+    const wrap = await press.locator("[data-news-ladder]").evaluate((el) => {
+      const panelEl = document.querySelector('[data-testid="ticker-news-panel"]');
+      return {
+        scrollWidth: el.scrollWidth,
+        clientWidth: el.clientWidth,
+        right: el.getBoundingClientRect().right,
+        panelRight: panelEl?.getBoundingClientRect().right ?? null,
+      };
+    });
+    expect(wrap.scrollWidth).toBeLessThanOrEqual(wrap.clientWidth);
+    if (wrap.panelRight === null) throw new Error("panel box not measurable");
+    expect(wrap.right).toBeLessThanOrEqual(wrap.panelRight - 11);
     expect(await r2Overflow(page)).toBeLessThanOrEqual(0);
   });
 

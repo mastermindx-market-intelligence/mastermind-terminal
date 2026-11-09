@@ -1,0 +1,117 @@
+{
+  "appliedReceiptSha256": "087902b037282c94aefab098839f52217342075ddf6d109e419fd00a15c6bf65",
+  "branchHead": "00381734b54d2ada1f777b5a7b3a15b12f57981a",
+  "browserPassed": 51,
+  "catalystLifecycle": {
+    "path": "docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/catalyst-lifecycle-readback.json",
+    "sha256": "bf80fbcdc424af2ebd5622ccb514263237229ac73ed9e3c5e566ebaa0e5f4b7c"
+  },
+  "completedAt": "2026-11-09T15:30:30.337226+00:00",
+  "immutableSqlSha256": "c2e4831534fe2af7f835b19210020544b56b01866109a06b965ea656d87b8406",
+  "localFixtureProofOnly": true,
+  "protectedBase": "03af393ce05c12282003a3919cc473c032264922",
+  "retainedPassed": {
+    "affectedLint": true,
+    "catalystBrowser": 9,
+    "medtechBrowser": 39,
+    "medtechUnit": 58,
+    "migrationNamespace": true,
+    "typecheck": true
+  },
+  "retainedQualification": "docs/verification/pr1084-medtech-integration-20261109/qualification-r1/execution.json",
+  "retainedQualificationSha256": "50e05fa06bfe1ba80da3655d8165237227406aebe3924da6f075586ce710630b",
+  "schema": "terminal_pr1084_source_qualification_continuation.v1",
+  "sourceAfterSha256": "96bdd0d435ffd4d76ee867be892e1dd0f57d8371f64d26c231e15a64b5ff3c4e",
+  "sourceStable": true,
+  "stages": [
+    {
+      "artifacts": {
+        ".last-run.json": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+        "large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-desktop/attachments/large-trades-export-visible-chart-fee300007afb989d78bc0fd977374be21e2212b5.png": "f63dce8e2563a38c0223410eb9b1846cd261ab418756691c50fab39866d60799",
+        "large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-desktop/attachments/large-trades-native-export-inspector-excluded-c3e8c7451bbbf166f02ed9f704d14e380399430f.png": "adfa56c39daa15cf183577d5b772e179a9c2c660e071a4320941db191d49b12b",
+        "large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-desktop/attachments/large-trades-native-export-readiness-0-891e31d6569fd10597b0f460404577a99fe4c69d.png": "adfa56c39daa15cf183577d5b772e179a9c2c660e071a4320941db191d49b12b",
+        "large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-desktop/attachments/large-trades-native-export-readiness-1-a14204db60236f6ccefb470e829063b06163c56d.png": "adfa56c39daa15cf183577d5b772e179a9c2c660e071a4320941db191d49b12b",
+        "large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-desktop/large-trades-export-visible-chart.png": "f63dce8e2563a38c0223410eb9b1846cd261ab418756691c50fab39866d60799",
+        "large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-desktop/large-trades-native-export-inspector-excluded.png": "adfa56c39daa15cf183577d5b772e179a9c2c660e071a4320941db191d49b12b",
+        "large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-desktop/large-trades-native-export-readiness-0.png": "adfa56c39daa15cf183577d5b772e179a9c2c660e071a4320941db191d49b12b",
+        "large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-desktop/large-trades-native-export-readiness-1.png": "adfa56c39daa15cf183577d5b772e179a9c2c660e071a4320941db191d49b12b",
+        "large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-mobile/attachments/large-trades-export-visible-chart-e6b40892403f59a0fc159bb1f234fb2133f33ccb.png": "a8cdf01968b2dec927db703eab84d01d168bfcfec8cf585b3ff8ade5acfe72e4",
+        "large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-mobile/attachments/large-trades-native-export-inspector-excluded-700fb78f377a1033683388b4d4b14649ff347ff4.png": "31ffa841a4eeefdc5f809bf95af33df485efa38f1b20db520b79594ac48b7edd",
+        "large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-mobile/attachments/large-trades-native-export-readiness-0-228e0480e75c599f48038bb622097e49e1dd197a.png": "31ffa841a4eeefdc5f809bf95af33df485efa38f1b20db520b79594ac48b7edd",
+        "large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-mobile/attachments/large-trades-native-export-readiness-1-490d3ed7160326c7c88a1f33ab3806dc2601d673.png": "31ffa841a4eeefdc5f809bf95af33df485efa38f1b20db520b79594ac48b7edd",
+        "large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-mobile/large-trades-export-visible-chart.png": "a8cdf01968b2dec927db703eab84d01d168bfcfec8cf585b3ff8ade5acfe72e4",
+        "large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-mobile/large-trades-native-export-inspector-excluded.png": "31ffa841a4eeefdc5f809bf95af33df485efa38f1b20db520b79594ac48b7edd",
+        "large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-mobile/large-trades-native-export-readiness-0.png": "31ffa841a4eeefdc5f809bf95af33df485efa38f1b20db520b79594ac48b7edd",
+        "large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-mobile/large-trades-native-export-readiness-1.png": "31ffa841a4eeefdc5f809bf95af33df485efa38f1b20db520b79594ac48b7edd",
+        "large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-tablet/attachments/large-trades-export-visible-chart-38e31210aa9d657dc2c014e9a7590ac15e30ad2a.png": "624ab9aa499f24e96f441a0521e503006d2717ea9c32f2ad3890f7d7736b42b7",
+        "large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-tablet/attachments/large-trades-native-export-inspector-excluded-ab586256afaa8804d2e80f6e0877fd420548b7ec.png": "12f69467b164fcf4b7a9f6fb05a507d0eae82bffa1e0e5e165dac0507161267e",
+        "large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-tablet/attachments/large-trades-native-export-readiness-0-24f487b794c01d2b7a2a4a517ca099ea68c3b538.png": "12f69467b164fcf4b7a9f6fb05a507d0eae82bffa1e0e5e165dac0507161267e",
+        "large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-tablet/attachments/large-trades-native-export-readiness-1-e7dffb83b61130736864c7da43e4a4364e8eab6f.png": "12f69467b164fcf4b7a9f6fb05a507d0eae82bffa1e0e5e165dac0507161267e",
+        "large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-tablet/large-trades-export-visible-chart.png": "624ab9aa499f24e96f441a0521e503006d2717ea9c32f2ad3890f7d7736b42b7",
+        "large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-tablet/large-trades-native-export-inspector-excluded.png": "12f69467b164fcf4b7a9f6fb05a507d0eae82bffa1e0e5e165dac0507161267e",
+        "large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-tablet/large-trades-native-export-readiness-0.png": "12f69467b164fcf4b7a9f6fb05a507d0eae82bffa1e0e5e165dac0507161267e",
+        "large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-tablet/large-trades-native-export-readiness-1.png": "12f69467b164fcf4b7a9f6fb05a507d0eae82bffa1e0e5e165dac0507161267e"
+      },
+      "cases": [
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "native PNG includes visible executions, quantity labels and provenance but excludes inspection controls"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "native PNG includes visible executions, quantity labels and provenance but excludes inspection controls"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "native PNG includes visible executions, quantity labels and provenance but excludes inspection controls"
+        }
+      ],
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "e2e/large-trades.spec.ts",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=list,json",
+        "--output=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1084-medtech-integration-20261109/docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/png-export-browser-artifacts",
+        "--grep",
+        "native PNG includes visible executions, quantity labels and provenance but excludes inspection controls"
+      ],
+      "exit": 0,
+      "failed": 0,
+      "flaky": 0,
+      "initialOwnedServerStopped": false,
+      "lifecycle": {
+        "initialLockPresent": true,
+        "reconciliation": "docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/png-export-browser-lifecycle.json",
+        "serverAbsenceVerifiedAt": "2026-11-09T15:30:27.712589+00:00",
+        "sha256": "2e1345775621bb556e65b46685bb7c77a8841c9b011d4636d3df6a86e014ef76"
+      },
+      "logSha256": "18386385ccb8fa7111f828ba81cf6a55b3add435acb8922eef06eb8f61f2e719",
+      "name": "png-export-browser",
+      "ownedServerStopped": true,
+      "passed": 3,
+      "port": 3542,
+      "reportSha256": "1f323abc1f1c2a97ba5b9f56c22c9ce8b6ce365d0d869a8b8f948b0e9e828fc0",
+      "retries": 0,
+      "seconds": 30.94,
+      "skipped": 0,
+      "sourceStable": true,
+      "startedAt": "2026-11-09T15:29:47.091221+00:00",
+      "state": "CLOSED",
+      "testCompletedAt": "2026-11-09T15:30:18.035403+00:00"
+    }
+  ],
+  "startedAt": "2026-11-09T15:29:47.089523+00:00",
+  "state": "SOURCE_QUALIFIED_AWAITING_VISUAL_REVIEW"
+}

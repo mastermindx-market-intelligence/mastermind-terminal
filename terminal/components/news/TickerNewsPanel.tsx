@@ -9,6 +9,7 @@ import {
   NewsMarkReviewed,
   NewsReviewChange,
   NewsReviewTag,
+  NewsSavedBasis,
 } from "@/components/news/NewsCatchup";
 import NewsFlowStrip from "@/components/news/NewsFlowStrip";
 import NewsLiveDot from "@/components/news/NewsLiveDot";
@@ -113,8 +114,15 @@ function LadderSteps({ row, lang }: { row: TickerNewsStoryRow; lang: Lang }) {
   );
 }
 
+// R3 P2 (rev3 item 4): the open evidence group's DOM id, named by the ladder button's
+// aria-controls. story_id is engine text, so anything outside [A-Za-z0-9_-] is folded to _.
+function evidenceDomId(storyId: string): string {
+  return `news-evidence-${storyId.replace(/[^A-Za-z0-9_-]/g, "_")}`;
+}
+
 export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: string; lang: Lang; userId?: string }) {
   const copy = COPY[lang];
+  const panelRef = useRef<HTMLElement>(null);
   const [view, setView] = useState<TickerNewsViewMode>("news");
   const { snapshot, loadState, liveInterrupted, refresh } = useTickerNewsFeed(symbol, view);
   const [details, setDetails] = useState<Record<string, CachedDetail | null>>({});
@@ -129,7 +137,72 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
   const curated = snapshot?.editorial_policy === "ticker_news.curated.v1";
   // Only rows of a successful load are presented, so only they can ever be marked reviewed.
   const presented = loadState === "ready" && snapshot ? snapshot.rows : NO_ROWS;
-  const catchup = useNewsCatchup({ userId, ticker: snapshot?.ticker ?? symbol, presented });
+  // Journey 6: the snapshot's rights receipt rides along so marks capture it as seen.
+  const catchup = useNewsCatchup({ userId, ticker: snapshot?.ticker ?? symbol, presented, rights: snapshot?.rights_basis ?? null });
+
+
+  // One local intent belongs to the focused review action only. A forced commit
+  // drains it even when the review owner makes no change; later storage/feed
+  // events must never inherit a request to move the user's focus.
+  const reviewFocus = useRef<{
+    trigger: HTMLButtonElement;
+    context: string;
+    snapshot: typeof snapshot;
+    storyIds: string[];
+  } | null>(null);
+  const [reviewFocusTurn, setReviewFocusTurn] = useState(0);
+  const reviewFocusContext = JSON.stringify([
+    userId ?? null, symbol, view, snapshot?.security_id,
+    snapshot?.editorial_view?.revision, catchup.filter, catchup.source, loadState,
+  ]);
+
+  const markWithFocus = (trigger: HTMLButtonElement, mark: () => void, storyId?: string) => {
+    const order = catchup.visible.map((row) => row.story_id);
+    const index = storyId === undefined ? -1 : order.indexOf(storyId);
+    reviewFocus.current = trigger.ownerDocument.activeElement === trigger ? {
+      trigger,
+      context: reviewFocusContext,
+      snapshot,
+      // Keep the same story in All, otherwise continue forward, then backward.
+      // The bulk action returns to the selected filter when it becomes disabled.
+      storyIds: index < 0 ? [] : [
+        order[index], ...order.slice(index + 1), ...order.slice(0, index).reverse(),
+      ],
+    } : null;
+    try {
+      mark();
+    } catch (error) {
+      reviewFocus.current = null;
+      throw error;
+    }
+    if (reviewFocus.current) setReviewFocusTurn((turn) => turn + 1);
+  };
+
+  useLayoutEffect(() => {
+    const request = reviewFocus.current;
+    reviewFocus.current = null;
+    if (!request || request.context !== reviewFocusContext || request.snapshot !== snapshot) return;
+    const panel = panelRef.current;
+    if (!panel?.isConnected || panel.closest("[hidden], [inert]")) return;
+    const doc = panel.ownerDocument;
+    const active = doc.activeElement;
+    // Respect focus that the user or another control moved before this commit.
+    if (active && active !== request.trigger && active !== doc.body && active !== doc.documentElement) return;
+    if (request.trigger.isConnected && !request.trigger.disabled) return;
+
+    const articles = new Map(Array.from(
+      panel.querySelectorAll<HTMLElement>("article[data-story-id]"),
+      (article) => [article.dataset.storyId, article] as const,
+    ));
+    for (const storyId of request.storyIds) {
+      const headline = articles.get(storyId)?.querySelector<HTMLElement>("[data-news-headline]");
+      if (headline) {
+        headline.focus();
+        if (doc.activeElement === headline) return;
+      }
+    }
+    panel.querySelector<HTMLButtonElement>('[data-news-filter][aria-pressed="true"]')?.focus();
+  }, [reviewFocusTurn, reviewFocusContext, snapshot]);
 
   // Wave B3: the news-flow strip rides on page one of a ready snapshot only. It is
   // hidden for a null flow (old API, cursor page), no_accessible_sources, an empty
@@ -239,6 +312,7 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
 
   return (
     <section
+      ref={panelRef}
       className={`board ${styles.board}`}
       id="rail-panel-news"
       role="tabpanel"
@@ -279,7 +353,13 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
       ) : null}
 
       {presented.length > 0 && (
-        <NewsCatchupBar catchup={catchup} lang={lang} labelForSource={sourceLabel} curated={curated} />
+        <NewsCatchupBar
+          catchup={catchup}
+          lang={lang}
+          labelForSource={sourceLabel}
+          curated={curated}
+          onMarkShown={(event) => markWithFocus(event.currentTarget, catchup.markShown)}
+        />
       )}
 
       <div className={styles.scroll}>
@@ -332,18 +412,20 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
                 <a data-news-headline className={styles.headline} href={row.url} target="_blank" rel="noopener noreferrer">{row.title}</a>
               ) : (
                 <>
-                  <span data-news-headline className={`${styles.headline} ${styles.headlineStatic}`}>{row.title}</span>
+                  <span data-news-headline tabIndex={-1} className={`${styles.headline} ${styles.headlineStatic}`}>{row.title}</span>
                   <span className={styles.srOnly}>{copy.sourceUnavailable}</span>
                 </>
               )}
               {row.teaser && <p className={styles.teaser}>{row.teaser}</p>}
               <NewsReviewChange cls={review} lang={lang} />
+              <NewsSavedBasis drift={catchup.drift(row.story_id)} lang={lang} onOpenCurrent={() => void toggleStory(row)} />
               {row.item_count > 1 ? (
                 <button
                   type="button"
                   className={styles.ladder}
                   data-news-ladder
                   aria-expanded={!!detail}
+                  aria-controls={detail ? evidenceDomId(row.story_id) : undefined}
                   aria-label={newsLadderText(detail ? "ladder.close" : "ladder.open", lang)}
                   onClick={() => void toggleStory(row)}
                   disabled={activeDetailBusy?.storyId === row.story_id}
@@ -356,12 +438,12 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
                 </span>
               )}
               {detail && (
-                <div className={styles.evidence} role="group" aria-label={copy.reports(detail.item_count)}>
+                <div id={evidenceDomId(row.story_id)} className={styles.evidence} role="group" aria-label={copy.reports(detail.item_count)}>
                   <p className={styles.clocks}>
-                    {clocks.map((clock, index) => (
+                    {clocks.map((clock) => (
                       <Fragment key={clock.key}>
-                        {index > 0 && <span aria-hidden="true">·</span>}
-                        <span>{newsLadderText(clock.key, lang)} {formatRailTime(clock.at, lang)}</span>
+                        <span className={styles.clockLabel}>{newsLadderText(clock.key, lang)}</span>
+                        <span className={styles.clockValue}>{formatRailTime(clock.at, lang)}</span>
                       </Fragment>
                     ))}
                   </p>
@@ -405,7 +487,12 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
                   {newsLadderText(nextKey, lang)}
                 </p>
               )}
-              <NewsMarkReviewed cls={review} lang={lang} onMark={() => catchup.markStory(row.story_id)} title={row.title} />
+              <NewsMarkReviewed
+                cls={review}
+                lang={lang}
+                onMark={(event) => markWithFocus(event.currentTarget, () => catchup.markStory(row.story_id), row.story_id)}
+                title={row.title}
+              />
             </article>
           );
         })}

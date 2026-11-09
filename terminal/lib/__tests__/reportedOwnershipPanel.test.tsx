@@ -35,6 +35,12 @@ function block(): Record<string, unknown> {
 const PAST_ACQUIRED = "2026-10-02T04:52:16Z";
 const PAST_ATTEMPT = "2026-10-05T09:00:00Z";
 
+// The panel stamps Date.now() at verification and discloses staleness after 30 days, so the
+// fixtures are dated relative to this pinned day rather than the day the suite happens to run.
+// The pin must lie inside the fixtures' valid window: not before the golden acquired_at minus one
+// day, and not 30 days or more after PAST_ACQUIRED.
+const PINNED_NOW = "2026-10-25T12:00:00Z";
+
 /** Typed accessors so the draft can be mutated one field at a time without `any`. */
 function rowsOf(draft: Record<string, unknown>): Record<string, unknown>[] {
   return draft.rows as Record<string, unknown>[];
@@ -70,6 +76,10 @@ let node: HTMLDivElement;
 let root: Root;
 
 beforeEach(() => {
+  // Fake only Date: the file awaits real WebCrypto digests and spies on crypto.subtle, so timers
+  // and microtasks must stay real.
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date(PINNED_NOW));
   verificationWork = [];
   vi.spyOn(ownershipReader, "verifyReportedOwnership").mockImplementation((...args) => {
     const work = realVerify(...args);
@@ -88,6 +98,7 @@ afterEach(() => {
   act(() => root.unmount());
   node.remove();
   document.documentElement.setAttribute("data-lang", "en");
+  vi.useRealTimers();
   vi.restoreAllMocks();
 });
 
@@ -241,6 +252,9 @@ describe("absence and degraded states", () => {
     corrupted.content_sha256 = "0".repeat(64);
     const fund = await fundWith(corrupted);
     await render(<ReportedOwnershipPanel ticker="RY.TO" fund={fund} />);
+    const results = await Promise.all(verificationWork);
+    expect(results.length).toBeGreaterThan(0);
+    for (const result of results) expect(result).toEqual({ ok: false, code: "content_hash_mismatch" });
     expect(text()).not.toContain("Royal Bank of Canada");
     expect(node.querySelector("tbody")).toBeNull();
     expect(text()).toContain("did not pass its own checks");

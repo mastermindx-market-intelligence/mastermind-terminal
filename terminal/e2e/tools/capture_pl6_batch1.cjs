@@ -14,12 +14,16 @@
  */
 "use strict";
 
-const { spawn, execFileSync } = require("node:child_process");
+const { execFileSync } = require("node:child_process");
 const { createHash } = require("node:crypto");
 const { mkdirSync, readdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
 const { chromium, expect } = require("@playwright/test");
 const { warmFixtureRoutes } = require("../fixtureWarmup.cjs");
+const evidence = require("./visualEvidence.cjs");
+const { captureOptions, startLegacyServer, settleLegacyServer } = require("./capture_ci_evidence.cjs");
+const IMMUTABLE_ID = process.env.TERMINAL_PL6_EVIDENCE_OPERATION_ID;
+let immutablePng = null;
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
@@ -48,8 +52,10 @@ const VIEWPORTS = {
   390: { width: 390, height: 844 },
 };
 
-mkdirSync(OUT, { recursive: true });
-mkdirSync(FAILURE_OUT, { recursive: true });
+if (IMMUTABLE_ID === undefined) {
+  mkdirSync(OUT, { recursive: true });
+  mkdirSync(FAILURE_OUT, { recursive: true });
+}
 
 function currentGitHead() {
   return execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
@@ -67,52 +73,24 @@ function cropName(surface, width, lang) {
   return `${surface}-${width}${lang === "zh" ? "-zh" : ""}.png`;
 }
 
-function startServer() {
-  const env = {
-    ...process.env,
-    ANALYSIS_LOCAL_PREVIEW: "1",
-    ADMIN_DEV: "1",
-    TERMINAL_E2E_FIXTURE: "1",
-    TERMINAL_E2E_EMAIL: "responsive@example.com",
-    TERMINAL_E2E_ENTITLEMENT: "unlimited",
-    RATE_LIMIT_MAX: "100000",
-    HUB_REALTIME_QUOTES: "1",
-    FLOW_FIXTURE: "1",
-    NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
-  };
-  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT)], {
-    cwd: ROOT,
-    env,
-    stdio: ["ignore", "pipe", "pipe"],
-    detached: true,
-  });
-  child.stdout.on("data", (buf) => {
-    const line = String(buf);
-    if (/Ready|compiled|error|Error/i.test(line)) process.stdout.write(`[dev] ${line}`);
-  });
-  child.stderr.on("data", (buf) => process.stderr.write(`[dev:err] ${buf}`));
-  return child;
-}
+function startServer() { return startLegacyServer(ROOT, PORT); }
 
-function stopServer(child) {
-  if (!child || !child.pid) return;
-  try {
-    process.kill(-child.pid, "SIGTERM");
-  } catch {
-    try { child.kill("SIGTERM"); } catch { /* already gone */ }
-  }
+function ownedServer(child) {
+  if (!child || child.exitCode !== null || child.signalCode !== null) throw new Error("CAPTURE_SERVER_EXITED");
+  return child.captureReady === true;
 }
-
-async function waitForServer(timeoutMs) {
+async function waitForServer(timeoutMs, child) {
   const deadline = Date.now() + timeoutMs;
   let last = "not tried";
   while (Date.now() < deadline) {
+    if (child && !ownedServer(child)) { await new Promise(r => setTimeout(r, 50)); continue; }
     try {
       const res = await fetch(`${BASE}/terminal?symbol=SPY`, { redirect: "manual" });
       last = String(res.status);
+      if (child) ownedServer(child);
       if (res.status === 200) return;
     } catch (err) {
+      if (child) ownedServer(child);
       last = err.cause?.code || err.message;
     }
     await new Promise((r) => setTimeout(r, 750));
@@ -183,7 +161,8 @@ async function cropBox(page, box, outPath, pad) {
   const height = Math.max(8, Math.min(vp.height - y, Math.ceil(box.height + pad * 2)));
   // Park the pointer so no hover state (crosshair, tooltip) leaks into the crop.
   await page.mouse.move(0, 0);
-  await page.screenshot({ path: outPath, clip: { x, y, width, height }, animations: "disabled" });
+  if (IMMUTABLE_ID !== undefined) immutablePng = await page.screenshot({ clip: { x, y, width, height }, animations: "disabled" });
+  else await page.screenshot({ path: outPath, clip: { x, y, width, height }, animations: "disabled" });
 }
 
 async function cropLocator(page, locator, outPath, pad = 18) {
@@ -364,12 +343,17 @@ function shouldCapture(surfaceName, width, lang) {
 }
 
 async function main() {
+  const captureOptionsAxis = process.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE === "1";
+  if (captureOptionsAxis && (!IMMUTABLE_ID || ONLY.length)) throw new Error("CI_OPTIONS_REQUIRES_FULL_PL6");
   const capturedAtHead = currentGitHead();
+  const operation = IMMUTABLE_ID === undefined ? null : evidence.beginOperation({ repoRoot: REPO, packet: "pl6", operationId: IMMUTABLE_ID });
+  if (captureOptionsAxis && (!operation || ONLY.length)) throw new Error("CI_OPTIONS_REQUIRES_FULL_OWNED_CAPTURE");
+  const executionRows = [];
   const child = startServer();
   const files = [];
   let failed = 0;
   try {
-    await waitForServer(180_000);
+    await waitForServer(180_000, operation ? child : undefined);
     await warmFixtureRoutes(BASE);
     // Partial raster tiles land at nondeterministic times; force full-tile rasterisation
     // so a crop never records a half-painted frame (memory: screenshot-partial-raster-drift).
@@ -383,15 +367,26 @@ async function main() {
             process.stdout.write(`capture ${file} … `);
             const { context, page } = await newPage(browser, width, lang);
             try {
+              if (operation && !ownedServer(child)) throw new Error("CAPTURE_SERVER_NOT_READY");
+              immutablePng = null;
               await surface.run(page, width, lang, join(OUT, file));
               await assertNoNextIndicator(page, file);
+              if (operation) {
+                if (!ownedServer(child)) throw new Error("CAPTURE_SERVER_NOT_READY");
+                if (!immutablePng) throw new Error("NO_ACTUAL_CAPTURE");
+                const project = width === 1440 ? "desktop" : "mobile", title = `capture ${surface.name}`;
+                const observed = await page.evaluate(() => ({ lang: document.documentElement.lang.startsWith("zh") ? "zh" : document.documentElement.lang === "en" ? "en" : "unknown", theme: document.documentElement.getAttribute("data-theme") }));
+                const written = evidence.writeCase(operation, { key: evidence.key("pl6", project, title, lang), packet: "pl6", file: "capture_pl6_batch1.cjs", title, project, locale: lang, viewport: VIEWPORTS[width] }, immutablePng, { ...observed, viewport: page.viewportSize() });
+                executionRows.push({ file: "capture_pl6_batch1.cjs", title, project, locale: lang, observation: { path: written.observationName, sha256: evidence.sha(Buffer.from(evidence.canonical(written.row))) }, status: "passed", expectedStatus: "passed", retry: 0, errors: [] });
+              }
               files.push(file);
               console.log("ok");
             } catch (err) {
               failed += 1;
               console.log(`FAIL ${err && err.message ? err.message : err}`);
               try {
-                await page.screenshot({ path: join(FAILURE_OUT, `FAIL-${file}`), fullPage: false });
+                if (operation) evidence.writePayload(operation, `FAIL-${file}`, await page.screenshot({ fullPage: false }));
+                else await page.screenshot({ path: join(FAILURE_OUT, `FAIL-${file}`), fullPage: false });
               } catch { /* ignore */ }
             } finally {
               await context.close();
@@ -402,17 +397,25 @@ async function main() {
     } finally {
       await browser.close();
     }
+    if (captureOptionsAxis && failed === 0) await captureOptions({ server: child, ownedServer, baseURL: BASE, terminal: ROOT });
   } finally {
-    stopServer(child);
+    await settleLegacyServer(child);
   }
 
+  if (operation && failed) evidence.writePayload(operation, "failed-execution.json", Buffer.from(evidence.canonical({ schema: "terminal.pl6-execution.v1", cases: executionRows, failed })));
   if (failed) {
     console.error(`Capture failed for ${failed} surface(s); the prior evidence manifest was preserved.`);
     process.exitCode = 1;
     return;
   }
 
-  const evidence = [
+  if (operation) {
+    const ref = evidence.finishOperation(operation, { schema: "terminal.pl6-execution.v1", cases: executionRows });
+    console.log(JSON.stringify({ visualEvidence: ref.path, sha256: ref.sha256, actualCases: executionRows.length }));
+    return;
+  }
+
+  const legacyEvidence = [
     "# B-PL-6 batch 1 — capture evidence",
     "# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
     "# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR",
@@ -439,12 +442,14 @@ async function main() {
     ])].map((f) => `  - ${f}`),
     "",
   ].join("\n");
-  writeFileSync(join(OUT, "EVIDENCE.yml"), evidence);
+  writeFileSync(join(OUT, "EVIDENCE.yml"), legacyEvidence);
   console.log(`capturedAtHead ${capturedAtHead}`);
   console.log(`wrote ${files.length} crops + EVIDENCE.yml to ${OUT}`);
 }
 
-main().catch((err) => {
+if (require.main === module) main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
+
+module.exports = { waitForServer, ownedServer };

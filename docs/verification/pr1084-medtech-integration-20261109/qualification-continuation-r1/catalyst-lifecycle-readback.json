@@ -1,0 +1,54 @@
+{
+  "action": "Readback only; original unlink is reconciled APPLIED by absent file. No second unlink, signal or accepted-test rerun.",
+  "completedAt": "2026-11-09T15:29:47.089204+00:00",
+  "lockAbsent": true,
+  "observations": {
+    "listener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:3541",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T15:29:43.198076+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "ownedCwds": {
+      "command": [
+        "lsof",
+        "-a",
+        "-u",
+        "chriswong",
+        "-d",
+        "cwd",
+        "-F",
+        "pcn"
+      ],
+      "exit": 0,
+      "observedAt": "2026-11-09T15:29:44.770838+00:00",
+      "stderr": "",
+      "stdout": []
+    },
+    "process": {
+      "command": [
+        "ps",
+        "-p",
+        "33706",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T15:29:43.016142+00:00",
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "originalCause": "The original post-unlink census assertion failed; its rejected observation was not retained, so the cause is unproven. No test failure occurred.",
+  "originalPostUnlinkCensusFailed": true,
+  "priorExecutionSha256": "50e05fa06bfe1ba80da3655d8165237227406aebe3924da6f075586ce710630b",
+  "priorLifecycleSha256": "f655ee803c8e2578410d8cfc8855e0c58d38b9db6013a5984ed99279420f5862",
+  "schema": "terminal_pr1084_catalyst_delayed_lifecycle_readback.v1",
+  "state": "OWNED_SERVER_ABSENCE_VERIFIED"
+}

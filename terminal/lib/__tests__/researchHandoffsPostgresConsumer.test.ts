@@ -10,6 +10,8 @@ const RECIPIENT = "10000000-0000-4000-8000-000000000002";
 const OUTSIDER = "10000000-0000-4000-8000-000000000003";
 const INVESTIGATION = "20000000-0000-4000-8000-000000000001";
 const available = Boolean(process.env.MMX_HANDOFF_TEST_SOCKET);
+const fixturePort = process.env.MMX_HANDOFF_TEST_PORT ?? "55488";
+if (!["55488", "55490"].includes(fixturePort)) throw new Error("Unexpected isolated fixture port");
 const quoted = (value: unknown) => `'${String(value).replaceAll("'", "''")}'`;
 
 function sql(statement: string, user = state.user): string {
@@ -17,7 +19,7 @@ function sql(statement: string, user = state.user): string {
   // The supplying pytest fixture owns this socket-only cluster. No network origin,
   // saved credential, Supabase service key or real account is accepted here.
   if (!socket.startsWith("/tmp/mmx-handoff-pg-")) throw new Error("Missing isolated fixture socket");
-  return execFileSync("psql", ["-h", socket, "-p", "55488", "-U", "postgres", "-d", "postgres",
+  return execFileSync("psql", ["-h", socket, "-p", fixturePort, "-U", "postgres", "-d", "postgres",
     "-X", "-qAt", "-v", "ON_ERROR_STOP=1"], {
     input: `set role authenticated; set request.jwt.claim.sub=${quoted(user)};${statement}`,
     encoding: "utf8", stdio: ["pipe", "pipe", "pipe"],
@@ -30,7 +32,7 @@ function sql(statement: string, user = state.user): string {
 function sqlSuper(statement: string): string {
   const socket = process.env.MMX_HANDOFF_TEST_SOCKET ?? "";
   if (!socket.startsWith("/tmp/mmx-handoff-pg-")) throw new Error("Missing isolated fixture socket");
-  return execFileSync("psql", ["-h", socket, "-p", "55488", "-U", "postgres", "-d", "postgres",
+  return execFileSync("psql", ["-h", socket, "-p", fixturePort, "-U", "postgres", "-d", "postgres",
     "-X", "-qAt", "-v", "ON_ERROR_STOP=1"], {
     input: statement,
     encoding: "utf8", stdio: ["pipe", "pipe", "pipe"],
@@ -42,7 +44,7 @@ vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({
   rpc: async (name: string, args: Record<string, unknown>) => {
     try {
       let call: string;
-      if (name === "create_investigation_handoff_v1") {
+      if (name === "create_investigation_handoff_v1" || name === "create_investigation_scenario_handoff_v1") {
         call = `public.${name}(p_id=>${quoted(args.p_id)}::uuid,p_revision=>${Number(args.p_revision)},p_grantee=>${quoted(args.p_grantee)}::uuid)`;
       } else if (name === "list_investigation_handoffs_v1") {
         // New named-args contract: both cursors always bound, explicitly NULL on a first page.
@@ -272,3 +274,47 @@ it.skipIf(!available)("uses the exported route and typed client over HTTP agains
     } catch { /* the fixture is disposable; never mask the test's own failure */ }
   }
 }, 120000);
+
+// A separate consumer case composed with the SAME existing socket-only fixture/HTTP carrier.
+// This proves reference metadata routing only, never paid source resolution or real grants.
+it.skipIf(!available || !process.env.MMX_SCENARIO_REFERENCE)("reads only a deliberately shared scenario revision through real SQL, route and typed HTTP client", async () => {
+  const expected: unknown = JSON.parse(process.env.MMX_SCENARIO_REFERENCE!);
+  const headBefore=sqlSuper(`select current_revision from public.investigations where id=${quoted(INVESTIGATION)}::uuid;`);
+  expect(Number(headBefore)).toBeGreaterThanOrEqual(3);
+  sqlSuper("update public.resource_grants set revoked_at=now() where revoked_at is null and resource_kind='investigation';");
+  state.user = OWNER;
+  // Direct definer RPC through the REAL route/client must refuse a plain pin with no live grant.
+  expect(await shareHandoff(OWNER,{investigationId:INVESTIGATION,revision:2,granteeUserId:RECIPIENT,includeScenario:true})).toMatchObject({httpStatus:404,result:{status:"not_found"}});
+  expect(sqlSuper("select count(*) from public.resource_grants where revoked_at is null and resource_kind='investigation';")).toBe("0");
+  const ordinary = await shareHandoff(OWNER,{investigationId:INVESTIGATION,revision:2,granteeUserId:RECIPIENT});
+  expect(ordinary.httpStatus).toBe(201);if(ordinary.result.status!=="created")throw Error("ordinary share after refusal failed");
+  expect(await revokeHandoff(OWNER,ordinary.result.handoff.grantId)).toMatchObject({httpStatus:200,result:{status:"revoked"}});
+  const plain = await shareHandoff(OWNER, { investigationId: INVESTIGATION, revision: 1, granteeUserId: OUTSIDER });
+  expect(plain.httpStatus).toBe(201);
+  if (plain.result.status !== "created") throw new Error("plain create failed");
+  const shared = await shareHandoff(OWNER, { investigationId: INVESTIGATION, revision: 1, granteeUserId: RECIPIENT, includeScenario: true });
+  expect(shared.httpStatus).toBe(201);
+  if (shared.result.status !== "created") throw new Error("scenario create failed");
+  expect(shared.result.handoff.scenarioIncluded).toBe(true);
+  const grant = shared.result.handoff.grantId;
+  expect(await shareHandoff(OWNER, { investigationId: INVESTIGATION, revision: 1, granteeUserId: RECIPIENT })).toMatchObject({ httpStatus: 409, result: { status: "share_conflict" } });
+  state.user = RECIPIENT;
+  const read = await readHandoff(RECIPIENT, grant);
+  expect(read.httpStatus).toBe(200);
+  expect(read.result).toMatchObject({ status: "found", handoff: { revision: 1, scenarioCapture: expected } });
+  // The source head already has later revisions (other isolated cases may advance it); this pin stays revision1.
+  expect(sqlSuper(`select current_revision from public.investigations where id=${quoted(INVESTIGATION)}::uuid;`)).toBe(headBefore);
+  expect(sql(`select count(*) from public.investigation_revisions where investigation_id=${quoted(INVESTIGATION)}::uuid;`)).toBe("0");
+  for (const token of ["gexMn", "totalMn", "referenceSpot", "moveFraction", '"basis"', '"result"']) expect(JSON.stringify(read.result)).not.toContain(token);
+  state.user = OUTSIDER;
+  expect(await readHandoff(OUTSIDER, grant)).toMatchObject({ httpStatus: 404, result: { status: "not_found" } });
+  const plainRead = await readHandoff(OUTSIDER, plain.result.handoff.grantId);
+  expect(plainRead.httpStatus).toBe(200);
+  if (plainRead.result.status !== "found") throw new Error("plain read failed");
+  expect(Object.hasOwn(plainRead.result.handoff, "scenarioCapture")).toBe(false);
+  state.user = OWNER;
+  expect(await revokeHandoff(OWNER, grant)).toMatchObject({ httpStatus: 200, result: { status: "revoked" } });
+  state.user = RECIPIENT;
+  expect(await readHandoff(RECIPIENT, grant)).toMatchObject({ httpStatus: 404, result: { status: "not_found" } });
+  for (const response of responses) expect(response.headers.get("cache-control")).toBe("private, no-store");
+});

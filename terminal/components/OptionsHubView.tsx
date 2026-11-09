@@ -7,10 +7,12 @@ import {
 import { dailyActivityNote, signedActivityLabel } from "@/lib/flowActivity";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
-import { createDefaultTapeView, decodeTapeView } from "@/lib/optionsTapeView";
+import { createDefaultTapeView, decodeTapeView, type TapeViewState } from "@/lib/optionsTapeView";
 import { OptionsTapeViewLink } from "@/components/options/OptionsTapeViewLink";
+import { OptionsTapeSavedViews } from "@/components/options/OptionsTapeSavedViews";
 import { useTapeViewText } from "@/components/options/optionsTapeViewStrings";
 import { useLang, useT } from "@/lib/i18n";
+import screenerActionStyles from "./options/ScreenerTickerActions.module.css";
 import type { Lang } from "@/lib/i18n";
 import { daysHeld, daysToExpiry, volAboveOi } from "@/lib/plainAbbrev";
 import { CoachProvider, useCoach } from "@/lib/tutorial/coach";
@@ -21,6 +23,20 @@ import { flowGet, flowGetFresh, flowInvalidate, flowPrefetch } from "@/lib/flowC
 import { useFlowStream } from "@/lib/flowStream";
 import { FD } from "@/lib/flowdeskStrings";
 import { usOptionsSessionState } from "@/lib/flowFreshness";
+import {
+  LEADERS_PREVIEW_ROWS,
+  filterLeaderRows,
+  leaderCountLabel,
+  leaderCoverageFootnote,
+  leaderDirectionCaveat,
+  leaderEmptyLabel,
+  leaderHistoryLabel,
+  leaderMissingRecurrenceLabel,
+  leaderSearchCountLabel,
+  leaderSearchEmptyLabel,
+  normalizeLeaderQuery,
+  visibleLeaderRows,
+} from "@/lib/leadersPresentation";
 import { trackSearch } from "@/lib/searchTrack";
 import { normalizeVolUnits } from "@/lib/eodContext";
 import {
@@ -52,7 +68,10 @@ import {
   shortlistSource,
   useContractShortlist,
 } from "@/components/options/ContractShortlist";
-import { locatePin, type PinLocation, type ShortlistPin } from "@/lib/optionsContractShortlist";
+import { useOptionsPlanScope } from "@/lib/useOptionsPlanScope";
+import { useShortlistT } from "@/lib/optionsContractShortlistLex";
+import type { OptionsPlanDraft } from "@/lib/optionsPlanDraft";
+import { locatePin, sessionOf, type PinLocation, type ShortlistPin } from "@/lib/optionsContractShortlist";
 // Shared SVG chart primitives — measured 1:1 viewBox, nice ticks, pixel-gap label
 // thinning, padded domains. The hygiene rules live in that module's header.
 import {
@@ -1512,6 +1531,10 @@ export interface OptionsHubViewProps {
   onTab?: (tab: TabKey) => void;
   /** Suppress the internal legacy tab strip even in uncontrolled mode. */
   hideTabStrip?: boolean;
+  /** Whole canonical draft only; an admitted Investigation owner supplies Save. */
+  onPlanDraftChange?: (draft: OptionsPlanDraft) => void;
+  /** Every editor change, including null for invalid input or explicit close. */
+  onPlanDraftInputChange?: (draft: OptionsPlanDraft | null) => void;
 }
 
 // No external hydration events are needed: React compares the server and client snapshots.
@@ -1524,9 +1547,12 @@ export default function OptionsHubView({
   activeTab: controlledTab,
   onTab,
   hideTabStrip,
+  onPlanDraftChange,
+  onPlanDraftInputChange,
 }: OptionsHubViewProps = {}) {
   const { lang } = useLang();
   const t = useT();
+  const doiT = useShortlistT();
   const viewText = useTapeViewText();
 
   const controlled = onTab !== undefined;
@@ -1686,16 +1712,8 @@ export default function OptionsHubView({
   const [showPresets, setShowPresets] = useState(false);
   const presetsRef = useRef<HTMLDivElement>(null);
 
-  // Next keeps this component mounted for same-route history navigation. Apply
-  // only an actual change to the shared-view parameter; unrelated URL updates
-  // must preserve local filter edits. Guarded render-time adjustment prevents
-  // a frame of results for the previous view before an invalid link is withheld.
-  if (requestedTapeView !== appliedTapeView) {
-    const values = tapeParams.getAll("tapeView");
-    const decoded = values.length === 1 ? decodeTapeView(values[0]) : null;
-    const next = decoded ?? createDefaultTapeView();
-    setAppliedTapeView(requestedTapeView);
-    setInvalidTapeView(values.length > 0 && decoded === null);
+  // One application path for URL restoration and saved display preferences.
+  const applyTapeView = (next: TapeViewState) => {
     setMinPrem(next.minPrem);
     setDteBuckets(new Set(next.dteBuckets));
     setMnyBuckets(new Set(next.mnyBuckets));
@@ -1707,6 +1725,19 @@ export default function OptionsHubView({
     setSortKey(next.sortKey);
     setSortDir(next.sortDir);
     setShowPresets(false);
+  };
+
+  // Next keeps this component mounted for same-route history navigation. Apply
+  // only an actual change to the shared-view parameter; unrelated URL updates
+  // must preserve local filter edits. Guarded render-time adjustment prevents
+  // a frame of results for the previous view before an invalid link is withheld.
+  if (requestedTapeView !== appliedTapeView) {
+    const values = tapeParams.getAll("tapeView");
+    const decoded = values.length === 1 ? decodeTapeView(values[0]) : null;
+    const next = decoded ?? createDefaultTapeView();
+    setAppliedTapeView(requestedTapeView);
+    setInvalidTapeView(values.length > 0 && decoded === null);
+    applyTapeView(next);
   }
 
   useEffect(() => {
@@ -1943,6 +1974,28 @@ export default function OptionsHubView({
   }, [activeTab, fetchScreener]);
 
   const [hotView, setHotView] = useState<ScreenerHotView>("by_premium");
+  const tickerSearchRef = useRef<HTMLInputElement>(null);
+  const focusTickerFromScreener = useRef(false);
+
+  useEffect(() => {
+    if (activeTab === "tickers" && focusTickerFromScreener.current) {
+      focusTickerFromScreener.current = false;
+      tickerSearchRef.current?.focus({ preventScroll: true });
+    }
+  }, [activeTab]);
+
+  function screenerTickerAction(root: string) {
+    return <button type="button" className={screenerActionStyles.ticker} data-screener-ticker={root}
+      aria-label={lang === "zh" ? `打开 ${root} 的个股详情` : `Open ${root} in Tickers`}
+      onClick={(event) => {
+        event.stopPropagation();
+        focusTickerFromScreener.current = event.detail === 0;
+        switchTab("tickers");
+        setSelectedTicker(root);
+      }}>
+      {root}
+    </button>;
+  }
 
   // ── Screener preset view state ────────────────────────────────────────────
   const [screenerPreset, setScreenerPreset] = useState<ScreenerPreset>("top_prem");
@@ -2011,7 +2064,8 @@ export default function OptionsHubView({
   // touches the source arrays, filters, sort or view. "Show in list" returns to
   // the originating table exactly as its preset chip would, and never edits the
   // index filter — a filtered-out pin is reported instead.
-  const contractShortlist = useContractShortlist();
+  const planScope = useOptionsPlanScope();
+  const contractShortlist = useContractShortlist(planScope);
   const showPinInList = (pin: ShortlistPin): PinLocation => {
     const list = pin.family === "doi" ? oiData?.movers : hotData?.[pin.hotView ?? "by_premium"];
     const where = locatePin(pin, list, scrRoot);
@@ -2213,6 +2267,8 @@ export default function OptionsHubView({
   const [leadersLoading, setLeadersLoading] = useState(false);
   const [leadersError, setLeadersError] = useState(false);
   const [leadersBoard, setLeadersBoard] = useState<"a" | "b">("a");
+  const [leadersExpanded, setLeadersExpanded] = useState(false);
+  const [leadersQuery, setLeadersQuery] = useState("");
   const [showHistoricalLeaders, setShowHistoricalLeaders] = useState(false);
 
   // The nightly data can advance while this workspace stays mounted. The ordinary
@@ -2585,7 +2641,13 @@ export default function OptionsHubView({
 
                 {/* Ticker search */}
                 <input
-                  type="text"
+                  type="search"
+                  id="options-tape-ticker-search"
+                  name="options-tape-ticker-search"
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  aria-label={t("tapeTickerPlaceholder", "Ticker…")}
                   placeholder={t("tapeTickerPlaceholder", "Ticker…")}
                   // The SSR value is visible before React can preserve user edits.
                   disabled={!tapeInputHydrated}
@@ -2614,6 +2676,20 @@ export default function OptionsHubView({
                   </button>
                 )}
 
+                <OptionsTapeSavedViews state={{
+                  minPrem, dteBuckets: [...dteBuckets], mnyBuckets: [...mnyBuckets],
+                  groupFilter, drillTicker, tapeTickerSearch, sideFilter, flagFilter,
+                  sortKey, sortDir,
+                }} onApply={(encoded) => {
+                  // Invalid shared links keep their explicit recovery boundary.
+                  const restored = decodeTapeView(encoded);
+                  if (invalidTapeView || !restored) return;
+                  // Also handles re-opening the URL's screen after unsaved local edits.
+                  applyTapeView(restored);
+                  const url = new URL(window.location.href);
+                  url.searchParams.set("tapeView", encoded);
+                  window.history.pushState(null, "", url);
+                }} />
                 <OptionsTapeViewLink state={{
                   minPrem, dteBuckets: [...dteBuckets], mnyBuckets: [...mnyBuckets],
                   groupFilter, drillTicker, tapeTickerSearch, sideFilter, flagFilter,
@@ -3113,6 +3189,7 @@ export default function OptionsHubView({
               >
                 <div style={{ padding: "10px 10px 8px" }}>
                   <input
+                    ref={tickerSearchRef}
                     type="text"
                     placeholder={lang === "zh" ? "搜索代码…" : "Search ticker…"}
                     value={tickerSearch}
@@ -3609,6 +3686,9 @@ export default function OptionsHubView({
                   shortlist={contractShortlist}
                   active={screenerPreset === "doi" || screenerPreset === "hot"}
                   onShowInList={showPinInList}
+                  scopeKey={planScope}
+                  onPlanDraftChange={onPlanDraftChange}
+                  onPlanDraftInputChange={onPlanDraftInputChange}
                 />
               )}
               {screenerLoading && !oiData && !hotData && !feed && (
@@ -3777,7 +3857,7 @@ export default function OptionsHubView({
                         <tbody>
                           {rows.map((r) => (
                             <tr key={r.root} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); setSelectedTicker(r.root); }}>
-                              <td style={{ textAlign: "left", fontWeight: 700 }}>{r.root}</td>
+                              <td style={{ textAlign: "left", fontWeight: 700 }}>{screenerTickerAction(r.root)}</td>
                               <td style={{ textAlign: "left", color: "var(--text-2)", fontSize: 11 }}>
                                 {lang === "zh" ? r.group_zh : abbrevSector(r.group)}
                               </td>
@@ -3801,6 +3881,7 @@ export default function OptionsHubView({
               {/* ── ΔOI Builds view — oiData.movers ── */}
               {screenerPreset === "doi" && oiData && (() => {
                 const rows = oiRows;
+                const reportDate = sessionOf(oiData.asof);
                 const hdr = (key: string, en: string, zh: string, tip?: string) => (
                   <th style={{ cursor: "pointer" }} className={scrSortKey === key ? "sorted" : ""} onClick={() => scrSort(key)} title={tip}>
                     {lang === "zh" ? zh : en}{scrSortKey === key ? (scrSortDir === -1 ? " ↓" : " ↑") : ""}
@@ -3811,7 +3892,7 @@ export default function OptionsHubView({
                     <div className="obs-card-hd" style={{ borderBottom: "1px solid var(--line)" }}>
                       <span className="obs-lbl">{t("ohOiBuilds")}</span>
                       <span style={{ fontSize: 11, color: "var(--text-dim)" }}>
-                        {t("ohAsOfPrevSession")}
+                        {reportDate ? doiT("e15O_report_dated").replace("{d}", reportDate) : doiT("e15O_report_date_unavailable")}
                       </span>
                     </div>
                     <div style={{ overflowX: "auto" }}>
@@ -3822,8 +3903,8 @@ export default function OptionsHubView({
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "认购/认沽" : "C/P"}</th>
                             <th style={{ textAlign: "left" }}>{lang === "zh" ? "到期日" : "Exp"}</th>
                             <th>{lang === "zh" ? "行权价" : "Strike"}</th>
-                            {hdr("doi", t("ohOiChange"), t("ohOiChange"), t("ohDoiFoot"))}
-                            {hdr("oi", t("ohOiYesterday"), t("ohOiYesterday"))}
+                            {hdr("doi", t("ohOiChange"), t("ohOiChange"), doiT("e15O_reported_doi_foot"))}
+                            {hdr("oi", doiT("e15O_reported_oi"), doiT("e15O_reported_oi"))}
                             {hdr("mid", "Mid", "中间价")}
                           </tr>
                         </thead>
@@ -3834,7 +3915,7 @@ export default function OptionsHubView({
                               <tr key={i} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); setSelectedTicker(m.root); }}>
                                 <td style={{ textAlign: "left", fontWeight: 700 }}>
                                   <ContractPinButton shortlist={contractShortlist} row={m} source={shortlistSource("doi", oiData)} list={oiData.movers} />
-                                  {m.root}
+                                  {screenerTickerAction(m.root)}
                                 </td>
                                 <td style={{ textAlign: "left" }}>
                                   <span style={{ color: m.right === "C" ? "var(--up)" : "var(--down)", fontWeight: 700 }}>{m.right}</span>
@@ -3857,7 +3938,7 @@ export default function OptionsHubView({
                       </table>
                     </div>
                     <div style={{ padding: "6px 14px", fontSize: 10, color: "var(--text-dim)", borderTop: "1px solid var(--line)" }}>
-                      {t("ohDoiFoot")}
+                      {doiT("e15O_reported_doi_foot")}
                     </div>
                   </div>
                 );
@@ -3889,13 +3970,14 @@ export default function OptionsHubView({
                         <tbody>
                           {rows.map((r) => (
                             <tr key={r.root} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); setSelectedTicker(r.root); }}>
-                              <td style={{ textAlign: "left", fontWeight: 700 }}>{r.root}</td>
+                              <td style={{ textAlign: "left", fontWeight: 700 }}>{screenerTickerAction(r.root)}</td>
                               <td style={{ textAlign: "left", color: "var(--text-2)", fontSize: 11 }}>
                                 {lang === "zh" ? r.group_zh : abbrevSector(r.group)}
                               </td>
                               <td style={{ fontVariantNumeric: "tabular-nums" }}>{fmtPremium(r.zd_prem)}</td>
-                              <td style={{ fontVariantNumeric: "tabular-nums", color: r.zd_share > 0.5 ? "var(--warn)" : "var(--text)" }}>
-                                {(r.zd_share * 100).toFixed(1)}%
+                              <td style={{ fontVariantNumeric: "tabular-nums", color: r.zd_share !== null && r.zd_share > 0.5 ? "var(--warn)" : "var(--text)" }}
+                                title={r.zd_share === null ? pick(lang, "No total premium denominator", "总权利金为零，比例不可用") : undefined}>
+                                {r.zd_share === null ? (lang === "zh" ? "不可用" : "Unavailable") : `${(r.zd_share * 100).toFixed(1)}%`}
                               </td>
                             </tr>
                           ))}
@@ -3955,7 +4037,7 @@ export default function OptionsHubView({
                           <tr key={i} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); setSelectedTicker(c.root); }}>
                             <td style={{ textAlign: "left", fontWeight: 700 }}>
                               <ContractPinButton shortlist={contractShortlist} row={c} source={shortlistSource("hot", hotData, hotView)} list={hotData[hotView] ?? []} />
-                              {c.root}
+                              {screenerTickerAction(c.root)}
                             </td>
                             <td style={{ textAlign: "left" }}>
                               <span style={{ color: c.right === "C" ? "var(--up)" : "var(--down)", fontWeight: 700 }}>{c.right}</span>
@@ -4000,7 +4082,15 @@ export default function OptionsHubView({
               ──────────────────────────────────────────────────────────────────── */}
           {(activeTab === "gex" || visitedTabs.has("gex")) && (
             <div style={{ flex: 1, overflow: "hidden", display: activeTab === "gex" ? "flex" : "none", minHeight: 0 }}>
-              <GexDeskView onMapFirstChange={setExposureMapFirst} />
+              <GexDeskView onMapFirstChange={setExposureMapFirst}
+                onOpenPlan={renderableTabs.has("screener") ? () => {
+                  // Navigation only: preserve exact-contract pins. The shortlist owns
+                  // draft lifetime; never promote Matrix coordinates into snapshots.
+                  setScreenerPreset("doi");
+                  setScrRoot(""); setScrGroup("");
+                  setScrSortKey(""); setScrSortDir(-1);
+                  switchTab("screener");
+                } : undefined} />
             </div>
           )}
 
@@ -4082,12 +4172,18 @@ export default function OptionsHubView({
 
               {leadersData && (() => {
                 const cov = leadersData.coverage;
-                // Render all rows as delivered — server already caps at 25 per board.
-                // No client-side qualification filter: accruing rows (all legs null) render so the
-                // board shows honestly. Chips/badges convey state. Sorted by K desc for signal rows.
+                // Keep every delivered row available, but do not make the reader scan a
+                // 100+ row wall on first load. The default preview is bounded and the explicit
+                // expander reveals the same sorted array — no hidden qualification or re-ranking.
                 const boardARows = [...leadersData.board_a].sort((a, b) => b.K_a - a.K_a);
                 const boardBRows = [...leadersData.board_b].sort((a, b) => b.K_b - a.K_b);
-                const displayRows = leadersBoard === "a" ? boardARows : boardBRows;
+                const allRows = leadersBoard === "a" ? boardARows : boardBRows;
+                const normalizedLeadersQuery = normalizeLeaderQuery(leadersQuery);
+                const filteredRows = filterLeaderRows(allRows, leadersQuery);
+                const searchingLeaders = normalizedLeadersQuery.length > 0;
+                const displayRows = searchingLeaders
+                  ? filteredRows
+                  : visibleLeaderRows(allRows, leadersExpanded);
 
                 // A recent build stamp is NOT a recent source session. Keep historical
                 // tables out of the active discovery surface by default: legacy
@@ -4139,25 +4235,18 @@ export default function OptionsHubView({
                   <>
                     {/* ── Header strip ── */}
                     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                      <span style={{ fontSize: 11, color: "var(--text-dim)", fontVariantNumeric: "tabular-nums" }}>
-                        {leadersData.session_date
-                          ? (lang === "zh"
-                            ? `数据会话 ${leadersData.session_date} · 构建 ${fmtAsof(leadersData.as_of)}`
-                            : `data session ${leadersData.session_date} · built ${fmtAsof(leadersData.as_of)}`)
-                          : `${t("asOf", "as of")} ${fmtAsof(leadersData.as_of)}`}
-                      </span>
                       <span style={{ fontSize: 11, color: "var(--muted)" }}>
-                        {lang === "zh"
-                          ? `前 ${displayRows.length} / 共 ${cov.n_universe}`
-                          : `top ${displayRows.length} of ${cov.n_universe}`}
+                        {searchingLeaders
+                          ? leaderSearchCountLabel(lang, displayRows.length, allRows.length, cov.n_universe)
+                          : leaderCountLabel(lang, displayRows.length, allRows.length, cov.n_universe)}
                         {" · "}
-                        {(() => {
-                          const reqSessions = leadersData.cold_start_detail?.required_for_recurrence ?? 5;
-                          return lang === "zh"
-                            ? `会话 ${cov.n_flow_sessions}/${reqSessions}`
-                            : `sessions ${cov.n_flow_sessions}/${reqSessions}`;
-                        })()}
+                        {leaderHistoryLabel(lang, cov.n_flow_sessions)}
                       </span>
+                      {!leadersData.stale && (
+                        <span style={{ fontSize: 11, color: "var(--text-dim)", fontVariantNumeric: "tabular-nums" }}>
+                          {pick(lang, `Updated ${fmtAsof(leadersData.as_of)} ET`, `更新于 ${fmtAsof(leadersData.as_of)}（美东）`)}
+                        </span>
+                      )}
                       {leadersData.stale && (
                         <span style={{ fontSize: 11, color: "var(--warn)", fontWeight: 600 }}>
                           {leadersData.stale_reason === "insufficient_same_session_coverage"
@@ -4195,36 +4284,81 @@ export default function OptionsHubView({
 
                     {/* Direction note */}
                     {leadersData.direction_note && (
-                      <div style={{ fontSize: 11, color: "var(--text-dim)", marginBottom: 10, fontStyle: "italic" }}>
-                        {leadersData.direction_note}
+                      <div style={{ fontSize: 11, color: "var(--text-dim)", marginBottom: 10 }}>
+                        {leaderDirectionCaveat(lang, leadersData.direction_note)}
                       </div>
                     )}
 
                     {/* ── Board toggle ── */}
-                    <div style={{ display: "flex", gap: 6, marginBottom: 14, alignItems: "center" }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14, alignItems: "center" }}>
                       <button
                         className={`chip${leadersBoard === "a" ? " on" : ""}`}
                         style={{ height: 26, fontSize: 11 }}
-                        onClick={() => setLeadersBoard("a")}
+                        onClick={() => { setLeadersBoard("a"); setLeadersExpanded(false); }}
                       >
                         {t("leadersBoardALbl", "Flow Leadership")}
                       </button>
                       <button
                         className={`chip${leadersBoard === "b" ? " on" : ""}`}
                         style={{ height: 26, fontSize: 11 }}
-                        onClick={() => setLeadersBoard("b")}
+                        onClick={() => { setLeadersBoard("b"); setLeadersExpanded(false); }}
                       >
                         {t("leadersBoardBLbl", "Washout Turn")}
                       </button>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: "auto", minWidth: 0 }}>
+                        <input
+                          type="search"
+                          aria-label={pick(lang, "Search Flow Leaders", "搜索资金流领涨榜")}
+                          placeholder={pick(lang, "Search ticker…", "搜索代码…")}
+                          value={leadersQuery}
+                          onChange={(event) => {
+                            setLeadersQuery(event.target.value);
+                            setLeadersExpanded(false);
+                          }}
+                          style={{
+                            width: 154, maxWidth: "42vw", height: 28, padding: "0 9px",
+                            borderRadius: "var(--r-md)", background: "var(--inset)",
+                            border: "1px solid var(--line)", color: "var(--text)",
+                            font: "12px var(--font-ui)",
+                          }}
+                        />
+                        {leadersQuery && (
+                          <button
+                            type="button"
+                            className="btn btn-ghost"
+                            style={{ height: 28, fontSize: 11 }}
+                            aria-label={pick(lang, "Clear Flow Leaders search", "清除资金流领涨榜搜索")}
+                            onClick={() => { setLeadersQuery(""); setLeadersExpanded(false); }}
+                          >
+                            {pick(lang, "Clear", "清除")}
+                          </button>
+                        )}
+                      </div>
+                      {!searchingLeaders && allRows.length > LEADERS_PREVIEW_ROWS && (
+                        <button
+                          type="button"
+                          className="btn btn-ghost"
+                          style={{ height: 28, fontSize: 11 }}
+                          aria-controls="flow-leaders-board"
+                          aria-expanded={leadersExpanded}
+                          onClick={() => setLeadersExpanded((v) => !v)}
+                        >
+                          {leadersExpanded
+                            ? pick(lang, `Show top ${LEADERS_PREVIEW_ROWS}`, `显示前 ${LEADERS_PREVIEW_ROWS} 个`)
+                            : pick(lang, `Show all ${allRows.length}`, `显示全部 ${allRows.length} 个`)}
+                        </button>
+                      )}
                     </div>
 
                     {/* ── Table ── */}
                     {displayRows.length === 0 ? (
                       <div style={{ padding: "30px 0", textAlign: "center", color: "var(--muted)", fontSize: 13 }}>
-                        {t("leadersNoQualifying", "No qualifying names yet — updates after tonight's build")}
+                        {searchingLeaders
+                          ? leaderSearchEmptyLabel(lang, normalizedLeadersQuery)
+                          : leaderEmptyLabel(lang)}
                       </div>
                     ) : (
-                      <div className="obs-scroll" style={{ overflowX: "auto" }}>
+                      <div id="flow-leaders-board" className="obs-scroll" style={{ overflowX: "auto" }}>
                         <table className="scr" style={{ fontSize: 12, minWidth: 680 }}>
                           <thead>
                             <tr>
@@ -4317,7 +4451,7 @@ export default function OptionsHubView({
                                       ? recur
                                       : (
                                         <span style={{ fontSize: 10, color: "var(--muted)", fontStyle: "italic" }}>
-                                          {t("leadersAccruing", "accruing")}
+                                          {leaderMissingRecurrenceLabel(lang, leadersData.stale, leadersData.stale_reason)}
                                         </span>
                                       )}
                                   </td>
@@ -4451,9 +4585,9 @@ export default function OptionsHubView({
                       </div>
                     )}
 
-                    {/* Per-source footnote */}
-                    <div style={{ marginTop: 14, fontSize: 11, color: "var(--text-dim)", lineHeight: 1.6 }}>
-                      {t("leadersFootnote", "Direction ~-soft (approximate). Sources: {sources}. All readings display-only — not investment advice.").replace("{sources}", leadersData.coverage.tape_names.join(", "))}
+                    {/* Coverage note — summarize scope; never dump hundreds of ticker names. */}
+                    <div style={{ marginTop: 12, fontSize: 11, color: "var(--text-dim)", lineHeight: 1.6 }}>
+                      {leaderCoverageFootnote(lang, leadersData.coverage.tape_names.length)}
                     </div>
                   </>
                 );

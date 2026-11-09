@@ -1,0 +1,15 @@
+{
+  "images": {
+    "docs/verification/pr1084-medtech-integration-20261109/qualification-continuation-r1/png-export-browser-artifacts/large-trades-native-PNG-in-d9f9c-xcludes-inspection-controls-mobile/large-trades-native-export-inspector-excluded.png": "31ffa841a4eeefdc5f809bf95af33df485efa38f1b20db520b79594ac48b7edd",
+    "docs/verification/pr1084-medtech-integration-20261109/qualification-r1/catalyst-browser-artifacts/catalyst-opportunity-usabl-5603d-d-coverage---en-native-dark-mobile/catalyst-mobile-en-native-dark.png": "7132f359dd562a0b783f346c68d5d6be65ab889a454967bee8fb44c8f7d13343",
+    "docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-confirme-0d481-pplies-to-only-one-revision-mobile/change-review.png": "3966de89736e45c7f2a81508af29ffa2a337cc7e128e7d71e0b128ac28e87144",
+    "docs/verification/pr1084-medtech-integration-20261109/qualification-r1/medtech-browser-artifacts/medtech-watchdesk-shared-l-6e445-the-supported-dark-shell-zh-mobile/watchdesk-zh-dark.png": "87a487eda9cb993b984ce9f2b563f83c332c84138f434f848e114af193278750"
+  },
+  "limits": "Local synthetic fixtures, not deployment or live paid-account acceptance.",
+  "observations": [
+    "MedTech and Catalyst tabs coexist in the current shared navigation.",
+    "Chinese mobile discovery and English exact-revision review are readable and retain source/revision distinctions.",
+    "Actual exported PNG retains the visible quantity marker and synthetic provenance; inspection controls are absent."
+  ],
+  "reviewer": "assigned root self-check"
+}
