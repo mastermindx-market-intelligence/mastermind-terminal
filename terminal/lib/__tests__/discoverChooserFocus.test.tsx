@@ -75,4 +75,13 @@ describe("Discover chooser focus continuity", () => {
     external.focus(); await act(async () => navigate("?tab=heatmap"));
     expect(document.activeElement).toBe(external);
   });
+
+  it("cancels a return superseded by the same tool before a later unrelated chooser visit", async () => {
+    await render(); await activate(button("Open Heatmap"));
+    const back = button("Discover ←"); back.focus();
+    await act(async () => { back.click(); navigate("?tab=heatmap"); });
+    expect(selected().id).toBe("wtab-heatmap");
+    await act(async () => navigate(""));
+    expect(document.activeElement).not.toBe(host.querySelector("h1"));
+  });
 });

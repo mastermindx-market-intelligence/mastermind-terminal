@@ -63,16 +63,24 @@ export default function DiscoverWorkspace() {
   // Tickers view (the hub's internal drill flips LOCAL state we don't otherwise
   // reset). Cheap: it's only used as a React `key` on the two hub mounts.
   const [nonce, setNonce] = useState(0);
+  const [focusRevision, setFocusRevision] = useState(0);
   const workspaceRef = useRef<HTMLDivElement | null>(null);
   const chooserHeadingRef = useRef<HTMLHeadingElement | null>(null);
-  const focusIntent = useRef<{ tab: string | null; from: Element | null } | null>(null);
+  const focusIntent = useRef<{ tab: string | null; pathname: string; from: Element | null } | null>(null);
+  const recordFocusIntent = (target: string | null) => {
+    focusIntent.current = { tab: target, pathname: window.location.pathname, from: document.activeElement };
+    // Return requests need a commit even if a subsequent navigation restores
+    // the same tool. Keep this separate from the hub-remount nonce.
+    setFocusRevision(revision => revision + 1);
+  };
 
   useLayoutEffect(() => {
     const intent = focusIntent.current;
     if (!intent) return;
     // The router may commit after the local nonce update. Keep only the intent
-    // for this explicit URL transition; unrelated navigation cancels it.
-    if (new URL(window.location.href).searchParams.get("tab") !== intent.tab) {
+    // for this explicit workspace/tab transition; unrelated navigation cancels it.
+    const destination = new URL(window.location.href);
+    if (destination.pathname !== intent.pathname || destination.searchParams.get("tab") !== intent.tab) {
       focusIntent.current = null;
       return;
     }
@@ -83,7 +91,7 @@ export default function DiscoverWorkspace() {
     const target = intent.tab === null ? chooserHeadingRef.current
       : workspaceRef.current?.querySelector<HTMLButtonElement>('[role="tab"][aria-selected="true"]');
     target?.focus({ preventScroll: true });
-  }, [chooser, tab, nonce]);
+  }, [chooser, tab, nonce, focusRevision]);
 
   const onSelect = useCallback((key: string) => {
     if (!KEYS.has(key)) return;
@@ -97,7 +105,7 @@ export default function DiscoverWorkspace() {
   if (chooser) return <div ref={workspaceRef} className="main2 ws-shell discover-chooser-shell">
     <DiscoverLanding headingRef={chooserHeadingRef} onSelect={key => {
       if (!KEYS.has(key)) return;
-      focusIntent.current = { tab: key, from: document.activeElement };
+      recordFocusIntent(key);
       onSelect(key);
     }} onSearchCompanies={() => window.dispatchEvent(new Event("mmx:shell-company-search"))} />
   </div>;
@@ -109,7 +117,7 @@ export default function DiscoverWorkspace() {
       <style>{".ws-shell > .ws-body{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}.ws-shell .ws-body > .main2{flex:1;min-height:0}"}</style>
       <div style={{ display: "flex", alignItems: "center", padding: "8px 14px", borderBottom: "1px solid var(--line)", flexShrink: 0, gap: 8 }}>
         {presentation && <button className="discover-chooser-back" type="button" onClick={() => {
-          focusIntent.current = { tab: null, from: document.activeElement };
+          recordFocusIntent(null);
           const u = new URL(window.location.href); u.searchParams.delete("tab");
           window.history.pushState(null, "", u.toString());
           window.dispatchEvent(new Event("mmx:shell-location"));
