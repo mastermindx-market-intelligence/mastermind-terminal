@@ -1,0 +1,13 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal
+
+ ✓ lib/__tests__/optionsPlanPayoffPanel.test.tsx (10 tests) 482ms
+ ✓ lib/__tests__/optionsPlanComparePanel.test.tsx (6 tests) 212ms
+ ✓ lib/__tests__/optionsPlanScenarioCompare.test.ts (10 tests) 15ms
+
+ Test Files  3 passed (3)
+      Tests  26 passed (26)
+   Start at  21:31:30
+   Duration  3.21s (transform 252ms, setup 0ms, collect 420ms, tests 709ms, environment 1.01s, prepare 213ms)
+

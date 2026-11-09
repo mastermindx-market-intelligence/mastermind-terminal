@@ -154,5 +154,10 @@
   "terminal/package.json",
   "terminal/playwright.config.ts",
   "terminal/postcss.config.mjs",
-  "terminal/tsconfig.json"
+  "terminal/tsconfig.json",
+  "terminal/components/SharedSearchWorkspace.module.css",
+  "terminal/components/SharedSearchWorkspace.tsx",
+  "terminal/components/chrome/shared-shell/ShellDirectory.tsx",
+  "terminal/lib/sharedShellDirectorySearch.ts",
+  "terminal/lib/sharedShellSearchCatalog.ts"
 ]

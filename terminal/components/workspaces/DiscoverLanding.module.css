@@ -137,13 +137,22 @@
 }
 
 .deepLink {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 10px 8px;
+  margin-inline: -8px;
+  border-radius: var(--r-md);
   color: var(--brand-2);
   font-size: 15px;
   font-weight: 600;
+  line-height: 1.4;
   text-decoration: none;
 }
 
 .deepLink:hover {
+  background: var(--panel-2);
   text-decoration: underline;
 }
 

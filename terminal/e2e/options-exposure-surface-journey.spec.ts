@@ -1,4 +1,5 @@
 import { expect, test, type Page, type Locator } from "@playwright/test";
+import { fixtureUserId } from "../lib/watchlistsFixtureDb";
 import { createHash } from "node:crypto";
 import { writeFile } from "node:fs/promises";
 import { parseExposureChartRequest, exposureChartFingerprint, exposureChartHref, exposureMapHref } from "../lib/exposureChartLink";
@@ -1403,3 +1404,170 @@ if(ACCESS_ACCEPTANCE)test("synthetic S9 phone inspector keyboard trap",async({pa
   const rowFocus=await actualFocusPaint(row);expect(rowFocus.focusVisible).toBe(true);
   await retainSyntheticJson("synthetic-s9-phone-trap.json",{source:SOURCE_REF,session:SESSION,expiry:SELECTED_EXPIRY,metric:"gamma",strike:103,nativeExpiryKeyboard:"OUT OF SCOPE — source-qualified exact-expiry route",request,theme:await page.locator("html").getAttribute("data-theme"),focus,visibility,confined,rowFocus});
 });
+
+// A separate cold-navigation contract. The original journey deliberately applies
+// Light on each leg; that does not establish persistence across a document load.
+// This fixture has no live account service: it qualifies the incumbent local
+// preference/identity consumer, never real-account or production persistence.
+for (const lang of ["en", "zh"] as const) {
+  test(`synthetic exposure saved theme cold return ${lang}`, async ({ page, baseURL }, info) => {
+    test.setTimeout(90_000);
+    const origin = new URL(baseURL!).origin;
+    const outside: string[] = [];
+    await page.context().route("**/*", route => {
+      const url = new URL(route.request().url());
+      if (url.origin === origin) return route.continue();
+      outside.push(`${url.origin}${url.pathname}`);
+      return route.abort("blockedbyclient");
+    });
+    // Reuse options-shortlist-plan's opaque LOCAL session-cookie pattern and
+    // the canonical fixture principal. Only this Node-owned auth fixture keeps
+    // the acknowledged metadata between documents; no live account is used.
+    const user = { id: fixtureUserId("default"), aud: "authenticated", role: "authenticated",
+      email: "responsive@example.com", app_metadata: {}, created_at: "2026-10-19T00:00:00Z",
+      user_metadata: { theme: "dark", theme_auto: "0", lang,
+        prefs: { theme: "dark", themeAuto: "0", lang } } as Record<string, unknown> };
+    const session = { access_token: "local-exposure-theme-fixture-only",
+      refresh_token: "local-exposure-theme-fixture-only", token_type: "bearer",
+      expires_in: 86_400, expires_at: Math.floor(Date.now() / 1000) + 86_400, user };
+    await page.context().addCookies([
+      { name: "mm_e2e_rs30", value: "1", url: baseURL! },
+      { name: "sb-127-auth-token.0", value: "base64-" + Buffer.from(JSON.stringify(session)).toString("base64url"), url: baseURL! },
+    ]);
+    // Opposite to the saved explicit Light choice: auto-mode fallback must not
+    // make a lost preference appear to survive a cold document load.
+    await page.emulateMedia({ colorScheme: "dark" });
+    await page.clock.install({ time: new Date(FIXED_NOW) });
+    await page.addInitScript(locale => {
+      // Locale is part of the declared fixture. Theme is NEVER seeded here,
+      // including after reload: only the reader's Settings action selects it.
+      (window as unknown as { exposureColdDocumentId: string }).exposureColdDocumentId = crypto.randomUUID();
+      localStorage.setItem("mm.lang", locale);
+      Reflect.deleteProperty(window, "EventSource");
+    }, lang);
+    expectFixtureInvariants();
+    await installSyntheticRoutes(page);
+    let authReads = 0;
+    const acknowledged: Record<string, unknown>[] = [];
+    // Reuse the existing options-shortlist-plan in-memory SDK transport seam.
+    // CSP correctly refuses a real loopback auth connection. This binding never
+    // requests that connection and changes no policy, cookie guard or app code.
+    await page.exposeBinding("exposureLocalAccountFixture", async (_source, method: string, body: string | null) => {
+      if (method === "GET") authReads++;
+      else if (method === "PUT") {
+        const patch = JSON.parse(body || "{}").data as Record<string, unknown>;
+        expect(Object.keys(patch).every(key => ["theme", "theme_auto", "lang", "prefs"].includes(key))).toBe(true);
+        user.user_metadata = { ...user.user_metadata, ...patch };
+        acknowledged.push(patch);
+      } else throw new Error("Unexpected in-memory preference fixture operation");
+      return user;
+    });
+    await page.addInitScript(() => {
+      const originalFetch = window.fetch.bind(window);
+      window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = new URL(typeof input === "string" ? input : input instanceof Request ? input.url : input.toString(), location.href);
+        if (url.pathname.startsWith("/auth/v1/")) {
+          if (url.origin !== "http://127.0.0.1:54321" || url.pathname !== "/auth/v1/user") throw new Error("Unexpected fixture Auth operation");
+          const request = input instanceof Request ? input : null;
+          const method = init?.method ?? request?.method ?? "GET";
+          const body = typeof init?.body === "string" ? init.body : request ? await request.clone().text() : null;
+          const fixture = window as unknown as { exposureLocalAccountFixture: (method: string, body: string | null) => Promise<unknown> };
+          return new Response(JSON.stringify(await fixture.exposureLocalAccountFixture(method, body)), { headers: { "content-type": "application/json" } });
+        }
+        return originalFetch(input, init);
+      };
+    });
+    const mt = exposureMapT(lang);
+    const map = page.getByTestId("exposure-map");
+    const inspector = page.getByTestId("exposure-node-inspector");
+    const witness: Record<string, unknown>[] = [];
+    const record = async (stage: string) => {
+      const observed = await page.evaluate(() => ({
+        theme: document.documentElement.dataset.theme,
+        bodyBackground: getComputedStyle(document.body).backgroundColor,
+        osPrefersDark: matchMedia("(prefers-color-scheme: dark)").matches,
+        appearanceOwner: document.documentElement.dataset.terminalAppearance ?? null,
+        documentId: (window as unknown as { exposureColdDocumentId: string }).exposureColdDocumentId,
+      }));
+      witness.push({ stage, ...observed });
+      return observed;
+    };
+    const expectLight = async (stage: string) => {
+      await expect(page.locator("html"), `saved Light intent survives ${stage}`)
+        .toHaveAttribute("data-theme", "light");
+      const observed = await record(stage);
+      expect(observed.osPrefersDark, `explicit Light is independent of dark OS at ${stage}`).toBe(true);
+      const rgb = observed.bodyBackground.match(/\d+/g)?.slice(0, 3).map(Number) ?? [];
+      expect(rgb, `computed body background at ${stage}`).toHaveLength(3);
+      expect(Math.min(...rgb), `Light body background at ${stage}`).toBeGreaterThan(200);
+    };
+    try {
+      await page.goto("/options?tab=prism&symbol=SPY&view=chart");
+      await expect(map).toHaveAttribute("data-source-session", SESSION);
+      await expect(map).toHaveAttribute("data-chart-ready", "true", { timeout: 30_000 });
+      await expect.poll(() => authReads, { message: "canonical fixture account actually loaded" }).toBeGreaterThan(0);
+      await selectActualLight(page, lang, "s14-first-intent");
+      await expect.poll(() => user.user_metadata.theme, { message: "Settings preference write acknowledged by local fixture" }).toBe("light");
+      expect(user.user_metadata.theme_auto, "explicit Settings choice is acknowledged, not auto mode").toBe("0");
+      await expectLight("initial Settings choice");
+      await map.getByLabel(mt("scope"), { exact: true }).selectOption(SELECTED_EXPIRY);
+      const leader = map.getByRole("button", {
+        name: lang === "en" ? /Largest covered net node/ : /覆盖范围最大净节点/,
+      });
+      await expect(leader.locator("strong")).toContainText(String(SELECTED_STRIKE));
+      await leader.click();
+      await expect(inspector).toContainText("+200M");
+      await inspector.getByRole("button", { name: mt("openOnMainChart"), exact: true }).click();
+      await expect(page).toHaveURL(/\/terminal\?symbol=SPY#exposure=/);
+      const request = parseExposureChartRequest(new URL(page.url()).hash);
+      expect(request).toMatchObject({ root: "SPY", session: SESSION, strike: SELECTED_STRIKE,
+        metric: "gamma", lens: { kind: "one", exp: SELECTED_EXPIRY } });
+      const reference = page.getByTestId("exposure-chart-reference");
+      await expect(reference).toHaveAttribute("data-state", "ready", { timeout: 30_000 });
+      await expectLight("main-chart handoff without another Settings action");
+      const beforeMainReload = await record("before main reload");
+      const beforeMainReads = authReads;
+      const mainResponse = await page.reload();
+      expect(mainResponse?.request().isNavigationRequest()).toBe(true);
+      expect(mainResponse?.request().resourceType()).toBe("document");
+      await expect.poll(() => authReads).toBeGreaterThan(beforeMainReads);
+      await expect(reference).toHaveAttribute("data-state", "ready", { timeout: 30_000 });
+      expect(parseExposureChartRequest(new URL(page.url()).hash)).toEqual(request);
+      await expectLight("main-chart document reload");
+      expect((await record("reload witness")).documentId).not.toBe(beforeMainReload.documentId);
+      await page.screenshot({ path: info.outputPath("saved-theme-main-reloaded.png") });
+      await reference.getByRole("link", { name: mt("returnToExposure"), exact: true }).click();
+      await expect(page.getByTestId("exposure-return-check")).toHaveAttribute("data-state", "ready", { timeout: 30_000 });
+      await expect(map).toHaveAttribute("data-source-session", SESSION);
+      await expect(map.getByLabel(mt("scope"), { exact: true })).toHaveValue(SELECTED_EXPIRY);
+      await expect(inspector).toContainText("+200M");
+      await expect(inspector).not.toContainText("+300M");
+      await expectLight("exact investigation return");
+      const beforeReturnReload = await record("before return reload");
+      const beforeReturnReads = authReads;
+      const returnResponse = await page.reload();
+      expect(returnResponse?.request().isNavigationRequest()).toBe(true);
+      expect(returnResponse?.request().resourceType()).toBe("document");
+      await expect.poll(() => authReads).toBeGreaterThan(beforeReturnReads);
+      await expect(page.getByTestId("exposure-return-check")).toHaveAttribute("data-state", "ready", { timeout: 30_000 });
+      await expectLight("returned investigation document reload");
+      expect((await record("return reload witness")).documentId).not.toBe(beforeReturnReload.documentId);
+      await page.screenshot({ path: info.outputPath("saved-theme-return-reloaded.png") });
+      // The explicit Dark control must remain usable after the retained Light
+      // choice; neither this test nor the application rewrites custom settings.
+      if (info.project.name === "mobile") {
+        await inspector.getByRole("button", { name: mt("close"), exact: true }).click();
+        await expect(page.locator(".msheet-scrim")).toHaveCount(0);
+      }
+      await selectActualLight(page, lang, "s14-dark-control", "dark");
+      await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    } finally {
+      await retainSyntheticJson("saved-theme-cold-return.json", {
+        classification: "SYNTHETIC LOCAL — no live account or production claim",
+        source: SOURCE_REF, session: SESSION, expiry: SELECTED_EXPIRY,
+        sourceVersion: "existing coherent four-cell fixture", witness, blockedOutside: outside,
+        authReads, acknowledgedMetadataWrites: acknowledged,
+      });
+    }
+  });
+}

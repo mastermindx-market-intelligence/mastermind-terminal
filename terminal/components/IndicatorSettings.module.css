@@ -1,0 +1,43 @@
+.dialog:global(.ind-set) {
+  position: fixed;
+  inset: 9dvh 0 auto;
+  margin: 0 auto;
+  padding: 0;
+  color: var(--text);
+  max-height: min(78dvh, calc(100dvh - 32px));
+}
+
+.dialog:not([open]) { display: none; }
+
+.dialog::backdrop {
+  background: var(--pop-scrim);
+  backdrop-filter: blur(6px) saturate(1.1);
+  -webkit-backdrop-filter: blur(6px) saturate(1.1);
+}
+
+.dialog :global(.is-body) { min-height: 0; overscroll-behavior: contain; }
+.dialog :global(.is-head), .dialog :global(.is-tabs), .dialog :global(.is-foot) { flex-shrink: 0; }
+.dialog :is(button, input, select, [role="button"], [role="switch"], [role="checkbox"]):focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .dialog:global(.ind-set) {
+    inset: auto 0 0;
+    width: 100%;
+    max-width: 100%;
+    max-height: 86dvh;
+    border-radius: var(--pop-r) var(--pop-r) 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+@media (pointer: coarse) {
+  .dialog :global(.is-tab), .dialog :global(.is-foot) button, .dialog :global(.is-head .x) { min-height: 44px; }
+  .dialog :global(.is-head .x) { display: grid; place-items: center; min-width: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog { animation: none !important; }
+}
