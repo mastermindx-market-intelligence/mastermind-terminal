@@ -1,0 +1,64 @@
+{
+  "schema": "persistent_sector_terminal_manager_path_qualification.v1",
+  "status": "SOURCE_QUALIFIED_NOT_DEPLOYED",
+  "observed_at": "2026-11-07T13:13:35.001565+00:00",
+  "operation_id": "persistent-sector-leadership-terminal-release-20261107-c4",
+  "protected_base_sha": "81ff9cb82bc90e166746802b83ed9daa0df4a97c",
+  "source_review": "SELF_REVIEWED_WITH_BOUNDED_C3_JUDGMENT",
+  "files": [
+    {
+      "path": "ops/terminal-build.sh",
+      "sha256": "5e47b0591a684ce08d270d583b7542b9a53d9f0e47db27e4e3d07cfab1845d5c",
+      "bytes": 287862,
+      "preimage_sha256": "4b46330f19f000ac7aa2cc3990de93d1c5e6e92b763458d958e4f4335da4284b"
+    },
+    {
+      "path": "tests/test_terminal_investigation_install_admission.py",
+      "sha256": "4a478cfbee01230aca0b02c0ce826e38b32077f4540125ffa549b25bb1ad9f00",
+      "bytes": 100232,
+      "preimage_sha256": "e098a20fe233db519e94ec0c2e2da9fd423570ac33501f8c528a369aed3ff183"
+    },
+    {
+      "path": "ops/TERMINAL_RELEASE_PREFLIGHT.md",
+      "sha256": "ab355644e4cad83bffe290873ba04d60e88ec11eb17eb45fda9e8eefa5611162",
+      "bytes": 13885,
+      "preimage_sha256": "9b104f06890974a0557ab8693ee3bee3c3116ab7655b082f4159808f2716f4e4"
+    }
+  ],
+  "qualification": {
+    "complete_install_admission_suite": {
+      "passed": 212,
+      "returncode": 0,
+      "elapsed_seconds": 15.288,
+      "log_sha256": "18877550abf59ae72e124a36b4508880f3d47e091739de88c5172eb5b1eb1407"
+    },
+    "focused_safety_manager_subset": {
+      "passed": 103,
+      "overlaps_complete_suite": true,
+      "log_sha256": "25b755f824496aeb1c52d4cad7c1bd06fdff4320b675b2b2accbf53f2305fa8b"
+    },
+    "bash_n": 0,
+    "diff_check": 0
+  },
+  "original_release_refusal": {
+    "source_sha256": "4b46330f19f000ac7aa2cc3990de93d1c5e6e92b763458d958e4f4335da4284b",
+    "code": "unsupported-launch-environment-override",
+    "exit_code": 65,
+    "before_reset_build_start": true,
+    "source_receipt": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1331#issuecomment-6703436041"
+  },
+  "proof_limits": [
+    "manager PATH values and component count were not retained from production",
+    "fixture logical OS paths and root custody; actual private files/descriptors",
+    "does not establish production filesystem custody, deployment or authenticated browser acceptance",
+    "existing SSH transport failure remains lane-local; no unchanged release retry"
+  ],
+  "retained_controls": [
+    "exact hook/source pins",
+    "selected unit/file/PassEnvironment/UnsetEnvironment override refusals",
+    "shell/preload/npm guards",
+    "same before/after environment equality",
+    "SQL0047/0048 and four closed Investigation controls",
+    "protected full ops archive and incumbent target-SHA deploy owner"
+  ]
+}

@@ -153,7 +153,16 @@ export function Tip({ label, side = "top", size = "mini", disabled = false, dela
     return () => cancelAnimationFrame(id);
   }, [disabled, open, side, label]);
 
-  useEffect(() => () => clearTimer(), []);
+  // A responsive suppression ends this interaction, even though the trigger stays mounted.
+  // Retire pending hover work on disable as well as unmount; re-enabling waits for a new trigger.
+  useEffect(() => () => clearTimer(), [disabled]);
+
+  // Close synchronously at the suppression boundary so an old portal/enter transition cannot
+  // reappear when the same trigger returns to desktop. This same-component adjustment converges.
+  if (disabled && (open || shown)) {
+    setOpen(false);
+    setShown(false);
+  }
 
   if (!isValidElement(children)) return children;
 
