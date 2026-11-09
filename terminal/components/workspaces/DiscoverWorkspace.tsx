@@ -96,15 +96,28 @@ export default function DiscoverWorkspace() {
         />
       </div>
 
-      <div className="ws-body">
-        {tab === "screener" && <ScreenerView identity={identity} />}
-        {tab === "heatmap" && <HeatmapPageRoot />}
-        {tab === "sectors" && <SectorIntelligenceWorkspace />}
-        {tab === "catalysts" && <CatalystOpportunityWorkspace />}
-        {tab === "leaders" && <DiscoverLeadersMount key={`leaders-${nonce}`} />}
-        {tab === "radar" && <DiscoverRadarMount key={`radar-${nonce}`} />}
-        {tab === "rs-pivot" && <RSPivotStudy />}
-      </div>
+      {TABS.map(({ key }) => (
+        <div
+          key={key}
+          id={`wpanel-${key}`}
+          role="tabpanel"
+          aria-labelledby={`wtab-${key}`}
+          hidden={key !== tab}
+          className={key === tab ? "ws-body" : undefined}
+        >
+          {key === tab && (
+            <>
+              {key === "screener" && <ScreenerView identity={identity} />}
+              {key === "heatmap" && <HeatmapPageRoot />}
+              {key === "sectors" && <SectorIntelligenceWorkspace />}
+              {key === "catalysts" && <CatalystOpportunityWorkspace />}
+              {key === "leaders" && <DiscoverLeadersMount key={`leaders-${nonce}`} />}
+              {key === "radar" && <DiscoverRadarMount key={`radar-${nonce}`} />}
+              {key === "rs-pivot" && <RSPivotStudy />}
+            </>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
