@@ -21,7 +21,7 @@ const { createHash } = require("node:crypto");
 const { mkdtempSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
 const { pathToFileURL } = require("node:url");
-const { chromium } = require("@playwright/test");
+const { chromium, expect } = require("@playwright/test");
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
@@ -35,6 +35,11 @@ const LAYOUT_FILES = [
   "terminal/app/globals.css",
   "terminal/e2e/tools/portfolioEvidenceCapture.cjs",
   "terminal/e2e/tools/capture_b_f08_9_risk_history.cjs",
+  "terminal/e2e/fixtureStockdataServer.mjs",
+  "terminal/app/api/portfolio/risk-history/route.ts",
+  "terminal/app/api/portfolio/route.ts",
+  "terminal/lib/portfolio.ts",
+  "terminal/lib/portfolioMoney.ts",
 ];
 const PORT = Number(process.env.TERMINAL_CROP_PORT || 3561);
 const BASE = `http://127.0.0.1:${PORT}`;
@@ -128,43 +133,103 @@ async function prepareState(page, state) {
   if (state === "empty-book") return;
   if (state === "populated") {
     await seed(page, [
-      { ticker: "ZZTA", shares: "100", entryPrice: "200" },
-      { ticker: "ZZTB", shares: "40", entryPrice: "50" },
+      { ticker: "ZZTA", shares: "100", entryPrice: "200", entryCurrency: "USD" },
+      { ticker: "ZZTB", shares: "40", entryPrice: "50", entryCurrency: "USD" },
     ]);
     return;
   }
   if (state === "not-enough-history") {
-    await seed(page, [{ ticker: "THIN", shares: "10", entryPrice: "20" }]);
+    await seed(page, [{ ticker: "THIN", shares: "10", entryPrice: "20", entryCurrency: "USD" }]);
   }
 }
 
 async function captureState(page, width, lang, state, outPath) {
   await prepareState(page, state);
   await page.goto(`${BASE}/portfolio`, { waitUntil: "domcontentloaded", timeout: 90_000 });
+  // This timestamp is published only after the mounted client reads its book.
+  // Wait for that native state before clicking a React-owned navigation tab.
+  await page.locator('[data-portfolio="w5-positions"] header time[datetime]').first().waitFor({ state: "visible" });
   await ensureLang(page, lang);
+  const historyResponse = page.waitForResponse(response =>
+    new URL(response.url()).pathname === "/api/portfolio/risk-history"
+      && response.request().method() === "GET").then(
+    response => ({ response }), error => ({ error }));
   const tab = page.locator("#portfolio-tab-risk");
   await tab.click();
-  assert.equal(await tab.getAttribute("aria-selected"), "true", "Risk must be the selected native tab");
+  await expect(tab).toHaveAttribute("aria-selected", "true");
   await page.locator("#portfolio-panel-risk").waitFor({ state: "visible" });
+  // Observe cancellation immediately so a prior navigation failure can still
+  // reach the producer\'s normal browser/server teardown without an unhandled rejection.
+  const observed = await historyResponse;
+  if (observed.error) throw observed.error;
+  const payload = await requireJson(observed.response, "read native risk history");
+  assert.equal(typeof payload.bookKey, "string");
+  assert.ok(payload.bookKey.length > 0);
+  const history = payload.history;
+  assert.equal(history.schema, "portfolio_risk_history.v1");
+  assert.equal(history.window.minimum, 126);
+  assert.equal(history.sources.riskFreeSource, "unreadable");
+  assert.equal(history.sources.riskFreeAsOf, null);
+  assert.equal(history.sharpe, null);
+  assert.equal(history.sortino, null);
   const loc = page.getByTestId("portfolio-risk-history");
   await loc.waitFor({ state: "visible", timeout: 30_000 });
+  await expect(loc).toHaveAttribute("data-coverage-status", history.coverageStatus);
+  await expect(loc).toHaveAttribute("data-history-n", String(history.window.n));
   if (state === "empty-book") {
+    assert.equal(history.counts.open, 0);
+    assert.equal(history.counts.included, 0);
+    assert.equal(history.window.n, 0);
+    assert.equal(history.coverageStatus, "empty");
+    assert.equal(history.beta, null);
     await page.getByTestId("risk-history-empty").waitFor({ state: "visible", timeout: 20_000 });
+  } else {
+    assert.equal(history.costCurrency, "USD");
+    assert.equal(history.counts.excluded, 0);
   }
   if (state === "not-enough-history") {
+    assert.equal(history.counts.open, 1);
+    assert.equal(history.counts.included, 1);
+    assert.deepEqual(history.included.map(row => row.ticker), ["THIN"]);
+    assert.equal(history.window.n, 19);
+    assert.equal(history.coverageStatus, "unavailable");
+    assert.equal(history.beta, null);
+    for (const metric of ["sharpe", "sortino", "beta"]) {
+      assert.equal(history[metric + "Reason"], "not enough history");
+    }
     await loc.getByText(lang === "zh" ? "至少需要 126 个对齐的交易日" : "At least 126 aligned sessions").first().waitFor({
       state: "visible",
       timeout: 20_000,
     });
   }
   if (state === "populated") {
-    await loc.getByText(lang === "zh" ? "夏普比率" : "Sharpe ratio").waitFor({ state: "visible", timeout: 20_000 });
-    // Production-partial card: RF unpublished, Sharpe/Sortino unread, beta still printed.
-    await loc.getByText(
-      lang === "zh" ? "三个月期国债收益率序列尚未发布" : "has not been published yet",
-    ).first().waitFor({ state: "visible", timeout: 20_000 });
+    assert.equal(history.counts.open, 2);
+    assert.equal(history.counts.included, 2);
+    assert.equal(history.cost.included, 22000);
+    assert.deepEqual(history.included.map(row => row.ticker).sort(), ["ZZTA", "ZZTB"]);
+    assert.equal(history.window.n, 139);
+    assert.equal(history.coverageStatus, "partial");
+    assert.ok(Number.isFinite(history.beta), "The native calculation must provide beta");
+    assert.equal(history.betaReason, null);
+    const unread = lang === "zh"
+      ? "暂时读不到三个月期国债收益率，因此无法计算该数字。贝塔仍按 SPY 计算。"
+      : "The three-month Treasury yield could not be read, so this figure cannot be computed. Beta still uses SPY.";
+    for (const metric of ["sharpe", "sortino"]) {
+      assert.equal(history[metric + "Reason"], "risk-free series could not be read");
+      await loc.locator(`[data-card="${metric}"]`).getByText(unread, { exact: true }).waitFor({ state: "visible" });
+    }
+    await expect(loc.locator('[data-card="beta"] b')).toHaveText(/^-?\d+(?:[.,]\d+)?$/);
+    for (const ticker of ["ZZTA", "ZZTB"]) {
+      await loc.getByTestId("risk-history-included").getByText(ticker, { exact: true }).waitFor({ state: "visible" });
+    }
   }
-  return capturePanel(page, loc, { name: outPath, pad: width === 390 ? 10 : 16 });
+  const captured = await capturePanel(page, loc, { name: outPath, pad: width === 390 ? 10 : 16 });
+  return { ...captured, stateProof: {
+    coverageStatus: history.coverageStatus, costCurrency: history.costCurrency,
+    counts: history.counts, window: history.window, beta: history.beta,
+    sharpeReason: history.sharpeReason, sortinoReason: history.sortinoReason,
+    betaReason: history.betaReason, riskFreeSource: history.sources.riskFreeSource,
+  } };
 }
 
 async function main() {
@@ -176,7 +241,7 @@ async function main() {
   let child, browser, fixture, fixtureMod;
   try {
     fixtureMod = await import(pathToFileURL(join(ROOT, "e2e", "fixtureStockdataServer.mjs")).href);
-    fixture = await fixtureMod.startFixtureStockdataServer();
+    fixture = await fixtureMod.startFixtureStockdataServer(0, { ohlcMode: "public-fixture" });
     child = startServer(fixture.url);
     await reportLegacyServer(child, "started");
     await waitLegacyServer(child, BASE + "/portfolio", 180_000);
@@ -192,7 +257,7 @@ async function main() {
             const capture = await captureState(page, width, lang, state, join(stage, file));
             writeFileSync(join(stage, file), capture.bytes);
             captures.push({ file, ...capture });
-            console.log("ok " + JSON.stringify(capture.geometry));
+            console.log("ok " + JSON.stringify({ ...capture.geometry, stateProof: capture.stateProof }));
           } catch (error) {
             failures.push(error);
             if (!captureRefusal(error)) {
@@ -244,6 +309,9 @@ async function main() {
       return `  ${name}: { url: "/portfolio", state: ${state} }`;
     }),
     "surfaces: [PortfolioRiskHistoryReadout]",
+    "fixture_ohlc_mode: public-fixture",
+    "risk_free_fixture_status: unreadable",
+    "# Public locally generated OHLC is fixture input, not credential-forwarding proof.",
     "capture_flag: TERMINAL_E2E_FIXTURE",
     "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
     "command: |",
@@ -254,7 +322,7 @@ async function main() {
     "",
   ].join("\n");
   publishPacket(OUT, captures, expectedFiles, evidence);
-  writeFileSync(join(stage, "geometry.json"), JSON.stringify(captures.map(({ file, geometry }) => ({ file, ...geometry })), null, 2) + "\n");
+  writeFileSync(join(stage, "geometry.json"), JSON.stringify(captures.map(({ file, geometry, stateProof }) => ({ file, ...geometry, stateProof })), null, 2) + "\n");
   console.log("wrote " + files.length + " qualified crops + EVIDENCE.yml (head " + capturedAtHead + ")");
 }
 

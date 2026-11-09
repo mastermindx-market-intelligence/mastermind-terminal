@@ -20,7 +20,7 @@ const { capturePanel, publishPacket } = require("./portfolioEvidenceCapture.cjs"
 const { createHash } = require("node:crypto");
 const { mkdtempSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
-const { chromium } = require("@playwright/test");
+const { chromium, expect } = require("@playwright/test");
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
@@ -191,15 +191,18 @@ async function captureState(page, width, lang, state, outPath) {
   await page.goto(`${BASE}/portfolio`, { waitUntil: "domcontentloaded", timeout: 90_000 });
   await ensureLang(page, lang);
   const panel = page.getByTestId("event-impact");
-  const disclosure = page.locator("#portfolio-panel-overview details").filter({ has: panel });
-  await disclosure.locator("summary").click();
-  assert.notEqual(await disclosure.getAttribute("open"), null, "Events disclosure must be open");
-  await panel.waitFor({ state: "visible", timeout: 20_000 });
   const line = page.getByTestId("event-impact-invalidation");
-  await line.waitFor({ state: "visible", timeout: 20_000 });
   const expected = lang === "zh"
     ? (state === "typed-null" ? "什么会让此判断失效：" : "报告日已经公布收盘价")
     : (state === "typed-null" ? "We haven't defined what would void this read yet." : "What would void this:");
+  // The fetched, translated event content proves the client has hydrated before
+  // the native disclosure is toggled; clicking SSR markup can be replayed.
+  await line.filter({ hasText: expected }).waitFor({ state: "attached", timeout: 20_000 });
+  const disclosure = page.locator("#portfolio-panel-overview details").filter({ has: panel });
+  if (await disclosure.getAttribute("open") === null) await disclosure.locator("summary").click();
+  await expect(disclosure).toHaveAttribute("open", "");
+  await panel.waitFor({ state: "visible", timeout: 20_000 });
+  await line.waitFor({ state: "visible", timeout: 20_000 });
   await page.getByTestId("event-impact-invalidation").filter({ hasText: expected }).waitFor({
     state: "visible",
     timeout: 10_000,

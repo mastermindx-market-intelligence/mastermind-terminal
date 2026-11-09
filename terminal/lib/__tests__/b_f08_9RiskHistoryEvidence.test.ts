@@ -19,6 +19,11 @@ const LAYOUT_FILES = [
   "terminal/app/globals.css",
   "terminal/e2e/tools/portfolioEvidenceCapture.cjs",
   "terminal/e2e/tools/capture_b_f08_9_risk_history.cjs",
+  "terminal/e2e/fixtureStockdataServer.mjs",
+  "terminal/app/api/portfolio/risk-history/route.ts",
+  "terminal/app/api/portfolio/route.ts",
+  "terminal/lib/portfolio.ts",
+  "terminal/lib/portfolioMoney.ts",
 ];
 const STATES = ["empty-book", "not-enough-history", "populated"];
 const CROPS = STATES.flatMap((state) =>
