@@ -441,6 +441,13 @@ jobs:
             terminal/docs/pr-crops/terminal-visual-intelligence/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml
             terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/*.png
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/native-packet.json
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/capture-*
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/capture.log
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/source-contract.json
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/history.json
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/EVIDENCE.before.yml
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/qualified-root/
             terminal/docs/pr-crops/b-pl-6-batch-2/
             terminal/docs/pr-crops/options-level-axis-labels/manifest.json
             terminal/docs/pr-crops/options-level-axis-labels/*.png

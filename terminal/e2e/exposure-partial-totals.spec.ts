@@ -17,11 +17,20 @@ async function openStrikeView(page: Page, zh: boolean) {
   // The shared live map opens first; its real view chooser discloses the legacy
   // strike branch. Keep the population/partial-total assertions on that branch.
   const chooser = page.locator(".obs-gexdesk-view-chooser");
+  // The map-first chooser mounts only after the GEX source resolves on cold entry.
+  await expect(chooser).toBeVisible({ timeout: 30_000 });
   await expect(chooser).not.toHaveAttribute("open", "");
   await chooser.locator("summary").click();
   const strike = page.getByRole("button", { name: zh ? "按行权价" : "By Strike", exact: true });
   await strike.click();
-  await expect(strike).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator('[data-tut="gex-ladder"]')).toBeVisible();
+  if (page.viewportSize()!.width <= 640) {
+    const selected = page.locator(".obs-gexdesk-left summary").first();
+    await expect(selected).toHaveText(zh ? "按行权价" : "By Strike");
+    await expect(selected).toBeFocused();
+  } else {
+    await expect(strike).toHaveAttribute("aria-pressed", "true");
+  }
 }
 
 for (const complete of [false, true]) {
@@ -66,9 +75,12 @@ for (const complete of [false, true]) {
     await expect(zero).toHaveAttribute("aria-pressed", "true", { timeout: 20_000 });
     const summary = page.locator('[data-tut="gex-summary"]').locator(":scope > *").first();
     await expect(summary.locator(":scope > *").last()).toHaveText(complete ? "+5.0M" : "—", { timeout: 20_000 });
+    await expect(summary).toBeVisible();
+    await expect(page.getByTestId("gex-snapshot-levels")).toHaveCount(0);
     const partial = page.getByTestId("gex-lens-partial");
     if (complete) await expect(partial).toHaveCount(0, { timeout: 20_000 });
     else {
+      await expect(partial).toBeVisible();
       await expect(partial).toContainText("+8.0M", { timeout: 20_000 });
       await expect(partial).toContainText(session, { timeout: 20_000 });
     }
@@ -91,6 +103,8 @@ for (const complete of [false, true]) {
 
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect(errors).toEqual([]);
+    const levels = page.locator("details").filter({ has: page.locator('[data-tut="gex-summary"]') });
+    if (await levels.count()) await levels.locator("summary").click();
     await summary.scrollIntoViewIfNeeded();
     await page.screenshot({
       path: info.outputPath(`${info.project.name}-exposure-${complete ? "complete" : "partial"}.png`), fullPage: false,
@@ -140,6 +154,7 @@ test("Exposure All except 0DTE withholds the total when a chain expiration is ou
   const summary = page.locator('[data-tut="gex-summary"]').locator(":scope > *").first();
   await expect(summary.locator(":scope > *").last()).toHaveText("—", { timeout: 20_000 });
   const partial = page.getByTestId("gex-lens-partial");
+  await expect(partial).toBeVisible();
   await expect(partial).toContainText("+7.0M", { timeout: 20_000 });
   await expect(partial).toContainText(
     zh ? "有 0 个梯图行权价和 1 个到期日不在按到期日快照范围内。"

@@ -1,0 +1,60 @@
+{
+  "schema": "options_final_gate_repairs.v1",
+  "phase": "APPLIED",
+  "created_at": "2026-11-05T09:23:50.200116+00:00",
+  "changes": [
+    {
+      "path": "terminal/app/login/page.tsx",
+      "before_sha256": "4ceda50373bbac0b150f63a83225342b40fdf2b03c43214920b9ee3e5061eded",
+      "after_sha256": "4d24ea4c79b2cf255411d01a27a32427d3b68fc62d363f022bbe4cbe7565df4a",
+      "profiles": [
+        "original",
+        "preview"
+      ],
+      "replacements": 1
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedShellLoginDefault.test.tsx",
+      "before_sha256": "79443d4d1cb6b0d5c74305c585c28093f4b5e1ea12047f0f047189602a18482e",
+      "after_sha256": "936270c363f06760bc4eb88fd042aaa717e6e5c08169d0d3f7e66f97400de228",
+      "profiles": [
+        "original",
+        "preview"
+      ],
+      "replacements": 3
+    },
+    {
+      "path": "terminal/lib/__tests__/helpers/optionsVisualEvidence.ts",
+      "before_sha256": "a7dfa8ba1399c73f4efe22f6658f89ece61797045c22e076e5714fb7af5e42df",
+      "after_sha256": "f3edf3b6350e23b84b87276c77b938ffbc38e3f850f6d746e0063db2c26cb6c3",
+      "profiles": [
+        "original",
+        "preview"
+      ],
+      "replacements": 1
+    },
+    {
+      "path": "terminal/lib/__tests__/visualIntelligenceEvidence.test.ts",
+      "before_sha256": "8c9ea9305fa26b73d713dafb0a994d32865a8a357772735d80b227c07ea6fa65",
+      "after_sha256": "2f961da5a9c13b314bb58c033a5dc8d5e67df3b911ca780385b1ca19b99f4c78",
+      "profiles": [
+        "original",
+        "preview"
+      ],
+      "replacements": 2
+    },
+    {
+      "path": "terminal/lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+      "before_sha256": "5e5670abc214d910330d1447f207a6f9b5aa8c025606aba765ba74b108f4aefc",
+      "after_sha256": "ba40b75ea6d40974308a36a2167f836a33c6fc57c83a93298ab524dabe6ac5ba",
+      "profiles": [
+        "original",
+        "preview"
+      ],
+      "replacements": 3
+    }
+  ],
+  "reason": "Preserve valid Next page-props contract and reuse already-verified r4 harness source expectations in both evidence consumers",
+  "captures_unchanged": true,
+  "completed_at": "2026-11-05T09:30:41.207835+00:00"
+}

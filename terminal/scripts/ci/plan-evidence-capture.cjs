@@ -45,7 +45,7 @@ function planEvidenceCapture(root = ROOT) {
         locks.set(rel, expected);
       }
     }
-    // Reuse the native owner's exact12-source and126-case input qualification.
+    // Reuse the native owner's complete current-source and126-case qualification.
     // Its malformed/missing packet cannot authorize a merge-group capture skip.
     const eod = eodPacket(root);
     for (const [rel, expected] of Object.entries(eod.layoutFiles)) {

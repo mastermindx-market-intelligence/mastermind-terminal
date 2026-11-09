@@ -1,0 +1,11 @@
+{
+  "branchHead": "483554457f302a90305f03c360636ca97ed75fb3",
+  "packet": "gex-levels-heatmap-load-failure",
+  "predecessor": {
+    "descriptorSha256": "6074a35447c6ec3447cf9a0542b08d6a206c3660d483abf0e271daac21e6804b",
+    "revision": "master-integration-20261109"
+  },
+  "protectedMaster": "f2aa1e0cb27d459149f59d3b24d98cd6e2e8389f",
+  "reason": "Observe the unmodified dev-indicator state before every accepted native screenshot; keep the preceding successful native and browser executions immutable.",
+  "schema": "exposure_indicator_guard_history.v1"
+}

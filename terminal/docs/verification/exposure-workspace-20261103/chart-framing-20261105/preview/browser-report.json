@@ -1,0 +1,565 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/node_modules/.bin/playwright",
+      "test",
+      "e2e/options-exposure-workspace.spec.ts",
+      "--grep",
+      "Connected exposure workspace (?:en|zh): chart, comparison scopes, scanner and return$",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--retries=0",
+      "--trace=on",
+      "--output=.next/options-chart-framing-preview-fixed-r4-v2",
+      "--reporter=list,json"
+    ],
+    "configFile": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-chart-framing-preview-fixed-r4-v2",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-chart-framing-preview-fixed-r4-v2",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-chart-framing-preview-fixed-r4-v2",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-chart-framing-preview-fixed-r4-v2",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-chart-framing-preview-fixed-r4-v2",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-chart-framing-preview-fixed-r4-v2",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-chart-framing-preview-fixed-r4-v2",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-chart-framing-preview-fixed-r4-v2",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3699",
+      "url": "http://127.0.0.1:3699/terminal?symbol=NVDA",
+      "reuseExistingServer": true,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "options-exposure-workspace.spec.ts",
+      "file": "options-exposure-workspace.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9672,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:48:42.932Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "exposure-header-clearance-initial",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJzdHJpa2UiOiA3NTYsCiAgICAiZ2FwIjogMjQuNzI4MDI3Mjg2NDc0MjMsCiAgICAicGFpbnQiOiAxOSwKICAgICJsYWJlbFRvcCI6IDYzNi40NDY3NzcyODY0NzQyLAogICAgImhlYWRlckJvdHRvbSI6IDYxMS43MTg3NQogIH0sCiAgewogICAgInN0cmlrZSI6IDc1NywKICAgICJnYXAiOiA1LjQ5MjM5NzkzMzQ2ODUxLAogICAgInBhaW50IjogMjAsCiAgICAibGFiZWxUb3AiOiA2MTcuMjExMTQ3OTMzNDY4NSwKICAgICJoZWFkZXJCb3R0b20iOiA2MTEuNzE4NzUKICB9LAogIHsKICAgICJzdHJpa2UiOiA3NTUsCiAgICAiZ2FwIjogNDQuMDYxMzEyODg5NDc5OTUsCiAgICAicGFpbnQiOiAyMSwKICAgICJsYWJlbFRvcCI6IDY1NS43ODAwNjI4ODk0OCwKICAgICJoZWFkZXJCb3R0b20iOiA2MTEuNzE4NzUKICB9LAogIHsKICAgICJzdHJpa2UiOiA3NDcsCiAgICAiZ2FwIjogMTk4LjQ1NDE2MDIxMzUyNTcsCiAgICAicGFpbnQiOiAyMiwKICAgICJsYWJlbFRvcCI6IDgxMC4xNzI5MTAyMTM1MjU3LAogICAgImhlYWRlckJvdHRvbSI6IDYxMS43MTg3NQogIH0sCiAgewogICAgInN0cmlrZSI6IDc0NiwKICAgICJnYXAiOiAyMTcuNTcyNjAyMDY2NTMxNTQsCiAgICAicGFpbnQiOiAyMywKICAgICJsYWJlbFRvcCI6IDgyOS4yOTEzNTIwNjY1MzE1LAogICAgImhlYWRlckJvdHRvbSI6IDYxMS43MTg3NQogIH0sCiAgewogICAgInN0cmlrZSI6IDc0OCwKICAgICJnYXAiOiAxNzkuMDAzNjg3MTEwNTIsCiAgICAicGFpbnQiOiAyNCwKICAgICJsYWJlbFRvcCI6IDc5MC43MjI0MzcxMTA1MiwKICAgICJoZWFkZXJCb3R0b20iOiA2MTEuNzE4NzUKICB9Cl0="
+                    },
+                    {
+                      "name": "exposure-header-clearance",
+                      "contentType": "application/json",
+                      "body": "ewogICJpbml0aWFsIjogWwogICAgewogICAgICAic3RyaWtlIjogNzU2LAogICAgICAiZ2FwIjogMjQuNzI4MDI3Mjg2NDc0MjMsCiAgICAgICJwYWludCI6IDE5LAogICAgICAibGFiZWxUb3AiOiA2MzYuNDQ2Nzc3Mjg2NDc0MiwKICAgICAgImhlYWRlckJvdHRvbSI6IDYxMS43MTg3NQogICAgfSwKICAgIHsKICAgICAgInN0cmlrZSI6IDc1NywKICAgICAgImdhcCI6IDUuNDkyMzk3OTMzNDY4NTEsCiAgICAgICJwYWludCI6IDIwLAogICAgICAibGFiZWxUb3AiOiA2MTcuMjExMTQ3OTMzNDY4NSwKICAgICAgImhlYWRlckJvdHRvbSI6IDYxMS43MTg3NQogICAgfSwKICAgIHsKICAgICAgInN0cmlrZSI6IDc1NSwKICAgICAgImdhcCI6IDQ0LjA2MTMxMjg4OTQ3OTk1LAogICAgICAicGFpbnQiOiAyMSwKICAgICAgImxhYmVsVG9wIjogNjU1Ljc4MDA2Mjg4OTQ4LAogICAgICAiaGVhZGVyQm90dG9tIjogNjExLjcxODc1CiAgICB9LAogICAgewogICAgICAic3RyaWtlIjogNzQ3LAogICAgICAiZ2FwIjogMTk4LjQ1NDE2MDIxMzUyNTcsCiAgICAgICJwYWludCI6IDIyLAogICAgICAibGFiZWxUb3AiOiA4MTAuMTcyOTEwMjEzNTI1NywKICAgICAgImhlYWRlckJvdHRvbSI6IDYxMS43MTg3NQogICAgfSwKICAgIHsKICAgICAgInN0cmlrZSI6IDc0NiwKICAgICAgImdhcCI6IDIxNy41NzI2MDIwNjY1MzE1NCwKICAgICAgInBhaW50IjogMjMsCiAgICAgICJsYWJlbFRvcCI6IDgyOS4yOTEzNTIwNjY1MzE1LAogICAgICAiaGVhZGVyQm90dG9tIjogNjExLjcxODc1CiAgICB9LAogICAgewogICAgICAic3RyaWtlIjogNzQ4LAogICAgICAiZ2FwIjogMTc5LjAwMzY4NzExMDUyLAogICAgICAicGFpbnQiOiAyNCwKICAgICAgImxhYmVsVG9wIjogNzkwLjcyMjQzNzExMDUyLAogICAgICAiaGVhZGVyQm90dG9tIjogNjExLjcxODc1CiAgICB9CiAgXSwKICAiYWZ0ZXJGaXQiOiBbCiAgICB7CiAgICAgICJzdHJpa2UiOiA3NTYsCiAgICAgICJnYXAiOiAyNC43MjgwMjcyODY0NzQyMywKICAgICAgInBhaW50IjogMzEsCiAgICAgICJsYWJlbFRvcCI6IDYzNi40NDY3NzcyODY0NzQyLAogICAgICAiaGVhZGVyQm90dG9tIjogNjExLjcxODc1CiAgICB9LAogICAgewogICAgICAic3RyaWtlIjogNzU3LAogICAgICAiZ2FwIjogNS40OTIzOTc5MzM0Njg1MSwKICAgICAgInBhaW50IjogMzIsCiAgICAgICJsYWJlbFRvcCI6IDYxNy4yMTExNDc5MzM0Njg1LAogICAgICAiaGVhZGVyQm90dG9tIjogNjExLjcxODc1CiAgICB9LAogICAgewogICAgICAic3RyaWtlIjogNzU1LAogICAgICAiZ2FwIjogNDQuMDYxMzEyODg5NDc5OTUsCiAgICAgICJwYWludCI6IDMzLAogICAgICAibGFiZWxUb3AiOiA2NTUuNzgwMDYyODg5NDgsCiAgICAgICJoZWFkZXJCb3R0b20iOiA2MTEuNzE4NzUKICAgIH0sCiAgICB7CiAgICAgICJzdHJpa2UiOiA3NDcsCiAgICAgICJnYXAiOiAxOTguNDU0MTYwMjEzNTI1NywKICAgICAgInBhaW50IjogMzQsCiAgICAgICJsYWJlbFRvcCI6IDgxMC4xNzI5MTAyMTM1MjU3LAogICAgICAiaGVhZGVyQm90dG9tIjogNjExLjcxODc1CiAgICB9LAogICAgewogICAgICAic3RyaWtlIjogNzQ2LAogICAgICAiZ2FwIjogMjE3LjU3MjYwMjA2NjUzMTU0LAogICAgICAicGFpbnQiOiAzNSwKICAgICAgImxhYmVsVG9wIjogODI5LjI5MTM1MjA2NjUzMTUsCiAgICAgICJoZWFkZXJCb3R0b20iOiA2MTEuNzE4NzUKICAgIH0sCiAgICB7CiAgICAgICJzdHJpa2UiOiA3NDgsCiAgICAgICJnYXAiOiAxNzkuMDAzNjg3MTEwNTIsCiAgICAgICJwYWludCI6IDM2LAogICAgICAibGFiZWxUb3AiOiA3OTAuNzIyNDM3MTEwNTIsCiAgICAgICJoZWFkZXJCb3R0b20iOiA2MTEuNzE4NzUKICAgIH0KICBdCn0="
+                    },
+                    {
+                      "name": "momentum-layout",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0YWciOiAiQlVUVE9OIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI5cHgiLAogICAgImxlZnQiOiAiNnB4IgogIH0sCiAgewogICAgInRhZyI6ICJCVVRUT04iLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjlweCIsCiAgICAibGVmdCI6ICI2cHgiCiAgfSwKICB7CiAgICAidGFnIjogIkJVVFRPTiIsCiAgICAiZGlzcGxheSI6ICJmbGV4IiwKICAgICJkaXJlY3Rpb24iOiAiY29sdW1uIiwKICAgICJ0b3AiOiAiOXB4IiwKICAgICJsZWZ0IjogIjZweCIKICB9LAogIHsKICAgICJ0YWciOiAiQlVUVE9OIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI5cHgiLAogICAgImxlZnQiOiAiNnB4IgogIH0sCiAgewogICAgInRhZyI6ICJCVVRUT04iLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjlweCIsCiAgICAibGVmdCI6ICI2cHgiCiAgfQpd"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-chart-framing-preview-fixed-r4-v2/options-exposure-workspace-3f35d-n-scopes-scanner-and-return-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9e9678be14b351cb8dab-6ae05176e115ddc39b3d",
+          "file": "options-exposure-workspace.spec.ts",
+          "line": 439,
+          "column": 7
+        },
+        {
+          "title": "Connected exposure workspace zh: chart, comparison scopes, scanner and return",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8968,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:48:53.649Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "exposure-header-clearance-initial",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJzdHJpa2UiOiA3NTYsCiAgICAiZ2FwIjogMjQuNzI4MDI3Mjg2NDc0MjMsCiAgICAicGFpbnQiOiAxOSwKICAgICJsYWJlbFRvcCI6IDYyMS4yMjgwMjcyODY0NzQyLAogICAgImhlYWRlckJvdHRvbSI6IDU5Ni41CiAgfSwKICB7CiAgICAic3RyaWtlIjogNzU3LAogICAgImdhcCI6IDUuNDkyMzk3OTMzNDY4NTEsCiAgICAicGFpbnQiOiAyMCwKICAgICJsYWJlbFRvcCI6IDYwMS45OTIzOTc5MzM0Njg1LAogICAgImhlYWRlckJvdHRvbSI6IDU5Ni41CiAgfSwKICB7CiAgICAic3RyaWtlIjogNzU1LAogICAgImdhcCI6IDQ0LjA2MTMxMjg4OTQ3OTk1LAogICAgInBhaW50IjogMjEsCiAgICAibGFiZWxUb3AiOiA2NDAuNTYxMzEyODg5NDgsCiAgICAiaGVhZGVyQm90dG9tIjogNTk2LjUKICB9LAogIHsKICAgICJzdHJpa2UiOiA3NDcsCiAgICAiZ2FwIjogMTk4LjQ1NDE2MDIxMzUyNTcsCiAgICAicGFpbnQiOiAyMiwKICAgICJsYWJlbFRvcCI6IDc5NC45NTQxNjAyMTM1MjU3LAogICAgImhlYWRlckJvdHRvbSI6IDU5Ni41CiAgfSwKICB7CiAgICAic3RyaWtlIjogNzQ2LAogICAgImdhcCI6IDIxNy41NzI2MDIwNjY1MzE1NCwKICAgICJwYWludCI6IDIzLAogICAgImxhYmVsVG9wIjogODE0LjA3MjYwMjA2NjUzMTUsCiAgICAiaGVhZGVyQm90dG9tIjogNTk2LjUKICB9LAogIHsKICAgICJzdHJpa2UiOiA3NDgsCiAgICAiZ2FwIjogMTc5LjAwMzY4NzExMDUyLAogICAgInBhaW50IjogMjQsCiAgICAibGFiZWxUb3AiOiA3NzUuNTAzNjg3MTEwNTIsCiAgICAiaGVhZGVyQm90dG9tIjogNTk2LjUKICB9Cl0="
+                    },
+                    {
+                      "name": "exposure-header-clearance",
+                      "contentType": "application/json",
+                      "body": "ewogICJpbml0aWFsIjogWwogICAgewogICAgICAic3RyaWtlIjogNzU2LAogICAgICAiZ2FwIjogMjQuNzI4MDI3Mjg2NDc0MjMsCiAgICAgICJwYWludCI6IDE5LAogICAgICAibGFiZWxUb3AiOiA2MjEuMjI4MDI3Mjg2NDc0MiwKICAgICAgImhlYWRlckJvdHRvbSI6IDU5Ni41CiAgICB9LAogICAgewogICAgICAic3RyaWtlIjogNzU3LAogICAgICAiZ2FwIjogNS40OTIzOTc5MzM0Njg1MSwKICAgICAgInBhaW50IjogMjAsCiAgICAgICJsYWJlbFRvcCI6IDYwMS45OTIzOTc5MzM0Njg1LAogICAgICAiaGVhZGVyQm90dG9tIjogNTk2LjUKICAgIH0sCiAgICB7CiAgICAgICJzdHJpa2UiOiA3NTUsCiAgICAgICJnYXAiOiA0NC4wNjEzMTI4ODk0Nzk5NSwKICAgICAgInBhaW50IjogMjEsCiAgICAgICJsYWJlbFRvcCI6IDY0MC41NjEzMTI4ODk0OCwKICAgICAgImhlYWRlckJvdHRvbSI6IDU5Ni41CiAgICB9LAogICAgewogICAgICAic3RyaWtlIjogNzQ3LAogICAgICAiZ2FwIjogMTk4LjQ1NDE2MDIxMzUyNTcsCiAgICAgICJwYWludCI6IDIyLAogICAgICAibGFiZWxUb3AiOiA3OTQuOTU0MTYwMjEzNTI1NywKICAgICAgImhlYWRlckJvdHRvbSI6IDU5Ni41CiAgICB9LAogICAgewogICAgICAic3RyaWtlIjogNzQ2LAogICAgICAiZ2FwIjogMjE3LjU3MjYwMjA2NjUzMTU0LAogICAgICAicGFpbnQiOiAyMywKICAgICAgImxhYmVsVG9wIjogODE0LjA3MjYwMjA2NjUzMTUsCiAgICAgICJoZWFkZXJCb3R0b20iOiA1OTYuNQogICAgfSwKICAgIHsKICAgICAgInN0cmlrZSI6IDc0OCwKICAgICAgImdhcCI6IDE3OS4wMDM2ODcxMTA1MiwKICAgICAgInBhaW50IjogMjQsCiAgICAgICJsYWJlbFRvcCI6IDc3NS41MDM2ODcxMTA1MiwKICAgICAgImhlYWRlckJvdHRvbSI6IDU5Ni41CiAgICB9CiAgXSwKICAiYWZ0ZXJGaXQiOiBbCiAgICB7CiAgICAgICJzdHJpa2UiOiA3NTYsCiAgICAgICJnYXAiOiAyNC43MjgwMjcyODY0NzQyMywKICAgICAgInBhaW50IjogMzEsCiAgICAgICJsYWJlbFRvcCI6IDYyMS4yMjgwMjcyODY0NzQyLAogICAgICAiaGVhZGVyQm90dG9tIjogNTk2LjUKICAgIH0sCiAgICB7CiAgICAgICJzdHJpa2UiOiA3NTcsCiAgICAgICJnYXAiOiA1LjQ5MjM5NzkzMzQ2ODUxLAogICAgICAicGFpbnQiOiAzMiwKICAgICAgImxhYmVsVG9wIjogNjAxLjk5MjM5NzkzMzQ2ODUsCiAgICAgICJoZWFkZXJCb3R0b20iOiA1OTYuNQogICAgfSwKICAgIHsKICAgICAgInN0cmlrZSI6IDc1NSwKICAgICAgImdhcCI6IDQ0LjA2MTMxMjg4OTQ3OTk1LAogICAgICAicGFpbnQiOiAzMywKICAgICAgImxhYmVsVG9wIjogNjQwLjU2MTMxMjg4OTQ4LAogICAgICAiaGVhZGVyQm90dG9tIjogNTk2LjUKICAgIH0sCiAgICB7CiAgICAgICJzdHJpa2UiOiA3NDcsCiAgICAgICJnYXAiOiAxOTguNDU0MTYwMjEzNTI1NywKICAgICAgInBhaW50IjogMzQsCiAgICAgICJsYWJlbFRvcCI6IDc5NC45NTQxNjAyMTM1MjU3LAogICAgICAiaGVhZGVyQm90dG9tIjogNTk2LjUKICAgIH0sCiAgICB7CiAgICAgICJzdHJpa2UiOiA3NDYsCiAgICAgICJnYXAiOiAyMTcuNTcyNjAyMDY2NTMxNTQsCiAgICAgICJwYWludCI6IDM1LAogICAgICAibGFiZWxUb3AiOiA4MTQuMDcyNjAyMDY2NTMxNSwKICAgICAgImhlYWRlckJvdHRvbSI6IDU5Ni41CiAgICB9LAogICAgewogICAgICAic3RyaWtlIjogNzQ4LAogICAgICAiZ2FwIjogMTc5LjAwMzY4NzExMDUyLAogICAgICAicGFpbnQiOiAzNiwKICAgICAgImxhYmVsVG9wIjogNzc1LjUwMzY4NzExMDUyLAogICAgICAiaGVhZGVyQm90dG9tIjogNTk2LjUKICAgIH0KICBdCn0="
+                    },
+                    {
+                      "name": "momentum-layout",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0YWciOiAiQlVUVE9OIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI5cHgiLAogICAgImxlZnQiOiAiNnB4IgogIH0sCiAgewogICAgInRhZyI6ICJCVVRUT04iLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjlweCIsCiAgICAibGVmdCI6ICI2cHgiCiAgfSwKICB7CiAgICAidGFnIjogIkJVVFRPTiIsCiAgICAiZGlzcGxheSI6ICJmbGV4IiwKICAgICJkaXJlY3Rpb24iOiAiY29sdW1uIiwKICAgICJ0b3AiOiAiOXB4IiwKICAgICJsZWZ0IjogIjZweCIKICB9LAogIHsKICAgICJ0YWciOiAiQlVUVE9OIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI5cHgiLAogICAgImxlZnQiOiAiNnB4IgogIH0sCiAgewogICAgInRhZyI6ICJCVVRUT04iLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjlweCIsCiAgICAibGVmdCI6ICI2cHgiCiAgfQpd"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-chart-framing-preview-fixed-r4-v2/options-exposure-workspace-eba30-n-scopes-scanner-and-return-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9e9678be14b351cb8dab-0c140ffae3c761f60932",
+          "file": "options-exposure-workspace.spec.ts",
+          "line": 439,
+          "column": 7
+        },
+        {
+          "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8310,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:49:03.564Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "exposure-header-clearance-initial",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJzdHJpa2UiOiA3NTYsCiAgICAiZ2FwIjogMjQuNzI4MDI3Mjg2NDc0MjMsCiAgICAicGFpbnQiOiAxOSwKICAgICJsYWJlbFRvcCI6IDgyMC43MTI0MDIyODY0NzQyLAogICAgImhlYWRlckJvdHRvbSI6IDc5NS45ODQzNzUKICB9LAogIHsKICAgICJzdHJpa2UiOiA3NTcsCiAgICAiZ2FwIjogNS40OTIzOTc5MzM0Njg1MSwKICAgICJwYWludCI6IDIwLAogICAgImxhYmVsVG9wIjogODAxLjQ3Njc3MjkzMzQ2ODUsCiAgICAiaGVhZGVyQm90dG9tIjogNzk1Ljk4NDM3NQogIH0sCiAgewogICAgInN0cmlrZSI6IDc1NSwKICAgICJnYXAiOiA0NC4wNjEzMTI4ODk0Nzk5NSwKICAgICJwYWludCI6IDIxLAogICAgImxhYmVsVG9wIjogODQwLjA0NTY4Nzg4OTQ4LAogICAgImhlYWRlckJvdHRvbSI6IDc5NS45ODQzNzUKICB9LAogIHsKICAgICJzdHJpa2UiOiA3NDcsCiAgICAiZ2FwIjogMTk4LjQ1NDE2MDIxMzUyNTcsCiAgICAicGFpbnQiOiAyMiwKICAgICJsYWJlbFRvcCI6IDk5NC40Mzg1MzUyMTM1MjU3LAogICAgImhlYWRlckJvdHRvbSI6IDc5NS45ODQzNzUKICB9LAogIHsKICAgICJzdHJpa2UiOiA3NDYsCiAgICAiZ2FwIjogMjE3LjU3MjYwMjA2NjUzMTU0LAogICAgInBhaW50IjogMjMsCiAgICAibGFiZWxUb3AiOiAxMDEzLjU1Njk3NzA2NjUzMTUsCiAgICAiaGVhZGVyQm90dG9tIjogNzk1Ljk4NDM3NQogIH0sCiAgewogICAgInN0cmlrZSI6IDc0OCwKICAgICJnYXAiOiAxNzkuMDAzNjg3MTEwNTIsCiAgICAicGFpbnQiOiAyNCwKICAgICJsYWJlbFRvcCI6IDk3NC45ODgwNjIxMTA1MiwKICAgICJoZWFkZXJCb3R0b20iOiA3OTUuOTg0Mzc1CiAgfQpd"
+                    },
+                    {
+                      "name": "exposure-header-clearance",
+                      "contentType": "application/json",
+                      "body": "ewogICJpbml0aWFsIjogWwogICAgewogICAgICAic3RyaWtlIjogNzU2LAogICAgICAiZ2FwIjogMjQuNzI4MDI3Mjg2NDc0MjMsCiAgICAgICJwYWludCI6IDE5LAogICAgICAibGFiZWxUb3AiOiA4MjAuNzEyNDAyMjg2NDc0MiwKICAgICAgImhlYWRlckJvdHRvbSI6IDc5NS45ODQzNzUKICAgIH0sCiAgICB7CiAgICAgICJzdHJpa2UiOiA3NTcsCiAgICAgICJnYXAiOiA1LjQ5MjM5NzkzMzQ2ODUxLAogICAgICAicGFpbnQiOiAyMCwKICAgICAgImxhYmVsVG9wIjogODAxLjQ3Njc3MjkzMzQ2ODUsCiAgICAgICJoZWFkZXJCb3R0b20iOiA3OTUuOTg0Mzc1CiAgICB9LAogICAgewogICAgICAic3RyaWtlIjogNzU1LAogICAgICAiZ2FwIjogNDQuMDYxMzEyODg5NDc5OTUsCiAgICAgICJwYWludCI6IDIxLAogICAgICAibGFiZWxUb3AiOiA4NDAuMDQ1Njg3ODg5NDgsCiAgICAgICJoZWFkZXJCb3R0b20iOiA3OTUuOTg0Mzc1CiAgICB9LAogICAgewogICAgICAic3RyaWtlIjogNzQ3LAogICAgICAiZ2FwIjogMTk4LjQ1NDE2MDIxMzUyNTcsCiAgICAgICJwYWludCI6IDIyLAogICAgICAibGFiZWxUb3AiOiA5OTQuNDM4NTM1MjEzNTI1NywKICAgICAgImhlYWRlckJvdHRvbSI6IDc5NS45ODQzNzUKICAgIH0sCiAgICB7CiAgICAgICJzdHJpa2UiOiA3NDYsCiAgICAgICJnYXAiOiAyMTcuNTcyNjAyMDY2NTMxNTQsCiAgICAgICJwYWludCI6IDIzLAogICAgICAibGFiZWxUb3AiOiAxMDEzLjU1Njk3NzA2NjUzMTUsCiAgICAgICJoZWFkZXJCb3R0b20iOiA3OTUuOTg0Mzc1CiAgICB9LAogICAgewogICAgICAic3RyaWtlIjogNzQ4LAogICAgICAiZ2FwIjogMTc5LjAwMzY4NzExMDUyLAogICAgICAicGFpbnQiOiAyNCwKICAgICAgImxhYmVsVG9wIjogOTc0Ljk4ODA2MjExMDUyLAogICAgICAiaGVhZGVyQm90dG9tIjogNzk1Ljk4NDM3NQogICAgfQogIF0sCiAgImFmdGVyRml0IjogWwogICAgewogICAgICAic3RyaWtlIjogNzU2LAogICAgICAiZ2FwIjogMjQuNzI4MDI3Mjg2NDc0MjMsCiAgICAgICJwYWludCI6IDMxLAogICAgICAibGFiZWxUb3AiOiA4MjAuNzEyNDAyMjg2NDc0MiwKICAgICAgImhlYWRlckJvdHRvbSI6IDc5NS45ODQzNzUKICAgIH0sCiAgICB7CiAgICAgICJzdHJpa2UiOiA3NTcsCiAgICAgICJnYXAiOiA1LjQ5MjM5NzkzMzQ2ODUxLAogICAgICAicGFpbnQiOiAzMiwKICAgICAgImxhYmVsVG9wIjogODAxLjQ3Njc3MjkzMzQ2ODUsCiAgICAgICJoZWFkZXJCb3R0b20iOiA3OTUuOTg0Mzc1CiAgICB9LAogICAgewogICAgICAic3RyaWtlIjogNzU1LAogICAgICAiZ2FwIjogNDQuMDYxMzEyODg5NDc5OTUsCiAgICAgICJwYWludCI6IDMzLAogICAgICAibGFiZWxUb3AiOiA4NDAuMDQ1Njg3ODg5NDgsCiAgICAgICJoZWFkZXJCb3R0b20iOiA3OTUuOTg0Mzc1CiAgICB9LAogICAgewogICAgICAic3RyaWtlIjogNzQ3LAogICAgICAiZ2FwIjogMTk4LjQ1NDE2MDIxMzUyNTcsCiAgICAgICJwYWludCI6IDM0LAogICAgICAibGFiZWxUb3AiOiA5OTQuNDM4NTM1MjEzNTI1NywKICAgICAgImhlYWRlckJvdHRvbSI6IDc5NS45ODQzNzUKICAgIH0sCiAgICB7CiAgICAgICJzdHJpa2UiOiA3NDYsCiAgICAgICJnYXAiOiAyMTcuNTcyNjAyMDY2NTMxNTQsCiAgICAgICJwYWludCI6IDM1LAogICAgICAibGFiZWxUb3AiOiAxMDEzLjU1Njk3NzA2NjUzMTUsCiAgICAgICJoZWFkZXJCb3R0b20iOiA3OTUuOTg0Mzc1CiAgICB9LAogICAgewogICAgICAic3RyaWtlIjogNzQ4LAogICAgICAiZ2FwIjogMTc5LjAwMzY4NzExMDUyLAogICAgICAicGFpbnQiOiAzNiwKICAgICAgImxhYmVsVG9wIjogOTc0Ljk4ODA2MjExMDUyLAogICAgICAiaGVhZGVyQm90dG9tIjogNzk1Ljk4NDM3NQogICAgfQogIF0KfQ=="
+                    },
+                    {
+                      "name": "momentum-layout",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0YWciOiAiQlVUVE9OIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI5cHgiLAogICAgImxlZnQiOiAiNnB4IgogIH0sCiAgewogICAgInRhZyI6ICJCVVRUT04iLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjlweCIsCiAgICAibGVmdCI6ICI2cHgiCiAgfSwKICB7CiAgICAidGFnIjogIkJVVFRPTiIsCiAgICAiZGlzcGxheSI6ICJmbGV4IiwKICAgICJkaXJlY3Rpb24iOiAiY29sdW1uIiwKICAgICJ0b3AiOiAiOXB4IiwKICAgICJsZWZ0IjogIjZweCIKICB9LAogIHsKICAgICJ0YWciOiAiQlVUVE9OIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI5cHgiLAogICAgImxlZnQiOiAiNnB4IgogIH0sCiAgewogICAgInRhZyI6ICJCVVRUT04iLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjlweCIsCiAgICAibGVmdCI6ICI2cHgiCiAgfQpd"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-chart-framing-preview-fixed-r4-v2/options-exposure-workspace-3f35d-n-scopes-scanner-and-return-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9e9678be14b351cb8dab-f57ce40ae717d36b6786",
+          "file": "options-exposure-workspace.spec.ts",
+          "line": 439,
+          "column": 7
+        },
+        {
+          "title": "Connected exposure workspace zh: chart, comparison scopes, scanner and return",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8439,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:49:13.189Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "exposure-header-clearance-initial",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJzdHJpa2UiOiA3NTYsCiAgICAiZ2FwIjogMjQuNzI4MDI3Mjg2NDc0MjMsCiAgICAicGFpbnQiOiAxOSwKICAgICJsYWJlbFRvcCI6IDc3Ni43NzQ5MDIyODY0NzQyLAogICAgImhlYWRlckJvdHRvbSI6IDc1Mi4wNDY4NzUKICB9LAogIHsKICAgICJzdHJpa2UiOiA3NTcsCiAgICAiZ2FwIjogNS40OTIzOTc5MzM0Njg1MSwKICAgICJwYWludCI6IDIwLAogICAgImxhYmVsVG9wIjogNzU3LjUzOTI3MjkzMzQ2ODUsCiAgICAiaGVhZGVyQm90dG9tIjogNzUyLjA0Njg3NQogIH0sCiAgewogICAgInN0cmlrZSI6IDc1NSwKICAgICJnYXAiOiA0NC4wNjEzMTI4ODk0Nzk5NSwKICAgICJwYWludCI6IDIxLAogICAgImxhYmVsVG9wIjogNzk2LjEwODE4Nzg4OTQ4LAogICAgImhlYWRlckJvdHRvbSI6IDc1Mi4wNDY4NzUKICB9LAogIHsKICAgICJzdHJpa2UiOiA3NDcsCiAgICAiZ2FwIjogMTk4LjQ1NDE2MDIxMzUyNTcsCiAgICAicGFpbnQiOiAyMiwKICAgICJsYWJlbFRvcCI6IDk1MC41MDEwMzUyMTM1MjU3LAogICAgImhlYWRlckJvdHRvbSI6IDc1Mi4wNDY4NzUKICB9LAogIHsKICAgICJzdHJpa2UiOiA3NDYsCiAgICAiZ2FwIjogMjE3LjU3MjYwMjA2NjUzMTU0LAogICAgInBhaW50IjogMjMsCiAgICAibGFiZWxUb3AiOiA5NjkuNjE5NDc3MDY2NTMxNSwKICAgICJoZWFkZXJCb3R0b20iOiA3NTIuMDQ2ODc1CiAgfSwKICB7CiAgICAic3RyaWtlIjogNzQ4LAogICAgImdhcCI6IDE3OS4wMDM2ODcxMTA1MiwKICAgICJwYWludCI6IDI0LAogICAgImxhYmVsVG9wIjogOTMxLjA1MDU2MjExMDUyLAogICAgImhlYWRlckJvdHRvbSI6IDc1Mi4wNDY4NzUKICB9Cl0="
+                    },
+                    {
+                      "name": "exposure-header-clearance",
+                      "contentType": "application/json",
+                      "body": "ewogICJpbml0aWFsIjogWwogICAgewogICAgICAic3RyaWtlIjogNzU2LAogICAgICAiZ2FwIjogMjQuNzI4MDI3Mjg2NDc0MjMsCiAgICAgICJwYWludCI6IDE5LAogICAgICAibGFiZWxUb3AiOiA3NzYuNzc0OTAyMjg2NDc0MiwKICAgICAgImhlYWRlckJvdHRvbSI6IDc1Mi4wNDY4NzUKICAgIH0sCiAgICB7CiAgICAgICJzdHJpa2UiOiA3NTcsCiAgICAgICJnYXAiOiA1LjQ5MjM5NzkzMzQ2ODUxLAogICAgICAicGFpbnQiOiAyMCwKICAgICAgImxhYmVsVG9wIjogNzU3LjUzOTI3MjkzMzQ2ODUsCiAgICAgICJoZWFkZXJCb3R0b20iOiA3NTIuMDQ2ODc1CiAgICB9LAogICAgewogICAgICAic3RyaWtlIjogNzU1LAogICAgICAiZ2FwIjogNDQuMDYxMzEyODg5NDc5OTUsCiAgICAgICJwYWludCI6IDIxLAogICAgICAibGFiZWxUb3AiOiA3OTYuMTA4MTg3ODg5NDgsCiAgICAgICJoZWFkZXJCb3R0b20iOiA3NTIuMDQ2ODc1CiAgICB9LAogICAgewogICAgICAic3RyaWtlIjogNzQ3LAogICAgICAiZ2FwIjogMTk4LjQ1NDE2MDIxMzUyNTcsCiAgICAgICJwYWludCI6IDIyLAogICAgICAibGFiZWxUb3AiOiA5NTAuNTAxMDM1MjEzNTI1NywKICAgICAgImhlYWRlckJvdHRvbSI6IDc1Mi4wNDY4NzUKICAgIH0sCiAgICB7CiAgICAgICJzdHJpa2UiOiA3NDYsCiAgICAgICJnYXAiOiAyMTcuNTcyNjAyMDY2NTMxNTQsCiAgICAgICJwYWludCI6IDIzLAogICAgICAibGFiZWxUb3AiOiA5NjkuNjE5NDc3MDY2NTMxNSwKICAgICAgImhlYWRlckJvdHRvbSI6IDc1Mi4wNDY4NzUKICAgIH0sCiAgICB7CiAgICAgICJzdHJpa2UiOiA3NDgsCiAgICAgICJnYXAiOiAxNzkuMDAzNjg3MTEwNTIsCiAgICAgICJwYWludCI6IDI0LAogICAgICAibGFiZWxUb3AiOiA5MzEuMDUwNTYyMTEwNTIsCiAgICAgICJoZWFkZXJCb3R0b20iOiA3NTIuMDQ2ODc1CiAgICB9CiAgXSwKICAiYWZ0ZXJGaXQiOiBbCiAgICB7CiAgICAgICJzdHJpa2UiOiA3NTYsCiAgICAgICJnYXAiOiAyNC43MjgwMjcyODY0NzQyMywKICAgICAgInBhaW50IjogMzEsCiAgICAgICJsYWJlbFRvcCI6IDc3Ni43NzQ5MDIyODY0NzQyLAogICAgICAiaGVhZGVyQm90dG9tIjogNzUyLjA0Njg3NQogICAgfSwKICAgIHsKICAgICAgInN0cmlrZSI6IDc1NywKICAgICAgImdhcCI6IDUuNDkyMzk3OTMzNDY4NTEsCiAgICAgICJwYWludCI6IDMyLAogICAgICAibGFiZWxUb3AiOiA3NTcuNTM5MjcyOTMzNDY4NSwKICAgICAgImhlYWRlckJvdHRvbSI6IDc1Mi4wNDY4NzUKICAgIH0sCiAgICB7CiAgICAgICJzdHJpa2UiOiA3NTUsCiAgICAgICJnYXAiOiA0NC4wNjEzMTI4ODk0Nzk5NSwKICAgICAgInBhaW50IjogMzMsCiAgICAgICJsYWJlbFRvcCI6IDc5Ni4xMDgxODc4ODk0OCwKICAgICAgImhlYWRlckJvdHRvbSI6IDc1Mi4wNDY4NzUKICAgIH0sCiAgICB7CiAgICAgICJzdHJpa2UiOiA3NDcsCiAgICAgICJnYXAiOiAxOTguNDU0MTYwMjEzNTI1NywKICAgICAgInBhaW50IjogMzQsCiAgICAgICJsYWJlbFRvcCI6IDk1MC41MDEwMzUyMTM1MjU3LAogICAgICAiaGVhZGVyQm90dG9tIjogNzUyLjA0Njg3NQogICAgfSwKICAgIHsKICAgICAgInN0cmlrZSI6IDc0NiwKICAgICAgImdhcCI6IDIxNy41NzI2MDIwNjY1MzE1NCwKICAgICAgInBhaW50IjogMzUsCiAgICAgICJsYWJlbFRvcCI6IDk2OS42MTk0NzcwNjY1MzE1LAogICAgICAiaGVhZGVyQm90dG9tIjogNzUyLjA0Njg3NQogICAgfSwKICAgIHsKICAgICAgInN0cmlrZSI6IDc0OCwKICAgICAgImdhcCI6IDE3OS4wMDM2ODcxMTA1MiwKICAgICAgInBhaW50IjogMzYsCiAgICAgICJsYWJlbFRvcCI6IDkzMS4wNTA1NjIxMTA1MiwKICAgICAgImhlYWRlckJvdHRvbSI6IDc1Mi4wNDY4NzUKICAgIH0KICBdCn0="
+                    },
+                    {
+                      "name": "momentum-layout",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0YWciOiAiQlVUVE9OIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI5cHgiLAogICAgImxlZnQiOiAiNnB4IgogIH0sCiAgewogICAgInRhZyI6ICJCVVRUT04iLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjlweCIsCiAgICAibGVmdCI6ICI2cHgiCiAgfSwKICB7CiAgICAidGFnIjogIkJVVFRPTiIsCiAgICAiZGlzcGxheSI6ICJmbGV4IiwKICAgICJkaXJlY3Rpb24iOiAiY29sdW1uIiwKICAgICJ0b3AiOiAiOXB4IiwKICAgICJsZWZ0IjogIjZweCIKICB9LAogIHsKICAgICJ0YWciOiAiQlVUVE9OIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI5cHgiLAogICAgImxlZnQiOiAiNnB4IgogIH0sCiAgewogICAgInRhZyI6ICJCVVRUT04iLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjlweCIsCiAgICAibGVmdCI6ICI2cHgiCiAgfQpd"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-chart-framing-preview-fixed-r4-v2/options-exposure-workspace-eba30-n-scopes-scanner-and-return-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9e9678be14b351cb8dab-89febbd2fe12c0dc57e8",
+          "file": "options-exposure-workspace.spec.ts",
+          "line": 439,
+          "column": 7
+        },
+        {
+          "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8597,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:49:22.811Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "exposure-header-clearance-initial",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJzdHJpa2UiOiA3NTYsCiAgICAiZ2FwIjogMjUuNTM4NDkxNzgxNjU1Njk0LAogICAgInBhaW50IjogNywKICAgICJsYWJlbFRvcCI6IDc0OC42NzkxMTY3ODE2NTU3LAogICAgImhlYWRlckJvdHRvbSI6IDcyMy4xNDA2MjUKICB9LAogIHsKICAgICJzdHJpa2UiOiA3NDcsCiAgICAiZ2FwIjogMTQ5LjQ1ODE2MDAwNDA1Nzg1LAogICAgInBhaW50IjogOCwKICAgICJsYWJlbFRvcCI6IDg3Mi41OTg3ODUwMDQwNTc4LAogICAgImhlYWRlckJvdHRvbSI6IDcyMy4xNDA2MjUKICB9Cl0="
+                    },
+                    {
+                      "name": "exposure-header-clearance",
+                      "contentType": "application/json",
+                      "body": "ewogICJpbml0aWFsIjogWwogICAgewogICAgICAic3RyaWtlIjogNzU2LAogICAgICAiZ2FwIjogMjUuNTM4NDkxNzgxNjU1Njk0LAogICAgICAicGFpbnQiOiA3LAogICAgICAibGFiZWxUb3AiOiA3NDguNjc5MTE2NzgxNjU1NywKICAgICAgImhlYWRlckJvdHRvbSI6IDcyMy4xNDA2MjUKICAgIH0sCiAgICB7CiAgICAgICJzdHJpa2UiOiA3NDcsCiAgICAgICJnYXAiOiAxNDkuNDU4MTYwMDA0MDU3ODUsCiAgICAgICJwYWludCI6IDgsCiAgICAgICJsYWJlbFRvcCI6IDg3Mi41OTg3ODUwMDQwNTc4LAogICAgICAiaGVhZGVyQm90dG9tIjogNzIzLjE0MDYyNQogICAgfQogIF0sCiAgImFmdGVyRml0IjogWwogICAgewogICAgICAic3RyaWtlIjogNzU2LAogICAgICAiZ2FwIjogMjUuNTM4NDkxNzgxNjU1Njk0LAogICAgICAicGFpbnQiOiAxMSwKICAgICAgImxhYmVsVG9wIjogNzQ4LjY3OTExNjc4MTY1NTcsCiAgICAgICJoZWFkZXJCb3R0b20iOiA3MjMuMTQwNjI1CiAgICB9LAogICAgewogICAgICAic3RyaWtlIjogNzQ3LAogICAgICAiZ2FwIjogMTQ5LjQ1ODE2MDAwNDA1Nzg1LAogICAgICAicGFpbnQiOiAxMiwKICAgICAgImxhYmVsVG9wIjogODcyLjU5ODc4NTAwNDA1NzgsCiAgICAgICJoZWFkZXJCb3R0b20iOiA3MjMuMTQwNjI1CiAgICB9CiAgXQp9"
+                    },
+                    {
+                      "name": "momentum-layout",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0YWciOiAiQlVUVE9OIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI4cHgiLAogICAgImxlZnQiOiAiNHB4IgogIH0sCiAgewogICAgInRhZyI6ICJCVVRUT04iLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjhweCIsCiAgICAibGVmdCI6ICI0cHgiCiAgfSwKICB7CiAgICAidGFnIjogIkJVVFRPTiIsCiAgICAiZGlzcGxheSI6ICJmbGV4IiwKICAgICJkaXJlY3Rpb24iOiAiY29sdW1uIiwKICAgICJ0b3AiOiAiOHB4IiwKICAgICJsZWZ0IjogIjRweCIKICB9LAogIHsKICAgICJ0YWciOiAiQlVUVE9OIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI4cHgiLAogICAgImxlZnQiOiAiNHB4IgogIH0sCiAgewogICAgInRhZyI6ICJCVVRUT04iLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjhweCIsCiAgICAibGVmdCI6ICI0cHgiCiAgfQpd"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-chart-framing-preview-fixed-r4-v2/options-exposure-workspace-3f35d-n-scopes-scanner-and-return-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9e9678be14b351cb8dab-6c93e57c0ebdfeeef248",
+          "file": "options-exposure-workspace.spec.ts",
+          "line": 439,
+          "column": 7
+        },
+        {
+          "title": "Connected exposure workspace zh: chart, comparison scopes, scanner and return",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7751,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:49:32.106Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "exposure-header-clearance-initial",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJzdHJpa2UiOiA3NTYsCiAgICAiZ2FwIjogMjUuNTM4NDkxNzgxNjU1Njk0LAogICAgInBhaW50IjogNywKICAgICJsYWJlbFRvcCI6IDczNC4xNzkxMTY3ODE2NTU3LAogICAgImhlYWRlckJvdHRvbSI6IDcwOC42NDA2MjUKICB9LAogIHsKICAgICJzdHJpa2UiOiA3NDcsCiAgICAiZ2FwIjogMTQ5LjQ1ODE2MDAwNDA1Nzg1LAogICAgInBhaW50IjogOCwKICAgICJsYWJlbFRvcCI6IDg1OC4wOTg3ODUwMDQwNTc4LAogICAgImhlYWRlckJvdHRvbSI6IDcwOC42NDA2MjUKICB9Cl0="
+                    },
+                    {
+                      "name": "exposure-header-clearance",
+                      "contentType": "application/json",
+                      "body": "ewogICJpbml0aWFsIjogWwogICAgewogICAgICAic3RyaWtlIjogNzU2LAogICAgICAiZ2FwIjogMjUuNTM4NDkxNzgxNjU1Njk0LAogICAgICAicGFpbnQiOiA3LAogICAgICAibGFiZWxUb3AiOiA3MzQuMTc5MTE2NzgxNjU1NywKICAgICAgImhlYWRlckJvdHRvbSI6IDcwOC42NDA2MjUKICAgIH0sCiAgICB7CiAgICAgICJzdHJpa2UiOiA3NDcsCiAgICAgICJnYXAiOiAxNDkuNDU4MTYwMDA0MDU3ODUsCiAgICAgICJwYWludCI6IDgsCiAgICAgICJsYWJlbFRvcCI6IDg1OC4wOTg3ODUwMDQwNTc4LAogICAgICAiaGVhZGVyQm90dG9tIjogNzA4LjY0MDYyNQogICAgfQogIF0sCiAgImFmdGVyRml0IjogWwogICAgewogICAgICAic3RyaWtlIjogNzU2LAogICAgICAiZ2FwIjogMjUuNTM4NDkxNzgxNjU1Njk0LAogICAgICAicGFpbnQiOiAxMSwKICAgICAgImxhYmVsVG9wIjogNzM0LjE3OTExNjc4MTY1NTcsCiAgICAgICJoZWFkZXJCb3R0b20iOiA3MDguNjQwNjI1CiAgICB9LAogICAgewogICAgICAic3RyaWtlIjogNzQ3LAogICAgICAiZ2FwIjogMTQ5LjQ1ODE2MDAwNDA1Nzg1LAogICAgICAicGFpbnQiOiAxMiwKICAgICAgImxhYmVsVG9wIjogODU4LjA5ODc4NTAwNDA1NzgsCiAgICAgICJoZWFkZXJCb3R0b20iOiA3MDguNjQwNjI1CiAgICB9CiAgXQp9"
+                    },
+                    {
+                      "name": "momentum-layout",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0YWciOiAiQlVUVE9OIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI4cHgiLAogICAgImxlZnQiOiAiNHB4IgogIH0sCiAgewogICAgInRhZyI6ICJCVVRUT04iLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjhweCIsCiAgICAibGVmdCI6ICI0cHgiCiAgfSwKICB7CiAgICAidGFnIjogIkJVVFRPTiIsCiAgICAiZGlzcGxheSI6ICJmbGV4IiwKICAgICJkaXJlY3Rpb24iOiAiY29sdW1uIiwKICAgICJ0b3AiOiAiOHB4IiwKICAgICJsZWZ0IjogIjRweCIKICB9LAogIHsKICAgICJ0YWciOiAiQlVUVE9OIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI4cHgiLAogICAgImxlZnQiOiAiNHB4IgogIH0sCiAgewogICAgInRhZyI6ICJCVVRUT04iLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjhweCIsCiAgICAibGVmdCI6ICI0cHgiCiAgfQpd"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-chart-framing-preview-fixed-r4-v2/options-exposure-workspace-eba30-n-scopes-scanner-and-return-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9e9678be14b351cb8dab-ac6b091440034955de0a",
+          "file": "options-exposure-workspace.spec.ts",
+          "line": 439,
+          "column": 7
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-05T09:47:12.556Z",
+    "duration": 147802.606,
+    "expected": 6,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

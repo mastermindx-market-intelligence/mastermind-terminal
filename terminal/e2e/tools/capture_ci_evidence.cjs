@@ -493,8 +493,22 @@ const EOD_STATES = [
 const EOD_CROPS = EOD_STATES.flatMap(state => [1440, 820, 390]
   .flatMap(width => [state + "-" + width + ".png", state + "-" + width + "-zh.png"])).sort();
 
-// Read the incumbent manifest without changing its schema or its native consumer.
+// Share declared-packet qualification with the native reader; only undeclared legacy roots may recapture.
 function eodPacket(repoRoot) {
+  const { optionalQualifiedOptionsExposurePacket } = require("./optionsExposureEvidence.cjs");
+  const selected = optionalQualifiedOptionsExposurePacket(repoRoot, "eod", EOD_CROPS);
+  if (selected) {
+    const manifest = fs.readFileSync(selected.evidence);
+    const relative = path.relative(path.resolve(repoRoot), selected.evidence).split(path.sep).join("/");
+    if (!relative.startsWith(EOD_PACKET + "/operations/") || relative.split("/").includes(".."))
+      throw new Error("CI_EOD_QUALIFIED_PATH");
+    const layoutFiles = Object.fromEntries(selected.layout.map(file => [file, selected.sources[file]]));
+    return { selection: "qualified", path: relative, sha256: sha256(manifest),
+      descriptorSha256: selected.descriptorSha256 || null, captureRevision: selected.captureRevision || null,
+      sourceFiles: selected.sources, layoutFiles, actual: { ...layoutFiles }, files: [...EOD_CROPS],
+      capturedAtHead: manifest.toString("utf8").match(/^# capturedAtHead: ([a-f0-9]{40})$/m)?.[1] || null,
+      plan: { required: false, changed: [] } };
+  }
   const relative = EOD_PACKET + "/EVIDENCE.yml";
   const bytes = fs.readFileSync(path.join(repoRoot, relative));
   const text = bytes.toString("utf8");
@@ -811,6 +825,15 @@ async function run({ repoRoot = path.resolve(__dirname, "../../.."), env = proce
         CAPTURE_ONLY: "", UPDATE_HEATMAP_EVIDENCE: "", TERMINAL_CROP_OUTPUT_DIR: "",
         CAPTURE_HEAD: "", TERMINAL_CROP_PORT: "3566",
       }));
+      save();
+    }
+    if (eodBefore.selection === "qualified") {
+      const selected = eodPacket(repoRoot);
+      if (selected.selection !== "qualified" || selected.path !== eodBefore.path || selected.sha256 !== eodBefore.sha256
+          || selected.descriptorSha256 !== eodBefore.descriptorSha256 || selected.captureRevision !== eodBefore.captureRevision)
+        throw new Error("CI_EOD_QUALIFIED_CHANGED_DURING_CAPTURE");
+      Object.assign(record.eod, { state: "QUALIFIED_UNCHANGED", selectedManifest: { path: selected.path, sha256: selected.sha256 },
+        descriptorSha256: selected.descriptorSha256, captureRevision: selected.captureRevision, sourceFiles: selected.sourceFiles });
       save();
     }
     const required = [...evidence.requirements("pl6"), ...evidence.requirements("vi")];
