@@ -1,0 +1,124 @@
+import { expect, test } from "@playwright/test";
+import { isolateWatchlistStore } from "./watchlistStore";
+
+test.setTimeout(120_000);
+
+test("controlled Portfolio input before and after client readiness", async ({ page, baseURL }, testInfo) => {
+  await isolateWatchlistStore(page, testInfo, baseURL);
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.lang", "en");
+    const events: unknown[] = [];
+    Object.assign(window, { portfolioKeyboardDiagnostic: events });
+    for (const capture of [true, false]) {
+      document.addEventListener("keydown", event => {
+        if (event.key !== "ArrowRight") return;
+        events.push({
+          phase: capture ? "capture" : "bubble",
+          time: performance.now(),
+          key: event.key,
+          target: (event.target as HTMLElement | null)?.id,
+          active: (document.activeElement as HTMLElement | null)?.id,
+          defaultPrevented: event.defaultPrevented,
+        });
+      }, capture);
+    }
+    window.addEventListener("keydown", event => {
+      if (event.key !== "ArrowRight") return;
+      events.push({
+        phase: "window-bubble",
+        time: performance.now(),
+        key: event.key,
+        target: (event.target as HTMLElement | null)?.id,
+        active: (document.activeElement as HTMLElement | null)?.id,
+        defaultPrevented: event.defaultPrevented,
+      });
+    });
+  });
+  const manifest = { symbols: {
+    NVDA: { name: "NVIDIA", last: 180.2, chg: 2.5, currency: "USD" },
+    AAPL: { name: "Apple", last: 231.4, chg: -.9, currency: "USD" },
+    GLD: { name: "SPDR Gold Shares", last: 320.1, chg: .7, currency: "USD" },
+    TLT: { name: "iShares 20+ Year Treasury", last: 89.2, chg: -.3, currency: "USD" },
+    RKLB: { name: "Rocket Lab", last: 46.3, chg: 1.1, currency: "USD" },
+  } };
+  await page.route("**/data/manifest.json", route => route.fulfill({ json: manifest }));
+  await page.route("**/api/quote**", route => route.fulfill({ json: { quotes: manifest.symbols } }));
+  await page.route("**/api/portfolio-brief", route => route.fulfill({ json: { malformed: true } }));
+  await page.route("**/api/event-impact", route => route.fulfill({ status: 503, json: { unavailable: true } }));
+  await page.route("**/api/portfolio", async route => {
+    if (route.request().method() !== "GET") return route.continue();
+    const response = await page.request.get("/api/portfolio?view=positions");
+    const book = await response.json();
+    await route.fulfill({ json: { ...book, risk: { schema: "portfolio_risk.v1" } } });
+  });
+  for (const row of [
+    { ticker: "NVDA", shares: "120", entryPrice: "138.40", entryDate: "2026-01-05" },
+    { ticker: "AAPL", shares: "60", entryPrice: "244.10", entryDate: "2026-03-18" },
+    { ticker: "GLD", shares: "40", entryPrice: "296.00", entryDate: "2025-11-02" },
+    { ticker: "TLT", shares: "150", entryPrice: "94.30", entryDate: "2026-02-11" },
+    { ticker: "NVDA", shares: "15", entryPrice: "155", notes: "Second record" },
+    { ticker: "RKLB" },
+  ]) {
+    const response = await page.request.post("/api/portfolio", {
+      data: { action: "create", entryCurrency: "USD", ...row },
+    });
+    expect(response.ok()).toBe(true);
+  }
+
+  let releaseScripts!: () => void;
+  const scriptsReleased = new Promise<void>(resolve => { releaseScripts = resolve; });
+  let heldRequests = 0;
+  await page.route(url => url.pathname.startsWith("/_next/static/") && url.pathname.endsWith(".js"), async route => {
+    heldRequests++;
+    await scriptsReleased;
+    await route.continue();
+  });
+  const overview = page.locator("#portfolio-tab-overview");
+  const holdings = page.locator("#portfolio-tab-holdings");
+  const checked = page.locator("[data-portfolio] time[datetime]");
+  let originalNode;
+  try {
+    await page.goto("/portfolio", { waitUntil: "commit" });
+    await expect(overview).toBeVisible();
+    await expect(page.locator("[data-portfolio]")).toHaveAttribute("data-position-count", "6");
+    await expect(checked).toHaveCount(0);
+    expect(heldRequests).toBeGreaterThan(0);
+    originalNode = await overview.elementHandle();
+    await overview.focus();
+    await expect(overview).toBeFocused();
+    await page.keyboard.press("ArrowRight");
+    await expect(overview).toBeFocused();
+    await expect(holdings).toHaveAttribute("aria-selected", "false");
+    await page.screenshot({ path: testInfo.outputPath("before-client-ready.png") });
+  } finally {
+    releaseScripts();
+  }
+
+  await expect(checked).toHaveAttribute("datetime", /\S+/);
+  const originalNodeRetained = await originalNode!.evaluate(node =>
+    node.isConnected && node === document.getElementById("portfolio-tab-overview"));
+  await overview.focus();
+  await expect(overview).toBeFocused();
+  await page.keyboard.press("ArrowRight");
+  await expect(holdings).toBeFocused();
+  await expect(holdings).toHaveAttribute("aria-selected", "true");
+  await page.screenshot({ path: testInfo.outputPath("after-client-ready.png") });
+  expect(errors).toEqual([]);
+  const events = await page.evaluate(() =>
+    (window as unknown as { portfolioKeyboardDiagnostic: unknown[] }).portfolioKeyboardDiagnostic);
+  await testInfo.attach("keyboard-readiness-evidence", {
+    body: Buffer.from(JSON.stringify({
+      baseSha: "e54fc7f02481d7f66ae962bf8ddf03453382a5cf",
+      project: testInfo.project.name,
+      heldRequests,
+      originalNodeRetained,
+      beforeReady: "single ArrowRight leaves Overview focused and Holdings unselected",
+      afterReady: "single ArrowRight focuses and selects Holdings",
+      events,
+      errors,
+    }, null, 2)),
+    contentType: "application/json",
+  });
+});

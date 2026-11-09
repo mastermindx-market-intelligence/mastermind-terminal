@@ -1,0 +1,165 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-09T02:17:09.043748+00:00",
+  "source": {
+    "candidate_head": "eb7b683c763c3f13e900448e36cb6525ca26ecbf",
+    "candidate_tree": "88f92f8941185e2395d111ac8e26f76f86bea6bb",
+    "original_pr_head": "179f00906e7e504b744b7c51443ce84d78117c8b",
+    "protected_parent": "aafc16cef1635e851a9cbb95966c5cfbe1e657a0",
+    "composition": "Only the G2 delta is integrated onto current owner implementations; inherited old owner code is not restored.",
+    "files_sha256": {
+      "docs/INVESTIGATION_EVIDENCE_REVIEW.md": "1bdf22bdaaf94ffaf47498843efee4c3a34693992a57689ae5b988b4aa30e1bf",
+      "terminal/app/api/investigations/review/route.ts": "ae6441ae7a5344861a07479becd6c629a54379619c8f6c335db9536b52d2efde",
+      "terminal/components/workspaces/InvestigationEvidenceReview.module.css": "1c1db497fe57ed0c9ce75d65d0e1fbfd215a12c00312a700b6ecdf3fe66f85fd",
+      "terminal/components/workspaces/InvestigationEvidenceReview.tsx": "9a8b6ee63867b1e80421e02ba004bc764c009da099756dc1806ebcd6560ab643",
+      "terminal/components/workspaces/InvestigationWorkspace.tsx": "48443a82bc1eea144a7d15c61388697c1c55e8ae07eae7beb76a26ffaa8d36d4",
+      "terminal/docs/verification/iw2-g1/migration-0028-apply.json": "a9622210d0276cfad21abbb4f7cab821f0b4c45649f20df71d05886b89766354",
+      "terminal/docs/verification/iw2-g2/source-verification.json": "4a7882a30060cf8103d777b10f038981bde7da8bd28971bdc3668201a6aa26db",
+      "terminal/e2e/investigation-workspace.spec.ts": "616a964482f976bb4fea7e2c663eb08698ac8d7eaa08c4ccee359af6cf5f6f58",
+      "terminal/lib/__tests__/investigationEarningsReview.test.ts": "66a18aa1e12c4f41c0df81dfa458be0f90fa7d115517f9e90207fd017b4f3423",
+      "terminal/lib/__tests__/investigationEvidenceDiff.test.ts": "531ffa84aaccffdd1efe38e6f0294d7afc596c43fb657ccf11170885cb1614e8",
+      "terminal/lib/__tests__/investigationEvidenceReview.test.tsx": "865cce5da8d3e2d5af56bad2a88b403ae39da742b05f4bce61a1ea8feba3b960",
+      "terminal/lib/__tests__/investigationReviewRoute.test.ts": "7cf76b1d8c121d7991329ce0db143236746c3af1569fd5bad68903bfaf1d642f",
+      "terminal/lib/__tests__/investigationSelectionRace.test.tsx": "a3f12517dc14043fb9dc434f36011bab8352cd86df2144d672f5f3a8830f8682",
+      "terminal/lib/investigationEarningsReview.ts": "caa29dacc6b6320cbaebe59f36e04a4c57499863dac4fd0cf56defabfc8687d9",
+      "terminal/lib/investigationEvidenceDiff.ts": "c10f75678b5e1a5caf1004007b60bf70e946cb0fc6b1f5aba0d193364b121579"
+    },
+    "tracked_source_unchanged_during_browser": true
+  },
+  "history": {
+    "path": "terminal/docs/verification/iw2-g2/source-verification.json",
+    "sha256": "4a7882a30060cf8103d777b10f038981bde7da8bd28971bdc3668201a6aa26db",
+    "attribution": "October 4 source-only qualification retained byte-for-byte. Its old reviews and 34-test/18-browser results do not qualify changed November 9 bytes."
+  },
+  "repairs": [
+    "Use incumbent request-time investigationApiUnavailable before auth/database/owner I/O.",
+    "Keep admitted textual denominator facts in content identity; numeric interpretation requires an actual number.",
+    "Preserve current journal and manifestOverride behavior, Options and reference-only scenario data, assessment and watch controls."
+  ],
+  "local_checks": {
+    "runtime": "Node v24.22.1",
+    "focused": {
+      "passed": 342,
+      "files": 18,
+      "runner": "Vitest 2.1.9",
+      "scope": [
+        "evidence diff, Earnings adapter, review route and mounted selection races",
+        "current Event Workspace native contract and Options host",
+        "shared Shell Claims pages",
+        "Investigation journal, save, contracts, scenario, watch and assessment",
+        "saved scenario capture/resolution",
+        "request-time API admission"
+      ]
+    },
+    "typecheck": {
+      "command": "NODE_OPTIONS=--max-old-space-size=6144 ./node_modules/.bin/tsc --noEmit --pretty false",
+      "exit_code": 0
+    },
+    "whitespace": {
+      "owned_delta_against": "aafc16cef1635e851a9cbb95966c5cfbe1e657a0",
+      "exit_code": 0
+    },
+    "red_first": {
+      "closed_gate_cases": 6,
+      "textual_denominator_cases": 2,
+      "scope": "These regressions failed on the composed pre-repair code and passed after the two targeted repairs."
+    }
+  },
+  "browser": {
+    "completed_at": "2026-11-09T02:15:43.169649+00:00",
+    "source_head": "eb7b683c763c3f13e900448e36cb6525ca26ecbf",
+    "operation": "terminal-pr801-evidence-review-20261109-2fe663974ce0",
+    "runtime": "Node v26.5.0",
+    "playwright": "1.61.1",
+    "transport": "Local fixture routes and real product components; no production owner session or production write.",
+    "port": 43103,
+    "command": "TERMINAL_E2E_PORT=43103 TERMINAL_VISUAL_EVIDENCE_OPERATION=terminal-pr801-evidence-review-20261109-2fe663974ce0 CI=1 NODE_OPTIONS=--max-old-space-size=6144 ./node_modules/.bin/playwright test e2e/investigation-workspace.spec.ts --workers=1 --retries=0 --reporter=list",
+    "passed": 24,
+    "failed": 0,
+    "retries": 0,
+    "workers": 1,
+    "viewports": [
+      "1440x900",
+      "820x1180",
+      "390x844"
+    ],
+    "additional_mobile": "320px, doubled text, focus assertions and no horizontal overflow",
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "theme": "Actual supported Terminal dark; no light proof.",
+    "log": "browser.log",
+    "log_sha256": "97367eeba53701ecc335519fcb4182dd5e86fbb4bd6b98d00ac4b5264643db35",
+    "installed_lockfile": "2e162a8eb37dd72aad7a01e88c590370a324d0d1",
+    "assertions": [
+      "Reopen performs no automatic comparison or save.",
+      "Review and exact-generation selection perform no save.",
+      "Explicit Save creates exactly one new revision; previous baseline remains retained.",
+      "Missing observations are incomplete, not confirmed removals.",
+      "Uncertain and rejected saves retain their original command/draft.",
+      "Existing Analysis source-capture emitter remains exercised."
+    ]
+  },
+  "screenshots": [
+    {
+      "file": "review-en-1440.png",
+      "sha256": "279df84c6b3c9e0be0094c766de7ce3ade32036c25254e7e9194252abce4f77e",
+      "git_blob": "b1fc4e38ab4268724d9f9c8c1e2aadcacf498b63",
+      "bytes": 103375
+    },
+    {
+      "file": "review-en-320-double-text.png",
+      "sha256": "92435d5225836f357e3c6ce69a7cb47887b58da544800e6855a42dcaceb58267",
+      "git_blob": "d111324be740c5c42cea0925bc6b5ad35d94224b",
+      "bytes": 559094
+    },
+    {
+      "file": "review-en-390.png",
+      "sha256": "a4a7d30b41d9b999abad44bd870c47307b5cfd2260def306c6f2de9db2ea331b",
+      "git_blob": "a7afaa4e5476606204dcaec5e89a8f90c00675ad",
+      "bytes": 224255
+    },
+    {
+      "file": "review-en-820.png",
+      "sha256": "6a0f7f611756b74d3ebf1b4ad23e7240353746eed6bb3a71a2d465cbe6f2ca75",
+      "git_blob": "1ea711179a4138a23859ce55a8c86594ca05a312",
+      "bytes": 242265
+    },
+    {
+      "file": "review-zh-1440.png",
+      "sha256": "5a49a6030ca2ff8255a177f299d1d577c20130cda3bb71538723f16cb2339b6a",
+      "git_blob": "25a7ad9ce1650877209901bd28bfe81f20558570",
+      "bytes": 109291
+    },
+    {
+      "file": "review-zh-390.png",
+      "sha256": "eceeceeb9ec57aa430247c9fe75910708e01fc6d4fa8fd3385bff0056703e195",
+      "git_blob": "7ca4223dcfd1c63b62859953086b81519335dafa",
+      "bytes": 219855
+    },
+    {
+      "file": "review-zh-820.png",
+      "sha256": "ff2794c426dd218e2015a89e432800de390f280cf6ddbe051ef1dfa0de0567ba",
+      "git_blob": "3c79c2906310b228bf67d726c6b3217965f25667",
+      "bytes": 231842
+    }
+  ],
+  "visual_inspection": {
+    "files": [
+      "review-en-1440.png",
+      "review-zh-390.png",
+      "review-en-320-double-text.png"
+    ],
+    "result": "Review controls and incomplete-evidence disclosures remain visible and wrap within the captured viewport."
+  },
+  "publication": {
+    "followup_change_scope": "Documentation, this receipt, browser log and seven actual PNGs only; product and test source remain the captured candidate bytes.",
+    "hosted_ci": "Required final-head/native merge-group checks remain authoritative."
+  },
+  "acceptance": "SOURCE_AND_FIXTURE_BROWSER_VERIFIED_PRODUCTION_PENDING",
+  "production_review": false,
+  "production_gate_changed": false,
+  "new_migration": false,
+  "production_boundary": "A deployed authenticated owner-backed review receipt remains owed; local fixtures do not prove production acceptance."
+}

@@ -1,0 +1,86 @@
+{
+  "scope": "MO-PAID-054 client read-half; controlled local fixture, never authenticated production inference",
+  "base_head": "bbc07037aae3e98597945e23448781a091d15281",
+  "source_hashes": {
+    "terminal/lib/thesisReadContext.ts": "b1716af1343f37e99b92b05ac0e38e986c9c216dbbb6a2842616fe2e58ef3444",
+    "terminal/lib/aiContext.ts": "f31d046024809de2923c86536679bdcf49683b7e1b1cd8a5ecf51b4950058f92",
+    "terminal/components/chrome/AnalysisBrainHost.tsx": "dbddf637effe1c029ec359ea93a7b58f4ee540997fca8470b6a2808139c4d87d",
+    "terminal/components/workspaces/ThesisWorkspace.tsx": "f8aa79a228b85a0c10050b06d24665a95fc149ea56a00e8610472cc7a2a7849c",
+    "terminal/lib/__tests__/thesisReadContext.test.ts": "edf7b969e23d40cc877130bd0155ca754c034a97693214fab7c3636022093dff",
+    "terminal/lib/__tests__/thesisReadIntegration.test.tsx": "1b14f32c6262db9fa303d8038b32db0270894d4333b94fa731d114746c7067d1"
+  },
+  "browser_report": "browser-report.json",
+  "checks": 74,
+  "screenshots": [
+    {
+      "file": "analysis-brain-1440-en.png",
+      "bytes": 202611,
+      "sha256": "fff93cb657c3095f0cb63e80e36b43507d017d67c3de35263dc91adbf49971f3",
+      "width": 1440,
+      "lang": "en"
+    },
+    {
+      "file": "analysis-brain-1440-zh.png",
+      "bytes": 192084,
+      "sha256": "376047fad7e49fdd094f5fa7c5d4d93e567de05c67a8b5cdbce6dca82416e267",
+      "width": 1440,
+      "lang": "zh"
+    },
+    {
+      "file": "analysis-brain-820-en.png",
+      "bytes": 181444,
+      "sha256": "2903e50151db8159fc58d528d84df9fe041e2327445de197603a939aff8085fa",
+      "width": 820,
+      "lang": "en"
+    },
+    {
+      "file": "analysis-brain-820-zh.png",
+      "bytes": 173494,
+      "sha256": "c351df4085ca07ebb1a09a1229b89187d26552f061f4cc52ddae824e183cad0d",
+      "width": 820,
+      "lang": "zh"
+    },
+    {
+      "file": "analysis-brain-390-en.png",
+      "bytes": 65880,
+      "sha256": "d5a26dad01cddb7668033c07274f628ff3d9c5c3cb1055886e7a9d2a0739d5f0",
+      "width": 390,
+      "lang": "en"
+    },
+    {
+      "file": "analysis-brain-390-zh.png",
+      "bytes": 71030,
+      "sha256": "ebc242f77e81c4c1d27d12a7f34e26696f15efaed0697aef6b71fbdb5ac68585",
+      "width": 390,
+      "lang": "zh"
+    }
+  ],
+  "network": "Synthetic GET data; six native widget stream bodies intercepted locally; no account, upstream inference or API mutation",
+  "retained_widget": {
+    "url": "https://www.mastermind-x.com/mm_brain.js",
+    "bytes": 270515,
+    "sha256": "3c7379783429846832c4cbcd86eb51882b6c52516bf0d175421d940d706d25df",
+    "implementation": "Unmodified served first-party widget bytes; controlled local responses"
+  },
+  "command": "F11_SERVED_BRAIN_JS=<retained first-party mm_brain.js> TERMINAL_CROP_PORT=3179 node e2e/tools/capture_f11_thesis_read.cjs",
+  "capture_script_sha256": "b756797dd0da6034f08b7df76ad9c40f386f3769d10226daaec20db4ea39e1b1",
+  "execution_artifact_sha256": "1189c4d4125f15433a6516475c3b88d8f8e3d9bda3fb5b9b7ce6226e3ede3384",
+  "script_equivalence": "Final portable producer composes original responsive case with the executed delta case behind explicit F11_CAPTURE_SCOPE; repository-relative paths and conditional cell selection only; no product source changes.",
+  "visual_review": "Parent adjudication pending; no visual redesign or independent product review claimed",
+  "research_delta": {
+    "report": "research-delta-browser-report.json",
+    "checks": 30,
+    "turns": 2,
+    "mode": "research",
+    "lane": "pro",
+    "versions": [
+      "33333333-3333-4333-8333-333333333333",
+      "22222222-2222-4222-8222-222222222222"
+    ],
+    "fixture_only": true,
+    "command": "F11_CAPTURE_SCOPE=research-delta F11_SERVED_BRAIN_JS=<retained first-party mm_brain.js> TERMINAL_CROP_PORT=3179 node e2e/tools/capture_f11_thesis_read.cjs"
+  },
+  "original_report": "browser-report-original.json",
+  "delta_execution_artifact_sha256": "22a6fff5307c24476c736c0b215d2235f142db049ddd9a6af0b3d76eb02f8ee4",
+  "source_transition": "source-equivalence-20261022.json"
+}

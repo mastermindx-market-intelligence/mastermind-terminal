@@ -122,6 +122,33 @@ describe("SectionDeveloper", () => {
     expect(host.textContent).toContain(apiKeyCopy("secretOnce", "en"));
   });
 
+  it("keeps write access off by default and mints it only after explicit opt-in", async () => {
+    await act(async () => { root.render(<SectionDeveloper {...props("en")} />); });
+    await flush();
+    const toggle = host.querySelector("input[type=checkbox]") as HTMLInputElement;
+    expect(toggle.checked).toBe(false);
+    const input = host.querySelector("#api-key-label") as HTMLInputElement;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(input, "Importer");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      toggle.click();
+    });
+    expect(toggle.checked).toBe(true);
+    await act(async () => { (host.querySelector("[data-testid=api-key-mint]") as HTMLButtonElement).click(); });
+    const calls = vi.mocked(fetch).mock.calls;
+    const mintCall = calls.find(([url, init]) => String(url).endsWith("/api/account/api-keys") && init?.method === "POST");
+    expect(JSON.parse(String(mintCall?.[1]?.body))).toEqual({label:"Importer",scopes:["read","watchlists:write"]});
+    expect(toggle.checked).toBe(false);
+  });
+
+  it("displays the actual scope of each active key", async () => {
+    listImpl = async () => jsonRes(200, {keys: [ACTIVE, {...ACTIVE,keyId:"writer",label:"Importer",scopes:["read","watchlists:write"]}]});
+    await act(async () => { root.render(<SectionDeveloper {...props("zh")} />); });
+    await flush();
+    expect(host.textContent).toContain(apiKeyCopy("readScope", "zh"));
+    expect(host.textContent).toContain(apiKeyCopy("readWriteScope", "zh"));
+  });
+
   it("revoked keys render the revoked sentence", async () => {
     listImpl = async () => jsonRes(200, { keys: [REVOKED] });
     await act(async () => { root.render(<SectionDeveloper {...props("en")} />); });
