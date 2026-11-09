@@ -1,0 +1,13 @@
+{
+  "sourceSha256": "db7ae7163a384a37da25ba664b1a8cebc1d39d3c7cf4f70398a68399fd2d98df",
+  "returncode": 0,
+  "counts": {
+    "tests": 5,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "fixtureStopped": true,
+  "fixtureRoot": "/tmp/mmx-pr973-focused-0dtjv206",
+  "logSha256": "3ed960c105c2e135cf3b951665dbed37e1cf9c0e0405ec619acabe3155677baa"
+}

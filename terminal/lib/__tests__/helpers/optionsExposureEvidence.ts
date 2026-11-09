@@ -143,7 +143,7 @@ function nativeSources(kind: EvidenceKind, profile: EvidenceProfile): string[] {
 function yamlBlock(key: string, values: Record<string, string>): string {
   return key + ":\n" + Object.entries(values).map(([name, value]) => "  " + name + ': "' + value + '"\n').join("");
 }
-function verifyHistory(root: string, kind: EvidenceKind, profile: "exposure" | "options", crops: string[]): SourceMap {
+function verifyHistory(root: string, kind: EvidenceKind, profile: "exposure" | "options", crops: string[], protectedRoot = root): SourceMap {
   const dir = join(root, "operations", OP[profile]), pins = HISTORY[profile][kind];
   const paths = ["EVIDENCE.before.yml", "prior-root-sha256.json", "protected-root-sha256.json"];
   paths.forEach((path, index) => check(sha(join(dir, path)) === pins[index], "HISTORY_DIGEST:" + profile + ":" + path));
@@ -155,7 +155,7 @@ function verifyHistory(root: string, kind: EvidenceKind, profile: "exposure" | "
   for (const [name, digest] of Object.entries(prior))
     check(sha(join(dir, "prior-root", name)) === digest, "PRIOR_IMAGE:" + name);
   for (const name of crops)
-    check(sha(join(root, name)) === protectedImages[name], "PROTECTED_ROOT_IMAGE:" + name);
+    check(sha(join(protectedRoot, name)) === protectedImages[name], "PROTECTED_ROOT_IMAGE:" + name);
   if (profile === "options") {
     const sourcePath = join(dir, "historical-source-sha256.json");
     check(sha(sourcePath) === OPTIONS_SOURCE_PINS[kind], "OPTIONS_HISTORICAL_SOURCES");
@@ -163,7 +163,7 @@ function verifyHistory(root: string, kind: EvidenceKind, profile: "exposure" | "
   }
   return {};
 }
-function verifyBoundary(repo: string): void {
+function verifyBoundary(repo: string, requireCurrent = true): SourceMap {
   const dir = join(repo, "terminal/docs/verification/exposure-workspace-20261103/boundary-compatibility-20261105");
   check(sha(join(dir, "qualification.json")) === "badead763130c555f1257c1c5ca29f0737b19cd55b8ae575e617ce6e824ffae9", "BOUNDARY_QUALIFICATION");
   const qualification = json<{
@@ -186,9 +186,10 @@ function verifyBoundary(repo: string): void {
       receipt.command.includes("e2e/options-lab-source-state.spec.ts"), "BOUNDARY_BROWSER_BINDING");
     const sources = json<SourceMap>(sourcePath);
     for (const path of BOUNDARY_SOURCES)
-      check(sources[path] === qualification.boundary_sources[path] && sources[path] === sha(join(repo, path)),
+      check(sources[path] === qualification.boundary_sources[path] && (!requireCurrent || sources[path] === sha(join(repo, path))),
         "BOUNDARY_CURRENT_SOURCE:" + path);
   }
+  return qualification.boundary_sources;
 }
 const JOINT_CONTRACT = "a7cd2ce244a0ae278fc24bf25a51566c0053c89f9ce3fb17ae12b350f1541db7";
 const JOINT_DRIVER = "caa135fb04633289178636e9ba24b5484a988ee6797f572bd4aee0c93d9285ed";
@@ -212,7 +213,7 @@ const CHART_FRAMING_MAPS = {
 const CHART_FRAMING_QUALIFICATION = "4175c376a016a00cd03dbf2c90c9604739c62b9004362db4a9cb277b752fc891";
 
 /** This separately qualifies the Chart branch deliberately excluded from native Strike captures. */
-export function requireR4ChartIdentity(repo: string, original: string, peer: string, current: string): void {
+export function requireR4ChartIdentity(repo: string, original: string, peer: string, current: string, requireCurrentObserver = true): void {
   check(original === CHART_FRAMING_MAPS.original.before && peer === CHART_FRAMING_MAPS.preview.before,
     "JOINT_CHART_RECORDED_IDENTITY");
   if (current === original || current === peer) return;
@@ -327,9 +328,11 @@ export function requireR4ChartIdentity(repo: string, original: string, peer: str
   // The captured observers differ only in an unrelated return readiness budget.
   // Protected chart source and branch test budgets compose independently; both
   // complete captured profiles above remain required with their original hashes.
-  const currentObserver = sha(join(repo, CHART_FRAMING_SPEC));
-  check(currentObserver === qualification.maps.original.observer ||
-    currentObserver === qualification.maps.preview.observer, "CHART_FRAMING_CURRENT_OBSERVER");
+  if (requireCurrentObserver) {
+    const currentObserver = sha(join(repo, CHART_FRAMING_SPEC));
+    check(currentObserver === qualification.maps.original.observer ||
+      currentObserver === qualification.maps.preview.observer, "CHART_FRAMING_CURRENT_OBSERVER");
+  }
 }
 
 function verifyJointNative(repo: string, dir: string, native: NativeReceipt): void {
@@ -439,6 +442,8 @@ export function qualifiedOptionsExposurePacket(repo: string, kind: EvidenceKind,
     crops.every(name => /^[a-z0-9-]+\.png$/.test(name)), "EXPECTED_CROP_SET");
   const root = join(repo, "terminal/docs/pr-crops", PACKETS[kind]);
   const text = readFileSync(join(root, "EVIDENCE.yml"), "utf8");
+  if (text.includes("exposureMasterIntegration20261109"))
+    return readExposureMasterIntegration(repo, root, kind, crops, text);
   const exposure = text.includes("\nexposureSourceCompatibility20261105:\n");
   const options = text.includes("\noptionsSourceCompatibility20261105:\n");
   check(exposure || options, "MISSING_PACKET_DECLARATION");
@@ -483,8 +488,260 @@ export function qualifiedOptionsExposurePacket(repo: string, kind: EvidenceKind,
     ? { ...candidate, sources: projectR4CaptureHarness(candidate.sources, current) } : candidate);
   const selected = selectWholeFingerprint(qualified, current);
   check(selected.profile === (options ? "combined" : "exposure"), "PROFILE_OWNERSHIP");
-  if (exposure) { verifyHistory(root, kind, "exposure", crops); verifyBoundary(repo); }
+  const boundarySources = exposure ? verifyBoundary(repo) : null;
+  if (exposure) verifyHistory(root, kind, "exposure", crops);
   const optionsHistorySources = options ? verifyHistory(root, kind, "options", crops) : {};
   check(sameKeys(readdirSync(root).filter(name => name.endsWith(".png")), crops), "PROTECTED_ROOT_SET");
-  return { ...selected, protectedManifest: protectedPath, optionsHistorySources, hasExposureHistory: exposure, hasOptionsHistory: options };
+  const exposureHistorical = exposure ? {
+    ...candidates.find(candidate => candidate.profile === "exposure")!, root, boundarySources: boundarySources!,
+  } : null;
+  return { ...selected, protectedManifest: protectedPath, optionsHistorySources,
+    hasExposureHistory: exposure, hasOptionsHistory: options, exposureHistorical };
+}
+
+const MASTER_REVISION = "master-integration-20261109";
+const MASTER_PRIOR = "883fee550a9628812a4fbcdc77e479ab8cad3b3a";
+const MASTER_PROTECTED = "f2aa1e0cb27d459149f59d3b24d98cd6e2e8389f";
+const MASTER_PACKET = { gex: "6074a35447c6ec3447cf9a0542b08d6a206c3660d483abf0e271daac21e6804b", eod: "8bb050b222bc7c822486ba85a0019734013575dac1fa1f76ded272d6b62e86d8" };
+const MASTER_BROWSER = "cd5a64f4cb8e1c573d923ed6567054cc126d1ccabeabe1f09ccef0d35a1692cd";
+const MASTER_HISTORY = {
+  gex: { exposure: "b98ca38abe6ec26a2fa0156c3ca1e2e2caedad04ea81a4a862f1f38f4ff309e6", protected: "5bad92213f181ace64539f60e5b9e7312906e3f893a9d3fb7fe2044dcc37601e" },
+  eod: { exposure: "b0110a00f14c663c504fb49ae25dbe5f24cbc33c82e45e6bf4c0ef204a54df40", protected: "c726ac1938cc85bf005b71ba01e0cec0a00dc57ae4ca168c1724a6200ea275bf" },
+};
+const MASTER_SUCCESSOR_INPUTS = [
+  WRAPPER,
+  "terminal/lib/accountIdentity.ts",
+  "terminal/components/researchlab/ResearchQuestionAction.tsx",
+  "terminal/lib/optionsQuestionContext.ts",
+  "terminal/lib/matrixAcquisition.ts",
+  "terminal/lib/investigationEvidenceOptions.ts",
+  "terminal/lib/investigationEvidenceOptionsSelection.ts",
+  "terminal/lib/investigationOptionsReference.ts",
+  "terminal/lib/mastermindBrain.ts",
+];
+export const masterIntegrationInputs = (kind: EvidenceKind): string[] =>
+  [...new Set([...nativeSources(kind, "exposure"), ...MASTER_SUCCESSOR_INPUTS])].sort();
+export const MASTER_BROWSER_SPECS = [
+  "terminal/e2e/exposure-workspace.spec.ts",
+  CHART_FRAMING_SPEC,
+  "terminal/e2e/options-lab-source-state.spec.ts",
+  "terminal/e2e/options-exposure-surface-journey.spec.ts",
+  "terminal/e2e/options-research-question.spec.ts",
+];
+export const masterIntegrationBrowserInputs = (): string[] => [...new Set([
+  ...masterIntegrationInputs("gex"), ...masterIntegrationInputs("eod"), ...BOUNDARY_SOURCES,
+  ...MASTER_BROWSER_SPECS, CHART_FRAMING_PATH,
+  "terminal/components/researchlab/researchLabAdapter.ts",
+  "terminal/components/researchlab/ResearchLab.module.css",
+  "terminal/playwright.config.ts", "terminal/e2e/globalSetup.ts", "terminal/e2e/fixtureWarmup.cjs",
+  "terminal/e2e/presentationControls.ts",
+  "terminal/lib/__tests__/fixtures/exposure-projection-one-sided-v2.json",
+  "terminal/lib/__tests__/fixtures/exposure-projection.json",
+  "terminal/components/options-companion/optionsStrings.ts",
+  "terminal/components/exposure-map/exposureMapStrings.ts",
+  "terminal/components/exposure-map/exposureSurfaceStrings.ts",
+  "terminal/lib/watchlistsFixtureDb.ts", "terminal/lib/exposureChartLink.ts",
+  "terminal/lib/exposureMap.ts", "terminal/lib/exposureMapProjection.ts",
+  "terminal/lib/marketStructure.ts", "terminal/lib/gexLadder.ts", "terminal/lib/dte.ts",
+  "terminal/lib/usEquitySessionClock.ts", "terminal/lib/usEquitySessionProjection.json",
+])].sort();
+type IntegrationExecution = {
+  schema: string; operation: string; revision: string; kind: EvidenceKind; packet: string;
+  branchHead: string; protectedMaster: string; command: string[]; exit: number;
+  expected: number; successfulFiles: number; sourceStable: boolean;
+  sourceBeforeSha256: string; sourceAfterSha256: string; manifestSha256: string; logSha256: string;
+  frames: { file: string; status: string }[];
+  images: Record<string, { sha256: string; bytes: number; width: number; height: number }>;
+};
+
+/** A failed full GEX run may still emit a manifest; its actual result is decisive. */
+export function requireIntegrationExecution(value: IntegrationExecution, kind: EvidenceKind, crops: string[]): void {
+  check(value.schema === "exposure_master_integration_capture.v1" && value.operation === OP.exposure &&
+    value.revision === MASTER_REVISION && value.kind === kind && value.packet === PACKETS[kind] &&
+    value.branchHead === MASTER_PRIOR && value.protectedMaster === MASTER_PROTECTED, "INTEGRATION_CAPTURE_IDENTITY");
+  check(JSON.stringify(value.command) === JSON.stringify(["node", harness(kind).replace(/^terminal\//, "")]),
+    "INTEGRATION_CAPTURE_COMMAND");
+  check(value.exit === 0 && value.expected === crops.length && value.successfulFiles === crops.length &&
+    value.sourceStable === true, "INTEGRATION_CAPTURE_RESULT");
+  check(Array.isArray(value.frames) && value.frames.length === crops.length &&
+    sameKeys(value.frames.map(frame => frame.file), crops) &&
+    new Set(value.frames.map(frame => frame.file)).size === crops.length &&
+    value.frames.every(frame => frame.status === "success"), "INTEGRATION_FRAME_SET");
+  check(sameKeys(Object.keys(value.images), crops), "INTEGRATION_IMAGE_SET");
+  for (const image of Object.values(value.images)) check(/^[0-9a-f]{64}$/.test(image.sha256) &&
+    Number.isInteger(image.bytes) && image.bytes > 1000 && Number.isInteger(image.width) && image.width > 0 &&
+    Number.isInteger(image.height) && image.height > 0, "INTEGRATION_IMAGE_RECORD");
+  check(/^[0-9a-f]{64}$/.test(value.logSha256), "INTEGRATION_LOCAL_LOG_PROVENANCE");
+}
+
+function integrationArchive(dir: string, label: "exposure" | "protected", kind: EvidenceKind, crops: string[]): string {
+  const name = "prior-" + label + "-root", inventory = join(dir, name + "-sha256.json"), archive = join(dir, name);
+  check(sha(inventory) === MASTER_HISTORY[kind][label], "INTEGRATION_HISTORY_INVENTORY:" + label);
+  const files = json<SourceMap>(inventory);
+  requireSourceKeys(files, [...crops, "EVIDENCE.yml"]);
+  check(sameKeys(readdirSync(archive), Object.keys(files)), "INTEGRATION_HISTORY_SET:" + label);
+  for (const [file, digest] of Object.entries(files))
+    check(sha(join(archive, file)) === digest, "INTEGRATION_HISTORY_FILE:" + label + ":" + file);
+  return archive;
+}
+
+function exposurePrefix(dir: string): string {
+  const folder = "operations/" + OP.exposure;
+  return "# Current candidate proof is the operation below; the remainder preserves the protected baseline.\n" +
+    yamlBlock("exposureSourceCompatibility20261105", {
+      protectedBase: BASE, priorPublishedHead: "e9fa843122ac0eee36d607b8313e0bb264bed840",
+      activeManifest: folder + "/qualified-root/EVIDENCE.yml", priorManifest: folder + "/EVIDENCE.before.yml",
+      priorImages: folder + "/prior-root", activeManifestSha256: sha(join(dir, "qualified-root/EVIDENCE.yml")),
+      captureReceiptSha256: sha(join(dir, "capture-receipt.json")),
+      qualifiedPacket: folder + "/native-packet.json", qualifiedPacketSha256: sha(join(dir, "native-packet.json")),
+    }) + "\n";
+}
+
+function verifyIntegrationBrowser(repo: string): void {
+  const dir = join(repo, "terminal/docs/verification/exposure-workspace-20261103", MASTER_REVISION);
+  check(sha(join(dir, "qualification.json")) === MASTER_BROWSER, "INTEGRATION_BROWSER_QUALIFICATION");
+  const proof = json<{ schema: string; branchHead: string; protectedMaster: string; files: SourceMap;
+    currentSources: SourceMap; expectedPassed: string[]; expectedSkipped: string[];
+  }>(join(dir, "qualification.json"));
+  check(proof.schema === "exposure_master_integration_browser.v1" && proof.branchHead === MASTER_PRIOR &&
+    proof.protectedMaster === MASTER_PROTECTED, "INTEGRATION_BROWSER_IDENTITY");
+  requireSourceKeys(proof.files, ["browser-report.json", "browser-execution.json", "source-before.json", "source-after.json"]);
+  for (const [name, digest] of Object.entries(proof.files)) check(sha(join(dir, name)) === digest, "INTEGRATION_BROWSER_FILE:" + name);
+  const before = json<SourceMap>(join(dir, "source-before.json")), after = json<SourceMap>(join(dir, "source-after.json"));
+  check(proof.files["source-before.json"] === proof.files["source-after.json"], "INTEGRATION_BROWSER_SOURCE_STABILITY");
+  requireSourceKeys(proof.currentSources, masterIntegrationBrowserInputs());
+  for (const [path, digest] of Object.entries(proof.currentSources))
+    check(before[path] === digest && after[path] === digest && sha(join(repo, path)) === digest,
+      "INTEGRATION_BROWSER_CURRENT_SOURCE:" + path);
+  const execution = json<{ exit: number; retries: number; sourceStable: boolean; command: string[]; ownedServerStopped: boolean;
+    passed: number; failed: number; skipped: number; flaky: number;
+    fixtureOverrides: Record<string, string | null>; artifactFiles: SourceMap;
+  }>(join(dir, "browser-execution.json"));
+  const overrideKeys = ["EXPOSURE_P09_CURRENT_WITNESS", "EXPOSURE_P09_PREVIOUS_WITNESS", "EXPOSURE_NATIVE_WITNESS",
+    "TERMINAL_EXPOSURE_LIGHT_ACCEPTANCE", "TERMINAL_EXPOSURE_ACCESS_ACCEPTANCE", "TERMINAL_EXPOSURE_PAINT_PROBE"];
+  check(sameKeys(Object.keys(execution.fixtureOverrides), overrideKeys) &&
+    overrideKeys.every(key => execution.fixtureOverrides[key] === null), "INTEGRATION_BROWSER_BUNDLED_FIXTURES");
+  check(execution.exit === 0 && execution.retries === 0 && execution.sourceStable && execution.ownedServerStopped &&
+    execution.failed === 0 && execution.flaky === 0 && execution.passed === proof.expectedPassed.length &&
+    execution.skipped === proof.expectedSkipped.length &&
+    MASTER_BROWSER_SPECS.every(path => execution.command.includes(path.replace(/^terminal\//, ""))), "INTEGRATION_BROWSER_RESULT");
+  check(Object.keys(execution.artifactFiles).length > 0, "INTEGRATION_BROWSER_ARTIFACTS");
+  for (const [path, digest] of Object.entries(execution.artifactFiles))
+    check(path.startsWith("browser-artifacts/") && !path.split("/").includes("..") &&
+      /^[0-9a-f]{64}$/.test(digest) && sha(join(dir, path)) === digest, "INTEGRATION_BROWSER_ARTIFACT:" + path);
+  const report = json<ChartFramingSuite & { errors?: unknown[]; stats: { expected: number; unexpected: number; skipped: number; flaky: number } }>(join(dir, "browser-report.json"));
+  check(!report.errors?.length && report.stats.expected === execution.passed && report.stats.unexpected === 0 &&
+    report.stats.skipped === execution.skipped && report.stats.flaky === 0, "INTEGRATION_BROWSER_REPORT");
+  const passed: string[] = [], skipped: string[] = [], chartCases: string[] = [];
+  function visit(suite: ChartFramingSuite): void {
+    for (const spec of suite.specs ?? []) for (const test of spec.tests) {
+      const key = test.projectName + "|" + spec.title;
+      check(test.results.length === 1 && test.results[0].retry === 0, "INTEGRATION_BROWSER_ATTEMPT");
+      const result = test.results[0];
+      check(result.status === "passed" || result.status === "skipped", "INTEGRATION_BROWSER_CASE");
+      (result.status === "passed" ? passed : skipped).push(key);
+      if (spec.title.startsWith("Connected exposure workspace ")) {
+        check(result.status === "passed", "INTEGRATION_CHART_REQUIRED"); chartCases.push(key);
+        const attachments = result.attachments?.filter(item => item.name === "exposure-header-clearance") ?? [];
+        check(attachments.length === 1 && attachments[0].contentType === "application/json" &&
+          typeof attachments[0].body === "string" && attachments[0].path === undefined, "INTEGRATION_CHART_ATTACHMENT");
+        const witness = JSON.parse(Buffer.from(attachments[0].body, "base64").toString("utf8")) as { initial: ChartGlyph[]; afterFit: ChartGlyph[] };
+        for (const glyphs of [witness.initial, witness.afterFit]) {
+          check(Array.isArray(glyphs) && glyphs.length > 0 && glyphs.length <= 6 &&
+            glyphs.filter(row => row.strike === 756).length === 1 && new Set(glyphs.map(row => row.strike)).size === glyphs.length,
+            "INTEGRATION_CHART_GLYPHS");
+          for (const row of glyphs) check([756,757,755,747,746,748].includes(row.strike) &&
+            [row.gap,row.paint,row.labelTop,row.headerBottom].every(Number.isFinite) && row.gap >= 4 &&
+            Number.isInteger(row.paint) && row.paint > 0 && Math.abs(row.gap-(row.labelTop-row.headerBottom)) < .000001,
+            "INTEGRATION_CHART_CLEARANCE");
+        }
+        check(witness.afterFit.find(row => row.strike === 756)!.paint > witness.initial.find(row => row.strike === 756)!.paint,
+          "INTEGRATION_CHART_FRESH_PAINT");
+      }
+    }
+    for (const child of suite.suites ?? []) visit(child);
+  }
+  visit(report);
+  check(sameKeys(passed, proof.expectedPassed) && new Set(passed).size === passed.length &&
+    sameKeys(skipped, proof.expectedSkipped), "INTEGRATION_BROWSER_CASE_SET");
+  check(sameKeys(chartCases, ["desktop", "tablet", "mobile"].flatMap(project => ["en", "zh"].map(lang =>
+    project + "|Connected exposure workspace " + lang + ": chart, comparison scopes, scanner and return"))), "INTEGRATION_CHART_CASE_SET");
+}
+
+function readExposureMasterIntegration(repo: string, root: string, kind: EvidenceKind, crops: string[], text: string) {
+  const operation = join(root, "operations", OP.exposure), relative = "operations/" + OP.exposure + "/revisions/" + MASTER_REVISION;
+  const dir = join(root, relative), descriptorPath = join(dir, "native-packet.json");
+  check(sha(descriptorPath) === MASTER_PACKET[kind], "INTEGRATION_PACKET_DIGEST");
+  const descriptor = json<{ schema: string; kind: EvidenceKind; profile: string; operation: string; captureRevision: string;
+    branchHead: string; protectedMaster: string; files: SourceMap;
+  }>(descriptorPath);
+  check(descriptor.schema === "options_exposure_master_packet.v1" && descriptor.kind === kind && descriptor.profile === "exposure" &&
+    descriptor.operation === OP.exposure && descriptor.captureRevision === MASTER_REVISION &&
+    descriptor.branchHead === MASTER_PRIOR && descriptor.protectedMaster === MASTER_PROTECTED, "INTEGRATION_PACKET_IDENTITY");
+  const files = ["capture-execution.json", "capture-sources-before.json", "capture-sources-after.json", "source-contract.json",
+    "qualified-root/EVIDENCE.yml", "history.json", "prior-exposure-root-sha256.json", "prior-protected-root-sha256.json"];
+  requireSourceKeys(descriptor.files, files);
+  for (const [file, digest] of Object.entries(descriptor.files)) check(sha(join(dir, file)) === digest, "INTEGRATION_PAYLOAD:" + file);
+  const priorRoot = integrationArchive(dir, "exposure", kind, crops), protectedRoot = integrationArchive(dir, "protected", kind, crops);
+  const historical = readCandidate(repo, root, kind, "exposure", crops), boundarySources = verifyBoundary(repo, false);
+  verifyHistory(root, kind, "exposure", crops, priorRoot);
+  check(readFileSync(join(priorRoot, "EVIDENCE.yml"), "utf8") === exposurePrefix(operation) +
+    readFileSync(historical.protectedManifest, "utf8"), "INTEGRATION_EXPOSURE_MANIFEST_HISTORY");
+  for (const path of [LAB, WRAPPER]) check(historical.sources[path] === boundarySources[path], "INTEGRATION_BOUNDARY_HISTORY:" + path);
+  requireR4ChartIdentity(repo, CHART_FRAMING_MAPS.original.before, CHART_FRAMING_MAPS.preview.before,
+    CHART_FRAMING_MAPS.original.after, false);
+  const declaration = "# Current source proof is the complete Exposure master integration revision.\n" +
+    yamlBlock("exposureMasterIntegration20261109", {
+      revision: relative, descriptorSha256: MASTER_PACKET[kind], branchHead: MASTER_PRIOR, protectedMaster: MASTER_PROTECTED,
+    }) + "\n";
+  check(text === declaration + readFileSync(join(protectedRoot, "EVIDENCE.yml"), "utf8"), "INTEGRATION_ROOT_MANIFEST");
+  check(sameKeys(readdirSync(root).filter(name => name.endsWith(".png")), crops), "INTEGRATION_PROTECTED_ROOT_SET");
+  for (const name of crops) check(sha(join(root, name)) === sha(join(protectedRoot, name)), "INTEGRATION_PROTECTED_ROOT_IMAGE:" + name);
+  const execution = json<IntegrationExecution>(join(dir, "capture-execution.json"));
+  requireIntegrationExecution(execution, kind, crops);
+  const contract = json<{ schema: string; kind: EvidenceKind; currentInputs: string[]; observedInputs: string[] }>(join(dir, "source-contract.json"));
+  const paths = masterIntegrationInputs(kind);
+  check(contract.schema === "exposure_master_capture_sources.v1" && contract.kind === kind &&
+    sameKeys(contract.currentInputs, paths) && new Set(contract.currentInputs).size === paths.length,
+    "INTEGRATION_SOURCE_CONTRACT");
+  const before = json<SourceMap>(join(dir, "capture-sources-before.json")), after = json<SourceMap>(join(dir, "capture-sources-after.json"));
+  requireSourceKeys(before, contract.observedInputs); requireSourceKeys(after, contract.observedInputs);
+  check(execution.sourceBeforeSha256 === descriptor.files["capture-sources-before.json"] &&
+    execution.sourceAfterSha256 === descriptor.files["capture-sources-after.json"] &&
+    execution.sourceBeforeSha256 === execution.sourceAfterSha256, "INTEGRATION_SOURCE_STABILITY");
+  const sources = Object.fromEntries(paths.map(path => [path, before[path]]));
+  requireSourceKeys(sources, paths);
+  const current = Object.fromEntries(paths.map(path => [path, sha(join(repo, path))]));
+  selectWholeFingerprint([{ sources }], current);
+  const cropDir = join(dir, "qualified-root"), evidence = join(cropDir, "EVIDENCE.yml");
+  check(execution.manifestSha256 === sha(evidence), "INTEGRATION_NATIVE_MANIFEST");
+  check(sameKeys(readdirSync(cropDir).filter(name => name.endsWith(".png")), crops), "INTEGRATION_NATIVE_CROPS");
+  for (const name of crops) {
+    const bytes = readFileSync(join(cropDir, name)), record = execution.images[name];
+    check(sha(join(cropDir, name)) === record.sha256 && bytes.length === record.bytes &&
+      bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])) &&
+      bytes.readUInt32BE(16) === record.width && bytes.readUInt32BE(20) === record.height, "INTEGRATION_NATIVE_IMAGE:" + name);
+  }
+  const manifest = readFileSync(evidence, "utf8"), layout = layoutSources(kind, "exposure");
+  const layoutText = manifest.split("\nlayoutFiles:\n"); check(layoutText.length === 2, "INTEGRATION_LAYOUT_SECTION");
+  const recorded: SourceMap = {};
+  for (const row of layoutText[1].split("\n")) {
+    if (!row.startsWith("  ")) break;
+    const match = row.match(/^  (\S+): "([0-9a-f]{64})"$/); check(match && !recorded[match[1]], "INTEGRATION_LAYOUT_ROW"); recorded[match[1]] = match[2];
+  }
+  requireSourceKeys(recorded, layout);
+  for (const path of layout) check(recorded[path] === sources[path], "INTEGRATION_LAYOUT_CAPTURE:" + path);
+  const fileRows = [...manifest.matchAll(/^  - ([a-z0-9-]+\.png)$/gm)].map(match => match[1]);
+  const harnessRows = [...manifest.matchAll(/^  ([a-z0-9-]+\.png): \{ url:/gm)].map(match => match[1]);
+  check(sameKeys(fileRows, crops) && sameKeys(harnessRows, crops) && new Set(fileRows).size === crops.length &&
+    new Set(harnessRows).size === crops.length, "INTEGRATION_MANIFEST_CASE_SET");
+  verifyIntegrationBrowser(repo);
+  const native: NativeReceipt = { operation: OP.exposure, protectedBase: MASTER_PROTECTED, kind, packet: PACKETS[kind],
+    expected: execution.expected, successful_files: execution.successfulFiles, exit: execution.exit, source_stable: execution.sourceStable,
+    failed_frames: [], source_sha256: sources, image_sha256: Object.fromEntries(Object.entries(execution.images).map(([name, value]) => [name, value.sha256])),
+    native_manifest_sha256: execution.manifestSha256, log_sha256: execution.logSha256 };
+  return { profile: "exposure" as const, captureRevision: MASTER_REVISION, sources, native, cropDir, evidence, layout,
+    protectedManifest: join(protectedRoot, "EVIDENCE.yml"), optionsHistorySources: {} as SourceMap,
+    hasExposureHistory: true, hasOptionsHistory: false,
+    exposureHistorical: { ...historical, root: priorRoot, boundarySources } };
 }

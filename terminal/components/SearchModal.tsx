@@ -1,6 +1,6 @@
 "use client";
 import { pick } from "@/lib/finFormat";
-import { Fragment, useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
+import { Fragment, useCallback, useDeferredValue, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useLang, useT } from "@/lib/i18n";
 import { verdictLabel } from "@/lib/plainLabels";
@@ -19,6 +19,8 @@ import { useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
 import { useDialogFocus } from "@/components/studyTemplates/useDialogFocus";
 import styles from "./SearchModal.module.css";
+import CompanyListingIdentity from "./CompanyListingIdentity";
+import SharedSearchWorkspace, { type SharedSearchOptions } from "./SharedSearchWorkspace";
 import {
   formatWatchlistChange,
   formatWatchlistPrice,
@@ -89,6 +91,7 @@ export default function SearchModal({
   email, lists = [], activeList = "", onSwitchList, onCreateList, onAddToList, onAddToPortfolio,
   marketPrefs = DEFAULT_PREFS, prefsReady = false, onShowAllMarkets,
   onClose, onPick, onAdd, onRemove, onToggleCompare, compareCfg, trackSource,
+  onCompanyPick, initialSelection, sharedSearch,
   universeState = "ready", onRetryUniverse,
 }: {
   open: boolean; seed: string; manifest: Record<string, Row>;
@@ -131,12 +134,17 @@ export default function SearchModal({
   /** Re-request the universe after a failed read. Required for the "unavailable" state to recover. */
   onRetryUniverse?: () => void;
   companyScope?: boolean;
+  onCompanyPick?: (symbol: string, query: string) => void;
+  initialSelection?: string;
+  /** Shared Shell SS05 presentation; ordinary chart/workspace pickers retain their owner. */
+  sharedSearch?: SharedSearchOptions;
 }) {
   const t = useT();
   const { lang } = useLang();
   const onboarding = useOnboarding();
   const [q, setQ] = useState("");
   const [sel, setSel] = useState(0);
+  const [companyPreview, setCompanyPreview] = useState<string | null>(null);
   const [choosing, setChoosing] = useState<string | null>(null);
   const [recentlyViewed, setRecentlyViewed] = useState<string[]>([]);
   const [cat, setCat] = useState("All");   // selected asset-class tab
@@ -186,6 +194,7 @@ export default function SearchModal({
     if (open) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronize a newly opened dialog with its external seed.
       setQ(seed || "");
+      setCompanyPreview(initialSelection ?? null);
       setSel(0);
       setChoosing(null);
       setCat("All");
@@ -199,7 +208,7 @@ export default function SearchModal({
       // The mounted dialog/sheet owns initial focus. A delayed second focus could steal it
       // back from a new task (Portfolio/sign-in) or from the control the user already reached.
     }
-  }, [open, seed, mode, companyScope]);
+  }, [open, seed, mode, companyScope, initialSelection]);
 
   useEffect(() => {
     if (choosing) compareChoiceRef.current?.focus({ preventScroll: true });
@@ -368,12 +377,16 @@ export default function SearchModal({
 
   // Default highlight: if active symbol not in watchlist → pre-select it; else 0.
   const defaultSel = useMemo(() => {
+    if (initialSelection) {
+      const idx = displayRows.findIndex(([s]) => s === initialSelection);
+      if (idx >= 0) return idx;
+    }
     if (showRecentRows && !inWatchlist.has(active)) {
       const idx = recentResults.findIndex(([s]) => s === active);
       return idx >= 0 ? idx : 0;
     }
     return 0;
-  }, [showRecentRows, active, inWatchlist, recentResults]);
+  }, [initialSelection, displayRows, showRecentRows, active, inWatchlist, recentResults]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- the external active symbol initializes keyboard selection when opened.
@@ -454,6 +467,11 @@ export default function SearchModal({
 
   function choose(sym: string, shiftKey = false) {
     if (companyScope && !isCompanySearchRow(sym, manifest[sym])) return;
+    if (companyScope && isPick) {
+      setSel(displayRows.findIndex(([s]) => s === sym));
+      setCompanyPreview(sym);
+      return;
+    }
     // Compare mode isn't committed here — a row click only opens the price/% chooser (or removes
     // an existing overlay). The actual commit is the segment button, which tracks itself. So only
     // log go/add commits here; compare logging lives on the cmp-seg-half handlers.
@@ -480,6 +498,14 @@ export default function SearchModal({
     }
   }
 
+  function openCompany() {
+    if (!companyPreview || !isCompanySearchRow(companyPreview, manifest[companyPreview])) return;
+    track(companyPreview);
+    if (onCompanyPick) onCompanyPick(companyPreview, q.trim());
+    else onPick(companyPreview);
+    onClose();
+  }
+
   // Total selectable row count (composite row + display rows).
   const totalRows = (showCompositeRow ? 1 : 0) + displayRows.length;
 
@@ -491,8 +517,15 @@ export default function SearchModal({
   }
 
   function key(e: React.KeyboardEvent) {
-    if (e.key === "ArrowDown") { e.preventDefault(); setSel((s) => Math.min(s + 1, totalRows - 1)); }
-    else if (e.key === "ArrowUp") { e.preventDefault(); setSel((s) => Math.max(s - 1, 0)); }
+    if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) return;
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      const next = e.key === "ArrowDown"
+        ? (totalRows > 0 ? Math.min(sel + 1, totalRows - 1) : sel)
+        : Math.max(sel - 1, 0);
+      setSel(next);
+      setCompanyPreview(companyScope && isPick ? displayRows[next]?.[0] ?? null : null);
+    }
     else if (e.key === "Enter") {
       e.preventDefault();
       const shift = e.shiftKey;
@@ -501,7 +534,8 @@ export default function SearchModal({
       } else {
         const idx = showCompositeRow ? sel - 1 : sel;
         const row = displayRows[idx];
-        if (row) choose(row[0], shift);
+        if (row && companyScope && isPick && companyPreview === row[0]) openCompany();
+        else if (row) choose(row[0], shift);
         else if (isAdd && !inWatchlist.has(active)) {
           track(active);
           onAdd?.(active);
@@ -716,8 +750,9 @@ export default function SearchModal({
             ref={inputRef}
             data-autofocus={focusSearchInput ? true : undefined}
             value={q}
+            maxLength={companyScope ? 160 : undefined}
             placeholder={cmp ? t("comparePlaceholder") : t(placeholderKey)}
-            onChange={(e) => { closePicker(); setChoosing(null); setQ(e.target.value); setSel(0); }}
+            onChange={(e) => { closePicker(); setCompanyPreview(null); setChoosing(null); setQ(e.target.value); setSel(0); }}
             onFocus={() => { closePicker(); setView("search"); }}
             onKeyDown={key}
             role="combobox"
@@ -844,7 +879,7 @@ export default function SearchModal({
           /* SEARCH / compare / add body — the combobox's popup (D6). The informational chrome
              interleaved with the options (composite warning, section headers, empty states, the
              market-filter disclosure) is marked presentational so it does not read as a result. */
-          <div className="sres" id={listboxId} role="listbox" aria-label={t(titleKey)}>
+          <div className={`sres${companyScope && isPick ? ` ${styles.companyResults}` : ""}`} id={listboxId} role="listbox" aria-label={t(titleKey)}>
             {/* Composite first row (F2) */}
             {showCompositeRow && compositeExprStr && (
               <div
@@ -1024,6 +1059,11 @@ export default function SearchModal({
           </div>
         )}
 
+        {companyScope && isPick && companyPreview && displayRows.some(([s]) => s === companyPreview) && (
+          <CompanyListingIdentity key={companyPreview} symbol={companyPreview}
+            name={manifest[companyPreview] ? displayName(manifest[companyPreview], lang) : undefined}
+            venue={manifest[companyPreview]?.mkt} query={q.trim()} preview onOpen={openCompany} />
+        )}
         {cmp && <div className="scmp-foot">{t("compareHint")}</div>}
 
         {/* F3 footer hint for "add" mode (per S5) */}
@@ -1033,6 +1073,19 @@ export default function SearchModal({
       </>
   );
 
+  const listingDetail = companyPreview && displayRows.some(([s]) => s === companyPreview)
+    ? <CompanyListingIdentity key={companyPreview} symbol={companyPreview}
+        name={!sharedSearch && manifest[companyPreview] ? displayName(manifest[companyPreview], lang) : undefined}
+        venue={manifest[companyPreview]?.mkt} query={q.trim()} preview onOpen={openCompany} /> : null;
+  const presentedBody = sharedSearch ? <SharedSearchWorkspace key={sharedSearch.scope ?? "companies"} query={q} onClose={onClose}
+    onQueryChange={next => { closePicker(); setCompanyPreview(null); setChoosing(null); setQ(next); setSel(0); }}
+    companies={displayRows.map(([symbol, row]) => ({ symbol, name: displayName(row, lang), venue: row.mkt }))}
+    companyState={universeState} onRetryCompanies={onRetryUniverse} selectedCompany={companyPreview}
+    marketDescription={pick(lang === "zh", "Company markets: ", "公司市场：") + (prefsReady ? marketPrefs.enabled.filter(m => m !== "crypto").map(m => t(MARKET_TKEY[m])).join(" · ") : pick(lang === "zh", "All supported markets", "所有支持的市场"))}
+    marketDisclosure={hiddenByMarket ? <div className="s-mkt-hidden"><span>{t("mktHiddenLead")} {hiddenByMarket.n} {t("mktHiddenMore")} {hiddenByMarket.from.map(m => t(MARKET_TKEY[m])).join(" · ")}</span>{onShowAllMarkets && <button type="button" className="s-mkt-show" onClick={onShowAllMarkets}>{t("mktShowAll")}</button>}</div> : undefined}
+    activeCompanyIndex={sel} onSelectCompany={choose} onCompanyKey={key} listingDetail={listingDetail} options={sharedSearch} /> : body;
+
+  const title = sharedSearch ? pick(lang === "zh", "Search companies and tools", "搜索公司和工具") : companyScope ? pick(lang === "zh", "Search companies", "搜索公司") : t(cmp ? "compareTitle" : titleKey);
   // R2c — on the phone the ticker picker is a DRAWER, the idiom the Drawings sheet established:
   // it presents over a live chart at 62%, drags to full and back, and a short flick down
   // dismisses it. Compare and Add Symbol keep the centred modal — they are sub-tasks of a
@@ -1042,34 +1095,34 @@ export default function SearchModal({
       <MobileSheet
         open
         onClose={onClose}
-        title={t(titleKey)}
-        detents={SEARCH_DETENTS}
-        className="msheet-search"
+        title={title}
+        detents={sharedSearch ? [92, 96] : SEARCH_DETENTS}
+        className={`msheet-search${sharedSearch ? ` ${styles.sharedSheet}` : ""}`}
         initialFocus="sheet"
       >
-        {body}
+        {presentedBody}
       </MobileSheet>
     );
   }
 
-  const title = companyScope ? pick(lang === "zh", "Search companies", "搜索公司") : t(cmp ? "compareTitle" : titleKey);
-  const closeLabel = companyScope ? pick(lang === "zh", "Close company search", "关闭公司搜索")
+  const closeLabel = sharedSearch ? pick(lang === "zh", "Close search", "关闭搜索")
+    : companyScope ? pick(lang === "zh", "Close company search", "关闭公司搜索")
     : cmp ? pick(lang === "zh", "Close comparison", "关闭对比")
     : isAdd ? pick(lang === "zh", "Close add symbol", "关闭添加标的")
     : pick(lang === "zh", "Close symbol search", "关闭代码搜索");
 
-  return <SearchDialog onScopeChange={setDialogHost} title={title} titleId={`${uid}-title`}
+  return <SearchDialog shared={!!sharedSearch} onScopeChange={setDialogHost} title={title} titleId={`${uid}-title`}
     closeLabel={closeLabel} onClose={onClose} onEscape={dismissSearch} compare={cmp} focusPanel={!focusSearchInput}
-    panelClassName={`smodal${cmp ? " smodal-cmp" : ""}${isAdd ? " smodal-add" : ""}${isHub ? " smodal-hub" : ""}`}>
-    {body}
+    panelClassName={`smodal${sharedSearch ? ` ${styles.sharedPanel}` : ""}${cmp ? " smodal-cmp" : ""}${isAdd ? " smodal-add" : ""}${isHub ? " smodal-hub" : ""}`}>
+    {presentedBody}
   </SearchDialog>;
 }
 
 /** One focus owner for the panel AND its overflow-escaping picker. Phone navigation keeps MobileSheet. */
-function SearchDialog({ onScopeChange, title, titleId, closeLabel, panelClassName, compare, focusPanel, onClose, onEscape, children }: {
+function SearchDialog({ shared = false, onScopeChange, title, titleId, closeLabel, panelClassName, compare, focusPanel, onClose, onEscape, children }: {
   onScopeChange: (scope: HTMLDivElement | null) => void;
   title: string; titleId: string; closeLabel: string; panelClassName: string; compare: boolean; focusPanel: boolean;
-  onClose: () => void; onEscape: () => void; children: ReactNode;
+  onClose: () => void; onEscape: () => void; children: ReactNode; shared?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const captureScope = useCallback((scope: HTMLDivElement | null) => {
@@ -1077,7 +1130,21 @@ function SearchDialog({ onScopeChange, title, titleId, closeLabel, panelClassNam
     onScopeChange(scope);
   }, [onScopeChange]);
   useDialogFocus(ref, onEscape);
-  return <div ref={captureScope} className={`scrim ${styles.scope}`} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1}
+  useLayoutEffect(() => {
+    if (!shared) return;
+    const scope = ref.current;
+    const column = document.querySelector<HTMLElement>(".app2.shared-shell > .main2");
+    if (!scope || !column) return;
+    // The portal inherits no rail variables. Measure the incumbent content column
+    // instead of copying its expanded/compact/breakpoint geometry into this dialog.
+    const align = () => scope.style.setProperty("--search-content-left", `${Math.max(0, column.getBoundingClientRect().left)}px`);
+    align();
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(align);
+    observer?.observe(column);
+    window.addEventListener("resize", align);
+    return () => { observer?.disconnect(); window.removeEventListener("resize", align); scope.style.removeProperty("--search-content-left"); };
+  }, [shared]);
+  return <div ref={captureScope} className={`scrim ${styles.scope}${shared ? ` ${styles.sharedScope}` : ""}`} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1}
     onKeyDownCapture={event => {
       // Composition owns its keys, including Escape/Enter. Stop before the native dialog
       // listener and the chart's shortcuts, without cancelling the IME's default action.

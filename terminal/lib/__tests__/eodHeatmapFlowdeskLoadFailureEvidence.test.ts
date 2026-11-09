@@ -313,8 +313,11 @@ describe("EOD / heatmap / flow desk load-failure evidence lock is the sha256 of 
 
   }
 
-  if (selected.profile === "exposure") {
-  it("reconciles retained native capture with fresh boundary proof and preserves historical image sets", () => {
+  if (selected.hasExposureHistory) {
+  it("reconciles retained native capture with its qualified boundary proof and preserves historical image sets", () => {
+    const history = selected.exposureHistorical!;
+    const CROP_DIR = history.root, CURRENT_CROP_DIR = history.cropDir;
+    const EVIDENCE = history.evidence, LAYOUT_FILES = history.layout;
     const folder = "operations/exposure-source-compatibility-20261105";
     const rootEvidence = readFileSync(join(CROP_DIR, "EVIDENCE.yml"), "utf8");
     const record = receiptSection(rootEvidence, "exposureSourceCompatibility20261105");
@@ -355,10 +358,10 @@ describe("EOD / heatmap / flow desk load-failure evidence lock is the sha256 of 
     const captured = JSON.parse(readFileSync(capturedMapPath, "utf8")) as Record<string, string>;
     for (const rel of requiredSources) expect(native.source_sha256[rel], rel).toBe(captured[rel]);
     const restoredLab = "terminal/components/researchlab/OptionsResearchLab.tsx";
-    const changed = requiredSources.filter(rel => native.source_sha256[rel] !== sha256Of(join(REPO, rel)));
+    const changed = requiredSources.filter(rel => native.source_sha256[rel] !== history.sources[rel]);
     expect(changed).toEqual([restoredLab]);
     expect(native.source_sha256[restoredLab]).toBe("1b9bfeaa9ae3a9460fcecd812a98dcd8ef6591df0041d5dc4a53bde6dc2daf8b");
-    expect(sha256Of(join(REPO, restoredLab))).toBe("365223a8182effc04fa956a8004062aa86c1426de8fc24eccebf6952e1571820");
+    expect(history.sources[restoredLab]).toBe("365223a8182effc04fa956a8004062aa86c1426de8fc24eccebf6952e1571820");
 
     const boundaryDir = join(REPO, "terminal/docs/verification/exposure-workspace-20261103/boundary-compatibility-20261105");
     const qualification = JSON.parse(readFileSync(join(boundaryDir, "qualification.json"), "utf8"));
@@ -395,7 +398,7 @@ describe("EOD / heatmap / flow desk load-failure evidence lock is the sha256 of 
       expect(receipt.log_sha256).toBe(sha256Of(join(boundaryDir, mode, "browser.log")));
       expect(receipt.command).toContain("e2e/options-lab-source-state.spec.ts");
       for (const rel of boundarySources) {
-        expect(sourceMap[rel], mode + ": " + rel).toBe(sha256Of(join(REPO, rel)));
+        expect(sourceMap[rel], mode + ": " + rel).toBe(history.boundarySources[rel]);
         expect(qualification.boundary_sources[rel], rel).toBe(sourceMap[rel]);
       }
     }

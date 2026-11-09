@@ -87,9 +87,28 @@ describe("Lab evidence projection", () => {
     expect(s.fires).toEqual(["2026-10-11", "2026-10-12"]); expect(s.latestFire).toBe("2026-10-12");
     expect(labDate("2024-02-29")).toBe("2024-02-29"); expect(labDate("2025-02-29")).toBeNull();
   });
-  it("keeps a missing publication time unknown rather than using the current clock", () => {
+  it("shows the last evaluated input bar separately from publication and constrains fire dates", () => {
+    const input = techLabFixture();
+    input.tech.events.signals.tied.fires = ["2026-10-15", "2026-10-16"];
+    const model = buildLabModel("EL", input);
+    expect(model.dataThrough).toBe("2026-10-15");
+    expect(model.publishedAt).toBe("2026-10-16T18:42:15Z");
+    expect(model.setups.find(s => s.id === "tied")?.fires).toEqual(["2026-10-15"]);
+  });
+  it.each([undefined, "", "bad", "2026-02-30", "2026-10-17", "2099-01-01"])(
+    "does not claim a valid last market bar for missing or impossible source date %s", value => {
+      const input = techLabFixture();
+      Object.assign(input.tech.events, { data_through: value });
+      const model = buildLabModel("EL", input);
+      expect(model.status).toBe("ready");
+      expect(model.dataThrough).toBeNull();
+    },
+  );
+  it("keeps publication and the source bar unknown rather than using the current clock", () => {
     const input = techLabFixture(); input.tech.asof = ""; input.tech.events.generated_utc = "not-a-date";
-    expect(buildLabModel("EL", input).publishedAt).toBeNull();
+    const model = buildLabModel("EL", input);
+    expect(model.publishedAt).toBeNull();
+    expect(model.dataThrough).toBeNull();
   });
   it("honors a future optional source exclusion and still refuses raw-score overrides", () => {
     const input = techLabFixture();

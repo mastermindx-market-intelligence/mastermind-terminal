@@ -1,0 +1,18 @@
+{
+  "schema": "exposure_master_integration_history.v1",
+  "branchHead": "883fee550a9628812a4fbcdc77e479ab8cad3b3a",
+  "protectedMaster": "f2aa1e0cb27d459149f59d3b24d98cd6e2e8389f",
+  "packet": "gex-levels-heatmap-load-failure",
+  "roots": {
+    "prior-exposure-root": {
+      "commit": "883fee550a9628812a4fbcdc77e479ab8cad3b3a",
+      "files": 115,
+      "inventorySha256": "b98ca38abe6ec26a2fa0156c3ca1e2e2caedad04ea81a4a862f1f38f4ff309e6"
+    },
+    "prior-protected-root": {
+      "commit": "f2aa1e0cb27d459149f59d3b24d98cd6e2e8389f",
+      "files": 115,
+      "inventorySha256": "5bad92213f181ace64539f60e5b9e7312906e3f893a9d3fb7fe2044dcc37601e"
+    }
+  }
+}

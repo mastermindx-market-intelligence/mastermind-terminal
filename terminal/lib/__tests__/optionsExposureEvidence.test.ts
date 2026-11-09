@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { layoutSources, projectR4CaptureHarness, requireR4ChartIdentity, requireSourceKeys, selectWholeFingerprint } from "./helpers/optionsExposureEvidence";
+import { layoutSources, masterIntegrationInputs, projectR4CaptureHarness, qualifiedOptionsExposurePacket, requireIntegrationExecution, requireR4ChartIdentity, requireSourceKeys, selectWholeFingerprint } from "./helpers/optionsExposureEvidence";
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -10,6 +10,64 @@ const a = "a".repeat(64), b = "b".repeat(64), c = "c".repeat(64), d = "d".repeat
 const first = { profile: "first", sources: { "Gex.tsx": a, "Levels.tsx": b, "capture.cjs": c } };
 const second = { profile: "second", sources: { "Gex.tsx": b, "Levels.tsx": c, "capture.cjs": d } };
 const keys = ["Gex.tsx", "Levels.tsx", "capture.cjs"];
+
+describe("current Exposure capture result qualification", () => {
+  type Capture = Parameters<typeof requireIntegrationExecution>[0];
+  const repo = join(__dirname, "../../..");
+  const packets = { gex: "gex-levels-heatmap-load-failure", eod: "eod-heatmap-flowdesk-load-failure" };
+  const revision = "operations/exposure-source-compatibility-20261105/revisions/master-integration-20261109";
+  const dir = (kind: "gex" | "eod") => join(repo, "terminal/docs/pr-crops", packets[kind], revision);
+  const captured = (kind: "gex" | "eod"): Capture => JSON.parse(readFileSync(join(dir(kind), "capture-execution.json"), "utf8"));
+  it.each(["gex", "eod"] as const)("accepts the complete actual %s execution", kind => {
+    const result = captured(kind);
+    expect(() => requireIntegrationExecution(result, kind, Object.keys(result.images))).not.toThrow();
+  });
+  it("rejects the retained unsuccessful webpack attempt without borrowing its successful frames", () => {
+    const failed: Capture = JSON.parse(readFileSync(join(dir("gex"), "attempts/webpack-initial/capture-execution.json"), "utf8"));
+    expect(failed.exit).not.toBe(0);
+    expect(failed.sourceStable).toBe(true);
+    expect(() => requireIntegrationExecution(failed, "gex", Object.keys(captured("gex").images)))
+      .toThrow("INTEGRATION_CAPTURE_RESULT");
+  });
+  it.each([
+    ["nonzero exit", (value: Capture) => { value.exit = 1; }, "INTEGRATION_CAPTURE_RESULT"],
+    ["failed frame", (value: Capture) => { value.frames[0].status = "failure"; }, "INTEGRATION_FRAME_SET"],
+    ["missing frame", (value: Capture) => { value.frames.pop(); }, "INTEGRATION_FRAME_SET"],
+    ["duplicate substituted frame", (value: Capture) => { value.frames[0] = value.frames[1]; }, "INTEGRATION_FRAME_SET"],
+    ["unexpected image", (value: Capture) => { value.images["FAIL-unexpected.png"] = Object.values(value.images)[0]; }, "INTEGRATION_IMAGE_SET"],
+    ["source instability", (value: Capture) => { value.sourceStable = false; }, "INTEGRATION_CAPTURE_RESULT"],
+  ] as const)("rejects a manifest-bearing run with %s", (_name, mutate, error) => {
+    const original = captured("gex"), changed = structuredClone(original);
+    mutate(changed);
+    expect(() => requireIntegrationExecution(changed, "gex", Object.keys(original.images))).toThrow(error);
+  });
+  it("binds new matrix and owner dependencies while leaving unrelated observed paths outside applicability", () => {
+    const observed: Record<string, string> = JSON.parse(readFileSync(join(dir("gex"), "capture-sources-before.json"), "utf8"));
+    const inputs = masterIntegrationInputs("gex");
+    const sources = Object.fromEntries(inputs.map(path => [path, observed[path]]));
+    requireSourceKeys(sources, inputs);
+    expect(selectWholeFingerprint([{ sources }], { ...sources, "terminal/components/unrelated-analysis.tsx": a }).sources).toEqual(sources);
+    for (const path of ["terminal/components/researchlab/AdmittedOptionsResearchLab.tsx", "terminal/lib/matrixAcquisition.ts",
+      "terminal/lib/investigationOptionsReference.ts", "terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs"]) {
+      expect(inputs).toContain(path);
+      expect(() => selectWholeFingerprint([{ sources }], { ...sources, [path]: sources[path] === a ? b : a }))
+        .toThrow("NO_QUALIFIED_CAPTURE");
+    }
+    const omitted = { ...sources }; delete omitted["terminal/lib/matrixAcquisition.ts"];
+    expect(() => requireSourceKeys(omitted, inputs)).toThrow("SOURCE_KEY_SET");
+  });
+  it("does not fall back to historical captures when the current descriptor is corrupt", () => {
+    const temporary = mkdtempSync(join(tmpdir(), "exposure-current-descriptor-"));
+    try {
+      const packet = join(temporary, "terminal/docs/pr-crops", packets.gex);
+      mkdirSync(join(packet, revision), { recursive: true });
+      copyFileSync(join(repo, "terminal/docs/pr-crops", packets.gex, "EVIDENCE.yml"), join(packet, "EVIDENCE.yml"));
+      writeFileSync(join(packet, revision, "native-packet.json"), readFileSync(join(dir("gex"), "native-packet.json"), "utf8") + "\n");
+      expect(() => qualifiedOptionsExposurePacket(temporary, "gex", Object.keys(captured("gex").images)))
+        .toThrow("INTEGRATION_PACKET_DIGEST");
+    } finally { rmSync(temporary, { recursive: true, force: true }); }
+  });
+});
 
 describe("whole native source qualification", () => {
   it("selects one complete run while permitting unrelated files in the current tree", () => {
