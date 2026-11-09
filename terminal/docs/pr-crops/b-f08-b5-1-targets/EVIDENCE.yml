@@ -1,13 +1,19 @@
 # B-F08-B5-1 portfolio construction targets — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 40e28feee85e1b85481365ba29caf6c4460c1162
-# capturedAt: 2026-10-10T01:08:54.249Z
+# capturedAtHead: 2064cc9ed0588d4a27ba40a0b3e150bc76cc0d84
+# capturedAt: 2026-11-09T06:57:51.952Z
 # capturedAtHead is informational. The lock is layoutFiles.
-# 2026-10-10 recapture: all 32 crops recaptured at the head above by e2e/tools/capture_b_f08_b5_1_targets.cjs, run unmodified, and pixel-diffed against the 2026-09-10 crops (changes: 1px sub-pixel line shifts and crop-edge changes because the B-F08-9 risk-history section now renders above this one; no change inside the section). Supersedes the 2026-09-19 and 2026-10-04 hash-only notes.
 layoutFiles:
-  terminal/components/PortfolioView.tsx: "4a08c45bdd7a9867a10ba4102cd358f02f4ffdf4d1013a951dc6b892ed102d90"
-  terminal/lib/portfolioTargets.ts: "7857cef2eb79cd4f78b875744734a7d45ed04d1d50f1ea55dd7ce155248a2bf9"
+  terminal/lib/portfolioMoney.ts: "24e6fdaa6766ede2554b2d2d07be81e8f0b202028ecd03301ccbb1549652c7b1"
+  terminal/lib/portfolioWorkspace.ts: "e9e272210920bf26b42e40ffaeb76d880049a241680ffc22b1eff61c0f7e2d0f"
+  terminal/lib/i18n.tsx: "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
+  terminal/components/PortfolioWorkspace.tsx: "3042610a2af83301639dabc44280279bb6075da051a1c50fc5d110783512f53b"
+  terminal/components/PortfolioWorkspace.module.css: "44c92cf281693c8e1f444c8551cfd603ce99338190ea85aa0326072caf92cabf"
+  terminal/components/PortfolioRoleEditor.tsx: "f8e913ccfb907ddeb9869b0996a173ba489f9fbf8cd7af78a6888d0cf3a8c77a"
+  terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
+  terminal/components/PortfolioView.tsx: "b64d934a2cd1a05dedfac6213bcabb15683b22967e86476dc970ad9994018aec"
+  terminal/lib/portfolioTargets.ts: "23ad61bfe11303b10dae33a5a8933e570080c52b9678fe70685f1a27ea3c1635"
   terminal/components/PortfolioTargets.module.css: "7a6cf0f47abdb773a3f56c11452ece374221c2a9140e87831023ecfd5120129a"
 theme: dark
 languages: [en, zh]
@@ -15,11 +21,45 @@ viewports:
   - { name: desktop, width: 1440, height: 900 }
   - { name: mobile, width: 390, height: 844 }
 surfaces: [PortfolioTargetsReadout]
+viewport_semantics: initial interaction sizes; actual per-image native capture sizes are recorded in CROP_GEOMETRY.json
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
 command: |
   cd terminal
   node e2e/tools/capture_b_f08_b5_1_targets.cjs
+captureFiles:
+  PortfolioTargets-cleared-1440-zh.png: "3d281854b41266dc65bbb3b22bc196c3ca99e2847d8d7a92100fa71f58843964"
+  PortfolioTargets-cleared-1440.png: "23d0f2513229560b94025d7b4e84d0922b7a8f90d282da206f323571f701c8ee"
+  PortfolioTargets-cleared-390-zh.png: "ff6749967d3af38d0f5d6fd079642f76628ff3f80b8f44f871df7d69e53848ce"
+  PortfolioTargets-cleared-390.png: "e352fa63eb75827518e7f07372df4397e28e5f5d897a8ac97aa929425684a05d"
+  PortfolioTargets-empty-1440-zh.png: "1cc7c889dbc0868875bab637de4789c4bb09dbaa6922d9c31e6e3a4342148a6d"
+  PortfolioTargets-empty-1440.png: "317d666ccff1d5cce5d7b5e549a84f3ee219a4bb820ba607b95c0894fd3884ca"
+  PortfolioTargets-empty-390-zh.png: "edf89ea4603db75aeafa83c39d8079fd97fa85a14ec636e6687438fdd81786fb"
+  PortfolioTargets-empty-390.png: "517c6fec61f38ee7088e87bd4d8a3ccd5be3d6ab809596e097e402130a7b5c90"
+  PortfolioTargets-orphaned-empty-book-1440-zh.png: "97b8e58361179760cf38239e01fb790c3ee891cebadd0544609a49cab4d1a881"
+  PortfolioTargets-orphaned-empty-book-1440.png: "8cb1078a7fb8770b93dee3513593580d0de74adeba32dd0c8e441c266c8289e5"
+  PortfolioTargets-orphaned-empty-book-390-zh.png: "004d799f11aa16de8eadfcf37cc26c6ecd08f2f82445097e28851b0505da9689"
+  PortfolioTargets-orphaned-empty-book-390.png: "a4fd9cde12ed1015b2d250b55f3a897ca30bc7c0af3ab91af3061461dc7a40b3"
+  PortfolioTargets-orphaned-target-disclosed-1440-zh.png: "129fdd5b4590532c308b8b83952f996e68a8018af1c55d1f9fc893be153f7bc3"
+  PortfolioTargets-orphaned-target-disclosed-1440.png: "fe5f8383df2aadacdba414bc4ba82b870106be85e9ee5d8c5ef5efc4d18f8f28"
+  PortfolioTargets-orphaned-target-disclosed-390-zh.png: "ff52c91937073a9aef8fd2fa531d64edcf32a000c03f431d02251950979dc74e"
+  PortfolioTargets-orphaned-target-disclosed-390.png: "35fd138da20f952f3adce95c513a1ea12663c17a1806178a537757d475b3edc4"
+  PortfolioTargets-populated-outside-band-1440-zh.png: "6add7795bac23009ba260a5eb25d4b97c71a13ee26bcb600b4f383c0bf40224f"
+  PortfolioTargets-populated-outside-band-1440.png: "839c2f280d23ef789753e7968e6ace73624f115f3351d5fd8818f0fe7e990116"
+  PortfolioTargets-populated-outside-band-390-zh.png: "8102cf86c0089d104defe01899356a52bc12b619738fc87a9aa3fe0ec11583d1"
+  PortfolioTargets-populated-outside-band-390.png: "8a38e353706baddab94c27e9fe8fb92bf6f7c6e7e714d3276843fb5cbda00507"
+  PortfolioTargets-populated-within-band-1440-zh.png: "8dc4c33b12a4c69d49398af6dc9721e947c4b8573dab6725287e63bf40fca05c"
+  PortfolioTargets-populated-within-band-1440.png: "eb6c6545763c6b6fda9b25b9759952aa6e546f37ccc6d5b26fcdc2af60016cd8"
+  PortfolioTargets-populated-within-band-390-zh.png: "e500166899fd64012e33d464156da47987bdadb898a752df3f9cad83dedfa890"
+  PortfolioTargets-populated-within-band-390.png: "65f45cf8ee344a031d503fa6a051f25d2bca0ba196abcae360daa8bd68154605"
+  PortfolioTargets-unavailable-1440-zh.png: "3a9e3f7760c7172304560a73619a90105e14f55f6e5159aa4461afe81b701dd1"
+  PortfolioTargets-unavailable-1440.png: "fec59264fde4cefd1221e30a2edf8266f4edd2a53a361986962b25afcec9d6a3"
+  PortfolioTargets-unavailable-390-zh.png: "6ad35f2f02bb3f393d39e09821d566eec4adfc119a6b1d095c818ac2ac5f1ed0"
+  PortfolioTargets-unavailable-390.png: "8b9db0a5773bcd2f7ab77628f4a6d89926751e035ab5c54392ae0be0d3e63a2b"
+  PortfolioTargets-unweighable-1440-zh.png: "19d1b5da7c076643f773b48c71b91f8a8f884cfd4405bb1e91695f697bed8436"
+  PortfolioTargets-unweighable-1440.png: "5c38dfe9cbc1f41d225b086be36ee8a59c6437ab5065d7a13f01a3071f1f23cc"
+  PortfolioTargets-unweighable-390-zh.png: "0af38583f1f0c126ee7b22f15c567b07e0be9ade102d70077376ac4471da2913"
+  PortfolioTargets-unweighable-390.png: "f529f80846b9680c00ffa21ce3a4893a64faf5f719585770f335b13bebfd8009"
 files:
   - PortfolioTargets-cleared-1440-zh.png
   - PortfolioTargets-cleared-1440.png

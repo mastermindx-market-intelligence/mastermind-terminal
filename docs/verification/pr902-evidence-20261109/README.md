@@ -1,19 +1,27 @@
 # Alert and Portfolio targets evidence recovery — PR #902
 
-## Source phase; replacement captures pending
+## Actual replacement packet qualified
 
-The original PR is integrated with protected 99be76ef5c8914459f1a821a9af33a0b57a5044e. Source repair is limited to the three existing producers and three evidence gates. The complete original 59-file packet (56 PNGs and three manifests) is preserved under each packet’s history/before-integration-696f3c50 directory; prior-packets.json records original source paths, hashes and blob identities. Those historical files are not current qualification.
+The complete replacement packet contains 56 real browser images:16 Alert delivery,32 Portfolio targets and8 Settings targets. All19 evidence tests in the three affected suites passed. Every image was visually inspected, with exact file/SHA/size/PNG dimensions retained in capture-inventory.json. All56 hashes are unique. The original59 files (56 images and3 manifests) remain byte-exact under each packet's history/before-integration-696f3c50; prior-packets.json binds their original source paths and Git blobs.
 
-The native renderer, Portfolio calculation, account/book ownership, APIs and navigation remain unchanged. Priced synthetic positions now explicitly declare USD. Portfolio captures use the real Targets tab and native position/target readbacks, including clear confirmation. Settings captures use the existing isolated fixture cookie and real create/set/GET APIs; the private calculator and fabricated empty sums are removed. Empty sums must be null; a 60% target against the sole USD holding must show current100%, drift+40pp and sum offset−40pp.
+## Source and execution attribution
 
-Both server-owning producers reuse the existing startLegacyServer/waitLegacyServer/settleLegacyServer owner. Settings retains its caller-owned server contract. The producers observe the dev indicator instead of deleting its portal, retain unpromoted temporary outputs, require exact complete unique matrices, bind source and image hashes, and publish manifests only after their owned browser/server work settles. Caller-owned server cleanup is recorded by the outer capture operation.
+Alert and Settings were captured from published source5983026f1643e053a40bdc8ca66a61d08a12d66d. Portfolio was captured from2064cc9ed0588d4a27ba40a0b3e150bc76cc0d84 after its producer-only readiness correction. All current product-source bindings match the manifests. Neither capture is relabelled as the final evidence commit.
 
-Portfolio crops use native full-page document clips with measured ancestor containment and PNG dimensions. If a fixed scrollport clips a section vertically, the capture may increase height at the same required width, bounded to four adjustments and8192px. Initial interaction viewport, actual capture viewport, crop, final visible control and adjustments are recorded per image. Horizontal clipping, state movement, missing content or a dev indicator fails the cell. No CSS, DOM content, row, mask or stitched image is substituted.
+The first Portfolio attempt failed on its fourth cell after a single Targets click left aria-selected=false. Three partial images remained unpromoted. Its actual log, result and failure image are preserved. The bounded correction waits for the native client position-read timestamp and attached target readout before the same single click; no forced/repeated click, product state injection or weakened assertion was used. The complete second attempt passed all32 cells.
 
-## Source checks
+Source-phase Node checks and full TypeScript pass remain attributed to their original source phase. The changed producer additionally passed Node syntax and scoped diff checks at2064cc9. The historical19-test run's10 failures and9 passes remain as expected stale-evidence rejection; they are separate from the final19 passing tests.
 
-All three producers pass Node syntax checking; full TypeScript passes. The strengthened gates deliberately reject the old packet: ten failures and nine passes across nineteen checks. Missing current bindings, actual image hashes and geometry still require a fresh complete capture. No stale pixel has been relabelled as a new capture.
+## Native state and geometry
 
-## Next proof
+Portfolio and Settings use isolated fixture books, real native create/set/close/Clear APIs and matching bookKey readbacks. Priced positions specify USD. Settings empty sums are null; its populated state has current100%, target60%, drift+40pp and sum offset-40pp. Portfolio covers inside/outside-band, orphaned targets with populated/empty books, unweighable positions, real cleared confirmation and deliberately unavailable reads. Native readbacks remain alongside their corresponding packets.
 
-Capture the16 Alert delivery,32 Portfolio targets and8 Settings targets cells from the actual published source commit. Inspect all56 images, verify native readbacks and source/image hashes, run the three evidence gates, and promote the complete packet with true source provenance. Keep merge-blocked/auto-off until that proof is complete.
+Every Portfolio crop uses an unmodified native document clip, source/image hashes, measured section/final-control containment, before/after state and geometry equality, and PNG dimension checks. Two mobile unweighable cells needed native height expansion; maximum capture viewport height1317px. Initial viewport width and height, actual capture viewport and every adjustment are retained in CROP_GEOMETRY.json. These are complete section crops, not assertions that all content fits the nominal phone viewport.
+
+Alert and Settings retain their native fixed desktop/mobile settings-card capture contract. Alert's English mobile field-error view includes normal internal scrolling; its error state is visible while the last quiet-hours control extends below the first viewport. No DOM/CSS hiding, stitching, mask or artificial layout change was applied. No Next development indicator appears in the inspected images.
+
+## Ownership and validation
+
+One managed workspace was acquired at the actual H1 source. The two self-owning producers reuse startLegacyServer/waitLegacyServer/settleLegacyServer. Settings uses the same incumbent owner in the retained caller wrapper. All producer processes completed; all original servers settled and ports3602/3603/3604 were absent after capture. The fast-forward to2064cc9 preserved the completed24 Alert/Settings files by hash.
+
+Raw install, capture, failure, server-owner and evidence-gate logs/results are retained. The root visual inspection covers all56 images through14 labelled contact sheets; sheets are temporary inspection aids, while the original image bytes are the authoritative packet. This is source/fixture qualification, not a production or live-account acceptance claim. Required current-head and merge-group CI still govern integration.
