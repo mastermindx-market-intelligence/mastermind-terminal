@@ -51,7 +51,15 @@ export async function installRealNextLegacyTransport({ page, context, baseURL, c
     { name: "mm_e2e_rs30", value: "1", url: SHELL },
     { name: "mm_e2e_guest", value: "1", url: SHELL },
   ]); // Existing development-only layout/Analysis preview, no signer or session.
-  await context.routeWebSocket("**/*", socket => socket.close());
+  await context.routeWebSocket("**/*", socket => {
+    if (socket.url() === "wss://beta.mastermind-x.com/_next/webpack-hmr") {
+      // Keep the test-owned dev socket inert: repeated disconnects make Next
+      // reload the parent and discard its draft. No server connection or messages.
+      socket.onMessage(() => {});
+      return;
+    }
+    socket.close();
+  });
   await context.route("**/*", async route => {
     const request = route.request(), url = new URL(request.url());
     if (!["GET", "HEAD"].includes(request.method())) {
