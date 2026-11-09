@@ -1,0 +1,75 @@
+{
+  "producer_head": "4625681c46c0de46aed121b2cd6cc1d4b1f3f49a",
+  "producer_module_sha256": "c4877b8789eb65872a225b04825518009a7bdfeb4a68e6b0a9b9f563dcb1f7db",
+  "emission_receipt_sha256": "898c6a686cc490afc2272f44d9f5fb4b42ed5606798d7a3febd55bab1b06533e",
+  "qualified_emission_return_sha256": "ba9bb1f9a484f4a5101017225d935abefd93831c97c9e5c53dae6ee4f033334b",
+  "scope": "Synthetic canonical form-feed record, no real paid/investor data or authenticated receipt. Clock values are original fixture catalog clocks, not actual market freshness.",
+  "cases": {
+    "first": {
+      "file": "first-window.json",
+      "sha256": "df4d171361fb328eab8d6ca642176dda6322102e0514775ca6197b0e75ec28e7",
+      "status": 200,
+      "headers": {
+        "cache-control": "private, no-store",
+        "x-robots-tag": "noindex, noimageindex",
+        "content-length": "8549",
+        "content-type": "application/json"
+      },
+      "query": {
+        "max_segments": 2
+      },
+      "reportId": "bernstein-2026-07-21-dc-pipeline"
+    },
+    "continuation": {
+      "file": "pinned-last-window.json",
+      "sha256": "fc98da9d780317b66f0fcaa6c46433e9b30562af0ecc8f7b8ac7da203ec7c46e",
+      "status": 200,
+      "headers": {
+        "cache-control": "private, no-store",
+        "x-robots-tag": "noindex, noimageindex",
+        "content-length": "4716",
+        "content-type": "application/json"
+      },
+      "query": {
+        "source_pdf_sha256": "2c36fbc497b2f5b374e45d2dfcce9de34d2a79ac981de05a87ac05f32f4dbf12",
+        "extracted_text_sha256": "d3605222ac9bf718f2ec8d99b50a4096949e06c4b8c90cd1eb6dc3e1c4277a22",
+        "segment_start": 4,
+        "max_segments": 2
+      },
+      "reportId": "bernstein-2026-07-21-dc-pipeline"
+    },
+    "omitted": {
+      "file": "absent-outline-valid-window.json",
+      "sha256": "26b67f31141aeaf7cbd9d660220a5fde4d1537834263535a3f0a520776485f80",
+      "status": 200,
+      "headers": {
+        "cache-control": "private, no-store",
+        "x-robots-tag": "noindex, noimageindex",
+        "content-length": "8301",
+        "content-type": "application/json"
+      },
+      "query": {
+        "source_pdf_sha256": "2c36fbc497b2f5b374e45d2dfcce9de34d2a79ac981de05a87ac05f32f4dbf12",
+        "extracted_text_sha256": "d3605222ac9bf718f2ec8d99b50a4096949e06c4b8c90cd1eb6dc3e1c4277a22",
+        "segment_start": 3,
+        "max_segments": 2
+      },
+      "reportId": "bernstein-2026-07-21-dc-pipeline"
+    },
+    "none": {
+      "file": "none-layer-empty.json",
+      "sha256": "2b6e1727605009ae451918c51f1f73ca640e49b90294f0d8b05354f51f8fa76b",
+      "status": 200,
+      "headers": {
+        "cache-control": "private, no-store",
+        "x-robots-tag": "noindex, noimageindex",
+        "content-length": "623",
+        "content-type": "application/json"
+      },
+      "query": {
+        "max_segments": 2
+      },
+      "reportId": "msci-2026-08-04-grid-capex"
+    }
+  }
+}

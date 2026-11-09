@@ -17,15 +17,18 @@ const mime: Record<string, string> = { ".css": "text/css", ".js": "text/javascri
 export async function installRealNextLegacyTransport({ page, context, baseURL, canonicalChildPath, html, assetsDirectory, assets, fixtureCase, documents }: {
   page: Page; context: BrowserContext; baseURL: string;
   canonicalChildPath?: "/intl.html"; html?: Buffer; assetsDirectory?: string; assets?: ReadonlyMap<string, Buffer>;
-  fixtureCase?: "allocation-p12t58"; documents?: ReadonlyMap<string, Buffer>;
+  fixtureCase?: "allocation-p12t58" | "allocation-sector-p12t58"; documents?: ReadonlyMap<string, Buffer>;
 }) {
   let pages: ReadonlyMap<string, Buffer>;
-  if (fixtureCase === "allocation-p12t58") {
+  if (fixtureCase === "allocation-p12t58" || fixtureCase === "allocation-sector-p12t58") {
+    const paths = fixtureCase === "allocation-sector-p12t58"
+      ? ["/allocation.html", "/basket/big_pharma.html", "/sector_central.html"]
+      : ["/allocation.html", "/basket/big_pharma.html"];
     if (canonicalChildPath !== undefined || html !== undefined || assetsDirectory !== undefined || assets === undefined
-      || !(documents instanceof Map) || documents.size !== 2
-      || [...documents.keys()].some(key => !["/allocation.html", "/basket/big_pharma.html"].includes(key))
+      || !(documents instanceof Map) || documents.size !== paths.length
+      || [...documents.keys()].some(key => !paths.includes(key))
       || [...documents.values()].some(body => !Buffer.isBuffer(body) || body.length === 0))
-      throw new Error("ALLOCATION_RETURN_DOCUMENT_SCOPE");
+      throw new Error(fixtureCase === "allocation-sector-p12t58" ? "ALLOCATION_SECTOR_RETURN_DOCUMENT_SCOPE" : "ALLOCATION_RETURN_DOCUMENT_SCOPE");
     // Retained reader pins hashes before this call. Copy buffers to bind the
     // installed handler to that input even if a caller later mutates its map.
     pages = new Map([...documents].map(([key, body]) => [key, Buffer.from(body)]));
@@ -128,4 +131,12 @@ export async function installAllocationLegacyTransport(input: {
   documents: ReadonlyMap<string, Buffer>; assets: ReadonlyMap<string, Buffer>;
 }) {
   return installRealNextLegacyTransport({ ...input, fixtureCase: "allocation-p12t58" });
+}
+
+// The Sector leg adds one exact public HTML document, never premium hydration.
+export async function installAllocationSectorLegacyTransport(input: {
+  page: Page; context: BrowserContext; baseURL: string;
+  documents: ReadonlyMap<string, Buffer>; assets: ReadonlyMap<string, Buffer>;
+}) {
+  return installRealNextLegacyTransport({ ...input, fixtureCase: "allocation-sector-p12t58" });
 }

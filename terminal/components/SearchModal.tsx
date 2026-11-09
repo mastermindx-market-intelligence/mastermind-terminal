@@ -255,6 +255,9 @@ export default function SearchModal({
   // moves to search explicitly; it stays there until navigation completes or Watchlist is chosen.
   const searchState = mode !== "go" || view === "search" || q.trim() !== "" ? "search" : "home";
   const isHome = searchState === "home";
+  // Deferred rows belong to the previous query until local ranking catches up.
+  // Keep home/watchlist choices independent; never queue a stale search action.
+  const queryPending = !isHome && q !== deferredQ;
 
   const showRecent = () => {
     closePicker();
@@ -466,6 +469,7 @@ export default function SearchModal({
   }
 
   function choose(sym: string, shiftKey = false) {
+    if (queryPending) return;
     if (companyScope && !isCompanySearchRow(sym, manifest[sym])) return;
     if (companyScope && isPick) {
       setSel(displayRows.findIndex(([s]) => s === sym));
@@ -499,6 +503,7 @@ export default function SearchModal({
   }
 
   function openCompany() {
+    if (queryPending) return;
     if (!companyPreview || !isCompanySearchRow(companyPreview, manifest[companyPreview])) return;
     track(companyPreview);
     if (onCompanyPick) onCompanyPick(companyPreview, q.trim());
@@ -518,6 +523,10 @@ export default function SearchModal({
 
   function key(e: React.KeyboardEvent) {
     if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) return;
+    if (queryPending && (e.key === "Enter" || e.key === "ArrowDown" || e.key === "ArrowUp")) {
+      e.preventDefault();
+      return;
+    }
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault();
       const next = e.key === "ArrowDown"
@@ -590,7 +599,7 @@ export default function SearchModal({
       <div
         key={s}
         className={`r${rowSel === sel ? " sel" : ""}`}
-        onMouseEnter={() => setSel(rowSel)}
+        onMouseEnter={() => { if (!queryPending) setSel(rowSel); }}
         onClick={(e) => choose(s, e.shiftKey)}
       >
         <div className="r-opt" {...optionProps(optionId, rowSel)}>
@@ -879,12 +888,19 @@ export default function SearchModal({
           /* SEARCH / compare / add body — the combobox's popup (D6). The informational chrome
              interleaved with the options (composite warning, section headers, empty states, the
              market-filter disclosure) is marked presentational so it does not read as a result. */
-          <div className={`sres${companyScope && isPick ? ` ${styles.companyResults}` : ""}`} id={listboxId} role="listbox" aria-label={t(titleKey)}>
+          <div className={`sres${companyScope && isPick ? ` ${styles.companyResults}` : ""}`} id={listboxId} role="listbox" aria-label={t(titleKey)}
+            aria-busy={queryPending || undefined}
+            onClickCapture={event => {
+              const row = event.target instanceof Element ? event.target.closest(".r") : null;
+              if (queryPending && row && event.currentTarget.contains(row)) {
+                event.preventDefault(); event.stopPropagation();
+              }
+            }}>
             {/* Composite first row (F2) */}
             {showCompositeRow && compositeExprStr && (
               <div
                 className={`r r-composite${sel === 0 ? " sel" : ""}`}
-                onMouseEnter={() => setSel(0)}
+                onMouseEnter={() => { if (!queryPending) setSel(0); }}
                 onClick={(e) => choose(compositeExprStr, e.shiftKey)}
               >
                 <div className="r-opt" {...optionProps(optionDomId(0), 0)}>
@@ -992,7 +1008,7 @@ export default function SearchModal({
                 {seamHd}
                 <div
                   className={`r${rowSel === sel ? " sel" : ""}${inCmp ? " r-on" : ""}`}
-                  onMouseEnter={() => setSel(rowSel)}
+                  onMouseEnter={() => { if (!queryPending) setSel(rowSel); }}
                   onClick={(e) => choose(s, e.shiftKey)}
                 >
                   <div className="r-opt" {...optionProps(optionDomId(rowSel), rowSel)}>

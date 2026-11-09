@@ -1,0 +1,74 @@
+{
+  "schema": "options_hub.vol/v1",
+  "asof": "2026-10-05",
+  "root": "SPY",
+  "observation_provenance": {
+    "schema": "options_hub.vol.observation/v1",
+    "root": "SPY",
+    "source_session": "2026-10-05",
+    "iv_unit": "percent",
+    "source_value_field": "implied_vol",
+    "source_value_unit": "ratio",
+    "smile_value_fields": [
+      "call_iv",
+      "put_iv"
+    ],
+    "smile_aggregation": "mean_by_expiry_strike_side",
+    "smile_round_decimals": 4
+  },
+  "iv_rank_252": null,
+  "iv_rank_all": null,
+  "coverage_days_all": 1,
+  "since_all": "2026-10-05",
+  "atm_iv": 50.0,
+  "iv_52w_hi": 50.0,
+  "iv_52w_lo": 50.0,
+  "rv20": null,
+  "vrp": null,
+  "term": [
+    {
+      "dte": 4,
+      "exp": "2026-10-09",
+      "atm_iv": 50.0
+    }
+  ],
+  "smile": [
+    {
+      "exp": "2026-10-09",
+      "points": [
+        {
+          "strike": 780.0,
+          "call_iv": 58.2,
+          "put_iv": 58.2
+        },
+        {
+          "strike": 785.0,
+          "call_iv": 58.2,
+          "put_iv": 58.2
+        },
+        {
+          "strike": 790.0,
+          "call_iv": 58.2,
+          "put_iv": 58.2
+        },
+        {
+          "strike": 795.0,
+          "call_iv": 58.2,
+          "put_iv": 58.2
+        }
+      ]
+    }
+  ],
+  "history": [
+    {
+      "date": "2026-10-05",
+      "iv_rank": null,
+      "atm_iv": 50.0,
+      "close": null
+    }
+  ],
+  "coverage": {
+    "n_days": 1,
+    "since": "2026-10-05"
+  }
+}

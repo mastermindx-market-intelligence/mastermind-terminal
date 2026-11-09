@@ -4,6 +4,10 @@ import dynamic from "next/dynamic";
 import type { Lang } from "@/lib/i18n";
 import { adaptResearchMatrix, buildResearchDomain, buildResearchMarks, filterResearchRows, reconcileResearchSelection, toggleComparison,
   type ResearchMetric, type ResearchRow, type ResearchSelection } from "./researchLabAdapter";
+import { ResearchRetainedSelection } from "./ResearchRetainedSelection";
+import { acquiredMatrixBytes } from "@/lib/matrixAcquisition";
+import { prepareRetainedMatrixRequest, retainedInput, retainedDisplayMatches, type RetainedMatrixBinding, type MountedRetainedMatrix } from "@/lib/retainedMatrixRead";
+import type { RetainedInput } from "@/lib/retainedOptionsWire";
 import styles from "./ResearchLab.module.css";
 import { adaptResearchVolatility } from "./researchVolatility";
 import { ResearchVolatilitySlice } from "./ResearchVolatilitySlice";
@@ -71,11 +75,18 @@ class SceneBoundary extends React.Component<{ children: React.ReactNode; fallbac
 /** No I/O, clock, cache, valuation or persistence ownership lives in this consumer. */
 export function OptionsResearchLab({
   root, matrix, volatility = null, matrixReadStatus = "data", onRetryMatrix,
-  volReadStatus = "data", onRetryVol, currentGexSnapshot = null, lang, onClose, onOpenPlan, questionOwnerKey = null,
+  volReadStatus = "data", onRetryVol, currentGexSnapshot = null, lang, onClose, onOpenPlan, questionOwnerKey = null, retainedSelection = null, onRetainedRequest, retainedRead = null, retainedReadGeneration = 0,
 }: {
   root: string;
   /** Existing admitted shell owner; absent means no assistant staging. */
   questionOwnerKey?: string | null;
+  /** Already captured wire only; caller owns selection and withdrawal. */
+  retainedSelection?: RetainedInput | null;
+  /** Selection notification only; the existing GexDesk Matrix owner reads. */
+  onRetainedRequest?: (binding: RetainedMatrixBinding | null) => void;
+  retainedRead?: MountedRetainedMatrix | null;
+  /** Completed ordinary Matrix read epoch, even when the payload is unchanged. */
+  retainedReadGeneration?: number;
   matrix: unknown;
   volatility?: unknown;
   /** Same root-fenced outcome as the incumbent Exposure reader, never a new fetch. */
@@ -136,6 +147,27 @@ export function OptionsResearchLab({
   const comparisons = safeSelection.comparisons
     .map(key => data.rows.find(r => r.key === key))
     .filter((r): r is ResearchRow => r !== undefined);
+  const coordinate = (r: ResearchRow) => ({ expiry: r.expiry, side: r.side, strikeToken: String(r.strike) });
+  const expected = prepareRetainedMatrixRequest({ root, session: data.session,
+    matrix: data.status === "available" && matrixReadStatus === "data" && data.session
+      ? acquiredMatrixBytes(matrix, root, data.session) : null,
+    lens, primary: selected ? coordinate(selected) : null, comparisons: comparisons.map(coordinate),
+    view: { metric, side, expiry, displayMode: mode } }, questionOwnerKey);
+  const requestKey = expected ? JSON.stringify([retainedReadGeneration, expected]) : "";
+  // New object on every actual scope transition, including A -> null -> A.
+  const [retainedEpoch, setRetainedEpoch] = useState<{ key: string; binding: RetainedMatrixBinding | null }>({ key: "", binding: null });
+  if (retainedEpoch.key !== requestKey) setRetainedEpoch({ key: requestKey, binding: expected ? { request: expected } : null });
+  const retainedBinding = retainedEpoch.key === requestKey ? retainedEpoch.binding : null;
+  useLayoutEffect(() => {
+    onRetainedRequest?.(retainedEpoch.binding);
+    return () => onRetainedRequest?.(null);
+  }, [onRetainedRequest, retainedEpoch]);
+  const displayMatches = useMemo(() => !!retainedRead && retainedDisplayMatches(matrix, retainedRead.result), [matrix, retainedRead]);
+  // Render-time identity test closes the gap before effect cleanup runs.
+  const joinedRetained = onRetainedRequest
+    ? retainedBinding && retainedRead?.binding === retainedBinding && displayMatches
+      ? retainedInput(retainedRead.result, retainedBinding.request) : null
+    : retainedSelection;
   const pages = Math.max(1, Math.ceil(rows.length / 50)), shownPage = Math.min(page, pages - 1);
   const label = (r: ResearchRow) => `${number(r.strike)} ${lang === "zh" ? r.side === "call" ? "看涨" : "看跌" : r.side === "call" ? "Call" : "Put"} · ${r.expiry}`;
   const pin = (key: string) => setSelection(s => ({ ...s, selected: key }));
@@ -238,6 +270,12 @@ export function OptionsResearchLab({
         <div className={styles.save}><button disabled>{t("save")}</button><p>{t("saveGap")}</p></div>
       </aside>
     </div>
+    {onRetainedRequest && !joinedRetained && <p className={styles.notice} role="status">{lang === "zh"
+      ? expiry === "all" ? "选择具体到期日和坐标以核验原始快照。" : "原始快照不可用，先前保留数值已撤回。"
+      : expiry === "all" ? "Select an exact expiry and coordinate to verify the original snapshot." : "Original snapshot unavailable. Previous retained values are withdrawn."}</p>}
+    {joinedRetained && <ResearchRetainedSelection input={joinedRetained}
+      context={data.status === "available" && matrixReadStatus === "data" && data.session && questionOwnerKey
+        ? { root, session: data.session, ownerKey: questionOwnerKey } : null} lang={lang} />}
     <details className={styles.sources} id="research-sources"><summary>{t("sources")}</summary><p>{t("built")}: {data.builtAt ?? t("unknown")} · {t("session")}: {data.session ?? t("unknown")}</p><p>{t("nullLaw")}</p><p>{t("clockLaw")}</p><p>{t("excluded")}: {Object.values(data.excluded).reduce((a,b) => a+b,0)} ({lang === "zh" ? "重复／无效身份／无效指标" : "duplicate / invalid identity / invalid metric"}: {data.excluded.duplicate} / {data.excluded.invalidIdentity} / {data.excluded.invalidMetric})</p></details>
   </section>;
 }

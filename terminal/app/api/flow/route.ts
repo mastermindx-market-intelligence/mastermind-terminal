@@ -1,3 +1,7 @@
+import { intelligenceResponse } from "@/lib/shared-shell/intelligenceResponse";
+import { billingPrincipalAuthResult } from "../billing/gateway";
+import { ownerKeyFor } from "@/lib/accountIdentity";
+import { parseRetainedQuery, retainedUnavailable } from "@/lib/retainedMatrixRead";
 import { NextResponse } from "next/server";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
 import { getLiveOptionsAccess } from "@/lib/entitlement";
@@ -5,6 +9,7 @@ import { getLiveOptionsAccess } from "@/lib/entitlement";
 // The proprietary flow_score_v1 model stays server-only inside flowSource — see SECURITY.md.
 import {
   isValidF,
+  readRetainedMatrix,
   fixtureFor,
   attachFlowScores,
   tryFetchUpstreamResult,
@@ -52,9 +57,24 @@ function revalidateFlow(f: string): Promise<Revalidation> {
   return request;
 }
 
-export async function GET(req: Request): Promise<Response> {
+async function readIncumbent(req: Request): Promise<Response> {
   const rl = rateLimit(req, { name: "flow" });
   if (!rl.ok) return tooMany(rl);
+  const url = new URL(req.url);
+  const f = url.searchParams.get("f") ?? "feed";
+  if (url.searchParams.has("retained")) {
+    const headers = { "Cache-Control": "private, no-store", Vary: "Cookie, Authorization, X-Mastermind-Expected-Principal", "X-Content-Type-Options": "nosniff" };
+    const unavailable = (status: number) => NextResponse.json(retainedUnavailable(), { status, headers });
+    if (process.env.FLOW_FIXTURE === "1") return unavailable(503);
+    const auth = await billingPrincipalAuthResult();
+    if (auth.status !== "ok") return unavailable(auth.status === "unavailable" ? 503 : 403);
+    if (req.headers.get("X-Mastermind-Expected-Principal") !== auth.principal) return unavailable(403);
+    const request = f.startsWith("matrix:") ? parseRetainedQuery(url.searchParams, f.slice(7), ownerKeyFor(auth.principal)) : null;
+    if (!request) return unavailable(400);
+    // The actual registered supplier checks fresh product and full-capture export
+    // authority against this EXACT verified token, before and after its immutable read.
+    return NextResponse.json(await readRetainedMatrix(request, auth.token), { headers });
+  }
   // Options data is a PAID feature — enforced SERVER-SIDE against the macro-api
   // entitlement authority: the `terminal_live_options` feature from /api/me
   // (config/plans.yml — essential + pro, incl. trial), NOT profiles.is_pro (a UI
@@ -69,8 +89,7 @@ export async function GET(req: Request): Promise<Response> {
       );
     }
   }
-  const url = new URL(req.url);
-  const f = url.searchParams.get("f") ?? "feed";
+
   if (!isValidF(f)) {
     // Every response on this route carries no-store, error branches included:
     // EdgeOne keys /api/* error responses WITHOUT the auth cookie, so an
@@ -211,4 +230,13 @@ export async function GET(req: Request): Promise<Response> {
     });
   }
   return NextResponse.json(stale, { headers: { "Cache-Control": "no-store" } });
+}
+
+// Optional display projection after the incumbent reader's access, rate and source gates.
+// The full response/cache and every other selection retain their existing contract.
+export async function GET(req: Request): Promise<Response> {
+  const response = await readIncumbent(req);
+  const params = new URL(req.url).searchParams;
+  return params.get("view") === "intelligence" && params.get("f") === "prophet_idx"
+    ? intelligenceResponse(response, "prophet") : response;
 }

@@ -3735,7 +3735,7 @@ export default function OptionsHubView({
                         </tbody>
                       </table>
                     </div>
-                    <div style={{ padding: "6px 14px", fontSize: 10, color: "var(--text-dim)", borderTop: "1px solid var(--line)" }}>
+                    <div style={{ padding: "6px 14px", fontSize: 10, color: "var(--text-2)", borderTop: "1px solid var(--line)" }}>
                       {t("ohActivityVsYear")}
                     </div>
                   </div>

@@ -47,6 +47,9 @@ const { createHash } = require("node:crypto");
 const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
 const { chromium } = require("@playwright/test");
+const { installFixtureBoundary } = require("./gex_failure_capture.cjs");
+const { trackOwnedServer } = require("./f11_owned_server.cjs");
+const ownedServers = new WeakMap();
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
@@ -194,6 +197,7 @@ function startServer() {
     stdio: ["ignore", "pipe", "pipe"],
     detached: true,
   });
+  ownedServers.set(child, trackOwnedServer(child));
   child.stdout.on("data", (buf) => {
     const line = String(buf);
     if (/Ready|compiled|error|Error/i.test(line)) process.stdout.write(`[dev] ${line}`);
@@ -202,13 +206,12 @@ function startServer() {
   return child;
 }
 
-function stopServer(child) {
-  if (!child || !child.pid) return;
-  try {
-    process.kill(-child.pid, "SIGTERM");
-  } catch {
-    try { child.kill("SIGTERM"); } catch { /* already gone */ }
-  }
+async function stopServer(child) {
+  if (!child) return;
+  const owner = ownedServers.get(child);
+  if (!owner) throw new Error("GEX_CAPTURE_SERVER_CUSTODY");
+  await owner.stop();
+  console.log(JSON.stringify({ gexFailureCleanup: owner.settlement() }));
 }
 
 async function waitForServer(timeoutMs) {
@@ -236,6 +239,7 @@ async function newPage(browser, width, lang, board, replies, withClock, stream) 
     locale: lang === "zh" ? "zh-CN" : "en-US",
     colorScheme: "dark",
   });
+  await installFixtureBoundary(context, BASE);
   await context.addInitScript((l) => {
     localStorage.setItem("mm.lang", l);
     localStorage.setItem("theme", "dark");
@@ -637,11 +641,10 @@ async function main() {
     throw new Error("UPDATE_HEATMAP_EVIDENCE requires CAPTURE_ONLY='^heatmap-'");
   }
   const capturedAtHead = currentGitHead();
-  const capturedLayoutFiles = updateHeatmap
-    ? Object.fromEntries(LAYOUT_FILES.map((rel) => [rel, sha256File(rel)])) : null;
+  const capturedLayoutFiles = Object.fromEntries(LAYOUT_FILES.map((rel) => [rel, sha256File(rel)]));
   const child = startServer();
   const files = [];
-  let failed = 0;
+  let failed = 0, primaryError;
   try {
     await waitForServer(180_000);
     const browser = await chromium.launch({ headless: true, args: BROWSER_ARGS });
@@ -676,8 +679,15 @@ async function main() {
     } finally {
       await browser.close();
     }
+  } catch (error) {
+    primaryError = error;
+    throw error;
   } finally {
-    stopServer(child);
+    try { await stopServer(child); }
+    catch (cleanupError) {
+      if (primaryError) { primaryError.cleanupError = cleanupError; throw primaryError; }
+      throw cleanupError;
+    }
   }
 
   if (failed) process.exitCode = 1;
@@ -702,6 +712,13 @@ async function main() {
     }
     return;
   }
+  if (failed) {
+    console.log(`run with failures: ${files.length} crops, ${failed} failed; EVIDENCE.yml not written`);
+    return;
+  }
+  if (files.length !== Object.keys(STATES).length * 6
+      || JSON.stringify(capturedLayoutFiles) !== JSON.stringify(Object.fromEntries(LAYOUT_FILES.map(rel => [rel, sha256File(rel)])))
+      || currentGitHead() !== capturedAtHead) throw new Error("GEX_CAPTURE_INCOMPLETE_OR_SOURCE_CHANGED");
   files.sort();
   const evidence = [
     "# GEX desk, Levels and Heatmap failure-state truth — capture evidence",
@@ -737,7 +754,7 @@ async function main() {
       return `  ${name}: { url: "${URLS[board]}", state: ${state}, injected: { ${injected} }${stream}${then} }`;
     }),
     "surfaces: [GexDeskView, HeatSeekerCard, MarketStateCard, LevelsView, HeatmapView]",
-    "injection: page.route answers /api/flow (by f-param) and /data/manifest.json with 503 / 404, or refuses the connection (abort); /api/flow/stream is refused on the GEX desk, or (gex-live-*) answers the last frame then its named status event; every other read is the FLOW_FIXTURE server",
+    "injection: page.route answers /api/flow (by f-param) and /data/manifest.json with 503 / 404, or refuses the connection (abort); /api/flow/stream is refused on the GEX desk, or (gex-live-*) answers the last frame then its named status event; remaining flow reads use FLOW_FIXTURE; quote and other provider APIs are typed unavailable before transport",
     "persisted: the heatmap-persisted-* states age the browser's own IndexedDB record of /data/manifest.json (dataCache write-through), never a mocked cache",
     "capture_flag: TERMINAL_E2E_FIXTURE",
     "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
@@ -752,7 +769,9 @@ async function main() {
   console.log(`wrote ${files.length} crops + EVIDENCE.yml (head ${capturedAtHead})`);
 }
 
-module.exports = { updateHeatmapEvidence };
+module.exports = { updateHeatmapEvidence,
+  captureContract: Object.freeze({ layoutFiles: Object.freeze([...LAYOUT_FILES]),
+    files: Object.freeze(Object.keys(STATES).flatMap(state => [1440, 820, 390].flatMap(width => [cropName(state, width, "en"), cropName(state, width, "zh")]))) }) };
 
 if (require.main === module) {
   main().catch((err) => {

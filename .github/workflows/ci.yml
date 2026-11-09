@@ -240,7 +240,7 @@ jobs:
       - run: npx tsc --noEmit
       - name: Check immutable evidence orchestration (synthetic)
         timeout-minutes: 1
-        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs
+        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/gex_owned_server.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs
       - name: Plan current-source evidence capture
         id: evidence_plan
         run: node scripts/ci/plan-evidence-capture.cjs
@@ -553,6 +553,16 @@ jobs:
           name: responsive-qa-${{ github.run_id }}-serial-safe-summary-${{ github.run_attempt }}
           path: ${{ steps.safe_shared_shell_summary.outputs.safe_shared_shell_summary_path }}
           if-no-files-found: warn
+      - name: Qualify native Intelligence entrances
+        if: matrix.shard == 'serial'
+        env:
+          CI: '1'
+          TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port_shared }}
+        run: >-
+          npm run test:e2e:responsive -- --config=playwright.intelligence.config.ts
+          --project=desktop --project=tablet --project=mobile
+          --workers=1 --retries=0
+          --output=test-results/native-intelligence
       - name: Upload responsive QA screenshots
         if: always()
         uses: actions/upload-artifact@v4

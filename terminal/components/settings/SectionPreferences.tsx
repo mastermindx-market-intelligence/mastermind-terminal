@@ -189,9 +189,13 @@ export default function SectionPreferences({ t, identity, user, onClose, onPatch
         <Group title={t("acsThemeLang")}>
           <Row
             label={t("acsAppearance")}
-            desc={lang === "zh"
-              ? "应用于宏观仪表盘与 3D 研究室。终端其他视图保持深色。自动模式按本地时间在 07:00–19:00 使用浅色。"
-              : "Applies to the Macro Dashboard and 3D Research Lab. Other Terminal views remain dark. Auto uses local time: light from 07:00 to 19:00."}
+            desc={presentation
+              ? (lang === "zh"
+                ? "选择浅色或深色会立即应用于当前工作区；自动模式跟随系统配色偏好。"
+                : "Choose Light or Dark for this workspace. Auto follows your system colour scheme.")
+              : (lang === "zh"
+                ? "应用于宏观仪表盘与 3D 研究室。终端其他视图保持深色。自动模式按本地时间在 07:00–19:00 使用浅色。"
+                : "Applies to the Macro Dashboard and 3D Research Lab. Other Terminal views remain dark. Auto uses local time: light from 07:00 to 19:00.")}
             control={
               <span className="acs-seg" role="group" aria-label={t("acsAppearance")}>
                 {(["light", "auto", "dark"] as ThemeChoice[]).map((c) => (

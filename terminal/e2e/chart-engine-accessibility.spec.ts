@@ -287,6 +287,10 @@ test("K1: symbol, timeframe, indicator toggle and drawing tool are keyboard-reac
   await page.keyboard.press("ControlOrMeta+a"); // select-all on macOS too (Control+a only moves the caret there)
   await page.keyboard.type("MSFT");
   await expect(page.locator(".sres .r").first()).toBeVisible({ timeout: 20_000 });
+  await expect(input).toHaveValue("MSFT");
+  await expect(page.locator(".sres")).not.toHaveAttribute("aria-busy", "true");
+  await expect(page.locator(".sres .r").first().locator(".tk")).toHaveText("MSFT");
+  await expect(page.locator(".sres .r").first()).toHaveClass(/\bsel\b/);
   await expectNamedFocus(page, "symbol search while typing");
   await page.keyboard.press("Enter");
   await expect.poll(() => hasReady(page, "MSFT"), { timeout: 45_000, message: "Enter opened the highlighted MSFT row" }).toBe(true);

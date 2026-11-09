@@ -67,7 +67,12 @@ function isRetryableAuthError(error: unknown): boolean {
       (e.status === 0 || e.status === 429 || e.status >= 500));
 }
 
-export const billingAuthResult = cache(async (): Promise<BillingAuthResult> => {
+// One verification owner, shared by the legacy token projection and the
+// principal-requiring read. No identity is decoded from an unverified token.
+type VerifiedBillingSession =
+  | { status: "ok"; token: string; principal: string | null }
+  | { status: "denied" | "unavailable" };
+const verifiedBillingSession = cache(async (): Promise<VerifiedBillingSession> => {
   try {
     const supabase = await createClient();
     // getSession() may refresh an expiring token. Verify precisely the token
@@ -88,10 +93,32 @@ export const billingAuthResult = cache(async (): Promise<BillingAuthResult> => {
       return { status: isRetryableAuthError(userRead.error) ? "unavailable" : "denied" };
     }
     if (!userRead.data.user) return { status: "denied" };
-    return { status: "ok", token };
+    const principal = typeof userRead.data.user.id === "string" && userRead.data.user.id.length > 0
+      ? userRead.data.user.id : null;
+    return { status: "ok", token, principal };
   } catch {
     return { status: "unavailable" };
   }
+});
+
+/** Preserve the exact legacy shape and decisions, including existing write callers. */
+export const billingAuthResult = cache(async (): Promise<BillingAuthResult> => {
+  const result = await verifiedBillingSession();
+  return result.status === "ok" ? { status: "ok", token: result.token } : result;
+});
+
+export type BillingPrincipalAuthResult =
+  | { status: "ok"; token: string; principal: string }
+  | { status: "denied" | "unavailable" };
+
+/** Server-only projection of the user already verified for this exact token.
+ * The token stays inside the existing authenticated server transport; neither
+ * it nor this result belongs in retained wire, generic caches or client props. */
+export const billingPrincipalAuthResult = cache(async (): Promise<BillingPrincipalAuthResult> => {
+  const result = await verifiedBillingSession();
+  if (result.status !== "ok") return result;
+  if (result.principal === null) return { status: "denied" };
+  return { status: "ok", token: result.token, principal: result.principal };
 });
 
 /** Existing auth consumers retain their null-on-refusal contract, including writes. */

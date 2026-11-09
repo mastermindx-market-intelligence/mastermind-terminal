@@ -5,6 +5,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const crypto = require("node:crypto");
+const rawContracts = require("../../e2e/tools/gex_failure_capture.cjs").contracts();
 const {MANIFESTS, planEvidenceCapture} = require("./plan-evidence-capture.cjs");
 
 function fixture(t) {
@@ -24,7 +25,15 @@ function fixture(t) {
   for (const manifest of MANIFESTS) {
     const file = path.join(root, manifest);
     fs.mkdirSync(path.dirname(file), {recursive: true});
-    fs.writeFileSync(file, render());
+    const packet = rawContracts.find(packet => manifest === `terminal/docs/pr-crops/${packet.directory}/EVIDENCE.yml`);
+    if (packet) {
+      const packetHashes = packet.layoutFiles.map(rel => {
+        const target = path.join(root, rel); fs.mkdirSync(path.dirname(target), {recursive: true});
+        if (!fs.existsSync(target)) fs.writeFileSync(target, "controlled raw source " + rel);
+        return crypto.createHash("sha256").update(fs.readFileSync(target)).digest("hex");
+      });
+      fs.writeFileSync(file, render(packet.layoutFiles, packetHashes));
+    } else fs.writeFileSync(file, render());
   }
   return {root, paths, hashes, render, manifest: path.join(root, MANIFESTS[1])};
 }
@@ -85,6 +94,43 @@ test("unsafe source path cannot escape repository while planning", t => {
 test("empty or truncated hash inventory never permits skip", t => {
   const f = fixture(t);
   fs.writeFileSync(f.manifest, f.render(f.paths.slice(0, 4), f.hashes));
+  const result = planEvidenceCapture(f.root);
+  assert.equal(result.capture, true);
+  assert.equal(result.reason, "fail-closed");
+});
+
+
+test("merge-group cannot skip a changed Gex raw packet when PL6 and VI sources still match", t => {
+  const f = fixture(t), rel = "terminal/components/gexdesk/GexDeskView.tsx";
+  assert.equal(planEvidenceCapture(f.root).capture, false);
+  fs.appendFileSync(path.join(f.root, rel), " changed");
+  assert.deepEqual(planEvidenceCapture(f.root).stale, [rel]);
+  assert.equal(planEvidenceCapture(f.root).capture, true);
+});
+
+test("dropped Gex from both actual raw maps fails closed even though10/11 rows remain", t => {
+  const f = fixture(t), rel = "terminal/components/gexdesk/GexDeskView.tsx";
+  assert.deepEqual(rawContracts.map(packet => packet.layoutFiles.length), [11, 12]);
+  for (const packet of rawContracts) {
+    const file = path.join(f.root, "terminal/docs/pr-crops", packet.directory, "EVIDENCE.yml");
+    fs.writeFileSync(file, fs.readFileSync(file, "utf8").split("\n").filter(line => !line.startsWith("  " + rel + ":")).join("\n"));
+  }
+  fs.appendFileSync(path.join(f.root, rel), " unobserved drift");
+  const result = planEvidenceCapture(f.root);
+  assert.equal(result.capture, true);
+  assert.equal(result.reason, "fail-closed");
+});
+
+for (const packet of rawContracts) for (const defect of ["missing", "substituted", "duplicate"]) test(`${packet.id} raw keys ${defect} cannot authorize a skip`, t => {
+  const f = fixture(t), file = path.join(f.root, "terminal/docs/pr-crops", packet.directory, "EVIDENCE.yml");
+  const lines = fs.readFileSync(file, "utf8").split("\n"), at = lines.findIndex(line => line.startsWith("  " + packet.layoutFiles[0] + ":"));
+  if (defect === "missing") lines.splice(at, 1);
+  else if (defect === "duplicate") lines[at] = lines[at + 1];
+  else {
+    const rel = "terminal/components/substituted.tsx"; fs.writeFileSync(path.join(f.root, rel), "substituted source");
+    const hash = crypto.createHash("sha256").update("substituted source").digest("hex"); lines[at] = `  ${rel}: "${hash}"`;
+  }
+  fs.writeFileSync(file, lines.join("\n"));
   const result = planEvidenceCapture(f.root);
   assert.equal(result.capture, true);
   assert.equal(result.reason, "fail-closed");

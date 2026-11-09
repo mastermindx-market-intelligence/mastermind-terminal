@@ -96,18 +96,20 @@ function lessons(t: (key: string) => string): Lesson[] {
   ];
 }
 
-export function LevelsLearn() {
+export function LevelsLearn({ withinShell = false }: { withinShell?: boolean } = {}) {
   const t = useT();
+  const Content = withinShell ? "section" : "main";
   return (
     <div style={PAGE}>
-      <header style={TOPBAR}>
+      {!withinShell && <header style={TOPBAR}>
         <Link href="/options?tab=levels" style={{ textDecoration: "none" }}>
           <BrandLockup />
         </Link>
         <Link href="/options?tab=levels" style={BACK_LINK}>{t("llBack")}</Link>
-      </header>
+      </header>}
 
-      <main style={MAIN}>
+      <Content style={MAIN}>
+        {withinShell && <Link href="/options?tab=levels" style={BACK_LINK}>{t("llBack")}</Link>}
         <div style={HERO}>
           <div style={HERO_EYEBROW}>{t("llHeroEyebrow")}</div>
           <h1 style={HERO_TITLE}>{t("llHeroTitle")}</h1>
@@ -140,7 +142,7 @@ export function LevelsLearn() {
           <Link href="/options?tab=levels" style={FOOT_CTA}>{t("llOpenBoard")}</Link>
           <span style={FOOT_NOTE}>{t("llFootNote")}</span>
         </div>
-      </main>
+      </Content>
     </div>
   );
 }
