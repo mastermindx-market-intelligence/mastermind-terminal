@@ -1,4 +1,5 @@
 import {expect,test} from "@playwright/test";
+import {SHARED_SHELL_PROTOCOL,SHARED_SHELL_BRIDGE_VERSION,SHARED_SHELL_DOCUMENT_VERSION} from "../lib/sharedShellContracts";
 
 // Use the existing responsive harness and real routes. The normal customer
 // configuration keeps this opt-in surface off; CI qualifies it explicitly.
@@ -242,4 +243,181 @@ test("Tools opens an admitted public page and Back restores query, scope and sel
  await expect(dialog.getByRole("complementary",{name:"Selected tool",exact:true}).getByRole("heading",{name:"Learn",exact:true})).toBeVisible();
  await noOverflow(page);
  await page.screenshot({animations:"disabled",path:info.outputPath("tools-public-learn-back-restored.png")});
+});
+
+
+// Recovery uses the real Next layout, admission endpoint and LegacyPageHost.
+// Only the cross-origin child is controlled so late/error messages are repeatable.
+function recoveryChild(parentOrigin: string, holdReady: boolean) {
+ return `<!doctype html><html><head><meta charset="utf-8"><title>Recovery test workspace</title></head>
+ <body><button id="workspace-action">Workspace action</button><script>
+ const parentOrigin=${JSON.stringify(parentOrigin)};
+ const generation=new URL(location.href).searchParams.get("mmx_generation");
+ let init=null;
+ const send=(body)=>parent.postMessage({protocol:${JSON.stringify(SHARED_SHELL_PROTOCOL)},frameGeneration:generation,...body},parentOrigin);
+ const ready=()=>{if(init)send({type:"READY",href:new URL(init.canonicalPath,location.origin).href,title:"Macro",
+  contextRevision:init.contextRevision,bridgeVersion:${JSON.stringify(SHARED_SHELL_BRIDGE_VERSION)},documentVersion:${JSON.stringify(SHARED_SHELL_DOCUMENT_VERSION)},responseKind:"content"});};
+ window.shellRecoveryFixture={ready,fail:()=>send({type:"ERROR",code:"initialization_failed"}),navigate:(href)=>{
+  history.pushState({},"",href);
+  send({type:"NAVIGATE",href:new URL(href,location.origin).href,mode:"push",sameDocument:true,requestId:crypto.randomUUID()});
+ }};
+ addEventListener("message",event=>{
+  if(event.source!==parent||event.origin!==parentOrigin||event.data?.type!=="INIT"||event.data.frameGeneration!==generation)return;
+  init=event.data;document.documentElement.dataset.initialized="true";
+  if(!${JSON.stringify(holdReady)})ready();
+ });
+ <\/script></body></html>`;
+}
+
+test.describe("legacy workspace recovery",()=>{
+ const canonical="/macro.html?filter=a%20b&filter=a+b#risk";
+ const legacy="https://www.mastermind-x.com";
+ type FixtureWindow=Window & {shellRecoveryFixture:{ready:()=>void;fail:()=>void}};
+ async function setup(page:import("@playwright/test").Page,baseURL:string) {
+  let hold=false;
+  await page.context().addCookies([
+   {name:"mm_e2e_rs30",value:"1",url:baseURL},
+   {name:"mm_e2e_guest",value:"1",url:baseURL},
+  ]);
+  await page.route(legacy+"/macro.html?**",route=>route.fulfill({
+   contentType:"text/html; charset=utf-8",body:recoveryChild(new URL(baseURL).origin,hold),
+  }));
+  // Warm this real admission route before measuring a child response deadline.
+  const gate=await page.request.get(baseURL+"/api/shared-shell/status");
+  expect((await gate.json()).enabled).toBe(true);
+  await page.goto(canonical);
+  const frame=page.locator("[data-shared-shell-frame]");
+  await expect(frame).toBeVisible();
+  const child=()=>page.frames().find(candidate=>candidate.url().startsWith(legacy+"/macro.html?"))!;
+  await expect.poll(()=>child()?.url()).toContain("mmx_generation=");
+  return {frame,child,holdNext:()=>{hold=true;}};
+ }
+
+ test("failure stays stable, then explicit retry transfers keyboard focus into the new workspace",async({page,baseURL},info)=>{
+  const {frame,child,holdNext}=await setup(page,baseURL!);
+  await child().locator("#workspace-action").focus();
+  await expect(frame).toBeFocused();
+  const generation=new URL(child().url()).searchParams.get("mmx_generation");
+  await child().evaluate(()=>{(window as unknown as FixtureWindow).shellRecoveryFixture.fail();});
+  const boundary=page.locator(".shared-shell-boundary");
+  const heading=boundary.getByRole("heading");
+  await expect(heading).toBeFocused();
+  await expect(frame).toBeHidden();
+  await expect(frame).toHaveAttribute("inert","");
+  await expect(boundary.getByRole("button",{name:"Try again",exact:true})).toBeVisible();
+  const recoveryTitle=await heading.textContent();
+  await child().evaluate(()=>{(window as unknown as FixtureWindow).shellRecoveryFixture.ready();});
+  await expect(heading).toHaveText(recoveryTitle!);
+  await expect(frame).toBeHidden();
+  for(const action of await boundary.locator("button,a").all()){
+   const box=await action.boundingBox();
+   expect(box!.height).toBeGreaterThanOrEqual(44);
+  }
+  await noOverflow(page);
+  await page.screenshot({animations:"disabled",path:info.outputPath("workspace-recovery-dark-en.png")});
+  holdNext();
+  await boundary.getByRole("button").click();
+  await expect(heading).toBeFocused();
+  await expect.poll(()=>new URL(child().url()).searchParams.get("mmx_generation")).not.toBe(generation);
+  await expect(child().locator("html")).toHaveAttribute("data-initialized","true");
+  await child().evaluate(()=>{(window as unknown as FixtureWindow).shellRecoveryFixture.ready();});
+  await expect(frame).toBeVisible();
+  await expect(frame).toBeFocused();
+  await expect(boundary).toHaveCount(0);
+  expect(new URL(page.url()).pathname+new URL(page.url()).search+new URL(page.url()).hash).toBe(canonical);
+ });
+
+ test("light Chinese recovery remains usable on short screens and preserves a newer focus choice",async({page,baseURL},info)=>{
+  await page.emulateMedia({reducedMotion:"reduce"});
+  const {frame,child,holdNext}=await setup(page,baseURL!);
+  await page.getByRole("button",{name:"Light theme",exact:true}).click();
+  await page.getByRole("button",{name:"Chinese language",exact:true}).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme","light");
+  await expect(page.locator("html")).toHaveAttribute("data-lang","zh");
+  await child().evaluate(()=>{(window as unknown as FixtureWindow).shellRecoveryFixture.fail();});
+  const boundary=page.locator(".shared-shell-boundary");
+  await expect(boundary.getByRole("button",{name:"重试",exact:true})).toBeVisible();
+  const original=boundary.getByRole("link");
+  await expect(original).toHaveAttribute("href",legacy+canonical);
+  await expect(original).toHaveAttribute("target","_blank");
+  await expect(original).toHaveAttribute("rel","noopener noreferrer");
+  await expect(original).toHaveCSS("transition-duration","0s");
+  await noOverflow(page);
+  await page.screenshot({animations:"disabled",path:info.outputPath("workspace-recovery-light-zh.png")});
+  if(info.project.name==="desktop"){
+   for(const viewport of [{width:568,height:320},{width:320,height:480}]){
+    await page.setViewportSize(viewport);
+    await boundary.getByRole("heading").scrollIntoViewIfNeeded();
+    const headingBox=await boundary.getByRole("heading").boundingBox();
+    const boundaryBox=await boundary.boundingBox();
+    expect(headingBox!.y).toBeGreaterThanOrEqual(boundaryBox!.y);
+    for(const action of await boundary.locator("button,a").all()){
+     await action.scrollIntoViewIfNeeded();
+     const box=await action.boundingBox();
+     expect(box!.height).toBeGreaterThanOrEqual(44);
+     expect(box!.x).toBeGreaterThanOrEqual(0);
+     expect(box!.x+box!.width).toBeLessThanOrEqual(viewport.width);
+     expect(await action.evaluate(element=>{
+      const box=element.getBoundingClientRect();
+      const hit=document.elementFromPoint(box.x+box.width/2,box.y+box.height/2);
+      return hit===element||element.contains(hit);
+     })).toBe(true);
+    }
+    await noOverflow(page);
+    await page.screenshot({animations:"disabled",path:info.outputPath(`workspace-recovery-${viewport.width}x${viewport.height}.png`)});
+   }
+  }
+  holdNext();
+  await boundary.getByRole("button").click();
+  await expect(child().locator("html")).toHaveAttribute("data-initialized","true");
+  const outside=page.locator(".topbar button:visible,.mobilebar button:visible").first();
+  await outside.focus();
+  await child().evaluate(()=>{(window as unknown as FixtureWindow).shellRecoveryFixture.ready();});
+  await expect(frame).toBeVisible();
+  await expect(outside).toBeFocused();
+ });
+});
+
+
+test("the current legacy company opens its chart and returns to the exact research location",async({page,baseURL},info)=>{
+ test.skip(info.project.name!=="desktop","The current-chart toolbar is desktop chrome");
+ const origin=new URL(baseURL!).origin;
+ const legacy="https://www.mastermind-x.com";
+ await page.context().addCookies([
+  {name:"mm_e2e_rs30",value:"1",url:baseURL!},{name:"mm_e2e_guest",value:"1",url:baseURL!},
+ ]);
+ await page.addInitScript(({origin})=>{
+  if(location.origin===origin && !sessionStorage.getItem("shell-company-cursor-seeded")){
+   localStorage.setItem("mm.activeSymbol","NVDA");sessionStorage.setItem("shell-company-cursor-seeded","1");
+  }
+ },{origin});
+ await page.route(legacy+"/stock.html**",route=>route.fulfill({
+  contentType:"text/html; charset=utf-8",body:recoveryChild(origin,false),
+ }));
+ const initial="/stock.html?filter=a%20b&filter=a+b#AAPL";
+ await page.goto(initial);
+ const frame=page.locator("[data-shared-shell-frame]");
+ await expect(frame).toBeVisible();
+ const chart=page.getByRole("link",{name:"Open current chart",exact:true});
+ let chartHref=new URL((await chart.getAttribute("href"))!,origin);
+ expect(chartHref.searchParams.get("symbol")).toBe("AAPL");
+ expect(chartHref.searchParams.get("ret")).toBe(origin+initial);
+ const child=page.frames().find(candidate=>candidate.url().startsWith(legacy+"/stock.html"))!;
+ const next="/stock.html?filter=a%20b&filter=a+b#MSFT";
+ await child.evaluate(href=>{
+  (window as unknown as Window & {shellRecoveryFixture:{navigate:(href:string)=>void}}).shellRecoveryFixture.navigate(href);
+ },next);
+ await expect(page).toHaveURL(origin+next);
+ await expect.poll(async()=>new URL((await chart.getAttribute("href"))!,origin).searchParams.get("symbol")).toBe("MSFT");
+ expect(page.frames()).toContain(child);
+ await expect(frame).toBeVisible();
+ expect(await page.evaluate(()=>localStorage.getItem("mm.activeSymbol"))).toBe("NVDA");
+ chartHref=new URL((await chart.getAttribute("href"))!,origin);
+ expect(chartHref.searchParams.get("ret")).toBe(origin+next);
+ await chart.click();
+ await expect(page).toHaveURL(chartHref.href);
+ await expect(page.locator(".pair b")).toHaveText("MSFT");
+ await page.locator(".brand-back").click();
+ await expect(page).toHaveURL(origin+next);
+ await expect(page.locator("[data-shared-shell-frame]")).toBeVisible();
 });

@@ -27,6 +27,12 @@ Preserve #1188 lazy-catalog/search, #1244 intelligence navigation, #1276 held F0
 
 Principal direct implementation rationale: `LOWER_TOTAL_OVERHEAD` for tightly coupled interaction diagnosis and repair, with read-only reasoning assistance where useful. WHY NOT FABLE: existing architecture and canonical UI owners suffice; no new cross-system architecture is required. Native reasoning children may advise; no native labor substitute or fabricated Fabric admission.
 
-## Initial state
+## Current state
 
-Investigation in progress. No product code changed or tests claimed. Plan is not an Agent OS lifecycle record (`PLAN_NOT_ORG_LINKED`). Next action: inspect the real shell and its current controls, choose and reproduce a disjoint behavioral defect, then implement and validate it through this original workspace.
+Local implementation and affected real-route proof are complete: stable workspace recovery, keyboard focus continuity, responsive translated recovery actions, and explicit US-company chart/return continuity. The complete evidence and scope limits are in [README.md](README.md); source and capture hashes are in [manifest.json](manifest.json).
+
+93 focused unit cases passed. The responsive browser run passed 21 cases with six intentional viewport skips and no retries. TypeScript and new-surface lint pass; LegacyPageHost's exact-base lint debt remains disclosed. The final source diff is SELF_REVIEWED.
+
+Plan is not an Agent OS lifecycle record (`PLAN_NOT_ORG_LINKED`). Native reasoning assistance is accepted and terminal; no worker, watcher or external message is outstanding. The next action is to publish this exact qualified source through the original publisher, open a Ready PR, consume required CI and protected merge controls, and then qualify the existing beta release owner and live consumer path. A PR or auto-merge request is not completion.
+
+DO_NOT_REDO: accepted local proofs unless relevant source/composition changes. Preserve all other active/held Shared Shell lanes. No independent review is required solely by this checkpoint. Source custody, real native approvals, protected checks and release holds continue to bind.
