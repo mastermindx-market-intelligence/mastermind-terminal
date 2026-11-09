@@ -271,7 +271,7 @@
   },
   "qualification_commands": {
     "unit": "vitest run lib/__tests__/newsCatchupPanel.test.tsx --reporter=json",
-    "browser": "Existing CI: npm run test:e2e:responsive; added two cases in e2e/news-catchup.spec.ts",
+    "browser": "Existing CI: npm run test:e2e:responsive; two added real-shell cases include static-headline focus/viewport/Tab continuation and retained screenshots.",
     "browser_status": "authored, not yet executed"
   },
   "source_ownership": {
@@ -312,5 +312,10 @@
       "path": "terminal/e2e/news-catchup.spec.ts",
       "preimage_git_blob": "de74ae3006a680145d09d008a634222069c1e622"
     }
-  ]
+  ],
+  "paper_reference": {
+    "file_id": "01M5EXPMQTSBFBAM8KKG83FTZH",
+    "node_id": "424-0",
+    "proof": "paper/VERIFICATION.json"
+  }
 }

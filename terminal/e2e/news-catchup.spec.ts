@@ -304,7 +304,10 @@ test("news catch-up is readable across the EN/ZH desktop/tablet/mobile matrix", 
 });
 
 test("keyboard review retains the story, continues through New, and returns to its empty filter", async ({ page, baseURL }, testInfo) => {
-  const feed: Feed = { nvda: FIRST_VISIT, nvdaStatus: 200 };
+  const feed: Feed = {
+    nvda: { ...FIRST_VISIT, rows: FIRST_VISIT.rows.map((row) => row.story_id === "ev2_nvda_guidance" ? { ...row, url: "" } : row) },
+    nvdaStatus: 200,
+  };
   const storeKey = await prepare(page, testInfo, baseURL, feed);
   const panel = await openNews(page);
   await expect(panel.locator("[data-news-catchup-summary]")).toHaveText("3 new · 0 updated", { timeout: 20_000 });
@@ -323,7 +326,12 @@ test("keyboard review retains the story, continues through New, and returns to i
   expect(await storyIds(panel)).toEqual(["ev2_nvda_launch", "ev2_nvda_guidance"]);
   await reviewOf(panel, "ev2_nvda_launch").locator("[data-news-mark-one]").focus();
   await page.keyboard.press("Enter");
-  await expect(reviewOf(panel, "ev2_nvda_guidance").locator("[data-news-headline]")).toBeFocused();
+  const nextHeadline = reviewOf(panel, "ev2_nvda_guidance").locator("[data-news-headline]");
+  await expect(nextHeadline).toHaveAttribute("tabindex", "-1");
+  await expect(nextHeadline).toBeFocused();
+  await expect(nextHeadline).toBeInViewport({ ratio: 1 });
+  expect(await nextHeadline.evaluate((el) => getComputedStyle(el).outlineStyle)).not.toBe("none");
+  await panel.screenshot({ path: testInfo.outputPath("news-static-headline-focus.png"), animations: "disabled" });
   await page.keyboard.press("Tab");
   await expect(reviewOf(panel, "ev2_nvda_guidance").locator("[data-news-mark-one]")).toBeFocused();
   await page.keyboard.press("Enter");

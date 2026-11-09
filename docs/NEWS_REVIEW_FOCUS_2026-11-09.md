@@ -43,10 +43,16 @@ The existing `useNewsCatchup` / `newsReviewState` owners still decide what can b
 - The original 15 component tests and 14 new cases run against the actual News components: **29/29 pass** on the candidate. The identical expanded suite on the unchanged implementation passes 22 and fails seven focus cases.
 - Cases include same-story focus, no source link, forward/backward continuation, the last Updated story in Chinese, bulk review under All/New with a source filter, unfocused activation, a newer focus choice, passive storage updates, no-op consumption, account/filter cancellation, and accepted session-only review.
 - Focused TypeScript qualification passes for the exact module and test closure. Primary dependency versions come from the repository lockfile. This isolated check does not replace full application CI, lint or a Next build.
-- Two keyboard journeys extend the existing `terminal/e2e/news-catchup.spec.ts` real-shell fixture. They use Enter and Tab, assert actual focused elements, preserve selected filters, check the visible focus outline and retain focused-state screenshots in the normal Playwright output. They have been authored; browser execution remains owed.
+- Two keyboard journeys extend the existing `terminal/e2e/news-catchup.spec.ts` real-shell fixture. They use Enter and Tab, assert actual focused elements, preserve selected filters, check the visible focus outline and retain focused-state screenshots in the normal Playwright output. The first journey also checks a static headline’s focus outline, viewport visibility and subsequent Tab continuation. They have been authored; browser execution remains owed.
 - Full exact-head CI, required browser results, merge controls, git-gated deployment and live proof remain separate delivery steps. This document grants none of them.
 
 The package remains a draft until the interactive change has its required browser evidence. Existing News layout proposals #1207 and #1210 were inspected for overlapping work; they contain no equivalent focus repair. This change neither incorporates those proposals nor removes their release holds.
+
+## Editable Paper reference
+
+News file `01M5EXPMQTSBFBAM8KKG83FTZH`, page `p-3-0`, Build parent `3H7-0`, card `424-0` now contains the same interaction contract and an original editable SVG sequence. The existing 15 children and their full JSX prefix were preserved. Seven Text contents were read back, two renders were inspected, low-contrast annotations were corrected, and the parent/card working markers were released.
+
+[Paper proof and source](../terminal/docs/pr-crops/news-review-focus-20261109/paper/VERIFICATION.json) retain the before/after parent, standalone contract, SVG and final rendered image. The card points to implementation head `187abb3124edbf29f3bb23a8d81c40b46315ff59`; later evidence-only changes preserve those implementation blobs.
 
 ## Sources
 
