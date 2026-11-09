@@ -8,7 +8,7 @@ beforeEach(()=>{edges.redirect.mockClear();vi.stubEnv("TERMINAL_REQUIRE_AUTH","0
 afterEach(()=>vi.unstubAllEnvs());
 it.each([["1","/today"],["0","/terminal"]])("login uses profile %s default %s",async(flag,destination)=>{
  vi.stubEnv("MMX_SHARED_SHELL",flag);
- await expect(Login()).rejects.toThrow("redirect:"+destination+"?signin=1");
+ await expect(Login({})).rejects.toThrow("redirect:"+destination+"?signin=1");
 });
 it("opens sign-in at the safe explicit selected context",async()=>{
  vi.stubEnv("MMX_SHARED_SHELL","1");
@@ -19,7 +19,7 @@ it("opens sign-in at the safe explicit selected context",async()=>{
 });
 it("retains the full-page lockdown owner with the correct profile fallback",async()=>{
  vi.stubEnv("TERMINAL_REQUIRE_AUTH","1");vi.stubEnv("MMX_SHARED_SHELL","1");
- const beta=await Login();expect(beta?.type).toBe(Legacy);expect(beta?.props.defaultNext).toBe("/today");
- vi.stubEnv("MMX_SHARED_SHELL","0");expect((await Login())?.props.defaultNext).toBe("/terminal");
+ const beta=await Login({});expect(beta?.type).toBe(Legacy);expect(beta?.props.defaultNext).toBe("/today");
+ vi.stubEnv("MMX_SHARED_SHELL","0");expect((await Login({}))?.props.defaultNext).toBe("/terminal");
  expect(edges.redirect).not.toHaveBeenCalled();
 });

@@ -2,6 +2,8 @@
 
 import { useLang, type Lang } from "@/lib/i18n";
 import { BrandMark } from "@/components/BrandMark";
+import Link from "next/link";
+import styles from "./OptionsAccess.module.css";
 
 /** Local bilingual copy avoids changing the globally evidence-locked shell LEX. */
 function pick(lang: Lang, en: string, zh: string): string {
@@ -13,20 +15,20 @@ function pick(lang: Lang, en: string, zh: string): string {
 export default function OptionsServiceUnavailable() {
   const { lang } = useLang();
   return (
-    <main className="center" role="status" data-options-access="temporarily-unavailable">
-      <div className="hero">
-        <div className="mk"><BrandMark size={48} /></div>
-        <h1 style={{ fontSize: 22, marginBottom: 8 }}>
+    <main id="shared-shell-content" tabIndex={-1} className={styles.viewport} data-options-access="temporarily-unavailable">
+      <div className={styles.card} role="status">
+        <div className={styles.brand}><BrandMark size={48} /></div>
+        <h1 className={styles.title}>
           {pick(lang, "Options is temporarily unavailable", "期权服务暂时不可用")}
         </h1>
-        <p className="tag" style={{ marginBottom: 20 }}>
+        <p className={styles.body}>
           {pick(lang, "We couldn't verify Options access right now. This does not mean your subscription changed. Please retry.", "暂时无法验证访问权限。您的订阅状态尚未改变，请稍后重试。")}
         </p>
-        <div className="cta">
-          <button className="btn btn-primary" type="button" onClick={() => window.location.reload()}>
+        <div className={styles.actions}>
+          <button className={`btn btn-primary ${styles.action}`} type="button" onClick={() => window.location.reload()}>
             {pick(lang, "Try again", "重试")}
           </button>
-          <a className="btn btn-ghost" href="/terminal">{pick(lang, "Go to chart", "返回图表")}</a>
+          <Link className={`${styles.action} ${styles.secondary}`} href="/terminal" prefetch={false}>{pick(lang, "Go to chart", "返回图表")}</Link>
         </div>
       </div>
     </main>

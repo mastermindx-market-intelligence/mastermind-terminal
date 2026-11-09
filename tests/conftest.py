@@ -4,6 +4,9 @@ import os
 
 import pytest
 
+# Reporter activates only for the canonical CI Ingest job; test selection is unchanged.
+pytest_plugins = ["scripts.ci_pytest_results"]
+
 _INTRADAY_RUN_DATE_MODULES = frozenset({
     "test_backfill_intraday",
     "test_backfill_intraday_breaker",

@@ -56,6 +56,26 @@ for (const language of ["en", "zh"] as const) {
     await expect(board.getByLabel(language === "en" ? "Display order" : "排序")).toHaveValue("expand");
     await expect(board.getByRole("searchbox")).toHaveValue("XLE");
     await expect(board.getByTestId("sector-discovery-selection").getByRole("button")).toBeFocused();
+
+    // The current detail-return owner must preserve the new nondefault breadth fields after reload.
+    await board.getByRole("searchbox").fill("");
+    await compare.selectOption("1");
+    await board.getByLabel(language === "en" ? "Display order" : "排序").selectOption("contract");
+    await board.getByTestId("sector-discovery-selection").getByRole("button").click();
+    await expect(page.getByTestId("sector-intelligence")).toHaveAttribute("data-sector-workspace", "detail");
+    await page.reload();
+    await expect(page.getByTestId("sector-intelligence")).toHaveAttribute("data-sector-workspace", "detail");
+    await page.getByTestId("sector-detail-return").click();
+    await expect(compare).toHaveValue("1");
+    await expect(board.getByLabel(language === "en" ? "Display order" : "排序")).toHaveValue("contract");
+    await expect(board.getByRole("searchbox")).toHaveValue("");
+    await expect(page).toHaveURL(/sectorWorkspace=breadth/);
+    await expect(page).toHaveURL(/sectorBreadthWindow=1/);
+    await expect(page).toHaveURL(/sectorBreadthSort=contract/);
+    await expect(board.locator('[data-sector-choice="xle"]')).toHaveAttribute("aria-expanded", "true");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+    await board.getByRole("heading", { name: language === "en" ? "Breadth leadership" : "板块广度排名", exact: true }).scrollIntoViewIfNeeded();
+    await page.screenshot({ path: info.outputPath("composed-return-" + language + "-" + info.project.name + ".png") });
   });
 }
 

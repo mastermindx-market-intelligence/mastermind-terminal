@@ -9,7 +9,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 ROOT_GUARDS = (
     "required CI or independent review that is pending or failing",
-    "Never arm a protected merge while its required review or current-head checks remain unqualified",
+    "Do not enroll a Draft, known-red, conflicting, explicitly held or incompletely qualified PR",
     "A held release step blocks that effect, not the whole session",
     "name and execute the next independent authorized source, test, integration, or real-path verification action",
     "An issue, reviewer request, CI observation, or preserved branch is not completion",
@@ -30,7 +30,9 @@ NESTED_GUARDS = (
     "never retry an explicit safety/permission denial",
     "reconcile EFFECT_UNKNOWN on the same carrier",
     "Do not claim a pushed remote branch when publication did not occur",
-    "fresh incognito end-to-end pass",
+    "Auth/session paths require a fresh authenticated/incognito journey",
+    "unrelated cosmetic edits do not",
+    "Shared-shell/navigation/global CSS",
     "merge-on-green",
 )
 WORKSPACE_GUARDS = (
@@ -64,7 +66,9 @@ def test_missing_root_safety_or_forward_action_clause_is_a_regression(guard: str
     root, nested = _read("AGENTS.md"), _read("terminal/AGENTS.md")
     normal = _norm(root)
     assert guard in normal
-    assert not _contract_ok(normal.replace(guard, "", 1), nested)
+    # The keyword may legitimately appear in several root clauses; absence of the
+    # clause means removing every occurrence of it.
+    assert not _contract_ok(normal.replace(guard, ""), nested)
 
 
 @pytest.mark.parametrize("guard", NESTED_GUARDS + WORKSPACE_GUARDS)

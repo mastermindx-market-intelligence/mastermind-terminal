@@ -1,0 +1,846 @@
+
+> terminal@0.1.0 test:e2e:responsive
+> playwright test --config playwright.d08c.config.ts
+
+
+Running 30 tests using 1 worker
+
+  ✘   1 [desktop] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison en dark (11.5s)
+  ✘   2 [desktop] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison en light (2.8s)
+  ✘   3 [desktop] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison zh dark (2.5s)
+  ✘   4 [desktop] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison zh light (2.6s)
+  ✓   5 [desktop] › e2e/options-plan-payoff.spec.ts:6:7 › fixture exact Plan edit→curve→invalidated→unavailable en (1.7s)
+  ✓   6 [desktop] › e2e/options-plan-payoff.spec.ts:6:7 › fixture exact Plan edit→curve→invalidated→unavailable zh (1.8s)
+  ✓   7 [desktop] › e2e/options-plan-scenario-comparison.spec.ts:6:7 › D08C exact research baseline, compare, clear — en (2.3s)
+  ✓   8 [desktop] › e2e/options-plan-scenario-comparison.spec.ts:6:7 › D08C exact research baseline, compare, clear — zh (1.9s)
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+  ✓   9 [desktop] › e2e/options-shortlist-plan.spec.ts:25:7 › mounted dated shortlist → authored Plan → curve/unavailable/scope reset en (5.0s)
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+  ✓  10 [desktop] › e2e/options-shortlist-plan.spec.ts:25:7 › mounted dated shortlist → authored Plan → curve/unavailable/scope reset zh (4.6s)
+  ✘  11 [tablet] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison en dark (2.7s)
+  ✘  12 [tablet] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison en light (2.1s)
+  ✘  13 [tablet] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison zh dark (3.4s)
+  ✘  14 [tablet] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison zh light (3.9s)
+  ✓  15 [tablet] › e2e/options-plan-payoff.spec.ts:6:7 › fixture exact Plan edit→curve→invalidated→unavailable en (1.8s)
+  ✓  16 [tablet] › e2e/options-plan-payoff.spec.ts:6:7 › fixture exact Plan edit→curve→invalidated→unavailable zh (1.9s)
+  ✓  17 [tablet] › e2e/options-plan-scenario-comparison.spec.ts:6:7 › D08C exact research baseline, compare, clear — en (2.1s)
+  ✓  18 [tablet] › e2e/options-plan-scenario-comparison.spec.ts:6:7 › D08C exact research baseline, compare, clear — zh (2.7s)
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+  ✓  19 [tablet] › e2e/options-shortlist-plan.spec.ts:25:7 › mounted dated shortlist → authored Plan → curve/unavailable/scope reset en (5.3s)
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+  ✓  20 [tablet] › e2e/options-shortlist-plan.spec.ts:25:7 › mounted dated shortlist → authored Plan → curve/unavailable/scope reset zh (4.3s)
+  ✘  21 [mobile] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison en dark (1.7s)
+  ✘  22 [mobile] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison en light (1.7s)
+  ✘  23 [mobile] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison zh dark (1.5s)
+  ✘  24 [mobile] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison zh light (1.8s)
+  ✓  25 [mobile] › e2e/options-plan-payoff.spec.ts:6:7 › fixture exact Plan edit→curve→invalidated→unavailable en (1.1s)
+  ✓  26 [mobile] › e2e/options-plan-payoff.spec.ts:6:7 › fixture exact Plan edit→curve→invalidated→unavailable zh (1.1s)
+  ✓  27 [mobile] › e2e/options-plan-scenario-comparison.spec.ts:6:7 › D08C exact research baseline, compare, clear — en (1.6s)
+  ✓  28 [mobile] › e2e/options-plan-scenario-comparison.spec.ts:6:7 › D08C exact research baseline, compare, clear — zh (1.5s)
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+  ✓  29 [mobile] › e2e/options-shortlist-plan.spec.ts:25:7 › mounted dated shortlist → authored Plan → curve/unavailable/scope reset en (4.8s)
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+  ✓  30 [mobile] › e2e/options-shortlist-plan.spec.ts:25:7 › mounted dated shortlist → authored Plan → curve/unavailable/scope reset zh (3.9s)
+
+
+  1) [desktop] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison en dark 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 0
+    + Received  + 1
+
+    @@ -2,9 +2,10 @@
+        "d_oi": 20,
+        "exp": "2026-10-30",
+        "mid": 9,
+        "oi": 40,
+        "oi_prev": 20,
+    +   "preset": "doi",
+        "right": "C",
+        "root": "SPY",
+        "strike": 765,
+      }
+
+      36 |       expect(request.draft.legs).toHaveLength(1);
+      37 |       const leg = request.draft.legs[0];
+    > 38 |       expect(leg.snapshot.row).toEqual(row);
+         |                                ^
+      39 |       expect(leg.snapshot.sourceStale).toBe(true);
+      40 |       expect(leg.snapshot.asofRaw).toBe("2026-10-23T20:00:00Z");
+      41 |       expect(leg.assumptions.entry?.premium_per_unit).toBe(calculations === 1 ? 2 : 4);
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/options-plan-compare-mounted.spec.ts:38:32
+
+    Error: locator.click: Test ended.
+    Call log:
+      - waiting for getByTestId('options-plan-payoff-panel').getByTestId('plan-pin-baseline')
+
+
+      58 |     await plan.getByRole("combobox", { name: t("Assumed premium denomination", "权利金假设币种"), exact: true }).selectOption("USD");
+      59 |     const calculate = plan.getByRole("button", { name: t("Calculate expiry payoff", "计算到期损益"), exact: true });
+    > 60 |     await calculate.click(); await plan.getByTestId("plan-pin-baseline").click();
+         |                                                                          ^
+      61 |     await expect(plan.getByTestId("plan-baseline-pending")).toBeVisible();
+      62 |     await entry.fill("4"); await calculate.click();
+      63 |     const comparison = plan.getByTestId("plan-scenario-compare");
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/options-plan-compare-mounted.spec.ts:60:74
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-plan-compare-mount-3ba18-→-Plan-→-comparison-en-dark-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-plan-compare-mount-3ba18-→-Plan-→-comparison-en-dark-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-plan-compare-mount-3ba18-→-Plan-→-comparison-en-dark-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-plan-compare-mount-3ba18-→-Plan-→-comparison-en-dark-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [desktop] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison en light 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 0
+    + Received  + 1
+
+    @@ -2,9 +2,10 @@
+        "d_oi": 20,
+        "exp": "2026-10-30",
+        "mid": 9,
+        "oi": 40,
+        "oi_prev": 20,
+    +   "preset": "doi",
+        "right": "C",
+        "root": "SPY",
+        "strike": 765,
+      }
+
+      36 |       expect(request.draft.legs).toHaveLength(1);
+      37 |       const leg = request.draft.legs[0];
+    > 38 |       expect(leg.snapshot.row).toEqual(row);
+         |                                ^
+      39 |       expect(leg.snapshot.sourceStale).toBe(true);
+      40 |       expect(leg.snapshot.asofRaw).toBe("2026-10-23T20:00:00Z");
+      41 |       expect(leg.assumptions.entry?.premium_per_unit).toBe(calculations === 1 ? 2 : 4);
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/options-plan-compare-mounted.spec.ts:38:32
+
+    Error: locator.click: Test ended.
+    Call log:
+      - waiting for getByTestId('options-plan-payoff-panel').getByTestId('plan-pin-baseline')
+
+
+      58 |     await plan.getByRole("combobox", { name: t("Assumed premium denomination", "权利金假设币种"), exact: true }).selectOption("USD");
+      59 |     const calculate = plan.getByRole("button", { name: t("Calculate expiry payoff", "计算到期损益"), exact: true });
+    > 60 |     await calculate.click(); await plan.getByTestId("plan-pin-baseline").click();
+         |                                                                          ^
+      61 |     await expect(plan.getByTestId("plan-baseline-pending")).toBeVisible();
+      62 |     await entry.fill("4"); await calculate.click();
+      63 |     const comparison = plan.getByTestId("plan-scenario-compare");
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/options-plan-compare-mounted.spec.ts:60:74
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-plan-compare-mount-eb83e--Plan-→-comparison-en-light-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-plan-compare-mount-eb83e--Plan-→-comparison-en-light-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-plan-compare-mount-eb83e--Plan-→-comparison-en-light-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-plan-compare-mount-eb83e--Plan-→-comparison-en-light-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [desktop] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison zh dark 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 0
+    + Received  + 1
+
+    @@ -2,9 +2,10 @@
+        "d_oi": 20,
+        "exp": "2026-10-30",
+        "mid": 9,
+        "oi": 40,
+        "oi_prev": 20,
+    +   "preset": "doi",
+        "right": "C",
+        "root": "SPY",
+        "strike": 765,
+      }
+
+      36 |       expect(request.draft.legs).toHaveLength(1);
+      37 |       const leg = request.draft.legs[0];
+    > 38 |       expect(leg.snapshot.row).toEqual(row);
+         |                                ^
+      39 |       expect(leg.snapshot.sourceStale).toBe(true);
+      40 |       expect(leg.snapshot.asofRaw).toBe("2026-10-23T20:00:00Z");
+      41 |       expect(leg.assumptions.entry?.premium_per_unit).toBe(calculations === 1 ? 2 : 4);
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/options-plan-compare-mounted.spec.ts:38:32
+
+    Error: locator.click: Test ended.
+    Call log:
+      - waiting for getByTestId('options-plan-payoff-panel').getByTestId('plan-pin-baseline')
+
+
+      58 |     await plan.getByRole("combobox", { name: t("Assumed premium denomination", "权利金假设币种"), exact: true }).selectOption("USD");
+      59 |     const calculate = plan.getByRole("button", { name: t("Calculate expiry payoff", "计算到期损益"), exact: true });
+    > 60 |     await calculate.click(); await plan.getByTestId("plan-pin-baseline").click();
+         |                                                                          ^
+      61 |     await expect(plan.getByTestId("plan-baseline-pending")).toBeVisible();
+      62 |     await entry.fill("4"); await calculate.click();
+      63 |     const comparison = plan.getByTestId("plan-scenario-compare");
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/options-plan-compare-mounted.spec.ts:60:74
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-plan-compare-mount-e748d-→-Plan-→-comparison-zh-dark-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-plan-compare-mount-e748d-→-Plan-→-comparison-zh-dark-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-plan-compare-mount-e748d-→-Plan-→-comparison-zh-dark-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-plan-compare-mount-e748d-→-Plan-→-comparison-zh-dark-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [desktop] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison zh light 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 0
+    + Received  + 1
+
+    @@ -2,9 +2,10 @@
+        "d_oi": 20,
+        "exp": "2026-10-30",
+        "mid": 9,
+        "oi": 40,
+        "oi_prev": 20,
+    +   "preset": "doi",
+        "right": "C",
+        "root": "SPY",
+        "strike": 765,
+      }
+
+      36 |       expect(request.draft.legs).toHaveLength(1);
+      37 |       const leg = request.draft.legs[0];
+    > 38 |       expect(leg.snapshot.row).toEqual(row);
+         |                                ^
+      39 |       expect(leg.snapshot.sourceStale).toBe(true);
+      40 |       expect(leg.snapshot.asofRaw).toBe("2026-10-23T20:00:00Z");
+      41 |       expect(leg.assumptions.entry?.premium_per_unit).toBe(calculations === 1 ? 2 : 4);
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/options-plan-compare-mounted.spec.ts:38:32
+
+    Error: locator.click: Test ended.
+    Call log:
+      - waiting for getByTestId('options-plan-payoff-panel').getByTestId('plan-pin-baseline')
+
+
+      58 |     await plan.getByRole("combobox", { name: t("Assumed premium denomination", "权利金假设币种"), exact: true }).selectOption("USD");
+      59 |     const calculate = plan.getByRole("button", { name: t("Calculate expiry payoff", "计算到期损益"), exact: true });
+    > 60 |     await calculate.click(); await plan.getByTestId("plan-pin-baseline").click();
+         |                                                                          ^
+      61 |     await expect(plan.getByTestId("plan-baseline-pending")).toBeVisible();
+      62 |     await entry.fill("4"); await calculate.click();
+      63 |     const comparison = plan.getByTestId("plan-scenario-compare");
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/options-plan-compare-mounted.spec.ts:60:74
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-plan-compare-mount-04ad2--Plan-→-comparison-zh-light-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-plan-compare-mount-04ad2--Plan-→-comparison-zh-light-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-plan-compare-mount-04ad2--Plan-→-comparison-zh-light-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-plan-compare-mount-04ad2--Plan-→-comparison-zh-light-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) [tablet] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison en dark 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 0
+    + Received  + 1
+
+    @@ -2,9 +2,10 @@
+        "d_oi": 20,
+        "exp": "2026-10-30",
+        "mid": 9,
+        "oi": 40,
+        "oi_prev": 20,
+    +   "preset": "doi",
+        "right": "C",
+        "root": "SPY",
+        "strike": 765,
+      }
+
+      36 |       expect(request.draft.legs).toHaveLength(1);
+      37 |       const leg = request.draft.legs[0];
+    > 38 |       expect(leg.snapshot.row).toEqual(row);
+         |                                ^
+      39 |       expect(leg.snapshot.sourceStale).toBe(true);
+      40 |       expect(leg.snapshot.asofRaw).toBe("2026-10-23T20:00:00Z");
+      41 |       expect(leg.assumptions.entry?.premium_per_unit).toBe(calculations === 1 ? 2 : 4);
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/options-plan-compare-mounted.spec.ts:38:32
+
+    Error: locator.click: Test ended.
+    Call log:
+      - waiting for getByTestId('options-plan-payoff-panel').getByTestId('plan-pin-baseline')
+
+
+      58 |     await plan.getByRole("combobox", { name: t("Assumed premium denomination", "权利金假设币种"), exact: true }).selectOption("USD");
+      59 |     const calculate = plan.getByRole("button", { name: t("Calculate expiry payoff", "计算到期损益"), exact: true });
+    > 60 |     await calculate.click(); await plan.getByTestId("plan-pin-baseline").click();
+         |                                                                          ^
+      61 |     await expect(plan.getByTestId("plan-baseline-pending")).toBeVisible();
+      62 |     await entry.fill("4"); await calculate.click();
+      63 |     const comparison = plan.getByTestId("plan-scenario-compare");
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/options-plan-compare-mounted.spec.ts:60:74
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-plan-compare-mount-3ba18-→-Plan-→-comparison-en-dark-tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-plan-compare-mount-3ba18-→-Plan-→-comparison-en-dark-tablet/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-plan-compare-mount-3ba18-→-Plan-→-comparison-en-dark-tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-plan-compare-mount-3ba18-→-Plan-→-comparison-en-dark-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6) [tablet] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison en light 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 0
+    + Received  + 1
+
+    @@ -2,9 +2,10 @@
+        "d_oi": 20,
+        "exp": "2026-10-30",
+        "mid": 9,
+        "oi": 40,
+        "oi_prev": 20,
+    +   "preset": "doi",
+        "right": "C",
+        "root": "SPY",
+        "strike": 765,
+      }
+
+      36 |       expect(request.draft.legs).toHaveLength(1);
+      37 |       const leg = request.draft.legs[0];
+    > 38 |       expect(leg.snapshot.row).toEqual(row);
+         |                                ^
+      39 |       expect(leg.snapshot.sourceStale).toBe(true);
+      40 |       expect(leg.snapshot.asofRaw).toBe("2026-10-23T20:00:00Z");
+      41 |       expect(leg.assumptions.entry?.premium_per_unit).toBe(calculations === 1 ? 2 : 4);
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/options-plan-compare-mounted.spec.ts:38:32
+
+    Error: locator.click: Test ended.
+    Call log:
+      - waiting for getByTestId('options-plan-payoff-panel').getByTestId('plan-pin-baseline')
+
+
+      58 |     await plan.getByRole("combobox", { name: t("Assumed premium denomination", "权利金假设币种"), exact: true }).selectOption("USD");
+      59 |     const calculate = plan.getByRole("button", { name: t("Calculate expiry payoff", "计算到期损益"), exact: true });
+    > 60 |     await calculate.click(); await plan.getByTestId("plan-pin-baseline").click();
+         |                                                                          ^
+      61 |     await expect(plan.getByTestId("plan-baseline-pending")).toBeVisible();
+      62 |     await entry.fill("4"); await calculate.click();
+      63 |     const comparison = plan.getByTestId("plan-scenario-compare");
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/options-plan-compare-mounted.spec.ts:60:74
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-plan-compare-mount-eb83e--Plan-→-comparison-en-light-tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-plan-compare-mount-eb83e--Plan-→-comparison-en-light-tablet/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-plan-compare-mount-eb83e--Plan-→-comparison-en-light-tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-plan-compare-mount-eb83e--Plan-→-comparison-en-light-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  7) [tablet] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison zh dark 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 0
+    + Received  + 1
+
+    @@ -2,9 +2,10 @@
+        "d_oi": 20,
+        "exp": "2026-10-30",
+        "mid": 9,
+        "oi": 40,
+        "oi_prev": 20,
+    +   "preset": "doi",
+        "right": "C",
+        "root": "SPY",
+        "strike": 765,
+      }
+
+      36 |       expect(request.draft.legs).toHaveLength(1);
+      37 |       const leg = request.draft.legs[0];
+    > 38 |       expect(leg.snapshot.row).toEqual(row);
+         |                                ^
+      39 |       expect(leg.snapshot.sourceStale).toBe(true);
+      40 |       expect(leg.snapshot.asofRaw).toBe("2026-10-23T20:00:00Z");
+      41 |       expect(leg.assumptions.entry?.premium_per_unit).toBe(calculations === 1 ? 2 : 4);
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/options-plan-compare-mounted.spec.ts:38:32
+
+    Error: locator.click: Test ended.
+    Call log:
+      - waiting for getByTestId('options-plan-payoff-panel').getByTestId('plan-pin-baseline')
+
+
+      58 |     await plan.getByRole("combobox", { name: t("Assumed premium denomination", "权利金假设币种"), exact: true }).selectOption("USD");
+      59 |     const calculate = plan.getByRole("button", { name: t("Calculate expiry payoff", "计算到期损益"), exact: true });
+    > 60 |     await calculate.click(); await plan.getByTestId("plan-pin-baseline").click();
+         |                                                                          ^
+      61 |     await expect(plan.getByTestId("plan-baseline-pending")).toBeVisible();
+      62 |     await entry.fill("4"); await calculate.click();
+      63 |     const comparison = plan.getByTestId("plan-scenario-compare");
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/options-plan-compare-mounted.spec.ts:60:74
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-plan-compare-mount-e748d-→-Plan-→-comparison-zh-dark-tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-plan-compare-mount-e748d-→-Plan-→-comparison-zh-dark-tablet/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-plan-compare-mount-e748d-→-Plan-→-comparison-zh-dark-tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-plan-compare-mount-e748d-→-Plan-→-comparison-zh-dark-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  8) [tablet] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison zh light 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 0
+    + Received  + 1
+
+    @@ -2,9 +2,10 @@
+        "d_oi": 20,
+        "exp": "2026-10-30",
+        "mid": 9,
+        "oi": 40,
+        "oi_prev": 20,
+    +   "preset": "doi",
+        "right": "C",
+        "root": "SPY",
+        "strike": 765,
+      }
+
+      36 |       expect(request.draft.legs).toHaveLength(1);
+      37 |       const leg = request.draft.legs[0];
+    > 38 |       expect(leg.snapshot.row).toEqual(row);
+         |                                ^
+      39 |       expect(leg.snapshot.sourceStale).toBe(true);
+      40 |       expect(leg.snapshot.asofRaw).toBe("2026-10-23T20:00:00Z");
+      41 |       expect(leg.assumptions.entry?.premium_per_unit).toBe(calculations === 1 ? 2 : 4);
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/options-plan-compare-mounted.spec.ts:38:32
+
+    Error: locator.click: Test ended.
+    Call log:
+      - waiting for getByTestId('options-plan-payoff-panel').getByTestId('plan-pin-baseline')
+
+
+      58 |     await plan.getByRole("combobox", { name: t("Assumed premium denomination", "权利金假设币种"), exact: true }).selectOption("USD");
+      59 |     const calculate = plan.getByRole("button", { name: t("Calculate expiry payoff", "计算到期损益"), exact: true });
+    > 60 |     await calculate.click(); await plan.getByTestId("plan-pin-baseline").click();
+         |                                                                          ^
+      61 |     await expect(plan.getByTestId("plan-baseline-pending")).toBeVisible();
+      62 |     await entry.fill("4"); await calculate.click();
+      63 |     const comparison = plan.getByTestId("plan-scenario-compare");
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/options-plan-compare-mounted.spec.ts:60:74
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-plan-compare-mount-04ad2--Plan-→-comparison-zh-light-tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-plan-compare-mount-04ad2--Plan-→-comparison-zh-light-tablet/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-plan-compare-mount-04ad2--Plan-→-comparison-zh-light-tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-plan-compare-mount-04ad2--Plan-→-comparison-zh-light-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  9) [mobile] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison en dark 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 0
+    + Received  + 1
+
+    @@ -2,9 +2,10 @@
+        "d_oi": 20,
+        "exp": "2026-10-30",
+        "mid": 9,
+        "oi": 40,
+        "oi_prev": 20,
+    +   "preset": "doi",
+        "right": "C",
+        "root": "SPY",
+        "strike": 765,
+      }
+
+      36 |       expect(request.draft.legs).toHaveLength(1);
+      37 |       const leg = request.draft.legs[0];
+    > 38 |       expect(leg.snapshot.row).toEqual(row);
+         |                                ^
+      39 |       expect(leg.snapshot.sourceStale).toBe(true);
+      40 |       expect(leg.snapshot.asofRaw).toBe("2026-10-23T20:00:00Z");
+      41 |       expect(leg.assumptions.entry?.premium_per_unit).toBe(calculations === 1 ? 2 : 4);
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/options-plan-compare-mounted.spec.ts:38:32
+
+    Error: locator.click: Test ended.
+    Call log:
+      - waiting for getByTestId('options-plan-payoff-panel').getByTestId('plan-pin-baseline')
+
+
+      58 |     await plan.getByRole("combobox", { name: t("Assumed premium denomination", "权利金假设币种"), exact: true }).selectOption("USD");
+      59 |     const calculate = plan.getByRole("button", { name: t("Calculate expiry payoff", "计算到期损益"), exact: true });
+    > 60 |     await calculate.click(); await plan.getByTestId("plan-pin-baseline").click();
+         |                                                                          ^
+      61 |     await expect(plan.getByTestId("plan-baseline-pending")).toBeVisible();
+      62 |     await entry.fill("4"); await calculate.click();
+      63 |     const comparison = plan.getByTestId("plan-scenario-compare");
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/options-plan-compare-mounted.spec.ts:60:74
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-plan-compare-mount-3ba18-→-Plan-→-comparison-en-dark-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-plan-compare-mount-3ba18-→-Plan-→-comparison-en-dark-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-plan-compare-mount-3ba18-→-Plan-→-comparison-en-dark-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-plan-compare-mount-3ba18-→-Plan-→-comparison-en-dark-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  10) [mobile] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison en light 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 0
+    + Received  + 1
+
+    @@ -2,9 +2,10 @@
+        "d_oi": 20,
+        "exp": "2026-10-30",
+        "mid": 9,
+        "oi": 40,
+        "oi_prev": 20,
+    +   "preset": "doi",
+        "right": "C",
+        "root": "SPY",
+        "strike": 765,
+      }
+
+      36 |       expect(request.draft.legs).toHaveLength(1);
+      37 |       const leg = request.draft.legs[0];
+    > 38 |       expect(leg.snapshot.row).toEqual(row);
+         |                                ^
+      39 |       expect(leg.snapshot.sourceStale).toBe(true);
+      40 |       expect(leg.snapshot.asofRaw).toBe("2026-10-23T20:00:00Z");
+      41 |       expect(leg.assumptions.entry?.premium_per_unit).toBe(calculations === 1 ? 2 : 4);
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/options-plan-compare-mounted.spec.ts:38:32
+
+    Error: locator.click: Test ended.
+    Call log:
+      - waiting for getByTestId('options-plan-payoff-panel').getByTestId('plan-pin-baseline')
+
+
+      58 |     await plan.getByRole("combobox", { name: t("Assumed premium denomination", "权利金假设币种"), exact: true }).selectOption("USD");
+      59 |     const calculate = plan.getByRole("button", { name: t("Calculate expiry payoff", "计算到期损益"), exact: true });
+    > 60 |     await calculate.click(); await plan.getByTestId("plan-pin-baseline").click();
+         |                                                                          ^
+      61 |     await expect(plan.getByTestId("plan-baseline-pending")).toBeVisible();
+      62 |     await entry.fill("4"); await calculate.click();
+      63 |     const comparison = plan.getByTestId("plan-scenario-compare");
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/options-plan-compare-mounted.spec.ts:60:74
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-plan-compare-mount-eb83e--Plan-→-comparison-en-light-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-plan-compare-mount-eb83e--Plan-→-comparison-en-light-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-plan-compare-mount-eb83e--Plan-→-comparison-en-light-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-plan-compare-mount-eb83e--Plan-→-comparison-en-light-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  11) [mobile] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison zh dark 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 0
+    + Received  + 1
+
+    @@ -2,9 +2,10 @@
+        "d_oi": 20,
+        "exp": "2026-10-30",
+        "mid": 9,
+        "oi": 40,
+        "oi_prev": 20,
+    +   "preset": "doi",
+        "right": "C",
+        "root": "SPY",
+        "strike": 765,
+      }
+
+      36 |       expect(request.draft.legs).toHaveLength(1);
+      37 |       const leg = request.draft.legs[0];
+    > 38 |       expect(leg.snapshot.row).toEqual(row);
+         |                                ^
+      39 |       expect(leg.snapshot.sourceStale).toBe(true);
+      40 |       expect(leg.snapshot.asofRaw).toBe("2026-10-23T20:00:00Z");
+      41 |       expect(leg.assumptions.entry?.premium_per_unit).toBe(calculations === 1 ? 2 : 4);
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/options-plan-compare-mounted.spec.ts:38:32
+
+    Error: locator.click: Test ended.
+    Call log:
+      - waiting for getByTestId('options-plan-payoff-panel').getByTestId('plan-pin-baseline')
+
+
+      58 |     await plan.getByRole("combobox", { name: t("Assumed premium denomination", "权利金假设币种"), exact: true }).selectOption("USD");
+      59 |     const calculate = plan.getByRole("button", { name: t("Calculate expiry payoff", "计算到期损益"), exact: true });
+    > 60 |     await calculate.click(); await plan.getByTestId("plan-pin-baseline").click();
+         |                                                                          ^
+      61 |     await expect(plan.getByTestId("plan-baseline-pending")).toBeVisible();
+      62 |     await entry.fill("4"); await calculate.click();
+      63 |     const comparison = plan.getByTestId("plan-scenario-compare");
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/options-plan-compare-mounted.spec.ts:60:74
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-plan-compare-mount-e748d-→-Plan-→-comparison-zh-dark-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-plan-compare-mount-e748d-→-Plan-→-comparison-zh-dark-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-plan-compare-mount-e748d-→-Plan-→-comparison-zh-dark-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-plan-compare-mount-e748d-→-Plan-→-comparison-zh-dark-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  12) [mobile] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison zh light 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 0
+    + Received  + 1
+
+    @@ -2,9 +2,10 @@
+        "d_oi": 20,
+        "exp": "2026-10-30",
+        "mid": 9,
+        "oi": 40,
+        "oi_prev": 20,
+    +   "preset": "doi",
+        "right": "C",
+        "root": "SPY",
+        "strike": 765,
+      }
+
+      36 |       expect(request.draft.legs).toHaveLength(1);
+      37 |       const leg = request.draft.legs[0];
+    > 38 |       expect(leg.snapshot.row).toEqual(row);
+         |                                ^
+      39 |       expect(leg.snapshot.sourceStale).toBe(true);
+      40 |       expect(leg.snapshot.asofRaw).toBe("2026-10-23T20:00:00Z");
+      41 |       expect(leg.assumptions.entry?.premium_per_unit).toBe(calculations === 1 ? 2 : 4);
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/options-plan-compare-mounted.spec.ts:38:32
+
+    Error: locator.click: Test ended.
+    Call log:
+      - waiting for getByTestId('options-plan-payoff-panel').getByTestId('plan-pin-baseline')
+
+
+      58 |     await plan.getByRole("combobox", { name: t("Assumed premium denomination", "权利金假设币种"), exact: true }).selectOption("USD");
+      59 |     const calculate = plan.getByRole("button", { name: t("Calculate expiry payoff", "计算到期损益"), exact: true });
+    > 60 |     await calculate.click(); await plan.getByTestId("plan-pin-baseline").click();
+         |                                                                          ^
+      61 |     await expect(plan.getByTestId("plan-baseline-pending")).toBeVisible();
+      62 |     await entry.fill("4"); await calculate.click();
+      63 |     const comparison = plan.getByTestId("plan-scenario-compare");
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal/e2e/options-plan-compare-mounted.spec.ts:60:74
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/options-plan-compare-mount-04ad2--Plan-→-comparison-zh-light-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/options-plan-compare-mount-04ad2--Plan-→-comparison-zh-light-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/options-plan-compare-mount-04ad2--Plan-→-comparison-zh-light-mobile/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/options-plan-compare-mount-04ad2--Plan-→-comparison-zh-light-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  12 failed
+    [desktop] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison en dark 
+    [desktop] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison en light 
+    [desktop] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison zh dark 
+    [desktop] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison zh light 
+    [tablet] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison en dark 
+    [tablet] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison en light 
+    [tablet] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison zh dark 
+    [tablet] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison zh light 
+    [mobile] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison en dark 
+    [mobile] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison en light 
+    [mobile] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison zh dark 
+    [mobile] › e2e/options-plan-compare-mounted.spec.ts:10:7 › D08C mounted shortlist → Plan → comparison zh light 
+  18 passed (2.2m)
