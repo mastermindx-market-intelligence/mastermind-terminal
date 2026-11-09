@@ -1,0 +1,190 @@
+{
+  "at": "2026-11-09T11:35:38.712Z",
+  "authentication": "fresh guest context",
+  "results": [
+    {
+      "route": "/sector_central.html#overview",
+      "errors": [],
+      "status": 200,
+      "phase": "ready",
+      "failure": "none",
+      "overflow": false,
+      "childPath": "/sector_central.html",
+      "buttons": [],
+      "expand": []
+    },
+    {
+      "route": "/macro.html",
+      "errors": [],
+      "status": 200,
+      "phase": "ready",
+      "failure": "none",
+      "overflow": false,
+      "childPath": "/macro.html",
+      "buttons": [
+        {
+          "text": "1 of 6 supportive · 5 warning\n          6 项中 1 项支持 · 5 项警示",
+          "id": "mx5BtnFactors",
+          "disabled": false,
+          "expanded": "false"
+        },
+        {
+          "text": "Risk building · 87\n          风险积聚 · 87\n          Fragile internals内部脆弱",
+          "id": "mx5BtnRisk",
+          "disabled": false,
+          "expanded": null
+        },
+        {
+          "text": "Track record ↗\n        评分记录 ↗",
+          "id": "rr-tr-btn",
+          "disabled": false,
+          "expanded": null
+        },
+        {
+          "text": "View all →\n          查看全部 →",
+          "id": "",
+          "disabled": false,
+          "expanded": null
+        }
+      ],
+      "expand": []
+    },
+    {
+      "route": "/news.html",
+      "errors": [],
+      "status": 200,
+      "phase": "ready",
+      "failure": "none",
+      "overflow": false,
+      "childPath": "/news.html",
+      "buttons": [
+        {
+          "text": "All全部",
+          "id": "",
+          "disabled": false,
+          "expanded": null
+        },
+        {
+          "text": "Markets市场",
+          "id": "",
+          "disabled": false,
+          "expanded": null
+        },
+        {
+          "text": "Macro宏观",
+          "id": "",
+          "disabled": false,
+          "expanded": null
+        },
+        {
+          "text": "Fed美联储",
+          "id": "",
+          "disabled": false,
+          "expanded": null
+        },
+        {
+          "text": "Companies公司",
+          "id": "",
+          "disabled": false,
+          "expanded": null
+        },
+        {
+          "text": "Show more显示更多 (+19)",
+          "id": "nxMore",
+          "disabled": false,
+          "expanded": null
+        },
+        {
+          "text": "?",
+          "id": "",
+          "disabled": false,
+          "expanded": null
+        }
+      ],
+      "expand": []
+    },
+    {
+      "route": "/stock.html#AAPL",
+      "errors": [],
+      "status": 200,
+      "phase": "ready",
+      "failure": "none",
+      "overflow": false,
+      "childPath": "/stock.html",
+      "buttons": [
+        {
+          "text": "🔔 Alerts50 ▾",
+          "id": "r_afbtn",
+          "disabled": false,
+          "expanded": "false"
+        },
+        {
+          "text": "✕",
+          "id": "af-close",
+          "disabled": false,
+          "expanded": null
+        },
+        {
+          "text": "All",
+          "id": "",
+          "disabled": false,
+          "expanded": null
+        },
+        {
+          "text": "Signal",
+          "id": "",
+          "disabled": false,
+          "expanded": null
+        },
+        {
+          "text": "Trend",
+          "id": "",
+          "disabled": false,
+          "expanded": null
+        },
+        {
+          "text": "Momentum",
+          "id": "",
+          "disabled": false,
+          "expanded": null
+        },
+        {
+          "text": "vs Market",
+          "id": "",
+          "disabled": false,
+          "expanded": null
+        },
+        {
+          "text": "Cycle",
+          "id": "",
+          "disabled": false,
+          "expanded": null
+        },
+        {
+          "text": "High signal重点新闻",
+          "id": "",
+          "disabled": false,
+          "expanded": null
+        },
+        {
+          "text": "All reporting全部报道",
+          "id": "",
+          "disabled": false,
+          "expanded": null
+        }
+      ],
+      "expand": []
+    },
+    {
+      "route": "/about.html",
+      "errors": [],
+      "status": 200,
+      "phase": "ready",
+      "failure": "none",
+      "overflow": false,
+      "childPath": "/about.html",
+      "buttons": [],
+      "expand": []
+    }
+  ]
+}

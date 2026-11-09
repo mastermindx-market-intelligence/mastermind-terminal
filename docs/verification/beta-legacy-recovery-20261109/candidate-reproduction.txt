@@ -1,0 +1,90 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/beta-legacy-recovery-20261109-astra-01/terminal
+
+ ❯ lib/__tests__/legacyCandidateProbe.test.tsx (31 tests | 4 failed | 27 skipped) 241ms
+   × Shared Shell failure recovery lifetime > aborts a pending admission request when its original deadline expires 88ms
+     → expected false to be true // Object.is equality
+   × Shared Shell failure recovery lifetime > offers a route-preserving retry rather than a false version refresh after HTTP 503 54ms
+     → expected 'gate-mismatch' to be 'gate-http' // Object.is equality
+   × Shared Shell failure recovery lifetime > ignores a superseded visibility check instead of hiding a freshly confirmed page 49ms
+     → expected 'hidden' to be 'visible' // Object.is equality
+   × Shared Shell failure recovery lifetime > bounds an unresolved visibility check and ignores its late success 47ms
+     → expected 'visible' to be 'hidden' // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/legacyCandidateProbe.test.tsx > Shared Shell failure recovery lifetime > aborts a pending admission request when its original deadline expires
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ lib/__tests__/legacyCandidateProbe.test.tsx:659:35
+    657|       const gate = requests.at(-1)!;
+    658|       await act(async () => { await vi.advanceTimersByTimeAsync(15001)…
+    659|       expect(gate.signal.aborted).toBe(true);
+       |                                   ^
+    660|       await resolveGate(gate);
+    661|       expect(replaceFrame).not.toHaveBeenCalled(); expectVisible(false…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  lib/__tests__/legacyCandidateProbe.test.tsx > Shared Shell failure recovery lifetime > offers a route-preserving retry rather than a false version refresh after HTTP 503
+AssertionError: expected 'gate-mismatch' to be 'gate-http' // Object.is equality
+
+Expected: "gate-http"
+Received: "gate-mismatch"
+
+ ❯ lib/__tests__/legacyCandidateProbe.test.tsx:682:45
+    680|     vi.mocked(fetch).mockResolvedValueOnce({ ok: false, status: 503, j…
+    681|     await visibleAgain();
+    682|     expectVisible(false); expect(failure()).toBe("gate-http");
+       |                                             ^
+    683|     expect(container.textContent).not.toContain("shellRefreshTitle");
+    684|     await retryFrame(); expect(browserHref()).toBe(INITIAL);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  lib/__tests__/legacyCandidateProbe.test.tsx > Shared Shell failure recovery lifetime > ignores a superseded visibility check instead of hiding a freshly confirmed page
+AssertionError: expected 'hidden' to be 'visible' // Object.is equality
+
+Expected: "visible"
+Received: "hidden"
+
+ ❯ expectVisible lib/__tests__/legacyCandidateProbe.test.tsx:148:37
+    146| }
+    147| function expectVisible(value: boolean) {
+    148|   expect(iframe().style.visibility).toBe(value ? "visible" : "hidden");
+       |                                     ^
+    149| }
+    150| async function start() {
+ ❯ lib/__tests__/legacyCandidateProbe.test.tsx:699:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  lib/__tests__/legacyCandidateProbe.test.tsx > Shared Shell failure recovery lifetime > bounds an unresolved visibility check and ignores its late success
+AssertionError: expected 'visible' to be 'hidden' // Object.is equality
+
+Expected: "hidden"
+Received: "visible"
+
+ ❯ expectVisible lib/__tests__/legacyCandidateProbe.test.tsx:148:37
+    146| }
+    147| function expectVisible(value: boolean) {
+    148|   expect(iframe().style.visibility).toBe(value ? "visible" : "hidden");
+       |                                     ^
+    149| }
+    150| async function start() {
+ ❯ lib/__tests__/legacyCandidateProbe.test.tsx:707:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 27 skipped (31)
+   Start at  03:37:04
+   Duration  3.42s (transform 442ms, setup 0ms, collect 637ms, tests 241ms, environment 1.42s, prepare 204ms)
+

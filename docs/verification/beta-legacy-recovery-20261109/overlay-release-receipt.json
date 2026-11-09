@@ -1,0 +1,67 @@
+{
+  "merge": "f2aa1e0cb27d459149f59d3b24d98cd6e2e8389f",
+  "transaction": "f6065ab1a0bf46f58e925c5153b7da94",
+  "release_exit": 0,
+  "production_unchanged": "db06eacd8938cf44588d3906bca95bfd7122b74b",
+  "proof": {
+    "at": "2026-11-09T11:43:43.453Z",
+    "origin": "https://beta.mastermind-x.com",
+    "authentication": "fresh signed-out browser; no auth/data overrides",
+    "results": [
+      {
+        "name": "desktop",
+        "width": 1440,
+        "height": 900,
+        "errors": [],
+        "build": "f2aa1e0cb27d459149f59d3b24d98cd6e2e8389f",
+        "outcome": "pass",
+        "cycles": 2
+      },
+      {
+        "name": "tablet",
+        "width": 820,
+        "height": 1180,
+        "errors": [],
+        "build": "f2aa1e0cb27d459149f59d3b24d98cd6e2e8389f",
+        "outcome": "pass",
+        "cycles": 2
+      },
+      {
+        "name": "mobile",
+        "width": 390,
+        "height": 844,
+        "errors": [],
+        "build": "f2aa1e0cb27d459149f59d3b24d98cd6e2e8389f",
+        "outcome": "pass",
+        "cycles": 2
+      }
+    ]
+  },
+  "inspected": true,
+  "files": [
+    {
+      "path": "docs/verification/beta-legacy-recovery-20261109/live-restored-desktop.png",
+      "sha256": "8714da6ffc8235e869191784097a5877b877407f2d923cb0c3f2542cc841e833"
+    },
+    {
+      "path": "docs/verification/beta-legacy-recovery-20261109/live-restored-mobile.png",
+      "sha256": "ffb530b7bb493a835e661216760ac9ce42b2c3b96f6f6dd4a44515fbc917f3d4"
+    },
+    {
+      "path": "docs/verification/beta-legacy-recovery-20261109/live-restored-tablet.png",
+      "sha256": "6ba92cdb8e5a95f2b59b231048ad69e3d61dd278645c9b76eaace32817334865"
+    },
+    {
+      "path": "docs/verification/beta-legacy-recovery-20261109/live-tools-desktop.png",
+      "sha256": "fbf1a769e16c78af90affaadff188b14a582eb4baa8be777dfa1fa06e34522ad"
+    },
+    {
+      "path": "docs/verification/beta-legacy-recovery-20261109/live-tools-mobile.png",
+      "sha256": "e86b0af497f5c091c73005002348163f5457a25c0189c36fd4e726ec382ac81c"
+    },
+    {
+      "path": "docs/verification/beta-legacy-recovery-20261109/live-tools-tablet.png",
+      "sha256": "616f23f67ebbe2e4649f40300eee0411d64c8802f58c96a029cbb944cbc5ef56"
+    }
+  ]
+}
