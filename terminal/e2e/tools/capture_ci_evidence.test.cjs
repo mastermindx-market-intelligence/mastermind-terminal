@@ -892,4 +892,4 @@ test("missing current EOD source fails before capture", async t => {
   assert.equal(f.calls.length, 0); assert.equal(f.selected(), "");
 });
 
-require("./optionsExposureEvidence.test.cjs");
+require("./optionsExposureEvidence.cases.cjs");
