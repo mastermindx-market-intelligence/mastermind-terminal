@@ -1,0 +1,15 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-vol-horizon-grammar-20261104-c2/terminal
+
+ ✓ lib/__tests__/volTenorComparison.test.ts (12 tests) 9ms
+ ✓ lib/__tests__/volCompareHorizonGrammar.test.tsx (4 tests) 58ms
+ ✓ lib/__tests__/volComparePanel.test.tsx (9 tests) 125ms
+ ✓ lib/__tests__/volCompareWiring.test.tsx (5 tests) 318ms
+ ✓ lib/__tests__/volCompareTenorAsofClock.test.tsx (65 tests) 776ms
+
+ Test Files  5 passed (5)
+      Tests  95 passed (95)
+   Start at  12:35:45
+   Duration  1.57s (transform 215ms, setup 0ms, collect 476ms, tests 1.29s, environment 1.21s, prepare 260ms)
+

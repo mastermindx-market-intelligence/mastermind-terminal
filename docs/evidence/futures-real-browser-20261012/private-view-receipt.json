@@ -1,0 +1,67 @@
+{
+  "schema": "futures.private_view_receipt/v1",
+  "sha256": "d62203673a565e20024cb2a63f6ef52606909c187956fae36d862fd928d86d01",
+  "bytes": 62411,
+  "sourceRecords": 18418,
+  "exactSourceEventViews": 8070,
+  "replayCutoffs": 5,
+  "live": false,
+  "synthetic": false,
+  "sourceRawSha256": "03c10421d6981a95c66b0702d329bb505f96523179088d80b5b9258b347aea1e",
+  "bboAgreement": "4471/4471",
+  "totals": [
+    {
+      "cutoffMs": 1758499260000,
+      "observedContracts": 165,
+      "bars": 1,
+      "depthCoverage": [
+        1
+      ]
+    },
+    {
+      "cutoffMs": 1758499320000,
+      "observedContracts": 375,
+      "bars": 2,
+      "depthCoverage": [
+        1,
+        1
+      ]
+    },
+    {
+      "cutoffMs": 1758499380000,
+      "observedContracts": 486,
+      "bars": 3,
+      "depthCoverage": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "cutoffMs": 1758499440000,
+      "observedContracts": 751,
+      "bars": 4,
+      "depthCoverage": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "cutoffMs": 1758499500000,
+      "observedContracts": 839,
+      "bars": 5,
+      "depthCoverage": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    }
+  ],
+  "noGamma": true,
+  "noPublicMarketRows": true,
+  "depthSampling": "every_completed_source_event"
+}

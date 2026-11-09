@@ -1,0 +1,12 @@
+{
+ "asof": "2026-07-14",
+ "profile": {
+  "industry": "Auto Manufacturers",
+  "sector": "Consumer Cyclical"
+ },
+ "quote_currency": "JPY",
+ "src": {
+  "statements": "yfinance"
+ },
+ "ticker": "7203.T"
+}

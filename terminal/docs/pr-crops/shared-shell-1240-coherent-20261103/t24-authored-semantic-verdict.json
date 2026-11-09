@@ -1,0 +1,109 @@
+{
+  "schema": "shared-shell.t24-authored-semantic-verdict.v1",
+  "task": "P12.T24",
+  "at": "2026-11-03T18:41:19.923407+00:00",
+  "verdict": "PASS_SCOPED_AUTHORED_SEMANTIC_CHECK",
+  "authorship": "This receiver authored the T24 product changes. This is an ordinary author self-check and reuse of retained proof, NOT independent review. Root may adjudicate this exact source result; no historical-owner/reviewer ACK is required.",
+  "source": "0d35b973168b99d37c402e51c00fe31ed33c241d",
+  "source_tree": "ca8572c6f800fe1d3e4e2023c2d5b639745f8740",
+  "evidence_commit": "ab48fe545b95c74ce56eaa51ae9929b423eea62f",
+  "evidence_directory": "terminal/docs/pr-crops/shared-shell-route-identity-20261103",
+  "retained_v3_result": "/Volumes/Mastermind/evidence/shared-shell-route-identity-p12t24-20261103-01a19e32/qualified-v3/result.json",
+  "retained_v3_sha256": "cd1d79c0915c8d0cc21d8d048277f0440794a3ddc578a80b641de6088e7cbcdf",
+  "qualification_sha256": "d0a4a9acc7e9297b11f7e9cb52a173d15c769798f7f580b07c7ba415b558de47",
+  "patch_sha256": "50763a6ded10d5224303cf822b2c034f8b29f2eeb167a95f2bbbe5ade696fe8e",
+  "files": [
+    {
+      "path": "terminal/components/AppNav.tsx",
+      "git_blob": "c5f1de45c95f5ddae758e58da115b60189574ef0",
+      "sha256": "a09aab88274155a1282a8df34dbbc04d2ad35a19a50bf13df3b8f035a53f971d",
+      "current_working_bytes_equal": true
+    },
+    {
+      "path": "terminal/components/MobileNav.tsx",
+      "git_blob": "1a7e1ddc877dd07d8537945a7dee0f97c8b44337",
+      "sha256": "4ab705115eb01659bfe37757dcff085e1ffa76e0790c4006eb3a252fbffda64a",
+      "current_working_bytes_equal": true
+    },
+    {
+      "path": "terminal/lib/sharedShellNavigation.ts",
+      "git_blob": "f9d857ddded83ec13d82b1d8e69be943bb5078a7",
+      "sha256": "cb338dd3eb2170ca96b4481f3111b534d31ec7555bf1705b56a3038dcce1f073",
+      "current_working_bytes_equal": true
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedShellRegionNavigation.test.ts",
+      "git_blob": "4a0e9e4eabd04b9eb595a18ccaa44b1768fe19ca",
+      "sha256": "ab174aa8a9dbc2e27c27efe959babbfa05fd24a4a6b3dfa860b376573298b9da",
+      "current_working_bytes_equal": true
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedShellRouteIdentity.test.ts",
+      "git_blob": "45df0c8b95f948ed0704abe50a4f956299a0d91c",
+      "sha256": "5d9f7a7583ee3ab014ac662f39e4f16d67e94d11bfb4bb45567929f6b06a89d1",
+      "current_working_bytes_equal": true
+    }
+  ],
+  "current_carrier": {
+    "writer": "Discover sole #1240 writer; no mutation by this receiver",
+    "path": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/alternate-listing-context-20261103-35a5266ee3af5cee",
+    "HEAD_at_check": "efd0408d87fb23b1739eade273e4a38d9d7bda79",
+    "MERGE_HEAD_at_check": "f0eebcadff9e70a7f861382e9b5761ad94283e39",
+    "binding": "Five actual working-file byte equality only. This does not claim a completed composition commit or current-head CI."
+  },
+  "contract_adjudication": [
+    "Actual /today only selects native Today; no invented Today alias for /macro.html or unrelated estate tools.",
+    "Unknown/unowned tools including Crypto/Vector have no false native job/page selection.",
+    "Incumbent explicit Analysis/Discover/Monitor/Portfolio/Research families preserved; recognized child associations remain location rather than falsely current page.",
+    "Exact native href claims aria-current=page. Associated family child claims location. Both primary surfaces share helper; no new registry/admission/personalization introduced.",
+    "Exact market href row keeps page marker independently; unrelated primary fallback cannot swallow China/HK/other market state. Today US briefing/data ownership unchanged."
+  ],
+  "retained_checks": {
+    "affectedUnit": "30PASS",
+    "typecheck": "PASS",
+    "lint": "0errors; inherited MobileNav _isTerminal warning",
+    "actualFrozenNextBrowser": "2PASS:1440darkEN and390lightZH; actual Crypto\u2192Vector\u2192Back and positive Today/China/Research-location probes"
+  },
+  "retained_cells": [
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "semantics": "Crypto/Vector/Back neutral; Today page; China page; Learn Research location",
+      "exact_query_hash_back": true,
+      "persistent_shell": true
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "semantics": "Crypto/Vector/Back neutral; Today page; China page; Learn Research location",
+      "exact_query_hash_back": true,
+      "persistent_shell": true
+    }
+  ],
+  "inspected_retained_images": [
+    "1440-dark-en-vector.png",
+    "390-light-zh-back-crypto.png"
+  ],
+  "dependency_adjudication": {
+    "unchanged_runtime_dependencies": [
+      "AppShell.tsx",
+      "navSymbol.ts",
+      "sharedShellContracts.ts",
+      "MobileNavModal.tsx"
+    ],
+    "shared_css_delta": "Only already-qualified #1228 .m-ic mobile hit-area40\u219244 and removal of narrow36 override versus T24 fixture. No selected-state, rail, drawer-row, aria-current or family-rule change. Does not invalidate this semantic evidence; no claim of fresh current-composition geometry capture.",
+    "specific_invalidating_seam_found": null
+  },
+  "pending_field_resolution": "Historical ab48 qualification.review remains immutable and says pending. This new author-scoped verdict supplies the missing current semantic acceptance function; it does not relabel self-review independent or rewrite old records. Root independent source adjudication is separate.",
+  "limits": [
+    "Local representative owner fixture; not authenticated deployment",
+    "No provider refresh, production, or full family product acceptance",
+    "Vector chart loading is an inherited fixture limitation; this qualification covers navigation identity",
+    "Additional Learn location probe attempts one Google Fonts CSS request, explicitly asserted and blocked; core Crypto/Vector/Back/Today/China had no outside requests",
+    "No new source edits, test/capture matrix, browser, API, push, CI or PR.",
+    "Thirty unit/tsc/lint and two-device captures are retained prior results, not rerun.",
+    "Normal current-composition source/witness qualification and protected release remain Discover-owned; no stale-green or full-programme acceptance transfer."
+  ]
+}

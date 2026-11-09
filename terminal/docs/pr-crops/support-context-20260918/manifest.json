@@ -1,0 +1,67 @@
+{
+  "schema": "mastermind.support_context_visual_evidence.v1",
+  "source": "synthetic NVDA browser fixture",
+  "production_market_data": false,
+  "captures": [
+    {
+      "file": "desktop-alerts-en.png",
+      "sha256": "3f2977a2583ac3c2365c804cff32ac6097ade9a1ba61043f5872acd24757c96c",
+      "bytes": 128847
+    },
+    {
+      "file": "desktop-alerts-zh.png",
+      "sha256": "dcca72a3cee37158df1d9bdb5d3b61cac490a201cddaaec2b1bdea74a7a7a412",
+      "bytes": 139785
+    },
+    {
+      "file": "desktop-chart-en.png",
+      "sha256": "1ea0334435cbc9cfc687b295c5f8a636eb77e0a240b40818f0e781854e2f8fbd",
+      "bytes": 175703
+    },
+    {
+      "file": "desktop-chart-zh.png",
+      "sha256": "71ee46cd9cc54fd44f316c47ab4de83b4973f6507f8a7fec12676db9b842b75e",
+      "bytes": 180695
+    },
+    {
+      "file": "mobile-alerts-en.png",
+      "sha256": "aaceac420bd0ddec10ccc013e165dd5eca5d4df8c7181db030e0a17c5345eb0d",
+      "bytes": 61075
+    },
+    {
+      "file": "mobile-alerts-zh.png",
+      "sha256": "481b8426d69c6bc4c4fb06fc6c07e945c802a38615ffa7623d01293dbdb60ee9",
+      "bytes": 79827
+    },
+    {
+      "file": "mobile-chart-en.png",
+      "sha256": "910370f778ccda1329ae33c192dc4069adb3724d72c938b349ba1192a9d98362",
+      "bytes": 86689
+    },
+    {
+      "file": "mobile-chart-zh.png",
+      "sha256": "f7795ec044a4255d66844cc54d68206f3f1a837c57754ee1a3cc16d353f34114",
+      "bytes": 86701
+    },
+    {
+      "file": "tablet-alerts-en.png",
+      "sha256": "d838c1e71ff49de25b0f440e3b3815cb2a96ea3b38215ec0507726f879aacda4",
+      "bytes": 94649
+    },
+    {
+      "file": "tablet-alerts-zh.png",
+      "sha256": "1a6552323ad0fc1822a2b5e0bd763b577a4d3bbe20796abb928a4eb4e4a9003d",
+      "bytes": 103967
+    },
+    {
+      "file": "tablet-chart-en.png",
+      "sha256": "30e64e388a81ecc2ac52547357bddaf29da9c3d01522a0bd2b320f2854caab76",
+      "bytes": 137349
+    },
+    {
+      "file": "tablet-chart-zh.png",
+      "sha256": "f4e6dbe4e1d20bdef5c5e1e8de1823848d460bfefa16b4abbc81b5c96bdbaeab",
+      "bytes": 137880
+    }
+  ]
+}

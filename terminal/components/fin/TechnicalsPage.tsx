@@ -282,11 +282,15 @@ function TechnicalsPage({ sym, bars = [], zh = false }: TechnicalsPageProps) {
               <span>{pick(zh, "TECHNICAL RATING", "技术评级")}</span>
               <strong>{pick(zh, "Oscillators and moving averages", "震荡指标与移动平均")}</strong>
             </div>
-            <small>{pick(zh, "Descriptive · not a trade signal", "描述性指标 · 并非交易信号")}</small>
+            <small>
+              {pick(zh, "Descriptive · not a trade signal", "描述性指标 · 并非交易信号")}
+              <br />
+              {pick(zh, "Neutral may also mean an indicator needs more history.", "中性也可能表示该指标需要更多历史数据。")}
+            </small>
           </header>
           <div className="fin-tech-summary">
-            <Gauge title={pick(zh, "Oscillators", "震荡指标")} group={ratings?.summary[0]} zh={zh} />
-            <Gauge title={pick(zh, "Moving Averages", "移动平均")} group={ratings?.summary[1]} zh={zh} />
+            <Gauge title={pick(zh, "Oscillators", "震荡指标")} group={ratings?.summary[0]} rows={ratings?.oscillators} zh={zh} />
+            <Gauge title={pick(zh, "Moving Averages", "移动平均")} group={ratings?.summary[1]} rows={ratings?.mas} zh={zh} />
           </div>
         </section>
 
@@ -384,18 +388,32 @@ function TechnicalsPage({ sym, bars = [], zh = false }: TechnicalsPageProps) {
 function Gauge({
   title,
   group,
+  rows,
   zh,
 }: {
   title: string;
   group: Ratings["summary"][number] | undefined;
+  rows: Ratings["oscillators"] | undefined;
   zh: boolean;
 }) {
-  const arc = readingToArc(group ? group.score : null);
+  const total = rows?.length ?? 0;
+  const unavailable = rows?.filter((row) => row.value == null).length ?? 0;
+  const withholdSummary = group != null && total > 0 && unavailable > 0;
+  const arc = readingToArc(group && !withholdSummary ? group.score : null);
   return (
-    <div className="fin-tech-gauge">
+    <div className="fin-tech-gauge" role="group" aria-label={title}>
       <div className="fin-tech-gauge-t">{title}</div>
       <div className="fin-arc-wrap">
-        {group ? (() => {
+        {withholdSummary ? (
+          <div className="fin-market-rating-availability" role="status">
+            <strong>{pick(zh, "Summary not shown", "暂不显示汇总")}</strong>
+            <span>{pick(
+              zh,
+              `${total - unavailable} of ${total} numeric readings available · ${unavailable} unavailable`,
+              `${total} 项数值读数中 ${total - unavailable} 项可用 · ${unavailable} 项不可用`,
+            )}</span>
+          </div>
+        ) : group ? (() => {
           const arcState = arc.state;
           return (
           <>
@@ -473,7 +491,9 @@ function RatingTable({
               <tr className="fin-row" key={r.name}>
                 <th className="fin-cell" scope="row">{r.name}</th>
                 <td className="fin-cell fin-cell-num">{r.value != null ? valueFmt(r.value) : "—"}</td>
-                <td className={"fin-cell fin-cell-num fin-tech-act " + voteClass(r.vote)}>{voteLabel(r.vote)}</td>
+                <td className={"fin-cell fin-cell-num fin-tech-act " + (r.value != null ? voteClass(r.vote) : "mut")}>
+                  {r.value != null ? voteLabel(r.vote) : pick(zh, "Unavailable", "不可用")}
+                </td>
               </tr>
             ))
           )}

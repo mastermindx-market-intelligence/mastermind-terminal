@@ -1,0 +1,10 @@
+/* Phone/tablet symbol-bar placement of the event-planner opener. The rail placement uses the
+   existing `.wl-acts button` style and needs no class. */
+.symbar {
+  flex: none; width: 44px; height: 44px; margin-right: -6px;
+  display: grid; place-items: center; padding: 0; border: 0; border-radius: var(--r-md, 8px);
+  background: transparent; color: var(--text-2); cursor: pointer;
+}
+.symbar:hover, .symbar:active { color: var(--text); background: var(--panel-3); }
+.symbar:focus-visible { outline: 2px solid var(--brand-2); outline-offset: -2px; }
+.symbar svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }

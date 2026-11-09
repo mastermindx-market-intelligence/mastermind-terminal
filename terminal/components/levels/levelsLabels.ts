@@ -69,3 +69,21 @@ export function stackLabel(lang: "en" | "zh"): string {
 export function notPresentLabel(lang: "en" | "zh"): string {
   return lang === "zh" ? "未出现" : "not present";
 }
+
+/**
+ * Copy for a levels read that did not land. A failed read is not an absence, so it
+ * never borrows the empty-root copy (lvNoLevels in the shared LEX).
+ */
+export const LEVELS_READ_LEX = {
+  lvLoadError: ["Could not load levels for {ticker}", "无法加载 {ticker} 的档位"],
+  lvLoadErrorWhy: ["The levels store could not be read just now. This is a failed read, not a missing map.", "暂时无法读取档位数据。这是读取失败，并非缺少档位图。"],
+  lvRefreshFailed: ["Could not refresh — showing the last read.", "无法刷新 — 显示上次读取的数据。"],
+  lvRetry: ["Retry", "重试"],
+} as const satisfies Record<string, readonly [string, string]>;
+
+export type LevelsReadKey = keyof typeof LEVELS_READ_LEX;
+
+export function levelsReadLabel(key: LevelsReadKey, lang: "en" | "zh"): string {
+  const [en, zh] = LEVELS_READ_LEX[key];
+  return lang === "zh" ? zh : en;
+}

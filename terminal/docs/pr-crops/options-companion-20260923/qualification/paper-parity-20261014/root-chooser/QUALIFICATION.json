@@ -1,0 +1,265 @@
+{
+  "schema": "fable.pr723.root_chooser_repair_qualification.v1",
+  "observed_at": "2026-10-14T06:23:44.403106+00:00",
+  "accepted_source": "39caca8b0cf8370737687db9f69c907d84eafe4c",
+  "worker": "fable-pr723-root-switch-ci-repair-20261014",
+  "worker_stdout_sha256": "a35c93a72c6f2451011c0a91ed4752155c3e21d3631956bccdb1f7828888d033",
+  "worker_patch_sha256": "bffe3fe5b3b3bf1bb5990d9ab652ebcfe8511562bd26ad3ca223588594b0cc73",
+  "worker_verdict": "ACCEPT_WITH_PARENT_CORRECTIONS",
+  "worker_limits": "Parent-provided original test bytes were correct; worker accepted_head string5ec67 was a typo for5c67. Static result alone did not pass browser qualification.",
+  "parent_corrections": [
+    "Real open-menu failure at57265: right-aligned wide menu positioned early roots outside viewport. Anchor root menu to controls bar, left8px/max100%-16px.",
+    "Every quick-root button must be fully inside viewport before click.",
+    "QQQ route remount closes chooser; verify visible ticker QQQ, reopen with normal click, then retain original selected button and701/not760checks."
+  ],
+  "real_reds": [
+    {
+      "source": "57265f2da68ef57863e921a906c6645c6ae4b228",
+      "passed": 0,
+      "failed": 6,
+      "reason": "QQQoutsideviewport"
+    },
+    {
+      "source": "bb3748d9668a591ecc83c533ddd347b4dc4c328b",
+      "passed": 6,
+      "failed": 6,
+      "reason": "Original selected-button locator hidden after route remount; all menu viewport/click and first701checks passed."
+    }
+  ],
+  "green": {
+    "passed": 12,
+    "failed": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "retries": 0,
+    "viewports": [
+      "1440x900",
+      "820x1180",
+      "390x844"
+    ],
+    "page_languages": [
+      "en",
+      "zh"
+    ],
+    "race_language_by_viewport": {
+      "desktop": "en",
+      "tablet": "zh",
+      "mobile": "en"
+    }
+  },
+  "host": "ubuntu2",
+  "capacity_floor_gib": 165,
+  "source_post_clean": true,
+  "source_files": [
+    {
+      "path": "terminal/app/observatory.css",
+      "sha256": "bebcdf6dea59a0d5bb51e57779d6e1a354e412276e3f8977a40b9e6c0b962e07",
+      "bytes": 124758,
+      "git_blob": "a168d74ed64aba17afdb79396420e756830565e5"
+    },
+    {
+      "path": "terminal/e2e/exposure-state-identity.spec.ts",
+      "sha256": "bdf20be1493517c63898f425b66f5a00c6ef05ce311c741f6c1902b9d7e6281b",
+      "bytes": 3482,
+      "git_blob": "24e89987dc6945221b4a52252f365f4edf371141"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "red-57265/browser-report.json",
+      "bytes": 37197,
+      "sha256": "8d0c8c643d517e5b103a663ce64931142b24fe19ab8611d31031b960a1e9481b"
+    },
+    {
+      "path": "red-57265/SOURCE_BINDING.json",
+      "bytes": 522,
+      "sha256": "9da05d313e9195d1aef6b2e9f409d323ca6c2b791284f1dc7eb1de2a916cbcda"
+    },
+    {
+      "path": "red-57265/RESULT.json",
+      "bytes": 211,
+      "sha256": "a703637636ea0ea107839830d4f54e378aa8761bbdef98a8a8999b09d52c068a"
+    },
+    {
+      "path": "red-bb3748/browser-report.json",
+      "bytes": 48279,
+      "sha256": "2c22ccee7899463fdd7426507a151ffbd94e7dbe8f0594db65d9d576eee8bcba"
+    },
+    {
+      "path": "red-bb3748/SOURCE_BINDING.json",
+      "bytes": 565,
+      "sha256": "5a482a3dad39e68a4b025f9bd087671286d8cc5e2172eb00e692b2f191c539b9"
+    },
+    {
+      "path": "red-bb3748/RESULT.json",
+      "bytes": 211,
+      "sha256": "5d5577be1799b946fa7fe7b9ac98d28bca02a4d6b65af5f30fd0543345b3311f"
+    },
+    {
+      "path": "green-39caca8/browser-report.json",
+      "bytes": 19765,
+      "sha256": "b34f82645a9479d251ea2e670f8c824dddb40a4941575f565dd8e16760009d8a"
+    },
+    {
+      "path": "green-39caca8/SOURCE_BINDING.json",
+      "bytes": 529,
+      "sha256": "b5a51285cf9cd75f78c1d1b23631c83b87727f5cefef1849196e6324072080dd"
+    },
+    {
+      "path": "green-39caca8/RESULT.json",
+      "bytes": 211,
+      "sha256": "548499ed440d1719a728105eb0fcab75d81bd5230fcc25dfa2b568dd32ffae99"
+    },
+    {
+      "path": "green-images/desk/pp1d-desktop-en-dark.png",
+      "bytes": 171308,
+      "sha256": "85d231b34abc2a5d683daf95729cf1b63b54e1358e6c887812865240d8473ad2"
+    },
+    {
+      "path": "green-images/desk/pp1d-desktop-en-initial-dark.png",
+      "bytes": 155217,
+      "sha256": "d01bd5ca543fa32e83aa1156feed808782693f3a65aca996c933b8137c7b817d"
+    },
+    {
+      "path": "green-images/desk/pp1d-desktop-en-light.png",
+      "bytes": 177315,
+      "sha256": "11b1862a286edb39a65ffd7eec881028c7350c2ce32db9021189d26fd283fa5c"
+    },
+    {
+      "path": "green-images/desk/pp1d-desktop-zh-dark.png",
+      "bytes": 189552,
+      "sha256": "07437bbed5e53de83b5853330840ded36548419687fd91594993713d8e3db21b"
+    },
+    {
+      "path": "green-images/desk/pp1d-desktop-zh-initial-dark.png",
+      "bytes": 170617,
+      "sha256": "7bf42958da4f7f0185c60b4e8438584620ee2e06a241eaa04eb570a3ab41f210"
+    },
+    {
+      "path": "green-images/desk/pp1d-desktop-zh-light.png",
+      "bytes": 195680,
+      "sha256": "609fd57d649c3c35f1c03960a76d3e97bdf386696d0279c3f0bff838f4e3fcb6"
+    },
+    {
+      "path": "green-images/desk/pp1d-mobile-en-dark.png",
+      "bytes": 93571,
+      "sha256": "8294bf6b82ba9d0e1d2ae2ca7a250b278cdd90eb8e92a583f8b71e356816ed6e"
+    },
+    {
+      "path": "green-images/desk/pp1d-mobile-en-initial-dark.png",
+      "bytes": 99292,
+      "sha256": "565661bf03fe46a3df525133f6609e64c9a3bdf86c55d3dc9916dc61547ed5f9"
+    },
+    {
+      "path": "green-images/desk/pp1d-mobile-en-light.png",
+      "bytes": 96120,
+      "sha256": "59ceb443400f52c569cc0e0c77aa6459460529d671dc0d4b243dd5709fd1dc74"
+    },
+    {
+      "path": "green-images/desk/pp1d-mobile-zh-dark.png",
+      "bytes": 99167,
+      "sha256": "46d7098ef8a8d5f4e0bbb333e7e4415997aa967004cd0e515bdcba0e1d900484"
+    },
+    {
+      "path": "green-images/desk/pp1d-mobile-zh-initial-dark.png",
+      "bytes": 106836,
+      "sha256": "d9eb19d84c8b3e56707818619ad252a6054515e29d39f1f11999544b84c335db"
+    },
+    {
+      "path": "green-images/desk/pp1d-mobile-zh-light.png",
+      "bytes": 102249,
+      "sha256": "3d11effa126c59a048d8a4b5e9111a07aa602d1648bb5854867554f4fb62703b"
+    },
+    {
+      "path": "green-images/desk/pp1d-tablet-en-dark.png",
+      "bytes": 160398,
+      "sha256": "17b5070c1aad6e468c6933bb10e87fe06aa592fe51f059a1dbe4c882b7a0cdf5"
+    },
+    {
+      "path": "green-images/desk/pp1d-tablet-en-initial-dark.png",
+      "bytes": 147366,
+      "sha256": "93bd7b1033c48db8ad8c34423360e6e188fd35ece0e396130d11d78e2871c577"
+    },
+    {
+      "path": "green-images/desk/pp1d-tablet-en-light.png",
+      "bytes": 166583,
+      "sha256": "2fffc4af5ec3045351eab8dd4542fe59c8117b8d96efa97af9d3f21e6ed4391b"
+    },
+    {
+      "path": "green-images/desk/pp1d-tablet-zh-dark.png",
+      "bytes": 179114,
+      "sha256": "421c45addb2017af34fd429718b484bf564630f88fc805cfd442bdcf3e83f11d"
+    },
+    {
+      "path": "green-images/desk/pp1d-tablet-zh-initial-dark.png",
+      "bytes": 163062,
+      "sha256": "f4e316df42ba241a6c714df4a83425e91a2492a736fa7c3539c0d558d197fd82"
+    },
+    {
+      "path": "green-images/desk/pp1d-tablet-zh-light.png",
+      "bytes": 185315,
+      "sha256": "ac8702997bb6ae21b10011ceafac2c08c127b2571fb6f2d5df3b8db5594ac1a6"
+    },
+    {
+      "path": "green-images/test-results/exposure-state-identity-Ex-b6415-Q-after-delayed-SPY-success-desktop/desktop-exposure-state-success.png",
+      "bytes": 151560,
+      "sha256": "bd932a2a4c2988bf8de4c07156a2bb69408ace3a95000747beaabae9f8d87df3"
+    },
+    {
+      "path": "green-images/test-results/exposure-state-identity-Ex-b6415-Q-after-delayed-SPY-success-desktop/desktop-root-chooser-success.png",
+      "bytes": 157425,
+      "sha256": "0435b9c930e849e29db05cacfa9bd25d19cd028f80e927b5416d7f608509922f"
+    },
+    {
+      "path": "green-images/test-results/exposure-state-identity-Ex-b6415-Q-after-delayed-SPY-success-mobile/mobile-exposure-state-success.png",
+      "bytes": 60753,
+      "sha256": "fbd7465fcff3dbbe592a5eac9e01f279b55cc7f6e7cc2d6323f6ac8973f5da94"
+    },
+    {
+      "path": "green-images/test-results/exposure-state-identity-Ex-b6415-Q-after-delayed-SPY-success-mobile/mobile-root-chooser-success.png",
+      "bytes": 98535,
+      "sha256": "e054ffdf436161b13305f1e765348b5b8792f7ea7f9d3f029c0227b015f70696"
+    },
+    {
+      "path": "green-images/test-results/exposure-state-identity-Ex-b6415-Q-after-delayed-SPY-success-tablet/tablet-exposure-state-success.png",
+      "bytes": 156470,
+      "sha256": "42f1ea4c58c5396eaaed4dd2935a7f22a69d2784f5da95a0c2780c4ca31d7974"
+    },
+    {
+      "path": "green-images/test-results/exposure-state-identity-Ex-b6415-Q-after-delayed-SPY-success-tablet/tablet-root-chooser-success.png",
+      "bytes": 163649,
+      "sha256": "511a72eecb5d9344f1fd2e75fec1df25705ebee9f733efe5b8ab4e0f846fb0a5"
+    },
+    {
+      "path": "green-images/test-results/exposure-state-identity-Ex-ea74e-Q-after-delayed-SPY-failure-desktop/desktop-exposure-state-error.png",
+      "bytes": 151560,
+      "sha256": "bd932a2a4c2988bf8de4c07156a2bb69408ace3a95000747beaabae9f8d87df3"
+    },
+    {
+      "path": "green-images/test-results/exposure-state-identity-Ex-ea74e-Q-after-delayed-SPY-failure-desktop/desktop-root-chooser-error.png",
+      "bytes": 157425,
+      "sha256": "0435b9c930e849e29db05cacfa9bd25d19cd028f80e927b5416d7f608509922f"
+    },
+    {
+      "path": "green-images/test-results/exposure-state-identity-Ex-ea74e-Q-after-delayed-SPY-failure-mobile/mobile-exposure-state-error.png",
+      "bytes": 60753,
+      "sha256": "fbd7465fcff3dbbe592a5eac9e01f279b55cc7f6e7cc2d6323f6ac8973f5da94"
+    },
+    {
+      "path": "green-images/test-results/exposure-state-identity-Ex-ea74e-Q-after-delayed-SPY-failure-mobile/mobile-root-chooser-error.png",
+      "bytes": 98535,
+      "sha256": "e054ffdf436161b13305f1e765348b5b8792f7ea7f9d3f029c0227b015f70696"
+    },
+    {
+      "path": "green-images/test-results/exposure-state-identity-Ex-ea74e-Q-after-delayed-SPY-failure-tablet/tablet-exposure-state-error.png",
+      "bytes": 156470,
+      "sha256": "42f1ea4c58c5396eaaed4dd2935a7f22a69d2784f5da95a0c2780c4ca31d7974"
+    },
+    {
+      "path": "green-images/test-results/exposure-state-identity-Ex-ea74e-Q-after-delayed-SPY-failure-tablet/tablet-root-chooser-error.png",
+      "bytes": 163649,
+      "sha256": "511a72eecb5d9344f1fd2e75fec1df25705ebee9f733efe5b8ab4e0f846fb0a5"
+    }
+  ],
+  "acceptance_boundary": "Actual isolated browser qualification with route fixtures; not production deployment or authenticated market-data proof. Earlier accepted chart and six-pack evidence remains source-scoped; this repair only changes root-popup layout and its regression test."
+}

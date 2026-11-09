@@ -98,7 +98,7 @@ test("phone: the roller strip replaces the top toolbar row and the floating dock
   // second/minute/hour rows here.
   await expect(page.getByTestId("roller-symbol")).toHaveAttribute("aria-valuetext", "NVDA");
   expect(await page.getByTestId("roller-interval").locator(".mrs-wheel-item").allTextContents())
-    .toEqual(["1s", "5s", "15s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "4h", "D", "2D", "3D", "W", "2W", "1M", "3M"]);
+    .toEqual(["1s", "5s", "15s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "4h", "12h", "D", "2D", "3D", "W", "2W", "1M", "3M"]);
 
   // C25: the cluster scrolls under a leading fade and the anchored wheels never move with it.
   const before = (await page.getByTestId("roller-symbol").boundingBox())!.x;
@@ -118,6 +118,73 @@ test("phone: the roller strip replaces the top toolbar row and the floating dock
   }));
   expect(targets.length).toBe(5);
   for (const target of targets) expect(target.h).toBeGreaterThanOrEqual(44);
+
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(0);
+});
+
+test("phone: at rest each wheel paints only its whole selected label, clear of the tools", async ({ page }) => {
+  test.skip(!phone(page), "The wheels exist only on the phone strip.");
+  await openTerminal(page);
+  await expect(page.getByTestId("roller-strip")).toBeVisible({ timeout: 10_000 });
+
+  // The 46px strip crops a 23px-pitch neighbour row to half a glyph, so a resting ghost reads as
+  // broken, stacked text ("ETH-U…" over "NVDA", "2D" over "3D") in the toolbar row. Every label the
+  // strip paints at rest must be whole, inside the strip, and off every tool's touch target.
+  const painted = () => page.evaluate(() => {
+    const root = document.querySelector('[data-testid="roller-strip"]')!;
+    const strip = root.getBoundingClientRect();
+    const tools = [...root.querySelectorAll(".mrs-ic")].map((el) => el.getBoundingClientRect());
+    const labels: { wheel: string | null; text: string | null; whole: boolean; inStrip: boolean; onTool: boolean }[] = [];
+    for (const wheel of root.querySelectorAll(".mrs-wheel")) {
+      const clip = wheel.getBoundingClientRect();
+      for (const item of wheel.querySelectorAll(".mrs-wheel-item")) {
+        if (parseFloat(getComputedStyle(item).opacity) <= 0.01) continue;
+        const box = item.getBoundingClientRect();
+        const ink = {
+          top: Math.max(box.top, clip.top), bottom: Math.min(box.bottom, clip.bottom),
+          left: Math.max(box.left, clip.left), right: Math.min(box.right, clip.right),
+        };
+        if (ink.bottom <= ink.top || ink.right <= ink.left) continue; // fully clipped: nothing paints
+        labels.push({
+          wheel: wheel.getAttribute("data-testid"),
+          text: item.textContent,
+          whole: box.top >= clip.top - 0.5 && box.bottom <= clip.bottom + 0.5,
+          inStrip: ink.top >= strip.top - 0.5 && ink.bottom <= strip.bottom + 0.5,
+          onTool: tools.some((t) => ink.left < t.right && ink.right > t.left && ink.top < t.bottom && ink.bottom > t.top),
+        });
+      }
+    }
+    return labels;
+  });
+
+  await expect.poll(painted, { message: "resting wheels paint one whole label each", timeout: 5_000 }).toEqual([
+    { wheel: "roller-symbol", text: "NVDA", whole: true, inStrip: true, onTool: false },
+    { wheel: "roller-interval", text: "3D", whole: true, inStrip: true, onTool: false },
+  ]);
+
+  // Under the finger the drum still shows its 34% neighbours; releasing settles back to the clean
+  // rest state.
+  const wheel = page.getByTestId("roller-interval");
+  const box = (await wheel.boundingBox())!;
+  const touch = { pointerId: 12, pointerType: "touch", isPrimary: true, button: 0, buttons: 1 };
+  const x = box.x + box.width / 2;
+  const y = box.y + box.height / 2;
+  await wheel.dispatchEvent("pointerdown", { ...touch, clientX: x, clientY: y });
+  await wheel.dispatchEvent("pointermove", { ...touch, clientX: x, clientY: y + 23 });
+  await expect(wheel).toHaveAttribute("aria-valuetext", "2D", { timeout: 5_000 });
+  await expect.poll(
+    async () => (await painted()).filter((label) => label.wheel === "roller-interval").length,
+    { message: "a rolling wheel shows its ghosted neighbours", timeout: 5_000 },
+  ).toBeGreaterThan(1);
+  // The finger stops before it lifts (a zero-velocity sample), so the release cannot coast on.
+  await wheel.dispatchEvent("pointermove", { ...touch, clientX: x, clientY: y + 23 });
+  await wheel.dispatchEvent("pointerup", { ...touch, buttons: 0, clientX: x, clientY: y + 23 });
+  await expect.poll(painted, { message: "the settled wheel drops its ghosts again", timeout: 5_000 }).toEqual([
+    { wheel: "roller-symbol", text: "NVDA", whole: true, inStrip: true, onTool: false },
+    { wheel: "roller-interval", text: "2D", whole: true, inStrip: true, onTool: false },
+  ]);
 
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -182,6 +249,43 @@ test("phone: the pencil opens the TV Drawings sheet and a tile arms the tool", a
   await page.getByTestId("drawings-cat-favorites").click();
   await expect(page.getByTestId("drawings-tile-trendline")).toBeVisible();
   await expect(sheet.locator(".mdraw-tile")).toHaveCount(1);
+  await page.getByTestId("drawings-sheet-close").click();
+  await expect(sheet).toBeHidden();
+});
+
+test("phone: a tile the shell refuses is never recorded under Favorites", async ({ page }) => {
+  test.skip(!phone(page), "The Drawings sheet is the phone replacement for the dock.");
+  // A failed account read leaves drawings unready, so activateDrawingTool declines every tool
+  // without a creation-disabled reason: the sheet stays usable and its tiles stay tappable.
+  await page.route("**/api/drawings**", async (route) => {
+    await route.fulfill({
+      status: route.request().method() === "GET" ? 500 : 200,
+      contentType: "application/json",
+      body: JSON.stringify(route.request().method() === "GET"
+        ? { drawings: [], error: "fixture outage" }
+        : { ok: true }),
+    });
+  });
+  await page.addInitScript(() => {
+    localStorage.removeItem("mm.draw");
+    localStorage.removeItem("mm.drawRecents");
+  });
+  await openTerminal(page);
+  await expect(page.getByText(/Saved drawings could not be loaded/)).toBeAttached();
+
+  await page.getByTestId("roller-draw").click();
+  const sheet = page.getByRole("dialog", { name: "Drawings" });
+  await expect(sheet).toBeVisible();
+  await page.getByTestId("drawings-cat-trendlines").click();
+  await page.getByTestId("drawings-tile-trendline").click();
+  await expect(sheet).toBeHidden();
+  await expect(page.getByTestId("drawing-group-lines-main")).toHaveAttribute("aria-pressed", "false");
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("mm.drawRecents") || "[]"))).toEqual([]);
+
+  await page.getByTestId("roller-draw").click();
+  await page.getByTestId("drawings-cat-favorites").click();
+  await expect(sheet.locator(".mdraw-tile")).toHaveCount(0);
+  await expect(sheet.getByText("Tools you use appear here.")).toBeVisible();
   await page.getByTestId("drawings-sheet-close").click();
   await expect(sheet).toBeHidden();
 });
