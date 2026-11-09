@@ -1,0 +1,43 @@
+.workspace { flex: 1; min-height: 0; min-width: 0; overflow: auto; padding: 24px; background: var(--bg); color: var(--text); }
+.header { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+.eyebrow { color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.header h1 { margin: 6px 0; font-size: 25px; font-weight: 600; letter-spacing: -.03em; }
+.header p, .card p, .empty p { color: var(--text-2); font-size: 12px; line-height: 1.7; margin: 6px 0 14px; }
+.header form { display: grid; gap: 5px; flex-shrink: 0; font-size: 11px; color: var(--text-2); }
+.header form > div { display: flex; gap: 6px; }
+.header input { width: 110px; border: 1px solid var(--line); border-radius: 5px; padding: 9px; background: var(--panel); color: var(--text); font: inherit; font-size: 13px; }
+.workspace button { border: 1px solid var(--line); border-radius: 5px; padding: 8px 12px; background: var(--panel-2); color: var(--text); font: inherit; cursor: pointer; }
+.workspace :is(button,input,summary,[tabindex]):focus-visible { outline: 2px solid var(--brand-2); outline-offset: 3px; }
+.status { display: flex; flex-wrap: wrap; gap: 7px 18px; border-block: 1px solid var(--line); padding: 12px 0; color: var(--text-2); font-size: 11px; line-height: 1.6; }
+.status strong { color: var(--text); }
+.metrics { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); margin: 20px 0; gap: 16px; }
+.metrics > div { display: flex; flex-direction: column; gap: 8px; border-right: 1px solid var(--line); padding-right: 16px; }
+.metrics > div:last-child { border: 0; }
+.metrics span, .metrics small { font-size: 11px; color: var(--muted); }
+.metrics strong { font-size: 23px; font-weight: 550; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; align-items: start; grid-template-areas: "calls execution" "venues execution" "coverage execution"; }
+.card:nth-child(1) { grid-area: calls; }
+.card:nth-child(2) { grid-area: execution; }
+.card:nth-child(3) { grid-area: venues; }
+.card:nth-child(4) { grid-area: coverage; }
+.card { min-width: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); padding: 18px; }
+.card h2 { font-size: 14px; font-weight: 600; margin: 0 0 8px; }
+.tableScroll { max-width: 100%; overflow-x: auto; scrollbar-width: thin; }
+.tableScroll table { border-collapse: collapse; width: 100%; font-size: 11px; }
+.tableScroll th, .tableScroll td { padding: 11px 7px; text-align: right; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.tableScroll th:first-child { text-align: left; min-width: 100px; overflow-wrap: anywhere; max-width: 170px; }
+.tableScroll thead th { color: var(--muted); font-weight: 500; font-size: 10px; }
+.tableScroll tbody th { color: var(--text-2); font-weight: 500; }
+.tableScroll small { display: block; color: var(--muted); font-size: 9px; margin-top: 4px; white-space: nowrap; }
+.workspace summary { cursor: pointer; min-height: 36px; padding: 10px 0; font-size: 11px; color: var(--text-2); }
+.provenance { font-size: 11px; line-height: 1.7; }
+.provenance dt { color: var(--muted); margin-top: 10px; }
+.provenance dd { margin: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.empty { border: 1px solid var(--line); border-radius: 8px; padding: 32px; background: var(--panel); max-width: 800px; }
+.empty h2 { font-size: 20px; font-weight: 550; margin: 12px 0; }
+.muted { color: var(--muted); }
+.notice { padding: 12px 0; color: var(--text-2); font-size: 12px; line-height: 1.7; }
+.srOnly { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+@media (max-width: 1100px) { .grid { grid-template-columns: 1fr; grid-template-areas: "calls" "execution" "venues" "coverage"; } .metrics { grid-template-columns: repeat(2,minmax(0,1fr)); } .metrics > div:nth-child(2) { border: 0; } }
+@media (max-width: 640px) { .workspace { padding: 16px 12px; } .header { align-items: start; gap: 16px; flex-direction: column; } .header form > div { width: 100%; } .header h1 { font-size: 22px; } .card { padding: 14px 10px; } .metrics { gap: 18px 10px; } .metrics strong { font-size: 20px; } .empty { padding: 20px; } }
+@media (pointer: coarse), (max-width: 640px) { .workspace button, .header input, .workspace summary { min-height: 44px; } }

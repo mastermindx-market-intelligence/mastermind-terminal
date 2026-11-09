@@ -1,0 +1,84 @@
+{
+  "schema": "mastermind.terminal.ex03_post1140_integration.v1",
+  "operation_id": "terminal-experience-masterplan-20261022",
+  "pr": 1134,
+  "previous_head": "89ad64b37a4030adf44e68812a7fc47dc92109c1",
+  "protected_master": "03133eb3d579d24297fa6933751e6ef1dfde25cc",
+  "source_scope": "uncommitted normal merge in original managed worktree; final Git commit separate",
+  "bpl_captures": {
+    "SearchModal-1440.png": "aa2aa0e3abee7aaa45a8e8c54e32f55375f4a8dc7f2c860f410f11f04d027c54",
+    "SearchModal-1440-zh.png": "c62b189582ef33e9ca2fecdda19c88b8412b943b44b1040766bd7de25b55eb51",
+    "SearchModal-390.png": "9c203d6f7a615675c9c09c40b7c2d3cf91765c38217c74d40087081fb3f2a85e",
+    "SearchModal-390-zh.png": "78c9d04b8cdbe759e7c2a8d543aab0b5c8cd46c4981b21dfff9116c78ded263e",
+    "ChartChrome-1440.png": "424a03aa1d672400101346bac93beceb11f4397a784a50a26188a73d71e4263d",
+    "ChartChrome-1440-zh.png": "dbb0e498448ab270c98b9ee17154ae93279e86924bbef526e5338a462c4c250d",
+    "ChartChrome-390.png": "f19d5c5b5c02b1639293de7776935886e3ec83388789fc725a39ec5cb816daa0",
+    "ChartChrome-390-zh.png": "898df24d245540d080e8aceb3ab5c39f6196c3d1e7096c5c5797ef9244aba0ce"
+  },
+  "visual_captures": {
+    "desktop-context.png": "9ab1770f4b1a6a59c02730cf954d8360b359d5b1764b828281f06948308b9d13",
+    "desktop-context-zh.png": "77077eee2e63819a48e2cb99645525cf9f0b79d29689dfbc7741a2b431887416",
+    "tablet-context.png": "371cb5a97f7571295ff71c117eb6c7869d180c1a3b72c68551783ce1cf41be23",
+    "tablet-context-zh.png": "83e2284520987798d68f92c1db4bba81d4293ff82d48e9044ec5aedf50d2c4bf",
+    "mobile-context.png": "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7",
+    "mobile-context-zh.png": "026a5eec18bd550659368edb3ad69d20dacd542bdd898b16b971d0284a67d087"
+  },
+  "visual_report_sha256": "a04c11f78ec3f2233c9ace7d078b035669447cde191db6aee0fa71463a454ecc",
+  "visual_report_stats": {
+    "startTime": "2026-10-23T14:48:53.764Z",
+    "duration": 241365.25600000002,
+    "expected": 30,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "bpl_changed_bindings": {
+    "cropFiles": [
+      "SearchModal-390-zh.png",
+      "SearchModal-390.png"
+    ],
+    "layoutFiles": [],
+    "browserReportHashes": [],
+    "captureHarnessFiles": [
+      "terminal/e2e/overnight-refresh.spec.ts"
+    ]
+  },
+  "visual_changed_bindings": {
+    "cropFiles": [
+      "desktop-context.png",
+      "desktop-context-zh.png",
+      "tablet-context.png",
+      "tablet-context-zh.png"
+    ],
+    "layoutFiles": [
+      "terminal/components/TerminalShell.tsx",
+      "terminal/components/SearchModal.tsx"
+    ],
+    "browserReportHashes": [
+      "visualReport",
+      "mobileCrosshairReport"
+    ],
+    "captureHarnessFiles": [
+      "terminal/e2e/overnight-refresh.spec.ts",
+      "terminal/e2e/terminal-chrome-responsive.spec.ts"
+    ]
+  },
+  "inherited_unqualified_bpl_crops": [
+    "DiscoverLeaders-1440-zh.png",
+    "DiscoverLeaders-1440.png",
+    "DiscoverLeaders-390-zh.png",
+    "DiscoverLeaders-390.png",
+    "OptionsHubView-1440-zh.png",
+    "OptionsHubView-1440.png",
+    "OptionsHubView-390-zh.png",
+    "OptionsHubView-390.png",
+    "StockAnalysis-1440-zh.png",
+    "StockAnalysis-1440.png",
+    "StockAnalysis-390-zh.png",
+    "StockAnalysis-390.png"
+  ],
+  "migration_0041_origin": "merged PR 1139 and canonical correction merged PR 1140; no SQL application in this operation",
+  "production_proof": false,
+  "new_head_ci_qualified": false,
+  "independent_current_head_review": false
+}

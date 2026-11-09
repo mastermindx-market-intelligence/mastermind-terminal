@@ -1,0 +1,20 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/ubuntu3/lanes/wt/pv1044-sol012-20261020/terminal
+
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped brief > retires the previous account's settled content before the next account's response
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped brief > ignores the previous account's late fetch completion
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped brief > ignores the previous account's late body completion
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped brief > does not revive a retired request after A to B to A
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped brief > preserves a live request through a same-owner seed and email refresh
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped events > retires the previous account's settled content before the next account's response
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped events > ignores the previous account's late fetch completion
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped events > ignores the previous account's late body completion
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped events > does not revive a retired request after A to B to A
+ ✓ lib/__tests__/portfolioWorkspaceOwnerPanels.test.tsx > Portfolio owner-scoped events > preserves a live request through a same-owner seed and email refresh
+
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+   Start at  22:43:00
+   Duration  807ms (transform 181ms, setup 0ms, collect 242ms, tests 255ms, environment 109ms, prepare 27ms)
+

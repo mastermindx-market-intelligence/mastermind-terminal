@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Fragment,
   useDeferredValue,
   useEffect,
   useMemo,
@@ -10,13 +11,20 @@ import {
 } from "react";
 import Link from "next/link";
 import { ACS_UPGRADE_URL } from "@/components/settings/types";
+import type { EntitlementVisualState } from "@/lib/entitlementVisualState";
 import { useLang, useT } from "@/lib/i18n";
+import { LARGE_TRADES_LABELS } from "@/lib/largeTrades/labels";
 import {
   normalizeIndicatorSearch,
   rankIndicatorSearch,
   type IndicatorSearchDocument,
 } from "@/lib/indicatorSearch";
 import { type UserScript } from "@/lib/userScripts";
+import { MAX_INSTANCES_PER_TYPE, supportsMultipleInstances } from "@/lib/studyInstances";
+import { renderableStudyIds } from "@/lib/studyInstanceView";
+import { useStudyInstancesT } from "@/lib/studyInstancesLex";
+import { useStudyTemplatesT } from "@/lib/studyTemplatesLex";
+import type { IndKey } from "@/lib/indicators";
 import StateSwitch, { LockMark } from "@/components/StateSwitch";
 import {
   MODULE_CATALOG,
@@ -34,7 +42,7 @@ import { SUITE_DEFS, SUITE_ORDER } from "@/lib/suites/registry";
 import { SUITE_TIER_LABEL } from "@/lib/indicator-canvas/types";
 import { classicCategoryLabel, planTierLabel } from "@/lib/plainLabels";
 
-type ClassicIndicator = { key: string; label: string; mm?: boolean; tkey?: string };
+type ClassicIndicator = { key: string; label: string; labelZh?: string; mm?: boolean; tkey?: string };
 
 const CATS: Record<string, ClassicIndicator[]> = {
   Mastermind: [
@@ -58,6 +66,7 @@ const CATS: Record<string, ClassicIndicator[]> = {
   "Price Action": [{ key: "gaps", label: "Gap Zones" }],
   Volume: [
     { key: "vol", label: "Volume" },
+    { key: "largeTrades", label: "Large trades", labelZh: LARGE_TRADES_LABELS.ltTitle[1] },
     { key: "vprofile", label: "Volume Profile", tkey: "indVprofile" },
   ],
   // Day Trade suite — spec §2 order: overlays then panes
@@ -140,6 +149,8 @@ export interface IndicatorsModalProps {
   onClose: () => void;
   /** Classic indicators and the five optional recommended suite presets. */
   onToggle: (key: string) => void;
+  /** Adds ANOTHER independent instance of a multi-instance study type (E06), e.g. a second RSI. */
+  onAddInstance?: (type: string) => void;
   /** Applies one progressive suite profile without replacing customized field values. */
   onApplyPreset?: (key: string, presetId: SuitePresetId) => void;
   suiteParams?: Readonly<Record<string, Readonly<Record<string, unknown>> | undefined>>;
@@ -156,6 +167,10 @@ export interface IndicatorsModalProps {
   onRenameScript?: (id: string, name: string) => void;
   onDeleteScript?: (id: string) => void;
   userTier?: Tier;
+  /** Whether the existing entitlement authority has actually answered. */
+  accessState: EntitlementVisualState;
+  /** Opens the study-template library (E07). The dialog closes first; the library owns focus next. */
+  onOpenTemplates?: () => void;
 }
 
 export default function IndicatorsModal({
@@ -165,6 +180,7 @@ export default function IndicatorsModal({
   activeModules,
   onClose,
   onToggle,
+  onAddInstance,
   onApplyPreset,
   suiteParams,
   onToggleModule,
@@ -178,9 +194,13 @@ export default function IndicatorsModal({
   onRenameScript,
   onDeleteScript,
   userTier = "free",
+  accessState,
+  onOpenTemplates,
 }: IndicatorsModalProps) {
   const t = useT();
   const { lang } = useLang();
+  const si = useStudyInstancesT();
+  const st = useStudyTemplatesT();
   const [cat, setCat] = useState<string>(ALL_INDICATORS);
   const [query, setQuery] = useState("");
   const [renaming, setRenaming] = useState<string | null>(null);
@@ -259,7 +279,7 @@ export default function IndicatorsModal({
     }
 
     for (const { item, category } of classicEntries) {
-      const label = item.tkey ? t(item.tkey, item.label) : item.label;
+      const label = lang === "zh" && item.labelZh ? item.labelZh : item.tkey ? t(item.tkey, item.label) : item.label;
       documents.push({
         id: `classic:${item.key}`,
         primary: label,
@@ -430,8 +450,11 @@ export default function IndicatorsModal({
 
   const renderClassic = (item: ClassicIndicator, category: string) => {
     const on = active.has(item.key);
-    const label = item.tkey ? t(item.tkey, item.label) : item.label;
-    return (
+    const label = lang === "zh" && item.labelZh ? item.labelZh : item.tkey ? t(item.tkey, item.label) : item.label;
+    // A multi-instance type that is already on the chart offers "Add another" — a NEW independent
+    // instance with its own id/params/pane — next to its switch (the switch keeps toggling the primary).
+    const instanceCount = onAddInstance && supportsMultipleInstances(item.key) ? renderableStudyIds(item.key as IndKey, active).length : 0;
+    const row = (
       <button
         type="button"
         key={`classic:${item.key}`}
@@ -452,11 +475,40 @@ export default function IndicatorsModal({
         <StateSwitch on={on} />
       </button>
     );
+    if (instanceCount < 1 || !onAddInstance) return row;
+    const full = instanceCount >= MAX_INSTANCES_PER_TYPE;
+    const addLabel = si("sinstAddAnother", { label });
+    return (
+      <Fragment key={`classic:${item.key}`}>
+        {row}
+        <button
+          type="button"
+          className="li li-classic"
+          aria-label={addLabel}
+          data-study-add-instance={item.key}
+          data-im-search-result={searching ? "" : undefined}
+          disabled={full}
+          style={full ? { cursor: "not-allowed", opacity: 0.62 } : undefined}
+          onClick={() => onAddInstance(item.key)}
+        >
+          <span className="im-classic-mark" aria-hidden="true">+</span>
+          <span className="li-main-copy">
+            <span className="li-nm">{addLabel}</span>
+            <span className="li-sub">
+              {full
+                ? si("sinstLimit", { max: MAX_INSTANCES_PER_TYPE, label })
+                : si("sinstCount", { count: instanceCount, max: MAX_INSTANCES_PER_TYPE })}
+            </span>
+          </span>
+        </button>
+      </Fragment>
+    );
   };
 
   const renderModule = (entry: SuiteModuleCatalogEntry) => {
     const on = !!activeModules?.has(entry.id);
     const locked = TIER_RANK[userTier] < TIER_RANK[entry.tier];
+    const pendingAccess = locked && accessState !== "verified";
     const description = lang === "zh" ? entry.descriptionZh : entry.description;
     const surfaceLabel = {
       overlay: copy("Overlay", "叠加"),
@@ -468,14 +520,14 @@ export default function IndicatorsModal({
     const disabled = locked || !onToggleModule;
 
     return (
-      <div key={entry.id} className={`imod-row${on ? " on" : ""}${locked ? " locked" : ""}`}>
+      <div key={entry.id} className={`imod-row${on ? " on" : ""}${locked && !pendingAccess ? " locked" : ""}`}>
         <button
           type="button"
           className="imod-main"
           role="switch"
           aria-checked={on}
           aria-describedby={`imod-desc-${entry.suiteKey}-${entry.moduleKey}`}
-          aria-label={locked ? `${entry.label} — ${copy("upgrade required", "需要升级")}` : entry.label}
+          aria-label={locked ? `${entry.label} — ${pendingAccess ? (accessState === "checking" ? copy("checking access", "正在验证权限") : copy("access unavailable", "权限暂不可用")) : copy("upgrade required", "需要升级")}` : entry.label}
           data-im-search-result={searching ? "" : undefined}
           disabled={disabled}
           onClick={() => onToggleModule?.(entry.id)}
@@ -493,7 +545,7 @@ export default function IndicatorsModal({
               {description}
             </span>
           </span>
-          <StateSwitch on={on} locked={locked} />
+          <StateSwitch on={on} locked={locked && !pendingAccess} />
         </button>
         <span className="imod-actions">
           {onOpenGuide && (
@@ -753,7 +805,7 @@ export default function IndicatorsModal({
                   const dense = preset.id === "research";
                   return (
                     <article
-                      className={`${selected ? "selected " : ""}${dense ? "dense" : ""}${locked ? " locked" : ""}`}
+                      className={`${selected ? "selected " : ""}${dense ? "dense" : ""}${locked && accessState === "verified" ? " locked" : ""}`}
                       key={preset.id}
                     >
                       <div className="ipreset-profile-top">
@@ -768,7 +820,11 @@ export default function IndicatorsModal({
                           return <span key={moduleKey}>{moduleEntry?.tag ?? moduleKey}</span>;
                         })}
                       </div>
-                      {locked ? (
+                      {locked && accessState !== "verified" ? (
+                        <button type="button" className="ipreset-add" disabled aria-live="polite">
+                          {accessState === "checking" ? copy("Checking access…", "正在验证权限…") : copy("Access unavailable", "权限暂不可用")}
+                        </button>
+                      ) : locked ? (
                         <a
                           className="ipreset-add"
                           href={ACS_UPGRADE_URL}
@@ -993,6 +1049,19 @@ export default function IndicatorsModal({
               <div className="grp">{copy("Tools", "工具")}</div>
               {navButton(SYSTEM_PRESETS, copy("Systems & Presets", "系统与预设"), SUITE_ORDER.length)}
               {navButton(MY_SCRIPTS, t("myScripts"), scripts.length)}
+              {onOpenTemplates && (
+                <button
+                  type="button"
+                  className="im-nav-item"
+                  data-open-study-templates=""
+                  onClick={() => {
+                    closeModal(true);
+                    onOpenTemplates();
+                  }}
+                >
+                  <span>{st("stplNavLabel")}</span>
+                </button>
+              )}
             </div>
           </nav>
           <main

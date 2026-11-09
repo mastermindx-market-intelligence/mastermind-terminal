@@ -1,22 +1,26 @@
 # B-PL-6 batch 3 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: b7a3357b06847f560022a829b8fd6c4fea3d4d47
-# capturedAt: 2026-10-10T00:25:54.248Z
+# capturedAtHead: d5dcb1452778d4fd289ec9d6d056d9f28809177d
+# capturedAt: 2026-11-09T12:14:07.163Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/options/OptionsFlowBoardView.tsx: "96e0d1d0a4e7eaed7f2d2bbec6722725afacc093e205defa280a483bc6e14b8e"
-  terminal/components/flowdesk/FiltersPanel.tsx: "57ac663475b95a569f62d4c08e83a111f6137c920c78f13f1c9dfad1aa61708b"
-  terminal/components/flowdesk/FlowCard.tsx: "155aff67c1f2ec50fd396d2e7c2739d6400bad5ed37387df8a1b1d450f1b118d"
-  terminal/components/alerts/AlertDetail.tsx: "bc780f85d33d567e0b0055824c6e390663a53776990abe06380c265431fd6a21"
-  terminal/components/alerts/alerts.module.css: "20fcccdd05b6ff84a48402434176e1e565dff733b7033c3a436462333616be32"
-  terminal/components/heatmap/HeatmapView.tsx: "9fa62d5d3982f26e06fe7dd2523eeb8d088d0a7a356110df03501efa4434761f"
-  terminal/components/heatmap/Treemap.tsx: "0c5a7f2fd990c41f725d96b9aecb83f5f73eb6a42fbc66c811b43cd722947a0d"
-  terminal/lib/heatmapStrings.ts: "d52cad056dbfe6fe1c4f8b23acdbfea68a0fac4a4ff6425c2b04c0a6a303e9c6"
-  terminal/lib/flowdeskStrings.ts: "a268f22e0d157daf75e99973ce4ad35edfeeb9316d3c6686565fdf3b1ed83ab6"
+  terminal/components/options/OptionsFlowBoardView.tsx: "129d2b6289f8b2dbffbadc74f28f783c92146b5cb44af1121d7eb0263066ce1b"
+  terminal/components/flowdesk/FiltersPanel.tsx: "35ca28d678ceb9de2c30ac78f6e083dd35e14e4efb59d56688141a302f42c479"
+  terminal/components/flowdesk/FlowCard.tsx: "cef9c25c7e144c82200f89818bb679a2282f217debbf0229cf163cdddac1de37"
+  terminal/components/alerts/AlertDetail.tsx: "a5121ed88b6eb4e639292de53e402ee41ef3599a7bacaa24c278d2298c8ddce0"
+  terminal/components/alerts/alerts.module.css: "24316b370fa4b336251ec638b6397c92cd903785c79554de50481f4a6218ec02"
+  terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
+  terminal/components/heatmap/Treemap.tsx: "51b284e851011198374854f765c6efd6cb9f682450e7e52f62438adfb1bc995b"
+  terminal/lib/heatmapStrings.ts: "d24d5cff73246b1a426fe4034723dae30968cd6779d35cef29a4eaf3b55315b7"
+  terminal/lib/flowdeskStrings.ts: "580399a47bae6ab6aa16368d25ed54c94047799e4a600352385b5a9b7cc25c10"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
-  terminal/lib/i18n.tsx: "63689cd6a07d538ff8cdbe03a4ffd5a4037b9ec1ec162ff2f39c6f90a6b29e80"
-  terminal/components/PineEditor.tsx: "adb28728e7d95a49c992a41f3fb70cae7316ff2c42c9b4a5f238823c92a25055"
+  terminal/lib/i18n.tsx: "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
+  terminal/components/PineEditor.tsx: "941c5d5951c18e805605baccd820a9aad9c5f8f6046727968cbc3580625c4ef0"
+  terminal/e2e/tools/capture_ci_evidence.cjs: "adb4c05fc456320256add7e1d4ec9164962c589d755d01b6847916e283630bcf"
+  terminal/e2e/tools/capture_pl6_batch3.cjs: "c94f1650277ca0f7137aea08663f031eecd5891a4be45c903d7f66a542d6287c"
+  terminal/next.config.ts: "f6dbf2cd6da2894cc2049b77ac11fb42c0523df5f39f433753d66f8c491279a7"
+  terminal/e2e/fixtures/heatmap-price-only-tile.json: "df837b000afc12af5d522287c83cf483f716c147ae5d170da138c62f539357ca"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -24,7 +28,7 @@ viewports:
   - { name: mobile, width: 390, height: 844 }
 surfaces: [OptionsFlowBoard, FlowDesk, AlertDetail, HeatmapTreemap, PineLibrary]
 capture_flag: TERMINAL_E2E_FIXTURE
-capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
 heatmap_price_only_fixture: terminal/e2e/fixtures/heatmap-price-only-tile.json
 heatmap_crops:
   - HeatmapTreemap-1440.png

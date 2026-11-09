@@ -117,6 +117,14 @@ describe("plain-language call sites — batch 2", () => {
     const src = readOwned("ChartConductor.tsx");
     expect(src).not.toContain('title={railOpen ? "Hide live steps" : "Show live steps"}');
     expect(src).not.toContain('title="Skip animations"');
+    expect(src).not.toContain('title="Mastermind AI"');
+    expect(src).not.toContain(" touches · ");
+    // Current master replaced the old raw numeric chip with a localized, applied-only receipt.
+    // Preserve that newer behavior while rejecting the old unlocalized interpolation.
+    expect(src).toContain("fitBadgeText(r.fit, t)");
+    expect(src).toContain("r.ok && r.fit");
+    expect(src).toContain("outcomeLabel(stepOutcome(r), lang)");
+    expect(src).toContain('title={railOpen ? t("cmxHideSteps") : t("cmxToggleSteps")}');
     const toggle = lineContaining(src, "cmxHideSteps", "hide-steps");
     expect(toggle).toMatch(/\bt\(/);
   });
@@ -151,11 +159,14 @@ describe("plain-language call sites — batch 2", () => {
     expect(src).toContain('t("lgSignupPitch")');
   });
 
-  it("GuidePanel.tsx: academy chrome and teaching labels route through t(); tier uses planTierLabel", () => {
+  it("GuidePanel.tsx: academy chrome stays user-facing, never exposes schema keys", () => {
     const src = readOwned("GuidePanel.tsx");
     expect(src).not.toContain('"Indicator Academy"');
     expect(src).not.toContain('"At a glance"');
     expect(src).not.toContain("{candidate.tier}");
+    expect(src).not.toContain("<code>{field.key}</code>");
+    expect(src).not.toContain('"${field.showIf.key} = ${String(field.showIf.eq)}"');
+    expect(src).toContain("dependencyField.label");
     expect(src).toContain('t("gpAcademy")');
     expect(src).toContain("planTierLabel(");
   });
@@ -169,13 +180,16 @@ describe("plain-language call sites — batch 2", () => {
     expect(src).toContain('t("lvLearnCta")');
   });
 
-  it("LevelsLearn.tsx: teaching copy routes through t(), never English-only JSX", () => {
+  it("LevelsLearn.tsx: teaching copy is localized and collapsed for scanning", () => {
     const src = readOwned("levels/LevelsLearn.tsx");
     expect(src).not.toContain("Why price gets sticky or slippery");
     expect(src).not.toContain("The gamma weather map, in six reads");
     expect(src).not.toContain("leans against");
     expect(src).toContain('t("llHeroTitle")');
     expect(src).toContain('t("ll1title")');
+    expect(src).toContain("<details");
+    expect(src).toContain("open={i === 0}");
+    expect(src).toContain("<summary");
   });
 });
 
@@ -334,7 +348,7 @@ describe("plain-language call sites — batch 3", () => {
     expect(src).toContain('k="xCreatedWith"');
   });
 
-  it("capture_pl6_batch3.cjs strips the Next indicator before the screenshot", () => {
+  it("capture_pl6_batch3.cjs verifies indicator absence without hiding or trimming the rendered UI", () => {
     const src = readFileSync(join(__dirname, "../../e2e/tools/capture_pl6_batch3.cjs"), "utf8");
     const cropStart = src.indexOf("async function cropBox");
     const cropEnd = src.indexOf("async function cropLocator");
@@ -343,8 +357,9 @@ describe("plain-language call sites — batch 3", () => {
     const cropBox = src.slice(cropStart, cropEnd);
     expect(cropBox).toContain("assertNoNextIndicator");
     expect(cropBox.indexOf("assertNoNextIndicator")).toBeLessThan(cropBox.indexOf("page.screenshot"));
-    expect(cropBox).toContain("AlertDetail-390");
-    expect(cropBox).toContain("trimBottom");
+    expect(src).not.toContain("trimBottom");
+    expect(src).not.toContain("MutationObserver");
+    expect(src).not.toContain("display: none");
     expect(src).toContain("heatmap-price-only-tile.json");
     expect(src).toContain("installHeatmapPriceOnlyFixture");
     const desk = src.slice(src.indexOf("async function captureFlowDesk"), src.indexOf("async function installAlertFixtures"));

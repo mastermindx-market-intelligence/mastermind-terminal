@@ -1,5 +1,5 @@
 // Git-free evidence lock for the B-PL-6 batch 3 capture packet.
-// The lock is the sha256 of the layout sources the crops depend on, recorded in
+// The lock is the sha256 of the rendered and capture inputs, recorded in
 // EVIDENCE.yml layoutFiles. capturedAtHead stays informational.
 import { describe, expect, it } from "vitest";
 import { createHash } from "node:crypto";
@@ -23,6 +23,11 @@ const LAYOUT_FILES = [
   "terminal/lib/plainLabels.ts",
   "terminal/lib/i18n.tsx",
   "terminal/components/PineEditor.tsx",
+  // Capture inputs share the existing source lock so owner/fixture-only drift recaptures.
+  "terminal/e2e/tools/capture_ci_evidence.cjs",
+  "terminal/e2e/tools/capture_pl6_batch3.cjs",
+  "terminal/next.config.ts",
+  "terminal/e2e/fixtures/heatmap-price-only-tile.json",
 ];
 const CROPS = [
   "AlertDetail-1440.png",
@@ -60,6 +65,7 @@ function layoutFileMap(yml: string): Record<string, string> {
     if (!line.startsWith("  ")) break;
     const match = line.match(/^  (\S+): "?([0-9a-f]{64})"?$/);
     if (!match) throw new Error(`layoutFiles row is not path: sha256: ${line}`);
+    if (Object.hasOwn(map, match[1])) throw new Error(`duplicate layoutFiles source: ${match[1]}`);
     map[match[1]] = match[2];
   }
   if (Object.keys(map).length === 0) throw new Error("EVIDENCE.yml layoutFiles is empty");
@@ -73,6 +79,7 @@ function sha256Of(abs: string): string {
 describe("B-PL-6 batch 3 evidence lock is the sha256 of the layout sources", () => {
   it("EVIDENCE.yml records a sha256 for every source the capture script stamps", () => {
     const recorded = layoutFileMap(evidenceText());
+    expect(Object.keys(recorded).sort()).toEqual([...LAYOUT_FILES].sort());
     for (const rel of LAYOUT_FILES) {
       expect(recorded[rel] ?? "", `layoutFiles is missing ${rel}`).toMatch(/^[0-9a-f]{64}$/);
     }
@@ -87,7 +94,17 @@ describe("B-PL-6 batch 3 evidence lock is the sha256 of the layout sources", () 
     }
   });
 
-  it("all dark crops exist and are non-empty", () => {
+  it("the current manifest declares exactly the complete 20 dark crops", () => {
+    const sections = evidenceText().split("\nfiles:\n");
+    expect(sections).toHaveLength(2);
+    const listed: string[] = [];
+    for (const line of sections[1].split("\n")) {
+      if (!line.startsWith("  ")) break;
+      const match = /^  - ([A-Za-z0-9_-]+\.png)$/.exec(line);
+      expect(match, line).not.toBeNull();
+      listed.push(match![1]);
+    }
+    expect(listed.sort()).toEqual([...CROPS].sort());
     for (const file of CROPS) {
       const abs = join(CROP_DIR, file);
       expect(existsSync(abs), file).toBe(true);

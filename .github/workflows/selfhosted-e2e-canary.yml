@@ -1,0 +1,190 @@
+# Self-hosted e2e CANARY (Chairman 2026-11-04, Mastermind #917 workflow-acceleration program).
+#
+# Purpose: measure ONE Terminal Playwright shard on the ubuntu0 self-hosted runner
+# (32 cores / 29 GB, ephemeral JIT registration, label `ubuntu0-canary`) against the
+# identical hosted `terminal-e2e` shard in ci.yml. ci.yml is untouched: hosted shards
+# remain the required checks and the fallback. This workflow is NOT a required check,
+# writes no artifact the merge path consumes, and needs no secret.
+#
+# Safety posture (public repository):
+#   * `workflow_dispatch` ONLY — never pull_request / push. This file's trigger does NOT by
+#     itself fence the host: a pull_request workflow is taken from the PR's merge ref, so
+#     any branch could name `runs-on: ubuntu0-canary`. The host fence is therefore
+#     procedural and recorded here: (a) the repository's fork-PR approval policy is
+#     `all_external_contributors` (every outside-collaborator workflow run needs a
+#     maintainer's approval); (b) the runner is registered just-in-time for ONE job,
+#     only while the seat is dispatching this workflow, and is deregistered when idle —
+#     no listener exists for a stray workflow to land on; (c) the production-grade
+#     control, an org runner group restricted to `selfhosted-e2e-canary.yml@refs/heads/master`
+#     (needs `admin:org`), is a Chairman admin step and a precondition for anything
+#     beyond this canary (Mastermind #917).
+#   * `permissions: contents: read` — the job token can read the checkout and nothing else.
+#   * A hosted prerequisite validates exact protected master/workflow identity before
+#     checkout, then runs .github/scripts/selfhosted_canary_inputs.sh before publishing
+#     admission. Only that admitted immutable SHA and fixed inputs reach the self-hosted
+#     job. This workflow fence does not restrict other workflows using the same labels.
+#   * Dispatch inputs enter hosted admission as `env` DATA. The fixed shard table mirrors
+#     the hosted matrix and workers are bounded integers. No `${{ inputs.* }}` is ever spliced into a
+#     `run:` block — expression text inside shell source is injectable, and quoting around
+#     the expression does not escape a quote inside the value (review finding on #1277).
+#     tests/test_selfhosted_canary_workflow.py pins this contract with negative tests.
+#   * The runner is registered ephemeral (one job, then deregistered) under an
+#     unprivileged user with no sudo. Registration alone does not clean its filesystem;
+#     the original runtime owner must separately qualify isolation and cleanup.
+#   * Same steps as the hosted shard's `npm run test:e2e:responsive` step, minus `--with-deps`
+#     (system libs are preinstalled once by the host operator; the unprivileged runner
+#     user cannot apt). The hosted `serial` job additionally runs two opt-in qualification
+#     steps that this canary does not; compare `shard_seconds` with the hosted STEP time.
+name: Self-hosted e2e canary (ubuntu0)
+
+on:
+  workflow_dispatch:
+    inputs:
+      shard:
+        description: ci.yml terminal-e2e shard label (desktop-1..6, tablet-1..4, mobile-1..3, serial); mapped to its exact Playwright selector by .github/scripts/selfhosted_canary_inputs.sh
+        default: desktop-1
+        type: string
+      workers:
+        description: Playwright --workers, integer 1..16 (1 = apples-to-apples with hosted; >1 measures the 32-core gain)
+        default: "1"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: selfhosted-e2e-canary
+  cancel-in-progress: false
+
+jobs:
+  admit:
+    name: Admit protected source and bounded inputs
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      admitted: ${{ steps.release.outputs.admitted }}
+      sha: ${{ steps.release.outputs.sha }}
+      shard: ${{ steps.release.outputs.shard }}
+      projects: ${{ steps.release.outputs.projects }}
+      workers: ${{ steps.release.outputs.workers }}
+    env:
+      CANARY_SHARD: ${{ inputs.shard }}
+      CANARY_WORKERS: ${{ inputs.workers }}
+    steps:
+      - name: Validate exact protected dispatch source before checkout
+        id: source
+        shell: bash
+        env:
+          CANARY_REPOSITORY: ${{ github.repository }}
+          CANARY_EVENT: ${{ github.event_name }}
+          CANARY_REF_TYPE: ${{ github.ref_type }}
+          CANARY_REF: ${{ github.ref }}
+          CANARY_REF_PROTECTED: ${{ github.ref_protected }}
+          CANARY_WORKFLOW_REF: ${{ github.workflow_ref }}
+          CANARY_EVENT_SHA: ${{ github.sha }}
+          CANARY_WORKFLOW_SHA: ${{ github.workflow_sha }}
+        run: |
+          set -euo pipefail
+          require_equal() {
+            if [ "$1" != "$2" ]; then
+              printf '::error::Untrusted canary %s\n' "$3" >&2
+              exit 2
+            fi
+          }
+          require_equal "$CANARY_REPOSITORY" 'mastermindx-market-intelligence/mastermind-terminal' repository
+          require_equal "$CANARY_EVENT" 'workflow_dispatch' event
+          require_equal "$CANARY_REF_TYPE" 'branch' ref_type
+          require_equal "$CANARY_REF" 'refs/heads/master' ref
+          require_equal "$CANARY_REF_PROTECTED" 'true' protected_ref
+          require_equal "$CANARY_WORKFLOW_REF" 'mastermindx-market-intelligence/mastermind-terminal/.github/workflows/selfhosted-e2e-canary.yml@refs/heads/master' workflow
+          if [[ ! "$CANARY_EVENT_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            printf '::error::Invalid canary commit SHA\n' >&2
+            exit 2
+          fi
+          require_equal "$CANARY_WORKFLOW_SHA" "$CANARY_EVENT_SHA" workflow_sha
+          printf 'sha=%s\n' "$CANARY_EVENT_SHA" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Validate dispatch inputs before self-hosted allocation
+        run: bash .github/scripts/selfhosted_canary_inputs.sh
+      - name: Publish admitted immutable source and fixed inputs
+        id: release
+        shell: bash
+        env:
+          CANARY_SHA: ${{ steps.source.outputs.sha }}
+        run: |
+          printf 'admitted=true\nsha=%s\nshard=%s\nprojects=%s\nworkers=%s\n' \
+            "$CANARY_SHA" "$CANARY_SHARD_OK" "$CANARY_PROJECTS" "$CANARY_WORKERS_OK" >> "$GITHUB_OUTPUT"
+
+  canary:
+    name: Canary ${{ needs.admit.outputs.shard }} on ubuntu0 (workers=${{ needs.admit.outputs.workers }})
+    needs: admit
+    if: >-
+      needs.admit.result == 'success' &&
+      needs.admit.outputs.admitted == 'true' &&
+      needs.admit.outputs.sha == github.sha
+    runs-on: [self-hosted, linux, x64, ubuntu0-canary]
+    # Same hang cap as the hosted shard; the point is to come in far under it.
+    timeout-minutes: 60
+    env:
+      CI: "1"
+      # Only hosted-admitted values enter this job; raw inputs never reach the host.
+      CANARY_SHARD_OK: ${{ needs.admit.outputs.shard }}
+      CANARY_PROJECTS: ${{ needs.admit.outputs.projects }}
+      CANARY_WORKERS_OK: ${{ needs.admit.outputs.workers }}
+    defaults:
+      run:
+        working-directory: terminal
+    steps:
+      - name: Host facts
+        working-directory: .
+        run: |
+          echo "runner=$RUNNER_NAME host=$(hostname) started=$(date -u +%FT%TZ)"
+          echo "cpus=$(nproc) mem=$(free -g | awk '/Mem:/{print $2}')G load=$(cut -d' ' -f1-3 /proc/loadavg)"
+          echo "node_system=$(node -v 2>/dev/null || echo none) kernel=$(uname -r)"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: terminal/package-lock.json
+      - name: npm ci (timed)
+        run: |
+          t0=$(date +%s); npm ci; echo "npm_ci_seconds=$(( $(date +%s) - t0 ))"
+      - run: npx next typegen
+      - name: Resolve Playwright version
+        id: pw
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright browsers
+        id: pwcache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-${{ runner.os }}-selfhosted-${{ steps.pw.outputs.version }}
+      # No `--with-deps`: the runner user has no sudo. System libraries were installed once
+      # on the host (`playwright install-deps chromium`); a missing lib fails loudly here.
+      - name: Install Playwright browser (browser only)
+        timeout-minutes: 12
+        run: npx playwright install chromium
+      - name: Run shard (timed)
+        # Only the *_OK / CANARY_PROJECTS values written by the validator are used here; the
+        # raw CANARY_SHARD / CANARY_WORKERS inputs are never referenced by any run step
+        # (tests/test_selfhosted_canary_workflow.py forbids it). CANARY_PROJECTS comes from
+        # the fixed table, so word-splitting it into an argument array is safe.
+        run: |
+          read -r -a projects <<< "$CANARY_PROJECTS"
+          t0=$(date +%s)
+          npm run test:e2e:responsive -- "${projects[@]}" --workers="$CANARY_WORKERS_OK"
+          echo "shard_seconds=$(( $(date +%s) - t0 )) shard=$CANARY_SHARD_OK workers=$CANARY_WORKERS_OK"
+      - name: Upload responsive QA screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selfhosted-canary-${{ github.run_id }}
+          path: terminal/test-results
+          if-no-files-found: ignore

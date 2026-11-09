@@ -42,3 +42,31 @@ files:
     shows: "\"No data available\" and a breadth reading of \"0 / 0 (0%)\" for a universe that was never read"
   heatmap-unavailable-tablet.png: *heatmap
   heatmap-unavailable-mobile.png: *heatmap
+# Follow-up: the Heatmap painted from the PERSISTED manifest (dataCache's IndexedDB copy).
+# terminal/e2e/discover-heatmap-persisted-refresh-failure.spec.ts ran against lib/dataCache.ts and
+# components/heatmap/HeatmapView.tsx at base b7a3357b (both restored afterwards, sha256 checked).
+# All 6 failure runs (503 and refused, at each viewport; selected with -g "every refresh fails")
+# failed on the defect.
+# Why these show "Could not load" and not unlabelled tiles: the dev server double-mounts the board
+# (React StrictMode), so a second read of the manifest meets the first one's background refresh in
+# flight and was handed that refresh's failure, which withdrew the persisted tiles. A lone read
+# kept the tiles with no label instead (lib/__tests__/heatmapPersistedRefreshFailure.test.tsx, red
+# at this base). Both are the same defect: the cache never said the copy it served was stale and
+# that its refresh had failed.
+persistedRefresh:
+  base: b7a3357b06847f560022a829b8fd6c4fea3d4d47
+  spec: terminal/e2e/discover-heatmap-persisted-refresh-failure.spec.ts
+  setup: "a healthy first visit writes /data/manifest.json through to IndexedDB; the record is re-stamped 6h old; both manifest sources then fail and the page reloads"
+  files:
+    heatmap-persisted-refresh-503-desktop.png: &persisted503
+      test: "tiles painted from the persisted manifest are labelled as the last read when every refresh fails (503)"
+      injected: { "flow:manifest": 503, "/data/manifest.json": 503 }
+      shows: "\"Could not load the heatmap\" for a board that holds an earlier session's copy: the persisted tiles are withdrawn instead of kept and labelled \"Could not refresh — showing the last read.\""
+    heatmap-persisted-refresh-503-tablet.png: *persisted503
+    heatmap-persisted-refresh-503-mobile.png: *persisted503
+    heatmap-persisted-refresh-refused-desktop.png: &persistedRefused
+      test: "tiles painted from the persisted manifest are labelled as the last read when every refresh fails (abort)"
+      injected: { "flow:manifest": aborted, "/data/manifest.json": aborted }
+      shows: "the same withdrawal when the connection is refused"
+    heatmap-persisted-refresh-refused-tablet.png: *persistedRefused
+    heatmap-persisted-refresh-refused-mobile.png: *persistedRefused

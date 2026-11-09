@@ -1,0 +1,34 @@
+{
+  "scope": "Local optimized build, real route and authentication middleware, no browser interception or credentials. Not a deployed or entitled acceptance test.",
+  "compiled_routes": {
+    "/api/catalyst-opportunities": "app/api/catalyst-opportunities/route.js",
+    "/api/catalyst-opportunities/defense": "app/api/catalyst-opportunities/defense/route.js"
+  },
+  "requests": [
+    {
+      "path": "/api/catalyst-opportunities",
+      "status": 503,
+      "headers": {
+        "Cache-Control": "private, no-store",
+        "Content-Type": "application/json",
+        "Vary": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+        "X-Robots-Tag": "noindex, noarchive",
+        "Location": null
+      },
+      "contains_company_figures": false,
+      "body_bytes": 32
+    }
+  ],
+  "owned_test_server_stopped": true,
+  "configuration_presence_diagnostic": {
+    "process_presence": {
+      "NEXT_PUBLIC_SUPABASE_URL": false,
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY": false,
+      "BILLING_GATEWAY_BASE": false
+    },
+    "runtime_env_files": {}
+  },
+  "verdict": "BLOCKED_LOCAL_AUTH_CONFIGURATION",
+  "interpretation": "Observed sanitized 503/private-no-store without figures; no authenticated or missing-session-401 proof claimed. Defense route is compiled but the second request was not attempted after the first assertion.",
+  "header_observation": "The built framework response exposed its RSC Vary header rather than the handler-level Authorization/Cookie Vary; private,no-store was preserved. Recheck wire headers on the deployed path; unit headers are not wire-level evidence."
+}

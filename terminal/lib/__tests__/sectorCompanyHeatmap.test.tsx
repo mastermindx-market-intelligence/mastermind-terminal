@@ -189,6 +189,26 @@ describe("SectorCompanyHeatmap", () => {
     expect(host.textContent).not.toContain("Alpha Systems");
   });
 
+  it("does not blame the population for a feed that was never reached", async () => {
+    // A transport failure and a payload the owner-envelope check rejected are
+    // different defects with different owners. Both used to read as "the exact
+    // heatmap population could not be read safely", which sent the reader looking
+    // for a data defect instead of an unreachable or rate-limited owner origin.
+    await render({ status: "error" });
+    expect(host.textContent).toContain("The company heatmap feed could not be reached.");
+    expect(host.textContent).not.toContain("The exact heatmap population could not be read safely.");
+    await render({ status: "invalid" });
+    expect(host.textContent).toContain("The exact heatmap population could not be read safely.");
+    expect(host.textContent).not.toContain("The company heatmap feed could not be reached.");
+  });
+
+  it("keeps the unreachable copy in Chinese with the English view", async () => {
+    await render({ status: "error" });
+    await act(async () => applyLang("zh"));
+    expect(host.textContent).toContain("无法连接公司热图数据源。");
+    expect(host.textContent).not.toContain("The company heatmap feed could not be reached.");
+  });
+
   it("uses Chinese presentation without changing the canonical Technology join", async () => {
     await render({ selectedSectorName: "科技", selectedSectorSourceName: "Technology" });
     await act(async () => applyLang("zh"));

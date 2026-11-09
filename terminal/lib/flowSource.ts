@@ -14,10 +14,19 @@
  */
 import { promises as fs } from "fs";
 import path from "path";
+import { createHash } from "node:crypto";
 import { computeFlowScore, type ScorerInput } from "@/lib/flowScore";
 import { FLOW_BACKEND as BACKEND, R2_BASE } from "@/lib/upstreams";
 import { isValidRoot } from "@/lib/flowRoot";
+import { isUnadmittedGexFamilyArtifact } from "@/lib/ndxFamilyAdmission";
 import { type Bar6, tfMinutes, resample, sessionEpoch } from "@/lib/intradayShared";
+// Expected-source-identity helpers for the direct matrix:{ROOT} producer read.
+import {
+  MATRIX_ACQUIRED_BYTES_MAX,
+  MATRIX_ACQUIRED_SCHEMA,
+  MATRIX_SOURCE_SCHEMA,
+  matrixDocSession,
+} from "@/lib/matrixAcquisition";
 
 const FIXTURE_FILE = path.join(process.cwd(), "public", "data", "flow_fixture.json");
 const TIDE_FIXTURE_FILE = path.join(process.cwd(), "public", "data", "tide_fixture.json");
@@ -376,10 +385,34 @@ async function fetchWithUA(url: string): Promise<Record<string, unknown>> {
 export type UpstreamOutcome =
   | { status: "data"; data: Record<string, unknown> }
   | { status: "absent" }
-  | { status: "unavailable" };
+  | { status: "unavailable"; refusal?: "unadmitted_gex_family" };
+
+/**
+ * What ONE configured upstream read may do with source identity. Only a DIRECT
+ * original producer object — the exact bytes this reader opens itself — can acquire
+ * identity: gex/moves under the options_hub contract, matrix under the
+ * options_structure contract. The backend's matrix answer is an UNQUALIFIED
+ * reserialization (the backend has no Matrix identity producer), so it only sheds any
+ * supplied marker; it is never hashed and never re-requested.
+ */
+type SourceIdentity =
+  | { readonly op: "acquire_hub"; readonly kind: "gex" | "moves"; readonly root: string }
+  | { readonly op: "acquire_matrix"; readonly root: string }
+  | { readonly op: "strip_matrix" };
+
+function sourceIdentity(f: string, source: FlowUpstreamSource): SourceIdentity | undefined {
+  if (source === "r2") {
+    if (/^(gex|moves):/.test(f)) {
+      return { op: "acquire_hub", kind: f.startsWith("gex:") ? "gex" : "moves", root: f.split(":")[1] ?? "" };
+    }
+    if (f.startsWith("matrix:")) return { op: "acquire_matrix", root: f.split(":")[1] ?? "" };
+    return undefined;
+  }
+  return f.startsWith("matrix:") ? { op: "strip_matrix" } : undefined;
+}
 
 /** One classified upstream read — the same timeout, UA and no-store policy as fetchWithUA. */
-async function readUpstream(url: string): Promise<UpstreamOutcome> {
+async function readUpstream(url: string, identity?: SourceIdentity): Promise<UpstreamOutcome> {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 3_000);
   try {
@@ -397,7 +430,50 @@ async function readUpstream(url: string): Promise<UpstreamOutcome> {
     if (!res.ok) return { status: "unavailable" };
     let data: unknown;
     try {
-      data = await res.json();
+      if (identity?.op === "strip_matrix") {
+        // UNQUALIFIED backend matrix metadata: shed any supplied marker and keep the
+        // ordinary display read byte-for-byte. Never hash this reserialization and
+        // never add a fallback request just for identity.
+        const value = (await res.json()) as unknown;
+        if (value && typeof value === "object" && !Array.isArray(value)) {
+          delete (value as Record<string, unknown>)._matrix_source_identity;
+        }
+        data = value;
+      } else if (identity) {
+        // Only a DIRECT original producer object can acquire its own identity.
+        // Backend responses preserve their upstream identity, never hash JSON again.
+        // Preserve the existing display read for larger valid payloads; only
+        // capture identity is bounded by the protected source contract.
+        const bytes = new Uint8Array(await res.arrayBuffer());
+        data = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+        if (data && typeof data === "object" && !Array.isArray(data)) {
+          const value = data as Record<string, unknown>;
+          if (identity.op === "acquire_hub") {
+            const kind = identity.kind;
+            const max = kind === "gex" ? 8 * 1024 * 1024 : 1024 * 1024;
+            delete value._scenario_source_identity;
+            if (bytes.length > 0 && bytes.length <= max && value.schema === `options_hub.${kind}/v1` && value.root === identity.root
+              && typeof value.asof === "string") value._scenario_source_identity = {
+                schema: "options_hub.acquired_bytes/v1", kind, root: value.root, session: value.asof.slice(0, 10),
+                sha256: createHash("sha256").update(bytes).digest("hex"), byte_length: bytes.length,
+              };
+          } else {
+            // The matrix marker binds to the payload's own SESSION date
+            // (_build_meta.asof_date — the top asof is the build clock) and to the
+            // exact carried root, and is withheld from a doc the producer marked
+            // stale. Any supplied marker is replaced, so a payload can only ever
+            // carry the identity of the bytes this reader itself just hashed.
+            delete value._matrix_source_identity;
+            const session = matrixDocSession(value);
+            if (bytes.length > 0 && bytes.length <= MATRIX_ACQUIRED_BYTES_MAX && session !== null
+              && value.schema === MATRIX_SOURCE_SCHEMA && value.root === identity.root
+              && (value.stale === undefined || value.stale === false)) value._matrix_source_identity = {
+                schema: MATRIX_ACQUIRED_SCHEMA, kind: "matrix", root: value.root, session,
+                sha256: createHash("sha256").update(bytes).digest("hex"), byte_length: bytes.length,
+              };
+          }
+        }
+      } else data = await res.json();
     } catch {
       return { status: "unavailable" };
     }
@@ -1228,8 +1304,17 @@ async function readGenericUpstream(f: string): Promise<UpstreamOutcome> {
     if (source === "r2" && f === "prophet_idx") continue;
     const read = await readUpstream(source === "r2"
       ? `${R2_BASE}/${r2Key(f)}`
-      : `${BACKEND}${backendPath(f)}`);
-    if (read.status === "data") return read;
+      : `${BACKEND}${backendPath(f)}`, sourceIdentity(f, source));
+    if (read.status === "data") {
+      // One observed but unqualified family candidate makes the source UNAVAILABLE.
+      // Never fall back to another object that can launder the same root identity.
+      if (isUnadmittedGexFamilyArtifact(f, read.data)) {
+        // Internal provenance for cache/SSE invalidation: source refusal is
+        // different from a transient outage, which can preserve stale data.
+        return { status: "unavailable", refusal: "unadmitted_gex_family" };
+      }
+      return read;
+    }
     if (source === "r2") {
       if (read.status === "absent") r2Absent = true;
       else unexplained = true;
@@ -1248,21 +1333,29 @@ async function readGenericUpstream(f: string): Promise<UpstreamOutcome> {
 }
 
 /**
- * Resolve a fresh, scored payload for `f` — fixture in dev, else live upstream.
+ * Resolve a fresh, scored payload for `f` — fixture in dev, else live upstream — and say
+ * what the read established: data, a proven absence, or a read that did not land.
  * No caching: callers (GET's SWR cache, the SSE poll loop) decide freshness.
- * Returns null when unavailable.
  */
-export async function loadFlowFresh(f: string): Promise<Record<string, unknown> | null> {
+export async function loadFlowFreshResult(f: string): Promise<UpstreamOutcome> {
   if (process.env.FLOW_FIXTURE === "1") {
     try {
       const data = await fixtureFor(f);
+      if (isUnadmittedGexFamilyArtifact(f, data)) return { status: "unavailable", refusal: "unadmitted_gex_family" };
       attachFlowScores(f, data);
-      return data;
+      return { status: "data", data };
     } catch {
-      return null;
+      // The route answers 503 for a fixture that throws; the stream says the same.
+      return { status: "unavailable" };
     }
   }
-  const data = await tryFetchUpstream(f);
-  if (data) attachFlowScores(f, data);
-  return data;
+  const outcome = await tryFetchUpstreamResult(f);
+  if (outcome.status === "data") attachFlowScores(f, outcome.data);
+  return outcome;
+}
+
+/** loadFlowFreshResult's payload, or null for an absent or unread key. */
+export async function loadFlowFresh(f: string): Promise<Record<string, unknown> | null> {
+  const outcome = await loadFlowFreshResult(f);
+  return outcome.status === "data" ? outcome.data : null;
 }

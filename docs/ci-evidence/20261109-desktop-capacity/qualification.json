@@ -1,0 +1,133 @@
+{
+  "recordedAt": "2026-11-09T06:07:31.515965+00:00",
+  "sourceHead": "3e4ba175e838b56d43c30afe5a04b6753f9ce103",
+  "protectedParent": "9f13ad1226d785524e56a5e03bf5236b231242a6",
+  "codeTreeBeforeProof": "ac9b25d38f34c6905db6ad0987b4f1d0e4521628",
+  "ciContractSourceTree": "093d37890cf2f3e65f02d4b453ea1049f2c09490",
+  "ciContractPaths": {
+    ".github/scripts/selfhosted_canary_inputs.sh": "baf017b3fdc276ff3fe63f0c10561ffe5cccb369",
+    ".github/workflows/ci.yml": "331bf61a8fd2006866cbff858725b5956c2ef652",
+    ".github/workflows/selfhosted-e2e-canary.yml": "012150b10984c71eae10c0ee8ba37ae18c58f028",
+    "scripts/ci_e2e_scope.py": "1ae2f98b6534ec1ec76f5d1b264a041a8b399b82",
+    "tests/test_ci_e2e_scope.py": "6182f381d0ad314b675fb1786d49ab99d1e4f0c4",
+    "tests/test_ci_e2e_shards.py": "e95a30fe4e2aad625926f99e782a6aaf6806622b",
+    "tests/test_merge_group_fast_lane_contract.py": "83a4b675165ca0589ebcac9ab9ed506e304dc5ce",
+    "tests/test_selfhosted_canary_workflow.py": "21950b42f70c2a85bf833b4aef18d7b9f661d8ad"
+  },
+  "ciContractTests": {
+    "passed": 238,
+    "reusedForIdenticalEightBlobs": true,
+    "log": "ci-contract-tests.log"
+  },
+  "focusedTests": {
+    "files": 29,
+    "passed": 549,
+    "log": "investigation.log"
+  },
+  "typecheck": {
+    "exit": 0,
+    "log": "typecheck.log"
+  },
+  "sourceBindings": [
+    {
+      "path": "docs/INVESTIGATION_EVIDENCE_REVIEW.md",
+      "captureSha256": "1bdf22bdaaf94ffaf47498843efee4c3a34693992a57689ae5b988b4aa30e1bf",
+      "currentSha256": "70e9eac93369143d7789b4b0055ba9bc41529ff3cd8533dccad0a6e10f04da02",
+      "unchangedSincePublishedHead": true
+    },
+    {
+      "path": "terminal/app/api/investigations/review/route.ts",
+      "captureSha256": "ae6441ae7a5344861a07479becd6c629a54379619c8f6c335db9536b52d2efde",
+      "currentSha256": "ae6441ae7a5344861a07479becd6c629a54379619c8f6c335db9536b52d2efde",
+      "unchangedSincePublishedHead": true
+    },
+    {
+      "path": "terminal/components/workspaces/InvestigationEvidenceReview.module.css",
+      "captureSha256": "1c1db497fe57ed0c9ce75d65d0e1fbfd215a12c00312a700b6ecdf3fe66f85fd",
+      "currentSha256": "1c1db497fe57ed0c9ce75d65d0e1fbfd215a12c00312a700b6ecdf3fe66f85fd",
+      "unchangedSincePublishedHead": true
+    },
+    {
+      "path": "terminal/components/workspaces/InvestigationEvidenceReview.tsx",
+      "captureSha256": "9a8b6ee63867b1e80421e02ba004bc764c009da099756dc1806ebcd6560ab643",
+      "currentSha256": "9a8b6ee63867b1e80421e02ba004bc764c009da099756dc1806ebcd6560ab643",
+      "unchangedSincePublishedHead": true
+    },
+    {
+      "path": "terminal/components/workspaces/InvestigationWorkspace.tsx",
+      "captureSha256": "48443a82bc1eea144a7d15c61388697c1c55e8ae07eae7beb76a26ffaa8d36d4",
+      "currentSha256": "48443a82bc1eea144a7d15c61388697c1c55e8ae07eae7beb76a26ffaa8d36d4",
+      "unchangedSincePublishedHead": true
+    },
+    {
+      "path": "terminal/docs/verification/iw2-g1/migration-0028-apply.json",
+      "captureSha256": "a9622210d0276cfad21abbb4f7cab821f0b4c45649f20df71d05886b89766354",
+      "currentSha256": "a9622210d0276cfad21abbb4f7cab821f0b4c45649f20df71d05886b89766354",
+      "unchangedSincePublishedHead": true
+    },
+    {
+      "path": "terminal/docs/verification/iw2-g2/source-verification.json",
+      "captureSha256": "4a7882a30060cf8103d777b10f038981bde7da8bd28971bdc3668201a6aa26db",
+      "currentSha256": "4a7882a30060cf8103d777b10f038981bde7da8bd28971bdc3668201a6aa26db",
+      "unchangedSincePublishedHead": true
+    },
+    {
+      "path": "terminal/e2e/investigation-workspace.spec.ts",
+      "captureSha256": "616a964482f976bb4fea7e2c663eb08698ac8d7eaa08c4ccee359af6cf5f6f58",
+      "currentSha256": "616a964482f976bb4fea7e2c663eb08698ac8d7eaa08c4ccee359af6cf5f6f58",
+      "unchangedSincePublishedHead": true
+    },
+    {
+      "path": "terminal/lib/__tests__/investigationEarningsReview.test.ts",
+      "captureSha256": "66a18aa1e12c4f41c0df81dfa458be0f90fa7d115517f9e90207fd017b4f3423",
+      "currentSha256": "66a18aa1e12c4f41c0df81dfa458be0f90fa7d115517f9e90207fd017b4f3423",
+      "unchangedSincePublishedHead": true
+    },
+    {
+      "path": "terminal/lib/__tests__/investigationEvidenceDiff.test.ts",
+      "captureSha256": "531ffa84aaccffdd1efe38e6f0294d7afc596c43fb657ccf11170885cb1614e8",
+      "currentSha256": "531ffa84aaccffdd1efe38e6f0294d7afc596c43fb657ccf11170885cb1614e8",
+      "unchangedSincePublishedHead": true
+    },
+    {
+      "path": "terminal/lib/__tests__/investigationEvidenceReview.test.tsx",
+      "captureSha256": "865cce5da8d3e2d5af56bad2a88b403ae39da742b05f4bce61a1ea8feba3b960",
+      "currentSha256": "865cce5da8d3e2d5af56bad2a88b403ae39da742b05f4bce61a1ea8feba3b960",
+      "unchangedSincePublishedHead": true
+    },
+    {
+      "path": "terminal/lib/__tests__/investigationReviewRoute.test.ts",
+      "captureSha256": "7cf76b1d8c121d7991329ce0db143236746c3af1569fd5bad68903bfaf1d642f",
+      "currentSha256": "7cf76b1d8c121d7991329ce0db143236746c3af1569fd5bad68903bfaf1d642f",
+      "unchangedSincePublishedHead": true
+    },
+    {
+      "path": "terminal/lib/__tests__/investigationSelectionRace.test.tsx",
+      "captureSha256": "a3f12517dc14043fb9dc434f36011bab8352cd86df2144d672f5f3a8830f8682",
+      "currentSha256": "a3f12517dc14043fb9dc434f36011bab8352cd86df2144d672f5f3a8830f8682",
+      "unchangedSincePublishedHead": true
+    },
+    {
+      "path": "terminal/lib/investigationEarningsReview.ts",
+      "captureSha256": "caa29dacc6b6320cbaebe59f36e04a4c57499863dac4fd0cf56defabfc8687d9",
+      "currentSha256": "caa29dacc6b6320cbaebe59f36e04a4c57499863dac4fd0cf56defabfc8687d9",
+      "unchangedSincePublishedHead": true
+    },
+    {
+      "path": "terminal/lib/investigationEvidenceDiff.ts",
+      "captureSha256": "c10f75678b5e1a5caf1004007b60bf70e946cb0fc6b1f5aba0d193364b121579",
+      "currentSha256": "c10f75678b5e1a5caf1004007b60bf70e946cb0fc6b1f5aba0d193364b121579",
+      "unchangedSincePublishedHead": true
+    }
+  ],
+  "screenshots": {
+    "count": 7,
+    "allHashesAndPngSignaturesMatch": true,
+    "recaptured": false,
+    "receipt": "terminal/docs/verification/iw2-g2/integration-20261109/verification.json"
+  },
+  "historicalSourceReceiptSha256": "4a7882a30060cf8103d777b10f038981bde7da8bd28971bdc3668201a6aa26db",
+  "naturalCiRequired": true,
+  "runtimeBalanceMeasured": false,
+  "productionReview": false
+}
