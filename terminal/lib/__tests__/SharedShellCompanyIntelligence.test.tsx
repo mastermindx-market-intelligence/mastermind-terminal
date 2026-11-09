@@ -63,8 +63,11 @@ describe("retained Company active scope",()=>{
   edges.lang=lang;edges.load.mockResolvedValue({ok:false,code:"HISTORICAL_UNAVAILABLE",reason});
   const original=window.location.href;await render("NVDA");
   expect(host.querySelector('[data-standard-company="NVDA"]')).not.toBeNull();
-  expect(host.querySelector("h2")?.textContent).toBe(title);
-  expect(host.textContent).toContain(lang==="zh"?"核对来源日期":"check its source dates");
+  const banner=host.querySelector<HTMLElement>('[data-ci-context-state="standard_company_view"]');
+  expect(banner?.classList.contains("ci-state-banner")).toBe(true);
+  expect(banner?.classList.contains("ci-state")).toBe(false);
+  expect(banner?.querySelector("strong")?.textContent).toBe(title);
+  expect(host.textContent).toContain(lang==="zh"?"核对来源日期":"check source dates");
   expect(window.location.href).toBe(original);
   expect(edges.load.mock.calls[0][0].pin).toBeNull();
  });

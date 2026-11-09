@@ -139,12 +139,15 @@ function RetainedCompanyOwner({ owner, ticker, name, onOpenTx, onEvidenceOpenCha
   const standardCompanyView = !current.ok && !hasRetainedSelection
     && (current.reason === "http_503" || current.reason === "current_owner_unavailable");
   if (standardCompanyView) return <>
-    <div className="ci-page ci-state" role="status" data-ci-context-state="standard_company_view"
-      data-ci-unavailable-reason={current.reason}>
-      <h2>{pick(zh, "Standard company intelligence", "标准公司情报")}</h2>
-      <p>{pick(zh,
-        "Verified event history is unavailable. Showing the separately published company view; check its source dates before relying on it.",
-        "已验证的事件历史暂不可用。现显示单独发布的公司视图；使用前请核对来源日期。")}</p>
+    <div className="ci-state-banner" style={{ flexWrap: "wrap" }} role="status"
+      data-ci-context-state="standard_company_view" data-ci-unavailable-reason={current.reason}>
+      <span aria-hidden>!</span>
+      <p style={{ flex: "1 1 280px", minWidth: 0 }}>
+        <strong>{pick(zh, "Standard company intelligence", "标准公司情报")}</strong>{" "}
+        {pick(zh,
+          "Verified event unavailable. Showing published company research; check source dates.",
+          "已验证事件不可用。改为显示已发布的公司研究，请核对来源日期。")}
+      </p>
       <button type="button" className="btn btn-ghost" onClick={() => setRetry(value => value + 1)}>
         {pick(zh, "Recheck verified event", "重新验证事件")}
       </button>
