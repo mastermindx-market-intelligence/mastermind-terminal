@@ -285,7 +285,7 @@ function TechnicalsPage({ sym, bars = [], zh = false }: TechnicalsPageProps) {
             <small>
               {pick(zh, "Descriptive · not a trade signal", "描述性指标 · 并非交易信号")}
               <br />
-              {pick(zh, "Neutral may also mean an indicator needs more history.", "中性也可能表示该指标需要更多历史数据。")}
+              {pick(zh, "Neutral may reflect limited history.", "中性也可能表示历史不足。")}
             </small>
           </header>
           <div className="fin-tech-summary">

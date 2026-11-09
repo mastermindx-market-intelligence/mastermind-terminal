@@ -607,7 +607,7 @@ for (const zh of [false, true]) {
       const provenance = market.locator("[data-market-vnext-state] > header > div > p");
       await expect(provenance).toContainText(zh ? `${n} 个观测` : `${n} observations`);
       await expect(provenance).toContainText(basisLabel);
-      await expect(rating).toContainText(zh ? "中性也可能表示该指标需要更多历史数据。" : "Neutral may also mean an indicator needs more history.");
+      await expect(rating).toContainText(zh ? "中性也可能表示历史不足。" : "Neutral may reflect limited history.");
       if (n < 30) {
         await checkGroup(true, 0, 0); await checkGroup(false, 0, 0);
         await expect(table(true).locator("tbody th")).toHaveCount(0);

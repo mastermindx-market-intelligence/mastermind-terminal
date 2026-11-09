@@ -435,7 +435,7 @@ describe("Technicals group numeric availability", () => {
         expectRow("oscillators", "MACD (12, 26, 9)", zh, "7.00", zh ? "中性" : "Neutral", "mut");
         expectGroupAvailability("oscillators", zh, 11, 1);
         expect(host.querySelector("[data-market-vnext-rating] > header")?.textContent)
-          .toContain(zh ? "中性也可能表示该指标需要更多历史数据。" : "Neutral may also mean an indicator needs more history.");
+          .toContain(zh ? "中性也可能表示历史不足。" : "Neutral may reflect limited history.");
       }
       const zeroBars = barsOf(220, true);
       const canonical = computeRatings(zeroBars, "D");
