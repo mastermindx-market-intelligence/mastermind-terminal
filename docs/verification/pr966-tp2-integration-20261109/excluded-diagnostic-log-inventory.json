@@ -1,0 +1,29 @@
+{
+  "files": {
+    "docs/verification/pr966-tp2-integration-20261109/pane-browser-r1/browser.log": {
+      "bytes": 927,
+      "sha256": "4e55d7b93fb439935a8b159bf5152d0c2b4f4632de8614fb3c9542000669f1d6"
+    },
+    "docs/verification/pr966-tp2-integration-20261109/source-consumers-r1/lint.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/pr966-tp2-integration-20261109/source-consumers-r1/offline-browser-stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/pr966-tp2-integration-20261109/source-consumers-r1/offline-browser.log": {
+      "bytes": 2987,
+      "sha256": "22300a541274fb50f0111cd1c0b9963251df99b24ec683ad80ed06f4ee9036e6"
+    },
+    "docs/verification/pr966-tp2-integration-20261109/source-consumers-r1/typecheck.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/pr966-tp2-integration-20261109/source-consumers-r1/units.log": {
+      "bytes": 351,
+      "sha256": "add49d8f72448aaa00fa98d156397db9867da414489f8ba4e1b52c3ca78f8734"
+    }
+  },
+  "schema": "terminal_pr966_excluded_raw_diagnostics.v1"
+}

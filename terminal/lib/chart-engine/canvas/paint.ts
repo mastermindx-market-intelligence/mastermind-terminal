@@ -51,6 +51,16 @@ export type CandleGeom = {
   lowY: number;
   up: boolean;
   visible: boolean;
+  /**
+   * Per-bar overrides from the row (LWC `color`/`borderColor`/`wickColor`). Each wins over
+   * the up/down style colour for its own part only; absent means the style colour.
+   */
+  color?: string;
+  borderColor?: string;
+  wickColor?: string;
+  /** Part visibility (LWC `wickVisible`/`borderVisible`); only `false` hides the part. */
+  wickVisible?: boolean;
+  borderVisible?: boolean;
 };
 
 export type BarGeom = CandleGeom & {
@@ -69,6 +79,8 @@ export type HistogramColumn = {
   topY: number;
   baseY: number;
   up: boolean;
+  /** Per-column fill from the row (LWC histogram `color`); absent means the style colour. */
+  color?: string;
 };
 
 export type HistogramGeom = { columns: HistogramColumn[] };
@@ -88,7 +100,7 @@ export type SeriesPaintStyle = {
   borderDownColor: string;
   lineColor: string;
   lineWidth: number;
-  lineStyle: "solid" | "dashed" | "dotted";
+  lineStyle: "solid" | "dashed" | "dotted" | "largeDashed" | "sparseDotted";
   topFillColor: string;
   bottomFillColor: string;
   topLineColor: string;
@@ -178,6 +190,8 @@ function wickWidthCss(halfWidth: number, dpr: number): number {
 function dashFor(style: SeriesPaintStyle["lineStyle"], width: number): number[] {
   if (style === "dashed") return [width * 2, width * 2];
   if (style === "dotted") return [width, width];
+  if (style === "largeDashed") return [width * 6, width * 6];
+  if (style === "sparseDotted") return [width, width * 4];
   return [];
 }
 
@@ -206,10 +220,12 @@ function withClip(ctx: PaintContext, clip: ClipRect, paint: () => void): void {
   }
 }
 
-function groupByColor<T>(items: readonly T[], colorOf: (item: T) => string): Map<string, T[]> {
+/** An item whose colour resolves empty is not painted: no colour is ever substituted. */
+function groupByColor<T>(items: readonly T[], colorOf: (item: T) => string | undefined): Map<string, T[]> {
   const groups = new Map<string, T[]>();
   for (const item of items) {
     const color = colorOf(item);
+    if (!color) continue;
     const batch = groups.get(color);
     if (batch) batch.push(item);
     else groups.set(color, [item]);
@@ -285,8 +301,10 @@ export function paintCandles(
     if (bars.length === 0) return;
     const wickW = wickWidthCss(bars[0].halfWidth, dpr);
     const borderW = snapWidth(1, dpr);
+    const wicks = bars.filter((c) => c.wickVisible !== false);
+    const bordered = bars.filter((c) => c.borderVisible !== false);
 
-    for (const [color, batch] of groupByColor(bars, (c) => (c.up ? style.wickUpColor : style.wickDownColor))) {
+    for (const [color, batch] of groupByColor(wicks, (c) => c.wickColor ?? (c.up ? style.wickUpColor : style.wickDownColor))) {
       applyStroke(ctx, color, wickW, "solid");
       ctx.beginPath();
       for (const c of batch) {
@@ -297,12 +315,12 @@ export function paintCandles(
       ctx.stroke();
     }
 
-    for (const [color, batch] of groupByColor(bars, (c) => (c.up ? style.upColor : style.downColor))) {
+    for (const [color, batch] of groupByColor(bars, (c) => c.color ?? (c.up ? style.upColor : style.downColor))) {
       fillBoxes(ctx, color, batch.map((c) => bodyBox(c.x, c.halfWidth, c.openY, c.closeY, dpr)));
     }
 
     const minBorder = 2 * borderW;
-    for (const [color, batch] of groupByColor(bars, (c) => (c.up ? style.borderUpColor : style.borderDownColor))) {
+    for (const [color, batch] of groupByColor(bordered, (c) => c.borderColor ?? (c.up ? style.borderUpColor : style.borderDownColor))) {
       const boxes = batch
         .map((c) => bodyBox(c.x, c.halfWidth, c.openY, c.closeY, dpr))
         .filter((b) => b.w > minBorder && b.h > minBorder);
@@ -323,7 +341,7 @@ export function paintBars(
     if (bars.length === 0) return;
     const strokeW = wickWidthCss(bars[0].halfWidth, dpr);
 
-    for (const [color, batch] of groupByColor(bars, (c) => (c.up ? style.upColor : style.downColor))) {
+    for (const [color, batch] of groupByColor(bars, (c) => c.color ?? (c.up ? style.upColor : style.downColor))) {
       applyStroke(ctx, color, strokeW, "solid");
       ctx.beginPath();
       for (const b of batch) {
@@ -445,7 +463,7 @@ export function paintHistogram(
     const dpr = viewDpr(view);
     const cols = geom.columns.filter((c) => finiteAll(c.x, c.halfWidth, c.topY, c.baseY));
     if (cols.length === 0) return;
-    for (const [color, batch] of groupByColor(cols, (c) => (c.up ? style.upColor : style.downColor))) {
+    for (const [color, batch] of groupByColor(cols, (c) => c.color ?? (c.up ? style.upColor : style.downColor))) {
       fillBoxes(ctx, color, batch.map((c) => bodyBox(c.x, c.halfWidth, c.topY, c.baseY, dpr)));
     }
   });

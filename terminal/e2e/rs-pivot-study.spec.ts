@@ -87,3 +87,53 @@ test("logged-out user gets the existing sign-in path and cannot request research
   await page.goto("/discover?tab=rs-pivot"); await expect(page.getByRole("button",{name:"Run local study"})).toBeDisabled();
   await expect(page.getByRole("link",{name:"Sign in",exact:true})).toBeVisible(); expect(requests).toBe(0);
 });
+
+test("streamed study action waits for its lazy client handlers before accepting a run", async ({ page }) => {
+  let release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  let held = 0;
+  let inputs = 0;
+  await page.route(/\/_next\/static\/chunks\/[^/]*RSPivotStudy[^/]*\.js(?:\?.*)?$/, async route => {
+    held++; await gate; await route.continue();
+  });
+  await page.route("**/api/intraday?**", route => {
+    inputs++;
+    const symbol = new URL(route.request().url()).searchParams.get("sym")!;
+    const bars = input(symbol);
+    return route.fulfill({ json: { bars, source_evidence: {
+      timestamp_basis: "market_local_display_epoch", source_counts: { stored_5m: bars.length },
+      assembly_clock: { cache_state: "new_assembly" },
+    } } });
+  });
+  try {
+    // Commit exposes actual server HTML while the lazy client chunk is withheld.
+    await page.goto("/discover?tab=rs-pivot", { waitUntil: "commit" });
+    const run = page.getByRole("button", { name: "Run local study", exact: true });
+    await expect(page.getByRole("heading", { name: "RS × 30m Pivot Study" })).toBeVisible();
+    await expect.poll(() => held).toBeGreaterThan(0);
+    await expect(run).toBeDisabled();
+    await run.evaluate((button: HTMLButtonElement) => button.click());
+    expect(inputs).toBe(0);
+    release();
+    await expect(run).toBeEnabled();
+    await run.click();
+    await expect(page.getByTestId("rs-pivot-chart")).toBeVisible({ timeout: 30000 });
+    expect(inputs).toBe(2);
+  } finally { release(); }
+});
+
+test("a missing study client chunk leaves the streamed action inert", async ({ page }) => {
+  let rejected = 0;
+  let inputs = 0;
+  await page.route(/\/_next\/static\/chunks\/[^/]*RSPivotStudy[^/]*\.js(?:\?.*)?$/, async route => {
+    rejected++; await route.abort("failed");
+  });
+  page.on("request", request => { if (request.url().includes("/api/intraday?")) inputs++; });
+  await page.goto("/discover?tab=rs-pivot", { waitUntil: "commit" });
+  const run = page.getByRole("button", { name: "Run local study", exact: true });
+  await expect.poll(() => rejected).toBeGreaterThan(0);
+  // A rejected lazy chunk may remove its boundary. Neither an enabled action
+  // nor a research request may survive that failure.
+  await expect(run.and(page.locator(":enabled"))).toHaveCount(0);
+  expect(inputs).toBe(0);
+});

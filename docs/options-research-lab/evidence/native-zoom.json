@@ -1,0 +1,25 @@
+{
+  "schema": "options-research-lab.native-zoom-evidence.v1",
+  "source_head": "6b8e0855b96f2aeff5d202d73170e45a382ba9a4",
+  "route": "http://127.0.0.1:3218/options?tab=gex&view=research",
+  "browser": "Installed Google Chrome on macOS; native zoom controls via CUA",
+  "data_mode": "existing FLOW_FIXTURE dataset; not live market data",
+  "language": "en",
+  "source_session": "2026-07-10",
+  "native_browser_zoom": "200% (read back from Chrome native zoom popup)",
+  "effective_css_viewport": [
+    953,
+    602
+  ],
+  "device_pixel_ratio": 2,
+  "document_horizontal_overflow_px": 0,
+  "selection": "SPY 715 Call \u00b7 2026-07-10",
+  "exact_values": {
+    "volume": 13,
+    "open_interest": 76,
+    "delta_oi": 267
+  },
+  "dismissal": "native AX readback returned focus to the selected 715 Call table control after dismissal",
+  "cleanup": "Reset to Chrome default zoom, observed Reset disabled, then closed the agent-created local tab. Other tabs retained.",
+  "scope": "One English native 200% zoom selection/dismissal journey; not the entire bilingual/viewport zoom matrix. A page-only screenshot was emitted in chat. No browser profile or unrelated page screenshot was published."
+}

@@ -4,14 +4,21 @@ on:
   pull_request:
   merge_group:
     types: [checks_requested]
-  # merge-on-green refreshes stale branches with GITHUB_TOKEN. Those writes do
-  # not recursively emit pull_request workflows, so the controller dispatches
-  # this same proof explicitly on the refreshed branch.
+  # Scheduled default-branch runs retain the complete responsive matrix even
+  # when most routine localized pull requests qualify for the narrow lane.
+  schedule:
+    - cron: '17 9 * * *'
+  # merge-on-green refreshes stale branches with GITHUB_TOKEN. GitHub records
+  # the refreshed head's pull_request run as held (action_required, no jobs),
+  # and the controller re-runs that held run: it is the run the pull request's
+  # required-check rollup reads (#874). Dispatching this workflow is only the
+  # fallback for when no pull_request run appears for the refreshed head.
   workflow_dispatch:
     inputs:
-      # That dispatched run is the ONLY CI run for the sha that then merges, so
-      # the migration-namespace guard has to be able to earn PULL_REQUEST mode in
-      # it. github.event.pull_request.number does not exist on a dispatch, so the
+      # On that fallback path the dispatched run may be the only CI run that has
+      # executed for the sha (its checks alone do not satisfy the pull request's
+      # rollup), so the migration-namespace guard has to be able to earn
+      # PULL_REQUEST mode in it. github.event.pull_request.number does not exist on a dispatch, so the
       # controller passes the number it already knows (scripts/merge_on_green.py,
       # dispatch_ci). Optional: a hand-run dispatch that omits it stays LENIENT
       # and the guard's printed mode line says exactly that.
@@ -26,34 +33,222 @@ on:
 permissions:
   contents: read
 
-# A newer head makes every queued/running proof for the older head unusable. Drop
-# it immediately instead of spending the account-wide hosted-runner quota on a
-# SHA that can no longer merge.
-concurrency:
-  group: ci-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+# Supersede only expensive jobs; a required fan-in must never hold a
+# workflow-wide lock against newer heads. A canceled test remains red.
 
 jobs:
+  # Trusted-base PR scope (Mastermind #917 CI acceleration, 2026-11-05).
+  # Classifies the exact pull-request merge commit from Git objects only: a
+  # prose-only change (Markdown under docs/ and terminal/docs/ minus the
+  # sub-trees and files that code or tests read, plus raster evidence images
+  # under docs/evidence/ and terminal/docs/pr-crops/; see the allowlist in
+  # scripts/ci_pr_scope.py) is mode=docs, and the unit, e2e, ingest and
+  # PostgreSQL jobs below are then
+  # skipped or reduced to a no-op that still reports its required context
+  # green. Anything else -- or anything the classifier cannot qualify: a base
+  # mismatch, a symlink, an executable bit, a type change, a classifier missing
+  # from the base -- is mode=full, exactly what this workflow always ran. The
+  # classifier executes from the protected base commit (HEAD^1 of the merge
+  # commit), so a pull request cannot reclassify itself. Other events never
+  # receive the docs exemption; their existing event-specific checks remain.
+  pr_scope:
+    name: PR test scope
+    # Only a pull request against the protected default branch is classified;
+    # a PR targeting any other branch runs the full suite (the classifier is
+    # taken from HEAD^1, which is only trusted when that is the default branch).
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref == github.event.repository.default_branch }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      mode: ${{ steps.scope.outputs.mode }}
+      reason: ${{ steps.scope.outputs.reason }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The merge commit plus both parents: the classifier diffs HEAD^1..HEAD
+          # and is itself taken from HEAD^1, the protected base.
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Classify the exact merge commit using protected base code
+        id: scope
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+          trusted="$RUNNER_TEMP/ci-trusted-base"
+          mkdir -p "$trusted"
+          if git cat-file -e "HEAD^1:scripts/ci_pr_scope.py" 2>/dev/null; then
+            git archive HEAD^1 scripts/ci_pr_scope.py | tar -x -C "$trusted"
+            python3 "$trusted/scripts/ci_pr_scope.py" \
+              --repo "$GITHUB_WORKSPACE" --base-sha "$PR_BASE_SHA" \
+              --base-ref "$PR_BASE_REF" --default-branch "$DEFAULT_BRANCH" \
+              --output "$GITHUB_OUTPUT"
+          else
+            printf 'mode=full\nreason=CLASSIFIER_NOT_IN_PROTECTED_BASE\n' >> "$GITHUB_OUTPUT"
+            echo 'CI_SCOPE mode=full reason=CLASSIFIER_NOT_IN_PROTECTED_BASE'
+          fi
+
   hub:
+    concurrency:
+      group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-hub
+      cancel-in-progress: true
     name: Quote Hub tests
     runs-on: ubuntu-latest
+    needs: [pr_scope]
+    # A docs-only pull request (pr_scope mode=docs) still COMPLETES this
+    # required context green: every step below is skipped, so branch
+    # protection and scripts/merge_on_green.py (`conclusion == success`)
+    # read it as proven. `!cancelled()` keeps the job running when pr_scope
+    # itself failed or was skipped: mode is then empty and every step runs.
+    if: ${{ !cancelled() }}
     defaults:
       run:
         working-directory: hub
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        uses: actions/checkout@v4
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: hub/package-lock.json
-      - run: npm ci
-      - run: npm test
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        run: npm ci
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        run: npm test
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: hub/requirements-futures.txt
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        name: Futures offline SDK and source conformance
+        run: |
+          python -m pip install -r requirements-futures.txt
+          python -m unittest discover -s tests -p 'test_futures_*.py' -v
+
+  e2e-scope:
+    name: Terminal browser scope selection
+    runs-on: ubuntu-latest
+    outputs:
+      mode: ${{ steps.select.outputs.mode }}
+      matrix: ${{ steps.select.outputs.matrix }}
+    steps:
+      # The pull_request checkout is the immutable synthetic merge commit.
+      # Its first parent is exactly the base that this CI candidate received.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Fail-closed source-bound scope selection
+        id: select
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          # Pull requests cannot modify their own selector to claim a narrower
+          # proof. Execute the selector from the synthetic merge commit's
+          # immutable first parent (the protected base for this exact run).
+          # Bootstrap, other events, unknown Git state or absent base script
+          # always run the canonical FULL matrix without executing PR code.
+          TRUSTED=""
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ] &&
+             [ "$(git rev-parse HEAD)" = "${GITHUB_SHA}" ] &&
+             [ "$(git rev-list --parents -n 1 HEAD | wc -w | tr -d ' ')" = "3" ]; then
+            BASE=$(git rev-parse HEAD^1)
+            if [ "$(git cat-file -t "${BASE}:scripts/ci_e2e_scope.py" 2>/dev/null || true)" = "blob" ]; then
+              TRUSTED="${RUNNER_TEMP}/trusted_ci_e2e_scope.py"
+              git show "${BASE}:scripts/ci_e2e_scope.py" > "${TRUSTED}"
+            fi
+          fi
+          if [ -n "${TRUSTED}" ]; then
+            python3 "${TRUSTED}"
+            # The protected selector still owns full vs focused scope. Expand only
+            # its exact legacy full desktop/tablet sets after the observed one-hour
+            # cancellations (#801/#1296). Preserve all other rows and the selector's
+            # exit status; never execute the candidate's selector here.
+            python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          output = Path(os.environ["GITHUB_OUTPUT"])
+          fields = dict(line.split("=", 1) for line in output.read_text().splitlines() if "=" in line)
+          if fields.get("mode") == "full":
+              matrix = json.loads(fields["matrix"])
+              if isinstance(matrix, dict) and set(matrix) == {"include"}:
+                  for project, old_count, new_count, before, after in (
+                      ("desktop", 5, 6, "fifths", "sixths"),
+                      ("tablet", 3, 4, "thirds", "quarters"),
+                  ):
+                      rows = matrix["include"]
+                      if not isinstance(rows, list) or not all(isinstance(row, dict) for row in rows):
+                          break
+                      legacy = [
+                          {"shard": f"{project}-{i}", "projects": f"--project={project} --shard={i}/{old_count}", "specs": ""}
+                          for i in range(1, old_count + 1)
+                      ]
+                      selected = [row for row in rows if str(row.get("shard", "")).startswith(project + "-")
+                                  or f"--project={project}" in str(row.get("projects", "")).split()]
+                      if selected == legacy:
+                          first = rows.index(selected[0])
+                          expanded = [
+                              {"shard": f"{project}-{i}", "projects": f"--project={project} --shard={i}/{new_count}", "specs": ""}
+                              for i in range(1, new_count + 1)
+                          ]
+                          matrix["include"] = rows[:first] + expanded + [
+                              row for row in rows[first:] if row not in legacy
+                          ]
+                          with output.open("a", encoding="utf-8") as target:
+                              target.write("matrix=" + json.dumps(matrix, separators=(",", ":")) + "\n")
+                          print(f"e2e-scope: split protected full {project} {before} into {after}; all cases retained")
+          PY
+          else
+            python3 - <<'PY'
+          import json
+          import os
+
+          matrix = [
+              {"shard": f"{name}-{i}",
+               "projects": f"--project={name} --shard={i}/{total}",
+               "specs": ""}
+              for name, total in (("desktop", 6), ("tablet", 4), ("mobile", 3))
+              for i in range(1, total + 1)
+          ]
+          matrix.append({
+              "shard": "serial",
+              "projects": " ".join(f"--project={project}" for project in (
+                  "company-intelligence-desktop", "company-intelligence-tablet",
+                  "company-intelligence-mobile", "terminal-chrome-intermediate",
+                  "w2a-workspaces",
+              )),
+              "specs": "",
+          })
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write("mode=full\n")
+              output.write("matrix=" + json.dumps({"include": matrix}, separators=(",", ":")) + "\n")
+          print("e2e-scope: full (immutable protected selector unavailable or non-PR)")
+          PY
+          fi
 
   terminal-unit:
+    concurrency:
+      group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-terminal-unit
+      cancel-in-progress: true
+    needs: [pr_scope, e2e-scope]
+    # The browser selector stays mandatory. PR scope only grants the docs
+    # exemption; its failure or absence falls back to normal qualification.
+    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
     name: Terminal unit + typecheck (shard)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Existing stages had20min. Add bounded10min browser setup +55min captures
+    # +5min retention margin. Original30-case M2 report took1,018,995ms (~17min)
+    # before the24layout cases; this90min cap is not a hosted timing claim.
+    # See8f1dc846: terminal/docs/pr-crops/terminal-visual-intelligence/asc1233-vi-ci-20261103--report.json.
+    timeout-minutes: 90
     defaults:
       run:
         working-directory: terminal
@@ -76,12 +271,34 @@ jobs:
           node-version: 20
           cache: npm
           cache-dependency-path: terminal/package-lock.json
+      - name: Retain actual checkout and observed event identities
+        run: node e2e/tools/capture_ci_evidence.cjs --checkout-only
       - run: npm ci
       # next-env.d.ts and .next/ route types are gitignored; generate them first
-      # so tsc checks the same project a `next build` would.
+      # for the full-project CI gate (application, tests and tooling remain checked).
       - run: npx next typegen
       - run: npx tsc --noEmit
+      - name: Check immutable evidence orchestration (synthetic)
+        timeout-minutes: 1
+        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs
+      - name: Plan current-source evidence capture
+        id: evidence_plan
+        run: node scripts/ci/plan-evidence-capture.cjs
+      - name: Prepare Chromium for original mock captures
+        # PRs always capture. Merge groups recapture only when the actual
+        # integrated source no longer matches BOTH checked-in evidence locks.
+        # Missing/malformed source evidence fails closed to capture=true.
+        if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
+        timeout-minutes: 10
+        run: |
+          timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium \
+            || { echo "::warning::Dependency installation failed or stalled; trying browser-only installation"; timeout --signal=TERM --kill-after=15s 180s npx playwright install chromium; }
+      - name: Capture and validate evidence on this checkout
+        if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
+        timeout-minutes: 55
+        run: node e2e/tools/capture_ci_evidence.cjs
       - run: npm test
+        timeout-minutes: 20
       # Quarantined journeys are disclosed on EVERY run: a green matrix must never be read as
       # full coverage. Bare `echo`, never a logger — a logger prefix pushes `::warning` off the
       # start of the line and GitHub silently drops the annotation.
@@ -145,8 +362,8 @@ jobs:
       # cannot drift, because M is fixed; it resolves because this job's
       # checkout asks for fetch-depth 2.
       #
-      # Off `pull_request` (the workflow_dispatch re-run merge-on-green fires
-      # on a refreshed branch) there is no merge commit, so the base branch tip
+      # Off `pull_request` (the fallback workflow_dispatch run merge-on-green
+      # fires on a refreshed branch, or a hand dispatch) there is no merge commit, so the base branch tip
       # is fetched explicitly -- a shallow checkout does not contain it, and
       # without the fetch $BASE cannot resolve at all. This step always passes
       # --diff-file (never --since), so an unresolved $BASE does not fail
@@ -158,15 +375,10 @@ jobs:
       # re-running the proof. A pre-existing line can only surface as added on
       # that path if the branch is BEHIND the base (git reads the branch's
       # older copy of a line the base has since changed as an addition). That
-      # window is not hand-dispatch-only: merge-on-green issues
-      # `PUT /pulls/{n}/update-branch` (async, 202) and dispatches this
-      # workflow right after, without polling that update to completion or
-      # pinning the dispatch to the post-refresh sha -- so a merge-on-green
-      # dispatch can race the same behind-branch window a hand dispatch can.
-      # Failure direction stays false-red only. Making the refresh actually
-      # land before dispatch (poll update-branch, or dispatch on the observed
-      # post-refresh sha) is a change to scripts/merge_on_green.py, outside
-      # this job's four files.
+      # window is narrow on the merge-on-green path: the controller polls the
+      # pull request until update-branch has written the new head and only
+      # dispatches when no pull_request run appeared for it. A hand dispatch
+      # can still race a behind branch. Failure direction stays false-red only.
       #
       # `set -euo pipefail` so the step fails CLOSED: an unresolvable HEAD^1
       # kills it loudly instead of leaving BASE empty and passing green.
@@ -216,64 +428,84 @@ jobs:
           git diff --unified=0 "$BASE" HEAD -- ':/terminal' > "${RUNNER_TEMP}/plain-language.diff"
           node scripts/check_plain_language.mjs --mode enforce-added --diff-file "${RUNNER_TEMP}/plain-language.diff"
 
+      - name: Retain current-checkout mock evidence and failure diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/terminal-ci-evidence/
+            terminal/test-results/
+            terminal/docs/pr-crops/b-pl-6-batch-1/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
+            terminal/docs/pr-crops/terminal-visual-intelligence/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
+            terminal/docs/pr-crops/b-pl-6-batch-2/
+            terminal/docs/pr-crops/options-level-axis-labels/manifest.json
+            terminal/docs/pr-crops/options-level-axis-labels/*.png
+          if-no-files-found: warn
+
   terminal-e2e:
+    concurrency:
+      group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-terminal-e2e-${{ matrix.shard }}
+      cancel-in-progress: true
     name: Terminal e2e ${{ matrix.shard }} (shard)
-    runs-on: ubuntu-latest
+    # Lane switch (Mastermind #917, phase 9; canary runs 42011181810 / 42029519496 on
+    # 2026-11-05: desktop-1 jobs 16m06s at one worker and 8m08s at four on ubuntu0;
+    # the four-worker command took 431s and the whole workflow 17m36s). The repository variable TERMINAL_E2E_LANE chooses the lane: unset
+    # or any value other than `ubuntu0` (GitHub compares case-insensitively) keeps every
+    # selected shard on the hosted runner; `ubuntu0` ROUTES eligible same-repository
+    # pull_request and workflow_dispatch jobs to the ubuntu0 runner slots.
+    # The accepted scope condition below still skips native merge-group jobs
+    # (labels below, names ubuntu0-e2e-N; docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md).
+    #
+    # What the expression does and does not protect. The head.repo guard is ROUTING
+    # ONLY: it keeps this unmodified job off the host for a fork pull_request. It is
+    # not a host fence, because a pull_request runs the workflow file from the PR's
+    # merge ref, so any PR (fork or same-repo) may edit this `runs-on` or add a
+    # workflow naming the four labels, and merge_group runs fork-authored code once a
+    # maintainer queues it. The host fence is procedural and lives outside this file:
+    # fork runs are held by the all_external_contributors approval policy, and the
+    # runbook requires ephemeral, no-sudo runner slots inside an organization runner
+    # group restricted to this repository. Unsetting the variable restores hosted
+    # routing only; stopping the slot listeners is the full rollback. Lane-dependent
+    # values (workers, ports, browser store) are bound by
+    # .github/scripts/terminal_e2e_lane.sh from env, never spliced into a run block.
+    # tests/test_ci_e2e_selfhosted_lane.py pins this contract with mutation tests.
+    runs-on: ${{ (vars.TERMINAL_E2E_LANE == 'ubuntu0' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","linux","x64","ubuntu0-e2e"]') || 'ubuntu-latest' }}
+    env:
+      TERMINAL_E2E_LANE: ${{ (vars.TERMINAL_E2E_LANE == 'ubuntu0' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && 'ubuntu0' || 'hosted' }}
+      TERMINAL_E2E_LANE_WORKERS: ${{ vars.TERMINAL_E2E_WORKERS }}
+    needs: [pr_scope, e2e-scope]
+    # Source PRs run the independently selected responsive matrix. Trusted
+    # docs-only PRs and native merge groups have separate, explicit skip rules.
+    # Neither rule permits a failed selector or claims fresh browser proof.
+    if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && github.event_name != 'merge_group' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
     # 6h default masked a 70-min job. Bound it. On 2026-10-04 the slowest shards measured
     # tablet ~35-36 min and each desktop half ~28-31 min (from the old whole-desktop runs).
     # By 2026-10-12 the whole tablet project ran 47-59 min and the whole mobile project
     # 44-56 min on green runs, and both were cancelled at the cap on slower runners
-    # (#953, #954, #959, #960), so they are split into halves below exactly like desktop.
+    # (#953, #954, #959, #960), so they were split into halves exactly like desktop.
+    # On 2026-10-20 a mobile HALF still reached the unchanged cap (#1061): run
+    # 39403170318, job 118563127930 started 09:48:07 UTC, selected 513 tests with
+    # the single CI worker at 09:49:29, and was still passing with no assertion
+    # failure when the host cancelled it at 10:48:24 (60m17s), so mobile runs in
+    # thirds below.
     # This cap is a hang detector, not a budget to grow into: when a shard creeps toward it,
     # split that shard (as desktop, tablet and mobile are below), never just raise the number.
     timeout-minutes: 60
     strategy:
-      # NEVER fail-fast. One red shard must not delete the other shards' evidence — the
-      # aggregator below already turns any red into a red required check.
+      # Full shards and focused specs are owned by scripts/ci_e2e_scope.py.
+      # tests/test_ci_e2e_shards.py validates project/shard coverage.
+      # Unknown, high-risk, CI/config and merge-group changes always select FULL.
       fail-fast: false
-      matrix:
-        include:
-          # The desktop project is the largest (482 tests on CI's single worker) and ran
-          # 55.3 min green, then got cancelled at the 60-min cap on a slower runner with
-          # 465/482 done (PR #677, runs 37224001752 / 37227645892). Playwright's own
-          # `--shard` splits it into two contiguous halves by test count; `--list` of the
-          # halves is 241 + 241 with no overlap, so nothing is dropped or run twice. On those
-          # same two runs the 240th result landed at 28.5 / 31.1 min, so each half is ~30 min.
-          # tests/test_ci_e2e_shards.py fails if a half or a project goes missing.
-          - shard: desktop-1
-            projects: "--project=desktop --shard=1/2"
-          - shard: desktop-2
-            projects: "--project=desktop --shard=2/2"
-          # tablet and mobile outgrew one job the same way. On 2026-10-12 the last eight green
-          # runs measured tablet 47-59 min and mobile 44-56 min, and train 3 (#960, head
-          # 1dc6c48e9) lost both at the 60-min cap: jobs 114632507605 (tablet) and
-          # 114632507580 (mobile) were cancelled after 60m17s with the orphan
-          # `npm run test:e2e:responsive --project=tablet` process terminated and no test
-          # failure (#954 and #959 heads lost tablet the same way). Same contiguous
-          # `--shard` halves as desktop; tests/test_ci_e2e_shards.py guards these too.
-          - shard: tablet-1
-            projects: "--project=tablet --shard=1/2"
-          - shard: tablet-2
-            projects: "--project=tablet --shard=2/2"
-          - shard: mobile-1
-            projects: "--project=mobile --shard=1/2"
-          - shard: mobile-2
-            projects: "--project=mobile --shard=2/2"
-          # The company-intelligence chain uses Playwright `dependencies`
-          # (playwright.config.ts:69-87) and MUST stay whole inside one shard, or the
-          # dependency projects re-run in every shard that touches them.
-          - shard: serial
-            projects: >-
-              --project=company-intelligence-desktop
-              --project=company-intelligence-tablet
-              --project=company-intelligence-mobile
-              --project=terminal-chrome-intermediate
-              --project=w2a-workspaces
+      matrix: ${{ fromJSON(needs.e2e-scope.outputs.matrix) }}
     defaults:
       run:
         working-directory: terminal
     steps:
       - uses: actions/checkout@v4
+      - name: Bind lane workers and ports
+        id: lane
+        run: bash ../.github/scripts/terminal_e2e_lane.sh
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -290,8 +522,8 @@ jobs:
         id: pwcache
         uses: actions/cache@v4
         with:
-          path: ~/.cache/ms-playwright
-          key: pw-${{ runner.os }}-${{ steps.pw.outputs.version }}
+          path: ${{ steps.lane.outputs.browsers_path }}
+          key: pw-${{ runner.os }}-${{ steps.pw.outputs.version }}${{ steps.lane.outputs.cache_suffix }}
       # `--with-deps` shells out to apt, and the runner's Ubuntu mirror stalls often enough to
       # matter (see #438). Bound it, then fall back to a browser-only install.
       - name: Install Playwright browsers (apt bounded, browser-only fallback)
@@ -301,11 +533,67 @@ jobs:
           timeout 480 npx playwright install --with-deps chromium \
             || { echo "::warning::apt/--with-deps stalled or failed — installing the browser only"; \
                  npx playwright install chromium; }
-      # A cache hit still needs the system libs check to be cheap and non-fatal.
+      # Browser caches do not include system fonts on fresh hosted runners.
       - name: Ensure browser present on cache hit
         if: steps.pwcache.outputs.cache-hit == 'true'
-        run: npx playwright install chromium
-      - run: npm run test:e2e:responsive -- ${{ matrix.projects }}
+        timeout-minutes: 6
+        run: |
+          if [ "$TERMINAL_E2E_LANE" = "hosted" ]; then
+            timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium
+          else
+            npx playwright install chromium
+          fi
+      - run: npm run test:e2e:responsive -- ${{ matrix.projects }} ${{ matrix.specs }} --workers="$TERMINAL_E2E_WORKERS"
+        env:
+          TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port }}
+          TERMINAL_E2E_WORKERS: ${{ steps.lane.outputs.workers }}
+      # This feature is default-off; the ordinary matrix skips its browser tests.
+      # Exercise it with the SAME harness, without altering production flags.
+      - name: Qualify investor shell opt-in
+        if: matrix.shard == 'serial'
+        env:
+          MMX_INVESTOR_SHELL_PREVIEW: '1'
+          CI: '1'
+          TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port_investor }}
+        run: >-
+          npm run test:e2e:responsive -- e2e/investor-shell-preview.spec.ts
+          --project=desktop --project=tablet --project=mobile
+          --workers=1 --retries=0
+          --output=test-results/investor-shell-preview
+      - name: Qualify Shared Shell beta presentation
+        id: shared_shell_qa
+        if: matrix.shard == 'serial'
+        env:
+          MMX_SHARED_SHELL: '1'
+          TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT: 'intl-fixture-v1'
+          CI: '1'
+          TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port_shared }}
+        run: >-
+          npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts e2e/intl-history-date-intent.spec.ts
+          --project=desktop --project=tablet --project=mobile
+          --workers=1 --retries=0
+          --output=test-results/shared-shell-refinement
+          --reporter=github,./e2e/tools/sharedShellSafeReporter.cjs
+      - name: Validate bounded Shared Shell outcome
+        id: safe_shared_shell_summary
+        if: ${{ always() && matrix.shard == 'serial' && steps.shared_shell_qa.outputs.safe_shared_shell_initialized == 'true' }}
+        continue-on-error: true
+        timeout-minutes: 1
+        env:
+          SAFE_DIRECTORY_DEV: ${{ steps.shared_shell_qa.outputs.safe_shared_shell_directory_dev }}
+          SAFE_DIRECTORY_INO: ${{ steps.shared_shell_qa.outputs.safe_shared_shell_directory_ino }}
+          SAFE_FILE_DEV: ${{ steps.shared_shell_qa.outputs.safe_shared_shell_file_dev }}
+          SAFE_FILE_INO: ${{ steps.shared_shell_qa.outputs.safe_shared_shell_file_ino }}
+          SAFE_FILE_SHA256: ${{ steps.shared_shell_qa.outputs.safe_shared_shell_file_sha256 }}
+          SAFE_STEP_OUTCOME: ${{ steps.shared_shell_qa.outcome }}
+        run: node e2e/tools/sharedShellSafeReporter.cjs --publish-safe-summary
+      - name: Retain bounded Shared Shell outcome
+        if: ${{ always() && matrix.shard == 'serial' && steps.safe_shared_shell_summary.outcome == 'success' && steps.safe_shared_shell_summary.outputs.safe_shared_shell_summary_ready == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: responsive-qa-${{ github.run_id }}-serial-safe-summary-${{ github.run_attempt }}
+          path: ${{ steps.safe_shared_shell_summary.outputs.safe_shared_shell_summary_path }}
+          if-no-files-found: warn
       - name: Upload responsive QA screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -317,39 +605,95 @@ jobs:
           if-no-files-found: ignore
 
   terminal:
-    # FROZEN NAME. master's branch protection keys on this exact string. Do not edit it,
-    # do not add a matrix to this job, do not let it become a `${{ }}` expression.
+    # Stable required context: both selectors and every selected shard feed it.
     name: Terminal typecheck + tests
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [terminal-unit, terminal-e2e]
-    # `always()` so a failed/cancelled/skipped dependency still REPORTS this check as red
-    # rather than leaving it "expected — waiting" forever and wedging every armed PR.
+    needs: [pr_scope, e2e-scope, terminal-unit, terminal-e2e]
     if: always()
     steps:
-      - name: Assert every terminal shard succeeded
+      - name: Refuse cancelled qualification
+        if: cancelled()
+        run: |
+          echo "::error title=terminal-ci::Workflow cancellation cannot qualify skipped work"
+          exit 1
+      - name: Assert all event-required Terminal checks passed
+        if: ${{ !cancelled() }}
         env:
+          SCOPE: ${{ needs.e2e-scope.result }}
+          PR_SCOPE: ${{ needs.pr_scope.result }}
+          PR_MODE: ${{ needs.pr_scope.outputs.mode }}
           UNIT: ${{ needs.terminal-unit.result }}
           E2E: ${{ needs.terminal-e2e.result }}
+          EVENT: ${{ github.event_name }}
         run: |
-          echo "terminal-unit=$UNIT terminal-e2e=$E2E"
+          echo "event=$EVENT pr_scope:$PR_SCOPE mode=$PR_MODE e2e-scope:$SCOPE terminal-unit:$UNIT terminal-e2e:$E2E"
+          docs_only=0
+          if [ "$EVENT" = "pull_request" ] && [ "$PR_SCOPE" = "success" ] && [ "$PR_MODE" = "docs" ]; then
+            docs_only=1
+          fi
           fail=0
-          for pair in "terminal-unit:$UNIT" "terminal-e2e:$E2E"; do
-            job=${pair%%:*}; res=${pair#*:}
-            if [ "$res" != "success" ]; then
-              echo "::error title=terminal-ci::$job concluded '$res' (expected 'success')"
-              fail=1
-            fi
-          done
+          # The independent browser selector is mandatory for every event,
+          # including docs-only PRs and the native merge-group fast lane.
+          if [ "$SCOPE" != "success" ]; then
+            echo "::error title=terminal-ci::e2e-scope concluded '$SCOPE' (expected 'success')"
+            fail=1
+          fi
+          if [ "$UNIT" = "success" ]; then
+            :
+          elif [ "$docs_only" -eq 1 ] && [ "$UNIT" = "skipped" ]; then
+            echo "terminal-unit skipped: trusted docs-only pull request"
+          else
+            echo "::error title=terminal-ci::terminal-unit concluded '$UNIT' (expected 'success')"
+            fail=1
+          fi
+          if [ "$E2E" = "success" ]; then
+            :
+          elif [ "$E2E" = "skipped" ] && { [ "$docs_only" -eq 1 ] || [ "$EVENT" = "merge_group" ]; }; then
+            echo "terminal-e2e skipped: qualified docs-only PR or native merge group"
+          else
+            echo "::error title=terminal-ci::terminal-e2e concluded '$E2E' (expected 'success')"
+            fail=1
+          fi
           [ "$fail" -eq 0 ] || exit 1
-          echo "All terminal shards green."
+          echo "All event-required Terminal checks green."
 
   python:
+    concurrency:
+      group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-python
+      cancel-in-progress: true
     name: Ingest + signal-layer tests
     runs-on: ubuntu-latest
+    needs: [pr_scope]
+    # A docs-only pull request (pr_scope mode=docs) still COMPLETES this
+    # required context green: every step below is skipped, so branch
+    # protection and scripts/merge_on_green.py (`conclusion == success`)
+    # read it as proven. `!cancelled()` keeps the job running when pr_scope
+    # itself failed or was skipped: mode is then empty and every step runs.
+    if: ${{ !cancelled() }}
+    # GitHub GraphQL native mergeQueue and source PR membership are read-only;
+    # contents:read alone cannot authenticate the queue's pull-request objects.
+    # Keep write privileges absent on the candidate-controlled merge_group path.
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        uses: actions/checkout@v4
+      # The Scenario PostgreSQL qualification drives the actual TypeScript HTTP
+      # consumer in this same job. Python and PostgreSQL alone cannot run it.
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: terminal/package-lock.json
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        name: Install Terminal consumer test dependencies
+        run: npm ci
+        working-directory: terminal
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
@@ -366,7 +710,19 @@ jobs:
       #                    can't misread a comment or a `run:` shell block as a real job key.
       # requirements.txt additionally carries fastapi/uvicorn, which nothing under tests/
       # imports — installing them would only slow the job down.
-      - run: pip install numpy pandas pyarrow jsonschema pyyaml pytest
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        run: pip install numpy pandas pyarrow jsonschema pyyaml requests yfinance==1.4.1 pytest
+      # Keep the broad ingest suite fail-closed when PostgreSQL binaries are missing.
+      # The dedicated upstream Investigation job remains an additional gate.
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        name: Put PostgreSQL binaries on PATH
+        run: echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        name: Require PostgreSQL rather than silently skip
+        run: |
+          command -v initdb
+          command -v pg_ctl
+          command -v psql
       # Run as `python -m pytest` from the repo root: that is what puts the root on sys.path,
       # which is how `import ingest.…` / `import signal_layer.…` resolve (there is no
       # conftest.py and no installed package).
@@ -378,17 +734,51 @@ jobs:
       # only from a push to master, which no workflow here triggers. It is a
       # number, not a credential, and it widens no authority: this step gains
       # exactly one environment variable and nothing else.
-      # The `|| inputs.pr_number` half covers the workflow_dispatch path
-      # merge-on-green takes after refreshing a stale branch (round 4, MAJOR 2):
+      # The `|| inputs.pr_number` half covers the fallback workflow_dispatch run
+      # merge-on-green orders after refreshing a stale branch (round 4, MAJOR 2):
       # on that trigger github.event.pull_request.number is empty, and that
-      # dispatched run is the only CI run for the sha that merges.
-      - run: python -m pytest tests/ -q
+      # dispatched run is then the only CI run for the sha that merges.
+      - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        id: ingest_tests
+        run: python -m pytest tests/ -q
         env:
           PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+          # The original built-in-token queue read was forbidden. Do not retry
+          # it from a later predictive candidate. With no open migration the
+          # strict guard needs no API; with one it refuses before network.
+          # The separate protected issuer/required-gate transfer is not active.
+          GH_TOKEN: ''
+      - name: Validate safe Ingest outcome publication
+        id: safe_ingest_summary
+        if: ${{ always() && steps.ingest_tests.outputs.safe_pytest_report_initialized == 'true' }}
+        continue-on-error: true
+        timeout-minutes: 1
+        env:
+          PYTEST_DIRECTORY_DEV: ${{ steps.ingest_tests.outputs.safe_pytest_directory_dev }}
+          PYTEST_DIRECTORY_INO: ${{ steps.ingest_tests.outputs.safe_pytest_directory_ino }}
+          PYTEST_FILE_DEV: ${{ steps.ingest_tests.outputs.safe_pytest_file_dev }}
+          PYTEST_FILE_INO: ${{ steps.ingest_tests.outputs.safe_pytest_file_ino }}
+          PYTEST_FILE_SHA256: ${{ steps.ingest_tests.outputs.safe_pytest_file_sha256 }}
+          PYTEST_STEP_OUTCOME: ${{ steps.ingest_tests.outcome }}
+        run: python scripts/ci_pytest_results.py --publish-safe-summary
+      - name: Retain bounded Ingest pytest outcome
+        if: ${{ always() && steps.safe_ingest_summary.outcome == 'success' && steps.safe_ingest_summary.outputs.safe_pytest_summary_ready == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ingest-safe-result-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.safe_ingest_summary.outputs.safe_pytest_summary_path }}
+          if-no-files-found: warn
 
   investigation-postgres:
+    concurrency:
+      group: terminal-ci-${{ github.event.pull_request.number || github.ref }}-investigation-postgres
+      cancel-in-progress: true
     name: Investigation PostgreSQL invariants
     runs-on: ubuntu-latest
+    needs: [pr_scope]
+    # Skipped only for a qualified docs-only pull request (pr_scope
+    # mode=docs); a failed, skipped or unqualified pr_scope runs everything.
+    if: ${{ !cancelled() && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -405,4 +795,6 @@ jobs:
           command -v pg_ctl
           command -v psql
       - name: Exercise migration, replay, CAS and owner isolation
-        run: python -m pytest tests/test_investigation_postgres.py tests/test_thesis_proposal_postgres.py -q
+        run: python -m pytest tests/test_investigation_postgres.py tests/test_thesis_proposal_postgres.py tests/test_api_watchlist_write_postgres.py tests/test_forex_watch_postgres.py tests/test_alerts_frozen_hit_postgres.py tests/test_alerts_frozen_prepared_postgres.py tests/test_portfolio_target_role_postgres.py tests/test_options_frozen_migration_postgres.py tests/test_options_frozen_enrollment_postgres.py -q
+      - name: Exercise drawing snapshots, replacement and actual competing sessions
+        run: python tests/sql/audit04/run_native_fixture.py --out-dir "$RUNNER_TEMP/audit04-evidence"

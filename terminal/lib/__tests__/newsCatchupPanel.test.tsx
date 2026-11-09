@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { NEWS_VIEW } from "./fixtures/newsEditorial";
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -6,6 +7,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import TickerNewsPanel from "@/components/news/TickerNewsPanel";
 import { useNewsCatchup } from "@/components/news/useNewsCatchup";
 import { NEWS_REVIEW_KEY } from "@/lib/newsReviewState";
+import * as newsReviewState from "@/lib/newsReviewState";
+import * as ownerStorage from "@/lib/ownerStorage";
 import type { TickerNewsStoryRow } from "@/lib/newsTypes";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -29,12 +32,12 @@ const row = (
   published_at: "2026-10-05T14:00:00+00:00",
   updated_at: null,
   received_at: "2026-10-05T14:01:01+00:00",
-  universe_revision: "sp500-r1",
+  universe_revision: "sp500-r1", editorial_view: NEWS_VIEW,
   ...extra,
 });
 
 const snapshot = (ticker: string, rows: TickerNewsStoryRow[], opts: { state?: string; hasMore?: boolean } = {}) => ({
-  schema: "ticker_news.snapshot.v1",
+  schema: "ticker_news.snapshot.v1", editorial_view: NEWS_VIEW,
   ticker,
   security_id: "SEC:" + ticker,
   state: opts.state ?? "live",
@@ -88,7 +91,7 @@ const CHANGE = {
   url: "https://www.benzinga.com/news/x",
   teaser: "",
   security_ids: ["SEC:NVDA"],
-  universe_revision: "sp500-r1",
+  universe_revision: "sp500-r1", editorial_view: NEWS_VIEW,
   observed_at: "2026-10-05T14:02:00+00:00",
 };
 
@@ -429,5 +432,211 @@ describe("AC-E13-05 — marking reviewed changes nothing at the source and sends
     expect(stored()).not.toContain("Launch");
     expect(stored()).not.toContain("benzinga.com");
     delete (globalThis as { Notification?: unknown }).Notification;
+  });
+});
+
+describe("AC-E13-06 — explicit review preserves the keyboard reading position", () => {
+  const headline = (id: string) =>
+    Array.from(host.querySelectorAll<HTMLElement>("article[data-story-id]"))
+      .find((article) => article.dataset.storyId === id)
+      ?.querySelector<HTMLElement>("[data-news-headline]");
+  const selectedFilter = () => host.querySelector<HTMLButtonElement>('[data-news-filter][aria-pressed="true"]');
+  const focusAndClick = async (button: HTMLButtonElement | null | undefined) => {
+    expect(button).toBeTruthy();
+    button!.focus();
+    expect(document.activeElement).toBe(button);
+    await click(button);
+  };
+
+  it.each([
+    ["linked", "https://www.benzinga.com/news/a"],
+    ["without a source link", ""],
+  ])("keeps the same %s story in All after its review button disappears", async (_kind, url) => {
+    feed(() => response(snapshot("NVDA", [row("ev2_a", "First", 2, 1, { url }), row("ev2_b", "Second", 1)])));
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
+    await focusAndClick(markOne("ev2_a"));
+
+    expect(markOne("ev2_a")).toBeNull();
+    expect(reviewOf("ev2_a")).toBe("reviewed");
+    expect(document.activeElement).toBe(headline("ev2_a"));
+    expect(selectedFilter()?.dataset.newsFilter).toBe("all");
+    expect(reviewOf("ev2_b")).toBe("new");
+    if (!url) expect(headline("ev2_a")?.getAttribute("tabindex")).toBe("-1");
+  });
+
+  it("continues forward, then backward through the original New list, then reaches its empty filter", async () => {
+    const { fn } = feed(() => response(snapshot("NVDA", [
+      row("ev2_a", "First", 3), row("ev2_b", "Second", 2), row("ev2_c", "Third", 1, 1, { url: "" }),
+    ])));
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
+    await click(host.querySelector('[data-news-filter="new"]'));
+    const fetches = fn.mock.calls.length;
+
+    await focusAndClick(markOne("ev2_b"));
+    expect(reviewOf("ev2_b")).toBeUndefined();
+    expect(document.activeElement).toBe(headline("ev2_c"));
+    await focusAndClick(markOne("ev2_c"));
+    expect(document.activeElement).toBe(headline("ev2_a"));
+    await focusAndClick(markOne("ev2_a"));
+    expect(host.querySelector("article[data-story-id]")).toBeNull();
+    expect(host.querySelector("[data-news-filter-empty]")).toBeTruthy();
+    expect(document.activeElement).toBe(selectedFilter());
+    expect(selectedFilter()?.dataset.newsFilter).toBe("new");
+    expect(fn.mock.calls.length).toBe(fetches);
+  });
+
+  it("uses the still-selected Updated filter when its final corrected story is reviewed", async () => {
+    localStorage.setItem(NEWS_REVIEW_KEY, JSON.stringify({
+      "account:user-a": { NVDA: { stories: { ev2_a: [1, 1] }, through: null } },
+    }));
+    feed(() => response(snapshot("NVDA", [row("ev2_a", "Corrected", 2)])));
+    await render(<TickerNewsPanel symbol="NVDA" lang="zh" userId="user-a" />);
+    await click(host.querySelector('[data-news-filter="updated"]'));
+    await focusAndClick(markOne("ev2_a"));
+
+    expect(host.querySelector("article[data-story-id]")).toBeNull();
+    expect(document.activeElement).toBe(selectedFilter());
+    expect(selectedFilter()?.dataset.newsFilter).toBe("updated");
+    expect(host.querySelector("[data-news-filter-empty]")).toBeTruthy();
+  });
+
+  it.each(["all", "new"] as const)("returns disabled Mark shown to %s and preserves the source filter", async (filter) => {
+    feed(() => response(snapshot("NVDA", [
+      row("ev2_a", "First", 3), row("ev2_b", "Second", 2),
+      row("ev2_c", "Other source", 1, 1, { source: "dowjones" }),
+    ])));
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
+    await click(host.querySelector('[data-news-filter="' + filter + '"]'));
+    const source = host.querySelector<HTMLSelectElement>("[data-news-source-filter]")!;
+    await act(async () => {
+      source.value = "benzinga";
+      source.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    const bulk = host.querySelector<HTMLButtonElement>("[data-news-mark-shown]")!;
+    await focusAndClick(bulk);
+
+    expect(bulk.disabled).toBe(true);
+    expect(document.activeElement).toBe(selectedFilter());
+    expect(selectedFilter()?.dataset.newsFilter).toBe(filter);
+    expect(source.value).toBe("benzinga");
+    expect(Object.keys(JSON.parse(stored()!)["account:user-a"].NVDA.stories).sort()).toEqual(["ev2_a", "ev2_b"]);
+    expect(host.querySelectorAll("article[data-story-id]").length).toBe(filter === "all" ? 2 : 0);
+  });
+
+  it("does not take focus when an unfocused review control is activated", async () => {
+    feed(() => response(snapshot("NVDA", [row("ev2_a", "First", 2), row("ev2_b", "Second", 1)])));
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
+    const filter = selectedFilter()!;
+    filter.focus();
+    await click(markOne("ev2_a"));
+    expect(document.activeElement).toBe(filter);
+    expect(reviewOf("ev2_a")).toBe("reviewed");
+  });
+
+  it("respects a newer focus choice made before React commits the review", async () => {
+    feed(() => response(snapshot("NVDA", [row("ev2_a", "First", 2), row("ev2_b", "Second", 1)])));
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
+    const filter = selectedFilter()!;
+    const button = markOne("ev2_a")!;
+    button.focus();
+    await act(async () => {
+      button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      filter.focus();
+    });
+    expect(document.activeElement).toBe(filter);
+    expect(reviewOf("ev2_a")).toBe("reviewed");
+  });
+
+  it("does not repair focus for another tab's review update", async () => {
+    feed(() => response(snapshot("NVDA", [row("ev2_a", "First", 2)])));
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
+    markOne("ev2_a")!.focus();
+    const focus = vi.spyOn(HTMLElement.prototype, "focus");
+    await act(async () => {
+      localStorage.setItem(NEWS_REVIEW_KEY, JSON.stringify({
+        "account:user-a": { NVDA: { stories: { ev2_a: [2, 1] }, through: null } },
+      }));
+      window.dispatchEvent(new StorageEvent("storage", { key: NEWS_REVIEW_KEY }));
+    });
+    expect(markOne("ev2_a")).toBeNull();
+    expect(focus).not.toHaveBeenCalled();
+  });
+
+  it("consumes a no-op action before a later storage update can remove its trigger", async () => {
+    feed(() => response(snapshot("NVDA", [row("ev2_a", "First", 2)])));
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
+    // Exercise the existing no-storage / unchanged-base return, which does not commit.
+    const storage = vi.spyOn(ownerStorage, "browserStorage").mockReturnValue(null);
+    const mark = vi.spyOn(newsReviewState, "markStoriesReviewed").mockImplementation((base) => base);
+    const button = markOne("ev2_a")!;
+    await focusAndClick(button);
+    expect(document.activeElement).toBe(button);
+    expect(reviewOf("ev2_a")).toBe("new");
+    storage.mockRestore();
+    mark.mockRestore();
+
+    const focus = vi.spyOn(HTMLElement.prototype, "focus");
+    await act(async () => {
+      localStorage.setItem(NEWS_REVIEW_KEY, JSON.stringify({
+        "account:user-a": { NVDA: { stories: { ev2_a: [2, 1] }, through: null } },
+      }));
+      window.dispatchEvent(new StorageEvent("storage", { key: NEWS_REVIEW_KEY }));
+    });
+    expect(markOne("ev2_a")).toBeNull();
+    expect(focus).not.toHaveBeenCalled();
+  });
+
+
+  it.each(["review", "source"] as const)("cancels when the %s filter changes before the review commits", async (which) => {
+    feed(() => response(snapshot("NVDA", [
+      row("ev2_a", "First", 2), row("ev2_b", "Second", 1, 1, { source: "dowjones" }),
+    ])));
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
+    const button = markOne("ev2_a")!;
+    button.focus();
+    const focus = vi.spyOn(HTMLElement.prototype, "focus");
+    await act(async () => {
+      button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      if (which === "review") {
+        host.querySelector('[data-news-filter="new"]')!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      } else {
+        const source = host.querySelector<HTMLSelectElement>("[data-news-source-filter]")!;
+        source.value = "dowjones";
+        source.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    });
+    expect(reviewOf("ev2_a")).toBeUndefined();
+    expect(reviewOf("ev2_b")).toBe("new");
+    expect(focus).not.toHaveBeenCalled();
+  });
+
+  it("cancels a pending handoff when the account changes in the same commit", async () => {
+    feed(() => response(snapshot("NVDA", [row("ev2_a", "First", 2)])));
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
+    const button = markOne("ev2_a")!;
+    button.focus();
+    const focus = vi.spyOn(HTMLElement.prototype, "focus");
+    await act(async () => {
+      button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      root.render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-b" />);
+    });
+    expect(reviewOf("ev2_a")).toBe("new");
+    expect(focus).not.toHaveBeenCalled();
+  });
+
+  it("repairs an accepted session-only review once, without replay on a later render", async () => {
+    feed(() => response(snapshot("NVDA", [row("ev2_a", "First", 2)])));
+    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
+    vi.spyOn(jsdomWindow().Storage.prototype, "setItem").mockImplementation(() => {
+      throw new DOMException("full", "QuotaExceededError");
+    });
+    await focusAndClick(markOne("ev2_a"));
+    expect(document.activeElement).toBe(headline("ev2_a"));
+    expect(host.querySelector("[data-news-review-mode]")?.getAttribute("data-news-review-mode")).toBe("session");
+    expect(stored()).toBeNull();
+
+    const focus = vi.spyOn(HTMLElement.prototype, "focus");
+    await render(<TickerNewsPanel symbol="NVDA" lang="zh" userId="user-a" />);
+    expect(focus).not.toHaveBeenCalled();
   });
 });

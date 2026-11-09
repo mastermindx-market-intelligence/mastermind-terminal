@@ -1,0 +1,120 @@
+{
+  "head": "587b33a5fc66346cc3a223955174b33d012b078a",
+  "startedAt": "2026-11-09T04:56:52Z",
+  "layoutFiles": {
+    "terminal/lib/selectionCohort.ts": "795de709d83958ebf9cb7022969037430203a6a1c9b6091ceade89cecc2c9795",
+    "terminal/components/prophet/SelectionCohortCard.tsx": "b2d4517b7706b9bdc61d15e4ab031a0bfc9b012bf5353f54954b8ccb2c08efb5",
+    "terminal/components/prophet/SelectionCohortCard.module.css": "9dcf3eb272a684a63728e79c5a94ca7efd4ae7474979fcdfdd11be35be86f2ff",
+    "terminal/components/prophet/SelectionCohortCard.global.css": "3b30065deec77b3193737648b3059a53134a5190f3e144fa2aa0edf43a6dc9b4",
+    "terminal/components/prophet/ProphetView.tsx": "8e5bf61af4596e3e3baac3c6b1bdd19db43a8e425e422cbf3e176cf210dbe13f"
+  },
+  "captureFiles": {
+    "desktop-en-closed-unavailable.png": "2c0751bcc704e0093df2645ae9a871062ad0afdaca817d7460cfa5156a92ae3c",
+    "desktop-en-closed.png": "967a6107da5bff3900406efa48697d825c680750f571886808f7c81758d52305",
+    "desktop-en-open.png": "3e58bf71afef3c1e51e2b14ff585522279ae187e0e03f01b0cdbd8649a0f35d3",
+    "desktop-en-page-open.png": "8da4275c965e802166f607e883875673cab63eb143ab61ab07339dbbaf8b9571",
+    "desktop-zh-closed.png": "96cf2900ecaa92ec7ad37b3d89b3213992dcc21fbd61c05b43e60059998569dd",
+    "desktop-zh-open.png": "b8a0ffa7fb5d18de85268dcee924a1691a2256457fcaedaeec08f587cedc169e",
+    "mobile-en-empty.png": "62c60715c64925278daed5ad497c9601b0e2c0f65bb6232c76fba819bea6bc9b",
+    "mobile-en-ready.png": "cf69a1f36a869897c79410fb4f311f05530e5c1d397e6a3cc2eff3d312c0c497",
+    "mobile-en-unavailable.png": "e4ca456294813dbd9b8bbaa6b82fcad0b2eff0cc8ae8b8962b95438ecdd73b72",
+    "mobile-zh-empty.png": "62564e6b202b3ca1963e1f6b4b40b8e43a7f1b352fc22ca735feef3aabf12450",
+    "mobile-zh-ready.png": "5d4962ba3c7ce056d6375f0b1f4476a61d262f18fa5c0ccaa6957a8f3444a487",
+    "mobile-zh-unavailable.png": "cee75b08b59c4ea77eee59f969e5e3332d5d36b4d3ecbfd4c9eee1e88b1d4120",
+    "tablet-en-ready.png": "40ceebd59b0b02f8d1faeb5a693df7e6714f51453fb022be28787ab4c1396a9b"
+  },
+  "ownedPort": 3592,
+  "commands": [
+    {
+      "name": "native-tests",
+      "args": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/selectionCohort.test.ts",
+        "lib/__tests__/SelectionCohortCard.test.tsx",
+        "lib/__tests__/selectionCohortCssBoundary.test.ts",
+        "lib/__tests__/gmiGate8CohortCardEvidence.test.ts",
+        "--reporter=json",
+        "--outputFile=docs/verification/pr908-cohort-20261109/unit-report.json"
+      ],
+      "returncode": 0,
+      "logSha256": "16ed6bdbc1ff7a49adf9a3dff224910698d9c552ea88803d47f0c0de405d722a"
+    },
+    {
+      "name": "browser-report",
+      "args": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "e2e/selection-cohort-tile.spec.ts",
+        "e2e/visual-intelligence.spec.ts",
+        "--project=desktop",
+        "--project=tablet",
+        "--grep",
+        "(^| )desktop .*Selection cohort masthead tile \\(D2\\) |(^| )tablet .*saved startup timeframe hydrates chart context without stale SSR attributes$",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=json"
+      ],
+      "returncode": 0,
+      "logSha256": "6778e01a3953f09854a92d88400f3bc5217be5413564c2fd2c851a9784d0d68c"
+    }
+  ],
+  "selectedTests": [
+    {
+      "title": "grid retains its refined layout height with tile closed and popover open",
+      "project": "desktop"
+    },
+    {
+      "title": "masthead stats share one offsetTop at 1200x800 and 1440x900",
+      "project": "desktop"
+    },
+    {
+      "title": "popover keyboard, pointer, focus, and stacking",
+      "project": "desktop"
+    },
+    {
+      "title": "media switch: card at 1180, tile at 1440",
+      "project": "desktop"
+    },
+    {
+      "title": "unavailable fixture shows em dash on tile",
+      "project": "desktop"
+    },
+    {
+      "title": "exactly one cohort API request per page load",
+      "project": "desktop"
+    },
+    {
+      "title": "saved startup timeframe hydrates chart context without stale SSR attributes",
+      "project": "tablet"
+    }
+  ],
+  "browserStats": {
+    "startTime": "2026-11-09T04:56:56.397Z",
+    "duration": 28009.348,
+    "expected": 7,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "nativeTests": {
+    "passed": 35,
+    "failed": 0
+  },
+  "sourceAndImagesUnchanged": true,
+  "finishedAt": "2026-11-09T04:59:03Z",
+  "portAfter": {
+    "returncode": 1,
+    "stdout": ""
+  },
+  "reportExtraction": {
+    "rawLogSha256": "6778e01a3953f09854a92d88400f3bc5217be5413564c2fd2c851a9784d0d68c",
+    "jsonByteOffset": 635,
+    "prefix": "[warmup] /terminal?symbol=NVDA \u2192 200 in 72ms\n[warmup] /options \u2192 200 in 1643ms\n[warmup] /portfolio \u2192 200 in 745ms\n[warmup] /alerts \u2192 200 in 582ms\n[warmup] /analysis \u2192 200 in 962ms\n[warmup] /discover \u2192 200 in 1102ms\n[warmup] /admin \u2192 200 in 420ms\n[warmup] /embed/chart?symbol=NVDA \u2192 200 in 309ms\n[warmup] /login \u2192 200 in 63ms\n[warmup] /reset-password \u2192 200 in 324ms\n[warmup] /api/me \u2192 200 in 297ms\n[warmup] /api/watchlist \u2192 200 in 123ms\n[warmup] /api/layouts \u2192 200 in 145ms\n[warmup] /api/watchlist/annotations \u2192 409 in 105ms\n[warmup] 14 routes compiled in 7s\n[fixture-ready] prophet_idx fixture 200 in 278ms\n",
+    "originalWrapperReturncode": 1,
+    "cause": "global-setup warmup and fixture-readiness logs preceded the JSON reporter in the retained combined output",
+    "noBrowserRerun": true
+  }
+}

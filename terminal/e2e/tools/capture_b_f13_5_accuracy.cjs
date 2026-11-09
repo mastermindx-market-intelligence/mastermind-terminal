@@ -168,12 +168,24 @@ async function openDetail(page, lang) {
   await page.locator("[data-acc='detail']").waitFor({ state: "visible", timeout: 10_000 });
 }
 
+// The team rollup block fetches after the card paints: it renders nothing until the
+// team lookup returns, then "loading" ("Reading your record."), then a settled state.
+// A crop taken before it settles records a transient frame, so every shot waits for a
+// rendered, non-loading team state (in the dev fixture that is load-err).
+async function waitForTeamSettled(page) {
+  await page
+    .locator("[data-acc-team-state]:not([data-acc-team-state='loading'])")
+    .first()
+    .waitFor({ state: "attached", timeout: 20_000 });
+}
+
 async function shoot(page, file) {
+  await waitForTeamSettled(page);
   await assertNoNextIndicator(page, file);
   await page.mouse.move(0, 0);
   await page.waitForTimeout(200);
   const overlay = page.locator(".acs-overlay.open");
-  await overlay.screenshot({ path: join(OUT, file) });
+  await overlay.screenshot({ path: join(OUT, file), animations: "disabled" });
 }
 
 async function main() {
@@ -182,7 +194,7 @@ async function main() {
   const files = [];
   try {
     await waitForServer(180_000);
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch({ headless: true, args: ["--disable-partial-raster"] });
     try {
       for (const shot of SHOTS) {
         process.stdout.write(`capture ${shot.file} … `);

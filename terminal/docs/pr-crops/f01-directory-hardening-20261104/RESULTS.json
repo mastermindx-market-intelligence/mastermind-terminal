@@ -1,0 +1,755 @@
+{
+  "basis": "Actual M2 existing Next/Playwright fixture; controlled AAPL manifest; existing mm_e2e_rs30/mm_e2e_guest seams; no production acceptance",
+  "sourceInputs": {
+    "createdAt": "2026-11-04T01:19:06.960604+00:00",
+    "base": "2ded360882b9c721e690907ff363b553781fb920",
+    "files": {
+      "components/chrome/shared-shell/ShellDirectory.tsx": "0dec62b6bf353d8ec3d28509810c29652a65cb5967cd33a37141d6c50ef52bc0",
+      "components/chrome/shared-shell/shared-shell.css": "ace6eda93612f229031e426b6246315dd5cdeb49add7ce1d24c45165e7eb2660",
+      "lib/sharedShellCopy.ts": "4cef78b0145bc9968cb4fb324ad7f17b3a8a3f631fa62ba9402c0f5701abb2d3",
+      "lib/__tests__/sharedShellDirectoryConformance.test.tsx": "26cba1b11e466e69de34a5cf4cbd366a46a6ca0bc782490e99234c3e504ef589",
+      "e2e/shared-shell-directory-hardening.spec.ts": "a8d2274d3bf08518440d5fde2e5962c27f92dfcc32939a18f9dae715c6a78e1d",
+      "package-lock.json": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9"
+    },
+    "node": "v26.5.0",
+    "NODE_OPTIONS": "--no-experimental-webstorage"
+  },
+  "unit": {
+    "passed": 84,
+    "failed": 0,
+    "assertions": [
+      {
+        "name": "Shared Shell route contract enables only the exact server flag",
+        "status": "passed"
+      },
+      {
+        "name": "Shared Shell route contract resolves root, relative and nested paths against the canonical Macro document",
+        "status": "passed"
+      },
+      {
+        "name": "Shared Shell route contract keeps exact ordinary query bytes and fragments while removing only transport keys",
+        "status": "passed"
+      },
+      {
+        "name": "Shared Shell route contract leaves external browser destinations external",
+        "status": "passed"
+      },
+      {
+        "name": "Shared Shell route contract blocks unsupported schemes, credential URLs and unadmitted paths",
+        "status": "passed"
+      },
+      {
+        "name": "Shared Shell route contract fails closed for malformed input and configuration",
+        "status": "passed"
+      },
+      {
+        "name": "Shared Shell child message contract constructs only the allowed variants",
+        "status": "passed"
+      },
+      {
+        "name": "Shared Shell child message contract requires the exact frame window, origin and generation",
+        "status": "passed"
+      },
+      {
+        "name": "Shared Shell child message contract rejects unknown fields and invalid variant values",
+        "status": "passed"
+      },
+      {
+        "name": "Shared Shell child message contract does not conflate a valid NAVIGATE envelope with route authorization",
+        "status": "passed"
+      },
+      {
+        "name": "presentation state never carries account material rejects authentication parameters while preserving ordinary market state",
+        "status": "passed"
+      },
+      {
+        "name": "presentation state never carries account material validates bounded scroll coordinates and stable identifiers without copying extras",
+        "status": "passed"
+      },
+      {
+        "name": "presentation state never carries account material requires own envelope and required variant fields",
+        "status": "passed"
+      },
+      {
+        "name": "Shared Shell response provenance keeps a recognized gate response distinct from product readiness",
+        "status": "passed"
+      },
+      {
+        "name": "Shared Shell authentication URL boundary rejects credentials and combined query/fragment authentication state at every entry",
+        "status": "passed"
+      },
+      {
+        "name": "Shared Shell authentication URL boundary preserves ordinary code and fragment query state",
+        "status": "passed"
+      },
+      {
+        "name": "incumbent directory conformance recovers zero-in-category matches without changing the typed query",
+        "status": "passed"
+      },
+      {
+        "name": "incumbent directory conformance preserves category-specific canonical fallback and distinct same-title routes",
+        "status": "passed"
+      },
+      {
+        "name": "incumbent directory conformance clears only query and retains the selected category",
+        "status": "passed"
+      },
+      {
+        "name": "incumbent directory conformance retains expansion on same-instance reopen and resets it on query or category change",
+        "status": "passed"
+      },
+      {
+        "name": "incumbent directory conformance focuses the first newly revealed destination when the final batch removes Show more",
+        "status": "passed"
+      },
+      {
+        "name": "incumbent directory conformance uses a concise atomic status instead of announcing the result grid",
+        "status": "passed"
+      },
+      {
+        "name": "incumbent directory conformance retains query, category, expansion and focus through a locale rerender",
+        "status": "passed"
+      },
+      {
+        "name": "incumbent directory conformance returns to a visible navigation opener when the desktop opener becomes hidden",
+        "status": "passed"
+      },
+      {
+        "name": "incumbent directory conformance uses the current main heading if all old controls are hidden or disabled",
+        "status": "passed"
+      },
+      {
+        "name": "incumbent directory conformance does not steal deliberate later focus during an external close",
+        "status": "passed"
+      },
+      {
+        "name": "incumbent directory conformance leaves composing and child-consumed Escape to their existing owner",
+        "status": "passed"
+      },
+      {
+        "name": "incumbent directory conformance guards native cancellation for protected Escape {\"isComposing\":true}",
+        "status": "passed"
+      },
+      {
+        "name": "incumbent directory conformance guards native cancellation for protected Escape {\"keyCode\":229}",
+        "status": "passed"
+      },
+      {
+        "name": "incumbent directory conformance guards native cancellation for protected Escape {\"repeat\":true}",
+        "status": "passed"
+      },
+      {
+        "name": "incumbent directory conformance retains the original composition decision if composition ends during Escape dispatch",
+        "status": "passed"
+      },
+      {
+        "name": "incumbent directory conformance defensively retains a child-consumed Escape when a synthetic cancel is injected",
+        "status": "passed"
+      },
+      {
+        "name": "incumbent directory conformance allows a later non-keyboard cancel after a protected Escape with no keyup",
+        "status": "passed"
+      },
+      {
+        "name": "incumbent directory conformance consumes protected cancellation once without blocking a second independent close",
+        "status": "passed"
+      },
+      {
+        "name": "incumbent directory conformance expires an unconsumed Escape association when no cancel or key release arrives",
+        "status": "passed"
+      },
+      {
+        "name": "incumbent directory conformance preserves modified-click context and closes only for ordinary navigation",
+        "status": "passed"
+      },
+      {
+        "name": "incumbent directory conformance hands off to company search once through its parent without a deferred opener",
+        "status": "passed"
+      },
+      {
+        "name": "public Shared Shell presentation real .topbar guest controls update both owners without navigation or signup",
+        "status": "passed"
+      },
+      {
+        "name": "public Shared Shell presentation real .mobilebar guest controls update both owners without navigation or signup",
+        "status": "passed"
+      },
+      {
+        "name": "public Shared Shell presentation restores guest choices on a fresh shell using the real document language bootstrap",
+        "status": "passed"
+      },
+      {
+        "name": "public Shared Shell presentation continues applying account Auto and explicit Settings metadata through the incumbent store",
+        "status": "passed"
+      },
+      {
+        "name": "public Shared Shell presentation retains UUID ownership, ignores an outgoing account read and keeps a public override local",
+        "status": "passed"
+      },
+      {
+        "name": "public Shared Shell presentation keeps child presentation requests on the same owner and rejects unqualified sources",
+        "status": "passed"
+      },
+      {
+        "name": "public Shared Shell presentation still applies public choices when browser storage is blocked",
+        "status": "passed"
+      },
+      {
+        "name": "public Shared Shell presentation adds no presentation controls or presentation owner in the ordinary shell",
+        "status": "passed"
+      },
+      {
+        "name": "explicit Settings presentation intent after a public override follows system changes only while Auto is active and removes its listener",
+        "status": "passed"
+      },
+      {
+        "name": "explicit Settings presentation intent after a public override reapplies the same saved 'dark' choice with systemDark=false through the real Settings UI",
+        "status": "passed"
+      },
+      {
+        "name": "explicit Settings presentation intent after a public override reapplies the same saved 'light' choice with systemDark=true through the real Settings UI",
+        "status": "passed"
+      },
+      {
+        "name": "explicit Settings presentation intent after a public override reapplies the same saved 'auto' choice with systemDark=true through the real Settings UI",
+        "status": "passed"
+      },
+      {
+        "name": "explicit Settings presentation intent after a public override reapplies the same saved 'auto' choice with systemDark=false through the real Settings UI",
+        "status": "passed"
+      },
+      {
+        "name": "explicit Settings presentation intent after a public override does not reapply a saved theme on a real Settings language edit",
+        "status": "passed"
+      },
+      {
+        "name": "explicit Settings presentation intent after a public override does not reapply a saved theme on a real Settings trade edit",
+        "status": "passed"
+      },
+      {
+        "name": "explicit Settings presentation intent after a public override does not reapply a saved theme on a real Settings follow edit",
+        "status": "passed"
+      },
+      {
+        "name": "explicit Settings presentation intent after a public override keeps ordinary Settings functional outside a Shared Shell presentation provider",
+        "status": "passed"
+      },
+      {
+        "name": "regional overview navigation identity /us_stocks.html belongs to its market row without claiming the native Today page",
+        "status": "passed"
+      },
+      {
+        "name": "regional overview navigation identity /china.html belongs to its market row without claiming the native Today page",
+        "status": "passed"
+      },
+      {
+        "name": "regional overview navigation identity /hk.html belongs to its market row without claiming the native Today page",
+        "status": "passed"
+      },
+      {
+        "name": "regional overview navigation identity /canada.html belongs to its market row without claiming the native Today page",
+        "status": "passed"
+      },
+      {
+        "name": "regional overview navigation identity /intl.html belongs to its market row without claiming the native Today page",
+        "status": "passed"
+      },
+      {
+        "name": "regional overview navigation identity preserves the existing primary family for /today",
+        "status": "passed"
+      },
+      {
+        "name": "regional overview navigation identity preserves the existing primary family for /discover",
+        "status": "passed"
+      },
+      {
+        "name": "regional overview navigation identity preserves the existing primary family for /discover/stock-screener",
+        "status": "passed"
+      },
+      {
+        "name": "regional overview navigation identity preserves the existing primary family for /analysis",
+        "status": "passed"
+      },
+      {
+        "name": "regional overview navigation identity preserves the existing primary family for /stock.html",
+        "status": "passed"
+      },
+      {
+        "name": "regional overview navigation identity preserves the existing primary family for /china_lookup.html",
+        "status": "passed"
+      },
+      {
+        "name": "regional overview navigation identity preserves the existing primary family for /hk_lookup.html",
+        "status": "passed"
+      },
+      {
+        "name": "regional overview navigation identity preserves the existing primary family for /canada_stock.html",
+        "status": "passed"
+      },
+      {
+        "name": "regional overview navigation identity preserves the existing primary family for /intl_stock.html",
+        "status": "passed"
+      },
+      {
+        "name": "regional overview navigation identity preserves the existing primary family for /research",
+        "status": "passed"
+      },
+      {
+        "name": "regional overview navigation identity preserves the existing primary family for /stocks/earnings",
+        "status": "passed"
+      },
+      {
+        "name": "regional overview navigation identity preserves the existing primary family for /monitor",
+        "status": "passed"
+      },
+      {
+        "name": "regional overview navigation identity preserves the existing primary family for /watchlist.html",
+        "status": "passed"
+      },
+      {
+        "name": "regional overview navigation identity preserves the existing primary family for /portfolio",
+        "status": "passed"
+      },
+      {
+        "name": "Shared Shell native job identity selects the actual native Today destination",
+        "status": "passed"
+      },
+      {
+        "name": "Shared Shell native job identity does not present an unrelated tool as the native Today page: /crypto.html",
+        "status": "passed"
+      },
+      {
+        "name": "Shared Shell native job identity does not present an unrelated tool as the native Today page: /vector.html",
+        "status": "passed"
+      },
+      {
+        "name": "Shared Shell native job identity does not present an unrelated tool as the native Today page: /vector_allocation.html",
+        "status": "passed"
+      },
+      {
+        "name": "Shared Shell native job identity does not present an unrelated tool as the native Today page: /macro.html",
+        "status": "passed"
+      },
+      {
+        "name": "Shared Shell native job identity does not present an unrelated tool as the native Today page: /commodities.html",
+        "status": "passed"
+      },
+      {
+        "name": "Shared Shell native job identity does not present an unrelated tool as the native Today page: /bonds.html",
+        "status": "passed"
+      },
+      {
+        "name": "Shared Shell native job identity does not present an unrelated tool as the native Today page: /theme_tree.html",
+        "status": "passed"
+      },
+      {
+        "name": "Shared Shell native job identity does not present an unrelated tool as the native Today page: /",
+        "status": "passed"
+      },
+      {
+        "name": "Shared Shell native job identity does not present an unrelated tool as the native Today page: /today-report.html",
+        "status": "passed"
+      },
+      {
+        "name": "Shared Shell native job identity does not present an unrelated tool as the native Today page: /future-tool.html",
+        "status": "passed"
+      }
+    ]
+  },
+  "browser": {
+    "stats": {
+      "startTime": "2026-11-04T01:19:10.679Z",
+      "duration": 47425.138999999996,
+      "expected": 19,
+      "skipped": 2,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-hardening-20261104-c4/terminal/docs/pr-crops/f01-directory-hardening-20261104/browser-r4",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-hardening-20261104-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-hardening-20261104-c4/terminal/docs/pr-crops/f01-directory-hardening-20261104/browser-r4",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-hardening-20261104-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-hardening-20261104-c4/terminal/docs/pr-crops/f01-directory-hardening-20261104/browser-r4",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-hardening-20261104-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-hardening-20261104-c4/terminal/docs/pr-crops/f01-directory-hardening-20261104/browser-r4",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-hardening-20261104-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-hardening-20261104-c4/terminal/docs/pr-crops/f01-directory-hardening-20261104/browser-r4",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-hardening-20261104-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-hardening-20261104-c4/terminal/docs/pr-crops/f01-directory-hardening-20261104/browser-r4",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-hardening-20261104-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-hardening-20261104-c4/terminal/docs/pr-crops/f01-directory-hardening-20261104/browser-r4",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-hardening-20261104-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-hardening-20261104-c4/terminal/docs/pr-crops/f01-directory-hardening-20261104/browser-r4",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/f01-directory-hardening-20261104-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "cases": [
+      {
+        "name": "query-wide recovery is distinct from category scope in the real catalogue",
+        "project": "desktop",
+        "status": "expected",
+        "outcomes": [
+          "passed"
+        ]
+      },
+      {
+        "name": "clear query, batching and same-instance reopen retain the correct state",
+        "project": "desktop",
+        "status": "expected",
+        "outcomes": [
+          "passed"
+        ]
+      },
+      {
+        "name": "actual locale/theme controls preserve a filtered directory across reopen",
+        "project": "desktop",
+        "status": "expected",
+        "outcomes": [
+          "passed"
+        ]
+      },
+      {
+        "name": "drawer-to-directory and resize close return to a visible persistent control",
+        "project": "desktop",
+        "status": "expected",
+        "outcomes": [
+          "passed"
+        ]
+      },
+      {
+        "name": "directory transfers once to the real company picker and respects composing Escape",
+        "project": "desktop",
+        "status": "expected",
+        "outcomes": [
+          "passed"
+        ]
+      },
+      {
+        "name": "native dialog cancellation respects the captured Escape owner",
+        "project": "desktop",
+        "status": "expected",
+        "outcomes": [
+          "passed"
+        ]
+      },
+      {
+        "name": "real Next Link keeps the current directory on modified activation",
+        "project": "desktop",
+        "status": "expected",
+        "outcomes": [
+          "passed"
+        ]
+      },
+      {
+        "name": "query-wide recovery is distinct from category scope in the real catalogue",
+        "project": "tablet",
+        "status": "expected",
+        "outcomes": [
+          "passed"
+        ]
+      },
+      {
+        "name": "clear query, batching and same-instance reopen retain the correct state",
+        "project": "tablet",
+        "status": "expected",
+        "outcomes": [
+          "passed"
+        ]
+      },
+      {
+        "name": "actual locale/theme controls preserve a filtered directory across reopen",
+        "project": "tablet",
+        "status": "expected",
+        "outcomes": [
+          "passed"
+        ]
+      },
+      {
+        "name": "drawer-to-directory and resize close return to a visible persistent control",
+        "project": "tablet",
+        "status": "expected",
+        "outcomes": [
+          "passed"
+        ]
+      },
+      {
+        "name": "directory transfers once to the real company picker and respects composing Escape",
+        "project": "tablet",
+        "status": "expected",
+        "outcomes": [
+          "passed"
+        ]
+      },
+      {
+        "name": "native dialog cancellation respects the captured Escape owner",
+        "project": "tablet",
+        "status": "expected",
+        "outcomes": [
+          "passed"
+        ]
+      },
+      {
+        "name": "real Next Link keeps the current directory on modified activation",
+        "project": "tablet",
+        "status": "skipped",
+        "outcomes": [
+          "skipped"
+        ]
+      },
+      {
+        "name": "query-wide recovery is distinct from category scope in the real catalogue",
+        "project": "mobile",
+        "status": "expected",
+        "outcomes": [
+          "passed"
+        ]
+      },
+      {
+        "name": "clear query, batching and same-instance reopen retain the correct state",
+        "project": "mobile",
+        "status": "expected",
+        "outcomes": [
+          "passed"
+        ]
+      },
+      {
+        "name": "actual locale/theme controls preserve a filtered directory across reopen",
+        "project": "mobile",
+        "status": "expected",
+        "outcomes": [
+          "passed"
+        ]
+      },
+      {
+        "name": "drawer-to-directory and resize close return to a visible persistent control",
+        "project": "mobile",
+        "status": "expected",
+        "outcomes": [
+          "passed"
+        ]
+      },
+      {
+        "name": "directory transfers once to the real company picker and respects composing Escape",
+        "project": "mobile",
+        "status": "expected",
+        "outcomes": [
+          "passed"
+        ]
+      },
+      {
+        "name": "native dialog cancellation respects the captured Escape owner",
+        "project": "mobile",
+        "status": "expected",
+        "outcomes": [
+          "passed"
+        ]
+      },
+      {
+        "name": "real Next Link keeps the current directory on modified activation",
+        "project": "mobile",
+        "status": "skipped",
+        "outcomes": [
+          "skipped"
+        ]
+      }
+    ]
+  },
+  "sourceChecks": [
+    {
+      "command": [
+        "./node_modules/.bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exit": 0,
+      "log": "source-check-r4-0.log"
+    },
+    {
+      "command": [
+        "./node_modules/.bin/eslint",
+        "components/chrome/shared-shell/ShellDirectory.tsx",
+        "lib/sharedShellCopy.ts",
+        "lib/__tests__/sharedShellDirectoryConformance.test.tsx",
+        "e2e/shared-shell-directory-hardening.spec.ts",
+        "--max-warnings=0"
+      ],
+      "exit": 0,
+      "log": "source-check-r4-1.log"
+    }
+  ],
+  "baselineDiagnostic": {
+    "basis": "Only three modified production files restored to exact protected Terminal2ded360 for two controlled Discover visits; existing development harness and fixture; no deployment",
+    "base": "2ded360882b9c721e690907ff363b553781fb920",
+    "time": "2026-11-04T01:22:51.851546+00:00",
+    "baselineSourceHashes": {
+      "components/chrome/shared-shell/ShellDirectory.tsx": "24b78589a0be817b02ca980a7aa242f7be078bbd769ee37b4774441129fb563e",
+      "components/chrome/shared-shell/shared-shell.css": "97bf53925b7e843d6ea4639b8a8b50f467f5fff8355c2a828d990e8db477f5d2",
+      "lib/sharedShellCopy.ts": "2b66cde3a3fe1cda365c8b7ef07d307d70980a6764fd8263d96ab756a5176b6e"
+    },
+    "productionDiff": "",
+    "exit": 0,
+    "stats": {
+      "startTime": "2026-11-04T01:22:52.740Z",
+      "duration": 18915.016,
+      "expected": 1,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "observations": [
+      {
+        "attempt": 1,
+        "httpErrors": [],
+        "consoleErrors": [],
+        "pageErrors": []
+      },
+      {
+        "attempt": 2,
+        "httpErrors": [
+          "404 /_next/static/chunks/components_0jv6p3_._.js"
+        ],
+        "consoleErrors": [
+          "Failed to load resource: the server responded with a status of 404 (Not Found) [http://127.0.0.1:3139/_next/static/chunks/components_0jv6p3_._.js]"
+        ],
+        "pageErrors": []
+      }
+    ],
+    "restoredFinalHashes": {
+      "components/chrome/shared-shell/ShellDirectory.tsx": "0dec62b6bf353d8ec3d28509810c29652a65cb5967cd33a37141d6c50ef52bc0",
+      "components/chrome/shared-shell/shared-shell.css": "ace6eda93612f229031e426b6246315dd5cdeb49add7ce1d24c45165e7eb2660",
+      "lib/sharedShellCopy.ts": "4cef78b0145bc9968cb4fb324ad7f17b3a8a3f631fa62ba9402c0f5701abb2d3"
+    },
+    "finalSourceRestored": true
+  },
+  "archive": {
+    "file": "raw-evidence.zip",
+    "bytes": 1135169,
+    "sha256": "abeeed2eccdb69a27962d1bbb848e2d0ac5863476f52d7919e7877b6aeece70b",
+    "members": 46
+  }
+}

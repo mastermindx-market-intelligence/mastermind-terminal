@@ -397,6 +397,33 @@ async function openScriptSettings(page: Page, name: string) {
   return dialog;
 }
 
+test("Pine editor waits for its client buffer before accepting edits", async ({ page, baseURL }, testInfo) => {
+  const key = await isolateScripts(page, testInfo, baseURL);
+  let releaseScripts!: () => void;
+  const scriptGate = new Promise<void>((resolve) => { releaseScripts = resolve; });
+  await page.route(/\/_next\/static\/.*\.js(?:\?|$)/, async (route) => {
+    await scriptGate;
+    await route.continue();
+  });
+  try {
+    await page.goto(`/scripts?id=${encodeURIComponent(`${key}-mine`)}`, { waitUntil: "commit" });
+    const editor = page.locator(".editor textarea");
+    await expect(editor).toHaveValue(/plot\(close\)/, { timeout: 60_000 });
+    await expect(editor).toBeDisabled();
+    releaseScripts();
+    await expect(editor).toBeEditable();
+    await editor.fill("");
+    await expect(editor).toHaveValue("");
+    await expect(page.locator(".editor .gutter > div")).toHaveCount(1);
+    await editor.fill(SOURCE);
+    await expect(editor).toHaveValue(SOURCE);
+    await expect(page.locator(".editor .gutter > div")).toHaveCount(SOURCE.split("\n").length);
+  } finally {
+    releaseScripts();
+    await page.unrouteAll({ behavior: "wait" });
+  }
+});
+
 test.describe("T01 — Pine higher-timeframe values are published only after the period is confirmed", () => {
   test("editor → chart → replay → input → timeframe keeps request.security causal", async ({ page, baseURL }, testInfo) => {
     test.setTimeout(300_000);
@@ -410,6 +437,13 @@ test.describe("T01 — Pine higher-timeframe values are published only after the
     await page.goto(`/scripts?id=${encodeURIComponent(id)}`);
     const editor = page.locator(".editor textarea");
     await expect(editor).toHaveValue(/plot\(close\)/, { timeout: 60_000 });
+    // A server-rendered textarea can expose its initial value before React has
+    // hydrated its controlled onChange handler. Under a saturated CI browser,
+    // filling immediately can append SOURCE to the old buffer. Establish one
+    // acknowledged client-state change before replacing it with the real script.
+    await editor.fill("", { timeout: 20_000 });
+    await expect(editor).toHaveValue("", { timeout: 20_000 });
+    await expect(page.locator(".editor .gutter > div")).toHaveCount(1, { timeout: 20_000 });
     await editor.fill(SOURCE, { timeout: 20_000 });
     await expect(editor).toHaveValue(SOURCE, { timeout: 20_000 });
     const add = page.getByRole("button", { name: "Add to chart", exact: true });

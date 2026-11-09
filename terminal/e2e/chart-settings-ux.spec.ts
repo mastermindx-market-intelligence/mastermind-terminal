@@ -6,10 +6,8 @@ const cropDir = "docs/pr-crops/chart-settings-ux-20260921";
 // Exercise the real Terminal settings lifecycle without changing chart readiness ownership.
 async function openSettings(page: Page) {
   if (page.viewportSize()!.width <= 640) {
-    // Phone chrome deliberately retires the frame bar; use the existing chart context menu.
-    const chart = page.locator(".chart-wrap").first();
-    await chart.click({ button: "right", position: { x: 80, y: 100 } });
-    await page.locator('.ctx-menu [data-a="settings"]').click();
+    await page.getByTestId("roller-more").click();
+    await page.getByTestId("hub-tile-chartSettings").click();
   } else {
     await page.locator(".cfb-gear").first().click();
     await page.locator(".qsg-menu .qsg-item").last().click();
@@ -63,6 +61,38 @@ test("chart settings own focus, expose named controls and support arrow navigati
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
   await expect(trigger).toBeFocused();
+});
+
+test("quick settings support keyboard toggles, disclosures and focus return", async ({ page }) => {
+  test.skip(page.viewportSize()!.width <= 640, "Phone opens full settings from its existing More sheet.");
+  const gear = page.locator(".cfb-gear").first();
+  await gear.focus();
+  await page.keyboard.press("Enter");
+  const popup = page.getByRole("dialog", { name: "Quick settings", exact: true });
+  const auto = popup.getByRole("button", { name: "Auto (fits data to screen)", exact: true });
+  await expect(auto).toBeFocused();
+  const wasAuto = await auto.getAttribute("aria-pressed");
+  await page.keyboard.press("Space");
+  await expect(auto).toHaveAttribute("aria-pressed", wasAuto === "true" ? "false" : "true");
+  // Native Tab must skip the disabled item and reach the next setting.
+  await page.keyboard.press("Tab");
+  await expect(popup.getByRole("button", { name: "Invert scale", exact: true })).toBeFocused();
+  const labels = popup.getByRole("button", { name: "Labels", exact: true });
+  for (let step = 0; step < 6; step += 1) await page.keyboard.press("Tab");
+  await expect(labels).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(labels).toHaveAttribute("aria-expanded", "true");
+  await page.keyboard.press("Tab");
+  await expect(popup.getByRole("button", { name: "Last value label", exact: true })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(popup).toHaveCount(0);
+  await expect(gear).toBeFocused();
+  await page.keyboard.press("Enter");
+  await popup.getByRole("button", { name: "More settings…", exact: true }).click();
+  const settings = page.locator("dialog.sm-backdrop");
+  await expect(settings.locator('[aria-selected="true"]')).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(gear).toBeFocused();
 });
 
 test("Cancel restores the opening snapshot while OK preserves edited settings", async ({ page }) => {

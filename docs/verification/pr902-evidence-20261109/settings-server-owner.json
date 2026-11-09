@@ -1,0 +1,14 @@
+{
+  "sourceHead": "5983026f1643e053a40bdc8ca66a61d08a12d66d",
+  "port": 3604,
+  "pid": 73976,
+  "startedAt": "2026-11-09T06:54:04.514Z",
+  "serverSettled": true,
+  "readyAt": "2026-11-09T06:54:09.300Z",
+  "producerPid": 74225,
+  "producerExit": {
+    "code": 0,
+    "signal": null
+  },
+  "settledAt": "2026-11-09T06:54:45.726Z"
+}

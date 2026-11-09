@@ -81,11 +81,21 @@ export type MarkerLayoutCtx = {
   rowsIndex: RowsIndex;
   barSpacing: number;
   dpr: number;
+  /**
+   * LWC lays marker text out in the chart's `layout.fontSize` / `fontFamily`
+   * (SeriesMarkersRenderer.setParams). `fontSize` drives the text stacking
+   * arithmetic (default 12); `font` is the CSS shorthand the painter sets.
+   */
+  fontSize?: number;
+  font?: string;
 };
 
 // One marker glyph ready to paint. x/y is the glyph CENTRE in CSS px (device-
-// snapped), size its edge/diameter. Text anchors to the glyph's right edge and is
-// vertically centred (the painter draws text with textBaseline "middle").
+// snapped). `size` is LWC's renderer item size — calculateShapeHeight(barSpacing)
+// × the spec's size multiplier — and the painter re-derives each shape's drawn
+// span from it with markerShapeSize, exactly as LWC's draw functions do. A size
+// of 0 (spec size 0) hides the glyph but still draws the text. Text is centred on
+// the glyph's x and sits above/below it per LWC (textBaseline "middle").
 export type MarkerLayout = {
   x: number;
   y: number;
@@ -96,6 +106,7 @@ export type MarkerLayout = {
   textX?: number;
   textY?: number;
   textAlign: "left" | "center" | "right";
+  font?: string;
 };
 
 // `markers` are the paintable ops; `dropped` counts every spec that could not be
@@ -103,22 +114,97 @@ export type MarkerLayout = {
 // price). A dropped marker is NEVER emitted — never drawn at x=0.
 export type MarkerLayoutResult = { markers: MarkerLayout[]; dropped: number };
 
-// Size rule: base glyph span = clamp(barSpacing * 0.6, 4, 14) CSS px, scaled by
-// the spec's `size` multiplier (default 1).
-const MARKER_SIZE_RATIO = 0.6;
-const MARKER_MIN_PX = 4;
-const MARKER_MAX_PX = 14;
-// Vertical gap between stacked markers on the same bar, and between a glyph and
-// its text label (CSS px).
-const MARKER_GAP_PX = 2;
+// ── LWC series-markers geometry (lightweight-charts series-markers/utils) ──────
+// size(bs, coeff)         = ceiledOdd(clamp(bs, 12, 30) × coeff)
+// shapeSize(shape, s)     = size(s, arrow 1 | circle 0.8 | square 0.7)
+// calculateShapeHeight(bs)= ceiledEven(size(bs, 1))        — the renderer item size
+// shapeMargin(bs)         = max(size(bs, 0.1), 3)           — stack gap / text gap
+const MARKER_MIN_SHAPE_SIZE_PX = 12;
+const MARKER_MAX_SHAPE_SIZE_PX = 30;
+const MARKER_MIN_SHAPE_MARGIN_PX = 3;
+// LWC Constants.TextMargin: text sits 0.6 × fontSize beyond the glyph edge and
+// a text line advances the stack by 1.2 × fontSize.
+const MARKER_TEXT_MARGIN = 0.1;
+/** LWC layoutOptionsDefaults.fontSize — the marker text height when the host passes none. */
+export const DEFAULT_MARKER_FONT_SIZE = 12;
+const MARKER_TEXT_FONT = `${DEFAULT_MARKER_FONT_SIZE}px sans-serif`;
+
+function ceiledEven(x: number): number {
+  const ceiled = Math.ceil(x);
+  return ceiled % 2 !== 0 ? ceiled - 1 : ceiled;
+}
+
+function ceiledOdd(x: number): number {
+  const ceiled = Math.ceil(x);
+  return ceiled % 2 === 0 ? ceiled - 1 : ceiled;
+}
+
+function markerSize(barSpacing: number, coeff: number): number {
+  return ceiledOdd(clampNum(barSpacing, MARKER_MIN_SHAPE_SIZE_PX, MARKER_MAX_SHAPE_SIZE_PX) * coeff);
+}
+
+/** LWC shapeSize(shape, originalSize): the drawn span of a shape for a renderer item size. */
+export function markerShapeSize(shape: EngineMarkerShape, originalSize: number): number {
+  switch (shape) {
+    case "circle":
+      return markerSize(originalSize, 0.8);
+    case "square":
+      return markerSize(originalSize, 0.7);
+    default:
+      return markerSize(originalSize, 1);
+  }
+}
+
+/** LWC calculateShapeHeight(barSpacing): the renderer item size at multiplier 1. */
+export function markerShapeHeight(barSpacing: number): number {
+  return ceiledEven(markerSize(barSpacing, 1));
+}
+
+/** LWC shapeMargin(barSpacing): the vertical gap between stacked glyphs and text. */
+export function markerShapeMargin(barSpacing: number): number {
+  return Math.max(markerSize(barSpacing, 0.1), MARKER_MIN_SHAPE_MARGIN_PX);
+}
+
+function adjustedAutoscaleMargin(margin: number, hasSide: boolean, hasInBar: boolean): number {
+  if (hasSide) return margin;
+  if (hasInBar) return Math.ceil(margin / 2);
+  return 0;
+}
+
+/**
+ * LWC SeriesMarkersPrimitive._getAutoScaleMargins: the pixel bands a series with
+ * markers reserves above and below its autoscaled price range so the glyphs stay
+ * inside the pane. Census over EVERY marker of the series (not only the visible
+ * ones), as LWC's _getMarkerPositions does; atPrice* markers reserve nothing.
+ * `null` when the series has no markers (LWC returns null, the scale sees 0).
+ */
+export function markerAutoscaleMargins(
+  markers: readonly MarkerSpec[],
+  barSpacing: number,
+): { above: number; below: number } | null {
+  if (markers.length === 0 || !Number.isFinite(barSpacing)) return null;
+  let aboveBar = false;
+  let belowBar = false;
+  let inBar = false;
+  for (const marker of markers) {
+    if (marker.position === "aboveBar") aboveBar = true;
+    else if (marker.position === "belowBar") belowBar = true;
+    else if (marker.position === "inBar") inBar = true;
+  }
+  const marginValue = markerShapeHeight(barSpacing) * 1.5 + markerShapeMargin(barSpacing) * 2;
+  return {
+    above: adjustedAutoscaleMargin(marginValue, aboveBar, inBar),
+    below: adjustedAutoscaleMargin(marginValue, belowBar, inBar),
+  };
+}
 
 // PERF-B: single-slot layout memo per markers array. Layout depends only on
-// (markers content, projection geometry, rows anchors); the fingerprint below
-// covers everything observable — generation for data/rows identity, the
-// window/width/height/dpr/barSpacing for geometry. A WeakMap keyed on the
-// markers array keeps the entry bounded by the live arrays (setMarkers always
-// installs a fresh array). The memoised result object is shared between paints
-// and must only be read.
+// (markers content, projection geometry, rows anchors, text font size); the
+// fingerprint below covers everything observable — generation for data/rows
+// identity, the window/width/height/dpr/barSpacing for geometry, fontSize/font
+// for the text. A WeakMap keyed on the markers array keeps the entry bounded by
+// the live arrays (setMarkers always installs a fresh array). The memoised result
+// object is shared between paints and must only be read.
 type MarkerMemo = {
   generation: number;
   from: number;
@@ -127,13 +213,22 @@ type MarkerMemo = {
   heightPx: number;
   dpr: number;
   barSpacing: number;
+  fontSize: number;
+  font: string;
   result: MarkerLayoutResult;
 };
 const markerMemo = new WeakMap<MarkerSpec[], MarkerMemo>();
 
+function markerFontSize(ctx: MarkerLayoutCtx): number {
+  const v = ctx.fontSize;
+  return typeof v === "number" && Number.isFinite(v) && v > 0 ? v : DEFAULT_MARKER_FONT_SIZE;
+}
+
 export function layoutMarkers(markers: MarkerSpec[], ctx: MarkerLayoutCtx): MarkerLayoutResult {
   if (markers.length === 0) return { markers: [], dropped: 0 };
   const { projection, barSpacing, dpr } = ctx;
+  const fontSize = markerFontSize(ctx);
+  const font = typeof ctx.font === "string" && ctx.font !== "" ? ctx.font : MARKER_TEXT_FONT;
   const leftLogical = projection.logicalOfX(0);
   const rightLogical = projection.logicalOfX(projection.widthPx);
   const from = Number.isFinite(leftLogical) ? Math.floor(leftLogical) : 0;
@@ -145,10 +240,12 @@ export function layoutMarkers(markers: MarkerSpec[], ctx: MarkerLayoutCtx): Mark
     && memo.widthPx === projection.widthPx
     && memo.heightPx === projection.heightPx
     && memo.dpr === dpr
-    && memo.barSpacing === barSpacing) {
+    && memo.barSpacing === barSpacing
+    && memo.fontSize === fontSize
+    && memo.font === font) {
     return memo.result;
   }
-  const result = layoutMarkersUncached(markers, ctx);
+  const result = layoutMarkersUncached(markers, ctx, fontSize, font);
   markerMemo.set(markers, {
     generation: projection.generation,
     from,
@@ -157,21 +254,45 @@ export function layoutMarkers(markers: MarkerSpec[], ctx: MarkerLayoutCtx): Mark
     heightPx: projection.heightPx,
     dpr,
     barSpacing,
+    fontSize,
+    font,
     result,
   });
   return result;
 }
 
-function layoutMarkersUncached(markers: MarkerSpec[], ctx: MarkerLayoutCtx): MarkerLayoutResult {
+/**
+ * LWC SeriesMarkersPaneView._makeValid + fillSizeAndY, per bar instead of per
+ * consecutive run (LWC sorts markers by time, so the two agree on sorted input
+ * and this one also stacks correctly on unsorted input).
+ *
+ *   offsets start at shapeMargin per bar and side;
+ *   aboveBar: y = highY − half − offset; text y − half − 0.6·fs;
+ *             offset += 1.2·fs (text) then += size + shapeMargin
+ *   belowBar: mirror (text y + half + shapeMargin + 0.6·fs)
+ *   inBar / atPriceMiddle: y = closeY / priceY; text below as belowBar
+ *   atPriceTop / atPriceBottom: priceY ∓ half, no stack offset
+ *
+ * `highY`/`lowY` are taken as the upper/lower screen anchors (min/max), which is
+ * LWC's getPrice high↔low swap on an inverted scale.
+ */
+function layoutMarkersUncached(
+  markers: MarkerSpec[],
+  ctx: MarkerLayoutCtx,
+  textHeight: number,
+  font: string,
+): MarkerLayoutResult {
   const { projection, rowsIndex, barSpacing, dpr } = ctx;
-  const base = clampNum(barSpacing * MARKER_SIZE_RATIO, MARKER_MIN_PX, MARKER_MAX_PX);
+  const shapeHeight = markerShapeHeight(barSpacing);
+  const shapeMargin = markerShapeMargin(barSpacing);
+  const textBeyondEdge = textHeight * (0.5 + MARKER_TEXT_MARGIN);
+  const textAdvance = textHeight * (1 + 2 * MARKER_TEXT_MARGIN);
   const out: MarkerLayout[] = [];
   let dropped = 0;
 
-  // Per-bar stacking cursors: the outer edge (top for aboveBar, bottom for
-  // belowBar) of the last marker already placed on that bar in that direction.
-  const topEdge = new Map<LogicalIndex, number>();
-  const bottomEdge = new Map<LogicalIndex, number>();
+  // Per-bar stacking offsets (LWC offsets.aboveBar / offsets.belowBar).
+  const aboveOffsets = new Map<LogicalIndex, number>();
+  const belowOffsets = new Map<LogicalIndex, number>();
 
   for (const marker of markers) {
     const index = rowsIndex.indexOfTime(marker.time);
@@ -179,49 +300,64 @@ function layoutMarkersUncached(markers: MarkerSpec[], ctx: MarkerLayoutCtx): Mar
       dropped++;
       continue;
     }
-    const multiplier = typeof marker.size === "number" && marker.size > 0 ? marker.size : 1;
-    const size = base * multiplier;
-    // A non-finite barSpacing poisons the base span; a marker without a usable
-    // size is never emitted (NaN guard).
-    if (!Number.isFinite(size) || size <= 0) {
+    const multiplier = typeof marker.size === "number" && Number.isFinite(marker.size)
+      ? Math.max(marker.size, 0)
+      : 1;
+    const size = shapeHeight * multiplier;
+    // A non-finite barSpacing poisons the shape height; a marker without a
+    // usable size is never emitted (NaN guard). Size 0 is a legal "text only".
+    if (!Number.isFinite(size)) {
       dropped++;
       continue;
     }
+    const halfSize = size / 2;
     const x = projection.xOfLogical(index);
     if (!Number.isFinite(x)) {
       dropped++;
       continue;
     }
+    const hasText = typeof marker.text === "string" && marker.text !== "";
 
     let y: number;
-    if (marker.position === "aboveBar" || marker.position === "belowBar") {
+    let textY: number | undefined;
+    const position = marker.position;
+    if (position === "aboveBar" || position === "belowBar") {
       const highY = rowsIndex.highY(index);
       const lowY = rowsIndex.lowY(index);
       if (!Number.isFinite(highY) || !Number.isFinite(lowY)) {
         dropped++;
         continue;
       }
-      if (marker.position === "aboveBar") {
-        // First marker's glyph bottom sits on the bar high; each later one on the
-        // same bar sits a gap above the previous glyph's top (stacked upward).
-        const prevTop = topEdge.get(index);
-        y = prevTop === undefined ? highY - size / 2 : prevTop - MARKER_GAP_PX - size / 2;
-        topEdge.set(index, y - size / 2);
+      if (position === "aboveBar") {
+        let offset = aboveOffsets.get(index) ?? shapeMargin;
+        y = Math.min(highY, lowY) - halfSize - offset;
+        if (hasText) {
+          textY = y - halfSize - textBeyondEdge;
+          offset += textAdvance;
+        }
+        offset += size + shapeMargin;
+        aboveOffsets.set(index, offset);
       } else {
-        const prevBottom = bottomEdge.get(index);
-        y = prevBottom === undefined ? lowY + size / 2 : prevBottom + MARKER_GAP_PX + size / 2;
-        bottomEdge.set(index, y + size / 2);
+        let offset = belowOffsets.get(index) ?? shapeMargin;
+        y = Math.max(highY, lowY) + halfSize + offset;
+        if (hasText) {
+          textY = y + halfSize + shapeMargin + textBeyondEdge;
+          offset += textAdvance;
+        }
+        offset += size + shapeMargin;
+        belowOffsets.set(index, offset);
       }
-    } else if (marker.position === "inBar") {
+    } else if (position === "inBar") {
       const closeY = rowsIndex.closeY(index);
       if (!Number.isFinite(closeY)) {
         dropped++;
         continue;
       }
       y = closeY;
+      if (hasText) textY = y + halfSize + shapeMargin + textBeyondEdge;
     } else {
-      // atPriceTop / atPriceBottom / atPriceMiddle anchor to the spec's price;
-      // the marker's edge nearest the price point touches it (middle: centred).
+      // atPriceTop / atPriceBottom / atPriceMiddle anchor to the spec's price and
+      // ignore the per-bar stack (LWC isPriceMarker).
       const price = marker.price;
       if (typeof price !== "number" || !Number.isFinite(price)) {
         dropped++;
@@ -232,9 +368,16 @@ function layoutMarkersUncached(markers: MarkerSpec[], ctx: MarkerLayoutCtx): Mar
         dropped++;
         continue;
       }
-      if (marker.position === "atPriceTop") y = priceY - size / 2;
-      else if (marker.position === "atPriceBottom") y = priceY + size / 2;
-      else y = priceY;
+      if (position === "atPriceTop") {
+        y = priceY - halfSize;
+        if (hasText) textY = y - halfSize - textBeyondEdge;
+      } else if (position === "atPriceBottom") {
+        y = priceY + halfSize;
+        if (hasText) textY = y + halfSize + shapeMargin + textBeyondEdge;
+      } else {
+        y = priceY;
+        if (hasText) textY = y + halfSize + shapeMargin + textBeyondEdge;
+      }
     }
 
     const sx = snapToDevice(x, dpr);
@@ -245,12 +388,13 @@ function layoutMarkersUncached(markers: MarkerSpec[], ctx: MarkerLayoutCtx): Mar
       shape: marker.shape,
       size,
       color: typeof marker.color === "string" ? marker.color : "",
-      textAlign: "left",
+      textAlign: "center",
     };
-    if (typeof marker.text === "string" && marker.text !== "") {
+    if (hasText && textY !== undefined) {
       layout.text = marker.text;
-      layout.textX = snapToDevice(sx + size / 2 + MARKER_GAP_PX, dpr);
-      layout.textY = sy;
+      layout.textX = sx;
+      layout.textY = snapToDevice(textY, dpr);
+      layout.font = font;
     }
     out.push(layout);
   }
@@ -527,8 +671,6 @@ export type PaintContext = Pick<
   textBaseline: CanvasRenderingContext2D["textBaseline"];
 };
 
-const MARKER_TEXT_FONT = "10px sans-serif";
-
 export type DecorationLayouts = {
   sessionShading?: SessionShadingRect[];
   priceLines?: PriceLineLayout[];
@@ -625,44 +767,66 @@ function paintPriceLine(ctx: PaintContext, line: PriceLineLayout, dpr: number): 
   }
 }
 
+/**
+ * LWC series-markers drawItem: text first, then the shape through drawCircle /
+ * drawSquare / drawArrow, each of which re-derives its span from the item size
+ * with shapeSize (so a 10 px item draws a 9 px circle, a 7 px square and an
+ * 11 px arrow). Size 0 skips the shape (LWC drawShape) but keeps the text.
+ */
 function paintMarker(ctx: PaintContext, marker: MarkerLayout): void {
   if (!Number.isFinite(marker.x) || !Number.isFinite(marker.y)
-    || !Number.isFinite(marker.size) || marker.size <= 0 || marker.color === "") return;
-  const r = marker.size / 2;
+    || !Number.isFinite(marker.size) || marker.size < 0 || marker.color === "") return;
+  const { x, y, size } = marker;
   ctx.save();
   ctx.fillStyle = marker.color;
-  ctx.beginPath();
-  switch (marker.shape) {
-    case "circle":
-      ctx.arc(marker.x, marker.y, r, 0, Math.PI * 2);
-      break;
-    case "square":
-      ctx.rect(marker.x - r, marker.y - r, marker.size, marker.size);
-      break;
-    case "arrowUp":
-      ctx.moveTo(marker.x, marker.y - r);
-      ctx.lineTo(marker.x + r, marker.y + r);
-      ctx.lineTo(marker.x - r, marker.y + r);
-      ctx.closePath();
-      break;
-    case "arrowDown":
-      ctx.moveTo(marker.x, marker.y + r);
-      ctx.lineTo(marker.x - r, marker.y - r);
-      ctx.lineTo(marker.x + r, marker.y - r);
-      ctx.closePath();
-      break;
-    default:
-      ctx.restore();
-      return;
-  }
-  ctx.fill();
   if (marker.text !== undefined && marker.text !== ""
     && marker.textX !== undefined && marker.textY !== undefined
     && Number.isFinite(marker.textX) && Number.isFinite(marker.textY)) {
-    ctx.font = MARKER_TEXT_FONT;
+    ctx.font = marker.font ?? MARKER_TEXT_FONT;
     ctx.textAlign = marker.textAlign;
     ctx.textBaseline = "middle";
     ctx.fillText(marker.text, marker.textX, marker.textY);
+  }
+  if (size > 0) {
+    switch (marker.shape) {
+      case "circle": {
+        const r = (markerShapeSize("circle", size) - 1) / 2;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+        break;
+      }
+      case "square": {
+        const squareSize = markerShapeSize("square", size);
+        const half = (squareSize - 1) / 2;
+        ctx.beginPath();
+        ctx.rect(x - half, y - half, squareSize, squareSize);
+        ctx.fill();
+        break;
+      }
+      case "arrowUp":
+      case "arrowDown": {
+        const up = marker.shape === "arrowUp";
+        const halfArrow = (markerShapeSize("arrowUp", size) - 1) / 2;
+        const halfBase = (ceiledOdd(size / 2) - 1) / 2;
+        // Head apex points away from the bar; the stem extends back toward it.
+        const head = up ? y - halfArrow : y + halfArrow;
+        const stem = up ? y + halfArrow : y - halfArrow;
+        ctx.beginPath();
+        ctx.moveTo(x - halfArrow, y);
+        ctx.lineTo(x, head);
+        ctx.lineTo(x + halfArrow, y);
+        ctx.lineTo(x + halfBase, y);
+        ctx.lineTo(x + halfBase, stem);
+        ctx.lineTo(x - halfBase, stem);
+        ctx.lineTo(x - halfBase, y);
+        ctx.closePath();
+        ctx.fill();
+        break;
+      }
+      default:
+        break;
+    }
   }
   ctx.restore();
 }
