@@ -2,6 +2,7 @@
 import { Component, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useLang } from "@/lib/i18n";
+import { tryChunkReload } from "@/lib/navigationRecovery";
 
 type Props = {
   children: ReactNode;
@@ -43,6 +44,9 @@ export default class SettingsPanelBoundary extends Component<Props, { failed: bo
   componentDidCatch(error: Error) {
     // Do not serialize profile data or exception payloads to a remote endpoint.
     console.error("[SettingsPanelBoundary] Settings render/load failed", error);
+    // A stale lazy-loaded chunk can heal with the app's existing guarded,
+    // one-shot reload. Programming errors stay contained in this panel.
+    tryChunkReload(error);
   }
 
   render() {
