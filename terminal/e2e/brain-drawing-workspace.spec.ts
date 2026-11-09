@@ -709,13 +709,19 @@ for (const saveMode of ["failed", "legacy"] as const) {
     const retained = svg.locator('[data-id="ai_extension"]');
     await expect(retained).toHaveAttribute("data-ai-read-only", "true");
     const geometry = () => retained.evaluate(element => Array.from(element.querySelectorAll('[data-geometry="1"]'), node => node.outerHTML));
-    const beforeGeometry = await geometry();
-    await retained.dispatchEvent("pointerdown", { pointerId: 71, isPrimary: true, button: 0, clientX: 220, clientY: 240 });
+    // Selection changes stroke emphasis, even when editing is read-only.
+    // Complete that selection before comparing the unchanged mutation attempts.
+    await retained.dispatchEvent("pointerdown", { pointerId: 70, isPrimary: true, button: 0, clientX: 220, clientY: 240 });
+    await retained.dispatchEvent("pointerup", { pointerId: 70, isPrimary: true, button: 0, clientX: 220, clientY: 240 });
     const inspector = page.getByRole("toolbar", { name: "Selected drawing properties" });
+    await expect(inspector).toHaveAttribute("data-drawing-id", "ai_extension");
     await expect(inspector).toHaveAttribute("data-ai-read-only", "true");
     await expect(inspector.locator('[data-lock]')).toBeDisabled();
     await expect(inspector.locator('[data-del]')).toBeDisabled();
     await expect(inspector.locator('[data-duplicate]')).toBeDisabled();
+    const beforeGeometry = await geometry();
+    expect(beforeGeometry.length).toBeGreaterThan(0);
+    await retained.dispatchEvent("pointerdown", { pointerId: 71, isPrimary: true, button: 0, clientX: 220, clientY: 240 });
     await retained.dispatchEvent("wheel", { deltaY: 100 });
     await page.keyboard.press("ArrowUp");
     await page.keyboard.press("Delete");
