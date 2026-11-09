@@ -11,6 +11,9 @@
 .heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex: none; }
 .title { width: min(42%, 240px); height: 24px; }
 .status { flex: none; color: var(--muted); font: 500 var(--fs-label)/1.4 var(--font-ui); }
+.status > [lang="zh-CN"] { display: none; }
+:global([data-lang="zh"]) .status > [lang="en"] { display: none; }
+:global([data-lang="zh"]) .status > [lang="zh-CN"] { display: inline; }
 .body { display: flex; flex: 1; min-width: 0; min-height: 0; gap: 24px; overflow: hidden; }
 .rail { display: flex; flex-direction: column; flex: 0 0 200px; gap: 12px; }
 .railRow { height: 44px; flex: none; }

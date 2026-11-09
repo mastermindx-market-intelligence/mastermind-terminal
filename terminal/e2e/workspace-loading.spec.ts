@@ -2,11 +2,11 @@ import { expect, test } from "@playwright/test";
 
 // Hold the real destination module, rather than rendering a separate preview of
 // the fallback. The existing /dislocations fixture owns the eventual ready state.
-for (const reducedMotion of ["no-preference", "reduce"] as const) {
-  test(`workspace transition stays visible (${reducedMotion})`, async ({ page, baseURL }, info) => {
+for (const [lang, reducedMotion] of [["en", "no-preference"], ["en", "reduce"], ["zh", "reduce"]] as const) {
+  test(`workspace transition stays visible (${lang}, ${reducedMotion})`, async ({ page, baseURL }, info) => {
     test.setTimeout(90_000);
     await page.emulateMedia({ reducedMotion });
-    await page.addInitScript(() => localStorage.setItem("mm.lang", "en"));
+    await page.addInitScript((value) => localStorage.setItem("mm.lang", value), lang);
     await page.context().addCookies([{ name: "mm_e2e_dislo", value: "fresh", url: baseURL! }]);
 
     let release!: () => void;
@@ -23,16 +23,16 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
       const narrow = (page.viewportSize()?.width ?? 1440) <= 860;
       if (narrow) {
         await page.locator(".mobilebar").getByRole("button", { name: "Menu", exact: true }).click();
-        await page.locator(".m-nav").getByRole("link", { name: "Dislocations", exact: true }).click();
+        await page.locator('.m-nav a[href="/dislocations"]').click();
       } else {
-        await page.locator(".appnav").getByRole("link", { name: "Dislocations", exact: true }).click();
+        await page.locator('.appnav a[href="/dislocations"]').click();
       }
       await page.mouse.move(0, 0);
       await expect.poll(() => held).toBeGreaterThan(0);
 
       const loading = page.locator("[data-route-loading]");
       await expect(loading).toHaveCount(1);
-      await expect(loading.getByRole("status")).toHaveText("Loading…");
+      await expect(loading.getByRole("status")).toHaveText(lang === "zh" ? "加载中…" : "Loading…", { useInnerText: true });
       await expect(loading.getByRole("status")).toBeVisible();
       await expect(page.locator(narrow ? ".mobilebar" : ".appnav")).toBeVisible();
 
@@ -56,7 +56,7 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
       expect(geometry.bottom).toBeLessThanOrEqual(geometry.viewportHeight + 1);
       expect(geometry.documentOverflow).toBeLessThanOrEqual(1);
       if (reducedMotion === "reduce") expect(geometry.animations).toBe(0);
-      await page.screenshot({ path: info.outputPath(`loading-${info.project.name}-${reducedMotion}.png`) });
+      await page.screenshot({ path: info.outputPath(`loading-${info.project.name}-${lang}-${reducedMotion}.png`) });
     } finally {
       release();
     }
