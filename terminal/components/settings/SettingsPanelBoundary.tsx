@@ -11,21 +11,28 @@ type Props = {
   onRetry: () => void;
 };
 
+const LEX = {
+  title: ["Account settings couldn't open", "账户设置暂时无法打开"],
+  message: ["Your chart is still available. Try opening settings again, or close this dialog.", "终端仍可正常使用。您可以重试打开设置，或关闭此窗口。"],
+  retry: ["Try again", "重试"],
+  close: ["Close", "关闭"],
+} as const;
+
 function FailedSettings({ visible, onClose, onRetry }: Omit<Props, "children">) {
   const { lang } = useLang();
   if (!visible) return null;
-  const zh = lang === "zh";
+  const pick = (key: keyof typeof LEX) => LEX[key][lang === "zh" ? 1 : 0];
   return createPortal(
     <div className="acs-overlay open" onMouseDown={event => {
       if (event.currentTarget === event.target) onClose();
     }}>
       <div className="acs-card" role="alertdialog" aria-modal="true" aria-labelledby="acs-recovery-title">
         <div className="acs-card-surface" style={{ padding: 28, display: "grid", gap: 16, alignContent: "center" }}>
-          <h2 id="acs-recovery-title">{zh ? "账户设置暂时无法打开" : "Account settings couldn't open"}</h2>
-          <p>{zh ? "终端仍可正常使用。您可以重试打开设置，或关闭此窗口。" : "Your chart is still available. Try opening settings again, or close this dialog."}</p>
+          <h2 id="acs-recovery-title">{pick("title")}</h2>
+          <p>{pick("message")}</p>
           <div style={{ display: "flex", gap: 10 }}>
-            <button type="button" className="acs-btn primary" onClick={onRetry}>{zh ? "重试" : "Try again"}</button>
-            <button type="button" className="acs-btn ghost" onClick={onClose}>{zh ? "关闭" : "Close"}</button>
+            <button type="button" className="acs-btn primary" onClick={onRetry}>{pick("retry")}</button>
+            <button type="button" className="acs-btn ghost" onClick={onClose}>{pick("close")}</button>
           </div>
         </div>
       </div>
