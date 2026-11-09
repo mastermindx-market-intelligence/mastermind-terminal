@@ -1,0 +1,95 @@
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 <worktree>/terminal
+
+ ❯ lib/__tests__/flowClientCacheRefresh.test.ts (4 tests | 2 failed) 10ms
+   × an explicit refresh awaits the newest response instead of returning a stale index 8ms
+     → expected { value: 1 } to deeply equal { value: 2 }
+   × an explicit failed refresh reports null, not a cached success 1ms
+     → expected { value: 1 } to be null
+ ❯ lib/__tests__/replayIndexIdentity.test.ts (3 tests | 2 failed) 6ms
+   × replay index changes preserve the selected timestamp > does not change the paused time when an earlier frame is inserted 5ms
+     → expected '0931' to be '0932' // Object.is equality
+   × replay index changes preserve the selected timestamp > uses the preceding available frame, not later knowledge, if the selected stamp is withdrawn 0ms
+     → expected '0934' to be '0930' // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/flowClientCacheRefresh.test.ts > an explicit refresh awaits the newest response instead of returning a stale index
+AssertionError: expected { value: 1 } to deeply equal { value: 2 }
+
+- Expected
++ Received
+
+  Object {
+-   "value": 2,
++   "value": 1,
+  }
+
+ ❯ lib/__tests__/flowClientCacheRefresh.test.ts:13:63
+     11|   value = 2;
+     12|   await vi.advanceTimersByTimeAsync(26_000);
+     13|   expect(await flowGet("surface_idx:SPY", { refresh: true })).toEqual(…
+       |                                                               ^
+     14| });
+     15|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  lib/__tests__/flowClientCacheRefresh.test.ts > an explicit failed refresh reports null, not a cached success
+AssertionError: expected { value: 1 } to be null
+
+- Expected:
+null
+
++ Received:
+Object {
+  "value": 1,
+}
+
+ ❯ lib/__tests__/flowClientCacheRefresh.test.ts:42:63
+     40|   vi.stubGlobal("fetch", transport);
+     41|   await flowGet("surface_idx:SPY");
+     42|   expect(await flowGet("surface_idx:SPY", { refresh: true })).toBeNull…
+       |                                                               ^
+     43| });
+     44|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  lib/__tests__/replayIndexIdentity.test.ts > replay index changes preserve the selected timestamp > does not change the paused time when an earlier frame is inserted
+AssertionError: expected '0931' to be '0932' // Object.is equality
+
+Expected: "0932"
+Received: "0931"
+
+ ❯ lib/__tests__/replayIndexIdentity.test.ts:9:28
+      7|     state = replayReducer(state, { type: "setFrame", frame: 1 });
+      8|     state = replayReducer(state, { type: "setStamps", stamps: ["0930",…
+      9|     expect(stampAt(state)).toBe("0932");
+       |                            ^
+     10|   });
+     11|   it("uses the preceding available frame, not later knowledge, if the …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  lib/__tests__/replayIndexIdentity.test.ts > replay index changes preserve the selected timestamp > uses the preceding available frame, not later knowledge, if the selected stamp is withdrawn
+AssertionError: expected '0934' to be '0930' // Object.is equality
+
+Expected: "0930"
+Received: "0934"
+
+ ❯ lib/__tests__/replayIndexIdentity.test.ts:15:28
+     13|     state = replayReducer(state, { type: "setFrame", frame: 1 });
+     14|     state = replayReducer(state, { type: "setStamps", stamps: ["0930",…
+     15|     expect(stampAt(state)).toBe("0930");
+       |                            ^
+     16|   });
+     17|   it("still follows a growing head when the user has not sought back",…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+ Test Files  2 failed (2)
+      Tests  4 failed | 3 passed (7)
+   Start at  14:35:04
+   Duration  565ms (transform 41ms, setup 0ms, collect 43ms, tests 16ms, environment 0ms, prepare 92ms)

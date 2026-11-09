@@ -1,0 +1,52 @@
+{
+  "browserFailed": 0,
+  "browserFlaky": 0,
+  "browserPassed": 13,
+  "browserRetries": 0,
+  "browserSeconds": 98.35,
+  "browserSkipped": 5,
+  "ciOwnerSeconds": 380.8,
+  "ciOwnerWorkflowBlob": "637c518ecf481d9af5224c21e93db83b00593cea",
+  "clockUnitTestsPassed": 6,
+  "composition": {
+    "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261109191702-1-current.composition.json",
+    "selectedCases": 50,
+    "sha256": "04a223909d992c00977ab97dcb3da732e9699b89eea5220dd807f135847ca359"
+  },
+  "finalConsumerTestsPassed": 18,
+  "historicalClockPacketRestoredUnchanged": true,
+  "inheritedFooterLintDiagnostics": 6,
+  "markerUnitTestsPassed": 29,
+  "newLintDiagnostics": 0,
+  "optionsAxisCaptureRequired": false,
+  "parents": [
+    "c31fe105d4a101531def3518e7b9801e70cc4867",
+    "d03e7587711f1182531f25459fa1f60c679bac10",
+    "156c4b3ecfa27b9137c64068b3ed969e07efbe49"
+  ],
+  "preparedAt": "2026-11-09T19:28:44.273017+00:00",
+  "productionAccepted": false,
+  "records": {
+    "ci-owner-r1/execution-final.json": "0707f38df7419d1c965c0dafccf844b7d26806bb6f2549e72a0a2d41c2a798b0",
+    "ci-owner-r1/execution.json": "331d1894f380a8a48874f6c9fb79c4ee47864093933fcdf86fea0aa8b614dc14",
+    "ci-owner-r1/selected-owner-vi-lifecycle.json": "b8ab8c3a9738f4491a8f1ea5e62e64db105ef8475dcf68fd8f734a9aa5da754f",
+    "clock-and-marker-units-r2/execution.json": "75631d174d8637d4f0245c13dab042cdca36952aa7699d66f97b05e7386b8737",
+    "clock-coherence-contract.json": "009eac6fd1a8f1b4dd701d83e4f260d54bdd617e6cb679c51f961567c64a0664",
+    "clock-red-r1/execution.json": "0341f6aafdbac75b313b2dc29f03fd7a947bc2dc5918454c8f24bfb312154608",
+    "clock-repair-r2.json": "20318c907079367f9f087b188d6f6ac53c3a9147b14da9b52394e09f0d82da67",
+    "current-browser-r3/execution.json": "50468c6e14006e24b19804d426de52fc0930c66ed862dd0699f9ba0533afd4d4",
+    "dependencies.json": "7b8d7149255d48c13aa4c003ba890bee7d5f9543ba2d99009cc17534562774d4",
+    "final-consumers-r1/execution.json": "f0ce8130d6843316aa92ac947819de5cbe374c48b7be0180455103e1d61ca7ea",
+    "marker-harness-repair.json": "f76c3109cc56c90a2f4935caf62edfbc77344cacbfc5487c9edd61bbdce2717d",
+    "parent-preservation.json": "0468dd3ad8b2b7a30c2042527a921c77558e7870c7fef8989b3b9a258f3c178f",
+    "protected-supplement.json": "0089c3496f166e14dd1c61d6a4190a9a253d5b268c1707848598e5d8b52b5bf2",
+    "source-composition-r1.json": "3d3ac7d714d3fa39d195d3dbc3a8c514d8e1da60c0682d72f54b2abc039efc66",
+    "type-lint-r1/execution.json": "39b342b039d2bfaf547589a19053ae79daea8b1769c14f957b7827dc1fdff768",
+    "visual-inspection.json": "066595f71ee7f3644627de90c6a41806fd0d768f74971da538374220c602b6d6"
+  },
+  "schema": "terminal_pr702_clock_and_touch_qualification.v1",
+  "sourceEntries": 1939,
+  "sourceStable": true,
+  "state": "SOURCE_BROWSER_OWNER_AND_CONSUMERS_QUALIFIED",
+  "typecheckSeconds": 44.98
+}

@@ -299,7 +299,9 @@ describe("impersonation path", () => {
       if (rel.endsWith("openapi.json/route.ts") || rel.endsWith("v1/route.ts")) continue;
       const text = readFileSync(join(REPO, rel), "utf8");
       expect(text, rel).not.toMatch(/\.from\(/);
-      expect(text, rel).toContain("handleV1Get");
+      const handler = rel.endsWith("/symbols/route.ts") ? "handleV1WatchlistAdd"
+        : rel.endsWith("/event-impact/route.ts") ? "handleV1EventImpact" : "handleV1Get";
+      expect(text, rel).toContain(handler);
     }
   });
 });
@@ -356,7 +358,7 @@ describe("response envelope schema (table-driven)", () => {
       okDeps(),
     );
     const body = await r.json();
-    expect(body.data.ceiling).toBe("read_only_projection");
+    expect(body.data.ceiling).toBe("read_projection_and_opt_in_watchlist_add");
     expect(body.data.truth.en).toBe(API_V1_TRUTH_EN);
     expect(body.data.truth.zh).toBe(API_V1_TRUTH_ZH);
     expect(body.data.briefs.available).toBe(false);

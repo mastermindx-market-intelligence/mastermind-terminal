@@ -1,0 +1,156 @@
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal
+
+ ❯ lib/__tests__/replayIndexIdentity.test.ts (5 tests | 2 failed) 8ms
+   × keeps a manually paused head fixed when newer frames appear 4ms
+     → expected '0932' to be '0931' // Object.is equality
+   × does not jump to later knowledge when no preceding observation remains 1ms
+     → expected '0932' to be null
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx (15 tests | 6 failed) 604ms
+   × shared replay read boundaries > rejects a substituted instrument index 30ms
+     → expected '09:31, 2 of 2' not to contain '09:31'
+   × shared replay read boundaries > rejects malformed or unordered frame identities 23ms
+     → expected '09:30, 3 of 3' not to contain '09:30'
+   × shared replay read boundaries > shows a read failure without erasing the last usable frame index 26ms
+     → expected 'Today · LIVE2026-09-161x2x4x8xObserve…' to contain 'Refresh unavailable'
+   × shared replay read boundaries > does not use a LIVE badge as a synonym for the latest stored frame 23ms
+     → expected 'Today · LIVE2026-09-161x2x4x8xObserve…' to contain 'LATEST STORED'
+   × shared replay read boundaries > refreshes the current frame and candles when the index stamp has not changed 43ms
+     → expected 1 to be greater than 1
+   × shared replay read boundaries > does not relabel a retained old-session frame when the live index rolls over 36ms
+     → expected 'Session2026-09-17Surface2 observed fr…' to contain '2026-09-18'
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/replayIndexIdentity.test.ts > keeps a manually paused head fixed when newer frames appear
+AssertionError: expected '0932' to be '0931' // Object.is equality
+
+Expected: "0931"
+Received: "0932"
+
+ ❯ lib/__tests__/replayIndexIdentity.test.ts:27:25
+     25|   const paused = replayReducer(initReplay(["0930", "0931"]), { type: "…
+     26|   const next = replayReducer(paused, { type: "setStamps", stamps: ["09…
+     27|   expect(stampAt(next)).toBe("0931");
+       |                         ^
+     28| });
+     29|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  lib/__tests__/replayIndexIdentity.test.ts > does not jump to later knowledge when no preceding observation remains
+AssertionError: expected '0932' to be null
+
+- Expected:
+null
+
++ Received:
+"0932"
+
+ ❯ lib/__tests__/replayIndexIdentity.test.ts:33:26
+     31|   let state = replayReducer(initReplay(["0930", "0931"]), { type: "toF…
+     32|   state = replayReducer(state, { type: "setStamps", stamps: ["0932", "…
+     33|   expect(stampAt(state)).toBeNull();
+       |                          ^
+     34|   state = replayReducer(state, { type: "toLast" });
+     35|   expect(stampAt(state)).toBe("0933");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  lib/__tests__/surfaceReplayMounted.test.tsx > shared replay read boundaries > rejects a substituted instrument index
+AssertionError: expected '09:31, 2 of 2' not to contain '09:31'
+
+Expected: "09:31"
+Received: "09:31, 2 of 2"
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx:187:55
+    185|     indexRootOverride = "QQQ";
+    186|     await act(async () => { root.render(<SurfaceView />); });
+    187|     expect(rail().getAttribute("aria-valuetext")).not.toContain("09:31…
+       |                                                       ^
+    188|   });
+    189|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  lib/__tests__/surfaceReplayMounted.test.tsx > shared replay read boundaries > rejects malformed or unordered frame identities
+AssertionError: expected '09:30, 3 of 3' not to contain '09:30'
+
+Expected: "09:30"
+Received: "09:30, 3 of 3"
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx:193:55
+    191|     customStamps = ["0931", "2561", "0930"];
+    192|     await act(async () => { root.render(<SurfaceView />); });
+    193|     expect(rail().getAttribute("aria-valuetext")).not.toContain("09:30…
+       |                                                       ^
+    194|   });
+    195|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  lib/__tests__/surfaceReplayMounted.test.tsx > shared replay read boundaries > shows a read failure without erasing the last usable frame index
+AssertionError: expected 'Today · LIVE2026-09-161x2x4x8xObserve…' to contain 'Refresh unavailable'
+
+Expected: "Refresh unavailable"
+Received: "Today · LIVE2026-09-161x2x4x8xObserved framesmedian gap · 1mOPEN09:312/2 frame"
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx:224:65
+    222|     await mount(); failIndex = true; await advance();
+    223|     expect(rail().getAttribute("aria-valuemax")).toBe("2");
+    224|     expect(host.querySelector(".obs-surf-replay")!.textContent).toCont…
+       |                                                                 ^
+    225|     expect(host.querySelector(".obs-surf-replay .obs-live-dot")).toBeN…
+    226|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+ FAIL  lib/__tests__/surfaceReplayMounted.test.tsx > shared replay read boundaries > does not use a LIVE badge as a synonym for the latest stored frame
+AssertionError: expected 'Today · LIVE2026-09-161x2x4x8xObserve…' to contain 'LATEST STORED'
+
+Expected: "LATEST STORED"
+Received: "Today · LIVE2026-09-161x2x4x8xObserved framesmedian gap · 1mOPEN09:312/2 frameLIVE"
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx:230:65
+    228|   it("does not use a LIVE badge as a synonym for the latest stored fra…
+    229|     await mount();
+    230|     expect(host.querySelector(".obs-surf-replay")!.textContent).toCont…
+       |                                                                 ^
+    231|     expect(host.querySelector(".obs-surf-replay")!.textContent).not.to…
+    232|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯
+
+ FAIL  lib/__tests__/surfaceReplayMounted.test.tsx > shared replay read boundaries > refreshes the current frame and candles when the index stamp has not changed
+AssertionError: expected 1 to be greater than 1
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx:241:64
+    239|     frameRevision = 10;
+    240|     await advance();
+    241|     expect(calls.filter(f => f === "surface:SPY:0931").length).toBeGre…
+       |                                                                ^
+    242|     expect(calls.filter(f => f === "/api/intraday").length).toBeGreate…
+    243|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯
+
+ FAIL  lib/__tests__/surfaceReplayMounted.test.tsx > shared replay read boundaries > does not relabel a retained old-session frame when the live index rolls over
+AssertionError: expected 'Session2026-09-17Surface2 observed fr…' to contain '2026-09-18'
+
+Expected: "2026-09-18"
+Received: "Session2026-09-17Surface2 observed frames· ~1m observedPrice5m candlesObserved only · no interpolationinflowoutflowOPRA per-strike flow"
+
+ ❯ lib/__tests__/surfaceReplayMounted.test.tsx:251:69
+    249|     sourceDate = "2026-09-18";
+    250|     await advance();
+    251|     expect(host.querySelector(".obs-surf-data-strip")!.textContent).to…
+       |                                                                     ^
+    252|     expect(host.querySelector(".obs-surf-data-strip")!.textContent).no…
+    253|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯
+
+ Test Files  2 failed (2)
+      Tests  8 failed | 12 passed (20)
+   Start at  16:03:30
+   Duration  2.17s (transform 255ms, setup 0ms, collect 375ms, tests 612ms, environment 709ms, prepare 114ms)

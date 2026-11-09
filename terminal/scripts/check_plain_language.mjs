@@ -313,6 +313,7 @@ function isCopyDictValueNode(node, copyInfo, sourceFile) {
 // rawLine with a regex to decide visibility.
 function computeVisibleSpans(sourceFile, relPath) {
   const spans = [];
+  const expressionRanges = [];
   const copyInfo = findCopyRegions(relPath, sourceFile);
   const isStringy = (node) => ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node);
   const addTextSpan = (node, kind) => spans.push({ start: node.getStart(sourceFile), end: node.getEnd(), kind });
@@ -365,6 +366,9 @@ function computeVisibleSpans(sourceFile, relPath) {
         const attrName = parent.name.getText(sourceFile).toLowerCase();
         qualifies = VISIBLE_ATTR_NAMES.has(attrName); // `attr={...}`
       }
+      // Keep nonvisible attribute expressions too. R3 must use the nearest
+      // expression's own context, not a visible ancestor such as rows.map().
+      expressionRanges.push({ start: node.getStart(sourceFile), end: node.getEnd(), visible: qualifies });
       if (qualifies) {
         addExprSpan(node);
         const leaves = [];
@@ -383,7 +387,7 @@ function computeVisibleSpans(sourceFile, relPath) {
     ts.forEachChild(node, visit);
   };
   visit(sourceFile);
-  return spans;
+  return { spans, expressionRanges };
 }
 
 // Line-level visibility check. NOT used by R3 (raw_slug_interpolation) —
@@ -474,7 +478,7 @@ function scanLines(relPath, text, addedLines, overlayTerms) {
   // TSX scanner).
   const scriptKind = relPath.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
   const sourceFile = ts.createSourceFile(relPath, text, ts.ScriptTarget.Latest, true, scriptKind);
-  const spans = computeVisibleSpans(sourceFile, relPath);
+  const { spans, expressionRanges } = computeVisibleSpans(sourceFile, relPath);
   // textSpans: the narrow, literal-text-bearing subset (JsxText / a
   // JSX-child or attribute string literal / a copy-dict value) — what
   // R1/R2/R4/R5b scan, since they only ever care about literal RENDERED
@@ -563,54 +567,35 @@ function scanLines(relPath, text, addedLines, overlayTerms) {
     }
   }
 
-  // R3: raw_slug_interpolation — the one rule whose target (a bare
-  // property-access interpolation like `{row.regime}`) is never itself
-  // string-literal text, so it cannot be made span-precise via a text-span
-  // scan the way R1/R2/R4/R5b are. Per the binding round-3 ruling on
-  // Terminal #530 ("a raw_slug_interpolation finding fires only when the
-  // interpolation token's OWN column range lies inside a visible span
-  // ... never because an unrelated visible span shares the physical
-  // line"), this is SPAN-RANGE CONTAINMENT on the specific `{...field}`
-  // match's own [start,end) offsets, never a whole-line visibility test.
-  // A line-level `lineIsVisible` check (the round-2 shape) was wrong: it
-  // returned true whenever ANY span — text or expr — overlapped the
-  // physical line, so a non-visible attribute's interpolation
-  // (`bar={cfg.type}`, `bar` not in VISIBLE_ATTR_NAMES, so `{cfg.type}`
-  // gets no span of its own) was still flagged purely because a sibling
-  // `title="..."` literal happened to sit on the same line. Requiring the
-  // match's own range to be CONTAINED in a span (necessarily an "expr"
-  // span — the only kind computeVisibleSpans emits for a bare `{...}`
-  // interpolation, from a JSX-child expression or a title/aria-label/
-  // placeholder/alt attribute expression) fixes that without touching
-  // R1/R2/R4/R5b's already-correct span-precise text scans.
+  // R3: raw_slug_interpolation targets a terminal raw property value, .field}.
+  // Enumerate every suffix independently of an opening brace: a conditional
+  // can contain a machine attribute before its own visible fallback value.
+  // The innermost JSX expression decides visibility from its direct parent.
+  // Thus data-status inside rows.map() is not display text, while a real child
+  // or aria-label inside that same map remains subject to the rule.
+  // Ordinary comparisons/callback uses are not terminal interpolations.
+  // R1/R2/R4/R5b retain their existing literal-text span classification.
   lines.forEach((rawLine, idx) => {
     const lineNo = idx + 1;
     const lineStart = sourceFile.getLineStarts()[idx];
     const waiverReason = parseWaiver(rawLine);
     for (const field of PLAIN_VOCABULARY.slugFields) {
-      // Global + looped, NOT a single `.exec()` call: a line can carry more
-      // than one `{...field}` interpolation for the SAME field — e.g.
-      // `<Foo bar={cfg.type} title={row.type} />` — and each match's own
-      // containment is independent of every other match on the line. A
-      // non-global regex (the round-3 shape) returns only the FIRST match,
-      // so once that first match failed containment the rest of the line
-      // was never examined: MEASURED, that exact fixture and
-      // `<div style={cfg.kind}>{row.kind}</div>` both produced ZERO
-      // findings even though the second interpolation in each (a visible
-      // `title={...}` attribute; a bare JSX-child `{row.kind}`) is exactly
-      // the position this rule exists to block (PR #530 round-4 review
-      // MAJOR — a true-positive regression the round-3 containment fix
-      // introduced). Looping every match on the line and testing each
-      // one's own [start,end) range independently fixes that without
-      // reintroducing the round-3 line-overlap false positive: a match
-      // that fails containment simply produces no finding of its own, and
-      // does not gate whether a LATER match on the same line is tested.
-      const interpRe = new RegExp(`\\{[^}]*\\.${field}\\}`, "g");
+      // Global and non-brace-consuming so every occurrence is classified.
+      const interpRe = new RegExp(`\\.${field}\\}`, "g");
       let m;
       while ((m = interpRe.exec(rawLine))) {
         const absStart = lineStart + m.index;
         const absEnd = absStart + m[0].length;
-        const contained = spans.some((s) => s.start <= absStart && absEnd <= s.end);
+        // Enumerate each terminal field independently. Consuming an earlier
+        // opening brace would hide a later visible conditional fallback.
+        const fieldStart = absEnd - field.length - 2; // dot plus field, before }
+        const fieldEnd = absEnd - 1;
+        let owner = null;
+        for (const range of expressionRanges) {
+          if (range.start <= fieldStart && fieldEnd <= range.end
+              && (!owner || range.end - range.start < owner.end - owner.start)) owner = range;
+        }
+        const contained = owner?.visible === true;
         if (contained && !hasPlainHelperOnLine(rawLine, overlayTerms)) {
           findings.push(mkFinding(relPath, lineNo, "raw_slug_interpolation", field,
             `raw "${field}" field interpolated with no plain-language helper on the same line`,

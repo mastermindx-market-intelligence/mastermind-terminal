@@ -1,0 +1,72 @@
+[WebServer] (node:98188) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:98232) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:98803) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:98849) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[warmup] /terminal?symbol=NVDA → 200 in 140ms
+[warmup] /options → 200 in 2160ms
+[warmup] /portfolio → 200 in 1301ms
+[warmup] /alerts → 200 in 1480ms
+[warmup] /analysis → 200 in 2271ms
+[warmup] /discover → 200 in 1657ms
+[warmup] /admin → 200 in 1447ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 1060ms
+[warmup] /login → 200 in 157ms
+[warmup] /reset-password → 200 in 901ms
+[warmup] /api/me → 200 in 863ms
+[warmup] /api/watchlist → 200 in 471ms
+[warmup] /api/layouts → 200 in 514ms
+[warmup] /api/watchlist/annotations → 409 in 531ms
+[warmup] 14 routes compiled in 15s
+
+Running 9 tests using 1 worker
+
+(node:896) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:1666) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  1 [desktop] › e2e/boats-display.spec.ts:6:6 › BOATS single-venue label, age and independent expiry (en) (8.6s)
+[WebServer] (node:1826) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 [desktop] › e2e/boats-display.spec.ts:6:6 › BOATS single-venue label, age and independent expiry (zh) (4.8s)
+[WebServer] (node:1985) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2093) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2184) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  3 [desktop] › e2e/boats-display.spec.ts:48:5 › a late positive response cannot undo a newer authoritative empty snapshot (5.3s)
+(node:2258) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2454) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  4 [tablet] › e2e/boats-display.spec.ts:6:6 › BOATS single-venue label, age and independent expiry (en) (3.9s)
+[WebServer] (node:2696) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2801) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  5 [tablet] › e2e/boats-display.spec.ts:6:6 › BOATS single-venue label, age and independent expiry (zh) (6.7s)
+[WebServer] (node:2974) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:3022) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:3071) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  6 [tablet] › e2e/boats-display.spec.ts:48:5 › a late positive response cannot undo a newer authoritative empty snapshot (5.5s)
+(node:3110) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:3276) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  7 [mobile] › e2e/boats-display.spec.ts:6:6 › BOATS single-venue label, age and independent expiry (en) (5.2s)
+[WebServer] (node:3494) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  8 [mobile] › e2e/boats-display.spec.ts:6:6 › BOATS single-venue label, age and independent expiry (zh) (5.0s)
+[WebServer] (node:3576) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  9 [mobile] › e2e/boats-display.spec.ts:48:5 › a late positive response cannot undo a newer authoritative empty snapshot (6.6s)
+
+  9 passed (1.6m)

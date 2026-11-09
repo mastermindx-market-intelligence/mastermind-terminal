@@ -1,0 +1,51 @@
+# Evidence packet for the chart-hosted research pane close at <=860px (E20, refs #916).
+# Deliberately ungated: no lib/__tests__ lock reads this file, so it records what was
+# captured at capturedAtHead without failing later PRs that touch the same layout files.
+# Recapture: cd terminal && TERMINAL_CROPS=1 CI=1 npx playwright test
+#   e2e/chart-pane-mobile-close.spec.ts --project=mobile --project=tablet --project=desktop
+#   --workers=1 --retries=0
+capturedAtHead: 0ecb3e031cdbfa821c9c3f66dca9fb3848af5a17
+theme: dark
+spec: terminal/e2e/chart-pane-mobile-close.spec.ts
+layoutFiles:
+  - path: terminal/components/fin/MegaPane.tsx
+    sha256: e47b4939a3aec2ba2bac44020f93f1dfda9b2d58159668d703dc86af8167c013
+  - path: terminal/components/TerminalShell.tsx
+    sha256: 534284e5fb03e318a2df9e2f247c548834821b8a540609176efb7f40392c87cf
+  - path: terminal/components/fin/TranscriptDrawer.tsx
+    sha256: 17e00d0434bf86fbda971dc71cf01b612aa3d69596dd6fd5f1a96e19aa096eb4
+  - path: terminal/lib/scrollLock.ts
+    sha256: 31ead56ad65b953f864e9a62d91c9826229ffd06416f52dba6b34e16303daeaa
+  - path: terminal/components/fin/TranscriptSearchWorkspace.tsx
+    sha256: c709317f56a6d0c39241ae73fbc29a1794917a5eff548ee30a5fe6ca20e4080c
+crops:
+  - file: mobile-en-dark.png
+    viewport: 390x844
+    lang: en
+    state: chart-pane-overlay-open
+    sha256: a78d4bb83d97a20f626b62861a54aab9f16e0776f026bb6aaf3444c7fbd41811
+  - file: mobile-zh-dark.png
+    viewport: 390x844
+    lang: zh
+    state: chart-pane-overlay-open
+    sha256: 952deaff7120e327166864b1699af2320d5fe211c8f843d9e57f8fa15c9480f8
+  - file: tablet-en-dark.png
+    viewport: 820x1180
+    lang: en
+    state: chart-pane-overlay-open
+    sha256: 5ff362a5ee0afcfbc1852b580e6d9acc643bd08d211116268652589899634e20
+  - file: tablet-zh-dark.png
+    viewport: 820x1180
+    lang: zh
+    state: chart-pane-overlay-open
+    sha256: 7d0615a85611d8d57a39802ba73c4fe9e04c303d88d37266d571b48162fc91ae
+  - file: analysis-mobile-en-dark.png
+    viewport: 390x844
+    lang: en
+    state: analysis-route-embedded
+    sha256: 3a8303deb157100c617ba94cea7b17afbf4db14d2eefdc9bbfd67ad08f07e23b
+  - file: desktop-en-dark.png
+    viewport: 1440x900
+    lang: en
+    state: chart-pane-in-slot
+    sha256: 32e899610f9ba2875093a8cc433d70b83761b0c3bc6d90d47521870aac483d8f

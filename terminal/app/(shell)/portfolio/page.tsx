@@ -1,9 +1,12 @@
+import { workspaceMetadata } from "@/lib/shared-shell/metadata";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import PortfolioViewMount from "@/components/mounts/PortfolioViewMount";
 import SignupGate from "@/components/gates/SignupGate";
 import { readPositions } from "@/lib/portfolio";
 import { createFixtureDb, fixtureFaults, fixtureUserId, FIXTURE_FAULT_COOKIE, FIXTURE_STORE_COOKIE } from "@/lib/watchlistsFixtureDb";
+
+export const metadata = workspaceMetadata("Portfolio", "Mastermind Terminal");
 
 // W5: this page is the user's REAL portfolio.
 //
@@ -32,11 +35,16 @@ export default async function PortfolioPage() {
     const jar = await cookies();
     const key = jar.get(FIXTURE_STORE_COOKIE)?.value || "default";
     const faults = fixtureFaults(jar.get(FIXTURE_FAULT_COOKIE)?.value);
-    const read = await readPositions(createFixtureDb(key, faults), fixtureUserId(key));
+    const userId = fixtureUserId(key);
+    const read = await readPositions(createFixtureDb(key, faults), userId);
     return (
       <PortfolioViewMount
         positions={read.ok ? read.positions : []}
         unreadable={!read.ok}
+        // The SAME immutable id the seed was read under — owner and seed bind in one server
+        // result, so the client's write fence can never name a different account than the one
+        // this page rendered.
+        userId={userId}
         email={process.env.TERMINAL_E2E_EMAIL || "responsive@example.com"}
       />
     );
@@ -59,6 +67,9 @@ export default async function PortfolioPage() {
     <PortfolioViewMount
       positions={read.ok ? read.positions : []}
       unreadable={!read.ok}
+      // `user.id` is OWNERSHIP; the email above is presentation. The view fences every queued
+      // write and quote generation on this id, in the same result that scoped the seed read.
+      userId={user.id}
       email={user.email || ""}
     />
   );

@@ -1,0 +1,62 @@
+[
+  {
+    "name": "private-chain",
+    "command": [
+      "node_modules/.bin/vitest",
+      "run",
+      "lib/__tests__/SectorConstituentEvidence.test.tsx",
+      "lib/__tests__/CompanyIntelligencePrivate.test.tsx",
+      "lib/__tests__/CompanyIntelligencePrivatePanel.test.tsx",
+      "lib/__tests__/usePrivateCompanyIntelligence.test.tsx"
+    ],
+    "exit_code": 0,
+    "seconds": 10.415,
+    "completed_at": "2026-11-07T07:21:44.607753+00:00",
+    "log_sha256": "180838587c36b0b510ff3c8b7e86c82d0df89e3f06c697188cbca0ba2960f91a"
+  },
+  {
+    "name": "typegen",
+    "command": [
+      "node_modules/.bin/next",
+      "typegen"
+    ],
+    "exit_code": 0,
+    "seconds": 1.88,
+    "completed_at": "2026-11-07T07:21:46.499170+00:00",
+    "log_sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a"
+  },
+  {
+    "name": "typecheck",
+    "command": [
+      "node_modules/.bin/tsc",
+      "--noEmit"
+    ],
+    "exit_code": 0,
+    "seconds": 64.797,
+    "completed_at": "2026-11-07T07:22:51.299817+00:00",
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "lint",
+    "command": [
+      "node_modules/.bin/eslint",
+      "components/PortfolioSectorContext.tsx",
+      "components/PortfolioWorkspace.tsx",
+      "components/sector-intelligence/SectorIntelligenceWorkspace.tsx",
+      "components/sector-intelligence/SectorConstituentEvidence.tsx",
+      "components/fin/CompanyIntelligencePrivate.tsx",
+      "lib/sectorPortfolioContext.ts",
+      "lib/sectorIntelligenceLex.ts",
+      "lib/__tests__/portfolioSectorContext.test.tsx",
+      "lib/__tests__/portfolioWorkspaceSectorContext.test.tsx",
+      "lib/__tests__/sectorPortfolioContext.test.ts",
+      "lib/__tests__/SectorConstituentEvidence.test.tsx",
+      "e2e/sector-portfolio-continuity.spec.ts",
+      "e2e/sector-constituent-evidence.spec.ts"
+    ],
+    "exit_code": 0,
+    "seconds": 11.468,
+    "completed_at": "2026-11-07T07:23:02.768321+00:00",
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

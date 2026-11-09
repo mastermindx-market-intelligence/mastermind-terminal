@@ -4,7 +4,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const { footerRenders } = vi.hoisted(() => ({ footerRenders: vi.fn() }));
-vi.mock("@/lib/i18n", () => ({ useT: () => { footerRenders(); return (key: string) => key; } }));
+vi.mock("@/lib/i18n", () => ({ useT: () => { footerRenders(); return (key: string) => key; }, useLang: () => ({ lang: "en" }) }));
 import ChartFrameBar, { DEFAULT_CHART_SETTINGS } from "@/components/ChartFrameBar";
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -70,4 +70,25 @@ describe("chart footer clock isolation", () => {
     expect(container.querySelector(".cfb-clock")?.textContent).toContain("12:34:56");
     expect(vi.getTimerCount()).toBe(1);
   });
+  it("keeps the displayed time and UTC offset on the same snapshot", async () => {
+    await act(async () => root.render(frame()));
+    const paintAt = Date.now() + 1_000;
+    const getSeconds = Date.prototype.getSeconds;
+    vi.spyOn(Date.prototype, "getSeconds").mockImplementation(function (this: Date) {
+      const seconds = getSeconds.call(this);
+      if (this.getTime() === paintAt) {
+        // Cross an offset boundary between formatting reads without firing another timer.
+        vi.setSystemTime(paintAt + 1);
+      }
+      return seconds;
+    });
+    vi.spyOn(Date.prototype, "getTimezoneOffset").mockImplementation(
+      function (this: Date) {
+        return this.getTime() <= paintAt ? -60 : -120;
+      },
+    );
+    await act(async () => vi.advanceTimersByTime(1_000));
+    expect(container.querySelector(".cfb-clock")?.textContent).toBe("12:34:57 UTC+1");
+  });
+
 });

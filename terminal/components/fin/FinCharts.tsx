@@ -24,6 +24,7 @@ import {
   type ReactNode,
 } from "react";
 import { fmtNum, fmtPct, fmtDate, pick } from "../../lib/finFormat";
+import tableControls from "./MiniTableControls.module.css";
 
 /**
  * Measure the chart box's live pixel width so the SVG viewBox can be set to
@@ -388,6 +389,8 @@ export function StackedBars({ labels, series, fmtY = fmtNum, vw = 320, vh = 180,
 export interface LineSeriesProps {
   labels: string[];
   series: Series[];
+  /** Break every series before these existing label slots without inventing a source coordinate. */
+  breakBefore?: boolean[];
   fmtY?: ValFmt;
   vw?: number;
   vh?: number;
@@ -408,7 +411,7 @@ export interface LineSeriesProps {
  * Multi-line chart with an optional dotted variant per series and optional node
  * markers. Holes (null values) break the path. Right y-axis, faint gridlines.
  */
-export function LineSeries({ labels, series, fmtY = fmtNum, vw = 320, vh = 180, markers, dotted, includeZero = false, refLine = null, noLegend, zh, height }: LineSeriesProps) {
+export function LineSeries({ labels, series, breakBefore, fmtY = fmtNum, vw = 320, vh = 180, markers, dotted, includeZero = false, refLine = null, noLegend, zh, height }: LineSeriesProps) {
   const { tip, show, hide } = useFinTip();
   const box = useBoxW(vw);
   if (allEmpty(series, labels)) return <Empty zh={zh} />;
@@ -441,13 +444,38 @@ export function LineSeries({ labels, series, fmtY = fmtNum, vw = 320, vh = 180, 
         {refLine != null && <line className="fin-refline" x1={PAD.l} x2={vw - PR} y1={y(refLine)} y2={y(refLine)} />}
         {series.map((s, si) => {
           const col = s.color ?? PALETTE[si % PALETTE.length];
-          const pts: string[] = [];
-          s.values.forEach((v, i) => { if (num(v)) pts.push(`${x(i)},${y(v as number)}`); });
-          if (pts.length === 0) return null;
+          const runs: string[][] = [];
+          let run: string[] = [];
+          for (let i = 0; i < s.values.length; i++) {
+            const v = s.values[i];
+            if (breakBefore?.[i] === true && run.length > 0) {
+              runs.push(run);
+              run = [];
+            }
+            if (num(v)) {
+              run.push(`${x(i)},${y(v)}`);
+            } else if (run.length > 0) {
+              runs.push(run);
+              run = [];
+            }
+          }
+          if (run.length > 0) runs.push(run);
+          if (runs.length === 0) return null;
           return (
             <g key={si}>
-              <polyline className={"fin-line" + (isDotted(s, si) ? " fin-line-dotted" : "")} points={pts.join(" ")} fill="none" stroke={col} />
-              {markers && s.values.map((v, i) => num(v) ? <circle key={i} className="fin-node" cx={x(i)} cy={y(v as number)} r={2.4} fill={col} /> : null)}
+              {runs.map((points, ri) => (
+                <polyline key={ri}
+                  className={"fin-line" + (isDotted(s, si) ? " fin-line-dotted" : "")}
+                  points={points.join(" ")} fill="none" stroke={col} />
+              ))}
+              {s.values.map((v, i) => {
+                if (!num(v)) return null;
+                const isolated = (breakBefore?.[i] === true || !num(s.values[i - 1]))
+                  && (breakBefore?.[i + 1] === true || !num(s.values[i + 1]));
+                return markers || isolated
+                  ? <circle key={i} className="fin-node" cx={x(i)} cy={y(v)} r={2.4} fill={col} />
+                  : null;
+              })}
             </g>
           );
         })}
@@ -1194,6 +1222,14 @@ export interface MiniRow {
   fmt?: ValFmt;
   /** Optional trailing cell content per period (e.g. a transcript doc-icon). */
   cellAdorn?: (periodIdx: number) => ReactNode;
+  /** Stable, never-displayed row identity a deep link can focus (e.g. "revenue"). */
+  id?: string;
+}
+
+/** A deep-linked source cell: the period column (index into `periods`) and, optionally, a row. */
+export interface MiniTableFocus {
+  index: number;
+  rowId?: string | null;
 }
 
 /** Props for {@link MiniTable}. */
@@ -1210,6 +1246,11 @@ export interface MiniTableProps {
   zh?: boolean;
   /** Sticky-first-column header label. */
   cornerLabel?: string;
+  /**
+   * Open on the page holding this period column and mark it (`data-focus` on the column,
+   * `data-focus-cell` on the matching row's cell). Paging away still works; the mark stays.
+   */
+  focus?: MiniTableFocus | null;
 }
 
 /**
@@ -1219,7 +1260,7 @@ export interface MiniTableProps {
  * are more periods than `pageSize`. Per-cell adornments (e.g. a transcript
  * doc-icon) render via `row.cellAdorn`.
  */
-export function MiniTable({ periods, rows, fmt = fmtNum, showChange, pageSize = 6, zh, cornerLabel }: MiniTableProps) {
+export function MiniTable({ periods, rows, fmt = fmtNum, showChange, pageSize = 6, zh, cornerLabel, focus = null }: MiniTableProps) {
   // Paging is counted BACKWARD from the newest period (0 = newest page), not forward from
   // index 0. `periods` is oldest→newest, so a forward counter opens on the OLDEST columns —
   // invisible while yfinance supplied ~5 periods (one page), but the Massive backfill takes
@@ -1238,7 +1279,11 @@ export function MiniTable({ periods, rows, fmt = fmtNum, showChange, pageSize = 
   const pages = Math.ceil(periods.length / pageSize);
   // clamp: a shorter set (e.g. annual→quarterly on a thin name) must not strand the reader
   // past the end.
-  const back = paging.sig === setSig ? Math.min(paging.back, pages - 1) : 0;
+  // A focused column opens its own page instead of the newest one — the same "chosen for this
+  // set" rule, so a reader who pages away is not pulled back.
+  const focusIndex = focus && Number.isInteger(focus.index) && focus.index >= 0 && focus.index < periods.length ? focus.index : null;
+  const initialBack = focusIndex == null ? 0 : Math.max(0, Math.min(pages - 1, pages - 1 - Math.floor(focusIndex / pageSize)));
+  const back = paging.sig === setSig ? Math.min(paging.back, pages - 1) : initialBack;
   const start = (pages - 1 - back) * pageSize;
   const cols = periods.map((p, i) => ({ p, i })).slice(start, start + pageSize);
   const rowKey = (r: MiniRow, path: string) => `${path}/${r.label}`;
@@ -1249,16 +1294,21 @@ export function MiniTable({ periods, rows, fmt = fmtNum, showChange, pageSize = 
     const out: ReactNode[] = [
       <tr key={key} className={"fin-row" + (r.bold ? " fin-row-b" : "") + (hover === key ? " fin-row-hl" : "")}
         onMouseEnter={() => setHover(key)} onMouseLeave={() => setHover((h) => (h === key ? null : h))}>
-        <th className="fin-cell fin-cell-sticky" style={{ paddingLeft: 8 + (r.depth ?? 0) * 12 }} scope="row">
-          {hasChildren && (
-            <button className="fin-row-toggle" onClick={() => setOpen((o) => ({ ...o, [key]: !o[key] }))} aria-expanded={isOpen}>
-              {isOpen ? "▾" : "▸"}
+        <th className={"fin-cell fin-cell-sticky" + (hasChildren ? ` ${tableControls.disclosureCell}` : "")} style={{ paddingLeft: 8 + (r.depth ?? 0) * 12 }} scope="row">
+          {hasChildren ? (
+            <button type="button" className={`fin-row-toggle ${tableControls.disclosureButton}`} onClick={() => setOpen((o) => ({ ...o, [key]: !o[key] }))} aria-expanded={isOpen}>
+              <span className={tableControls.chevron} aria-hidden>{isOpen ? "▾" : "▸"}</span>
+              <span>{r.label}</span>
             </button>
-          )}
-          <span>{r.label}</span>
+          ) : <span>{r.label}</span>}
         </th>
         {cols.map(({ i }) => (
-          <td key={i} className="fin-cell fin-cell-num">
+          <td
+            key={i}
+            className={"fin-cell fin-cell-num" + (i === focusIndex ? " fin-cell-focus" : "") + (i === focusIndex && r.id != null && r.id === focus?.rowId ? " fin-cell-focus-cell" : "")}
+            data-focus={i === focusIndex ? "true" : undefined}
+            data-focus-cell={i === focusIndex && r.id != null && r.id === focus?.rowId ? "true" : undefined}
+          >
             <span className="fin-cell-v">{num(r.values[i]) ? rf(r.values[i] as number) : "—"}{r.cellAdorn?.(i)}</span>
             {showChange && r.change && num(r.change[i]) && (
               <span className={"fin-cell-chg " + ((r.change[i] as number) >= 0 ? "up" : "down")}>{fmtPct(r.change[i] as number, { decimals: 1, alreadyPct: true, sign: true })}</span>
@@ -1275,9 +1325,9 @@ export function MiniTable({ periods, rows, fmt = fmtNum, showChange, pageSize = 
     <div className="fin-table-wrap">
       {pages > 1 && (
         <div className="fin-table-pager">
-          <button className="fin-pg-chev" disabled={back >= pages - 1} onClick={() => setPaging({ sig: setSig, back: Math.min(pages - 1, back + 1) })} aria-label={pick(!!zh, "Earlier periods", "较早期")}>‹</button>
+          <button type="button" className={`fin-pg-chev ${tableControls.pagerButton}`} disabled={back >= pages - 1} onClick={() => setPaging({ sig: setSig, back: Math.min(pages - 1, back + 1) })} aria-label={pick(!!zh, "Earlier periods", "较早期")}>‹</button>
           <span className="fin-pg-info">{cols[0]?.p}–{cols[cols.length - 1]?.p}</span>
-          <button className="fin-pg-chev" disabled={back <= 0} onClick={() => setPaging({ sig: setSig, back: Math.max(0, back - 1) })} aria-label={pick(!!zh, "Later periods", "较近期")}>›</button>
+          <button type="button" className={`fin-pg-chev ${tableControls.pagerButton}`} disabled={back <= 0} onClick={() => setPaging({ sig: setSig, back: Math.max(0, back - 1) })} aria-label={pick(!!zh, "Later periods", "较近期")}>›</button>
         </div>
       )}
       <div className="fin-table-scroll">
@@ -1285,7 +1335,16 @@ export function MiniTable({ periods, rows, fmt = fmtNum, showChange, pageSize = 
           <thead>
             <tr>
               <th className="fin-cell fin-cell-sticky fin-cell-corner" scope="col">{cornerLabel ?? ""}</th>
-              {cols.map(({ p, i }) => <th key={i} className="fin-cell fin-cell-num fin-cell-head" scope="col">{p}</th>)}
+              {cols.map(({ p, i }) => (
+                <th
+                  key={i}
+                  className={"fin-cell fin-cell-num fin-cell-head" + (i === focusIndex ? " fin-cell-focus" : "")}
+                  data-focus={i === focusIndex ? "true" : undefined}
+                  scope="col"
+                >
+                  {p}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
