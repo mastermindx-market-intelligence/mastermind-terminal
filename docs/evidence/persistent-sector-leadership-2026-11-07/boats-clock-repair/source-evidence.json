@@ -1,0 +1,109 @@
+{
+  "schema": "mastermind.psl.boats_clock_repair_evidence/v1",
+  "observed_at": "2026-11-07T08:13:45.983295+00:00",
+  "base": "2b47843f485c4fe5bdef8463195162e0db1a2bd8",
+  "operation": "persistent-sector-leadership-ui-20261107-c4",
+  "source": {
+    "path": "terminal/e2e/boats-display.spec.ts",
+    "before_sha256": "262c0b3f3c0913bb5f129e777b2de103bf66493bc9e20e9f7e435e28a569a707",
+    "after_sha256": "a084a8db9cdcbca26c8e26a05a690a603dd3c34ae9414d6ebc9bd885fe431c63",
+    "changed_only_third_test": true
+  },
+  "original_ci": {
+    "head": "fa79003d23cc08216ced65935e80b0e95a54a285",
+    "run": 42347628408,
+    "job": 128329102125,
+    "failure": "expected heldRequestCount+1=3, received4 on3 attempts; legitimate recurring poll not isolated"
+  },
+  "failed_paid_leaf": {
+    "run": "psl-ci-boats-clock-20261107-c4",
+    "controller": 11473,
+    "root_verified": true,
+    "state": "TERMINAL",
+    "rc": 1,
+    "reason": "provider output limit",
+    "response_sha256": "5e4a31f54fc527817611adaa65ebdac005e7d720bf91752fbf9c8ffbfd23f855",
+    "accepted": false,
+    "known_exact_worker_workspace_present": false,
+    "replayed": false
+  },
+  "parent_qualification": [
+    {
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "e2e/boats-display.spec.ts",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--reporter=list"
+      ],
+      "port": 3176,
+      "exit_code": 0,
+      "seconds": 129.214,
+      "log_sha256": "bb2c2ec2c6426fdddd89a56e7762e488fdb94965d7698129062e50b6a0373cfc",
+      "fixture_only": true
+    },
+    {
+      "name": "boats-clock-repeat.log",
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "e2e/boats-display.spec.ts",
+        "--grep",
+        "coalesced trailing null",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--repeat-each=3",
+        "--workers=1",
+        "--reporter=list"
+      ],
+      "exit_code": 0,
+      "seconds": 62.702,
+      "sha256": "f7deae7e33fc4228abd99b437ab38c1836d0ac98350f6eddcf504cf4f7c1e109"
+    },
+    {
+      "name": "boats-clock-typecheck.log",
+      "command": [
+        "npx",
+        "tsc",
+        "--noEmit"
+      ],
+      "exit_code": 0,
+      "seconds": 18.474,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "boats-clock-eslint.log",
+      "command": [
+        "npx",
+        "eslint",
+        "e2e/boats-display.spec.ts"
+      ],
+      "exit_code": 0,
+      "seconds": 6.183,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "browser_cases": {
+    "full_spec_unique_cases": 9,
+    "full_spec_passed": 9,
+    "coalescing_repeat_cases": 9,
+    "coalescing_repeat_passed": 9,
+    "retries": 0
+  },
+  "preserved_assertions": [
+    "exactly1coalescedcatchup",
+    "nullclearswhilequoteageunder25seconds",
+    "later503cannotrevive",
+    "unrelatedregularquotepoisoncannotrevive"
+  ],
+  "clock_boundary": "paused before navigation; total test fake time below2000ms and below normal5s/30s recurring cadence",
+  "production_code_changed": false,
+  "production_acceptance": false,
+  "clock_docs": "https://playwright.dev/docs/clock"
+}

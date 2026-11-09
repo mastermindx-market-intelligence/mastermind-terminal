@@ -303,6 +303,7 @@ const VOL_LEX = {
   cmpMoveEstimatorLabel: ["Estimator", "估计方法"],
   cmpMoveEstimatorValue: ["IV · √T on published ATM IV {iv} % · declared approximation", "IV · √T，基于已发布平值IV {iv} % · 已声明的近似方法"],
   cmpMoveHorizonLabel: ["Horizon", "区间长度"],
+  cmpMoveHorizonValueSingular: ["{n} trading day · {from} → {to} close", "{n} 个交易日 · {from} → {to} 收盘"],
   cmpMoveHorizonValue: ["{n} trading days · {from} → {to} close", "{n} 个交易日 · {from} → {to} 收盘"],
   cmpMoveHorizonNote: ["weekdays, exchange holidays not subtracted", "按工作日计算，未扣除交易所假期"],
   cmpMoveVolClockLabel: ["Volatility clock", "波动率时钟"],

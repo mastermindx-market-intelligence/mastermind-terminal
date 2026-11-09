@@ -212,3 +212,38 @@ describe("/api/nw entitlement relay (T-NW-AUTH)", () => {
     }
   });
 });
+
+
+describe("Bottom-pivot feed uses the existing private relay", () => {
+  it("does not contact upstream for an anonymous bottom-pivot read", async () => {
+    const { GET } = await import("@/app/api/nw/route");
+    const res = await GET(req("bottom_sensors"));
+    expect(res.status).toBe(401); expectPrivate(res); expect(fetch).not.toHaveBeenCalled();
+  });
+  it("relays only this caller's cookie, with no shared cache or redirect following", async () => {
+    vi.mocked(fetch).mockResolvedValue(upstream(200, PAYLOAD));
+    const { GET } = await import("@/app/api/nw/route");
+    const res = await GET(req("bottom_sensors", `theme=dark; ${ENTITLED}`));
+    expect(res.status).toBe(200); expectPrivate(res);
+    expect(res.headers.get("vary")).toBe("Cookie");
+    expect(vi.mocked(fetch).mock.calls[0][0]).toBe("https://www.mastermind-x.com/neuralwebdata/bottom_sensors.json");
+    expect(sentCookie()).toBe(ENTITLED);
+    expect(fetchInit()).toMatchObject({ cache: "no-store", redirect: "manual" });
+    expect((await GET(req("bottom_sensors"))).status).toBe(401);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+  it.each([[401, 401], [402, 403], [403, 403], [302, 503], [500, 503]])("preserves access/failure boundary %s -> %s", async (status, expected) => {
+    vi.mocked(fetch).mockResolvedValue(upstream(status));
+    const { GET } = await import("@/app/api/nw/route");
+    const res = await GET(req("bottom_sensors", ENTITLED));
+    expect(res.status).toBe(expected); expectPrivate(res);
+    expect(await res.text()).not.toContain("PAID-BYTES");
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+  it("does not invent a bottom-pivot fixture in the production proxy", async () => {
+    process.env.NW_FIXTURE = "1";
+    const { GET } = await import("@/app/api/nw/route");
+    const res = await GET(req("bottom_sensors", ENTITLED));
+    expect(res.status).toBe(503); expect(fetch).not.toHaveBeenCalled();
+  });
+});

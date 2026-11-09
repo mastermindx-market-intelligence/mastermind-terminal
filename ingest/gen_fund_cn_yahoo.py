@@ -9,9 +9,11 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from ingest.cn_yahoo_fallback import build_fund, valid_symbol, read_collection_receipt
+from ingest.cn_yahoo_fallback import (build_fund, quarantined_periods, valid_symbol,
+                                      read_collection_receipt)
 from ingest.collect_reported_ownership import atomic_json
-from ingest.regional_financial_projection import materialize_regional_fund, wrap_regional_financials
+from ingest.regional_financial_projection import FIELD, materialize_regional_fund, wrap_regional_financials
+from ingest.cn_yahoo_integrity_quarantine import repair_document
 
 
 def main(argv=None):
@@ -34,7 +36,7 @@ def main(argv=None):
                sorted(path.stem for path in cache.glob("*.json") if valid_symbol(path.stem)))
     if args.limit and not receipt:
         symbols = symbols[:args.limit]
-    counts = {"written": 0, "errors": 0, "added_annual": 0, "added_interim": 0}
+    counts = {"written": 0, "errors": 0, "added_annual": 0, "added_interim": 0, "quarantined_periods": 0}
     for symbol in symbols:
         try:
             raw = (cache / (symbol + ".json")).read_bytes()
@@ -42,6 +44,10 @@ def main(argv=None):
                 raise ValueError("acquired source changed after collection admission")
             prior_path = previous_dir / (symbol + ".fund.json")
             previous = json.loads(prior_path.read_text()) if prior_path.exists() else None
+            # Retained Yahoo observations are checked against the historical receipts
+            # they actually name, before the append-only producer sees them.
+            if previous and FIELD in previous:
+                previous, _ = repair_document(previous, symbol, cache / "_receipts")
             selected_previous = materialize_regional_fund(previous, symbol) if previous else None
             fund = build_fund(raw, symbol, selected_previous)
             atomic_json(out / (symbol + ".fund.json"), wrap_regional_financials(fund, previous))
@@ -49,6 +55,11 @@ def main(argv=None):
             additions = fund["data_freshness"]["added_periods"]
             counts["added_annual"] += len(additions["annual"])
             counts["added_interim"] += len(additions["quarterly"])
+            withdrawn = quarantined_periods(fund["statements"])
+            counts["quarantined_periods"] += sum(len(ends) for ends in withdrawn.values())
+            for basis, ends in sorted(withdrawn.items()):
+                print(json.dumps({"ticker": symbol, "basis": basis,
+                                  "status": "integrity_quarantined", "periods": ends}), flush=True)
         except (OSError, ValueError, TypeError) as exc:
             counts["errors"] += 1
             print(json.dumps({"ticker": symbol, "status": "held", "error_type": type(exc).__name__}), flush=True)

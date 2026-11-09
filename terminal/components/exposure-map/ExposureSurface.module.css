@@ -22,16 +22,20 @@
 .floor line { stroke:var(--line); stroke-width:1; }
 .prism { cursor:pointer; }
 .prism polygon { stroke:var(--panel); stroke-width:.5; }
-.prism [data-sign="positive"].faceTop { fill:var(--ex-positive); fill-opacity:.9; }
-.prism [data-sign="positive"].faceLeft { fill:var(--ex-positive); fill-opacity:.55; }
-.prism [data-sign="positive"].faceRight { fill:var(--ex-positive); fill-opacity:.72; }
-.prism [data-sign="negative"].faceTop { fill:var(--ex-negative); fill-opacity:.9; }
-.prism [data-sign="negative"].faceLeft { fill:var(--ex-negative); fill-opacity:.55; }
-.prism [data-sign="negative"].faceRight { fill:var(--ex-negative); fill-opacity:.72; }
+/* data-sign lives on the prism's parent g, not on the faces. */
+.prism[data-sign="positive"] .faceTop { fill:var(--ex-positive); fill-opacity:.9; }
+.prism[data-sign="positive"] .faceLeft { fill:var(--ex-positive); fill-opacity:.55; }
+.prism[data-sign="positive"] .faceRight { fill:var(--ex-positive); fill-opacity:.72; }
+.prism[data-sign="negative"] .faceTop { fill:var(--ex-negative); fill-opacity:.9; }
+.prism[data-sign="negative"] .faceLeft { fill:var(--ex-negative); fill-opacity:.55; }
+.prism[data-sign="negative"] .faceRight { fill:var(--ex-negative); fill-opacity:.72; }
 .prism[data-sign="abs"] .faceTop { fill:var(--text-dim); fill-opacity:.9; }
 .prism[data-sign="abs"] .faceLeft { fill:var(--text-dim); fill-opacity:.55; }
 .prism[data-sign="abs"] .faceRight { fill:var(--text-dim); fill-opacity:.72; }
 .prism.selected polygon { stroke:var(--ex-gold); stroke-width:1.5; }
+/* Full keyboard focus indicator over every face, on the existing theme token.
+   After .selected so the ring wins while the selected cell is focused. */
+.prism:focus-visible polygon { stroke:var(--brand-2); stroke-width:2; }
 .absentMark { fill:none; stroke:var(--text-dim); stroke-width:1; stroke-dasharray:2 2; }
 .spotPlane polygon { fill:rgba(212,160,23,.08); stroke:var(--ex-gold); stroke-width:1; stroke-dasharray:4 3; }
 .planeLabel,.tick { fill:var(--text-2); font-family:var(--font-code); font-size:10px; }
@@ -77,4 +81,7 @@
   .legend{grid-column:1/-1; display:grid; grid-template-columns:1fr 1fr; gap:4px 12px}
   .footer{flex-direction:column; align-items:flex-start; gap:2px}
 }
-@media(max-width:420px){ .focusLabel{display:none} }
+
+/* Signed values keep their explicit +/- meaning in Light. The fixed exposure
+   palette remains on prism faces and swatches; numeric ink uses the host token. */
+:global(html[data-theme="light"]) .surface .hero strong { color:var(--text); }

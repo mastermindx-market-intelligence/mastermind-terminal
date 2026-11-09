@@ -42,8 +42,12 @@ export default async function ShellLayout({ children }: { children: React.ReactN
     const jar = await cookies();
     if (jar.get("mm_e2e_rs30")?.value === "1") {
       const guest = jar.get("mm_e2e_guest")?.value === "1";
+      // Use the same synthetic actor as /terminal. A cross-route test must not
+      // accidentally switch preference/account ownership while inspecting a chart.
+      const { fixtureUserId, FIXTURE_STORE_COOKIE } = await import("@/lib/watchlistsFixtureDb");
+      const fixtureKey = jar.get(FIXTURE_STORE_COOKIE)?.value || "default";
       return <AppShell email={guest ? "" : process.env.TERMINAL_E2E_EMAIL ?? "responsive@example.com"}
-        userId={guest ? "" : "terminal-responsive-fixture"}
+        userId={guest ? "" : fixtureUserId(fixtureKey)}
         sharedShell={sharedShell} sharedShellLegacyOrigin={fixtureOrigin}>{children}</AppShell>;
     }
   }

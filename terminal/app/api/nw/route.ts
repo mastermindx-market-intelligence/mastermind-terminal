@@ -19,6 +19,8 @@ const FIXTURE_DIR = path.join(process.cwd(), "public", "data");
 
 const FEEDS: Record<string, string> = {
   market_plane: "market_plane.json",
+  // PR10785 daily display context, through the SAME caller-bound entitlement relay.
+  bottom_sensors: "bottom_sensors.json",
   // Gate #8: macro's read-only projection of the latest finalized U.S. picks
   // (mastermind.selection_cohort_projection.v1). Same proxy, same entitlement relay, same 503 honesty.
   selection_cohort_us: "selection_cohort/us.json",

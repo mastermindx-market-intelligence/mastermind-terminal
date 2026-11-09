@@ -539,3 +539,80 @@ def test_closed_runtime_envelope_cannot_displace_qualified_settled_bundle(tmp_pa
     path.parent.mkdir(parents=True); path.write_text(json.dumps(_envelope()))
     chosen = bridge.resolve_risk_envelope("2026-07-01", today=NOW.date(), now=NOW)
     assert chosen == _envelope()
+
+
+# Public artifact publication is distinct from private temporary-file creation.
+# These cases use only tmp_path and synthetic source records; no host files,
+# authentication settings or real endpoint permissions are inspected/changed.
+def _publication_fixture(tmp_path, monkeypatch):
+    source = _market_state(asof=datetime.now(timezone.utc).astimezone(bridge.MARKET_TZ).date().isoformat())
+    out = tmp_path / "market_risk.json"
+    monkeypatch.setattr(bridge, "OUT", out)
+    monkeypatch.setattr(bridge, "resolve_source", lambda **kw: (source, "test:publication"))
+    monkeypatch.setattr(bridge, "resolve_risk_envelope", lambda *a, **kw: None)
+    def no_network(*args, **kwargs):
+        raise AssertionError("publication fixture must never fetch external data")
+    monkeypatch.setattr(bridge.urllib.request, "urlopen", no_network)
+    return out
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="production publisher uses POSIX file modes")
+@pytest.mark.parametrize("initial_mode", [None, 0o644, 0o600])
+@pytest.mark.parametrize("mask", [0o022, 0o077])
+def test_atomic_public_risk_artifact_is_readable_after_replacement(tmp_path, monkeypatch, initial_mode, mask):
+    import os
+    import stat
+    out = _publication_fixture(tmp_path, monkeypatch)
+    if initial_mode is not None:
+        out.write_text('{"old":true}\n')
+        out.chmod(initial_mode)
+    original_mask = os.umask(mask)
+    try:
+        assert bridge.main() == 0
+    finally:
+        os.umask(original_mask)
+    assert stat.S_IMODE(out.stat().st_mode) == 0o644
+    doc = json.loads(out.read_text())
+    assert doc["schema"] == "market_risk/v1" and doc["is_display_only"] is True
+    assert list(tmp_path.iterdir()) == [out]
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="production publisher uses POSIX file modes")
+def test_publication_mode_failure_keeps_last_good_payload_and_cleans_only_own_temp(tmp_path, monkeypatch):
+    import os
+    import stat
+    out = _publication_fixture(tmp_path, monkeypatch)
+    before = b'{"old":"last good"}\n'
+    out.write_bytes(before)
+    out.chmod(0o644)
+    def refuse_fixture_mode(fd, mode):
+        assert mode == 0o644
+        assert os.fstat(fd).st_size > 0  # the complete payload is flushed first
+        raise OSError("synthetic fchmod failure")
+    monkeypatch.setattr(bridge.os, "fchmod", refuse_fixture_mode)
+    with pytest.raises(OSError, match="synthetic fchmod failure"):
+        bridge.main()
+    assert out.read_bytes() == before
+    assert stat.S_IMODE(out.stat().st_mode) == 0o644
+    assert list(tmp_path.iterdir()) == [out]
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="production publisher uses POSIX file modes")
+def test_publication_mode_is_applied_before_atomic_visibility(tmp_path, monkeypatch):
+    import stat
+    out = _publication_fixture(tmp_path, monkeypatch)
+    before = b'{"old":"still visible"}\n'
+    out.write_bytes(before)
+    original_replace = Path.replace
+    replacements = []
+    def inspect_replace(temporary, target):
+        assert Path(target) == out
+        assert out.read_bytes() == before
+        assert stat.S_IMODE(temporary.stat().st_mode) == 0o644
+        assert json.loads(temporary.read_text())["schema"] == "market_risk/v1"
+        replacements.append(temporary)
+        return original_replace(temporary, target)
+    monkeypatch.setattr(Path, "replace", inspect_replace)
+    assert bridge.main() == 0
+    assert len(replacements) == 1
+    assert list(tmp_path.iterdir()) == [out]
