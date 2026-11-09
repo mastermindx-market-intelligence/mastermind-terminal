@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
+import { workspaceMetadata } from "@/lib/shared-shell/metadata";
 import OptionsWorkspaceMount from "@/components/mounts/OptionsWorkspaceMount";
 import OptionsPaywall from "@/components/OptionsPaywall";
 import OptionsServiceUnavailable from "@/components/OptionsServiceUnavailable";

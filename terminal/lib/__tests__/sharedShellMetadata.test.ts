@@ -32,6 +32,7 @@ it("wires the actual root and native pages without a competing metadata owner", 
  expect(root).toContain("export const viewport: Viewport = applicationViewport();");
  expect(root).toContain("export const metadata: Metadata = applicationMetadata();");
  for (const name of ["today", "discover", "analysis", "monitor", "research", "portfolio", "options", "alerts", "scripts", "research-assistant"]) {
+  expect(source(`app/(shell)/${name}/page.tsx`)).toContain('import { workspaceMetadata } from "@/lib/shared-shell/metadata";');
   expect(source(`app/(shell)/${name}/page.tsx`)).toMatch(/export const metadata(?:: Metadata)? = workspaceMetadata\(/);
  }
  expect(source("app/terminal/layout.tsx")).toContain('workspaceMetadata("Terminal", "Mastermind Terminal")');
