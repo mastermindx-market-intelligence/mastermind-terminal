@@ -1,21 +1,19 @@
 name: Protected migration ownership recovery
-run-name: Migration owner recovery ${{ inputs.ci_run_id }} ${{ inputs.issuer_revision }}
+run-name: Migration owner recovery ${{ inputs.ci_run_id }} ${{ github.sha }}
 
 # Dormant manual recovery entry of the SAME ownership publisher. This is a
 # separate workflow so a broken default-branch trusted-migration-ownership.yml
 # cannot disable recovery; no switch inside that mutable workflow qualifies.
 # SOURCE PROPOSAL ONLY: dispatch/credential enrollment and App activation are
-# separate administrator effects. While repository selectors are 0/0 the run
-# refuses in preflight BEFORE any key mint or write (no silent skip: a manual
-# dispatch during dormancy must fail loudly). Eligible pinned revisions are
-# known-good immutable protected commits reachable on master that already
-# contain this recovery entry; older trees have no recovery command and refuse.
+# separate administrator effects. Recovery executes exactly the dispatch-time
+# default-branch bytes (github.sha), like the automatic issuer: there is NO
+# caller-selected revision input, and a dispatch whose executing protected
+# modules no longer match current master is refused as stale before any mint.
+# While repository selectors are 0/0 (or partially configured) the guard job
+# fails loudly BEFORE any environment allocation (no silent skip).
 on:
   workflow_dispatch:
     inputs:
-      issuer_revision:
-        description: 'Known-good immutable protected issuer revision (40-hex SHA reachable on master)'
-        required: true
       ci_run_id:
         description: 'Completed original CI run id whose candidate head needs the ownership check'
         required: true
@@ -26,11 +24,26 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  dormancy-guard:
+    # Refuse loudly while the publisher identity is pinned to the explicit
+    # disabled state (either selector 0, including partial configuration).
+    # This job has NO environment, so a dormant or misconfigured dispatch can
+    # never allocate the credential environment or its key.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Refuse recovery while the ownership publisher is dormant
+        if: vars.MIGRATION_OWNER_APP_ID == '0' || vars.MIGRATION_OWNER_INSTALLATION_ID == '0'
+        run: |
+          echo "::error::Migration owner recovery is dormant: MIGRATION_OWNER_APP_ID/MIGRATION_OWNER_INSTALLATION_ID is pinned to 0. Nothing to recover; refusing before any environment allocation."
+          exit 1
   recover:
+    needs: dormancy-guard
     if: >-
       github.repository == 'mastermindx-market-intelligence/mastermind-terminal' &&
       github.ref == 'refs/heads/master' &&
-      github.event.repository.default_branch == 'master'
+      github.event.repository.default_branch == 'master' &&
+      vars.MIGRATION_OWNER_APP_ID != '0' && vars.MIGRATION_OWNER_INSTALLATION_ID != '0'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # Same restricted environment and key as the automatic issuer. The
@@ -44,10 +57,10 @@ jobs:
       contents: read
       actions: read
     steps:
-      - name: Check out the pinned immutable issuer revision
+      - name: Check out the dispatch-time protected master revision
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: ${{ inputs.issuer_revision }}
+          ref: ${{ github.sha }}
           persist-credentials: false
           path: trusted
           sparse-checkout-cone-mode: false
@@ -61,12 +74,11 @@ jobs:
           OWNERSHIP_RUN_TOKEN: ${{ github.token }}
           OWNERSHIP_APP_ID: ${{ vars.MIGRATION_OWNER_APP_ID }}
           EXPECTED_INSTALLATION: ${{ vars.MIGRATION_OWNER_INSTALLATION_ID }}
-          RECOVERY_ISSUER_REVISION: ${{ inputs.issuer_revision }}
           RECOVERY_TARGET_RUN: ${{ inputs.ci_run_id }}
         run: |
-          test "$(git rev-parse HEAD)" = "$RECOVERY_ISSUER_REVISION"
-          export TRUSTED_CHECKOUT_SHA="$RECOVERY_ISSUER_REVISION"
-          python3 -I -S -c 'import sys; sys.path.insert(0, "."); from scripts.trusted_migration_ownership import main; raise SystemExit(main())' --recover-preflight
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          export TRUSTED_CHECKOUT_SHA="$GITHUB_SHA"
+          python3 -I -S -c 'import sys; sys.path.append("."); from scripts.trusted_migration_ownership import main; raise SystemExit(main())' --recover-preflight
       - name: Mint repository-scoped installation token
         id: installation
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510
@@ -89,11 +101,10 @@ jobs:
           OWNERSHIP_APP_ID: ${{ vars.MIGRATION_OWNER_APP_ID }}
           EXPECTED_INSTALLATION: ${{ vars.MIGRATION_OWNER_INSTALLATION_ID }}
           ACTUAL_INSTALLATION: ${{ steps.installation.outputs.installation-id }}
-          RECOVERY_ISSUER_REVISION: ${{ inputs.issuer_revision }}
           RECOVERY_TARGET_RUN: ${{ inputs.ci_run_id }}
         run: |
           test -n "$EXPECTED_INSTALLATION"
           test "$ACTUAL_INSTALLATION" = "$EXPECTED_INSTALLATION"
-          test "$(git rev-parse HEAD)" = "$RECOVERY_ISSUER_REVISION"
-          export TRUSTED_CHECKOUT_SHA="$RECOVERY_ISSUER_REVISION"
-          python3 -I -S -c 'import sys; sys.path.insert(0, "."); from scripts.trusted_migration_ownership import main; raise SystemExit(main())' --recover
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          export TRUSTED_CHECKOUT_SHA="$GITHUB_SHA"
+          python3 -I -S -c 'import sys; sys.path.append("."); from scripts.trusted_migration_ownership import main; raise SystemExit(main())' --recover

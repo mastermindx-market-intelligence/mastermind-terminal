@@ -21,10 +21,11 @@ from test_migration_merge_group import (
 from test_supabase_migration_namespace import reservations_doc
 from test_trusted_migration_ownership import Service, check_data, blob, APP, ROOT
 
-PIN = "9" * 40
+# ANCHOR is the dispatch-time master revision (GITHUB_SHA): recovery executes
+# exactly those bytes; there is no caller-selected issuer revision anymore.
 ANCHOR = "8" * 40
 ACTOR = "recovery-admin"
-OTHER_PIN = "7" * 40
+OTHER_ANCHOR = "7" * 40
 RECOVERY_RUN = 85
 PRIOR_RECOVERY_RUN = 86
 
@@ -38,15 +39,15 @@ def recovery_env(**overrides):
     env = {"GITHUB_ACTIONS": "true", "GITHUB_EVENT_NAME": "workflow_dispatch",
            "GITHUB_REPOSITORY": owner.REPO, "GITHUB_REPOSITORY_ID": "123",
            "GITHUB_REF": "refs/heads/master", "GITHUB_SHA": ANCHOR,
-           "TRUSTED_CHECKOUT_SHA": PIN,
+           "TRUSTED_CHECKOUT_SHA": ANCHOR,
            "GITHUB_RUN_ID": str(RECOVERY_RUN), "GITHUB_RUN_ATTEMPT": "1",
-           "RECOVERY_ISSUER_REVISION": PIN, "RECOVERY_TARGET_RUN": "71"}
+           "RECOVERY_TARGET_RUN": "71"}
     return env | overrides
 
 
 class RecoveryService(Service):
-    """Inert service with the additional recovery reads (compare, actor,
-    live-issuer scan, validator identity, prior recovery issuers)."""
+    """Inert service with the additional recovery reads (actor, per-status
+    live-issuer scan, validator identity, prior recovery dispatches/jobs)."""
 
     def __init__(self, event="merge_group"):
         super().__init__(event)
@@ -55,7 +56,7 @@ class RecoveryService(Service):
                          "path": owner.RECOVERY_ISSUER_WORKFLOW,
                          "name": owner.RECOVERY_ISSUER_NAME, "event": "workflow_dispatch",
                          "head_branch": "master", "head_sha": ANCHOR, "status": "in_progress",
-                         "display_title": f"Migration owner recovery {self.run['id']} {PIN}",
+                         "display_title": f"Migration owner recovery {self.run['id']} {ANCHOR}",
                          "triggering_actor": {"login": ACTOR},
                          "repository": {"id": 123, "full_name": owner.REPO},
                          "head_repository": {"id": 123, "full_name": owner.REPO}}
@@ -64,12 +65,16 @@ class RecoveryService(Service):
                                "name": owner.RECOVERY_ISSUER_NAME, "event": "workflow_dispatch",
                                "head_branch": "master", "head_sha": ANCHOR, "status": "completed",
                                "conclusion": "success",
-                               "display_title": f"Migration owner recovery {self.run['id']} {OTHER_PIN}",
+                               "display_title": f"Migration owner recovery {self.run['id']} {OTHER_ANCHOR}",
                                "repository": {"id": 123, "full_name": owner.REPO},
                                "head_repository": {"id": 123, "full_name": owner.REPO}}
-        self.compare = {"status": "ahead"}
         self.permission = {"permission": "write", "user": {"login": ACTOR}}
-        self.live_issuers = {"total_count": 0, "workflow_runs": []}
+        self.live_issuers = {status: {"total_count": 0, "workflow_runs": []}
+                             for status in owner._LIVE_ISSUER_STATUSES}
+        self.live_after = None
+        self.live_queries = 0
+        self.dispatch_runs = {"total_count": 0, "workflow_runs": []}
+        self.prior_jobs = {}
         self.validators = {}
         self.created = None
 
@@ -91,15 +96,29 @@ class RecoveryService(Service):
                 return result
             assert self.created is not None, "PATCH before POST"
             return copy.deepcopy(self.created) | (body or {})
-        if "/compare/" in path:
-            assert path == f"/repos/{owner.REPO}/compare/{PIN}...master?per_page=1"
-            return copy.deepcopy(self.compare)
+        if path.startswith(f"/repos/{owner.REPO}/actions/runs?"):
+            query = dict(part.split("=", 1) for part in path.split("?", 1)[1].split("&"))
+            if query.get("event") == "workflow_run":
+                status = query.get("status")
+                assert query == {"event": "workflow_run", "status": status, "per_page": "100"}
+                assert status in owner._LIVE_ISSUER_STATUSES
+                self.live_queries += 1
+                source = self.live_issuers
+                # Results served after the first complete sweep model an issuer
+                # attempt appearing between preflight and the pre-POST re-scan.
+                if self.live_after is not None and self.live_queries > len(owner._LIVE_ISSUER_STATUSES):
+                    source = self.live_after
+                return copy.deepcopy(source.get(status, {"total_count": 0, "workflow_runs": []}))
+            assert query == {"event": "workflow_dispatch", "per_page": "100"}
+            return copy.deepcopy(self.dispatch_runs)
+        if "/jobs?" in path:
+            assert path.startswith(f"/repos/{owner.REPO}/actions/runs/")
+            assert path.endswith("/jobs?per_page=100")
+            prior_id = int(path.split("/runs/", 1)[1].split("/jobs", 1)[0])
+            return copy.deepcopy(self.prior_jobs.get(prior_id, {"total_count": 0, "jobs": []}))
         if "/collaborators/" in path:
             assert path == f"/repos/{owner.REPO}/collaborators/{ACTOR}/permission"
             return copy.deepcopy(self.permission)
-        if path.startswith(f"/repos/{owner.REPO}/actions/runs?"):
-            assert "event=workflow_run&status=in_progress&per_page=100" in path
-            return copy.deepcopy(self.live_issuers)
         if path.endswith(f"/actions/runs/{RECOVERY_RUN}"):
             return copy.deepcopy(self.recovery)
         if path.endswith(f"/actions/runs/{PRIOR_RECOVERY_RUN}"):
@@ -111,12 +130,31 @@ class RecoveryService(Service):
 
     def graphql(self, query, variables):
         if query == owner.VALIDATOR_QUERY:
-            sha = variables["p0"].split(":", 1)[0]
-            ids = self.validators.get(sha, ("5" * 40, "6" * 40, "4" * 40))
+            ref = variables["p0"].split(":", 1)[0]
+            ids = self.validators.get(ref, ("5" * 40, "6" * 40, "4" * 40))
             return {"repository": {"nameWithOwner": owner.REPO,
                                    **{f"p{i}": {"__typename": "Blob", "oid": oid}
                                       for i, oid in enumerate(ids)}}}
         return super().graphql(query, variables)
+
+
+def prior_recovery_run(run_id=PRIOR_RECOVERY_RUN, target=71, code=OTHER_ANCHOR, **fields):
+    record = {"id": run_id, "run_attempt": 1, "workflow_id": 19,
+              "path": owner.RECOVERY_ISSUER_WORKFLOW,
+              "name": owner.RECOVERY_ISSUER_NAME, "event": "workflow_dispatch",
+              "head_branch": "master", "head_sha": code, "status": "completed",
+              "conclusion": "success",
+              "display_title": f"Migration owner recovery {target} {code}",
+              "repository": {"id": 123, "full_name": owner.REPO},
+              "head_repository": {"id": 123, "full_name": owner.REPO}}
+    return record | fields
+
+
+def prior_recovery_jobs(reached):
+    return {"total_count": 1, "jobs": [{"id": 1, "name": "recover",
+            "conclusion": "success" if reached else "failure", "steps": [
+                {"name": owner.RECOVERY_PUBLISH_STEP,
+                 "conclusion": "success" if reached else "skipped"}]}]}
 
 
 def mixed_service():
@@ -131,7 +169,6 @@ def mixed_service():
             entry["pullRequest"][key]["nameWithOwner"] = owner.REPO
     api.run["head_sha"] = SECOND_HEAD
     api.issuer["display_title"] = f"Migration owner {api.run['id']}/{api.run['run_attempt']} {SECOND_HEAD}"
-    api.recovery["display_title"] = f"Migration owner recovery {api.run['id']} {PIN}"
     api.doc = reservations_doc()
     api.doc["prefixes"]["0099"] = copy.deepcopy(ROW)
     api.sql = {NAME: RAW}
@@ -151,13 +188,13 @@ def test_recovery_publishes_with_authenticated_provenance(event):
     api = RecoveryService(event)
     result = owner.execute_recovery(recovery_event(), recovery_env(), api, APP)
     assert result["state"] == "PUBLISHED" and result["head"] == api.run["head_sha"]
-    assert result["by"] == ACTOR and result["issuer_revision"] == PIN
+    assert result["by"] == ACTOR and result["protected_code"] == ANCHOR
     assert [x[0] for x in api.mutations] == ["POST", "PATCH"]
     assert api.mutations[-1][2]["conclusion"] == "success"
     summary = api.mutations[-1][2]["output"]["summary"]
-    assert ACTOR in summary and "write" in summary and PIN in summary
+    assert ACTOR in summary and "write" in summary and ANCHOR in summary
     external = api.mutations[0][2]["external_id"]
-    assert external.endswith(":" + PIN) and api.run["head_sha"] in external
+    assert external.endswith(":" + ANCHOR) and api.run["head_sha"] in external
     assert api.mutations[0][2]["details_url"].endswith(f"/runs/{RECOVERY_RUN}/attempts/1")
 
 
@@ -200,8 +237,8 @@ def test_automatic_issuer_also_binds_the_integrated_queue_tree():
     assert not api.mutations
 
 
-@pytest.mark.parametrize("key,value", [("RECOVERY_ISSUER_REVISION", "not-a-sha"),
-    ("RECOVERY_ISSUER_REVISION", ANCHOR), ("TRUSTED_CHECKOUT_SHA", ANCHOR),
+@pytest.mark.parametrize("key,value", [("TRUSTED_CHECKOUT_SHA", "9" * 40),
+    ("TRUSTED_CHECKOUT_SHA", "not-a-sha"),
     ("RECOVERY_TARGET_RUN", "abc"), ("RECOVERY_TARGET_RUN", "0"),
     ("RECOVERY_TARGET_RUN", "071"), ("GITHUB_SHA", "short"),
     ("GITHUB_REF", "refs/heads/other"), ("GITHUB_EVENT_NAME", "workflow_run"),
@@ -213,49 +250,50 @@ def test_untrusted_recovery_context_refuses(key, value):
     assert not api.mutations
 
 
-@pytest.mark.parametrize("status", ["diverged", "behind", "unknown"])
-def test_unreachable_or_unprotected_pinned_revision_refuses(status):
+def test_stale_dispatch_refuses_when_anchor_is_not_current_law():
+    """The checked-out dispatch revision predates current master law."""
     api = RecoveryService()
-    api.compare["status"] = status
+    api.validators[ANCHOR] = ("1" * 40, "6" * 40, "4" * 40)
     with pytest.raises(group.OwnershipUnqualified):
         owner.execute_recovery(recovery_event(), recovery_env(), api, APP)
     assert not api.mutations
 
 
-def test_pinned_master_tip_itself_is_reachable():
+def test_current_master_diverging_after_dispatch_refuses():
+    """Master moved on to different protected law after this dispatch."""
     api = RecoveryService()
-    api.compare["status"] = "identical"
+    api.validators["master"] = ("5" * 40, "6" * 40, "3" * 40)
+    with pytest.raises(group.OwnershipUnqualified):
+        owner.execute_recovery(recovery_event(), recovery_env(), api, APP)
+    assert not api.mutations
+
+
+@pytest.mark.parametrize("module", range(3))
+def test_any_single_changed_module_identity_makes_the_dispatch_stale(module):
+    ids = ["5" * 40, "6" * 40, "4" * 40]
+    ids[module] = "1" * 40
+    api = RecoveryService()
+    api.validators[ANCHOR] = tuple(ids)
+    with pytest.raises(group.OwnershipUnqualified):
+        owner.execute_recovery(recovery_event(), recovery_env(), api, APP)
+    assert not api.mutations
+
+
+def test_dispatch_on_current_law_with_identical_identity_qualifies():
+    """Master may have moved; only differing protected module bytes stale the run."""
+    api = RecoveryService()
+    api.validators[ANCHOR] = api.validators["master"] = ("a" * 40, "b" * 40, "c" * 40)
     assert owner.execute_recovery(recovery_event(), recovery_env(), api, APP)["state"] == "PUBLISHED"
 
 
-def test_old_policy_issuer_revision_is_refused_anti_rollback():
-    api = RecoveryService()
-    api.validators[ANCHOR] = ("5" * 40, "6" * 40, "4" * 40)
-    # The pin predates the current validator/issuer-law invariant (either the
-    # validator or the issuer module itself rolled back).
-    api.validators[PIN] = ("1" * 40, "6" * 40, "4" * 40)
-    with pytest.raises(group.OwnershipUnqualified):
-        owner.execute_recovery(recovery_event(), recovery_env(), api, APP)
-    assert not api.mutations
-
-
-def test_pinned_revision_with_rolled_back_issuer_module_is_refused():
-    """Identical validator bytes cannot run weaker issuer law (review finding)."""
-    api = RecoveryService()
-    api.validators[PIN] = ("5" * 40, "6" * 40, "3" * 40)
-    with pytest.raises(group.OwnershipUnqualified):
-        owner.execute_recovery(recovery_event(), recovery_env(), api, APP)
-    assert not api.mutations
-
-
-@pytest.mark.parametrize("shape", ["missing-at-pin", "missing-at-anchor"])
+@pytest.mark.parametrize("shape", ["missing-at-anchor", "missing-at-master"])
 def test_validator_module_unavailable_refuses(shape):
     class Broken(RecoveryService):
         def graphql(self, query, variables):
             if query == owner.VALIDATOR_QUERY:
-                sha = variables["p0"].split(":", 1)[0]
+                ref = variables["p0"].split(":", 1)[0]
                 data = super().graphql(query, variables)
-                if sha == (PIN if shape == "missing-at-pin" else ANCHOR):
+                if ref == (ANCHOR if shape == "missing-at-anchor" else "master"):
                     data["repository"]["p1"] = {"__typename": "Tree"}
                 return data
             return super().graphql(query, variables)
@@ -282,8 +320,8 @@ def test_any_completed_outcome_is_recoverable(conclusion):
 
 @pytest.mark.parametrize("field,value", [
     ("event", "workflow_run"), ("path", owner.ISSUER_WORKFLOW), ("name", owner.ISSUER_NAME),
-    ("head_branch", "claude/foreign"), ("head_sha", PIN), ("run_attempt", 2),
-    ("display_title", "Migration owner recovery 99 " + PIN),
+    ("head_branch", "claude/foreign"), ("head_sha", "9" * 40), ("run_attempt", 2),
+    ("display_title", "Migration owner recovery 99 " + ANCHOR),
     ("display_title", f"Migration owner 71/1 {HEAD}"), ("status", "completed"),
     ("id", 82), ("workflow_id", 18), ("repository.id", 999),
     ("head_repository.full_name", "foreign/repo"),
@@ -357,10 +395,10 @@ def test_settled_original_issuer_check_reconciles_without_another_post():
     assert not api.mutations
 
 
-def test_settled_prior_recovery_check_reconciles_with_other_pinned_revision():
+def test_settled_prior_recovery_check_reconciles_with_other_dispatch_anchor():
     api = RecoveryService()
     check = check_data(details_url=f"https://github.com/{owner.REPO}/actions/runs/{PRIOR_RECOVERY_RUN}/attempts/1",
-                       external_id=f"migration-owner:v1:{71}:{1}:{HEAD}:{OTHER_PIN}")
+                       external_id=f"migration-owner:v1:{71}:{1}:{HEAD}:{OTHER_ANCHOR}")
     api.previous = {"check_runs": [check], "total_count": 1}
     assert owner.execute_recovery(recovery_event(), recovery_env(), api, APP) == {
         "state": "RECONCILED", "conclusion": "success"}
@@ -402,12 +440,74 @@ def test_prior_check_with_unqualified_issuer_run_refuses():
     assert not api.mutations
 
 
-def test_live_issuer_competition_refuses():
+@pytest.mark.parametrize("status", owner._LIVE_ISSUER_STATUSES)
+def test_any_not_completed_issuer_attempt_blocks_recovery(status):
+    """A queued/waiting/pending/requested/action-required issuer still owns the
+    operation; only status=in_progress was scanned before (M1)."""
     api = RecoveryService()
-    api.live_issuers = {"total_count": 1, "workflow_runs": [copy.deepcopy(api.issuer)]}
+    issuer = copy.deepcopy(api.issuer)
+    issuer["status"] = status
+    api.live_issuers[status] = {"total_count": 1, "workflow_runs": [issuer]}
     with pytest.raises(group.OwnershipUnqualified):
         owner.execute_recovery(recovery_event(), recovery_env(), api, APP)
     assert not api.mutations
+
+
+def test_issuer_appearing_during_the_material_read_is_caught_by_the_pre_post_rescan():
+    """An issuer attempt created between preflight and the POST keeps the turn:
+    the scan repeats immediately before the write (M1)."""
+    api = RecoveryService()
+    api.live_after = {"in_progress": {"total_count": 1, "workflow_runs": [copy.deepcopy(api.issuer)]}}
+    with pytest.raises(group.OwnershipUnqualified):
+        owner.execute_recovery(recovery_event(), recovery_env(), api, APP)
+    assert not api.mutations
+
+
+@pytest.mark.parametrize("status", ["queued", "waiting", "in_progress"])
+def test_unsettled_prior_recovery_for_the_same_target_refuses(status):
+    """m2: an earlier recovery dispatch for this target that has not settled
+    keeps its carrier; this dispatch never writes over it."""
+    api = RecoveryService()
+    api.dispatch_runs = {"total_count": 1,
+                         "workflow_runs": [prior_recovery_run(status=status, conclusion=None)]}
+    with pytest.raises(group.OwnershipUnqualified):
+        owner.execute_recovery(recovery_event(), recovery_env(), api, APP)
+    assert not api.mutations
+
+
+def test_settled_prior_recovery_that_reached_publication_refuses():
+    """m2: a completed earlier recovery whose publish step executed may have an
+    invisible POST outcome (lost response); a new dispatch never re-POSTs."""
+    api = RecoveryService()
+    api.dispatch_runs = {"total_count": 1, "workflow_runs": [prior_recovery_run()]}
+    api.prior_jobs[PRIOR_RECOVERY_RUN] = prior_recovery_jobs(reached=True)
+    with pytest.raises(group.OwnershipUnqualified):
+        owner.execute_recovery(recovery_event(), recovery_env(), api, APP)
+    assert not api.mutations
+
+
+def test_settled_prior_recovery_that_stopped_before_publication_does_not_block():
+    """A prior recovery that failed before the publish step (e.g. in preflight)
+    took no write turn; a fresh dispatch may proceed."""
+    api = RecoveryService()
+    api.dispatch_runs = {"total_count": 1,
+                         "workflow_runs": [prior_recovery_run(conclusion="failure")]}
+    api.prior_jobs[PRIOR_RECOVERY_RUN] = prior_recovery_jobs(reached=False)
+    assert owner.execute_recovery(recovery_event(), recovery_env(), api, APP)["state"] == "PUBLISHED"
+    assert [m[0] for m in api.mutations] == ["POST", "PATCH"]
+
+
+def test_the_running_recovery_is_not_its_own_prior():
+    api = RecoveryService()
+    api.dispatch_runs = {"total_count": 1, "workflow_runs": [
+        prior_recovery_run(run_id=RECOVERY_RUN, code=ANCHOR, status="in_progress", conclusion=None)]}
+    assert owner.execute_recovery(recovery_event(), recovery_env(), api, APP)["state"] == "PUBLISHED"
+
+
+def test_prior_recovery_for_a_different_target_does_not_block():
+    api = RecoveryService()
+    api.dispatch_runs = {"total_count": 1, "workflow_runs": [prior_recovery_run(target=72)]}
+    assert owner.execute_recovery(recovery_event(), recovery_env(), api, APP)["state"] == "PUBLISHED"
 
 
 def test_interrupted_publication_is_read_back_before_any_retry():
@@ -419,7 +519,7 @@ def test_interrupted_publication_is_read_back_before_any_retry():
     # The dispatch outcome is unknown: the same operation is only read back.
     api.lose = None
     settled = check_data(details_url=f"https://github.com/{owner.REPO}/actions/runs/{RECOVERY_RUN}/attempts/1",
-                         external_id=f"migration-owner:v1:71:1:{HEAD}:{PIN}")
+                         external_id=f"migration-owner:v1:71:1:{HEAD}:{ANCHOR}")
     api.previous = {"check_runs": [settled], "total_count": 1}
     assert owner.execute_recovery(recovery_event(), recovery_env(), api, APP)["state"] == "RECONCILED"
     assert sum(m[0] == "POST" for m in api.mutations) == 1
@@ -432,7 +532,7 @@ def test_interrupted_publication_unsettled_still_refuses():
         owner.execute_recovery(recovery_event(), recovery_env(), api, APP)
     api.lose = None
     unsettled = check_data(details_url=f"https://github.com/{owner.REPO}/actions/runs/{RECOVERY_RUN}/attempts/1",
-                           external_id=f"migration-owner:v1:71:1:{HEAD}:{PIN}",
+                           external_id=f"migration-owner:v1:71:1:{HEAD}:{ANCHOR}",
                            status="in_progress", conclusion=None)
     api.previous = {"check_runs": [unsettled], "total_count": 1}
     with pytest.raises(group.OwnershipUnqualified):
@@ -517,9 +617,9 @@ def write_event(tmp_path, event):
     return str(path)
 
 
-def run_main(monkeypatch, tmp_path, argv, env, api=None):
+def run_main(monkeypatch, tmp_path, argv, env, api=None, event=None):
     env = dict(env)
-    env["GITHUB_EVENT_PATH"] = write_event(tmp_path, recovery_event())
+    env["GITHUB_EVENT_PATH"] = write_event(tmp_path, event or recovery_event())
     for key, value in env.items():
         monkeypatch.setenv(key, value)
     if api is not None:
@@ -551,6 +651,22 @@ def test_recover_preflight_qualifies_without_mint(tmp_path, monkeypatch):
     assert not api.mutations
 
 
+@pytest.mark.parametrize("which", ["read-permission", "mismatched-trigger", "bot"])
+def test_recover_preflight_refuses_unqualified_dispatch_before_mint(tmp_path, monkeypatch, which):
+    """m3: dispatcher provenance is proven in preflight too, so an unqualified
+    actor never reaches the credential mint step at all."""
+    api = RecoveryService()
+    if which == "mismatched-trigger":
+        api.recovery["triggering_actor"] = {"login": "someone-else"}
+    elif which == "read-permission":
+        api.permission["permission"] = "read"
+    event = recovery_event(sender={"login": ACTOR, "type": "Bot"}) if which == "bot" else None
+    env = recovery_env(OWNERSHIP_APP_ID=str(APP), EXPECTED_INSTALLATION="999",
+                       OWNERSHIP_RUN_TOKEN="INERT_RUN")
+    assert run_main(monkeypatch, tmp_path, ["--recover-preflight"], env, api, event) == 1
+    assert not api.mutations
+
+
 def test_recover_preflight_rerun_refuses_before_mint(tmp_path, monkeypatch):
     api = RecoveryService()
     api.recovery["run_attempt"] = 2
@@ -568,51 +684,82 @@ def test_recover_main_entry_completes(tmp_path, monkeypatch):
     assert [m[0] for m in api.mutations] == ["POST", "PATCH"]
 
 
+def recovery_workflow():
+    return (ROOT / ".github/workflows/trusted-migration-ownership-recovery.yml").read_text()
+
+
 def test_recovery_workflow_contract():
-    workflow = yaml.safe_load(
-        (ROOT / ".github/workflows/trusted-migration-ownership-recovery.yml").read_text())
+    workflow = yaml.safe_load(recovery_workflow())
     trigger = workflow.get("on", workflow.get(True))
     assert set(trigger) == {"workflow_dispatch"}
     assert "workflow_run" not in trigger  # survives a broken automatic issuer
     inputs = trigger["workflow_dispatch"]["inputs"]
-    assert set(inputs) == {"issuer_revision", "ci_run_id"}
+    assert set(inputs) == {"ci_run_id"}
     assert all(inputs[key]["required"] is True for key in inputs)
     assert workflow["run-name"] == ("Migration owner recovery ${{ inputs.ci_run_id }} "
-                                    "${{ inputs.issuer_revision }}")
+                                    "${{ github.sha }}")
     assert workflow["permissions"] == {}
     assert workflow["concurrency"]["group"] == "protected-migration-owner-recovery-${{ inputs.ci_run_id }}"
     assert workflow["concurrency"]["cancel-in-progress"] is False
-    job = workflow["jobs"]["recover"]
+    # m1: dormancy is refused loudly by an environment-free guard job BEFORE
+    # any credential allocation; the credential job additionally requires both
+    # selectors non-zero on top of the repository/ref/default-branch guards.
+    guard, job = workflow["jobs"]["dormancy-guard"], workflow["jobs"]["recover"]
+    assert "environment" not in guard and guard.get("permissions") in (None, {})
+    guard_step, = guard["steps"]
+    assert guard_step["if"] == ("vars.MIGRATION_OWNER_APP_ID == '0' || "
+                                "vars.MIGRATION_OWNER_INSTALLATION_ID == '0'")
+    assert "exit 1" in guard_step["run"]
+    assert job["needs"] in (["dormancy-guard"], "dormancy-guard")
     assert job["environment"] == "terminal-migration-owner"
     # A dispatch can target any ref carrying this file; only the environment's
     # master-only branch policy keeps hostile refs away from the key, and the
     # workflow must say so next to the environment it requires.
-    raw_text = (ROOT / ".github/workflows/trusted-migration-ownership-recovery.yml").read_text()
-    assert "BRANCH rule for master only" in raw_text
+    assert "BRANCH rule for master only" in recovery_workflow()
     assert job["permissions"] == {"contents": "read", "actions": "read"}
-    guard = ("github.repository == 'mastermindx-market-intelligence/mastermind-terminal' && "
-             "github.ref == 'refs/heads/master' && "
-             "github.event.repository.default_branch == 'master'")
-    assert job["if"].strip() == guard
-    assert "MIGRATION_OWNER_APP_ID" not in job["if"]  # dormancy refuses loudly, never skips
+    guard_base = ("github.repository == 'mastermindx-market-intelligence/mastermind-terminal' && "
+                  "github.ref == 'refs/heads/master' && "
+                  "github.event.repository.default_branch == 'master'")
+    selector = ("vars.MIGRATION_OWNER_APP_ID != '0' && "
+                "vars.MIGRATION_OWNER_INSTALLATION_ID != '0'")
+    assert job["if"].strip() == f"{guard_base} && {selector}"
+    # C1: the checkout is the dispatch-time protected master revision, exactly
+    # like the automatic issuer; no caller-selected revision exists.
     checkout, preflight, mint, invoke = job["steps"]
-    assert checkout["with"]["ref"] == "${{ inputs.issuer_revision }}"
+    assert checkout["with"]["ref"] == "${{ github.sha }}"
     assert checkout["with"]["persist-credentials"] is False
     assert checkout["with"]["sparse-checkout"] == ("scripts/trusted_migration_ownership.py\n"
         "scripts/migration_merge_group.py\nscripts/check_supabase_migration_namespace.py\n")
-    assert "RECOVERY_ISSUER_REVISION" in preflight["env"] and "RECOVERY_TARGET_RUN" in preflight["env"]
+    assert "RECOVERY_TARGET_RUN" in preflight["env"]
+    assert "RECOVERY_ISSUER_REVISION" not in preflight["env"]
     assert "OWNERSHIP_TOKEN" not in preflight["env"]
     assert preflight["run"].count("git rev-parse HEAD") == 1
+    assert '$GITHUB_SHA' in preflight["run"]
+    # n1: recovery appends (never front-inserts) its checkout path.
+    assert 'sys.path.append(".")' in preflight["run"]
     assert {k: v for k, v in mint["with"].items() if k.startswith("permission-")} == {
         "permission-merge-queues": "read", "permission-contents": "read",
         "permission-pull-requests": "read", "permission-checks": "write"}
     assert mint["with"]["repositories"] == "mastermind-terminal"
     assert mint["with"]["app-id"] == "${{ vars.MIGRATION_OWNER_APP_ID }}"
     assert invoke["env"]["OWNERSHIP_TOKEN"] == "${{ steps.installation.outputs.token }}"
-    assert invoke["env"]["RECOVERY_ISSUER_REVISION"] == "${{ inputs.issuer_revision }}"
+    assert "RECOVERY_ISSUER_REVISION" not in invoke["env"]
+    assert "RECOVERY_TARGET_RUN" in invoke["env"]
     assert invoke["run"].strip().endswith("--recover")
+    assert 'sys.path.append(".")' in invoke["run"]
     assert all(len(s["uses"].split("@", 1)[1]) == 40 for s in job["steps"] if "uses" in s)
     text = json.dumps(workflow)
     for forbidden in ("download-artifact", "actions/cache", "npm ci", "pip install",
                       "check-suites", "actions/labeler"):
         assert forbidden not in text
+
+
+def test_no_dispatch_input_expression_reaches_any_step_before_the_mint():
+    """C1 contract: dispatcher-typed input text may never reach a checkout ref,
+    shell body, working directory or action input before the token mint."""
+    workflow = yaml.safe_load(recovery_workflow())
+    steps = [step for job in workflow["jobs"].values() for step in job["steps"]]
+    mint_index = next(i for i, step in enumerate(steps) if step.get("id") == "installation")
+    for step in steps[:mint_index + 1]:
+        exposed = {key: step[key] for key in ("ref", "run", "working-directory", "with") if key in step}
+        assert "${{ inputs." not in json.dumps(exposed), step.get("name")
