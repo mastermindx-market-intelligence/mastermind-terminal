@@ -1,0 +1,39 @@
+{
+  "completedAt": "2026-11-09T18:21:10.919415+00:00",
+  "results": {
+    "legacy-boundary": {
+      "command": [
+        "node",
+        "--test",
+        "e2e/tools/optionsExposureEvidence.cases.cjs"
+      ],
+      "exit": 0,
+      "logSha256": "dadd3e211bbf5210f20561f99d3cec77927b62cadd2f133daf0e83872892e788",
+      "seconds": 0.3
+    },
+    "source-reader-and-prophet": {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/optionsExposureEvidence.test.ts",
+        "lib/__tests__/prophetOriginationDisclosure.test.ts",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/docs/verification/pr1248-options-ux-integration-20261109/reader-preflight-r1/unit-report.json"
+      ],
+      "exit": 0,
+      "logSha256": "0c4a61f1e5e47b133de260bee46c7ab04f365ed5aa8a46b2db151109aa6f4d9c",
+      "seconds": 1.14
+    }
+  },
+  "schema": "terminal_pr1248_reader_preflight.v1",
+  "startedAt": "2026-11-09T18:21:09.480161+00:00",
+  "state": "QUALIFIED",
+  "unitStats": {
+    "numFailedTests": 0,
+    "numPassedTests": 81,
+    "numPendingTests": 0,
+    "numTotalTests": 81,
+    "success": true
+  }
+}

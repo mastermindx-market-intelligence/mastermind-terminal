@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { layoutSources, projectR4CaptureHarness, requireR4ChartIdentity, requireSourceKeys, selectWholeFingerprint } from "./helpers/optionsExposureEvidence";
+import { layoutSources, masterIntegrationInputs, projectIndicatorGuardBrowserSources, projectR4CaptureHarness, qualifiedOptionsExposurePacket, requireIntegrationExecution, requireR4ChartIdentity, requireSourceKeys, selectWholeFingerprint } from "./helpers/optionsExposureEvidence";
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -10,6 +10,79 @@ const a = "a".repeat(64), b = "b".repeat(64), c = "c".repeat(64), d = "d".repeat
 const first = { profile: "first", sources: { "Gex.tsx": a, "Levels.tsx": b, "capture.cjs": c } };
 const second = { profile: "second", sources: { "Gex.tsx": b, "Levels.tsx": c, "capture.cjs": d } };
 const keys = ["Gex.tsx", "Levels.tsx", "capture.cjs"];
+
+describe("current Exposure capture result qualification", () => {
+  type Capture = Parameters<typeof requireIntegrationExecution>[0];
+  const repo = join(__dirname, "../../..");
+  const packets = { gex: "gex-levels-heatmap-load-failure", eod: "eod-heatmap-flowdesk-load-failure" };
+  const revision = "operations/exposure-source-compatibility-20261105/revisions/indicator-guard-20261109";
+  const historicalDir = (kind: "gex" | "eod") => join(repo, "terminal/docs/pr-crops", packets[kind],
+    "operations/exposure-source-compatibility-20261105/revisions/master-integration-20261109");
+  const dir = (kind: "gex" | "eod") => join(repo, "terminal/docs/pr-crops", packets[kind], revision);
+  const captured = (kind: "gex" | "eod"): Capture => JSON.parse(readFileSync(join(dir(kind), "capture-execution.json"), "utf8"));
+  it.each(["gex", "eod"] as const)("accepts the complete actual %s execution", kind => {
+    const result = captured(kind);
+    expect(() => requireIntegrationExecution(result, kind, Object.keys(result.images))).not.toThrow();
+  });
+  it("rejects the retained unsuccessful webpack attempt without borrowing its successful frames", () => {
+    const failed: Capture = JSON.parse(readFileSync(join(historicalDir("gex"), "attempts/webpack-initial/capture-execution.json"), "utf8"));
+    expect(failed.exit).not.toBe(0);
+    expect(failed.sourceStable).toBe(true);
+    expect(() => requireIntegrationExecution(failed, "gex", Object.keys(captured("gex").images), "master-integration"))
+      .toThrow("INTEGRATION_CAPTURE_RESULT");
+  });
+  it.each(["gex", "eod"] as const)("retains the old %s result only under its explicit historical identity", kind => {
+    const result: Capture = JSON.parse(readFileSync(join(historicalDir(kind), "capture-execution.json"), "utf8"));
+    expect(() => requireIntegrationExecution(result, kind, Object.keys(result.images), "master-integration")).not.toThrow();
+    expect(() => requireIntegrationExecution(result, kind, Object.keys(result.images))).toThrow("INTEGRATION_CAPTURE_IDENTITY");
+  });
+  it.each([
+    ["nonzero exit", (value: Capture) => { value.exit = 1; }, "INTEGRATION_CAPTURE_RESULT"],
+    ["failed frame", (value: Capture) => { value.frames[0].status = "failure"; }, "INTEGRATION_FRAME_SET"],
+    ["missing frame", (value: Capture) => { value.frames.pop(); }, "INTEGRATION_FRAME_SET"],
+    ["duplicate substituted frame", (value: Capture) => { value.frames[0] = value.frames[1]; }, "INTEGRATION_FRAME_SET"],
+    ["unexpected image", (value: Capture) => { value.images["FAIL-unexpected.png"] = Object.values(value.images)[0]; }, "INTEGRATION_IMAGE_SET"],
+    ["source instability", (value: Capture) => { value.sourceStable = false; }, "INTEGRATION_CAPTURE_RESULT"],
+    ["open server port", (value: Capture) => { value.portClosed = false; }, "INTEGRATION_CAPTURE_LIFECYCLE"],
+    ["remaining server lock", (value: Capture) => { value.nextLockAbsent = false; }, "INTEGRATION_CAPTURE_LIFECYCLE"],
+    ["unreviewed producer", (value: Capture) => {
+      value.producerPins!["terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs"] = a;
+    }, "INTEGRATION_CAPTURE_PRODUCER"],
+  ] as const)("rejects a manifest-bearing run with %s", (_name, mutate, error) => {
+    const original = captured("gex"), changed = structuredClone(original);
+    mutate(changed);
+    expect(() => requireIntegrationExecution(changed, "gex", Object.keys(original.images))).toThrow(error);
+  });
+  it("binds new matrix and owner dependencies while leaving unrelated observed paths outside applicability", () => {
+    const observed: Record<string, string> = JSON.parse(readFileSync(join(dir("gex"), "capture-sources-before.json"), "utf8"));
+    const inputs = masterIntegrationInputs("gex");
+    const sources = Object.fromEntries(inputs.map(path => [path, observed[path]]));
+    requireSourceKeys(sources, inputs);
+    expect(selectWholeFingerprint([{ sources }], { ...sources, "terminal/components/unrelated-analysis.tsx": a }).sources).toEqual(sources);
+    for (const path of ["terminal/components/researchlab/AdmittedOptionsResearchLab.tsx", "terminal/lib/matrixAcquisition.ts",
+      "terminal/lib/investigationOptionsReference.ts", "terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs"]) {
+      expect(inputs).toContain(path);
+      expect(() => selectWholeFingerprint([{ sources }], { ...sources, [path]: sources[path] === a ? b : a }))
+        .toThrow("NO_QUALIFIED_CAPTURE");
+    }
+    const omitted = { ...sources }; delete omitted["terminal/lib/matrixAcquisition.ts"];
+    expect(() => requireSourceKeys(omitted, inputs)).toThrow("SOURCE_KEY_SET");
+  });
+  it("does not fall back when the retained declared predecessor descriptor is corrupt", () => {
+    const temporary = mkdtempSync(join(tmpdir(), "exposure-current-descriptor-"));
+    try {
+      const packet = join(temporary, "terminal/docs/pr-crops", packets.gex);
+      mkdirSync(join(packet, revision), { recursive: true });
+      // The current root now selects the additive Options revision; this case keeps
+      // exercising the immutable indicator predecessor, while owner tests cover the successor.
+      copyFileSync(join(repo, "terminal/docs/pr-crops", packets.gex,
+        "operations/exposure-source-compatibility-20261105/revisions/options-integration-20261109/EVIDENCE.before.yml"), join(packet, "EVIDENCE.yml"));
+      writeFileSync(join(packet, revision, "native-packet.json"), readFileSync(join(dir("gex"), "native-packet.json"), "utf8") + "\n");
+      expect(() => qualifiedOptionsExposurePacket(temporary, "gex", Object.keys(captured("gex").images)))
+        .toThrow("INTEGRATION_PACKET_DIGEST");
+    } finally { rmSync(temporary, { recursive: true, force: true }); }
+  });
+});
 
 describe("whole native source qualification", () => {
   it("selects one complete run while permitting unrelated files in the current tree", () => {
@@ -91,6 +164,50 @@ describe("the recorded r4 fixture-server configuration transition", () => {
     const current = { ...recorded, [path]: successor, "Gex.tsx": b };
     const sources = projectR4CaptureHarness(recorded, current);
     expect(() => selectWholeFingerprint([{ sources }], current)).toThrow("NO_QUALIFIED_CAPTURE");
+  });
+});
+
+describe("the native indicator-guard transition outside the browser execution", () => {
+  const repo = join(__dirname, "../../..");
+  const recorded: Readonly<Record<string, string>> = Object.freeze(JSON.parse(readFileSync(join(repo,
+    "terminal/docs/verification/exposure-workspace-20261103/master-integration-20261109/qualification.json"), "utf8")).currentSources);
+  const gex = "terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs";
+  const eod = "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs";
+  const gexSuccessor = "d1a4781a4a8147ccaef7360126dfedb038e8bc14e565853363e562074677888e";
+  const eodSuccessor = "8c8cd2448ce05a336f40fd020f9d172534c72df834f2b3a6ff2d33d82b6bfc5e";
+  const successor = (): Record<string, string> => ({ ...recorded, [gex]: gexSuccessor, [eod]: eodSuccessor });
+  it("accepts exactly the two reviewed changes without rewriting the 66 historical inputs", () => {
+    const before = { ...recorded }, current = successor();
+    expect(Object.keys(recorded)).toHaveLength(66);
+    expect(projectIndicatorGuardBrowserSources(recorded, current)).toEqual(current);
+    expect(recorded).toEqual(before);
+    for (const [path, digest] of Object.entries(recorded))
+      if (path !== gex && path !== eod) expect(current[path]).toBe(digest);
+  });
+  it.each([gex, eod])("rejects an unknown historical producer at %s", path => {
+    expect(() => projectIndicatorGuardBrowserSources({ ...recorded, [path]: a }, successor()))
+      .toThrow("INDICATOR_BROWSER_RECORDED_PRODUCER");
+  });
+  it.each([
+    ["unknown GEX", { [gex]: a }], ["unknown EOD", { [eod]: b }],
+    ["swapped", { [gex]: eodSuccessor, [eod]: gexSuccessor }],
+    ["only GEX", { [eod]: recorded[eod] }], ["only EOD", { [gex]: recorded[gex] }],
+  ] as const)("rejects the %s current transition", (_name, changes) => {
+    expect(() => projectIndicatorGuardBrowserSources(recorded, { ...successor(), ...changes }))
+      .toThrow("INDICATOR_BROWSER_CURRENT_PRODUCER");
+  });
+  it("still rejects drift in any other browser dependency", () => {
+    const path = "terminal/components/gexdesk/GexDeskView.tsx";
+    expect(() => projectIndicatorGuardBrowserSources(recorded, { ...successor(), [path]: a }))
+      .toThrow("NO_QUALIFIED_CAPTURE");
+  });
+  it.each(["recorded", "current"] as const)("requires the complete exact %s key set", side => {
+    for (const change of ["missing", "extra"]) {
+      const history = { ...recorded }, current = successor(), target = side === "recorded" ? history : current;
+      if (change === "missing") delete target["terminal/playwright.config.ts"];
+      else target["terminal/unreviewed-input.ts"] = a;
+      expect(() => projectIndicatorGuardBrowserSources(history, current)).toThrow("SOURCE_KEY_SET");
+    }
   });
 });
 

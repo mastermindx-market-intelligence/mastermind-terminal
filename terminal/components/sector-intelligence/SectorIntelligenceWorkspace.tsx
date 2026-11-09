@@ -17,9 +17,14 @@ import SectorRotationMap, { ROTATION_BENCHMARK } from "./SectorRotationMap";
 import styles from "./SectorIntelligenceWorkspace.module.css";
 import SectorCompanyComparison from "./SectorCompanyComparison";
 import SectorIntradayComparison, { useSectorPresentationClock } from "./SectorIntradayComparison";
+import SectorLeadershipDossier from "./SectorLeadershipDossier";
+import SectorConstituentEvidence from "./SectorConstituentEvidence";
 import { sectorOriginFromState, withExposureOrigin } from "@/lib/exposureOrigin";
 import { sectorRotationRelativeTrend } from "@/lib/rotationRelativeTrend";
 import { holdingsCoverageFor, sectorHoldingsCoverage } from "@/lib/sectorHoldingsCoverage";
+import { encodeSectorDepthReturn, resolveSectorDepthReturn, sectorDepthReturnQuery,
+  SECTOR_DEPTH_RETURN_PARAM, SECTOR_DEPTH_RETURN_HISTORY_KEY } from "@/lib/sectorDepthReturn";
+import { sectorPortfolioCopy, sectorPortfolioHref } from "@/lib/sectorPortfolioContext";
 
 const VIEW_KEYS: Record<SectorView, string> = {
   intelligence: "siOverview", companies: "siCompaniesTab", signals: "siSignals", drivers: "siDrivers", history: "siHistory",
@@ -64,6 +69,7 @@ function Metric({ label, value, foot }: { label: string; value: string; foot: st
 
 export default function SectorIntelligenceWorkspace() {
   const t = useSectorT(), { lang } = useLang(), identity = useShellIdentity();
+  const sc = sectorPortfolioCopy(lang);
   const [state, setState] = useState<SectorState>(DEFAULT_SECTOR_STATE);
   const [revision, setRevision] = useState(0);
   const activeFeeds = state.workspace === "discover" && state.sourceFamily === "finviz" ? FINVIZ_FEEDS : SECTOR_FEEDS;
@@ -98,9 +104,15 @@ export default function SectorIntelligenceWorkspace() {
   const feeds = received.owner === requestOwner ? received.feeds : {};
   useEffect(() => {
     const sync = () => {
-      const next = parseSectorState(new URLSearchParams(window.location.search));
+      const params = new URLSearchParams(window.location.search);
+      const next = parseSectorState(params);
       if (next.workspace !== currentWorkspace.current) saveWorkspaceScroll();
       if (next.workspace !== "detail") { setReturnWorkspace(next.workspace); setReturnState(null); }
+      else {
+        const opener = resolveSectorDepthReturn(params.get(SECTOR_DEPTH_RETURN_PARAM), window.history.state?.[SECTOR_DEPTH_RETURN_HISTORY_KEY]);
+        setReturnState(opener);
+        setReturnWorkspace(opener?.workspace === "discover" || opener?.workspace === "breadth" ? opener.workspace : "rotation");
+      }
       setState(next);
       setGroupBrowserOpen(false);
     };
@@ -123,35 +135,72 @@ export default function SectorIntelligenceWorkspace() {
   }, [state.workspace]);
   useEffect(() => {
     const controller = new AbortController(); let alive = true;
-    for (const source of requestOwner.activeFeeds) {
-      void (async () => {
-        let payload: FeedPayload;
-        try {
-          const res = await fetch(`/api/sector-intelligence?source=${source}`, {
-            credentials: "same-origin", cache: "no-store", signal: controller.signal,
-          });
-          const body = object(await res.json()), receipt = object(body.receipt);
-          const status = text(receipt.status) as FeedStatus;
-          if (receipt.source !== source || !Object.hasOwn(STATUS_KEYS, status) || (status === "ready" && !res.ok)) {
-            payload = emptyFeed(source, "invalid");
-          } else {
-            payload = { data: res.ok ? body.data : null, receipt: {
-              source, status, path: text(receipt.path), asOf: text(receipt.asOf) || null,
-              observedAt: text(receipt.observedAt) || null, contentHash: text(receipt.contentHash) || null,
-              stale: receipt.stale === true,
-              qualificationReasons: Array.isArray(receipt.qualificationReasons)
-                ? receipt.qualificationReasons.filter((value): value is string => typeof value === "string") : undefined,
-            } };
-          }
-        } catch {
-          if (controller.signal.aborted) return;
-          payload = emptyFeed(source, "error");
+    const pending = new Set<SectorFeed>();
+    async function read(source: SectorFeed) {
+      if (!alive || controller.signal.aborted || pending.has(source)) return;
+      pending.add(source);
+      // One bounded request per feed and owner. A stalled request must not hold
+      // the pending slot forever; leaving the owner cancels every child read.
+      const request = new AbortController();
+      const cancel = () => request.abort();
+      controller.signal.addEventListener("abort", cancel, { once: true });
+      const timeout = setTimeout(cancel, 10_000);
+      let payload: FeedPayload;
+      try {
+        const res = await fetch(`/api/sector-intelligence?source=${source}`, {
+          credentials: "same-origin", cache: "no-store", signal: request.signal,
+        });
+        const body = object(await res.json()), receipt = object(body.receipt);
+        if (request.signal.aborted) throw new Error("Sector owner read expired");
+        const status = text(receipt.status) as FeedStatus;
+        if (receipt.source !== source || !Object.hasOwn(STATUS_KEYS, status) || (status === "ready" && !res.ok)) {
+          payload = emptyFeed(source, "invalid");
+        } else {
+          payload = { data: res.ok ? body.data : null, receipt: {
+            source, status, path: text(receipt.path), asOf: text(receipt.asOf) || null,
+            observedAt: text(receipt.observedAt) || null, contentHash: text(receipt.contentHash) || null,
+            stale: receipt.stale === true,
+            qualificationReasons: Array.isArray(receipt.qualificationReasons)
+              ? receipt.qualificationReasons.filter((value): value is string => typeof value === "string") : undefined,
+          } };
         }
-        if (alive) setReceived(previous => ({ owner: requestOwner, receivedAt: Date.now(),
-          feeds: { ...(previous.owner === requestOwner ? previous.feeds : {}), [source]: payload } }));
-      })();
+      } catch {
+        if (controller.signal.aborted) return;
+        payload = emptyFeed(source, "error");
+      } finally {
+        clearTimeout(timeout);
+        controller.signal.removeEventListener("abort", cancel);
+        pending.delete(source);
+      }
+      if (alive) setReceived(previous => {
+        // A queued state update can run after the effect has lost its owner.
+        if (!alive || controller.signal.aborted) return previous;
+        const prior = previous.owner === requestOwner ? previous.feeds : {};
+        const last = prior[source];
+        const sameBytes = payload.receipt.status === "ready" && payload.receipt.contentHash && last?.receipt.status === "ready"
+          && last.receipt.contentHash === payload.receipt.contentHash;
+        const feed = sameBytes ? { ...payload, data: last.data } : payload;
+        return { owner: requestOwner, receivedAt: Date.now(), feeds: { ...prior, [source]: feed } };
+      });
     }
-    return () => { alive = false; controller.abort(); };
+    for (const source of requestOwner.activeFeeds) void read(source);
+    // Quote ticks keep their existing five-second owner. This checks for new
+    // owner publications across Rotation, Discover, Breadth and research depth;
+    // a successful read never advances a feed's source date.
+    function refreshVisible() {
+      if (document.hidden) return;
+      for (const source of requestOwner.activeFeeds) void read(source);
+    }
+    const timer = setInterval(refreshVisible, 60_000);
+    // Resume immediately, even when the next scheduled tick is not due yet.
+    // read() coalesces this with any request already in flight for this owner.
+    document.addEventListener("visibilitychange", refreshVisible);
+    return () => {
+      alive = false;
+      controller.abort();
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", refreshVisible);
+    };
   }, [requestOwner]);
 
   const sectors = useMemo(() => sectorRows(feeds.sector?.data), [feeds.sector]);
@@ -170,10 +219,21 @@ export default function SectorIntelligenceWorkspace() {
   // Options R1: a holding opens its options exposure with the sector origin beside the
   // address, so the reader can step the same cohort and return to this exact selection.
   const exposureHref = useCallback((ticker: string) => {
-    const origin = sectorOriginFromState({ state, company: ticker, roster: visibleMembers.map(member => member.ticker),
+    const depthReturn = returnState && encodeSectorDepthReturn(returnState) ? returnState : null;
+    const origin = sectorOriginFromState({ state, depthReturn, company: ticker, roster: visibleMembers.map(member => member.ticker),
       asOf: feeds.confluence?.receipt.asOf ?? null, contentHash: feeds.confluence?.receipt.contentHash ?? null, benchmark: ROTATION_BENCHMARK });
     return origin ? withExposureOrigin(`/options?tab=prism&symbol=${encodeURIComponent(ticker)}&view=chart`, origin) : null;
-  }, [state, visibleMembers, feeds.confluence]);
+  }, [state, returnState, visibleMembers, feeds.confluence]);
+  // The Portfolio action carries the selected native sector ETF and the admitted opener
+  // snapshot — navigation context only. No dossier value, position, weight, target or
+  // account identity rides in the address.
+  const portfolioOpener = useMemo(() => {
+    if (state.workspace !== "detail") return null;
+    return returnState ? { ...returnState, sourcesOpen: false } : { ...state, workspace: returnWorkspace, sourcesOpen: false };
+  }, [state, returnState, returnWorkspace]);
+  const portfolioHref = useMemo(
+    () => sectorPortfolioHref(text(sector.ticker), portfolioOpener),
+    [sector.ticker, portfolioOpener]);
   const landed = useRef(false);
   useEffect(() => {
     // A return address names an exact holding: land on it once, without a scroll jump.
@@ -197,21 +257,31 @@ export default function SectorIntelligenceWorkspace() {
   const groupName = text(lang === "zh" ? group.label_zh : group.label) || text(group.label);
   const localName = (r: Row, en = "name", zh = "name_zh") => text(lang === "zh" ? r[zh] : r[en]) || text(r[en]);
   const stateLabel = (v: unknown) => t(STATE_KEYS[text(v).toLowerCase()] || "siUnavailable");
-  const change = useCallback((patch: Partial<SectorState>, push = false) => {
+  const change = useCallback((patch: Partial<SectorState>, push = false, opener = returnState) => {
     const next = { ...state, ...patch };
     if (next.workspace !== state.workspace) saveWorkspaceScroll();
     setState(next);
-    const href = writeSectorState(new URL(window.location.href), next);
-    if (push) window.history.pushState(window.history.state, "", href);
-    else window.history.replaceState(window.history.state, "", href);
-  }, [state, saveWorkspaceScroll]);
+    const url = new URL(window.location.href);
+    const snapshot = next.workspace === "detail" && opener ? encodeSectorDepthReturn(opener) : null;
+    const publicSnapshot = snapshot && opener ? sectorDepthReturnQuery(opener) : null;
+    const historyState = { ...window.history.state };
+    if (publicSnapshot) {
+      url.searchParams.set(SECTOR_DEPTH_RETURN_PARAM, publicSnapshot);
+      historyState[SECTOR_DEPTH_RETURN_HISTORY_KEY] = snapshot;
+    }
+    else url.searchParams.delete(SECTOR_DEPTH_RETURN_PARAM);
+    if (!publicSnapshot) delete historyState[SECTOR_DEPTH_RETURN_HISTORY_KEY];
+    const href = writeSectorState(url, next);
+    if (push) window.history.pushState(historyState, "", href);
+    else window.history.replaceState(historyState, "", href);
+  }, [state, saveWorkspaceScroll, returnState]);
   const openOuterWorkspace = (workspace: OuterWorkspace) => {
     setReturnWorkspace(workspace); setReturnState(null);
     change({ workspace, sourcesOpen: false }, true);
   };
   const openSectorResearch = (sectorId: string) => {
     if (state.workspace !== "detail") { setReturnWorkspace(state.workspace); setReturnState(state); }
-    change({ sector: sectorId, workspace: "detail", view: "intelligence", group: "", company: "", query: "", expanded: false, sourcesOpen: false }, true);
+    change({ sector: sectorId, workspace: "detail", view: "intelligence", group: "", company: "", query: "", expanded: false, sourcesOpen: false }, true, state.workspace !== "detail" ? state : returnState);
   };
   const returnToOuterWorkspace = () => {
     const target = returnState ? { ...returnState, sourcesOpen: false } : { workspace: returnWorkspace, sourcesOpen: false };
@@ -308,6 +378,8 @@ export default function SectorIntelligenceWorkspace() {
       {state.workspace === "detail" && <div className={styles.depthNavigation} data-testid="sector-detail-depth">
         <button type="button" data-testid="sector-detail-return" onClick={returnToOuterWorkspace}>← {t(RETURN_KEYS[returnWorkspace])}</button>
         <span>{t("siResearchDepth")} · {sectorName || state.sector.toUpperCase()}</span>
+        {portfolioHref && <Link className={styles.button} href={portfolioHref} data-testid="sector-view-in-portfolio"
+          data-sector-etf={text(sector.ticker)}>{sc("viewInPortfolio")}</Link>}
       </div>}
       {state.workspace === "discover" && <nav className={styles.workspaceNavigation} aria-label={t("siFinvizSourceFamily")}>
         <button type="button" aria-pressed={state.sourceFamily === "sectors"} onClick={() => change({ sourceFamily: "sectors" }, true)}>{t("siFinvizSectors")}</button>
@@ -382,7 +454,14 @@ export default function SectorIntelligenceWorkspace() {
               <Metric label={t("siTop5")} value={formatValue(cap ? cap.share * 100 : null, 1, "%")} foot={cap ? `${cap.count} ${t("siTiles")}` : t("siNotConnected")} />
             </div>
           </section>}
+          {/* Persistent Sector Leadership: the owner's measured relative wealth, rendered from the
+              same sector feed the overview already reads. It owns no snapshot, no fetch and no
+              state, and it never falls back to another sector's numbers. */}
+          <SectorLeadershipDossier feed={feeds.sector} selectedTicker={text(sector.ticker)} onSources={() => openSources()} />
           {comparison}
+          <SectorConstituentEvidence fund={text(sector.ticker) || null}
+            coverage={holdingsCoverage ? holdingsCoverageFor(holdingsCoverage, text(sector.ticker)) : null}
+            feed={feeds.holdings ?? null} identity={identity} presentation={state.theme} />
           {/* Catalyst: the owner's measured intraday interval, after the market summary and before
               the detailed evidence disclosure. It adds no new state owner and no new route. */}
           <SectorIntradayComparison data={feeds.intraday?.data} status={feeds.intraday?.receipt.status || "loading"}

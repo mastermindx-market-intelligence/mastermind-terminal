@@ -52,6 +52,55 @@ async function warm(url, timeoutMs) {
   }
 }
 
+/** Prove the fixture API can finish a real read before any browser journey starts. */
+async function qualifyProphetFixture(base) {
+  const started = Date.now();
+  const control = new AbortController();
+  // Match the existing flow client allowance; this covers headers and the complete body.
+  const timer = setTimeout(() => control.abort(), 25_000);
+  let reason = "transport";
+  let status;
+  try {
+    const res = await fetch(`${base}/api/flow?f=prophet_idx`, {
+      signal: control.signal,
+      redirect: "error",
+    });
+    status = res.status;
+    if (status !== 200) {
+      reason = "http_status";
+      throw new Error("fixture status");
+    }
+    if (res.headers.get("x-flow-source") !== "fixture") {
+      reason = "fixture_provenance";
+      throw new Error("fixture provenance");
+    }
+    reason = "malformed_json";
+    const body = await res.json();
+    if (
+      body === null ||
+      typeof body !== "object" ||
+      Array.isArray(body) ||
+      body.schema !== "prophet.index/v1" ||
+      !Array.isArray(body.plans)
+    ) {
+      reason = "body_shape";
+      throw new Error("fixture body shape");
+    }
+    console.log(`[fixture-ready] prophet_idx fixture 200 in ${Date.now() - started}ms`);
+  } catch {
+    const classification = control.signal.aborted ? "timeout" : reason;
+    const statusText = Number.isInteger(status) && status >= 100 && status <= 599
+      ? ` status=${status}`
+      : "";
+    // Keep fixture payloads and underlying transport errors out of the diagnostic.
+    throw new Error(
+      `[fixture-ready] prophet_idx ${classification}${statusText} after ${Date.now() - started}ms`,
+    );
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 /** @param {string} base */
 async function warmFixtureRoutes(base) {
   // Playwright's ordering of webServer vs globalSetup has moved between releases, so do not
@@ -74,6 +123,7 @@ async function warmFixtureRoutes(base) {
     console.log(`[warmup] ${route} → ${result}`);
   }
   console.log(`[warmup] ${ROUTES.length} routes compiled in ${Math.round((Date.now() - started) / 1000)}s`);
+  await qualifyProphetFixture(base);
 }
 
 module.exports = { warmFixtureRoutes };

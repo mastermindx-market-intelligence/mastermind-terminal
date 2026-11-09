@@ -1,7 +1,6 @@
-import { qualifiedOptionsVisualPacket } from "./helpers/optionsVisualEvidence";
 import { createRequire } from "node:module";
 import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
-// Raw capture pins stay immutable; qualified packets supply their checked source expectations.
+// Preserve the raw capture pin; only unused onboarding copy has an AST dependency projection.
 // Git-free evidence lock for the B-PL-6 batch 1 capture packet.
 // The lock is the sha256 of the layout sources the crops depend on, recorded in
 // EVIDENCE.yml layoutFiles. capturedAtHead stays informational.
@@ -13,10 +12,8 @@ import { join } from "node:path";
 const REPO = join(__dirname, "../../..");
 const immutableEvidence = createRequire(import.meta.url)("../../e2e/tools/visualEvidence.cjs");
 const composition = immutableEvidence.selectedComposition(REPO);
-const ROOT_CROP_DIR = join(__dirname, "../../docs/pr-crops/b-pl-6-batch-1");
-const qualified = composition === null ? qualifiedOptionsVisualPacket(REPO, "pl6") : null;
-const CROP_DIR = qualified?.cropDir ?? ROOT_CROP_DIR;
-const EVIDENCE = qualified?.evidence ?? join(ROOT_CROP_DIR, "EVIDENCE.yml");
+const CROP_DIR = join(__dirname, "../../docs/pr-crops/b-pl-6-batch-1");
+const EVIDENCE = join(CROP_DIR, "EVIDENCE.yml");
 const CROPS = [
   "AnalysisWorkspace-1440.png",
   "AnalysisWorkspace-1440-zh.png",
@@ -72,7 +69,7 @@ if (composition !== null) {
     });
   });
 } else {
-// Incumbent and qualified packets retain their own verified source expectations.
+// Bounded incumbent mode: original checks below remain unchanged; no invented record metadata.
 describe("B-PL-6 batch 1 evidence lock is the sha256 of the layout sources", () => {
   it("EVIDENCE.yml records a sha256 for AnalysisWorkspace.tsx", () => {
     const recorded = layoutFileMap(evidenceText());
@@ -81,8 +78,7 @@ describe("B-PL-6 batch 1 evidence lock is the sha256 of the layout sources", () 
 
   it("each layoutFiles sha256 matches the file on disk", () => {
     const recorded = layoutFileMap(evidenceText());
-    const expectedSources = qualified ? qualified.qualifiedSources : recorded;
-    for (const [rel, expected] of Object.entries(expectedSources)) {
+    for (const [rel, expected] of Object.entries(recorded)) {
       const abs = join(REPO, rel);
       expect(existsSync(abs), `${rel} is recorded in layoutFiles but absent from the tree`).toBe(true);
       if (rel === "terminal/lib/i18n.tsx") {

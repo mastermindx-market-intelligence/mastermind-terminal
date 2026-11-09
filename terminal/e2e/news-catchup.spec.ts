@@ -302,3 +302,75 @@ test("news catch-up is readable across the EN/ZH desktop/tablet/mobile matrix", 
     }
   }
 });
+
+test("keyboard review retains the story, continues through New, and returns to its empty filter", async ({ page, baseURL }, testInfo) => {
+  const feed: Feed = {
+    nvda: { ...FIRST_VISIT, rows: FIRST_VISIT.rows.map((row) => row.story_id === "ev2_nvda_guidance" ? { ...row, url: "" } : row) },
+    nvdaStatus: 200,
+  };
+  const storeKey = await prepare(page, testInfo, baseURL, feed);
+  const panel = await openNews(page);
+  await expect(panel.locator("[data-news-catchup-summary]")).toHaveText("3 new · 0 updated", { timeout: 20_000 });
+
+  // All keeps the same article; the disappearing review control hands off to its headline.
+  const supply = reviewOf(panel, "ev2_nvda_supply");
+  await supply.locator("[data-news-mark-one]").focus();
+  await page.keyboard.press("Enter");
+  await expect(supply.locator("[data-news-headline]")).toBeFocused();
+  await expect(supply.locator("[data-news-mark-one]")).toHaveCount(0);
+
+  // New removes each reviewed article. Tab continues from the next headline to its control.
+  const newFilter = panel.locator('[data-news-filter="new"]');
+  await newFilter.focus();
+  await page.keyboard.press("Enter");
+  expect(await storyIds(panel)).toEqual(["ev2_nvda_launch", "ev2_nvda_guidance"]);
+  await reviewOf(panel, "ev2_nvda_launch").locator("[data-news-mark-one]").focus();
+  await page.keyboard.press("Enter");
+  const nextHeadline = reviewOf(panel, "ev2_nvda_guidance").locator("[data-news-headline]");
+  await expect(nextHeadline).toHaveAttribute("tabindex", "-1");
+  await expect(nextHeadline).toBeFocused();
+  await expect(nextHeadline).toBeInViewport({ ratio: 1 });
+  expect(await nextHeadline.evaluate((el) => getComputedStyle(el).outlineStyle)).not.toBe("none");
+  await panel.screenshot({ path: testInfo.outputPath("news-static-headline-focus.png"), animations: "disabled" });
+  await page.keyboard.press("Tab");
+  await expect(reviewOf(panel, "ev2_nvda_guidance").locator("[data-news-mark-one]")).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(panel.locator("[data-news-filter-empty]")).toBeVisible();
+  await expect(newFilter).toBeFocused();
+  await expect(newFilter).toHaveAttribute("aria-pressed", "true");
+  expect(await storyIds(panel)).toEqual([]);
+  const marks = JSON.parse((await storedReview(page))!)[e2eWatchlistOwner(storeKey)].NVDA.stories;
+  expect(Object.keys(marks).sort()).toEqual(["ev2_nvda_guidance", "ev2_nvda_launch", "ev2_nvda_supply"]);
+  await panel.screenshot({ path: testInfo.outputPath("news-empty-filter-focus.png"), animations: "disabled" });
+  expect(await newFilter.evaluate((el) => getComputedStyle(el).outlineStyle)).not.toBe("none");
+});
+
+test("bulk keyboard review preserves source and Updated filters while returning from a disabled control", async ({ page, baseURL }, testInfo) => {
+  const feed: Feed = { nvda: FIRST_VISIT, nvdaStatus: 200 };
+  await prepare(page, testInfo, baseURL, feed);
+  let panel = await openNews(page);
+  await expect(panel.locator("[data-news-catchup-summary]")).toHaveText("3 new · 0 updated", { timeout: 20_000 });
+  const allFilter = panel.locator('[data-news-filter="all"]');
+  await panel.locator("[data-news-mark-shown]").focus();
+  await page.keyboard.press("Enter");
+  await expect(panel.locator("[data-news-mark-shown]")).toBeDisabled();
+  await expect(allFilter).toBeFocused();
+
+  feed.nvda = RETURN_VISIT;
+  await visit(page, "NVDA");
+  panel = await openNews(page);
+  await expect(panel.locator("[data-news-catchup-summary]")).toHaveText("2 new · 2 updated", { timeout: 20_000 });
+  const updated = panel.locator('[data-news-filter="updated"]');
+  await updated.focus();
+  await page.keyboard.press("Enter");
+  await panel.locator("[data-news-source-filter]").selectOption("reuters");
+  expect(await storyIds(panel)).toEqual(["ev2_nvda_guidance"]);
+  await panel.locator("[data-news-mark-shown]").focus();
+  await page.keyboard.press("Enter");
+  await expect(panel.locator("[data-news-mark-shown]")).toBeDisabled();
+  await expect(updated).toBeFocused();
+  await expect(updated).toHaveAttribute("aria-pressed", "true");
+  await expect(panel.locator("[data-news-source-filter]")).toHaveValue("reuters");
+  await expect(panel.locator("[data-news-filter-empty]")).toBeVisible();
+  await panel.screenshot({ path: testInfo.outputPath("news-bulk-review-focus.png"), animations: "disabled" });
+});

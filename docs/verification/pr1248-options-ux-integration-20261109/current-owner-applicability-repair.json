@@ -1,0 +1,32 @@
+{
+  "appliedAt": "2026-11-09T18:10:10.555124+00:00",
+  "changes": {
+    "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs": {
+      "addedLayoutSource": "terminal/components/flowdesk/CommandResearch.module.css",
+      "afterSha256": "cc69060986591ef7fdfeccc155670c7408aaa788d3259a3328fd8cd1173921de",
+      "beforeSha256": "9b0f65144ad2c6f3880a79daea36f0500f10cd73d48d4384cf81d7ed9b71077e",
+      "reason": "Include the actual InspectorPane CommandResearch CSS alongside already-composed ChainHeat and CommandWorkspace CSS. No producer lifecycle, fixture, indicator or screenshot behavior changes."
+    },
+    "terminal/lib/__tests__/b_pl_6Batch1Evidence.test.ts": {
+      "afterSha256": "260476f1fb6971fd9dfcad2085426855b240f90a6cecf19ebfc4950280609f42",
+      "beforeSha256": "ba40b75ea6d40974308a36a2167f836a33c6fc57c83a93298ab524dabe6ac5ba",
+      "reason": "Restore current existing explicit-composition-first and incumbent root behavior. The stale original1248 default helper cannot qualify current dependency roots; its implementation and historical packets remain preserved.",
+      "source": "7d0483c995df95ea76e988029d0c229d2a0e177c"
+    },
+    "terminal/lib/__tests__/visualIntelligenceEvidence.test.ts": {
+      "afterSha256": "953c44150d34e08cf6ea55199c6be7c7a7c66f5fc08c7a45fdbc20d22e7788f9",
+      "beforeSha256": "2f961da5a9c13b314bb58c033a5dc8d5e67df3b911ca780385b1ca19b99f4c78",
+      "reason": "Restore current existing explicit-composition-first and incumbent root behavior. The stale original1248 default helper cannot qualify current dependency roots; its implementation and historical packets remain preserved.",
+      "source": "7d0483c995df95ea76e988029d0c229d2a0e177c"
+    }
+  },
+  "historicalNativeSetsUnchanged": {
+    "browser": 71,
+    "eod": 32,
+    "gex": 29
+  },
+  "newNativeCapturesPending": true,
+  "newNativeSourceBindingsPending": true,
+  "schema": "terminal_pr1248_current_owner_applicability_repair.v1",
+  "state": "CURRENT_CONSUMER_OWNER_RESTORED_SUCCESSOR_CLOSURES_REQUIRED"
+}

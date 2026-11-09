@@ -257,7 +257,9 @@ for (const lang of ["en", "zh"] as const) {
     await expect(reference).toHaveAttribute("data-state", "ready", { timeout: 30_000 });
     holdMatrix = true;
     await reference.getByRole("link", { name: lang === "en" ? "Return to Exposure" : "返回敞口", exact: true }).click();
-    await expect(map.getByTestId("exposure-return-check")).toHaveAttribute("data-state", "ready");
+    // Returning crosses the route chunk and source-read boundary just like the
+    // main chart above; keep the same bounded readiness budget for both legs.
+    await expect(map.getByTestId("exposure-return-check")).toHaveAttribute("data-state", "ready", { timeout: 30_000 });
     // An unrelated matrix arrives only after the qualified book restored its
     // selection. Its arrival must not invalidate a source that never used it.
     await expect.poll(() => releaseMatrix !== null).toBe(true);

@@ -13,6 +13,11 @@ export interface DataOrigin {
   src: string | null;
   asOf: string | null;
   generation: string | null;
+  /** B1 source clock — the document's OWN last daily session (a valid YYYY-MM-DD UTC date).
+   *  Deliberately OPTIONAL: it is absent whenever the document is not exactly the requested
+   *  symbol or its last bar carries no valid date, and it never fills asOf/generation, which
+   *  remain the adjustment reference's own facts. */
+  sourceLastSession?: string;
   mode: string | null;
   openReconstructed: boolean;
   segments: { from: string; to: string; src: string; quality: string }[];
@@ -42,6 +47,26 @@ function strOrNull(value: unknown): string | null {
   return typeof value === "string" ? value : null;
 }
 
+// B1 — the source clock reads ONLY the document's own last bar, as a real UTC-calendar
+// YYYY-MM-DD date. A numeric timestamp (an intraday epoch), a malformed or impossible
+// date ("2026-13-01", "2026-02-30"), an empty bars array and a non-tuple last bar all
+// answer null — no fallback to a build clock, a coverage "to", or any other guess.
+function lastDailySession(bars: unknown): string | null {
+  if (!Array.isArray(bars) || bars.length === 0) return null;
+  const last = bars[bars.length - 1];
+  if (!Array.isArray(last) || last.length === 0) return null;
+  const t = last[0];
+  if (typeof t !== "string") return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(t);
+  if (!m) return null;
+  const y = Number(m[1]);
+  const mo = Number(m[2]);
+  const d = Number(m[3]);
+  const utc = new Date(Date.UTC(y, mo - 1, d));
+  if (utc.getUTCFullYear() !== y || utc.getUTCMonth() !== mo - 1 || utc.getUTCDate() !== d) return null;
+  return t;
+}
+
 /**
  * Derive the readout state from one daily-OHLC document. Rules apply in order (see
  * the lane spec); the payload is never mutated and no missing value is guessed.
@@ -55,9 +80,21 @@ export function deriveDataOrigin(symbol: string, payload: unknown): DataOrigin {
   // D00.D4: a synthetic open is displayed as reconstructed, never passed off as traded.
   const openReconstructed = doc.bar_quality === "synthetic_open_deepstore";
 
+  // B1 source clock: the document's own last daily session, computed from the mounted
+  // document itself (independent of the view contract). Exact symbol identity only — the
+  // case-insensitive mismatch guard above tolerates a case-variant file, but the clock
+  // does not adopt it — and a valid UTC-calendar date on the last bar. Conditional spread
+  // keeps the no-date constructors byte-identical to before: no field, never a null key.
+  const sourceLastSession = doc.t === symbol ? lastDailySession(doc.bars) : null;
+
   const view = doc.view as Record<string, unknown> | undefined;
   if (view == null || typeof view !== "object" || view.schema !== "terminal.ohlc_view.v1") {
-    return { ...blank(symbol, "unknown", ["VIEW_ABSENT"]), openReconstructed, src: srcOrNull(doc.src) };
+    return {
+      ...blank(symbol, "unknown", ["VIEW_ABSENT"]),
+      openReconstructed,
+      src: srcOrNull(doc.src),
+      ...(sourceLastSession ? { sourceLastSession } : {}),
+    };
   }
 
   const refusals: string[] = Array.isArray(view.refusal_reasons)
@@ -86,6 +123,7 @@ export function deriveDataOrigin(symbol: string, payload: unknown): DataOrigin {
   const contract = view.contract as Record<string, unknown> | null | undefined;
   const base: DataOrigin = {
     ...blank(symbol, "unknown", refusals),
+    ...(sourceLastSession ? { sourceLastSession } : {}),
     openReconstructed, segments, suspectedBreaks, basisDrift, src,
   };
   if (contract == null || typeof contract !== "object") return base;

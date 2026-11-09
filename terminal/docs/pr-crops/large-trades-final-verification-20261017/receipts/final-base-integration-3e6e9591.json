@@ -1,0 +1,52 @@
+{
+  "observedAt": "2026-10-17T13:03:36.978978+00:00",
+  "previousHead": "072c53e4f02ae2097d76ca96e6da2f48031e64ae",
+  "incomingAcceptedMaster": "3e6e9591d21b849227de3633b4322d7d3b0d3b37",
+  "head": "c8abc66e771442ad9cd2ac9c7c0c73c1ba0aa94d",
+  "tree": "6d9c60e5e0bb96fcfaef57fe16cdf29af5648d28",
+  "parents": [
+    "072c53e4f02ae2097d76ca96e6da2f48031e64ae",
+    "3e6e9591d21b849227de3633b4322d7d3b0d3b37"
+  ],
+  "runtimeAndResponsiveBindingsUnchanged": true,
+  "boundFiles": 58,
+  "incomingPaths": [
+    "terminal/lib/__tests__/chartEngineCanvasModel.test.ts",
+    "terminal/lib/__tests__/chartEngineCensusWiring.test.ts",
+    "terminal/lib/__tests__/lwcAdapter.test.ts"
+  ],
+  "checks": [
+    {
+      "name": "typecheck",
+      "command": [
+        "npx",
+        "--no-install",
+        "tsc",
+        "--noEmit"
+      ],
+      "exit": 0,
+      "startedAt": "2026-10-17T13:03:37.186829+00:00",
+      "completedAt": "2026-10-17T13:03:52.134639+00:00",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "incoming-unit",
+      "command": [
+        "npx",
+        "--no-install",
+        "vitest",
+        "run",
+        "lib/__tests__/chartEngineCanvasModel.test.ts",
+        "lib/__tests__/chartEngineCensusWiring.test.ts",
+        "lib/__tests__/lwcAdapter.test.ts"
+      ],
+      "exit": 0,
+      "startedAt": "2026-10-17T13:03:52.136007+00:00",
+      "completedAt": "2026-10-17T13:03:58.325653+00:00",
+      "logSha256": "7504001723cb59f4df9951ab35612d0c64ea3f530880236cef8d00faf6167032"
+    }
+  ],
+  "status": "PASS",
+  "sourceUnchangedAfterChecks": true,
+  "completedAt": "2026-10-17T13:03:58.346692+00:00"
+}

@@ -1,0 +1,34 @@
+{
+  "operationIds": {
+    "pl6": "ci-20261109185448-1-pl6",
+    "vi": "ci-20261109185448-1-vi",
+    "composition": "ci-20261109185448-1-current",
+    "prefix": "ci-20261109185448-1"
+  },
+  "state": "FAILED",
+  "children": [],
+  "actualCheckout": {
+    "commit": "753b4a90ebd31a1da76a9595bb2fedde912da042",
+    "tree": "608b43adf1e3252b89b0c1097eba73736fb0d458"
+  },
+  "githubEvent": {
+    "name": "local_validation",
+    "sha": null,
+    "ref": null,
+    "pullRequestBase": null,
+    "pullRequestHead": null,
+    "mergeGroupBase": null,
+    "mergeGroupHead": null
+  },
+  "profile": {
+    "fixture": "terminal-e2e.v1",
+    "buildMode": "next-dev",
+    "sharedShell": "0",
+    "investorShellPreview": "0",
+    "theme": "dark"
+  },
+  "error": {
+    "message": "CI_BATCH2_IMAGE_HASH: LevelsView-390-zh.png",
+    "stack": "Error: CI_BATCH2_IMAGE_HASH: LevelsView-390-zh.png\n    at batch2Plan (/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/e2e/tools/capture_ci_evidence.cjs:989:67)\n    at run (/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/e2e/tools/capture_ci_evidence.cjs:1047:20)\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/e2e/tools/capture_ci_evidence.cjs:1159:43"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "localOrigin": "http://127.0.0.1:3882",
+  "blockedExternal": [
+    {
+      "origin": "https://www.mastermind-x.com",
+      "path": "/mm_brain.js"
+    }
+  ],
+  "server_fence": "fixture server + browser route fence",
+  "browser_zoom_200_percent": "NOT PROVED",
+  "cached_selection_latency_p95": "TARGET <100ms; NOT MEASURED"
+}

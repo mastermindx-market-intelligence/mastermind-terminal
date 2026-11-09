@@ -1,0 +1,1454 @@
+[warmup] /terminal?symbol=NVDA → 200 in 62ms
+[warmup] /options → 200 in 131ms
+[warmup] /portfolio → 200 in 131ms
+[warmup] /alerts → 200 in 68ms
+[warmup] /analysis → 200 in 125ms
+[warmup] /discover → 200 in 80ms
+[warmup] /admin → 200 in 42ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 35ms
+[warmup] /login → 200 in 55ms
+[warmup] /reset-password → 200 in 67ms
+[warmup] /api/me → 200 in 50ms
+[warmup] /api/watchlist → 200 in 23ms
+[warmup] /api/layouts → 200 in 23ms
+[warmup] /api/watchlist/annotations → 409 in 23ms
+[warmup] /api/quote?view=regular&syms=NVDA → 200 in 44ms
+[warmup] /api/drawings?symbol=NVDA → 200 in 24ms
+[warmup] /api/scripts/list → 200 in 23ms
+[warmup] /api/study-templates → 200 in 21ms
+[warmup] /api/ext-quote?syms=NVDA → 503 in 25ms
+[warmup] /api/flow?f=gexstate%3ANVDA → 200 in 105ms
+[warmup] /api/brain/me → 200 in 2210ms
+[warmup] /api/brain/chart/state → 404 in 10ms
+[warmup] /api/collect → 405 in 28ms
+[warmup] /data/NVDA.opts.json → 404 in 402ms
+[warmup] 24 routes compiled in 4s
+[fixture-ready] prophet_idx fixture 200 in 6ms
+
+Running 201 tests using 1 worker
+
+  ✓    1 [desktop] › e2e/exposure-partial-totals.spec.ts:37:7 › Exposure 0DTE unknown cell withholds the total (2.1s)
+  ✓    2 [desktop] › e2e/exposure-partial-totals.spec.ts:37:7 › Exposure 0DTE complete grid shows its total (1.4s)
+  ✓    3 [desktop] › e2e/exposure-partial-totals.spec.ts:118:5 › Exposure All except 0DTE withholds the total when a chain expiration is outside the snapshot (1.2s)
+  ✓    4 [desktop] › e2e/exposure-partial-totals.spec.ts:174:9 › [en] Exposure known subtotal keeps its date-only source session (1.2s)
+  ✓    5 [desktop] › e2e/exposure-partial-totals.spec.ts:174:9 › [en] Exposure complete grid keeps its date-only source session (1.2s)
+  ✓    6 [desktop] › e2e/exposure-partial-totals.spec.ts:174:9 › [zh] Exposure known subtotal keeps its date-only source session (1.3s)
+  ✓    7 [desktop] › e2e/exposure-partial-totals.spec.ts:174:9 › [zh] Exposure complete grid keeps its date-only source session (1.8s)
+  ✓    8 [desktop] › e2e/exposure-workspace.spec.ts:19:5 › Exposure opens on usable strikes and reaches Market State and history (1.7s)
+  ✓    9 [desktop] › e2e/exposure-workspace.spec.ts:120:7 › revisiting an archived Exposure book consumes its corrected source (en) (1.1s)
+  ✓   10 [desktop] › e2e/exposure-workspace.spec.ts:120:7 › revisiting an archived Exposure book consumes its corrected source (zh) (1.9s)
+  ✓   11 [desktop] › e2e/exposure-workspace.spec.ts:154:5 › a sparse GOOGL book keeps the page in place and identifies older history (1.0s)
+  ✓   12 [desktop] › e2e/flow-freshness-responsive.spec.ts:3:5 › Flow Desk separates Connected transport from measured source freshness (945ms)
+  ✓   13 [desktop] › e2e/options-contract-shortlist.spec.ts:392:5 › real entitled screener rows compare without any new data request (984ms)
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   14 [desktop] › e2e/options-deeplink.spec.ts:87:5 › Options follows query navigation and Back/Forward while retaining visited desks (1.4s)
+  ✓   15 [desktop] › e2e/options-deeplink.spec.ts:138:5 › Options can leave Exposure while new scripts and styles are still loading (928ms)
+  ✓   16 [desktop] › e2e/options-deeplink.spec.ts:138:5 › Options can leave Research Lab while new scripts and styles are still loading (1.5s)
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   17 [desktop] › e2e/options-exposure-surface-journey.spec.ts:720:7 › synthetic exposure surface journey en (6.3s)
+  ✓   18 [desktop] › e2e/options-exposure-surface-journey.spec.ts:720:7 › synthetic exposure surface journey zh (7.6s)
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+  ✓   19 [desktop] › e2e/options-exposure-surface-journey.spec.ts:1413:7 › synthetic exposure saved theme cold return en (14.3s)
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+  ✓   20 [desktop] › e2e/options-exposure-surface-journey.spec.ts:1413:7 › synthetic exposure saved theme cold return zh (13.2s)
+  ✓   21 [desktop] › e2e/options-exposure-workspace.spec.ts:12:5 › Main chart rejects a book corrected during navigation (4.7s)
+  ✓   22 [desktop] › e2e/options-exposure-workspace.spec.ts:138:9 › Withheld Gamma scope en explains the admitted comparison boundary (1.6s)
+  ✓   23 [desktop] › e2e/options-exposure-workspace.spec.ts:138:9 › Withheld Gamma definition en explains the admitted comparison boundary (1.5s)
+  ✓   24 [desktop] › e2e/options-exposure-workspace.spec.ts:164:7 › Source-relative zero Gamma en does not match rolling expiry identities (1.6s)
+  ✓   25 [desktop] › e2e/options-exposure-workspace.spec.ts:186:7 › Matched reported Gamma en separates contributions and source coverage (2.0s)
+  ✓   26 [desktop] › e2e/options-exposure-workspace.spec.ts:237:7 › One observed side en remains a measured book through chart and return (6.1s)
+  ✓   27 [desktop] › e2e/options-exposure-workspace.spec.ts:277:9 › Archived chart return en restores the same book and strike (6.2s)
+  ✓   28 [desktop] › e2e/options-exposure-workspace.spec.ts:277:9 › Archived chart return en withdraws a corrected selection (9.1s)
+  ✓   29 [desktop] › e2e/options-exposure-workspace.spec.ts:312:7 › Exposure selection opens the main chart en with the same book (8.6s)
+  ✓   30 [desktop] › e2e/options-exposure-workspace.spec.ts:339:7 › Partial observed exposure en preserves measured contributions (9.7s)
+  ✓   31 [desktop] › e2e/options-exposure-workspace.spec.ts:386:7 › Projected exposure memory en preserves measurements without a false delta (1.7s)
+  ✓   32 [desktop] › e2e/options-exposure-workspace.spec.ts:414:7 › Archived exposure changes en compare the selected book (1.8s)
+  ✓   33 [desktop] › e2e/options-exposure-workspace.spec.ts:439:7 › Connected exposure workspace en: chart, comparison scopes, scanner and return (4.8s)
+  ✓   34 [desktop] › e2e/options-exposure-workspace.spec.ts:138:9 › Withheld Gamma scope zh explains the admitted comparison boundary (1.7s)
+  ✓   35 [desktop] › e2e/options-exposure-workspace.spec.ts:138:9 › Withheld Gamma definition zh explains the admitted comparison boundary (1.7s)
+  ✓   36 [desktop] › e2e/options-exposure-workspace.spec.ts:164:7 › Source-relative zero Gamma zh does not match rolling expiry identities (1.7s)
+  ✓   37 [desktop] › e2e/options-exposure-workspace.spec.ts:186:7 › Matched reported Gamma zh separates contributions and source coverage (2.7s)
+  ✓   38 [desktop] › e2e/options-exposure-workspace.spec.ts:237:7 › One observed side zh remains a measured book through chart and return (6.2s)
+  ✓   39 [desktop] › e2e/options-exposure-workspace.spec.ts:277:9 › Archived chart return zh restores the same book and strike (6.0s)
+  ✓   40 [desktop] › e2e/options-exposure-workspace.spec.ts:277:9 › Archived chart return zh withdraws a corrected selection (6.0s)
+  ✓   41 [desktop] › e2e/options-exposure-workspace.spec.ts:312:7 › Exposure selection opens the main chart zh with the same book (5.6s)
+  ✓   42 [desktop] › e2e/options-exposure-workspace.spec.ts:339:7 › Partial observed exposure zh preserves measured contributions (6.1s)
+  ✓   43 [desktop] › e2e/options-exposure-workspace.spec.ts:386:7 › Projected exposure memory zh preserves measurements without a false delta (1.7s)
+  ✓   44 [desktop] › e2e/options-exposure-workspace.spec.ts:414:7 › Archived exposure changes zh compare the selected book (1.8s)
+  ✓   45 [desktop] › e2e/options-exposure-workspace.spec.ts:439:7 › Connected exposure workspace zh: chart, comparison scopes, scanner and return (4.8s)
+  ✓   46 [desktop] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery (1.4s)
+  ✓   47 [desktop] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery (1.9s)
+  ✓   48 [desktop] › e2e/options-lab-source-state.spec.ts:81:5 › Research Lab admits a valid current read before the stream supplies a frame (1.3s)
+  ✓   49 [desktop] › e2e/options-lab-source-state.spec.ts:99:5 › Research Lab preserves the selected archive without substituting an available live book (1.2s)
+  ✓   50 [desktop] › e2e/options-r1-w3a-flow-inspector.spec.ts:54:5 › coverage line keeps unknown premium in the denominator and totals calls and puts unsigned (747ms)
+  ✓   51 [desktop] › e2e/options-r1-w3a-flow-inspector.spec.ts:61:5 › selecting e1 shows the print inspector with premium arithmetic, named-method side and the not-supplied clocks (909ms)
+  ✓   52 [desktop] › e2e/options-r1-w3a-flow-inspector.spec.ts:83:5 › selecting e5 shows the owner's figure as not reproducible from size × price × 100 (853ms)
+  ✓   53 [desktop] › e2e/options-r1-w3a-flow-inspector.spec.ts:93:5 › the 23 Oct expiry filter hides the 20 Nov row and never changes the coverage line (1.1s)
+  ✓   54 [desktop] › e2e/options-r1-w3a-flow-inspector.spec.ts:106:5 › the expiry filter survives a reload through flowdesk.filters.v1 (1.3s)
+  ✓   55 [desktop] › e2e/options-r1-w3a-flow-inspector.spec.ts:121:5 › equal-timestamp prints keep their id order across re-sorts (e6 before e9) (783ms)
+  ✓   56 [desktop] › e2e/options-r1-w3a-flow-inspector.spec.ts:141:5 › the 中文 view renders the same inspector sections with no Latin machine text (938ms)
+  ✓   57 [desktop] › e2e/options-r1-w3a-flow-inspector.spec.ts:164:5 › inspect by keyboard and return to the source print with filters intact (972ms)
+  ✓   58 [desktop] › e2e/options-r1-w3a-flow-inspector.spec.ts:201:5 › a slow previous ticker cannot replace the selected print's context (897ms)
+  ✓   59 [desktop] › e2e/options-r1-w3a-flow-inspector.spec.ts:224:7 › selected Command print has one natural page scroll on compact screens (en) (965ms)
+  ✓   60 [desktop] › e2e/options-r1-w3a-flow-inspector.spec.ts:224:7 › selected Command print has one natural page scroll on compact screens (zh) (1.7s)
+  ✓   61 [desktop] › e2e/options-research-lab.spec.ts:17:7 › 3D research lab exact selection and responsive fallback en (2.3s)
+  ✓   62 [desktop] › e2e/options-research-lab.spec.ts:17:7 › 3D research lab exact selection and responsive fallback zh (2.5s)
+  ✓   63 [desktop] › e2e/options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal en dark (3.4s)
+  ✓   64 [desktop] › e2e/options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal en light (3.8s)
+  ✓   65 [desktop] › e2e/options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal zh dark (3.4s)
+  ✓   66 [desktop] › e2e/options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal zh light (3.2s)
+  ✓   67 [desktop] › e2e/options-workspace-usability.spec.ts:3:5 › Surface can select, drag and step to an actual observation (1.3s)
+  ✓   68 [tablet] › e2e/exposure-partial-totals.spec.ts:37:7 › Exposure 0DTE unknown cell withholds the total (3.7s)
+  ✓   69 [tablet] › e2e/exposure-partial-totals.spec.ts:37:7 › Exposure 0DTE complete grid shows its total (1.9s)
+  ✓   70 [tablet] › e2e/exposure-partial-totals.spec.ts:118:5 › Exposure All except 0DTE withholds the total when a chain expiration is outside the snapshot (1.2s)
+  ✓   71 [tablet] › e2e/exposure-partial-totals.spec.ts:174:9 › [en] Exposure known subtotal keeps its date-only source session (1.2s)
+  ✓   72 [tablet] › e2e/exposure-partial-totals.spec.ts:174:9 › [en] Exposure complete grid keeps its date-only source session (1.2s)
+  ✓   73 [tablet] › e2e/exposure-partial-totals.spec.ts:174:9 › [zh] Exposure known subtotal keeps its date-only source session (1.8s)
+  ✓   74 [tablet] › e2e/exposure-partial-totals.spec.ts:174:9 › [zh] Exposure complete grid keeps its date-only source session (1.2s)
+  ✓   75 [tablet] › e2e/exposure-workspace.spec.ts:19:5 › Exposure opens on usable strikes and reaches Market State and history (1.7s)
+  ✓   76 [tablet] › e2e/exposure-workspace.spec.ts:120:7 › revisiting an archived Exposure book consumes its corrected source (en) (992ms)
+  ✓   77 [tablet] › e2e/exposure-workspace.spec.ts:120:7 › revisiting an archived Exposure book consumes its corrected source (zh) (1.6s)
+  ✓   78 [tablet] › e2e/exposure-workspace.spec.ts:154:5 › a sparse GOOGL book keeps the page in place and identifies older history (895ms)
+  ✓   79 [tablet] › e2e/flow-freshness-responsive.spec.ts:3:5 › Flow Desk separates Connected transport from measured source freshness (967ms)
+  ✓   80 [tablet] › e2e/options-contract-shortlist.spec.ts:392:5 › real entitled screener rows compare without any new data request (1.2s)
+  ✓   81 [tablet] › e2e/options-deeplink.spec.ts:87:5 › Options follows query navigation and Back/Forward while retaining visited desks (1.5s)
+  ✓   82 [tablet] › e2e/options-deeplink.spec.ts:138:5 › Options can leave Exposure while new scripts and styles are still loading (913ms)
+  ✓   83 [tablet] › e2e/options-deeplink.spec.ts:138:5 › Options can leave Research Lab while new scripts and styles are still loading (1.4s)
+  ✓   84 [tablet] › e2e/options-exposure-surface-journey.spec.ts:720:7 › synthetic exposure surface journey en (8.3s)
+  ✓   85 [tablet] › e2e/options-exposure-surface-journey.spec.ts:720:7 › synthetic exposure surface journey zh (9.9s)
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+  ✓   86 [tablet] › e2e/options-exposure-surface-journey.spec.ts:1413:7 › synthetic exposure saved theme cold return en (17.0s)
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+  ✓   87 [tablet] › e2e/options-exposure-surface-journey.spec.ts:1413:7 › synthetic exposure saved theme cold return zh (12.7s)
+  ✓   88 [tablet] › e2e/options-exposure-workspace.spec.ts:12:5 › Main chart rejects a book corrected during navigation (7.5s)
+  ✓   89 [tablet] › e2e/options-exposure-workspace.spec.ts:138:9 › Withheld Gamma scope en explains the admitted comparison boundary (1.6s)
+  ✓   90 [tablet] › e2e/options-exposure-workspace.spec.ts:138:9 › Withheld Gamma definition en explains the admitted comparison boundary (1.5s)
+  ✓   91 [tablet] › e2e/options-exposure-workspace.spec.ts:164:7 › Source-relative zero Gamma en does not match rolling expiry identities (1.6s)
+  ✓   92 [tablet] › e2e/options-exposure-workspace.spec.ts:186:7 › Matched reported Gamma en separates contributions and source coverage (1.9s)
+  ✓   93 [tablet] › e2e/options-exposure-workspace.spec.ts:237:7 › One observed side en remains a measured book through chart and return (9.5s)
+  ✓   94 [tablet] › e2e/options-exposure-workspace.spec.ts:277:9 › Archived chart return en restores the same book and strike (9.3s)
+  ✓   95 [tablet] › e2e/options-exposure-workspace.spec.ts:277:9 › Archived chart return en withdraws a corrected selection (9.5s)
+  ✓   96 [tablet] › e2e/options-exposure-workspace.spec.ts:312:7 › Exposure selection opens the main chart en with the same book (8.7s)
+  ✓   97 [tablet] › e2e/options-exposure-workspace.spec.ts:339:7 › Partial observed exposure en preserves measured contributions (9.9s)
+  ✓   98 [tablet] › e2e/options-exposure-workspace.spec.ts:386:7 › Projected exposure memory en preserves measurements without a false delta (1.6s)
+  ✓   99 [tablet] › e2e/options-exposure-workspace.spec.ts:414:7 › Archived exposure changes en compare the selected book (1.7s)
+  ✓  100 [tablet] › e2e/options-exposure-workspace.spec.ts:439:7 › Connected exposure workspace en: chart, comparison scopes, scanner and return (4.1s)
+  ✓  101 [tablet] › e2e/options-exposure-workspace.spec.ts:138:9 › Withheld Gamma scope zh explains the admitted comparison boundary (1.7s)
+  ✓  102 [tablet] › e2e/options-exposure-workspace.spec.ts:138:9 › Withheld Gamma definition zh explains the admitted comparison boundary (1.6s)
+  ✓  103 [tablet] › e2e/options-exposure-workspace.spec.ts:164:7 › Source-relative zero Gamma zh does not match rolling expiry identities (1.8s)
+  ✓  104 [tablet] › e2e/options-exposure-workspace.spec.ts:186:7 › Matched reported Gamma zh separates contributions and source coverage (2.1s)
+  ✓  105 [tablet] › e2e/options-exposure-workspace.spec.ts:237:7 › One observed side zh remains a measured book through chart and return (6.1s)
+  ✓  106 [tablet] › e2e/options-exposure-workspace.spec.ts:277:9 › Archived chart return zh restores the same book and strike (5.9s)
+  ✓  107 [tablet] › e2e/options-exposure-workspace.spec.ts:277:9 › Archived chart return zh withdraws a corrected selection (6.9s)
+  ✓  108 [tablet] › e2e/options-exposure-workspace.spec.ts:312:7 › Exposure selection opens the main chart zh with the same book (7.0s)
+  ✓  109 [tablet] › e2e/options-exposure-workspace.spec.ts:339:7 › Partial observed exposure zh preserves measured contributions (6.3s)
+  ✓  110 [tablet] › e2e/options-exposure-workspace.spec.ts:386:7 › Projected exposure memory zh preserves measurements without a false delta (1.7s)
+  ✓  111 [tablet] › e2e/options-exposure-workspace.spec.ts:414:7 › Archived exposure changes zh compare the selected book (1.8s)
+  ✓  112 [tablet] › e2e/options-exposure-workspace.spec.ts:439:7 › Connected exposure workspace zh: chart, comparison scopes, scanner and return (4.2s)
+  ✓  113 [tablet] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery (1.3s)
+  ✓  114 [tablet] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery (1.7s)
+  ✓  115 [tablet] › e2e/options-lab-source-state.spec.ts:81:5 › Research Lab admits a valid current read before the stream supplies a frame (1.3s)
+  ✓  116 [tablet] › e2e/options-lab-source-state.spec.ts:99:5 › Research Lab preserves the selected archive without substituting an available live book (1.2s)
+  ✓  117 [tablet] › e2e/options-r1-w3a-flow-inspector.spec.ts:54:5 › coverage line keeps unknown premium in the denominator and totals calls and puts unsigned (722ms)
+  ✓  118 [tablet] › e2e/options-r1-w3a-flow-inspector.spec.ts:61:5 › selecting e1 shows the print inspector with premium arithmetic, named-method side and the not-supplied clocks (870ms)
+  ✓  119 [tablet] › e2e/options-r1-w3a-flow-inspector.spec.ts:83:5 › selecting e5 shows the owner's figure as not reproducible from size × price × 100 (814ms)
+  ✓  120 [tablet] › e2e/options-r1-w3a-flow-inspector.spec.ts:93:5 › the 23 Oct expiry filter hides the 20 Nov row and never changes the coverage line (831ms)
+  ✓  121 [tablet] › e2e/options-r1-w3a-flow-inspector.spec.ts:106:5 › the expiry filter survives a reload through flowdesk.filters.v1 (1.3s)
+  ✓  122 [tablet] › e2e/options-r1-w3a-flow-inspector.spec.ts:121:5 › equal-timestamp prints keep their id order across re-sorts (e6 before e9) (796ms)
+  ✓  123 [tablet] › e2e/options-r1-w3a-flow-inspector.spec.ts:141:5 › the 中文 view renders the same inspector sections with no Latin machine text (930ms)
+  ✓  124 [tablet] › e2e/options-r1-w3a-flow-inspector.spec.ts:164:5 › inspect by keyboard and return to the source print with filters intact (1.1s)
+  ✓  125 [tablet] › e2e/options-r1-w3a-flow-inspector.spec.ts:201:5 › a slow previous ticker cannot replace the selected print's context (892ms)
+  ✓  126 [tablet] › e2e/options-r1-w3a-flow-inspector.spec.ts:224:7 › selected Command print has one natural page scroll on compact screens (en) (1.0s)
+  ✓  127 [tablet] › e2e/options-r1-w3a-flow-inspector.spec.ts:224:7 › selected Command print has one natural page scroll on compact screens (zh) (1.0s)
+  ✓  128 [tablet] › e2e/options-research-lab.spec.ts:17:7 › 3D research lab exact selection and responsive fallback en (2.2s)
+  ✓  129 [tablet] › e2e/options-research-lab.spec.ts:17:7 › 3D research lab exact selection and responsive fallback zh (2.6s)
+  ✓  130 [tablet] › e2e/options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal en dark (3.8s)
+  ✓  131 [tablet] › e2e/options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal en light (3.1s)
+  ✓  132 [tablet] › e2e/options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal zh dark (3.8s)
+  ✓  133 [tablet] › e2e/options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal zh light (3.7s)
+  ✓  134 [tablet] › e2e/options-workspace-usability.spec.ts:3:5 › Surface can select, drag and step to an actual observation (1.2s)
+  ✓  135 [mobile] › e2e/exposure-partial-totals.spec.ts:37:7 › Exposure 0DTE unknown cell withholds the total (1.3s)
+  ✓  136 [mobile] › e2e/exposure-partial-totals.spec.ts:37:7 › Exposure 0DTE complete grid shows its total (1.3s)
+  ✓  137 [mobile] › e2e/exposure-partial-totals.spec.ts:118:5 › Exposure All except 0DTE withholds the total when a chain expiration is outside the snapshot (1.2s)
+  ✓  138 [mobile] › e2e/exposure-partial-totals.spec.ts:174:9 › [en] Exposure known subtotal keeps its date-only source session (1.2s)
+  ✓  139 [mobile] › e2e/exposure-partial-totals.spec.ts:174:9 › [en] Exposure complete grid keeps its date-only source session (1.1s)
+  ✓  140 [mobile] › e2e/exposure-partial-totals.spec.ts:174:9 › [zh] Exposure known subtotal keeps its date-only source session (1.3s)
+  ✓  141 [mobile] › e2e/exposure-partial-totals.spec.ts:174:9 › [zh] Exposure complete grid keeps its date-only source session (1.8s)
+  ✓  142 [mobile] › e2e/exposure-workspace.spec.ts:19:5 › Exposure opens on usable strikes and reaches Market State and history (1.4s)
+  ✓  143 [mobile] › e2e/exposure-workspace.spec.ts:120:7 › revisiting an archived Exposure book consumes its corrected source (en) (971ms)
+  ✓  144 [mobile] › e2e/exposure-workspace.spec.ts:120:7 › revisiting an archived Exposure book consumes its corrected source (zh) (1.6s)
+  ✓  145 [mobile] › e2e/exposure-workspace.spec.ts:154:5 › a sparse GOOGL book keeps the page in place and identifies older history (878ms)
+  ✓  146 [mobile] › e2e/flow-freshness-responsive.spec.ts:3:5 › Flow Desk separates Connected transport from measured source freshness (802ms)
+  ✓  147 [mobile] › e2e/options-contract-shortlist.spec.ts:392:5 › real entitled screener rows compare without any new data request (958ms)
+  ✓  148 [mobile] › e2e/options-deeplink.spec.ts:87:5 › Options follows query navigation and Back/Forward while retaining visited desks (1.4s)
+  ✓  149 [mobile] › e2e/options-deeplink.spec.ts:138:5 › Options can leave Exposure while new scripts and styles are still loading (772ms)
+  ✓  150 [mobile] › e2e/options-deeplink.spec.ts:138:5 › Options can leave Research Lab while new scripts and styles are still loading (1.4s)
+  ✓  151 [mobile] › e2e/options-exposure-surface-journey.spec.ts:720:7 › synthetic exposure surface journey en (10.1s)
+  ✓  152 [mobile] › e2e/options-exposure-surface-journey.spec.ts:720:7 › synthetic exposure surface journey zh (11.3s)
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+  ✓  153 [mobile] › e2e/options-exposure-surface-journey.spec.ts:1413:7 › synthetic exposure saved theme cold return en (16.0s)
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+[WebServer] [TypeError: fetch failed] {
+[WebServer]   [cause]: Error: connect ECONNREFUSED 127.0.0.1:54321
+[WebServer]       at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:54321) {
+[WebServer]     errno: -61,
+[WebServer]     code: 'ECONNREFUSED',
+[WebServer]     syscall: 'connect',
+[WebServer]     address: '127.0.0.1',
+[WebServer]     port: 54321
+[WebServer]   }
+[WebServer] }
+  ✓  154 [mobile] › e2e/options-exposure-surface-journey.spec.ts:1413:7 › synthetic exposure saved theme cold return zh (13.9s)
+  ✓  155 [mobile] › e2e/options-exposure-workspace.spec.ts:12:5 › Main chart rejects a book corrected during navigation (7.8s)
+  ✓  156 [mobile] › e2e/options-exposure-workspace.spec.ts:138:9 › Withheld Gamma scope en explains the admitted comparison boundary (1.6s)
+  ✓  157 [mobile] › e2e/options-exposure-workspace.spec.ts:138:9 › Withheld Gamma definition en explains the admitted comparison boundary (1.5s)
+  ✓  158 [mobile] › e2e/options-exposure-workspace.spec.ts:164:7 › Source-relative zero Gamma en does not match rolling expiry identities (1.6s)
+  ✓  159 [mobile] › e2e/options-exposure-workspace.spec.ts:186:7 › Matched reported Gamma en separates contributions and source coverage (1.9s)
+  ✓  160 [mobile] › e2e/options-exposure-workspace.spec.ts:237:7 › One observed side en remains a measured book through chart and return (9.6s)
+  ✓  161 [mobile] › e2e/options-exposure-workspace.spec.ts:277:9 › Archived chart return en restores the same book and strike (9.6s)
+  ✓  162 [mobile] › e2e/options-exposure-workspace.spec.ts:277:9 › Archived chart return en withdraws a corrected selection (9.6s)
+  ✓  163 [mobile] › e2e/options-exposure-workspace.spec.ts:312:7 › Exposure selection opens the main chart en with the same book (9.0s)
+  ✓  164 [mobile] › e2e/options-exposure-workspace.spec.ts:339:7 › Partial observed exposure en preserves measured contributions (10.0s)
+  ✓  165 [mobile] › e2e/options-exposure-workspace.spec.ts:386:7 › Projected exposure memory en preserves measurements without a false delta (1.6s)
+  ✓  166 [mobile] › e2e/options-exposure-workspace.spec.ts:414:7 › Archived exposure changes en compare the selected book (1.7s)
+  ✓  167 [mobile] › e2e/options-exposure-workspace.spec.ts:439:7 › Connected exposure workspace en: chart, comparison scopes, scanner and return (4.0s)
+  ✓  168 [mobile] › e2e/options-exposure-workspace.spec.ts:138:9 › Withheld Gamma scope zh explains the admitted comparison boundary (1.7s)
+  ✓  169 [mobile] › e2e/options-exposure-workspace.spec.ts:138:9 › Withheld Gamma definition zh explains the admitted comparison boundary (1.6s)
+  ✓  170 [mobile] › e2e/options-exposure-workspace.spec.ts:164:7 › Source-relative zero Gamma zh does not match rolling expiry identities (1.6s)
+  ✓  171 [mobile] › e2e/options-exposure-workspace.spec.ts:186:7 › Matched reported Gamma zh separates contributions and source coverage (2.0s)
+  ✓  172 [mobile] › e2e/options-exposure-workspace.spec.ts:237:7 › One observed side zh remains a measured book through chart and return (6.7s)
+  ✓  173 [mobile] › e2e/options-exposure-workspace.spec.ts:277:9 › Archived chart return zh restores the same book and strike (7.3s)
+  ✓  174 [mobile] › e2e/options-exposure-workspace.spec.ts:277:9 › Archived chart return zh withdraws a corrected selection (7.2s)
+  ✓  175 [mobile] › e2e/options-exposure-workspace.spec.ts:312:7 › Exposure selection opens the main chart zh with the same book (6.8s)
+  ✓  176 [mobile] › e2e/options-exposure-workspace.spec.ts:339:7 › Partial observed exposure zh preserves measured contributions (7.1s)
+  ✓  177 [mobile] › e2e/options-exposure-workspace.spec.ts:386:7 › Projected exposure memory zh preserves measurements without a false delta (1.7s)
+  ✓  178 [mobile] › e2e/options-exposure-workspace.spec.ts:414:7 › Archived exposure changes zh compare the selected book (1.8s)
+  ✓  179 [mobile] › e2e/options-exposure-workspace.spec.ts:439:7 › Connected exposure workspace zh: chart, comparison scopes, scanner and return (4.1s)
+  ✓  180 [mobile] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery (1.8s)
+  ✓  181 [mobile] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery (1.3s)
+  ✓  182 [mobile] › e2e/options-lab-source-state.spec.ts:81:5 › Research Lab admits a valid current read before the stream supplies a frame (865ms)
+  ✓  183 [mobile] › e2e/options-lab-source-state.spec.ts:99:5 › Research Lab preserves the selected archive without substituting an available live book (1.0s)
+  ✓  184 [mobile] › e2e/options-r1-w3a-flow-inspector.spec.ts:54:5 › coverage line keeps unknown premium in the denominator and totals calls and puts unsigned (683ms)
+  ✓  185 [mobile] › e2e/options-r1-w3a-flow-inspector.spec.ts:61:5 › selecting e1 shows the print inspector with premium arithmetic, named-method side and the not-supplied clocks (863ms)
+  ✓  186 [mobile] › e2e/options-r1-w3a-flow-inspector.spec.ts:83:5 › selecting e5 shows the owner's figure as not reproducible from size × price × 100 (805ms)
+  ✓  187 [mobile] › e2e/options-r1-w3a-flow-inspector.spec.ts:93:5 › the 23 Oct expiry filter hides the 20 Nov row and never changes the coverage line (826ms)
+  ✓  188 [mobile] › e2e/options-r1-w3a-flow-inspector.spec.ts:106:5 › the expiry filter survives a reload through flowdesk.filters.v1 (1.3s)
+  ✓  189 [mobile] › e2e/options-r1-w3a-flow-inspector.spec.ts:121:5 › equal-timestamp prints keep their id order across re-sorts (e6 before e9) (769ms)
+  ✓  190 [mobile] › e2e/options-r1-w3a-flow-inspector.spec.ts:141:5 › the 中文 view renders the same inspector sections with no Latin machine text (909ms)
+  ✓  191 [mobile] › e2e/options-r1-w3a-flow-inspector.spec.ts:164:5 › inspect by keyboard and return to the source print with filters intact (1.0s)
+  ✓  192 [mobile] › e2e/options-r1-w3a-flow-inspector.spec.ts:201:5 › a slow previous ticker cannot replace the selected print's context (845ms)
+  ✓  193 [mobile] › e2e/options-r1-w3a-flow-inspector.spec.ts:224:7 › selected Command print has one natural page scroll on compact screens (en) (1.0s)
+  ✓  194 [mobile] › e2e/options-r1-w3a-flow-inspector.spec.ts:224:7 › selected Command print has one natural page scroll on compact screens (zh) (1.0s)
+  ✓  195 [mobile] › e2e/options-research-lab.spec.ts:17:7 › 3D research lab exact selection and responsive fallback en (2.1s)
+  ✓  196 [mobile] › e2e/options-research-lab.spec.ts:17:7 › 3D research lab exact selection and responsive fallback zh (2.2s)
+  ✓  197 [mobile] › e2e/options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal en dark (2.9s)
+  ✓  198 [mobile] › e2e/options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal en light (2.4s)
+  ✓  199 [mobile] › e2e/options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal zh dark (2.7s)
+  ✓  200 [mobile] › e2e/options-research-question.spec.ts:10:7 › exact Lab question stage and withdrawal zh light (2.7s)
+  ✓  201 [mobile] › e2e/options-workspace-usability.spec.ts:3:5 › Surface can select, drag and step to an actual observation (1.2s)
+
+  201 passed (11.0m)

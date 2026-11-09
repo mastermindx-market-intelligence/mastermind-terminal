@@ -30,6 +30,6 @@ export function AdmittedOptionsResearchLab({
       ? pick("Verifying options access…", "正在验证期权访问权限…")
       : pick("Options access is unavailable. Research values and selections have been withdrawn.", "期权访问权限不可用，已撤回研究数值与选择。")}</p>
   </section>;
-  return <OptionsResearchLab {...props}
+  return <OptionsResearchLab key={identityOwnerKey(identity)} {...props} questionOwnerKey={identityOwnerKey(identity)}
     currentGexSnapshot={currentGexSourceAvailable ? currentGexSnapshot : null} />;
 }

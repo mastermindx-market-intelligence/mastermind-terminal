@@ -1,0 +1,51 @@
+{
+  "afterSha256": "3a41efcea4fa75d53b6e9eb81438ed3326096b19a409ae456dd068f5002a00eb",
+  "beforeSha256": "11f036eb6731f4613f25d8c82c1a6e4231dbe7cde330b594c0657f1cd87fab49",
+  "command": [
+    "node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/prophetOriginationDisclosure.test.ts",
+    "--testNamePattern",
+    "AnalysisPanel without origination fields renders exactly as today",
+    "--update",
+    "--pool=forks",
+    "--maxWorkers=1",
+    "--minWorkers=1",
+    "--reporter=json",
+    "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/docs/verification/pr1248-options-ux-integration-20261109/prophet-snapshot-reconciliation/targeted-update.json"
+  ],
+  "comparisons": {
+    "AnalysisPanel without origination fields renders exactly as today > is unchanged in Chinese 1": {
+      "currentOrder": [
+        "next steps",
+        "geometry"
+      ],
+      "priorOrder": [
+        "geometry",
+        "next steps"
+      ],
+      "sameMarkupTokenMultiset": true
+    },
+    "AnalysisPanel without origination fields renders exactly as today > is unchanged in English 1": {
+      "currentOrder": [
+        "next steps",
+        "geometry"
+      ],
+      "priorOrder": [
+        "geometry",
+        "next steps"
+      ],
+      "sameMarkupTokenMultiset": true
+    }
+  },
+  "completedAt": "2026-11-09T18:05:52.005869+00:00",
+  "exit": 0,
+  "otherSnapshotsUnchanged": true,
+  "reason": "The original1248 UX moves the existing next-step section before geometry. Protected disclosure and all markup/text tokens remain intact; actual current six responsive disclosure cases already passed without changing assertions.",
+  "schema": "terminal_pr1248_prophet_snapshot_reconciliation.v1",
+  "seconds": 0.88,
+  "state": "TWO_SNAPSHOTS_UPDATED_FOR_RETAINED_UX_ORDER_ONLY",
+  "testSourceSha256": "b8447ea17c9edb6e905ed6791070de3dc9b7d8722a32b3ad3b2568e6c0e74091",
+  "testSourceUnchanged": true
+}

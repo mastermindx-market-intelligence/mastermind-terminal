@@ -1,8 +1,16 @@
+# Current source proof is the complete Options workspace integration revision.
+exposureMasterIntegration20261109:
+  revision: "operations/exposure-source-compatibility-20261105/revisions/options-ux-integration-20261109"
+  descriptorSha256: "6689b3e6cd9d1200ff83885c135cac7103fe91f7a721de5e8e86beebae5b9042"
+  branchHead: "753b4a90ebd31a1da76a9595bb2fedde912da042"
+  protectedMaster: "03af393ce05c12282003a3919cc473c032264922"
+  integratedDependency: "7d0483c995df95ea76e988029d0c229d2a0e177c"
+
 # EOD belt, Flow Desk chain heat and Heatmap flow layer failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: daab948465d37a18f42a0682cf56a3ea2426e4fb
-# capturedAt: 2026-11-01T13:04:34.676Z
+# capturedAtHead: a842de07ad2b6e5b2a8c29cbb39226a5443eb490
+# capturedAt: 2026-11-05T12:17:25.344Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
@@ -16,18 +24,7 @@ layoutFiles:
   terminal/lib/dataCache.ts: "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a"
   terminal/lib/eodContext.ts: "1d0ce3ccde7a2fa05948cc0ac2ee93d16ec06724a7edcbd8c95c61e39d98b9e7"
   terminal/lib/flowdeskStrings.ts: "580399a47bae6ab6aa16368d25ed54c94047799e4a600352385b5a9b7cc25c10"
-  terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
-
-# Qualified Options and combined source compositions; protected baseline is retained.
-optionsSourceCompatibility20261105:
-  protectedBase: "11531481b0a540ee96bcd86df418fd1e42715363"
-  priorPublishedHead: "98ffa891116ccc9e6be58a64148dbe45591e6ce8"
-  priorManifest: "operations/options-source-compatibility-20261105/EVIDENCE.before.yml"
-  acceptedExposureDependency: "0182a45abccb9c0e77b2c8e4626431e89635b35f"
-  jointPacket: "operations/combined-source-compatibility-20261105/revisions/options-navigation-r4/native-packet.json"
-  jointPacketSha256: "95de1a091bc2b152237921c3f3cb93aa3a95c5c9e029d1d8d4675fa7f3e855b5"
-  sourceContractSha256: "a7cd2ce244a0ae278fc24bf25a51566c0053c89f9ce3fb17ae12b350f1541db7"
-
+  terminal/lib/heatmapStrings.ts: "d24d5cff73246b1a426fe4034723dae30968cd6779d35cef29a4eaf3b55315b7"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -386,3 +383,10 @@ labGammaMountedRecapture20261104:
   qualification: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/lab-gamma-recapture-20261104.json"
   qualificationSha256: "58ffdbfc7821e7a59baff21c0afb99b582c9aa0f505bc18539f85fcebcb37955"
   scope: "Actual scoped GEX/EOD capture; unrelated sources, historical packets and assertions preserved; not production."
+
+terminal610CaptureRepair20261105:
+  sourceHead: "a842de07ad2b6e5b2a8c29cbb39226a5443eb490"
+  actualCases: 126
+  command: "cd terminal && node e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs"
+  capturedAt: "2026-11-05T12:17:25.344Z"
+  scope: "Actual full capture of every state at 1440/820/390 in en and zh against the current source, because heatmapStrings.ts changed the sizeCap label to Price x volume / 价格 x 成交量. The scoped Heatmap mode was refused by its own guard (heatmapStrings.ts is outside HeatmapView.tsx), so the full owner ran. Historical trailing records above are preserved unchanged."

@@ -1,0 +1,133 @@
+{
+  "schema": "exposure_parent_ci_receipt.v1",
+  "observed_at": "2026-11-05T06:37:28.940783+00:00",
+  "head_sha": "4624a10e48b348b7298074d28cc26510fb1d6353",
+  "id": 41973148175,
+  "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/41973148175",
+  "event": "pull_request",
+  "run_attempt": 1,
+  "status": "completed",
+  "conclusion": "success",
+  "jobs": [
+    {
+      "id": 127065781491,
+      "name": "Terminal unit + typecheck (shard)",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/41973148175/job/127065781491"
+    },
+    {
+      "id": 127065781793,
+      "name": "Investigation PostgreSQL invariants",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/41973148175/job/127065781793"
+    },
+    {
+      "id": 127065781814,
+      "name": "Ingest + signal-layer tests",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/41973148175/job/127065781814"
+    },
+    {
+      "id": 127065781867,
+      "name": "Terminal e2e mobile-3 (shard)",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/41973148175/job/127065781867"
+    },
+    {
+      "id": 127065781957,
+      "name": "Terminal e2e desktop-5 (shard)",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/41973148175/job/127065781957"
+    },
+    {
+      "id": 127065781984,
+      "name": "Terminal e2e desktop-2 (shard)",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/41973148175/job/127065781984"
+    },
+    {
+      "id": 127065782014,
+      "name": "Quote Hub tests",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/41973148175/job/127065782014"
+    },
+    {
+      "id": 127065782034,
+      "name": "Terminal e2e desktop-1 (shard)",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/41973148175/job/127065782034"
+    },
+    {
+      "id": 127065782090,
+      "name": "Terminal e2e mobile-2 (shard)",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/41973148175/job/127065782090"
+    },
+    {
+      "id": 127065782140,
+      "name": "Terminal e2e mobile-1 (shard)",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/41973148175/job/127065782140"
+    },
+    {
+      "id": 127065782198,
+      "name": "Terminal e2e tablet-3 (shard)",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/41973148175/job/127065782198"
+    },
+    {
+      "id": 127065782208,
+      "name": "Terminal e2e desktop-3 (shard)",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/41973148175/job/127065782208"
+    },
+    {
+      "id": 127065782213,
+      "name": "Terminal e2e desktop-4 (shard)",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/41973148175/job/127065782213"
+    },
+    {
+      "id": 127065782284,
+      "name": "Terminal e2e serial (shard)",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/41973148175/job/127065782284"
+    },
+    {
+      "id": 127065782325,
+      "name": "Terminal e2e tablet-1 (shard)",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/41973148175/job/127065782325"
+    },
+    {
+      "id": 127065782363,
+      "name": "Terminal e2e tablet-2 (shard)",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/41973148175/job/127065782363"
+    },
+    {
+      "id": 127088703008,
+      "name": "Terminal typecheck + tests",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/41973148175/job/127088703008"
+    }
+  ],
+  "scope": "Published parent only; successor shared-reader commit requires its own pull-request CI."
+}

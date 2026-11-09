@@ -1,15 +1,14 @@
 # Volatility tab failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: ac3762717ad150fd4f18614afd78072115a7c80a
-# capturedAt: 2026-11-03T04:10:21.006Z
+# capturedAtHead: 0f03615e86ed63f00ad9b294c7a5c909bad7b70a
+# capturedAt: 2026-11-04T20:40:39.170Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/options/ResearchGrid.module.css: "eba2ec6eb1b490141e9a1239fd19438c4da89950c5c34c4905266751db0a7e3a"
-  terminal/components/vol/VolView.tsx: "a221fbb6b8df5afd693893515169d37e7194b8ebcc0711b3fb3930cad7592606"
-  terminal/components/vol/VolVrpPanel.tsx: "f4610c94cd5fef68a58378eef9095bf664dd78036b4f5f5c784520f6f1ab7f4b"
+  terminal/components/vol/VolView.tsx: "167729cef3c6a64d419355e49c15f9d4ede068fd2a9dbe74f31d6c202d6ff9e3"
+  terminal/components/vol/VolVrpPanel.tsx: "8361849dfc7ad7a45f801b8aa66022c618e667a6ff113ef9e36064fa330a8cf5"
   terminal/components/vol/volShared.tsx: "e77a4159b46c9670201a03ab22e0408ec5eeb03725dc9e7dad54b49a07cfdd50"
-  terminal/components/vol/volStrings.ts: "23f9b84cd166fd28155eee15122ff0774744e445208a6345bdaabe270c9a33ff"
+  terminal/components/vol/volStrings.ts: "19615ec660380f750066188249e6271163eafb0f99d770869c06890da87f6572"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -121,7 +120,3 @@ files:
   - spread-unavailable-390.png
   - spread-unavailable-820-zh.png
   - spread-unavailable-820.png
-
-optionsWorkspaceQualification:
-  actualCases: 48
-  source: "Working-tree layoutFiles above, captured before publication"

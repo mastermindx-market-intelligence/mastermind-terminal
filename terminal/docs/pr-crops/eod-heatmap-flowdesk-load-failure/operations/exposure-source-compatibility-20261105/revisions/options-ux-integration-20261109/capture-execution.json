@@ -1,0 +1,1866 @@
+{
+  "branchHead": "753b4a90ebd31a1da76a9595bb2fedde912da042",
+  "captureId": "terminal-pr1248-eod-options-ux-integration-20261109-r1",
+  "command": [
+    "node",
+    "e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs"
+  ],
+  "completedAt": "2026-11-09T18:25:45.267219+00:00",
+  "exit": 0,
+  "expected": 126,
+  "frames": [
+    {
+      "file": "eod-darkpool-unavailable-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-darkpool-retried-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-darkpool-absent-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-structure-partial-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-structure-retried-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-structure-unavailable-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-structure-absent-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "chainheat-unavailable-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "chainheat-retried-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "chainheat-absent-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "chainheat-refresh-failed-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-unavailable-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-retried-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-absent-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-auth-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-refresh-failed-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-persisted-refresh-failed-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-persisted-refresh-refused-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-persisted-retried-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-live-failed-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-no-match-1440.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-darkpool-unavailable-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-darkpool-retried-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-darkpool-absent-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-structure-partial-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-structure-retried-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-structure-unavailable-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-structure-absent-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "chainheat-unavailable-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "chainheat-retried-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "chainheat-absent-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "chainheat-refresh-failed-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-unavailable-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-retried-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-absent-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-auth-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-refresh-failed-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-persisted-refresh-failed-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-persisted-refresh-refused-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-persisted-retried-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-live-failed-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-no-match-1440-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-darkpool-unavailable-820.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-darkpool-retried-820.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-darkpool-absent-820.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-structure-partial-820.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-structure-retried-820.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-structure-unavailable-820.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-structure-absent-820.png",
+      "status": "success"
+    },
+    {
+      "file": "chainheat-unavailable-820.png",
+      "status": "success"
+    },
+    {
+      "file": "chainheat-retried-820.png",
+      "status": "success"
+    },
+    {
+      "file": "chainheat-absent-820.png",
+      "status": "success"
+    },
+    {
+      "file": "chainheat-refresh-failed-820.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-unavailable-820.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-retried-820.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-absent-820.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-auth-820.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-refresh-failed-820.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-persisted-refresh-failed-820.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-persisted-refresh-refused-820.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-persisted-retried-820.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-live-failed-820.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-no-match-820.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-darkpool-unavailable-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-darkpool-retried-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-darkpool-absent-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-structure-partial-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-structure-retried-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-structure-unavailable-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-structure-absent-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "chainheat-unavailable-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "chainheat-retried-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "chainheat-absent-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "chainheat-refresh-failed-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-unavailable-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-retried-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-absent-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-auth-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-refresh-failed-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-persisted-refresh-failed-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-persisted-refresh-refused-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-persisted-retried-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-live-failed-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-no-match-820-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-darkpool-unavailable-390.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-darkpool-retried-390.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-darkpool-absent-390.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-structure-partial-390.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-structure-retried-390.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-structure-unavailable-390.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-structure-absent-390.png",
+      "status": "success"
+    },
+    {
+      "file": "chainheat-unavailable-390.png",
+      "status": "success"
+    },
+    {
+      "file": "chainheat-retried-390.png",
+      "status": "success"
+    },
+    {
+      "file": "chainheat-absent-390.png",
+      "status": "success"
+    },
+    {
+      "file": "chainheat-refresh-failed-390.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-unavailable-390.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-retried-390.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-absent-390.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-auth-390.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-refresh-failed-390.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-persisted-refresh-failed-390.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-persisted-refresh-refused-390.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-persisted-retried-390.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-live-failed-390.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-no-match-390.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-darkpool-unavailable-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-darkpool-retried-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-darkpool-absent-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-structure-partial-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-structure-retried-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-structure-unavailable-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "eod-structure-absent-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "chainheat-unavailable-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "chainheat-retried-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "chainheat-absent-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "chainheat-refresh-failed-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-unavailable-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-retried-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-absent-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-auth-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-refresh-failed-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-persisted-refresh-failed-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-persisted-refresh-refused-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-flow-persisted-retried-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-live-failed-390-zh.png",
+      "status": "success"
+    },
+    {
+      "file": "heatmap-no-match-390-zh.png",
+      "status": "success"
+    }
+  ],
+  "images": {
+    "chainheat-absent-1440-zh.png": {
+      "bytes": 5279,
+      "height": 77,
+      "sha256": "a95ed7cc8d1f94f38ecf566b7f3a50cfa55215be91c204a13d3b62f30a05d1c1",
+      "width": 332
+    },
+    "chainheat-absent-1440.png": {
+      "bytes": 4670,
+      "height": 77,
+      "sha256": "69a27c8cee056b86fe721b52693ead034e7ce83aac1855052b9c6fc793704566",
+      "width": 332
+    },
+    "chainheat-absent-390-zh.png": {
+      "bytes": 5121,
+      "height": 77,
+      "sha256": "64a142911721b7bd5695ba5eade5f7458d5c8d4d301402a567881aece519a4c3",
+      "width": 374
+    },
+    "chainheat-absent-390.png": {
+      "bytes": 4496,
+      "height": 77,
+      "sha256": "df782c5ea0dd4f684741cdc81f85db8f2cc145e639a3e8740dfce18422645cfa",
+      "width": 374
+    },
+    "chainheat-absent-820-zh.png": {
+      "bytes": 5441,
+      "height": 77,
+      "sha256": "13340e5bd13b08326685687e24eb39acf54c95962f33546a01e2757dcc7fea02",
+      "width": 804
+    },
+    "chainheat-absent-820.png": {
+      "bytes": 4753,
+      "height": 77,
+      "sha256": "ccc7402bea622547b4221ea1450a37dc7aea5d8b90e892fb561688ef31aadbae",
+      "width": 804
+    },
+    "chainheat-refresh-failed-1440-zh.png": {
+      "bytes": 34238,
+      "height": 389,
+      "sha256": "7c8da6d6b36bbbb4506c608e21f6a179c10b18a2481c22acdfe8b7922058ee4d",
+      "width": 332
+    },
+    "chainheat-refresh-failed-1440.png": {
+      "bytes": 30511,
+      "height": 389,
+      "sha256": "673efebf4e68b25fa59d4cbf99eb20ab26b8a74bb8a0409c55c57741aea29aa3",
+      "width": 332
+    },
+    "chainheat-refresh-failed-390-zh.png": {
+      "bytes": 34216,
+      "height": 405,
+      "sha256": "d6fd4b6aa3d8c662f65436e80b0911b5f6cd08cc6644f736076109c25cb6a140",
+      "width": 374
+    },
+    "chainheat-refresh-failed-390.png": {
+      "bytes": 30507,
+      "height": 405,
+      "sha256": "afd8ea4c1f081190f759af75669a146f362dafb3f44dc8c64090764f264d55c2",
+      "width": 374
+    },
+    "chainheat-refresh-failed-820-zh.png": {
+      "bytes": 35943,
+      "height": 405,
+      "sha256": "587692ab2ef6682c0a5f67718d620a4fea48d805f5a63df9ecfa98bbb489d21d",
+      "width": 804
+    },
+    "chainheat-refresh-failed-820.png": {
+      "bytes": 32033,
+      "height": 405,
+      "sha256": "c58ae9999f833958869f285a5deb36fc3cf89e69596ec2d704352f1403a1daea",
+      "width": 804
+    },
+    "chainheat-retried-1440-zh.png": {
+      "bytes": 28903,
+      "height": 338,
+      "sha256": "0fe20a92c5e30bc5a9323d661b7ee3fb5468ed1bd3ff4de5c34ea60bc1ddd9c6",
+      "width": 332
+    },
+    "chainheat-retried-1440.png": {
+      "bytes": 26583,
+      "height": 338,
+      "sha256": "989dae943b976b6dff12ce4d8d352f66a2d222448babd8c94ac0bf6b57ca5325",
+      "width": 332
+    },
+    "chainheat-retried-390-zh.png": {
+      "bytes": 30770,
+      "height": 348,
+      "sha256": "14ddf498dfadd7fa5ab09c015e91a7e5a778161c20adc4b6a06177fb7a7e4942",
+      "width": 374
+    },
+    "chainheat-retried-390.png": {
+      "bytes": 29755,
+      "height": 348,
+      "sha256": "29c01a32c8b26d25af70832a9a96b1c8087545096b936d115cde9cd5fc28cfbf",
+      "width": 374
+    },
+    "chainheat-retried-820-zh.png": {
+      "bytes": 30279,
+      "height": 348,
+      "sha256": "20152711cd226d65c89cf332980300aceda5c44adf61f16df1f61b3d0127bb51",
+      "width": 804
+    },
+    "chainheat-retried-820.png": {
+      "bytes": 27889,
+      "height": 348,
+      "sha256": "05bcdb6da12a62629aa16154e0247b5689cb73cf6feb825fa41a6434d7f09637",
+      "width": 804
+    },
+    "chainheat-unavailable-1440-zh.png": {
+      "bytes": 10723,
+      "height": 143,
+      "sha256": "06f6cb8b8db1e7d79c188f7cf0f0e4577d01949ab4d7289c813d710c5b09fe6b",
+      "width": 332
+    },
+    "chainheat-unavailable-1440.png": {
+      "bytes": 8859,
+      "height": 159,
+      "sha256": "5aa9c990f26a204fa8632a8ae416d4c200f50980e0e823d98fbaaff93ebba958",
+      "width": 332
+    },
+    "chainheat-unavailable-390-zh.png": {
+      "bytes": 10641,
+      "height": 149,
+      "sha256": "4a25307531d5196b0bb63ce660cb9f3d5550dc3fda87579956f086aa6dcaede8",
+      "width": 374
+    },
+    "chainheat-unavailable-390.png": {
+      "bytes": 8759,
+      "height": 165,
+      "sha256": "fb0575e6a02e664db6a42c1b89b75dc90630888a639e6e985c947efcdeed618b",
+      "width": 374
+    },
+    "chainheat-unavailable-820-zh.png": {
+      "bytes": 11269,
+      "height": 149,
+      "sha256": "c48e2bd0f1de1e7a56eece592230eeca6635bd077614ca4426f2fba3d27acb05",
+      "width": 804
+    },
+    "chainheat-unavailable-820.png": {
+      "bytes": 8925,
+      "height": 149,
+      "sha256": "4f552cc74096e354deaf381a0ea0f2ae9119b9139ecd88d5b74d1b33bce238af",
+      "width": 804
+    },
+    "eod-darkpool-absent-1440-zh.png": {
+      "bytes": 8337,
+      "height": 74,
+      "sha256": "30edc57e84aa0651dd787d9af5626467e3b7af6c1df1ced5d96a5add570577f3",
+      "width": 340
+    },
+    "eod-darkpool-absent-1440.png": {
+      "bytes": 8094,
+      "height": 89,
+      "sha256": "ddcfd6234edae0cb0a1a4b5a113af38e338781e7d9896bd9b5ffd3f528d73adb",
+      "width": 340
+    },
+    "eod-darkpool-absent-390-zh.png": {
+      "bytes": 8400,
+      "height": 74,
+      "sha256": "c0b85a69f253c268da2726720d9f84f32e74ad77dda7074761febaef5c6597a4",
+      "width": 374
+    },
+    "eod-darkpool-absent-390.png": {
+      "bytes": 8218,
+      "height": 89,
+      "sha256": "ada64c7234662972901a008e00b613afe97d8b50d64bedbdd93115c4d816354e",
+      "width": 374
+    },
+    "eod-darkpool-absent-820-zh.png": {
+      "bytes": 8841,
+      "height": 74,
+      "sha256": "abc3e863fc8fcd3445c00c0d32aed5fd5d0e363d8d8027a2e0544963ca802898",
+      "width": 804
+    },
+    "eod-darkpool-absent-820.png": {
+      "bytes": 8362,
+      "height": 74,
+      "sha256": "cd7fdf3e6711662ec3cea27ff96f97c9e46f2cea5c05ab3e0c021f752c4c1389",
+      "width": 804
+    },
+    "eod-darkpool-retried-1440-zh.png": {
+      "bytes": 12689,
+      "height": 89,
+      "sha256": "a64a10ccfaa3bcc12a8e6d9da2dc59d407253dbefda2c946d98606924326d4de",
+      "width": 340
+    },
+    "eod-darkpool-retried-1440.png": {
+      "bytes": 10055,
+      "height": 89,
+      "sha256": "e7b4a4dc5dda135431ae85655134be4151a2838104319343a7b62bb6771df2d4",
+      "width": 340
+    },
+    "eod-darkpool-retried-390-zh.png": {
+      "bytes": 12772,
+      "height": 89,
+      "sha256": "b4cae8933b644b12769d07f03a298bd67ca8b61cbc393f7950e9c45be97cd028",
+      "width": 374
+    },
+    "eod-darkpool-retried-390.png": {
+      "bytes": 10105,
+      "height": 89,
+      "sha256": "8ca114523de33300c4b0fac77a4361b6dc77fade9ede0f4ca9dacaf8b85cdd84",
+      "width": 374
+    },
+    "eod-darkpool-retried-820-zh.png": {
+      "bytes": 13059,
+      "height": 74,
+      "sha256": "ed4e688b98c0139b8bc07a239122c7d1decbcbad0bada90ad9d822bbd252cd7d",
+      "width": 804
+    },
+    "eod-darkpool-retried-820.png": {
+      "bytes": 10167,
+      "height": 74,
+      "sha256": "ab192ed9df31fd84ca617e37f2306e6257b5dd0670db55eb161fa405dd1495b4",
+      "width": 804
+    },
+    "eod-darkpool-unavailable-1440-zh.png": {
+      "bytes": 9648,
+      "height": 118,
+      "sha256": "a2692a79a883506cbe18a4fc16782ceda2af1f664faae13e0daf378c0a6f6ee7",
+      "width": 340
+    },
+    "eod-darkpool-unavailable-1440.png": {
+      "bytes": 9372,
+      "height": 133,
+      "sha256": "04385280d04ce1a30cfee7fddf39bb7cde07e76dd72a81ed628d4bad796b63f9",
+      "width": 340
+    },
+    "eod-darkpool-unavailable-390-zh.png": {
+      "bytes": 9753,
+      "height": 124,
+      "sha256": "46db1ee393db3d41e9aeaa8c6c58dc34370e2cc6d8cba860cf74b292ca651c88",
+      "width": 374
+    },
+    "eod-darkpool-unavailable-390.png": {
+      "bytes": 9301,
+      "height": 139,
+      "sha256": "3e37d466eeeb8b38a376d5f87254ca4b1d2b9ff2947593b8905f538d519effc3",
+      "width": 374
+    },
+    "eod-darkpool-unavailable-820-zh.png": {
+      "bytes": 10314,
+      "height": 124,
+      "sha256": "07f391c6babe9740ee83f062cc7eddf110a9d650687cf697db0525983b260f7a",
+      "width": 804
+    },
+    "eod-darkpool-unavailable-820.png": {
+      "bytes": 9839,
+      "height": 124,
+      "sha256": "639162ad244761bae6c67880e290c0d093925450ebf0a13b33ba957d40e2f0c6",
+      "width": 804
+    },
+    "eod-structure-absent-1440-zh.png": {
+      "bytes": 31729,
+      "height": 113,
+      "sha256": "ec36e52987da389baef8cd0204e78c714a8c33433b370f1b8cea2c56fcf9c37d",
+      "width": 1356
+    },
+    "eod-structure-absent-1440.png": {
+      "bytes": 28027,
+      "height": 113,
+      "sha256": "0936590b9d144fcc73a8cfe2910d6daaadffe68e5ce2c9836a1ca4b979870262",
+      "width": 1356
+    },
+    "eod-structure-absent-390-zh.png": {
+      "bytes": 28797,
+      "height": 332,
+      "sha256": "8c4eda70046ab71e11500fef7a5cc09f798eeda700f0ebe11e0678bce614781f",
+      "width": 374
+    },
+    "eod-structure-absent-390.png": {
+      "bytes": 27895,
+      "height": 332,
+      "sha256": "c1d7055a9449812161d1d461ebd6317c26ad57d831e076c455ce60ee6f933d15",
+      "width": 374
+    },
+    "eod-structure-absent-820-zh.png": {
+      "bytes": 28481,
+      "height": 198,
+      "sha256": "5e5ec0970f31ef7f403e2fba8bd517871fca1123d105d9cb01af04c4b21896ef",
+      "width": 804
+    },
+    "eod-structure-absent-820.png": {
+      "bytes": 24947,
+      "height": 198,
+      "sha256": "caeb8f5df9929b870d3b489d726847c9edfe2f01a33dbade185bf288a0ad254a",
+      "width": 804
+    },
+    "eod-structure-partial-1440-zh.png": {
+      "bytes": 39672,
+      "height": 160,
+      "sha256": "c84e9d52a9917eaad7bb63ee02e6cae8dc06641654f3631250767a494cf6c630",
+      "width": 1356
+    },
+    "eod-structure-partial-1440.png": {
+      "bytes": 33782,
+      "height": 160,
+      "sha256": "a6d6d80e0cebff9f3dee7a11c836ca30ce6274bb304263eba29872354f0a7d69",
+      "width": 1356
+    },
+    "eod-structure-partial-390-zh.png": {
+      "bytes": 36542,
+      "height": 404,
+      "sha256": "dbc790b049fec4038280afa0415e373e3619247358bf599d1c44e75be7ba51ab",
+      "width": 374
+    },
+    "eod-structure-partial-390.png": {
+      "bytes": 33598,
+      "height": 419,
+      "sha256": "0ac9e275a17ad3b24434b7b720f94ddb196f42f35e910a42c20ea063f8c7dac0",
+      "width": 374
+    },
+    "eod-structure-partial-820-zh.png": {
+      "bytes": 36149,
+      "height": 251,
+      "sha256": "2cad935a39b05328a8278ff5c8ee8167ce6b717186da31586f7c385ed9f428ce",
+      "width": 804
+    },
+    "eod-structure-partial-820.png": {
+      "bytes": 30388,
+      "height": 251,
+      "sha256": "b887f8a81b2ddfd9b1834a716dcdfa3d84e847a24d697be4f97d357a3ff55370",
+      "width": 804
+    },
+    "eod-structure-retried-1440-zh.png": {
+      "bytes": 38058,
+      "height": 126,
+      "sha256": "61dad42bed7e1b1d9482c841efd4b75033913232e2e01548a2538251cc41d510",
+      "width": 1356
+    },
+    "eod-structure-retried-1440.png": {
+      "bytes": 34246,
+      "height": 138,
+      "sha256": "42fe18b045af6837840beb7f9eb1b7754f204fec1f8b590a99697bb124a4b951",
+      "width": 1356
+    },
+    "eod-structure-retried-390-zh.png": {
+      "bytes": 34885,
+      "height": 358,
+      "sha256": "d8f7b7976f2cb4e31edbdd79b65d6153a8b7741677d518ff622f1f030b7315f7",
+      "width": 374
+    },
+    "eod-structure-retried-390.png": {
+      "bytes": 32958,
+      "height": 370,
+      "sha256": "d8103a561e210578442479d3e6cfc18387fc6d506db5f504b2188df7eabbe951",
+      "width": 374
+    },
+    "eod-structure-retried-820-zh.png": {
+      "bytes": 33948,
+      "height": 223,
+      "sha256": "7bb86f2b57805c5a5e9b4364a967e371a8e81538db1b7aa8370006c62ca12bb8",
+      "width": 804
+    },
+    "eod-structure-retried-820.png": {
+      "bytes": 30813,
+      "height": 235,
+      "sha256": "97c846836d8db2b13d94f8f78dfb55858f12f65cb6858cc6c4bdce5d2a2ce71a",
+      "width": 804
+    },
+    "eod-structure-unavailable-1440-zh.png": {
+      "bytes": 26320,
+      "height": 105,
+      "sha256": "8b240d9bfcb52b32365f780eae3147a9c1844e81d231adcf6f9f4fc1c98291d8",
+      "width": 1356
+    },
+    "eod-structure-unavailable-1440.png": {
+      "bytes": 22923,
+      "height": 105,
+      "sha256": "0f2c556d1346308bd63dcaa9a3278fe1ad23ff1edfb7b349909551311fe6b0ed",
+      "width": 1356
+    },
+    "eod-structure-unavailable-390-zh.png": {
+      "bytes": 25785,
+      "height": 231,
+      "sha256": "0c678f0cfe6b7484c40634101bd7c3342b4253c405f25d819fc51fb88cc603de",
+      "width": 374
+    },
+    "eod-structure-unavailable-390.png": {
+      "bytes": 23188,
+      "height": 231,
+      "sha256": "414402254f6d504d81b767b16b0c8fbf2a93088afb1317c611a118cd246fa3c4",
+      "width": 374
+    },
+    "eod-structure-unavailable-820-zh.png": {
+      "bytes": 27587,
+      "height": 196,
+      "sha256": "c5c11f1dfb6d6daf4db8dbc3c0bdd8ff0b5a7db8d62abbed3c992969b224b702",
+      "width": 804
+    },
+    "eod-structure-unavailable-820.png": {
+      "bytes": 23942,
+      "height": 196,
+      "sha256": "c041a09edb965a5355536948c61962930a711ec21d0095177c9115f0236f5bb3",
+      "width": 804
+    },
+    "heatmap-flow-absent-1440-zh.png": {
+      "bytes": 58058,
+      "height": 277,
+      "sha256": "693d32df0f078b272ed08a24a5f1a4a22366b2298f4ce532c3e6f178845262e8",
+      "width": 1380
+    },
+    "heatmap-flow-absent-1440.png": {
+      "bytes": 52762,
+      "height": 277,
+      "sha256": "f03a15d5b2796048ad9ef97875b638d2b85e6f17b93c0efe962f3125249a2c0e",
+      "width": 1380
+    },
+    "heatmap-flow-absent-390-zh.png": {
+      "bytes": 44809,
+      "height": 352,
+      "sha256": "05a450071dcb25bbca7019a1cad87158b6cfa1301b8eba810abcae51c1308b7a",
+      "width": 390
+    },
+    "heatmap-flow-absent-390.png": {
+      "bytes": 39927,
+      "height": 352,
+      "sha256": "a6cddbe226168f20ef29384553994c3f731ddf6320281ff542e573f2af2a9da1",
+      "width": 390
+    },
+    "heatmap-flow-absent-820-zh.png": {
+      "bytes": 56322,
+      "height": 302,
+      "sha256": "e5e220c513fb1d3fc315fa6cc8834a507d2fbee4a8782b9e6e5da3c145cf2fb9",
+      "width": 820
+    },
+    "heatmap-flow-absent-820.png": {
+      "bytes": 51650,
+      "height": 302,
+      "sha256": "253c7a5a303998038b131fd1a0ca177f856b9198f6d1ec212f621b3007d22a89",
+      "width": 820
+    },
+    "heatmap-flow-auth-1440-zh.png": {
+      "bytes": 59314,
+      "height": 277,
+      "sha256": "2136d3ea42a508bceb22925d254425ca276791690f1886b2b378f11f7ec8bf63",
+      "width": 1380
+    },
+    "heatmap-flow-auth-1440.png": {
+      "bytes": 53511,
+      "height": 277,
+      "sha256": "1a2444dd9c66b74665bbe6f81c4faba1d93de416e8ccd912a5e0457d512e8575",
+      "width": 1380
+    },
+    "heatmap-flow-auth-390-zh.png": {
+      "bytes": 45948,
+      "height": 352,
+      "sha256": "b5211809745f985b9a646fd5538994aa6d1803bc46900c6145802fa71e0c5b64",
+      "width": 390
+    },
+    "heatmap-flow-auth-390.png": {
+      "bytes": 40642,
+      "height": 352,
+      "sha256": "a1c0828d31e6fbdbafb78236b816a8276ca08eeb54f2dfb2e2896a76ca3aaade",
+      "width": 390
+    },
+    "heatmap-flow-auth-820-zh.png": {
+      "bytes": 57475,
+      "height": 302,
+      "sha256": "bcd54925934e655a1734384dd349f4980255a11d9754fa811b3a0ca5aff48b45",
+      "width": 820
+    },
+    "heatmap-flow-auth-820.png": {
+      "bytes": 52353,
+      "height": 302,
+      "sha256": "1caaebd5a357aae6057ed48c14b7ff517f1c30a5783f7e377fdf98c17dcfe714",
+      "width": 820
+    },
+    "heatmap-flow-persisted-refresh-failed-1440-zh.png": {
+      "bytes": 64143,
+      "height": 335,
+      "sha256": "922ddb209a78f96b8ce2b2a86f6407b54979730da7dea1d6f1081bbb81e21f95",
+      "width": 1380
+    },
+    "heatmap-flow-persisted-refresh-failed-1440.png": {
+      "bytes": 56641,
+      "height": 335,
+      "sha256": "2996397f36f6dbe9dfaeb1edf339704829bb8d832cd0e6f0495a23d9be55364d",
+      "width": 1380
+    },
+    "heatmap-flow-persisted-refresh-failed-390-zh.png": {
+      "bytes": 50915,
+      "height": 416,
+      "sha256": "4bfdfec2d5b175c6aac0cfca81a37e42c4200cb0a066b0714a86df9c76a2e16c",
+      "width": 390
+    },
+    "heatmap-flow-persisted-refresh-failed-390.png": {
+      "bytes": 44958,
+      "height": 430,
+      "sha256": "426aff121a819d70516b23a2fb221086ebf2b2070503b34b12d03d6f4f4544b7",
+      "width": 390
+    },
+    "heatmap-flow-persisted-refresh-failed-820-zh.png": {
+      "bytes": 50736,
+      "height": 366,
+      "sha256": "bb9db7436af6dd02e6dbad04b005b972aedb7f271d4990fb6d28306336784fbd",
+      "width": 820
+    },
+    "heatmap-flow-persisted-refresh-failed-820.png": {
+      "bytes": 43832,
+      "height": 366,
+      "sha256": "ae14fb789e456c67ee8b5c15a601efd9afe91d3b66bebd52560dae52ada5cdda",
+      "width": 820
+    },
+    "heatmap-flow-persisted-refresh-refused-1440-zh.png": {
+      "bytes": 64143,
+      "height": 335,
+      "sha256": "922ddb209a78f96b8ce2b2a86f6407b54979730da7dea1d6f1081bbb81e21f95",
+      "width": 1380
+    },
+    "heatmap-flow-persisted-refresh-refused-1440.png": {
+      "bytes": 56641,
+      "height": 335,
+      "sha256": "2996397f36f6dbe9dfaeb1edf339704829bb8d832cd0e6f0495a23d9be55364d",
+      "width": 1380
+    },
+    "heatmap-flow-persisted-refresh-refused-390-zh.png": {
+      "bytes": 50915,
+      "height": 416,
+      "sha256": "4bfdfec2d5b175c6aac0cfca81a37e42c4200cb0a066b0714a86df9c76a2e16c",
+      "width": 390
+    },
+    "heatmap-flow-persisted-refresh-refused-390.png": {
+      "bytes": 44958,
+      "height": 430,
+      "sha256": "426aff121a819d70516b23a2fb221086ebf2b2070503b34b12d03d6f4f4544b7",
+      "width": 390
+    },
+    "heatmap-flow-persisted-refresh-refused-820-zh.png": {
+      "bytes": 50736,
+      "height": 366,
+      "sha256": "bb9db7436af6dd02e6dbad04b005b972aedb7f271d4990fb6d28306336784fbd",
+      "width": 820
+    },
+    "heatmap-flow-persisted-refresh-refused-820.png": {
+      "bytes": 43832,
+      "height": 366,
+      "sha256": "ae14fb789e456c67ee8b5c15a601efd9afe91d3b66bebd52560dae52ada5cdda",
+      "width": 820
+    },
+    "heatmap-flow-persisted-retried-1440-zh.png": {
+      "bytes": 59685,
+      "height": 288,
+      "sha256": "dc673cba188049b5d003adaa71d7ceb7ac3ef40afbfc4ff3737750b3666106fc",
+      "width": 1380
+    },
+    "heatmap-flow-persisted-retried-1440.png": {
+      "bytes": 53338,
+      "height": 288,
+      "sha256": "f5e025d1aba9f169d66ba2cc3ea2592af43e762ce44fba69d82204d7e5859599",
+      "width": 1380
+    },
+    "heatmap-flow-persisted-retried-390-zh.png": {
+      "bytes": 45815,
+      "height": 363,
+      "sha256": "718f5912efe6dd0509b767abeeb138b635ac351450fa7ab77a3675ac0cbd694c",
+      "width": 390
+    },
+    "heatmap-flow-persisted-retried-390.png": {
+      "bytes": 40858,
+      "height": 377,
+      "sha256": "16438bb79ef93fec3042813fb81bc40c04b1f28a8eee7b26f47c65bf71991a15",
+      "width": 390
+    },
+    "heatmap-flow-persisted-retried-820-zh.png": {
+      "bytes": 45288,
+      "height": 313,
+      "sha256": "f17921966bd50eee54d360c3c5dfb2a92560d32394bce88c119599b83a516cc0",
+      "width": 820
+    },
+    "heatmap-flow-persisted-retried-820.png": {
+      "bytes": 39524,
+      "height": 313,
+      "sha256": "6133c5c0d367d9e61f51b11132eea10a640a81d692aa3f560e6b3cf69f508a17",
+      "width": 820
+    },
+    "heatmap-flow-refresh-failed-1440-zh.png": {
+      "bytes": 64143,
+      "height": 335,
+      "sha256": "922ddb209a78f96b8ce2b2a86f6407b54979730da7dea1d6f1081bbb81e21f95",
+      "width": 1380
+    },
+    "heatmap-flow-refresh-failed-1440.png": {
+      "bytes": 56641,
+      "height": 335,
+      "sha256": "2996397f36f6dbe9dfaeb1edf339704829bb8d832cd0e6f0495a23d9be55364d",
+      "width": 1380
+    },
+    "heatmap-flow-refresh-failed-390-zh.png": {
+      "bytes": 50915,
+      "height": 416,
+      "sha256": "4bfdfec2d5b175c6aac0cfca81a37e42c4200cb0a066b0714a86df9c76a2e16c",
+      "width": 390
+    },
+    "heatmap-flow-refresh-failed-390.png": {
+      "bytes": 44958,
+      "height": 430,
+      "sha256": "426aff121a819d70516b23a2fb221086ebf2b2070503b34b12d03d6f4f4544b7",
+      "width": 390
+    },
+    "heatmap-flow-refresh-failed-820-zh.png": {
+      "bytes": 50736,
+      "height": 366,
+      "sha256": "bb9db7436af6dd02e6dbad04b005b972aedb7f271d4990fb6d28306336784fbd",
+      "width": 820
+    },
+    "heatmap-flow-refresh-failed-820.png": {
+      "bytes": 43832,
+      "height": 366,
+      "sha256": "ae14fb789e456c67ee8b5c15a601efd9afe91d3b66bebd52560dae52ada5cdda",
+      "width": 820
+    },
+    "heatmap-flow-retried-1440-zh.png": {
+      "bytes": 59685,
+      "height": 288,
+      "sha256": "dc673cba188049b5d003adaa71d7ceb7ac3ef40afbfc4ff3737750b3666106fc",
+      "width": 1380
+    },
+    "heatmap-flow-retried-1440.png": {
+      "bytes": 53338,
+      "height": 288,
+      "sha256": "f5e025d1aba9f169d66ba2cc3ea2592af43e762ce44fba69d82204d7e5859599",
+      "width": 1380
+    },
+    "heatmap-flow-retried-390-zh.png": {
+      "bytes": 45815,
+      "height": 363,
+      "sha256": "718f5912efe6dd0509b767abeeb138b635ac351450fa7ab77a3675ac0cbd694c",
+      "width": 390
+    },
+    "heatmap-flow-retried-390.png": {
+      "bytes": 40858,
+      "height": 377,
+      "sha256": "16438bb79ef93fec3042813fb81bc40c04b1f28a8eee7b26f47c65bf71991a15",
+      "width": 390
+    },
+    "heatmap-flow-retried-820-zh.png": {
+      "bytes": 45288,
+      "height": 313,
+      "sha256": "f17921966bd50eee54d360c3c5dfb2a92560d32394bce88c119599b83a516cc0",
+      "width": 820
+    },
+    "heatmap-flow-retried-820.png": {
+      "bytes": 39524,
+      "height": 313,
+      "sha256": "6133c5c0d367d9e61f51b11132eea10a640a81d692aa3f560e6b3cf69f508a17",
+      "width": 820
+    },
+    "heatmap-flow-unavailable-1440-zh.png": {
+      "bytes": 66539,
+      "height": 300,
+      "sha256": "38b682d5e1f65d0b8e4b7fd3048c2b226273fb35fbef5727782662972276bc79",
+      "width": 1380
+    },
+    "heatmap-flow-unavailable-1440.png": {
+      "bytes": 59309,
+      "height": 300,
+      "sha256": "d301c337f236520b6eac95af715be8f9789f54e21857faa84c38db0481544936",
+      "width": 1380
+    },
+    "heatmap-flow-unavailable-390-zh.png": {
+      "bytes": 49987,
+      "height": 400,
+      "sha256": "c6e60afa03cbbe8bf820dd4e9594acd3c7efb92175697ef642c7c1ff91ced7c8",
+      "width": 390
+    },
+    "heatmap-flow-unavailable-390.png": {
+      "bytes": 43689,
+      "height": 418,
+      "sha256": "b4fca1a92a921c1f191e9001ee86b58eb85987a05aeea9fb1c7036236c425f27",
+      "width": 390
+    },
+    "heatmap-flow-unavailable-820-zh.png": {
+      "bytes": 61548,
+      "height": 331,
+      "sha256": "375be4330d3a8c937738e4233465f3bd70eb56e69a6b4ce2a36aac2ea94da976",
+      "width": 820
+    },
+    "heatmap-flow-unavailable-820.png": {
+      "bytes": 55247,
+      "height": 331,
+      "sha256": "618ba88bdc9e812177c2b54e55f5da8aa36e431df6656b5bc485dfca64cfcad7",
+      "width": 820
+    },
+    "heatmap-live-failed-1440-zh.png": {
+      "bytes": 16407,
+      "height": 32,
+      "sha256": "d48c95e16ce874fe6945bba3c381ad046d800ce2a2ccf8cda14b1c2b0c675649",
+      "width": 1380
+    },
+    "heatmap-live-failed-1440.png": {
+      "bytes": 16198,
+      "height": 32,
+      "sha256": "f6c833ec172326c3ef5b0fb6aa6552a932734190d22009f572fa14a127a81bc4",
+      "width": 1380
+    },
+    "heatmap-live-failed-390-zh.png": {
+      "bytes": 13765,
+      "height": 52,
+      "sha256": "8ee6953ff6d3178ec328cf5467bc6d6768a6ecea010d58b1730536200117c24c",
+      "width": 390
+    },
+    "heatmap-live-failed-390.png": {
+      "bytes": 12340,
+      "height": 70,
+      "sha256": "1e91ea54237cfea413a02e6eacfedab43dcca00c76aa5240a7f29d79b97e5e07",
+      "width": 390
+    },
+    "heatmap-live-failed-820-zh.png": {
+      "bytes": 13402,
+      "height": 32,
+      "sha256": "3c29c7ec75d04d6906fabc07a45fd3476bc743d505082b70a9462b058652ce50",
+      "width": 820
+    },
+    "heatmap-live-failed-820.png": {
+      "bytes": 13390,
+      "height": 32,
+      "sha256": "3c5d61523bc498dfcabd73ee5c1fee5501aa266d2da41860f14855448fb8b5d8",
+      "width": 820
+    },
+    "heatmap-no-match-1440-zh.png": {
+      "bytes": 41641,
+      "height": 697,
+      "sha256": "8728e9a506a8fb4e21598e328ccff7bf3fe8fab0ecc742dea623789e2a907cd3",
+      "width": 1380
+    },
+    "heatmap-no-match-1440.png": {
+      "bytes": 34884,
+      "height": 697,
+      "sha256": "959e69d0079beb91a404a2944e324a5cc14995a7c19e0c43ece97ce136bf64ff",
+      "width": 1380
+    },
+    "heatmap-no-match-390-zh.png": {
+      "bytes": 29048,
+      "height": 219,
+      "sha256": "b23798a1f87742e8ae6aa98a961da1a798a7ce296648eafde883b1eb7480805f",
+      "width": 390
+    },
+    "heatmap-no-match-390.png": {
+      "bytes": 24265,
+      "height": 219,
+      "sha256": "c99f927cc125fe7586523d1016ebdc1202dc7a6d3a87aa320908c1ea0100ccd5",
+      "width": 390
+    },
+    "heatmap-no-match-820-zh.png": {
+      "bytes": 35677,
+      "height": 169,
+      "sha256": "b6221c7104f6676d0195000cfa272636a05e3c3bbceb182b587cded6c2ec8071",
+      "width": 820
+    },
+    "heatmap-no-match-820.png": {
+      "bytes": 29584,
+      "height": 169,
+      "sha256": "e95bff6ec5371dcf1dbc14bd0a8f8366ae4aafc8c4c629b30118ed857adf5838",
+      "width": 820
+    }
+  },
+  "indexTreeAtStart": "a8cc42c04f8e4de04efd519f49747b1e0fde79e3",
+  "initialNextLockAbsent": true,
+  "integratedDependency": "7d0483c995df95ea76e988029d0c229d2a0e177c",
+  "kind": "eod",
+  "lifecycle": {
+    "initialLockPresent": false,
+    "serverAbsenceVerifiedAt": "2026-11-09T18:25:45.652178+00:00"
+  },
+  "logSha256": "10fb69c53c3d5565e5b56095bd49ad276643a1e8a4b6676e3670dd79b2049739",
+  "manifestSha256": "524ad5e1bf9f8ef712fdc48290cee77cb0640a108d9ed5f8a2fe8db6ff671596",
+  "nativeReceipt": {
+    "captureId": "terminal-pr1248-eod-options-ux-integration-20261109-r1",
+    "capturedAtHead": "753b4a90ebd31a1da76a9595bb2fedde912da042",
+    "family": "eod",
+    "files": [
+      {
+        "file": "chainheat-absent-1440-zh.png",
+        "sha256": "a95ed7cc8d1f94f38ecf566b7f3a50cfa55215be91c204a13d3b62f30a05d1c1"
+      },
+      {
+        "file": "chainheat-absent-1440.png",
+        "sha256": "69a27c8cee056b86fe721b52693ead034e7ce83aac1855052b9c6fc793704566"
+      },
+      {
+        "file": "chainheat-absent-390-zh.png",
+        "sha256": "64a142911721b7bd5695ba5eade5f7458d5c8d4d301402a567881aece519a4c3"
+      },
+      {
+        "file": "chainheat-absent-390.png",
+        "sha256": "df782c5ea0dd4f684741cdc81f85db8f2cc145e639a3e8740dfce18422645cfa"
+      },
+      {
+        "file": "chainheat-absent-820-zh.png",
+        "sha256": "13340e5bd13b08326685687e24eb39acf54c95962f33546a01e2757dcc7fea02"
+      },
+      {
+        "file": "chainheat-absent-820.png",
+        "sha256": "ccc7402bea622547b4221ea1450a37dc7aea5d8b90e892fb561688ef31aadbae"
+      },
+      {
+        "file": "chainheat-refresh-failed-1440-zh.png",
+        "sha256": "7c8da6d6b36bbbb4506c608e21f6a179c10b18a2481c22acdfe8b7922058ee4d"
+      },
+      {
+        "file": "chainheat-refresh-failed-1440.png",
+        "sha256": "673efebf4e68b25fa59d4cbf99eb20ab26b8a74bb8a0409c55c57741aea29aa3"
+      },
+      {
+        "file": "chainheat-refresh-failed-390-zh.png",
+        "sha256": "d6fd4b6aa3d8c662f65436e80b0911b5f6cd08cc6644f736076109c25cb6a140"
+      },
+      {
+        "file": "chainheat-refresh-failed-390.png",
+        "sha256": "afd8ea4c1f081190f759af75669a146f362dafb3f44dc8c64090764f264d55c2"
+      },
+      {
+        "file": "chainheat-refresh-failed-820-zh.png",
+        "sha256": "587692ab2ef6682c0a5f67718d620a4fea48d805f5a63df9ecfa98bbb489d21d"
+      },
+      {
+        "file": "chainheat-refresh-failed-820.png",
+        "sha256": "c58ae9999f833958869f285a5deb36fc3cf89e69596ec2d704352f1403a1daea"
+      },
+      {
+        "file": "chainheat-retried-1440-zh.png",
+        "sha256": "0fe20a92c5e30bc5a9323d661b7ee3fb5468ed1bd3ff4de5c34ea60bc1ddd9c6"
+      },
+      {
+        "file": "chainheat-retried-1440.png",
+        "sha256": "989dae943b976b6dff12ce4d8d352f66a2d222448babd8c94ac0bf6b57ca5325"
+      },
+      {
+        "file": "chainheat-retried-390-zh.png",
+        "sha256": "14ddf498dfadd7fa5ab09c015e91a7e5a778161c20adc4b6a06177fb7a7e4942"
+      },
+      {
+        "file": "chainheat-retried-390.png",
+        "sha256": "29c01a32c8b26d25af70832a9a96b1c8087545096b936d115cde9cd5fc28cfbf"
+      },
+      {
+        "file": "chainheat-retried-820-zh.png",
+        "sha256": "20152711cd226d65c89cf332980300aceda5c44adf61f16df1f61b3d0127bb51"
+      },
+      {
+        "file": "chainheat-retried-820.png",
+        "sha256": "05bcdb6da12a62629aa16154e0247b5689cb73cf6feb825fa41a6434d7f09637"
+      },
+      {
+        "file": "chainheat-unavailable-1440-zh.png",
+        "sha256": "06f6cb8b8db1e7d79c188f7cf0f0e4577d01949ab4d7289c813d710c5b09fe6b"
+      },
+      {
+        "file": "chainheat-unavailable-1440.png",
+        "sha256": "5aa9c990f26a204fa8632a8ae416d4c200f50980e0e823d98fbaaff93ebba958"
+      },
+      {
+        "file": "chainheat-unavailable-390-zh.png",
+        "sha256": "4a25307531d5196b0bb63ce660cb9f3d5550dc3fda87579956f086aa6dcaede8"
+      },
+      {
+        "file": "chainheat-unavailable-390.png",
+        "sha256": "fb0575e6a02e664db6a42c1b89b75dc90630888a639e6e985c947efcdeed618b"
+      },
+      {
+        "file": "chainheat-unavailable-820-zh.png",
+        "sha256": "c48e2bd0f1de1e7a56eece592230eeca6635bd077614ca4426f2fba3d27acb05"
+      },
+      {
+        "file": "chainheat-unavailable-820.png",
+        "sha256": "4f552cc74096e354deaf381a0ea0f2ae9119b9139ecd88d5b74d1b33bce238af"
+      },
+      {
+        "file": "eod-darkpool-absent-1440-zh.png",
+        "sha256": "30edc57e84aa0651dd787d9af5626467e3b7af6c1df1ced5d96a5add570577f3"
+      },
+      {
+        "file": "eod-darkpool-absent-1440.png",
+        "sha256": "ddcfd6234edae0cb0a1a4b5a113af38e338781e7d9896bd9b5ffd3f528d73adb"
+      },
+      {
+        "file": "eod-darkpool-absent-390-zh.png",
+        "sha256": "c0b85a69f253c268da2726720d9f84f32e74ad77dda7074761febaef5c6597a4"
+      },
+      {
+        "file": "eod-darkpool-absent-390.png",
+        "sha256": "ada64c7234662972901a008e00b613afe97d8b50d64bedbdd93115c4d816354e"
+      },
+      {
+        "file": "eod-darkpool-absent-820-zh.png",
+        "sha256": "abc3e863fc8fcd3445c00c0d32aed5fd5d0e363d8d8027a2e0544963ca802898"
+      },
+      {
+        "file": "eod-darkpool-absent-820.png",
+        "sha256": "cd7fdf3e6711662ec3cea27ff96f97c9e46f2cea5c05ab3e0c021f752c4c1389"
+      },
+      {
+        "file": "eod-darkpool-retried-1440-zh.png",
+        "sha256": "a64a10ccfaa3bcc12a8e6d9da2dc59d407253dbefda2c946d98606924326d4de"
+      },
+      {
+        "file": "eod-darkpool-retried-1440.png",
+        "sha256": "e7b4a4dc5dda135431ae85655134be4151a2838104319343a7b62bb6771df2d4"
+      },
+      {
+        "file": "eod-darkpool-retried-390-zh.png",
+        "sha256": "b4cae8933b644b12769d07f03a298bd67ca8b61cbc393f7950e9c45be97cd028"
+      },
+      {
+        "file": "eod-darkpool-retried-390.png",
+        "sha256": "8ca114523de33300c4b0fac77a4361b6dc77fade9ede0f4ca9dacaf8b85cdd84"
+      },
+      {
+        "file": "eod-darkpool-retried-820-zh.png",
+        "sha256": "ed4e688b98c0139b8bc07a239122c7d1decbcbad0bada90ad9d822bbd252cd7d"
+      },
+      {
+        "file": "eod-darkpool-retried-820.png",
+        "sha256": "ab192ed9df31fd84ca617e37f2306e6257b5dd0670db55eb161fa405dd1495b4"
+      },
+      {
+        "file": "eod-darkpool-unavailable-1440-zh.png",
+        "sha256": "a2692a79a883506cbe18a4fc16782ceda2af1f664faae13e0daf378c0a6f6ee7"
+      },
+      {
+        "file": "eod-darkpool-unavailable-1440.png",
+        "sha256": "04385280d04ce1a30cfee7fddf39bb7cde07e76dd72a81ed628d4bad796b63f9"
+      },
+      {
+        "file": "eod-darkpool-unavailable-390-zh.png",
+        "sha256": "46db1ee393db3d41e9aeaa8c6c58dc34370e2cc6d8cba860cf74b292ca651c88"
+      },
+      {
+        "file": "eod-darkpool-unavailable-390.png",
+        "sha256": "3e37d466eeeb8b38a376d5f87254ca4b1d2b9ff2947593b8905f538d519effc3"
+      },
+      {
+        "file": "eod-darkpool-unavailable-820-zh.png",
+        "sha256": "07f391c6babe9740ee83f062cc7eddf110a9d650687cf697db0525983b260f7a"
+      },
+      {
+        "file": "eod-darkpool-unavailable-820.png",
+        "sha256": "639162ad244761bae6c67880e290c0d093925450ebf0a13b33ba957d40e2f0c6"
+      },
+      {
+        "file": "eod-structure-absent-1440-zh.png",
+        "sha256": "ec36e52987da389baef8cd0204e78c714a8c33433b370f1b8cea2c56fcf9c37d"
+      },
+      {
+        "file": "eod-structure-absent-1440.png",
+        "sha256": "0936590b9d144fcc73a8cfe2910d6daaadffe68e5ce2c9836a1ca4b979870262"
+      },
+      {
+        "file": "eod-structure-absent-390-zh.png",
+        "sha256": "8c4eda70046ab71e11500fef7a5cc09f798eeda700f0ebe11e0678bce614781f"
+      },
+      {
+        "file": "eod-structure-absent-390.png",
+        "sha256": "c1d7055a9449812161d1d461ebd6317c26ad57d831e076c455ce60ee6f933d15"
+      },
+      {
+        "file": "eod-structure-absent-820-zh.png",
+        "sha256": "5e5ec0970f31ef7f403e2fba8bd517871fca1123d105d9cb01af04c4b21896ef"
+      },
+      {
+        "file": "eod-structure-absent-820.png",
+        "sha256": "caeb8f5df9929b870d3b489d726847c9edfe2f01a33dbade185bf288a0ad254a"
+      },
+      {
+        "file": "eod-structure-partial-1440-zh.png",
+        "sha256": "c84e9d52a9917eaad7bb63ee02e6cae8dc06641654f3631250767a494cf6c630"
+      },
+      {
+        "file": "eod-structure-partial-1440.png",
+        "sha256": "a6d6d80e0cebff9f3dee7a11c836ca30ce6274bb304263eba29872354f0a7d69"
+      },
+      {
+        "file": "eod-structure-partial-390-zh.png",
+        "sha256": "dbc790b049fec4038280afa0415e373e3619247358bf599d1c44e75be7ba51ab"
+      },
+      {
+        "file": "eod-structure-partial-390.png",
+        "sha256": "0ac9e275a17ad3b24434b7b720f94ddb196f42f35e910a42c20ea063f8c7dac0"
+      },
+      {
+        "file": "eod-structure-partial-820-zh.png",
+        "sha256": "2cad935a39b05328a8278ff5c8ee8167ce6b717186da31586f7c385ed9f428ce"
+      },
+      {
+        "file": "eod-structure-partial-820.png",
+        "sha256": "b887f8a81b2ddfd9b1834a716dcdfa3d84e847a24d697be4f97d357a3ff55370"
+      },
+      {
+        "file": "eod-structure-retried-1440-zh.png",
+        "sha256": "61dad42bed7e1b1d9482c841efd4b75033913232e2e01548a2538251cc41d510"
+      },
+      {
+        "file": "eod-structure-retried-1440.png",
+        "sha256": "42fe18b045af6837840beb7f9eb1b7754f204fec1f8b590a99697bb124a4b951"
+      },
+      {
+        "file": "eod-structure-retried-390-zh.png",
+        "sha256": "d8f7b7976f2cb4e31edbdd79b65d6153a8b7741677d518ff622f1f030b7315f7"
+      },
+      {
+        "file": "eod-structure-retried-390.png",
+        "sha256": "d8103a561e210578442479d3e6cfc18387fc6d506db5f504b2188df7eabbe951"
+      },
+      {
+        "file": "eod-structure-retried-820-zh.png",
+        "sha256": "7bb86f2b57805c5a5e9b4364a967e371a8e81538db1b7aa8370006c62ca12bb8"
+      },
+      {
+        "file": "eod-structure-retried-820.png",
+        "sha256": "97c846836d8db2b13d94f8f78dfb55858f12f65cb6858cc6c4bdce5d2a2ce71a"
+      },
+      {
+        "file": "eod-structure-unavailable-1440-zh.png",
+        "sha256": "8b240d9bfcb52b32365f780eae3147a9c1844e81d231adcf6f9f4fc1c98291d8"
+      },
+      {
+        "file": "eod-structure-unavailable-1440.png",
+        "sha256": "0f2c556d1346308bd63dcaa9a3278fe1ad23ff1edfb7b349909551311fe6b0ed"
+      },
+      {
+        "file": "eod-structure-unavailable-390-zh.png",
+        "sha256": "0c678f0cfe6b7484c40634101bd7c3342b4253c405f25d819fc51fb88cc603de"
+      },
+      {
+        "file": "eod-structure-unavailable-390.png",
+        "sha256": "414402254f6d504d81b767b16b0c8fbf2a93088afb1317c611a118cd246fa3c4"
+      },
+      {
+        "file": "eod-structure-unavailable-820-zh.png",
+        "sha256": "c5c11f1dfb6d6daf4db8dbc3c0bdd8ff0b5a7db8d62abbed3c992969b224b702"
+      },
+      {
+        "file": "eod-structure-unavailable-820.png",
+        "sha256": "c041a09edb965a5355536948c61962930a711ec21d0095177c9115f0236f5bb3"
+      },
+      {
+        "file": "heatmap-flow-absent-1440-zh.png",
+        "sha256": "693d32df0f078b272ed08a24a5f1a4a22366b2298f4ce532c3e6f178845262e8"
+      },
+      {
+        "file": "heatmap-flow-absent-1440.png",
+        "sha256": "f03a15d5b2796048ad9ef97875b638d2b85e6f17b93c0efe962f3125249a2c0e"
+      },
+      {
+        "file": "heatmap-flow-absent-390-zh.png",
+        "sha256": "05a450071dcb25bbca7019a1cad87158b6cfa1301b8eba810abcae51c1308b7a"
+      },
+      {
+        "file": "heatmap-flow-absent-390.png",
+        "sha256": "a6cddbe226168f20ef29384553994c3f731ddf6320281ff542e573f2af2a9da1"
+      },
+      {
+        "file": "heatmap-flow-absent-820-zh.png",
+        "sha256": "e5e220c513fb1d3fc315fa6cc8834a507d2fbee4a8782b9e6e5da3c145cf2fb9"
+      },
+      {
+        "file": "heatmap-flow-absent-820.png",
+        "sha256": "253c7a5a303998038b131fd1a0ca177f856b9198f6d1ec212f621b3007d22a89"
+      },
+      {
+        "file": "heatmap-flow-auth-1440-zh.png",
+        "sha256": "2136d3ea42a508bceb22925d254425ca276791690f1886b2b378f11f7ec8bf63"
+      },
+      {
+        "file": "heatmap-flow-auth-1440.png",
+        "sha256": "1a2444dd9c66b74665bbe6f81c4faba1d93de416e8ccd912a5e0457d512e8575"
+      },
+      {
+        "file": "heatmap-flow-auth-390-zh.png",
+        "sha256": "b5211809745f985b9a646fd5538994aa6d1803bc46900c6145802fa71e0c5b64"
+      },
+      {
+        "file": "heatmap-flow-auth-390.png",
+        "sha256": "a1c0828d31e6fbdbafb78236b816a8276ca08eeb54f2dfb2e2896a76ca3aaade"
+      },
+      {
+        "file": "heatmap-flow-auth-820-zh.png",
+        "sha256": "bcd54925934e655a1734384dd349f4980255a11d9754fa811b3a0ca5aff48b45"
+      },
+      {
+        "file": "heatmap-flow-auth-820.png",
+        "sha256": "1caaebd5a357aae6057ed48c14b7ff517f1c30a5783f7e377fdf98c17dcfe714"
+      },
+      {
+        "file": "heatmap-flow-persisted-refresh-failed-1440-zh.png",
+        "sha256": "922ddb209a78f96b8ce2b2a86f6407b54979730da7dea1d6f1081bbb81e21f95"
+      },
+      {
+        "file": "heatmap-flow-persisted-refresh-failed-1440.png",
+        "sha256": "2996397f36f6dbe9dfaeb1edf339704829bb8d832cd0e6f0495a23d9be55364d"
+      },
+      {
+        "file": "heatmap-flow-persisted-refresh-failed-390-zh.png",
+        "sha256": "4bfdfec2d5b175c6aac0cfca81a37e42c4200cb0a066b0714a86df9c76a2e16c"
+      },
+      {
+        "file": "heatmap-flow-persisted-refresh-failed-390.png",
+        "sha256": "426aff121a819d70516b23a2fb221086ebf2b2070503b34b12d03d6f4f4544b7"
+      },
+      {
+        "file": "heatmap-flow-persisted-refresh-failed-820-zh.png",
+        "sha256": "bb9db7436af6dd02e6dbad04b005b972aedb7f271d4990fb6d28306336784fbd"
+      },
+      {
+        "file": "heatmap-flow-persisted-refresh-failed-820.png",
+        "sha256": "ae14fb789e456c67ee8b5c15a601efd9afe91d3b66bebd52560dae52ada5cdda"
+      },
+      {
+        "file": "heatmap-flow-persisted-refresh-refused-1440-zh.png",
+        "sha256": "922ddb209a78f96b8ce2b2a86f6407b54979730da7dea1d6f1081bbb81e21f95"
+      },
+      {
+        "file": "heatmap-flow-persisted-refresh-refused-1440.png",
+        "sha256": "2996397f36f6dbe9dfaeb1edf339704829bb8d832cd0e6f0495a23d9be55364d"
+      },
+      {
+        "file": "heatmap-flow-persisted-refresh-refused-390-zh.png",
+        "sha256": "4bfdfec2d5b175c6aac0cfca81a37e42c4200cb0a066b0714a86df9c76a2e16c"
+      },
+      {
+        "file": "heatmap-flow-persisted-refresh-refused-390.png",
+        "sha256": "426aff121a819d70516b23a2fb221086ebf2b2070503b34b12d03d6f4f4544b7"
+      },
+      {
+        "file": "heatmap-flow-persisted-refresh-refused-820-zh.png",
+        "sha256": "bb9db7436af6dd02e6dbad04b005b972aedb7f271d4990fb6d28306336784fbd"
+      },
+      {
+        "file": "heatmap-flow-persisted-refresh-refused-820.png",
+        "sha256": "ae14fb789e456c67ee8b5c15a601efd9afe91d3b66bebd52560dae52ada5cdda"
+      },
+      {
+        "file": "heatmap-flow-persisted-retried-1440-zh.png",
+        "sha256": "dc673cba188049b5d003adaa71d7ceb7ac3ef40afbfc4ff3737750b3666106fc"
+      },
+      {
+        "file": "heatmap-flow-persisted-retried-1440.png",
+        "sha256": "f5e025d1aba9f169d66ba2cc3ea2592af43e762ce44fba69d82204d7e5859599"
+      },
+      {
+        "file": "heatmap-flow-persisted-retried-390-zh.png",
+        "sha256": "718f5912efe6dd0509b767abeeb138b635ac351450fa7ab77a3675ac0cbd694c"
+      },
+      {
+        "file": "heatmap-flow-persisted-retried-390.png",
+        "sha256": "16438bb79ef93fec3042813fb81bc40c04b1f28a8eee7b26f47c65bf71991a15"
+      },
+      {
+        "file": "heatmap-flow-persisted-retried-820-zh.png",
+        "sha256": "f17921966bd50eee54d360c3c5dfb2a92560d32394bce88c119599b83a516cc0"
+      },
+      {
+        "file": "heatmap-flow-persisted-retried-820.png",
+        "sha256": "6133c5c0d367d9e61f51b11132eea10a640a81d692aa3f560e6b3cf69f508a17"
+      },
+      {
+        "file": "heatmap-flow-refresh-failed-1440-zh.png",
+        "sha256": "922ddb209a78f96b8ce2b2a86f6407b54979730da7dea1d6f1081bbb81e21f95"
+      },
+      {
+        "file": "heatmap-flow-refresh-failed-1440.png",
+        "sha256": "2996397f36f6dbe9dfaeb1edf339704829bb8d832cd0e6f0495a23d9be55364d"
+      },
+      {
+        "file": "heatmap-flow-refresh-failed-390-zh.png",
+        "sha256": "4bfdfec2d5b175c6aac0cfca81a37e42c4200cb0a066b0714a86df9c76a2e16c"
+      },
+      {
+        "file": "heatmap-flow-refresh-failed-390.png",
+        "sha256": "426aff121a819d70516b23a2fb221086ebf2b2070503b34b12d03d6f4f4544b7"
+      },
+      {
+        "file": "heatmap-flow-refresh-failed-820-zh.png",
+        "sha256": "bb9db7436af6dd02e6dbad04b005b972aedb7f271d4990fb6d28306336784fbd"
+      },
+      {
+        "file": "heatmap-flow-refresh-failed-820.png",
+        "sha256": "ae14fb789e456c67ee8b5c15a601efd9afe91d3b66bebd52560dae52ada5cdda"
+      },
+      {
+        "file": "heatmap-flow-retried-1440-zh.png",
+        "sha256": "dc673cba188049b5d003adaa71d7ceb7ac3ef40afbfc4ff3737750b3666106fc"
+      },
+      {
+        "file": "heatmap-flow-retried-1440.png",
+        "sha256": "f5e025d1aba9f169d66ba2cc3ea2592af43e762ce44fba69d82204d7e5859599"
+      },
+      {
+        "file": "heatmap-flow-retried-390-zh.png",
+        "sha256": "718f5912efe6dd0509b767abeeb138b635ac351450fa7ab77a3675ac0cbd694c"
+      },
+      {
+        "file": "heatmap-flow-retried-390.png",
+        "sha256": "16438bb79ef93fec3042813fb81bc40c04b1f28a8eee7b26f47c65bf71991a15"
+      },
+      {
+        "file": "heatmap-flow-retried-820-zh.png",
+        "sha256": "f17921966bd50eee54d360c3c5dfb2a92560d32394bce88c119599b83a516cc0"
+      },
+      {
+        "file": "heatmap-flow-retried-820.png",
+        "sha256": "6133c5c0d367d9e61f51b11132eea10a640a81d692aa3f560e6b3cf69f508a17"
+      },
+      {
+        "file": "heatmap-flow-unavailable-1440-zh.png",
+        "sha256": "38b682d5e1f65d0b8e4b7fd3048c2b226273fb35fbef5727782662972276bc79"
+      },
+      {
+        "file": "heatmap-flow-unavailable-1440.png",
+        "sha256": "d301c337f236520b6eac95af715be8f9789f54e21857faa84c38db0481544936"
+      },
+      {
+        "file": "heatmap-flow-unavailable-390-zh.png",
+        "sha256": "c6e60afa03cbbe8bf820dd4e9594acd3c7efb92175697ef642c7c1ff91ced7c8"
+      },
+      {
+        "file": "heatmap-flow-unavailable-390.png",
+        "sha256": "b4fca1a92a921c1f191e9001ee86b58eb85987a05aeea9fb1c7036236c425f27"
+      },
+      {
+        "file": "heatmap-flow-unavailable-820-zh.png",
+        "sha256": "375be4330d3a8c937738e4233465f3bd70eb56e69a6b4ce2a36aac2ea94da976"
+      },
+      {
+        "file": "heatmap-flow-unavailable-820.png",
+        "sha256": "618ba88bdc9e812177c2b54e55f5da8aa36e431df6656b5bc485dfca64cfcad7"
+      },
+      {
+        "file": "heatmap-live-failed-1440-zh.png",
+        "sha256": "d48c95e16ce874fe6945bba3c381ad046d800ce2a2ccf8cda14b1c2b0c675649"
+      },
+      {
+        "file": "heatmap-live-failed-1440.png",
+        "sha256": "f6c833ec172326c3ef5b0fb6aa6552a932734190d22009f572fa14a127a81bc4"
+      },
+      {
+        "file": "heatmap-live-failed-390-zh.png",
+        "sha256": "8ee6953ff6d3178ec328cf5467bc6d6768a6ecea010d58b1730536200117c24c"
+      },
+      {
+        "file": "heatmap-live-failed-390.png",
+        "sha256": "1e91ea54237cfea413a02e6eacfedab43dcca00c76aa5240a7f29d79b97e5e07"
+      },
+      {
+        "file": "heatmap-live-failed-820-zh.png",
+        "sha256": "3c29c7ec75d04d6906fabc07a45fd3476bc743d505082b70a9462b058652ce50"
+      },
+      {
+        "file": "heatmap-live-failed-820.png",
+        "sha256": "3c5d61523bc498dfcabd73ee5c1fee5501aa266d2da41860f14855448fb8b5d8"
+      },
+      {
+        "file": "heatmap-no-match-1440-zh.png",
+        "sha256": "8728e9a506a8fb4e21598e328ccff7bf3fe8fab0ecc742dea623789e2a907cd3"
+      },
+      {
+        "file": "heatmap-no-match-1440.png",
+        "sha256": "959e69d0079beb91a404a2944e324a5cc14995a7c19e0c43ece97ce136bf64ff"
+      },
+      {
+        "file": "heatmap-no-match-390-zh.png",
+        "sha256": "b23798a1f87742e8ae6aa98a961da1a798a7ce296648eafde883b1eb7480805f"
+      },
+      {
+        "file": "heatmap-no-match-390.png",
+        "sha256": "c99f927cc125fe7586523d1016ebdc1202dc7a6d3a87aa320908c1ea0100ccd5"
+      },
+      {
+        "file": "heatmap-no-match-820-zh.png",
+        "sha256": "b6221c7104f6676d0195000cfa272636a05e3c3bbceb182b587cded6c2ec8071"
+      },
+      {
+        "file": "heatmap-no-match-820.png",
+        "sha256": "e95bff6ec5371dcf1dbc14bd0a8f8366ae4aafc8c4c629b30118ed857adf5838"
+      }
+    ],
+    "history": null,
+    "manifestSha256": "524ad5e1bf9f8ef712fdc48290cee77cb0640a108d9ed5f8a2fe8db6ff671596"
+  },
+  "nativeServerEvents": [
+    {
+      "observedAt": "2026-11-09T18:22:01.920Z",
+      "pid": 52034
+    },
+    {
+      "observedAt": "2026-11-09T18:22:01.974Z",
+      "serverPid": 52036,
+      "serverRefused": null,
+      "serverReportedStopped": false
+    },
+    {
+      "observedAt": "2026-11-09T18:25:44.812Z",
+      "serverPid": 52036,
+      "serverRefused": null,
+      "serverReportedStopped": true
+    },
+    {
+      "observedAt": "2026-11-09T18:25:44.852Z",
+      "serverPid": 52036,
+      "serverRefused": null,
+      "serverReportedStopped": true,
+      "serverSettled": true
+    }
+  ],
+  "nativeSupervisor": {
+    "closed": true,
+    "error": null,
+    "errorCode": null,
+    "pid": 52034,
+    "serverPid": 52036,
+    "serverRefused": null,
+    "serverReportedStopped": true,
+    "serverSettled": true,
+    "signal": null,
+    "status": 0,
+    "timedOut": false
+  },
+  "nextLockAbsent": true,
+  "operation": "exposure-source-compatibility-20261105",
+  "ownedServerStopped": true,
+  "packet": "eod-heatmap-flowdesk-load-failure",
+  "port": 3886,
+  "portClosed": true,
+  "producerPins": {
+    "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs": "cc69060986591ef7fdfeccc155670c7408aaa788d3259a3328fd8cd1173921de",
+    "terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs": "dbb92e88972bd39984427d054f431159401fcb16bd49b4479cc1c83456f7777d"
+  },
+  "protectedMaster": "03af393ce05c12282003a3919cc473c032264922",
+  "revision": "options-ux-integration-20261109",
+  "schema": "exposure_master_integration_capture.v1",
+  "seconds": 223.39,
+  "sourceAfterSha256": "2b3c833099262d7a8bfcf10d77165f87399d515d23579c7c11ef6f8b98ec3a68",
+  "sourceBeforeSha256": "2b3c833099262d7a8bfcf10d77165f87399d515d23579c7c11ef6f8b98ec3a68",
+  "sourceStable": true,
+  "startedAt": "2026-11-09T18:22:01.873503+00:00",
+  "successfulFiles": 126,
+  "supervisionCommand": [
+    "node",
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/docs/verification/pr1248-options-ux-integration-20261109/native-driver.cjs",
+    "eod",
+    "3886",
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/docs/verification/pr1248-options-ux-integration-20261109/eod-supervision-r1.json",
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/revisions/options-ux-integration-20261109/capture.log"
+  ],
+  "supervisionExit": 0,
+  "supervisionReceiptSha256": "a232230cdedb86aeef214e9403bcba62a0ad7b0bcc20afac741bbc050a37669a",
+  "webpack": false
+}

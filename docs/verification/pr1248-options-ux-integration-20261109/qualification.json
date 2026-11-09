@@ -1,0 +1,68 @@
+{
+  "browserCasesPassed": 201,
+  "browserFailed": 0,
+  "browserFlaky": 0,
+  "browserQualification": {
+    "path": "terminal/docs/verification/exposure-workspace-20261103/options-ux-integration-20261109/qualification.json",
+    "sha256": "7b42d3487fb6728231cc89c0b81a50ffe28c07d65e924f805b65252d4195b26d"
+  },
+  "browserRetries": 0,
+  "browserSkipped": 0,
+  "captureProtectedBase": "03af393ce05c12282003a3919cc473c032264922",
+  "ciOwnerSeconds": 447.67,
+  "ciOwnerSourceEntries": 1955,
+  "composition": {
+    "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261109185448-2-current.composition.json",
+    "selectedCases": 50,
+    "sha256": "4dd06a31f9c0d33206f14fd0b61be176865f2ef4e6fcf288f41034a5bf256126"
+  },
+  "inheritedCommonJsLintDiagnostics": 4,
+  "initialProductSuite": {
+    "passed": 329,
+    "snapshotFailures": 2,
+    "subsequentProphetProof": "reader-preflight-r1/execution.json"
+  },
+  "latestProtectedObserved": "156c4b3ecfa27b9137c64068b3ed969e07efbe49",
+  "latestTypecheckSeconds": 42.93,
+  "legacyBoundaryCasesPassed": 5,
+  "nativeCases": 240,
+  "nativeDescriptorPins": {
+    "eod": "6689b3e6cd9d1200ff83885c135cac7103fe91f7a721de5e8e86beebae5b9042",
+    "gex": "e058fd8cb78a257e66cb54c9c62bb768e9de869c4e1a13eaf6290840a6894499"
+  },
+  "novelLintDiagnostics": 0,
+  "parents": [
+    "753b4a90ebd31a1da76a9595bb2fedde912da042",
+    "7d0483c995df95ea76e988029d0c229d2a0e177c"
+  ],
+  "preparedAt": "2026-11-09T19:12:09.691421+00:00",
+  "productionAccepted": false,
+  "prophetResponsivePassed": 6,
+  "readerAndProphetPreflightPassed": 81,
+  "readerTestsPassed": 117,
+  "records": {
+    "actual-evidence-binding.json": "fa1bfda02da52f9ea7b50bbbfeb1206e0dcae94ca19b166655ee4ae2ced8525d",
+    "batch2-packet-resolution.json": "40be46280648048f5b0fc3d5724f09676745e2dd5c1a81fb878f4f4181f7f361",
+    "ci-owner-r1/execution.json": "5990583fc2312649acf0c5eb23fd84aea924812619d1f047d62e9473ef30f81f",
+    "ci-owner-r2/execution.json": "977368092980a59fb0b81ae96e55c13f919807e74f73768fc2609f10b92ce911",
+    "closed-successor-reader.json": "8d98c1d7bf8d1d8821a7ad93fc127809f0cac50b6fb43b2cf14895d3d114049b",
+    "conflict-resolution.json": "e1650ec68c15dc63fc8bfab2f9ac540dc9e3cce9ade888d464fddc09d4eb5e43",
+    "conflicting-evidence-preservation.json": "1148fcb4708d1bcc5f75cd94fdf52debf15e1dcc086f76deedaf0826abd059fd",
+    "consumer-validation-r1-continuation/execution.json": "1410e362c6f3359850579002c04fe36f0304dddbe251192cd5e14f665a743334",
+    "current-owner-applicability-repair.json": "eee43179214821cff85ab5cbb9ae5833f07a8014562d2937ba7b7a17d95932b2",
+    "current-protected-compatibility.json": "6fdbb20dd01938652c69170bb2a76972a883ddf98e2e6954d1dc46ece899001d",
+    "final-consumers-r2/execution.json": "6c24dc96c240693fd6a9cfea806eecdead4bab52a2ff06f27c65da31d45a0ad9",
+    "native-validation-r1.json": "33d381b4d926189804dd5a08ac4d3a55b21c3762afe9a277bc38e1905120ffcc",
+    "parent-packet-preservation.json": "7bd3701446861dc2317d4a231cfbb74fff80d4859c2060af43c9b9ab93f7a2da",
+    "prophet-mobile-layout-repair.json": "c3270af7dcb9252a24042a757c426ba636a989416d9cdbc028f7ca6fcc9de1f4",
+    "prophet-responsive-r2/execution.json": "056cb1a40992cc75f5e1b9a947bad98920e7f25e804944989cf896cf726acf33",
+    "prophet-snapshot-reconciliation/execution.json": "ee120529e699ba4c91f0b29f382806fce201eb750deeec83a00609f971ada23d",
+    "reader-preflight-r1/execution.json": "d16c9d129bb01fa67d93b2b03397eb3d292b7c0e9a673aacfb7e909b609d8216",
+    "shadow-link-repair.json": "ac43af12235e709f3ecac359a99af85ffceb2ec88984d40c887364b71fd1c878",
+    "shared-regression-red.json": "d84dada20bae022dd9d8e53ec2336ef10eeddebe7d9650a98c634a3c382366fc",
+    "visual-inspection.json": "47c85340d4a9d78641527be6935618b2aed550c54179ff08cbd28d40de357653"
+  },
+  "schema": "terminal_pr1248_options_workspace_integration_qualification.v1",
+  "selectedFinalConsumerTestsPassed": 18,
+  "state": "SOURCE_NATIVE_BROWSER_OWNER_AND_CONSUMERS_QUALIFIED"
+}

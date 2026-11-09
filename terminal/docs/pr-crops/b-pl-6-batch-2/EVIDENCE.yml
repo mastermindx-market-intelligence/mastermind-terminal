@@ -1,44 +1,35 @@
 # B-PL-6 batch 2 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: e2846880681d4b9aff4a060e1321f50f240cafc7
-# capturedAt: 2026-10-24T05:32:40.846Z
+# capturedAtHead: 753b4a90ebd31a1da76a9595bb2fedde912da042
+# capturedAt: 2026-11-09T19:02:10.768Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/GuidePanel.tsx: "edf89e1861d998371bfd7bdf67939228d3b194f57222d8b12aab3115633c2d41"
+  terminal/components/GuidePanel.tsx: "502cdfde51e973b35c8895682feafaedb062ac1acbd9202186ec80b0fc991146"
   terminal/components/levels/LevelsView.tsx: "d200204df1cae5ee1401c152df8ce4992d5e88fa852d2505d6c64b1074128e17"
-  terminal/components/levels/LevelsLearn.tsx: "7e23b843cbf90176b22f482fb2dee2f523a8b9f1f37c0bd8a10f6bcaef9912cf"
-  terminal/components/ChartConductor.tsx: "471a8972a8b8d4775abddc6a455dd50af0943fec18ad5a0a0c1a77243330d8b0"
+  terminal/components/levels/LevelsLearn.tsx: "9af26fe987b849635c6e7d4e592d6fc0b140bd906dfdbdcb28bbbabd9af4145c"
+  terminal/components/ChartConductor.tsx: "492f2580d8a7fc06d601b19ccbab65e75393481bd87e55f422376e50cc01b795"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
-  terminal/lib/i18n.tsx: "13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c"
-levelsGuideNavigationQualification:
-  sourceBase: "a6a88081be25c37e7da59f2c9102fee5c5d20b82"
-  capturedAt: "2026-11-03T06:25:31.008584+00:00"
-  command: "CAPTURE_ONLY=LevelsView,LevelsLearn capture_pl6_batch2.cjs"
-  fixture: "Candidate Next development server, shared at port 3521; original browser cases and selectors"
-  actualCases: 8
-  logSha256: "17db53e5700c675b6557ac4dc0ea0c1c07bf1878d42da9778ce46ad69d4a9e4d"
-  sources:
-    terminal/components/levels/LevelsView.tsx: "d200204df1cae5ee1401c152df8ce4992d5e88fa852d2505d6c64b1074128e17"
-    terminal/components/levels/LevelsLearn.tsx: "7e23b843cbf90176b22f482fb2dee2f523a8b9f1f37c0bd8a10f6bcaef9912cf"
-    terminal/components/levels/levelsNavigation.ts: "c92295f5e11007a5cef612b0803120e69d20a2dcc0987834bbd2b6cafcc87807"
-  files:
-    LevelsLearn-1440-zh.png: "4d80312504f35723f62937424b0402eb33682325524d787e6bfd5fca112f8b67"
-    LevelsLearn-1440.png: "603e6794dc95d79e3d4d862213af788e956df6c11c8551e72f8e5fc9996d573f"
-    LevelsLearn-390-zh.png: "d71394c5f20eea3bb204b505615975d24826dcc28312d8d888eb93f5f17551e5"
-    LevelsLearn-390.png: "6a86954b5e3d84cc6c34ed6aafeb0600ae408114c678f7604e8fb1830731f197"
-    LevelsView-1440-zh.png: "cfb674c9d0bf128b64f951b64d3007fe0794f5fe7fa94b3a7121ac988425958c"
-    LevelsView-1440.png: "5b67406189c957d84e44d571c73a4a14aab1998ab3d9663aeb3f50c680120da0"
-    LevelsView-390-zh.png: "566ef4ad5cc8c6aa0a3d617090b3c6c7ebaa4ce017c91255123e1894b0443f56"
-    LevelsView-390.png: "dbe2d899a2fca3d51932f008b0735b326a20d154220a4824e7b0c1252b3c44d3"
+  terminal/lib/i18n.tsx: "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
 theme: dark
 languages: [en, zh]
 viewports:
   - { name: desktop, width: 1440, height: 900 }
+  - { name: tablet, width: 820, height: 1180 }
   - { name: mobile, width: 390, height: 844 }
 surfaces: [GuidePanel, LevelsView, LevelsLearn, ChartConductor]
 capture_flag: TERMINAL_E2E_FIXTURE
-capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+conductor_step: 2
+conductor_step_law: ChartConductor crops show step 2 of the 7-step /dev/theater demo, the first draw.trendline, whose rail row carries the fit chip (ChartConductor.tsx .fit). The page clock is paused before Play and advanced 650 ms (PACE_MS) per step, so the rail badge reads 2 in every crop.
+screenshot_animations: disabled
+screenshot_animations_law: every crop is taken with Playwright animations disabled, so finite CSS animations render at their end state and infinite ones at their start.
+screenshot_raster: full
+screenshot_raster_law: Chromium is launched with --disable-partial-raster. By default it re-rasters only the invalidated part of a tile, so anti-aliased edges depend on the tile's raster history and the LevelsView-1440 chip corners varied by load. With whole-tile raster the same page gives the same pixels.
+guide_motion: reduced
+guide_motion_law: GuidePanel crops are taken with prefers-reduced-motion set to reduce, so the module rail scrolls its current chip into view instantly and the Trend Engine proof shows its static complete frame (data-play-state complete, no playback button).
+guide_backdrop: hidden
+guide_backdrop_law: the guide panel is not fully opaque and its scrim blurs the live terminal (ticker, quotes), so every element outside .gp-scrim is hidden for the GuidePanel screenshots only.
 command: |
   cd terminal
   node e2e/tools/capture_pl6_batch2.cjs
@@ -47,42 +38,49 @@ files:
   - ChartConductor-1440.png
   - ChartConductor-390-zh.png
   - ChartConductor-390.png
+  - ChartConductor-820-zh.png
+  - ChartConductor-820.png
   - GuidePanel-1440-zh.png
   - GuidePanel-1440.png
   - GuidePanel-390-zh.png
   - GuidePanel-390.png
+  - GuidePanel-820-zh.png
+  - GuidePanel-820.png
   - LevelsLearn-1440-zh.png
   - LevelsLearn-1440.png
   - LevelsLearn-390-zh.png
   - LevelsLearn-390.png
+  - LevelsLearn-820-zh.png
+  - LevelsLearn-820.png
   - LevelsView-1440-zh.png
   - LevelsView-1440.png
   - LevelsView-390-zh.png
   - LevelsView-390.png
-
-documentLanguageRecapture20261024:
-  sourceHead: e2846880681d4b9aff4a060e1321f50f240cafc7
-  qualification: Actual native producer executed in original managed language workspace; existing fixture data, no live-account or production claim
-  historicalManifest: history/before-document-language-20261024.yml
-  historicalSource: 919114d1c27f0f588d9d5a4d52574f19b0137d6d
-  receiptIndex: ../document-language/recapture-index.json
-
-# Raw capture identity and every upstream source/crop lock remain unchanged; omit only unused pending-copy dependency.
-lexProjection: {"schema":"terminal.lex_capture_projection.v1","omittedProperty":"obDonePrefsSyncing","capturedRawSha256":"13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c","projectedSha256":"d6dcc2df7615a1c5782f4d755178fbb76bcf9ee42b93dffe7c7c95317a652de5","sourceGitBlob":"664d68043f472919f7b581f545a334bf66d9782f","sourceRecoveryCommit":"e2846880681d4b9aff4a060e1321f50f240cafc7","captureCommitLocallyAvailable":true}
-optionsWorkspaceRecapture:
-  capturedAt: "2026-11-03T04:23:22.657616+00:00"
-  sourceBase: "ac3762717ad150fd4f18614afd78072115a7c80a"
-  command: "CAPTURE_ONLY=LevelsView,LevelsLearn node e2e/tools/capture_pl6_batch2.cjs"
-  actualCases: 8
-  logSha256: "1e30045f42d456f4f41f715b558ced1af7c3d5dddd49e51a34fc589cb9a42c6c"
-  sources:
-    terminal/components/levels/LevelsView.tsx: "a3c1af0dd72065398cf40586ddff1919e47d091690707924a957a709b00ae0ef"
-  crops:
-    LevelsLearn-1440-zh.png: "4d80312504f35723f62937424b0402eb33682325524d787e6bfd5fca112f8b67"
-    LevelsLearn-1440.png: "603e6794dc95d79e3d4d862213af788e956df6c11c8551e72f8e5fc9996d573f"
-    LevelsLearn-390-zh.png: "d71394c5f20eea3bb204b505615975d24826dcc28312d8d888eb93f5f17551e5"
-    LevelsLearn-390.png: "6a86954b5e3d84cc6c34ed6aafeb0600ae408114c678f7604e8fb1830731f197"
-    LevelsView-1440-zh.png: "cfb674c9d0bf128b64f951b64d3007fe0794f5fe7fa94b3a7121ac988425958c"
-    LevelsView-1440.png: "5b67406189c957d84e44d571c73a4a14aab1998ab3d9663aeb3f50c680120da0"
-    LevelsView-390-zh.png: "b2ee9f732016a62d52f2e40af1298c78993d17b10948de08135c01cc22d34c48"
-    LevelsView-390.png: "e07350d2d263f92bdbb1fc87198928fbb65ae8ee4c4300a69ef203c533232ccd"
+  - LevelsView-820-zh.png
+  - LevelsView-820.png
+captureFiles:
+  ChartConductor-1440-zh.png: "fda7d66325f7c8957a3dd8497c84f738eabd7f1254ec42e569e790ffc2aaabcf"
+  ChartConductor-1440.png: "fe0b5380d10099c9959706504fba8176754cebfdb8f0a8a58021c26a1c9ddcd3"
+  ChartConductor-390-zh.png: "2a2ef5203c042645671e5ab0974e97175b8fa1f07328f1414bc5ba211300b5ec"
+  ChartConductor-390.png: "a848ac853c889ee6fe3d8232cf25aee38347660bd9af19d0c22ae3b4f183870f"
+  ChartConductor-820-zh.png: "bc5633cf705d6903690352858fab78ee0249800f38972d6cca99d38257f88588"
+  ChartConductor-820.png: "335c91baf353a005e024c26a0b76f218396d3574bf32502bda8bc5f816887e59"
+  GuidePanel-1440-zh.png: "7b1ca37ed3d03089e4e9ee70940831d491563daf2b3942e5c500d5404f57d5eb"
+  GuidePanel-1440.png: "7d138a58591022f50857e301c2a18d230dfad670633fce089fa7436e80f65e99"
+  GuidePanel-390-zh.png: "f57301a51594b9d2d96578a35c109f70bac65649aba947a483f0d664f59827b9"
+  GuidePanel-390.png: "5b22742253e686c8b57cd91c5d953a75319a7f7e855db59eac4bb66825e3af3b"
+  GuidePanel-820-zh.png: "369a0f3e8233d8c141a01529297363dbc55789ff60ee3a69f0ffcbba792aa3f0"
+  GuidePanel-820.png: "09502573aab30393c635d448ffb7bc07eabcf809aa86c06c5906ebc1e357d741"
+  LevelsLearn-1440-zh.png: "ff6e9b5fa9b7f9b742746b6b1d48fad592a7608a34022a9fb0357455813ed747"
+  LevelsLearn-1440.png: "8a428602b4f7fbc38d60327036ff33ba4d14321fdaaa2ca03a905065e412bf12"
+  LevelsLearn-390-zh.png: "6857811b0e1f83c608f5e457fb171a3369a483d0d47c46b25a0d9d9a258924b6"
+  LevelsLearn-390.png: "53cd928e1f1ba98628c3eaa4d68a16b3ce51a97e7968e2db5a4a0a89b02ef4ae"
+  LevelsLearn-820-zh.png: "f8268941bf60046fc925d2975bba672bc1fa8642f00a648ca88e0eafd9326469"
+  LevelsLearn-820.png: "f82cc59099e59a8e762b5799a2bc19396f22a7d301c2c763458db1a188b27eab"
+  LevelsView-1440-zh.png: "99afae7fa7d8bf3210e8c73e08157497eab1b86acc6b8efc3cd54931c9de8817"
+  LevelsView-1440.png: "7bb4dd4dab89f9f85b51d160466082f62c32644b95c0aa090350784c120e9493"
+  LevelsView-390-zh.png: "566ef4ad5cc8c6aa0a3d617090b3c6c7ebaa4ce017c91255123e1894b0443f56"
+  LevelsView-390.png: "dbe2d899a2fca3d51932f008b0735b326a20d154220a4824e7b0c1252b3c44d3"
+  LevelsView-820-zh.png: "e531cb0bc01176cab8e2a2134482d3e1f204f4d859d647f77cb545e5b06116a2"
+  LevelsView-820.png: "aa91264b398204b6bca3f6214a607c697dc1b86bef8722bee20a3a984144f7e5"
+previousManifest: history/before-deterministic-d972899c158647ced8ede996c9e4502e5a03943fe578ec4f6b037bec255c60c6.yml

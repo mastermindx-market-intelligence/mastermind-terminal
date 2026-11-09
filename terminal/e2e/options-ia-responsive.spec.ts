@@ -53,14 +53,14 @@ test("seven-category Options IA stays addressable, honest, and contained", async
   await expect(freshness.locator('[data-flow-transport="connected"]')).toContainText(zh ? "已连接" : "Connected");
   await expect(freshness).toContainText(zh ? "市场休市" : "Market closed");
   await expect(freshness).toContainText(zh ? "上一交易时段" : "Last session");
-  await expect(freshness).toContainText(zh ? "快照" : "Snapshot");
-  await expect(freshness).toContainText(zh ? "源响应" : "Source responses");
-  await expect(freshness).toContainText(zh ? "实测周期" : "Observed cycle");
+  await expect(freshness).toContainText(zh ? "更新" : "Updated");
+  await expect(freshness).toContainText(zh ? "源数据" : "Source data");
+  await expect(freshness).toContainText(zh ? "更新周期" : "Refresh cycle");
   // The cycle must come from live_flow.meta/v2, never a hard-coded 2-min / 120 s cadence.
   // Assert the fixture's measured cycle, and match cadence units (en and zh) rather than
   // a bare "120": the oldest source response turned 120d old at 2026-11-02 14:34:51Z and
   // the snapshot leaves 120d at 2026-11-03 15:42:00Z, so a bare "120" trips on the age.
-  await expect(freshness).toContainText(`${zh ? "实测周期" : "Observed cycle"} 1h 8m`);
+  await expect(freshness).toContainText(`${zh ? "更新周期" : "Refresh cycle"} 1h 8m`);
   await expect(freshness).not.toContainText(/2\s*-?\s*(?:min\b|分钟)/);
   await expect(freshness).not.toContainText(/120\s*-?\s*(?:s(?:ec(?:ond)?s?)?\b|秒)/i);
   const freshnessContainment = await page.evaluate(() => {

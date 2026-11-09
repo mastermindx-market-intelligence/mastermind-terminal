@@ -1,0 +1,12 @@
+{
+  "afterSha256": "3c49a0238a28c8a5e97de773500b6ac4c5b145fb7514c4591af840868d682a4d",
+  "beforeSha256": "c51f5419c4f9e7660f7496814001f798c6f17ea6885911227324235f78ec507c",
+  "file": "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+  "nativePacketsUnmodified": true,
+  "preparedAt": "2026-11-09T18:31:07.133743+00:00",
+  "repair": "Keep aliases to original source entries; omit unnecessary eager stat/type argument so dangling symlinks do not abort the fixture builder.",
+  "schema": "terminal_evidence_shadow_symlink_repair.v1",
+  "sharedRegressionRedSha256": "d84dada20bae022dd9d8e53ec2336ef10eeddebe7d9650a98c634a3c382366fc",
+  "sharedRegressionRedSource": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr650-evidence-shadow-links-20261109/docs/verification/pr650-evidence-shadow-links-20261109/regression-red-r1/execution.json",
+  "state": "REPAIRED_PENDING_CURRENT_CONSUMERS"
+}

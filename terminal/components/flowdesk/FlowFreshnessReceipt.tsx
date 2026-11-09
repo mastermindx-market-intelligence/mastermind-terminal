@@ -21,13 +21,13 @@ const LEX = {
   marketOpen: ["Market open", "市场开市"],
   marketClosed: ["Market closed", "市场休市"],
   lastSession: ["Last session", "上一交易时段"],
-  snapshot: ["Snapshot", "快照"],
-  sourceResponses: ["Source responses", "源响应"],
-  observedCycle: ["Observed cycle", "实测周期"],
-  source: ["Source", "源数据"],
+  updated: ["Updated", "更新"],
+  sourceData: ["Source data", "源数据"],
+  refreshCycle: ["Refresh cycle", "更新周期"],
+  data: ["Data", "数据"],
+  dataAgeUnavailable: ["Data age unavailable", "数据时效不可用"],
   historical: ["Historical", "历史数据"],
   historicalFeed: ["Historical feed", "历史行情"],
-  sourceAgeUnavailable: ["Source age unavailable", "源数据时效不可用"],
   ago: ["ago", "前"],
 } as const;
 
@@ -91,7 +91,7 @@ export function FlowFreshnessReceipt({
       data-flow-session={sessionState}
       data-flow-source-state={historicalFeed ? "historical" : measured ? "measured" : "unavailable"}
       title={parsed
-        ? `snapshot ${parsed.snapshotAt}; source responses ${parsed.sourceResponseAtFirst} — ${parsed.sourceResponseAtLast}`
+        ? `${word("updated", lang)} ${parsed.snapshotAt}; ${word("sourceData", lang)} ${parsed.sourceResponseAtFirst} — ${parsed.sourceResponseAtLast}`
         : word("timingUnavailable", lang)}
     >
       {marketClock && <span className="flow-freshness-item">{word(marketClock.open ? "marketOpen" : "marketClosed", lang)}</span>}
@@ -113,13 +113,13 @@ export function FlowFreshnessReceipt({
       ) : (
         <>
           <span className="flow-freshness-item">
-            {word("snapshot", lang)} {ageCopy(snapshotAge!, lang)}
+            {word("updated", lang)} {ageCopy(snapshotAge!, lang)}
           </span>
           <span className="flow-freshness-item">
-            {word("sourceResponses", lang)} {ageCopy(sourceRange!, lang)}
+            {word("sourceData", lang)} {ageCopy(sourceRange!, lang)}
           </span>
           <span className="flow-freshness-item">
-            {word("observedCycle", lang)} {cycle ?? word("timingUnavailable", lang)}
+            {word("refreshCycle", lang)} {cycle ?? word("timingUnavailable", lang)}
           </span>
         </>
       )}
@@ -156,11 +156,11 @@ export function ArtifactSourceReceipt({
       className="flow-artifact-source"
       data-flow-artifact-freshness={age ? (historical ? "historical" : "source") : "unavailable"}
       data-flow-timing-authority="display_only"
-      title={sourceAsof ?? word("sourceAgeUnavailable", lang)}
+      title={sourceAsof ?? word("dataAgeUnavailable", lang)}
     >
       {age
-        ? `${historical ? `${word("historical", lang)} · ` : sessionState === "last_session" ? `${word("lastSession", lang)} · ` : ""}${word("source", lang)} ${ageCopy(age, lang)}`
-        : word("sourceAgeUnavailable", lang)}
+        ? `${historical ? `${word("historical", lang)} · ` : sessionState === "last_session" ? `${word("lastSession", lang)} · ` : ""}${word("data", lang)} ${ageCopy(age, lang)}`
+        : word("dataAgeUnavailable", lang)}
     </span>
   );
 }

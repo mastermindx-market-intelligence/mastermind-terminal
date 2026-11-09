@@ -1,0 +1,1267 @@
+{
+  "affectedSourceCheckExit": 0,
+  "affectedSourcePaths": [
+    "terminal/app/observatory.css",
+    "terminal/components/OptionsHubView.tsx",
+    "terminal/components/exposure-map/ExposureMap.module.css",
+    "terminal/components/flowdesk/FlowFreshnessReceipt.tsx",
+    "terminal/components/flowdesk/InspectorPane.tsx",
+    "terminal/components/levels/LevelsLearn.tsx",
+    "terminal/components/prophet/ProphetView.tsx",
+    "terminal/components/surface/SurfaceView.tsx",
+    "terminal/e2e/fixtureWarmup.cjs",
+    "terminal/e2e/flow-freshness-responsive.spec.ts",
+    "terminal/e2e/options-exposure-workspace.spec.ts",
+    "terminal/e2e/options-ia-responsive.spec.ts",
+    "terminal/e2e/responsive.spec.ts",
+    "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs",
+    "terminal/e2e/tools/capture_pl6_batch1.cjs",
+    "terminal/e2e/tools/capture_pl6_batch2.cjs",
+    "terminal/e2e/tools/optionsExposureEvidence.cjs",
+    "terminal/e2e/tools/optionsExposureEvidence.d.cts",
+    "terminal/lib/__tests__/__snapshots__/prophetOriginationDisclosure.test.ts.snap",
+    "terminal/lib/__tests__/helpers/optionsExposureEvidence.ts",
+    "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+    "terminal/next.config.ts"
+  ],
+  "fullCheckExit": 2,
+  "inheritedOrArtifactFindings": [
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 39,
+      "message": "new blank line at EOF.",
+      "path": "docs/ci-evidence/20261109-desktop-capacity/investigation.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 151,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/combined-browser.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 182,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/combined-browser.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 213,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/combined-browser.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 245,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/combined-browser.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 246,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/combined-browser.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 247,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/combined-browser.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 54,
+      "message": "new blank line at EOF.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/focused-after.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 22,
+      "message": "new blank line at EOF.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/private-chain.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 24,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/regressions-before.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 27,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/regressions-before.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 64,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/regressions-before.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 67,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/regressions-before.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 76,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/regressions-before.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 84,
+      "message": "new blank line at EOF.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/regressions-before.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 3,
+      "message": "trailing whitespace.",
+      "path": "docs/superpowers/specs/2026-09-20-company-intelligence-redesign-design.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 4,
+      "message": "trailing whitespace.",
+      "path": "docs/superpowers/specs/2026-09-20-company-intelligence-redesign-design.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 5,
+      "message": "trailing whitespace.",
+      "path": "docs/superpowers/specs/2026-09-20-company-intelligence-redesign-design.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 6,
+      "message": "trailing whitespace.",
+      "path": "docs/superpowers/specs/2026-09-20-company-intelligence-redesign-design.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 7,
+      "message": "trailing whitespace.",
+      "path": "docs/superpowers/specs/2026-09-20-company-intelligence-redesign-design.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 37,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/frozen-pause-race-20261109/baseline-junit.xml"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 41,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/frozen-pause-race-20261109/baseline.log"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 330,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr1248-options-ux-integration-20261109/prophet-mobile-r1/artifacts/prophet-origination-the-pa-dc23b-when-the-row-has-no-receipt-mobile/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 335,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr1248-options-ux-integration-20261109/prophet-mobile-r1/artifacts/prophet-origination-the-pa-dc23b-when-the-row-has-no-receipt-mobile/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 364,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr1248-options-ux-integration-20261109/prophet-mobile-r1/artifacts/prophet-origination-the-pa-dc23b-when-the-row-has-no-receipt-mobile/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 371,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr1248-options-ux-integration-20261109/prophet-mobile-r1/artifacts/prophet-origination-the-pa-dc23b-when-the-row-has-no-receipt-mobile/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 409,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr1248-options-ux-integration-20261109/prophet-mobile-r1/artifacts/prophet-origination-the-pa-dc23b-when-the-row-has-no-receipt-mobile/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 414,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr1248-options-ux-integration-20261109/prophet-mobile-r1/artifacts/prophet-origination-the-pa-dc23b-when-the-row-has-no-receipt-mobile/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 426,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr1248-options-ux-integration-20261109/prophet-mobile-r1/artifacts/prophet-origination-the-pa-dc23b-when-the-row-has-no-receipt-mobile/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 433,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr1248-options-ux-integration-20261109/prophet-mobile-r1/artifacts/prophet-origination-the-pa-dc23b-when-the-row-has-no-receipt-mobile/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 451,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr1248-options-ux-integration-20261109/prophet-mobile-r1/artifacts/prophet-origination-the-pa-dc23b-when-the-row-has-no-receipt-mobile/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 456,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr1248-options-ux-integration-20261109/prophet-mobile-r1/artifacts/prophet-origination-the-pa-dc23b-when-the-row-has-no-receipt-mobile/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 461,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr1248-options-ux-integration-20261109/prophet-mobile-r1/artifacts/prophet-origination-the-pa-dc23b-when-the-row-has-no-receipt-mobile/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 466,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr1248-options-ux-integration-20261109/prophet-mobile-r1/artifacts/prophet-origination-the-pa-dc23b-when-the-row-has-no-receipt-mobile/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 471,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr1248-options-ux-integration-20261109/prophet-mobile-r1/artifacts/prophet-origination-the-pa-dc23b-when-the-row-has-no-receipt-mobile/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 474,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr1248-options-ux-integration-20261109/prophet-mobile-r1/artifacts/prophet-origination-the-pa-dc23b-when-the-row-has-no-receipt-mobile/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 493,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr1248-options-ux-integration-20261109/prophet-mobile-r1/artifacts/prophet-origination-the-pa-dc23b-when-the-row-has-no-receipt-mobile/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 498,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr1248-options-ux-integration-20261109/prophet-mobile-r1/artifacts/prophet-origination-the-pa-dc23b-when-the-row-has-no-receipt-mobile/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 529,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr1248-options-ux-integration-20261109/prophet-mobile-r1/artifacts/prophet-origination-the-pa-dc23b-when-the-row-has-no-receipt-mobile/error-context.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 15,
+      "message": "new blank line at EOF.",
+      "path": "docs/verification/pr768-options-integration-20261109/product-unit-r1.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 13,
+      "message": "new blank line at EOF.",
+      "path": "docs/verification/pr902-evidence-20261109/evidence-gates.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 34,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr902-evidence-20261109/historical-packet-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 37,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr902-evidence-20261109/historical-packet-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 81,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr902-evidence-20261109/historical-packet-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 84,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr902-evidence-20261109/historical-packet-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 128,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr902-evidence-20261109/historical-packet-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 140,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr902-evidence-20261109/historical-packet-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 143,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr902-evidence-20261109/historical-packet-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 204,
+      "message": "new blank line at EOF.",
+      "path": "docs/verification/pr902-evidence-20261109/historical-packet-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 221,
+      "message": "new blank line at EOF.",
+      "path": "terminal/components/chrome/shared-shell/ShellDirectory.tsx"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 37,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/catalyst-opportunity/recovery-2026-10-17/evidence-inspection/defense-evidence-build.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 38,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/catalyst-opportunity/recovery-2026-10-17/evidence-inspection/defense-evidence-build.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 39,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/catalyst-opportunity/recovery-2026-10-17/evidence-inspection/defense-evidence-build.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 170,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/catalyst-opportunity/recovery-2026-10-17/evidence-inspection/defense-evidence-build.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 16,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/catalyst-opportunity/recovery-2026-10-17/evidence-inspection/defense-evidence-unit-final.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 67,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/catalyst-opportunity/recovery-2026-10-17/evidence-inspection/defense-revocation-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 6,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/pr-crops/native-error-theme-20261103/checks/eslint-protected-baseline.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 6,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/pr-crops/native-error-theme-20261103/checks/eslint.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 12,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/pr-crops/native-error-theme-20261103/checks/tests-final-css.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 20,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/pr-crops/sector-exposure-depth-return-20261102/composition-c8a/composition-focused.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 8,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/pr-crops/sector-exposure-depth-return-20261102/composition-c8a/composition-namespace.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 91,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/rotation-regime/r1/README.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 277,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/failure_mounted/source-preset-context.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 367,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/failure_mounted/source-preset-context.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 27,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/calculation-clocks-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 13,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/focused-final.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 69,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/node26-webstorage-correction.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 51,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/precision-native-owner-green.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 96,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/precision-native-owner-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 106,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/production-build-final.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 107,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/production-build-final.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 108,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/production-build-final.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 262,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/production-build-final.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 128,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/production-build.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 129,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/production-build.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 130,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/production-build.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 284,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/production-build.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 161,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 217,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 273,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 329,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 385,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 441,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 497,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 553,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 609,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 665,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 721,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 777,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 834,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 835,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 836,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 837,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 838,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 839,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 840,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 841,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 842,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 843,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 844,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 845,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 78,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/source-delta.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 138,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/source-delta.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 13,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/boundary-compatibility-20261105/original/evidence.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 13,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/boundary-compatibility-20261105/original/unit-final.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 128,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-a9999-wn-cell-withholds-the-total-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 140,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-a9999-wn-cell-withholds-the-total-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 159,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-a9999-wn-cell-withholds-the-total-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 194,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-a9999-wn-cell-withholds-the-total-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 211,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-a9999-wn-cell-withholds-the-total-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 217,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-a9999-wn-cell-withholds-the-total-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 227,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-a9999-wn-cell-withholds-the-total-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 238,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-a9999-wn-cell-withholds-the-total-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 127,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-c02ac-mplete-grid-shows-its-total-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 139,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-c02ac-mplete-grid-shows-its-total-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 158,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-c02ac-mplete-grid-shows-its-total-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 193,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-c02ac-mplete-grid-shows-its-total-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 210,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-c02ac-mplete-grid-shows-its-total-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 216,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-c02ac-mplete-grid-shows-its-total-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 226,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-c02ac-mplete-grid-shows-its-total-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 237,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/exposure-partial-totals-Ex-c02ac-mplete-grid-shows-its-total-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 332,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/options-research-continuit-4adb1-rce-s-state-on-every-reopen-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 339,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/options-research-continuit-4adb1-rce-s-state-on-every-reopen-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 360,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/options-research-continuit-4adb1-rce-s-state-on-every-reopen-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 393,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/options-research-continuit-4adb1-rce-s-state-on-every-reopen-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 399,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/options-research-continuit-4adb1-rce-s-state-on-every-reopen-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 408,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/options-research-continuit-4adb1-rce-s-state-on-every-reopen-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 420,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/options-research-continuit-4adb1-rce-s-state-on-every-reopen-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 437,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/options-research-continuit-4adb1-rce-s-state-on-every-reopen-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 448,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/options-research-continuit-4adb1-rce-s-state-on-every-reopen-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 218,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-a--c39d1-urns-to-the-exact-selection-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 223,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-a--c39d1-urns-to-the-exact-selection-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 224,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-a--c39d1-urns-to-the-exact-selection-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 251,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-a--c39d1-urns-to-the-exact-selection-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 279,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-a--c39d1-urns-to-the-exact-selection-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 292,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-a--c39d1-urns-to-the-exact-selection-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 303,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-a--c39d1-urns-to-the-exact-selection-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 313,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-a--c39d1-urns-to-the-exact-selection-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 334,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-a--c39d1-urns-to-the-exact-selection-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 335,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-a--c39d1-urns-to-the-exact-selection-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 298,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 326,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 339,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 350,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 360,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 382,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 383,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 408,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 428,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 435,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 452,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/first-run-failures/sector-exposure-journey-th-55b1a--to-Exposure-brings-it-back-desktop.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 261,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/browser-artifacts/original-red/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/error-context.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 265,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/browser-artifacts/original-red/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/error-context.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 281,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/browser-artifacts/original-red/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/error-context.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 334,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/browser-artifacts/original-red/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/error-context.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 261,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/browser-artifacts/original-red/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/error-context.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 265,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/browser-artifacts/original-red/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/error-context.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 281,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/browser-artifacts/original-red/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/error-context.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 334,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/browser-artifacts/original-red/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/error-context.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 14,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/composed/final-evidence.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 41,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/composed/unit.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 12,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/original/after-packaging-evidence.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 23,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/original/browser-before.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 62,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/original/browser-before.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 102,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/original/browser-before.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 103,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/original/browser-before.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 12,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/original/final-evidence.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 29,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/lab-source-gate-20261104/original/unit.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 193,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/browser.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 231,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/browser.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 269,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/browser.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 305,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/browser.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 341,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/browser.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 381,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/browser.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 382,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/browser.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 383,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/browser.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 384,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/browser.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 385,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/browser.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 12,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/evidence-historical-current-split-20261104.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 13,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/evidence-reconciled-20261104.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 29,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/ladder-guard-3viewport-20261104.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 12,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/original-carrier-evidence-guards.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 22,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/integration-20261104/logs/unit-qualified.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 12,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/final-evidence.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 80,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/final-lint.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 26,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/focused-unit.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 12,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/original/mounted-unit.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 24,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/source-compatibility-20261105/preview/affected-upstream-unit.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 19,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/pr650-exposure-integration-20261109/final-native.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 17,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/stock-intelligence-r6-20261103/recovery-20261104/price-search-green.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 49,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/stock-intelligence-r6-20261103/recovery-20261104/price-search-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 12,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/stock-intelligence-r6-20261103/recovery-20261104/webstorage-diagnostic.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 66,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/stock-intelligence-r6-20261103/recovery-20261104/webstorage-requalified.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 17,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/stock-intelligence-r6-20261103/unit-qualified.txt"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 31,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/baseline.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/dark-captures.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 4,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/dark-captures.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 7,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/dark-captures.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 9,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/dark-captures.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 27,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/dark-captures.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 16,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/final-native.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 15,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/native.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 58,
+      "message": "new blank line at EOF.",
+      "path": "terminal/e2e/heatmap-table-keyboard.spec.ts"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 72,
+      "message": "new blank line at EOF.",
+      "path": "terminal/lib/__tests__/heatmapTableAccessibility.test.tsx"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 142,
+      "message": "new blank line at EOF.",
+      "path": "terminal/lib/__tests__/trackerEmbedLifetime.test.tsx"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 498,
+      "message": "new blank line at EOF.",
+      "path": "tests/test_migration_merge_group.py"
+    }
+  ],
+  "note": "Protected or original source bytes and exact evidence artifacts are preserved; no unrelated accepted code is restyled."
+}
