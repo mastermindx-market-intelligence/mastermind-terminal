@@ -278,15 +278,8 @@ async function newPage(browser, width, lang, board, replies, withClock, stream) 
   return { context, page };
 }
 
-async function stripDevOverlay(page) {
-  await page.evaluate(() => {
-    document.querySelectorAll("nextjs-portal").forEach((el) => el.remove());
-  });
-}
-
 async function assertNoNextIndicator(page, file) {
   await page.waitForTimeout(400);
-  await stripDevOverlay(page);
   const n = await page.locator("[data-nextjs-dev-tools-button]").count();
   if (n > 0) {
     throw new Error(`${file}: Next.js N overlay still mounted (${n}); TERMINAL_E2E_FIXTURE gate failed`);
@@ -307,6 +300,7 @@ async function cropBoxes(page, boxes, outPath, pad) {
   const height = Math.max(8, Math.min(vp.height - y, Math.ceil(bottom - top + pad * 2)));
   // Finish CSS transitions (the RingGauge arc sweeps for 0.6 s) and reset infinite ones (the as-of
   // pulse), so a crop never catches a frame mid-animation.
+  await assertNoNextIndicator(page, outPath);
   await page.screenshot({ path: outPath, clip: { x, y, width, height }, animations: "disabled" });
 }
 
@@ -433,6 +427,7 @@ async function captureGex(page, lang, state, replies, outPath) {
   // Market State now opens the rail. Crop the card that owns each observation.
   const pickSlot = stateCard.locator("xpath=following-sibling::div[1]");
   if (state === "gex-pick-absent") {
+    await assertNoNextIndicator(page, outPath);
     await pickSlot.screenshot({ path: outPath, animations: "disabled" });
     return;
   }
@@ -667,7 +662,6 @@ async function main() {
             try {
               await page.goto(`${BASE}${URLS[board]}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
               await CAPTURE[board](page, lang, state, replies, join(OUT, file));
-              await assertNoNextIndicator(page, file);
               files.push(file);
               console.log("ok");
             } catch (err) {
@@ -761,7 +755,7 @@ async function main() {
   console.log(`wrote ${files.length} crops + EVIDENCE.yml (head ${capturedAtHead})`);
 }
 
-module.exports = { updateHeatmapEvidence };
+module.exports = { updateHeatmapEvidence, assertNoNextIndicator, cropBoxes };
 
 if (require.main === module) {
   main().catch((err) => {

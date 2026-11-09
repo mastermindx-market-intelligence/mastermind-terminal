@@ -307,15 +307,8 @@ async function newPage(browser, width, lang, board, replies, withClock) {
   return { context, page };
 }
 
-async function stripDevOverlay(page) {
-  await page.evaluate(() => {
-    document.querySelectorAll("nextjs-portal").forEach((el) => el.remove());
-  });
-}
-
 async function assertNoNextIndicator(page, file) {
   await page.waitForTimeout(400);
-  await stripDevOverlay(page);
   const n = await page.locator("[data-nextjs-dev-tools-button]").count();
   if (n > 0) {
     throw new Error(`${file}: Next.js N overlay still mounted (${n}); TERMINAL_E2E_FIXTURE gate failed`);
@@ -334,6 +327,7 @@ async function cropBoxes(page, boxes, outPath, pad) {
   const y = Math.max(0, Math.floor(top - pad));
   const width = Math.max(8, Math.min(vp.width - x, Math.ceil(right - left + pad * 2)));
   const height = Math.max(8, Math.min(vp.height - y, Math.ceil(bottom - top + pad * 2)));
+  await assertNoNextIndicator(page, outPath);
   await page.screenshot({ path: outPath, clip: { x, y, width, height }, animations: "disabled" });
 }
 
@@ -682,7 +676,6 @@ async function main() {
             try {
               await page.goto(`${BASE}${URLS[board]}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
               await CAPTURE[board](page, lang, state, replies, join(OUT, file));
-              await assertNoNextIndicator(page, file);
               files.push(file);
               console.log("ok");
             } catch (err) {
@@ -779,7 +772,7 @@ async function main() {
   console.log(`wrote ${files.length} crops + EVIDENCE.yml (head ${capturedAtHead})`);
 }
 
-module.exports = { updateHeatmapEvidence };
+module.exports = { updateHeatmapEvidence, assertNoNextIndicator, cropBoxes };
 
 if (require.main === module) {
   main().catch((err) => {

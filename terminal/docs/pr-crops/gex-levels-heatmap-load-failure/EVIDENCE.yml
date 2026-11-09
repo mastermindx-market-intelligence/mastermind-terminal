@@ -1,8 +1,8 @@
-# Current source proof is the complete Exposure master integration revision.
+# Current source proof is the complete Exposure indicator-guard revision.
 exposureMasterIntegration20261109:
-  revision: "operations/exposure-source-compatibility-20261105/revisions/master-integration-20261109"
-  descriptorSha256: "6074a35447c6ec3447cf9a0542b08d6a206c3660d483abf0e271daac21e6804b"
-  branchHead: "883fee550a9628812a4fbcdc77e479ab8cad3b3a"
+  revision: "operations/exposure-source-compatibility-20261105/revisions/indicator-guard-20261109"
+  descriptorSha256: "c0d9dc8fff216b73afc8dbc3490ca9bd84fbeecde6fe14eeac1452af5e0c0f1b"
+  branchHead: "483554457f302a90305f03c360636ca97ed75fb3"
   protectedMaster: "f2aa1e0cb27d459149f59d3b24d98cd6e2e8389f"
 
 # GEX desk, Levels and Heatmap failure-state truth — capture evidence

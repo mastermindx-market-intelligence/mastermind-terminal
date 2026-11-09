@@ -132,6 +132,22 @@ export function projectR4CaptureHarness(recorded: SourceMap, current: SourceMap)
   check(current[path] === captured || current[path] === protectedSuccessor, "CAPTURE_HARNESS_CURRENT_SOURCE");
   return { ...recorded, [path]: current[path] };
 }
+/** The browser suite never imports either native producer. Its immutable 123-case proof
+ * remains applicable only for these two reviewed producer-only changes; every other
+ * browser dependency and both complete key sets must still match exactly.
+ */
+export function projectIndicatorGuardBrowserSources(recorded: SourceMap, current: SourceMap): SourceMap {
+  const paths = masterIntegrationBrowserInputs();
+  requireSourceKeys(recorded, paths); requireSourceKeys(current, paths);
+  const projected = { ...recorded };
+  for (const kind of ["gex", "eod"] as const) {
+    const path = harness(kind);
+    check(recorded[path] === INDICATOR_BROWSER_PRIOR[kind], "INDICATOR_BROWSER_RECORDED_PRODUCER:" + kind);
+    check(current[path] === INDICATOR_PRODUCERS[kind], "INDICATOR_BROWSER_CURRENT_PRODUCER:" + kind);
+    projected[path] = INDICATOR_PRODUCERS[kind];
+  }
+  return selectWholeFingerprint([{ sources: projected }], current).sources;
+}
 export function layoutSources(kind: EvidenceKind, profile: EvidenceProfile): string[] {
   return [...LAYOUT[kind], EXPOSED_CSS,
     ...(kind === "eod" && profile === "combined" ? OPTIONS_CSS : [])].sort();
@@ -504,6 +520,17 @@ const MASTER_PRIOR = "883fee550a9628812a4fbcdc77e479ab8cad3b3a";
 const MASTER_PROTECTED = "f2aa1e0cb27d459149f59d3b24d98cd6e2e8389f";
 const MASTER_PACKET = { gex: "6074a35447c6ec3447cf9a0542b08d6a206c3660d483abf0e271daac21e6804b", eod: "8bb050b222bc7c822486ba85a0019734013575dac1fa1f76ded272d6b62e86d8" };
 const MASTER_BROWSER = "cd5a64f4cb8e1c573d923ed6567054cc126d1ccabeabe1f09ccef0d35a1692cd";
+const INDICATOR_REVISION = "indicator-guard-20261109";
+const INDICATOR_PRIOR = "483554457f302a90305f03c360636ca97ed75fb3";
+const INDICATOR_PACKET = { gex: "c0d9dc8fff216b73afc8dbc3490ca9bd84fbeecde6fe14eeac1452af5e0c0f1b", eod: "eb5a4aac927a5bf8f308f1b6536e7992306df2a78e110cc8012099a4dc185ba9" };
+const INDICATOR_BROWSER_PRIOR = {
+  gex: "f6c52d0666cee5a497d0836ec8e9c8eb05a9ba51fad63ba9f443d623ad99bc28",
+  eod: "866a1f4f6a823f878476dbb83fa48258deee5bf26eb651b9c2fcc3d5491ad3ba",
+};
+const INDICATOR_PRODUCERS = {
+  gex: "d1a4781a4a8147ccaef7360126dfedb038e8bc14e565853363e562074677888e",
+  eod: "8c8cd2448ce05a336f40fd020f9d172534c72df834f2b3a6ff2d33d82b6bfc5e",
+};
 const MASTER_HISTORY = {
   gex: { exposure: "b98ca38abe6ec26a2fa0156c3ca1e2e2caedad04ea81a4a862f1f38f4ff309e6", protected: "5bad92213f181ace64539f60e5b9e7312906e3f893a9d3fb7fe2044dcc37601e" },
   eod: { exposure: "b0110a00f14c663c504fb49ae25dbe5f24cbc33c82e45e6bf4c0ef204a54df40", protected: "c726ac1938cc85bf005b71ba01e0cec0a00dc57ae4ca168c1724a6200ea275bf" },
@@ -549,16 +576,26 @@ type IntegrationExecution = {
   schema: string; operation: string; revision: string; kind: EvidenceKind; packet: string;
   branchHead: string; protectedMaster: string; command: string[]; exit: number;
   expected: number; successfulFiles: number; sourceStable: boolean;
+  portClosed?: boolean; nextLockAbsent?: boolean; producerPins?: SourceMap;
   sourceBeforeSha256: string; sourceAfterSha256: string; manifestSha256: string; logSha256: string;
   frames: { file: string; status: string }[];
   images: Record<string, { sha256: string; bytes: number; width: number; height: number }>;
 };
 
 /** A failed full GEX run may still emit a manifest; its actual result is decisive. */
-export function requireIntegrationExecution(value: IntegrationExecution, kind: EvidenceKind, crops: string[]): void {
+export function requireIntegrationExecution(value: IntegrationExecution, kind: EvidenceKind, crops: string[],
+  identity: "indicator-guard" | "master-integration" = "indicator-guard"): void {
+  const historical = identity === "master-integration";
   check(value.schema === "exposure_master_integration_capture.v1" && value.operation === OP.exposure &&
-    value.revision === MASTER_REVISION && value.kind === kind && value.packet === PACKETS[kind] &&
-    value.branchHead === MASTER_PRIOR && value.protectedMaster === MASTER_PROTECTED, "INTEGRATION_CAPTURE_IDENTITY");
+    value.revision === (historical ? MASTER_REVISION : INDICATOR_REVISION) && value.kind === kind && value.packet === PACKETS[kind] &&
+    value.branchHead === (historical ? MASTER_PRIOR : INDICATOR_PRIOR) && value.protectedMaster === MASTER_PROTECTED,
+    "INTEGRATION_CAPTURE_IDENTITY");
+  if (!historical) {
+    check(value.portClosed === true && value.nextLockAbsent === true, "INTEGRATION_CAPTURE_LIFECYCLE");
+    requireSourceKeys(value.producerPins ?? {}, [harness("gex"), harness("eod")]);
+    for (const producer of ["gex", "eod"] as const)
+      check(value.producerPins![harness(producer)] === INDICATOR_PRODUCERS[producer], "INTEGRATION_CAPTURE_PRODUCER:" + producer);
+  }
   check(JSON.stringify(value.command) === JSON.stringify(["node", harness(kind).replace(/^terminal\//, "")]),
     "INTEGRATION_CAPTURE_COMMAND");
   check(value.exit === 0 && value.expected === crops.length && value.successfulFiles === crops.length &&
@@ -583,6 +620,16 @@ function integrationArchive(dir: string, label: "exposure" | "protected", kind: 
   for (const [file, digest] of Object.entries(files))
     check(sha(join(archive, file)) === digest, "INTEGRATION_HISTORY_FILE:" + label + ":" + file);
   return archive;
+}
+
+function verifyIntegrationImages(cropDir: string, execution: IntegrationExecution, crops: string[]): void {
+  check(sameKeys(readdirSync(cropDir).filter(name => name.endsWith(".png")), crops), "INTEGRATION_NATIVE_CROPS");
+  for (const name of crops) {
+    const bytes = readFileSync(join(cropDir, name)), record = execution.images[name];
+    check(sha(join(cropDir, name)) === record.sha256 && bytes.length === record.bytes &&
+      bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])) &&
+      bytes.readUInt32BE(16) === record.width && bytes.readUInt32BE(20) === record.height, "INTEGRATION_NATIVE_IMAGE:" + name);
+  }
 }
 
 function exposurePrefix(dir: string): string {
@@ -611,8 +658,9 @@ function verifyIntegrationBrowser(repo: string): void {
   check(proof.files["source-before.json"] === proof.files["source-after.json"], "INTEGRATION_BROWSER_SOURCE_STABILITY");
   requireSourceKeys(proof.currentSources, masterIntegrationBrowserInputs());
   for (const [path, digest] of Object.entries(proof.currentSources))
-    check(before[path] === digest && after[path] === digest && sha(join(repo, path)) === digest,
-      "INTEGRATION_BROWSER_CURRENT_SOURCE:" + path);
+    check(before[path] === digest && after[path] === digest, "INTEGRATION_BROWSER_RECORDED_SOURCE:" + path);
+  const current = Object.fromEntries(masterIntegrationBrowserInputs().map(path => [path, sha(join(repo, path))]));
+  projectIndicatorGuardBrowserSources(proof.currentSources, current);
   const execution = json<{ exit: number; retries: number; sourceStable: boolean; command: string[]; ownedServerStopped: boolean;
     passed: number; failed: number; skipped: number; flaky: number;
     fixtureOverrides: Record<string, string | null>; artifactFiles: SourceMap;
@@ -669,20 +717,45 @@ function verifyIntegrationBrowser(repo: string): void {
 }
 
 function readExposureMasterIntegration(repo: string, root: string, kind: EvidenceKind, crops: string[], text: string) {
-  const operation = join(root, "operations", OP.exposure), relative = "operations/" + OP.exposure + "/revisions/" + MASTER_REVISION;
+  const operation = join(root, "operations", OP.exposure), relative = "operations/" + OP.exposure + "/revisions/" + INDICATOR_REVISION;
   const dir = join(root, relative), descriptorPath = join(dir, "native-packet.json");
-  check(sha(descriptorPath) === MASTER_PACKET[kind], "INTEGRATION_PACKET_DIGEST");
+  check(sha(descriptorPath) === INDICATOR_PACKET[kind], "INTEGRATION_PACKET_DIGEST");
   const descriptor = json<{ schema: string; kind: EvidenceKind; profile: string; operation: string; captureRevision: string;
     branchHead: string; protectedMaster: string; files: SourceMap;
   }>(descriptorPath);
   check(descriptor.schema === "options_exposure_master_packet.v1" && descriptor.kind === kind && descriptor.profile === "exposure" &&
-    descriptor.operation === OP.exposure && descriptor.captureRevision === MASTER_REVISION &&
-    descriptor.branchHead === MASTER_PRIOR && descriptor.protectedMaster === MASTER_PROTECTED, "INTEGRATION_PACKET_IDENTITY");
+    descriptor.operation === OP.exposure && descriptor.captureRevision === INDICATOR_REVISION &&
+    descriptor.branchHead === INDICATOR_PRIOR && descriptor.protectedMaster === MASTER_PROTECTED, "INTEGRATION_PACKET_IDENTITY");
   const files = ["capture-execution.json", "capture-sources-before.json", "capture-sources-after.json", "source-contract.json",
-    "qualified-root/EVIDENCE.yml", "history.json", "prior-exposure-root-sha256.json", "prior-protected-root-sha256.json"];
+    "qualified-root/EVIDENCE.yml", "history.json", "EVIDENCE.before.yml", "capture.log"];
   requireSourceKeys(descriptor.files, files);
   for (const [file, digest] of Object.entries(descriptor.files)) check(sha(join(dir, file)) === digest, "INTEGRATION_PAYLOAD:" + file);
-  const priorRoot = integrationArchive(dir, "exposure", kind, crops), protectedRoot = integrationArchive(dir, "protected", kind, crops);
+  const historyDir = join(operation, "revisions", MASTER_REVISION);
+  check(sha(join(historyDir, "native-packet.json")) === MASTER_PACKET[kind], "INTEGRATION_PREDECESSOR_DESCRIPTOR");
+  const predecessor = json<{ files: SourceMap }>(join(historyDir, "native-packet.json"));
+  requireSourceKeys(predecessor.files, ["capture-execution.json", "capture-sources-before.json", "capture-sources-after.json",
+    "source-contract.json", "qualified-root/EVIDENCE.yml", "history.json", "prior-exposure-root-sha256.json", "prior-protected-root-sha256.json"]);
+  for (const [file, digest] of Object.entries(predecessor.files))
+    check(sha(join(historyDir, file)) === digest, "INTEGRATION_PREDECESSOR_FILE:" + file);
+  const priorExecution = json<IntegrationExecution>(join(historyDir, "capture-execution.json"));
+  requireIntegrationExecution(priorExecution, kind, crops, "master-integration");
+  check(priorExecution.manifestSha256 === predecessor.files["qualified-root/EVIDENCE.yml"], "INTEGRATION_PREDECESSOR_MANIFEST");
+  verifyIntegrationImages(join(historyDir, "qualified-root"), priorExecution, crops);
+  const history = json<{ schema: string; branchHead: string; protectedMaster: string; packet: string;
+    predecessor: { revision: string; descriptorSha256: string };
+  }>(join(dir, "history.json"));
+  check(history.schema === "exposure_indicator_guard_history.v1" && history.branchHead === INDICATOR_PRIOR &&
+    history.protectedMaster === MASTER_PROTECTED && history.packet === PACKETS[kind] &&
+    history.predecessor.revision === MASTER_REVISION && history.predecessor.descriptorSha256 === MASTER_PACKET[kind],
+    "INTEGRATION_PREDECESSOR_IDENTITY");
+  const priorRoot = integrationArchive(historyDir, "exposure", kind, crops), protectedRoot = integrationArchive(historyDir, "protected", kind, crops);
+  const oldDeclaration = "# Current source proof is the complete Exposure master integration revision.\n" +
+    yamlBlock("exposureMasterIntegration20261109", {
+      revision: "operations/" + OP.exposure + "/revisions/" + MASTER_REVISION,
+      descriptorSha256: MASTER_PACKET[kind], branchHead: MASTER_PRIOR, protectedMaster: MASTER_PROTECTED,
+    }) + "\n";
+  check(readFileSync(join(dir, "EVIDENCE.before.yml"), "utf8") === oldDeclaration +
+    readFileSync(join(protectedRoot, "EVIDENCE.yml"), "utf8"), "INTEGRATION_PREDECESSOR_DECLARATION");
   const historical = readCandidate(repo, root, kind, "exposure", crops), boundarySources = verifyBoundary(repo, false);
   verifyHistory(root, kind, "exposure", crops, priorRoot);
   check(readFileSync(join(priorRoot, "EVIDENCE.yml"), "utf8") === exposurePrefix(operation) +
@@ -690,15 +763,16 @@ function readExposureMasterIntegration(repo: string, root: string, kind: Evidenc
   for (const path of [LAB, WRAPPER]) check(historical.sources[path] === boundarySources[path], "INTEGRATION_BOUNDARY_HISTORY:" + path);
   requireR4ChartIdentity(repo, CHART_FRAMING_MAPS.original.before, CHART_FRAMING_MAPS.preview.before,
     CHART_FRAMING_MAPS.original.after, false);
-  const declaration = "# Current source proof is the complete Exposure master integration revision.\n" +
+  const declaration = "# Current source proof is the complete Exposure indicator-guard revision.\n" +
     yamlBlock("exposureMasterIntegration20261109", {
-      revision: relative, descriptorSha256: MASTER_PACKET[kind], branchHead: MASTER_PRIOR, protectedMaster: MASTER_PROTECTED,
+      revision: relative, descriptorSha256: INDICATOR_PACKET[kind], branchHead: INDICATOR_PRIOR, protectedMaster: MASTER_PROTECTED,
     }) + "\n";
   check(text === declaration + readFileSync(join(protectedRoot, "EVIDENCE.yml"), "utf8"), "INTEGRATION_ROOT_MANIFEST");
   check(sameKeys(readdirSync(root).filter(name => name.endsWith(".png")), crops), "INTEGRATION_PROTECTED_ROOT_SET");
   for (const name of crops) check(sha(join(root, name)) === sha(join(protectedRoot, name)), "INTEGRATION_PROTECTED_ROOT_IMAGE:" + name);
   const execution = json<IntegrationExecution>(join(dir, "capture-execution.json"));
   requireIntegrationExecution(execution, kind, crops);
+  check(execution.logSha256 === descriptor.files["capture.log"], "INTEGRATION_CAPTURE_LOG");
   const contract = json<{ schema: string; kind: EvidenceKind; currentInputs: string[]; observedInputs: string[] }>(join(dir, "source-contract.json"));
   const paths = masterIntegrationInputs(kind);
   check(contract.schema === "exposure_master_capture_sources.v1" && contract.kind === kind &&
@@ -706,6 +780,11 @@ function readExposureMasterIntegration(repo: string, root: string, kind: Evidenc
     "INTEGRATION_SOURCE_CONTRACT");
   const before = json<SourceMap>(join(dir, "capture-sources-before.json")), after = json<SourceMap>(join(dir, "capture-sources-after.json"));
   requireSourceKeys(before, contract.observedInputs); requireSourceKeys(after, contract.observedInputs);
+  for (const producer of ["gex", "eod"] as const) {
+    const path = harness(producer);
+    check(before[path] === INDICATOR_PRODUCERS[producer] && after[path] === INDICATOR_PRODUCERS[producer] &&
+      execution.producerPins![path] === before[path], "INTEGRATION_OBSERVED_PRODUCER:" + producer);
+  }
   check(execution.sourceBeforeSha256 === descriptor.files["capture-sources-before.json"] &&
     execution.sourceAfterSha256 === descriptor.files["capture-sources-after.json"] &&
     execution.sourceBeforeSha256 === execution.sourceAfterSha256, "INTEGRATION_SOURCE_STABILITY");
@@ -713,15 +792,10 @@ function readExposureMasterIntegration(repo: string, root: string, kind: Evidenc
   requireSourceKeys(sources, paths);
   const current = Object.fromEntries(paths.map(path => [path, sha(join(repo, path))]));
   selectWholeFingerprint([{ sources }], current);
+  check(sources[harness(kind)] === INDICATOR_PRODUCERS[kind], "INTEGRATION_NATIVE_PRODUCER");
   const cropDir = join(dir, "qualified-root"), evidence = join(cropDir, "EVIDENCE.yml");
   check(execution.manifestSha256 === sha(evidence), "INTEGRATION_NATIVE_MANIFEST");
-  check(sameKeys(readdirSync(cropDir).filter(name => name.endsWith(".png")), crops), "INTEGRATION_NATIVE_CROPS");
-  for (const name of crops) {
-    const bytes = readFileSync(join(cropDir, name)), record = execution.images[name];
-    check(sha(join(cropDir, name)) === record.sha256 && bytes.length === record.bytes &&
-      bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])) &&
-      bytes.readUInt32BE(16) === record.width && bytes.readUInt32BE(20) === record.height, "INTEGRATION_NATIVE_IMAGE:" + name);
-  }
+  verifyIntegrationImages(cropDir, execution, crops);
   const manifest = readFileSync(evidence, "utf8"), layout = layoutSources(kind, "exposure");
   const layoutText = manifest.split("\nlayoutFiles:\n"); check(layoutText.length === 2, "INTEGRATION_LAYOUT_SECTION");
   const recorded: SourceMap = {};
@@ -740,7 +814,7 @@ function readExposureMasterIntegration(repo: string, root: string, kind: Evidenc
     expected: execution.expected, successful_files: execution.successfulFiles, exit: execution.exit, source_stable: execution.sourceStable,
     failed_frames: [], source_sha256: sources, image_sha256: Object.fromEntries(Object.entries(execution.images).map(([name, value]) => [name, value.sha256])),
     native_manifest_sha256: execution.manifestSha256, log_sha256: execution.logSha256 };
-  return { profile: "exposure" as const, captureRevision: MASTER_REVISION, sources, native, cropDir, evidence, layout,
+  return { profile: "exposure" as const, captureRevision: INDICATOR_REVISION, sources, native, cropDir, evidence, layout,
     protectedManifest: join(protectedRoot, "EVIDENCE.yml"), optionsHistorySources: {} as SourceMap,
     hasExposureHistory: true, hasOptionsHistory: false,
     exposureHistorical: { ...historical, root: priorRoot, boundarySources } };
