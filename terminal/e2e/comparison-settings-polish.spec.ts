@@ -27,12 +27,13 @@ async function seedComparison(page: Page) {
   await expect(page.locator('[data-cmp-study]')).toBeVisible();
 }
 
-async function openComparison(page: Page) {
+async function openComparison(page: Page, lang: "en" | "zh") {
   const row = page.locator(".lg-row").filter({ has: page.locator(".lg-name").getByText("SPY", { exact: true }) }).first();
   const toggle = page.locator(".lg-collapse").first();
-  if (await toggle.count() && (await toggle.getAttribute("title")) === "Show indicator list") await toggle.click();
+  await expect(row).toBeAttached();
+  if (!await row.isVisible()) await toggle.click();
   await expect(row).toBeVisible();
-  const opener = row.getByRole("button", { name: "Settings", exact: true });
+  const opener = row.getByRole("button", { name: lang === "zh" ? "设置" : "Settings", exact: true });
   if (page.viewportSize()!.width <= 860) { await row.locator(".lg-name").click(); await opener.click(); }
   else { await row.focus(); await page.keyboard.press("Tab"); await page.keyboard.press("Tab"); await expect(opener).toBeFocused(); await page.keyboard.press("Enter"); }
   const dialog = page.getByRole("dialog", { name: "SPY", exact: true });
@@ -49,7 +50,7 @@ for (const lang of ["en", "zh"] as const) {
     await expect(page.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 20_000 });
     await seedComparison(page);
     const previousOverflow = await page.evaluate(() => document.body.style.overflow);
-    let { dialog, opener } = await openComparison(page);
+    let { dialog, opener } = await openComparison(page, lang);
     await expect(dialog.locator('input[type="color"]')).toHaveValue("#19c2c2");
     const close = dialog.getByRole("button", { name: lang === "zh" ? "关闭" : "Close", exact: true });
     const done = dialog.getByRole("button", { name: lang === "zh" ? "完成" : "Done", exact: true });
@@ -79,7 +80,7 @@ for (const lang of ["en", "zh"] as const) {
     await page.keyboard.press("Escape"); await expect(dialog).toHaveCount(0);
     expect(await page.evaluate(() => document.body.style.overflow)).toBe(previousOverflow);
     if (page.viewportSize()!.width > 860) await expect(opener).toBeFocused();
-    ({ dialog, opener } = await openComparison(page));
+    ({ dialog, opener } = await openComparison(page, lang));
     await expect(dialog.getByRole("button", { name: lang === "zh" ? "点线" : "Dotted", exact: true })).toHaveAttribute("aria-pressed", "true");
     await dialog.getByRole("button", { name: lang === "zh" ? "完成" : "Done", exact: true }).click();
     await expect(dialog).toHaveCount(0);

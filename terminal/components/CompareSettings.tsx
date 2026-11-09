@@ -53,6 +53,7 @@ export default function CompareSettings({ sym, cfg, onChange, onClose }: { sym: 
       restore();
       if (!document.querySelector("dialog[open]") && opener?.isConnected && !opener.getClientRects().length) {
         opener.closest<HTMLElement>(".lg-row[tabindex]")?.focus({ preventScroll: true });
+        opener.focus({ preventScroll: true });
       }
     };
   }, []);
