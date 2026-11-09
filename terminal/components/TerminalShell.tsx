@@ -1486,7 +1486,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // carries a name string, so the op that produced it is tracked here for "Use <suggested>".
   const [pendingConflict, setPendingConflict] = useState<
     | { op: "save"; envelope: WorkspaceEnvelope }
-    | { op: "rename"; oldName: string; revision: number; id?: string }
+    | { op: "rename"; oldName: string; revision: number; id: string }
     | { op: "duplicate"; sourceName: string; sourceId?: string }
     | { op: "import"; envelope: WorkspaceEnvelope }
     | null
@@ -5635,7 +5635,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         setWorkspaceId(rowId);
         setLoadedEnvelope((prev) => (prev ? { ...prev, revision: outcome.revision } : prev));
       }
-      setLayoutFeedback({ kind: "renamed" });
+      setLayoutFeedback({ kind: "renamed", id: rowId, name: newName });
       await refreshLayouts();
       return;
     }
@@ -5774,7 +5774,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           setWorkspaceRevision(outcome.revision);
           if (pending.id) setWorkspaceId(pending.id);
         }
-        setLayoutFeedback({ kind: "renamed" });
+        setLayoutFeedback({ kind: "renamed", id: pending.id, name: suggested });
         await refreshLayouts();
       } else {
         setLayoutFeedback({ kind: "error", message: t("wsRenameFailed") });
@@ -6871,6 +6871,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         <MobileSheet
           open={phoneWorkspacesOpen}
           onClose={() => setPhoneWorkspacesOpen(false)}
+          escapeKey="bubble"
           title={t("layouts")}
           className="phone-workspaces-sheet"
           detents={[60, 96]}

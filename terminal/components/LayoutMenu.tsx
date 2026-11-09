@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useT } from "@/lib/i18n";
 import type { SavedLayout } from "@/lib/layouts";
 import { interpolateTeam } from "@/lib/teamSharedWorkflow";
@@ -21,7 +21,7 @@ export type LayoutFeedback =
   | { kind: "idle" }
   | { kind: "saving" }
   | { kind: "saved"; name: string }
-  | { kind: "renamed" }
+  | { kind: "renamed"; id: string; name: string }
   | { kind: "duplicated" }
   | { kind: "imported" }
   | { kind: "error"; message: string }
@@ -140,6 +140,22 @@ export default function LayoutMenu({
   const [draft, setDraft] = useState("");
   const moreRefs = useRef<Record<string, HTMLSpanElement | null>>({});
   const firstActionRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const renameGroupRef = useRef<HTMLDivElement | null>(null);
+  const requestedRenameRef = useRef<{ id: string; name: string } | null>(null);
+  const renameReturnRef = useRef<{ id: string; from: Element } | null>(null);
+
+  // The row's action control is absent while its inline editor is mounted.
+  // Resolve the existing row ref only after that editor has left the DOM.
+  useLayoutEffect(() => {
+    if (!isOpen) { renameReturnRef.current = null; requestedRenameRef.current = null; return; }
+    if (renamingId !== null) return;
+    const intent = renameReturnRef.current;
+    renameReturnRef.current = null;
+    if (!intent || (document.activeElement !== document.body && document.activeElement !== intent.from)) return;
+    const target = moreRefs.current[intent.id];
+    if (target?.isConnected && target.getClientRects().length > 0
+      && !target.closest("[hidden], [inert], [aria-hidden='true']")) target.focus({ preventScroll: true });
+  }, [isOpen, renamingId]);
 
   // spec §4: "unfold | opening focuses the first sub-row (Open)". Accordion: opening one row
   // closes any other — `toggleRow` already only ever holds one id.
@@ -154,19 +170,26 @@ export default function LayoutMenu({
     setOpenRow(null);
     moreRefs.current[id]?.focus();
   }
-  function cancelRename() {
+  const cancelRename = useCallback((returnFocus = false) => {
+    const active = document.activeElement;
+    renameReturnRef.current = returnFocus && isOpen && renamingId && active && renameGroupRef.current?.contains(active)
+      ? { id: renamingId, from: active } : null;
+    requestedRenameRef.current = null;
     setRenamingId(null);
     setDraft("");
-  }
+  }, [isOpen, renamingId]);
   // A successful rename is decided asynchronously by TerminalShell (revision CAS round trip), so
   // the local rename-mode UI closes when that success actually lands — never on click, which would
   // close it before a `name_conflict`/`stale_revision` had a chance to keep it open for a retry.
   useEffect(() => {
-    if (feedback.kind === "renamed") { setRenamingId(null); setDraft(""); }
-  }, [feedback]);
+    const requested = requestedRenameRef.current;
+    if (feedback.kind === "renamed" && requested && feedback.id === requested.id && feedback.name === requested.name
+      && renamingId === requested.id && draft.trim() === requested.name) cancelRename(true);
+  }, [feedback, renamingId, draft, cancelRename]);
   function commitRename(l: SavedWorkspace) {
     const trimmed = draft.trim();
-    if (!trimmed || trimmed === l.name) { cancelRename(); return; }
+    if (!trimmed || trimmed === l.name) { cancelRename(true); return; }
+    requestedRenameRef.current = { id: l.id, name: trimmed };
     onRename(l, trimmed);
   }
 
@@ -182,21 +205,30 @@ export default function LayoutMenu({
            data-layout-row={l.name} data-ws-state={l.rowState} data-ws-sharing={shared ? "team" : "private"}>
 
         {renamingId === l.id ? (
-          <div className="ws-rename">
+          <div className="ws-rename" ref={renameGroupRef}
+               onBlur={(event) => {
+                 if (!(event.relatedTarget instanceof Node) || !event.currentTarget.contains(event.relatedTarget)) cancelRename();
+               }}
+               onKeyDown={(event) => {
+                 if (event.key !== "Escape") return;
+                 // IME owns its cancellation; keep it from reaching the outer sheet too.
+                 event.stopPropagation();
+                 if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
+                 event.preventDefault(); cancelRename(true);
+               }}>
             <input autoFocus value={draft} aria-label={t("rename")} data-ws-rename-input
                    onFocus={(e) => e.currentTarget.select()}
                    onChange={(e) => setDraft(e.target.value)}
                    onKeyDown={(e) => {
+                     if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) { e.stopPropagation(); return; }
                      if (e.key === "Enter") { e.preventDefault(); commitRename(l); }
-                     else if (e.key === "Escape") { e.stopPropagation(); cancelRename(); }
-                   }}
-                   onBlur={cancelRename} />
+                   }} />
             <button type="button" aria-label={t("wsRenameSave")} data-ws-rename-commit
                     onMouseDown={(e) => e.preventDefault()} onClick={() => commitRename(l)}>
               <svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg>
             </button>
             <button type="button" aria-label={t("wsCancel")} data-ws-rename-cancel
-                    onMouseDown={(e) => e.preventDefault()} onClick={cancelRename}>
+                    onMouseDown={(e) => e.preventDefault()} onClick={() => cancelRename(true)}>
               <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </button>
           </div>
@@ -252,7 +284,7 @@ export default function LayoutMenu({
               )}
               {editable && (
                 <button type="button" role="menuitem" className="menu-row" data-ws-act="rename"
-                        onClick={() => { setDraft(l.name); setRenamingId(l.id); }}>
+                        onClick={() => { requestedRenameRef.current = null; renameReturnRef.current = null; setDraft(l.name); setRenamingId(l.id); }}>
                   <svg viewBox="0 0 24 24"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3M13.5 6.5l3 3" /></svg>{t("rename")}
                 </button>
               )}
