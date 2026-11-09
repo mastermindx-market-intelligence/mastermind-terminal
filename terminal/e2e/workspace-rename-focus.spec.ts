@@ -59,3 +59,45 @@ for (const lang of ["en", "zh"] as const) {
     await expect(menu.locator('[data-layout-row="Discard this draft"], [data-layout-row="Leave without saving"]')).toHaveCount(0);
   });
 }
+
+test("late rename success never replays while a newer draft is being typed", async ({ page, baseURL }, info) => {
+  test.setTimeout(90_000);
+  test.skip(info.project.name !== "desktop", "One network-response case; the full keyboard flow covers all viewports");
+  await isolateLayoutStore(page, info, baseURL); await pinLanguage(page, "en");
+  await page.goto("/terminal?symbol=NVDA");
+  await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
+  const menu = await openLayoutMenu(page);
+  await menu.locator("[data-layout-save] input").fill("Original");
+  await menu.locator("[data-layout-save-btn]").click();
+  const row = menu.locator('[data-layout-row="Original"]');
+  await expect(row).toBeVisible(); await row.locator("[data-ws-more]").click();
+  await row.locator('[data-ws-act="rename"]').click();
+  const input = menu.locator("[data-ws-rename-input]");
+  let release = () => {};
+  let started = () => {};
+  const held = new Promise<void>(resolve => { release = resolve; });
+  const requestStarted = new Promise<void>(resolve => { started = resolve; });
+  let renameRequests = 0;
+  await page.route("**/api/layouts", async route => {
+    const request = route.request();
+    if (request.method() === "POST" && request.postDataJSON()?.op === "rename") {
+      renameRequests += 1;
+      if (renameRequests === 1) { started(); await held; }
+    }
+    await route.continue();
+  });
+  try {
+    await input.fill("Submitted"); await input.press("Enter"); await requestStarted;
+    await input.fill("Newer draft"); release();
+    await expect(menu.locator('[data-layout-feedback="renamed"]')).toBeVisible();
+    await expect(menu.locator('[data-layout-row="Submitted"]')).toBeVisible();
+    await expect(input).toHaveValue("Newer draft"); await expect(input).toBeFocused();
+    // The exact old-name prefix previously replayed the consumed close request.
+    await input.fill("Submitted"); await expect(input).toHaveValue("Submitted");
+    await page.keyboard.type(" extended"); await expect(input).toHaveValue("Submitted extended");
+    await expect(input).toBeFocused(); expect(renameRequests).toBe(1);
+    await page.screenshot({ path: info.outputPath("late-rename-draft.png") });
+    await input.press("Escape"); await expect(input).toBeHidden();
+    await expect(menu.locator('[data-ws-more="Submitted"]')).toBeFocused();
+  } finally { release(); await page.unroute("**/api/layouts"); }
+});

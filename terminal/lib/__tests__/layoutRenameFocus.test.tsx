@@ -119,6 +119,9 @@ describe("workspace rename keyboard continuity", () => {
     await edit("Newer draft");
     await render({ feedback: { kind: "renamed", id: alpha.id, name: "First request" } });
     expect(input()?.value).toBe("Newer draft"); expect(document.activeElement).toBe(input());
+    await edit("First request"); expect(input()?.value).toBe("First request");
+    await edit("First request extended"); expect(input()?.value).toBe("First request extended");
+    expect(document.activeElement).toBe(input()); expect(props.onRename).toHaveBeenCalledTimes(1);
   });
 
   it("does not move focus after the editor was left or the menu closed", async () => {

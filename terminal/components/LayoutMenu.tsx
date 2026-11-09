@@ -183,8 +183,11 @@ export default function LayoutMenu({
   // close it before a `name_conflict`/`stale_revision` had a chance to keep it open for a retry.
   useEffect(() => {
     const requested = requestedRenameRef.current;
-    if (feedback.kind === "renamed" && requested && feedback.id === requested.id && feedback.name === requested.name
-      && renamingId === requested.id && draft.trim() === requested.name) cancelRename(true);
+    if (feedback.kind !== "renamed" || !requested || feedback.id !== requested.id || feedback.name !== requested.name) return;
+    // Consume the result even when newer text keeps the editor open. Typing
+    // through the old successful name later must not replay its close request.
+    requestedRenameRef.current = null;
+    if (renamingId === requested.id && draft.trim() === requested.name) cancelRename(true);
   }, [feedback, renamingId, draft, cancelRename]);
   function commitRename(l: SavedWorkspace) {
     const trimmed = draft.trim();
