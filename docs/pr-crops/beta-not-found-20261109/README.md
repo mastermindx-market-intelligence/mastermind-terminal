@@ -24,18 +24,19 @@ This implements the SS12 recovery-action pattern on existing routes. It does not
 
 ## Verification
 
-- **7 browser cases passed**, plus 2 intentional duplicate viewport-loop skips.
-- Desktop/tablet/320px phone; English/dark and Chinese/light; explicit 568×320, 320×568 and reference-sized 320×844 views.
+- **8 browser cases passed in each of two shell modes**, plus 4 intentional duplicate viewport-loop skips per mode.
+- Desktop/tablet/320px phone; default shell EN/ZH in dark, beta English/dark and Chinese/light; explicit 568×320, 320×568 and reference-sized 320×844 views.
 - Actual keyboard navigation follows all three links. Today reaches its existing signed-out gate; Discover mounts its workspace; the chart mounts its actual chart body. No account gate is bypassed.
 - Every missing-route response is still HTTP 404.
 - Direct saved-language tests prime only mm.lang in storage, then require the matching actual document language and page content before a manual toggle.
-- Short-screen checks use the existing language/theme buttons and their actual pressed state.
-- Actions stay within viewport bounds, are at least 44px high, have a visible 2px focus outline and pass real hit-testing. Header position and document scroll remain stable.
+- Each short-screen language case starts from the saved language; beta retains the actual theme-button interaction and checks its pressed state.
+- Actions stay within viewport bounds, are at least 44px high, have a visible 2px focus outline and pass real hit-testing. Beta header position and document scroll remain stable; legacy mobile retains its existing page-scrolling layout.
 - **4 focused component tests passed** against the actual LangProvider: saved preference recovery, active-language precedence, invalid preference and unavailable storage.
 - TypeScript, focused ESLint and diff whitespace checks passed.
 
 ```sh
-TERMINAL_E2E_PORT=3293 npm run test:e2e:responsive -- e2e/not-found-recovery.spec.ts --project=desktop --project=tablet --project=mobile --workers=1
+env -u MMX_SHARED_SHELL CI=1 TERMINAL_E2E_PORT=3305 npx playwright test e2e/not-found-recovery.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list --output=test-results/not-found-legacy-final
+MMX_SHARED_SHELL=1 CI=1 TERMINAL_E2E_PORT=3305 npx playwright test e2e/not-found-recovery.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list --output=test-results/not-found-beta-final
 ```
 
 ## Captures
@@ -48,3 +49,12 @@ TERMINAL_E2E_PORT=3293 npm run test:e2e:responsive -- e2e/not-found-recovery.spe
 - [After: short landscape, scrolled to recovery actions](after-en-568x320.png)
 
 The red development issue badge is present in both baseline and candidate captures and comes from the existing root-script warning above. It is not a new product control; it has not been hidden or edited out. Root layout and framework configuration are outside this leaf. These are local development-path captures, not beta deployment proof.
+
+
+## CI mode correction on the original PR
+
+Run 42591635037, desktop-3 job 129075433974 and tablet-2 job 129075434249 failed at the test's unconditional beta toolbar lookup. The original hosted artifact shows rendered 404 links and correctly restored Chinese content in the default shell. The original bfa86b812ce5a7b74deb8a349de3209de47cdd70 test reproduced the same missing-control failure locally on an explicitly default-shell server.
+
+The initial proof used an explicitly enabled beta server; its earlier abbreviated command omitted that server-mode context. The repaired spec now reads the actual mode, retains all recovery destinations and interaction checks in ordinary CI, and exercises beta toolbar/light presentation only when enabled. Discover's actual legacy tablist and normal mobile document scrolling are checked according to the existing shell contract. No spec-wide skip, timeout increase, workflow change or production code change was made.
+
+Both final modes passed 8 cases with 4 duplicate short-screen skips. Fresh harness-owned servers were used sequentially on the original operation; verified owned development caches were preserved separately between modes. TypeScript, affected ESLint and diff checks passed. The preceding 4 component tests and source crops remain valid because this follow-up changes only the browser spec and this proof.
