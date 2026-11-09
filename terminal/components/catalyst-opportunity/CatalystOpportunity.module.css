@@ -3,8 +3,8 @@
 .root * { box-sizing: border-box; }
 .page { width: 100%; max-width: 1440px; margin: auto; padding: 28px 30px max(36px, env(safe-area-inset-bottom)); }
 .root :is(h1,h2,h3,p) { margin: 0; }
-.root :is(button,input) { font: inherit; }
-.root :is(button,a,input,summary):focus-visible { outline: 2px solid var(--link); outline-offset: 3px; }
+.root :is(button,input,textarea) { font: inherit; }
+.root :is(button,a,input,textarea,summary):focus-visible { outline: 2px solid var(--link); outline-offset: 3px; }
 .header { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
 .header h1 { font-size: 30px; line-height: 1.18; letter-spacing: -.8px; font-weight: 750; }
 .eyebrow { display: block; color: var(--link); font-size: 10px; font-weight: 650; letter-spacing: 1.1px; margin-bottom: 8px !important; }
@@ -65,6 +65,13 @@
 .next { margin-bottom: 12px !important; }
 .actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .copyStatus { color: var(--text-2); margin-top: 12px !important; font-size: 12px; }
+.selectionNotice { display: grid; justify-items: start; gap: 8px; margin-top: 16px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2); }
+.selectionNotice p { margin: 0 !important; font-size: 12px; }
+.manualCopy { display: grid; justify-items: start; gap: 8px; margin-top: 12px; min-width: 0; }
+.manualCopy label { font-size: 12px; font-weight: 600; }
+.manualCopy textarea { width: 100%; min-width: 0; min-height: 84px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2); color: var(--text); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; word-break: break-all; resize: vertical; }
+.columns[data-has-detail="false"] { grid-template-columns: minmax(0,1fr); }
+.columns > .empty { margin: 0; }
 .empty { padding: 30px 24px; border: 1px dashed var(--line); background: var(--panel); border-radius: 10px; margin: 18px 0; }
 .empty h2 { font-size: 20px; font-weight: 650; }
 .empty p { margin: 9px 0 16px; color: var(--text-2); font-size: 13px; max-width: 760px; }
