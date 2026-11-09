@@ -14,11 +14,10 @@ import { getSuiteModuleCatalogEntry, type SuiteModuleCatalogEntry } from "@/lib/
 import type { SuiteField, SuiteModuleMeta, SuiteTier } from "@/lib/indicator-canvas/types";
 import { useLang, useT } from "@/lib/i18n";
 import { largeTradesText } from "@/lib/largeTrades/labels";
-import { activateSettingsDialog } from "@/lib/chartSettingsUi";
+import { activateSettingsDialog, colorInputHex } from "@/lib/chartSettingsUi";
 import dialogStyles from "./IndicatorSettings.module.css";
 
 const SWATCHES = ["#4d82ff", "#26c281", "#f0566b", "#e8b339", "#e8a33d", "#9d86ff", "#19c2c2", "#d6dae3", "#868d9c", "#ff8a3d"];
-const hexOf = (c: string) => (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(c) ? c : "#888888");
 // preserve any alpha the current color carries, so translucent fills (volume/MACD histograms) stay translucent
 const alphaOf = (c: string) => { const m = /rgba?\([^)]*,\s*([\d.]+)\s*\)/i.exec(c); return m ? parseFloat(m[1]) : 1; };
 const hexToRgba = (hex: string, a: number) => { let h = hex.replace("#", ""); if (h.length === 3) h = h.split("").map((x) => x + x).join(""); const n = parseInt(h, 16); const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255; return a >= 1 ? `#${h}` : `rgba(${r}, ${g}, ${b}, ${a})`; };
@@ -52,11 +51,12 @@ function NumberField({ value, min, max, step = 1, onChange, label }: { value: nu
 function ColorField({ value, onChange, label }: { value: string; onChange: (v: string) => void; label: string }) {
   const t = useT();
   const apply = (hex: string) => onChange(hexToRgba(hex, alphaOf(value)));
+  const selectedHex = colorInputHex(value, "#888888");
   return (
     <span className="is-color">
       <span className="is-sw-cur" style={{ background: value }} />
-      {SWATCHES.map((s) => <button key={s} type="button" className={`is-sw${value === s ? " on" : ""}`} style={{ background: s }} title={s} aria-label={`${label}: ${s}`} aria-pressed={value === s} onClick={() => apply(s)} />)}
-      <input type="color" value={hexOf(value)} onChange={(e) => apply(e.target.value)} aria-label={`${label}: ${t("customColor")}`} />
+      {SWATCHES.map((s) => <button key={s} type="button" className={`is-sw${selectedHex === s ? " on" : ""}`} style={{ background: s }} title={s} aria-label={`${label}: ${s}`} aria-pressed={selectedHex === s} onClick={() => apply(s)} />)}
+      <input type="color" value={selectedHex} onChange={(e) => apply(e.target.value)} aria-label={`${label}: ${t("customColor")}`} />
     </span>
   );
 }

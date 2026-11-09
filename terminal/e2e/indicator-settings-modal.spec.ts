@@ -73,6 +73,11 @@ test("indicator settings contain focus, preserve live edits and keep Cancel reve
   await dialog.getByRole("button", { name: "Cancel", exact: true }).press("Enter");
   ({ dialog } = await openSettings(page));
   await expect(dialog.getByRole("spinbutton", { name: "Length", exact: true })).toHaveValue("27");
+  await dialog.getByRole("button", { name: "Style", exact: true }).click();
+  const green = dialog.getByRole("button", { name: "RSI color: #26c281", exact: true });
+  await green.press("Space");
+  await expect(green).toHaveAttribute("aria-pressed", "true");
+  await expect(dialog.locator('input[type="color"]').first()).toHaveValue("#26c281");
   await dialog.getByRole("button", { name: "Visibility", exact: true }).click();
   await expect(dialog.getByRole("button", { name: "Visibility", exact: true })).toHaveAttribute("aria-pressed", "true");
   const days = dialog.getByRole("checkbox", { name: "Days", exact: true });

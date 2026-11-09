@@ -385,6 +385,24 @@ describe("Indicator Settings keyboard journey", () => {
     expect(spy.onChange).toHaveBeenCalledTimes(1);
     expect(spy.onChange).toHaveBeenLastCalledWith({ col: "#26c281" });
     expect(picker.value).toBe("#26c281");
+    expect(swatch.getAttribute("aria-pressed")).toBe("true");
+  });
+
+  it("shows the selected swatch for translucent colors without changing their alpha", async () => {
+    const spy = spies();
+    const view = mount(<SettingsOwner indKey="rsi" initial={{ col: "rgba(77, 130, 255, 0.4)" }} spy={spy} />);
+    const dialog = await openSettings(view);
+    activateNativeButton(tabButton(dialog, "Style"));
+    const picker = rowControl<HTMLInputElement>(dialog, "RSI color", 'input[type="color"]');
+    expect(picker.value).toBe("#4d82ff");
+    const blue = dialog.querySelector<HTMLButtonElement>('.is-sw[title="#4d82ff"]')!;
+    const green = dialog.querySelector<HTMLButtonElement>('.is-sw[title="#26c281"]')!;
+    expect(blue.getAttribute("aria-pressed")).toBe("true");
+    act(() => green.click());
+    expect(spy.onChange).toHaveBeenLastCalledWith({ col: "rgba(38, 194, 129, 0.4)" });
+    expect(picker.value).toBe("#26c281");
+    expect(green.getAttribute("aria-pressed")).toBe("true");
+    expect(blue.getAttribute("aria-pressed")).toBe("false");
   });
 });
 
