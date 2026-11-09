@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
 test.setTimeout(60_000);
+const sharedShell = process.env.MMX_SHARED_SHELL === "1";
 
 async function installDetailFixture(page: Page, lang: "en" | "zh", evidence = true) {
   await page.addInitScript((language) => {
@@ -65,10 +66,10 @@ for (const lang of ["en", "zh"] as const) {
       if (new URL(request.url()).pathname.startsWith("/api/alerts") && !["GET", "HEAD"].includes(request.method())) writes.push(request.method());
     });
     await page.goto("/alerts");
-    if (lang === "zh") {
+    if (sharedShell && lang === "zh") {
       await page.getByRole("button", { name: "浅色主题", exact: true }).click();
-      await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
     }
+    await expect(page.locator("html")).toHaveAttribute("data-theme", sharedShell && lang === "zh" ? "light" : "dark");
     const { row, dialog, close } = await openDetail(page, lang);
     await expect(dialog.getByRole("heading", { level: 2 })).toBeFocused();
     await page.keyboard.press("Tab");

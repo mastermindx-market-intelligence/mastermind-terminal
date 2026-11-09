@@ -34,7 +34,7 @@ Visual inspection also found that the shell header painted above the dialog. A d
 - Focused ESLint, TypeScript and diff whitespace checks passed.
 
 ```sh
-TERMINAL_E2E_PORT=3291 npm run test:e2e:responsive -- e2e/alert-detail-keyboard.spec.ts --project=desktop --project=tablet --project=mobile --workers=1
+MMX_SHARED_SHELL=1 TERMINAL_E2E_PORT=3291 npm run test:e2e:responsive -- e2e/alert-detail-keyboard.spec.ts --project=desktop --project=tablet --project=mobile --workers=1
 ```
 
 ## Captures
@@ -59,4 +59,18 @@ The three composed suites plus the original alert-data, detail and nested-focus 
 ```sh
 npx vitest run lib/__tests__/alertsCockpitThesisSummary.test.tsx lib/__tests__/alertsCockpitZhParity.test.ts lib/__tests__/heldMaterialConsumer.test.tsx lib/__tests__/thesisDetailSurface.test.ts lib/__tests__/alertsView.test.ts lib/__tests__/dialogFocusNestedOwnership.test.tsx --reporter=dot
 npx tsc --noEmit --pretty false
+```
+
+
+## Browser CI mode correction
+
+[Desktop-1 job 129083689886](https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/42594160431/job/129083689886) on `fd5bf405ea2c7a534543ac524cf3f862c5fd426e` failed only the Chinese case. It waited for the beta-only light-theme button on the ordinary default-shell CI server before opening the dialog. The existing three attempts all failed at that setup boundary (1 failed, 229 passed, 32 skipped in the shard).
+
+The test now derives presentation from the actual server mode. Both languages remain active in ordinary CI with dark presentation; explicitly enabled beta retains the real light-theme control interaction for Chinese. All dialog opening, focus trap, native disclosure, close/escape, opener return, zero-write and hit-test assertions remain unchanged. No timeout, workflow, spec-wide skip or production behavior was changed.
+
+**6 affected browser cases passed in default mode and 6 in beta mode** across desktop, tablet and 320px phone. The unchanged short-viewport case and component suites retain their earlier proof. TypeScript, focused ESLint and diff checks pass.
+
+```sh
+env -u MMX_SHARED_SHELL CI=1 TERMINAL_E2E_PORT=3309 npx playwright test e2e/alert-detail-keyboard.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --grep 'contains keyboard focus' --reporter=list --output=test-results/alert-detail-legacy-final
+MMX_SHARED_SHELL=1 CI=1 TERMINAL_E2E_PORT=3309 npx playwright test e2e/alert-detail-keyboard.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --grep 'contains keyboard focus' --reporter=list --output=test-results/alert-detail-beta-final
 ```
