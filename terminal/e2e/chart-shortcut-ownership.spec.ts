@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { useLang as selectLanguage } from "./layoutStore";
 
 type Pane = { id: number; logical: { from: number; to: number } | null; link: unknown };
-const probe = (page: Page) => page.evaluate(() => (window as unknown as { __mmPaneSync: () => { panes: Pane[] } }).__mmPaneSync().panes);
+const probe = (page: Page) => page.evaluate(() => (window as unknown as { __mmPaneSync?: () => { panes: Pane[] } }).__mmPaneSync?.().panes ?? []);
 const fingerprint = (pane: Pane) => `${pane.logical!.from.toFixed(3)}/${pane.logical!.to.toFixed(3)}`;
 async function settle(page: Page) {
   let rows: Pane[] = []; let previous = "";

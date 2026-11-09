@@ -12,6 +12,7 @@ import { pick } from "@/lib/finFormat";
 import { hasOpenModal, isTextEntryElement } from "@/lib/commandPalette/catalog";
 import overnightStyles from "./ChartOvernight.module.css";
 import quickSettingsStyles from "./ChartQuickSettings.module.css";
+import gotoStyles from "./ChartGotoDate.module.css";
 import DataOriginChip from "@/components/DataOriginChip";
 import type { DataOrigin } from "@/lib/dataOrigin";
 
@@ -264,6 +265,9 @@ export default function ChartFrameBar({
   const gearMenuRef = useRef<HTMLDivElement>(null);
   const quickSettingsId = useId();
   const gotoRef = useRef<HTMLInputElement>(null);
+  const gotoHostRef = useRef<HTMLDivElement>(null);
+  const gotoButtonRef = useRef<HTMLButtonElement>(null);
+  const gotoId = useId();
   // C8/CHART-08b — the native shell swaps the settings glyph for TV's hexagon nut. Read after mount
   // (the marker is stamped pre-paint on <html>, but this component is SSR'd) so the server output —
   // and therefore the whole browser web render — stays byte-identical under L2.
@@ -402,10 +406,25 @@ export default function ChartFrameBar({
     setGotoOpen(true);
   }, [openGotoRequest]);
 
-  // Go-to-date: focus the input when it opens
-  useEffect(() => {
-    if (gotoOpen) setTimeout(() => gotoRef.current?.focus(), 50);
+  // The input is mounted before layout effects run. Focus immediately, without an
+  // uncancelled delayed callback that could reclaim a newer interaction.
+  useLayoutEffect(() => {
+    if (gotoOpen) gotoRef.current?.focus({ preventScroll: true });
   }, [gotoOpen]);
+
+  useEffect(() => {
+    if (!gotoOpen) return;
+    const outside = (event: PointerEvent) => {
+      if (event.target instanceof Node && !gotoHostRef.current?.contains(event.target)) setGotoOpen(false);
+    };
+    document.addEventListener("pointerdown", outside);
+    return () => document.removeEventListener("pointerdown", outside);
+  }, [gotoOpen]);
+
+  function closeGoto() {
+    setGotoOpen(false);
+    gotoButtonRef.current?.focus({ preventScroll: true });
+  }
 
   function applyGotoDate() {
     if (!chartApi || !gotoDate) return;
@@ -424,13 +443,13 @@ export default function ChartFrameBar({
         ts.setVisibleRange({ from: from as any, to: to as any });
       }
     } catch {}
-    setGotoOpen(false);
+    closeGoto();
   }
 
   const s = settings;
 
   return (
-    <div className={`chart-frame-bar ${overnightStyles.frameBar}`}>
+    <div className={`chart-frame-bar ${overnightStyles.frameBar} ${gotoStyles.frame}`}>
       {/* LEFT: range buttons + go-to-date */}
       <div className="cfb-left">
         {RANGE_KEYS.map((rk) => (
@@ -440,24 +459,38 @@ export default function ChartFrameBar({
             onClick={() => chartApi && applyRange(rk, chartApi, isIntraday, s.rightOffsetBars)}
           >{rk}</button>
         ))}
-        <div style={{ position: "relative" }}>
-          <button className="cfb-cal" title={t("gotoDate")} onClick={(e) => { e.stopPropagation(); setGotoOpen((o) => !o); }}>
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4">
+        <div ref={gotoHostRef} style={{ position: "relative" }}
+          onBlur={(e) => { if (e.relatedTarget instanceof Node && !e.currentTarget.contains(e.relatedTarget)) setGotoOpen(false); }}
+          onKeyDown={(e) => {
+            if (gotoOpen && e.key === "Escape" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
+              e.preventDefault(); e.stopPropagation(); closeGoto();
+            }
+          }}>
+          <button ref={gotoButtonRef} type="button" className={`cfb-cal ${gotoStyles.trigger}`} title={t("gotoDate")} aria-label={t("gotoDate")}
+            aria-expanded={gotoOpen} aria-controls={gotoOpen ? gotoId : undefined} aria-haspopup="dialog"
+            onClick={(e) => { e.stopPropagation(); if (gotoOpen) closeGoto(); else setGotoOpen(true); }}>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
               <rect x="1.5" y="2.5" width="13" height="12" rx="1.5" />
               <path d="M1.5 6h13M5 1.5v2M11 1.5v2" />
             </svg>
           </button>
           {gotoOpen && (
-            <div className="cfb-goto-pop" onClick={(e) => e.stopPropagation()}>
+            <div id={gotoId} className={`cfb-goto-pop ${gotoStyles.popup}`} role="dialog" aria-label={t("gotoDate")}
+              onClick={(e) => e.stopPropagation()}>
               <input
                 ref={gotoRef}
                 type="date"
                 className="cfb-date-input"
+                aria-label={t("gotoDate")}
                 value={gotoDate}
                 onChange={(e) => setGotoDate(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") applyGotoDate(); if (e.key === "Escape") setGotoOpen(false); }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
+                    e.preventDefault(); applyGotoDate();
+                  }
+                }}
               />
-              <button className="cfb-goto-go" onClick={applyGotoDate}>{t("go")}</button>
+              <button type="button" className="cfb-goto-go" disabled={!chartApi || !gotoDate} onClick={applyGotoDate}>{t("go")}</button>
             </div>
           )}
         </div>

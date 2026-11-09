@@ -434,6 +434,8 @@ export function symbolSearchSeedFromKey(
 ): string | null {
   if (e.defaultPrevented || e.repeat || e.isComposing || e.keyCode === 229 || env.modalOpen) return null;
   if (isTextEntryElement(env.target) || isTextEntryElement(env.active)) return null;
+  const owner = 'dialog, [role="dialog"], [role="menu"], [role="listbox"]';
+  if (env.target?.closest(owner) || env.active?.closest(owner)) return null;
   if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === "k") return "";
   if (e.metaKey || e.ctrlKey || e.altKey) return null;
   return e.key.length === 1 && /^[a-z0-9]$/i.test(e.key) ? e.key : null;
