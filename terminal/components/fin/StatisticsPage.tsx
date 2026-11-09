@@ -21,6 +21,7 @@ import {
   statementCadenceLabel,
 } from "../../lib/finStatementMath"
 import { Bars, type Series } from "./FinCharts"
+import currentTables from "./StatisticsCurrentTables.module.css"
 
 // ── prop types ──────────────────────────────────────────────────────────────
 
@@ -232,7 +233,7 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
       {/* ── Key stats ── */}
       <div className="fin-sec">
         <div className="fin-table-scroll">
-          <table className="fin-table fin-stats-tbl">
+          <table className={`fin-table fin-stats-tbl ${currentTables.currentTable}`}>
             <thead>
               <tr>
                 <th className="fin-cell fin-cell-sticky fin-cell-corner" scope="col">
@@ -396,7 +397,7 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
           </div>
         )}
         <div className="fin-table-scroll">
-          <table className="fin-table fin-stats-tbl">
+          <table className={`fin-table fin-stats-tbl ${currentTables.currentTable}`}>
             <thead>
               <tr>
                 <th className="fin-cell fin-cell-sticky fin-cell-corner" scope="col">
