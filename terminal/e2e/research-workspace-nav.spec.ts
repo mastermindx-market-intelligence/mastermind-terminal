@@ -559,48 +559,48 @@ function marketAvailabilityBars(n: number, basis: MarketBasis, measuredZero = fa
 }
 
 for (const zh of [false, true]) {
-  test(`Market numeric availability thresholds and measured Neutral ${zh ? "zh" : "en"}`, async ({ page }, testInfo) => {
-    const basis: MarketBasis = testInfo.project.name === "mobile" ? "1M" : testInfo.project.name === "tablet" ? "W" : "D";
-    const basisLabel = basis === "D" ? (zh ? "1天" : "1 day") : basis === "W" ? (zh ? "1周" : "1 week") : (zh ? "1月" : "1 month");
-    await page.addInitScript((lang) => window.localStorage.setItem("mm.lang", lang), zh ? "zh" : "en");
-    let fixture = marketAvailabilityBars(29, basis);
-    await page.route("**/data/NVDA.json**", async (route) => route.fulfill({ json: fixture }));
-    const market = page.locator("[data-market-vnext]");
-    const rating = market.locator("[data-market-vnext-rating]");
-    const group = (moving: boolean) => rating.getByRole("group", {
-      name: moving ? (zh ? "移动平均" : "Moving Averages") : (zh ? "震荡指标" : "Oscillators"), exact: true,
-    });
-    const table = (moving: boolean) => market.locator(".fin-card.fin-tech-tbl").filter({
-      has: page.locator(".fin-sec-h", { hasText: moving ? (zh ? "移动平均" : "Moving Averages") : (zh ? "震荡指标" : "Oscillators") }),
-    });
-    const row = (moving: boolean, name: string) => table(moving).getByRole("row").filter({
-      has: page.getByRole("rowheader", { name, exact: true }),
-    });
-    const expectUnavailable = async (moving: boolean, name: string) => {
-      const target = row(moving, name);
-      await expect(target.locator("td").nth(0)).toHaveText("—");
-      await expect(target.locator(".fin-tech-act")).toHaveText(zh ? "不可用" : "Unavailable");
-      await expect(target.locator(".fin-tech-act")).toHaveClass(/\bmut\b/);
-    };
-    const checkGroup = async (moving: boolean, total: number, missing: number) => {
-      const target = group(moving);
-      if (missing > 0) {
-        await expect(target.locator(".arcg")).toHaveCount(0);
-        await expect(target.locator(".fin-gauge-counts")).toHaveCount(0);
-        await expect(target.getByRole("status")).toContainText(zh
-          ? `${total} 项数值读数中 ${total - missing} 项可用 · ${missing} 项不可用`
-          : `${total - missing} of ${total} numeric readings available · ${missing} unavailable`);
-      } else {
-        await expect(target.getByRole("status")).toHaveCount(0);
-        await expect(target.locator(".arcg")).toHaveCount(1);
-        await expect(target.locator(".arcg .num")).toHaveCount(total === 0 ? 0 : 1);
-        await expect(target.locator(".fin-gauge-counts")).toHaveCount(total === 0 ? 0 : 1);
-      }
-    };
-
-    for (const n of [29, 30, 49, 50, 199, 200, 220]) {
+  // Each fixed input owns an isolated browser context; persistent OHLC caching remains real.
+  for (const n of [29, 30, 49, 50, 199, 200, 220]) {
+    test(`Market numeric availability thresholds and measured Neutral ${zh ? "zh" : "en"} at ${n} active observations`, async ({ page }, testInfo) => {
+      const basis: MarketBasis = testInfo.project.name === "mobile" ? "1M" : testInfo.project.name === "tablet" ? "W" : "D";
+      const basisLabel = basis === "D" ? (zh ? "1天" : "1 day") : basis === "W" ? (zh ? "1周" : "1 week") : (zh ? "1月" : "1 month");
+      await page.addInitScript((lang) => window.localStorage.setItem("mm.lang", lang), zh ? "zh" : "en");
       const neutral = n === 220;
-      fixture = marketAvailabilityBars(n, basis, neutral);
+      const fixture = marketAvailabilityBars(n, basis, neutral);
+      await page.route("**/data/NVDA.json**", async (route) => route.fulfill({ json: fixture }));
+      const market = page.locator("[data-market-vnext]");
+      const rating = market.locator("[data-market-vnext-rating]");
+      const group = (moving: boolean) => rating.getByRole("group", {
+        name: moving ? (zh ? "移动平均" : "Moving Averages") : (zh ? "震荡指标" : "Oscillators"), exact: true,
+      });
+      const table = (moving: boolean) => market.locator(".fin-card.fin-tech-tbl").filter({
+        has: page.locator(".fin-sec-h", { hasText: moving ? (zh ? "移动平均" : "Moving Averages") : (zh ? "震荡指标" : "Oscillators") }),
+      });
+      const row = (moving: boolean, name: string) => table(moving).getByRole("row").filter({
+        has: page.getByRole("rowheader", { name, exact: true }),
+      });
+      const expectUnavailable = async (moving: boolean, name: string) => {
+        const target = row(moving, name);
+        await expect(target.locator("td").nth(0)).toHaveText("—");
+        await expect(target.locator(".fin-tech-act")).toHaveText(zh ? "不可用" : "Unavailable");
+        await expect(target.locator(".fin-tech-act")).toHaveClass(/\bmut\b/);
+      };
+      const checkGroup = async (moving: boolean, total: number, missing: number) => {
+        const target = group(moving);
+        if (missing > 0) {
+          await expect(target.locator(".arcg")).toHaveCount(0);
+          await expect(target.locator(".fin-gauge-counts")).toHaveCount(0);
+          await expect(target.getByRole("status")).toContainText(zh
+            ? `${total} 项数值读数中 ${total - missing} 项可用 · ${missing} 项不可用`
+            : `${total - missing} of ${total} numeric readings available · ${missing} unavailable`);
+        } else {
+          await expect(target.getByRole("status")).toHaveCount(0);
+          await expect(target.locator(".arcg")).toHaveCount(1);
+          await expect(target.locator(".arcg .num")).toHaveCount(total === 0 ? 0 : 1);
+          await expect(target.locator(".fin-gauge-counts")).toHaveCount(total === 0 ? 0 : 1);
+        }
+      };
+  
       await page.goto("/analysis?symbol=NVDA&page=technicals");
       await expect(market).toBeVisible({ timeout: 45_000 });
       await market.locator(".fin-tf-row").getByRole("button", { name: basisLabel, exact: true }).click();
@@ -612,7 +612,7 @@ for (const zh of [false, true]) {
         await checkGroup(true, 0, 0); await checkGroup(false, 0, 0);
         await expect(table(true).locator("tbody th")).toHaveCount(0);
         await expect(table(false).locator("tbody th")).toHaveCount(0);
-        continue;
+        return;
       }
       await expect(table(true).locator('tbody th[scope="row"]')).toHaveCount(15);
       await expect(table(false).locator('tbody th[scope="row"]')).toHaveCount(11);
@@ -645,8 +645,8 @@ for (const zh of [false, true]) {
         await expect(target).toBeInViewport({ ratio: 1 });
         await expect(target.locator(".fin-tech-act")).toHaveText(neutral ? (zh ? "中性" : "Neutral") : (zh ? "不可用" : "Unavailable"));
       }
-    }
-  });
+    });
+  }
 }
 
 test("Market full-history hierarchy remains readable in Chinese", async ({ page }, testInfo) => {
