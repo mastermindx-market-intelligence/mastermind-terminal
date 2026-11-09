@@ -37,3 +37,7 @@
   .dialog :global(.is-tab), .dialog :global(.is-foot) button, .dialog :global(.is-head .x) { min-height: 44px; }
   .dialog :global(.is-head .x) { display: grid; place-items: center; min-width: 44px; }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog { animation: none !important; }
+}

@@ -27,6 +27,8 @@ const hexToRgba = (hex: string, a: number) => { let h = hex.replace("#", ""); if
 // few frames, and only while focus is still unclaimed (on <body>), so nothing the user reached is taken.
 function returnFocus(el: HTMLElement | null, frames = 3) {
   if (!el?.isConnected) return;
+  // Re-enter the legend group before focusing a control hidden by hover-only CSS.
+  if (!el.getClientRects().length) el.closest<HTMLElement>(".lg-row[tabindex]")?.focus({ preventScroll: true });
   el.focus({ preventScroll: true });
   if (document.activeElement === el || frames <= 0) return;
   window.requestAnimationFrame(() => {
