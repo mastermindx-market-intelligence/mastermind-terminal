@@ -1,0 +1,21 @@
+{
+  "files": {
+    "docs/verification/pr1291-consumer-fixtures-20261109/consumer-browser-r1/browser.log": {
+      "bytes": 14624,
+      "sha256": "0cf6c945138d8efd08756dfe4b1d2d140e1c190c4bef50aea8ec2eb3974ae4bb"
+    },
+    "docs/verification/pr1291-consumer-fixtures-20261109/consumer-browser-r2/browser.log": {
+      "bytes": 2395,
+      "sha256": "0da339cb0383b091c6ce8e7abdb085aaacf56ec20eb54ea406062d2ac726467a"
+    },
+    "docs/verification/pr1291-consumer-fixtures-20261109/source-checks-r1/lint.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/pr1291-consumer-fixtures-20261109/source-checks-r1/typecheck.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "schema": "terminal_pr1291_excluded_raw_diagnostics.v1"
+}

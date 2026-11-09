@@ -1,0 +1,27 @@
+{
+  "appliedAt": "2026-11-09T18:06:26.681087+00:00",
+  "coldReturnRepair": "Bind only the account endpoint derived from the existing configured FIXTURE_ORIGIN. Preserve canonical e2e-user-default, Node-held metadata, acknowledged GET/PUT, actual Settings choice, cold documents, no theme preseed and external-request refusal. Other fixture requests are not intercepted.",
+  "head": "0616efc99babb713394a34124279cf35b519cb1b",
+  "identityChecksWeakened": false,
+  "originalAssertionsRemoved": false,
+  "originalEPERMEffectRetried": false,
+  "paths": {
+    "terminal/e2e/options-exposure-surface-journey.spec.ts": {
+      "afterSha256": "4334c76a475f35bf3399a8d5e8d01c3709b313e7d9b15eb0d5ef51d95544ad26",
+      "beforeSha256": "bf0c7e9bea7d2f092097987e0c3a5bccc74e8dc4a555ac77e14be9a220110289"
+    },
+    "terminal/e2e/options-plan-compare-mounted.spec.ts": {
+      "afterSha256": "d0e753e8804fca0200dd002c2230e94bec4abd1d7002ce594bb1101a94da5826",
+      "beforeSha256": "e71db737cb0550c44dead0183ee11cb37d0dea1c5f42664d5d2615f707a2acbd"
+    }
+  },
+  "planRepair": "Use the incumbent verified-auth fixture and wait for its existing saved-research action to be enabled before pinning. Preserve all calculation, source snapshot, comparison, no-persistence and focus assertions.",
+  "priorReproduction": {
+    "executionSha256": "00a06a3b0375c7289aa5b5f33c39ef0647589c2c1147e38018a25afcba8ab8d4",
+    "failed": 4,
+    "seconds": 217.28,
+    "sourceEntries": 1983
+  },
+  "productCodeChanged": false,
+  "schema": "terminal_pr1291_current_auth_fixture_repair.v1"
+}

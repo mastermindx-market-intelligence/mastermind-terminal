@@ -1,0 +1,36 @@
+{
+  "autoMergeAllowed": false,
+  "baselineFailures": 4,
+  "browserFailures": 0,
+  "browserFlakes": 0,
+  "browserPassed": 12,
+  "browserRetries": 0,
+  "browserSkipped": 0,
+  "captureSeconds": 101.6,
+  "draftRetained": true,
+  "lintFiles": 2,
+  "mergeBlockedRetained": true,
+  "nextLockAbsent": true,
+  "originalPl6EpermFenceRetained": true,
+  "ownedPortClosed": true,
+  "parents": [
+    "0616efc99babb713394a34124279cf35b519cb1b"
+  ],
+  "preparedAt": "2026-11-09T18:16:24.822532+00:00",
+  "productionAccepted": false,
+  "records": {
+    "consumer-browser-r1/execution.json": "00a06a3b0375c7289aa5b5f33c39ef0647589c2c1147e38018a25afcba8ab8d4",
+    "consumer-browser-r2/execution.json": "43dcd4fc5e7dfedcd377ca6f6caece78e7a3ec449f518f3b65f2fcb66d0842ad",
+    "dependencies.json": "ea544b84c2e1d7f20925af1dd5de611a394381061888e14772b7356b48bbb373",
+    "fixture-repair.json": "1faf832419973a1080ba76bd8d289274ba89f5cf5664a4b794fe16455daccaaa",
+    "preparation.json": "5641f61cceee9774ea9fb7bbd2d1247901ddf37c31587ece53c08d4ac6625ff6",
+    "source-checks-r1/execution.json": "244d1f525df68a2e9994b5b18ae66eedb6192781e1348aa30973152231c65b36",
+    "visual-review.json": "1ba079b8530f1e1624465b1d343a9117556e56cc3adf91cf3c24643ef56e3487"
+  },
+  "schema": "terminal_pr1291_consumer_fixture_qualification.v1",
+  "sourceEntries": 1983,
+  "sourceFilesChanged": 2,
+  "sourceSnapshotSha256": "f3939cbc973658e47b97a7f24f4bf2b396309ee6402220daea8ac388f1124fa8",
+  "state": "INDEPENDENT_FIXTURE_REPAIR_QUALIFIED_RELEASE_HOLDS_RETAINED",
+  "typecheckSeconds": 42.22
+}

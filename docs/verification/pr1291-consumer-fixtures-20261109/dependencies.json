@@ -1,0 +1,18 @@
+{
+  "schema": "terminal_pr1291_independent_consumer_dependencies.v1",
+  "state": "EXACT_DEPENDENCIES_AND_OWNED_BROWSER_CACHE_READY",
+  "startedAt": "2026-11-09T17:58:52.181774+00:00",
+  "source": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal",
+  "target": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-consumer-fixtures-20261109/terminal",
+  "hashes": {
+    "package.json": "d9d2392517838444ae8ecf778aa09e3c065c3296f1180400723a726d84f56eda",
+    "package-lock.json": "34dc99fb811ae2738a69077a5661ead672fdacc42087aa1da98992a4b7e4a2bb"
+  },
+  "completedAt": "2026-11-09T17:58:58.420690+00:00",
+  "browserCache": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-consumer-fixtures-20261109/terminal/node_modules/.cache/pr1291-consumer-playwright",
+  "versions": {
+    "next": "16.2.9",
+    "@playwright/test": "1.61.1",
+    "typescript": "5.9.3"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "findings": "Root inspected actual Chinese Plan comparison controls at 320 CSS pixels and the English phone cold return. Comparison baseline controls and losses remain readable within the pane; the saved light theme and selected strike are restored in the separate cold document. No sideways clipping was observed in these inspected crops.",
+  "images": {
+    "options-exposure-surface-j-7475b--saved-theme-cold-return-en-mobile/saved-theme-return-reloaded.png": "acce7a088a936b2e9dbd0d24a00299c72579a819f58ed201b549d42f00857fbd",
+    "options-plan-compare-mount-e748d-\u2192-Plan-\u2192-comparison-zh-dark-mobile/mounted-compare-zh-dark-320-controls.png": "e2a12029f5c71e3762a84eed277d485e9935e30c8455d7590b95eec79b92e941"
+  },
+  "productionAccepted": false,
+  "reviewedAt": "2026-11-09T18:16:24.821099+00:00",
+  "schema": "terminal_pr1291_consumer_visual_review.v1"
+}
