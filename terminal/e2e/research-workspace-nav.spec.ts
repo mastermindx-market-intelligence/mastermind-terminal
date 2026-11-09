@@ -600,7 +600,7 @@ for (const zh of [false, true]) {
           await expect(target.locator(".fin-gauge-counts")).toHaveCount(total === 0 ? 0 : 1);
         }
       };
-  
+
       await page.goto("/analysis?symbol=NVDA&page=technicals");
       await expect(market).toBeVisible({ timeout: 45_000 });
       await market.locator(".fin-tf-row").getByRole("button", { name: basisLabel, exact: true }).click();
