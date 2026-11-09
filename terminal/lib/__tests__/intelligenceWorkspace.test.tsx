@@ -66,3 +66,34 @@ describe("intelligence overview privacy, source truth and independent lanes",()=
  it("an identity-service outage makes no private reads",async()=>{state.failure=true;await mount();expect(held).toHaveLength(0);expect(host.textContent).toContain("verification is unavailable");});
  it("translated source and interface remain coherent in Chinese",async()=>{state.lang="zh";await mount();await answer(0,macro);await answer(1,cycles);await answer(2,prophet);expect(host.textContent).toContain("市场情报");expect(host.textContent).toContain("流动性不均衡");expect(host.textContent).toContain("科技");expect(host.textContent).toContain("下行");});
 });
+
+
+// Same source readers; only displayed freshness advances while the tab stays open.
+describe("intelligence freshness while the page remains open", () => {
+ const visibility = (value: "visible" | "hidden") => Object.defineProperty(document, "visibilityState", { configurable: true, get: () => value });
+ const loaded = async () => { await mount(); await answer(0, macro); await answer(1, cycles); await answer(2, { ...prophet, plans: prophet.plans.map(p => ({ ...p, priceAsOf: "2026-10-30" })) }); };
+ beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(new Date("2026-11-02T20:59:59.500Z")); visibility("visible"); });
+ afterEach(() => { Reflect.deleteProperty(document, "visibilityState"); vi.useRealTimers(); });
+ it("ages source and plan-price readings at exchange close without new requests", async () => {
+  await loaded(); expect(host.textContent).toContain("Latest session");
+  await act(async () => vi.advanceTimersByTime(500)); await flush();
+  for (const kind of ["macro", "cycles", "prophet"]) expect(host.querySelector(`[data-intelligence-source="${kind}"]`)?.textContent).toContain("1 session old");
+  expect(host.textContent).not.toContain("Latest session"); expect(held).toHaveLength(3);
+ });
+ it("visible wake catches age after suspension without refreshing sources", async () => {
+  await loaded(); await act(async () => { visibility("hidden"); document.dispatchEvent(new Event("visibilitychange")); });
+  vi.setSystemTime(new Date("2026-11-04T15:00:00Z")); expect(host.textContent).toContain("Latest session");
+  await act(async () => { visibility("visible"); document.dispatchEvent(new Event("visibilitychange")); }); await flush();
+  expect(host.textContent).toContain("2 sessions old — check source"); expect(host.textContent).not.toContain("Latest session"); expect(held).toHaveLength(3);
+ });
+ it("Chinese readings age through the same source clock", async () => {
+  state.lang = "zh"; await loaded(); expect(host.textContent).toContain("最新交易日");
+  await act(async () => vi.advanceTimersByTime(500)); await flush();
+  expect(host.textContent).toContain("落后 1 个交易日"); expect(host.textContent).not.toContain("最新交易日"); expect(held).toHaveLength(3);
+ });
+ it("clock wake cannot resurrect private readings after account departure", async () => {
+  await loaded(); await act(async () => state.listener!("SIGNED_OUT", null));
+  await act(async () => vi.advanceTimersByTime(500)); await flush();
+  expect(host.textContent).toContain("Private readings have been cleared"); expect(host.textContent).not.toContain("Liquidity is mixed"); expect(host.textContent).not.toContain("NVDA"); expect(held).toHaveLength(3);
+ });
+});

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useLang } from "@/lib/i18n";
 import { localText, todayPayload, type TodayPayload } from "@/lib/shared-shell/readingPayloads";
 import { readingFreshness, freshnessLabel } from "@/lib/shared-shell/readingFreshness";
+import { useReadingClock } from "@/lib/shared-shell/useReadingClock";
 import { readingJson, useReadingScope } from "@/lib/shared-shell/useReadingScope";
 import { decodeCycleIntelligence, decodeProphetIntelligence, type CycleIntelligence, type ProphetIntelligence } from "@/lib/shared-shell/intelligencePayloads";
 import IntelligenceNav from "./IntelligenceNav";
@@ -70,7 +71,20 @@ function IntelligenceSession({ownerKey}:{ownerKey:string}) {
   const controller = scope.current;
   queueMicrotask(()=>{if(controller === scope.current && !controller?.signal.aborted) KINDS.forEach(k=>void load(k));});
  },[ready,load,scope]);
- const now = new Date();
+ // Reuse the existing display clock; idle labels must age without refetching.
+ const clockBucket = useCallback((at: Date) => {
+  if (!ready) return "inactive";
+  const macro = reads.macro.data as TodayPayload | null;
+  const cycles = reads.cycles.data as CycleIntelligence | null;
+  const prophet = reads.prophet.data as ProphetIntelligence | null;
+  const dates = [macro?.read.as_of, ...(macro?.strip.filter(chip => chip.id !== "coverage").slice(0, 4).map(chip => chip.as_of) ?? []),
+   cycles?.sourceAsOf, prophet?.sourceAsOf, ...(prophet?.plans.map(plan => plan.priceAsOf) ?? [])];
+  return dates.map(date => {
+   const age = readingFreshness(date, at);
+   return `${age.kind}|${age.sessions}|${age.days}`;
+  }).join(";");
+ }, [ready, reads]);
+ const now = useReadingClock(clockBucket);
  const clock = (asOf:string|null) => <span className={s.clock}>{c.date}: {asOf ?? c.unknown} · {freshnessLabel(readingFreshness(asOf,now),lang)}</span>;
  const phaseLabel = (phase:string|null) => phase && PHASE[phase] ? PHASE[phase][lang === "zh" ? 1 : 0] : c.unavailableValue;
  return <main id="shared-shell-content" tabIndex={-1} className={`main2 ${s.root}`} data-intelligence-overview="">
