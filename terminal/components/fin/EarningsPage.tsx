@@ -156,14 +156,7 @@ export function buildRevDumbbell(
 
 // ── Revenue section — designed empty state when all rev_a null ────────────────
 
-function RevenueModule({
-  fund,
-  zh,
-}: {
-  fund: Fund
-  zh?: boolean
-}) {
-  const [requestedMode, setMode] = useState<Mode>("quarterly")
+function buildRevenueProjection(fund: Fund, requestedMode: Mode, zh?: boolean) {
   const qs = fund.earnings?.q ?? []
   const fys = fund.earnings?.fy ?? []
   const estimates = fund.estimates
@@ -180,7 +173,6 @@ function RevenueModule({
     : []
   const pts = rawPts.length > 0 ? rawPts : statementFallback
   const usingStatementFallback = rawPts.length === 0 && statementFallback.length > 0
-  const ccy = fund.stmt_currency
   const interimLabel = hasQuarterlyRevenueContract
     ? pick(!!zh, "Quarterly", "季度")
     : stmtInterim
@@ -189,13 +181,27 @@ function RevenueModule({
   const actualsOnly = pts.some((point) => point.actual != null) && !pts.some((point) => point.estimate != null)
   const statementCumNote = usingStatementFallback ? cumulativeQuarterNote(stmtRevenueView, !!zh) : null
 
+  return { mode, interimAvailable, interimLabel, pts, usingStatementFallback, actualsOnly, statementCumNote }
+}
+
+function RevenueModule({
+  fund,
+  zh,
+  projection,
+  setMode,
+}: {
+  fund: Fund
+  zh?: boolean
+  projection: ReturnType<typeof buildRevenueProjection>
+  setMode: (mode: Mode) => void
+}) {
+  const { mode, interimAvailable, interimLabel, pts, usingStatementFallback, actualsOnly, statementCumNote } = projection
+  const ccy = fund.stmt_currency
+
   return (
     <div className="fin-sec fin-earn-module fin-earn-vnext-card">
       <div className="fin-earn-module-hdr fin-rule">
-        <div
-          className="fin-sec-h fin-rail fin-earn-module-title"
-          style={{ "--rail": "var(--brand)" } as React.CSSProperties}
-        >
+        <div className="fin-sec-h fin-earn-module-title">
           {pick(!!zh, "Revenue · reported basis", "营收 · 已报告口径")}
         </div>
         <div className="fin-toggle">
@@ -383,6 +389,22 @@ export default function EarningsPage({ fund, zh, sym }: EarningsPageProps) {
     )
   }
 
+  // EPS keeps the parent lifetime; Revenue resets when the populated content unmounts.
+  return <EarningsContent fund={fund} zh={zh} sym={sym} requestedEpsMode={requestedEpsMode} setEpsMode={setEpsMode} />
+}
+
+function EarningsContent({
+  fund, zh, sym, requestedEpsMode, setEpsMode,
+}: {
+  fund: Fund
+  zh?: boolean
+  sym?: string
+  requestedEpsMode: Mode
+  setEpsMode: (mode: Mode) => void
+}) {
+  const [requestedRevenueMode, setRevenueMode] = useState<Mode>("quarterly")
+  const revenue = buildRevenueProjection(fund, requestedRevenueMode, zh)
+
   const earn = fund.earnings
   const estimates = fund.estimates
   const qs = earn?.q ?? []
@@ -442,37 +464,42 @@ export default function EarningsPage({ fund, zh, sym }: EarningsPageProps) {
         : pick(!!zh, "Interim", "中期")
 
 
-  // ── Earnings vNext pulse / coverage ──
-  // Keep this on the same owners as the detailed modules below: the earnings contract first,
-  // then the existing normalized statement fallback where that module already uses it.
-  const pulseEpsRaw = buildEpsDumbbell(qs, fys, "quarterly", null)
-  const pulseEpsPoints = pulseEpsRaw.some((point) => point.actual != null)
-    ? pulseEpsRaw
-    : canonicalInterimEps
-  const latestEpsPoint = [...pulseEpsPoints].reverse().find((point) => point.actual != null) ?? null
-  const latestReportedQuarter = [...qs].reverse().find((quarter) => (
-    quarter.eps_a != null || quarter.rev_a != null
-  )) ?? null
-
-  const stmtRevenueView = incomeView(sym ?? fund.ticker, fund.statements?.quarterly, "quarterly")
-  const rawRevenuePoints = buildRevDumbbell(qs, fys, "quarterly", estimates)
-  const statementRevenuePoints = buildRevenueFromStatements(stmtRevenueView)
-  const pulseRevenuePoints = rawRevenuePoints.length > 0 ? rawRevenuePoints : statementRevenuePoints
-  const usingStatementRevenue = rawRevenuePoints.length === 0 && statementRevenuePoints.length > 0
-  const latestRevenuePoint = [...pulseRevenuePoints].reverse().find((point) => point.actual != null) ?? null
-  const latestEventLabel = latestReportedQuarter
-    ? periodLabel(latestReportedQuarter.period)
-    : latestEpsPoint?.label ?? latestRevenuePoint?.label ?? "—"
-  const latestEventDate = latestReportedQuarter?.report_date ? fmtDate(latestReportedQuarter.report_date) : null
+  // Pulse uses exactly the reported projections and independent choices shown below.
+  // Forward estimates never stand in for actuals; do not mutate the chart/table order.
+  const latestEpsPoint = [...epsPts].reverse().find((point) => point.actual != null) ?? null
+  const latestRevenuePoint = [...revenue.pts].reverse().find((point) => point.actual != null) ?? null
+  const epsBasisLabel = epsMode === "annual" ? pick(!!zh, "Annual", "年度") : epsInterimLabel
+  const revenueBasisLabel = revenue.mode === "annual" ? pick(!!zh, "Annual", "年度") : revenue.interimLabel
+  const epsPeriod = latestEpsPoint
+    ? `${epsBasisLabel} · ${latestEpsPoint.label}`
+    : pick(!!zh, "No reported actual for this basis", "该口径暂无已报告实际值")
+  const revenuePeriod = latestRevenuePoint
+    ? `${revenueBasisLabel} · ${latestRevenuePoint.label}`
+    : pick(!!zh, "No reported actual for this basis", "该口径暂无已报告实际值")
+  const sameReportedPeriod = latestEpsPoint != null && latestRevenuePoint != null &&
+    latestEpsPoint.label === latestRevenuePoint.label && epsBasisLabel === revenueBasisLabel
+  const differentReportedPeriods = latestEpsPoint != null && latestRevenuePoint != null && !sameReportedPeriod
+  const selectedReportLabel = differentReportedPeriods
+    ? pick(!!zh, "Different periods", "报告期不同")
+    : latestEpsPoint ? epsPeriod : latestRevenuePoint ? revenuePeriod : "—"
+  // A shared date requires matching dates on both selected actuals. Statements and annual
+  // points carry no report date: never borrow a quarter's date or the dataset's as-of date.
+  const selectedReportDate = latestEpsPoint && latestRevenuePoint
+    ? sameReportedPeriod && latestEpsPoint.date && latestEpsPoint.date === latestRevenuePoint.date
+      ? latestEpsPoint.date : null
+    : latestEpsPoint?.date ?? latestRevenuePoint?.date ?? null
+  const selectedReportContext = differentReportedPeriods
+    ? pick(!!zh, "See each metric's reported period", "请分别查看各指标报告期")
+    : selectedReportDate ? fmtDate(selectedReportDate) : pick(!!zh, "Report date unavailable", "报告日期不可用")
   const epsMatched = latestEpsPoint?.actual != null && latestEpsPoint.estimate != null
   const revenueMatched = latestRevenuePoint?.actual != null && latestRevenuePoint.estimate != null
-  const hasAnyRevenueEstimate = rawRevenuePoints.some((point) => point.estimate != null) || nextRev != null
+  const hasAnyRevenueEstimate = revenue.pts.some((point) => point.estimate != null) || nextRev != null
   const epsCoverage = epsMatched
     ? pick(!!zh, "Matched actual and estimate", "实际值与预期口径匹配")
     : latestEpsPoint?.actual != null
       ? pick(!!zh, "Reported actual only", "仅有已报告实际值")
       : pick(!!zh, "Not available", "不可用")
-  const revenueActualCoverage = usingStatementRevenue
+  const revenueActualCoverage = revenue.usingStatementFallback
     ? pick(!!zh, "Statement-backed", "财务报表支持")
     : latestRevenuePoint?.actual != null
       ? pick(!!zh, "Earnings contract", "财报契约")
@@ -489,7 +516,7 @@ export default function EarningsPage({ fund, zh, sym }: EarningsPageProps) {
         <header>
           <div>
             <span>{pick(!!zh, "EARNINGS PULSE", "财报脉冲")}</span>
-            <h2>{pick(!!zh, "Latest reported event + next report context", "最近已报告事件与下次财报背景")}</h2>
+            <h2>{pick(!!zh, "Selected reported results + next report context", "所选已报告结果与下次财报背景")}</h2>
           </div>
           <div className="fin-toggle">
             <button className={epsMode === "annual" ? "on" : ""} onClick={() => setEpsMode("annual")}>
@@ -505,23 +532,22 @@ export default function EarningsPage({ fund, zh, sym }: EarningsPageProps) {
           </div>
         </header>
 
+        <p className="fin-earn-vnext-unit">{statementCurrencyLabel(ccy, !!zh)}</p>
         <div className="fin-earn-vnext-pulse-grid">
-          <article>
-            <span>{pick(!!zh, "Latest event", "最新事件")}</span>
-            <strong>{latestEventLabel}</strong>
-            <small>{latestEventDate ?? pick(!!zh, "Report date unavailable", "报告日期不可用")}</small>
+          <article className="fin-earn-vnext-period">
+            <span>{pick(!!zh, "Reported periods", "已报告期")}</span>
+            <strong>{selectedReportLabel}</strong>
+            <small>{selectedReportContext}</small>
           </article>
           <article>
             <span>{pick(!!zh, "EPS result", "每股盈利结果")}</span>
             <strong className="num">{latestEpsPoint?.actual == null ? "—" : latestEpsPoint.actual.toFixed(2)}</strong>
-            <small>
-              {epsCoverage}
-            </small>
+            <small>{epsPeriod} · {epsCoverage}</small>
           </article>
           <article>
             <span>{pick(!!zh, "Revenue actual", "营收实际值")}</span>
             <strong className="num">{latestRevenuePoint?.actual == null ? "—" : fmtNum(latestRevenuePoint.actual)}</strong>
-            <small>{revenueActualCoverage}</small>
+            <small>{revenuePeriod} · {revenueActualCoverage}</small>
           </article>
           <article>
             <span>{pick(!!zh, "Next report", "下次财报")}</span>
@@ -541,10 +567,7 @@ export default function EarningsPage({ fund, zh, sym }: EarningsPageProps) {
       {/* ── EPS Module ── */}
       <div className="fin-sec fin-earn-module fin-earn-vnext-card">
         <div className="fin-earn-module-hdr fin-rule">
-          <div
-            className="fin-sec-h fin-rail fin-earn-module-title"
-            style={{ "--rail": "var(--brand)" } as React.CSSProperties}
-          >
+          <div className="fin-sec-h fin-earn-module-title">
             {pick(!!zh, "EPS · reported vs estimate", "每股盈利 · 已报告值与预期")}
           </div>
 
@@ -675,7 +698,7 @@ export default function EarningsPage({ fund, zh, sym }: EarningsPageProps) {
       </div>
 
       {/* ── Revenue Module ── */}
-      <RevenueModule fund={fund} zh={zh} />
+      <RevenueModule fund={fund} zh={zh} projection={revenue} setMode={setRevenueMode} />
       </div>
 
       <section className="fin-earn-vnext-coverage" data-earnings-vnext-coverage="">
@@ -689,19 +712,19 @@ export default function EarningsPage({ fund, zh, sym }: EarningsPageProps) {
         <dl>
           <div>
             <dt>{pick(!!zh, "EPS actual / estimate", "每股盈利实际值 / 预期")}</dt>
-            <dd>{epsCoverage}</dd>
+            <dd>{epsPeriod} · {epsCoverage}</dd>
           </div>
           <div>
             <dt>{pick(!!zh, "Revenue actual", "营收实际值")}</dt>
-            <dd>{revenueActualCoverage}</dd>
+            <dd>{revenuePeriod} · {revenueActualCoverage}</dd>
           </div>
           <div>
             <dt>{pick(!!zh, "Revenue estimate", "营收预期")}</dt>
             <dd>{revenueEstimateCoverage}</dd>
           </div>
           <div>
-            <dt>{pick(!!zh, "Selected event", "当前事件")}</dt>
-            <dd>{latestEventLabel}</dd>
+            <dt>{pick(!!zh, "Reported periods", "已报告期")}</dt>
+            <dd>{selectedReportLabel}</dd>
           </div>
         </dl>
       </section>

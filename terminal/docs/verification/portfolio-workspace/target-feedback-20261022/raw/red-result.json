@@ -1,0 +1,12 @@
+{
+  "completed_at": "2026-10-22T02:39:57.281044+00:00",
+  "exit_code": 1,
+  "duration_s": 3.03,
+  "command": [
+    "./node_modules/.bin/vitest",
+    "run",
+    "components/settings/__tests__/SectionPortfolioTargets.test.tsx",
+    "lib/__tests__/portfolioTargetsView.test.tsx"
+  ],
+  "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/portfolio-target-feedback-20261022/terminal"
+}

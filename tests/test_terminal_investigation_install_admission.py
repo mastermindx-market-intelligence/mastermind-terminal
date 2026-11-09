@@ -1,0 +1,3485 @@
+"""Fail-closed Investigation candidate installation admission (IW2 cutover-0030).
+
+This suite never contacts production, never runs the installer main, never
+talks to a real systemd manager and never reads a real /proc process entry.
+It extracts the exact inline verifier from the incumbent deploy owner into a
+non-main namespace, injects fake git/unit/manager/filesystem/proc readers as
+ordinary test dependencies, and drives the pure classification against
+meaningful fake process and configuration fixtures. The bash-level cases run
+the real library hooks against tiny local Git fixtures with a PATH shim for
+systemctl only.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+import re
+import shutil
+import stat as stat_module
+import subprocess
+import sys
+import textwrap
+from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
+
+REPO = Path(__file__).resolve().parents[1]
+SCRIPT = REPO / "ops" / "terminal-build.sh"
+PRIMITIVE = "terminal/lib/investigationApiAdmission.ts"
+
+OLD_SHA = "1" * 40
+NEW_SHA = "2" * 40
+TREE_SHA = "3" * 40
+MAIN_PID = 4200
+SHIM_PID = 4201
+SERVER_PID = 4202
+UNIT_CGROUP = "/system.slice/terminal.service"
+PACKAGE_JSON = b'{"scripts":{"start":"next start"}}\n'
+PROD_CLOSED_ENV = '"NODE_ENV=production" "INVESTIGATION_API_ADMISSION=closed"'
+PROD_OPEN_ENV = '"NODE_ENV=production" "INVESTIGATION_API_ADMISSION=open"'
+EXEC_START_NPM = "{ path=/usr/bin/npm ; argv[]=/usr/bin/npm run start ; ignore_errors=no ; }"
+EXEC_START_NEXT = (
+    "{ path=/usr/bin/env ; argv[]=/usr/bin/env node "
+    "node_modules/next/dist/bin/next start --port 3001 --hostname 127.0.0.1 ; "
+    "ignore_errors=no ; }"
+)
+
+
+# ── extraction of the exact inline verifier under a non-main namespace ──────
+def _library_text() -> str:
+    return SCRIPT.read_text(encoding="utf-8")
+
+
+def _main_body(*, code_only: bool = False) -> str:
+    text = SCRIPT.read_text(encoding="utf-8")
+    body = text[text.rindex('if [ "${BASH_SOURCE[0]}" != "$0" ]') :]
+    if code_only:
+        body = "\n".join(
+            line for line in body.splitlines() if not line.lstrip().startswith("#")
+        )
+    return body
+
+
+@pytest.fixture()
+def verifier(tmp_path):
+    text = _library_text()
+    marker = "<<'PY_INVESTIGATION_INSTALL'"
+    start = text.index(marker) + len(marker) + 1
+    end = text.index("\nPY_INVESTIGATION_INSTALL\n", start)
+    body = text[start:end]
+    assert 'if __name__ == "__main__":' in body, (
+        "the extracted verifier must keep its main guard so the test namespace "
+        "never executes production main"
+    )
+    namespace = {"__name__": "terminal_investigation_install_under_test",
+                 "_safety_fixture_root": tmp_path / "safety-path-filesystem"}
+    exec(compile(body, "<extracted investigation verifier>", "exec"), namespace)
+    return namespace
+
+
+# ── fake hosts ───────────────────────────────────────────────────────────────
+class FakeGitHost:
+    """Fake git/unit/manager readers. Every call is recorded."""
+
+    def __init__(
+        self,
+        *,
+        tree_listing: bytes = b"",
+        object_kind: str | None = "commit",
+        unit: dict[str, str] | None = None,
+        manager: str = "",
+        package: bytes = PACKAGE_JSON,
+        installed_package: bytes = PACKAGE_JSON,
+    ):
+        self.git_calls: list[list[str]] = []
+        self.unit_calls: list[str] = []
+        self.tree_listing = tree_listing
+        self.object_kind = object_kind
+        self.unit = unit or {}
+        self.manager = manager
+        self.package = package
+        self.installed_package = installed_package
+
+    def install(self, ns) -> FakeGitHost:
+        host = self
+
+        def run_git(repository, arguments, failure_code):
+            host.git_calls.append(list(arguments))
+            if arguments[:2] == ["cat-file", "-t"]:
+                if host.object_kind is None:
+                    raise ns["Refused"](failure_code)
+                return (host.object_kind + "\n").encode()
+            if arguments[:2] == ["ls-tree", "-r"]:
+                if host.tree_listing is None:
+                    raise ns["Refused"](failure_code)
+                return host.tree_listing
+            if arguments[:2] == ["cat-file", "blob"]:
+                return host.package
+            raise AssertionError(f"unexpected git call {arguments}")
+
+        def unit_property(unit_name, prop):
+            host.unit_calls.append(prop)
+            if prop not in host.unit:
+                raise ns["Refused"]("unit-inspection-unavailable")
+            return host.unit[prop]
+
+        def manager_environment():
+            host.unit_calls.append("manager-environment")
+            return host.manager
+
+        ns["installed_package_json"] = lambda app: host.installed_package
+        ns["run_git"] = run_git
+        ns["unit_property"] = unit_property
+        ns["manager_environment"] = manager_environment
+        return self
+
+
+def tree_listing_for(entries: dict[str, str]) -> bytes:
+    payload = b""
+    for path, mode in entries.items():
+        oid = hashlib.sha1(path.encode()).hexdigest()
+        payload += f"{mode} blob {oid}\t{path}\0".encode()
+    return payload
+
+
+def closed_prod_unit(**overrides) -> dict[str, str]:
+    unit = {
+        "LoadState": "loaded", "NeedDaemonReload": "no", "ActiveState": "active",
+        "WorkingDirectory": "/opt/terminal/terminal", "ControlGroup": UNIT_CGROUP,
+        "ExecStartPre": "", "ExecStartPost": "", "ExecCondition": "", "ExecStopPost": "", "RootDirectory": "", "RootImage": "", "PAMName": "",
+        "Environment": PROD_CLOSED_ENV,
+        "EnvironmentFiles": "",
+        "PassEnvironment": "",
+        "UnsetEnvironment": "",
+        "ExecStart": EXEC_START_NPM,
+    }
+    unit.update(overrides)
+    return unit
+
+
+def closed_beta_unit(env_file: str, **overrides) -> dict[str, str]:
+    unit = {
+        "LoadState": "loaded", "NeedDaemonReload": "no", "ActiveState": "active",
+        "WorkingDirectory": "/opt/terminal/beta/terminal", "ControlGroup": "/system.slice/terminal-beta.service",
+        "ExecStartPre": "", "ExecStartPost": "", "ExecCondition": "", "ExecStopPost": "", "RootDirectory": "", "RootImage": "", "PAMName": "",
+        "Environment": '"MMX_SHARED_SHELL=1" "PORT=3001"',
+        "EnvironmentFiles": f"{env_file} (ignore_errors=no)",
+        "PassEnvironment": "",
+        "UnsetEnvironment": "",
+        "ExecStart": EXEC_START_NEXT,
+    }
+    unit.update(overrides)
+    return unit
+
+
+def fake_stat(pid: int, comm: str, ppid: int, starttime: int = 12345) -> str:
+    # /proc/<pid>/stat tail after "(comm)": state(3) ppid(4) ... starttime(22).
+    fields = ["S", str(ppid)] + ["0"] * 17 + [str(starttime)]
+    return f"{pid} ({comm}) " + " ".join(fields)
+
+
+def install_proc_fakes(ns, procs: dict[int, dict], app_identity) -> None:
+    def payload(pid: int, key: str):
+        entry = procs.get(pid)
+        if entry is None or key not in entry:
+            raise ns["Refused"]("serving-process-unreadable")
+        return entry[key]
+
+    def proc_bytes(pid, name, limit):
+        blob = payload(pid, name)
+        data = blob.encode() if isinstance(blob, str) else blob
+        if len(data) > limit:
+            raise ns["Refused"]("serving-process-environment-oversized")
+        return data
+
+    def stat_fields(pid):
+        fields = proc_bytes(pid, "stat", 4096).decode("utf-8", "replace")
+        tail = fields.rpartition(")")[2].split()
+        assert len(tail) >= 20, f"fake stat for {pid} is malformed"
+        return tail
+
+    def proc_starttime(pid):
+        return stat_fields(pid)[19]
+
+    def proc_ppid(pid):
+        return int(stat_fields(pid)[1])
+
+    def proc_comm(pid):
+        return proc_bytes(pid, "comm", 256).decode().strip("\n")
+
+    def proc_cmdline(pid):
+        return [item for item in payload(pid, "cmdline")]
+
+    def proc_cgroup_path(pid):
+        return payload(pid, "cgroup")
+
+    def proc_children(pid):
+        return list(payload(pid, "children"))
+
+    def proc_cwd_identity(pid):
+        return payload(pid, "cwd")
+
+    ns["proc_bytes"] = proc_bytes
+    ns["proc_starttime"] = proc_starttime
+    ns["proc_ppid"] = proc_ppid
+    ns["proc_comm"] = proc_comm
+    ns["proc_cmdline"] = proc_cmdline
+    ns["proc_cgroup_path"] = proc_cgroup_path
+    ns["proc_children"] = proc_children
+    ns["proc_cwd_identity"] = proc_cwd_identity
+    ns["app_root_identity"] = lambda app_root: SimpleNamespace(
+        st_dev=app_identity[0], st_ino=app_identity[1]
+    )
+
+
+def serving_fixture(
+    *, environ=b"INVESTIGATION_API_ADMISSION=closed\0NODE_ENV=production\0"
+) -> dict[int, dict]:
+    cwd = SimpleNamespace(st_dev=7, st_ino=99)
+    npm_chain = {
+        MAIN_PID: {
+            "cmdline": ["/usr/bin/npm", "run", "start"],
+            "stat": fake_stat(MAIN_PID, "npm", 1),
+            "comm": "npm",
+            "cgroup": UNIT_CGROUP,
+            "children": [SHIM_PID],
+            "environ": environ,
+            "cwd": cwd,
+        },
+        SHIM_PID: {
+            "cmdline": ["/bin/sh", "-c", "next start"],
+            "stat": fake_stat(SHIM_PID, "sh", MAIN_PID),
+            "comm": "sh",
+            "cgroup": UNIT_CGROUP,
+            "children": [SERVER_PID],
+            "environ": environ,
+            "cwd": cwd,
+        },
+        SERVER_PID: {
+            "cmdline": [
+                "/usr/bin/node",
+                "node_modules/next/dist/bin/next",
+                "start",
+            ],
+            "stat": fake_stat(SERVER_PID, "next-server (v15)", SHIM_PID),
+            "comm": "next-server (v15)",
+            "cgroup": UNIT_CGROUP,
+            "children": [],
+            "environ": environ,
+            "cwd": cwd,
+        },
+    }
+    return npm_chain
+
+
+def primitive_entry(path: str = PRIMITIVE, mode: str = "100644") -> bytes:
+    return tree_listing_for({path: mode})
+
+
+# ── trigger decisions (fake git) ─────────────────────────────────────────────
+def _decide(ns, host, phase="prestart", revision=NEW_SHA, app=None,
+            unit_name="terminal", env_dir="/tmp", profile="production", capsys=None):
+    host.install(ns)
+    captured = capsys
+    decision = ns["main"](
+        [str(app or "/opt/terminal/terminal"), revision, phase, str(app or "."),
+         unit_name, env_dir, profile]
+    )
+    return decision
+
+
+def test_old_target_decision_never_inspects_the_unit(verifier, capsys):
+    host = FakeGitHost(tree_listing=tree_listing_for(
+        {"terminal/lib/other.ts": "100644"}))
+    host.install(verifier)
+    assert verifier["main"](
+        ["/opt/terminal/terminal", NEW_SHA, "prestart", "/opt/terminal/terminal",
+         "terminal", "/tmp", "production"]) == 0
+    assert capsys.readouterr().out.strip() == "old-target"
+    assert host.unit_calls == [], (
+        "an old target must keep incumbent behavior with zero unit inspection"
+    )
+    assert host.git_calls == [["cat-file", "-t", NEW_SHA], ["ls-tree", "-r", "-z", NEW_SHA]], host.git_calls
+
+
+def test_primitive_requires_a_regular_blob_entry(verifier):
+    host = FakeGitHost(tree_listing=primitive_entry(mode="120000"))
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "prestart", "/app", "terminal",
+                          "/tmp", "production"])
+    assert raised.value.code == "primitive-not-a-regular-blob"
+
+    host = FakeGitHost(tree_listing=primitive_entry(mode="160000"))
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "prestart", "/app", "terminal",
+                          "/tmp", "production"])
+    assert raised.value.code == "primitive-not-a-regular-blob"
+
+
+def test_non_commit_identity_carrying_the_path_is_a_refusal(verifier):
+    host = FakeGitHost(tree_listing=primitive_entry(), object_kind="tree")
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "prestart", "/app", "terminal",
+                          "/tmp", "production"])
+    assert raised.value.code == "target-identity-unresolvable"
+
+
+def test_unreadable_tree_is_a_refusal_not_an_old_target(verifier):
+    host = FakeGitHost(tree_listing=None)
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "prestart", "/app", "terminal",
+                          "/tmp", "production"])
+    assert raised.value.code == "target-tree-unreadable"
+
+
+def test_oversized_tree_inventory_is_a_refusal(verifier):
+    ns = verifier
+    ns["MAX_TREE_LIST_BYTES"] = 16
+    host = FakeGitHost(tree_listing=primitive_entry())
+    host.install(ns)
+    with pytest.raises(ns["Refused"]) as raised:
+        ns["main"](["/app", NEW_SHA, "prestart", "/app", "terminal",
+                    "/tmp", "production"])
+    assert raised.value.code == "target-tree-oversized"
+
+
+def test_malformed_verifier_invocation_is_refused(verifier):
+    host = FakeGitHost(tree_listing=primitive_entry())
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "prestart"])
+    assert raised.value.code == "verifier-invocation-invalid"
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "someday", "/app", "terminal",
+                          "/tmp", "production"])
+    assert raised.value.code == "verifier-invocation-invalid"
+
+
+# ── explicit closed classification ───────────────────────────────────────────
+def test_explicit_unit_closed_is_admitted_prestart_and_poststart(
+    verifier, capsys, tmp_path
+):
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(
+            ActiveState="active", MainPID=str(MAIN_PID)),
+    )
+    procs = serving_fixture()
+    install_proc_fakes(verifier, procs, (7, 99))
+    host.install(verifier)
+    assert verifier["main"](
+        ["/opt/terminal/terminal", NEW_SHA, "prestart",
+         str(tmp_path), "terminal", str(tmp_path), "production"]) == 0
+    assert capsys.readouterr().out.strip() == "explicitly-closed"
+
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(ActiveState="active", MainPID=str(MAIN_PID)),
+    )
+    host.install(verifier)
+    assert verifier["main"](
+        ["/opt/terminal/terminal", NEW_SHA, "poststart",
+         str(tmp_path), "terminal", str(tmp_path), "production"]) == 0
+    assert capsys.readouterr().out.strip() == "explicitly-closed"
+
+
+def test_inactive_unit_with_qualified_config_passes_prestart_only(
+    verifier, capsys
+):
+    host = FakeGitHost(tree_listing=primitive_entry(),
+                       unit=closed_prod_unit())
+    host.install(verifier)
+    assert verifier["main"](
+        ["/app", NEW_SHA, "prestart", "/app", "terminal", "/tmp",
+         "production"]) == 0
+    assert capsys.readouterr().out.strip() == "explicitly-closed"
+
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(ActiveState="inactive"),
+    )
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "poststart", "/app", "terminal",
+                          "/tmp", "production"])
+    assert raised.value.code == "service-not-active"
+
+
+@pytest.mark.parametrize(
+    ("environment", "expected"),
+    [
+        ('"NODE_ENV=production"', "missing-explicit-closed"),
+        ('"NODE_ENV=production" "INVESTIGATION_API_ADMISSION=open"',
+         "unit-admission-not-closed"),
+        ('"INVESTIGATION_API_ADMISSION=CLOSED"', "unit-admission-not-closed"),
+        ('"INVESTIGATION_API_ADMISSION=closed "', "unit-admission-not-closed"),
+        ('"INVESTIGATION_API_ADMISSION="', "unit-admission-not-closed"),
+        ("INVESTIGATION_API_ADMISSION", "malformed-admission-assignment"),
+        ('"INVESTIGATION_API_ADMISSION=closed" "INVESTIGATION_API_ADMISSION=closed"',
+         "conflicting-admission-declaration"),
+    ],
+)
+def test_unit_environment_matrix_refuses(verifier, environment, expected):
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(Environment=environment),
+    )
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "prestart", "/app", "terminal",
+                          "/tmp", "production"])
+    assert raised.value.code == expected, raised.value.code
+
+
+def test_environment_file_declarations_are_classified_with_the_unit(
+    verifier, tmp_path
+):
+    env_file = tmp_path / "environment"
+    env_file.write_text("OTHER_SECRET=fixture-never-log\n", encoding="utf-8")
+    os.chmod(env_file, 0o600)
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_beta_unit(str(env_file)),
+    )
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "prestart", str(tmp_path),
+                          "terminal-beta", str(tmp_path), "beta"])
+    assert raised.value.code == "missing-explicit-closed"
+
+    env_file.write_text(
+        "OTHER_SECRET=fixture-never-log\nINVESTIGATION_API_ADMISSION=closed\n",
+        encoding="utf-8")
+    os.chmod(env_file, 0o600)
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_beta_unit(str(env_file)),
+    )
+    host.install(verifier)
+    assert verifier["main"](
+        ["/app", NEW_SHA, "prestart", str(tmp_path), "terminal-beta",
+         str(tmp_path), "beta"]) == 0
+
+    env_file.write_text(
+        "OTHER_SECRET=fixture-never-log\nINVESTIGATION_API_ADMISSION=closed\n",
+        encoding="utf-8")
+    os.chmod(env_file, 0o600)
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_beta_unit(
+            str(env_file), Environment=PROD_CLOSED_ENV),
+    )
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "prestart", str(tmp_path),
+                          "terminal-beta", str(tmp_path), "beta"])
+    assert raised.value.code == "conflicting-admission-declaration"
+
+    env_file.write_text(
+        "OTHER_SECRET=fixture-never-log\nINVESTIGATION_API_ADMISSION=open\n",
+        encoding="utf-8")
+    os.chmod(env_file, 0o600)
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_beta_unit(
+            str(env_file), Environment=PROD_CLOSED_ENV),
+    )
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "prestart", str(tmp_path),
+                          "terminal-beta", str(tmp_path), "beta"])
+    assert raised.value.code == "conflicting-admission-declaration"
+
+
+@pytest.mark.parametrize(
+    ("overrides", "expected"),
+    [
+        ({"PassEnvironment": "INVESTIGATION_API_ADMISSION"},
+         "admission-key-in-indirect-unit-environment"),
+        ({"UnsetEnvironment": "INVESTIGATION_API_ADMISSION"},
+         "admission-key-in-indirect-unit-environment"),
+        ({}, "admission-key-in-manager-environment"),
+    ],
+)
+def test_indirect_channels_and_manager_inheritance_refuse(
+    verifier, overrides, expected
+):
+    manager = "INVESTIGATION_API_ADMISSION=open\n" if expected.startswith(
+        "admission-key-in-manager") else ""
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(**overrides),
+        manager=manager,
+    )
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "prestart", "/app", "terminal",
+                          "/tmp", "production"])
+    assert raised.value.code == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("INVESTIGATION_API_ADMISSION=closed\n", "dotenv-admission-conflict"),
+        ("INVESTIGATION_API_ADMISSION: open\n", "dotenv-admission-conflict"),
+        ("export INVESTIGATION_API_ADMISSION=closed\n",
+         "dotenv-admission-conflict"),
+        ('INVESTIGATION_API_ADMISSION="closed"\n', "dotenv-admission-conflict"),
+        ("INVESTIGATION_API_ADMISSION_EXTRA=closed\n", None),
+        ("INVESTIGATION_API_ADM=closed\n", None),
+    ],
+)
+def test_next_dotenv_sources_must_stay_silent(
+    verifier, tmp_path, text, expected
+):
+    (tmp_path / ".env.production").write_text(
+        "OTHER_SECRET=fixture-never-log\n" + text, encoding="utf-8")
+    os.chmod(tmp_path / ".env.production", 0o600)
+    host = FakeGitHost(
+        tree_listing=primitive_entry(), unit=closed_prod_unit())
+    host.install(verifier)
+    if expected is None:
+        assert verifier["main"](
+            ["/app", NEW_SHA, "prestart", str(tmp_path), "terminal",
+             str(tmp_path), "production"]) == 0
+    else:
+        with pytest.raises(verifier["Refused"]) as raised:
+            verifier["main"](["/app", NEW_SHA, "prestart", str(tmp_path),
+                              "terminal", str(tmp_path), "production"])
+        assert raised.value.code == expected
+
+
+def _bounded_file(path: Path, text: str, mode: int) -> str:
+    path.write_text(text, encoding="utf-8")
+    os.chmod(path, mode)
+    return str(path)
+
+
+def test_env_file_custody_refusals(verifier, tmp_path):
+    cases = []
+    for name, text, mode, expected in (
+        ("unreadable", "x=1\n", 0o000, "env-file-unreadable"),
+        ("writable", "INVESTIGATION_API_ADMISSION=closed\n", 0o664,
+         "env-file-group-or-other-writable"),
+        ("oversized", "pad=" + "x" * (1024 * 1024 + 1) + "\n", 0o600,
+         "env-file-oversized"),
+    ):
+        holder = tmp_path / name
+        holder.mkdir()
+        path = _bounded_file(holder / "environment", text, mode)
+        cases.append((path, holder, expected))
+    # A non-regular file at the approved EnvironmentFile path is refused.
+    holder = tmp_path / "adir"
+    (holder / "environment").mkdir(parents=True)
+    cases.append((str(holder / "environment"), holder, "env-file-not-regular"))
+    target_holder = tmp_path / "target-holder"
+    target_holder.mkdir()
+    _bounded_file(target_holder / "environment", "x=1\n", 0o600)
+    linked_holder = tmp_path / "linked-holder"
+    linked_holder.mkdir()
+    os.symlink(target_holder / "environment", linked_holder / "environment")
+    cases.append((str(linked_holder / "environment"), linked_holder,
+                  "env-file-unreadable"))
+
+    for path, holder, expected in cases:
+        host = FakeGitHost(
+            tree_listing=primitive_entry(),
+            unit=closed_beta_unit(path),
+        )
+        host.install(verifier)
+        with pytest.raises(verifier["Refused"]) as raised:
+            verifier["main"](["/app", NEW_SHA, "prestart", "/app",
+                              "terminal-beta", str(holder), "beta"])
+        assert raised.value.code == expected, (path, raised.value.code)
+
+
+def test_foreign_owner_env_file_refuses(verifier, tmp_path, monkeypatch):
+    holder = tmp_path / "host"
+    holder.mkdir()
+    path = _bounded_file(
+        holder / "environment", "INVESTIGATION_API_ADMISSION=closed\n", 0o600)
+    real_os = os
+
+    class ForeignOs:
+        def __getattr__(self, name):
+            return getattr(real_os, name)
+
+        @staticmethod
+        def fstat(fd):
+            source = real_os.fstat(fd)
+            return real_os.stat_result(
+                (source.st_mode, source.st_ino, source.st_dev, source.st_nlink,
+                 source.st_uid + 1, source.st_gid, source.st_size,
+                 source.st_atime, source.st_mtime, source.st_ctime))
+
+    monkeypatch.setitem(verifier, "os", ForeignOs())
+    host = FakeGitHost(
+        tree_listing=primitive_entry(), unit=closed_beta_unit(path))
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "prestart", "/app", "terminal-beta",
+                          str(holder), "beta"])
+    assert raised.value.code == "env-file-foreign-owner"
+
+
+def test_env_file_topology_must_be_the_approved_beta_file_or_none(verifier):
+    cases = [
+        (closed_prod_unit(EnvironmentFiles="/etc/other.env (ignore_errors=no)"),
+         "production"),
+        (closed_beta_unit(""), "beta"),
+        (closed_beta_unit("/elsewhere/environment"), "beta"),
+        (closed_beta_unit("/var/lib/mastermind-terminal-beta/host/environment "
+                          "(ignore_errors=yes)"), "beta"),
+        (closed_beta_unit(
+            "/var/lib/mastermind-terminal-beta/host/environment "
+            "(ignore_errors=no) /etc/extra (ignore_errors=no)"), "beta"),
+    ]
+    for unit, profile in cases:
+        host = FakeGitHost(tree_listing=primitive_entry(), unit=unit)
+        host.install(verifier)
+        with pytest.raises(verifier["Refused"]) as raised:
+            verifier["main"](["/app", NEW_SHA, "prestart", "/app",
+                              "terminal-beta" if profile == "beta" else "terminal",
+                              "/var/lib/mastermind-terminal-beta/host"
+                              if profile == "beta" else "/tmp", profile])
+        assert raised.value.code == "unsupported-env-file-topology"
+
+
+def test_beta_env_file_malformed_key_line_refuses(verifier, tmp_path):
+    path = _bounded_file(
+        tmp_path / "environment", "INVESTIGATION_API_ADMISSION closed\n", 0o600)
+    host = FakeGitHost(
+        tree_listing=primitive_entry(), unit=closed_beta_unit(path))
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "prestart", str(tmp_path),
+                          "terminal-beta", str(tmp_path), "beta"])
+    # Service files use the reviewed systemd grammar, not the dotenv scanner.
+    assert raised.value.code == "unsupported-env-file-syntax"
+
+
+def test_production_launch_wrapper_matrix(verifier):
+    good = FakeGitHost(tree_listing=primitive_entry(),
+                       unit=closed_prod_unit())
+    good.install(verifier)
+    assert verifier["main"](["/app", NEW_SHA, "prestart", "/app", "terminal",
+                             "/tmp", "production"]) == 0
+
+    for start in (
+        "path=/usr/bin/env ; argv[]=/usr/bin/env npm run start ;",
+        "path=/usr/bin/npm ; argv[]=/usr/bin/npm run start ; argv[]=extra ;",
+        "path=/usr/bin/npm-run ; argv[]=/usr/bin/npm run start ;",
+        "unparsed topology",
+    ):
+        host = FakeGitHost(tree_listing=primitive_entry(),
+                           unit=closed_prod_unit(ExecStart=start))
+        host.install(verifier)
+        with pytest.raises(verifier["Refused"]) as raised:
+            verifier["main"](["/app", NEW_SHA, "prestart", "/app", "terminal",
+                              "/tmp", "production"])
+        assert raised.value.code == "unsupported-launch-wrapper", start
+
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(),
+        package=b'{"scripts":{"start":"next start --turbopack"}}\n',
+    )
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "prestart", "/app", "terminal",
+                          "/tmp", "production"])
+    assert raised.value.code == "unsupported-start-command"
+
+
+def test_beta_launch_wrapper_matrix(verifier, tmp_path):
+    env_file = _bounded_file(
+        tmp_path / "environment", "INVESTIGATION_API_ADMISSION=closed\n", 0o600)
+
+    def beta_unit_with(start):
+        return closed_beta_unit(env_file, ExecStart=start)
+
+    good = FakeGitHost(tree_listing=primitive_entry(),
+                       unit=beta_unit_with(EXEC_START_NEXT))
+    good.install(verifier)
+    assert verifier["main"](["/app", NEW_SHA, "prestart", str(tmp_path),
+                             "terminal-beta", str(tmp_path), "beta"]) == 0
+
+    for start in (
+        "path=/bin/sh ; argv[]=/bin/sh ; argv[]=-c ; "
+        "argv[]=node node_modules/next/dist/bin/next start ;",
+        "path=/usr/bin/env ; argv[]=/usr/bin/env ; argv[]=bash ; "
+        "argv[]=node_modules/next/dist/bin/next ; argv[]=start ;",
+        "path=/usr/bin/env ; argv[]=/usr/bin/env ; argv[]=node ; "
+        "argv[]=next/dist/bin/next ; argv[]=start ;",
+        "path=/usr/bin/env ; argv[]='/usr/bin/env node next start' ;",
+        "path=/usr/bin/npm ; argv[]=/usr/bin/npm run start ;",
+        "path=/usr/bin/env ; argv[]=/usr/bin/env ; argv[]=node ; "
+        "argv[]=node_modules/next/dist/bin/next ; argv[]=dev ;",
+    ):
+        host = FakeGitHost(tree_listing=primitive_entry(),
+                           unit=beta_unit_with(start))
+        host.install(verifier)
+        with pytest.raises(verifier["Refused"]) as raised:
+            verifier["main"](["/app", NEW_SHA, "prestart", str(tmp_path),
+                              "terminal-beta", str(tmp_path), "beta"])
+        assert raised.value.code == "unsupported-launch-wrapper", start
+
+
+# ── poststart process binding (fake /proc readers only) ─────────────────────
+def test_poststart_requires_active_unit_with_a_live_mainpid(verifier):
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(ActiveState="inactive"),
+    )
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "poststart", "/app", "terminal",
+                          "/tmp", "production"])
+    assert raised.value.code == "service-not-active"
+
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(ActiveState="active", MainPID="0"),
+    )
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "poststart", "/app", "terminal",
+                          "/tmp", "production"])
+    assert raised.value.code == "mainpid-absent"
+
+
+def test_correct_mainpid_with_a_bad_next_child_is_rejected(verifier):
+    base = serving_fixture()
+    for mutation, expected in (
+        ({"environ": b"INVESTIGATION_API_ADMISSION=open\0"},
+         "serving-process-admission-not-closed"),
+        ({"environ": b"NODE_ENV=production\0"},
+         "serving-process-admission-not-closed"),
+        ({"environ": b"INVESTIGATION_API_ADMISSION=closed\0"
+                     b"INVESTIGATION_API_ADMISSION=open\0"},
+         "serving-process-admission-conflict"),
+    ):
+        procs = serving_fixture()
+        procs[SERVER_PID].update(mutation)
+        host = FakeGitHost(
+            tree_listing=primitive_entry(),
+            unit=closed_prod_unit(ActiveState="active", MainPID=str(MAIN_PID)),
+        )
+        install_proc_fakes(verifier, procs, (7, 99))
+        host.install(verifier)
+        with pytest.raises(verifier["Refused"]) as raised:
+            verifier["main"](["/app", NEW_SHA, "poststart", "/app", "terminal",
+                              "/tmp", "production"])
+        assert raised.value.code == expected, mutation
+
+
+def test_npm_mainpid_alone_is_inadequate(verifier):
+    procs = serving_fixture()
+    procs[MAIN_PID]["children"] = []
+    del procs[SHIM_PID]
+    del procs[SERVER_PID]
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(ActiveState="active", MainPID=str(MAIN_PID)),
+    )
+    install_proc_fakes(verifier, procs, (7, 99))
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "poststart", "/app", "terminal",
+                          "/tmp", "production"])
+    assert raised.value.code == "no-next-serving-process"
+
+
+def test_unknown_descendant_is_rejected(verifier):
+    procs = serving_fixture()
+    procs[SERVER_PID]["children"] = [4299]
+    procs[4299] = {
+        "cmdline": ["/usr/bin/tail", "-f", "/var/log/whatever"],
+        "stat": fake_stat(4299, "tail", SERVER_PID),
+        "comm": "tail",
+        "cgroup": UNIT_CGROUP,
+        "children": [],
+        "environ": b"INVESTIGATION_API_ADMISSION=closed\0",
+        "cwd": procs[SERVER_PID]["cwd"],
+    }
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(ActiveState="active", MainPID=str(MAIN_PID)),
+    )
+    install_proc_fakes(verifier, procs, (7, 99))
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "poststart", "/app", "terminal",
+                          "/tmp", "production"])
+    assert raised.value.code == "unexpected-serving-process"
+
+
+def test_cgroup_membership_and_moves_are_rejected(verifier):
+    procs = serving_fixture()
+    procs[MAIN_PID]["cgroup"] = "/system.slice/other.service"
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(ActiveState="active", MainPID=str(MAIN_PID)),
+    )
+    install_proc_fakes(verifier, procs, (7, 99))
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "poststart", "/app", "terminal",
+                          "/tmp", "production"])
+    assert raised.value.code == "mainpid-outside-target-unit"
+
+    procs = serving_fixture()
+    procs[SERVER_PID]["cgroup"] = "/system.slice/terminal.service.scope"
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(ActiveState="active", MainPID=str(MAIN_PID)),
+    )
+    install_proc_fakes(verifier, procs, (7, 99))
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "poststart", "/app", "terminal",
+                          "/tmp", "production"])
+    assert raised.value.code == "serving-process-outside-target-cgroup"
+
+
+def test_pid_reuse_and_identity_races_are_rejected(verifier):
+    # A reused PID reports a different starttime on the stability re-read.
+    procs = serving_fixture()
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(ActiveState="active", MainPID=str(MAIN_PID)),
+    )
+    install_proc_fakes(verifier, procs, (7, 99))
+    original = verifier["proc_starttime"]
+    server_reads = {"n": 0}
+
+    def reused_starttime(pid):
+        if pid == SERVER_PID:
+            server_reads["n"] += 1
+            if server_reads["n"] >= 2:
+                return "99999"
+        return original(pid)
+
+    verifier["proc_starttime"] = reused_starttime
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "poststart", "/app", "terminal",
+                          "/tmp", "production"])
+    assert raised.value.code == "process-identity-changed-during-verification"
+
+    # A cgroup move between reads is the same refusal class.
+    procs = serving_fixture()
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(ActiveState="active", MainPID=str(MAIN_PID)),
+    )
+    install_proc_fakes(verifier, procs, (7, 99))
+    original_cgroup = verifier["proc_cgroup_path"]
+    server_cgroup_reads = {"n": 0}
+
+    def moving_cgroup(pid):
+        if pid == SERVER_PID:
+            server_cgroup_reads["n"] += 1
+            if server_cgroup_reads["n"] >= 2:
+                return "/system.slice/moved.service"
+        return original_cgroup(pid)
+
+    verifier["proc_cgroup_path"] = moving_cgroup
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "poststart", "/app", "terminal",
+                          "/tmp", "production"])
+    assert raised.value.code == "process-identity-changed-during-verification"
+
+
+def test_broken_ancestry_and_foreign_cwd_are_rejected(verifier):
+    procs = serving_fixture()
+    procs[SERVER_PID]["stat"] = fake_stat(SERVER_PID, "next-server (v15)", 1)
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(ActiveState="active", MainPID=str(MAIN_PID)),
+    )
+    install_proc_fakes(verifier, procs, (7, 99))
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "poststart", "/app", "terminal",
+                          "/tmp", "production"])
+    assert raised.value.code == "serving-process-ancestry-unknown"
+
+    procs = serving_fixture()
+    procs[SERVER_PID]["cwd"] = SimpleNamespace(st_dev=7, st_ino=555)
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(ActiveState="active", MainPID=str(MAIN_PID)),
+    )
+    install_proc_fakes(verifier, procs, (7, 99))
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "poststart", "/app", "terminal",
+                          "/tmp", "production"])
+    assert raised.value.code == "serving-process-foreign-working-directory"
+
+
+# ── caller environment and shared-shell independence ────────────────────────
+def test_caller_environment_is_never_consulted(
+    verifier, capsys, monkeypatch
+):
+    body = _library_text()
+    marker = "<<'PY_INVESTIGATION_INSTALL'"
+    start = body.index(marker) + len(marker) + 1
+    end = body.index("\nPY_INVESTIGATION_INSTALL\n", start)
+    extracted = body[start:end]
+    assert "os.environ" not in extracted and "getenv" not in extracted, (
+        "the verifier must have no caller environment channel at all"
+    )
+    monkeypatch.setenv("INVESTIGATION_API_ADMISSION", "open")
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(ActiveState="active", MainPID=str(MAIN_PID)),
+    )
+    install_proc_fakes(verifier, serving_fixture(), (7, 99))
+    host.install(verifier)
+    assert verifier["main"](
+        ["/app", NEW_SHA, "prestart", "/app", "terminal", "/tmp",
+         "production"]) == 0
+    assert capsys.readouterr().out.strip() == "explicitly-closed"
+
+    monkeypatch.setenv("INVESTIGATION_API_ADMISSION", "closed")
+    host = FakeGitHost(tree_listing=primitive_entry(),
+                       unit=closed_prod_unit(Environment=PROD_OPEN_ENV))
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "prestart", "/app", "terminal",
+                          "/tmp", "production"])
+    assert raised.value.code == "unit-admission-not-closed"
+
+
+def test_production_shared_shell_off_still_checks(verifier, capsys):
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(Environment='"MMX_SHARED_SHELL_BUILD=1"'),
+    )
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"](["/app", NEW_SHA, "prestart", "/app", "terminal",
+                          "/tmp", "production"])
+    assert raised.value.code == "missing-explicit-closed"
+
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(
+            Environment='"MMX_SHARED_SHELL_BUILD=1" '
+                        '"INVESTIGATION_API_ADMISSION=closed"'),
+    )
+    host.install(verifier)
+    assert verifier["main"](
+        ["/app", NEW_SHA, "prestart", "/app", "terminal", "/tmp",
+         "production"]) == 0
+    assert capsys.readouterr().out.strip() == "explicitly-closed"
+
+
+# ── bash-level hooks against tiny local Git fixtures ────────────────────────
+def _bash() -> str:
+    found = shutil.which("bash")
+    assert found, "bash is required to exercise the deploy owner"
+    return found
+
+
+def run_gen(body: str, *, env: dict[str, str] | None = None):
+    driver = textwrap.dedent(
+        f"""
+        . "{SCRIPT}"
+        set +e
+        {textwrap.dedent(body)}
+        """
+    )
+    process_env = dict(os.environ)
+    process_env.pop("INVESTIGATION_API_ADMISSION", None)
+    if env:
+        process_env.update(env)
+    return subprocess.run(
+        [_bash(), "-c", driver], capture_output=True, text=True,
+        timeout=120, env=process_env,
+    )
+
+
+def _fixture_repo(tmp_path: Path, *, with_primitive: bool, decoy: bool = False,
+                  name: str = "src"):
+    repo = tmp_path / name
+    (repo / "terminal" / "lib").mkdir(parents=True)
+    if with_primitive:
+        (repo / PRIMITIVE).write_text(
+            'export function investigationApiAdmission(value: unknown)'
+            ': boolean { return value === "open"; }\n', encoding="utf-8")
+    (repo / "terminal" / "package.json").write_text(
+        '{"scripts":{"start":"next start"}}\n', encoding="utf-8")
+
+    def git(*args: str) -> str:
+        return subprocess.check_output(
+            ["git", "-C", str(repo), *args], text=True).strip()
+
+    git("init", "-q", "-b", "master")
+    git("config", "user.email", "test@example.com")
+    git("config", "user.name", "Test")
+    git("add", "-A")
+    git("commit", "-q", "-m", "fixture")
+    sha = git("rev-parse", "HEAD")
+    if decoy:
+        # Mutable-checkout decoys: the committed tree decides, never the worktree.
+        (repo / PRIMITIVE).unlink(missing_ok=True)
+        (repo / "terminal" / "lib" / "decoy.txt").write_text(
+            "decoy\n", encoding="utf-8")
+    return repo, sha
+
+
+def _systemctl_shim(tmp_path: Path, props: dict[str, str]) -> dict[str, str]:
+    props = {"NeedDaemonReload": "no", "ActiveState": "active",
+             "WorkingDirectory": "/opt/terminal/terminal", "ControlGroup": UNIT_CGROUP,
+             "ExecStartPre": "", "ExecStartPost": "", "ExecCondition": "", "ExecStopPost": "", "RootDirectory": "", "RootImage": "", "PAMName": "", **props}
+    # Production npm reads the installed package even when the lock is unchanged.
+    app_package = tmp_path / "app" / "package.json"
+    if app_package.parent.is_dir() and not app_package.exists():
+        app_package.write_bytes(PACKAGE_JSON)
+    shim_dir = tmp_path / "bin"
+    shim_dir.mkdir(exist_ok=True)
+    # Longest property names first: a "-p EnvironmentFiles" query must not be
+    # swallowed by the "-p Environment" glob.
+    cases = "".join(
+        f'  *"-p {prop}"*) printf \'%s\\n\' "{value}" ;;\n'
+        for prop, value in sorted(
+            props.items(), key=lambda item: len(item[0]), reverse=True)
+    )
+    (shim_dir / "systemctl").write_text(
+        "#!/bin/sh\n"
+        'if [ "$1" != show ]; then exit 0; fi\n'
+        "case \"$*\" in\n"
+        + cases +
+        "  *) exit 4 ;;\n"
+        "esac\n",
+        encoding="utf-8",
+    )
+    (shim_dir / "systemctl").chmod(0o755)
+    return {"PATH": f"{shim_dir}:{os.environ['PATH']}"}
+
+
+def _tree_digest(root: Path) -> str:
+    digest = hashlib.sha256()
+    for path in sorted(root.rglob("*")):
+        digest.update(str(path.relative_to(root)).encode())
+        if path.is_file():
+            digest.update(path.read_bytes())
+    return digest.hexdigest()
+
+
+def _tree_manifest(root: Path) -> dict[str, tuple[str, ...]]:
+    """Identify changed paths without printing fixture file contents."""
+    result = {}
+    for path in sorted(root.rglob("*")):
+        if path.is_symlink():
+            entry = ("symlink", os.readlink(path))
+        elif path.is_file():
+            entry = ("file", hashlib.sha256(path.read_bytes()).hexdigest())
+        elif path.is_dir():
+            entry = ("directory",)
+        else:
+            entry = ("other",)
+        result[str(path.relative_to(root))] = entry
+    return result
+
+
+def _owner_globals(repo: Path, app: Path, profile="production") -> str:
+    return (
+        f'TARGET={profile}\nSRC="{repo}"\nAPP="{app}"\n'
+        f'SERVICE_NAME={"terminal-beta" if profile == "beta" else "terminal"}\n'
+        f'ENV_SOURCE_DIR="{app}"\n'
+    )
+
+
+def test_old_target_hook_keeps_incumbent_behavior(tmp_path):
+    repo, sha = _fixture_repo(tmp_path, with_primitive=False)
+    app = tmp_path / "app"
+    app.mkdir()
+    before = _tree_digest(tmp_path)
+    result = run_gen(
+        f"""
+        {_owner_globals(repo, app)}
+        decision=$(investigation_install_state "{sha}" prestart); rc=$?
+        printf 'STATE=%s\\n' "$decision"
+        require_investigation_closed_before_start "{sha}"; printf 'HOOK=%s\\n' "$?"
+        investigation_restoration_activation_allowed "{sha}"; printf 'RESTORE=%s\\n' "$?"
+        """,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "STATE=old-target" in result.stdout
+    assert "HOOK=0" in result.stdout
+    assert "RESTORE=0" in result.stdout
+    assert "FATAL" not in result.stdout + result.stderr
+    assert _tree_digest(tmp_path) == before, (
+        "an old-target admission must leave no effects at all"
+    )
+
+
+def test_admitted_target_gate_passes_with_a_fake_closed_unit(tmp_path):
+    repo, sha = _fixture_repo(tmp_path, with_primitive=True)
+    app = tmp_path / "app"
+    app.mkdir()
+    shim = _systemctl_shim(tmp_path, {
+        "LoadState": "loaded", "NeedDaemonReload": "no", "ActiveState": "active",
+        "WorkingDirectory": "/opt/terminal/terminal", "ControlGroup": UNIT_CGROUP,
+        "ExecStartPre": "", "ExecStartPost": "", "ExecCondition": "", "ExecStopPost": "", "RootDirectory": "", "RootImage": "", "PAMName": "",
+        "Environment": PROD_CLOSED_ENV,
+        "EnvironmentFiles": "",
+        "PassEnvironment": "",
+        "UnsetEnvironment": "",
+        "ExecStart": EXEC_START_NPM,
+    })
+    result = run_gen(
+        f"""
+        {_owner_globals(repo, app)}
+        decision=$(investigation_install_state "{sha}" prestart); rc=$?
+        printf 'STATE=%s\\n' "$decision"
+        require_investigation_closed_before_start "{sha}"; printf 'HOOK=%s\\n' "$?"
+        """,
+        env=shim,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "STATE=explicitly-closed" in result.stdout
+    assert "HOOK=0" in result.stdout
+
+
+@pytest.mark.parametrize(
+    ("unit_env", "caller", "expected_rc"),
+    [
+        (PROD_OPEN_ENV, "closed", 65),
+        (PROD_CLOSED_ENV, "open", 0),
+    ],
+)
+def test_service_setting_decides_and_caller_env_has_no_authority(
+    tmp_path, unit_env, caller, expected_rc
+):
+    repo, sha = _fixture_repo(tmp_path, with_primitive=True)
+    app = tmp_path / "app"
+    app.mkdir()
+    shim = _systemctl_shim(tmp_path, {
+        "LoadState": "loaded",
+        "Environment": unit_env,
+        "EnvironmentFiles": "",
+        "PassEnvironment": "",
+        "UnsetEnvironment": "",
+        "ExecStart": EXEC_START_NPM,
+    })
+    result = run_gen(
+        f"""
+        {_owner_globals(repo, app)}
+        require_investigation_closed_before_start "{sha}"; printf 'HOOK=%s\\n' "$?"
+        """,
+        env={**shim, "INVESTIGATION_API_ADMISSION": caller},
+    )
+    assert f"HOOK={expected_rc}" in result.stdout, result.stdout + result.stderr
+    if expected_rc == 65:
+        assert "unit-admission-not-closed" in result.stderr
+
+
+def test_shared_shell_off_production_still_checks(tmp_path):
+    repo, sha = _fixture_repo(tmp_path, with_primitive=True)
+    app = tmp_path / "app"
+    app.mkdir()
+    shim = _systemctl_shim(tmp_path, {
+        "LoadState": "loaded",
+        "Environment": '"MMX_SHARED_SHELL_BUILD=1"',
+        "EnvironmentFiles": "",
+        "PassEnvironment": "",
+        "UnsetEnvironment": "",
+        "ExecStart": EXEC_START_NPM,
+    })
+    result = run_gen(
+        f"""
+        {_owner_globals(repo, app)}
+        PRODUCTION_SHARED_SHELL_ENABLED=0
+        require_investigation_closed_before_start "{sha}"; printf 'HOOK=%s\\n' "$?"
+        """,
+        env=shim,
+    )
+    assert "HOOK=65" in result.stdout, result.stdout + result.stderr
+    assert "missing-explicit-closed" in result.stderr
+
+
+def test_unknown_and_non_commit_identities_refuse(tmp_path):
+    repo, sha = _fixture_repo(tmp_path, with_primitive=True)
+    app = tmp_path / "app"
+    app.mkdir()
+    tree_sha = subprocess.check_output(
+        ["git", "-C", str(repo), "rev-parse", "HEAD^{tree}"], text=True).strip()
+    blob_sha = subprocess.check_output(
+        ["git", "-C", str(repo), "rev-parse", f"HEAD:{PRIMITIVE}"],
+        text=True).strip()
+    result = run_gen(
+        f"""
+        {_owner_globals(repo, app)}
+        require_investigation_closed_before_start "{"f" * 40}"; printf 'UNKNOWN=%s\\n' "$?"
+        require_investigation_closed_before_start "{tree_sha}"; printf 'TREE=%s\\n' "$?"
+        require_investigation_closed_before_start "{blob_sha}"; printf 'BLOB=%s\\n' "$?"
+        """,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "UNKNOWN=65" in result.stdout
+    assert "TREE=65" in result.stdout
+    assert "BLOB=65" in result.stdout
+    assert "target-identity-unresolvable" in result.stderr
+
+
+def test_mutable_checkout_decoy_does_not_flip_the_trigger(tmp_path):
+    # A proven old target with a checkout decoy stays old-target.
+    repo, sha = _fixture_repo(tmp_path, with_primitive=False, decoy=True)
+    app = tmp_path / "app"
+    app.mkdir()
+    result = run_gen(
+        f"""
+        {_owner_globals(repo, app)}
+        decision=$(investigation_install_state "{sha}" prestart); rc=$?
+        printf 'STATE=%s\\n' "$decision"
+        """,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "STATE=old-target" in result.stdout
+
+    # A primitive-bearing tree decides the gate even though the mutable
+    # checkout no longer carries the file.
+    repo, sha = _fixture_repo(tmp_path, with_primitive=True, decoy=True,
+                              name="src2")
+    shim = _systemctl_shim(tmp_path, {
+        "LoadState": "loaded", "NeedDaemonReload": "no", "ActiveState": "active",
+        "WorkingDirectory": "/opt/terminal/terminal", "ControlGroup": UNIT_CGROUP,
+        "ExecStartPre": "", "ExecStartPost": "", "ExecCondition": "", "ExecStopPost": "", "RootDirectory": "", "RootImage": "", "PAMName": "",
+        "Environment": PROD_CLOSED_ENV,
+        "EnvironmentFiles": "",
+        "PassEnvironment": "",
+        "UnsetEnvironment": "",
+        "ExecStart": EXEC_START_NPM,
+    })
+    result = run_gen(
+        f"""
+        {_owner_globals(repo, app)}
+        decision=$(investigation_install_state "{sha}" prestart); rc=$?
+        printf 'STATE=%s\\n' "$decision"
+        """,
+        env=shim,
+    )
+    assert "STATE=explicitly-closed" in result.stdout, (
+        result.stdout + result.stderr
+    )
+
+
+def test_phase_and_identity_arguments_are_validated(tmp_path):
+    repo, sha = _fixture_repo(tmp_path, with_primitive=False)
+    app = tmp_path / "app"
+    app.mkdir()
+    result = run_gen(
+        f"""
+        {_owner_globals(repo, app)}
+        investigation_install_state "{sha}" someday; printf 'PHASE=%s\\n' "$?"
+        investigation_install_state "" prestart; printf 'EMPTY=%s\\n' "$?"
+        investigation_install_state "abc" prestart; printf 'SHORT=%s\\n' "$?"
+        """,
+    )
+    assert "PHASE=64" in result.stdout
+    assert "EMPTY=65" in result.stdout
+    assert "SHORT=65" in result.stdout
+
+
+def test_restoration_gate_allows_qualified_prior_and_withholds_unknown(
+    tmp_path,
+):
+    repo, sha = _fixture_repo(tmp_path, with_primitive=True)
+    app = tmp_path / "app"
+    app.mkdir()
+    shim = _systemctl_shim(tmp_path, {
+        "LoadState": "loaded", "NeedDaemonReload": "no", "ActiveState": "active",
+        "WorkingDirectory": "/opt/terminal/terminal", "ControlGroup": UNIT_CGROUP,
+        "ExecStartPre": "", "ExecStartPost": "", "ExecCondition": "", "ExecStopPost": "", "RootDirectory": "", "RootImage": "", "PAMName": "",
+        "Environment": PROD_CLOSED_ENV,
+        "EnvironmentFiles": "",
+        "PassEnvironment": "",
+        "UnsetEnvironment": "",
+        "ExecStart": EXEC_START_NPM,
+    })
+    result = run_gen(
+        f"""
+        {_owner_globals(repo, app)}
+        investigation_restoration_activation_allowed "{sha}"; printf 'CLOSED=%s\\n' "$?"
+        investigation_restoration_activation_allowed "{"f" * 40}"; printf 'UNKNOWN=%s\\n' "$?"
+        """,
+        env=shim,
+    )
+    assert "CLOSED=0" in result.stdout
+    assert "UNKNOWN=1" in result.stdout
+
+
+def test_poststart_refuses_with_no_running_process_without_proc_reads(
+    tmp_path,
+):
+    repo, sha = _fixture_repo(tmp_path, with_primitive=True)
+    app = tmp_path / "app"
+    app.mkdir()
+    shim = _systemctl_shim(tmp_path, {
+        "LoadState": "loaded", "NeedDaemonReload": "no", "ActiveState": "active",
+        "WorkingDirectory": "/opt/terminal/terminal", "ControlGroup": UNIT_CGROUP,
+        "ExecStartPre": "", "ExecStartPost": "", "ExecCondition": "", "ExecStopPost": "", "RootDirectory": "", "RootImage": "", "PAMName": "",
+        "Environment": PROD_CLOSED_ENV,
+        "EnvironmentFiles": "",
+        "PassEnvironment": "",
+        "UnsetEnvironment": "",
+        "ExecStart": EXEC_START_NPM,
+        "ActiveState": "inactive",
+    })
+    result = run_gen(
+        f"""
+        {_owner_globals(repo, app)}
+        require_investigation_closed_after_start "{sha}" "build-1"; printf 'HOOK=%s\\n' "$?"
+        """,
+        env=shim,
+    )
+    assert "HOOK=65" in result.stdout, result.stdout + result.stderr
+    assert "service-not-active" in result.stderr
+
+
+@pytest.mark.parametrize("sentinel", ["MMX-SECRET-SENTINEL"])
+def test_refusals_never_leak_secret_values(tmp_path, sentinel):
+    repo, sha = _fixture_repo(tmp_path, with_primitive=True)
+    app = tmp_path / "app"
+    app.mkdir()
+    (app / ".env.production").write_text(
+        f"OTHER_SECRET={sentinel}\nINVESTIGATION_API_ADMISSION=closed\n",
+        encoding="utf-8")
+    os.chmod(app / ".env.production", 0o600)
+    shim = _systemctl_shim(tmp_path, {
+        "LoadState": "loaded",
+        "Environment": f'"OTHER={sentinel}" {PROD_CLOSED_ENV}',
+        "EnvironmentFiles": "",
+        "PassEnvironment": "",
+        "UnsetEnvironment": "",
+        "ExecStart": EXEC_START_NPM,
+    })
+    result = run_gen(
+        f"""
+        {_owner_globals(repo, app)}
+        require_investigation_closed_before_start "{sha}"; printf 'HOOK=%s\\n' "$?"
+        """,
+        env=shim,
+    )
+    assert "HOOK=65" in result.stdout, result.stdout + result.stderr
+    combined = result.stdout + result.stderr
+    assert sentinel not in combined, combined
+    assert re.search(r"reason=[a-z0-9-]+\n?$", combined.strip()), combined
+    for line in combined.strip().splitlines():
+        assert line.startswith(("[build] ", "HOOK=", "STATE=")), line
+
+
+def test_refusals_leave_no_filesystem_effects(tmp_path):
+    repo, sha = _fixture_repo(tmp_path, with_primitive=True)
+    app = tmp_path / "app"
+    app.mkdir()
+    # Establish every fixture file before measuring the refused operation.
+    shim = _systemctl_shim(tmp_path, {"LoadState": "not-found"})
+    before_manifest = _tree_manifest(tmp_path)
+    before = _tree_digest(tmp_path)
+    result = run_gen(
+        f"""
+        {_owner_globals(repo, app)}
+        require_investigation_closed_before_start "{sha}"; printf 'HOOK=%s\\n' "$?"
+        """,
+        env=shim,
+    )
+    combined = result.stdout + result.stderr
+    assert "HOOK=65" in result.stdout, combined
+    assert "reason=unit-configuration-unqualified" in combined, combined
+    after = _tree_digest(tmp_path)
+    after_manifest = _tree_manifest(tmp_path)
+    changes = {
+        path: {"before": before_manifest.get(path), "after": after_manifest.get(path)}
+        for path in sorted(before_manifest.keys() | after_manifest.keys())
+        if before_manifest.get(path) != after_manifest.get(path)
+    }
+    assert after == before, (
+        "a refused admission must not mutate the checkout, app root or repo; "
+        f"before={before}; after={after}; "
+        f"changes={json.dumps(changes, sort_keys=True)}; "
+        f"stdout={result.stdout!r}; stderr={result.stderr!r}"
+    )
+
+
+# ── wiring: every candidate start/restart and the rollback paths ────────────
+def _numbered_body() -> list[str]:
+    return _main_body(code_only=True).splitlines()
+
+
+def _positions(lines: list[str], needle: str) -> list[int]:
+    return [index for index, line in enumerate(lines) if needle in line]
+
+
+def test_precheck_follows_admission_and_precedes_mutations_everywhere():
+    body = _main_body(code_only=True)
+    lines = body.splitlines()
+    hooks = _positions(lines, "require_investigation_closed_before_start")
+    assert len(hooks) >= 5, hooks  # three entrances + two immediate repeats
+    ordinary_admit = body.index("admit_target_sha")
+    ordinary_reset = body.index('git -C "$SRC" reset -q --hard "$TARGET_SHA"')
+    assert any(ordinary_admit < body.index(
+        'require_investigation_closed_before_start "$TARGET_SHA"', ordinary_admit)
+        < ordinary_reset for _ in [0]), "ordinary entrance precheck is misplaced"
+    bootstrap_provision = body.index("beta_bootstrap_provision")
+    assert body.rindex(
+        'require_investigation_closed_before_start "$TARGET_SHA"',
+        0, bootstrap_provision) > body.rindex(
+        "admit_target_sha", 0, bootstrap_provision), (
+        "bootstrap precheck must follow admission and precede provisioning")
+    recover = body.index("beta_txn_recover")
+    assert body.rindex(
+        'require_investigation_closed_before_start "$TARGET_SHA"',
+        0, recover) > body.rindex("admit_target_sha", 0, recover), (
+        "recovery precheck must follow admission and precede recovery claim")
+
+
+def test_every_candidate_start_and_restart_is_instantly_preceded():
+    lines = _numbered_body()
+    starts = _positions(lines, 'if ! systemctl start "$SERVICE_NAME"')
+    beta_restarts = _positions(lines, 'if ! systemctl restart "$SERVICE_NAME"')
+    prod_restart = _positions(lines, "if ! systemctl restart terminal; then")
+    assert len(starts) == 1 and len(prod_restart) == 1
+    assert len(beta_restarts) == 2, beta_restarts  # activation + final reflection
+    guarded = starts + beta_restarts + prod_restart
+    for position in guarded:
+        window = "\n".join(lines[max(0, position - 6):position])
+        assert "require_investigation_closed_before_start" in window, (
+            f"an unguarded candidate start at body line {position}:\n{window}"
+        )
+
+
+def test_poststart_precedes_every_acceptance():
+    lines = _numbered_body()
+    text = "\n".join(lines)
+    activation = text.index('require_investigation_closed_after_start "$FULL_SHA"')
+    tuple_check = text.index("shared_shell_status_verified")
+    assert activation < tuple_check, (
+        "the pending beta acceptance tuple must run after the poststart gate"
+    )
+    library = _library_text()
+    commit_start = library.index("beta_txn_commit(){")
+    commit_body = library[commit_start:library.index("\n}", commit_start)]
+    gate = commit_body.index("require_investigation_closed_after_start")
+    assert gate < commit_body.index("shared_shell_status_verified"), (
+        "beta transaction acceptance must be preceded by the poststart gate"
+    )
+    assert commit_body.index('[ "$TARGET" = beta ] || return 0') < gate, (
+        "the commit gate must stay beta-only like the rest of beta_txn_commit"
+    )
+
+
+def test_rollback_restoration_is_gated_but_source_restoration_is_not():
+    library = _library_text()
+    abort_start = library.index("beta_txn_abort(){")
+    abort_body = library[abort_start:library.index("\n}", abort_start)]
+    reset = abort_body.index('git -C "$SRC" reset -q --hard "$BETA_PRIOR_SHA"')
+    restart = abort_body.index('systemctl restart "$SERVICE_NAME"')
+    gate = abort_body.index("investigation_restoration_activation_allowed")
+    assert reset < gate < restart, (
+        "the restoration gate must wrap only the reactivation, never the "
+        "source/build restoration"
+    )
+    production = library[library.index("deploy_generation_abort(){"):]
+    production = production[:production.index("\n}")]
+    assert production.index("deploy_generation_rollback") < production.index("investigation_restoration_activation_allowed") < production.index("systemctl restart terminal")
+    assert "require_investigation_closed_after_start" in production
+    for frozen in ("deploy_generation_rollback(){",):
+        start = library.index(frozen)
+        body = library[start:library.index("\n}", start)]
+        assert "investigation_" not in body, (
+            f"{frozen} must keep its incumbent restoration behavior verbatim"
+        )
+    for restore in ("recover_canonical_head_mismatch(){",
+                    "cleanup_deploy_attempt(){"):
+        start = library.index(restore)
+        body = library[start:library.index("\n}", start)]
+        assert "investigation_" not in body
+
+
+def test_verifier_is_read_only_by_construction(verifier):
+    text = _library_text()
+    marker = "<<'PY_INVESTIGATION_INSTALL'"
+    start = text.index(marker) + len(marker) + 1
+    end = text.index("\nPY_INVESTIGATION_INSTALL\n", start)
+    extracted = text[start:end]
+    for forbidden in (
+        "O_WRONLY", "O_CREAT", "O_TRUNC", "O_RDWR",
+        "os.truncate", "os.unlink", "os.remove", "os.rename", "os.replace",
+        "os.mkdir", "os.makedirs", "os.chmod", "os.chown", "shutil",
+        "subprocess.run([\"systemctl\", \"start\"",
+        "systemctl restart", "systemctl stop", "systemctl set-environment",
+        "daemon-reload", "copyfile",
+        'open(path, "w', 'open(path, \'w', "write_text",
+    ):
+        assert forbidden not in extracted, forbidden
+    assert "O_RDONLY | getattr" in extracted
+    writes = [line for line in extracted.splitlines()
+              if ".write" in line and "stderr.write" not in line]
+    assert writes == [], writes
+
+
+def test_verifier_has_no_flag_or_environment_bypass():
+    text = _library_text()
+    marker = "<<'PY_INVESTIGATION_INSTALL'"
+    start = text.index(marker) + len(marker) + 1
+    end = text.index("\nPY_INVESTIGATION_INSTALL\n", start)
+    extracted = text[start:end]
+    for forbidden in ("os.environ", "getenv", "input(", "argparse",
+                      "--fake", "--root=", "--bypass", "--skip"):
+        assert forbidden not in extracted, forbidden
+    bash_wrapper = text[text.index("investigation_install_state(){"):]
+    bash_wrapper = bash_wrapper[:bash_wrapper.index("\n}\n")]
+    assert "PY_INVESTIGATION_INSTALL" in bash_wrapper
+    assert bash_wrapper.count('python3 -I - "$SRC"') == 1
+    assert "INVESTIGATION" + "_OVERRIDE" not in text
+
+
+def test_empty_tree_identity_must_still_be_a_commit(verifier):
+    host = FakeGitHost(tree_listing=b"", object_kind="tree")
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]):
+        verifier["main"](["/app", NEW_SHA, "prestart", "/app", "terminal", "/app", "production"])
+
+
+def test_env_scan_overflow_refuses_instead_of_hiding_a_late_key(verifier):
+    text = "# line\n" * verifier["MAX_SCAN_LINES"] + "INVESTIGATION_API_ADMISSION=open\n"
+    with pytest.raises(verifier["Refused"]):
+        verifier["admission_values_in_text"](text)
+
+
+def test_unit_mainpid_change_is_not_a_stable_poststart_binding(verifier):
+    host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_prod_unit(ActiveState="active", MainPID=str(MAIN_PID)))
+    install_proc_fakes(verifier, serving_fixture(), (7, 99))
+    host.install(verifier)
+    original = verifier["unit_property"]
+    reads = []
+    def moving_unit(unit, prop):
+        if prop == "MainPID":
+            reads.append(prop)
+            return str(MAIN_PID if len(reads) == 1 else MAIN_PID + 100)
+        return original(unit, prop)
+    verifier["unit_property"] = moving_unit
+    with pytest.raises(verifier["Refused"]):
+        verifier["main"](["/app", NEW_SHA, "poststart", "/app", "terminal", "/app", "production"])
+
+
+@pytest.mark.parametrize("prop", ["ExecStartPre", "ExecStartPost", "ExecCondition", "ExecStopPost", "PAMName"])
+def test_unsupported_service_launch_hooks_refuse(verifier, prop):
+    host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_prod_unit(**{prop: "/untrusted/hook"}))
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]):
+        verifier["main"](["/app", NEW_SHA, "prestart", "/app", "terminal", "/app", "production"])
+
+
+@pytest.mark.parametrize("hook", ["prestart", "poststart"])
+def test_npm_lifecycle_hook_is_not_a_supported_next_launch(verifier, hook):
+    host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_prod_unit(),
+                      package=json.dumps({"scripts": {"start": "next start", hook: "untrusted-hook"}}).encode())
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]):
+        verifier["main"](["/app", NEW_SHA, "prestart", "/app", "terminal", "/app", "production"])
+
+
+@pytest.mark.parametrize("pid", [MAIN_PID, SHIM_PID])
+def test_every_launcher_initial_environment_is_also_closed(verifier, pid):
+    host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_prod_unit(ActiveState="active", MainPID=str(MAIN_PID)))
+    procs = serving_fixture(); procs[pid]["environ"] = b"INVESTIGATION_API_ADMISSION=open\0"
+    install_proc_fakes(verifier, procs, (7, 99)); host.install(verifier)
+    with pytest.raises(verifier["Refused"]):
+        verifier["main"](["/app", NEW_SHA, "poststart", "/app", "terminal", "/app", "production"])
+
+
+@pytest.mark.parametrize("argv", [["npm run start"], ["/usr/bin/node", "/usr/bin/npm", "run", "start"]])
+def test_supported_production_npm_process_titles(verifier, argv, capsys):
+    host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_prod_unit(ActiveState="active", MainPID=str(MAIN_PID)))
+    procs = serving_fixture(); procs[MAIN_PID]["cmdline"] = argv
+    install_proc_fakes(verifier, procs, (7, 99)); host.install(verifier)
+    assert verifier["main"](["/app", NEW_SHA, "poststart", "/app", "terminal", "/app", "production"]) == 0
+    assert capsys.readouterr().out.strip() == "explicitly-closed"
+
+
+def test_full_process_cap_is_not_a_truncation_bypass(verifier):
+    host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_prod_unit(ActiveState="active", MainPID=str(MAIN_PID)))
+    procs = serving_fixture(); procs[SERVER_PID]["children"] = [99999]
+    verifier["MAX_PROCS"] = 3
+    install_proc_fakes(verifier, procs, (7, 99)); host.install(verifier)
+    with pytest.raises(verifier["Refused"]):
+        verifier["main"](["/app", NEW_SHA, "poststart", "/app", "terminal", "/app", "production"])
+
+
+def test_late_descendant_cannot_escape_the_poststart_inventory(verifier):
+    host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_prod_unit(ActiveState="active", MainPID=str(MAIN_PID)))
+    procs = serving_fixture(); install_proc_fakes(verifier, procs, (7, 99)); host.install(verifier)
+    original = verifier["proc_children"]; reads = []
+    def moving_children(pid):
+        if pid == MAIN_PID:
+            reads.append(pid)
+            if len(reads) > 1:
+                return [SHIM_PID, 99999]
+        return original(pid)
+    verifier["proc_children"] = moving_children
+    with pytest.raises(verifier["Refused"]):
+        verifier["main"](["/app", NEW_SHA, "poststart", "/app", "terminal", "/app", "production"])
+
+
+@pytest.mark.parametrize("key", ["NODE_OPTIONS", "npm_config_script_shell"])
+def test_launch_environment_override_refuses_without_disclosing_value(verifier, key):
+    host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_prod_unit(
+        Environment=PROD_CLOSED_ENV + f' "{key}=private-sentinel"'))
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host)
+    assert raised.value.code == "unsupported-launch-environment-override"
+    assert "private-sentinel" not in str(raised.value)
+
+
+def test_beta_direct_next_mainpid_supported_closed_process(verifier, tmp_path, capsys):
+    app = tmp_path / "app"
+    app.mkdir()
+    env_file = tmp_path / "environment"
+    env_file.write_text("INVESTIGATION_API_ADMISSION=closed\n")
+    procs = serving_fixture()
+    server = procs[SERVER_PID]
+    server["stat"] = fake_stat(SERVER_PID, "next-server (v16)", 1)
+    server["cgroup"] = "/system.slice/terminal-beta.service"
+    install_proc_fakes(verifier, {SERVER_PID: server}, (7, 99))
+    host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_beta_unit(
+        str(env_file), MainPID=str(SERVER_PID)))
+    host.install(verifier)
+    assert verifier["main"](["/repo", NEW_SHA, "poststart", str(app),
+                              "terminal-beta", str(tmp_path), "beta"]) == 0
+    assert capsys.readouterr().out.strip() == "explicitly-closed"
+
+
+@pytest.mark.parametrize("prior,closed,post_ok,expected_actions", [
+    ("old", False, True, "restart terminal"),
+    ("candidate", True, True, "restart terminal"),
+    ("candidate", False, True, "stop terminal"),
+    ("unknown", True, True, "stop terminal"),
+    ("candidate", True, False, "restart terminal\nstop terminal"),
+])
+def test_production_abort_restores_real_generation_before_qualified_activation(
+    tmp_path, prior, closed, post_ok, expected_actions
+):
+    # Real source identity/config classification and generation restoration;
+    # only the external service effects and post-start process observation are
+    # fake. The process classifier has separate positive/negative fixtures.
+    repo, sha = _fixture_repo(tmp_path, with_primitive=prior == "candidate")
+    prior_sha = "f" * 40 if prior == "unknown" else sha
+    app = tmp_path / "app"
+    app.mkdir()
+    (app / ".deployment-id").write_text(prior_sha + "\n")
+    (app / ".next").mkdir()
+    (app / ".next" / "BUILD_ID").write_text("prior-build\n")
+    staged = tmp_path / "staged"
+    staged.write_text(NEW_SHA + "\n")
+    shim = _systemctl_shim(tmp_path, closed_prod_unit(
+        Environment=PROD_CLOSED_ENV if closed else PROD_OPEN_ENV))
+    calls = tmp_path / "service-calls"
+    post = tmp_path / "post-calls"
+    result = run_gen(f'''
+        {_owner_globals(repo, app)}
+        systemctl() {{ printf '%s\\n' "$*" >> "{calls}"; }}
+        require_investigation_closed_after_start() {{
+          printf '%s %s\\n' "$1" "$2" >> "{post}"
+          test "$(cat "$APP/.deployment-id")" = "{prior_sha}" || return 99
+          test "$(cat "$APP/.next/BUILD_ID")" = prior-build || return 99
+          return {0 if post_ok else 65}
+        }}
+        deploy_generation_begin "$APP" "{staged}"
+        mv "$APP/.next" "$APP/.next.bak"
+        mkdir "$APP/.next"
+        printf 'failed-build\\n' > "$APP/.next/BUILD_ID"
+        deploy_generation_abort "$APP" "{NEW_SHA}" 1 fixture-failure
+        printf 'ABORT_RC=%s\\n' "$?"
+    ''', env=shim)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "ABORT_RC=1" in result.stdout
+    assert (app / ".deployment-id").read_text().strip() == prior_sha
+    assert (app / ".next" / "BUILD_ID").read_text().strip() == "prior-build"
+    assert (app / ".next.broken" / "BUILD_ID").read_text().strip() == "failed-build"
+    assert calls.read_text().strip() == expected_actions
+    if expected_actions.startswith("restart"):
+        assert post.read_text().strip() == f"{prior_sha} prior-build"
+    else:
+        assert not post.exists()
+    if "stop" in expected_actions:
+        assert "ROLLBACK INCOMPLETE" in result.stdout
+    else:
+        assert "rolled back —" in result.stdout
+
+
+@pytest.mark.parametrize("post_ok", [True, False])
+def test_actual_production_acceptance_branch_routes_poststart_failure(tmp_path, post_ok):
+    text = _library_text()
+    start = text.index("DEPLOY_OK=1", text.index("# 7) Beta activates"))
+    end = text.index("\nfi\n\n# 8) RUNTIME-CODE SYNC", start)
+    branch = text[start:end]
+    # Execute the exact acceptance branch with all external dependencies faked.
+    result = run_gen(f'''
+        APP="{tmp_path}"
+        FULL_SHA={NEW_SHA}
+        NEW_BUILD_ID=fixture-build
+        SWAPPED=1
+        PRODUCTION_SHARED_SHELL_ENABLED=0
+        curl() {{ return 0; }}
+        deploy_identity_verified() {{ return 0; }}
+        require_investigation_closed_after_start() {{ echo POSTSTART; return {0 if post_ok else 65}; }}
+        deploy_generation_commit() {{ echo COMMITTED; }}
+        deploy_generation_abort() {{ echo ABORTED; return 1; }}
+        {branch}
+    ''')
+    assert "POSTSTART" in result.stdout
+    assert ("COMMITTED" in result.stdout) == post_ok
+    assert ("ABORTED" in result.stdout) != post_ok
+    assert result.returncode == (0 if post_ok else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("source", ["candidate", "live"])
+def test_project_local_npm_override_is_not_supported(verifier, tmp_path, source):
+    app = tmp_path / "app"
+    app.mkdir()
+    listing = primitive_entry()
+    if source == "candidate":
+        listing += tree_listing_for({"terminal/.npmrc": "100644"})
+    else:
+        (app / ".npmrc").write_text("script-shell=${PRIVATE_SHELL}\n")
+    host = FakeGitHost(tree_listing=listing, unit=closed_prod_unit())
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "unsupported-project-npm-configuration"
+
+
+def test_empty_project_npm_config_is_supported(verifier, tmp_path, capsys):
+    app = tmp_path / "app"
+    app.mkdir()
+    (app / ".npmrc").write_text("# no overrides\n\n")
+    assert _decide(verifier, FakeGitHost(tree_listing=primitive_entry(),
+                                        unit=closed_prod_unit()), app=app) == 0
+    assert capsys.readouterr().out.strip() == "explicitly-closed"
+
+
+def test_configured_fifo_is_refused_without_blocking_open(tmp_path):
+    fifo = tmp_path / "configured-env"
+    os.mkfifo(fifo)
+    # A child timeout makes the original blocking-open defect a bounded test
+    # failure; execute only the exact read-only inline collector, never main.
+    program = '''from pathlib import Path
+import sys
+text=Path(sys.argv[1]).read_text()
+marker="<<'PY_INVESTIGATION_INSTALL'"
+start=text.index(marker)+len(marker)+1
+body=text[start:text.index("\\nPY_INVESTIGATION_INSTALL\\n",start)]
+ns={"__name__":"fifo_collector_test"}
+exec(compile(body,"<exact inline verifier>","exec"),ns)
+try:
+ ns["read_bounded_regular_file"](sys.argv[2],1024,"env-file")
+except ns["Refused"] as error:
+ print(error.code)
+ raise SystemExit(65)
+raise SystemExit(1)
+'''
+    result = subprocess.run([sys.executable, "-c", program, str(SCRIPT), str(fifo)],
+                            capture_output=True, text=True, timeout=5)
+    assert result.returncode == 65, result.stderr
+    assert result.stdout.strip() == "env-file-not-regular"
+
+
+@pytest.mark.parametrize("profile", ["production", "beta"])
+def test_after_build_recheck_refuses_before_any_live_generation_mutation(tmp_path, profile):
+    text = _library_text()
+    start = text.index('if ! require_investigation_closed_before_start "$FULL_SHA";',
+                       text.index("# 4) verify the new build"))
+    end = text.index("# 5) Pin the same deployment id", start)
+    block = text[start:end]
+    generation = text.index('deploy_generation_begin "$APP" "$STAGE/.deployment-id"', end)
+    swap = text.index('# 6) atomic swap', generation)
+    assert start < end < generation < swap
+    app = tmp_path / "app"
+    app.mkdir()
+    marker = app / ".deployment-id"
+    marker.write_text(OLD_SHA + "\n")
+    result = run_gen(f'''
+        TARGET={profile}
+        FULL_SHA={NEW_SHA}
+        trap 'echo EXISTING_EXIT_CLEANUP' EXIT
+        require_investigation_closed_before_start() {{ return 65; }}
+        beta_txn_abort() {{ echo EXISTING_BETA_ABORT; return 1; }}
+        {block}
+        printf MUTATED > "{marker}"
+    ''')
+    assert result.returncode == (1 if profile == "beta" else 65)
+    assert marker.read_text().strip() == OLD_SHA
+    assert "EXISTING_EXIT_CLEANUP" in result.stdout
+    assert ("EXISTING_BETA_ABORT" in result.stdout) == (profile == "beta")
+
+
+def test_actual_installed_package_hooks_refuse_even_when_lock_unchanged(tmp_path):
+    repo, sha = _fixture_repo(tmp_path, with_primitive=True)
+    app = tmp_path / "app"
+    app.mkdir()
+    # Unchanged locks select the incumbent path that skips package reflection
+    # until after first restart. The actual old package must be classified too.
+    for parent in (repo / "terminal", app):
+        (parent / "package-lock.json").write_text("same-lock\n")
+    (app / "package.json").write_text(json.dumps({"scripts": {
+        "start": "next start", "prestart": "private-command"}}))
+    shim = _systemctl_shim(tmp_path, closed_prod_unit())
+    result = run_gen(f'''
+        {_owner_globals(repo, app)}
+        require_investigation_closed_before_start "{sha}"
+        printf 'RC=%s\\n' "$?"
+    ''', env=shim)
+    assert "RC=65" in result.stdout
+    assert "unsupported-start-command" in result.stderr
+    assert "private-command" not in result.stdout + result.stderr
+    assert (app / "package-lock.json").read_bytes() == (repo / "terminal" / "package-lock.json").read_bytes()
+
+
+@pytest.mark.parametrize("prop,value", [
+    ("Environment", PROD_CLOSED_ENV + ' "PATH=/alternate"'),
+    ("Environment", PROD_CLOSED_ENV + ' "HOME=/alternate"'),
+    ("Environment", PROD_CLOSED_ENV + ' "npm_config_workspace=other"'),
+    ("PassEnvironment", "NODE_OPTIONS"),
+    ("UnsetEnvironment", "npm_config_script_shell"),
+])
+def test_selected_launch_config_indirections_are_not_supported(verifier, prop, value):
+    host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_prod_unit(**{prop: value}))
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host)
+    assert raised.value.code == "unsupported-launch-environment-override"
+
+
+def test_trusted_manager_defaults_and_npm_injected_metadata_remain_supported(verifier, capsys):
+    procs = serving_fixture()
+    for proc in procs.values():
+        proc["environ"] += b"PATH=/usr/bin\0HOME=/root\0npm_config_user_agent=npm/10\0"
+    install_proc_fakes(verifier, procs, (7, 99))
+    host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_prod_unit(MainPID=str(MAIN_PID)),
+                       manager="PATH=/usr/bin\nHOME=/root\n")
+    host.install(verifier)
+    assert verifier["main"](["/repo", NEW_SHA, "poststart", "/app", "terminal", "/tmp", "production"]) == 0
+    assert capsys.readouterr().out.strip() == "explicitly-closed"
+
+
+@pytest.mark.parametrize("source", ["env-file", "dotenv"])
+def test_selected_file_launch_overrides_refuse(verifier, tmp_path, source):
+    app = tmp_path / "app"
+    app.mkdir()
+    if source == "env-file":
+        env_file = tmp_path / "environment"
+        env_file.write_text("INVESTIGATION_API_ADMISSION=closed\nnpm_config_workspace=other\n")
+        host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_beta_unit(str(env_file)))
+        args = dict(profile="beta", unit_name="terminal-beta", env_dir=str(tmp_path))
+    else:
+        (app / ".env.local").write_text("HOME: /alternate\n")
+        host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_prod_unit())
+        args = {}
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app, **args)
+    assert raised.value.code == "unsupported-launch-environment-override"
+
+
+@pytest.mark.parametrize(("prefix", "separator"), [
+    ("", " "), ("", "\t"), ("\ufeff", ""), ("", "\ufeff"),
+])
+def test_next_supported_export_whitespace_cannot_hide_launch_override(verifier, prefix, separator):
+    # Next's dotenv parser accepts export\s+, including a tab. The known key
+    # must be refused before activation for every supported export separator.
+    declaration_prefix = prefix + ("export" + separator if separator else "")
+    assert verifier["admission_values_in_text"](
+        declaration_prefix + "INVESTIGATION_API_ADMISSION=closed\n") == ["closed"]
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["refuse_file_launch_overrides"](
+            declaration_prefix + "NODE_OPTIONS=--require=fixture-preload\n", selected=True)
+    assert raised.value.code == "unsupported-launch-environment-override"
+
+
+@pytest.mark.parametrize("content", [
+    "export INVESTIGATION_API_ADMISSION=closed\n",
+    "INVESTIGATION_API_ADMISSION: closed\n",
+    'OTHER="first\nINVESTIGATION_API_ADMISSION=closed\nlast"\n',
+    "OTHER=first\\\nINVESTIGATION_API_ADMISSION=closed\n",
+    "\ufeffINVESTIGATION_API_ADMISSION=closed\n",
+    "OTHER=first\u0085INVESTIGATION_API_ADMISSION=closed\n",
+    'INVESTIGATION_API_ADMISSION=" closed "\n',
+])
+def test_systemd_environment_file_never_credits_dotenv_or_absorbed_assignments(verifier, tmp_path, content):
+    env_file = tmp_path / "environment"
+    env_file.write_text(content)
+    app = tmp_path / "app"
+    app.mkdir()
+    host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_beta_unit(str(env_file)))
+    with pytest.raises(verifier["Refused"]):
+        _decide(verifier, host, app=app, profile="beta", unit_name="terminal-beta", env_dir=str(tmp_path))
+
+
+@pytest.mark.parametrize("value", ["closed", '"closed"', "'closed'"])
+def test_systemd_environment_file_supported_single_line_declaration(verifier, tmp_path, value):
+    env_file = tmp_path / "environment"
+    env_file.write_text('# comment\nNODE_ENV=production\nOTHER="opaque text"\nINVESTIGATION_API_ADMISSION=' + value + '\n')
+    app = tmp_path / "app"
+    app.mkdir()
+    host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_beta_unit(str(env_file)))
+    assert _decide(verifier, host, app=app, profile="beta", unit_name="terminal-beta", env_dir=str(tmp_path)) == 0
+
+
+# ── canonical production ExecStartPre hook contract ──────────────────────────
+# The two approved production prehooks are bound the way the deployment shows
+# them: declaring drop-ins as real bounded files, typed effective argv as an
+# injected busctl reply and the guard body as an injected reader. Custody
+# fakes use os.geteuid() exactly as the deployed verifier does: it always runs
+# under the privileged installer identity, so root custody on the deployment
+# host is this same effective identity. No fixture executes anything.
+
+APPROVED_BUILD_ID_COMMAND = (
+    "test -f /opt/terminal/terminal/.next/BUILD_ID || "
+    "{ echo no-build-refusing-start; exit 1; }")
+APPROVED_GUARD_PATH = "/usr/local/sbin/terminal-volume-guard"
+PINNED_GUARD_SHA256 = (
+    "1a7e39a4188d9dcfd55907e741a1b27850ed65835f4525cc6bc3a48eca122de9")
+HARDENING_DROPIN_TEXT = (
+    "[Service]\n"
+    'ExecStartPre=/bin/sh -c "test -f /opt/terminal/terminal/.next/BUILD_ID || '
+    '{ echo no-build-refusing-start; exit 1; }"\n'
+    "NoNewPrivileges=yes\n"
+)
+STORAGE_DROPIN_TEXT = (
+    "[Service]\n"
+    "ExecStartPre=/usr/local/sbin/terminal-volume-guard --service\n"
+    "ProtectSystem=strict\n"
+)
+NEUTRAL_DROPIN_TEXT = "[Service]\nEnvironment=MMX_TICKER_CACHE=1\n"
+GUARD_SCRIPT_BODY = "\n".join([
+    "#!/bin/bash",
+    "set -euo pipefail",
+    'if [[ "${1:-}" != --service && -e /etc/terminal-storage-maintenance ]]; '
+    "then exit 75; fi",
+    "check_mount() {",
+    " local rec uuid kind root extra",
+    ' rec=$(findmnt -rn --mountpoint "$1" -o UUID,FSTYPE,FSROOT) || return 1',
+    ' [[ -n "$rec" && "$rec" != *$' + "'" + "\\n" + "'*" + " ]] || return 1",
+    ' read -r uuid kind root extra <<< "$rec"',
+    ' [[ "$uuid" == 71dc6155-3f93-4370-a971-b89a6d87a203 && "$kind" == ext4 '
+    '&& "$root" == "$2" && -z "$extra" ]]',
+    "}",
+    "check_mount /mnt/terminal_storage /",
+    "check_mount /opt/terminal /live-terminal",
+    "[[ \"$(stat -Lc '%d' /opt/terminal)\" == \"$(stat -Lc '%d' "
+    '/mnt/terminal_storage)\" ]]',
+]) + "\n"
+
+
+def hook_identity(link_uid, link_gid, symlink, resolved, target_uid,
+                  target_gid, target_mode, target_regular, target_size):
+    return (link_uid, link_gid, symlink, resolved, target_uid, target_gid,
+            target_mode, target_regular, target_size)
+
+
+def busctl_exec_row(path, argv, ignore_errors=False):
+    # One a(sasbttttuii) row: path, argv, ignore_errors, four timestamps,
+    # exit state fields.
+    return [path, list(argv), ignore_errors, 0, 0, 0, 0, 0, 0, 0]
+
+
+def approved_exec_rows():
+    return [
+        busctl_exec_row("/bin/sh", ["/bin/sh", "-c", APPROVED_BUILD_ID_COMMAND]),
+        busctl_exec_row(APPROVED_GUARD_PATH, [APPROVED_GUARD_PATH, "--service"]),
+    ]
+
+
+def approved_hook_reply(rows=None):
+    return {"type": "a(sasbttttuii)", "data": list(approved_exec_rows() if rows is None else rows)}
+
+
+def write_hook_sources(tmp_path, texts=None):
+    sources = tmp_path / "terminal.service.d"
+    sources.mkdir(exist_ok=True)
+    fragment = tmp_path / "terminal.service"
+    if not fragment.exists():
+        fragment.write_text("[Service]\nType=simple\n")
+    contents = {
+        "boats-history.conf": NEUTRAL_DROPIN_TEXT,
+        "hardening.conf": HARDENING_DROPIN_TEXT,
+        "storage.conf": STORAGE_DROPIN_TEXT,
+        "ticker-news-rail.conf": NEUTRAL_DROPIN_TEXT,
+    }
+    for name, text in (texts or {}).items():
+        contents[name] = text
+    for name, text in contents.items():
+        if text is not None:
+            (sources / name).write_text(text, encoding="utf-8")
+    return sources, contents
+
+
+def approved_dropin_paths(sources,
+                          names=("boats-history.conf", "hardening.conf",
+                                 "storage.conf", "ticker-news-rail.conf")):
+    return " ".join(str(sources / name) for name in names)
+
+
+EXEC_START_PRE_APPROVED = (
+    "{ path=/bin/sh ; argv[]=/bin/sh -c " + APPROVED_BUILD_ID_COMMAND + " ; "
+    "ignore_errors=no ; } "
+    "{ path=/usr/local/sbin/terminal-volume-guard ; "
+    "argv[]=/usr/local/sbin/terminal-volume-guard --service ; "
+    "ignore_errors=no ; }"
+)
+
+
+def approved_hook_host(tmp_path, texts=None, dropin_paths=None, **overrides):
+    sources, _ = write_hook_sources(tmp_path, texts)
+    if dropin_paths is None:
+        dropin_paths = approved_dropin_paths(sources)
+    overrides.setdefault("ExecStartPre", EXEC_START_PRE_APPROVED)
+    overrides.setdefault("ExecSearchPath", "")
+    overrides.setdefault("Id", "terminal.service")
+    overrides.setdefault("FragmentPath", str(tmp_path / "terminal.service"))
+    return FakeGitHost(
+        tree_listing=primitive_entry(), manager="PATH=" + SAFETY_MANAGER_PATH,
+        unit=closed_prod_unit(DropInPaths=dropin_paths, **overrides))
+
+
+def install_hook_fakes(ns, reply=None, identities=None,
+                       guard_body=GUARD_SCRIPT_BODY):
+    reply = approved_hook_reply() if reply is None else reply
+    # Exercise protected manager qualification with its real private files/fds.
+    # Confine its logical OS-path IO to that fixture; the older typed-source
+    # fixtures continue to read their actual owned temporary declaration files.
+    manager_fs = ns.get("_typed_manager_path_fs")
+    if manager_fs is None:
+        original_os = ns["os"]
+        manager_fs = SafetyPathFilesystem(ns)
+        ns["os"] = original_os
+        ns["_typed_manager_path_fs"] = manager_fs
+        ns["_typed_manager_path_qualifier"] = ns["qualify_manager_safety_path"]
+    original_manager_qualifier = ns["_typed_manager_path_qualifier"]
+    def qualified_manager(value):
+        previous_os = ns["os"]
+        ns["os"] = manager_fs.virtual_os
+        try:
+            return original_manager_qualifier(value)
+        finally:
+            ns["os"] = previous_os
+    ns["qualify_manager_safety_path"] = qualified_manager
+    euid = os.geteuid()
+    table = {
+        "/bin/sh": hook_identity(euid, euid, True, "/usr/bin/dash",
+                                 euid, euid, 0o755, True, 129784),
+        APPROVED_GUARD_PATH: hook_identity(
+            euid, euid, False, APPROVED_GUARD_PATH, euid, euid, 0o755, True,
+            len(guard_body)),
+    }
+    table.update(identities or {})
+
+    # Keep real bounded reads on local fixture files. Only the fixed production
+    # path constants are mapped to that fixture, never an approval helper.
+    # FakeGitHost is installed later by _decide, so hook source constants are
+    # set by the loaded unit-property wrapper below rather than host reads.
+    original_classify = ns["classify_supported_prehooks"]
+    def mapped_classify(unit_name):
+        fragment = ns["unit_property"](unit_name, "FragmentPath")
+        ns["PREHOOK_FRAGMENT_PATH"] = fragment
+        ns["PREHOOK_SOURCE_DIR"] = str(Path(fragment).parent / "terminal.service.d")
+        return original_classify(unit_name)
+    ns["classify_supported_prehooks"] = mapped_classify
+
+    def fake_rows(unit_name):
+        return reply
+
+    def fake_identity(path):
+        if path not in table:
+            raise ns["Refused"]("prehook-custody-unavailable")
+        return table[path]
+
+    def fake_guard_body():
+        return guard_body
+
+    ns["unit_execstartpre_rows"] = fake_rows
+    ns["trusted_path_identity"] = fake_identity
+    ns["guard_script_payload"] = fake_guard_body
+    # Real source parser still runs; only nonsecret host filesystem metadata
+    # is injected. Dedicated tests below execute the actual custody checker.
+    ns["qualify_prehook_search_tools"] = lambda directories: None
+    # The joined classifier additionally reads the same fixed production
+    # sources through Lab's source/environment snapshot. Map only these IO
+    # names to the existing temporary fixture; both real classifiers still run.
+    original_safety = ns["classify_production_safety_hooks"]
+    def mapped_safety(profile, unit_name):
+        original_property = ns["unit_property"]
+        fragment = original_property(unit_name, "FragmentPath")
+        source_dir = str(Path(fragment).parent / "terminal.service.d")
+        def canonical_property(unit, prop):
+            value = original_property(unit, prop)
+            if prop == "FragmentPath": return "/etc/systemd/system/terminal.service"
+            if prop == "DropInPaths": return value.replace(source_dir, "/etc/systemd/system/terminal.service.d")
+            return value
+        def fixture_safety_read(path, limit):
+            if path == APPROVED_GUARD_PATH: return guard_body
+            if path == "/etc/systemd/system/terminal.service": path = fragment
+            else: path = path.replace("/etc/systemd/system/terminal.service.d", source_dir)
+            return ns["read_bounded_regular_file"](path, limit, "safety-hook")
+        original_reader = ns["trusted_safety_file"]
+        ns["unit_property"] = canonical_property
+        ns["trusted_safety_file"] = fixture_safety_read
+        try: return original_safety(profile, unit_name)
+        finally:
+            ns["unit_property"] = original_property
+            ns["trusted_safety_file"] = original_reader
+    ns["classify_production_safety_hooks"] = mapped_safety
+
+
+def test_guard_fixture_is_the_exact_deployed_body():
+    assert len(GUARD_SCRIPT_BODY.encode()) == 600
+    assert hashlib.sha256(GUARD_SCRIPT_BODY.encode()).hexdigest() == PINNED_GUARD_SHA256
+
+
+def test_approved_pair_of_prehooks_admit_closed_production(verifier, tmp_path, capsys):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    install_hook_fakes(verifier)
+    assert _decide(verifier, host, app=app) == 0
+    assert capsys.readouterr().out.strip() == "explicitly-closed"
+
+
+def test_approved_prehooks_stay_bound_after_start(verifier, tmp_path, capsys):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path, ActiveState="active", MainPID=str(MAIN_PID))
+    install_hook_fakes(verifier)
+    install_proc_fakes(verifier, serving_fixture(), (7, 99))
+    host.install(verifier)
+    assert verifier["main"](
+        [str(app), NEW_SHA, "poststart", str(app), "terminal", "/tmp",
+         "production"]) == 0
+    assert capsys.readouterr().out.strip() == "explicitly-closed"
+
+
+@pytest.mark.parametrize("environment,code", [
+    (PROD_OPEN_ENV, "unit-admission-not-closed"),
+    ('"NODE_ENV=production"', "missing-explicit-closed"),
+    (PROD_CLOSED_ENV + ' "INVESTIGATION_API_ADMISSION=closed"',
+     "conflicting-admission-declaration"),
+])
+def test_approved_prehooks_do_not_shortcut_closed_admission(
+    verifier, tmp_path, environment, code
+):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path, Environment=environment)
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == code
+
+
+def test_approved_prehooks_do_not_shortcut_dotenv_conflict(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    (app / ".env").write_text("INVESTIGATION_API_ADMISSION=closed\n")
+    host = approved_hook_host(tmp_path)
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "dotenv-admission-conflict"
+
+
+def test_approved_prehooks_do_not_shortcut_poststart_process_environment(
+    verifier, tmp_path
+):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path, ActiveState="active", MainPID=str(MAIN_PID))
+    procs = serving_fixture()
+    procs[SHIM_PID]["environ"] = b"INVESTIGATION_API_ADMISSION=open\0"
+    install_hook_fakes(verifier)
+    install_proc_fakes(verifier, procs, (7, 99))
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        verifier["main"]([str(app), NEW_SHA, "poststart", str(app), "terminal",
+                          "/tmp", "production"])
+    assert raised.value.code == "serving-process-admission-not-closed"
+
+
+VARYING_HOOK_REPLIES = {
+    "reordered": approved_hook_reply(list(reversed(approved_exec_rows()))),
+    "single-hook": approved_hook_reply(approved_exec_rows()[:1]),
+    "duplicated-hook": approved_hook_reply(
+        approved_exec_rows() + approved_exec_rows()[:1]),
+    "changed-buildid-argv": approved_hook_reply([
+        busctl_exec_row("/bin/sh", ["/bin/sh", "-c",
+                                    "test -f /opt/terminal/terminal/.next/BUILD_ID || exit 1"]),
+        approved_exec_rows()[1]]),
+    "changed-guard-argv": approved_hook_reply([
+        approved_exec_rows()[0],
+        busctl_exec_row(APPROVED_GUARD_PATH,
+                        [APPROVED_GUARD_PATH, "--service", "--force"])]),
+    "unrelated-second-hook": approved_hook_reply([
+        approved_exec_rows()[0],
+        busctl_exec_row("/usr/bin/env", ["/usr/bin/env", "unrelated-preload"])]),
+    "unqualified-interpreter": approved_hook_reply([
+        busctl_exec_row("/bin/bash", ["/bin/bash", "-c",
+                                      APPROVED_BUILD_ID_COMMAND]),
+        approved_exec_rows()[1]]),
+    "generic-shell-hook": approved_hook_reply([
+        busctl_exec_row("/bin/sh", ["/bin/sh", "-c", "echo unapproved"]),
+        approved_exec_rows()[1]]),
+    "ignore-errors": approved_hook_reply([
+        approved_exec_rows()[0],
+        busctl_exec_row(APPROVED_GUARD_PATH, [APPROVED_GUARD_PATH, "--service"],
+                        True)]),
+    "path-only-drift": approved_hook_reply([
+        approved_exec_rows()[0],
+        busctl_exec_row(APPROVED_GUARD_PATH,
+                        [APPROVED_GUARD_PATH + ".bak", "--service"])]),
+}
+
+
+@pytest.mark.parametrize("name", sorted(VARYING_HOOK_REPLIES))
+def test_only_the_exact_approved_prehook_pair_is_bound(verifier, tmp_path, name):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    install_hook_fakes(verifier, reply=VARYING_HOOK_REPLIES[name])
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "unsupported-prehook-shape"
+
+
+MALFORMED_HOOK_REPLIES = [
+    "not-a-reply",
+    [],
+    [[]],
+    [["/bin/sh", ["/bin/sh", "-c", APPROVED_BUILD_ID_COMMAND], False,
+      0, 0, 0, 0, 0, 0]],
+    [["/bin/sh", [], False, 0, 0, 0, 0, 0, 0, 0]],
+    [["/bin/sh", ["/bin/sh", "-c", APPROVED_BUILD_ID_COMMAND], "no",
+      0, 0, 0, 0, 0, 0, 0]],
+    [[7, ["/bin/sh", "-c", APPROVED_BUILD_ID_COMMAND], False,
+      0, 0, 0, 0, 0, 0, 0]],
+    [["/bin/sh", ["/bin/sh", "-c", APPROVED_BUILD_ID_COMMAND, 7], False,
+      0, 0, 0, 0, 0, 0, 0]],
+]
+
+
+@pytest.mark.parametrize("reply", MALFORMED_HOOK_REPLIES)
+def test_malformed_typed_prehook_evidence_fails_closed(verifier, tmp_path, reply):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    if isinstance(reply, list):
+        reply = {"type": "a(sasbttttuii)", "data": reply}
+    install_hook_fakes(verifier, reply=reply)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "unsupported-prehook-shape"
+
+
+@pytest.mark.parametrize("prop", [
+    "ExecStartPost", "ExecCondition", "ExecStopPost", "RootDirectory",
+    "RootImage", "PAMName"])
+def test_other_launch_hooks_stay_refused_with_approved_prehooks(
+    verifier, tmp_path, prop
+):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path, **{prop: "/untrusted/hook"})
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "unsupported-service-launch-hook"
+
+
+def test_unapproved_canonical_prehook_still_refuses_hermetically(
+    verifier, tmp_path
+):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(ExecStartPre="/untrusted/hook"))
+    with pytest.raises(verifier["Refused"]):
+        _decide(verifier, host, app=app)
+
+
+def test_other_unit_names_keep_the_zero_hook_refusal(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app, unit_name="terminal-beta")
+    assert raised.value.code == "unsupported-service-launch-hook"
+
+
+def test_beta_profile_keeps_the_zero_hook_refusal(verifier, tmp_path):
+    env_file = tmp_path / "environment"
+    env_file.write_text("INVESTIGATION_API_ADMISSION=closed\n")
+    app = tmp_path / "app"
+    app.mkdir()
+    sources, _ = write_hook_sources(tmp_path)
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_beta_unit(str(env_file), ExecStartPre="/bin/sh -c x",
+                              DropInPaths=approved_dropin_paths(sources)))
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app, profile="beta",
+                unit_name="terminal-beta", env_dir=str(tmp_path))
+    assert raised.value.code == "unsupported-service-launch-hook"
+
+
+def test_missing_declared_owner_fails_closed(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    sources, _ = write_hook_sources(tmp_path)
+    host = approved_hook_host(
+        tmp_path,
+        dropin_paths=f"{sources}/boats-history.conf {sources}/storage.conf")
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-declaration-missing"
+
+    host = approved_hook_host(tmp_path, dropin_paths="")
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-declaration-missing"
+
+
+def test_extra_prehook_declaration_in_another_source_fails_closed(
+    verifier, tmp_path
+):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path, texts={
+        "ticker-news-rail.conf": "[Service]\nExecStartPre=/usr/bin/extra\n"})
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-declaration-extra"
+
+
+@pytest.mark.parametrize("mutated_storage", [
+    "[Service]\nExecStartPre=/usr/local/sbin/terminal-volume-guard --service"
+    " --audit\n",
+    "[Service]\nExecStartPre=\n",
+    "[Service]\nExecStartPre=/usr/local/sbin/terminal-volume-guard"
+    " --service\nExecStartPre=/usr/local/sbin/terminal-volume-guard"
+    " --service\n",
+])
+def test_storage_owner_declaration_is_bound_exactly(verifier, tmp_path,
+                                                    mutated_storage):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path, texts={"storage.conf": mutated_storage})
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-declaration-mismatch"
+
+
+def test_hardening_owner_declaration_is_bound_exactly(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path, texts={
+        "hardening.conf":
+            '[Service]\nExecStartPre=/bin/sh -c "echo substituted"\n'})
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-declaration-mismatch"
+
+
+def test_owner_source_order_and_location_are_bound(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    sources, _ = write_hook_sources(tmp_path)
+    swapped = approved_dropin_paths(
+        sources, names=("boats-history.conf", "storage.conf",
+                        "hardening.conf", "ticker-news-rail.conf"))
+    host = approved_hook_host(tmp_path, dropin_paths=swapped)
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-declaration-ambiguous"
+
+    split_a = tmp_path / "first" / "terminal.service.d"
+    split_b = tmp_path / "second" / "terminal.service.d"
+    split_a.mkdir(parents=True)
+    split_b.mkdir(parents=True)
+    (split_a / "hardening.conf").write_text(HARDENING_DROPIN_TEXT)
+    (split_b / "storage.conf").write_text(STORAGE_DROPIN_TEXT)
+    host = approved_hook_host(
+        tmp_path,
+        dropin_paths=f"{split_a}/hardening.conf {split_b}/storage.conf")
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-declaration-ambiguous"
+
+    misplaced = tmp_path / "elsewhere.d"
+    misplaced.mkdir()
+    (misplaced / "hardening.conf").write_text(HARDENING_DROPIN_TEXT)
+    (misplaced / "storage.conf").write_text(STORAGE_DROPIN_TEXT)
+    host = approved_hook_host(
+        tmp_path, dropin_paths=approved_dropin_paths(misplaced, names=(
+            "hardening.conf", "storage.conf")))
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-declaration-ambiguous"
+
+
+def test_ambiguous_dropin_rendering_fails_closed(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path, dropin_paths="/etc/a.conf /b conf.conf")
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "unit-source-list-unusable"
+
+
+def test_symlinked_owner_source_is_refused(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    sources, contents = write_hook_sources(tmp_path)
+    real = sources / "hardening-real.conf"
+    real.write_text(contents["hardening.conf"])
+    (sources / "hardening.conf").unlink()
+    (sources / "hardening.conf").symlink_to(real)
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(Id="terminal.service", FragmentPath=str(tmp_path / "terminal.service"),
+                              DropInPaths=approved_dropin_paths(sources),
+                              ExecStartPre=EXEC_START_PRE_APPROVED))
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "unit-source-unreadable"
+
+
+def test_writable_owner_source_is_refused(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    sources, _ = write_hook_sources(tmp_path)
+    (sources / "storage.conf").chmod(0o664)
+    host = FakeGitHost(
+        tree_listing=primitive_entry(),
+        unit=closed_prod_unit(Id="terminal.service", FragmentPath=str(tmp_path / "terminal.service"),
+                              DropInPaths=approved_dropin_paths(sources),
+                              ExecStartPre=EXEC_START_PRE_APPROVED))
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "unit-source-group-or-other-writable"
+
+
+@pytest.mark.parametrize("hardening_text,code", [
+    ("[Service]\nNoNewPrivileges=" + chr(92) + "\nyes\n"
+     'ExecStartPre=/bin/sh -c "x"\n',
+     "unit-source-unsupported-syntax"),
+    ("[Service]\nOTHER=a\x00b\n", "unit-source-unsupported-syntax"),
+    ("[Service]\nno assignment here\n", "unit-source-unsupported-syntax"),
+])
+def test_unsupported_owner_source_syntax_fails_closed(verifier, tmp_path,
+                                                      hardening_text, code):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path, texts={"hardening.conf": hardening_text})
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == code
+
+
+def test_changed_guard_body_is_refused_without_execution(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    marker = tmp_path / "envfile-mutation-marker"
+    mutated = GUARD_SCRIPT_BODY.replace(
+        "check_mount /mnt/terminal_storage /",
+        "printf mutated >> " + str(marker) + "\n"
+        "check_mount /mnt/terminal_storage /", 1)
+    assert mutated != GUARD_SCRIPT_BODY
+    host = approved_hook_host(tmp_path)
+    install_hook_fakes(verifier, guard_body=mutated)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-guard-body-mismatch"
+    assert not marker.exists(), "a refused guard body must never run"
+
+
+def test_guard_body_is_bound_beyond_size(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    twiddled = GUARD_SCRIPT_BODY.replace("exit 75", "exit 76")
+    assert len(twiddled.encode()) == 600
+    host = approved_hook_host(tmp_path)
+    install_hook_fakes(verifier, guard_body=twiddled)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-guard-body-mismatch"
+
+
+def test_oversized_guard_body_is_refused(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    install_hook_fakes(verifier, guard_body=GUARD_SCRIPT_BODY + "tail\n")
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-guard-body-mismatch"
+
+
+@pytest.mark.parametrize("guard_identity", [
+    hook_identity(os.geteuid(), os.geteuid(), True, "/usr/local/sbin/other",
+                  os.geteuid(), os.geteuid(), 0o755, True, 600),
+    hook_identity(os.geteuid(), os.geteuid(), False, "/usr/local/sbin/other",
+                  os.geteuid(), os.geteuid(), 0o755, True, 600),
+    hook_identity(os.geteuid() + 1, os.geteuid(), False,
+                  "/usr/local/sbin/terminal-volume-guard", os.geteuid(),
+                  os.geteuid(), 0o755, True, 600),
+    hook_identity(os.geteuid(), os.geteuid(), False,
+                  "/usr/local/sbin/terminal-volume-guard", os.geteuid() + 1,
+                  os.geteuid(), 0o755, True, 600),
+    hook_identity(os.geteuid(), os.geteuid(), False,
+                  "/usr/local/sbin/terminal-volume-guard", os.geteuid(),
+                  os.geteuid(), 0o775, True, 600),
+    hook_identity(os.geteuid(), os.geteuid(), False,
+                  "/usr/local/sbin/terminal-volume-guard", os.geteuid(),
+                  os.geteuid(), 0o755, False, 600),
+])
+def test_guard_custody_is_bound(verifier, tmp_path, guard_identity):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    install_hook_fakes(verifier, identities={APPROVED_GUARD_PATH: guard_identity})
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-guard-custody"
+
+
+@pytest.mark.parametrize("interpreter_identity", [
+    hook_identity(os.geteuid(), os.geteuid(), False, "/bin/sh",
+                  os.geteuid(), os.geteuid(), 0o755, True, 129784),
+    hook_identity(os.geteuid(), os.geteuid(), True, "/bin/dash",
+                  os.geteuid(), os.geteuid(), 0o755, True, 129784),
+    hook_identity(os.geteuid(), os.geteuid(), True, "/usr/bin/dash",
+                  os.geteuid() + 1, os.geteuid(), 0o755, True, 129784),
+    hook_identity(os.geteuid(), os.geteuid(), True, "/usr/bin/dash",
+                  os.geteuid(), os.geteuid(), 0o775, True, 129784),
+    hook_identity(os.geteuid(), os.geteuid(), True, "/usr/bin/dash",
+                  os.geteuid(), os.geteuid(), 0o755, False, 129784),
+    hook_identity(os.geteuid() + 1, os.geteuid(), True, "/usr/bin/dash",
+                  os.geteuid(), os.geteuid(), 0o755, True, 129784),
+])
+def test_interpreter_custody_is_bound(verifier, tmp_path, interpreter_identity):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    install_hook_fakes(verifier, identities={"/bin/sh": interpreter_identity})
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-interpreter-custody"
+
+
+# Parent integration regressions: drive the real collector and actual wire shape.
+def test_prehook_collector_uses_exact_property_interface(verifier, monkeypatch):
+    calls = []
+    payload = {"type": "a(sasbttttuii)", "data": approved_exec_rows()}
+    def collect(argv, **kwargs):
+        calls.append(argv)
+        return SimpleNamespace(returncode=0, stdout=json.dumps(payload).encode())
+    monkeypatch.setattr(verifier["subprocess"], "run", collect)
+    assert verifier["unit_execstartpre_rows"]("terminal") == payload
+    assert calls == [["/usr/bin/busctl", "--json=short", "get-property",
+        "org.freedesktop.systemd1", "/org/freedesktop/systemd1/unit/terminal_2eservice",
+        "org.freedesktop.systemd1.Service", "ExecStartPre"]]
+
+
+def test_actual_busctl_property_envelope_is_admitted(verifier, tmp_path, capsys):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    install_hook_fakes(verifier, reply={"type": "a(sasbttttuii)", "data": approved_exec_rows()})
+    assert _decide(verifier, host, app=app) == 0
+    assert capsys.readouterr().out.strip() == "explicitly-closed"
+
+
+def test_fragment_extra_prehook_is_not_ignored(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    fragment = tmp_path / "terminal.service"
+    fragment.write_text("[Service]\nExecStartPre=/bin/false\n")
+    host = approved_hook_host(tmp_path, FragmentPath=str(fragment))
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"]) as raised:
+        _decide(verifier, host, app=app)
+    assert raised.value.code == "prehook-declaration-extra"
+
+
+@pytest.mark.parametrize("reply", [
+    {"type": "a(sasb)", "data": approved_exec_rows()},
+    {"type": "a(sasbttttuii)", "data": "not-an-array"},
+    {"type": "a(sasbttttuii)", "data": approved_exec_rows(), "extra": True},
+])
+def test_wrong_busctl_type_or_envelope_refuses(verifier, tmp_path, reply):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    install_hook_fakes(verifier, reply=reply)
+    with pytest.raises(verifier["Refused"], match="unsupported-prehook-shape"):
+        _decide(verifier, host, app=app)
+
+
+def test_nested_typed_out_argument_is_supported(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    install_hook_fakes(verifier, reply={"type": "a(sasbttttuii)", "data": [approved_exec_rows()]})
+    assert _decide(verifier, host, app=app) == 0
+
+
+@pytest.mark.parametrize("section", ["Unit", "Install", "service", ""])
+def test_hook_declaration_requires_actual_service_section(verifier, tmp_path, section):
+    app = tmp_path / "app"
+    app.mkdir()
+    text = HARDENING_DROPIN_TEXT.replace("[Service]", "[" + section + "]")
+    host = approved_hook_host(tmp_path, texts={"hardening.conf": text})
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"], match="unit-source-unsupported-syntax"):
+        _decide(verifier, host, app=app)
+
+
+def test_wrong_effective_service_identity_is_refused(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path, Id="other.service")
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"], match="prehook-unit-source-unqualified"):
+        _decide(verifier, host, app=app)
+
+
+def test_production_hook_contract_has_fixed_source_paths(verifier):
+    assert verifier["CANONICAL_PRODUCTION_UNIT"] == "terminal"
+    assert verifier["PREHOOK_FRAGMENT_PATH"] == "/etc/systemd/system/terminal.service"
+    assert verifier["PREHOOK_SOURCE_DIR"] == "/etc/systemd/system/terminal.service.d"
+
+
+def test_unqualified_fragment_path_is_not_admitted(verifier, tmp_path):
+    # No source-path fixture mapping here: the production constant must refuse.
+    host = approved_hook_host(tmp_path)
+    host.install(verifier)
+    with pytest.raises(verifier["Refused"], match="prehook-unit-source-unqualified"):
+        verifier["classify_supported_prehooks"]("terminal")
+
+
+@pytest.mark.parametrize("manager", [
+    "PATH=/tmp/evil-hook-bin", "PATH=", "PATH=relative/bin",
+    "PATH=/usr/bin::/bin", "PATH=/usr/bin:/usr/bin",
+    "PATH=$PATH:/tmp/evil", 'PATH="/usr/bin"',
+    "PATH=/usr/bin\nPATH=/usr/bin", "export PATH=/usr/bin",
+])
+def test_prehook_manager_path_rejects_unqualified_resolution(verifier, tmp_path, manager):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    host.manager = manager
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"], match="safety-hook-manager-path-unsupported|safety-hook-manager-path-unreadable|prehook-search-path-unqualified"):
+        _decide(verifier, host, app=app)
+
+
+@pytest.mark.parametrize("manager", [
+    "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin",
+    "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+])
+def test_prehook_standard_declared_path_keeps_closed_checks(verifier, tmp_path, manager):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    host.manager = manager
+    install_hook_fakes(verifier)
+    observed = []
+    verifier["qualify_prehook_search_tools"] = lambda dirs: observed.append(dirs)
+    assert _decide(verifier, host, app=app) == 0
+    assert observed and observed[0][:4] == verifier["PREHOOK_DEFAULT_SEARCH_DIRS"]
+    host.unit["Environment"] = PROD_OPEN_ENV
+    with pytest.raises(verifier["Refused"], match="unit-admission-not-closed"):
+        _decide(verifier, host, app=app)
+
+
+def test_prehook_exec_search_path_override_is_refused(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path, ExecSearchPath="/tmp/evil-hook-bin")
+    install_hook_fakes(verifier)
+    with pytest.raises(verifier["Refused"], match="safety-hook-search-path-unsupported"):
+        _decide(verifier, host, app=app)
+
+
+def test_zero_hook_manager_path_behavior_is_unchanged(verifier, tmp_path):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = FakeGitHost(tree_listing=primitive_entry(), unit=closed_prod_unit(),
+                       manager="PATH=/tmp/not-used-by-supported-prehooks")
+    assert _decide(verifier, host, app=app) == 0
+
+
+@pytest.mark.parametrize("mutation,code", [
+    (None, None), ("writable-directory", "prehook-search-directory-custody"),
+    ("foreign-directory", "prehook-search-directory-custody"),
+    ("directory-alias", "prehook-search-directory-custody"),
+    ("first-shadow", "prehook-search-tool-custody"),
+    ("foreign-tool", "prehook-search-tool-custody"),
+    ("writable-tool", "prehook-search-tool-custody"),
+    ("missing-tool", "prehook-search-tool-unavailable"),
+])
+def test_real_prehook_path_custody_checker(verifier, monkeypatch, mutation, code):
+    import stat as stat_module
+    uid = os.geteuid()
+    def identity(path):
+        if path.endswith(("/findmnt", "/stat")):
+            foreign = mutation == "foreign-tool"
+            resolved = "/usr/bin/" + path.rsplit("/", 1)[-1]
+            if mutation == "first-shadow" and path.startswith("/usr/local/bin/"):
+                resolved = path
+            return hook_identity(uid, uid, False, resolved,
+                uid + int(foreign), uid,
+                stat_module.S_IFREG | (0o775 if mutation == "writable-tool" else 0o755),
+                True, 123)
+        resolved = {"/bin": "/usr/bin", "/sbin": "/usr/sbin"}.get(path, path)
+        if mutation == "directory-alias" and path == "/usr/local/bin":
+            resolved = "/tmp/evil"
+        return hook_identity(uid, uid, path in ("/bin", "/sbin"), resolved,
+            uid + int(mutation == "foreign-directory"), uid,
+            stat_module.S_IFDIR | (0o777 if mutation == "writable-directory" else 0o755),
+            False, 0)
+    verifier["trusted_path_identity"] = identity
+    def exists(path):
+        if mutation == "missing-tool":
+            return False
+        return path.startswith("/usr/bin/") or (
+            mutation == "first-shadow" and path.startswith("/usr/local/bin/"))
+    monkeypatch.setattr(verifier["os"].path, "lexists", exists)
+    directories = (*verifier["PREHOOK_DEFAULT_SEARCH_DIRS"], "/sbin", "/bin")
+    if code:
+        with pytest.raises(verifier["Refused"], match=code):
+            verifier["qualify_prehook_search_tools"](directories)
+    else:
+        verifier["qualify_prehook_search_tools"](directories)
+
+
+@pytest.mark.parametrize("phase", ["poststart", "restoration"])
+def test_hooks_allow_npm_process_path_but_reject_unsafe_manager_path(verifier, tmp_path, phase):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path, MainPID=str(MAIN_PID))
+    install_hook_fakes(verifier)
+    procs = serving_fixture()
+    for proc in procs.values():
+        proc["environ"] += b"PATH=/opt/terminal/terminal/node_modules/.bin:/usr/bin\0"
+    install_proc_fakes(verifier, procs, (7, 99))
+    host.install(verifier)
+    args = [str(app), NEW_SHA, phase, str(app), "terminal", "/tmp", "production"]
+    assert verifier["main"](args) == 0
+    host.manager = "PATH=/tmp/evil-hook-bin"
+    with pytest.raises(verifier["Refused"], match="safety-hook-manager-path-unreadable"):
+        verifier["main"](args)
+
+
+# Prospective production safety-hook contract. All host readers are fake;
+# these tests neither retry original44380 nor execute a hook or installer.
+SAFETY_GUARD = '''#!/bin/bash
+set -euo pipefail
+if [[ "${1:-}" != --service && -e /etc/terminal-storage-maintenance ]]; then exit 75; fi
+check_mount() {
+ local rec uuid kind root extra
+ rec=$(findmnt -rn --mountpoint "$1" -o UUID,FSTYPE,FSROOT) || return 1
+ [[ -n "$rec" && "$rec" != *$'\\n'* ]] || return 1
+ read -r uuid kind root extra <<< "$rec"
+ [[ "$uuid" == 71dc6155-3f93-4370-a971-b89a6d87a203 && "$kind" == ext4 && "$root" == "$2" && -z "$extra" ]]
+}
+check_mount /mnt/terminal_storage /
+check_mount /opt/terminal /live-terminal
+[[ "$(stat -Lc '%d' /opt/terminal)" == "$(stat -Lc '%d' /mnt/terminal_storage)" ]]
+'''
+
+
+SAFETY_MANAGER_PATH = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+
+class SafetyPathFilesystem:
+    """Actual private files/fds; logical OS paths and root custody are fixtures.
+
+    The executable bytes are inert test data. No system command, real manager,
+    production directory or installed binary is read or executed.
+    """
+    def __init__(self, verifier):
+        self.root = verifier["_safety_fixture_root"]
+        self.root.mkdir()
+        self.overrides = {}
+        self.descriptors = {}
+        for name in ("usr/local/sbin", "usr/local/bin", "usr/sbin", "usr/bin"):
+            self.root.joinpath(name).mkdir(parents=True, exist_ok=True)
+        (self.root / "bin").symlink_to("usr/bin")
+        (self.root / "sbin").symlink_to("usr/sbin")
+        for name in ("findmnt", "stat"):
+            path = self.file("/usr/bin/" + name)
+            path.write_bytes(("inert fixture bytes for " + name).encode())
+            path.chmod(0o755)
+        fixture = self
+        virtual = SimpleNamespace(**vars(os))
+
+        def logical_stat(info, path):
+            fields = ("st_dev", "st_ino", "st_mode", "st_uid", "st_gid", "st_nlink",
+                      "st_size", "st_mtime_ns", "st_ctime_ns")
+            values = {name: getattr(info, name) for name in fields}
+            values.update(st_uid=0, st_gid=0)
+            values.update(fixture.overrides.get(path, {}))
+            return SimpleNamespace(**values)
+
+        def lstat(path):
+            return logical_stat(os.lstat(fixture.file(path)), path)
+
+        def open_file(path, flags):
+            assert flags & os.O_NOFOLLOW
+            assert not flags & (os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC)
+            descriptor = os.open(fixture.file(path), flags)
+            fixture.descriptors[descriptor] = path
+            return descriptor
+
+        def fstat(descriptor):
+            return logical_stat(os.fstat(descriptor), fixture.descriptors[descriptor])
+
+        def close(descriptor):
+            del fixture.descriptors[descriptor]
+            os.close(descriptor)
+
+        virtual.lstat = lstat
+        virtual.readlink = lambda path: os.readlink(fixture.file(path))
+        virtual.open = open_file
+        virtual.fstat = fstat
+        virtual.close = close
+        verifier["os"] = virtual
+        self.virtual_os = virtual
+
+    def file(self, path):
+        return self.root / path.lstrip("/")
+
+
+def safety_host(verifier, *, extra_props=None):
+    script = verifier["BUILD_ID_SAFETY_SCRIPT"]
+    guard = verifier["VOLUME_SAFETY_PATH"]
+    pre = ("{ path=/bin/sh ; argv[]=/bin/sh -c " + script
+           + " ; ignore_errors=no ; } "
+           + "{ path=" + guard + " ; argv[]=" + guard
+           + " --service ; ignore_errors=no ; }")
+    props = closed_prod_unit(ExecStartPre=pre, ExecSearchPath="",
+        FragmentPath="/etc/systemd/system/terminal.service",
+        DropInPaths=" ".join(p for p, _ in verifier["SAFETY_HOOK_ASSIGNMENTS"]))
+    props.update(extra_props or {})
+    host = FakeGitHost(tree_listing=primitive_entry(), unit=props,
+                       manager="PATH=" + SAFETY_MANAGER_PATH).install(verifier)
+    host.safety_path_fs = SafetyPathFilesystem(verifier)
+    files = {props["FragmentPath"]: "[Service]\nExecStart=/usr/bin/npm run start\n",
+             guard: SAFETY_GUARD}
+    files.update({p: "[Service]\n" + assignment + "\n"
+                  for p, assignment in verifier["SAFETY_HOOK_ASSIGNMENTS"]})
+    reads = []
+    def read(path, limit):
+        reads.append(path)
+        if path not in files:
+            raise verifier["Refused"]("safety-hook-unreadable")
+        return files[path]
+    verifier["trusted_safety_file"] = read
+    # Supply the already-required typed and binary custody IO as well. These
+    # fakes describe the same qualified source; no classifier is stubbed out.
+    host.unit["Id"] = "terminal.service"
+    verifier["unit_execstartpre_rows"] = lambda unit: approved_hook_reply()
+    euid = os.geteuid()
+    identities = {
+        "/bin/sh": hook_identity(euid,euid,True,"/usr/bin/dash",euid,euid,0o755,True,129784),
+        guard: hook_identity(euid,euid,False,guard,euid,euid,0o755,True,len(SAFETY_GUARD)),
+    }
+    verifier["trusted_path_identity"] = lambda path: identities[path]
+    verifier["guard_script_payload"] = lambda: files[guard]
+    previous_read = verifier["read_bounded_regular_file"]
+    verifier["read_bounded_regular_file"] = lambda path,limit,prefix: files[path] if path in files else previous_read(path,limit,prefix)
+    verifier["qualify_prehook_search_tools"] = lambda directories: None
+    return host, files, reads
+
+
+def test_two_exact_production_safety_predicates_are_source_qualified(verifier):
+    host, files, reads = safety_host(verifier)
+    assert len(SAFETY_GUARD.encode()) == 600
+    assert hashlib.sha256(SAFETY_GUARD.encode()).hexdigest() == verifier["VOLUME_SAFETY_SHA256"]
+    verifier["main"](["/app", NEW_SHA, "prestart", "/app", "terminal", "/app", "production"])
+    assert reads.count(verifier["VOLUME_SAFETY_PATH"]) == 2
+    assert host.unit_calls.count("ExecStartPre") == 4
+
+
+@pytest.mark.parametrize("change", [
+    lambda s: s.replace("--service", "--service --bypass"),
+    lambda s: s.replace("ignore_errors=no", "ignore_errors=yes"),
+    lambda s: s.replace("exit 1;", "exit 0;"),
+    lambda s: s.replace("test -f", "touch"),
+    lambda s: s.replace("/bin/sh", "/tmp/sh"),
+    lambda s: s + " { path=/bin/evil ; argv[]=/bin/evil ; ignore_errors=no ; }",
+    lambda s: s.replace(" --service", ""),
+    lambda s: s.replace("BUILD_ID ||", "BUILD_ID; env > /tmp/leak ||"),
+])
+def test_safety_hook_projection_does_not_allow_changed_or_additional_command(verifier, change):
+    host, _, _ = safety_host(verifier)
+    host.unit["ExecStartPre"] = change(host.unit["ExecStartPre"])
+    with pytest.raises(verifier["Refused"], match="unsupported-service-launch-hook"):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+
+
+@pytest.mark.parametrize("profile,unit", [("beta", "terminal-beta"), ("production", "other")])
+def test_production_safety_contract_cannot_be_transferred(verifier, profile, unit):
+    safety_host(verifier)
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_production_safety_hooks"](profile, unit)
+
+
+@pytest.mark.parametrize("mutation", ["reset", "duplicate", "outside_service", "continuation", "guard_bytes", "missing"])
+def test_loaded_safety_source_must_match_projection(verifier, mutation):
+    _, files, _ = safety_host(verifier)
+    path = verifier["SAFETY_HOOK_ASSIGNMENTS"][0][0]
+    if mutation == "reset": files[path] += "ExecStartPre=\n"
+    elif mutation == "duplicate": files[path] += verifier["SAFETY_HOOK_ASSIGNMENTS"][0][1] + "\n"
+    elif mutation == "outside_service": files[path] = files[path].replace("[Service]", "[Unit]")
+    elif mutation == "continuation": files[path] += "Environment=SAFE=1\\\n"
+    elif mutation == "guard_bytes": files[verifier["VOLUME_SAFETY_PATH"]] += "exit 0\n"
+    else: del files[path]
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+
+
+@pytest.mark.parametrize("env", ["BASH_ENV=/tmp/load", "ENV=/tmp/load", "PATH=/tmp", "IFS=x", "SHELLOPTS=x", "BASHOPTS=x", "BASH_FUNC_test%%=evil"])
+def test_safety_shell_environment_cannot_inject_effects(verifier, env):
+    host, _, _ = safety_host(verifier)
+    host.manager = env
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+
+
+def test_loaded_safety_sources_changing_during_admission_refuse(verifier):
+    _, files, reads = safety_host(verifier)
+    original = verifier["trusted_safety_file"]
+    guard = verifier["VOLUME_SAFETY_PATH"]
+    def moving(path, limit):
+        value = original(path, limit)
+        if path == guard: files[guard] += "# changed\n"
+        return value
+    verifier["trusted_safety_file"] = moving
+    with pytest.raises(verifier["Refused"], match="safety-hook-changed-during-verification"):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+
+
+def test_safety_parent_symlink_or_writable_directory_refuses(verifier, monkeypatch):
+    # Exercise the real provenance collector rather than the fake reader above.
+    for mode in (0o120777, 0o040777):
+        monkeypatch.setattr(os, "lstat", lambda path, mode=mode: SimpleNamespace(st_mode=mode, st_uid=0))
+        with pytest.raises(verifier["Refused"], match="safety-hook-parent-untrusted"):
+            verifier["trusted_safety_file"]("/etc/systemd/system/x.conf", 1024)
+
+@pytest.mark.parametrize("change_at", [2, 3])
+@pytest.mark.parametrize("source", ["unit", "manager"])
+@pytest.mark.parametrize("late", [
+    'BASH_FUNC_findmnt%%="() { :; }"',
+    'SHELLOPTS=x',
+    'UNRELATED_DIAGNOSTIC=changed',
+])
+def test_deferred_safety_environment_change_refuses_full_topology(verifier, source, late, change_at):
+    host, _, _ = safety_host(verifier)
+    original_unit = verifier["unit_property"]
+    original_manager = verifier["manager_environment"]
+    reads = 0
+    def moving_unit(unit, prop):
+        nonlocal reads
+        value = original_unit(unit, prop)
+        if source == "unit" and prop == "Environment":
+            reads += 1
+            if reads >= change_at:
+                return value + " " + late
+        return value
+    def moving_manager():
+        nonlocal reads
+        value = original_manager()
+        if source == "manager":
+            reads += 1
+            if reads >= change_at:
+                return value + "\n" + late
+        return value
+    verifier["unit_property"] = moving_unit
+    verifier["manager_environment"] = moving_manager
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_environment_topology"](
+            "production", "terminal", "/app", "/app")
+
+
+@pytest.mark.parametrize("prop,late", [
+    ("ExecSearchPath", "/tmp/other-bin"),
+    ("PassEnvironment", "BASH_FUNC_findmnt%%"),
+    ("UnsetEnvironment", "UNRELATED_DIAGNOSTIC"),
+])
+@pytest.mark.parametrize("change_at", [2, 3])
+def test_deferred_safety_search_and_indirect_environment_refused(verifier, prop, late, change_at):
+    safety_host(verifier)
+    original = verifier["unit_property"]
+    reads = 0
+
+    def moving_property(unit, name):
+        nonlocal reads
+        value = original(unit, name)
+        if name == prop:
+            reads += 1
+            if reads >= change_at:
+                return late
+        return value
+
+    verifier["unit_property"] = moving_property
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
+
+
+@pytest.mark.parametrize("transition", ["appears", "disappears"])
+def test_conjoined_hook_qualifiers_require_one_observed_projection(verifier, transition):
+    host, _, _ = safety_host(verifier)
+    original = verifier["unit_property"]
+    reads = 0
+    def moving_property(unit, prop):
+        nonlocal reads
+        value = original(unit, prop)
+        if prop == "ExecStartPre":
+            reads += 1
+            if transition == "appears" and reads == 1:
+                return ""
+            if transition == "disappears" and reads >= 2:
+                return ""
+        return value
+    verifier["unit_property"] = moving_property
+    with pytest.raises(verifier["Refused"], match="safety-hook-changed-during-verification"):
+        verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
+
+
+@pytest.mark.parametrize("code", ["exited", "(null)"])
+@pytest.mark.parametrize("suffix", [" ; ", " "])
+def test_safety_hook_known_systemd_metadata_schema(verifier, code, suffix):
+    host, _, _ = safety_host(verifier)
+    metadata = ("start_time=[] ; stop_time=[] ; pid=0 ; code=" + code
+                + " ; status=0/0" + suffix)
+    host.unit["ExecStartPre"] = host.unit["ExecStartPre"].replace(
+        "ignore_errors=no ; }", "ignore_errors=no ; " + metadata + "}")
+    verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
+
+
+@pytest.mark.parametrize("change", [
+    lambda s: s.replace("pid=0 ;", "pid=0 ; extra=value ;"),
+    lambda s: s.replace("start_time=[] ; stop_time=[]", "stop_time=[] ; start_time=[]"),
+    lambda s: s.replace("code=(null)", "code=(NULL)"),
+    lambda s: s.replace("code=(null)", "code=(null)junk"),
+    lambda s: s.replace("code=(null)", "code=()"),
+    lambda s: s.replace("status=0/0", "status=0/0 ; unknown=value"),
+    lambda s: s.replace("--service", "--service --bypass"),
+    lambda s: s.replace("ignore_errors=no", "ignore_errors=yes"),
+    lambda s: s.replace("stop_time=[] ; ", ""),
+    lambda s: s[:-1],
+    lambda s: s + " unexpected",
+])
+def test_safety_hook_metadata_refuses_unknown_or_changed_structure(verifier, change):
+    host, _, _ = safety_host(verifier)
+    metadata = "start_time=[] ; stop_time=[] ; pid=0 ; code=(null) ; status=0/0 "
+    projection = host.unit["ExecStartPre"].replace(
+        "ignore_errors=no ; }", "ignore_errors=no ; " + metadata + "}")
+    host.unit["ExecStartPre"] = change(projection)
+    with pytest.raises(verifier["Refused"], match="unsupported-service-launch-hook"):
+        verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
+
+
+# Manager defaults are a different environment role from explicit unit/file
+# overrides. The exact hook contract must compose with qualified OS resolution.
+@pytest.mark.parametrize("path", [
+    "/usr/bin", "/bin", "/usr/sbin:/usr/bin", SAFETY_MANAGER_PATH,
+    "/bin:/usr/bin:/usr/local/bin",
+])
+def test_exact_safety_hooks_accept_qualified_manager_path(verifier, path):
+    host, _, _ = safety_host(verifier)
+    host.manager = "PATH=" + path + "\nLANG=C\n"
+    observed = verifier["classify_production_safety_hooks"]("production", "terminal")
+    assert observed[:5] == (PROD_CLOSED_ENV, host.manager, "", "", "")
+    assert len(observed) == 6
+    _, programs = observed[5]
+    assert [row[0] for row in programs] == ["findmnt", "stat"]
+    for name, spelling, canonical, _, digest in programs:
+        assert spelling == path.split(":")[0] + "/" + name or spelling == "/usr/bin/" + name
+        assert canonical == "/usr/bin/" + name
+        assert digest == hashlib.sha256(host.safety_path_fs.file(canonical).read_bytes()).hexdigest()
+    assert not host.safety_path_fs.descriptors
+
+
+@pytest.mark.parametrize("value", [
+    "", ":/usr/bin", "/usr/bin:", "usr/bin", "/usr/bin::/bin",
+    "/usr/bin:/usr/bin", "/usr/bin/../bin",
+])
+def test_manager_path_rejects_unsupported_search_topology(verifier, value):
+    host, _, _ = safety_host(verifier)
+    host.manager = "PATH=" + value
+    with pytest.raises(verifier["Refused"], match="safety-hook-manager-path-unsupported"):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+
+
+@pytest.mark.parametrize("declaration", [
+    "LANG=C", "PATH", "PATH=/usr/bin\nPATH=/bin", "path=/usr/bin",
+])
+def test_safety_manager_path_requires_one_exact_declaration(verifier, declaration):
+    host, _, _ = safety_host(verifier)
+    host.manager = declaration
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+
+
+@pytest.mark.parametrize("prop,token", [
+    ("Environment", "PATH=/usr/bin"), ("Environment", "HOME=/root"),
+    ("Environment", "npm_config_workspace=other"),
+    ("PassEnvironment", "PATH"), ("UnsetEnvironment", "PATH"),
+])
+def test_manager_path_exception_never_applies_to_selected_environment(verifier, prop, token):
+    host, _, _ = safety_host(verifier)
+    host.unit[prop] = (host.unit[prop] + " " + token).strip()
+    with pytest.raises(verifier["Refused"], match="unsupported-launch-environment-override"):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+
+
+@pytest.mark.parametrize("mutation", [
+    "directory_owner", "directory_group", "writable_directory", "ancestor_symlink",
+    "wrong_alias", "missing_program", "program_symlink", "program_owner",
+    "writable_program", "nonexecutable_program", "setuid_program",
+    "oversized_program", "hardlinked_program", "earlier_shadow",
+])
+def test_manager_path_requires_trusted_directories_and_first_programs(verifier, mutation):
+    host, _, _ = safety_host(verifier)
+    fs = host.safety_path_fs
+    program = fs.file("/usr/bin/findmnt")
+    if mutation == "directory_owner":
+        fs.overrides["/usr/bin"] = {"st_uid": 1000}
+    elif mutation == "directory_group":
+        fs.overrides["/usr"] = {"st_gid": 1000}
+    elif mutation == "writable_directory":
+        fs.file("/usr/local/bin").chmod(0o777)
+    elif mutation == "ancestor_symlink":
+        fs.file("/usr/local/sbin").rmdir()
+        fs.file("/usr/local/bin").rmdir()
+        fs.file("/usr/local").rmdir()
+        fs.file("/usr/local").symlink_to("bin")
+    elif mutation == "wrong_alias":
+        fs.file("/bin").unlink()
+        fs.file("/bin").symlink_to("usr/local/bin")
+    elif mutation == "missing_program":
+        program.unlink()
+    elif mutation == "program_symlink":
+        program.unlink()
+        program.symlink_to("stat")
+    elif mutation == "program_owner":
+        fs.overrides["/usr/bin/findmnt"] = {"st_uid": 1000}
+    elif mutation == "writable_program":
+        program.chmod(0o777)
+    elif mutation == "nonexecutable_program":
+        program.chmod(0o644)
+    elif mutation == "setuid_program":
+        program.chmod(0o4755)
+    elif mutation == "oversized_program":
+        fs.overrides["/usr/bin/findmnt"] = {"st_size": 8 * 1024 * 1024 + 1}
+    elif mutation == "hardlinked_program":
+        os.link(program, fs.file("/usr/bin/another-name"))
+    else:
+        shadow = fs.file("/usr/local/bin/findmnt")
+        shadow.write_bytes(b"earlier executable shadow")
+        shadow.chmod(0o755)
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+    assert not fs.descriptors
+
+
+@pytest.mark.parametrize("mutation", ["program_bytes", "directory_identity", "earlier_shadow"])
+def test_unchanged_manager_text_does_not_hide_resolution_or_custody_change(verifier, mutation):
+    host, _, _ = safety_host(verifier)
+    fs = host.safety_path_fs
+    original = verifier["qualify_manager_safety_path"]
+    calls = 0
+
+    def moving(value):
+        nonlocal calls
+        result = original(value)
+        calls += 1
+        if calls == 1:
+            if mutation == "program_bytes":
+                fs.file("/usr/bin/findmnt").write_bytes(b"changed inert command bytes")
+            elif mutation == "directory_identity":
+                info = fs.file("/usr/bin").stat()
+                os.utime(fs.file("/usr/bin"), ns=(info.st_atime_ns, info.st_mtime_ns + 1000000))
+            else:
+                shadow = fs.file("/usr/local/bin/findmnt")
+                shadow.write_bytes(b"new earlier executable")
+                shadow.chmod(0o755)
+        return result
+
+    verifier["qualify_manager_safety_path"] = moving
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
+
+
+def test_manager_program_replacement_during_descriptor_read_refuses(verifier):
+    host, _, _ = safety_host(verifier)
+    fs = host.safety_path_fs
+    original = fs.virtual_os.read
+    changed = False
+
+    def moving(descriptor, count):
+        nonlocal changed
+        data = original(descriptor, count)
+        if not changed and fs.descriptors[descriptor] == "/usr/bin/findmnt":
+            changed = True
+            path = fs.file("/usr/bin/findmnt")
+            path.rename(path.with_name("old-findmnt"))
+            path.write_bytes(b"replacement bytes")
+            path.chmod(0o755)
+        return data
+
+    fs.virtual_os.read = moving
+    with pytest.raises(verifier["Refused"], match="safety-hook-manager-path-changed"):
+        verifier["classify_production_safety_hooks"]("production", "terminal")
+    assert changed
+    assert not fs.descriptors
+
+
+@pytest.mark.parametrize("manager,code", [
+    ("", "safety-hook-manager-path-unsupported"),
+])
+def test_full_topology_requires_both_manager_and_typed_hook_contracts(verifier, tmp_path, manager, code):
+    app = tmp_path / "app"
+    app.mkdir()
+    host = approved_hook_host(tmp_path)
+    host.manager = manager
+    install_hook_fakes(verifier)
+    # Missing manager PATH cannot borrow the typed helper's standalone default.
+    # Independent custody authorities are covered by the semantic-path cases.
+    with pytest.raises(verifier["Refused"], match=code):
+        _decide(verifier, host, app=app)
+
+
+# Prospective semantic manager-PATH support. Private real files/fds only;
+# both independent production qualifiers run, with OS custody mapped explicitly.
+def semantic_path_host(verifier, value="/opt/qualified.bin:/usr/bin"):
+    typed_tools = verifier["qualify_prehook_search_tools"]
+    host, files, reads = safety_host(verifier)
+    fs = host.safety_path_fs
+    fs.file("/opt/qualified.bin").mkdir(parents=True)
+    fs.virtual_os.geteuid = lambda: 0
+    paths = SimpleNamespace(**vars(os.path))
+    paths.exists = lambda path: fs.file(path).exists()
+    paths.lexists = lambda path: os.path.lexists(fs.file(path))
+    fs.virtual_os.path = paths
+    prior_identity = verifier["trusted_path_identity"]
+
+    def identity(path):
+        if path in ("/bin/sh", verifier["VOLUME_SAFETY_PATH"]):
+            row = list(prior_identity(path))
+            for index in (0, 1, 4, 5):
+                row[index] = 0
+            return tuple(row)
+        direct = fs.virtual_os.lstat(path)
+        relative = fs.file(path).resolve().relative_to(fs.root.resolve())
+        canonical = "/" if relative == Path(".") else "/" + relative.as_posix()
+        target = fs.virtual_os.lstat(canonical)
+        return hook_identity(direct.st_uid, direct.st_gid,
+            stat_module.S_ISLNK(direct.st_mode), canonical,
+            target.st_uid, target.st_gid, target.st_mode,
+            stat_module.S_ISREG(target.st_mode), target.st_size)
+
+    verifier["trusted_path_identity"] = identity
+    verifier["qualify_prehook_search_tools"] = typed_tools
+    host.manager = "PATH=" + value
+    return host, fs
+
+
+@pytest.mark.parametrize("value", [
+    "/opt/qualified.bin:/usr/bin", "/usr/bin", "/bin:/usr/bin",
+    "/:/opt/qualified.bin:/usr/bin", "/usr/bin:/opt/qualified.bin", SAFETY_MANAGER_PATH,
+])
+def test_semantic_path_full_conjunction_accepts_trusted_neutral_components(verifier, value):
+    host, fs = semantic_path_host(verifier, value)
+    result = verifier["classify_production_safety_hooks"]("production", "terminal")
+    assert len(result) == 6
+    assert all(row[2] == "/usr/bin/" + row[0] for row in result[5][1])
+    verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
+    assert not fs.descriptors
+    host.unit["Environment"] = PROD_OPEN_ENV
+    with pytest.raises(verifier["Refused"], match="unit-admission-not-closed"):
+        verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
+
+
+@pytest.mark.parametrize("value", [
+    "", ":/usr/bin", "/usr/bin:", "relative:/usr/bin", "/./usr/bin",
+    "/usr/../usr/bin", "//usr/bin", "/usr//bin", "/usr/bin/",
+    "/usr/bin:/usr/bin", "/a:/b:/c:/d:/e:/f:/usr/bin",
+    "/" + "a" * 1024, "/opt/white space:/usr/bin", "/opt/$bin:/usr/bin",
+    "/opt/back\\slash:/usr/bin",
+])
+def test_semantic_path_both_lexical_gates_reject_ambiguity(verifier, value):
+    with pytest.raises(verifier["Refused"]):
+        verifier["qualify_manager_safety_path"](value)
+    with pytest.raises(verifier["Refused"]):
+        verifier["prehook_search_directories"]("PATH=" + value)
+
+
+@pytest.mark.parametrize("mutation", [
+    "missing", "missing_later", "writable", "foreign_owner", "foreign_group", "ancestor_writable",
+    "unknown_alias", "alias_descendant", "findmnt_shadow", "stat_shadow",
+])
+def test_semantic_path_full_conjunction_refuses_untrusted_neutral_directory(verifier, mutation):
+    host, fs = semantic_path_host(verifier)
+    neutral = fs.file("/opt/qualified.bin")
+    if mutation in ("missing", "missing_later"):
+        neutral.rmdir()
+        if mutation == "missing_later":
+            host.manager = "PATH=/usr/bin:/opt/qualified.bin"
+    elif mutation == "writable":
+        neutral.chmod(0o777)
+    elif mutation == "foreign_owner":
+        fs.overrides["/opt/qualified.bin"] = {"st_uid": 1000}
+    elif mutation == "foreign_group":
+        fs.overrides["/opt"] = {"st_gid": 1000}
+    elif mutation == "ancestor_writable":
+        fs.file("/opt").chmod(0o777)
+    elif mutation == "unknown_alias":
+        neutral.rmdir()
+        neutral.symlink_to("../usr/bin")
+    elif mutation == "alias_descendant":
+        fs.file("/usr/bin/subdir").mkdir()
+        host.manager = "PATH=/bin/subdir:/usr/bin"
+        with pytest.raises(verifier["Refused"]):
+            verifier["qualify_prehook_search_tools"](("/bin/subdir", "/usr/bin"))
+    else:
+        name = mutation.removesuffix("_shadow")
+        shadow = neutral / name
+        shadow.write_bytes(b"root-owned earlier shadow")
+        shadow.chmod(0o755)
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
+    assert not fs.descriptors
+
+
+def test_semantic_path_each_custody_authority_remains_necessary(verifier):
+    host, fs = semantic_path_host(verifier)
+    original = verifier["trusted_path_identity"]
+
+    def typed_foreign(path):
+        row = list(original(path))
+        if path == "/opt/qualified.bin":
+            row[4] = 1000
+        return tuple(row)
+
+    verifier["trusted_path_identity"] = typed_foreign
+    # The source/hash qualifier succeeds; the independent typed one must fail.
+    verifier["classify_production_safety_hooks"]("production", "terminal")
+    with pytest.raises(verifier["Refused"], match="prehook-search-directory-custody"):
+        verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
+    assert not fs.descriptors
+
+
+@pytest.mark.parametrize("mutation", ["earlier_appears", "directory_changes", "path_reorders"])
+def test_semantic_path_final_snapshot_rejects_new_resolution(verifier, mutation):
+    host, fs = semantic_path_host(verifier)
+    original = verifier["qualify_manager_safety_path"]
+    calls = 0
+
+    def moving(value):
+        nonlocal calls
+        result = original(value)
+        calls += 1
+        if calls == 1:
+            if mutation == "earlier_appears":
+                shadow = fs.file("/opt/qualified.bin/findmnt")
+                shadow.write_bytes(b"new earlier shadow")
+                shadow.chmod(0o755)
+            elif mutation == "directory_changes":
+                fs.overrides["/opt/qualified.bin"] = {"st_ino": 999999}
+            else:
+                host.manager = "PATH=/usr/bin:/opt/qualified.bin"
+        return result
+
+    verifier["qualify_manager_safety_path"] = moving
+    with pytest.raises(verifier["Refused"]):
+        verifier["classify_environment_topology"]("production", "terminal", "/app", "/app")
+    assert calls >= 1
+    assert not fs.descriptors
+
+
+@pytest.mark.parametrize("control", ["\n", "\r", "\t", "\x00"])
+def test_semantic_path_literal_value_and_serialized_controls_refuse(verifier, control):
+    with pytest.raises(verifier["Refused"]):
+        verifier["safety_path_components"]("/opt/line" + control + "bin:/usr/bin")
+    # A manager assignment containing a control is serialized/quoted, not an
+    # unquoted multiline value accidentally treated as two environment records.
+    with pytest.raises(verifier["Refused"]):
+        verifier["prehook_search_directories"]('PATH="/opt/line' + control + 'bin:/usr/bin"')
+
+
+def test_semantic_path_earlier_absence_rechecked_during_same_fd_capture(verifier):
+    host, fs = semantic_path_host(verifier)
+    read = fs.virtual_os.read
+    changed = False
+    neutral_info = fs.virtual_os.lstat("/opt/qualified.bin")
+
+    def appearing(descriptor, count):
+        nonlocal changed
+        raw = read(descriptor, count)
+        if not changed:
+            changed = True
+            shadow = fs.file("/opt/qualified.bin/findmnt")
+            shadow.write_bytes(b"new earlier root-owned shadow")
+            shadow.chmod(0o755)
+            # Isolate the earlier-absence check from the separately tested
+            # directory-time readback: fixture metadata stays otherwise equal.
+            fs.overrides["/opt/qualified.bin"] = {
+                "st_mtime_ns": neutral_info.st_mtime_ns,
+                "st_ctime_ns": neutral_info.st_ctime_ns,
+                "st_size": neutral_info.st_size,
+            }
+        return raw
+
+    fs.virtual_os.read = appearing
+    with pytest.raises(verifier["Refused"], match="safety-hook-manager-path-changed"):
+        verifier["qualify_manager_safety_path"]("/opt/qualified.bin:/usr/bin")
+    assert changed and not fs.descriptors
+
+
+def test_semantic_path_exact_lexical_bounds_preserve_original_value(verifier):
+    components = ("/a", "/b", "/c", "/d", "/e", "/f")
+    value = ":".join(components)
+    assert verifier["safety_path_components"](value) == components
+    boundary = "/" + "a" * 1023
+    assert verifier["safety_path_components"](boundary) == (boundary,)
+    with pytest.raises(verifier["Refused"]):
+        verifier["safety_path_components"](boundary + "a")

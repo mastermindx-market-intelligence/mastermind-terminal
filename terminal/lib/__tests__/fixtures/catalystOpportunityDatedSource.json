@@ -1,0 +1,986 @@
+{
+  "schema": "catalyst_opportunity.v1",
+  "policy_version": "sector_pulse_attention/1",
+  "assessed_at": "2026-10-17T18:00:00Z",
+  "status": "stale",
+  "reason_codes": [
+    "DATED_SOURCE"
+  ],
+  "as_of": "2026-10-14",
+  "source": {
+    "owner": "sector_pulse",
+    "reference": "sector_pulse:us",
+    "as_of": "2026-10-14",
+    "precision": "date",
+    "received_at": "2026-10-17T18:00:00Z",
+    "age_calendar_days": 3,
+    "freshness": "stale",
+    "freshness_policy": "date-only; stale after one calendar day; not a market-session SLA",
+    "historical_availability_proven": false,
+    "content_sha256": "83e985a5cfc5c46e766dd5df9c17c5984769db36cf497b7d281e904e95ae2617"
+  },
+  "coverage": {
+    "scope": "us_curated_themes",
+    "declared": 49,
+    "observed": 49,
+    "valid": 49,
+    "refused": 0,
+    "watch_count": 6,
+    "complete": true,
+    "not_all_securities": true
+  },
+  "cases": [
+    {
+      "id": "co:market:us_sector_energy",
+      "theme_id": "us_sector_energy",
+      "name": "Energy (Equal-Weight)",
+      "name_zh": "能源（等权）",
+      "category": "US Sectors (EW)",
+      "sector": "energy",
+      "origin": "market",
+      "discovery_state": "provisional_watch",
+      "watch_kind": "leadership_watch",
+      "source_label": "dominant",
+      "source_heat": "hot",
+      "observation_status": "stale",
+      "observed_on": "2026-10-14",
+      "precision": "date",
+      "title": "Energy (Equal-Weight)",
+      "summary": "Positive five-session relative performance with at least half the theme above its 50-day average.",
+      "summary_zh": "近五个交易日相对表现为正，且至少半数成分股位于50日均线之上。",
+      "metrics": {
+        "rel_5d": 0.0621,
+        "pct50": 0.667,
+        "rank": 1,
+        "rank_delta_1d": null,
+        "rank_delta_5d": null,
+        "rank_delta_20d": 6,
+        "score_delta_5d": null,
+        "score_delta_20d": 13.0,
+        "momentum_score": 1.0
+      },
+      "metric_basis": {
+        "rel_5d": "fraction; source five-session benchmark-relative return",
+        "pct50": "fraction; source share above 50-day moving average",
+        "rank": "source order; not an opportunity rank",
+        "momentum_score": "source descriptive multi-timeframe value"
+      },
+      "source_refs": [
+        {
+          "owner": "sector_pulse",
+          "theme_id": "us_sector_energy",
+          "as_of": "2026-10-14"
+        }
+      ],
+      "event": {
+        "status": "unavailable",
+        "reason": "EVENT_NOT_CONNECTED",
+        "summary": "No verified event is attached. Market behavior does not prove its cause.",
+        "summary_zh": "尚未连接已核实事件；市场表现不能证明其原因。"
+      },
+      "economics": {
+        "status": "unavailable",
+        "reason": "EXPOSURE_NOT_QUALIFIED",
+        "summary": "Theme membership is not verified issuer economic exposure.",
+        "summary_zh": "主题归属不等于已核实的公司经济暴露。"
+      },
+      "entry": {
+        "status": "unavailable",
+        "reason": "ENTRY_NOT_QUALIFIED",
+        "summary": "Open the existing chart and timing tools. This view supplies no buy point.",
+        "summary_zh": "请使用现有图表与择时工具；本视图不提供买点。"
+      },
+      "cautions": [
+        {
+          "code": "DATED_OBSERVATION",
+          "text": "Dated observation. Check current prices before interpreting it.",
+          "text_zh": "观测已过期；解读前请核查当前价格。"
+        },
+        {
+          "code": "DESCRIPTIVE_NOT_PREDICTIVE",
+          "text": "Source strength is descriptive; forward return and entry quality are not established.",
+          "text_zh": "源数据强度仅为描述，尚未证明前瞻收益或入场质量。"
+        },
+        {
+          "code": "EXTENSION_NOT_CHECKED",
+          "text": "Leadership can already be extended. No entry window has been validated.",
+          "text_zh": "领先主题可能已经过度上涨；尚无经验证的入场窗口。"
+        }
+      ],
+      "links": [
+        {
+          "label": "Sector Intelligence",
+          "label_zh": "板块情报",
+          "href": "https://www.mastermind-x.com/baskets.html"
+        }
+      ],
+      "authority": {
+        "can_rank": false,
+        "can_size": false,
+        "can_gate": false,
+        "can_originate_signal": false,
+        "can_escalate": false
+      }
+    },
+    {
+      "id": "co:market:us_sector_health",
+      "theme_id": "us_sector_health",
+      "name": "Health Care (Equal-Weight)",
+      "name_zh": "医疗保健（等权）",
+      "category": "US Sectors (EW)",
+      "sector": "other",
+      "origin": "market",
+      "discovery_state": "provisional_watch",
+      "watch_kind": "leadership_watch",
+      "source_label": "dominant",
+      "source_heat": "hot",
+      "observation_status": "stale",
+      "observed_on": "2026-10-14",
+      "precision": "date",
+      "title": "Health Care (Equal-Weight)",
+      "summary": "Positive five-session relative performance with at least half the theme above its 50-day average.",
+      "summary_zh": "近五个交易日相对表现为正，且至少半数成分股位于50日均线之上。",
+      "metrics": {
+        "rel_5d": 0.0435,
+        "pct50": 0.61,
+        "rank": 2,
+        "rank_delta_1d": null,
+        "rank_delta_5d": null,
+        "rank_delta_20d": 4,
+        "score_delta_5d": null,
+        "score_delta_20d": 12.0,
+        "momentum_score": 1.0
+      },
+      "metric_basis": {
+        "rel_5d": "fraction; source five-session benchmark-relative return",
+        "pct50": "fraction; source share above 50-day moving average",
+        "rank": "source order; not an opportunity rank",
+        "momentum_score": "source descriptive multi-timeframe value"
+      },
+      "source_refs": [
+        {
+          "owner": "sector_pulse",
+          "theme_id": "us_sector_health",
+          "as_of": "2026-10-14"
+        }
+      ],
+      "event": {
+        "status": "unavailable",
+        "reason": "EVENT_NOT_CONNECTED",
+        "summary": "No verified event is attached. Market behavior does not prove its cause.",
+        "summary_zh": "尚未连接已核实事件；市场表现不能证明其原因。"
+      },
+      "economics": {
+        "status": "unavailable",
+        "reason": "EXPOSURE_NOT_QUALIFIED",
+        "summary": "Theme membership is not verified issuer economic exposure.",
+        "summary_zh": "主题归属不等于已核实的公司经济暴露。"
+      },
+      "entry": {
+        "status": "unavailable",
+        "reason": "ENTRY_NOT_QUALIFIED",
+        "summary": "Open the existing chart and timing tools. This view supplies no buy point.",
+        "summary_zh": "请使用现有图表与择时工具；本视图不提供买点。"
+      },
+      "cautions": [
+        {
+          "code": "DATED_OBSERVATION",
+          "text": "Dated observation. Check current prices before interpreting it.",
+          "text_zh": "观测已过期；解读前请核查当前价格。"
+        },
+        {
+          "code": "DESCRIPTIVE_NOT_PREDICTIVE",
+          "text": "Source strength is descriptive; forward return and entry quality are not established.",
+          "text_zh": "源数据强度仅为描述，尚未证明前瞻收益或入场质量。"
+        },
+        {
+          "code": "EXTENSION_NOT_CHECKED",
+          "text": "Leadership can already be extended. No entry window has been validated.",
+          "text_zh": "领先主题可能已经过度上涨；尚无经验证的入场窗口。"
+        }
+      ],
+      "links": [
+        {
+          "label": "Sector Intelligence",
+          "label_zh": "板块情报",
+          "href": "https://www.mastermind-x.com/baskets.html"
+        }
+      ],
+      "authority": {
+        "can_rank": false,
+        "can_size": false,
+        "can_gate": false,
+        "can_originate_signal": false,
+        "can_escalate": false
+      }
+    },
+    {
+      "id": "co:market:energy_complex",
+      "theme_id": "energy_complex",
+      "name": "US Energy Complex",
+      "name_zh": "美国能源综合",
+      "category": "Energy & Power",
+      "sector": "energy",
+      "origin": "market",
+      "discovery_state": "provisional_watch",
+      "watch_kind": "leadership_watch",
+      "source_label": "dominant",
+      "source_heat": "hot",
+      "observation_status": "stale",
+      "observed_on": "2026-10-14",
+      "precision": "date",
+      "title": "US Energy Complex",
+      "summary": "Positive five-session relative performance with at least half the theme above its 50-day average.",
+      "summary_zh": "近五个交易日相对表现为正，且至少半数成分股位于50日均线之上。",
+      "metrics": {
+        "rel_5d": 0.0651,
+        "pct50": 0.762,
+        "rank": 3,
+        "rank_delta_1d": null,
+        "rank_delta_5d": null,
+        "rank_delta_20d": 5,
+        "score_delta_5d": null,
+        "score_delta_20d": 12.0,
+        "momentum_score": 1.0
+      },
+      "metric_basis": {
+        "rel_5d": "fraction; source five-session benchmark-relative return",
+        "pct50": "fraction; source share above 50-day moving average",
+        "rank": "source order; not an opportunity rank",
+        "momentum_score": "source descriptive multi-timeframe value"
+      },
+      "source_refs": [
+        {
+          "owner": "sector_pulse",
+          "theme_id": "energy_complex",
+          "as_of": "2026-10-14"
+        }
+      ],
+      "event": {
+        "status": "unavailable",
+        "reason": "EVENT_NOT_CONNECTED",
+        "summary": "No verified event is attached. Market behavior does not prove its cause.",
+        "summary_zh": "尚未连接已核实事件；市场表现不能证明其原因。"
+      },
+      "economics": {
+        "status": "unavailable",
+        "reason": "EXPOSURE_NOT_QUALIFIED",
+        "summary": "Theme membership is not verified issuer economic exposure.",
+        "summary_zh": "主题归属不等于已核实的公司经济暴露。"
+      },
+      "entry": {
+        "status": "unavailable",
+        "reason": "ENTRY_NOT_QUALIFIED",
+        "summary": "Open the existing chart and timing tools. This view supplies no buy point.",
+        "summary_zh": "请使用现有图表与择时工具；本视图不提供买点。"
+      },
+      "cautions": [
+        {
+          "code": "DATED_OBSERVATION",
+          "text": "Dated observation. Check current prices before interpreting it.",
+          "text_zh": "观测已过期；解读前请核查当前价格。"
+        },
+        {
+          "code": "DESCRIPTIVE_NOT_PREDICTIVE",
+          "text": "Source strength is descriptive; forward return and entry quality are not established.",
+          "text_zh": "源数据强度仅为描述，尚未证明前瞻收益或入场质量。"
+        },
+        {
+          "code": "EXTENSION_NOT_CHECKED",
+          "text": "Leadership can already be extended. No entry window has been validated.",
+          "text_zh": "领先主题可能已经过度上涨；尚无经验证的入场窗口。"
+        }
+      ],
+      "links": [
+        {
+          "label": "Sector Intelligence",
+          "label_zh": "板块情报",
+          "href": "https://www.mastermind-x.com/baskets.html"
+        }
+      ],
+      "authority": {
+        "can_rank": false,
+        "can_size": false,
+        "can_gate": false,
+        "can_originate_signal": false,
+        "can_escalate": false
+      }
+    },
+    {
+      "id": "co:market:managed_care",
+      "theme_id": "managed_care",
+      "name": "Managed Care & Insurers",
+      "name_zh": "管理式医疗与保险",
+      "category": "Healthcare",
+      "sector": "other",
+      "origin": "market",
+      "discovery_state": "provisional_watch",
+      "watch_kind": "leadership_watch",
+      "source_label": "dominant",
+      "source_heat": "hot",
+      "observation_status": "stale",
+      "observed_on": "2026-10-14",
+      "precision": "date",
+      "title": "Managed Care & Insurers",
+      "summary": "Positive five-session relative performance with at least half the theme above its 50-day average.",
+      "summary_zh": "近五个交易日相对表现为正，且至少半数成分股位于50日均线之上。",
+      "metrics": {
+        "rel_5d": 0.0612,
+        "pct50": 0.875,
+        "rank": 4,
+        "rank_delta_1d": null,
+        "rank_delta_5d": null,
+        "rank_delta_20d": 16,
+        "score_delta_5d": null,
+        "score_delta_20d": 20.0,
+        "momentum_score": 0.5
+      },
+      "metric_basis": {
+        "rel_5d": "fraction; source five-session benchmark-relative return",
+        "pct50": "fraction; source share above 50-day moving average",
+        "rank": "source order; not an opportunity rank",
+        "momentum_score": "source descriptive multi-timeframe value"
+      },
+      "source_refs": [
+        {
+          "owner": "sector_pulse",
+          "theme_id": "managed_care",
+          "as_of": "2026-10-14"
+        }
+      ],
+      "event": {
+        "status": "unavailable",
+        "reason": "EVENT_NOT_CONNECTED",
+        "summary": "No verified event is attached. Market behavior does not prove its cause.",
+        "summary_zh": "尚未连接已核实事件；市场表现不能证明其原因。"
+      },
+      "economics": {
+        "status": "unavailable",
+        "reason": "EXPOSURE_NOT_QUALIFIED",
+        "summary": "Theme membership is not verified issuer economic exposure.",
+        "summary_zh": "主题归属不等于已核实的公司经济暴露。"
+      },
+      "entry": {
+        "status": "unavailable",
+        "reason": "ENTRY_NOT_QUALIFIED",
+        "summary": "Open the existing chart and timing tools. This view supplies no buy point.",
+        "summary_zh": "请使用现有图表与择时工具；本视图不提供买点。"
+      },
+      "cautions": [
+        {
+          "code": "DATED_OBSERVATION",
+          "text": "Dated observation. Check current prices before interpreting it.",
+          "text_zh": "观测已过期；解读前请核查当前价格。"
+        },
+        {
+          "code": "DESCRIPTIVE_NOT_PREDICTIVE",
+          "text": "Source strength is descriptive; forward return and entry quality are not established.",
+          "text_zh": "源数据强度仅为描述，尚未证明前瞻收益或入场质量。"
+        },
+        {
+          "code": "EXTENSION_NOT_CHECKED",
+          "text": "Leadership can already be extended. No entry window has been validated.",
+          "text_zh": "领先主题可能已经过度上涨；尚无经验证的入场窗口。"
+        }
+      ],
+      "links": [
+        {
+          "label": "Sector Intelligence",
+          "label_zh": "板块情报",
+          "href": "https://www.mastermind-x.com/baskets.html"
+        }
+      ],
+      "authority": {
+        "can_rank": false,
+        "can_size": false,
+        "can_gate": false,
+        "can_originate_signal": false,
+        "can_escalate": false
+      }
+    },
+    {
+      "id": "co:market:retail",
+      "theme_id": "retail",
+      "name": "Retail",
+      "name_zh": "零售",
+      "category": "Consumer Cyclical",
+      "sector": "other",
+      "origin": "market",
+      "discovery_state": "provisional_watch",
+      "watch_kind": "emerging_watch",
+      "source_label": "emerging",
+      "source_heat": "hot",
+      "observation_status": "stale",
+      "observed_on": "2026-10-14",
+      "precision": "date",
+      "title": "Retail",
+      "summary": "The source reports an emerging or heating theme. Inspect participation and timing.",
+      "summary_zh": "源数据显示主题正在兴起或升温；请核查参与度和时机。",
+      "metrics": {
+        "rel_5d": 0.048,
+        "pct50": 0.375,
+        "rank": 7,
+        "rank_delta_1d": null,
+        "rank_delta_5d": null,
+        "rank_delta_20d": 28,
+        "score_delta_5d": null,
+        "score_delta_20d": 27.0,
+        "momentum_score": 0.65
+      },
+      "metric_basis": {
+        "rel_5d": "fraction; source five-session benchmark-relative return",
+        "pct50": "fraction; source share above 50-day moving average",
+        "rank": "source order; not an opportunity rank",
+        "momentum_score": "source descriptive multi-timeframe value"
+      },
+      "source_refs": [
+        {
+          "owner": "sector_pulse",
+          "theme_id": "retail",
+          "as_of": "2026-10-14"
+        }
+      ],
+      "event": {
+        "status": "unavailable",
+        "reason": "EVENT_NOT_CONNECTED",
+        "summary": "No verified event is attached. Market behavior does not prove its cause.",
+        "summary_zh": "尚未连接已核实事件；市场表现不能证明其原因。"
+      },
+      "economics": {
+        "status": "unavailable",
+        "reason": "EXPOSURE_NOT_QUALIFIED",
+        "summary": "Theme membership is not verified issuer economic exposure.",
+        "summary_zh": "主题归属不等于已核实的公司经济暴露。"
+      },
+      "entry": {
+        "status": "unavailable",
+        "reason": "ENTRY_NOT_QUALIFIED",
+        "summary": "Open the existing chart and timing tools. This view supplies no buy point.",
+        "summary_zh": "请使用现有图表与择时工具；本视图不提供买点。"
+      },
+      "cautions": [
+        {
+          "code": "DATED_OBSERVATION",
+          "text": "Dated observation. Check current prices before interpreting it.",
+          "text_zh": "观测已过期；解读前请核查当前价格。"
+        },
+        {
+          "code": "DESCRIPTIVE_NOT_PREDICTIVE",
+          "text": "Source strength is descriptive; forward return and entry quality are not established.",
+          "text_zh": "源数据强度仅为描述，尚未证明前瞻收益或入场质量。"
+        },
+        {
+          "code": "EXTENSION_NOT_CHECKED",
+          "text": "Leadership can already be extended. No entry window has been validated.",
+          "text_zh": "领先主题可能已经过度上涨；尚无经验证的入场窗口。"
+        }
+      ],
+      "links": [
+        {
+          "label": "Sector Intelligence",
+          "label_zh": "板块情报",
+          "href": "https://www.mastermind-x.com/baskets.html"
+        }
+      ],
+      "authority": {
+        "can_rank": false,
+        "can_size": false,
+        "can_gate": false,
+        "can_originate_signal": false,
+        "can_escalate": false
+      }
+    },
+    {
+      "id": "co:market:industrial_distribution",
+      "theme_id": "industrial_distribution",
+      "name": "Industrial Distribution & Capital Goods",
+      "name_zh": "工业分销与资本品",
+      "category": "Industrials",
+      "sector": "other",
+      "origin": "market",
+      "discovery_state": "provisional_watch",
+      "watch_kind": "emerging_watch",
+      "source_label": "emerging",
+      "source_heat": "idle",
+      "observation_status": "stale",
+      "observed_on": "2026-10-14",
+      "precision": "date",
+      "title": "Industrial Distribution & Capital Goods",
+      "summary": "The source reports an emerging or heating theme. Inspect participation and timing.",
+      "summary_zh": "源数据显示主题正在兴起或升温；请核查参与度和时机。",
+      "metrics": {
+        "rel_5d": 0.0246,
+        "pct50": 0.5,
+        "rank": 14,
+        "rank_delta_1d": null,
+        "rank_delta_5d": null,
+        "rank_delta_20d": null,
+        "score_delta_5d": null,
+        "score_delta_20d": null,
+        "momentum_score": -0.15
+      },
+      "metric_basis": {
+        "rel_5d": "fraction; source five-session benchmark-relative return",
+        "pct50": "fraction; source share above 50-day moving average",
+        "rank": "source order; not an opportunity rank",
+        "momentum_score": "source descriptive multi-timeframe value"
+      },
+      "source_refs": [
+        {
+          "owner": "sector_pulse",
+          "theme_id": "industrial_distribution",
+          "as_of": "2026-10-14"
+        }
+      ],
+      "event": {
+        "status": "unavailable",
+        "reason": "EVENT_NOT_CONNECTED",
+        "summary": "No verified event is attached. Market behavior does not prove its cause.",
+        "summary_zh": "尚未连接已核实事件；市场表现不能证明其原因。"
+      },
+      "economics": {
+        "status": "unavailable",
+        "reason": "EXPOSURE_NOT_QUALIFIED",
+        "summary": "Theme membership is not verified issuer economic exposure.",
+        "summary_zh": "主题归属不等于已核实的公司经济暴露。"
+      },
+      "entry": {
+        "status": "unavailable",
+        "reason": "ENTRY_NOT_QUALIFIED",
+        "summary": "Open the existing chart and timing tools. This view supplies no buy point.",
+        "summary_zh": "请使用现有图表与择时工具；本视图不提供买点。"
+      },
+      "cautions": [
+        {
+          "code": "DATED_OBSERVATION",
+          "text": "Dated observation. Check current prices before interpreting it.",
+          "text_zh": "观测已过期；解读前请核查当前价格。"
+        },
+        {
+          "code": "DESCRIPTIVE_NOT_PREDICTIVE",
+          "text": "Source strength is descriptive; forward return and entry quality are not established.",
+          "text_zh": "源数据强度仅为描述，尚未证明前瞻收益或入场质量。"
+        }
+      ],
+      "links": [
+        {
+          "label": "Sector Intelligence",
+          "label_zh": "板块情报",
+          "href": "https://www.mastermind-x.com/baskets.html"
+        }
+      ],
+      "authority": {
+        "can_rank": false,
+        "can_size": false,
+        "can_gate": false,
+        "can_originate_signal": false,
+        "can_escalate": false
+      }
+    }
+  ],
+  "inventory": [
+    {
+      "theme_id": "us_sector_energy",
+      "name": "Energy (Equal-Weight)",
+      "name_zh": "能源（等权）",
+      "source_label": "dominant",
+      "source_heat": "hot",
+      "watch": true
+    },
+    {
+      "theme_id": "us_sector_health",
+      "name": "Health Care (Equal-Weight)",
+      "name_zh": "医疗保健（等权）",
+      "source_label": "dominant",
+      "source_heat": "hot",
+      "watch": true
+    },
+    {
+      "theme_id": "energy_complex",
+      "name": "US Energy Complex",
+      "name_zh": "美国能源综合",
+      "source_label": "dominant",
+      "source_heat": "hot",
+      "watch": true
+    },
+    {
+      "theme_id": "managed_care",
+      "name": "Managed Care & Insurers",
+      "name_zh": "管理式医疗与保险",
+      "source_label": "dominant",
+      "source_heat": "hot",
+      "watch": true
+    },
+    {
+      "theme_id": "big_pharma",
+      "name": "Big Pharma",
+      "name_zh": "大型药企",
+      "source_label": "neutral",
+      "source_heat": "idle",
+      "watch": false
+    },
+    {
+      "theme_id": "us_sector_staples",
+      "name": "Consumer Staples (Equal-Weight)",
+      "name_zh": "必需消费（等权）",
+      "source_label": "neutral",
+      "source_heat": "idle",
+      "watch": false
+    },
+    {
+      "theme_id": "retail",
+      "name": "Retail",
+      "name_zh": "零售",
+      "source_label": "emerging",
+      "source_heat": "hot",
+      "watch": true
+    },
+    {
+      "theme_id": "defensives",
+      "name": "Defensives",
+      "name_zh": "防御板块",
+      "source_label": "neutral",
+      "source_heat": "idle",
+      "watch": false
+    },
+    {
+      "theme_id": "robotics_automation",
+      "name": "Robotics & Automation",
+      "name_zh": "机器人与自动化",
+      "source_label": "neutral",
+      "source_heat": "idle",
+      "watch": false
+    },
+    {
+      "theme_id": "mag7",
+      "name": "Magnificent Seven",
+      "name_zh": "七巨头",
+      "source_label": "fading",
+      "source_heat": "cooling",
+      "watch": false
+    },
+    {
+      "theme_id": "insurance",
+      "name": "Insurance & Brokers",
+      "name_zh": "保险与经纪",
+      "source_label": "neutral",
+      "source_heat": "idle",
+      "watch": false
+    },
+    {
+      "theme_id": "non_ai_software",
+      "name": "Non-AI Software",
+      "name_zh": "非AI软件",
+      "source_label": "neutral",
+      "source_heat": "idle",
+      "watch": false
+    },
+    {
+      "theme_id": "cybersecurity",
+      "name": "Cybersecurity",
+      "name_zh": "网络安全",
+      "source_label": "fading",
+      "source_heat": "cooling",
+      "watch": false
+    },
+    {
+      "theme_id": "industrial_distribution",
+      "name": "Industrial Distribution & Capital Goods",
+      "name_zh": "工业分销与资本品",
+      "source_label": "emerging",
+      "source_heat": "idle",
+      "watch": true
+    },
+    {
+      "theme_id": "ai_software",
+      "name": "AI Software & Platforms",
+      "name_zh": "AI 软件与平台",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "crypto_rails",
+      "name": "Crypto & Digital Rails",
+      "name_zh": "加密与数字轨道",
+      "source_label": "neutral",
+      "source_heat": "idle",
+      "watch": false
+    },
+    {
+      "theme_id": "reshoring",
+      "name": "Reshoring & Industrial Capex",
+      "name_zh": "回流与工业资本开支",
+      "source_label": "neutral",
+      "source_heat": "idle",
+      "watch": false
+    },
+    {
+      "theme_id": "us_sector_materials",
+      "name": "Materials (Equal-Weight)",
+      "name_zh": "材料（等权）",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "us_sector_tech",
+      "name": "Technology (Equal-Weight)",
+      "name_zh": "信息技术（等权）",
+      "source_label": "fading",
+      "source_heat": "cooling",
+      "watch": false
+    },
+    {
+      "theme_id": "ai_agents",
+      "name": "AI Agents & Applications",
+      "name_zh": "AI 智能体与应用",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "us_sector_utilities",
+      "name": "Utilities (Equal-Weight)",
+      "name_zh": "公用事业（等权）",
+      "source_label": "neutral",
+      "source_heat": "idle",
+      "watch": false
+    },
+    {
+      "theme_id": "payments_fintech",
+      "name": "Payments & Fintech",
+      "name_zh": "支付与金融科技",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "non_ai_tech",
+      "name": "Non-AI Tech & Hardware",
+      "name_zh": "非AI科技与硬件",
+      "source_label": "fading",
+      "source_heat": "cooling",
+      "watch": false
+    },
+    {
+      "theme_id": "obesity_glp1",
+      "name": "GLP-1 & Obesity",
+      "name_zh": "GLP-1 与减肥药",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "us_sector_discretionary",
+      "name": "Consumer Discretionary (Equal-Weight)",
+      "name_zh": "非必需消费（等权）",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "ai_semiconductors",
+      "name": "AI Semiconductors",
+      "name_zh": "AI半导体",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "regional_banks",
+      "name": "Regional Banks",
+      "name_zh": "区域银行",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "semicap_equipment",
+      "name": "Semiconductor Equipment (WFE)",
+      "name_zh": "半导体设备（晶圆厂设备）",
+      "source_label": "fading",
+      "source_heat": "cooling",
+      "watch": false
+    },
+    {
+      "theme_id": "ai_infra",
+      "name": "AI Infrastructure",
+      "name_zh": "AI 基础设施",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "us_sector_financials",
+      "name": "Financials (Equal-Weight)",
+      "name_zh": "金融（等权）",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "us_sector_industrials",
+      "name": "Industrials (Equal-Weight)",
+      "name_zh": "工业（等权）",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "travel",
+      "name": "Travel & Experiences",
+      "name_zh": "旅行与体验",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "gold_miners",
+      "name": "Gold Miners",
+      "name_zh": "黄金矿业",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "memory_storage",
+      "name": "Memory, HBM & Storage",
+      "name_zh": "内存、HBM 与存储",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "power_grid",
+      "name": "Power & Grid Buildout",
+      "name_zh": "电力与电网",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "housing",
+      "name": "Housing Chain",
+      "name_zh": "住房产业链",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "data_center_power",
+      "name": "Data-Center Power & Cooling",
+      "name_zh": "数据中心电力与散热",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "crypto",
+      "name": "Crypto & Digital Assets",
+      "name_zh": "加密与数字资产",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "us_sector_realestate",
+      "name": "Real Estate (Equal-Weight)",
+      "name_zh": "房地产（等权）",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "defense",
+      "name": "Defense & Aerospace",
+      "name_zh": "国防与航空航天",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "us_sector_comm",
+      "name": "Communication Services (Equal-Weight)",
+      "name_zh": "通信服务（等权）",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "nuclear_power",
+      "name": "Nuclear & SMR Power",
+      "name_zh": "核电与小型模块化反应堆",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "quantum_computing",
+      "name": "Quantum Computing",
+      "name_zh": "量子计算",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "silver_miners",
+      "name": "Silver Miners",
+      "name_zh": "白银矿业",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "pgm_miners",
+      "name": "PGM Miners",
+      "name_zh": "铂族金属矿业",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "space_economy",
+      "name": "Space Economy",
+      "name_zh": "太空经济",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "ai_neoclouds",
+      "name": "AI Neoclouds & HPC Hosting",
+      "name_zh": "AI 新云与高性能算力托管",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "critical_minerals",
+      "name": "Critical Minerals & Rare Earths",
+      "name_zh": "关键矿产与稀土",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    },
+    {
+      "theme_id": "uranium_miners",
+      "name": "Uranium & Nuclear Fuel",
+      "name_zh": "铀矿与核燃料",
+      "source_label": "deteriorating",
+      "source_heat": "broken",
+      "watch": false
+    }
+  ],
+  "refusals": [],
+  "authority": {
+    "can_rank": false,
+    "can_size": false,
+    "can_gate": false,
+    "can_originate_signal": false,
+    "can_escalate": false
+  },
+  "disclaimer": "Research attention only. Not a prediction or an entry recommendation.",
+  "disclaimer_zh": "仅用于研究关注，不是预测或入场建议。",
+  "generation": "co:c3938090976202578a6c86fc480a8d21c9a4ec2d8c9b08f0643156e47a4a19fb"
+}

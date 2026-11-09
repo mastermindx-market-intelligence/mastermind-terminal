@@ -1,0 +1,359 @@
+{
+  "schema": "cmx.a3b.execution_evidence.v1",
+  "source_parent": "5d9d1397d7d547cdfe655e9ec0a1670efc8dafa6",
+  "runtime": "v26.5.0",
+  "executable_sha256": "75383cb8da51e9b100705505a0479c52f8614ea34703cfaa2e51399bb417443c",
+  "basis": "explicit trailing windows from recorded repository data; no current-market/PIT/provider revalidation, model or production inference",
+  "runs": [
+    {
+      "symbol": "NVDA",
+      "suite": "structure",
+      "source_file_sha256": "5e35090abe17b18e7baf64c9f27323d11d3eb6fcfdff32d8954724e1a4525447",
+      "source_file_last_bar": "2026-06-26",
+      "bar_count": 420,
+      "first_bar": "2024-10-22",
+      "last_bar": "2026-06-26",
+      "request_sha256": "28742fce9f29c8b759f8a1bc4c5e81cb5f04fe52f8096a989ad3be1dd83920b3",
+      "full_bytes": 44441,
+      "compact_bytes": 5511,
+      "reduction_pct": 87.6,
+      "full_stdout_sha256": "13b610c54568bd8d73df6479e0c9de9ad777068497aa187f1e846e82ab81d985",
+      "compact_stdout_sha256": "ede87393ac62098e0b6ce08db816c73e4ab6f6c5cf65dc21488db38c98de8f3e",
+      "snapshot_sha256": "ded7716b25eb60186a5eb72d49b4f5e9f405b30b9edf68a314b3aa016eb52b8f",
+      "fingerprints": {
+        "input_sha256": "6ded56434e23861e8b6c9f718f69b7f82e39baa717f4f7e7ac0bff721770d469",
+        "result_sha256": "cc0e53ff5a122973d65fb7155f71b5ba81e01c28e0ebcb24e7b119bcce6e8197",
+        "settings_sha256": "81ac34872530419836dfe6a784c79f7b46b1d2343bb4bc657fa9b3e463c7087f"
+      },
+      "fact_counts": {
+        "series": 0,
+        "events": 8,
+        "geometry": 4,
+        "tables": 0
+      },
+      "pointer_checks": 20,
+      "full_seconds": 0.595,
+      "compact_seconds": 0.394,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "stderr_empty": true
+    },
+    {
+      "symbol": "NVDA",
+      "suite": "trend",
+      "source_file_sha256": "5e35090abe17b18e7baf64c9f27323d11d3eb6fcfdff32d8954724e1a4525447",
+      "source_file_last_bar": "2026-06-26",
+      "bar_count": 420,
+      "first_bar": "2024-10-22",
+      "last_bar": "2026-06-26",
+      "request_sha256": "5010c061b5b6fcce30c0127bea26692a5dd7549bd6545192ece37842156d6cf4",
+      "full_bytes": 79853,
+      "compact_bytes": 6285,
+      "reduction_pct": 92.13,
+      "full_stdout_sha256": "1c0222cdfdba929e0a5652cc5aa481f3cab9093e08ea3ab9ad0625eecd21b8ec",
+      "compact_stdout_sha256": "f21b39fee54fc287d36cf2fe4b568384df5da4929c9d9930add9a185d16f8db1",
+      "snapshot_sha256": "242aa01c3454ffa277b983d79a46249e82fb9cff7b812972c296387483a6ee9e",
+      "fingerprints": {
+        "input_sha256": "6ded56434e23861e8b6c9f718f69b7f82e39baa717f4f7e7ac0bff721770d469",
+        "result_sha256": "e6b9efaac3a8d634b23303970085216b02914461bb62dec96033420665c2fe13",
+        "settings_sha256": "1189a7ca38667be9479bd9430d741a7d34690ea2fd63ed0901d1d796342b0d13"
+      },
+      "fact_counts": {
+        "series": 6,
+        "events": 8,
+        "geometry": 0,
+        "tables": 0
+      },
+      "pointer_checks": 34,
+      "full_seconds": 0.589,
+      "compact_seconds": 1.36,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "stderr_empty": true
+    },
+    {
+      "symbol": "NVDA",
+      "suite": "pulse",
+      "source_file_sha256": "5e35090abe17b18e7baf64c9f27323d11d3eb6fcfdff32d8954724e1a4525447",
+      "source_file_last_bar": "2026-06-26",
+      "bar_count": 420,
+      "first_bar": "2024-10-22",
+      "last_bar": "2026-06-26",
+      "request_sha256": "0cfc207a9c70341b54292899b3431b056c527d91d3df6c647472fbacf0852823",
+      "full_bytes": 85585,
+      "compact_bytes": 6524,
+      "reduction_pct": 92.38,
+      "full_stdout_sha256": "bd6f70de703d361e75724fadf58b651a32d1b674798812fd273abb901f227178",
+      "compact_stdout_sha256": "b9505c4e6732de5faaa19c999903bd241a77fa3f1ac7449af077f50bc902977b",
+      "snapshot_sha256": "fd467f84747affb4544b295426c9a8c29180d6637c49c5523ca52ac2b3d0090e",
+      "fingerprints": {
+        "input_sha256": "6ded56434e23861e8b6c9f718f69b7f82e39baa717f4f7e7ac0bff721770d469",
+        "result_sha256": "b5486e03e8c4e797365827fb364c48cc7a75df6c7fd5a436dc095504da18b53a",
+        "settings_sha256": "0131d5edc07dc35b143f0a03997909cee2dd3676fc7e50c732cfbd9ae8fd2848"
+      },
+      "fact_counts": {
+        "series": 6,
+        "events": 8,
+        "geometry": 0,
+        "tables": 0
+      },
+      "pointer_checks": 34,
+      "full_seconds": 0.393,
+      "compact_seconds": 0.4,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "stderr_empty": true
+    },
+    {
+      "symbol": "NVDA",
+      "suite": "rsix",
+      "source_file_sha256": "5e35090abe17b18e7baf64c9f27323d11d3eb6fcfdff32d8954724e1a4525447",
+      "source_file_last_bar": "2026-06-26",
+      "bar_count": 420,
+      "first_bar": "2024-10-22",
+      "last_bar": "2026-06-26",
+      "request_sha256": "2fe52ebdc463e7b8da8bfbe086b7e7a5713acaa2e896d850492b718d4dc5875d",
+      "full_bytes": 104919,
+      "compact_bytes": 6438,
+      "reduction_pct": 93.86,
+      "full_stdout_sha256": "847b57ddfbdceab0145d788493551c9ff6ab6b2a35dc809ea2a1d31d184e6dcb",
+      "compact_stdout_sha256": "8ccfce8d6f338c86dc636f50180eac7824bc0cbd660545e95309ae60bcbf05a7",
+      "snapshot_sha256": "d8a4007b843c411377d40bbde69a7497e89a7c17a1c7f117c5d80c82b3329fd3",
+      "fingerprints": {
+        "input_sha256": "6ded56434e23861e8b6c9f718f69b7f82e39baa717f4f7e7ac0bff721770d469",
+        "result_sha256": "31470d9d86674b3f6ec2cd857c326708341be579b494a835bee0367e7ecf97ef",
+        "settings_sha256": "bfca2f5481bd854f6db45fe2858c02a56f66f84af57d3654b42481876521cf46"
+      },
+      "fact_counts": {
+        "series": 6,
+        "events": 8,
+        "geometry": 0,
+        "tables": 0
+      },
+      "pointer_checks": 34,
+      "full_seconds": 0.376,
+      "compact_seconds": 0.27,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "stderr_empty": true
+    },
+    {
+      "symbol": "NVDA",
+      "suite": "macdx",
+      "source_file_sha256": "5e35090abe17b18e7baf64c9f27323d11d3eb6fcfdff32d8954724e1a4525447",
+      "source_file_last_bar": "2026-06-26",
+      "bar_count": 420,
+      "first_bar": "2024-10-22",
+      "last_bar": "2026-06-26",
+      "request_sha256": "b0a1d46e577013a23399cbfff44e93f298d91f20722d450357459465d433ce0a",
+      "full_bytes": 96581,
+      "compact_bytes": 6880,
+      "reduction_pct": 92.88,
+      "full_stdout_sha256": "1bdd92877d70659d48c74ae8abbffde73b23a90a72609ef7f6f5983ae974c618",
+      "compact_stdout_sha256": "bb8d5a5f1c269823810b3cf381488e537a2b2f2dd904c37fbbb414cc3d0f7b9a",
+      "snapshot_sha256": "1448af887a6c29cd4b5f23fcf33235601add923b352b5332d64232bc15cc54f7",
+      "fingerprints": {
+        "input_sha256": "6ded56434e23861e8b6c9f718f69b7f82e39baa717f4f7e7ac0bff721770d469",
+        "result_sha256": "7a81461a313fb46fb67daab07d11e3e8b314d6621657bb4f471df14ff1abd7bb",
+        "settings_sha256": "9db14d572b143d02f406b0d24b97802b2cd3f31b46a66e0eeffff30a8283c14c"
+      },
+      "fact_counts": {
+        "series": 6,
+        "events": 8,
+        "geometry": 2,
+        "tables": 0
+      },
+      "pointer_checks": 36,
+      "full_seconds": 0.385,
+      "compact_seconds": 0.899,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "stderr_empty": true
+    },
+    {
+      "symbol": "AAPL",
+      "suite": "structure",
+      "source_file_sha256": "229fcb0eb3d0fee4d55a40e31c4057a5998b773db1d92942a9fc7ecb2ae545f6",
+      "source_file_last_bar": "2026-06-26",
+      "bar_count": 420,
+      "first_bar": "2024-10-22",
+      "last_bar": "2026-06-26",
+      "request_sha256": "7eb79e14dc191d808692ad989548fdd8affa5564d6dff971f4adf37609c74636",
+      "full_bytes": 44357,
+      "compact_bytes": 5513,
+      "reduction_pct": 87.57,
+      "full_stdout_sha256": "ae5eed02372331389602c47c25075ff152e4c8af7271ece09b7374f31277ab1e",
+      "compact_stdout_sha256": "fc4a3d4266034bf9d5c36b17330de983582adb939db07957831638432ad84638",
+      "snapshot_sha256": "fd0a574a786d4ccc1bbcda268d179910f0517a4fb58df02a339ea75eb8f7a463",
+      "fingerprints": {
+        "input_sha256": "382526579446fdfc065b1070442daf021fd362c90f42bc94033fc68cd4351fec",
+        "result_sha256": "a444024f60d24ca8e5c511a7b347d24202d9e8119b511cb59b1aed246143a777",
+        "settings_sha256": "81ac34872530419836dfe6a784c79f7b46b1d2343bb4bc657fa9b3e463c7087f"
+      },
+      "fact_counts": {
+        "series": 0,
+        "events": 8,
+        "geometry": 4,
+        "tables": 0
+      },
+      "pointer_checks": 20,
+      "full_seconds": 0.304,
+      "compact_seconds": 0.573,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "stderr_empty": true
+    },
+    {
+      "symbol": "AAPL",
+      "suite": "trend",
+      "source_file_sha256": "229fcb0eb3d0fee4d55a40e31c4057a5998b773db1d92942a9fc7ecb2ae545f6",
+      "source_file_last_bar": "2026-06-26",
+      "bar_count": 420,
+      "first_bar": "2024-10-22",
+      "last_bar": "2026-06-26",
+      "request_sha256": "c5a8c5ecf6b40b3285ac44aa5c8ed38ee5eceaab36758a02b656d961140c612b",
+      "full_bytes": 77649,
+      "compact_bytes": 6272,
+      "reduction_pct": 91.92,
+      "full_stdout_sha256": "cdf19a77ad4fb435c1d799f19fb7947e2595acc5966c51c38fce4dcb21259156",
+      "compact_stdout_sha256": "213e02ee74b278546ee1466f502be97511d28c1f4568fcb3ecc0f465b89e43d2",
+      "snapshot_sha256": "202827e218af5f0a9ef1846a8242652bbfcf9e2699077e5f19962fa0a6a942d6",
+      "fingerprints": {
+        "input_sha256": "382526579446fdfc065b1070442daf021fd362c90f42bc94033fc68cd4351fec",
+        "result_sha256": "ddef578d6cd3531c563bd7b7282f247ef491a0e450b304b953a5bc07a07ffc44",
+        "settings_sha256": "1189a7ca38667be9479bd9430d741a7d34690ea2fd63ed0901d1d796342b0d13"
+      },
+      "fact_counts": {
+        "series": 6,
+        "events": 8,
+        "geometry": 0,
+        "tables": 0
+      },
+      "pointer_checks": 34,
+      "full_seconds": 0.479,
+      "compact_seconds": 0.337,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "stderr_empty": true
+    },
+    {
+      "symbol": "AAPL",
+      "suite": "pulse",
+      "source_file_sha256": "229fcb0eb3d0fee4d55a40e31c4057a5998b773db1d92942a9fc7ecb2ae545f6",
+      "source_file_last_bar": "2026-06-26",
+      "bar_count": 420,
+      "first_bar": "2024-10-22",
+      "last_bar": "2026-06-26",
+      "request_sha256": "a2e7297d5846b5d58a868c5ff299a9ca8a71ee28dbec1f33f0f47d9fd8f22bb5",
+      "full_bytes": 79922,
+      "compact_bytes": 6533,
+      "reduction_pct": 91.83,
+      "full_stdout_sha256": "406835422a3b2a2e800bc2917c94515074f728b6298848bb713925163d2913ca",
+      "compact_stdout_sha256": "659c0ea5d15a1209af1c4c038168263b3626a6098987412cce1c6a633de68442",
+      "snapshot_sha256": "4e44720a35b73ef6c56f5c3175091c026e785496056e82841391c3506d068e5d",
+      "fingerprints": {
+        "input_sha256": "382526579446fdfc065b1070442daf021fd362c90f42bc94033fc68cd4351fec",
+        "result_sha256": "949af4bb61072c89478d58a746705dd6ec3f20af3925ccba0a17031c971a4af2",
+        "settings_sha256": "0131d5edc07dc35b143f0a03997909cee2dd3676fc7e50c732cfbd9ae8fd2848"
+      },
+      "fact_counts": {
+        "series": 6,
+        "events": 8,
+        "geometry": 0,
+        "tables": 0
+      },
+      "pointer_checks": 34,
+      "full_seconds": 0.318,
+      "compact_seconds": 0.31,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "stderr_empty": true
+    },
+    {
+      "symbol": "AAPL",
+      "suite": "rsix",
+      "source_file_sha256": "229fcb0eb3d0fee4d55a40e31c4057a5998b773db1d92942a9fc7ecb2ae545f6",
+      "source_file_last_bar": "2026-06-26",
+      "bar_count": 420,
+      "first_bar": "2024-10-22",
+      "last_bar": "2026-06-26",
+      "request_sha256": "786331ee0415b239601dc641a48c463eed5f2442d16293551d37cc5cf7110957",
+      "full_bytes": 107686,
+      "compact_bytes": 6464,
+      "reduction_pct": 94.0,
+      "full_stdout_sha256": "1d8c40a9f68f717af03b9445225cd6d6d06b7c9de19ea839c673dd3ae6635360",
+      "compact_stdout_sha256": "f3161b15c85a03ca023fe9eae4420004796aa0d60c44d9f4575a66fa50b4cf6d",
+      "snapshot_sha256": "56309c99493f76009840b43d39ced207c191a59757c0b9f48ff8114d7f5263fa",
+      "fingerprints": {
+        "input_sha256": "382526579446fdfc065b1070442daf021fd362c90f42bc94033fc68cd4351fec",
+        "result_sha256": "d74448816f78896828c13ad1389b889869a11313087a16f2ac43efd4e1b7bbf6",
+        "settings_sha256": "bfca2f5481bd854f6db45fe2858c02a56f66f84af57d3654b42481876521cf46"
+      },
+      "fact_counts": {
+        "series": 6,
+        "events": 8,
+        "geometry": 0,
+        "tables": 0
+      },
+      "pointer_checks": 34,
+      "full_seconds": 0.245,
+      "compact_seconds": 0.24,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "stderr_empty": true
+    },
+    {
+      "symbol": "AAPL",
+      "suite": "macdx",
+      "source_file_sha256": "229fcb0eb3d0fee4d55a40e31c4057a5998b773db1d92942a9fc7ecb2ae545f6",
+      "source_file_last_bar": "2026-06-26",
+      "bar_count": 420,
+      "first_bar": "2024-10-22",
+      "last_bar": "2026-06-26",
+      "request_sha256": "05706defb7888722724be6e142b2f21d74592915ecdbd262e2e96f84f52796e6",
+      "full_bytes": 96676,
+      "compact_bytes": 6870,
+      "reduction_pct": 92.89,
+      "full_stdout_sha256": "0e7ab9cbc8a0ec975b57e4bcae1526f4629154840024ca0858eccd2ebbd6a6a2",
+      "compact_stdout_sha256": "06c2e5e078be65e814d2b049413992d1c8683dac97407d815e7da9924216fbb4",
+      "snapshot_sha256": "1888eba2857adf2df763d8b6de6457c2a6acad0211d6dc799b4fff132673508b",
+      "fingerprints": {
+        "input_sha256": "382526579446fdfc065b1070442daf021fd362c90f42bc94033fc68cd4351fec",
+        "result_sha256": "ee266acf33ea2da48acf5b65416e1d7d1e6e32fc6ee74f6c81a9c68c7353825c",
+        "settings_sha256": "9db14d572b143d02f406b0d24b97802b2cd3f31b46a66e0eeffff30a8283c14c"
+      },
+      "fact_counts": {
+        "series": 6,
+        "events": 8,
+        "geometry": 2,
+        "tables": 0
+      },
+      "pointer_checks": 36,
+      "full_seconds": 0.504,
+      "compact_seconds": 0.3,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "stderr_empty": true
+    }
+  ]
+}

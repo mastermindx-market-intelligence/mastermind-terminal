@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
-import { createClient } from "@/lib/supabase/server";
+import { readShellClaims } from "@/lib/shared-shell/memberIdentity";
 import AnalysisWorkspaceMount from "@/components/mounts/AnalysisWorkspaceMount";
 import ThesisWorkspaceMount from "@/components/mounts/ThesisWorkspaceMount";
+import InvestigationWorkspaceMount from "@/components/mounts/InvestigationWorkspaceMount";
 import UnsupportedAnalysisRoute from "@/components/workspaces/UnsupportedAnalysisRoute";
 import SignupGate from "@/components/gates/SignupGate";
+import MemberVerificationUnavailable from "@/components/gates/MemberVerificationUnavailable";
 import { parseAnalysisRoute } from "@/lib/analysisRoute";
 
 // Analysis workspace (Wave-2 IA) — the in-chart Fundamentals dashboard (MegaPane)
@@ -32,6 +34,8 @@ export default async function AnalysisPage({ searchParams }: AnalysisPageProps) 
     <AnalysisWorkspaceMount initialSymbol={route.symbol} initialPage={route.page} />
   ) : route.kind === "theses" ? (
     <ThesisWorkspaceMount key={`${ownerKey}:${route.thesisId ?? "new"}`} ownerKey={ownerKey} initialSymbol={route.symbol} initialThesisId={route.thesisId} />
+  ) : route.kind === "investigations" ? (
+    <InvestigationWorkspaceMount key={`${ownerKey}:${route.investigationId ?? "library"}:${route.revision ?? "head"}`} ownerKey={ownerKey} initialSymbol={route.symbol} initialInvestigationId={route.investigationId} initialRevision={route.revision} />
   ) : route.kind === "invalid_thesis" ? (
     <ThesisWorkspaceMount key={`${ownerKey}:invalid`} ownerKey={ownerKey} invalidLink />
   ) : (
@@ -42,8 +46,8 @@ export default async function AnalysisPage({ searchParams }: AnalysisPageProps) 
   if (process.env.NODE_ENV !== "production" && process.env.ANALYSIS_LOCAL_PREVIEW === "1") {
     return workspace("local-preview");
   }
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  if (typeof data?.claims?.sub !== "string") return <SignupGate surface="analysis" />;
-  return workspace(data.claims.sub);
+  const member = await readShellClaims();
+  if (member.state === "unavailable") return <MemberVerificationUnavailable />;
+  if (member.state === "guest") return <SignupGate surface="analysis" />;
+  return workspace(member.subjectId);
 }

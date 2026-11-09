@@ -1,0 +1,25 @@
+[warmup] /terminal?symbol=NVDA → 200 in 44ms
+[warmup] /options → 200 in 1417ms
+[warmup] /portfolio → 200 in 436ms
+[warmup] /alerts → 200 in 517ms
+[warmup] /analysis → 200 in 906ms
+[warmup] /discover → 200 in 973ms
+[warmup] /admin → 200 in 355ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 280ms
+[warmup] /login → 200 in 67ms
+[warmup] /reset-password → 200 in 279ms
+[warmup] /api/me → 200 in 268ms
+[warmup] /api/watchlist → 200 in 104ms
+[warmup] /api/layouts → 200 in 117ms
+[warmup] /api/watchlist/annotations → 409 in 94ms
+[warmup] 14 routes compiled in 6s
+
+Running 4 tests using 1 worker
+
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  1 [desktop] › e2e/vol-horizon-grammar.spec.ts:14:9 › expected-move horizon grammar / en / 1 weekdays (1.4s)
+  ✓  2 [desktop] › e2e/vol-horizon-grammar.spec.ts:14:9 › expected-move horizon grammar / zh / 1 weekdays (1.4s)
+  ✓  3 [desktop] › e2e/vol-horizon-grammar.spec.ts:14:9 › expected-move horizon grammar / en / 2 weekdays (1.2s)
+  ✓  4 [desktop] › e2e/vol-horizon-grammar.spec.ts:14:9 › expected-move horizon grammar / zh / 2 weekdays (1.3s)
+
+  4 passed (22.0s)

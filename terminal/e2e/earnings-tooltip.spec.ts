@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page, type TestInfo } from "@playwright/test";
 
 const BRAIN_SCRIPT_SRC = "https://www.mastermind-x.com/mm_brain.js";
 
@@ -115,14 +115,26 @@ const fundFixture = {
   segments: null,
 };
 
-async function installFixtureRoutes(page: Page) {
+async function installFixtureRoutes(page: Page, fixture: unknown = fundFixture) {
   await page.route(BRAIN_SCRIPT_SRC, (route) =>
     route.fulfill({ contentType: "application/javascript", body: "window.MMBrain = window.MMBrain || {};" }),
   );
-  await page.route("**/data/INTC.fund.json**", (route) => route.fulfill({ json: fundFixture }));
+  await page.route("**/data/INTC.fund.json**", (route) => route.fulfill({ json: fixture }));
   await page.route("**/api/quote?syms=INTC**", (route) =>
     route.fulfill({ json: { quotes: { INTC: { last: 25.5 } } } }),
   );
+}
+
+async function captureEarningsProof(page: Page, testInfo: TestInfo) {
+  const pulse = page.locator("[data-earnings-vnext-pulse]");
+  await pulse.scrollIntoViewIfNeeded();
+  await expect(pulse).toBeInViewport({ ratio: 0.95 });
+  await testInfo.attach("earnings-pulse", { body: await page.screenshot(), contentType: "image/png" });
+
+  const coverage = page.locator("[data-earnings-vnext-coverage]");
+  await coverage.scrollIntoViewIfNeeded();
+  await expect(coverage).toBeInViewport({ ratio: 0.95 });
+  await testInfo.attach("earnings-coverage", { body: await page.screenshot(), contentType: "image/png" });
 }
 
 async function expectTooltipContained(page: Page, expectedPercent: string) {
@@ -186,7 +198,7 @@ test("Earnings vNext separates matched EPS from statement-backed revenue", async
 
   const pulse = earnings.locator("[data-earnings-vnext-pulse]");
   await expect(pulse).toContainText("EARNINGS PULSE");
-  await expect(pulse).toContainText("Latest event");
+  await expect(pulse).toContainText("Reported periods");
   await expect(pulse).toContainText("Q3 '25");
   await expect(pulse).toContainText("EPS result");
   await expect(pulse).toContainText("Matched actual and estimate");
@@ -225,7 +237,7 @@ test("Earnings vNext remains truthful and usable in Chinese on mobile", async ({
   const earnings = page.locator("[data-earnings-vnext]");
   await expect(earnings).toBeVisible({ timeout: 45_000 });
   await expect(earnings).toContainText("财报脉冲");
-  await expect(earnings).toContainText("最新事件");
+  await expect(earnings).toContainText("已报告期");
   await expect(earnings).toContainText("每股盈利结果");
   await expect(earnings).toContainText("营收实际值");
   await expect(earnings).toContainText("财务报表支持");
@@ -235,4 +247,102 @@ test("Earnings vNext remains truthful and usable in Chinese on mobile", async ({
 
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
+});
+
+for (const zh of [false, true]) {
+  for (const unit of ["HKD", null]) {
+    test(`annual-only Earnings keeps reported values and statement currency, zh=${zh}, unit=${unit}`, async ({ page }, testInfo) => {
+      if (zh) await page.addInitScript(() => window.localStorage.setItem("mm.lang", "zh"));
+      await installFixtureRoutes(page, {
+        ...fundFixture,
+        stmt_currency: unit,
+        statements: { annual: null, quarterly: null },
+        earnings: {
+          ...fundFixture.earnings,
+          q: [],
+          fy: [{ period: "2025", eps_a: 1.25, eps_e: null, rev_a: 123_000_000, rev_e: null, surp_pct: null }],
+        },
+      });
+      await page.goto("/analysis?symbol=INTC&page=earnings");
+      const earnings = page.locator("[data-earnings-vnext]");
+      await expect(earnings).toBeVisible({ timeout: 45_000 });
+      const pulse = earnings.locator("[data-earnings-vnext-pulse]");
+      const coverage = earnings.locator("[data-earnings-vnext-coverage]");
+      const annualLabel = zh ? "年度" : "Annual";
+      for (const section of [pulse, coverage]) {
+        await expect(section).toContainText("2025");
+        await expect(section).toContainText(annualLabel);
+        await expect(section).toContainText(zh ? "仅有已报告实际值" : "Reported actual only");
+      }
+      await expect(pulse.locator("article").nth(1)).toContainText("1.25");
+      await expect(pulse.locator("article").nth(2)).toContainText("123.00M");
+      await expect(pulse).toContainText(unit
+        ? (zh ? "货币：HKD" : "Currency: HKD")
+        : (zh ? "报表货币不可用" : "Statement currency unavailable"));
+      await expect(pulse).not.toContainText("USD");
+      await expect(pulse).toContainText(zh ? "报告日期不可用" : "Report date unavailable");
+      await expect(pulse.getByRole("button", { name: annualLabel, exact: true })).toHaveClass("on");
+      await expect(pulse.getByRole("button", { name: zh ? "中期" : "Interim", exact: true })).toBeDisabled();
+      const revenue = earnings.locator(".fin-earn-module").last();
+      await expect(revenue.getByRole("button", { name: annualLabel, exact: true })).toHaveClass("on");
+      await expect(revenue).toContainText("123.00M");
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow).toBeLessThanOrEqual(1);
+      await captureEarningsProof(page, testInfo);
+    });
+  }
+}
+
+test("independent EPS and Revenue controls keep Pulse on each selected reported basis", async ({ page }, testInfo) => {
+  await installFixtureRoutes(page, {
+    ...fundFixture,
+    stmt_currency: "HKD",
+    earnings: {
+      ...fundFixture.earnings,
+      q: [{
+        period: "Q1 2026", end: "2026-03-31", report_date: "2026-04-30",
+        eps_a: 1.8, eps_e: 2, rev_a: 90, rev_e: 100, surp_pct: -10, tx: null,
+      }],
+      fy: [{ period: "2025", eps_a: 3.2, eps_e: null, rev_a: 500, rev_e: null, surp_pct: null }],
+    },
+  });
+  await page.goto("/analysis?symbol=INTC&page=earnings");
+  const earnings = page.locator("[data-earnings-vnext]");
+  await expect(earnings).toBeVisible({ timeout: 45_000 });
+  const pulse = earnings.locator("[data-earnings-vnext-pulse]");
+  const modules = earnings.locator(".fin-earn-module");
+  const eps = modules.first();
+  const revenue = modules.last();
+  const epsActual = pulse.locator("article").nth(1).locator("strong");
+  const revenueActual = pulse.locator("article").nth(2).locator("strong");
+  await expect(modules).toHaveCount(2);
+  await expect(earnings.locator("table")).toHaveCount(2);
+  await expect(earnings.locator("table .fin-cell-surp.down")).toHaveCount(2);
+  await expect(earnings.locator("table .fin-cell-surp.down")).toHaveText(["−10.00%", "−10.00%"]);
+  await expect(epsActual).toHaveText("1.80");
+  await expect(revenueActual).toHaveText("90.00");
+
+  await pulse.getByRole("button", { name: "Annual", exact: true }).click();
+  await expect(epsActual).toHaveText("3.20");
+  await expect(eps.locator("thead")).toContainText("2025");
+  await expect(revenueActual).toHaveText("90.00");
+  await expect(revenue.getByRole("button", { name: "Quarterly", exact: true })).toHaveClass("on");
+  await expect(pulse).toContainText("Different periods");
+  await expect(pulse).toContainText("Currency: HKD");
+
+  await revenue.getByRole("button", { name: "Annual", exact: true }).click();
+  await expect(revenueActual).toHaveText("500.00");
+  await expect(revenue.locator("thead")).toContainText("2025");
+  await expect(epsActual).toHaveText("3.20");
+  await expect(pulse).not.toContainText("Different periods");
+
+  await pulse.getByRole("button", { name: "Quarterly", exact: true }).click();
+  await expect(epsActual).toHaveText("1.80");
+  await expect(revenueActual).toHaveText("500.00");
+  await expect(revenue.getByRole("button", { name: "Annual", exact: true })).toHaveClass("on");
+  await expect(pulse).toContainText("Different periods");
+  await expect(pulse).toContainText("Currency: HKD");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+  await captureEarningsProof(page, testInfo);
 });
