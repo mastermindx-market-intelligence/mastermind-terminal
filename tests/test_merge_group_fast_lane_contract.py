@@ -42,7 +42,7 @@ def test_full_browser_matrix_only_skips_for_qualified_event() -> None:
     )
     assert e2e["strategy"]["fail-fast"] is False
     from scripts.ci_e2e_scope import FULL_MATRIX
-    assert len(FULL_MATRIX) == 12
+    assert len(FULL_MATRIX) == 13
     assert e2e["strategy"]["matrix"] == (
         chr(36) + "{{ fromJSON(needs.e2e-scope.outputs.matrix) }}"
     )
