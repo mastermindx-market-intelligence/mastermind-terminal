@@ -1,10 +1,11 @@
 "use client";
-import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { useLang } from "@/lib/i18n";
 import { pick } from "@/lib/finFormat";
 import { useSharedShellT } from "@/lib/sharedShellCopy";
 import { directoryEntryTitle, directorySection, searchDirectoryEntries } from "@/lib/sharedShellDirectorySearch";
 import { loadSharedSearchCatalog, type SharedSearchCatalog } from "@/lib/sharedShellSearchCatalog";
+import { revealListOption } from "@/lib/revealListOption";
 import styles from "./SharedSearchWorkspace.module.css";
 
 type State = "loading" | "ready" | "unavailable";
@@ -21,10 +22,11 @@ export type SharedSearchOptions = {
 
 /** One presentation inside SearchModal's existing focus owner. Services never share a result state. */
 export default function SharedSearchWorkspace({ query, onQueryChange, companies, companyState, onRetryCompanies,
-  selectedCompany, activeCompanyIndex, onSelectCompany, onCompanyKey, listingDetail, options, marketDescription, marketDisclosure, onClose,
+  selectedCompany, activeCompanyIndex, revealCompanySelection, companyResultsCurrent = true, onSelectCompany, onCompanyKey, listingDetail, options, marketDescription, marketDisclosure, onClose,
 }: {
   query: string; onQueryChange: (query: string) => void; companies: Company[]; companyState: State;
   onRetryCompanies?: () => void; selectedCompany: string | null; activeCompanyIndex: number;
+  revealCompanySelection?: { index: number } | null; companyResultsCurrent?: boolean;
   onSelectCompany: (symbol: string) => void; onCompanyKey: (event: KeyboardEvent<HTMLInputElement>) => void;
   listingDetail: ReactNode; options: SharedSearchOptions; marketDescription?: string; marketDisclosure?: ReactNode; onClose?: () => void;
 }) {
@@ -35,6 +37,8 @@ export default function SharedSearchWorkspace({ query, onQueryChange, companies,
   const [revision, setRevision] = useState(0);
   const [selectedTool, setSelectedTool] = useState(options.selectedTool ?? "");
   const input = useRef<HTMLInputElement>(null); const toolResults = useRef<HTMLDivElement>(null); const uid = useId();
+  const companyResults = useRef<HTMLDivElement>(null);
+  const revealedCompanySelection = useRef<typeof revealCompanySelection>(null);
   useEffect(() => {
     let current = true;
     const timer = window.setTimeout(() => { if (current) { current = false; setToolState("unavailable"); } }, 10000);
@@ -58,17 +62,16 @@ export default function SharedSearchWorkspace({ query, onQueryChange, companies,
   const activeId = scope === "companies"
     ? companies[activeCompanyIndex] ? `${companyList}-${activeCompanyIndex}` : undefined
     : tool ? `${toolList}-${shownTools.indexOf(tool)}` : undefined;
+  useLayoutEffect(() => {
+    if (scope !== "companies") { revealedCompanySelection.current = null; return; }
+    if (companyPending || !companyResultsCurrent || !revealCompanySelection || revealedCompanySelection.current === revealCompanySelection) return;
+    if (revealListOption(companyResults.current, `${companyList}-${revealCompanySelection.index}`)) {
+      revealedCompanySelection.current = revealCompanySelection;
+    }
+  }, [scope, companyPending, companyResultsCurrent, revealCompanySelection, companies, companyList]);
   useEffect(() => {
     if (scope !== "tools" || toolState !== "ready" || !activeId) return;
-    const list = toolResults.current;
-    const option = list?.querySelector<HTMLElement>('[aria-selected="true"]');
-    if (!list || !option || !list.clientHeight) return;
-    const top = list.getBoundingClientRect().top + list.clientTop;
-    const bottom = top + list.clientHeight;
-    const bounds = option.getBoundingClientRect();
-    // Keep the combobox focused and reveal only this list, never the page/dialog ancestors.
-    if (bounds.top < top) list.scrollTop -= top - bounds.top;
-    else if (bounds.bottom > bottom) list.scrollTop += bounds.bottom - bottom;
+    revealListOption(toolResults.current, activeId);
   }, [scope, toolState, activeId, query]);
   const toolKey = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
@@ -101,15 +104,15 @@ export default function SharedSearchWorkspace({ query, onQueryChange, companies,
       <section className={styles.results} aria-label={pick(zh, "Company results", "公司结果")}>
         {companyState === "loading" && <p role="status">{pick(zh, "Loading company search…", "正在读取公司搜索…")}</p>}
         {companyState === "unavailable" && <div role="status"><h3>{pick(zh, "Company search could not be loaded.", "公司搜索暂时无法读取。")}</h3><p>{pick(zh, "Tools has its own status. Retry companies without clearing your query.", "工具搜索单独显示其状态。重试公司搜索不会清除查询。")}</p>{onRetryCompanies && <button type="button" className={styles.secondary} onClick={onRetryCompanies}>{pick(zh, "Retry companies", "重试公司搜索")}</button>}</div>}
-        <div id={companyList} role="listbox" aria-label={pick(zh, "Company listings", "公司上市标的")}>
+        <div ref={companyResults} id={companyList} role="listbox" aria-label={pick(zh, "Company listings", "公司上市标的")} aria-busy={!companyResultsCurrent}>
           {companies.map((row, index) => <button type="button" key={row.symbol} data-company-symbol={row.symbol} id={`${companyList}-${index}`} role="option"
             aria-selected={selectedCompany === row.symbol} className={`${styles.result}${activeCompanyIndex === index ? ` ${styles.active}` : ""}`}
-            onClick={() => onSelectCompany(row.symbol)}>
+            onClick={() => { if (companyResultsCurrent) onSelectCompany(row.symbol); }}>
             <span className={styles.monogram} aria-hidden="true">{row.symbol.slice(0, 2)}</span>
             <span><strong>{row.name}</strong><small>{row.symbol} · {row.venue || pick(zh, "Venue unavailable", "交易场所未知")}</small></span><span aria-hidden="true">↵</span>
           </button>)}
         </div>
-        {companyState === "ready" && !companies.length && <p role="status">{query ? pick(zh, "No company listings match this query in your enabled markets.", "所启用市场中没有符合此查询的公司标的。") : pick(zh, "Type a company name or symbol to find a listing.", "输入公司名称或代码以查找上市标的。")}</p>}
+        {companyState === "ready" && !companies.length && <p role="status" aria-hidden={!companyResultsCurrent} style={companyResultsCurrent ? undefined : { visibility: "hidden" }}>{query ? pick(zh, "No company listings match this query in your enabled markets.", "所启用市场中没有符合此查询的公司标的。") : pick(zh, "Type a company name or symbol to find a listing.", "输入公司名称或代码以查找上市标的。")}</p>}
         {marketDisclosure}
         <p className={styles.hint}>{pick(zh, "↑ ↓ Select a result · Enter select, then open · Esc return to your page", "↑ ↓ 选择结果 · 回车选择，再打开 · Esc 返回原页面")}</p>
       </section>
