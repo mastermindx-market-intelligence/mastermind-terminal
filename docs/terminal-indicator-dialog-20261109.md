@@ -19,3 +19,7 @@ The product TypeScript check passes; candidate lint has the same 19 pre-existing
 Source carrier: GitHub-native APIs, exact-parent branch sol/web-terminal-indicator-dialog-20261109-c1. Local and remote source materializations are isolated validation artifacts, not publication worktrees. No live writer or existing checkout is modified. SELF_REVIEWED; actual GitHub gates remain. PR #1363 is already armed for native automatic merge at 418caa6570717942af8255dbac3dfbe108de8217, enabledAt 2026-11-09T08:42:23Z, queue entry null at immediate readback. Do not re-arm or duplicate it.
 
 Next: obtain and inspect real-route browser proof; publish/qualify this PR and enroll it once through the same protected flow. Then take the remaining four Options Screener ticker actions, preserving PR #1248's active overlapping header/top-premium/unusual work. Live user Chrome remains held by an open extension UI; fixture proof is not production proof.
+
+## Browser diagnosis and correction
+
+The first native-modal browser run correctly exposed a sequential focus edge: Chromium reports the dialog as :modal and open, but Tab from the final OK control moves focus to browser chrome (document.hasFocus=false, activeElement=BODY). This is not a background-chart activation. The shared activateSettingsDialog lifecycle now explicitly wraps the first/last visible enabled controls while retaining native inertness. The same regression and the existing full chart-settings smoke will be rerun across desktop/tablet/phone before Ready. No failed run is counted as a pass.
