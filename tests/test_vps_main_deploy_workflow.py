@@ -72,10 +72,12 @@ def test_active_beta_reuses_the_same_exact_source_publisher_and_receipt() -> Non
     assert '.github/workflows/vps-main-deploy.yml' in wf.get("on", wf.get(True))["push"]["paths"]
     assert command.count("bash /opt/terminal/terminal-build.sh --target production") == 1
     assert command.count("bash /opt/terminal/terminal-build.sh --target beta") == 1
-    assert command.count("--target-sha '$TARGET_SHA'") == 2
+    assert command.count('--target-sha "$target_sha"') == 2
+    assert "bash -s -- \"$TARGET_SHA\" <<'MMX_RELEASE_SCRIPT'" in command
+    assert 'target_sha="$1"' in command
     assert "systemctl is-active --quiet terminal-beta.service && systemctl is-enabled --quiet terminal-beta.service" in command
     assert "test -L /opt/terminal/beta/.runtime-accepted" in command
-    assert command.index('test \\"\\$installed\\"') < command.index("systemctl is-active")
+    assert command.index('test "$installed" = "$target_sha"') < command.index("systemctl is-active")
     assert command.index("systemctl is-active") < command.index("--target beta")
     assert command.index("--target beta") < command.index("python3 -c")
     assert "existing stop/start policy preserved" in command
@@ -119,3 +121,82 @@ def test_beta_receipt_and_runtime_check_fails_closed() -> None:
                 raise AssertionError("release validator must declare its outcome")
             opened.assert_called_once_with("/opt/terminal/beta/.runtime-accepted")
             fetched.assert_called_once_with("http://127.0.0.1:3001/api/shared-shell/status", timeout=15)
+
+
+
+def test_literal_remote_script_preserves_stop_and_refusal_edges() -> None:
+    import os
+
+    command = _workflow()["jobs"]["deploy"]["steps"][1]["run"]
+    script = command.split("<<'MMX_RELEASE_SCRIPT'\n", 1)[1].rsplit("\nMMX_RELEASE_SCRIPT", 1)[0]
+    assert script.startswith('set -eu\ntarget_sha="$1"\n')
+    expected = "a" * 40
+    prefix = r'''
+EXPECTED=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+bash() { builtin test "$1" = /opt/terminal/terminal-build.sh; builtin test "$2" = --target; builtin test "$4" = --target-sha; builtin test "$5" = "$EXPECTED"; printf 'PUBLISH:%s\n' "$3"; if [ "$3" = production ]; then return "$PROD_EXIT"; else return "$BETA_EXIT"; fi; }
+test() { if [ "$1" = -r ]; then return 0; elif [ "$1" = -L ]; then return "$POINTER_EXIT"; else builtin test "$@"; fi; }
+cat() { if [ "$MARKER_OK" = 1 ]; then printf '%s' "$EXPECTED"; else printf 'wrong'; fi; }
+systemctl() { if [ "$1" = is-active ]; then return "$ACTIVE_EXIT"; elif [ "$1" = is-enabled ]; then return "$ENABLED_EXIT"; else return 98; fi; }
+python3() { printf 'VERIFY_BETA\n'; return "$VERIFY_EXIT"; }
+'''
+    defaults = dict(PROD_EXIT="0", BETA_EXIT="0", POINTER_EXIT="0", ACTIVE_EXIT="0", ENABLED_EXIT="0", MARKER_OK="1", VERIFY_EXIT="0")
+    cases = [
+        ("active", {}, 0, True, True),
+        ("stopped", dict(ACTIVE_EXIT="1"), 0, False, False),
+        ("disabled", dict(ENABLED_EXIT="1"), 0, False, False),
+        ("missing receipt", dict(POINTER_EXIT="1"), 1, False, False),
+        ("production refusal", dict(PROD_EXIT="7"), 7, False, False),
+        ("wrong production", dict(MARKER_OK="0"), 1, False, False),
+        ("beta refusal", dict(BETA_EXIT="8"), 8, True, False),
+        ("wrong beta result", dict(VERIFY_EXIT="1"), 1, True, True),
+    ]
+    for name, overrides, exit_code, beta_called, verified in cases:
+        result = subprocess.run(["bash", "-c", prefix + "\n" + script, "candidate", expected],
+                                env={**os.environ, **defaults, **overrides}, text=True, capture_output=True, check=False)
+        assert result.returncode == exit_code, (name, result.stdout, result.stderr)
+        assert ("PUBLISH:beta" in result.stdout) == beta_called, (name, result.stdout)
+        assert ("VERIFY_BETA" in result.stdout) == verified, (name, result.stdout)
+
+
+
+def test_complete_local_to_remote_command_preserves_key_pin_and_stop_edges() -> None:
+    import os
+    import sys
+    import tempfile
+
+    command = _workflow()["jobs"]["deploy"]["steps"][1]["run"]
+    expected = "a" * 40
+    defaults = dict(PROD_EXIT="0", BETA_EXIT="0", POINTER_EXIT="0", ACTIVE_EXIT="0", ENABLED_EXIT="0", MARKER_OK="1", VERIFY_EXIT="0", TEST_REMOTE_SHA=expected)
+    scenarios = [
+        ("active", {}, 0, True, True, True),
+        ("stopped", dict(ACTIVE_EXIT="1"), 0, True, False, False),
+        ("disabled", dict(ENABLED_EXIT="1"), 0, True, False, False),
+        ("missing receipt", dict(POINTER_EXIT="1"), 1, True, False, False),
+        ("production refusal", dict(PROD_EXIT="7"), 7, True, False, False),
+        ("wrong production", dict(MARKER_OK="0"), 1, True, False, False),
+        ("beta refusal", dict(BETA_EXIT="8"), 8, True, True, False),
+        ("wrong beta", dict(VERIFY_EXIT="1"), 1, True, True, True),
+        ("malformed protected SHA", dict(TEST_REMOTE_SHA="not-a-commit"), 1, False, False, False),
+        ("missing key", dict(VPS_DEPLOY_KEY=""), 1, False, False, False),
+        ("wrong host pin", dict(TEST_BAD_PIN="1"), 1, False, False, False),
+    ]
+    with tempfile.TemporaryDirectory(prefix="terminal-release-contract-") as temporary:
+        root = Path(temporary); binaries = root / "bin"; binaries.mkdir()
+        workspace = root / "checkout"; (workspace / "ops").mkdir(parents=True)
+        runner = root / "runner"; runner.mkdir()
+        pin = workspace / "ops/vps_origin_known_hosts"
+        fake_git = binaries / "git"
+        fake_git.write_text('#!/bin/sh\n[ "$*" = "ls-remote origin refs/heads/master" ] || exit 98\nprintf "%s\\trefs/heads/master\\n" "$TEST_REMOTE_SHA"\n')
+        fake_git.chmod(0o700)
+        fake_ssh = binaries / "ssh"
+        fake_ssh.write_text("#!" + sys.executable + "\n" + 'import os, pathlib, stat, subprocess, sys\nargs=sys.argv[1:]\nassert args[:2]==[\'-F\',\'/dev/null\'], args\nkey=pathlib.Path(args[args.index(\'-i\')+1]); assert key.read_text()==\'fixture-not-a-real-key\\n\'\nassert stat.S_IMODE(key.stat().st_mode)==0o600\nopts=[args[i+1] for i,v in enumerate(args) if v==\'-o\']\nfor required in [\'BatchMode=yes\',\'IdentitiesOnly=yes\',\'StrictHostKeyChecking=yes\',\'GlobalKnownHostsFile=/dev/null\',\'ConnectTimeout=15\',\'ServerAliveInterval=20\',\'ServerAliveCountMax=15\']:\n    assert required in opts, required\nassert \'UserKnownHostsFile=\'+os.environ[\'GITHUB_WORKSPACE\']+\'/ops/vps_origin_known_hosts\' in opts\nassert args[-5:]==[\'root@146.190.142.17\',\'bash\',\'-s\',\'--\',\'a\'*40], args[-5:]\nscript=sys.stdin.read(); assert script.startswith(\'set -eu\\ntarget_sha="$1"\\n\')\nprint(\'QUALIFIED_SSH_CALLED\',flush=True)\nprefix=\'\\nEXPECTED=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\\nbash() { builtin test "$1" = /opt/terminal/terminal-build.sh; builtin test "$2" = --target; builtin test "$4" = --target-sha; builtin test "$5" = "$EXPECTED"; printf \\\'PUBLISH:%s\\\\n\\\' "$3"; if [ "$3" = production ]; then return "$PROD_EXIT"; else return "$BETA_EXIT"; fi; }\\ntest() { if [ "$1" = -r ]; then return 0; elif [ "$1" = -L ]; then return "$POINTER_EXIT"; else builtin test "$@"; fi; }\\ncat() { if [ "$MARKER_OK" = 1 ]; then printf \\\'%s\\\' "$EXPECTED"; else printf \\\'wrong\\\'; fi; }\\nsystemctl() { if [ "$1" = is-active ]; then return "$ACTIVE_EXIT"; elif [ "$1" = is-enabled ]; then return "$ENABLED_EXIT"; else return 98; fi; }\\npython3() { printf \\\'VERIFY_BETA\\\\n\\\'; return "$VERIFY_EXIT"; }\\n\'\nresult=subprocess.run([\'bash\',\'-c\',prefix+\'\\n\'+script,\'candidate\',args[-1]],text=True,capture_output=True)\nprint(result.stdout,end=\'\');print(result.stderr,end=\'\',file=sys.stderr);sys.exit(result.returncode)\n')
+        fake_ssh.chmod(0o700)
+        for name, overrides, status, ssh_called, beta_called, verified in scenarios:
+            pin.write_text("wrong-host-pin\n" if overrides.get("TEST_BAD_PIN") else EXPECTED_PIN)
+            env = {**os.environ, **defaults, "VPS_DEPLOY_KEY": "fixture-not-a-real-key", "GITHUB_WORKSPACE": str(workspace), "RUNNER_TEMP": str(runner), "PATH": str(binaries) + os.pathsep + os.environ["PATH"], **overrides}
+            result = subprocess.run(["bash", "-c", command], env=env, text=True, capture_output=True, check=False)
+            assert result.returncode == status, (name, result.stdout, result.stderr)
+            assert ("QUALIFIED_SSH_CALLED" in result.stdout) == ssh_called, (name, result.stdout, result.stderr)
+            assert ("PUBLISH:beta" in result.stdout) == beta_called, (name, result.stdout)
+            assert ("VERIFY_BETA" in result.stdout) == verified, (name, result.stdout)
+            assert list(runner.iterdir()) == [], (name, "temporary fixture key leaked")
