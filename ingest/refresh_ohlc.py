@@ -7,19 +7,21 @@ light: a few grouped snapshots in RAM; OHLC files rewritten one at a time (atomi
 Only appends dates strictly newer than each file's last bar (no dups; won't clobber
 flagship bars already written by build_polygon_universe).
 
-Appends go through append_recent_bars, which re-runs the ticker-reuse guard on the
-stitched series: grouped-daily is keyed by ticker string, so when a ticker changes
-hands (SPCX 2026-06: SPAC ETF → SpaceX) the new holder's bars would otherwise be
-stitched onto the old holder's file.
+Appends go through merge_refresh (U01): the overlap check refuses the whole append when
+a vendor close on an ALREADY-STORED date disagrees beyond BASIS_DRIFT_TOLERANCE (a new
+split factor or a corrected bar — one file must never silently mix bases), then the
+append re-runs the ticker-reuse guard, RETAINING guard-dropped bars under
+`retained_suspected_history` instead of silently deleting them, and stamps/updates the
+`view` provenance block (segments, basis_drift, suspected_breaks, refusal_reasons).
 
 Usage: refresh_ohlc.py [--days N] [--write]   (default days=7; dry-run unless --write)
 """
 import json, os, sys, urllib.request, datetime as dt
 
 try:
-    from ingest.polygon_bars import append_recent_bars  # package context (tests)
+    from ingest.polygon_bars import merge_refresh  # package context (tests)
 except ImportError:  # run as `python ingest/refresh_ohlc.py` — same-dir import
-    from polygon_bars import append_recent_bars
+    from polygon_bars import merge_refresh
 
 D = os.environ.get("TERMINAL_DATA_DIR", "/opt/terminal/terminal/public/data")
 US_MKTS = {"NASDAQ", "NYSE", "US", "AMEX", "NYSEAMERICAN", "NYSE American", "NYSE Arca", "BATS"}
@@ -52,6 +54,18 @@ def grouped(date_str, poly):
     return out
 
 
+def merge_file(sym: str, d: dict, rows: list) -> tuple[dict, int, dict]:
+    """Pure per-file merge factored out of main(): (doc, n_new, report).
+
+    Keeps the historical precondition that a file with no stored bars is never seeded
+    from grouped snapshots, then delegates to merge_refresh (basis-drift refusal,
+    retained suspected breaks, view stamp). main() only does I/O around this.
+    """
+    if not (d.get("bars") or []):
+        return d, 0, {}
+    return merge_refresh(sym, d, list(rows))
+
+
 def main():
     write = "--write" in sys.argv
     days = int(sys.argv[sys.argv.index("--days") + 1]) if "--days" in sys.argv else 7
@@ -76,7 +90,7 @@ def main():
     # updated, 2026-07-10/11). The live manifest is last night's full universe — exactly
     # the set of existing OHLC files this script appends to.
     man = json.load(open(os.path.join(D, "manifest.json")))
-    updated = appended = 0
+    updated = appended = refused = 0
     sample = {}
     for sym, row in man["symbols"].items():
         if row.get("mkt") not in US_MKTS:
@@ -91,23 +105,23 @@ def main():
             d = json.load(open(p))
         except Exception:
             continue
-        bars = d.get("bars") or []
-        if not bars:
-            continue
-        bars, n_new = append_recent_bars(sym, bars, list(gt.values()))
-        if not n_new:
+        doc, n_new, report = merge_file(sym, d, list(gt.values()))
+        drift = report.get("basis_drift")
+        if drift:
+            refused += 1
+        if not n_new and not drift:
             continue
         appended += n_new
         if write:
-            d["bars"] = bars
             tmp = p + ".tmp"
-            json.dump(d, open(tmp, "w"), separators=(",", ":"))
+            json.dump(doc, open(tmp, "w"), separators=(",", ":"))
             os.replace(tmp, p)
         updated += 1
         if sym in ("WM", "REGN", "MCK", "SOFI", "KRUS", "ZS", "FOUR", "VEEV", "YELP", "CNI"):
-            sample[sym] = {"new_last_date": bars[-1][0], "close": bars[-1][4]}
+            sample[sym] = {"new_last_date": doc["bars"][-1][0], "close": doc["bars"][-1][4]}
 
     print(f"US symbols updated: {updated}  |  bars appended: {appended}")
+    print(f"basis drift refused: {refused}")
     print("sample:", json.dumps(sample))
     print("WROTE" if write else "DRY-RUN (no write)")
 

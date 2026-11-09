@@ -1,0 +1,86 @@
+/* Regional company snapshot — the listing-backed Intelligence surface for CN / HK / Canada.
+   Composed entirely from Terminal tokens and the existing .ci-* geometry (company-intelligence.css):
+   no new palette, no new radius scale, no import-time image or brand mark. The snapshot reads as a
+   sibling of the event view rather than a second design system. */
+
+.ci-regional-head{margin-bottom:var(--sp-3)}
+.ci-regional-head .ci-regional-kicker{display:inline-flex;align-items:center;gap:8px;color:var(--text-2);font:720 var(--fs-micro)/1 var(--font-ui);letter-spacing:.12em}
+.ci-regional-head .ci-regional-kicker::before{content:"";width:3px;height:13px;border-radius:2px;background:linear-gradient(180deg,var(--brand-2),color-mix(in srgb,var(--brand) 20%,transparent))}
+/* Long CN/HK legal names must WRAP. `nowrap` + ellipsis here would either truncate a company
+   out of existence or push the card wider than its column. */
+.ci-regional-head h2{margin:8px 0 0;overflow-wrap:anywhere;font:680 18px/1.25 var(--font-ui);letter-spacing:-.02em}
+.ci-regional-head p{margin:6px 0 0;color:var(--text-2);font:530 11.5px/1.45 var(--font-ui)}
+
+.ci-regional-meta{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-2) var(--sp-4);min-height:36px;margin-top:var(--sp-3);padding:7px var(--sp-4);border:1px solid var(--hairline);border-radius:var(--r-tile);background:color-mix(in srgb,var(--panel-2) 88%,transparent);color:var(--muted);font:520 10px/1.35 var(--font-ui)}
+.ci-regional-meta span{display:inline-flex;align-items:baseline;gap:6px;min-width:0}
+.ci-regional-meta b{color:var(--text-2);font-weight:620;overflow-wrap:anywhere}
+.ci-regional-meta a{color:var(--brand-2);font-weight:600;text-decoration:none;overflow-wrap:anywhere}
+.ci-regional-meta a:hover{text-decoration:underline}
+
+.ci-regional-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--sp-3);margin-top:var(--sp-3);align-items:start}
+.ci-regional-card{display:grid;gap:var(--sp-3);align-content:start;min-width:0;padding:var(--sp-4);border:1px solid var(--hairline);border-radius:var(--r-card);background:var(--panel);box-shadow:var(--shadow-card)}
+.ci-regional-card>header{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3);min-width:0}
+.ci-regional-card h3{margin:0;font:660 13px/1.25 var(--font-ui);letter-spacing:-.01em}
+.ci-regional-state{flex:none;padding:3px 7px;border-radius:var(--r-pill);border:1px solid var(--line);color:var(--muted);background:var(--panel-2);font:650 9px/1 var(--font-ui);white-space:nowrap}
+.ci-regional-state[data-state="available"]{color:var(--brand-2);border-color:color-mix(in srgb,var(--brand) 34%,var(--line))}
+.ci-regional-state[data-state="partial"]{color:var(--text-2)}
+.ci-regional-state[data-state="unknown_freshness"]{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 38%,var(--line))}
+.ci-regional-state[data-state="unavailable"]{color:var(--muted)}
+
+.ci-regional-body{min-width:0;color:var(--text-2);font:530 11.5px/1.55 var(--font-ui);overflow-wrap:anywhere}
+.ci-regional-body p{margin:0}
+.ci-regional-facts{display:grid;gap:6px;margin:0}
+.ci-regional-facts div{display:grid;grid-template-columns:96px minmax(0,1fr);gap:var(--sp-3);align-items:baseline}
+.ci-regional-facts dt{color:var(--muted);font:600 9.5px/1.4 var(--font-ui)}
+.ci-regional-facts dd{min-width:0;margin:0;overflow-wrap:anywhere}
+
+/* Statement rows. `minmax(0,1fr)` on the value keeps a long numeric or a wrapped label from
+   widening the grid; the label column is fixed so the five figures stay in one column. */
+.ci-regional-rows{display:grid;gap:0;margin:0;border:1px solid var(--line);border-radius:var(--r-tile);background:var(--panel-2);overflow:hidden}
+.ci-regional-rows>div{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:var(--sp-3);padding:8px 11px;border-bottom:1px solid var(--line-2)}
+.ci-regional-rows>div:last-child{border-bottom:0}
+.ci-regional-rows dt{min-width:0;overflow-wrap:anywhere;color:var(--text-2);font:600 10px/1.4 var(--font-ui)}
+.ci-regional-rows dd{display:flex;align-items:baseline;justify-content:flex-end;gap:8px;min-width:0;margin:0}
+.ci-regional-rows dd strong{color:var(--text);font:640 11.5px/1.3 var(--font-num);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ci-regional-rows dd small{font:640 9.5px/1 var(--font-num);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ci-regional-rows dd small[data-tone="up"]{color:var(--up)}
+.ci-regional-rows dd small[data-tone="down"]{color:var(--down)}
+.ci-regional-rows dd small[data-tone="none"]{color:var(--muted)}
+/* A missing figure is the house dash placeholder — never a zero, never an empty cell. */
+.ci-regional-rows dd strong[data-absent="true"]{color:var(--muted)}
+
+.ci-regional-note{margin:0;color:var(--muted);font:520 9.5px/1.45 var(--font-ui);overflow-wrap:anywhere}
+
+.ci-regional-links{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+.ci-regional-links button{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--panel-2);color:var(--text-2);font:620 10px/1 var(--font-ui);cursor:pointer;white-space:nowrap;transition:color var(--t-fast),border-color var(--t-fast),background var(--t-fast)}
+.ci-regional-links button:hover{color:var(--text);border-color:var(--line-3);background:var(--panel-3)}
+.ci-regional-links button:focus-visible{outline:0;border-color:var(--brand-2);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 13%,transparent)}
+.ci-regional-links button i{color:var(--brand-2);font:650 10px/1 var(--font-ui);font-style:normal;opacity:.72}
+
+/* The two view buttons. Only regional listings get them; the US event view is unchanged. */
+.ci-regional-switch{display:inline-flex;align-items:center;gap:3px;margin:0 0 var(--sp-3);padding:4px;border:1px solid var(--hairline);border-radius:var(--r-tile);background:var(--panel);box-shadow:0 8px 26px -24px #000}
+.ci-regional-switch button{display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:0 13px;border:0;border-radius:7px;background:transparent;color:var(--muted);font:640 11.5px/1 var(--font-ui);white-space:nowrap;cursor:pointer;transition:color var(--t-fast),background var(--t-fast)}
+.ci-regional-switch button:hover{color:var(--text);background:rgba(255,255,255,.035)}
+.ci-regional-switch button[aria-pressed="true"]{color:#eef3ff;background:linear-gradient(180deg,color-mix(in srgb,var(--brand) 30%,var(--panel-3)),color-mix(in srgb,var(--brand) 18%,var(--panel-2)));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--brand-2) 38%,transparent)}
+.ci-regional-switch button:focus-visible{outline:0;box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 16%,transparent)}
+
+.ci-regional-empty{display:grid;gap:6px;min-height:180px;align-content:center;padding:var(--sp-5);text-align:center}
+.ci-regional-empty h2{margin:0;font:680 17px/1.25 var(--font-ui)}
+.ci-regional-empty p{margin:0;color:var(--text-2);font:530 11.5px/1.55 var(--font-ui)}
+
+/* Tablet + phone: one column. The brief's contract viewports are 820×1180 and 390×844, and a
+   3-up grid of numeric rows is unreadable below ~900px regardless of device class. */
+@media (max-width:900px){
+  .ci-regional-grid{grid-template-columns:minmax(0,1fr)}
+  .ci-regional-facts div{grid-template-columns:minmax(0,1fr);gap:2px}
+}
+@media (max-width:760px){
+  .ci-regional-head h2{font-size:16px}
+  .ci-regional-card{padding:var(--sp-3)}
+  .ci-regional-meta{padding:8px var(--sp-3)}
+  .ci-regional-switch{width:100%}
+  .ci-regional-switch button{flex:1;min-height:38px;padding:0 8px}
+}
+@media (pointer:coarse){
+  .ci-regional-switch button,.ci-regional-links button{min-height:44px}
+}

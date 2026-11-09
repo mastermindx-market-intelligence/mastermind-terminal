@@ -9,10 +9,11 @@ import AlertDetail, { type AlertDetailData } from "./AlertDetail";
 import { NewAlertPanel } from "@/components/AlertsView";
 import {
   buildAlertsView, conditionText, conditionsWord, copy, verdictText, ALERTS_CHANGED_EVENT,
-  lanesForArmedAlerts, monitorFor, rowChipKey,
+  formatFiredAt, lanesForArmedAlerts, monitorFor, rowChipKey, isHeldMaterialReceipt,
   type Alert, type ReadState, type RunReceipt, type OutboxRow,
 } from "@/lib/alertsView";
-import { useLang } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
+import { isForexWatch } from "@/lib/forexWatches";
 import BriefsInbox from "@/components/briefs/BriefsInbox";
 
 interface AlertsResp { alerts?: Alert[]; error?: string }
@@ -33,6 +34,7 @@ const UNAVAILABLE_RECEIPTS: ReceiptsResp = {
 export default function AlertsCockpit({ email, children }: { email: string; children?: ReactNode }) {
   const { lang } = useLang();
   const L = lang === "zh" ? "zh" : "en";
+  const t = useT();
   const [alerts, setAlerts] = useState<Alert[] | null>(null);
   const [alertsState, setAlertsState] = useState<ReadState>("READ_UNAVAILABLE");
   const [receipts, setReceipts] = useState<ReceiptsResp | null>(null);
@@ -105,6 +107,15 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
       ),
     };
     const monitorLanes = lanesForArmedAlerts(alerts, engineLane, suiteLane);
+    // Include the incumbent lane for implicit position activity, including first-run
+    // failures before there is any outbox row. No fabricated per-position alert.
+    const heldMonitoring = receipts?.suite_run?.source_asof != null ||
+      receipts?.suite_run?.error_class?.startsWith("held_") ||
+      receipts?.outbox?.some(isHeldMaterialReceipt);
+    if (heldMonitoring) {
+      if (!(alerts ?? []).some(alert => alert.active)) monitorLanes.splice(0, monitorLanes.length);
+      if (!monitorLanes.some(lane => lane.id === "suite")) monitorLanes.push({ ...suiteLane, id: "suite" });
+    }
     const view = buildAlertsView({
       alerts, alertsState,
       run: receipts?.run ?? null, lastSuccessAt: receipts?.last_success_at ?? null,
@@ -132,26 +143,40 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
     return { view, degradedLaneLines };
   }, [alerts, alertsState, receipts, L]);
 
+  // S1: producer's own summary for thesis rows — EN or ZH only, no cross-language fallback;
+  // whitespace-only summary_plain falls back to the fixed sentence.
+  // summary_plain_zh is not on OutboxRow.payload (per spec); narrow via type cast.
+  const thesisSentence = (payload: OutboxRow["payload"] | undefined, lang: "en" | "zh") => {
+    if (lang === "zh") {
+      const rawZh = typeof (payload as { summary_plain_zh?: string })?.summary_plain_zh === "string"
+        ? (payload as { summary_plain_zh: string }).summary_plain_zh.trim() : "";
+      // MINOR-2 (macro producer ruling): upstream may stamp translation-pending on untranslated
+      // EN text; render the fixed sentence instead so ZH users never see internal markers.
+      const zh = rawZh && !rawZh.includes("（翻译待补）") ? rawZh : "";
+      return zh || copy("condition.thesis_condition", "zh");
+    }
+    const en = typeof payload?.summary_plain === "string" ? payload!.summary_plain.trim() : "";
+    return en || copy("condition.thesis_condition", "en");
+  };
+
+  const heldSentence = (payload: OutboxRow["payload"] | undefined, lang: "en" | "zh") => {
+    const text = lang === "zh" ? payload?.summary_plain_zh : payload?.summary_plain;
+    return typeof text === "string" && text.trim() ? text.trim() : lang === "zh" ? "公司业绩已发布，请查看来源。" : "Company results were published. Review the source.";
+  };
+
   const timelineRows: TimelineRow[] = view.rows.map((r) => {
     const alert = alerts?.find((a) => a.id === r.alertId);
-    const t = r.outboxRow?.payload?.fired_at ? new Date(r.outboxRow.payload.fired_at).toLocaleTimeString(L === "zh" ? "zh-CN" : "en-US", { hour: "2-digit", minute: "2-digit" }) : "—";
+    const t = formatFiredAt(r.outboxRow?.payload?.fired_at, L);
+    // MO-PAID-047: thesis_condition outbox rows have no matching alerts entry.
+    // Use the window-closed copy for these rows; do not show "falsifier" language.
+    const isThesisRow = r.thesisId != null;
+    const verdict = r.heldEventId != null ? heldSentence(r.outboxRow?.payload, L) : isThesisRow
+      ? thesisSentence(r.outboxRow?.payload, L)
+      : verdictText(r.outboxRow?.payload?.condition_plain, alert?.condition, L);
     return {
       id: r.alertId, time: t,
       subject: r.outboxRow?.payload?.ticker || alert?.symbol || "—",
-      // Minor: a fired-event payload's own plain-language description wins when present (EN
-      // only, see verdictText); the fallback must describe the actual condition (conditionText),
-      // never the content-free literal "Condition"/"条件" this used to render for every row
-      // lacking a payload. Minor 4 (round-6 review): the EN-only payload must never leak
-      // straight into a ZH page — verdictText gates it on `L`.
-      // MAJOR-2 (r10 review, META-CEO B ruling): `verdictText`'s ZH branch (`conditionText`)
-      // used to prefix its OWN symbol onto the price-condition phrasing ("NVDA 价格低于 150") —
-      // and this row's own `.subject` cell (above) already shows the ticker, so passing `alert?.
-      // symbol` here doubled it on the row ("NVDA" + "NVDA 价格低于 150"), the same defect
-      // minor-4 (r9 review) fixed in WatchingList but not here. Minor-2 (r11 review):
-      // `verdictText` no longer takes a symbol parameter at all (see lib/alertsView.ts) — the
-      // ticker appears exactly once per row, in `.subject`, and no future caller here can
-      // reintroduce the doubling by passing one back in.
-      verdict: verdictText(r.outboxRow?.payload?.condition_plain, alert?.condition, L),
+      verdict,
       delivery: r.delivery, foldedRows: r.foldedRows,
     };
   });
@@ -159,8 +184,56 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
   const detail: AlertDetailData | null = useMemo(() => {
     if (!openId) return null;
     const row = view.rows.find((r) => r.alertId === openId);
+    if (!row) return null;
+    // MAJOR-1 (round-2 review): thesis_condition rows have no matching alerts entry, so `!alert`
+    // used to always hide the detail surface. Build a thesis-detail directly from the outbox row:
+    // conditionText uses the window-closed copy, armedAt falls back to the outbox creation time,
+    // resolution is "open" (the fire is an unacknowledged event, same as a fired alert), and
+    // every alert-specific field is honestly null.
+    if (row.thesisId != null) {
+      const thesisRow = row;
+      return {
+        kind: "thesis" as const,
+        // S1: producer's own summary for the detail pane — EN or ZH only, no cross-language fallback.
+        conditionText: thesisSentence(row.outboxRow?.payload, L),
+        holdingSymbol: null,
+        summaryPlain: null,
+        conditionPlain: null,
+        triggeredValue: null,
+        conditionType: null,
+        firedAt: thesisRow.outboxRow?.payload?.fired_at ?? null,
+        armedAt: thesisRow.outboxRow?.created_at ?? "",
+        evidenceUrl: null,
+        lastAttemptAt: view.lastAttemptAt,
+        lastAttemptState: view.lastAttemptState,
+        lastSuccessAt: view.lastSuccessAt,
+        lastSuccessState: view.lastSuccessState,
+        resolution: "open" as const,
+        delivery: thesisRow.delivery,
+        attempts: thesisRow.outboxRow?.attempts ?? 0,
+        lastError: thesisRow.outboxRow?.last_error ?? null,
+        deliverAfter: thesisRow.outboxRow?.deliver_after ?? null,
+      };
+    }
+    if (row.heldEventId != null && row.outboxRow) {
+      const out = row.outboxRow;
+      return {
+        kind: "position" as const,
+        conditionText: L === "zh" ? "持仓公司的业绩发布" : "Held company results publication",
+        holdingSymbol: out.payload.ticker ?? null,
+        summaryPlain: heldSentence(out.payload, L), conditionPlain: null,
+        triggeredValue: null, conditionType: null,
+        firedAt: out.payload.event_time ?? null, armedAt: out.payload.recorded_at ?? out.created_at,
+        evidenceUrl: out.payload.evidence_url ?? null,
+        lastAttemptAt: view.lastAttemptAt, lastAttemptState: view.lastAttemptState,
+        lastSuccessAt: view.lastSuccessAt, lastSuccessState: view.lastSuccessState,
+        resolution: "open" as const, delivery: row.delivery, attempts: out.attempts,
+        lastError: out.last_error, deliverAfter: out.deliver_after,
+      };
+    }
+    // For non-thesis rows, an alert entry must exist (price/suite alerts always have one).
     const alert = alerts?.find((a) => a.id === openId);
-    if (!row || !alert) return null;
+    if (!alert) return null;
     // Major 4 (round-6 review, follow-up): the real crossing value from the alert's own fired
     // stamp — distinct from the condition's threshold (already in conditionText) — so the ZH
     // "what happened" field below can describe an event instead of repeating the definition.
@@ -228,7 +301,7 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
   // must outrank never-ran/degraded so a brand-new zero-alert account (the account most likely to
   // have no fresh run receipt yet) still gets the calm "add a watch" copy, never "Check again"
   // (major: B1 calm-zero copy was reachable only under monitor==="watching").
-  const zeroAlerts = view.emptyAction === "add_watch" && !listUnavailable;
+  const zeroAlerts = view.emptyAction === "add_watch" && !listUnavailable && view.rows.length === 0 && !receipts?.suite_run?.error_class?.startsWith("held_");
   const hasUnresolved = (alerts || []).some((a) => a.identity_state === "unresolved");
 
   // One state per screen: the spine's `data-cockpit-state` and the rendered explanatory module
@@ -352,7 +425,7 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
               WatchingList/CouldNotWatch already use, so the two body lines stay subordinate to
               one real heading, matching every other module on this page. */}
           <div className={s.moduleHead}>
-            <span>{L === "zh" ? "近期活动" : "Recent activity"}</span>
+            <span>{L === "zh" ? t("recentActivityCockpit", "近期活动") : t("recentActivityCockpit", "Recent activity")}</span>
           </div>
           <p className={s.calmBody}>{copy("activity.empty", L)}</p>
           <p className={s.calmBody}>{copy("activity.lastSuccess", L, { t: fmtLastSuccess() })}</p>
@@ -370,7 +443,7 @@ export default function AlertsCockpit({ email, children }: { email: string; chil
         // identical doubled-ticker defect (MAJOR-2, r10 ruling) and is now also passed
         // `undefined` (see the `detail` builder above) — the ticker appears exactly once on
         // every surface: `.subject`/Symbol-fact, never re-prefixed onto the condition text.
-        rows={(alerts || []).filter((a) => a.active).map((a) => ({
+        rows={(alerts || []).filter((a) => a.active && !isForexWatch(a.condition)).map((a) => ({
           id: a.id,
           symbol: a.symbol || "—",
           label: a.identity_state === "unresolved"

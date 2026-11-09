@@ -16,9 +16,9 @@ import React from "react";
 import { makeGexT } from "./gexStrings";
 import type { Lang } from "@/lib/i18n";
 import type { GexPayload, GreekLens } from "./GexDeskView";
-import { dteLabelFor, expLabel } from "@/lib/dte";
 import { fmtMn } from "@/lib/gexLadder";
-import { exposureSign, expiryNetFor, type ExpiryRow } from "@/lib/expiryTermStructure";
+import { dteLabelFor, expLabel } from "@/lib/dte";
+import { byExpiryToTermStructure, expiryObservationFor, exposureSign, EXPIRY_UNIT_KEYS, type ExpiryRow } from "@/lib/expiryTermStructure";
 
 interface ExpiryBarsProps {
   byExpiry: GexPayload["by_expiry"] | null;
@@ -43,34 +43,36 @@ export function ExpiryBars({ byExpiry, greek, asOf = null, lang }: ExpiryBarsPro
     return <div style={EMPTY}>{t("expiryNoData")}</div>;
   }
 
-  const rows = sourceRows
-    .filter((r) => expiryNetFor(r, greek) != null)
-    .slice()
-    .sort((a, b) => a.exp.localeCompare(b.exp)); // nearest expiration first (top)
-
-  if (rows.length < 1) {
-    return <div style={EMPTY}>{t("expiryLensNA")}</div>;
+  const ts = byExpiryToTermStructure(sourceRows, greek, asOf);
+  if (ts.nodes.length < 1) {
+    return <div style={EMPTY}>{t(ts.available ? "expiryNoData" : "expiryLensNA")}</div>;
   }
-
-  const maxAbs = rows.reduce((m, r) => {
-    const v = expiryNetFor(r, greek);
-    return v != null ? Math.max(m, Math.abs(v)) : m;
-  }, 0.001);
+  // Preserve the complete expiry population when a neighboring value is missing.
+  const rows = sourceRows.slice().sort((a, b) => a.exp.localeCompare(b.exp));
+  const maxAbs = Math.max(ts.maxAbs, 0.001);
+  const basis = t("expirySupportSummary").replace("{known}", String(ts.nodes.length))
+    .replace("{total}", String(ts.sourceCount)).replace("{partial}", String(ts.partialCount));
 
   return (
-    <div style={SCROLL} className="obs-scroll">
+    <div style={{ display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
+      {(ts.missingCount > 0 || ts.partialCount > 0) && <p role="status" data-testid="expiry-support" style={{ fontSize: 11, color: "var(--muted)", margin: "4px 6px" }}>{basis}</p>}
+      <div data-testid="expiry-unit" style={{ fontSize: 11, color: "var(--muted)", margin: "4px 6px" }}>{t(EXPIRY_UNIT_KEYS[greek])}</div>
+      <div style={SCROLL} className="obs-scroll">
       <div style={CENTER_LINE} />
       {rows.map((r) => {
-        const net = expiryNetFor(r, greek) ?? 0;
-        const sign = exposureSign(net);
-        const isPos = sign > 0;
-        const isNeg = sign < 0;
-        const pct = Math.abs(net) / maxAbs;
+        const observation = expiryObservationFor(r, greek);
+        const value = observation.net;
+        const sign = value == null ? null : exposureSign(value);
+        const isPos = sign === 1;
+        const isNeg = sign === -1;
+        const pct = value == null ? 0 : Math.abs(value) / maxAbs;
         const shaped = Math.pow(pct, 0.7);
         const barW = Math.max(shaped * 46, pct > 0 ? 2 : 0);
         const isBig = pct > 0.35;
         return (
-          <div key={r.exp} style={ROW}>
+          <div key={r.exp} data-expiry={r.exp} data-partial={observation.partial ? "true" : undefined}
+            title={observation.partial ? `${t("expiryKnownSubtotal")} · ${observation.knownContracts}/${observation.admittedContracts} ${t("expiryAdmittedInputs")}` : undefined}
+            style={{ ...ROW, height: observation.partial ? 32 : ROW.height }}>
             <div style={EXP_COL}>
               <span style={EXP_LABEL}>{expLabel(r.exp)}</span>
               <span style={DTE_LABEL}>{dteLabelFor(r.exp, asOf)}</span>
@@ -87,14 +89,17 @@ export function ExpiryBars({ byExpiry, greek, asOf = null, lang }: ExpiryBarsPro
               className="num"
               style={{
                 ...VAL,
-                color: sign > 0 ? "var(--up)" : sign < 0 ? "var(--down)" : "var(--muted)",
+                color: value == null ? "var(--text-dim)" : isPos ? "var(--up)" : isNeg ? "var(--down)" : "var(--muted)",
               }}
             >
-              {fmtMn(net)}
+              {observation.partial && <small style={{ display: "block", fontSize: 9 }}>{t("expiryKnownSubtotal")}</small>}
+              {fmtMn(value)}
             </span>
           </div>
         );
       })}
+      </div>
+      <p data-testid="expiry-source-basis" style={{ fontSize: 10, color: "var(--muted)", margin: "4px 6px" }}>{t("expirySourceBasis")}</p>
     </div>
   );
 }

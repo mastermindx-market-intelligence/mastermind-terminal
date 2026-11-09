@@ -1,0 +1,9 @@
+{
+  "manifestSpec": "^5.2.0",
+  "lockResolved": "5.2.0",
+  "lockUrl": "https://registry.npmjs.org/lightweight-charts/-/lightweight-charts-5.2.0.tgz",
+  "runtimeLoaded": "5.2.0",
+  "node": "v22.23.3",
+  "observedAtBaseSha": "dd78c1e250b7c13560620f1c3a9ea5b66e29455e",
+  "ciRuntime": "recorded by CI log line G00-A03 at the PR head"
+}

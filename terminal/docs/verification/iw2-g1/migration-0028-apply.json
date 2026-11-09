@@ -1,0 +1,174 @@
+{
+  "file": "supabase/migrations/0028_investigations.sql",
+  "sha256": "1a4f1589affc36d73343355fb247fee7430b9bbb18b026aa2b493f8caf74c3c6",
+  "pre": [
+    {
+      "statement": "select relname,relrowsecurity from pg_class where relname in ('investigations','investigation_revisions','investigation_mutation_receipts','chart_layout_revisions')",
+      "rows": []
+    },
+    {
+      "statement": "select proname,prosecdef,proconfig from pg_proc where proname in ('apply_investigation_revision_v2','read_investigation_v2','read_investigation_operation_v2')",
+      "rows": []
+    }
+  ],
+  "post": [
+    {
+      "statement": "select relname,relrowsecurity from pg_class where relname in ('investigations','investigation_revisions','investigation_mutation_receipts','chart_layout_revisions')",
+      "rows": [
+        {
+          "relname": "chart_layout_revisions",
+          "relrowsecurity": true
+        },
+        {
+          "relname": "investigations",
+          "relrowsecurity": true
+        },
+        {
+          "relname": "investigation_mutation_receipts",
+          "relrowsecurity": true
+        },
+        {
+          "relname": "investigation_revisions",
+          "relrowsecurity": true
+        }
+      ]
+    },
+    {
+      "statement": "select proname,prosecdef,proconfig from pg_proc where proname in ('apply_investigation_revision_v2','read_investigation_v2','read_investigation_operation_v2')",
+      "rows": [
+        {
+          "proname": "apply_investigation_revision_v2",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=pg_catalog, public, auth, extensions"
+          ]
+        },
+        {
+          "proname": "read_investigation_operation_v2",
+          "prosecdef": false,
+          "proconfig": [
+            "search_path=pg_catalog, public, auth"
+          ]
+        },
+        {
+          "proname": "read_investigation_v2",
+          "prosecdef": false,
+          "proconfig": [
+            "search_path=pg_catalog, public, auth"
+          ]
+        }
+      ]
+    }
+  ],
+  "applied_at": "2026-10-04T06:17:18Z",
+  "statements_n": 39,
+  "status": "failed_readback",
+  "project_ref": "<redacted>",
+  "apply_mode": "statement-at-a-time",
+  "expected_objects": [
+    {
+      "kind": "table",
+      "name": "investigations"
+    },
+    {
+      "kind": "table",
+      "name": "investigation_revisions"
+    },
+    {
+      "kind": "table",
+      "name": "investigation_mutation_receipts"
+    },
+    {
+      "kind": "table",
+      "name": "chart_layout_revisions"
+    },
+    {
+      "kind": "index",
+      "name": "investigations_owner_updated"
+    },
+    {
+      "kind": "index",
+      "name": "investigation_revisions_owner"
+    },
+    {
+      "kind": "index",
+      "name": "chart_layout_revisions_owner"
+    },
+    {
+      "kind": "policy",
+      "name": "investigations_owner_read"
+    },
+    {
+      "kind": "policy",
+      "name": "investigation_revisions_owner_read"
+    },
+    {
+      "kind": "policy",
+      "name": "investigation_receipts_owner_read"
+    },
+    {
+      "kind": "policy",
+      "name": "chart_layout_revisions_owner_read"
+    },
+    {
+      "kind": "function",
+      "name": "investigation_text_v2"
+    },
+    {
+      "kind": "function",
+      "name": "investigation_keys_v2"
+    },
+    {
+      "kind": "function",
+      "name": "investigation_json_v2"
+    },
+    {
+      "kind": "function",
+      "name": "valid_investigation_manifest_v2"
+    },
+    {
+      "kind": "function",
+      "name": "apply_investigation_revision_v2"
+    },
+    {
+      "kind": "function",
+      "name": "read_investigation_v2"
+    },
+    {
+      "kind": "function",
+      "name": "read_investigation_operation_v2"
+    },
+    {
+      "kind": "function",
+      "name": "list_investigations_v2"
+    }
+  ],
+  "missing_after": [
+    "index investigations_owner_updated",
+    "index investigation_revisions_owner",
+    "index chart_layout_revisions_owner",
+    "policy investigations_owner_read",
+    "policy investigation_revisions_owner_read",
+    "policy investigation_receipts_owner_read",
+    "policy chart_layout_revisions_owner_read",
+    "function investigation_text_v2",
+    "function investigation_keys_v2",
+    "function investigation_json_v2",
+    "function valid_investigation_manifest_v2",
+    "function list_investigations_v2"
+  ],
+  "failed_statement_index": null,
+  "error": null,
+  "tool_version": "supabase_apply/1",
+  "readback_excluded": [],
+  "reconciliation": {
+    "status": "applied_verified",
+    "verified_at": "2026-10-04T06:22:09.881809+00:00",
+    "expected_objects": 19,
+    "missing_after": [],
+    "ddl_replayed": false,
+    "readback_only_correction": true,
+    "executable_statements_identical_to_review": true,
+    "readback_corrected_file_sha256_before_ledger_header": "ecd521f66fd2d71554ac0f5f33aec3362fad9becbd215da69fea63c95f63a024"
+  }
+}
