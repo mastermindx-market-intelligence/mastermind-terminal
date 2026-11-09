@@ -17,9 +17,9 @@ MERGE_REF = "refs/pull/123/merge"
 
 
 def test_full_and_focused_shard_contracts():
-    assert len(scope.FULL_MATRIX) == 13
+    assert len(scope.FULL_MATRIX) == 14
     assert {x["shard"] for x in scope.FULL_MATRIX} == {
-        *(f"desktop-{i}" for i in range(1, 6)),
+        *(f"desktop-{i}" for i in range(1, 7)),
         *(f"tablet-{i}" for i in range(1, 5)),
         *(f"mobile-{i}" for i in range(1, 4)),
         "serial",
@@ -324,7 +324,8 @@ def _legacy_full_tablet_matrix():
     # actually receives. Installing the new selector in the base misses this case.
     rows = [dict(row) for row in scope.FULL_MATRIX
             if "--project=tablet" not in row["projects"].split()]
-    rows[5:5] = [
+    first = next(i for i, row in enumerate(scope.FULL_MATRIX) if row["shard"] == "tablet-1")
+    rows[first:first] = [
         {"shard": f"tablet-{i}", "projects": f"--project=tablet --shard={i}/3", "specs": ""}
         for i in range(1, 4)
     ]
@@ -388,6 +389,66 @@ def test_real_workflow_preserves_unrecognized_protected_tablet_topologies(tmp_pa
         old.remove(tablet)
     elif variant == "metadata":
         tablet["owner_metadata"] = "preserve"
+    actual_mode, matrix, _ = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, tamper_with_selector=True,
+        base_selector_source=_protected_matrix_source(mode, old),
+    )
+    assert actual_mode == mode
+    assert matrix == old
+
+
+def _legacy_full_desktop_matrix():
+    return [
+        {"shard": f"desktop-{i}", "projects": f"--project=desktop --shard={i}/5", "specs": ""}
+        for i in range(1, 6)
+    ] + [dict(row) for row in scope.FULL_MATRIX if "--project=desktop" not in row["projects"].split()]
+
+
+def test_real_workflow_expands_old_protected_desktop_without_losing_other_rows(tmp_path):
+    old = _legacy_full_desktop_matrix()
+    old.append({"shard": "future-owner", "projects": "--project=future-owner",
+                "specs": "", "owner_metadata": {"preserve": True}})
+    mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, tamper_with_selector=True,
+        base_selector_source=_protected_matrix_source("full", old),
+    )
+    assert mode == "full"
+    assert matrix == scope.FULL_MATRIX + [old[-1]]
+    assert "split protected full desktop fifths into sixths" in stdout
+
+
+def test_real_workflow_expands_both_old_protected_classifier_partitions(tmp_path):
+    source = (ROOT / "scripts" / "ci_e2e_scope.py").read_text()
+    for project, old_count, new_count in [("desktop", 5, 6), ("tablet", 3, 4)]:
+        current = ('{"shard": f"' + project + '-{i}", "projects": f"--project=' + project
+                   + ' --shard={i}/' + str(new_count) + '", "specs": ""}\n'
+                   + '    for i in range(1, ' + str(new_count + 1) + ')')
+        previous = current.replace('{i}/' + str(new_count), '{i}/' + str(old_count)).replace(
+            'range(1, ' + str(new_count + 1) + ')', 'range(1, ' + str(old_count + 1) + ')')
+        assert source.count(current) == 1
+        source = source.replace(current, previous)
+    mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, tamper_with_selector=True, base_selector_source=source,
+    )
+    assert mode == "full"
+    assert matrix == scope.FULL_MATRIX
+    assert "split protected full desktop fifths into sixths" in stdout
+    assert "split protected full tablet thirds into quarters" in stdout
+
+
+@pytest.mark.parametrize("variant", ["focused", "extra-desktop", "filtered", "incomplete", "metadata"])
+def test_real_workflow_preserves_unrecognized_protected_desktop_topologies(tmp_path, variant):
+    old = _legacy_full_desktop_matrix()
+    mode = "focused" if variant == "focused" else "full"
+    desktop = next(row for row in old if row["shard"] == "desktop-2")
+    if variant == "extra-desktop":
+        old.append({"shard": "future-desktop", "projects": "--project=desktop", "specs": ""})
+    elif variant == "filtered":
+        desktop["specs"] = "e2e/future.spec.ts"
+    elif variant == "incomplete":
+        old.remove(desktop)
+    elif variant == "metadata":
+        desktop["owner_metadata"] = "preserve"
     actual_mode, matrix, _ = _run_workflow_selector_in_git_checkout(
         tmp_path, install_base_selector=True, tamper_with_selector=True,
         base_selector_source=_protected_matrix_source(mode, old),

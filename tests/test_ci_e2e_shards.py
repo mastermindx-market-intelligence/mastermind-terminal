@@ -150,7 +150,10 @@ SPLIT_PROJECTS = ("desktop", "tablet", "mobile")
 # 02:48:22 UTC on 2026-11-09, and was cancelled at 02:49:31 after its 60-minute
 # job cap. The earlier transport reset did not stop subsequent passing work.
 # Keep every case and the cap; give each tablet shard a smaller allocation.
-MIN_SHARDS = {"desktop": 5, "tablet": 4, "mobile": 3}
+# Desktop1/5 reached its fixed cap again in #801 run42550254306/job128946320810.
+# The annotation proves the one-hour cancellation; no late-progress claim is made.
+# Six full shards reduce allocation while preserving every case and the same cap.
+MIN_SHARDS = {"desktop": 6, "tablet": 4, "mobile": 3}
 
 
 @pytest.mark.parametrize("project", SPLIT_PROJECTS)

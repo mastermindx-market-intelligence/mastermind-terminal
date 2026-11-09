@@ -1,12 +1,12 @@
 # B-F11-10a Analysis context-bar theses entry — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 0dced0433f66d1c461f518060d30652a1f34deb7
-# capturedAt: 2026-11-09T11:05:54.114Z
+# capturedAtHead: 496ef734fafb64500bb95384770b59eb51555e00
+# capturedAt: 2026-11-09T14:54:51.056Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/workspaces/AnalysisWorkspace.tsx: "5a368f1161a4a8653d94af2ad26b6577976bc7a74b6ea9c4c534cb63f4745189"
-  terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
+  terminal/components/workspaces/AnalysisWorkspace.tsx: "1ad3e2a627a91f12d7fdd9f95b2d59e06e4f3ea89c43cdd1f6e6f493c4c35036"
+  terminal/app/company-intelligence.css: "fd4afcfe5db6da3ed3cd10e8fb88190aca6139e83b11b26373c03b25a654b6ed"
   terminal/lib/i18n.tsx: "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
 theme: dark
 languages: [en, zh]
