@@ -199,6 +199,7 @@ def _qualify_issuer(origin: _VerifiedRun, env: dict, api):
 
 
 def _run_identity(value: dict) -> tuple:
+    """Immutable source identity; each caller owns its lifecycle policy."""
     require(isinstance(value, dict), "missing workflow run")
     repo = value.get("repository") or {}
     head_repo = value.get("head_repository") or {}
@@ -214,8 +215,6 @@ def _run_identity(value: dict) -> tuple:
         require(branch.startswith("gh-readonly-queue/master/"), "wrong native queue ref")
     else:
         require(not branch.startswith("gh-readonly-queue/"), "mixed source scope")
-    require(value.get("status") == "completed" and value.get("conclusion") == "success",
-            "original CI has not passed")
     return (positive(value.get("id")), positive(value.get("run_attempt")),
             positive(value.get("workflow_id")), group.oid(value.get("head_sha")),
             branch, event, positive(repo.get("id")))
@@ -226,17 +225,29 @@ def _qualify_run(event: dict, env: dict, api) -> _VerifiedRun:
             and env.get("GITHUB_REPOSITORY") == REPO and env.get("GITHUB_REF") == "refs/heads/master",
             "issuer is not a default-branch workflow run")
     code = group.oid(env.get("GITHUB_SHA"))
-    require(event.get("action") == "completed", "wrong issuer activity")
+    require(event.get("action") == "in_progress", "wrong issuer activity")
     repository = event.get("repository") or {}
     require(repository.get("full_name") == REPO and repository.get("default_branch") == "master",
             "wrong issuer repository")
-    identity = _run_identity(event.get("workflow_run"))
+    source = event.get("workflow_run")
+    identity = _run_identity(source)
+    require(source.get("status") == "in_progress" and "conclusion" in source
+            and source["conclusion"] is None, "inconsistent source start event")
     require(positive(repository.get("id")) == identity[-1]
             and env.get("GITHUB_REPOSITORY_ID") == str(identity[-1]), "repository identity changed")
     run_id, attempt, workflow_id, head, branch, source_event, repo_id = identity
     # These are service reads, not artifacts or caller-supplied source pointers.
     current = api.request("GET", f"/repos/{REPO}/actions/runs/{run_id}")
     require(_run_identity(current) == identity, "original run replaced or changed")
+    # The same CI attempt may finish before this supplementary issuer starts.
+    # Namespace validity is independent of its result; required CI still gates
+    # release, and the transition verifier separately requires successful CI.
+    require((current.get("status") == "in_progress" and "conclusion" in current
+             and current["conclusion"] is None)
+            or (current.get("status") == "completed" and current.get("conclusion") in {
+                "success", "failure", "neutral", "cancelled", "skipped", "timed_out",
+                "action_required", "stale", "startup_failure"}),
+            "source lifecycle is inconsistent or not started")
     workflow = api.request("GET", f"/repos/{REPO}/actions/workflows/{workflow_id}")
     require(positive(workflow.get("id")) == workflow_id and workflow.get("path") == WORKFLOW
             and workflow.get("name") == "CI" and workflow.get("state") == "active",
@@ -260,10 +271,26 @@ def _queue(origin: _VerifiedRun, api):
     # B comes from this authenticated snapshot. It is NOT an old event.base_sha.
     if (profile.get("maximumEntriesToBuild"), profile.get("maximumEntriesToMerge")) == (8, 4):
         owners, verified_base = group._validate_parallel_queue(snapshot, REPO, origin.head, base)
+        # The validator sorts a local copy; API node order is not proof order.
+        ordered = sorted(repository["mergeQueue"]["entries"]["nodes"],
+                         key=lambda entry: entry["position"])
+        candidate = next(entry for entry in ordered if entry["headCommit"]["oid"] == origin.head)
+        prefix = ordered[:candidate["position"]]
     else:
         number, source, verified_base = group._validate_serial_queue(snapshot, REPO, origin.head, base)
         owners = {number: source}
-    return snapshot, owners, verified_base
+        prefix = [next(entry for entry in repository["mergeQueue"]["entries"]["nodes"]
+                       if isinstance(entry, dict)
+                       and (entry.get("headCommit") or {}).get("oid") == origin.head)]
+    # Validate the response before trimming. Only the proven prefix contributes
+    # to this candidate; unrelated suffix churn is not drift.
+    queue = repository["mergeQueue"]
+    projection = {"repository": {
+        "nameWithOwner": repository["nameWithOwner"],
+        "defaultBranchRef": repository["defaultBranchRef"],
+        "mergeQueue": {"configuration": queue["configuration"],
+                       "entries": {"nodes": prefix}}}}
+    return projection, owners, verified_base
 
 
 PR_QUERY = """
@@ -412,20 +439,47 @@ def execute(event: dict, env: dict, api, app_id: int):
     # Produce no success until both checks of the current origin and full data pass.
     # An unknown POST response ends this invocation: there is no retry path.
     evidence = _qualify_contents(origin, api)
+    require(_qualify_run(event, env, api) == origin, "source run changed before check creation")
     require(_qualify_issuer(origin, env, api) == issuer, "issuer attempt changed before check creation")
     check = api.request("POST", f"/repos/{REPO}/check-runs", {
         "name": CONTEXT, "head_sha": origin.head, "external_id": origin.external_id,
         "details_url": issuer.original_details_url,
         "status": "in_progress", "output": {"title": "Migration ownership", "summary": "Qualification in progress."}})
     _check_identity(check, origin, issuer, app_id)
-    _assert_current(origin, issuer, event, env, api, evidence)
+    require(check.get("status") == "in_progress" and "conclusion" in check
+            and check["conclusion"] is None, "created check state unconfirmed; no retry")
+    try:
+        _assert_current(origin, issuer, event, env, api, evidence)
+    except CapabilityUnavailable:
+        # A missing read is not a proved qualification failure.
+        raise
+    except group.OwnershipUnqualified:
+        # Only a known, acknowledged check can be failed, and only while both
+        # original principals still qualify. Superseded or unavailable origins
+        # leave the original outcome unsettled; they never authorize a replay.
+        require(_qualify_run(event, env, api) == origin, "source superseded; no settlement")
+        require(_qualify_issuer(origin, env, api) == issuer, "issuer superseded; no settlement")
+        result = api.request("PATCH", f"/repos/{REPO}/check-runs/{check['id']}", {
+            "status": "completed", "conclusion": "failure",
+            "output": {"title": "Migration ownership changed", "summary":
+                       "Current namespace or ownership qualification changed before publication. "
+                       "No successful ownership proof was issued."}})
+        _check_identity(result, origin, issuer, app_id)
+        require(result.get("id") == check["id"] and result.get("status") == "completed"
+                and result.get("conclusion") == "failure", "failure settlement unconfirmed; no retry")
+        raise
+    # Currentness includes content reads. Refresh both principals once more at
+    # the write boundary rather than letting a long data read outlive an attempt.
+    require(_qualify_run(event, env, api) == origin, "source run changed before success")
+    require(_qualify_issuer(origin, env, api) == issuer, "issuer changed before success")
     result = api.request("PATCH", f"/repos/{REPO}/check-runs/{check['id']}", {
         "status": "completed", "conclusion": "success",
         "output": {"title": "Migration ownership qualified", "summary":
                    f"Run {origin.run_id}, attempt {origin.attempt}; protected guard {origin.protected_code}; "
                    f"namespace material {evidence[1]}."}})
     _check_identity(result, origin, issuer, app_id)
-    require(result.get("status") == "completed" and result.get("conclusion") == "success",
+    require(result.get("id") == check["id"] and result.get("status") == "completed"
+            and result.get("conclusion") == "success",
             "check publication unconfirmed; no retry")
     return {"state": "PUBLISHED", "head": origin.head}
 
