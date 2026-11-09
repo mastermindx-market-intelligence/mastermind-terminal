@@ -103,3 +103,16 @@ describe("Options Alpha campaign_context display binding", () => {
     expect(normalizedContext(undefined)).toBeNull();
   });
 });
+
+describe("OATRUTH disposition default", () => {
+  it("R5 maps an unrecognised disposition through normalizeCandidateFeed to degraded", () => {
+    const envelope = envelopeWithContext(VALID_CONTEXT) as { feed: JsonRecord };
+    const formed = (envelope.feed.formed_candidates as JsonRecord[])[0];
+    formed.state = "not_a_disposition";
+    (formed.current_disposition as JsonRecord).state = "not_a_disposition";
+    const normalized = normalizeCandidateFeed(envelope);
+    const item = normalized?.feed.formed_candidates[0];
+    expect(item?.state).toBe("degraded");
+    expect(item?.current_disposition.state).toBe("degraded");
+  });
+});

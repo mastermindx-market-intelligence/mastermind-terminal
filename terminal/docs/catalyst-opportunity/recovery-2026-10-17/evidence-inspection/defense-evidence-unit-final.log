@@ -1,0 +1,16 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind 2/agent-workspaces/terminal/web/catalyst-opportunity-terminal-e2e-20261017/terminal
+
+ ✓ lib/__tests__/catalystDefense.test.ts (16 tests) 17ms
+ ✓ lib/__tests__/catalystOpportunity.test.ts (30 tests) 25ms
+ ✓ lib/__tests__/catalystOpportunityGateway.test.ts (33 tests) 48ms
+ ✓ lib/__tests__/catalystDefenseEvidence.test.ts (16 tests) 61ms
+ ✓ lib/__tests__/catalystOpportunityView.test.tsx (19 tests) 210ms
+ ✓ lib/__tests__/catalystDefenseView.test.tsx (23 tests) 432ms
+
+ Test Files  6 passed (6)
+      Tests  137 passed (137)
+   Start at  23:19:44
+   Duration  1.90s (transform 607ms, setup 0ms, collect 1.07s, tests 793ms, environment 1.33s, prepare 607ms)
+

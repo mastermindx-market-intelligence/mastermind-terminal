@@ -1,0 +1,142 @@
+{
+  "schema": "terminal.sector_depth_return.local_qualification.v1",
+  "base": "ed2e633852564dcd604afc26eb03eeed54954dee",
+  "source_sha256": {
+    "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.tsx": "3d4449cac2ef8f40b26a0b2d5246c3af232447ae060d828bc6ae8b3265ad2dee",
+    "terminal/lib/sectorDepthReturn.ts": "d55f85d7fc548b07d27b7fe1a6c20ebbb9df9ca826dad921b0c2290c62cc7dea",
+    "terminal/lib/__tests__/sectorDepthReturn.test.ts": "af96f6335f6c12ce003a4f92e2d2486812b5c8c613ca4476be8ee2eda1fb2f58",
+    "terminal/e2e/sector-depth-return.spec.ts": "ea28a3f7dad90ed8aad7929d563e0a29e9882718e8f5ea57c5e710b79583fe96"
+  },
+  "review": "non-author root source review PASS at exact workspace/helper bytes before final unchanged matrix",
+  "browser": {
+    "startTime": "2026-11-02T21:58:46.742Z",
+    "duration": 87748.07,
+    "expected": 15,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "environment": {
+    "origin": "http://127.0.0.1:33971",
+    "network": "OS sandbox loopback only",
+    "server": "Next16.2.9 development, webpack, existing Terminal E2E fixture identity",
+    "data": "explicit synthetic sector and heatmap fixtures; unavailable other feeds",
+    "fonts": "retained local Inter and JetBrains Mono font fixture"
+  },
+  "affected_tests": {
+    "latest_changed": 54,
+    "unchanged_component_reused": 34,
+    "typecheck": "PASS",
+    "changed_lint": "PASS"
+  },
+  "fabric": {
+    "id": "ss-sector-return-20261102-001",
+    "result_sha256": "826609c3ea881d47efdc2789a6af7eb48b582bb522ce30b972f5a7ede42ef63d",
+    "result_bytes": 11379,
+    "acceptance": "deterministic original helper; long-state extension independently reviewed by root"
+  },
+  "screenshots": [
+    {
+      "path": "desktop-en-dark-research-after-reload.png",
+      "sha256": "2210cc23fa1017f8235374da245ed87dcbb07e06702b804a477e487b156ffacf"
+    },
+    {
+      "path": "desktop-en-dark-restored-selection.png",
+      "sha256": "4b45b94c6630eb7bbbe9eac23f69fe2c2abdf9888197301d2febe0b521fe887a"
+    },
+    {
+      "path": "desktop-en-light-research-after-reload.png",
+      "sha256": "269f24af0d5582acae3b18b32691887d69dbd6db49b4ed17736f2212ef55c6dc"
+    },
+    {
+      "path": "desktop-en-light-restored-selection.png",
+      "sha256": "31962bf44a0fe3418fb9d17d3286788133213cb88020a5047c094a580555ee97"
+    },
+    {
+      "path": "desktop-zh-dark-research-after-reload.png",
+      "sha256": "6e81239eadb725fe8d8d2d6ef4cc57077ca8cb83ce4293f0fc2fd8f642205f36"
+    },
+    {
+      "path": "desktop-zh-dark-restored-selection.png",
+      "sha256": "14021901fb8f96c6972f1c7ff4a5d50ddfd8edbe07d73e4e70de7c2d100cc148"
+    },
+    {
+      "path": "desktop-zh-light-research-after-reload.png",
+      "sha256": "d77a7c992f1d1e23b2ca2b0b242bc5811e011c1cab5f5a7a7716c0ad84625bec"
+    },
+    {
+      "path": "desktop-zh-light-restored-selection.png",
+      "sha256": "2182ce5c42b2194ff90d5fe01789e9aca91e05b167cd36887afa0feb1b0a1a37"
+    },
+    {
+      "path": "tablet-en-dark-research-after-reload.png",
+      "sha256": "a6c0a2eecd63a07316a3c65ef36d9cba64320030a7ff3348101448a6ebae843b"
+    },
+    {
+      "path": "tablet-en-dark-restored-selection.png",
+      "sha256": "e0c0caa4672b33277bad0dfb4143e507985cb55e1c818d64ba34f541b5ab445e"
+    },
+    {
+      "path": "tablet-en-light-research-after-reload.png",
+      "sha256": "a83c5a7e93be6cf3d74e170cd44f992567e01ffb9813078dd8023cc28b47ab5f"
+    },
+    {
+      "path": "tablet-en-light-restored-selection.png",
+      "sha256": "b8c47f49e63d6e471841cc131b11392a9d83542b2a2ae779dd3d8b52ed407c58"
+    },
+    {
+      "path": "tablet-zh-dark-research-after-reload.png",
+      "sha256": "12629c0d995ec1ecf374d6c1c3b56b8226eeeebaed4bed5315d47a3441551535"
+    },
+    {
+      "path": "tablet-zh-dark-restored-selection.png",
+      "sha256": "c57e003934d04bcb1fa4e3ab3475844900b4c7f7e5eef24922ea6af3a47ce062"
+    },
+    {
+      "path": "tablet-zh-light-research-after-reload.png",
+      "sha256": "5f43310e61f5f51ddfa2bdb6ba91701b282a3bf151fae040544eb1715788a2d2"
+    },
+    {
+      "path": "tablet-zh-light-restored-selection.png",
+      "sha256": "afa2db7d5d76ce2568995d8aaee0cad9ac3a18b1d923829fd900e2044a4cb37f"
+    },
+    {
+      "path": "mobile-en-dark-research-after-reload.png",
+      "sha256": "d9aa2ac24201195e3a9e90a60f77d176bc8e96def032fc4a94154c985b191cd9"
+    },
+    {
+      "path": "mobile-en-dark-restored-selection.png",
+      "sha256": "ef7bdd3dbe9ba39a34d4f48444e8d61ff6dd2650940230829f1e37f1c8a59be5"
+    },
+    {
+      "path": "mobile-en-light-research-after-reload.png",
+      "sha256": "fd476948b10dc903f626d64e3714fdd456b3c5c231970a4ae1b599f7e238d1de"
+    },
+    {
+      "path": "mobile-en-light-restored-selection.png",
+      "sha256": "65530715c2103cd253692a16f43b22ad252785793dc47d9899b18f113ba5f516"
+    },
+    {
+      "path": "mobile-zh-dark-research-after-reload.png",
+      "sha256": "8a6ea59a2aad26ffbacbf7ced6a7abc6525634b689566b8af16266880cf931d9"
+    },
+    {
+      "path": "mobile-zh-dark-restored-selection.png",
+      "sha256": "e95063da26e3b76993d0ed47cc58344a68db46ec88949ce53defe8238eccde77"
+    },
+    {
+      "path": "mobile-zh-light-research-after-reload.png",
+      "sha256": "a413549f9ed26ba716d4d3a372f8d78e67ff774406d82f5cc761714a834663c7"
+    },
+    {
+      "path": "mobile-zh-light-restored-selection.png",
+      "sha256": "67732f1dd063de0f2caaffacf462fd552bbf0f3d107b3efefebb086ee6c6f45c"
+    }
+  ],
+  "limitations": [
+    "Local fixture navigation proof, not authenticated production or domain data acceptance.",
+    "Public copied links with snapshot over1024 retain outer workspace/sector/theme; exact complete selection is same-tab history only.",
+    "Existing explicit Exposure origin return omission is separate and unclaimed.",
+    "All inherited Chrome/runtime/SQL/provider/unknown-effect holds remain."
+  ]
+}

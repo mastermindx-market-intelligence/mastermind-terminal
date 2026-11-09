@@ -137,13 +137,21 @@ export function findSpotRowIndex(
   return -1;
 }
 
-/** Signed net exposure for a strike row under the active greek lens (all-expiry, $mn). */
-function rowNet(s: StrikeRow, greek: GreekLens): number {
+/** A producer value, or null when it is missing or not a finite number. */
+function finiteOrNull(v: number | null | undefined): number | null {
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
+/**
+ * Signed net exposure for a strike row under the active greek lens (all-expiry, $mn).
+ * A greek the producer did not supply for this strike is null (the honest dash), never 0.
+ */
+function rowNet(s: StrikeRow, greek: GreekLens): number | null {
   switch (greek) {
-    case "delta": return s.delta_net ?? 0;
-    case "vanna": return s.vanna_net ?? 0;
-    case "charm": return s.charm_net ?? 0;
-    default:      return s.gamma_net;
+    case "delta": return finiteOrNull(s.delta_net);
+    case "vanna": return finiteOrNull(s.vanna_net);
+    case "charm": return finiteOrNull(s.charm_net);
+    default:      return finiteOrNull(s.gamma_net);
   }
 }
 
@@ -228,14 +236,9 @@ function estimateStep(strikes: StrikeRow[]): number {
   return diffs[Math.floor(diffs.length / 2)];
 }
 
-/**
- * Flip violet. `--cat-2` is referenced across this desk but defined nowhere in the token
- * set, so `color:var(--cat-2)` was silently dropped and every flip surface rendered in the
- * inherited text colour. `--ai` IS defined and is the identical hue (#9d86ff) — the same
- * one this file hardcodes as rgba(157,134,255,…) two hundred lines down. Kept behind
- * --cat-2 so a real definition would still win.
- */
-const FLIP_VIOLET = "var(--cat-2, var(--ai))";
+// The gamma flip is a structural level, not locked content. Its explicit label,
+// row placement and neutral contrast carry that meaning in both theme families.
+const STRUCTURAL_LEVEL_INK = "var(--text-2)";
 
 /**
  * Badge hue by tone. This single value now drives the whole level tag — text, fill and
@@ -249,7 +252,7 @@ function toneColor(tone: BadgeTone): string {
     case "cyan":   return "var(--brand-2)";
     case "red":    return "var(--down)";
     case "amber":  return "var(--signal)";
-    case "purple": return FLIP_VIOLET;
+    case "purple": return STRUCTURAL_LEVEL_INK;
   }
 }
 
@@ -567,10 +570,13 @@ export function StrikeLadder({
   // B8: order-independent — the 0DTE expiry is whichever row lands on the snapshot's
   // session day, not `expiryOptions[0]`. (The old check also used the wall clock, so any
   // already-expired first row read as 0DTE.)
+  // The per-expiration split is gamma-only: under DEX/VEX/CHEX no narrow option can be
+  // selected, so a gamma split is never shown under a non-gamma label.
+  const lensGreekOk = greek === "gamma";
   const zeroOpt = expiryOptions.find((o) => o.isZero) ?? null;
   const has0Dte = zeroOpt != null;
-  const zeroSelectable = has0Dte && zeroOpt.covered;
-  const exZeroSelectable = expiryOptions.some((o) => o.covered && !o.isZero);
+  const zeroSelectable = has0Dte && zeroOpt.covered && lensGreekOk;
+  const exZeroSelectable = lensGreekOk && expiryOptions.some((o) => o.covered && !o.isZero);
   const anyCovered = expiryOptions.some((o) => o.covered);
 
   const lensLabel =
@@ -651,6 +657,10 @@ export function StrikeLadder({
             </button>
             {dropdownOpen && (
               <div style={DD_MENU} role="listbox">
+                {/* The per-expiration badges are by_expiry's whole-chain totals (every
+                    strike), while a selected lens sums only the ladder's strikes — say so
+                    before a badge is read as the headline it need not equal. */}
+                <div style={DD_BADGE_NOTE} data-testid="gex-lens-badge-note">{t("expiryBadgeChainNote")}</div>
                 {/* All — always available: it is the by_strike aggregate itself */}
                 <button
                   style={{ ...DD_OPT, ...(lens.kind === "all" ? DD_OPT_ACTIVE : {}) }}
@@ -715,13 +725,13 @@ export function StrikeLadder({
                     style={{
                       ...DD_OPT,
                       ...(lens.kind === "one" && lens.exp === o.exp ? DD_OPT_ACTIVE : {}),
-                      ...(o.covered ? {} : DD_OPT_OFF),
+                      ...(o.covered && lensGreekOk ? {} : DD_OPT_OFF),
                     }}
                     role="option"
                     aria-selected={lens.kind === "one" && lens.exp === o.exp}
-                    aria-disabled={!o.covered}
+                    aria-disabled={!(o.covered && lensGreekOk)}
                     onClick={() => {
-                      if (!o.covered) return;
+                      if (!(o.covered && lensGreekOk)) return;
                       onLens({ kind: "one", exp: o.exp });
                       setDropdownOpen(false);
                     }}
@@ -801,10 +811,10 @@ export function StrikeLadder({
             <WallChip
               label={lens.kind === "all" ? t("ladderWallsNet") : `${t("ladderWallsNet")} · ${lensTag}`}
               value={lens.kind === "all" ? fmtBn(netGexBn) : fmtMn(lensValues.totalMn)}
-              color={(lens.kind === "all" ? (netGexBn ?? 0) : lensValues.totalMn) >= 0 ? "var(--up)" : "var(--down)"}
-              show={lens.kind === "all" ? netGexBn != null : lensValues.cellCount > 0} />
+              color={(lens.kind === "all" ? (netGexBn ?? 0) : (lensValues.totalMn ?? 0)) >= 0 ? "var(--up)" : "var(--down)"}
+              show={lens.kind === "all" ? netGexBn != null : lensValues.totalMn != null} />
             <WallChip label={t("ladderWallsFlip")} value={levels.gammaFlip != null ? fmtStrike(levels.gammaFlip) : "—"}
-              color={FLIP_VIOLET} show={levels.gammaFlip != null} />
+              color={STRUCTURAL_LEVEL_INK} show={levels.gammaFlip != null} />
             <WallChip label={t("ladderWallsCall")} value={levels.callWall != null ? fmtStrike(levels.callWall) : "—"}
               color="var(--brand-2)" show={levels.callWall != null} />
             <WallChip label={t("ladderWallsPut")} value={levels.putWall != null ? fmtStrike(levels.putWall) : "—"}
@@ -870,7 +880,7 @@ export function StrikeLadder({
             : badge?.tone === "amber"
             ? "var(--signal)"
             : badge?.tone === "purple"
-            ? FLIP_VIOLET
+            ? STRUCTURAL_LEVEL_INK
             : "var(--text-2)";
 
           return (
@@ -1301,6 +1311,13 @@ const DD_OPT_DTE: React.CSSProperties = {
   flexShrink: 0,
 };
 
+const DD_BADGE_NOTE: React.CSSProperties = {
+  padding: "var(--sp-1) var(--sp-3)",
+  fontSize: "var(--fs-micro)",
+  color: "var(--muted)",
+  lineHeight: 1.35,
+};
+
 const DD_GROUP_LBL: React.CSSProperties = {
   padding: "var(--sp-2) var(--sp-3) var(--sp-1)",
   fontSize: "var(--fs-micro)",
@@ -1493,16 +1510,16 @@ const FLIP_LINE: React.CSSProperties = {
   gap: "var(--sp-2)",
   padding: "var(--sp-1) var(--sp-2)",
   height: 24,
-  background: "color-mix(in srgb, var(--ai) 8%, transparent)",
-  borderTop: "1px solid color-mix(in srgb, var(--ai) 32%, transparent)",
-  borderBottom: "1px solid color-mix(in srgb, var(--ai) 32%, transparent)",
+  background: "var(--inset)",
+  borderTop: "1px solid var(--line-2)",
+  borderBottom: "1px solid var(--line-2)",
   zIndex: 2,
 };
 
 const FLIP_LABEL: React.CSSProperties = {
   fontSize: "var(--fs-micro)",
   fontWeight: 900,
-  color: FLIP_VIOLET,
+  color: STRUCTURAL_LEVEL_INK,
   letterSpacing: "0.18em",
   textTransform: "uppercase",
   flexShrink: 0,
@@ -1511,13 +1528,12 @@ const FLIP_LABEL: React.CSSProperties = {
 const FLIP_GRADIENT: React.CSSProperties = {
   flex: 1,
   height: 1,
-  background:
-    "linear-gradient(90deg, rgba(var(--ai-rgb),0.6) 0%, rgba(var(--ai-rgb),0.05) 100%)",
+  background: "var(--hairline-strong)",
 };
 
 const FLIP_PRICE: React.CSSProperties = {
   fontSize: "var(--fs-micro)",
-  color: FLIP_VIOLET,
+  color: STRUCTURAL_LEVEL_INK,
   fontFamily: "var(--font-num)",
   fontVariantNumeric: "tabular-nums",
   flexShrink: 0,

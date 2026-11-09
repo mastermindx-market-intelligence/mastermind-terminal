@@ -162,7 +162,9 @@ describe("signal marks under replay", () => {
     // bars after it — checked here on the shipped fixture at mid-week and month-end cutoffs.
     const bars = (nvdaDoc as unknown as { bars: Row[] }).bars.map((b) => ({ time: b[0], o: b[1], h: b[2], l: b[3], c: b[4], v: b[5] }));
     const marks = (rows: typeof bars) => {
-      const out = runPine(ORACLE_V1_PINE, rows as never, { timeframe: "D", symbol: "NVDA" });
+      // The full NVDA history can exceed runPine's default 3 s wall budget on a loaded CI runner,
+      // which returns ok=false. This case checks prefix stability, not speed, so the budget is explicit.
+      const out = runPine(ORACLE_V1_PINE, rows as never, { timeframe: "D", symbol: "NVDA", budgetMs: 30_000 });
       expect(out.ok).toBe(true);
       return out.result!.shapes
         .filter((s) => s.text === "★" || s.text === "CUT" || s.text === "RE-BUY")

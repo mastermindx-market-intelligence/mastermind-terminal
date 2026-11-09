@@ -1,0 +1,36 @@
+{
+  "schema": "shared-shell.protected-merge-recapture.v1",
+  "source": {
+    "sourceHead": "434572f3602db4ac525fff6dadee5302a8a9f54b",
+    "mergedProtectedMaster": "73a5305ff70875b5af0258f985e36cc1ace3b8ac",
+    "acceptedSharedShellHead": "54650291afb57c0ca3fdfe28a173fc19fab97141",
+    "capturedAt": "2026-10-22T10:34:27.197481+00:00",
+    "command": "TERMINAL_E2E_PORT=3215 PLAYWRIGHT_JSON_OUTPUT_NAME=docs/pr-crops/terminal-visual-intelligence/shared-shell-protected-merge-capture-report.json npm run test:e2e:responsive -- e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --grep 'default context explains|Chinese context uses' --reporter=list,json",
+    "result": "6 actual scoped captures passed; no retry/skip/failure",
+    "refreshedFiles": [
+      "desktop-context.png",
+      "desktop-context-zh.png",
+      "tablet-context.png",
+      "tablet-context-zh.png",
+      "mobile-context.png",
+      "mobile-context-zh.png"
+    ],
+    "logSha256": "e158753971841a9020e7d2f78cdc199510a3d4c480f751c2b5c4a53179735cc9",
+    "receipt": "shared-shell-protected-merge-recapture.json",
+    "scope": "Local incumbent-profile deterministic fixtures only. Only ChartPanel changed among accepted layout locks. Unchanged Search/Analysis and historical full functional reports retain their prior source identities; no authenticated/public acceptance claim.",
+    "captureReport": "shared-shell-protected-merge-capture-report.json",
+    "captureReportSha256": "9a69c5ee12a8a2d11ca9083ece662fcbdd88cc0e0010e577fa04f69a4f79f429"
+  },
+  "sourceLocks": {
+    "terminal/components/ChartPanel.tsx": "8a79d940f0e39c1f3b75477c3fa117226025399f272a37fa7ef60dba19bcd39b"
+  },
+  "crops": {
+    "desktop-context.png": "0f7d0704eb6cba56e2c2bf021e0410426a72ef82fc0bdecf45614e7b6826fcb1",
+    "desktop-context-zh.png": "5d493c8ddfc6de92fced5fd3180586d0ed1fd2a409ae3d925a8be5e3b0ab5808",
+    "tablet-context.png": "876d593ae5cbee00ff1326e661de1739f2a094bf621636d74473093218388234",
+    "tablet-context-zh.png": "60a4aea2a2b13d527c6ffc0eec5d034d819477b4aafa83334231dc716ae73519",
+    "mobile-context.png": "4bb912458a311faed7e779e24dffda3907ce5af4eec95dbc1a9f21ae3978bbe7",
+    "mobile-context-zh.png": "026a5eec18bd550659368edb3ad69d20dacd542bdd898b16b971d0284a67d087"
+  },
+  "unchangedHistoricalReports": "Existing browser-report.json and separate options-r1-stack-merge-browser-report.json retain exact predecessor bytes; final six-case report is separate."
+}

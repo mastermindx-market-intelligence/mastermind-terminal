@@ -1,10 +1,9 @@
-// Git-free evidence lock for the ticker-news capture packet.
-// The lock is EVIDENCE.yml: layoutFiles holds the sha256 of the sources the
-// crops depend on, crops the sha256 and capture cell of each committed crop.
-// e2e/ticker-news.spec.ts writes crops only when TERMINAL_CROPS=1, and then
-// deletes docs/pr-crops/ticker-news first, EVIDENCE.yml included. After a
-// capture run restore it with `git checkout HEAD -- docs/pr-crops/ticker-news/EVIDENCE.yml`
-// and copy in only the rows for crops that run produced.
+// Git-free evidence lock for the original ticker-news capture packet.
+// The existing spec selects this packet only with TERMINAL_CROPS=1 and
+// TERMINAL_TICKER_NEWS_CAPTURE_PACKET=ticker-news. The default editorial,
+// recovery and CN/HK outputs remain separate. Selected capture does not
+// delete this manifest or any other evidence packet. Preserve prior bytes,
+// qualify the full current output, then bind these exact source/image rows.
 import { describe, expect, it } from "vitest";
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";

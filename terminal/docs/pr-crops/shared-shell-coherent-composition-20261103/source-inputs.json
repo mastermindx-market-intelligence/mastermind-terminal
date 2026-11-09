@@ -1,0 +1,197 @@
+{
+  "schema": "shared-shell.coherent-source-inputs.v1",
+  "task": "P12.T11.S1",
+  "commission": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1236#issuecomment-6606711076",
+  "carrier": "1236",
+  "protected_base": "d97099230d1ac057749156df4412bbbbcaf3ab25",
+  "composition_parent": "46dec0db9960f805371e95878a860885c6a16583",
+  "inputs": [
+    {
+      "name": "regional_navigation",
+      "source": "ad827ba1032843bd063fedb76a93215d797002ba",
+      "contained_in_parent": "46dec0db9960f805371e95878a860885c6a16583",
+      "handoff": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1236#issuecomment-6605672723",
+      "files": [
+        {
+          "path": "terminal/components/MobileNav.tsx",
+          "git_blob": "f3b077e31c204fec45ea130fd4c6d7b510ca344c",
+          "sha256": "b968af6eee6d724898bbd6cf4d76fb7066622f7ab76a8d4e0a03cdfbde8dcd7f",
+          "mode": "100644"
+        },
+        {
+          "path": "terminal/lib/sharedShellNavigation.ts",
+          "git_blob": "a58b0bd80bc7cbec6f1d2242658bd0c5c5e58c7e",
+          "sha256": "4cb0a18251ead0cb111f9ba930f6b059acce81b7184b462c66f7895b49773fed",
+          "mode": "100644"
+        },
+        {
+          "path": "terminal/lib/__tests__/sharedShellRegionNavigation.test.ts",
+          "git_blob": "319459a1c31b20c8a7f8d024d733339806a89813",
+          "sha256": "7df43eb098cc336c3667c2fb7468e6a6385f9a5b668fb38c85d228280a4c4a81",
+          "mode": "100644"
+        }
+      ]
+    },
+    {
+      "name": "clock",
+      "source": "375ec763728e4bd4cb92ae228a289c739993bb95",
+      "handoff": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1245#issuecomment-6606675687",
+      "files": [
+        {
+          "path": "terminal/components/workspaces/TodayWorkspace.tsx",
+          "git_blob": "362864a2acff04fa6403fde2bcc1f08a51248561",
+          "sha256": "68740dc8ced56772a70455ec441f6012a616bb80ce36b1273dde013fe65286dc",
+          "mode": "100644"
+        },
+        {
+          "path": "terminal/lib/shared-shell/useReadingClock.ts",
+          "git_blob": "f116e541d8caa72f20747ecc5d263b931a1e52ef",
+          "sha256": "12ae6acb92b42d385e78c19399a2f7010f560f8728c472bb470ea0ef6b72814d",
+          "mode": "100644"
+        },
+        {
+          "path": "terminal/lib/__tests__/readingClock.test.tsx",
+          "git_blob": "e0f0192b59f9c5bd2558137489912677ad667e17",
+          "sha256": "7ddc3ad5c86b54196cab8ab2288c931b98c4f9568cbdb69d528dfb5ae0d69c55",
+          "mode": "100644"
+        },
+        {
+          "path": "terminal/lib/__tests__/todayAttentionIntegration.test.tsx",
+          "git_blob": "48567f64d67923bb3cbcd5160a98083778edf890",
+          "sha256": "72aada6cd8454878749bf5f4d3235746caf88fc7460050615a0f27fcf065e1b2",
+          "mode": "100644"
+        }
+      ]
+    },
+    {
+      "name": "native",
+      "source": "3f0f254b2f1ea3a9a50c61fcdf56604445fc617e",
+      "handoff": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1246#issuecomment-6606644076",
+      "files": [
+        {
+          "path": "terminal/app/error-return.module.css",
+          "git_blob": "2c089c4ca8f1431f7a67ee5d59757ef760035d1c",
+          "sha256": "4be47178b7b1e5776773a93d6470865c647d8555befe9c2b797761279efb91c0",
+          "mode": "100644"
+        },
+        {
+          "path": "terminal/app/error.tsx",
+          "git_blob": "536ea11642f5aed47710d2a0aa5dfd77dc6594a0",
+          "sha256": "1c3c258dabe697e413358caf6f3012656420b74b2c0c4a9455724a0131285e4f",
+          "mode": "100644"
+        },
+        {
+          "path": "terminal/docs/pr-crops/shared-shell-native-error-return-20261103/README.md",
+          "git_blob": "4b43c8638120d9bcc8203d327c44a0c72808eaa5",
+          "sha256": "a06dfcf55e250b9f74a2fcf2333f8a0eea01cab59cee04844043ec589dfcc4c1",
+          "mode": "100644"
+        },
+        {
+          "path": "terminal/docs/pr-crops/shared-shell-native-error-return-20261103/desktop-dark-en-error.png",
+          "git_blob": "7d834eddebbf24b824df6af240271fdfe6ae7b61",
+          "sha256": "28225e26e9bbeb5de81c74530dd6b9b5eb13523bc9eae1775dda99b4c63e16ce",
+          "mode": "100644"
+        },
+        {
+          "path": "terminal/docs/pr-crops/shared-shell-native-error-return-20261103/mobile-light-zh-returned.png",
+          "git_blob": "9717a0172cd45b4c6f83c0d8bddc889c6b08e2a8",
+          "sha256": "18f4ce91d5390740f27517d9b356f815a54d507b8dde253cba27fc500f20cbcc",
+          "mode": "100644"
+        },
+        {
+          "path": "terminal/docs/pr-crops/shared-shell-native-error-return-20261103/mobile-zh-native-dark-error.png",
+          "git_blob": "e6e01aff36723a356dbe3362e543e1dbcfcdfa73",
+          "sha256": "6e4358201de5e11a3c0ce44190bafeee1dd3d8fbb845fd04df912705c1d40c02",
+          "mode": "100644"
+        },
+        {
+          "path": "terminal/docs/pr-crops/shared-shell-native-error-return-20261103/result.json",
+          "git_blob": "bfef60b1a6fc91b693786c39114ed71a306e49ab",
+          "sha256": "adcc0034785d1f7dbad6eb109dc2239ae3581102f4625af0612a7eb362b84b85",
+          "mode": "100644"
+        },
+        {
+          "path": "terminal/lib/__tests__/errorReturnRecovery.test.tsx",
+          "git_blob": "f0be091eb9058266e83b7bf2f65a6c6ce4d6e7a2",
+          "sha256": "45446992743a4636ed1f677612ba31c571bb057b45a672221b38595f90e547b6",
+          "mode": "100644"
+        }
+      ]
+    },
+    {
+      "name": "guard",
+      "source": "4e253821c6719935d9a2fc3688e2f809fe0a914b",
+      "handoff": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1255#issuecomment-6606767824",
+      "files": [
+        {
+          "path": "terminal/app/api/investigations/baseline/route.ts",
+          "git_blob": "1f49c8ab6dbba4fbe9d53ccc4a493dee402aa709",
+          "sha256": "621218da5daa95a8d66383d4bb20947cd9d257b3eccab08a2d5483374b2beb06",
+          "mode": "100644"
+        },
+        {
+          "path": "terminal/app/api/investigations/route.ts",
+          "git_blob": "df263ca7160c109ef70d302738b37ef9677cec93",
+          "sha256": "f801f133021fd267b088ac60852410a378373782544897cd9789d08344ae414f",
+          "mode": "100644"
+        },
+        {
+          "path": "terminal/lib/__tests__/investigationApiAdmission.test.ts",
+          "git_blob": "5677e38a016cd167048e5894edda72861fc186e4",
+          "sha256": "021dfb2092da118a0f1d16131e6945073496f21390c784cf07ccd652b1f7299b",
+          "mode": "100644"
+        },
+        {
+          "path": "terminal/lib/__tests__/investigationsAdmissionRoute.test.ts",
+          "git_blob": "f53a88306116f7b92a023e97d7c96518fd1115ed",
+          "sha256": "fbd412e41cb4d4cb7969f39bc3d5ac456480ac14041e1740d15b607cdb3d9f69",
+          "mode": "100644"
+        },
+        {
+          "path": "terminal/lib/investigationApiAdmission.ts",
+          "git_blob": "6f8a93d5485e1615374f4fd12e3caf323bc0a6e9",
+          "sha256": "7a71782e97f65dfe2527ff32daec2cfd458e1bf5df21fd1c87bcd3e32fca78ea",
+          "mode": "100644"
+        },
+        {
+          "path": "terminal/playwright.config.ts",
+          "git_blob": "a6a0f8d5938b92af3744a4ee9a8945bbb9ecfcd6",
+          "sha256": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+          "mode": "100644"
+        },
+        {
+          "path": "terminal/vitest.config.ts",
+          "git_blob": "312ab156e65c7df9cf85b10c2ca5edcbbacc229c",
+          "sha256": "053949bb45e222617aa7018ded4e66a94e660790d252c3c051639f9c24bdea64",
+          "mode": "100644"
+        },
+        {
+          "path": "terminal/e2e/drawing-save-concurrency.spec.ts",
+          "git_blob": "975433b3011bef4d794e6e83d55ee7b425687d02",
+          "sha256": "3813a809c5786919dc60c05120d0131f027e7d521328ccab15241115b3750edd",
+          "mode": "100644"
+        }
+      ]
+    }
+  ],
+  "exclusions": [
+    "1257 failed auth",
+    "1188 held performance",
+    "804 IW2/SQL held",
+    "SS05",
+    "T24",
+    "T25"
+  ],
+  "controls": "Exact-path source composition only. Original owners retain held carriers until protected absorption readback; no runtime/install/browser/SQL/activation grant. Original46 CI41654429227/42740 retained without manual cancellation; material push follows normal concurrency handling.",
+  "local_checks": {
+    "affected_tests": {
+      "passed": 167,
+      "skipped": 3,
+      "files_passed": 12,
+      "files_skipped": 1,
+      "scope": "regional navigation, clock/owner-arrival/no-extra-read, native recovery, closed admission, main/baseline/retained-context/scenario API compatibility"
+    },
+    "typescript": "PASS",
+    "eslint": "One documented pre-existing no-html-link-for-pages finding on the retained hard-reload /terminal anchor, baseline line77/current111. Same accepted native source and README; no rule suppression, NextLink substitution or fallback behavior change."
+  }
+}
