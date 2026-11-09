@@ -38,8 +38,12 @@ ISSUER_NAME = "Protected migration ownership issuer"
 # immutable issuer revision; this module's recovery law runs from that revision.
 RECOVERY_ISSUER_WORKFLOW = ".github/workflows/trusted-migration-ownership-recovery.yml"
 RECOVERY_ISSUER_NAME = "Protected migration ownership recovery"
+# Anti-rollback identity covers the validator law AND this issuer module
+# itself: a pinned revision can never run weaker issuer law than the
+# dispatch-time protected tip even if its validator bytes are unchanged.
 VALIDATOR_PATHS = ("scripts/check_supabase_migration_namespace.py",
-                   "scripts/migration_merge_group.py")
+                   "scripts/migration_merge_group.py",
+                   "scripts/trusted_migration_ownership.py")
 RECOVERY_WRITE_PERMISSIONS = frozenset({"admin", "maintain", "write"})
 CONTEXT = "Migration namespace / protected owner"
 API = "https://api.github.com"
@@ -299,8 +303,10 @@ def _queue(origin: _VerifiedRun, api):
                          if isinstance(entry, dict)
                          and (entry.get("headCommit") or {}).get("oid") == origin.head)
         prefix = [candidate]
-    # The integrated candidate tree is the queue entry's own tree: the material
-    # read below must land on exactly that tree, never a same-named other one.
+    # The integrated candidate tree is the queue entry's head commit ROOT
+    # tree: the head-commit read below must land on exactly that root tree,
+    # never a same-named other one. (Commit.tree is the root tree, not the
+    # supabase/migrations subtree the material read returns.)
     integrated_tree = group.oid(((candidate.get("headCommit") or {}).get("tree") or {}).get("oid"))
     # Validate the response before trimming. Only the proven prefix contributes
     # to this candidate; unrelated suffix churn is not drift.
@@ -352,9 +358,11 @@ def _pr(origin: _VerifiedRun, api):
 
 
 CONTENTS_QUERY = """
-query($owner: String!, $name: String!, $path: String!) {
+query($owner: String!, $name: String!, $path: String!, $head: GitObjectID!) {
  repository(owner: $owner, name: $name) {
-  nameWithOwner object(expression: $path) { __typename ... on Tree {
+  nameWithOwner
+  head: object(oid: $head) { __typename ... on Commit { oid tree { oid } } }
+  object(expression: $path) { __typename ... on Tree {
    oid entries { name type mode object { __typename ... on Blob { oid byteSize isBinary isTruncated text } } }
   } }
  }
@@ -363,15 +371,24 @@ query($owner: String!, $name: String!, $path: String!) {
 
 
 def _candidate_data(origin: _VerifiedRun, api, integrated_tree=None):
-    data = api.graphql(CONTENTS_QUERY, _variables() | {"path": origin.head + ":supabase/migrations"})
+    data = api.graphql(CONTENTS_QUERY, _variables() | {"path": origin.head + ":supabase/migrations",
+                                                       "head": origin.head})
     repo = data.get("repository") or {}
     require(repo.get("nameWithOwner") == REPO, "foreign candidate repository")
+    # The head commit's ROOT tree is the integrated tree the queue snapshot
+    # reported; the migration material is then read from inside that same
+    # immutable commit. A root tree and the supabase/migrations subtree are
+    # different git objects, so only root-tree-to-root-tree equality binds.
+    commit = repo.get("head") or {}
+    require(commit.get("__typename") == "Commit" and commit.get("oid") == origin.head,
+            "candidate head commit unavailable")
+    root_tree = group.oid((commit.get("tree") or {}).get("oid"))
+    if integrated_tree is not None:
+        require(root_tree == integrated_tree,
+                "candidate head tree differs from the integrated queue tree")
     tree = repo.get("object") or {}
     require(tree.get("__typename") == "Tree", "candidate migration tree unavailable")
     group.oid(tree.get("oid"))
-    if integrated_tree is not None:
-        require(tree.get("oid") == integrated_tree,
-                "candidate material tree differs from the integrated queue tree")
     entries = tree.get("entries")
     require(isinstance(entries, list) and 0 < len(entries) <= MAX_FILES, "incomplete candidate tree")
     names = set()
@@ -509,11 +526,12 @@ def execute(event: dict, env: dict, api, app_id: int):
 
 
 VALIDATOR_QUERY = """
-query($owner: String!, $name: String!, $p0: String!, $p1: String!) {
+query($owner: String!, $name: String!, $p0: String!, $p1: String!, $p2: String!) {
  repository(owner: $owner, name: $name) {
   nameWithOwner
   p0: object(expression: $p0) { __typename ... on Blob { oid } }
   p1: object(expression: $p1) { __typename ... on Blob { oid } }
+  p2: object(expression: $p2) { __typename ... on Blob { oid } }
  }
 }
 """
@@ -558,15 +576,15 @@ def _reachable(api, sha: str):
 
 
 def _validator_identity(api, sha: str):
-    """Content-addressed identity of the two validator modules at one revision."""
+    """Content-addressed identity of the validator and issuer-law modules at one revision."""
     group.oid(sha)
     data = api.graphql(VALIDATOR_QUERY, _variables()
-                       | {"p0": f"{sha}:{VALIDATOR_PATHS[0]}", "p1": f"{sha}:{VALIDATOR_PATHS[1]}"})
+                       | {f"p{i}": f"{sha}:{path}" for i, path in enumerate(VALIDATOR_PATHS)})
     repo = data.get("repository") or {}
     require(repo.get("nameWithOwner") == REPO, "foreign validator repository")
     identities = []
-    for key in ("p0", "p1"):
-        value = repo.get(key) or {}
+    for i in range(len(VALIDATOR_PATHS)):
+        value = repo.get(f"p{i}") or {}
         require(value.get("__typename") == "Blob", "protected validator module unavailable")
         identities.append(group.oid(value.get("oid")))
     return tuple(identities)

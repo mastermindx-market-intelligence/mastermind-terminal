@@ -112,10 +112,10 @@ class RecoveryService(Service):
     def graphql(self, query, variables):
         if query == owner.VALIDATOR_QUERY:
             sha = variables["p0"].split(":", 1)[0]
-            first, second = self.validators.get(sha, ("5" * 40, "6" * 40))
+            ids = self.validators.get(sha, ("5" * 40, "6" * 40, "4" * 40))
             return {"repository": {"nameWithOwner": owner.REPO,
-                                   "p0": {"__typename": "Blob", "oid": first},
-                                   "p1": {"__typename": "Blob", "oid": second}}}
+                                   **{f"p{i}": {"__typename": "Blob", "oid": oid}
+                                      for i, oid in enumerate(ids)}}}
         return super().graphql(query, variables)
 
 
@@ -176,9 +176,10 @@ def test_mixed_group_negatives_refuse_before_any_publication(change):
     elif change == "chain":
         api.queue["repository"]["mergeQueue"]["entries"]["nodes"][1]["baseCommit"]["oid"] = BASE
     else:
-        # The material tree must be the queue entry's integrated tree, not a
-        # same-named other tree at the candidate head.
-        api.contents_override = lambda v: v["repository"]["object"].update(oid="7" * 40)
+        # The head commit's ROOT tree must be the queue entry's integrated
+        # tree, not a same-named other tree at the candidate head. (The
+        # supabase/migrations subtree is a distinct, nested object.)
+        api.contents_override = lambda v: v["repository"]["head"]["tree"].update(oid="7" * 40)
     with pytest.raises(group.OwnershipUnqualified):
         owner.execute_recovery(recovery_event(), recovery_env(), api, APP)
     assert not api.mutations
@@ -193,7 +194,7 @@ def test_automatic_issuer_also_binds_the_integrated_queue_tree():
     envelope["workflow_run"]["status"] = "in_progress"
     envelope["workflow_run"]["conclusion"] = None
     api.run.update(status="in_progress", conclusion=None)
-    api.contents_override = lambda v: v["repository"]["object"].update(oid="7" * 40)
+    api.contents_override = lambda v: v["repository"]["head"]["tree"].update(oid="7" * 40)
     with pytest.raises(group.OwnershipUnqualified):
         owner.execute(envelope, env, api, APP)
     assert not api.mutations
@@ -229,8 +230,19 @@ def test_pinned_master_tip_itself_is_reachable():
 
 def test_old_policy_issuer_revision_is_refused_anti_rollback():
     api = RecoveryService()
-    api.validators[ANCHOR] = ("5" * 40, "6" * 40)
-    api.validators[PIN] = ("1" * 40, "6" * 40)  # predates the current validator invariant
+    api.validators[ANCHOR] = ("5" * 40, "6" * 40, "4" * 40)
+    # The pin predates the current validator/issuer-law invariant (either the
+    # validator or the issuer module itself rolled back).
+    api.validators[PIN] = ("1" * 40, "6" * 40, "4" * 40)
+    with pytest.raises(group.OwnershipUnqualified):
+        owner.execute_recovery(recovery_event(), recovery_env(), api, APP)
+    assert not api.mutations
+
+
+def test_pinned_revision_with_rolled_back_issuer_module_is_refused():
+    """Identical validator bytes cannot run weaker issuer law (review finding)."""
+    api = RecoveryService()
+    api.validators[PIN] = ("5" * 40, "6" * 40, "3" * 40)
     with pytest.raises(group.OwnershipUnqualified):
         owner.execute_recovery(recovery_event(), recovery_env(), api, APP)
     assert not api.mutations
@@ -572,6 +584,11 @@ def test_recovery_workflow_contract():
     assert workflow["concurrency"]["cancel-in-progress"] is False
     job = workflow["jobs"]["recover"]
     assert job["environment"] == "terminal-migration-owner"
+    # A dispatch can target any ref carrying this file; only the environment's
+    # master-only branch policy keeps hostile refs away from the key, and the
+    # workflow must say so next to the environment it requires.
+    raw_text = (ROOT / ".github/workflows/trusted-migration-ownership-recovery.yml").read_text()
+    assert "BRANCH rule for master only" in raw_text
     assert job["permissions"] == {"contents": "read", "actions": "read"}
     guard = ("github.repository == 'mastermindx-market-intelligence/mastermind-terminal' && "
              "github.ref == 'refs/heads/master' && "

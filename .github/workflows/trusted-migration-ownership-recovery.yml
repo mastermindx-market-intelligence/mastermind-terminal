@@ -33,8 +33,12 @@ jobs:
       github.event.repository.default_branch == 'master'
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # Same restricted environment and key as the automatic issuer. The dispatch
-    # actor and their repository permission are recorded on every publication.
+    # Same restricted environment and key as the automatic issuer. The
+    # environment MUST keep a selected BRANCH rule for master only, no tag
+    # rule, and no administrator bypass: workflow_dispatch can target any ref
+    # carrying this file, and only that branch policy keeps a hostile-ref
+    # dispatch away from the key. The dispatch actor and their repository
+    # permission are recorded on every publication.
     environment: terminal-migration-owner
     permissions:
       contents: read

@@ -251,22 +251,37 @@ actor (sender, authenticated `triggering_actor`, and their repository
 permission, which must be admin/maintain/write) and the pinned issuer revision
 in `external_id`, `details_url` and the check output.
 
-Anti-rollback: the pinned revision is refused unless its two validator modules
-(`check_supabase_migration_namespace.py`, `migration_merge_group.py`) have
-exactly the same content-addressed blob identity as at the dispatch-time
-default-branch tip (`GITHUB_SHA`). A revision that predates (or postdates) the
-currently accepted validator policy/schema identity can never mint a green
-check under old law. Original-operation reconciliation runs before any write:
+Anti-rollback: the pinned revision is refused unless its validator modules
+(`check_supabase_migration_namespace.py`, `migration_merge_group.py`) **and the
+issuer module `trusted_migration_ownership.py` itself** have exactly the same
+content-addressed blob identity as at the dispatch-time default-branch tip
+(`GITHUB_SHA`). A revision that predates (or postdates) the currently accepted
+validator/issuer-law identity can never mint a green check under old law —
+identical validator bytes cannot run weaker issuer law. Original-operation
+reconciliation runs before any write:
 an existing check for the same `migration-owner:v1:{run}:{attempt}:{head}`
 operation from either the automatic issuer or a prior recovery is read back,
-its claimed issuer run is authenticated against Actions metadata, a settled
+its claimed issuer run is authenticated against Actions metadata at its
+original attempt identity (a later rerun of that prior issuer run leaves later
+reconciliations refused, fail-closed like the automatic path), a settled
 outcome is only reconciled, and an unsettled or unknown one is never replayed.
 Recovery also refuses while the target CI run is still in progress (its
 original issuer keeps the turn), while a live issuer run for the same target
-exists, and on any rerun attempt later than the first. Mixed-group bootstrap
+exists, and on any rerun attempt later than the first; for pull-request
+targets the source PR must still be OPEN (a merged PR has no remaining gate
+to supply). Mixed-group bootstrap
 is shared law: the queue snapshot's ordered contributing prefix (migration-
-bearing predecessors included) is bound to the candidate's integrated tree
-identity before any namespace material is accepted.
+bearing predecessors included) is bound to the candidate head commit's **root
+tree**, which must equal the queue entry's integrated tree — the root tree and
+the nested `supabase/migrations` subtree are distinct git objects — before any
+namespace material is accepted.
+
+The `terminal-migration-owner` environment keeps the same configuration law as
+the automatic issuer: a selected **branch** rule for `master` only, no tag
+rule, no administrator bypass. Because `workflow_dispatch` can target any ref
+that carries this workflow file, only that environment branch policy keeps a
+hostile-ref dispatch of a modified copy away from the key; the module's
+`GITHUB_REF` guard protects the legitimate master path only.
 
 Administrator effects that remain outside this source: dispatching the
 workflow, qualifying that the installation token may actually read the

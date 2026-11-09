@@ -135,15 +135,19 @@ class Service:
         if query == owner.CONTENTS_QUERY:
             values = self.sql | {"RESERVATIONS.json": json.dumps(self.doc).encode(), "README.md": b"fixture\n"}
             entries = [{"name": n, "type": "blob", "mode": 0o100644, "object": blob(b)} for n, b in values.items()]
-            # The material tree is the queue entry's integrated tree for a
-            # group candidate; PR-scope reads have no queue binding.
-            tree_oid = TREE
+            # The head commit's ROOT tree is the queue entry's integrated tree
+            # for a group candidate (a real commit's root tree and its
+            # supabase/migrations subtree are distinct objects); PR-scope
+            # reads have no queue binding.
+            root_tree = TREE
             if self.run["event"] == "merge_group":
-                tree_oid = next((entry.get("headCommit") or {}).get("tree", {}).get("oid")
-                                for entry in self.queue["repository"]["mergeQueue"]["entries"]["nodes"]
-                                if (entry.get("headCommit") or {}).get("oid") == self.run["head_sha"])
+                root_tree = next((entry.get("headCommit") or {}).get("tree", {}).get("oid")
+                                 for entry in self.queue["repository"]["mergeQueue"]["entries"]["nodes"]
+                                 if (entry.get("headCommit") or {}).get("oid") == self.run["head_sha"])
             value = {"repository": {"nameWithOwner": owner.REPO,
-                     "object": {"__typename": "Tree", "oid": tree_oid, "entries": entries}}}
+                     "head": {"__typename": "Commit", "oid": self.run["head_sha"],
+                              "tree": {"oid": root_tree}},
+                     "object": {"__typename": "Tree", "oid": TREE, "entries": entries}}}
             if self.contents_override:
                 self.contents_override(value)
             return value
