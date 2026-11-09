@@ -1464,9 +1464,9 @@ test("account drawing loads fail closed and retry without issuing a destructive 
   await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();
 
   const lineTool = page.getByTestId("drawing-group-lines-main");
-  await lineTool.click();
-  await expect(lineTool).toHaveAttribute("aria-pressed", "false");
   await expect(page.getByText(/Saved drawings could not be loaded/)).toContainText("Drawing changes are paused");
+  await expect(lineTool).toBeDisabled();
+  await expect(lineTool).toHaveAttribute("aria-pressed", "false");
 
   await expect.poll(() => getCount, {
     message: "a failed authoritative drawing load should retry",
@@ -1476,10 +1476,10 @@ test("account drawing loads fail closed and retry without issuing a destructive 
   expect(putCount).toBe(0);
 });
 
-test("a tool refused while account drawings are unavailable never becomes the group's shown tool", async ({ page }) => {
+test("unavailable account drawings disable tool selection without changing the group's shown tool", async ({ page }) => {
   test.skip(isPhone(page), SKIP_PHONE);
-  // The failed read is a refusal path that is NOT creationDisabledReason: the dock stays
-  // enabled and TerminalShell's activateDrawingTool quietly declines every tool.
+  // Visible controls follow TerminalShell's owner/cache admission fence. A failed
+  // authoritative read disables creation without changing the selected tool.
   await page.route("**/api/drawings**", async (route) => {
     await route.fulfill({
       status: route.request().method() === "GET" ? 500 : 200,
@@ -1499,8 +1499,8 @@ test("a tool refused while account drawings are unavailable never becomes the gr
 
   const lineTool = page.getByTestId("drawing-group-lines-main");
   await expect(lineTool).toHaveAttribute("data-tool-id", "trendline");
-  await page.getByTestId("drawing-group-lines-menu-trigger").click();
-  await page.getByTestId("drawing-tool-hline").press("Enter");
+  await expect(lineTool).toBeDisabled();
+  await expect(page.getByTestId("drawing-group-lines-menu-trigger")).toBeDisabled();
 
   await expect(lineTool).toHaveAttribute("aria-pressed", "false");
   await expect(lineTool).toHaveAttribute("data-tool-id", "trendline");
