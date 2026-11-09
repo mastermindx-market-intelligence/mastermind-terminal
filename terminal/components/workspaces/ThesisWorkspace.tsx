@@ -658,6 +658,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [missingIds, setMissingIds] = useState<Set<string>>(new Set());
   const lensRefs = useRef<Partial<Record<RmsViewId, HTMLButtonElement | null>>>({});
   const detailRequest = useRef(0);
+  const listRequest = useRef(0);
   const statementEditRevision = useRef(0);
   const routeDiscardAuthorized = useRef(false);
   const historyPositionRef = useRef(0);
@@ -739,7 +740,10 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     // for an invalid link. Both are now derived together, in the same tick.
     setTheses([]);
     setListState(invalidLinkRef.current ? "ready" : "loading");
-    return () => { detailRequest.current += 1; };
+    return () => {
+      detailRequest.current += 1;
+      listRequest.current += 1;
+    };
   }, [ownerKey]);
   // Round-2 review r3 minor 1/2: the rail's ARIA orientation must track the same
   // 600px breakpoint the CSS switches the tablist to a horizontal scroller at — read
@@ -1527,8 +1531,13 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   }, [copy.confirmDiscard, isDirty, pending]);
 
   const loadList = useCallback(async () => {
+    // Clearing rows on an owner change is insufficient: an earlier request can
+    // finish afterwards. Keep successes, decoding and failures on this read's
+    // generation, including an A→B→A owner change or a newer same-owner refresh.
+    const token = ++listRequest.current;
     try {
       const response = await fetch("/api/theses", { cache: "no-store" });
+      if (token !== listRequest.current) return;
       if (response.status === 401) return setListState("session_expired");
       if (!response.ok) {
         setListState("unavailable");
@@ -1536,6 +1545,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
         return;
       }
       const payload = await response.json();
+      if (token !== listRequest.current) return;
       if (!Array.isArray(payload.theses)) {
         setListState("unavailable");
         setMobilePane("list");
@@ -1545,6 +1555,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       setTruncated(payload.truncated === true);
       setListState("ready");
     } catch {
+      if (token !== listRequest.current) return;
       setListState("unavailable");
       setMobilePane("list");
     }
