@@ -38,3 +38,13 @@ TERMINAL_E2E_PORT=3289 npm run test:e2e:responsive -- e2e/f08-alerts.spec.ts --g
 - [320px mobile keyboard focus](keyboard-focus-mobile.png)
 
 These captures use deterministic local alert/receipt reads. They establish the candidate interaction, not a live alert, protected merge or beta deployment.
+
+## Composed-consumer follow-up
+
+A follow-up at `2949bfa5764fd93af81ff3d7276af521c156bb46` reproduced two failures in the existing English/Chinese held-result consumer test: its literal `[role="button"]` selector missed the native button's implicit role. The test now locates the existing recent-activity delivery row through the component's established attributes, then clicks it and retains all evidence-link, source-clock and no-invented-price assertions. Production code is unchanged.
+
+The timeline empty/content guard and three composed alert-consumer suites pass **28 cases across four files**. The existing single `no-explicit-any` lint finding at `heldMaterialConsumer.test.tsx:8` is unchanged from the original source. The sibling #1368 only changes this file's separate dialog lookup to observe its body portal; neither repair removes semantic assertions.
+
+```sh
+npx vitest run lib/__tests__/alertTimelineEmptyGuard.test.ts lib/__tests__/alertsCockpitThesisSummary.test.tsx lib/__tests__/alertsCockpitZhParity.test.ts lib/__tests__/heldMaterialConsumer.test.tsx --reporter=dot
+```
