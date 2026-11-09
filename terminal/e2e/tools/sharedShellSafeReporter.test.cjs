@@ -93,7 +93,12 @@ test("directory substitution and producer file symlink/inode/digest drift refuse
     const x = run(t), env = x.snapshot(x.complete()), outside = path.join(x.temp, "outside"); fs.writeFileSync(outside, "private sentinel");
     if (variant === "directory") { fs.renameSync(x.output.dir, x.output.dir + "-old"); fs.symlinkSync(x.output.dir + "-old", x.output.dir); }
     if (variant === "symlink") { fs.unlinkSync(x.output.file); fs.symlinkSync(outside, x.output.file); }
-    if (variant === "inode") { const b = fs.readFileSync(x.output.file); fs.unlinkSync(x.output.file); fs.writeFileSync(x.output.file, b, { mode: 0o600 }); }
+    if (variant === "inode") {
+      const b = fs.readFileSync(x.output.file), retained = x.output.file + "-old";
+      // Keep the original inode allocated so replacement cannot reuse it.
+      fs.renameSync(x.output.file, retained); fs.writeFileSync(x.output.file, b, { mode: 0o600 });
+      assert.notEqual(fs.statSync(x.output.file).ino, fs.statSync(retained).ino);
+    }
     if (variant === "digest") fs.appendFileSync(x.output.file, "private");
     fs.writeFileSync(env.GITHUB_OUTPUT, ""); assert.throws(() => publish(ROOT, env)); assert(!fs.readFileSync(env.GITHUB_OUTPUT, "utf8").includes("ready")); assert.equal(fs.readFileSync(outside, "utf8"), "private sentinel");
   }
