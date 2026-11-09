@@ -15,7 +15,7 @@ import { getLiveOptionsAccessDetail } from "@/lib/entitlement";
 // server payload to cache — the page is a thin server shell. The (shell) layout
 // reads auth cookies (auto-dynamic); this page adds nothing server-side.
 
-export const metadata: Metadata = { title: "Options · Mastermind Terminal" };
+export const metadata: Metadata = workspaceMetadata("Options");
 
 // Options research must support magnification. Explicitly clear the root chart
 // viewport's maximum scale while inheriting its width and safe-area settings.
