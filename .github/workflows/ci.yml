@@ -166,6 +166,46 @@ jobs:
           fi
           if [ -n "${TRUSTED}" ]; then
             python3 "${TRUSTED}"
+            # The protected selector still owns full vs focused scope. Expand only
+            # its exact legacy full desktop/tablet sets after the observed one-hour
+            # cancellations (#801/#1296). Preserve all other rows and the selector's
+            # exit status; never execute the candidate's selector here.
+            python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          output = Path(os.environ["GITHUB_OUTPUT"])
+          fields = dict(line.split("=", 1) for line in output.read_text().splitlines() if "=" in line)
+          if fields.get("mode") == "full":
+              matrix = json.loads(fields["matrix"])
+              if isinstance(matrix, dict) and set(matrix) == {"include"}:
+                  for project, old_count, new_count, before, after in (
+                      ("desktop", 5, 6, "fifths", "sixths"),
+                      ("tablet", 3, 4, "thirds", "quarters"),
+                  ):
+                      rows = matrix["include"]
+                      if not isinstance(rows, list) or not all(isinstance(row, dict) for row in rows):
+                          break
+                      legacy = [
+                          {"shard": f"{project}-{i}", "projects": f"--project={project} --shard={i}/{old_count}", "specs": ""}
+                          for i in range(1, old_count + 1)
+                      ]
+                      selected = [row for row in rows if str(row.get("shard", "")).startswith(project + "-")
+                                  or f"--project={project}" in str(row.get("projects", "")).split()]
+                      if selected == legacy:
+                          first = rows.index(selected[0])
+                          expanded = [
+                              {"shard": f"{project}-{i}", "projects": f"--project={project} --shard={i}/{new_count}", "specs": ""}
+                              for i in range(1, new_count + 1)
+                          ]
+                          matrix["include"] = rows[:first] + expanded + [
+                              row for row in rows[first:] if row not in legacy
+                          ]
+                          with output.open("a", encoding="utf-8") as target:
+                              target.write("matrix=" + json.dumps(matrix, separators=(",", ":")) + "\n")
+                          print(f"e2e-scope: split protected full {project} {before} into {after}; all cases retained")
+          PY
           else
             python3 - <<'PY'
           import json
@@ -175,7 +215,7 @@ jobs:
               {"shard": f"{name}-{i}",
                "projects": f"--project={name} --shard={i}/{total}",
                "specs": ""}
-              for name, total in (("desktop", 5), ("tablet", 3), ("mobile", 3))
+              for name, total in (("desktop", 6), ("tablet", 4), ("mobile", 3))
               for i in range(1, total + 1)
           ]
           matrix.append({
@@ -240,7 +280,7 @@ jobs:
       - run: npx tsc --noEmit
       - name: Check immutable evidence orchestration (synthetic)
         timeout-minutes: 1
-        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs
+        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs
       - name: Plan current-source evidence capture
         id: evidence_plan
         run: node scripts/ci/plan-evidence-capture.cjs
@@ -398,6 +438,7 @@ jobs:
             terminal/test-results/
             terminal/docs/pr-crops/b-pl-6-batch-1/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/terminal-visual-intelligence/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
+            terminal/docs/pr-crops/b-pl-6-batch-2/
             terminal/docs/pr-crops/options-level-axis-labels/manifest.json
             terminal/docs/pr-crops/options-level-axis-labels/*.png
           if-no-files-found: warn
@@ -520,16 +561,39 @@ jobs:
           --workers=1 --retries=0
           --output=test-results/investor-shell-preview
       - name: Qualify Shared Shell beta presentation
+        id: shared_shell_qa
         if: matrix.shard == 'serial'
         env:
           MMX_SHARED_SHELL: '1'
+          TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT: 'intl-fixture-v1'
           CI: '1'
           TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port_shared }}
         run: >-
-          npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts
+          npm run test:e2e:responsive -- e2e/shared-shell-refinement.spec.ts e2e/intl-history-date-intent.spec.ts
           --project=desktop --project=tablet --project=mobile
           --workers=1 --retries=0
           --output=test-results/shared-shell-refinement
+          --reporter=github,./e2e/tools/sharedShellSafeReporter.cjs
+      - name: Validate bounded Shared Shell outcome
+        id: safe_shared_shell_summary
+        if: ${{ always() && matrix.shard == 'serial' && steps.shared_shell_qa.outputs.safe_shared_shell_initialized == 'true' }}
+        continue-on-error: true
+        timeout-minutes: 1
+        env:
+          SAFE_DIRECTORY_DEV: ${{ steps.shared_shell_qa.outputs.safe_shared_shell_directory_dev }}
+          SAFE_DIRECTORY_INO: ${{ steps.shared_shell_qa.outputs.safe_shared_shell_directory_ino }}
+          SAFE_FILE_DEV: ${{ steps.shared_shell_qa.outputs.safe_shared_shell_file_dev }}
+          SAFE_FILE_INO: ${{ steps.shared_shell_qa.outputs.safe_shared_shell_file_ino }}
+          SAFE_FILE_SHA256: ${{ steps.shared_shell_qa.outputs.safe_shared_shell_file_sha256 }}
+          SAFE_STEP_OUTCOME: ${{ steps.shared_shell_qa.outcome }}
+        run: node e2e/tools/sharedShellSafeReporter.cjs --publish-safe-summary
+      - name: Retain bounded Shared Shell outcome
+        if: ${{ always() && matrix.shard == 'serial' && steps.safe_shared_shell_summary.outcome == 'success' && steps.safe_shared_shell_summary.outputs.safe_shared_shell_summary_ready == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: responsive-qa-${{ github.run_id }}-serial-safe-summary-${{ github.run_attempt }}
+          path: ${{ steps.safe_shared_shell_summary.outputs.safe_shared_shell_summary_path }}
+          if-no-files-found: warn
       - name: Upload responsive QA screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -675,6 +739,7 @@ jobs:
       # on that trigger github.event.pull_request.number is empty, and that
       # dispatched run is then the only CI run for the sha that merges.
       - if: ${{ !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
+        id: ingest_tests
         run: python -m pytest tests/ -q
         env:
           PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
@@ -683,6 +748,26 @@ jobs:
           # strict guard needs no API; with one it refuses before network.
           # The separate protected issuer/required-gate transfer is not active.
           GH_TOKEN: ''
+      - name: Validate safe Ingest outcome publication
+        id: safe_ingest_summary
+        if: ${{ always() && steps.ingest_tests.outputs.safe_pytest_report_initialized == 'true' }}
+        continue-on-error: true
+        timeout-minutes: 1
+        env:
+          PYTEST_DIRECTORY_DEV: ${{ steps.ingest_tests.outputs.safe_pytest_directory_dev }}
+          PYTEST_DIRECTORY_INO: ${{ steps.ingest_tests.outputs.safe_pytest_directory_ino }}
+          PYTEST_FILE_DEV: ${{ steps.ingest_tests.outputs.safe_pytest_file_dev }}
+          PYTEST_FILE_INO: ${{ steps.ingest_tests.outputs.safe_pytest_file_ino }}
+          PYTEST_FILE_SHA256: ${{ steps.ingest_tests.outputs.safe_pytest_file_sha256 }}
+          PYTEST_STEP_OUTCOME: ${{ steps.ingest_tests.outcome }}
+        run: python scripts/ci_pytest_results.py --publish-safe-summary
+      - name: Retain bounded Ingest pytest outcome
+        if: ${{ always() && steps.safe_ingest_summary.outcome == 'success' && steps.safe_ingest_summary.outputs.safe_pytest_summary_ready == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ingest-safe-result-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.safe_ingest_summary.outputs.safe_pytest_summary_path }}
+          if-no-files-found: warn
 
   investigation-postgres:
     concurrency:

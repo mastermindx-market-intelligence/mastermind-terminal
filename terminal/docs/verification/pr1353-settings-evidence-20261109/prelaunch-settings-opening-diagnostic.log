@@ -1,0 +1,17 @@
+unpromoted capture directory /tmp/mmx-w9t-targets-O2hmAR
+[dev] - Local:         http://127.0.0.1:3805
+- Network:       http://127.0.0.1:3805
+✓ Ready in 587ms
+browserType.launch: Executable doesn't exist at /Users/chriswong/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     npx playwright install                                 ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+    at /Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1353-settings-evidence-20261109/terminal/docs/verification/pr1353-settings-evidence-20261109/diagnose-settings-opening.cjs:48:30 {
+  log: [],
+  name: 'Error'
+}

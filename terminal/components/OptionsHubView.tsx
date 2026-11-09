@@ -12,6 +12,7 @@ import { OptionsTapeViewLink } from "@/components/options/OptionsTapeViewLink";
 import { OptionsTapeSavedViews } from "@/components/options/OptionsTapeSavedViews";
 import { useTapeViewText } from "@/components/options/optionsTapeViewStrings";
 import { useLang, useT } from "@/lib/i18n";
+import screenerActionStyles from "./options/ScreenerTickerActions.module.css";
 import type { Lang } from "@/lib/i18n";
 import { daysHeld, daysToExpiry, volAboveOi } from "@/lib/plainAbbrev";
 import { CoachProvider, useCoach } from "@/lib/tutorial/coach";
@@ -24,12 +25,16 @@ import { FD } from "@/lib/flowdeskStrings";
 import { usOptionsSessionState } from "@/lib/flowFreshness";
 import {
   LEADERS_PREVIEW_ROWS,
+  filterLeaderRows,
   leaderCountLabel,
   leaderCoverageFootnote,
   leaderDirectionCaveat,
   leaderEmptyLabel,
   leaderHistoryLabel,
   leaderMissingRecurrenceLabel,
+  leaderSearchCountLabel,
+  leaderSearchEmptyLabel,
+  normalizeLeaderQuery,
   visibleLeaderRows,
 } from "@/lib/leadersPresentation";
 import { trackSearch } from "@/lib/searchTrack";
@@ -1969,6 +1974,28 @@ export default function OptionsHubView({
   }, [activeTab, fetchScreener]);
 
   const [hotView, setHotView] = useState<ScreenerHotView>("by_premium");
+  const tickerSearchRef = useRef<HTMLInputElement>(null);
+  const focusTickerFromScreener = useRef(false);
+
+  useEffect(() => {
+    if (activeTab === "tickers" && focusTickerFromScreener.current) {
+      focusTickerFromScreener.current = false;
+      tickerSearchRef.current?.focus({ preventScroll: true });
+    }
+  }, [activeTab]);
+
+  function screenerTickerAction(root: string) {
+    return <button type="button" className={screenerActionStyles.ticker} data-screener-ticker={root}
+      aria-label={lang === "zh" ? `打开 ${root} 的个股详情` : `Open ${root} in Tickers`}
+      onClick={(event) => {
+        event.stopPropagation();
+        focusTickerFromScreener.current = event.detail === 0;
+        switchTab("tickers");
+        setSelectedTicker(root);
+      }}>
+      {root}
+    </button>;
+  }
 
   // ── Screener preset view state ────────────────────────────────────────────
   const [screenerPreset, setScreenerPreset] = useState<ScreenerPreset>("top_prem");
@@ -2241,6 +2268,7 @@ export default function OptionsHubView({
   const [leadersError, setLeadersError] = useState(false);
   const [leadersBoard, setLeadersBoard] = useState<"a" | "b">("a");
   const [leadersExpanded, setLeadersExpanded] = useState(false);
+  const [leadersQuery, setLeadersQuery] = useState("");
   const [showHistoricalLeaders, setShowHistoricalLeaders] = useState(false);
 
   // The nightly data can advance while this workspace stays mounted. The ordinary
@@ -3161,6 +3189,7 @@ export default function OptionsHubView({
               >
                 <div style={{ padding: "10px 10px 8px" }}>
                   <input
+                    ref={tickerSearchRef}
                     type="text"
                     placeholder={lang === "zh" ? "搜索代码…" : "Search ticker…"}
                     value={tickerSearch}
@@ -3828,7 +3857,7 @@ export default function OptionsHubView({
                         <tbody>
                           {rows.map((r) => (
                             <tr key={r.root} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); setSelectedTicker(r.root); }}>
-                              <td style={{ textAlign: "left", fontWeight: 700 }}>{r.root}</td>
+                              <td style={{ textAlign: "left", fontWeight: 700 }}>{screenerTickerAction(r.root)}</td>
                               <td style={{ textAlign: "left", color: "var(--text-2)", fontSize: 11 }}>
                                 {lang === "zh" ? r.group_zh : abbrevSector(r.group)}
                               </td>
@@ -3886,7 +3915,7 @@ export default function OptionsHubView({
                               <tr key={i} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); setSelectedTicker(m.root); }}>
                                 <td style={{ textAlign: "left", fontWeight: 700 }}>
                                   <ContractPinButton shortlist={contractShortlist} row={m} source={shortlistSource("doi", oiData)} list={oiData.movers} />
-                                  {m.root}
+                                  {screenerTickerAction(m.root)}
                                 </td>
                                 <td style={{ textAlign: "left" }}>
                                   <span style={{ color: m.right === "C" ? "var(--up)" : "var(--down)", fontWeight: 700 }}>{m.right}</span>
@@ -3941,7 +3970,7 @@ export default function OptionsHubView({
                         <tbody>
                           {rows.map((r) => (
                             <tr key={r.root} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); setSelectedTicker(r.root); }}>
-                              <td style={{ textAlign: "left", fontWeight: 700 }}>{r.root}</td>
+                              <td style={{ textAlign: "left", fontWeight: 700 }}>{screenerTickerAction(r.root)}</td>
                               <td style={{ textAlign: "left", color: "var(--text-2)", fontSize: 11 }}>
                                 {lang === "zh" ? r.group_zh : abbrevSector(r.group)}
                               </td>
@@ -4008,7 +4037,7 @@ export default function OptionsHubView({
                           <tr key={i} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); setSelectedTicker(c.root); }}>
                             <td style={{ textAlign: "left", fontWeight: 700 }}>
                               <ContractPinButton shortlist={contractShortlist} row={c} source={shortlistSource("hot", hotData, hotView)} list={hotData[hotView] ?? []} />
-                              {c.root}
+                              {screenerTickerAction(c.root)}
                             </td>
                             <td style={{ textAlign: "left" }}>
                               <span style={{ color: c.right === "C" ? "var(--up)" : "var(--down)", fontWeight: 700 }}>{c.right}</span>
@@ -4149,7 +4178,12 @@ export default function OptionsHubView({
                 const boardARows = [...leadersData.board_a].sort((a, b) => b.K_a - a.K_a);
                 const boardBRows = [...leadersData.board_b].sort((a, b) => b.K_b - a.K_b);
                 const allRows = leadersBoard === "a" ? boardARows : boardBRows;
-                const displayRows = visibleLeaderRows(allRows, leadersExpanded);
+                const normalizedLeadersQuery = normalizeLeaderQuery(leadersQuery);
+                const filteredRows = filterLeaderRows(allRows, leadersQuery);
+                const searchingLeaders = normalizedLeadersQuery.length > 0;
+                const displayRows = searchingLeaders
+                  ? filteredRows
+                  : visibleLeaderRows(allRows, leadersExpanded);
 
                 // A recent build stamp is NOT a recent source session. Keep historical
                 // tables out of the active discovery surface by default: legacy
@@ -4202,7 +4236,9 @@ export default function OptionsHubView({
                     {/* ── Header strip ── */}
                     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 10 }}>
                       <span style={{ fontSize: 11, color: "var(--muted)" }}>
-                        {leaderCountLabel(lang, displayRows.length, allRows.length, cov.n_universe)}
+                        {searchingLeaders
+                          ? leaderSearchCountLabel(lang, displayRows.length, allRows.length, cov.n_universe)
+                          : leaderCountLabel(lang, displayRows.length, allRows.length, cov.n_universe)}
                         {" · "}
                         {leaderHistoryLabel(lang, cov.n_flow_sessions)}
                       </span>
@@ -4269,11 +4305,40 @@ export default function OptionsHubView({
                       >
                         {t("leadersBoardBLbl", "Washout Turn")}
                       </button>
-                      {allRows.length > LEADERS_PREVIEW_ROWS && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: "auto", minWidth: 0 }}>
+                        <input
+                          type="search"
+                          aria-label={pick(lang, "Search Flow Leaders", "搜索资金流领涨榜")}
+                          placeholder={pick(lang, "Search ticker…", "搜索代码…")}
+                          value={leadersQuery}
+                          onChange={(event) => {
+                            setLeadersQuery(event.target.value);
+                            setLeadersExpanded(false);
+                          }}
+                          style={{
+                            width: 154, maxWidth: "42vw", height: 28, padding: "0 9px",
+                            borderRadius: "var(--r-md)", background: "var(--inset)",
+                            border: "1px solid var(--line)", color: "var(--text)",
+                            font: "12px var(--font-ui)",
+                          }}
+                        />
+                        {leadersQuery && (
+                          <button
+                            type="button"
+                            className="btn btn-ghost"
+                            style={{ height: 28, fontSize: 11 }}
+                            aria-label={pick(lang, "Clear Flow Leaders search", "清除资金流领涨榜搜索")}
+                            onClick={() => { setLeadersQuery(""); setLeadersExpanded(false); }}
+                          >
+                            {pick(lang, "Clear", "清除")}
+                          </button>
+                        )}
+                      </div>
+                      {!searchingLeaders && allRows.length > LEADERS_PREVIEW_ROWS && (
                         <button
                           type="button"
                           className="btn btn-ghost"
-                          style={{ height: 28, fontSize: 11, marginLeft: "auto" }}
+                          style={{ height: 28, fontSize: 11 }}
                           aria-controls="flow-leaders-board"
                           aria-expanded={leadersExpanded}
                           onClick={() => setLeadersExpanded((v) => !v)}
@@ -4288,7 +4353,9 @@ export default function OptionsHubView({
                     {/* ── Table ── */}
                     {displayRows.length === 0 ? (
                       <div style={{ padding: "30px 0", textAlign: "center", color: "var(--muted)", fontSize: 13 }}>
-                        {leaderEmptyLabel(lang)}
+                        {searchingLeaders
+                          ? leaderSearchEmptyLabel(lang, normalizedLeadersQuery)
+                          : leaderEmptyLabel(lang)}
                       </div>
                     ) : (
                       <div id="flow-leaders-board" className="obs-scroll" style={{ overflowX: "auto" }}>

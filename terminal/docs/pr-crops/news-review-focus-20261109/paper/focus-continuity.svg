@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="610" height="260" viewBox="0 0 610 260" role="img" aria-label="Reviewing a story moves focus to the next remaining headline; after the last review, focus returns to the selected New filter.">
+<rect x="0.5" y="34.5" width="184" height="192" rx="12" fill="#171B22" stroke="#3A414D"/>
+<rect x="212.5" y="34.5" width="184" height="192" rx="12" fill="#171B22" stroke="#3A414D"/>
+<rect x="424.5" y="34.5" width="184" height="192" rx="12" fill="#171B22" stroke="#3A414D"/>
+<g fill="#CDD2DC" font-family="Inter,Arial,sans-serif" font-size="11" font-weight="600" letter-spacing="0.6">
+<text x="0" y="17">1 · REVIEW A STORY</text><text x="212" y="17">2 · KEEP READING</text><text x="424" y="17">3 · LAST REVIEW</text>
+</g>
+<g font-family="Inter,Arial,sans-serif" font-size="12">
+<rect x="14" y="48" width="62" height="26" rx="6" fill="#2B313B"/><text x="24" y="65" fill="#E1E5ED">New 3</text>
+<text x="14" y="96" fill="#A4ACBB">Story A</text><path d="M14 106H170" stroke="#303744"/>
+<text x="14" y="127" fill="#E1E5ED">Story B</text>
+<rect x="12" y="138" width="112" height="29" rx="6" fill="#25334F" stroke="#B8CAFF" stroke-width="2"/>
+<text x="23" y="157" fill="#ECF1FF">Mark reviewed</text>
+<text x="14" y="197" fill="#A4ACBB">Story C</text>
+<rect x="226" y="48" width="62" height="26" rx="6" fill="#2B313B"/><text x="236" y="65" fill="#E1E5ED">New 2</text>
+<text x="226" y="96" fill="#A4ACBB">Story A</text><path d="M226 106H382" stroke="#303744"/>
+<rect x="224" y="117" width="160" height="30" rx="5" fill="#25334F" stroke="#B8CAFF" stroke-width="2"/>
+<text x="234" y="137" fill="#ECF1FF">Story C headline</text>
+<text x="226" y="174" fill="#A4ACBB">Tab continues here</text>
+<rect x="437" y="47" width="64" height="28" rx="6" fill="#25334F" stroke="#B8CAFF" stroke-width="2"/>
+<text x="448" y="65" fill="#ECF1FF">New 0</text>
+<text x="438" y="121" fill="#E1E5ED">No stories match.</text>
+<text x="438" y="145" fill="#A4ACBB">The filter stays New.</text>
+<text x="438" y="169" fill="#A4ACBB">Choose what is next.</text>
+</g>
+<path d="M191 126H206m-4-4 4 4-4 4M403 126H418m-4-4 4 4-4 4" fill="none" stroke="#8E98A9" stroke-width="1.5"/>
+<g fill="#A4ACBB" font-family="Inter,Arial,sans-serif" font-size="11">
+<text x="0" y="250">Illustrative story IDs · outline indicates keyboard focus · final panel follows the last remaining review</text>
+</g>
+</svg>

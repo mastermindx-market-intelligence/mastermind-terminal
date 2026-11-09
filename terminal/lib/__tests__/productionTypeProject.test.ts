@@ -52,6 +52,27 @@ describe("strict production TypeScript project", () => {
       expect(config.distDir).toBe(distDir);
     } finally { vi.unstubAllEnvs(); vi.resetModules(); }
   });
+  it.each([
+    ["development", "1", "intl-fixture-v1", false],
+    ["production", "1", "intl-fixture-v1", undefined],
+    ["test", "1", "intl-fixture-v1", undefined],
+    ["development", "0", "intl-fixture-v1", undefined],
+    ["development", "true", "intl-fixture-v1", undefined],
+    ["development", "1", "other", undefined],
+    ["development", "1", "", undefined],
+  ])("keeps closed transport debug selection exact for %s/%s/%s", async (mode, fixture, transport, debug) => {
+    vi.stubEnv("NODE_ENV", mode);
+    vi.stubEnv("TERMINAL_E2E_FIXTURE", fixture);
+    vi.stubEnv("TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT", transport);
+    try {
+      vi.resetModules();
+      const { default: config } = await import("../../next.config");
+      expect(config.experimental?.reactDebugChannel).toBe(debug);
+      expect(config.typescript?.tsconfigPath).toBe(mode === "production" ? "tsconfig.build.json" : "tsconfig.json");
+      expect(config.distDir).toBeUndefined();
+      if (debug === undefined) expect(config).not.toHaveProperty("experimental");
+    } finally { vi.unstubAllEnvs(); vi.resetModules(); }
+  });
   it("inherits every full-project compiler option unchanged", () => {
     const full = parse("tsconfig.json"), build = parse("tsconfig.build.json");
     const options = (value: ts.CompilerOptions) => { const result = { ...value }; delete result.configFilePath; return result; };

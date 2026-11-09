@@ -104,6 +104,45 @@ test("expanded Flow Leaders keeps its collapse control in reach and a board swit
 });
 
 
+test("ticker search reaches beyond the preview and follows the selected board", async ({ page }, testInfo) => {
+  await page.addInitScript(() => localStorage.setItem("mm.lang", "en"));
+  await installLeadersFixture(page);
+  await page.goto("/discover?tab=leaders");
+
+  const search = page.getByRole("searchbox", { name: "Search Flow Leaders", exact: true });
+  await expect(page.getByText("Current Flow Leaders unavailable", { exact: true })).toBeVisible();
+  await expect(page.locator("table.scr tbody tr")).toHaveCount(0);
+  await expect(search).toHaveCount(0);
+  await page.getByRole("button", { name: "Inspect historical snapshot", exact: true }).click();
+  await expect(search).toBeVisible({ timeout: 20_000 });
+  const searchBox = await search.boundingBox();
+  expect(searchBox).not.toBeNull();
+  expect(searchBox!.x + searchBox!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+    await page.evaluate(() => document.documentElement.clientWidth),
+  );
+  await search.fill("$a133");
+  await expect(page.locator("table.scr tbody tr")).toHaveCount(1);
+  await expect(page.getByText("A133", { exact: true })).toBeVisible();
+  await expect(page.getByText("1 match in 133 · 368-name universe", { exact: false })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Show all/ })).toHaveCount(0);
+  await search.scrollIntoViewIfNeeded();
+  await captureLeaders(page, testInfo, "en", "search-match");
+
+  await page.getByRole("button", { name: "Washout Turn", exact: true }).click();
+  await expect(page.getByText("No names match “A133”", { exact: true })).toBeVisible();
+  await expect(search).toHaveValue("$a133");
+  await search.scrollIntoViewIfNeeded();
+  await captureLeaders(page, testInfo, "en", "search-empty");
+  await search.fill("b019");
+  await expect(page.locator("table.scr tbody tr")).toHaveCount(1);
+  await expect(page.getByText("B019", { exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Clear Flow Leaders search", exact: true }).click();
+  await expect(page.locator("table.scr tbody tr")).toHaveCount(12);
+  await expect(page.getByRole("button", { name: "Show all 19", exact: true })).toBeVisible();
+});
+
 test("the compact Flow Leaders controls and coverage remain bilingual", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile", "one touch viewport pins the Chinese journey");
   await page.addInitScript(() => localStorage.setItem("mm.lang", "zh"));
@@ -119,6 +158,8 @@ test("the compact Flow Leaders controls and coverage remain bilingual", async ({
   await expect(page.getByText("此快照中，幅度比方向更可靠。", { exact: true })).toBeVisible();
   await expect(page.getByText(/数据会话 2026-08-12 · 构建|会话 145\/5|FL-R3/)).toHaveCount(0);
   await expect(page.getByText(/Tape 签名覆盖 387 个标的/)).toBeVisible();
+  await expect(page.getByRole("searchbox", { name: "搜索资金流领涨榜", exact: true }))
+    .toHaveAttribute("placeholder", "搜索代码…");
 
   const showAll = page.getByRole("button", { name: "显示全部 133 个", exact: true });
   await expect(showAll).toBeVisible();
@@ -137,6 +178,22 @@ test("the compact Flow Leaders controls and coverage remain bilingual", async ({
   await collapse.click();
   await expect(page.locator("table.scr tbody tr")).toHaveCount(12);
   await expect(showAll).toHaveAttribute("aria-expanded", "false");
+  const search = page.getByRole("searchbox", { name: "搜索资金流领涨榜", exact: true });
+  await search.fill("$a133");
+  await expect(page.locator("table.scr tbody tr")).toHaveCount(1);
+  await expect(page.getByText("A133", { exact: true })).toBeVisible();
+  await expect(page.getByText("匹配 1 / 133 · 368 标的范围", { exact: false })).toBeVisible();
+  await expect(showAll).toHaveCount(0);
+  await search.scrollIntoViewIfNeeded();
+  await captureLeaders(page, testInfo, "zh", "search-match");
+  await search.fill("zzz");
+  await expect(page.locator("table.scr tbody tr")).toHaveCount(0);
+  await expect(page.getByText("没有标的匹配“ZZZ”", { exact: true })).toBeVisible();
+  await search.scrollIntoViewIfNeeded();
+  await captureLeaders(page, testInfo, "zh", "search-empty");
+  await page.getByRole("button", { name: "清除资金流领涨榜搜索", exact: true }).click();
+  await expect(page.locator("table.scr tbody tr")).toHaveCount(12);
+  await expect(showAll).toBeVisible();
   await page.getByRole("button", { name: "收起历史快照", exact: true }).click();
   await expect(page.getByText("当前资金流领涨榜不可用", { exact: true })).toBeVisible();
   await expect(page.locator("table.scr tbody tr")).toHaveCount(0);

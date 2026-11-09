@@ -4,6 +4,36 @@ export function visibleLeaderRows<T>(rows: readonly T[], expanded: boolean): T[]
   return expanded ? [...rows] : rows.slice(0, LEADERS_PREVIEW_ROWS);
 }
 
+export function normalizeLeaderQuery(query: string): string {
+  return query.trim().replace(/^\$+/, "").toUpperCase();
+}
+
+export function filterLeaderRows<T extends { ticker: string }>(
+  rows: readonly T[],
+  query: string,
+): T[] {
+  const normalized = normalizeLeaderQuery(query);
+  if (!normalized) return [...rows];
+  return rows.filter((row) => row.ticker.toUpperCase().includes(normalized));
+}
+
+export function leaderSearchCountLabel(
+  lang: "en" | "zh",
+  matches: number,
+  boardTotal: number,
+  universeTotal: number,
+): string {
+  if (lang === "zh") return `匹配 ${matches} / ${boardTotal} · ${universeTotal} 标的范围`;
+  return `${matches} match${matches === 1 ? "" : "es"} in ${boardTotal} · ${universeTotal}-name universe`;
+}
+
+export function leaderSearchEmptyLabel(lang: "en" | "zh", query: string): string {
+  const normalized = normalizeLeaderQuery(query);
+  return lang === "zh"
+    ? `没有标的匹配“${normalized}”`
+    : `No names match “${normalized}”`;
+}
+
 export function leaderCountLabel(
   lang: "en" | "zh",
   shown: number,

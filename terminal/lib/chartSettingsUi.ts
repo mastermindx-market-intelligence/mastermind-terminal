@@ -57,6 +57,28 @@ export function activateSettingsDialog(dialog: HTMLDialogElement, returnFocusTo?
   const previousOverflow = document.body.style.overflow;
   dialog.showModal();
   document.body.style.overflow = "hidden";
+  // Native modality makes the page inert, but Chromium can send Tab from the
+  // last control to browser chrome. Keep sequential settings navigation cyclic.
+  const wrapTab = (event: KeyboardEvent) => {
+    if (event.key !== "Tab" || event.defaultPrevented) return;
+    const controls = Array.from(dialog.querySelectorAll<HTMLElement>(
+      'button, input, select, textarea, a[href], [tabindex], [contenteditable="true"]',
+    )).filter((element) => element.tabIndex >= 0 && !element.matches(":disabled")
+      && element.getClientRects().length > 0 && getComputedStyle(element).visibility !== "hidden");
+    const first = controls[0], last = controls.at(-1);
+    const current = document.activeElement;
+    if (!first || !last) {
+      event.preventDefault();
+      dialog.focus({ preventScroll: true });
+    } else if (event.shiftKey && (current === first || current === dialog)) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && current === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+  dialog.addEventListener("keydown", wrapTab);
   const focusSelectedTab = () => dialog.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')?.focus({ preventScroll: true });
   focusSelectedTab();
   // Pointer-opened chart menus finish their own dismissal during the same frame.
@@ -66,6 +88,7 @@ export function activateSettingsDialog(dialog: HTMLDialogElement, returnFocusTo?
   });
   return () => {
     cancelAnimationFrame(focusFrame);
+    dialog.removeEventListener("keydown", wrapTab);
     dialog.close();
     if (!document.querySelector("dialog[open]")) {
       if (document.body.style.overflow === "hidden") document.body.style.overflow = previousOverflow;
