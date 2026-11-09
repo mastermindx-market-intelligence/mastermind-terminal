@@ -22,8 +22,16 @@ for (const lang of ["en", "zh"] as const) {
   test(`${lang} screener keeps a visible result and deliberate keyboard actions`, async ({ page }, info) => {
     await open(page, lang);
     const search = page.locator(".scr2-search");
-    await scroll(page, 6000);
-    await expect.poll(() => table(page).evaluate(el => el.scrollTop)).toBeGreaterThan(3000);
+    const nestedScroll = info.project.name === "desktop";
+    // The existing ≤860px shell uses document scrolling, while desktop virtualizes
+    // within the result table. Exercise the actual owner in both layouts.
+    if (nestedScroll) {
+      await scroll(page, 6000);
+      await expect.poll(() => table(page).evaluate(el => el.scrollTop)).toBeGreaterThan(3000);
+    } else {
+      await results(page).last().scrollIntoViewIfNeeded();
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(3000);
+    }
     await search.fill("Focus company");
     await expect(results(page)).toHaveCount(2);
     await expect(results(page).first()).toBeVisible();
@@ -52,15 +60,17 @@ for (const lang of ["en", "zh"] as const) {
     await expect(results(page).first()).toHaveAttribute("href", "/terminal?sym=S000");
 
     const density = page.getByRole("group", { name: lang === "zh" ? "行密度" : "Row density", exact: true });
-    await scroll(page, 4000);
+    if (nestedScroll) await scroll(page, 4000);
     const oldTop = await table(page).evaluate(el => el.scrollTop);
     await density.getByRole("button", { name: lang === "zh" ? "紧凑" : "Compact", exact: true }).click();
     await expect.poll(() => table(page).evaluate(el => el.scrollTop)).toBeCloseTo(oldTop * 36 / 44, 0);
-    await scroll(page, 100000);
+    if (nestedScroll) await scroll(page, 100000);
     await density.getByRole("button", { name: lang === "zh" ? "宽松" : "Comfortable", exact: true }).click();
-    await expect.poll(() => table(page).evaluate(el => el.scrollHeight - el.clientHeight - el.scrollTop)).toBeLessThanOrEqual(1);
+    if (nestedScroll) await expect.poll(() => table(page).evaluate(el => el.scrollHeight - el.clientHeight - el.scrollTop)).toBeLessThanOrEqual(1);
     await density.getByRole("button", { name: lang === "zh" ? "紧凑" : "Compact", exact: true }).click();
-    await expect.poll(() => table(page).evaluate(el => el.scrollHeight - el.clientHeight - el.scrollTop)).toBeLessThanOrEqual(1);
+    if (nestedScroll) await expect.poll(() => table(page).evaluate(el => el.scrollHeight - el.clientHeight - el.scrollTop)).toBeLessThanOrEqual(1);
+    await results(page).last().scrollIntoViewIfNeeded();
+    await expect(results(page).last()).toBeVisible();
     await expect(results(page).last()).toHaveAttribute("href", "/terminal?sym=S299");
 
     const launch = page.locator(".scr2-presets-tail").getByRole("button", { name: lang === "zh" ? "+ 保存" : "+ Save", exact: true });
