@@ -32,6 +32,10 @@ const PROPHET_LEX = {
   mastheadActive:   ["Active plans", "活跃计划"],
   mastheadFocus:    ["In focus", "当前焦点"],
   mastheadUpdated:  ["Model close", "模型收盘"],
+  mastheadSourceThrough: ["Data through", "数据截至"],
+  mastheadSourceUnknown: ["Source date unknown", "来源日期未知"],
+  mastheadSourceDelayed: ["Delayed", "数据延迟"],
+  mastheadSourceMixed: ["Mixed vintages", "数据时点不一致"],
   mastheadMarks:    ["Option marks", "期权报价"],
   mastheadMarksLive:["Live", "实时"],
 
@@ -607,6 +611,14 @@ const PROPHET_LEX = {
   candidateContextFrozenNote: [
     "This contract snapshot is from the frozen first qualification. The current revision may have changed.",
     "此合约快照来自冻结的首次合格。当前修订可能已变化。",
+  ],
+  // ── Underlying chart action (validated frozen context only) ───────────────
+  // The link opens the underlying's chart in a new tab; the caption keeps it from
+  // reading as an option fill or an entry recommendation.
+  candidateChartLink: ["Open underlying chart", "打开标的图表"],
+  candidateChartCaption: [
+    "The chart shows underlying market prices, not an option fill or a recommended entry.",
+    "图表显示标的市场价格，并非期权成交价或建议入场价。",
   ],
   // ── Measured NBBO prints (was wrongly labelled OI confirmation) ────────────
   candidateNbboPrints: ["Measured NBBO valid / source prints", "实测 NBBO 有效 / 来源成交"],

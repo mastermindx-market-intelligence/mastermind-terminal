@@ -1,0 +1,121 @@
+/* Display-only, on-demand detail inside the existing Prophet analysis scroll.
+   Does not create another top-level panel, sticky rail, chart, or fixed viewport. */
+.container {
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  min-width: 0;
+}
+.toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 2px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  font: 600 12px/1.35 var(--font-ui);
+}
+.toggle:hover { color: var(--text-2); }
+.toggle:focus-visible,
+.retry:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+.toggle:disabled {
+  cursor: not-allowed;
+  color: var(--muted);
+}
+.chevron {
+  color: var(--muted);
+  font-size: 16px;
+  flex: 0 0 auto;
+}
+.body {
+  padding: 0 2px 13px;
+  min-width: 0;
+}
+.explainer,
+.note,
+.caution {
+  margin: 0 0 10px;
+  font: 500 11px/1.55 var(--font-ui);
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.explanation {
+  margin: 10px 0 12px;
+  font: 500 12px/1.6 var(--font-ui);
+  color: var(--text-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.meta {
+  display: flex;
+  gap: 5px 14px;
+  flex-wrap: wrap;
+  font: 600 10px/1.5 var(--font-ui);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.subheading {
+  display: block;
+  margin: 0 0 7px;
+  font: 600 11px/1.4 var(--font-ui);
+  color: var(--text);
+}
+.evidence {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0 0 10px;
+}
+.fact {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl, 8px);
+  padding: 7px 9px;
+}
+.fact dt {
+  margin: 0 0 3px;
+  font: 500 10px/1.4 var(--font-ui);
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.fact dd {
+  margin: 0;
+  font: 600 12px/1.4 var(--font-ui);
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.failure {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  font: 500 11px/1.5 var(--font-ui);
+  color: var(--text-2);
+}
+.failure p { margin: 0 0 8px; }
+.retry {
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl, 8px);
+  background: transparent;
+  color: var(--text);
+  padding: 5px 9px;
+  cursor: pointer;
+  font: 600 11px/1.3 var(--font-ui);
+}
+.caution {
+  margin: 10px 0 0;
+  padding-top: 7px;
+  border-top: 1px solid var(--line);
+}
+@media (max-width: 600px) {
+  .evidence { grid-template-columns: 1fr; }
+}

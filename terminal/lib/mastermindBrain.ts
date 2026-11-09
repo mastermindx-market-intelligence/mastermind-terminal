@@ -1,4 +1,5 @@
 import type { CompanySourceContextRef } from "./companySourceContext";
+import type { OptionsQuestionReference } from "./optionsQuestionContext";
 
 /**
  * Browser bridge for the document-level Mastermind Brain singleton.
@@ -14,9 +15,17 @@ export type ChartStopRequest = { scope: "received_batches"; batch_ids: readonly 
 export type ChartStopResult = { scope: "received_batches"; cancelled: number };
 
 export interface MastermindBrainHost {
-  MMBrain?: { open?: () => void; mounted?: boolean; setPrincipal?: (id: string | null) => void };
+  MMBrain?: {
+    open?: () => void;
+    mounted?: boolean;
+    setPrincipal?: (id: string | null) => void;
+    /** Optional typed consumer; legacy widgets cannot silently accept this source. */
+    submitOptionsQuestion?: (reference: OptionsQuestionReference) => boolean;
+    clearOptionsQuestion?: (reference: OptionsQuestionReference) => boolean;
+  };
   MM_BRAIN_CFG?: {
     principal?: string | null;
+    authorizeOptionsQuestion?: (expectedPrincipal: string) => Promise<boolean>;
     symbol?: () => string;
     getCompanySourceSpan?: () => CompanySourceContextRef | null | undefined;
     onChartStop?: (request: ChartStopRequest) => ChartStopResult | undefined;

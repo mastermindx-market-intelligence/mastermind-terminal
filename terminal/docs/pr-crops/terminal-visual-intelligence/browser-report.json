@@ -1,8 +1,8 @@
 {
   "config": {
     "argv": [
-      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
-      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/node_modules/.bin/playwright",
+      "/usr/bin/nsolid",
+      "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/node_modules/.bin/playwright",
       "test",
       "e2e/visual-intelligence.spec.ts",
       "--project=desktop",
@@ -10,28 +10,26 @@
       "--project=mobile",
       "--workers=1",
       "--retries=0",
-      "--max-failures=2",
-      "--reporter=line,json",
-      "--output=/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-sleepy-tesla-f74cf1-3944b7cd0176930e/a29f0698-68a9-45df-9165-9513850285f1/scratchpad/vi/artifacts"
+      "--reporter=list,json"
     ],
-    "configFile": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/playwright.config.ts",
-    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e",
+    "configFile": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/playwright.config.ts",
+    "rootDir": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e",
     "failOnFlakyTests": false,
     "forbidOnly": false,
     "fullyParallel": true,
-    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e/globalSetup.ts",
+    "globalSetup": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e/globalSetup.ts",
     "globalTeardown": null,
     "globalTimeout": 0,
     "grep": {},
     "grepInvert": null,
-    "maxFailures": 2,
+    "maxFailures": 0,
     "metadata": {
       "actualWorkers": 1
     },
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-sleepy-tesla-f74cf1-3944b7cd0176930e/a29f0698-68a9-45df-9165-9513850285f1/scratchpad/vi/artifacts",
+        "outputDir": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -39,7 +37,7 @@
         },
         "id": "desktop",
         "name": "desktop",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e",
+        "testDir": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -51,7 +49,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-sleepy-tesla-f74cf1-3944b7cd0176930e/a29f0698-68a9-45df-9165-9513850285f1/scratchpad/vi/artifacts",
+        "outputDir": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -59,7 +57,7 @@
         },
         "id": "tablet",
         "name": "tablet",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e",
+        "testDir": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -71,7 +69,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-sleepy-tesla-f74cf1-3944b7cd0176930e/a29f0698-68a9-45df-9165-9513850285f1/scratchpad/vi/artifacts",
+        "outputDir": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -79,7 +77,7 @@
         },
         "id": "mobile",
         "name": "mobile",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e",
+        "testDir": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e",
         "testIgnore": [
           "/company-intelligence\\.spec\\.ts/",
           "/terminal-chrome-responsive\\.spec\\.ts/",
@@ -91,7 +89,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-sleepy-tesla-f74cf1-3944b7cd0176930e/a29f0698-68a9-45df-9165-9513850285f1/scratchpad/vi/artifacts",
+        "outputDir": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -99,7 +97,7 @@
         },
         "id": "company-intelligence-desktop",
         "name": "company-intelligence-desktop",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e",
+        "testDir": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -107,7 +105,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-sleepy-tesla-f74cf1-3944b7cd0176930e/a29f0698-68a9-45df-9165-9513850285f1/scratchpad/vi/artifacts",
+        "outputDir": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -115,7 +113,7 @@
         },
         "id": "company-intelligence-tablet",
         "name": "company-intelligence-tablet",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e",
+        "testDir": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -123,7 +121,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-sleepy-tesla-f74cf1-3944b7cd0176930e/a29f0698-68a9-45df-9165-9513850285f1/scratchpad/vi/artifacts",
+        "outputDir": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -131,7 +129,7 @@
         },
         "id": "company-intelligence-mobile",
         "name": "company-intelligence-mobile",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e",
+        "testDir": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/company-intelligence\\.spec\\.ts/"
@@ -139,7 +137,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-sleepy-tesla-f74cf1-3944b7cd0176930e/a29f0698-68a9-45df-9165-9513850285f1/scratchpad/vi/artifacts",
+        "outputDir": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -147,7 +145,7 @@
         },
         "id": "terminal-chrome-intermediate",
         "name": "terminal-chrome-intermediate",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e",
+        "testDir": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/terminal-chrome-responsive\\.spec\\.ts/"
@@ -155,7 +153,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-sleepy-tesla-f74cf1-3944b7cd0176930e/a29f0698-68a9-45df-9165-9513850285f1/scratchpad/vi/artifacts",
+        "outputDir": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -163,7 +161,7 @@
         },
         "id": "w2a-workspaces",
         "name": "w2a-workspaces",
-        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e",
+        "testDir": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e",
         "testIgnore": [],
         "testMatch": [
           "/w2a-workspaces\\.spec\\.ts/"
@@ -174,7 +172,7 @@
     "quiet": false,
     "reporter": [
       [
-        "line"
+        "list"
       ],
       [
         "json"
@@ -191,8 +189,8 @@
     "version": "1.61.1",
     "workers": 1,
     "webServer": {
-      "command": "npm run dev -- --hostname 127.0.0.1 --port 39417",
-      "url": "http://127.0.0.1:39417/terminal?symbol=NVDA",
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 36403",
+      "url": "http://127.0.0.1:36403/terminal?symbol=NVDA",
       "reuseExistingServer": true,
       "timeout": 120000,
       "env": {
@@ -233,12 +231,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3136,
+                  "duration": 1823,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:34:31.637Z",
+                  "startTime": "2026-11-02T05:43:39.081Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -262,7 +260,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 63,
                     "column": 8
                   }
@@ -276,17 +274,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 11520,
+                  "duration": 8285,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:34:35.113Z",
+                  "startTime": "2026-11-02T05:43:40.952Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 63,
                         "column": 8
                       }
@@ -296,7 +294,7 @@
                     {
                       "name": "chart-context-en",
                       "contentType": "image/png",
-                      "path": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-sleepy-tesla-f74cf1-3944b7cd0176930e/a29f0698-68a9-45df-9165-9513850285f1/scratchpad/vi/artifacts/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-desktop/attachments/chart-context-en-6f96bedec0912538646f79b8f4a212e28a4b1c86.png"
+                      "path": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/test-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-desktop/attachments/chart-context-en-6f96bedec0912538646f79b8f4a212e28a4b1c86.png"
                     }
                   ]
                 }
@@ -325,12 +323,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6561,
+                  "duration": 5039,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:34:46.641Z",
+                  "startTime": "2026-11-02T05:43:49.243Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -359,12 +357,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 3770,
+                  "duration": 2735,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:34:53.209Z",
+                  "startTime": "2026-11-02T05:43:54.288Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -393,12 +391,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4686,
+                  "duration": 3096,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:34:56.986Z",
+                  "startTime": "2026-11-02T05:43:57.027Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -427,12 +425,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8333,
+                  "duration": 6065,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:35:01.679Z",
+                  "startTime": "2026-11-02T05:44:00.127Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -461,12 +459,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5713,
+                  "duration": 3702,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:35:10.021Z",
+                  "startTime": "2026-11-02T05:44:06.198Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -490,7 +488,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 248,
                     "column": 8
                   }
@@ -504,17 +502,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7333,
+                  "duration": 4117,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:35:15.755Z",
+                  "startTime": "2026-11-02T05:44:09.905Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 248,
                         "column": 8
                       }
@@ -542,7 +540,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 272,
                     "column": 8
                   }
@@ -556,17 +554,17 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6891,
+                  "duration": 3929,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:35:23.105Z",
+                  "startTime": "2026-11-02T05:44:14.027Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 272,
                         "column": 8
                       }
@@ -599,18 +597,18 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5244,
+                  "duration": 3327,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:35:30.005Z",
+                  "startTime": "2026-11-02T05:44:17.962Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "chart-context-zh",
                       "contentType": "image/png",
-                      "path": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-sleepy-tesla-f74cf1-3944b7cd0176930e/a29f0698-68a9-45df-9165-9513850285f1/scratchpad/vi/artifacts/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-desktop/attachments/chart-context-zh-9145df304dd245dc1f6cb456b7bc942972c2ebc3.png"
+                      "path": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/test-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-desktop/attachments/chart-context-zh-9145df304dd245dc1f6cb456b7bc942972c2ebc3.png"
                     }
                   ]
                 }
@@ -639,12 +637,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2148,
+                  "duration": 1890,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:35:35.991Z",
+                  "startTime": "2026-11-02T05:44:21.573Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -668,7 +666,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 63,
                     "column": 8
                   }
@@ -682,17 +680,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 17277,
+                  "duration": 8893,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:35:38.329Z",
+                  "startTime": "2026-11-02T05:44:23.509Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 63,
                         "column": 8
                       }
@@ -702,7 +700,7 @@
                     {
                       "name": "chart-context-en",
                       "contentType": "image/png",
-                      "path": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-sleepy-tesla-f74cf1-3944b7cd0176930e/a29f0698-68a9-45df-9165-9513850285f1/scratchpad/vi/artifacts/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-tablet/attachments/chart-context-en-d068ce63195aa0f297764e1b0e280596ad33fb03.png"
+                      "path": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/test-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-tablet/attachments/chart-context-en-d068ce63195aa0f297764e1b0e280596ad33fb03.png"
                     }
                   ]
                 }
@@ -731,12 +729,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8854,
+                  "duration": 4749,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:35:55.613Z",
+                  "startTime": "2026-11-02T05:44:32.407Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -765,12 +763,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 4967,
+                  "duration": 2866,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:36:04.474Z",
+                  "startTime": "2026-11-02T05:44:37.161Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -799,12 +797,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5872,
+                  "duration": 3145,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:36:09.448Z",
+                  "startTime": "2026-11-02T05:44:40.031Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -833,12 +831,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 13630,
+                  "duration": 6893,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:36:15.328Z",
+                  "startTime": "2026-11-02T05:44:43.181Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -867,12 +865,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6488,
+                  "duration": 3445,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:36:28.965Z",
+                  "startTime": "2026-11-02T05:44:50.078Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -896,7 +894,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 248,
                     "column": 8
                   }
@@ -910,17 +908,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7897,
+                  "duration": 3477,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:36:35.459Z",
+                  "startTime": "2026-11-02T05:44:53.527Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 248,
                         "column": 8
                       }
@@ -948,7 +946,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 272,
                     "column": 8
                   }
@@ -962,17 +960,17 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 10087,
+                  "duration": 3921,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:36:43.362Z",
+                  "startTime": "2026-11-02T05:44:57.009Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 272,
                         "column": 8
                       }
@@ -1005,18 +1003,18 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5396,
+                  "duration": 2917,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:36:53.458Z",
+                  "startTime": "2026-11-02T05:45:00.934Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "chart-context-zh",
                       "contentType": "image/png",
-                      "path": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-sleepy-tesla-f74cf1-3944b7cd0176930e/a29f0698-68a9-45df-9165-9513850285f1/scratchpad/vi/artifacts/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-tablet/attachments/chart-context-zh-593f3cefa934c84d9df2bc38a570edcb325e993d.png"
+                      "path": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/test-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-tablet/attachments/chart-context-zh-593f3cefa934c84d9df2bc38a570edcb325e993d.png"
                     }
                   ]
                 }
@@ -1045,12 +1043,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2125,
+                  "duration": 1743,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:36:59.273Z",
+                  "startTime": "2026-11-02T05:45:04.119Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1074,7 +1072,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 63,
                     "column": 8
                   }
@@ -1088,17 +1086,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 17134,
+                  "duration": 8720,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:37:01.689Z",
+                  "startTime": "2026-11-02T05:45:05.907Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 63,
                         "column": 8
                       }
@@ -1108,7 +1106,7 @@
                     {
                       "name": "chart-context-en",
                       "contentType": "image/png",
-                      "path": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-sleepy-tesla-f74cf1-3944b7cd0176930e/a29f0698-68a9-45df-9165-9513850285f1/scratchpad/vi/artifacts/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/attachments/chart-context-en-a4de0098035fc1c9ab0273a416de102519c7b93a.png"
+                      "path": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/test-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/attachments/chart-context-en-a4de0098035fc1c9ab0273a416de102519c7b93a.png"
                     }
                   ]
                 }
@@ -1137,12 +1135,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 11723,
+                  "duration": 5661,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:37:18.831Z",
+                  "startTime": "2026-11-02T05:45:14.631Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1171,12 +1169,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 5321,
+                  "duration": 2977,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:37:30.564Z",
+                  "startTime": "2026-11-02T05:45:20.297Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1205,12 +1203,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6156,
+                  "duration": 2877,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:37:35.892Z",
+                  "startTime": "2026-11-02T05:45:23.280Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1239,12 +1237,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 13733,
+                  "duration": 7350,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:37:42.055Z",
+                  "startTime": "2026-11-02T05:45:26.161Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1273,12 +1271,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 7023,
+                  "duration": 3726,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:37:55.796Z",
+                  "startTime": "2026-11-02T05:45:33.515Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -1302,7 +1300,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 248,
                     "column": 8
                   }
@@ -1316,17 +1314,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 8419,
+                  "duration": 4880,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:38:02.826Z",
+                  "startTime": "2026-11-02T05:45:37.246Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 248,
                         "column": 8
                       }
@@ -1354,7 +1352,7 @@
                 {
                   "type": "slow",
                   "location": {
-                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e/visual-intelligence.spec.ts",
+                    "file": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e/visual-intelligence.spec.ts",
                     "line": 272,
                     "column": 8
                   }
@@ -1368,17 +1366,17 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 12396,
+                  "duration": 4883,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:38:11.254Z",
+                  "startTime": "2026-11-02T05:45:42.131Z",
                   "annotations": [
                     {
                       "type": "slow",
                       "location": {
-                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/sleepy-tesla-f74cf1-3944b7cd0176930e/terminal/e2e/visual-intelligence.spec.ts",
+                        "file": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/e2e/visual-intelligence.spec.ts",
                         "line": 272,
                         "column": 8
                       }
@@ -1411,18 +1409,18 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 6201,
+                  "duration": 3075,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-01T19:38:23.660Z",
+                  "startTime": "2026-11-02T05:45:47.019Z",
                   "annotations": [],
                   "attachments": [
                     {
                       "name": "chart-context-zh",
                       "contentType": "image/png",
-                      "path": "/private/tmp/claude-501/-Volumes-Mastermind-2-agent-workspaces-claude-5600d31ffa29643a-sleepy-tesla-f74cf1-3944b7cd0176930e/a29f0698-68a9-45df-9165-9513850285f1/scratchpad/vi/artifacts/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-mobile/attachments/chart-context-zh-5cc6820e5fadec967da8d16af09b4ac2ca3c26e3.png"
+                      "path": "/home/ubuntu2/lanes/wt/access-fouc-20261101/terminal/test-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-mobile/attachments/chart-context-zh-5cc6820e5fadec967da8d16af09b4ac2ca3c26e3.png"
                     }
                   ]
                 }
@@ -1440,8 +1438,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-11-01T19:34:16.682Z",
-    "duration": 253494.198,
+    "startTime": "2026-11-02T05:43:26.584Z",
+    "duration": 143744.557,
     "expected": 30,
     "skipped": 0,
     "unexpected": 0,

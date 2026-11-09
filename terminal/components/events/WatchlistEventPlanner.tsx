@@ -1,4 +1,5 @@
 "use client";
+import { acquireScrollLock } from "@/lib/scrollLock";
 /**
  * Watchlist event planner (E14) — an on-demand agenda of the known company report dates for ONE
  * watchlist, read from the existing per-company fundamentals files. See lib/watchlistEventPlanner.ts
@@ -241,7 +242,7 @@ export default function WatchlistEventPlanner({ lists, initialList, symbolInfo, 
     if (!dialog) return;
     const active = document.activeElement;
     const opener = active instanceof HTMLElement && active !== document.body ? active : null;
-    const previousOverflow = document.body.style.overflow;
+    const releaseScroll = acquireScrollLock();
     if (!dialog.open) {
       if (typeof dialog.showModal === "function") {
         try { dialog.showModal(); } catch { dialog.setAttribute("open", ""); }
@@ -249,12 +250,11 @@ export default function WatchlistEventPlanner({ lists, initialList, symbolInfo, 
         dialog.setAttribute("open", "");
       }
     }
-    document.body.style.overflow = "hidden";
     closeRef.current?.focus({ preventScroll: true });
     return () => {
       if (dialog.open && typeof dialog.close === "function") dialog.close();
       else dialog.removeAttribute("open");
-      if (document.body.style.overflow === "hidden") document.body.style.overflow = previousOverflow;
+      releaseScroll();
       const target = opener?.isConnected ? opener : returnFocusTo;
       if (target?.isConnected) target.focus({ preventScroll: true });
     };
