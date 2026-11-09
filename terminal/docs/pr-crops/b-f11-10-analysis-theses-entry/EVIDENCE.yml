@@ -5,7 +5,7 @@
 # capturedAt: 2026-10-24T05:29:47.034Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/workspaces/AnalysisWorkspace.tsx: "28a1d3b6d318a7e04297d2ba958a93da602761d01d5b587d66c14a9e78e6c39b"
+  terminal/components/workspaces/AnalysisWorkspace.tsx: "8868ab406b9a25d177c10dc6d24427dea07e693a8fa4a191de594f118f4049d7"
   terminal/app/company-intelligence.css: "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
   terminal/lib/i18n.tsx: "13f33e3178b105a64f1f5df35974cd99041ef06f05bdece95939dd07a8b9fe7c"
 theme: dark
@@ -51,3 +51,12 @@ companyAlternateListingSourceRecapture20261103:
   start: ../company-alternate-listing-20261103/theses-entry-20261103/start.json
   result: ../company-alternate-listing-20261103/theses-entry-20261103/result.json
   scope: AnalysisWorkspace source row only; historical six crops, raw capture identity and lexProjection retained unchanged; local dev fixture, no served or authenticated claim
+
+companyOriginContextSourceRecapture20261107:
+  sourceHead: 030c84c98944a6d4c145695e7aeda5bd32eac015
+  qualification: Fresh incumbent six-case NVDA context-bar capture; OUT declaration redirected only; unchanged fixture, URL, viewport and assertions
+  captureDirectory: ../company-origin-context-20261107/theses-entry-20261107
+  start: ../company-origin-context-20261107/theses-entry-20261107/start.json
+  result: ../company-origin-context-20261107/theses-entry-20261107/result.json
+  sourceQualification: ../company-origin-context-20261107/source-qualification.json
+  scope: AnalysisWorkspace source row only; historical six crops, raw capture identity, CSS row and lexProjection retained unchanged; local dev fixture, no served or authenticated claim

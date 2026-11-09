@@ -4,7 +4,56 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
-const { spawnSync, execFileSync } = require("node:child_process");
+const { spawnSync, spawn: spawnAsync, execFileSync } = require("node:child_process");
+
+const OPTIONS_PACKET = "terminal/docs/pr-crops/options-level-axis-labels";
+const OPTIONS_SOURCES = ["components/ChartPanel.tsx", "lib/optionsLevels.ts", "lib/priceTagPlacement.ts"];
+const sha256 = bytes => crypto.createHash("sha256").update(bytes).digest("hex");
+
+// Decide whether the existing packet needs a real recapture. Its unchanged unit reader
+// still owns all image/proof validation; a matching source snapshot is not a new capture.
+function optionsCapturePlan(terminal) {
+  const file = path.join(terminal, "docs/pr-crops/options-level-axis-labels/manifest.json");
+  let manifest;
+  try { manifest = JSON.parse(fs.readFileSync(file, "utf8")); }
+  catch (error) {
+    if (error.code === "ENOENT" || error instanceof SyntaxError)
+      return { required: true, reason: "missing-or-invalid-manifest" };
+    throw error;
+  }
+  const changed = OPTIONS_SOURCES.filter(file =>
+    manifest?.sourceFiles?.[file] !== sha256(fs.readFileSync(path.join(terminal, file))));
+  return { required: changed.length > 0, changed };
+}
+
+// Called by PL6 only while its own warmed server is alive. Async spawn keeps that
+// owner's event loop draining the server pipes while Options makes HTTP requests.
+async function captureOptions({ server, ownedServer, baseURL, terminal, env = process.env,
+  spawn = spawnAsync } = {}) {
+  if (!ownedServer(server)) throw new Error("CI_OPTIONS_SERVER_NOT_READY");
+  await new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, ["docs/pr-crops/options-level-axis-labels/capture.mjs"], {
+      cwd: terminal, env: { ...env, BASE_URL: baseURL }, stdio: "inherit", timeout: 600_000,
+    });
+    child.once("error", reject);
+    child.once("close", (status, signal) => {
+      if (signal || status !== 0)
+        reject(new Error(`CI_OPTIONS_CHILD_FAILED: status=${status} signal=${signal || "none"}`));
+      else resolve();
+    });
+  });
+  if (!ownedServer(server)) throw new Error("CI_OPTIONS_SERVER_NOT_READY");
+}
+
+function optionsReceipt(repoRoot, captured, checkoutCommit) {
+  const relative = `${OPTIONS_PACKET}/manifest.json`;
+  const bytes = fs.readFileSync(path.join(repoRoot, relative));
+  const manifest = JSON.parse(bytes);
+  if (captured && (manifest.sourceHead !== checkoutCommit || optionsCapturePlan(path.join(repoRoot, "terminal")).required))
+    throw new Error("CI_OPTIONS_CHECKOUT_BINDING");
+  return { path: relative, sha256: sha256(bytes), sourceHead: manifest.sourceHead,
+    state: captured ? "CAPTURED_AWAITING_UNIT_VALIDATION" : "EXISTING_PACKET_AWAITING_UNIT_VALIDATION" };
+}
 
 function operationIds(env) {
   for (const name of ["GITHUB_RUN_ID", "GITHUB_RUN_ATTEMPT"])
@@ -187,6 +236,7 @@ function run({ repoRoot = path.resolve(__dirname, "../../.."), env = process.env
       fs.writeFileSync(historyPath, prior, { flag: "wx" });
       record.batch2.historicalDiagnostic = historyPath;
     }
+    record.optionsAxis = { plan: optionsCapturePlan(terminal), state: "PREPARING" };
     record.state = "CAPTURING"; save();
     const capture = (packet, args, extraEnv) => {
       const childId = ids[packet] || (ids.prefix + "-" + packet);
@@ -199,7 +249,7 @@ function run({ repoRoot = path.resolve(__dirname, "../../.."), env = process.env
       try {
         err = fs.openSync(stderrPath, "wx");
         result = spawn(process.execPath, args, { cwd: terminal,
-          env: { ...env, CAPTURE_ONLY: "", ...extraEnv }, stdio: ["ignore", out, err],
+          env: { ...env, CAPTURE_ONLY: "", TERMINAL_CI_OPTIONS_AXIS_CAPTURE: "0", ...extraEnv }, stdio: ["ignore", out, err],
           ...(packet === "batch2" ? { timeout: 20 * 60_000, killSignal: "SIGTERM" } : {}) });
       } finally { fs.closeSync(out); if (err !== undefined) fs.closeSync(err); }
       Object.assign(child, { state: "RETURNED", status: result.status, signal: result.signal,
@@ -210,10 +260,13 @@ function run({ repoRoot = path.resolve(__dirname, "../../.."), env = process.env
       const stdout = fs.readFileSync(stdoutPath, "utf8");
       return packet === "batch2" ? stdout : reference(stdout, packet, ids[packet], evidence);
     };
-    const refs = [
-      capture("pl6", ["e2e/tools/capture_pl6_batch1.cjs"], { TERMINAL_PL6_EVIDENCE_OPERATION_ID: ids.pl6, TERMINAL_CROP_PORT: "3536" }),
-      capture("vi", ["e2e/tools/capture_visual_evidence.cjs", "--id", ids.vi, "--port", "3537"], {}),
-    ];
+    const refs = [capture("pl6", ["e2e/tools/capture_pl6_batch1.cjs"], {
+      TERMINAL_PL6_EVIDENCE_OPERATION_ID: ids.pl6, TERMINAL_CROP_PORT: "3536",
+      TERMINAL_CI_OPTIONS_AXIS_CAPTURE: record.optionsAxis.plan.required ? "1" : "0",
+    })];
+    Object.assign(record.optionsAxis, optionsReceipt(repoRoot, record.optionsAxis.plan.required, record.actualCheckout.commit));
+    save();
+    refs.push(capture("vi", ["e2e/tools/capture_visual_evidence.cjs", "--id", ids.vi, "--port", "3537"], {}));
     if (batch2.required) {
       const stdout = capture("batch2", ["e2e/tools/capture_pl6_batch2.cjs"], { TERMINAL_CROP_PORT: "3538" });
       Object.assign(record.batch2, verifyBatch2Capture(repoRoot, batch2, stdout, record.actualCheckout.commit));
@@ -224,9 +277,8 @@ function run({ repoRoot = path.resolve(__dirname, "../../.."), env = process.env
     const selections = required.map(c => ({ operationId: ids[c.packet], key: c.key }));
     const input = { repoRoot, id: ids.composition, operations: refs, selections, profile: captureProfile };
     record.state = "VALIDATING"; record.references = refs; save();
-    evidence.writeComposition(input); // Writes immutably and validates its exact created bytes.
+    const validated = evidence.writeComposition(input); // Returns validation of its exact created bytes.
     const compositionPath = `${evidence.PACKETS.pl6}/${ids.composition}.composition.json`;
-    const validated = evidence.readComposition({ repoRoot, compositionPath, expectedProfile: captureProfile });
     if (validated.id !== ids.composition || validated.cases.length !== 50 || validated.operations.length !== 2
         || ["pl6", "vi"].some(packet => {
           const ops = validated.operations.filter(op => op.id === ids[packet] && op.packet === packet);
@@ -255,4 +307,4 @@ if (require.main === module) {
     else throw new Error("CI_EVIDENCE_ARGUMENT");
   } catch (error) { console.error(error.stack || error.message); process.exitCode = 1; }
 }
-module.exports = { operationIds, reference, checkoutIdentity, recordCheckout, run, batch2Plan, verifyBatch2Capture };
+module.exports = { operationIds, reference, checkoutIdentity, recordCheckout, optionsCapturePlan, captureOptions, run, batch2Plan, verifyBatch2Capture };

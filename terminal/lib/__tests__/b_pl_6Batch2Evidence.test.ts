@@ -37,6 +37,14 @@ const CROPS = [
   "LevelsView-1440-zh.png",
   "LevelsView-390.png",
   "LevelsView-390-zh.png",
+  "ChartConductor-820.png",
+  "ChartConductor-820-zh.png",
+  "GuidePanel-820.png",
+  "GuidePanel-820-zh.png",
+  "LevelsLearn-820.png",
+  "LevelsLearn-820-zh.png",
+  "LevelsView-820.png",
+  "LevelsView-820-zh.png",
 ];
 
 function evidenceText(): string {
@@ -91,7 +99,7 @@ describe("B-PL-6 batch 2 evidence lock is the sha256 of the layout sources", () 
     }
   });
 
-  it("locks exactly the sixteen actual captured image bytes", () => {
+  it("locks exactly the twenty-four actual captured image bytes", () => {
     const yml = evidenceText();
     const markers = yml.match(/^captureFiles:$/gm) ?? [];
     expect(markers).toHaveLength(1);
@@ -123,14 +131,14 @@ describe("B-PL-6 batch 2 evidence lock is the sha256 of the layout sources", () 
     expect(sha256Of(join(CROP_DIR, match[1]))).toBe(match[2]);
   });
 
-  it("EVIDENCE.yml declares the capture flag, the dark-only and dev-indicator laws and the two viewports", () => {
+  it("EVIDENCE.yml declares the capture flag, the dark-only and dev-indicator laws and the three viewports", () => {
     const yml = evidenceText();
     expect(yml).toMatch(/capture_flag:\s*TERMINAL_E2E_FIXTURE/);
     expect(yml).toMatch(/DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06/);
     expect(yml).toMatch(/DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR/);
     expect(yml).toMatch(/^theme:\s*dark$/m);
     expect(yml).toMatch(/capturedAtHead is informational\. The lock is layoutFiles\./);
-    for (const [name, width, height] of [["desktop", 1440, 900], ["mobile", 390, 844]] as const) {
+    for (const [name, width, height] of [["desktop", 1440, 900], ["tablet", 820, 1180], ["mobile", 390, 844]] as const) {
       expect(yml).toMatch(new RegExp(`name:\\s*${name},\\s*width:\\s*${width},\\s*height:\\s*${height}`));
     }
   });
