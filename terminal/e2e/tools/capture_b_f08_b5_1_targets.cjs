@@ -342,6 +342,14 @@ async function captureState(page, width, lang, state, outPath) {
   await readNativeState(page, state, "prepared", basename(outPath));
   await page.goto(`${BASE}/portfolio`, { waitUntil: "domcontentloaded", timeout: 90_000 });
   await ensureLang(page, lang);
+  // SSR paints the tabs before their handlers are hydrated. The native Checked
+  // timestamp is published only after the client position read; the hidden
+  // target marker then confirms that this book's target read has settled.
+  await page.locator('main[data-portfolio="w5-positions"] header time[datetime]')
+    .waitFor({ state: "visible", timeout: 20_000 });
+  const testId = state === "unavailable" ? "portfolio-targets-unavailable" : "portfolio-targets";
+  await page.locator("#portfolio-panel-targets").getByTestId(testId)
+    .waitFor({ state: "attached", timeout: 20_000 });
   const targetsTab = page.locator("#portfolio-tab-targets");
   await targetsTab.click();
   await expect(targetsTab).toHaveAttribute("aria-selected", "true");
@@ -356,7 +364,6 @@ async function captureState(page, width, lang, state, outPath) {
     await page.getByText(lang === "zh" ? "已清除目标。" : "Target cleared.", { exact: true }).waitFor({ state: "visible" });
     await readNativeState(page, state, "cleared", basename(outPath));
   }
-  const testId = state === "unavailable" ? "portfolio-targets-unavailable" : "portfolio-targets";
   const loc = page.getByTestId(testId);
   await loc.waitFor({ state: "visible", timeout: 20_000 });
   if (state.startsWith("orphaned")) await loc.getByTestId("targets-orphaned").waitFor({ state: "visible" });
