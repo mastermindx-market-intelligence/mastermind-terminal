@@ -1,0 +1,119 @@
+[WebServer] npm warn Unknown user config "allow-scripts". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+[warmup] /terminal?symbol=NVDA → 200 in 70ms
+[warmup] /options → 200 in 124ms
+[warmup] /portfolio → 200 in 137ms
+[warmup] /alerts → 200 in 68ms
+[warmup] /analysis → 200 in 135ms
+[warmup] /discover → 200 in 77ms
+[warmup] /admin → 200 in 40ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 35ms
+[warmup] /login → 200 in 54ms
+[warmup] /reset-password → 200 in 60ms
+[warmup] /api/me → 200 in 49ms
+[warmup] /api/watchlist → 200 in 24ms
+[warmup] /api/layouts → 200 in 24ms
+[warmup] /api/watchlist/annotations → 409 in 27ms
+[warmup] 14 routes compiled in 1s
+[fixture-ready] prophet_idx fixture 200 in 112ms
+
+Running 4 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✘  1 [desktop] › e2e/watchlist-display-settings.spec.ts:6:7 › en: watchlist display choices stay usable, visible and persistent (16.9s)
+  ✘  2 [desktop] › e2e/watchlist-display-settings.spec.ts:6:7 › zh: watchlist display choices stay usable, visible and persistent (13.9s)
+  ✓  3 [desktop] › e2e/watchlist-ext-percent.spec.ts:23:5 › Ext price and Ext % are independent, persistent watchlist columns (8.5s)
+  ✓  4 [desktop] › e2e/watchlist-ext-percent.spec.ts:99:5 › a transient ext-quote outage keeps the unexpired BOATS trade at every width (4.1s)
+
+
+  1) [desktop] › e2e/watchlist-display-settings.spec.ts:6:7 › en: watchlist display choices stay usable, visible and persistent 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+    -   "contained": true,
+    +   "contained": false,
+        "scrolling": true,
+        "usable": true,
+      }
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      78 |       const rect = el.getBoundingClientRect(), rail = el.closest(".rail-body")!.getBoundingClientRect();
+      79 |       return { usable: rect.height > 120, contained: rect.bottom <= Math.min(innerHeight, rail.bottom) - 6, scrolling: el.scrollHeight > el.clientHeight };
+    > 80 |     })).toEqual({ usable: true, contained: true, scrolling: true });
+         |         ^
+      81 |     const short = info.outputPath(`watchlist-display-short-${lang}.png`);
+      82 |     await page.screenshot({ path: short, animations: "disabled" }); await info.attach("watchlist-display-short", { path: short, contentType: "image/png" });
+      83 |     await page.keyboard.press("Escape"); await page.reload(); await ready();
+        at /Volumes/STORAGE/mmx-evidence/terminal-polish2-20261109-c1/source/terminal/e2e/watchlist-display-settings.spec.ts:80:9
+
+    attachment #1: watchlist-display (image/png) ───────────────────────────────────────────────────
+    ../../watchlist-final-results/watchlist-display-settings-b5586-able-visible-and-persistent-desktop/attachments/watchlist-display-e059cfb62e10afac6728b14bd2bed824c19eb9aa.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../watchlist-final-results/watchlist-display-settings-b5586-able-visible-and-persistent-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../watchlist-final-results/watchlist-display-settings-b5586-able-visible-and-persistent-desktop/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../watchlist-final-results/watchlist-display-settings-b5586-able-visible-and-persistent-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../watchlist-final-results/watchlist-display-settings-b5586-able-visible-and-persistent-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [desktop] › e2e/watchlist-display-settings.spec.ts:6:7 › zh: watchlist display choices stay usable, visible and persistent 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+    -   "contained": true,
+    +   "contained": false,
+        "scrolling": true,
+        "usable": true,
+      }
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      78 |       const rect = el.getBoundingClientRect(), rail = el.closest(".rail-body")!.getBoundingClientRect();
+      79 |       return { usable: rect.height > 120, contained: rect.bottom <= Math.min(innerHeight, rail.bottom) - 6, scrolling: el.scrollHeight > el.clientHeight };
+    > 80 |     })).toEqual({ usable: true, contained: true, scrolling: true });
+         |         ^
+      81 |     const short = info.outputPath(`watchlist-display-short-${lang}.png`);
+      82 |     await page.screenshot({ path: short, animations: "disabled" }); await info.attach("watchlist-display-short", { path: short, contentType: "image/png" });
+      83 |     await page.keyboard.press("Escape"); await page.reload(); await ready();
+        at /Volumes/STORAGE/mmx-evidence/terminal-polish2-20261109-c1/source/terminal/e2e/watchlist-display-settings.spec.ts:80:9
+
+    attachment #1: watchlist-display (image/png) ───────────────────────────────────────────────────
+    ../../watchlist-final-results/watchlist-display-settings-58ca0-able-visible-and-persistent-desktop/attachments/watchlist-display-cf66e933f5a15425938d2b01f00ea1f35a70f815.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../watchlist-final-results/watchlist-display-settings-58ca0-able-visible-and-persistent-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../watchlist-final-results/watchlist-display-settings-58ca0-able-visible-and-persistent-desktop/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../watchlist-final-results/watchlist-display-settings-58ca0-able-visible-and-persistent-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../watchlist-final-results/watchlist-display-settings-58ca0-able-visible-and-persistent-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    [desktop] › e2e/watchlist-display-settings.spec.ts:6:7 › en: watchlist display choices stay usable, visible and persistent 
+    [desktop] › e2e/watchlist-display-settings.spec.ts:6:7 › zh: watchlist display choices stay usable, visible and persistent 
+  2 passed (51.1s)
