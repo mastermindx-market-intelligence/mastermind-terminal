@@ -1,0 +1,23 @@
+{
+  "currentFooterSha256": "33a2887e6bf5230630ec9836269363b82e8c4b0b39623dcc6063794199297ca3",
+  "dependency": "d03e7587711f1182531f25459fa1f60c679bac10",
+  "head": "c31fe105d4a101531def3518e7b9801e70cc4867",
+  "observedConflicts": [
+    "terminal/components/ChartFrameBar.tsx"
+  ],
+  "obsoleteSeparateClockArchivedAndRemoved": true,
+  "originalTestMockAdaptation": {
+    "after": "626a24ef42ebc0093e48e5468947853f9607ab1f71542fbf93418376aa1b2f4f",
+    "before": "a14f5a2ff5e65a7a652308dcf2c77790062400946422ecc2051bb62077dcc2c1",
+    "fiveOriginalTestsPreserved": true
+  },
+  "parents": [
+    "c31fe105d4a101531def3518e7b9801e70cc4867",
+    "d03e7587711f1182531f25459fa1f60c679bac10",
+    "156c4b3ecfa27b9137c64068b3ed969e07efbe49"
+  ],
+  "preparedAt": "2026-11-09T18:57:17.126156+00:00",
+  "protectedMaster": "156c4b3ecfa27b9137c64068b3ed969e07efbe49",
+  "schema": "terminal_pr702_current_source_composition.v1",
+  "state": "CURRENT_FOOTER_WITH_ORIGINAL_CONTRACTS_READY_FOR_RED"
+}

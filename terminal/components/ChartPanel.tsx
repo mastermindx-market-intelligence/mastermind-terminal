@@ -1,5 +1,5 @@
 "use client";
-import { boatsChartHistoryBars, type BoatsChartHistory } from "@/lib/extQuoteCopy";
+import { boatsChartHistoryFromResponse, type BoatsChartHistory } from "@/lib/extQuoteCopy";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import { resolveChartAppearance } from "@/lib/chartSettingsUi";
 import { syncOptionsPricePin, removeOptionsPricePin, layoutOptionsReferenceBadges, optionsPinVisibility, optionsPinRevealRange, type OptionsPinViewport, type OptionsPricePin } from "@/lib/optionsChartPin";
@@ -264,6 +264,8 @@ export type LiveQuote = {
   extReceivedTs?: number;
   extPublishedTs?: number;
   extExpiresTs?: number;
+  extCaptureId?: string;
+  extGeneration?: number;
   live?: boolean;
   suspended?: boolean;
   lagMs?: number | null;
@@ -9441,7 +9443,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
       //    signal/compare overlays (those are "YYYY-MM-DD" keyed). Indicators are bar-agnostic → kept. ──
       if (intraday) {
         let bars: any[] = [];
-        let historyBars = 0;
+        let historyEvidence: unknown = null;
         let daytimePending = false;
         let daytimeIncomplete = false;
         let initialCaptureMs = 0;
@@ -9451,7 +9453,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
           const j = adoptFirstPaint ? firstPaint!.body : await r!.json().catch(() => null);
           const ok = adoptFirstPaint || r!.ok;
           bars = Array.isArray(j?.bars) ? j.bars : [];
-          historyBars = ok && overnightHours ? boatsChartHistoryBars(j?.boats_history) : 0;
+          historyEvidence = ok && overnightHours ? j?.boats_history : null;
           // A warm complete assembly stays paintable while another refresh is
           // pending. Only cold/incomplete pending data must remain Loading.
           daytimePending = ok && overnightHours && j?.daytime_cache?.refresh_pending === true
@@ -9461,7 +9463,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
           if (!ok || j?.error) feedErr = String(j?.error || `HTTP ${r?.status}`);
         } catch (e: any) { feedErr = e?.message || "network error"; }
         if (cancelled || epochRef.current !== epoch) return;
-        onOvernightHistoryRef.current?.({ symbol, timeframe: effectiveTimeframe, bars: historyBars });
+        onOvernightHistoryRef.current?.(boatsChartHistoryFromResponse(symbol, effectiveTimeframe, historyEvidence,
+          { pending: daytimePending, error: feedErr !== null || daytimeIncomplete }));
         onDataOriginRef.current?.(originNotCovered(symbol, "INTRADAY_NOT_IN_V1"));
         sliceRef.current = null;                 // no daily slice on intraday → no sig marks
         setSliceState("none", symbol);
@@ -9842,7 +9845,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
         }
         if (!previous.length) {
           overnightCaptureRef.current = accepted.captureMs;
-          onOvernightHistoryRef.current?.({ symbol, timeframe: effectiveTimeframe, bars: boatsChartHistoryBars(body?.boats_history) });
+          onOvernightHistoryRef.current?.(boatsChartHistoryFromResponse(symbol, effectiveTimeframe, body?.boats_history));
           if (body?.daytime_cache?.refresh_pending !== true) {
             showIntradayEmpty(symbol, effectiveTimeframe, !!body?.error || body?.daytime_cache?.refresh_error != null);
           }
@@ -9857,7 +9860,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
           if (accepted.appliedTradeMs > 0) {
             liveTickRef.current = { basis: "tiingo_boats", stamp: accepted.appliedTradeMs };
           }
-          onOvernightHistoryRef.current?.({ symbol, timeframe: effectiveTimeframe, bars: boatsChartHistoryBars(body?.boats_history) });
+          onOvernightHistoryRef.current?.(boatsChartHistoryFromResponse(symbol, effectiveTimeframe, body?.boats_history));
         };
         if (previous.length === accepted.bars.length && previous.every((bar, i) => {
           const next = accepted.bars[i];

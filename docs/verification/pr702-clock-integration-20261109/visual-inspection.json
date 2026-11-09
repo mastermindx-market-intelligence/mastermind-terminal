@@ -1,0 +1,13 @@
+{
+  "images": {
+    "docs/verification/pr702-clock-integration-20261109/current-browser-r3/current-clock-images/desktop.png": "60d2e4a06a958f3136b27890db925115f95886b7c4259a7448a0fdc9422eb6b8",
+    "docs/verification/pr702-clock-integration-20261109/current-browser-r3/current-clock-images/mobile.png": "2eb3bb0975435d61b4dab93c6fb82e8dbcefd7f176f9ef1756ef56d999e7bad1"
+  },
+  "inspectedAt": "2026-11-09T19:28:44.271226+00:00",
+  "observations": [
+    "The desktop UTC clock is visible in the chart footer with the established chart, toolbar and sidebar layout intact.",
+    "The phone uses the existing compact controls and keeps the desktop clock hidden; chart and lower information panels remain readable."
+  ],
+  "schema": "terminal_pr702_visual_self_check.v1",
+  "scope": "Two actual current images inspected. The phone clock case returns after hidden-clock/compact-control checks; no phone overflow or production-data acceptance is claimed."
+}

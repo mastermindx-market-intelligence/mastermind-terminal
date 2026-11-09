@@ -1,0 +1,42 @@
+[dev] ✓ Ready in 338ms
+[warmup] /terminal?symbol=NVDA → 200 in 72ms
+[warmup] /options → 200 in 125ms
+[warmup] /portfolio → 200 in 133ms
+[warmup] /alerts → 200 in 66ms
+[warmup] /analysis → 200 in 131ms
+[warmup] /discover → 200 in 84ms
+[warmup] /admin → 200 in 47ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 39ms
+[warmup] /login → 200 in 57ms
+[warmup] /reset-password → 200 in 65ms
+[warmup] /api/me → 200 in 53ms
+[warmup] /api/watchlist → 200 in 28ms
+[warmup] /api/layouts → 200 in 24ms
+[warmup] /api/watchlist/annotations → 409 in 22ms
+[warmup] 14 routes compiled in 1s
+[fixture-ready] prophet_idx fixture 200 in 122ms
+capture DiscoverLeaders-1440.png … ok
+capture OptionsHubView-1440.png … ok
+capture SearchModal-1440.png … ok
+capture StockAnalysis-1440.png … ok
+capture AnalysisWorkspace-1440.png … ok
+capture ChartChrome-1440.png … ok
+capture DiscoverLeaders-1440-zh.png … ok
+capture OptionsHubView-1440-zh.png … ok
+capture SearchModal-1440-zh.png … ok
+capture StockAnalysis-1440-zh.png … ok
+capture AnalysisWorkspace-1440-zh.png … ok
+capture ChartChrome-1440-zh.png … ok
+capture DiscoverLeaders-390.png … ok
+capture OptionsHubView-390.png … ok
+capture SearchModal-390.png … ok
+capture StockAnalysis-390.png … ok
+capture AnalysisWorkspace-390.png … ok
+capture ChartChrome-390.png … ok
+capture DiscoverLeaders-390-zh.png … ok
+capture OptionsHubView-390-zh.png … ok
+capture SearchModal-390-zh.png … ok
+capture StockAnalysis-390-zh.png … ok
+capture AnalysisWorkspace-390-zh.png … ok
+capture ChartChrome-390-zh.png … ok
+{"visualEvidence":"terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261109191702-1-pl6--operation.json","sha256":"8ad06fff6ce82b2d53a77f56f67d25db8884e2c9cdb49b3faac1a613fe10ccec","actualCases":24}

@@ -1,0 +1,8 @@
+{
+  "conflicts": [
+    "terminal/components/ChartFrameBar.tsx"
+  ],
+  "exit": 1,
+  "stderr": "",
+  "stdout": "Auto-merging terminal/components/ChartFrameBar.tsx\nCONFLICT (content): Merge conflict in terminal/components/ChartFrameBar.tsx\nAutomatic merge failed; fix conflicts and then commit the result.\n"
+}

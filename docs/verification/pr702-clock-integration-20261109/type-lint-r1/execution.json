@@ -1,0 +1,48 @@
+{
+  "completedAt": "2026-11-09T19:14:59.373799+00:00",
+  "schema": "terminal_pr702_current_type_and_affected_lint.v1",
+  "sourceEntries": 1939,
+  "sourceStable": true,
+  "stages": {
+    "lint": [
+      {
+        "baseline": "d03e7587711f1182531f25459fa1f60c679bac10",
+        "baselineCount": 6,
+        "currentCount": 6,
+        "novel": {},
+        "path": "components/ChartFrameBar.tsx",
+        "state": "NO_NEW_DIAGNOSTICS"
+      },
+      {
+        "baseline": "d03e7587711f1182531f25459fa1f60c679bac10",
+        "baselineCount": 0,
+        "currentCount": 0,
+        "novel": {},
+        "path": "e2e/marker-tooltip.spec.ts",
+        "state": "NO_NEW_DIAGNOSTICS"
+      },
+      {
+        "baseline": "c31fe105d4a101531def3518e7b9801e70cc4867",
+        "baselineCount": 0,
+        "currentCount": 0,
+        "novel": {},
+        "path": "lib/__tests__/chartClockIsolation.test.tsx",
+        "state": "NO_NEW_DIAGNOSTICS"
+      }
+    ],
+    "typecheck": {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seconds": 44.98
+    }
+  },
+  "startedAt": "2026-11-09T19:14:05.772389+00:00",
+  "state": "QUALIFIED"
+}

@@ -196,8 +196,8 @@ function applyRange(
 }
 
 // Derive the UTC timezone offset label, e.g. "UTC+5:30" or "UTC-8".
-function utcOffsetLabel(): string {
-  const off = -new Date().getTimezoneOffset(); // minutes
+function utcOffsetLabel(now: Date): string {
+  const off = -now.getTimezoneOffset(); // minutes
   const sign = off >= 0 ? "+" : "-";
   const abs = Math.abs(off);
   const h = Math.floor(abs / 60);
@@ -282,12 +282,27 @@ export default function ChartFrameBar({
   useLayoutEffect(() => {
     if (!mounted) return;
     const paint = () => {
-      if (clockRef.current) clockRef.current.textContent = fmtHHMMSS(new Date());
-      if (tzRef.current) tzRef.current.textContent = utcOffsetLabel();
+      const now = new Date();
+      if (clockRef.current) clockRef.current.textContent = fmtHHMMSS(now);
+      if (tzRef.current) tzRef.current.textContent = utcOffsetLabel(now);
     };
-    paint();
-    const id = setInterval(paint, 1000);
-    return () => clearInterval(id);
+    let interval: ReturnType<typeof setInterval> | undefined;
+    const stop = () => {
+      if (interval !== undefined) clearInterval(interval);
+      interval = undefined;
+    };
+    const syncVisibility = () => {
+      stop();
+      if (document.hidden) return;
+      paint();
+      interval = setInterval(paint, 1000);
+    };
+    document.addEventListener("visibilitychange", syncVisibility);
+    syncVisibility();
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", syncVisibility);
+    };
   }, [mounted]);
 
   // Close gear popup when clicking outside
@@ -490,6 +505,7 @@ export default function ChartFrameBar({
           onClick={() => isIntraday && extendedEligible && onSettings({ extHours: !s.extHours, overnightHours: false })}
           title={isIntraday && extendedEligible ? (s.extHours ? t("ethOff") : t("ethOn")) : undefined}
           aria-label={t("cfbExtendedHours")}
+          aria-pressed={!!(s.extHours && extendedEligible && isIntraday)}
         >ETH</button>
         {extendedEligible && isOvernightTimeframe(timeframe) && <button className={`cfb-chip${s.overnightHours ? " on" : ""}`}
           onClick={() => onSettings({ overnightHours: !s.overnightHours, ...(!s.overnightHours ? { extHours: true } : {}) })}

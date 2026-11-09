@@ -1,0 +1,63 @@
+{
+  "schema": "terminal_pr702_original_clock_contract_red.v1",
+  "state": "RED_REPRODUCED",
+  "command": [
+    "node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/chartClockIsolation.test.tsx",
+    "--reporter=json",
+    "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/docs/verification/pr702-clock-integration-20261109/clock-red-r1/report.json"
+  ],
+  "exit": 1,
+  "seconds": 3.16,
+  "sourceBefore": {
+    "terminal/components/ChartFrameBar.tsx": "33a2887e6bf5230630ec9836269363b82e8c4b0b39623dcc6063794199297ca3",
+    "terminal/lib/__tests__/chartClockIsolation.test.tsx": "626a24ef42ebc0093e48e5468947853f9607ab1f71542fbf93418376aa1b2f4f"
+  },
+  "sourceAfter": {
+    "terminal/components/ChartFrameBar.tsx": "33a2887e6bf5230630ec9836269363b82e8c4b0b39623dcc6063794199297ca3",
+    "terminal/lib/__tests__/chartClockIsolation.test.tsx": "626a24ef42ebc0093e48e5468947853f9607ab1f71542fbf93418376aa1b2f4f"
+  },
+  "sourceStable": true,
+  "stats": {
+    "numTotalTests": 5,
+    "numPassedTests": 2,
+    "numFailedTests": 3,
+    "numPendingTests": 0
+  },
+  "cases": [
+    {
+      "name": "chart footer clock isolation updates the displayed time for 60 seconds without re-rendering the footer controls",
+      "status": "passed",
+      "failures": []
+    },
+    {
+      "name": "chart footer clock isolation stops timer work when hidden and immediately catches up on visibility return",
+      "status": "failed",
+      "failures": [
+        "AssertionError: expected 1 to be +0 // Object.is equality\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/lib/__tests__/chartClockIsolation.test.tsx:41:32\n    at file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/@vitest/runner/dist/index.js:533:5\n    at runTest (file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/@vitest/runner/dist/index.js:1056:11)\n    at runSuite (file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11\n    at withEnv (file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:90:5)\n    at run (file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:112:3)"
+      ]
+    },
+    {
+      "name": "chart footer clock isolation keeps server markup free of a server-local timestamp",
+      "status": "passed",
+      "failures": []
+    },
+    {
+      "name": "chart footer clock isolation survives StrictMode and removes its interval and visibility listener on unmount",
+      "status": "failed",
+      "failures": [
+        "AssertionError: expected false to be true // Object.is equality\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/lib/__tests__/chartClockIsolation.test.tsx:62:77\n    at file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/@vitest/runner/dist/index.js:533:5\n    at runTest (file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/@vitest/runner/dist/index.js:1056:11)\n    at runSuite (file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11\n    at withEnv (file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:90:5)\n    at run (file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:112:3)"
+      ]
+    },
+    {
+      "name": "chart footer clock isolation does not start an interval when a chart first mounts in a hidden document",
+      "status": "failed",
+      "failures": [
+        "AssertionError: expected 1 to be +0 // Object.is equality\n    at /Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/lib/__tests__/chartClockIsolation.test.tsx:68:32\n    at file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/@vitest/runner/dist/index.js:533:5\n    at runTest (file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/@vitest/runner/dist/index.js:1056:11)\n    at runSuite (file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runSuite (file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/@vitest/runner/dist/index.js:1205:15)\n    at runFiles (file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/@vitest/runner/dist/index.js:1262:5)\n    at startTests (file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/@vitest/runner/dist/index.js:1271:3)\n    at file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11\n    at withEnv (file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:90:5)\n    at run (file:///Volumes/Mastermind%202/agent-workspaces/terminal/review/terminal-pr702-clock-integration-20261109/terminal/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:112:3)"
+      ]
+    }
+  ],
+  "completedAt": "2026-11-09T18:58:24.706924+00:00"
+}

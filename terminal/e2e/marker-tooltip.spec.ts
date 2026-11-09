@@ -4,7 +4,7 @@ import { settledChartDrag, settledPanSample } from "./helpers/settled";
 // reason washout-retro.spec.ts imports `retroLegendCopy`. Sentence-level copy contracts live in
 // lib/__tests__/markerTooltipCopy.test.ts; this suite pins that they RENDER, and render wired.
 import { markerTooltipCopy } from "../lib/signalVerdict";
-import { placeMarkerTip } from "../lib/markerTooltip";
+import { hitTestMarkers, MARKER_TAP_SLACK, placeMarkerTip, type MarkerHit } from "../lib/markerTooltip";
 
 // ── THE TOOLTIPS THAT SHIPPED TO NOBODY ────────────────────────────────────────────────────
 //
@@ -661,18 +661,62 @@ test("a tap keeps the marker it started on when geometry moves before pointerup"
 test("a tap still opens the tooltip when the thread stalls between down and up", async ({ page }, testInfo) => {
   test.skip(!["tablet", "mobile"].includes(testInfo.project.name), "touch viewports only");
   await openTerminal(page);
-  const target = pick(await settledMarkers(page), RETRO_TS);
+  // Install observational hooks before the final settled coordinate measurement.
+  const observedDown = await page.evaluateHandle(() => {
+    const witness: {
+      down: {
+        x: number;
+        y: number;
+        trusted: boolean;
+        pointerType: string;
+        boxes: MarkerHit[];
+      } | null;
+    } = { down: null };
+    const observe = (event: PointerEvent) => {
+      if (!event.isTrusted || event.pointerType !== "touch") return;
+      window.removeEventListener("pointerdown", observe, true);
+      const boxes: MarkerHit[] = [];
+      const svg = document.querySelector<SVGSVGElement>("[data-sig-layer]");
+      for (const group of svg?.querySelectorAll<SVGGElement>(":scope > g") ?? []) {
+        const title = group.querySelector(":scope > title")?.textContent;
+        if (!title) continue;
+        const rect = group.getBoundingClientRect();
+        if (!(rect.width > 0) || !(rect.height > 0)) continue;
+        boxes.push({
+          x: rect.x, y: rect.y, w: rect.width, h: rect.height,
+          title, t: title.split(" ·")[0],
+        });
+      }
+      witness.down = {
+        x: event.clientX, y: event.clientY,
+        trusted: event.isTrusted, pointerType: event.pointerType, boxes,
+      };
+    };
+    window.addEventListener("pointerdown", observe, { capture: true, passive: true });
+    return witness;
+  });
 
-  // The gesture is a TAP by every physical measure — zero travel, its two events stamped under a
-  // millisecond apart — and the only thing between them is a busy main thread. Classified on when
-  // the handlers ran, it read as a 400ms long press and the tooltip never opened; classified on
-  // the events, which is what lib/markerTooltip.isTapSample does, it is the tap it always was.
-  // Revert that clock and this test goes red on both touch viewports.
+  // The existing window-bubble stall runs after product handlers record the gesture start.
   await stallNextGesture(page, 400);
+  const target = pick(await settledMarkers(page), RETRO_TS);
   await page.touchscreen.tap(target.cx, target.cy);
+
+  const down = await observedDown.evaluate((witness) => witness.down);
+  await observedDown.dispose();
+  expect(down, "the real touchscreen tap must deliver a trusted DOWN").not.toBeNull();
+  expect(down!.trusted).toBe(true);
+  expect(down!.pointerType).toBe("touch");
+  const actualStart = hitTestMarkers(down!.boxes, down!.x, down!.y, MARKER_TAP_SLACK);
+  await testInfo.attach("stalled-touch-down", {
+    body: JSON.stringify({ target, down, actualStart }),
+    contentType: "application/json",
+  });
+  expect(actualStart, "the trusted DOWN must hit the selected current marker")
+    .toMatchObject({ t: target.t, title: target.title });
 
   await expect(tip(page)).toBeVisible({ timeout: 10_000 });
   await expect(tip(page)).toHaveAttribute("data-marker-at", target.t);
+  expect(await tip(page).textContent()).toBe(target.title);
 
   // The threshold itself is NOT loosened — a press that really lasts is still a long press, and
   // the same shared law still refuses it. (Unit-level: lib/__tests__/markerTooltip.test.ts.)
