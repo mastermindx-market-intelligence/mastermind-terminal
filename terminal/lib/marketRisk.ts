@@ -3,6 +3,8 @@
  * Supports the flat ingest projection plus legacy raw Macro wrappers. It never
  * recalculates a verdict, adds hazard scores, or grants capital authority.
  */
+import { qualifyMultiAssetContext, multiAssetContextCopy } from "./multiAssetContext";
+
 export type MarketRiskRead = {
   verdict: "RISK_ON" | "MIXED" | "RISK_OFF";
   score: number | null;
@@ -214,6 +216,8 @@ export function qualifyRiskEnvelope(
   const source = record(raw), reasons = new Set<string>();
   if (!Object.keys(source).length) return { envelope: null, qualified: false, reasons: ["missing_envelope"] };
   if (source.schema !== "mastermind.risk_envelope/v1") reasons.add("invalid_schema");
+  // The shared US reader must not borrow another market's same-date hazard.
+  if (source.market !== "US") reasons.add("market_mismatch");
   const session = text(source.source_session), sessionMs = sessionDate(session);
   const currentDay = sessionDate(marketSession(nowMs)) ?? NaN;
   if (!Number.isFinite(nowMs)) reasons.add("invalid_now");
@@ -250,25 +254,38 @@ export function qualifyRiskEnvelope(
   const confluence = record(source.confluence);
   if (Object.keys(confluence).length && ["statistical_independence_established", "changes_hazard_stage", "changes_policy"]
     .some(key => confluence[key] !== false)) reasons.add("invalid_confluence_authority");
-  if (!finiteJson(source)) reasons.add("invalid_json_values");
+  // A malformed *optional* context cannot poison the canonical risk state.
+  // Keep the existing owner-qualified envelope independently usable.
+  const { multi_asset_context: rawMultiAsset, ...riskCore } = source;
+  if (!finiteJson(riskCore)) reasons.add("invalid_json_values");
+  const multiAsset = qualifyMultiAssetContext(rawMultiAsset, nowMs, text(source.produced_at) ?? undefined);
   const qualified = reasons.size === 0;
-  return {
-    envelope: qualified ? Object.fromEntries(ENVELOPE_FIELDS.filter(key => key in source).map(key => [key, source[key]])) : null,
-    qualified, reasons: Array.from(reasons).sort(),
-  };
+  const envelope = qualified ? Object.fromEntries(
+    ENVELOPE_FIELDS.filter(key => key in source).map(key => [key, source[key]]),
+  ) : null;
+  if (envelope && multiAsset.qualified && multiAsset.context) {
+    envelope.multi_asset_context = multiAsset.context;
+  }
+  return { envelope, qualified, reasons: Array.from(reasons).sort() };
 }
 
 /** Plain-language labels for native values; this does not classify a market. */
-export function riskEnvelopeCopy(envelope: Record<string, unknown> | null, zh: boolean): { caption: string; details: string[] } {
+export function riskEnvelopeCopy(envelope: Record<string, unknown> | null, zh: boolean, nowMs = Date.now()): {
+  caption: string; details: string[]; attention: string[]; scope: string | null;
+} {
+  const scope = envelope?.market === "US" ? (zh ? "美国市场风险" : "US market risk") : null;
   const unavailable = zh ? "不可用" : "Unavailable";
   const label = (value: unknown, labels: Record<string, readonly [string, string]>) => {
-    const pair = labels[String(value)];
+    if (typeof value !== "string") return unavailable;
+    const key = value;
+    const pair = Object.prototype.hasOwnProperty.call(labels, key) ? labels[key] : undefined;
     return pair ? pair[zh ? 1 : 0] : unavailable;
   };
   const verdicts = { RISK_ON: ["Risk on", "风险偏好"], MIXED: ["Mixed", "混合"], RISK_OFF: ["Risk off", "风险规避"] } as const;
   if (!envelope) return {
     caption: zh ? "市场背景与短期轮动信息不可用。" : "Market backdrop and early rotation context unavailable.",
     details: [zh ? "缺失、过期或无法核实的数据不会被视为平静市场。" : "Missing, expired or unqualified data does not imply calm conditions."],
+    attention: [zh ? "风险阶段不可用" : "Hazard unavailable"], scope,
   };
   const measured = record(envelope.measured_state), rotation = record(envelope.rotation_context);
   const early = record(rotation.early_context), confluence = record(envelope.confluence);
@@ -287,12 +304,65 @@ export function riskEnvelopeCopy(envelope: Record<string, unknown> | null, zh: b
   const stage = label(hazard.stage, {
     NONE: ["None", "无"], FRAGILE: ["Fragile", "脆弱"], TRANSMITTING: ["Transmitting", "传导中"], BREAKDOWN: ["Breakdown", "失稳"],
   });
+  // Attention mirrors source-native claims; it never changes the measured
+  // verdict/score, invents a hazard, or counts correlated signals as votes.
+  const provisional = envelope.revision === "live_provisional";
+  const attention: string[] = hazard.stage === "NONE" ? [] : [stage === unavailable
+    ? (zh ? "风险阶段不可用" : "Hazard unavailable")
+    : (zh ? `风险阶段：${stage}${provisional ? "（临时观测）" : ""}` : `Hazard: ${stage}${provisional ? " (provisional)" : ""}`)];
+  const contradictory = record(envelope.coherence).state === "CONTRADICTORY";
+  if (contradictory) attention.push(zh ? "信号存在分歧" : "Conflicting signals");
   const details = [
     zh ? `风险阶段（来源判断）：${stage}。观测日期：${text(envelope.source_session) ?? "不可用"}。`
       : `Source hazard stage: ${stage}. Observation session: ${text(envelope.source_session) ?? "unavailable"}.`,
     zh ? "短期相对强弱与较长期趋势保留各自含义；相对抗跌不证明资金流入或同一投资者调仓。"
       : "Early relative strength and longer-term trends retain their separate meanings. Relative resilience does not establish inflows or a transfer by the same investor.",
   ];
+  if (provisional) details.push(zh
+    ? "该风险判断来自实时临时观测，尚非收盘确认；市场标签的等待确认状态与此风险来源时钟分别保留。"
+    : "This hazard reading is live and provisional, not a settled confirmation; the measured label's pending state and this hazard source clock remain separate.");
+  if (contradictory) details.push(zh
+    ? "来源报告市场状态与风险证据存在分歧；观测评分保持不变。"
+    : "The source reports disagreement between measured market state and hazard evidence; the measured score is unchanged.");
+  const strings = (value: unknown): string[] => Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string" && item.length > 0) : [];
+  const coverage = record(envelope.coverage), freshness = record(envelope.freshness);
+  const required = new Set([...strings(coverage.required), ...strings(hazard.unmapped_required_sources)]);
+  const unavailableSources = [...new Set([
+    ...strings(hazard.unreadable_sources), ...strings(hazard.unmapped_required_sources),
+    ...strings(coverage.stale).filter(id => required.has(id)),
+    ...strings(coverage.missing).filter(id => required.has(id)),
+  ])];
+  if (unavailableSources.some(id => required.has(id))) {
+    attention.push(zh ? "必要数据不可用" : "Required data unavailable");
+  }
+  const perSource = record(freshness.per_source);
+  const sourceSessionMs = sessionDate(envelope.source_session);
+  const sourceNames: Record<string, readonly [string, string]> = {
+    "market-state-latest": ["Market state", "市场状态"],
+    "leadership-crack-latest": ["Leadership cohort", "龙头股群体"],
+    "risk-radar-us": ["Cross-asset risk radar", "跨资产风险雷达"],
+  };
+  for (const id of unavailableSources.slice(0, 6)) {
+    const observed = record(Object.prototype.hasOwnProperty.call(perSource, id) ? perSource[id] : null);
+    const rawDate = text(observed.as_of), observedMs = sessionDate(rawDate);
+    const day = rawDate && /^\d{4}-\d{2}-\d{2}$/.test(rawDate) && observedMs !== null
+      && sourceSessionMs !== null && observedMs <= sourceSessionMs
+      ? rawDate : (zh ? "不可用" : "unavailable");
+    const sourceName = Object.prototype.hasOwnProperty.call(sourceNames, id) ? sourceNames[id][zh ? 1 : 0] : null;
+    const shownId = id.length <= 256 ? id : `${id.slice(0, 256)}…`;
+    const identity = sourceName ? `${sourceName} (${shownId})` : shownId;
+    const state = label(observed.state, {
+      FRESH: ["Fresh", "最新"], STALE: ["Stale", "过期"], MISSING: ["Missing", "缺失"],
+      UNKNOWN: ["Unknown", "未知"], DEGRADED: ["Degraded", "数据不完整"],
+    });
+    details.push(zh
+      ? `${required.has(id) ? "必要来源不可用" : "来源不可用"}：${identity}。观测日期：${day}。来源状态：${state}。`
+      : `${required.has(id) ? "Required source unavailable" : "Source unavailable"}: ${identity}. Observation session: ${day}. Source state: ${state}.`);
+  }
+  if (unavailableSources.length > 6) details.push(zh
+    ? `另有${unavailableSources.length - 6}个来源不可用。`
+    : `${unavailableSources.length - 6} additional sources are unavailable.`);
   if (policy.basis === "zero_active_policies") details.push(zh
     ? "当前没有生效的风险政策；这不代表市场风险为零。"
     : "No risk policy is active; this does not mean market risk is zero.");
@@ -308,5 +378,9 @@ export function riskEnvelopeCopy(envelope: Record<string, unknown> | null, zh: b
     ? `最近记录的状态变化：${label(before.verdict, verdicts)} → ${label(after.verdict, verdicts)}（${text(before.asof)} → ${text(after.asof)}）。当前快照本身不确定变化发生时间。`
     : `Last recorded state change: ${label(before.verdict, verdicts)} → ${label(after.verdict, verdicts)} (${text(before.asof)} → ${text(after.asof)}). The current snapshot alone does not date the transition.`);
   else details.push(zh ? "现有记录未确立最近一次状态变化的日期。" : "The available record does not establish the date of a latest state change.");
-  return { caption, details };
+  const multiAsset = qualifyMultiAssetContext(envelope.multi_asset_context, nowMs, text(envelope.produced_at) ?? undefined);
+  if (multiAsset.qualified && multiAsset.context) {
+    details.push(...multiAssetContextCopy(multiAsset.context, zh));
+  }
+  return { caption, details, attention, scope };
 }

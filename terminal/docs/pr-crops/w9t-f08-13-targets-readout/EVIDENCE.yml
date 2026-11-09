@@ -1,12 +1,19 @@
 {
-  "capturedAtHead": "bfe98ed4f82f30506af69e9ada13811343e386fe",
-  "capturedAt": "2026-09-27T10:18:21.534Z",
+  "capturedAtHead": "5983026f1643e053a40bdc8ca66a61d08a12d66d",
+  "capturedAt": "2026-11-09T06:54:45.596Z",
   "layoutFiles": {
-    "terminal/components/settings/SectionPortfolioTargets.tsx": "42efc4318fe724c0315b065b2833862ff241f9bc612aae976d32518ba523371b",
-    "terminal/components/settings/SettingsPanel.tsx": "526725b37af04f1092359a8aca1e6d3d6d62815b5913b3a7eba754e4ca020329",
+    "terminal/components/PortfolioView.tsx": "b64d934a2cd1a05dedfac6213bcabb15683b22967e86476dc970ad9994018aec",
+    "terminal/components/PortfolioTargets.module.css": "7a6cf0f47abdb773a3f56c11452ece374221c2a9140e87831023ecfd5120129a",
+    "terminal/lib/portfolioTargets.ts": "23ad61bfe11303b10dae33a5a8933e570080c52b9678fe70685f1a27ea3c1635",
+    "terminal/lib/portfolioMoney.ts": "24e6fdaa6766ede2554b2d2d07be81e8f0b202028ecd03301ccbb1549652c7b1",
+    "terminal/lib/portfolioWorkspace.ts": "e9e272210920bf26b42e40ffaeb76d880049a241680ffc22b1eff61c0f7e2d0f",
+    "terminal/app/settings.css": "2a15b7704f1c6ec62671ec84723063dcce367c7998bbea56e04b50c9bda2252c",
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/components/settings/SectionPortfolioTargets.tsx": "e5b24bd5c0ba54c4f5bd1e2d43bf52ac86d766840534f99577d9081363d765e9",
+    "terminal/components/settings/SettingsPanel.tsx": "35ad74834c9d52ab797d6554c4b68182c268177f1907f775fb07a8a9a3118ccf",
     "terminal/components/settings/SettingsProvider.tsx": "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910",
     "terminal/components/settings/icons.tsx": "7f3e17e45cb92545437ade898fe47a92cf6a65d1682cec9b9cea7a5bb8bd4d83",
-    "terminal/lib/i18n.tsx": "51276ecc8db6956c6c4e5cc67c55eab029c0b468ccb61e34f8bb92f25e42b9f8"
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
   },
   "theme": "dark",
   "languages": [
@@ -25,19 +32,32 @@
       "height": 844
     }
   ],
+  "deviceScaleFactor": 2,
   "surfaces": [
     "SectionPortfolioTargets"
   ],
   "capture_flag": "TERMINAL_E2E_FIXTURE",
-  "capture_flag_law": "next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
+  "capture_flag_law": "next.config.ts sets devIndicators to false for TERMINAL_E2E_FIXTURE; this producer uses the caller-owned fixture server from the same checkout.",
+  "serverOwnership": "Caller records fresh startup and settled cleanup separately; this producer owns its browser contexts only.",
+  "command": "From terminal/, with the caller-owned fixture server ready: node e2e/tools/capture_w9t_f08_13_targets.cjs",
   "files": [
-    "PortfolioTargetsSettings-empty-390-en.png",
-    "PortfolioTargetsSettings-empty-390-zh.png",
     "PortfolioTargetsSettings-empty-1440-en.png",
     "PortfolioTargetsSettings-empty-1440-zh.png",
-    "PortfolioTargetsSettings-populated-390-en.png",
-    "PortfolioTargetsSettings-populated-390-zh.png",
+    "PortfolioTargetsSettings-empty-390-en.png",
+    "PortfolioTargetsSettings-empty-390-zh.png",
     "PortfolioTargetsSettings-populated-1440-en.png",
-    "PortfolioTargetsSettings-populated-1440-zh.png"
-  ]
+    "PortfolioTargetsSettings-populated-1440-zh.png",
+    "PortfolioTargetsSettings-populated-390-en.png",
+    "PortfolioTargetsSettings-populated-390-zh.png"
+  ],
+  "captureFiles": {
+    "PortfolioTargetsSettings-empty-1440-en.png": "6096a7dff3f68cec58e64a9e26c6b2d85e99e2fd1bec1d59ef3582b86d3d848a",
+    "PortfolioTargetsSettings-empty-1440-zh.png": "d1d3e5204bdbd197e0ada930a813181859f2de97159c37da2695193681111bd7",
+    "PortfolioTargetsSettings-empty-390-en.png": "932faf8fe36348acd21982f16d5814a9c27096b71003e660275ab3e4e7f50fb3",
+    "PortfolioTargetsSettings-empty-390-zh.png": "faf4819f5d3fdf06d0b203dc8b0f0b17bc23d64ce2ee23e570b483d8cd8ca555",
+    "PortfolioTargetsSettings-populated-1440-en.png": "d891872dab9b00ac95002106b4c5d6cb4e089d67c9a4723355b570e8e30bab4f",
+    "PortfolioTargetsSettings-populated-1440-zh.png": "87a5ec4ca26e183c8050c01091722241138902afe007997302acafab5be89fcb",
+    "PortfolioTargetsSettings-populated-390-en.png": "26ca3144d5550b04a50dadc4e21c0a0affdf812cdd0653792a8e6ca993249086",
+    "PortfolioTargetsSettings-populated-390-zh.png": "27a5d74d1c318cc4db6fc3bcb279bc20dee7e37205e4cc86c32422ded715f575"
+  }
 }

@@ -1,0 +1,170 @@
+{
+  "command": [
+    "node",
+    "e2e/tools/capture_b_f12_b5_1_sharing.cjs"
+  ],
+  "completedAt": "2026-11-09T12:36:53.420359+00:00",
+  "currentLockedSources": {
+    "terminal/app/settings.css": "2a15b7704f1c6ec62671ec84723063dcce367c7998bbea56e04b50c9bda2252c",
+    "terminal/components/settings/SectionSharing.tsx": "9c76cd932cddd8ddb5987009588c83b3af63ba91af2510875417cbb455adc9d2",
+    "terminal/components/settings/SettingsPanel.tsx": "35ad74834c9d52ab797d6554c4b68182c268177f1907f775fb07a8a9a3118ccf",
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
+  },
+  "exit": 0,
+  "expected": 12,
+  "frames": [
+    {
+      "file": "desktop-en-shared.png",
+      "status": "success"
+    },
+    {
+      "file": "desktop-zh-shared.png",
+      "status": "success"
+    },
+    {
+      "file": "desktop-en-empty-list.png",
+      "status": "success"
+    },
+    {
+      "file": "desktop-zh-empty-list.png",
+      "status": "success"
+    },
+    {
+      "file": "desktop-en-empty.png",
+      "status": "success"
+    },
+    {
+      "file": "desktop-zh-empty.png",
+      "status": "success"
+    },
+    {
+      "file": "mobile-en-shared.png",
+      "status": "success"
+    },
+    {
+      "file": "mobile-zh-shared.png",
+      "status": "success"
+    },
+    {
+      "file": "mobile-en-empty-list.png",
+      "status": "success"
+    },
+    {
+      "file": "mobile-zh-empty-list.png",
+      "status": "success"
+    },
+    {
+      "file": "mobile-en-empty.png",
+      "status": "success"
+    },
+    {
+      "file": "mobile-zh-empty.png",
+      "status": "success"
+    }
+  ],
+  "images": {
+    "desktop-en-empty-list.png": {
+      "bytes": 126402,
+      "height": 900,
+      "sha256": "da44ae7f5919d3c8649b8e78f22b9412b4866013151b3ba41adc5ee24b18fc4b",
+      "width": 1440,
+      "writtenDuringRun": true
+    },
+    "desktop-en-empty.png": {
+      "bytes": 114187,
+      "height": 900,
+      "sha256": "7365ee2c87831fc506f1e6ba4de8c15413697abc780081023adbda1652996dea",
+      "width": 1440,
+      "writtenDuringRun": true
+    },
+    "desktop-en-shared.png": {
+      "bytes": 126495,
+      "height": 900,
+      "sha256": "81fa1e42cb84094a7ae5e283f3b92c404844488e032affce56a2a848712da6c0",
+      "width": 1440,
+      "writtenDuringRun": true
+    },
+    "desktop-zh-empty-list.png": {
+      "bytes": 131115,
+      "height": 900,
+      "sha256": "f53ee10f9382fce746fec557a0628c1e15a24335a22279d095da13207d9a4e4b",
+      "width": 1440,
+      "writtenDuringRun": true
+    },
+    "desktop-zh-empty.png": {
+      "bytes": 119539,
+      "height": 900,
+      "sha256": "965c673bfb02072e24a1d53700985babbfc634d032bcbfa2feba3c54a8c332a5",
+      "width": 1440,
+      "writtenDuringRun": true
+    },
+    "desktop-zh-shared.png": {
+      "bytes": 130843,
+      "height": 900,
+      "sha256": "c09af37f41de491bd1119b612d8b714ea532491efdf2b61e8ac7e753b24726c9",
+      "width": 1440,
+      "writtenDuringRun": true
+    },
+    "mobile-en-empty-list.png": {
+      "bytes": 76386,
+      "height": 844,
+      "sha256": "1b3a072ade27a3c461f6b88c08a4096b9c50e20105c7a39096357bbea46a7813",
+      "width": 390,
+      "writtenDuringRun": true
+    },
+    "mobile-en-empty.png": {
+      "bytes": 69464,
+      "height": 844,
+      "sha256": "8e6ec345db5b9346bddd2dbe23896a80ec061aba5a20afdd1dab9f4bbce2bc5b",
+      "width": 390,
+      "writtenDuringRun": true
+    },
+    "mobile-en-shared.png": {
+      "bytes": 66973,
+      "height": 844,
+      "sha256": "c4da302612c89752a8e432503d8dc4f5614c79b394860ac9ee3dbe46206867f4",
+      "width": 390,
+      "writtenDuringRun": true
+    },
+    "mobile-zh-empty-list.png": {
+      "bytes": 82172,
+      "height": 844,
+      "sha256": "babd918964b6d71d666c153d4ab360e8737cb5ca7409487d06014a2b69ee923a",
+      "width": 390,
+      "writtenDuringRun": true
+    },
+    "mobile-zh-empty.png": {
+      "bytes": 73850,
+      "height": 844,
+      "sha256": "70e45e2e912569215e834d94d2dbe186c69ee2873a341064fffd9476ef08cc54",
+      "width": 390,
+      "writtenDuringRun": true
+    },
+    "mobile-zh-shared.png": {
+      "bytes": 83535,
+      "height": 844,
+      "sha256": "12efcf733f3d0388a0e44c87e1ed24e3fbe86e8377d2e6403afd4af73dd0f904",
+      "width": 390,
+      "writtenDuringRun": true
+    }
+  },
+  "kind": "grants",
+  "logSha256": "c2b485eb698e010d7709ff0d33f2aec6cc9b263aefa0722f2cee83efda75851b",
+  "manifestSha256": "c1cfff1131a56399841b27e91fb95668c47ed31bb3bc804d78f1fbc9c6cb8068",
+  "nativeLocksCurrent": true,
+  "nextLockPresent": false,
+  "node": "v26.5.0",
+  "originalHead": "9a3b166921c1dc015be147a99a2e4f42cdaedb18",
+  "packet": "b-f12-b5-1-grants",
+  "port": 3795,
+  "portClosed": true,
+  "protectedMaster": "b387616013f38cce9e467cc7da7b87fd2672718c",
+  "schema": "pr900_actual_native_capture.v1",
+  "seconds": 29.82,
+  "sourceAfterSha256": "de1ad1da3709a020b4c2e94e9c7af997a5ead9377d4daf628cca367b7752e676",
+  "sourceBeforeSha256": "de1ad1da3709a020b4c2e94e9c7af997a5ead9377d4daf628cca367b7752e676",
+  "sourceStable": true,
+  "stagedSourceTree": "991d6fc07273759a8693b175a97894c8f0abfb30",
+  "startedAt": "2026-11-09T12:36:23.600045+00:00",
+  "validationOperation": "terminal-pr900-native-validation-20261109"
+}

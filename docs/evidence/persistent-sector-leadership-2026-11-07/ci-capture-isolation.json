@@ -1,0 +1,93 @@
+{
+  "schema": "mastermind.psl.ci_capture_isolation.v1",
+  "failed_run": 42343740607,
+  "failed_job": 128316931260,
+  "failed_artifact": 13563586363,
+  "failed_manifest_sha256": "33b117ef07eed41acfc0fa72640300e44581acdf1d979f8c1ebbbe8d49434410",
+  "root_id": "persistent-sector-leadership-20261106-c4",
+  "run_id": "psl-ci-capture-isolation-20261107-c4",
+  "worker_commit": "2c112d5e3fd57237b0e7cc04de1e8b5edc6af0f6",
+  "worker_response_sha256": "779a255f92b0d81723aa83f6997c068cf668f5599f9fbb3ea8032ab3c8461f05",
+  "fabric_acceptance": "deterministic_test_evidence",
+  "parent_integration": {
+    "worker_commit": "2c112d5e3fd57237b0e7cc04de1e8b5edc6af0f6",
+    "parent_base": "ba65c3a1caa4ceffc90ea826b839f806ae457273",
+    "scope": "same-origin exact-path GET fixture only; all other requests retain original routing",
+    "files_sha256": {
+      "terminal/docs/pr-crops/options-level-axis-labels/capture.mjs": "3959efc9530ad93a08b66eb3246fcf11dbb865e8b22863b09013b7a80567664c",
+      "terminal/docs/pr-crops/options-level-axis-labels/captureRoutes.mjs": "52a39810d8bb55495c9c1c7908e0ab6de0ab31a440e06a7d1b9208dfcda7061a",
+      "terminal/lib/__tests__/optionsLevelAxisCaptureIsolation.test.ts": "1a0a43732b28eabe336c3e2ab8454b71ebbb2bd03333bb10ceeba624313b7b56"
+    },
+    "command": [
+      "npm",
+      "test",
+      "--",
+      "--run",
+      "lib/__tests__/optionsLevelAxisCaptureIsolation.test.ts"
+    ],
+    "exit": 0,
+    "seconds": 5.251,
+    "log_sha256": "cb70a4b9ae83e228a2ada1c57777dd2dcc8e0c8f186de4538f456635b1151b91"
+  },
+  "parent_validation": {
+    "results": [
+      {
+        "command": [
+          "npx",
+          "next",
+          "typegen"
+        ],
+        "exit": 0,
+        "seconds": 3.395
+      },
+      {
+        "command": [
+          "npx",
+          "tsc",
+          "--noEmit"
+        ],
+        "exit": 0,
+        "seconds": 208.627
+      },
+      {
+        "command": [
+          "npx",
+          "eslint",
+          "docs/pr-crops/options-level-axis-labels/capture.mjs",
+          "docs/pr-crops/options-level-axis-labels/captureRoutes.mjs",
+          "lib/__tests__/optionsLevelAxisCaptureIsolation.test.ts"
+        ],
+        "exit": 0,
+        "seconds": 9.215
+      },
+      {
+        "command": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "exit": 0,
+        "seconds": 0.316
+      }
+    ],
+    "log_sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a"
+  },
+  "focused_tests": {
+    "passed": 6,
+    "skipped": 0,
+    "real_browser_differential": true,
+    "non_get_upstream_errors_preserved": true
+  },
+  "worker_actual_capture": {
+    "pre_repair": "Brain account companion reached 502 upstream; substantive five-capture options assertions remained true",
+    "repaired": "five clean captures; zero account-companion upstream hits",
+    "artifact_receipt": "parent-retained worker retrieval.json and Arm A/B/C manifests"
+  },
+  "limits": [
+    "Fixture evidence only; no production authentication or entitlement proof",
+    "Only same-origin exact-path GET /api/brain/me is isolated",
+    "No production API, auth, workflow or substantive chart-assertion change",
+    "Exact-head natural PR CI still required",
+    "Committed five-chart manifest is preserved so the incumbent current-source capture plan still runs"
+  ]
+}

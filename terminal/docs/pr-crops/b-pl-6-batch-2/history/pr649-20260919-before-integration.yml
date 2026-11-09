@@ -1,0 +1,50 @@
+# B-PL-6 batch 2 — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: 52c670a6b64cddbc5ebdc1a1a5766b2c60ee42fb
+# capturedAt: 2026-09-19T03:52:54.034Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/GuidePanel.tsx: "d727d17733a5116943236d9ba28ddcda761103e262a9a0200217f76a8aedc867"
+  terminal/components/levels/LevelsView.tsx: "0f3ed4ea7d5ae64265301bebf893b038977ea25637aac176d771eb18ea04dcf8"
+  terminal/components/levels/LevelsLearn.tsx: "15e58675e29e147ecc39f7b9c3527aba9f67ea81df6978ecffe450ccf1562d92"
+  terminal/components/ChartConductor.tsx: "fe2e326bba05e74ac6504fc1b305911faf29c4440a3054e541d9de8958de428b"
+  terminal/lib/plainLabels.ts: "8f69818feca65a5f28c590460c52e4f06c04c25cc4f3da8643eff9050161b588"
+  terminal/lib/i18n.tsx: "130d2ef17884e818f50cebb89e4ae167d895d24a229ca09d315745d9dc593783"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: tablet, width: 820, height: 1180 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [GuidePanel, LevelsView, LevelsLearn, ChartConductor]
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_pl6_batch2.cjs
+files:
+  - ChartConductor-1440-zh.png
+  - ChartConductor-1440.png
+  - ChartConductor-390-zh.png
+  - ChartConductor-390.png
+  - ChartConductor-820-zh.png
+  - ChartConductor-820.png
+  - GuidePanel-1440-zh.png
+  - GuidePanel-1440.png
+  - GuidePanel-390-zh.png
+  - GuidePanel-390.png
+  - GuidePanel-820-zh.png
+  - GuidePanel-820.png
+  - LevelsLearn-1440-zh.png
+  - LevelsLearn-1440.png
+  - LevelsLearn-390-zh.png
+  - LevelsLearn-390.png
+  - LevelsLearn-820-zh.png
+  - LevelsLearn-820.png
+  - LevelsView-1440-zh.png
+  - LevelsView-1440.png
+  - LevelsView-390-zh.png
+  - LevelsView-390.png
+  - LevelsView-820-zh.png
+  - LevelsView-820.png

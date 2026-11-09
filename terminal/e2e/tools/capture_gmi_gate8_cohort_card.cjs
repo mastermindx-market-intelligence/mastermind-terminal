@@ -19,11 +19,13 @@ const { chromium } = require("@playwright/test");
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
 const OUT = join(ROOT, "docs", "pr-crops", "gmi-gate8-cohort-card");
-const MASTER_HEAD = "c9d211fdcc7b370575af91868932a6764294df0d";
+const CAPTURED_HEAD = execFileSync("git", ["rev-parse", "--verify", "HEAD"], { cwd: REPO, encoding: "utf8" }).trim();
+if (!/^[0-9a-f]{40}$/.test(CAPTURED_HEAD)) throw new Error("Invalid actual capture HEAD");
 const LAYOUT_FILES = [
   "terminal/lib/selectionCohort.ts",
   "terminal/components/prophet/SelectionCohortCard.tsx",
   "terminal/components/prophet/SelectionCohortCard.module.css",
+  "terminal/components/prophet/SelectionCohortCard.global.css",
   "terminal/components/prophet/ProphetView.tsx",
 ];
 const PORT = Number(process.env.TERMINAL_CROP_PORT || 3572);
@@ -128,15 +130,7 @@ async function newPage(browser, width, height, lang, storeKey) {
   return { context, page };
 }
 
-async function stripDevOverlay(page) {
-  await page.evaluate(() => {
-    document.querySelectorAll("nextjs-portal").forEach((el) => el.remove());
-  });
-}
-
 async function assertNoNextIndicator(page, file) {
-  await page.waitForTimeout(400);
-  await stripDevOverlay(page);
   const n = await page.locator("[data-nextjs-dev-tools-button]").count();
   if (n > 0) {
     throw new Error(`${file}: Next.js N overlay still mounted (${n}); TERMINAL_E2E_FIXTURE gate failed`);
@@ -162,6 +156,7 @@ async function cropLocator(page, locator, outPath, pad = 18) {
   const y = Math.max(0, Math.floor(box.y - pad));
   const width = Math.max(8, Math.min(vp.width - x, Math.ceil(box.width + pad * 2)));
   const height = Math.max(8, Math.min(vp.height - y, Math.ceil(box.height + pad * 2)));
+  await assertNoNextIndicator(page, outPath);
   await page.screenshot({ path: outPath, clip: { x, y, width, height } });
 }
 
@@ -187,7 +182,15 @@ async function captureDesktopPopover(page, lang, outPath, fullPage = false) {
   await tile.click();
   const popover = page.getByTestId("selection-cohort-popover");
   await popover.waitFor({ state: "visible", timeout: 10_000 });
+  // The tile reports open to its parent after render. A visible child alone can
+  // still be clipped by the previous masthead state; wait for the actual handoff.
+  await page.locator(".obs-prophet-masthead.cohortPopoverOpen").waitFor({ state: "visible" });
+  await page.waitForFunction(() => {
+    const masthead = document.querySelector(".obs-prophet-masthead.cohortPopoverOpen");
+    return masthead && getComputedStyle(masthead).overflow === "visible";
+  });
   if (fullPage) {
+    await assertNoNextIndicator(page, outPath);
     await page.screenshot({ path: outPath, fullPage: false });
     return;
   }
@@ -238,7 +241,6 @@ async function main() {
         const { context, page } = await newPage(browser, width, height, lang, storeKey);
         try {
           await shot.run(page);
-          await assertNoNextIndicator(page, shot.name);
           files.push(shot.name);
           console.log("ok");
         } catch (err) {
@@ -255,12 +257,16 @@ async function main() {
     stopServer(child);
   }
 
+  if (failed || files.length !== shots.length || new Set(files).size !== shots.length
+      || !shots.every(shot => files.includes(shot.name))) {
+    throw new Error(`Incomplete cohort capture: ${files.length}/${shots.length} files, ${failed} failure(s)`);
+  }
   files.sort();
   const evidence = [
     "# GMI gate #8 — Shared themes · latest U.S. picks card — capture evidence",
     "# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
     "# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR",
-    `# capturedAtHead: ${MASTER_HEAD}`,
+    `# capturedAtHead: ${CAPTURED_HEAD}`,
     `# capturedAt: ${new Date().toISOString()}`,
     "# capturedAtHead is informational. The lock is layoutFiles.",
     "layoutFiles:",
@@ -273,19 +279,17 @@ async function main() {
     "  - { name: mobile, width: 390, height: 844 }",
     "surfaces: [SelectionCohortCard]",
     "capture_flag: TERMINAL_E2E_FIXTURE",
-    "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
+    "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
     "command: |",
     "  cd terminal",
     "  node e2e/tools/capture_gmi_gate8_cohort_card.cjs",
     "files:",
     ...files.map((name) => `  - ${name}`),
+    "captureFiles:",
+    ...files.map((name) => `  ${name}: "${createHash("sha256").update(readFileSync(join(OUT, name))).digest("hex")}"`),
     "",
   ];
   writeFileSync(join(OUT, "EVIDENCE.yml"), evidence.join("\n"), "utf8");
-  if (failed) {
-    console.error(`capture finished with ${failed} failure(s)`);
-    process.exit(1);
-  }
   console.log(`wrote ${files.length} crops + EVIDENCE.yml to ${OUT}`);
 }
 

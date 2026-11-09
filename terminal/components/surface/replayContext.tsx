@@ -145,10 +145,15 @@ export function ReplayProvider({
   useEffect(() => {
     const tracker = trackerRef.current;
     function onKey(e: KeyboardEvent) {
-      if (!tracker.engaged()) return;
-      const tgt = e.target as HTMLElement | null;
+      if (!tracker.engaged() || e.defaultPrevented || e.isComposing || e.keyCode === 229) return;
+      if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+      const tgt = e.target instanceof Element ? e.target : null;
       const tag = tgt?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tgt?.isContentEditable) return;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" ||
+          (tgt instanceof HTMLElement && tgt.isContentEditable)) return;
+      // Controls own their keys, including events bubbling from SVG icons.
+      // The replay rail's role=slider deliberately keeps the group shortcuts.
+      if (tgt?.closest('button, a[href], [role="button"], [role="link"], summary')) return;
       const action = keyToAction(e.key);
       if (!action) return;
       e.preventDefault();

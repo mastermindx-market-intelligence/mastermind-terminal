@@ -96,15 +96,8 @@ async function waitForServer(timeoutMs) {
   throw new Error(`dev server on ${PORT} never answered (${last})`);
 }
 
-async function stripDevOverlay(page) {
-  await page.evaluate(() => {
-    document.querySelectorAll("nextjs-portal").forEach((el) => el.remove());
-  });
-}
-
 async function assertNoNextIndicator(page, file) {
   await page.waitForTimeout(400);
-  await stripDevOverlay(page);
   const n = await page.locator("[data-nextjs-dev-tools-button]").count();
   if (n > 0) throw new Error(`${file}: Next.js N overlay still mounted (${n}); TERMINAL_E2E_FIXTURE gate failed`);
 }
@@ -188,7 +181,7 @@ viewports:
   - { name: mobile, width: 390, height: 844 }
 harness: /dev/workspaces?lang=<en|zh>&state=<team-grouped|share-confirm|member-read-only>
 capture_flag: TERMINAL_E2E_FIXTURE
-capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set.
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set.
 command: |
   cd terminal
   node e2e/tools/capture_f12_b5_2_team_workspaces.cjs

@@ -106,15 +106,8 @@ async function waitForServer(timeoutMs) {
   throw new Error(`dev server on ${PORT} never answered (${last})`);
 }
 
-async function stripDevOverlay(page) {
-  await page.evaluate(() => {
-    document.querySelectorAll("nextjs-portal").forEach((el) => el.remove());
-  });
-}
-
 async function assertNoNextIndicator(page, file) {
   await page.waitForTimeout(400);
-  await stripDevOverlay(page);
   const n = await page.locator("[data-nextjs-dev-tools-button]").count();
   if (n > 0) {
     throw new Error(`${file}: Next.js N overlay still mounted (${n}); TERMINAL_E2E_FIXTURE gate failed`);
@@ -209,7 +202,6 @@ async function openSharing(page, lang, viewport, populated, emptyReceived) {
     const emptyMine = lang === "zh" ? "你还没有向任何人共享清单。" : "You have not shared a list with anyone yet.";
     await page.getByText(emptyMine, { exact: true }).waitFor({ state: "visible", timeout: 10_000 });
   }
-  await stripDevOverlay(page);
 }
 
 async function measureLayout(page) {
@@ -309,7 +301,7 @@ async function main() {
     "  - { name: mobile, width: 390, height: 844 }",
     "harness: /dev/settings?s=sharing&lang=<en|zh>",
     "capture_flag: TERMINAL_E2E_FIXTURE",
-    "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.",
+    "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.",
     "command: |",
     "  cd terminal",
     "  node e2e/tools/capture_b_f12_b5_1_sharing.cjs",

@@ -174,12 +174,15 @@ function openConn(f: string, c: Conn): void {
       stopPolling(c);
       publish(c, { status, connected: true, error: false });
     });
+    // Fatal EventSource failures are CLOSED and will not reconnect. Reuse
+    // polling immediately; transient CONNECTING errors retain their grace.
+    // Pin the standard value so legacy stubs cannot match undefined === undefined.
+    const EVENTSOURCE_CLOSED = 2;
     es.onerror = () => {
       if (CONNS.get(f) !== c) return;
       publish(c, { connected: false, error: true });
-      // EventSource auto-reconnects; if it keeps failing, fall back to polling
-      // so the consumer still updates while SSE is unavailable.
-      if (++c.errCount >= 3) startPolling(f, c);
+      if (es.readyState === EVENTSOURCE_CLOSED) startPolling(f, c);
+      else if (++c.errCount >= 3) startPolling(f, c);
     };
   } else {
     // No EventSource (old browser / SSR hydration edge) — poll from the start.

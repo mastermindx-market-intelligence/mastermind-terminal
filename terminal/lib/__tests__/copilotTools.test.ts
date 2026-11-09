@@ -127,6 +127,26 @@ describe("curatePriceSummary", () => {
 });
 
 describe("curateTechnicals", () => {
+  it.each([
+    { direction: 1, position: "above_upper_band", pct_b: 1.01 },
+    { direction: -1, position: "below_lower_band", pct_b: -0.01 },
+  ])("uses charted population bands at the $position boundary", ({ direction, position, pct_b }) => {
+    // The last close lies outside population bands but inside sample bands.
+    // For the upper case, population upper=102.26524998579707; sample upper=102.32240885460345.
+    const closes = [
+      ...Array<number>(10).fill(100),
+      ...Array.from({ length: 19 }, (_, i) => 100 + direction * (i % 2 === 0 ? -1 : 1)),
+      100 + direction * 2.3,
+    ];
+    const ohlc = { bars: closes.map((c, i) => [`2025-01-${String(i + 1).padStart(2, "0")}`, c, c + 1, c - 1, c, 1000]) };
+    expect(curateTechnicals(ohlc).bollinger).toEqual({ position, pct_b });
+  });
+
+  it("keeps a zero-width Bollinger range unknown instead of inventing a fraction", () => {
+    const ohlc = { bars: Array.from({ length: 30 }, (_, i) => [`2025-01-${String(i + 1).padStart(2, "0")}`, 100, 101, 99, 100, 1000]) };
+    expect(curateTechnicals(ohlc).bollinger).toBeNull();
+  });
+
   it("needs ≥30 bars", () => {
     expect(curateTechnicals(mkOhlc(20)).no_data).toBe(true);
   });
@@ -211,9 +231,16 @@ describe("curateOpts / curateGex", () => {
     expect((out.skew_summary as Obj).skew_pts_90_110_moneyness).toBe(7);
     expect(curateOpts(null).no_data).toBe(true);
   });
-  it("gex: walls top-3 by gamma, state fields folded in; both absent → no_data", () => {
+  it("gex: walls top-3 by gamma, state fields folded in when identity matches; both absent → no_data", () => {
     const gex = {
-      asof: "2026-07-05", spot_ref: 135.7, net_gex_bn: -1.24, gamma_flip: 130, call_wall: 150, put_wall: 120,
+      root: "SPY",
+      session: "2026-07-10",
+      // Producer shapes (T06): the hub ladder stamps the bare session date; the state stamps the
+      // 16:00 New York close. A pre-close ladder stamp is intraday and no longer fuses.
+      asof: "2026-07-10",
+      basis: "dealer-sign",
+      revision: "r1",
+      spot_ref: 135.7, net_gex_bn: -1.24, gamma_flip: 130, call_wall: 150, put_wall: 120,
       by_strike: [
         { strike: 100, gamma_call: 0.01, gamma_put: -0.06 },
         { strike: 110, gamma_call: 0.05, gamma_put: -0.01 },
@@ -222,13 +249,146 @@ describe("curateOpts / curateGex", () => {
         { strike: 140, gamma_call: 0.03, gamma_put: -0.005 },
       ],
     };
-    const state = { asof: "2026-07-10", spot: 136, net_gex_bn: -1.1, gamma_regime: "SLIDE", pin_probability: 0.41, magnet: 135, max_pain: 132, dist_to_flip_pct: 0.4, gamma_flip: 131, call_wall: 150, put_wall: 120 };
-    const out = curateGex(gex, state);
+    const state = {
+      root: "SPY",
+      session: "2026-07-10",
+      asof: "2026-07-10T16:00:00-04:00",
+      basis: "dealer-sign",
+      revision: "r1",
+      spot: 136, net_gex_bn: -1.1, gamma_regime: "SLIDE", pin_probability: 0.41, magnet: 135, max_pain: 132, dist_to_flip_pct: 0.4, gamma_flip: 131, call_wall: 150, put_wall: 120,
+    };
+    const out = curateGex(gex, state, "SPY");
     expect((out.call_walls as Obj[]).map((w) => w.strike)).toEqual([130, 110, 140]);
     expect((out.put_walls as Obj[]).map((w) => w.strike)).toEqual([120, 100, 130]);
     expect(out.gamma_regime).toBe("SLIDE");
     expect(out.net_gex_bn).toBe(-1.1); // gexstate (fresher, curated) wins
+    expect(out.asof_state).toBe(state.asof);
+    expect(out.asof_ladder).toBe(gex.asof);
+    expect(out.mixed_source).not.toBe(true);
     expect(curateGex(null, null).no_data).toBe(true);
+  });
+  it("refuses or separates mixed root/session/basis/revision instead of one merged snapshot", () => {
+    const ladder = {
+      schema: "options_hub.gex/v1",
+      root: "QQQ",
+      asof: "2026-09-30T20:00:00Z",
+      session: "2026-09-30",
+      basis: "dealer-sign-a",
+      revision: "ladder-1",
+      net_gex_bn: 2,
+      spot_ref: 480,
+      by_strike: [{ strike: 600, gamma_call: 3 }],
+    };
+    const state = {
+      schema: "options_structure.gex_state/v1",
+      root: "SPY",
+      asof: "2026-10-02T20:00:00Z",
+      session: "2026-10-02",
+      basis: "assumption-b",
+      revision: "state-9",
+      net_gex_bn: 1,
+      spot: 500,
+    };
+    const out = curateGex(ladder, state);
+    const mergedWallsOnStateClock =
+      out.asof === state.asof &&
+      Array.isArray(out.call_walls) &&
+      (out.call_walls as Obj[])[0]?.strike === 600 &&
+      out.spot === 500 &&
+      out.net_gex_bn === 1;
+    expect(mergedWallsOnStateClock).toBe(false);
+    expect(out.mixed_source === true || out.no_data === true).toBe(true);
+    if (out.no_data === true) {
+      expect(out.call_walls).toBeUndefined();
+    } else {
+      expect(out.mixed_source).toBe(true);
+      expect(out.call_walls).toBeUndefined();
+      const ladderOut = out.ladder as Obj | undefined;
+      const stateOut = out.state as Obj | undefined;
+      expect(Array.isArray(ladderOut?.call_walls)).toBe(true);
+      expect((ladderOut?.call_walls as Obj[])[0]?.strike).toBe(600);
+      expect(stateOut?.net_gex_bn).toBe(1);
+      expect(ladderOut?.asof).toBe(ladder.asof);
+      expect(stateOut?.asof).toBe(state.asof);
+    }
+  });
+  it("does not let a matching-root state clock certify a different-session ladder", () => {
+    const ladder = {
+      root: "SPY",
+      asof: "2026-09-30T20:00:00Z",
+      net_gex_bn: 2,
+      by_strike: [{ strike: 600, gamma_call: 3 }],
+    };
+    const state = {
+      root: "SPY",
+      asof: "2026-10-02T20:00:00Z",
+      net_gex_bn: 1,
+      spot: 500,
+    };
+    const out = curateGex(ladder, state);
+    expect(out.asof === state.asof && Array.isArray(out.call_walls)).toBe(false);
+    expect(out.mixed_source === true || out.no_data === true).toBe(true);
+  });
+  it("missing root plus a different session cannot authorize a unified snapshot", () => {
+    const ladder = {
+      asof: "2026-09-30T20:00:00Z",
+      net_gex_bn: 2,
+      by_strike: [{ strike: 600, gamma_call: 3 }],
+    };
+    const state = {
+      asof: "2026-10-02T20:00:00Z",
+      net_gex_bn: 1,
+      spot: 500,
+    };
+    const out = curateGex(ladder, state);
+    const unified =
+      out.mixed_source !== true &&
+      out.no_data !== true &&
+      Array.isArray(out.call_walls) &&
+      (out.call_walls as Obj[])[0]?.strike === 600 &&
+      out.net_gex_bn === 1;
+    expect(unified).toBe(false);
+    expect(out.mixed_source === true || out.no_data === true).toBe(true);
+    if (out.mixed_source === true) {
+      const ladderOut = out.ladder as Obj | undefined;
+      const stateOut = out.state as Obj | undefined;
+      expect(ladderOut?.asof).toBe(ladder.asof);
+      expect(stateOut?.asof).toBe(state.asof);
+      expect(ladderOut?.asof).not.toBe(stateOut?.asof);
+    }
+  });
+  it("invalid or missing clocks cannot certify unmatched GEX fields", () => {
+    const missingClock = curateGex(
+      { root: "SPY", net_gex_bn: 2, by_strike: [{ strike: 600, gamma_call: 3 }] },
+      { root: "SPY", asof: "2026-10-02T20:00:00Z", net_gex_bn: 1, spot: 500 },
+    );
+    const invalidClock = curateGex(
+      { root: "SPY", asof: "not-a-clock", net_gex_bn: 2, by_strike: [{ strike: 600, gamma_call: 3 }] },
+      { root: "SPY", asof: "2026-10-02T20:00:00Z", net_gex_bn: 1, spot: 500 },
+    );
+    for (const out of [missingClock, invalidClock]) {
+      const unified =
+        out.mixed_source !== true &&
+        out.no_data !== true &&
+        Array.isArray(out.call_walls) &&
+        out.net_gex_bn === 1;
+      expect(unified).toBe(false);
+      expect(out.mixed_source === true || out.no_data === true).toBe(true);
+    }
+  });
+  it("does not invent a producer root from an owner-bound symbol", () => {
+    const out = curateGex(
+      { asof: "2026-10-02T20:00:00Z", net_gex_bn: 2, by_strike: [{ strike: 600, gamma_call: 3 }] },
+      { asof: "2026-10-02T20:00:00Z", net_gex_bn: 1, spot: 500 },
+      "SPY",
+    );
+    expect(out.root).not.toBe("SPY");
+    const ladderOut = out.ladder as Obj | undefined;
+    const stateOut = out.state as Obj | undefined;
+    if (out.mixed_source === true) {
+      expect(ladderOut?.root ?? null).not.toBe("SPY");
+      expect(stateOut?.root ?? null).not.toBe("SPY");
+    }
   });
 });
 
@@ -295,7 +455,8 @@ describe("curateInsiders / curateIntel", () => {
       analysis: { confluence: "3D confluence constructive above the 50d." },
       tech: { events: { signals: { huge: "blob".repeat(500) } } }, // must NOT leak through
     };
-    const out = curateIntel(intel);
+    const out = curateIntel(intel, Date.parse("2026-07-10T20:00:00Z"));
+    expect(out.ai_lean).toEqual({ dir: "BULL", band: "high", entry: "await_confluence", score: 72, reading: "Bullish" });
     expect((out.ai_judgment as Obj).verdict).toBe("Constructive");
     expect((out.conviction as Obj).drivers).toHaveLength(4);
     expect((out.key_levels as Obj).support).toEqual([100, 95]);
@@ -304,6 +465,50 @@ describe("curateInsiders / curateIntel", () => {
     expect(JSON.stringify(out)).not.toContain("blobblob");
     expect(JSON.stringify(out).length).toBeLessThanOrEqual(2000);
     expect(curateIntel(null).no_data).toBe(true);
+  });
+
+  it("withholds an expired, unobserved or abstained lean while preserving dated research cards", () => {
+    const now = Date.parse("2026-07-10T18:00:00Z");
+    for (const tape of [
+      { asof: "2026-07-05", ai_lean: { dir: "BULL", entry: "buy_now", max_age_days: 5 } },
+      { asof: "2026-07-11", ai_lean: { dir: "BULL" } },
+      { asof: "2026-07-10", ai_lean: { dir: "BULL", abstain: true } },
+      { asof: "2026-07-10", stale: true, ai_lean: { dir: "BULL" } },
+      { asof: "2026-07-10", ai_lean: { dir: "NEUTRAL", band: null } },
+    ]) {
+      const out = curateIntel({ tape, cards: { ai_judgment: { verdict: "Prior read" } } }, now);
+      expect(out.ai_lean).toEqual({ dir: null, band: null, entry: null, score: null, abstain: true });
+      expect(out.asof).toBe(tape.asof);
+      expect((out.ai_judgment as Obj).verdict).toBe("Prior read");
+    }
+  });
+
+  it.each([
+    [undefined, false],
+    [null, false],
+    ["2026-07-10garbage", false],
+    ["2026-07-10T21:00:00Z", false],
+    ["2026-07-10T18:00:00Z", true],
+    ["2026-07-10T12:00:00Z", true],
+    ["2026-07-10", true],
+    ["2026-07-09", false],
+  ])("qualifies the research-card session %s before calling it current", (asof, current) => {
+    const out = curateIntel({
+      asof,
+      tape: { asof: "2026-07-10", ai_lean: { dir: "BULL", band: "high" } },
+      cards: { ai_judgment: { verdict: "Saved assessment" } },
+    }, Date.parse("2026-07-10T18:00:00Z"));
+    expect(out.cards_current).toBe(current);
+    expect((out.ai_judgment as Obj).verdict).toBe("Saved assessment");
+  });
+
+  it("retains sourced timing postures and zero without promoting them to directional calls", () => {
+    const now = Date.parse("2026-07-10T18:00:00Z");
+    const lean = (ai_lean: Obj) => curateIntel({ tape: { asof: "2026-07-10", ai_lean } }, now).ai_lean;
+    expect(lean({ entry: "wait_pullback" })).toMatchObject({ dir: null, reading: "Wait for pullback" });
+    expect(lean({ dir: "BEAR", band: "low", entry: "bounce_wait", score: 0 })).toMatchObject({ dir: null, score: 0, reading: "No setup" });
+    expect(lean({ dir: "NEUTRAL", score: 0 })).toMatchObject({ dir: "NEUTRAL", score: 0, reading: "Neutral" });
+    expect(curateIntel({ tape: {} }, now).ai_lean).toBeNull();
   });
 });
 
@@ -315,6 +520,25 @@ describe("curateMarketRisk / curatePlane", () => {
     expect(old.stale).toBe(true);
     expect(curateMarketRisk(null, NOW).no_data).toBe(true);
     expect(curateMarketRisk({ display: {} }, NOW).no_data).toBe(true);
+  });
+  it("missing, malformed and future build clocks are never a supported fresh verdict", () => {
+    const display = { verdict: "RISK_ON", score: 71, label_en: "Risk on" };
+    const missing = curateMarketRisk({ display }, NOW);
+    const malformed = curateMarketRisk({ built: "not-a-clock", display }, NOW);
+    const future = curateMarketRisk({ built: "2026-07-15T00:00:00Z", display }, NOW);
+    // #856 market_risk contract: staleness is a boolean plus named stale_reasons.
+    for (const out of [missing, malformed, future]) {
+      expect(out.stale).not.toBe(false);
+      expect(out.stale === true || out.no_data === true).toBe(true);
+    }
+    expect(malformed.stale_reasons).toContain("invalid_built");
+    expect(future.stale_reasons).toContain("future_built");
+  });
+  it("an aged build clock without a source session is never a fresh verdict", () => {
+    const built = new Date(NOW - 48.4 * 3_600_000).toISOString();
+    const out = curateMarketRisk({ built, display: { verdict: "RISK_ON", score: 71 } }, NOW);
+    expect(out.stale).toBe(true);
+    expect(out.stale_reasons).toContain("missing_or_invalid_asof");
   });
   it("plane: headline regime fields + producer staleness contract", () => {
     const out = curatePlane({ asof: "2026-07-13", verdict: { verdict: "RISK_ON", score: 0.6, label_en: "Risk on" }, regime: { quad: "Q2", quad_name: "Reflation", confidence: 0.8, cycle_tag: "mid", transition_state: "stable" }, vol: { regime: "calm", risk_score: 22 }, liquidity_plumbing: { state: "ample", netliq_bn: 6210 }, contradiction_count: 1 }, NOW);

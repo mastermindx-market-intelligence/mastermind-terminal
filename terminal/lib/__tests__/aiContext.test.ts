@@ -115,12 +115,21 @@ describe("createAiContextProvider — getAiContext shape (ai_context_client.v1)"
   });
 
   it("getAiContext returns a fresh object on every call (not a shared mutable reference)", () => {
-    const p = createAiContextProvider();
-    p.noteContextChange({ symbol: "AAOI", timeframe: "1D" });
-    const a = p.getAiContext();
-    const b = p.getAiContext();
-    expect(a).not.toBe(b);
-    expect(a).toEqual(b);
+    // Two real clock reads can straddle a millisecond, so captured_at differs and toEqual
+    // flakes. Pin the clock the same way as the next test. afterEach also calls
+    // vi.useRealTimers() if this finally is skipped.
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date("2026-01-01T00:00:00.000Z"));
+      const p = createAiContextProvider();
+      p.noteContextChange({ symbol: "AAOI", timeframe: "1D" });
+      const a = p.getAiContext();
+      const b = p.getAiContext();
+      expect(a).not.toBe(b);
+      expect(a).toEqual(b);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("captured_at strictly increases and tracks the (faked) system clock", () => {
@@ -225,5 +234,22 @@ describe("createAiContextProvider — ambient page/panel (F11-6)", () => {
     expect(b.schema).toBe("ai_context_client.v1");
     expect(b.origin_id).toBe(a.origin_id);
     expect(a.pinned).toEqual([]);
+  });
+});
+
+describe("createAiContextProvider — trading session ownership", () => {
+  it("advances the revision for ETH to 24H to ETH without bumping on reads", () => {
+    const base = { symbol: "NVDA", timeframe: "12h", paneId: 0, settingsKey: "ema20" };
+    const provider = createAiContextProvider({ ...base, sessionKey: "eth" });
+    const before = provider.getAiContext();
+    provider.noteContextChange({ ...base, sessionKey: "24h" });
+    const overnight = provider.getAiContext();
+    expect(overnight.origin_id).toBe(before.origin_id);
+    expect(overnight.context_revision).toBe(before.context_revision + 1);
+    provider.noteContextChange({ ...base, sessionKey: "24h" });
+    expect(provider.getAiContext().context_revision).toBe(overnight.context_revision);
+    provider.noteContextChange({ ...base, sessionKey: "eth" });
+    expect(provider.getAiContext().context_revision).toBe(before.context_revision + 2);
+    expect(provider.getAiContext().ambient).toEqual(before.ambient);
   });
 });
