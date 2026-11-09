@@ -338,6 +338,46 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
             {t("wsOpenTheses")}
           </Link>
         )}
+        {/* On phones, keep both company-scoped destinations without consuming another toolbar row.
+            Native details supplies a keyboard-operable disclosure without a parallel navigation owner. */}
+        {!invalidSymbol && (
+          <details
+            className="analysis-context-actions"
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                event.currentTarget.open = false;
+                event.currentTarget.querySelector("summary")?.focus();
+                event.stopPropagation();
+              }
+            }}
+          >
+            <summary aria-label={pick(zh, "Research actions", "研究操作")} title={pick(zh, "Research actions", "研究操作")}>
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <circle cx="5" cy="12" r="1.8" />
+                <circle cx="12" cy="12" r="1.8" />
+                <circle cx="19" cy="12" r="1.8" />
+              </svg>
+            </summary>
+            <nav className="analysis-context-actions-menu" aria-label={pick(zh, "Research actions", "研究操作")}>
+              <Link href={`/analysis?view=investigations&symbol=${encodeURIComponent(sym)}`} onClick={(event) => { const disclosure = event.currentTarget.closest("details"); if (disclosure) disclosure.open = false; }}>
+                {pick(zh, "Saved research", "已保存研究")}
+              </Link>
+              <Link
+                href={thesesHref}
+                aria-label={t("wsOpenThesesFor", "Your theses on {sym}").replace("{sym}", sym)}
+                onClick={(event) => { const disclosure = event.currentTarget.closest("details"); if (disclosure) disclosure.open = false; }}
+              >
+                {t("wsOpenTheses")}
+              </Link>
+              {sharedPresentation && (
+                <button type="button" onClick={onClose}>{pick(zh, "Open current chart", "打开当前图表")}</button>
+              )}
+            </nav>
+          </details>
+        )}
       </div>
 
       {!invalidSymbol && companySearchQuery !== null && (
