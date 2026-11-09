@@ -41,3 +41,11 @@ Focused tests: 56 passed across chartQuickSettings, chartSettingsUi, chartFrameB
 Browser proof remains pending. The attached Chrome extension is blocked by another open extension UI; no attempt to control or bypass it is made. Scratch Playwright browser download failed with a truncated archive. An isolated test-runner route is being qualified. No merge/release request has been submitted yet.
 
 Next independent source gap: IndicatorSettings declares modality without native focus containment; preserve live-save versus Cancel semantics. The broad Options sort-header and ticker-action work is already in PR #1248; do not duplicate it. Four remaining Screener ticker cells may be addressed separately after reconciliation.
+
+## UI2 verified / UI3 release qualification
+
+PR #1363: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1363. Product source `c011b921112b77f4a05a31fd0f3b8006aff3b554` passes full TypeScript validation, 56 focused unit tests, four real-route desktop/tablet keyboard tests and two viewport/touch assertions. Changed-state screenshots and detailed proof are committed under docs/pr-crops/terminal-ui-20261109. No production pass claimed.
+
+Current source is mergeable; the protected base advanced only through #1361's independent navigation identity fix. No held label or actual review outstanding was observed in native PR state. Protected branch summary and active queue ruleset 24411653 are observable; the classic protection-detail endpoint returned integration 403 and is not retried through another reader. No review waiver or absence of classic rules is inferred from that denial. Native checks, reviewDecision and queue/autoMergeRequest are inspected for this exact PR before one normal head-leased enrollment request; no admin or direct merge.
+
+UI4 is in progress on separate branch sol/web-terminal-indicator-dialog-20261109-c1 based on 8390cc4ad41b1c0773e979198c80e742852c01dc. The indicator dialog now has a candidate native modal lifecycle with named controls; 63 focused tests pass, with real browser proof still to do. Next: complete #1363 Ready/normal auto enrollment, then continue UI4 while hosted checks run.
