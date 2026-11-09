@@ -1,15 +1,15 @@
 # GEX desk, Levels and Heatmap failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: a842de07ad2b6e5b2a8c29cbb39226a5443eb490
-# capturedAt: 2026-11-05T12:20:11.060Z
+# capturedAtHead: c939c83435b87d99bf2f4201b17f16a77275fcbd
+# capturedAt: 2026-11-09T06:15:31.894Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
   terminal/components/gexdesk/GexDeskView.tsx: "45e534f221754d1bf3a3214d9a1cbaa4e297623482cb0c9832f8e904ed944bb9"
   terminal/components/gexdesk/HeatSeekerCard.tsx: "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a"
-  terminal/components/gexdesk/MarketStateCard.tsx: "069c4a2f1a5f53e8f611e3231b78751948cc0264c8af6efd167f7b3e4902bbe2"
-  terminal/components/gexdesk/StrikeLadder.tsx: "55dccbef4e3bfebc09477f6d9a0133cf0bc5d70531d32d532e760ff214ed4596"
+  terminal/components/gexdesk/MarketStateCard.tsx: "5a328799e2fcc95352c6f5a0899bbccf2ea96c04754695b89d44cb1fc7abb0f5"
+  terminal/components/gexdesk/StrikeLadder.tsx: "1fa665eeec154b1b956493ff01002cc24873bce4daf9ef73207af9e3a80102da"
   terminal/components/gexdesk/gexStrings.ts: "15fb1e6b89725ae7bf5762b3b0cd9749e85331f6733c34efc710979430132d7b"
   terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
   terminal/lib/dataCache.ts: "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a"
@@ -138,7 +138,7 @@ harness:
   levels-unavailable-820-zh.png: { url: "/options?tab=levels", state: levels-unavailable, injected: { "levels:SPY": 503 } }
   levels-unavailable-820.png: { url: "/options?tab=levels", state: levels-unavailable, injected: { "levels:SPY": 503 } }
 surfaces: [GexDeskView, HeatSeekerCard, MarketStateCard, LevelsView, HeatmapView]
-injection: page.route answers /api/flow (by f-param) and /data/manifest.json with 503 / 404, or refuses the connection (abort); /api/flow/stream is refused on the GEX desk, or (gex-live-*) answers the last frame then its named status event; every other read is the FLOW_FIXTURE server
+injection: page.route answers /api/flow (by f-param) and /data/manifest.json with 503 / 404, or refuses the connection (abort); /api/flow/stream is refused on the GEX desk, or (gex-live-*) answers the last frame then its named status event; remaining flow reads use FLOW_FIXTURE; quote and other provider APIs are typed unavailable before transport
 persisted: the heatmap-persisted-* states age the browser's own IndexedDB record of /data/manifest.json (dataCache write-through), never a mocked cache
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
@@ -260,119 +260,3 @@ files:
   - levels-unavailable-390.png
   - levels-unavailable-820-zh.png
   - levels-unavailable-820.png
-
-labPlanNavigationRecapture20261030:
-  sourceHead: "284f09f748e6a7107ceffe0a0c54fc1e0af14fc9"
-  actualCases: 54
-  qualification: "terminal/docs/verification/lab-plan-handoff-20261030/evidence-lock-recapture.json"
-  qualificationSha256: "b34344fad4050563f59223f81056de0415527a98e6bc8047f99a6bfccbdc6be4"
-  scope: "Actual scoped browser captures on the navigation candidate. Other surfaces and earlier reports retain their historical identities; no production or full-matrix recapture claim."
-
-scopedRecaptures:
-  - surface: GexDeskView
-    capturedAtHead: 798e8bdc673a8284fedc475d7bb288fd7f10194d
-    capturedAt: 2026-11-03T04:41:32.927644+00:00
-    sourceSha256: "3f83dabea69d9461005e53aac3d812e73fcb0ac2f7ea515c60f91a3de38f7c02"
-    priorManifestSha256: "f7ef71c053b296845f0400c6be0faf4545f5561bcd7c1ebc3cf9dc13158cebdf"
-    priorImages: preserved byte-for-byte at their original paths
-    receipt: ../sector-exposure-depth-return-20261102/recapture/receipt.json
-    outputDirectory: ../sector-exposure-depth-return-20261102/recapture/gex_levels_heatmap
-    passingCaptures: 54
-    cropSha256:
-      gex-ladder-absent-1440-zh.png: "3cbf2e68b41f0fe0a3f4edd46e0cf327fb4146caab2be2bd5b222669d24ce3ea"
-      gex-ladder-absent-1440.png: "69f76a72644e14f435ab677245eb39cbab2917082068444b3dead30874f0577e"
-      gex-ladder-absent-390-zh.png: "e218d88a678bf102c356c2df72e44ca74c9ae53283bf73b1b26d9870a4206282"
-      gex-ladder-absent-390.png: "3ac036554a7e7e838eee69edf03cb70505b9b2577f6b606b913b8cf34b0e5ece"
-      gex-ladder-absent-820-zh.png: "7b13e26bbfe1bf25d9f0ef6ee243f6a3156937f20c8129ac42f16e0454dfa4f0"
-      gex-ladder-absent-820.png: "7903b828a6d327fe43ec3c710102f76761b614717bf98ef0e4cc934aebb8db64"
-      gex-ladder-retried-1440-zh.png: "12efd1e7174120c7076ab4e66be8757abb912c04a8f60733c11ce4ff49454e06"
-      gex-ladder-retried-1440.png: "dc824f083f73f2cfc9a518ec995661caa7f42efe7a898ef7ab0a2845c05e36a2"
-      gex-ladder-retried-390-zh.png: "991686ac1c920308a85de33275477b619e3011c72c5a4217c142aaa6d356636c"
-      gex-ladder-retried-390.png: "bb5b0b092f32fe53100e96b4b08a1a1a97ebfba7d184a5e263d75799ab69309d"
-      gex-ladder-retried-820-zh.png: "1cab97de5273e6ffd9e838f709d13278ddb5f21c24e7d9fc61b1b17d21a527e9"
-      gex-ladder-retried-820.png: "e493849b80052b0d2713b6b0e5072cec98d2fee9748635cf2608e62201f99705"
-      gex-ladder-unavailable-1440-zh.png: "fa62dcaf315c4bd17dcc9040c64129079b16c00669a8055c5769e9a3255b26e7"
-      gex-ladder-unavailable-1440.png: "f9f67fb80e0618a65b68f7fa1d4691c16a7816f1c72ecb08785512c9034d800f"
-      gex-ladder-unavailable-390-zh.png: "5861d563faaaef4cf388626ad478b1e731d1da636e0bab3d2b8b7031e99e83f1"
-      gex-ladder-unavailable-390.png: "178bf2c649c7a85697c624a2355683b4ffcec9d54d6101b1cf8ae487ed8a5b55"
-      gex-ladder-unavailable-820-zh.png: "978c18a96630c3c507a57cfafa21260a01e895300bebcc6fb67ae1336a0bc55e"
-      gex-ladder-unavailable-820.png: "8075255643fd960290dba0f8cf3bf61235ce75dacffebcf7a66778f87f8093d1"
-      gex-live-refresh-failed-1440-zh.png: "594c1b6641c90d5641a1e784f2e23c543ea8546c08b117f3d2e191a7daf02f62"
-      gex-live-refresh-failed-1440.png: "9dc6e40acc3e9cb9cde0d2a3f8b21728770f60abfba6316ba84a32bc56f3056e"
-      gex-live-refresh-failed-390-zh.png: "7b31abe9d2abdea18a9ff533bc149c1cfa6e3963ea4130f63145a06ce599f08c"
-      gex-live-refresh-failed-390.png: "4aa4b0b4edac13b64ef24a5f643e834eefe554d547ff8f869fa2eea7b54845bf"
-      gex-live-refresh-failed-820-zh.png: "e330e32e8a4d7b8a83af896857114be84dcfbb28c7ab0e20275784f0388ca520"
-      gex-live-refresh-failed-820.png: "1907e819917e31c0ae0d589bc2b5dc432c946ca79b933d1d16044d881a152d1e"
-      gex-live-retried-1440-zh.png: "3043739db7f15ada3f9175b4e6d3b3437e555f119ef6e8615c8ee5e25671e5fc"
-      gex-live-retried-1440.png: "6cb42184bfb3af126ca6a2873e594e7c4a62c925589b6d0cff014317b32d69a7"
-      gex-live-retried-390-zh.png: "1f8e38df6877314818b446811835c25ed3f8d7e01340549a7fee0d8c17adf7bc"
-      gex-live-retried-390.png: "e22cff8c22941a366a175fb19316cfd8665d227bfb52c5db1c9b7b7ebe9eb56c"
-      gex-live-retried-820-zh.png: "1d4153217acbfe7d3c73e9cf7e43454b3902ce5c4f3f61ede6016796647d6bc2"
-      gex-live-retried-820.png: "3a35e29fc246408c330e72411f46398581cba79074b25a2e7f9a49c12ff09520"
-      gex-pick-absent-1440-zh.png: "50dc1509cc18f9f15e443a81638577d4185f6cbbacb5830f864b732bd0fd80d7"
-      gex-pick-absent-1440.png: "a5081d7c81b0beeffeec277e2032cd3061ae49e124d67ed87c859cbcc282a0eb"
-      gex-pick-absent-390-zh.png: "62e551ad31a8ae4d6886d48e7f27a71f4447abb3b6ba90bee132451fc39c3236"
-      gex-pick-absent-390.png: "b981a0535d0d8f1407da03850c959808086100554d8808e1d360ab6d83365644"
-      gex-pick-absent-820-zh.png: "7cebe248263f6a30040d4a02498ce9b5a164a06dd2e8cfb014aa7d0cb08f099e"
-      gex-pick-absent-820.png: "66eafabc825b314dea25b53978c1b6a155cfb30b9987d06ba717cbeaa300c1d6"
-      gex-rail-retried-1440-zh.png: "b7dd117af879ba87e63032cb4598e34a265bcc736a435ee31dccfae4d11fb215"
-      gex-rail-retried-1440.png: "6cdbfaf91db4df60165cd1feaa42c780e276675292d2386eb7c3bf016d890b2d"
-      gex-rail-retried-390-zh.png: "a9a35a6a6ac90083b8bb15f66a6608d75138e80ac1b0b30e2eae40ed0ee9e0d1"
-      gex-rail-retried-390.png: "3f374d2ef927f8a70b77a769b2925455c682709d03d3f960241c79f11211c749"
-      gex-rail-retried-820-zh.png: "5900c6af2fe28cee9e1b3c17f7cc5b390d29bd5ea604003e6b3d5960c5170a34"
-      gex-rail-retried-820.png: "0a1a5b7cc63325c9f3d156d40e3aec059c7495f73af21ea215f4273d238c8673"
-      gex-rail-unavailable-1440-zh.png: "093795efebab5f06ddeb44cc25940e852f5318ca12146dbee31c50873f335335"
-      gex-rail-unavailable-1440.png: "59f71a37e4cd4f6f3169184a324747d611efaf4e7c874c951a43eaad79239ef6"
-      gex-rail-unavailable-390-zh.png: "2a440fee2938f8d102911215d413bcf2814bc06d05c2d6945aa3ca43d6c7c35c"
-      gex-rail-unavailable-390.png: "18f52ecf2d03ca02cdb1a9d98b9ca78931fc709be0e2c41ae8f9bd5a34c3ae11"
-      gex-rail-unavailable-820-zh.png: "dcc4448a92837917ba1256de2e01aa477259b7da553cd3784f5400fb634f0070"
-      gex-rail-unavailable-820.png: "523be9a60b1fc642af079e293dfc5a96cbe480cf337e832ee1111fdcf575d829"
-      gex-state-refresh-failed-1440-zh.png: "e8855162ab80dbdb0ecc2d02a540a2bdf1e187d75d000aef158f2b00b8b0eedc"
-      gex-state-refresh-failed-1440.png: "8b83deab97294bef94b4c54cbd0817660b4ca2cacf9f4de01006ea57b9cf8e82"
-      gex-state-refresh-failed-390-zh.png: "25cac2b601cb432c3ee0c12f71f335bd9604e862e3ae53f4d01c6799dc7ab5af"
-      gex-state-refresh-failed-390.png: "b2615f61b8ea3af6cb3cabe6445557a5a7192c38ec11351dd61c4cc4803d45c3"
-      gex-state-refresh-failed-820-zh.png: "ce4aca4e45edfc01865c5ba550a4f7352abd3f76f6cc495b691549642c0200db"
-      gex-state-refresh-failed-820.png: "6a3c440283f4befb3052c90ba2ad647d84778f1ffd007273c7c33154f96bfd8c"
-currentCacheQualification:
-  sourceHead: "ca43fd0f9d1aaf13658a1553ea244c8815369591"
-  previousCacheSha256: "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be"
-  cases: 114
-  report: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/1224-cache-ca43fd0f/result.json"
-  reportSha256: "4f1b2c7cea9606d01f803d03c802d03853567dd032d56ebc7f41a918dd5bf567"
-  scope: "The report maps every current capture to its actual file and digest. Packet-root PNGs and earlier capture records retain their historical identity."
-
-composedSectorReturnQualification:
-  sourceHead: "7f1a7982ba0bb14f3845f83c883eeb815c62a6b8"
-  protectedBase: "c8a1d0e23255c2d5374258b52197bdf1aed85b27"
-  report: "terminal/docs/pr-crops/sector-exposure-depth-return-20261102/composition-c8a/receipt.json"
-  reportSha256: "fb88d89decf0f21f3a25b5b537baa97522d0d308b2bf747a199419343318ab3a"
-  scope: "Actual96 Gex/belt assertions and18sector-return journeys on composed GexDesk/dataCache bytes; original histories preserved; ancillary pick observation disclosed."
-
-archiveSelectionQualification1254:
-  sourceHead: "6c629ce900e3954cc2374c05a063b75a7cf08c36"
-  cases: 54
-  report: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/1254-archive-6c629ce9/result.json"
-  reportSha256: "6b643e25f1e3c0dc507d7601354fe8af0a538c68c5bcb47256460625a5e5447f"
-  scope: "Actual GEX-only recapture for awaited archive selection. Other boards, packet-root images and earlier records retain their historical identities."
-
-sectorArchiveComposition1254:
-  sourceHead: "c82b70d2cfa676405db574315c93de84fe8bc13d"
-  protectedBase: "d1f4f42f5b5d170bd65e75e57d24ffb891207ca4"
-  cases: 54
-  report: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/1254-sector-c82b70d2/result.json"
-  reportSha256: "ac3a8f6c0c26d7d01faa8fea3248fd123b437d164046576b6bd02662f78fe16f"
-  scope: "Actual scoped recapture on combined Sector and archive source. Both earlier histories and other boards remain unchanged."
-
-labGammaMountedRecapture20261104:
-  sourceHead: "3bd342b59cb3df2cb920725870e41ff582581a48"
-  actualCases: 54
-  qualification: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/lab-gamma-recapture-20261104.json"
-  qualificationSha256: "58ffdbfc7821e7a59baff21c0afb99b582c9aa0f505bc18539f85fcebcb37955"
-  scope: "Actual scoped GEX/EOD capture; unrelated sources, historical packets and assertions preserved; not production."
-
-terminal610CaptureRepair20261105:
-  sourceHead: "a842de07ad2b6e5b2a8c29cbb39226a5443eb490"
-  actualCases: 114
-  command: "cd terminal && node e2e/tools/capture_gex_levels_heatmap_load_failure.cjs"
-  capturedAt: "2026-11-05T12:20:11.060Z"
-  scope: "Actual full capture of every state at 1440/820/390 in en and zh against the current source, because heatmapStrings.ts changed the sizeCap label to Price x volume / 价格 x 成交量. The scoped Heatmap mode was refused by its own guard (heatmapStrings.ts is outside HeatmapView.tsx), so the full owner ran. Historical trailing records above are preserved unchanged."
