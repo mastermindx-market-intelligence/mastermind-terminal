@@ -11,7 +11,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const sameNames = (a, b) => same([...a].sort(), [...b].sort()) && new Set(a).size === a.length;
 const sameMap = (a, b) => sameNames(Object.keys(a), Object.keys(b)) && Object.keys(a).every(key => a[key] === b[key]);
 const OPTIONS_PACKET = "terminal/docs/pr-crops/options-level-axis-labels";
-const OPTIONS_SOURCES = ["components/ChartPanel.tsx", "lib/optionsLevels.ts", "lib/priceTagPlacement.ts"];
+const OPTIONS_SOURCES = ["components/ChartPanel.tsx", "lib/optionsLevels.ts", "lib/pricePaneSvgScope.ts", "lib/priceTagPlacement.ts"];
 const OPTIONS_FILES = ["desktop.png", "tablet.png", "mobile.png", "desktop-left-percentage.png", "desktop-compact.png"];
 const CONTROL = "terminal/e2e/tools/capture_ci_evidence.cjs";
 

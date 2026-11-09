@@ -99,7 +99,7 @@ function fixture(t, change = {}) {
   ].join("\n");
   const optionsDirectory = "terminal/docs/pr-crops/options-level-axis-labels";
   const optionsPath = path.join(repoRoot, optionsDirectory, "manifest.json");
-  const optionsSources = ["components/ChartPanel.tsx", "lib/optionsLevels.ts", "lib/priceTagPlacement.ts"];
+  const optionsSources = ["components/ChartPanel.tsx", "lib/optionsLevels.ts", "lib/pricePaneSvgScope.ts", "lib/priceTagPlacement.ts"];
   const optionsFiles = ["desktop.png", "tablet.png", "mobile.png", "desktop-left-percentage.png", "desktop-compact.png"];
   for (const file of new Set([
     ...LAYOUT_FILES,
@@ -131,6 +131,7 @@ function fixture(t, change = {}) {
   };
   writeOptions(Boolean(change.optionsStale));
   if (change.optionsChanged) fs.appendFileSync(path.join(repoRoot, "terminal/" + optionsSources[0]), "changed source\n");
+  if (change.optionsScopeChanged) fs.appendFileSync(path.join(repoRoot, "terminal/lib/pricePaneSvgScope.ts"), "changed scope\n");
   write(optionsDirectory + "/coverage-audit-summary.json", "unchanged historical audit");
   evidence.imageInfo = bytes => ({ sha256: hash(bytes), width: 10, height: 10 });
   const legacyCalls = [];
@@ -205,6 +206,19 @@ test("changed Options source opts only PL6 into one capture and retains actual c
   assert.equal(r.optionsAxis.receipt.capturedAtHead, r.actualCheckout.commit);
   assert.notEqual(r.optionsAxis.receipt.capturedAtHead, r.githubEvent.pullRequestHead);
   assert.equal(r.optionsAxis.manifestSha256, createHash("sha256").update(fs.readFileSync(f.optionsPath)).digest("hex"));
+  assert.equal(r.composition.selectedCases, 50);
+});
+
+test("helper-only Options source drift requests the existing five-case capture", async t => {
+  const f = fixture(t, { optionsScopeChanged: true });
+  const r = await f.invoke();
+  assert.deepEqual(f.calls.map(c => c.options.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE), ["1", "0"]);
+  const prior = JSON.parse(fs.readFileSync(path.join(r.optionsAxis.prior.path, "manifest.json"), "utf8"));
+  const changed = Object.keys(prior.sourceFiles).filter(file => prior.sourceFiles[file] !== r.optionsAxis.sources[`terminal/${file}`]);
+  assert.deepEqual(changed, ["lib/pricePaneSvgScope.ts"]);
+  assert.equal(r.optionsAxis.images.length, 5);
+  assert.equal(r.optionsAxis.state, "CAPTURED_AWAITING_UNIT_VALIDATION");
+  assert.equal(r.optionsAxis.receipt.capturedAtHead, r.actualCheckout.commit);
   assert.equal(r.composition.selectedCases, 50);
 });
 
@@ -391,7 +405,7 @@ test("Options uses the full PL6 owner, records five fresh images, and preserves 
   assert.equal(result.optionsAxis.images.length, 5);
   assert.equal(result.optionsAxis.state, "CAPTURED_AWAITING_UNIT_VALIDATION");
   assert.deepEqual(result.optionsAxis.prior.files["coverage-audit-summary.json"], result.optionsAxis.returned.files["coverage-audit-summary.json"]);
-  assert.equal(Object.keys(result.optionsAxis.sources).length, 3);
+  assert.equal(Object.keys(result.optionsAxis.sources).length, 4);
 });
 
 test("an unsuccessful PL6 or Options child retains the unqualified returned packet and original failure", async t => {
