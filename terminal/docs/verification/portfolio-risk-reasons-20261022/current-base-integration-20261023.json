@@ -1,0 +1,124 @@
+{
+  "schema": "portfolio.risk-current-base-validation.v1",
+  "recorded_at": "2026-10-23T11:16:46.501242+00:00",
+  "validation": {
+    "started_at": "2026-10-23T11:11:59.725558+00:00",
+    "head": "0180bd40e200f3996b3890799d274980aa71d12c",
+    "merged_base": "03133eb3d579d24297fa6933751e6ef1dfde25cc",
+    "state": "PASSED",
+    "merge": {
+      "args": [
+        "-c",
+        "merge.stat=false",
+        "merge",
+        "--no-ff",
+        "--no-commit",
+        "03133eb3d579d24297fa6933751e6ef1dfde25cc"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": "Automatic merge went well; stopped before committing as requested\n"
+    },
+    "merge_head": "03133eb3d579d24297fa6933751e6ef1dfde25cc",
+    "unmerged": "",
+    "composition_tree": "9193d7d9a7bb0179ca054d038135bf6ecaaa3155",
+    "before": {
+      "terminal/lib/portfolioRisk.ts": "d9927185b9a536baf391b434e615258647c7a81a1d593b8abf38791d30851ae8",
+      "terminal/lib/__tests__/portfolioRisk.test.ts": "1234ec82351450c8aa59f2a5b63f7cd31e1c36cc5884d8d8b23fe89aaba831a9",
+      "terminal/e2e/portfolio-risk-reasons.spec.ts": "6f523d62b63217d11054ece8d62e98e051db3e0112eeaa4db561c40bdf4aec2b"
+    },
+    "diff_check": {
+      "args": [
+        "diff",
+        "--check",
+        "03133eb3d579d24297fa6933751e6ef1dfde25cc"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "checks": [
+      {
+        "name": "focused-unit",
+        "command": [
+          "./node_modules/.bin/vitest",
+          "run",
+          "lib/__tests__/portfolioRisk.test.ts"
+        ],
+        "started_at": "2026-10-23T11:11:59.968535+00:00",
+        "seconds": 1.7,
+        "exit": 0,
+        "log_sha256": "e1b286fc7c9e327edcfe5a73a45d58b7713e8e3da00f53a42c9b5430f3e8c9d5",
+        "tail": [
+          "\u001b[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.\u001b[39m",
+          "",
+          " RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/portfolio-risk-reasons-20261022/terminal",
+          "",
+          " \u2713 lib/__tests__/portfolioRisk.test.ts (34 tests) 16ms",
+          "",
+          " Test Files  1 passed (1)",
+          "      Tests  34 passed (34)",
+          "   Start at  04:12:01",
+          "   Duration  383ms (transform 56ms, setup 0ms, collect 65ms, tests 16ms, environment 0ms, prepare 66ms)",
+          ""
+        ]
+      },
+      {
+        "name": "typegen",
+        "command": [
+          "./node_modules/.bin/next",
+          "typegen"
+        ],
+        "started_at": "2026-10-23T11:12:01.669705+00:00",
+        "seconds": 0.6,
+        "exit": 0,
+        "log_sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a",
+        "tail": [
+          "Generating route types...",
+          "\u2713 Types generated successfully"
+        ]
+      },
+      {
+        "name": "typecheck",
+        "command": [
+          "./node_modules/.bin/tsc",
+          "--noEmit"
+        ],
+        "started_at": "2026-10-23T11:12:02.271609+00:00",
+        "seconds": 38.51,
+        "exit": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "tail": []
+      }
+    ],
+    "after": {
+      "terminal/lib/portfolioRisk.ts": "d9927185b9a536baf391b434e615258647c7a81a1d593b8abf38791d30851ae8",
+      "terminal/lib/__tests__/portfolioRisk.test.ts": "1234ec82351450c8aa59f2a5b63f7cd31e1c36cc5884d8d8b23fe89aaba831a9",
+      "terminal/e2e/portfolio-risk-reasons.spec.ts": "6f523d62b63217d11054ece8d62e98e051db3e0112eeaa4db561c40bdf4aec2b"
+    },
+    "source_unchanged": true,
+    "unstaged": "",
+    "finished_at": "2026-10-23T11:12:40.813558+00:00"
+  },
+  "source_delta": "Ordinary same-owner merge of accepted Terminal03133eb3; all three Risk source/test bindings remain exact. Current base changes do not alter Portfolio, money helpers, dependencies, global styles or the responsive test configuration.",
+  "prior_browser_proof": {
+    "source_head": "0180bd40e200f3996b3890799d274980aa71d12c",
+    "cases_passed": 12,
+    "evidence_directory": "terminal/docs/verification/portfolio-risk-reasons-20261022",
+    "scope": "Retained local browser matrix on identical Risk source and unchanged Portfolio execution paths; fresh hosted CI for this composed head is still required."
+  },
+  "logs": {
+    "current-base-20261023-focused-unit.log.gz": {
+      "uncompressed_sha256": "e1b286fc7c9e327edcfe5a73a45d58b7713e8e3da00f53a42c9b5430f3e8c9d5",
+      "compressed_sha256": "2cb411678efbdacdc09585e4220b3c62bef47f28c7cf62b3e6b7ae09d2806d74"
+    },
+    "current-base-20261023-typegen.log.gz": {
+      "uncompressed_sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a",
+      "compressed_sha256": "87417460f6b68343dfe6dfe0973432d06facd8a828a251502a6c11eab1da05bd"
+    },
+    "current-base-20261023-typecheck.log.gz": {
+      "uncompressed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compressed_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    }
+  }
+}

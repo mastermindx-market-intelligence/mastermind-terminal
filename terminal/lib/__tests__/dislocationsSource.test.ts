@@ -35,7 +35,7 @@ describe("dislocations source", () => {
     const age = (now - Date.parse(first.file.asof)) / 1000;
     expect(age).toBeGreaterThanOrEqual(115);
     expect(age).toBeLessThanOrEqual(125);
-    expect(first.file.episodes?.length).toBe(4);
+    expect(first.file.episodes?.length).toBe(9);
 
     const second = await readSource(file, now);
     expect(second.kind).toBe("ok");
@@ -239,19 +239,19 @@ describe("dislocations source", () => {
       evidence_refs: [],
       schema: "mastermind.live_entry_episode.v1",
     };
-    const forming = displayFor(baseEp);
-    expect(forming.stance_en).toBe("Watching — not confirmed yet");
-    expect(forming.stance_zh).toBe("观察中——尚未确认");
+    const armed = displayFor(baseEp);
+    expect(armed.stance_en).toBe("Washout, no turn yet");
+    expect(armed.stance_zh).toBe("洗盘中，尚未转向");
 
     const confirmed = displayFor({
       ...baseEp,
       state: "CANDIDATE",
       candidate_at: "2026-01-02T00:00:00Z",
     });
-    expect(confirmed.stance_en).toBe("Reclaim confirmed — see when it was knowable");
+    expect(confirmed.stance_en).toBe("Reclaim held");
 
     const ended = displayFor({ ...baseEp, state: "RESOLVED" });
-    expect(ended.stance_en).toBe("Ended — kept for the record");
+    expect(ended.stance_en).toBe("Window closed");
 
     const eps = [
       { episode_id: "b", state: "ARMED", last_observed_at: "2026-01-02T00:00:00Z" },

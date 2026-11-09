@@ -1,7 +1,7 @@
-import {beforeEach,describe,expect,it,vi} from "vitest";
+import {afterEach,beforeEach,describe,expect,it,vi} from "vitest";
 import fixture from "./fixtures/aapl-event-workspace.json";
-const {getUser,read,current,retained,authorize}=vi.hoisted(()=>({getUser:vi.fn(),read:vi.fn(),current:vi.fn(),retained:vi.fn(),authorize:vi.fn()}));
-vi.mock("@/lib/supabase/server",()=>({createClient:async()=>({auth:{getUser}})}));
+const {createDb,getUser,read,current,retained,authorize}=vi.hoisted(()=>({createDb:vi.fn(),getUser:vi.fn(),read:vi.fn(),current:vi.fn(),retained:vi.fn(),authorize:vi.fn()}));
+vi.mock("@/lib/supabase/server",()=>({createClient:createDb}));
 vi.mock("@/lib/investigations",async()=>({...await vi.importActual<typeof import("@/lib/investigations")>("@/lib/investigations"),readInvestigation:read}));
 vi.mock("@/lib/eventWorkspace",async()=>({...await vi.importActual<typeof import("@/lib/eventWorkspace")>("@/lib/eventWorkspace"),resolveCurrentEventWorkspaceFromR2:current,resolveRetainedEventWorkspaceFromR2:retained,authorizeRetainedPublicEventContext:authorize}));
 import {GET} from "@/app/api/investigations/review/route";
@@ -10,8 +10,24 @@ const reference={owner:"earnings.workspace_generation",object_type:"event_worksp
 const manifest={schema:"investigation_manifest.v2",intent:{title:"Research",question:"What changed?",subjects:[{owner:"data_os.security_master",kind:"issuer",object_id:fixture.issuer.company_id}]},layout_refs:[],thesis_refs:[],evidence_refs:[reference],review_baseline_ref:reference,continuation:{}};
 const owner={ok:true,workspace:fixture,receipt:{owner:"earnings.workspace_generation",company_id:fixture.issuer.company_id,event_id:fixture.event_id,generation_id:fixture.generation_id,workspace_schema:fixture.schema,authority:fixture.authority,rights:{allowed:true}}};
 const request=(query=`id=${id}&revision=1`)=>new Request(`https://terminal.test/api/investigations/review?${query}`);
-beforeEach(()=>{vi.clearAllMocks();getUser.mockResolvedValue({data:{user:{id:"unit-owner"}},error:null});read.mockResolvedValue({status:"found",id,revision:1,manifest});current.mockResolvedValue({ok:true,state:"ready",workspace:fixture});retained.mockResolvedValue(owner);});
+beforeEach(()=>{vi.clearAllMocks();vi.stubEnv("INVESTIGATION_API_ADMISSION","open");createDb.mockResolvedValue({auth:{getUser}});getUser.mockResolvedValue({data:{user:{id:"unit-owner"}},error:null});read.mockResolvedValue({status:"found",id,revision:1,manifest});current.mockResolvedValue({ok:true,state:"ready",workspace:fixture});retained.mockResolvedValue(owner);});
+afterEach(()=>vi.unstubAllEnvs());
 describe("authenticated read-only Investigation evidence review",()=>{
+ it.each([undefined,"","closed","OPEN"," open "])("honors the incumbent closed admission before auth or evidence I/O (%s)",async gate=>{
+  vi.stubEnv("INVESTIGATION_API_ADMISSION",gate);
+  const result=await GET(request());
+  expect(result.status).toBe(503);
+  expect(result.headers.get("cache-control")).toBe("private, no-store");expect(result.headers.get("vary")).toBe("Cookie");
+  expect(createDb).not.toHaveBeenCalled();expect(getUser).not.toHaveBeenCalled();expect(read).not.toHaveBeenCalled();
+  expect(current).not.toHaveBeenCalled();expect(retained).not.toHaveBeenCalled();expect(authorize).not.toHaveBeenCalled();
+ });
+ it("rechecks admission for each request while retaining normal authenticated behavior when open",async()=>{
+  expect((await GET(request())).status).toBe(200);
+  vi.clearAllMocks();vi.stubEnv("INVESTIGATION_API_ADMISSION","closed");
+  expect((await GET(request())).status).toBe(503);expect(createDb).not.toHaveBeenCalled();expect(read).not.toHaveBeenCalled();
+  vi.stubEnv("INVESTIGATION_API_ADMISSION","open");
+  expect((await GET(request())).status).toBe(200);expect(getUser).toHaveBeenCalledOnce();expect(read).toHaveBeenCalledOnce();
+ });
  it("uses the exact saved revision and returns a private conservative comparison",async()=>{
   const before=JSON.stringify(manifest);const response=await GET(request());
   expect(response.status).toBe(200);expect(await response.json()).toMatchObject({status:"reviewed",revision:1,coverage:"observed_owner_rows_only",removalProofAvailable:false,review:{summary:"incomplete"}});

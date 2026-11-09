@@ -49,4 +49,30 @@ describe("reviewed baseline selection is atomic with entering edit",()=>{
   await mount("owner-a");await act(async()=>{auth.change!("SIGNED_OUT",null);completeSelection(response(next));});
   expect(host.textContent).toContain("Your account changed or your session ended");expect(host.textContent).not.toContain(newHash);expect(host.textContent).not.toContain("Retained question");expect(commands).toHaveLength(0);
  });
+ it("an assessment save cancels pending baseline selection while retaining Options and scenario references",async()=>{
+  const optionsRef={owner:"terminal.options_exposure",object_type:"sector_origin",object_id:"xlk/software/MSFT",mode:"pinned",version_ref:"exposure_origin.v1@2026-10-16"};
+  const scenario={schema:"investigation_scenario_reference.v1",model_version:"exposure-scenario/v1",
+   inputs:{targetSpot:600,deltaSigmaPts:1,days:1},
+   source:{owner:"options_hub",root:"SPX",session:"2026-10-16",source_as_of:"2026-10-16t15:30:00z",evaluated_at:"2026-10-16T15:45:00Z",
+    lens:{kind:"one",exp:"2026-10-30"},selection_key:"2026-10-30|2026-10-30T09:30:00-04:00,2026-10-30|2026-10-30T16:00:00-04:00",
+    basis_sha256:"c".repeat(64),gex:{sha256:"d".repeat(64),byte_length:2048},moves:null}};
+  const enriched={...manifest,evidence_refs:[reference,optionsRef],scenario_capture:scenario};
+  const original=structuredClone(enriched),sourceFetch=globalThis.fetch;
+  vi.stubGlobal("fetch",vi.fn((url:string,options?:RequestInit)=>{
+   if(!options?.method&&url.startsWith("/api/investigations?"))return Promise.resolve(response({status:"found",id,revision:1,current_revision:1,lifecycle:"active",manifest:enriched,committed_at:"2026-10-04T00:00:00Z",layouts:[]}));
+   return sourceFetch(url,options);
+  }));
+  await mount();await click("Confirmed");await click("Save as revision 2");
+  expect(commands).toHaveLength(1);
+  expect(commands[0]).toMatchObject({id,action:"revise",expected_revision:1});
+  expect(commands[0].manifest).toEqual({...original,review:{assessment:"confirmed"}});
+  const journal=()=>JSON.parse(sessionStorage.getItem("mm.investigation.pending.v2:local-preview")!);
+  expect(journal().command).toEqual(commands[0]);
+  await act(async()=>{completeSelection(response(next));});
+  expect(host.querySelector("form")).toBeNull();expect(host.textContent).not.toContain(newHash);
+  expect(commands).toHaveLength(1);expect(enriched).toEqual(original);expect(journal().command).toEqual(commands[0]);
+  await act(async()=>{completeSave(response({status:"version_conflict",current_revision:2}));});
+  expect(commands).toHaveLength(1);expect(host.querySelector("form")).toBeNull();expect(host.textContent).not.toContain(newHash);
+  expect(journal().command).toEqual(commands[0]);
+ });
 });

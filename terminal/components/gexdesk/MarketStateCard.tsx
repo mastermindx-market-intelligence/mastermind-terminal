@@ -362,10 +362,21 @@ function WhatIfFlipBreaks({
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
+/**
+ * What the state read established. Only "absent" (a published 404/410, or bytes that
+ * are not this root's state) may say the state is still computing; "unavailable" is a
+ * read that did not land and says nothing about whether the state exists.
+ */
+export type StateReadStatus = "loading" | "data" | "absent" | "unavailable";
+
 interface MarketStateCardProps {
   statePayload: GexStatePayload | null;
   gexPayload?: GexPayload | null;
   isIndexProduct: boolean;
+  /** Defaults to the payload's presence — a caller that does not classify keeps the old read. */
+  stateRead?: StateReadStatus;
+  /** Re-reads the state in place after a failed read. */
+  onRetry?: () => void;
   lang: Lang;
 }
 
@@ -373,6 +384,8 @@ export function MarketStateCard({
   statePayload,
   gexPayload,
   isIndexProduct,
+  stateRead,
+  onRetry,
   lang,
 }: MarketStateCardProps) {
   const t = makeGexT(lang);
@@ -400,15 +413,30 @@ export function MarketStateCard({
   const flipLevel = statePayload?.gamma_flip ?? gexPayload?.gamma_flip ?? null;
   const spotRef = statePayload?.spot ?? gexPayload?.spot_ref ?? null;
 
+  const readStatus: StateReadStatus = stateRead ?? (statePayload ? "data" : "absent");
+  const retryButton = onRetry ? (
+    <button type="button" className="btn btn-ghost load-retry" onClick={onRetry}>{t("errorRetry")}</button>
+  ) : null;
+
   if (!statePayload) {
     return (
       <div className="obs-card obs-scroll obs-gex-state" style={CARD_OUTER} data-tut="gex-state-card">
         <div className="obs-card-hd" style={CARD_HEADER}>
           <span className="obs-lbl">{t("stateTitle")}</span>
         </div>
-        <div style={PLACEHOLDER}>
-          <span style={PLACEHOLDER_TEXT}>{t("stateComputing")}</span>
-        </div>
+        {readStatus === "unavailable" ? (
+          <div style={PLACEHOLDER_ERROR} data-testid="gex-state-error" role="alert">
+            <div style={ERROR_ROW}>
+              <span style={ERROR_TITLE}>{t("stateErrorTitle")}</span>
+              {retryButton}
+            </div>
+            <span style={ERROR_WHY}>{t("stateErrorWhy")}</span>
+          </div>
+        ) : (
+          <div style={PLACEHOLDER}>
+            <span style={PLACEHOLDER_TEXT}>{readStatus === "loading" ? t("loading") : t("stateComputing")}</span>
+          </div>
+        )}
         <PassportBlock
           passportText={passportText}
           singleNameNote={singleNameNote}
@@ -463,6 +491,14 @@ export function MarketStateCard({
       <div className="obs-card-hd" style={CARD_HEADER}>
         <span className="obs-lbl">{t("stateTitle")}</span>
       </div>
+
+      {/* A refresh that did not land keeps the last state on screen and says so. */}
+      {readStatus === "unavailable" && (
+        <div style={STALE_ROW} data-testid="gex-state-refresh-failed" role="alert">
+          <span>{t("stateRefreshFailed")}</span>
+          {retryButton}
+        </div>
+      )}
 
       {/* ── Regime group ─────────────────────────────────────────────────────
           REGIME-DYNAMICS LAW: a state label never stands alone. The regime name, its
@@ -976,6 +1012,45 @@ const PLACEHOLDER_TEXT: React.CSSProperties = {
   fontStyle: "italic",
   textAlign: "center",
   lineHeight: 1.5,
+};
+
+// Compact and top-aligned: the card is a short scroll box on desktop, so Retry rides on
+// the title's row, right under the header, instead of below a centred, padded block that
+// pushed it past the card's fold.
+const PLACEHOLDER_ERROR: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "var(--sp-1)",
+  padding: "var(--sp-2) var(--sp-3)",
+};
+
+const ERROR_ROW: React.CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: "var(--sp-2)",
+};
+
+const ERROR_TITLE: React.CSSProperties = {
+  fontSize: "var(--fs-label)",
+  fontWeight: 600,
+  color: "var(--text)",
+};
+
+const ERROR_WHY: React.CSSProperties = {
+  ...PLACEHOLDER_TEXT,
+  textAlign: "start",
+};
+
+const STALE_ROW: React.CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  alignItems: "center",
+  gap: "var(--sp-2)",
+  padding: "var(--sp-1) var(--sp-3)",
+  fontSize: "var(--fs-label)",
+  color: "var(--text-2)",
 };
 
 const PASSPORT_BLOCK: React.CSSProperties = {

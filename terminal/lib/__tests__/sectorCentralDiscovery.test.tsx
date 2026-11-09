@@ -41,6 +41,44 @@ describe("Sector Central discovery and breadth", () => {
     host = document.createElement("div"); document.body.append(host); root = createRoot(host);
   });
   afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.restoreAllMocks(); });
+  it("refreshes a partial regular close without a click and keeps snapshots out of current ranks", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-11-02T22:00:00Z"));
+    const closed = (chg: number) => ({ market: "us", regularSessionDate: "2026-11-02", close: 100 + chg, prevClose: 100, regularChg: chg });
+    const request = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(Response.json({ quotes: { BBB: closed(1) } }))
+      .mockResolvedValueOnce(Response.json({ quotes: { BBB: closed(1), CCC: closed(3) } }));
+    try {
+      await render({ companyTableSort: "performance" });
+      expect(String(request.mock.calls[0][0])).toContain("view=regular&syms=AAA%2CBBB%2CCCC%2CDDD");
+      expect(host.textContent).toContain("Regular close · 1/4 quotes");
+      expect(host.textContent).toContain("Roster and cap snapshot 2026-09-25");
+      expect(host.textContent).toContain("BBB leads 1D performance (+1.00%)");
+      expect(host.querySelector('[data-company-table-row="AAA"]')?.lastElementChild?.textContent).toBe("—");
+      await act(async () => vi.advanceTimersByTimeAsync(5000));
+      expect(host.textContent).toContain("Regular close · 2/4 quotes");
+      expect(host.querySelector("[data-company-table-row]")?.getAttribute("data-company-table-row")).toBe("CCC");
+      expect(host.textContent).toContain("2 of 2 observed names are up");
+      await render({ mode: "matrix" });
+      expect(host.textContent).toContain("Regular close · 2/4 quotes");
+      expect(request).toHaveBeenCalledTimes(2);
+      await render({ matrixTimeframe: "1W" });
+      await act(async () => vi.advanceTimersByTimeAsync(65000));
+      expect(request).toHaveBeenCalledTimes(2);
+      expect(host.querySelector('[data-testid="sector-quote-coverage"]')).toBeNull();
+    } finally { vi.useRealTimers(); }
+  });
+  it("discards a late pending quote after the roster loses access", async () => {
+    let resolve!: (value: Response) => void;
+    const request = vi.spyOn(globalThis, "fetch").mockImplementationOnce(() => new Promise<Response>(r => { resolve = r; }));
+    await render();
+    const signal = request.mock.calls[0][1]?.signal;
+    await render({ heatmapStatus: "access" });
+    expect(signal?.aborted).toBe(true);
+    await act(async () => resolve(Response.json({ quotes: { AAA: { regularChg: 9 } } })));
+    expect(host.querySelectorAll("[data-company-table-row]")).toHaveLength(0);
+    expect(host.querySelector('[data-testid="sector-quote-coverage"]')).toBeNull();
+  });
   it("preserves source order and does not mutate the original rows", () => {
     const before = JSON.stringify(rows);
     expect(discoveryRows(rows, "", "source").map(row => row.id)).toEqual(["xlf", "xlk", "xlu", "xli"]);

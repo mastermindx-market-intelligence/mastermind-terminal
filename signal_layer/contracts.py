@@ -29,6 +29,13 @@ from .washout_override import (OVERRIDE_TAKE_QUALITY, RECLAIM_OVERRIDE_TAKE_QUAL
 SCHEMA_INDICATOR = "mastermind.indicator/v1"
 SCHEMA_BACKTEST = "backtest_result/v1"
 
+# The confluence indicator's identity as ``indicator_contract`` stamps it by default. Named
+# here so a reader that must compare identities (ingest/gen_technical_scan.py — the screener
+# scan's staleness key is (indicator id, engine, signal era)) reads the one definition
+# instead of copying the strings.
+CONFLUENCE_INDICATOR_ID = "confluence_rsimacd_stochrsi_mtf"
+CONFLUENCE_ENGINE = "python:signal_layer.confluence_v2@v2"
+
 # The flagship's faithful Pine params (mirrors confluence.py module constants).
 # macd_kind alone is insufficient — two rsi_based MACDs of different lengths still
 # disagree (research doc §4 / D6), so the lengths live in params and are hashed.
@@ -142,15 +149,30 @@ def strategy_spec_hash(strategy_id: str = "rsimacd_stochrsi_mtf", params: dict |
     ).hexdigest()[:8]
 
 
+# ------------------------------------------------------------- bar phase -----
+def three_day_bar_closed(daily_close: pd.Series, bar_anchor: int = 0) -> bool | None:
+    """Whether the LAST 3D bar of ``compute_signals(daily_close, bar_anchor)`` is complete.
+
+    Restates the oracle's session grouping (``confluence._3d_groups``) without editing it:
+    a bar closes on the session whose global index ``i + bar_anchor`` is divisible by 3, so
+    the final bar is complete exactly when the last consumed session is such a close.
+    ``None`` for an empty series (no bar, no phase). Pinned bar-for-bar against
+    ``_3d_groups`` by ``tests/test_indicator_cutoff.py``."""
+    n = int(daily_close.dropna().shape[0])
+    if n == 0:
+        return None
+    return (n - 1 + int(bar_anchor)) % 3 == 0
+
+
 # ---------------------------------------------------------------- indicator --
 def indicator_contract(
     symbol: str,
     timeframe: str,
     sig: pd.DataFrame,
     *,
-    indicator_id: str = "confluence_rsimacd_stochrsi_mtf",
+    indicator_id: str = CONFLUENCE_INDICATOR_ID,
     title: str = "RSI-MACD × StochRSI MTF Confluence",
-    engine: str = "python:signal_layer.confluence_v2@v2",
+    engine: str = CONFLUENCE_ENGINE,
     source_lang: str = "python",
     params: dict | None = None,
     macd_kind: str = "rsi_based",
@@ -160,6 +182,7 @@ def indicator_contract(
     validation: dict | None = None,
     honest_read: str = "",
     v2: dict | None = None,
+    bar_closed: bool | None = None,
 ) -> dict:
     """Build a ``mastermind.indicator/v1`` doc from ``confluence.compute_signals`` output.
 
@@ -168,7 +191,13 @@ def indicator_contract(
     signals gain ``quality``/``tier``, CUT signals get ``scored:false``, and the two side
     channels ``early_dots``/``warnings`` are attached at the top level (capped to the last
     40 each). ``v2=None`` yields the plain oracle doc (back-compat for any caller that has
-    not wired the v2 emitter yet)."""
+    not wired the v2 emitter yet).
+
+    ``bar_closed`` is the published phase of the LAST 3D bar — True when its final session
+    has printed, False while it is still forming. Pass ``three_day_bar_closed(close,
+    bar_anchor)`` with the same close/anchor given to ``compute_signals``; None (the default,
+    for callers that have not wired it) publishes the cutoff with an unstated phase. The
+    phase is never inferred downstream: the screener scan reads it verbatim."""
     params = params or FLAGSHIP_PARAMS
     bars = [d.strftime("%Y-%m-%d") for d in sig.index]
 
@@ -196,6 +225,11 @@ def indicator_contract(
         "timeframe": timeframe,
         "as_of": as_of or (bars[-1] + "T00:00:00Z" if bars else None),
         "bar_quality": bar_quality,
+        # ── the completed-bar cutoff (screener scan contract, E01) ──
+        # WHICH DATA the state was computed from: the last daily session consumed and the
+        # opening session of the bar ``state`` describes. Kept in the slim broad slice (it is
+        # not one of the heavy chart arrays), so a reader never has to infer it.
+        "cutoff": _cutoff(sig, bars, bar_closed),
         # ── the signal-era fence (signal_layer/__init__.py) ──────────────────────────
         # WHICH RULE emitted these signals. Stamped unconditionally, including on emissions
         # that grant no override, because the fence's job is to make every artifact say
@@ -667,6 +701,27 @@ def _num(v):
     if not np.isfinite(f):
         return None
     return round(f, 6)
+
+
+def _cutoff(sig: pd.DataFrame, bars: list[str], bar_closed: bool | None) -> dict | None:
+    """``{session, bar_open, bar_closed}`` for the bar ``state`` describes, or None when the
+    frame cannot state one (empty, or no ``known_ts`` column — a legacy/synthetic frame).
+
+    ``session`` is the last row's ``known_ts`` (the last daily session the engine consumed);
+    ``bar_open`` is that row's 3D opening session. A frame whose bar opens after its own
+    availability session would be a future-bar leak; it publishes no cutoff rather than an
+    inverted one."""
+    if not bars or "known_ts" not in getattr(sig, "columns", ()):
+        return None
+    session = _iso_date(sig["known_ts"].iloc[-1], "")
+    bar_open = bars[-1]
+    if not session or bar_open > session:
+        return None
+    return {
+        "session": session,
+        "bar_open": bar_open,
+        "bar_closed": bar_closed if isinstance(bar_closed, bool) else None,
+    }
 
 
 def _iso_date(value, fallback: str) -> str:

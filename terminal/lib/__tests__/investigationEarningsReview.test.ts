@@ -2,8 +2,8 @@ import {describe,expect,it} from "vitest";
 import fixture from "./fixtures/aapl-event-workspace.json";
 import {normalizeEventWorkspace,type RetainedEventWorkspaceResult} from "../eventWorkspace";
 import {reviewRetainedEarnings} from "../investigationEarningsReview";
-function retained():Extract<RetainedEventWorkspaceResult,{ok:true}>{
- const workspace=normalizeEventWorkspace(structuredClone(fixture));
+function retained(payload:unknown=fixture):Extract<RetainedEventWorkspaceResult,{ok:true}>{
+ const workspace=normalizeEventWorkspace(structuredClone(payload));
  if(!workspace)throw Error("Invalid owner fixture");
  return {ok:true,workspace,receipt:{schema:"earnings.retained_baseline.v1",owner:"earnings.workspace_generation",company_id:workspace.issuer.company_id,event_id:workspace.event_id,generation_id:workspace.generation_id,workspace_schema:workspace.schema,manifest_schema:"event_workspace_manifest.v3",authority:"context_only",manifest_sha256:"a".repeat(64),manifest_bytes:1,workspace_sha256:"b".repeat(64),workspace_bytes:1,fingerprint:"c".repeat(64),public_known_at:workspace.lifecycle.source_available_at,platform_known_at:workspace.lifecycle.observed_at,generation_emitted_at:workspace.generated_at,rights:{allowed:true,checked_at:workspace.generated_at,policy_version:"fixture-current-rights"}}};
 }
@@ -33,6 +33,23 @@ describe("existing Earnings owner change projection",()=>{
   expect(result.review.items.find(row=>row.id==="owner:qualification")).toMatchObject({qualification:"changed",correction:true});
   expect(result.review.items.filter(row=>row.id!=="owner:qualification").every(row=>row.qualification==="unchanged"&&!row.correction)).toBe(true);
   expect(result.review.items.some(row=>row.version==="revised")).toBe(false);
+ });
+ it.each(["gross orders","42"])("preserves admitted denominator labels without inventing numeric interpretation (%s)",value=>{
+  // Use the current owner's bounded textual-fact shape, not a string-valued
+  // financial metric. Both observations pass through its actual normalizer.
+  const payload=structuredClone(fixture);
+  Object.assign(payload.facts[0],{fact_id:"fact_cancellation_rate_denominator",metric:"cancellation_rate_basis",value,unit:null,period:null,basis:"native convention"});
+  const old=retained(payload);
+  Object.assign(payload.facts[0],{value:`${value} revised`});
+  const now=retained(payload);
+  const prior=old.workspace.facts[0],current=now.workspace.facts[0];
+  expect(prior.source_span?.receipt_state).toBe("byte_replayed");
+  const result=reviewRetainedEarnings(old,now);
+  expect(result.review.items.find(row=>row.id===`fact:${prior.fact_id}`)).toMatchObject({
+   membership:"present",version:"revised",availability:"available",
+   interpretation:{comparable:false,reason:"not_applicable"},
+  });
+  expect(prior.value).toBe(value);expect(current.value).toBe(`${value} revised`);
  });
  it("refuses denied or mismatched current owner receipts without old row disclosure",()=>{
   const old=retained(),now=retained();now.receipt.company_id="cik:0000000001";
