@@ -1,0 +1,41 @@
+[
+  {
+    "label": "unit",
+    "exit": 0,
+    "command": [
+      "./node_modules/.bin/vitest",
+      "run",
+      "lib/__tests__/ExposureOriginStrip.test.tsx",
+      "lib/__tests__/exposureChartLink.test.ts",
+      "lib/__tests__/exposureChartReference.test.tsx",
+      "lib/__tests__/exposureOrigin.test.ts",
+      "lib/__tests__/exposureReplay.test.tsx",
+      "lib/__tests__/exposureReplayFrames.test.ts",
+      "lib/__tests__/gexDeskLoadFailureState.test.tsx",
+      "lib/__tests__/gexDeskPartialData.test.tsx",
+      "lib/__tests__/gexDeskStateRace.test.tsx",
+      "lib/__tests__/optionsMarketMemory.test.tsx",
+      "lib/__tests__/researchLabAdapter.test.ts",
+      "lib/__tests__/researchLabAdmission.test.tsx",
+      "lib/__tests__/researchLabView.test.tsx",
+      "lib/__tests__/researchReportedGamma.test.ts",
+      "lib/__tests__/researchReportedGammaMounted.test.tsx",
+      "lib/__tests__/sectorDepthReturn.test.ts",
+      "lib/__tests__/useExposureOriginRoster.test.tsx",
+      "--minWorkers=1",
+      "--maxWorkers=2"
+    ],
+    "logSha256": "60f28156794e3e300ef20a1a912890a55ebe7956f63cfde953f2e6408e1bb83c"
+  },
+  {
+    "label": "types-source",
+    "exit": 0,
+    "command": [
+      "./node_modules/.bin/tsc",
+      "--noEmit",
+      "-p",
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/protected4df-20261104/source-tsconfig.json"
+    ],
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

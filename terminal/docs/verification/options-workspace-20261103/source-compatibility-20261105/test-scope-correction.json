@@ -1,0 +1,15 @@
+{
+  "reason": "Two accidentally selected protected tests target the unchanged older ExposureMap. Original98 has neither test. Their new copies were removed; protected integration retains paired source/tests automatically. Initial9failures and diagnostic source copies retained.",
+  "files": [
+    {
+      "path": "terminal/lib/__tests__/exposureExpirySelection.test.tsx",
+      "state": "absent at original98; removed only session-created exact protected copy",
+      "protected_copy_sha256": "b323e537745ab4852b5ad6154e6a23461ad4cd285ea2758e3bacb76193763315"
+    },
+    {
+      "path": "terminal/lib/__tests__/exposureMomentumConsumer.test.tsx",
+      "state": "absent at original98; removed only session-created exact protected copy",
+      "protected_copy_sha256": "00f95ad381d72cdb0cbceb7077ac1e90c43763ded9db3adfcb66ee30b66c30ce"
+    }
+  ]
+}

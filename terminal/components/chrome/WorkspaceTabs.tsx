@@ -36,6 +36,8 @@ export interface WorkspaceTabsProps {
   /** Accessible name for the tablist (e.g. "Discover tabs"). */
   "aria-label"?: string;
   className?: string;
+  /** A workspace may keep one mounted panel for all destinations. */
+  panelId?: string;
 }
 
 export default function WorkspaceTabs({
@@ -44,6 +46,7 @@ export default function WorkspaceTabs({
   onSelect,
   "aria-label": ariaLabel,
   className,
+  panelId,
 }: WorkspaceTabsProps) {
   const t = useT();
   const { lang } = useLang();
@@ -54,22 +57,25 @@ export default function WorkspaceTabs({
   // off-screen. Keep this horizontal-only so activating a tab never moves the
   // surrounding document vertically. Locale is a layout dependency: EN↔ZH
   // changes every tab width even when the active key stays unchanged.
+  const activeIndex = tabs.findIndex((tab) => tab.key === active);
   useEffect(() => {
-    const frame = window.requestAnimationFrame(() => {
-      const nav = navRef.current;
-      const index = tabs.findIndex((tab) => tab.key === active);
-      const button = index >= 0 ? btnRefs.current[index] : null;
-      if (!nav || !button) return;
-      const left = button.offsetLeft;
-      const right = left + button.offsetWidth;
-      if (left < nav.scrollLeft) {
-        nav.scrollTo({ left, behavior: "auto" });
-      } else if (right > nav.scrollLeft + nav.clientWidth) {
-        nav.scrollTo({ left: right - nav.clientWidth, behavior: "auto" });
-      }
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [active, tabs, lang]);
+    const nav = navRef.current;
+    const button = btnRefs.current[activeIndex];
+    if (!nav || !button) return;
+    const reveal = () => {
+      if (!nav.clientWidth) return;
+      const bounds = button.getBoundingClientRect();
+      const left = nav.getBoundingClientRect().left + nav.clientLeft;
+      const right = left + nav.clientWidth;
+      if (bounds.left < left) nav.scrollTo({ left: nav.scrollLeft + bounds.left - left });
+      else if (bounds.right > right) nav.scrollTo({ left: nav.scrollLeft + bounds.right - right });
+    };
+    const frame = window.requestAnimationFrame(reveal);
+    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(reveal) : null;
+    observer?.observe(nav);
+    observer?.observe(button);
+    return () => { window.cancelAnimationFrame(frame); observer?.disconnect(); };
+  }, [active, activeIndex, lang, tabs.length]);
 
   // t(key) resolves the dict for the active lang and echoes `key` back when there's no
   // entry. So a zhLabel override applies ONLY when in zh AND the dict has no entry
@@ -84,7 +90,7 @@ export default function WorkspaceTabs({
     const n = tabs.length;
     if (n === 0) return;
     const i = ((to % n) + n) % n;
-    btnRefs.current[i]?.focus();
+    btnRefs.current[i]?.focus({ preventScroll: true });
     onSelect(tabs[i].key);
   };
 
@@ -128,7 +134,7 @@ export default function WorkspaceTabs({
             role="tab"
             id={`wtab-${tb.key}`}
             aria-selected={on}
-            aria-controls={`wpanel-${tb.key}`}
+            aria-controls={panelId ?? `wpanel-${tb.key}`}
             tabIndex={on ? 0 : -1}
             className={`obs-pillnav-tab${on ? " on" : ""}`}
             onClick={() => onSelect(tb.key)}

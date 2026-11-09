@@ -1,0 +1,87 @@
+{
+  "completedAt": "2026-11-09T18:02:10.730310+00:00",
+  "results": {
+    "lint": {
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "components/flowdesk/FlowFreshnessReceipt.tsx",
+        "components/workspaces/OptionsWorkspace.tsx",
+        "e2e/flow-freshness-responsive.spec.ts",
+        "--max-warnings=0"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seconds": 4.15
+    },
+    "typecheck": {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seconds": 41.98
+    },
+    "units": {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/replayEngine.test.ts",
+        "lib/__tests__/researchReportedGammaMounted.test.tsx",
+        "lib/__tests__/prophetOriginationDisclosure.test.ts",
+        "lib/__tests__/leadersPresentation.test.ts",
+        "lib/__tests__/flowDeskMalformedFeedEvents.test.tsx",
+        "lib/__tests__/selectionCohort.test.ts",
+        "lib/__tests__/surfaceContract.test.ts",
+        "lib/__tests__/researchReportedGamma.test.ts",
+        "lib/__tests__/selectionCohortCssBoundary.test.ts",
+        "lib/__tests__/flowFreshness.test.ts",
+        "lib/__tests__/flowPrintInspector.test.ts",
+        "lib/__tests__/flowPrintInspectorView.test.tsx",
+        "lib/__tests__/optionsWorkspaceNavigation.test.tsx",
+        "--pool=forks",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/docs/verification/pr1248-options-ux-integration-20261109/product-consumers-r1/units.json"
+      ],
+      "exit": 1,
+      "logSha256": "ba876faf2059c5d34a64f836d7a3b3e32ec1d443b827dbc7c5d69add629fd83a",
+      "report": {
+        "numFailedTests": 2,
+        "numPassedTestSuites": 66,
+        "numPassedTests": 329,
+        "numPendingTests": 0,
+        "numTotalTestSuites": 68,
+        "numTotalTests": 331,
+        "success": false
+      },
+      "seconds": 5.67
+    }
+  },
+  "schema": "terminal_pr1248_product_consumer_validation.v1",
+  "sourceEntries": 1955,
+  "sourceStable": true,
+  "startedAt": "2026-11-09T18:01:18.662558+00:00",
+  "state": "FAILED",
+  "testFiles": [
+    "replayEngine.test.ts",
+    "researchReportedGammaMounted.test.tsx",
+    "prophetOriginationDisclosure.test.ts",
+    "leadersPresentation.test.ts",
+    "flowDeskMalformedFeedEvents.test.tsx",
+    "selectionCohort.test.ts",
+    "surfaceContract.test.ts",
+    "researchReportedGamma.test.ts",
+    "selectionCohortCssBoundary.test.ts",
+    "flowFreshness.test.ts",
+    "flowPrintInspector.test.ts",
+    "flowPrintInspectorView.test.tsx",
+    "optionsWorkspaceNavigation.test.tsx"
+  ]
+}

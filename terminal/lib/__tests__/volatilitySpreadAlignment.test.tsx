@@ -34,10 +34,10 @@ describe("IV-realized-vol historical session alignment", () => {
     const agg = history(); const historyDay = agg.series!.at(-1)!.d; const current = day(110);
     await render(current, agg);
     expect(host.textContent).toContain(`Derived history ends ${historyDay}; current source snapshot is ${current}`);
-    expect(host.textContent).toContain("Withheld · sessions differ");
+    expect(host.querySelectorAll(".fin-kpi")).toHaveLength(1);
     expect(host.textContent).toContain("Reported spread now");
     expect(host.textContent).toContain("1.25");
-    expect(host.textContent).toContain("withheld until sessions align");
+    expect(host.textContent).toContain("Current range, trend and change are withheld");
     expect(host.querySelector("svg")).toBeTruthy(); // historical context remains visible
   });
 
@@ -61,7 +61,7 @@ describe("IV-realized-vol historical session alignment", () => {
     const agg = history(); const historyDay = agg.series!.at(-1)!.d;
     await render(null, agg);
     expect(host.textContent).toContain(`Derived history through ${historyDay}`);
-    expect(host.textContent).toContain("Withheld · sessions differ");
+    expect(host.querySelectorAll(".fin-kpi")).toHaveLength(1);
   });
   it("breaks the derived spread line at a missing source session instead of reconnecting it", async () => {
     const agg = history(130);

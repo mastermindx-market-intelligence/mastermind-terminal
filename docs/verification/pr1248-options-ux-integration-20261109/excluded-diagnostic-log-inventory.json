@@ -1,0 +1,90 @@
+{
+  "descriptorBoundNativeAndBrowserLogsIncluded": true,
+  "files": {
+    "docs/verification/pr1248-options-ux-integration-20261109/ci-owner-r1/owner.log": {
+      "bytes": 552,
+      "sha256": "f4f9315ce8bcb9465731f33705e2109a938af893fbde8bf0a960ef46a96db319"
+    },
+    "docs/verification/pr1248-options-ux-integration-20261109/ci-owner-r2/owner.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/pr1248-options-ux-integration-20261109/ci-owner-r2/runner-temp/terminal-ci-evidence/ci-20261109185448-2-batch2.stderr.log": {
+      "bytes": 103,
+      "sha256": "9fb940b95b0cb867882902f8bdfef0fb36083879aae240f7ae6ee840746296cc"
+    },
+    "docs/verification/pr1248-options-ux-integration-20261109/ci-owner-r2/runner-temp/terminal-ci-evidence/ci-20261109185448-2-batch2.stdout.log": {
+      "bytes": 1145,
+      "sha256": "3c7641aa9b31837643494c1bac5a8b429f4ed466e023e5564a46db3411902477"
+    },
+    "docs/verification/pr1248-options-ux-integration-20261109/ci-owner-r2/runner-temp/terminal-ci-evidence/ci-20261109185448-2-pl6.stderr.log": {
+      "bytes": 103,
+      "sha256": "9fb940b95b0cb867882902f8bdfef0fb36083879aae240f7ae6ee840746296cc"
+    },
+    "docs/verification/pr1248-options-ux-integration-20261109/ci-owner-r2/runner-temp/terminal-ci-evidence/ci-20261109185448-2-pl6.stdout.log": {
+      "bytes": 2264,
+      "sha256": "a0dc0bfac9f82e819d864ad508a431b92a9c69d673531271c18374bfbb9dfc93"
+    },
+    "docs/verification/pr1248-options-ux-integration-20261109/ci-owner-r2/runner-temp/terminal-ci-evidence/ci-20261109185448-2-vi.stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/pr1248-options-ux-integration-20261109/ci-owner-r2/runner-temp/terminal-ci-evidence/ci-20261109185448-2-vi.stdout.log": {
+      "bytes": 1304,
+      "sha256": "04946991850e6cfc1acfc122df3a58e7d44e1ae5ef47e90e951a92071299b19f"
+    },
+    "docs/verification/pr1248-options-ux-integration-20261109/consumer-validation-r1/affected-reader-lint.log": {
+      "bytes": 579,
+      "sha256": "827eb3becfb5982a891da8da1986c9881dd25db0f17dee8a8b2eb4b69246eabe"
+    },
+    "docs/verification/pr1248-options-ux-integration-20261109/consumer-validation-r1/legacy-boundary.log": {
+      "bytes": 716,
+      "sha256": "f2d272ccaf706ab84aff50bc38667f0f71b239a69f05fdc6c9067379fd10175f"
+    },
+    "docs/verification/pr1248-options-ux-integration-20261109/consumer-validation-r1/native-readers.log": {
+      "bytes": 379,
+      "sha256": "c38f01c12961ab77f6f13f1ea8a1a182919acee2ef0714ffbe1a82a0db07442c"
+    },
+    "docs/verification/pr1248-options-ux-integration-20261109/consumer-validation-r1/typecheck.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/pr1248-options-ux-integration-20261109/final-consumers-r2/selected-consumers.log": {
+      "bytes": 379,
+      "sha256": "30167b37b78c3bccef058e43a2f81bfca7dd40a309acb9defac10d543d764b85"
+    },
+    "docs/verification/pr1248-options-ux-integration-20261109/product-consumers-r1/lint.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/pr1248-options-ux-integration-20261109/product-consumers-r1/typecheck.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/pr1248-options-ux-integration-20261109/product-consumers-r1/units.log": {
+      "bytes": 368,
+      "sha256": "ba876faf2059c5d34a64f836d7a3b3e32ec1d443b827dbc7c5d69add629fd83a"
+    },
+    "docs/verification/pr1248-options-ux-integration-20261109/prophet-mobile-r1/browser.log": {
+      "bytes": 6279,
+      "sha256": "3b1a050caa78ac58c3df3b1dd1299d709fcf7dd036e7048f007e85148bbade52"
+    },
+    "docs/verification/pr1248-options-ux-integration-20261109/prophet-responsive-r2/browser.log": {
+      "bytes": 2040,
+      "sha256": "003bf0e657d2bcec1f8b0f499a91411f4de352fe572ca6008133b3520ff411fe"
+    },
+    "docs/verification/pr1248-options-ux-integration-20261109/prophet-snapshot-reconciliation/targeted-update.log": {
+      "bytes": 389,
+      "sha256": "f5e27e6b9c73afbead53cb7bcbbd2248851e7a2fa4cafdf17493db165a88981a"
+    },
+    "docs/verification/pr1248-options-ux-integration-20261109/reader-preflight-r1/legacy-boundary.log": {
+      "bytes": 714,
+      "sha256": "dadd3e211bbf5210f20561f99d3cec77927b62cadd2f133daf0e83872892e788"
+    },
+    "docs/verification/pr1248-options-ux-integration-20261109/reader-preflight-r1/source-reader-and-prophet.log": {
+      "bytes": 373,
+      "sha256": "0c4a61f1e5e47b133de260bee46c7ab04f365ed5aa8a46b2db151109aa6f4d9c"
+    }
+  },
+  "schema": "terminal_pr1248_excluded_raw_logs.v1"
+}

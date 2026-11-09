@@ -1,3 +1,11 @@
+# Current source proof is the complete Options workspace integration revision.
+exposureMasterIntegration20261109:
+  revision: "operations/exposure-source-compatibility-20261105/revisions/options-ux-integration-20261109"
+  descriptorSha256: "e058fd8cb78a257e66cb54c9c62bb768e9de869c4e1a13eaf6290840a6894499"
+  branchHead: "753b4a90ebd31a1da76a9595bb2fedde912da042"
+  protectedMaster: "03af393ce05c12282003a3919cc473c032264922"
+  integratedDependency: "7d0483c995df95ea76e988029d0c229d2a0e177c"
+
 # GEX desk, Levels and Heatmap failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR

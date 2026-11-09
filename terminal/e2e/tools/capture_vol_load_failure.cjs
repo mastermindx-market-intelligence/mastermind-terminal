@@ -31,6 +31,7 @@ const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
 const OUT = join(ROOT, "docs", "pr-crops", "vol-load-failure");
 const LAYOUT_FILES = [
+  "terminal/components/options/ResearchGrid.module.css",
   "terminal/components/vol/VolView.tsx",
   "terminal/components/vol/VolVrpPanel.tsx",
   "terminal/components/vol/volShared.tsx",

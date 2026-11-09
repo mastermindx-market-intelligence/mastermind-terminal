@@ -1,0 +1,10 @@
+{
+  "operation": "exposure-source-compatibility-20261105",
+  "kind": "eod",
+  "current_native_images": 126,
+  "prior_images_preserved": 126,
+  "protected_baseline_images": 126,
+  "root_manifest_sha256": "3f713df6ce033a4d80d43815c1112703ce30f1eb7984d27eeb2fa90eb72c7153",
+  "active_manifest_sha256": "83b7a54f7def760363e747e876d77bc8a9f53a5d0e79766ea3754858d5d9aafe",
+  "manifest_diff3_rc": 0
+}

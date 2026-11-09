@@ -21,6 +21,19 @@ const ROUTES = [
   "/api/watchlist",
   "/api/layouts",
   "/api/watchlist/annotations",
+  // Compile chart dependencies before explicit reloads. Cold route compilation can
+  // publish a dev hot update while the router is reinitializing. GET also warms
+  // POST-only modules via405 without issuing their write operation.
+  "/api/quote?view=regular&syms=NVDA",
+  "/api/drawings?symbol=NVDA",
+  "/api/scripts/list",
+  "/api/study-templates",
+  "/api/ext-quote?syms=NVDA",
+  "/api/flow?f=gexstate%3ANVDA",
+  "/api/brain/me",
+  "/api/brain/chart/state",
+  "/api/collect",
+  "/data/NVDA.opts.json",
 ];
 
 /** One request, with its own ceiling: a warm-up must never outlast the thing it protects. */

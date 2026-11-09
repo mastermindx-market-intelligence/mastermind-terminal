@@ -1,0 +1,37 @@
+[
+  {
+    "source": "final-source-inputs.before.json",
+    "stored": "final-source-inputs.before.json",
+    "source_sha256": "f0984acc3ab8b0d063b2517d1a4e975cbf837aafb0e8459a2643818baedf96f0",
+    "stored_sha256": "f0984acc3ab8b0d063b2517d1a4e975cbf837aafb0e8459a2643818baedf96f0",
+    "encoding": "identity"
+  },
+  {
+    "source": "fixtureWarmup.before.cjs",
+    "stored": "fixtureWarmup.before.cjs.gz",
+    "source_sha256": "4ff5d71c544d5310e630952539b23540cc179ff2e421034b452ef41adf9c2532",
+    "stored_sha256": "9df06f925f0409bdc07877f71e47c90522903a23a5a1c85804fe3ae1b48f2633",
+    "encoding": "gzip"
+  },
+  {
+    "source": "optionsVisualEvidence.before.ts",
+    "stored": "optionsVisualEvidence.before.ts.gz",
+    "source_sha256": "172eb833904545c54ae383c889677348ae5716def276e7218b9788103584b9d8",
+    "stored_sha256": "b31e85a8c4f3b17d2d7e8d7bdda58a839bd962a508d153f0b846a3ca33095dd8",
+    "encoding": "gzip"
+  },
+  {
+    "source": "promote-navigation-r4.before.py",
+    "stored": "promote-navigation-r4.before.py",
+    "source_sha256": "113684278830f04a759530a18a05fcd09b73297f2a2114bc56e01ee980c5ce9e",
+    "stored_sha256": "113684278830f04a759530a18a05fcd09b73297f2a2114bc56e01ee980c5ce9e",
+    "encoding": "identity"
+  },
+  {
+    "source": "qualification-plan.json",
+    "stored": "qualification-plan.json",
+    "source_sha256": "83e4e2e4f5c4a0dd41b881a31c1dc1cf6c1897a52db730c48d8e8b588520a7c5",
+    "stored_sha256": "83e4e2e4f5c4a0dd41b881a31c1dc1cf6c1897a52db730c48d8e8b588520a7c5",
+    "encoding": "identity"
+  }
+]

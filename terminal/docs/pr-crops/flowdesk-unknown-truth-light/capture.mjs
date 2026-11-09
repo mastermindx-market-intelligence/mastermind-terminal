@@ -54,6 +54,9 @@ const LAYOUT_FILES = [
   "terminal/app/globals.css",
   "terminal/app/observatory.css",
   "terminal/components/chrome/shared-shell/shared-shell.css",
+  "terminal/components/flowdesk/CommandWorkspace.module.css",
+  "terminal/components/flowdesk/EvidenceDisclosure.module.css",
+  "terminal/components/flowdesk/CommandResearch.module.css",
   "terminal/components/flowdesk/FeedPane.tsx",
   "terminal/components/flowdesk/FlowCard.tsx",
   "terminal/components/flowdesk/FlowDeskView.tsx",
@@ -310,7 +313,7 @@ function capturedAtHead() {
 async function main() {
   const { head, source } = capturedAtHead();
   mkdirSync(OUT, { recursive: true });
-  const server = startServer();
+  const server = process.env.CROP_USE_EXISTING_SERVER === "1" ? null : startServer();
   const checks = [];
   try {
     const feed = await waitForServer(240_000);

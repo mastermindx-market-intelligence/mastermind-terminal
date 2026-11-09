@@ -1,0 +1,561 @@
+{
+  "dependency": "7d0483c995df95ea76e988029d0c229d2a0e177c",
+  "files": {
+    "dependency768": {
+      "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml",
+        "gitBlob": "0bd8c1b472a2a3701f99b404ecac27b3b2d1e215",
+        "sha256": "f882d33ed2669c8a0e4812e0b3d0ef37fcc72ee0a16e0ecca04a6a5a85617b50"
+      },
+      "terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/b-pl-6-batch-1/EVIDENCE.yml",
+        "gitBlob": "25b8ff0209803e5997a5cf6daf9813658b971ddc",
+        "sha256": "a237a30a20e10e5c2416a52384694af7786e83fbd1d951eec775c8c1b0b68b44"
+      },
+      "terminal/docs/pr-crops/b-pl-6-batch-2/EVIDENCE.yml": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/b-pl-6-batch-2/EVIDENCE.yml",
+        "gitBlob": "2cdc47be486b65ecd202eb98d4c331d3baebb68d",
+        "sha256": "d972899c158647ced8ede996c9e4502e5a03943fe578ec4f6b037bec255c60c6"
+      },
+      "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-1440-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/b-pl-6-batch-2/LevelsView-1440-zh.png",
+        "gitBlob": "0edab58b600b998af30f81a15c0a187750c68362",
+        "sha256": "8f1b89411ba3bbb4ea1da920bb7c210f6fe366d5af5a6a51057654493041f8e9"
+      },
+      "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-1440.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/b-pl-6-batch-2/LevelsView-1440.png",
+        "gitBlob": "77baa74c40e184712acca9b40b5fe1f13cf9c035",
+        "sha256": "6c8cef9274ac45d73f0dd2b238144a7054ef0032e14fe28d183bac74db00622b"
+      },
+      "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml",
+        "gitBlob": "38d5d854e56d5eaa7703a552ca7921ff6b46d55f",
+        "sha256": "b7df8447eee8292088f3f6fbe72aed2d24f405eb05e24fc6a7cde8481552d224"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml",
+        "gitBlob": "151a7322f4243427bf2a04d94e3a638eb39ff30a",
+        "sha256": "33484acc89e8d49dd65ac37715a8eb120fb28c67d8336a93abb6a4df58001969"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-1440-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-1440-zh.png",
+        "gitBlob": "83f55b3a9db4b88bb86d3ad59b86dd463c038e68",
+        "sha256": "47a22cf196c19a44314631a6524a40a15183f7c71bc041b24086eea4dc5c56ea"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-1440.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-1440.png",
+        "gitBlob": "11e85a9aeb54323c56b025ddd9fe9147a1d45e9c",
+        "sha256": "f5c626b1d70652e80b4a7ce6f0efe9b9c690f2aa2aa7836efc9c064789525213"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-390-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-390-zh.png",
+        "gitBlob": "f24f77dd7bf9b5161c28f03a9cb358c4b158e9d7",
+        "sha256": "17a1fc094117d23749fdd6561a132bb96b14da20f5f88b65be9541eb7cbe3c4b"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-390.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-390.png",
+        "gitBlob": "2c26933a1071e070f85e59e57f15ef97ccd8ec65",
+        "sha256": "14b9692dacf1531d6648c6e00bc847db2802c369f19ff6c6b99ad87244e75471"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-820-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-820-zh.png",
+        "gitBlob": "903f32cdedd8162f856acb4bc26fc7479ba3d3e6",
+        "sha256": "56bf86abf7ab5d380e4dd02006dff5c225a50bb6b1a8f56381e3ea485c89d4b5"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-820.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-820.png",
+        "gitBlob": "b0d96e16df6e0e4785c3167b526c89c0b571c984",
+        "sha256": "9c704fc9c8235d520e98051a05b3de6a2b87da4ab2d2f26ae9d1cc6020553f3b"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-1440-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-1440-zh.png",
+        "gitBlob": "a889a0b1431e410ab4851ec58b0ee27c9865a181",
+        "sha256": "475c94bd55ae1119a811d081ef21422832d28bcff7a86b805dfe0e76c1d411cd"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-1440.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-1440.png",
+        "gitBlob": "de4fafe927bdfbdacee05259313c332d9077b36d",
+        "sha256": "19c6a12cbe800d6b59ea7a30d07f8c90b52bdfabab23c6cdc2041ba6d68534d3"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-390-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-390-zh.png",
+        "gitBlob": "1a1dcf88c4e1a971b9b5ea1601f4f0b6eb7fc707",
+        "sha256": "4c2b3e446cf390674051cae7d21a49143579acf47b993983ddcd4eb9437af479"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-390.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-390.png",
+        "gitBlob": "b12773699ff7b23fdd73f2af00369b2686732c08",
+        "sha256": "964d186985f7d2a0b25636b86be6bdc088e98df9aee2c401f3133cf9afe9088b"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-820-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-820-zh.png",
+        "gitBlob": "171425303383c8a0bbecfe9425dae631fd07bb3a",
+        "sha256": "c799b38f8746f0dc4ee572e439fbf1e62b031601174138d950451f961914e4aa"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-820.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-820.png",
+        "gitBlob": "941bc13bc3ba207f7b936c8bcbad2e78cdde4ab6",
+        "sha256": "efda24e0df85c9720b8d2b602d0cd8c73b3b89083c0f6371a1ff6b62c73cc9f9"
+      },
+      "terminal/docs/pr-crops/options-r1-w3/EVIDENCE.yml": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/options-r1-w3/EVIDENCE.yml",
+        "gitBlob": "046f05c1f8bf61a18adb6e8b13541fa29af710cf",
+        "sha256": "250e71b8b98e8b422e53a16c493c7661b17bf5436837892efd0ee602d5adc1cf"
+      },
+      "terminal/docs/pr-crops/options-r1-w3/flow-desk-inspector-820-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/options-r1-w3/flow-desk-inspector-820-zh.png",
+        "gitBlob": "6a3f5cdf3ba9e27844d09ce3257526e4320becf2",
+        "sha256": "4c31e7c0c6d0c3760a5aeedd4f4f9bdc9f95817c8e3f03c56766bfe540eed636"
+      },
+      "terminal/docs/pr-crops/options-r1-w3/flow-desk-inspector-print-end-820-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/options-r1-w3/flow-desk-inspector-print-end-820-zh.png",
+        "gitBlob": "1e4bb244468aeacdbf6e1eaa91317599b9e731b6",
+        "sha256": "13af1ee0effe1d1827b7a939867c8a9585013dd169186bc33f0232dab91d9dd2"
+      },
+      "terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/terminal-visual-intelligence/EVIDENCE.yml",
+        "gitBlob": "563f7222c95499fb3ffb6c25c873344da0463253",
+        "sha256": "eb9d0bd8c2fa52565a61f103b3855d4bc21d6a7d43fa3808e86df2d02173108e"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/EVIDENCE.yml": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/EVIDENCE.yml",
+        "gitBlob": "6107f4c7e877780df8a320e93ecc224e8fbf2a74",
+        "sha256": "f9442152ea43aa1ae527b22226ef6bf85373849997cc04883dcadb717e20ee13"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-absent-1440-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/snapshot-absent-1440-zh.png",
+        "gitBlob": "1b48424d138da8821f72a213fc00fa23ebada63c",
+        "sha256": "e4f1a21d2c5e1b866cb3627736951e1bc9b2d4b4d6d21798537c3ce8ce5ae768"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-absent-1440.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/snapshot-absent-1440.png",
+        "gitBlob": "5eba9baa874257b9d7b310d565893d5cf8d6c98c",
+        "sha256": "a3c951a0a78b253cd5f3d1a8275dea7b2bc20bb7624fcdb7511b810d8fbc1659"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-refused-1440-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/snapshot-refused-1440-zh.png",
+        "gitBlob": "6e9b89bc19cae332fdc9e48d887f71ee2df62ef9",
+        "sha256": "9557014817b9e99e0611191792c9d65efc95239fb37fecb3de47f1eec9836847"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-refused-1440.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/snapshot-refused-1440.png",
+        "gitBlob": "c449f1a2bb437db7e34a25354bd2defa5209430b",
+        "sha256": "d05a7d56ea085284e59f7c6aedb131822c78ac187614e5b96b1ed684f7e540ce"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-retried-1440-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/snapshot-retried-1440-zh.png",
+        "gitBlob": "2eaebfa8ae4043143b76edae734088ea29c13a73",
+        "sha256": "613f32320e613016ca4fcd17b3c0755c5b46ecc4185997232536d2fa9b75ec62"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-retried-1440.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/snapshot-retried-1440.png",
+        "gitBlob": "918555831317445557491cd9a86952e905f894a3",
+        "sha256": "d0f981a9880896f94d6d28e81507521dba7e532dc6e7bb9499a4668e8b226fd4"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-retried-390-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/snapshot-retried-390-zh.png",
+        "gitBlob": "c569583af00e4b62daa9fdfea94dabb865424fd4",
+        "sha256": "9b1884a9a81bc5914aa66ecb2c92eeb01c9da09e04c790ef3a48a6f60a7e1ad6"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-retried-390.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/snapshot-retried-390.png",
+        "gitBlob": "0a02d631964f63ba256115a2d1e2fc2f22ae6e87",
+        "sha256": "5982aee0a2f300c444ad72373149049ea3565ce85d4b25da48ad6fd26ff44b66"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-retried-820-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/snapshot-retried-820-zh.png",
+        "gitBlob": "24bfdb092648dc15763d2e91c4d1586e55b03bb1",
+        "sha256": "a2de5b1a3eeac4a87c2b6dbd19b6eeeaa0c30a0b4d7eb915bd15ab433c8118c5"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-retried-820.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/snapshot-retried-820.png",
+        "gitBlob": "aee73586a982249416c454cb4f54b8a124484871",
+        "sha256": "a218dbe7614b206ade8ec8ebd684eb0ceebf80a5db1ca90506a909b636a2a045"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-unavailable-1440-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/snapshot-unavailable-1440-zh.png",
+        "gitBlob": "3406805172037aa798f079a55b8093da57bd5d84",
+        "sha256": "ae3e74b38d70a7eaa3110ceb94083ff7e387e9d940bc221e047efb7acebd8bdb"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-unavailable-1440.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/snapshot-unavailable-1440.png",
+        "gitBlob": "b438964a00130366767a71541cc29bbe96e3bedc",
+        "sha256": "8c16831f649923e33a195a94836e8cf982dcc0001ca137bd892150c94940dd1d"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-unavailable-390-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/snapshot-unavailable-390-zh.png",
+        "gitBlob": "bd6956b4f4ed2b6dc4efe21bc7986d27f5e842a8",
+        "sha256": "1f93d342ddc91f0f9773fe928bb3100dacd9ba0d1872eda8427b4ae620bde4cf"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-unavailable-390.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/snapshot-unavailable-390.png",
+        "gitBlob": "2493f1b588834b76fbd05ec135b5f5f0d1f1453d",
+        "sha256": "0c8cea5c29d90ba51dc3ea58f5100801c88580d90ad9fef95ca4132b5c3ebb99"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-absent-1440-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/spread-absent-1440-zh.png",
+        "gitBlob": "571b95e071980825145061a4ab2ba136a50641ee",
+        "sha256": "a679dc6941fabeeb05b63f09cf39b649a3add9ec32de728eca3ac38a28ddb25a"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-absent-390-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/spread-absent-390-zh.png",
+        "gitBlob": "2a182d60225f8469328602cd6901174c6d6ccd09",
+        "sha256": "62140ad72c6637bbd59100956476275c6fb4789dd26f520f8c6745fc5195c2f9"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-absent-390.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/spread-absent-390.png",
+        "gitBlob": "3d96a82e866a06fd288af3ba2be3021670e86cff",
+        "sha256": "9003a98ed1dd116ae07f17693fd4829c4505848b1c18b889dfe3b8ae900fb13e"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-absent-820-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/spread-absent-820-zh.png",
+        "gitBlob": "37c25d6c540880bdcfd10489a483350e01212cd5",
+        "sha256": "59dc1a9404a5485a5547ab60d1dbd9ad4ee6ce663d1704afdfa505a0155ede2d"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-loading-1440-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/spread-loading-1440-zh.png",
+        "gitBlob": "7c7cd62c25e3d64d0d4e9593b5b2174068b4db33",
+        "sha256": "a1ad3cbcdd3b1852ede34be6ec454203ae6207aa153ebdbe49327ca88d82b2f7"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-loading-390-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/spread-loading-390-zh.png",
+        "gitBlob": "93b283df55ed851c0ab11e419b4136ff31ca06d2",
+        "sha256": "0d00fe54d6f083adc62828d39d269c6cff5a553a9cadf4196d43840996a4e9c1"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-loading-390.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/spread-loading-390.png",
+        "gitBlob": "c091b08b5bdfab39981990957f96cdb3627385b8",
+        "sha256": "fb5fe79797ac23ca12178efe76c04eb64b36f8e0fa61b15eeb690eb23c02f17c"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-loading-820-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/spread-loading-820-zh.png",
+        "gitBlob": "2ed361fd6463a5a7fc36617090197317dd622dee",
+        "sha256": "eb0715c43fe0fa9c1b3ebd4e1a8587e14ecbcab1b2ae4bd03fdfbfb6c57ea56b"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-retried-1440-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/spread-retried-1440-zh.png",
+        "gitBlob": "c5e95f9247a01c1d10010e38426a4a0d60caaba0",
+        "sha256": "a17bf1ea94c3e312f11bdfab305af71984e296ca762e2d68abeaefc2be622713"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-retried-390-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/spread-retried-390-zh.png",
+        "gitBlob": "c9fceb5003a9a60bda8ee3c6526368606f109928",
+        "sha256": "b10b5b3424bf3b8fe11eb74af87b746cccb06f634a37c5e21ddea1a5801e6cc9"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-retried-820-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/spread-retried-820-zh.png",
+        "gitBlob": "707616ee0b9b3d69012c2fc387077f89a6c3b992",
+        "sha256": "a5507c87cf13c82fc3a335c5e916bab2c25f2103e422fd84a7af2f4be9387beb"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-retried-820.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/spread-retried-820.png",
+        "gitBlob": "c7f6193e984f975321803fb6e1e01a9ffd57fda5",
+        "sha256": "11fbdd01267e6b90f53ec6f7e63a8eb7432355c6c54d1979ce8c4dbb854eef00"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-unavailable-1440-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/spread-unavailable-1440-zh.png",
+        "gitBlob": "3a1a4af6107d76fe5befa2f85a2a070c9ae8b741",
+        "sha256": "548955367f85d711025b47183b1afb677c99e7fd25cb5c253206438e019f9723"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-unavailable-390-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/spread-unavailable-390-zh.png",
+        "gitBlob": "1932f7c12242e048f31aa825beb5db6c1820c772",
+        "sha256": "0d73e8d13412349fc5be61770f70f0bd4daad578a778fe4e040da8c1df5de4ad"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-unavailable-390.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/spread-unavailable-390.png",
+        "gitBlob": "ac13ca57d687a9c367e1aad212f5d21129001ede",
+        "sha256": "56750cc571f720fbd1924265ffbd175b2e4df8c6301e2a88449e5df0db59667f"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-unavailable-820-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/spread-unavailable-820-zh.png",
+        "gitBlob": "f6b0c41a2dc90735d9c9a95319e9089968b3c2e8",
+        "sha256": "e9d882890c10fa4c1d707d639b34bdb3c279bbecef8fd6fe8958516b41b835cf"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-unavailable-820.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/dependency768/pr-crops/vol-load-failure/spread-unavailable-820.png",
+        "gitBlob": "48ec67dcc26d3b85d64dbde753604d4cf149472f",
+        "sha256": "8ac56fbc3f7fecaaa89dfe9edd68290fa052ce625d3c0d47ef106bad48c610e4"
+      }
+    },
+    "original": {
+      "terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/b-f11-10-analysis-theses-entry/EVIDENCE.yml",
+        "gitBlob": "9753a68f764e8e9ce3a9087c9cae327580ad132b",
+        "sha256": "14d9b9ef58cde66d7658f2e043cbba02a3f6a43e8b60251072012ea94301a771"
+      },
+      "terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/b-pl-6-batch-1/EVIDENCE.yml",
+        "gitBlob": "6100d9958d0a32a950648a7477426cb0a3741339",
+        "sha256": "95486803443de43348cc043a66dddbdaf9b2942d7285c6f6803a1ee8344e1ad0"
+      },
+      "terminal/docs/pr-crops/b-pl-6-batch-2/EVIDENCE.yml": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/b-pl-6-batch-2/EVIDENCE.yml",
+        "gitBlob": "633340d102013216d1fd7eafcb5a2f2a5b8b8fcf",
+        "sha256": "47323ad8035edda9ea18a690742448af2beff1393d6f395cee6aec769da6950b"
+      },
+      "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-1440-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/b-pl-6-batch-2/LevelsView-1440-zh.png",
+        "gitBlob": "a30c4a66fcd6dc79a1ee3a834ab1ca5bf5111cb6",
+        "sha256": "cfb674c9d0bf128b64f951b64d3007fe0794f5fe7fa94b3a7121ac988425958c"
+      },
+      "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-1440.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/b-pl-6-batch-2/LevelsView-1440.png",
+        "gitBlob": "9fc5eab08a097947370330a77af32c92355163c5",
+        "sha256": "5b67406189c957d84e44d571c73a4a14aab1998ab3d9663aeb3f50c680120da0"
+      },
+      "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml",
+        "gitBlob": "00762e97884fd7e0db0ba1ccef8ea48ec8ca8c9c",
+        "sha256": "2fbd72468ad8d62c06c12964b0d51b7867750e578900a1291e890b0761b52323"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml",
+        "gitBlob": "f932f1090b7cc76dbcbcf88d62de2625f06d42cf",
+        "sha256": "be8cbe0d2326eee92b3c1f90ddd45a592ed50cc37f81e348d203b8854e0ce713"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-1440-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-1440-zh.png",
+        "gitBlob": "4c24f924b8aaaa1574d0d9f15deaf276c4603af7",
+        "sha256": "f90251daa00ab4d8fa4d64a02b3b67457dee3e2ada16eccd3ff2dde81d648d25"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-1440.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-1440.png",
+        "gitBlob": "77a33dc597c169264bef10f3291c336d08aed66e",
+        "sha256": "8c65596d3861449d20901ea92337e6a57056e85ccf1fc109ecd1c3736103010a"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-390-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-390-zh.png",
+        "gitBlob": "49a3a3a784cb68d3baefcf7060051bca5c529a27",
+        "sha256": "83a2212750e8353eee2ae7ea30cddfff5aea0481ae1923c1dcf700969ab776d4"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-390.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-390.png",
+        "gitBlob": "3d9a416ae61e16f6f7d2453deb7535ca389a7cd2",
+        "sha256": "97df7c0b41937dabecc02db8a6524273eaac88c4082c4ffce6d5f72aa8a9400d"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-820-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-820-zh.png",
+        "gitBlob": "b079a022f5d840048c899711914b21bd2bb6be4a",
+        "sha256": "7c07896f2f3e28ffa817d538b94c8828eef3cbf3e7601d49c6097ecb5185f94d"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-820.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-820.png",
+        "gitBlob": "eb6f06fd228620b693550aba1fa4fe53579cc1bc",
+        "sha256": "cd202acdf0dbd6eb6a345dcad140297d0889d72e74717322f6cb49780439b1dc"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-1440-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-1440-zh.png",
+        "gitBlob": "8727f0b6ebb88ae79c635cd4eccb77588d4e6cb7",
+        "sha256": "2405cfcdfaf77d4512591c7c748ec21df2b06834abfe69acd4318cbbdc9a1e78"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-1440.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-1440.png",
+        "gitBlob": "87827afa7e480999478548a3440a1aeac3e0d8b1",
+        "sha256": "66c3eaff94b1b15f7d94c65175998f80d009daf8b89ca5e1bc8efba1dbcc6310"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-390-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-390-zh.png",
+        "gitBlob": "922a965ec384e074f2ce27242bdcf3fe0f9ce1d6",
+        "sha256": "104235996b78290663a6fcef5a820161df2f18633482cefcbde54bb7ff5a8df8"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-390.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-390.png",
+        "gitBlob": "b008f6a3ba14bf2dcf8a6139b7cb5327d2f0c647",
+        "sha256": "097ea952ed521a6bc730f9070bed8a1e7bf02759832e542f6b048ffbd9bee5d6"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-820-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-820-zh.png",
+        "gitBlob": "921ac8ff1ef9e8d0b2da0ce5b9ae790cdcea415e",
+        "sha256": "6ef198e8cb451a293875c55b1225bc1c45b1e95498c0b4ff0a76d33a76e8281f"
+      },
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-820.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-820.png",
+        "gitBlob": "68d6eda1ba3f51d14ca32bbad408e14d19b475a2",
+        "sha256": "0b09f012bbf3a87717fa26612739c075f8a101ff6268666940dc845f9a59f455"
+      },
+      "terminal/docs/pr-crops/options-r1-w3/EVIDENCE.yml": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/options-r1-w3/EVIDENCE.yml",
+        "gitBlob": "d1a137cca01b81e3f48bffb13e971687ffa8752e",
+        "sha256": "334cb7c6e2b67b845e2754a692d3a0776b4967714adc5a6e685f2a3856e0b390"
+      },
+      "terminal/docs/pr-crops/options-r1-w3/flow-desk-inspector-820-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/options-r1-w3/flow-desk-inspector-820-zh.png",
+        "gitBlob": "11c4095c112f8b8ad36803eebc46fcd20a3e6402",
+        "sha256": "ddff4249f5761ac0ee8cffd33ed7bfced8e6a6e9c956dd91b5e1cbb46459466f"
+      },
+      "terminal/docs/pr-crops/options-r1-w3/flow-desk-inspector-print-end-820-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/options-r1-w3/flow-desk-inspector-print-end-820-zh.png",
+        "gitBlob": "3b8f2152a289a3a4bdefcf8c523943b48dc79b3f",
+        "sha256": "faf92b4f55cc2678cfcc0f98978e1a1e8534839351b9cd4017f6c8c6fe2e3c16"
+      },
+      "terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/terminal-visual-intelligence/EVIDENCE.yml",
+        "gitBlob": "65ac4187f446dd768218ea9f05bf04d385de0b90",
+        "sha256": "2e15da325bf4da8feb3b53c6601261c31a443281ed5cbfbaa037d623e0decd22"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/EVIDENCE.yml": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/EVIDENCE.yml",
+        "gitBlob": "f29efd6529c9633cb76c87796f03579474cbaf73",
+        "sha256": "28c9c08c45377c0e4458e9cc6c53c97785c65c22ef861475dff30f7288a46a78"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-absent-1440-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/snapshot-absent-1440-zh.png",
+        "gitBlob": "885a7e1e63356850e5c66ca1434f5663603422c5",
+        "sha256": "4caa89b11a6f3bdc18e67792a7e1051b8dcd75254ae42821eb58b95f5e5a797a"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-absent-1440.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/snapshot-absent-1440.png",
+        "gitBlob": "b4ea6335280050e288cec216e540e9b1908be55e",
+        "sha256": "010b7a75f648407f7680a5606f73f59a02887ae85345651edb282e038d5067ad"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-refused-1440-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/snapshot-refused-1440-zh.png",
+        "gitBlob": "39385497dfbf1c1ee359978b3c210de967b67c18",
+        "sha256": "9c1c97c06db24cdb2ce074dbd4736002e2baf206371cd4af50b7690d3aa6bc0c"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-refused-1440.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/snapshot-refused-1440.png",
+        "gitBlob": "c8b3ab2dcec27e9f033d77fa8a8d173e18b97a2c",
+        "sha256": "5cfaf85111dc0776927b11a4e309983bd31ecdb07795a58003d72b5096f044ed"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-retried-1440-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/snapshot-retried-1440-zh.png",
+        "gitBlob": "1aade9f28e888a2688dd8dc8e0552bfaeaa733c7",
+        "sha256": "563ee78e35492c29ad455dd428692c80a0e5ce9431d09f9bd33dd5e084caf850"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-retried-1440.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/snapshot-retried-1440.png",
+        "gitBlob": "c9397555fc88b88cab452ae4b9381d6242e7daab",
+        "sha256": "70d934a85ff80952f96cbeb18bff6b31564131c9e2deff1fa58a3392c7f35f2f"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-retried-390-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/snapshot-retried-390-zh.png",
+        "gitBlob": "80608e28ea143dc098759480ebf3abfa95abc0d9",
+        "sha256": "aa4845f0847746af0f7b521970755ca77c1b2bbc5626c20ab0b643104a03b147"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-retried-390.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/snapshot-retried-390.png",
+        "gitBlob": "ab9c868768a64a0844176e4d26111f7ed5585d4f",
+        "sha256": "d9f80cf6403acdf4d6bd9752b4a6defcd0b0621b6762cb7c9628535e9a059be9"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-retried-820-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/snapshot-retried-820-zh.png",
+        "gitBlob": "9de16119773216ac30899bc70c2f26184ec62c89",
+        "sha256": "59f4c5cb3581df79b9e03d8f2bca8570bb46a79bacb06df56dce93209b669ab9"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-retried-820.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/snapshot-retried-820.png",
+        "gitBlob": "8e9937cf0afe105dd183c92f69057955a24a2433",
+        "sha256": "f4fc3508eff374c8f6a376e950376ccdd99dca8b405d429040866809ceba49c5"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-unavailable-1440-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/snapshot-unavailable-1440-zh.png",
+        "gitBlob": "94b6446eb1ec660a799acbbfb74774e94e1017a5",
+        "sha256": "1155fd3e828217439a77f10228f17cdaa9e17b5bfb5c9e52a65c27e5d6b8ba01"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-unavailable-1440.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/snapshot-unavailable-1440.png",
+        "gitBlob": "68f0e2ae4517d96c221ffab9a421bf002a76d46b",
+        "sha256": "7b8bddf373631a5fe06a61c72fd645dcf4e3b6b5c5af2631fdee1c5fad30b2c9"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-unavailable-390-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/snapshot-unavailable-390-zh.png",
+        "gitBlob": "dfcee59a54cb9595ae70aa3aba1a92adc2e63123",
+        "sha256": "83d2febbb9b7a5b190c7320de44151e3d90b8e131c13636b6afd79a90fe68784"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/snapshot-unavailable-390.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/snapshot-unavailable-390.png",
+        "gitBlob": "ccca22258376816ca5c0e2d69095e22523437e39",
+        "sha256": "4db944676bef1523e8f34bb7b392efc9c2ca4d9a3a4d8646ed7fef3c1937e8c5"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-absent-1440-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/spread-absent-1440-zh.png",
+        "gitBlob": "66b52af1e4b23570485e6b633c88593cfdc804be",
+        "sha256": "b535b5e052335bc941eaf90e9f611661b4de7d255d0bae816b170f8bec15b6fc"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-absent-390-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/spread-absent-390-zh.png",
+        "gitBlob": "d75d4dc4d6231619efc31b3e56bd2e6ae04cbfac",
+        "sha256": "a8d4d19fc97587b48db6588095f5284bbdfec1062229522e7fb98e9a9305bef7"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-absent-390.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/spread-absent-390.png",
+        "gitBlob": "74574d029c620e2d7d6bcc102668a9e7dac8a917",
+        "sha256": "0f36ae978de0ae3034f0f906c2e3e956d1544e9eb71eeeeacfbcb24853cf144d"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-absent-820-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/spread-absent-820-zh.png",
+        "gitBlob": "e766cd64829014104f11cd4aff339f39c42d93de",
+        "sha256": "fb8ae459912591efc386e00ff85af0ef3dd402499c4fe00f62a7f3389dc2331d"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-loading-1440-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/spread-loading-1440-zh.png",
+        "gitBlob": "07667f0008fa0ae4e83097a91ffb695d8882fac7",
+        "sha256": "973638c876cc8a7b94be244c32b97bd51e094bb3270a31a2865c75e86d4c5480"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-loading-390-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/spread-loading-390-zh.png",
+        "gitBlob": "26d8f0cfe6c6757df8a46fd9abfea305447833e7",
+        "sha256": "2b33023617c820debf8cddc6d1578cdf9afbe9512b0b8aff3b4ed347b31ee96f"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-loading-390.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/spread-loading-390.png",
+        "gitBlob": "f819d0754a718eec2585b187a3f4dfc2a434a003",
+        "sha256": "259c7233ba73886a636e909a204e5c6d040d2c059bb30a62d739c96e0f34feb6"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-loading-820-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/spread-loading-820-zh.png",
+        "gitBlob": "8e7e4de555a67562684f8a28b8e788b5b025775a",
+        "sha256": "e19ab12c6d3bd71d48e87c672193748c630e2ba8a92ad3d169a36ffc5c445b2a"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-retried-1440-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/spread-retried-1440-zh.png",
+        "gitBlob": "bb2473811794c51904c7879186f814e67e22aad1",
+        "sha256": "ad9cce6d83680da26461f12bc682ba515cc9a45975b50f7b1aa5b9a8ecd26178"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-retried-390-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/spread-retried-390-zh.png",
+        "gitBlob": "671eba77c484848cad00960bda47a039d35a00a9",
+        "sha256": "c31d947c79ab92fdc9ac717b3b153c548389f63cdcfd79cfba3fb05fa76f42a0"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-retried-820-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/spread-retried-820-zh.png",
+        "gitBlob": "1888411643a15d8523b22dc889618b3f9293ce63",
+        "sha256": "fa6236594a43c85ffdab9c616ce3a82180522da5f1e284446119062d39db3021"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-retried-820.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/spread-retried-820.png",
+        "gitBlob": "b07614e2c9e5d9bf88c39987f6b12bb89f539b2b",
+        "sha256": "d45ff159e4b44c81037348e64bdcea680c1da9f268e85cef3eaa46f2e12fdaec"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-unavailable-1440-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/spread-unavailable-1440-zh.png",
+        "gitBlob": "d4b1b49c39d02ac395ba1a32bd4d53c3fd0d2a91",
+        "sha256": "57004887b5aa2f07165b66ef8d8d811ad9b6ef331154c7ab9064eed5721530c7"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-unavailable-390-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/spread-unavailable-390-zh.png",
+        "gitBlob": "3cd72d213fd42fa932f8ed0055898e281ba4a340",
+        "sha256": "4f39f7d0e98f5aa900868b4dc61e2d5e92670961a12aac92cf8cd1e3d5011cec"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-unavailable-390.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/spread-unavailable-390.png",
+        "gitBlob": "9567b262a6bc50150457e274676a23d54d788e4d",
+        "sha256": "3c17987d74ab90d4ffed6081d88d1e4c2abde3c44cc118aa759f7399c6da615b"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-unavailable-820-zh.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/spread-unavailable-820-zh.png",
+        "gitBlob": "0c309f6e81f571bdf2f78c9fb87794ace715dab0",
+        "sha256": "04b30b25ca00153cd10ed2f2590653e0a9e46f2b9b58b490c09df8a3c2fc4777"
+      },
+      "terminal/docs/pr-crops/vol-load-failure/spread-unavailable-820.png": {
+        "archivePath": "docs/verification/pr1248-options-ux-integration-20261109/parent-conflicts/original/pr-crops/vol-load-failure/spread-unavailable-820.png",
+        "gitBlob": "183f486a3bd04305106f51fbae154bb35d728122",
+        "sha256": "88f3bea329006d501de7c8ddc558a4f0d39bc990a721dc4afb75d269e50d3fd7"
+      }
+    }
+  },
+  "head": "753b4a90ebd31a1da76a9595bb2fedde912da042",
+  "state": "BOTH_REAL_PARENT_CONFLICTED_EVIDENCE_BYTES_PRESERVED"
+}

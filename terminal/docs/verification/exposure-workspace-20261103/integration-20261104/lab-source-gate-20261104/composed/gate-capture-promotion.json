@@ -1,0 +1,22 @@
+[
+  {
+    "mode": "preview",
+    "kind": "gex",
+    "operation": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/options-combined-4df-lab-source-gate-20261104",
+    "priorManifestSha256": "a7201f679c379df0f5b391c353c1dbd41186928c00b92a283441171a3822d54c",
+    "manifestSha256": "3a6170ecbf98a367bfbd77268c35620ebb3bb04e1a0b6d1091f7e2c845828b18",
+    "nativeAffectedImages": 54,
+    "activeRootImages": 114,
+    "historicalSectionsUnchanged": true
+  },
+  {
+    "mode": "preview",
+    "kind": "eod",
+    "operation": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/options-combined-4df-lab-source-gate-20261104",
+    "priorManifestSha256": "8ec95b3ad047c55537f2630446777981d4fb8c3ebf4a95f74f4607003685587c",
+    "manifestSha256": "f4368986b0c18e6700c76bfe093bf8afdec34b758af2501848e8624cb0d43e47",
+    "nativeAffectedImages": 42,
+    "activeRootImages": 126,
+    "historicalSectionsUnchanged": true
+  }
+]

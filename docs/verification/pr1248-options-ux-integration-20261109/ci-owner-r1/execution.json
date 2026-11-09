@@ -1,0 +1,31 @@
+{
+  "branchHead": "753b4a90ebd31a1da76a9595bb2fedde912da042",
+  "command": [
+    "node",
+    "e2e/tools/capture_ci_evidence.cjs"
+  ],
+  "completedAt": "2026-11-09T18:52:19.425659+00:00",
+  "error": "{'schema': 'terminal_pr1248_complete_ci_owner_validation.v1', 'executionEnvironment': 'owned local validation; not a GitHub Actions run', 'localDiagnosticRunId': '20261109185448', 'localDiagnosticAttempt': '1', 'branchHead': '753b4a90ebd31a1da76a9595bb2fedde912da042', 'protectedMaster': '03af393ce05c12282003a3919cc473c032264922', 'integratedDependency': '7d0483c995df95ea76e988029d0c229d2a0e177c', 'indexTreeAtStart': '431684388c9400be05ed6a3b66c6d9d319afc8f1', 'command': ['node', 'e2e/tools/capture_ci_evidence.cjs'], 'workflowBlob': 'fc38b261161535f0cca571be91c51aa3e0ea87fe', 'workflowCaptureMinutes': 85, 'ownerSharedDeadlineMinutes': 84, 'sourceEntries': 1955, 'startedAt': '2026-11-09T18:52:13.850192+00:00', 'state': 'RUNNING', 'exit': 1, 'completedAt': '2026-11-09T18:52:19.423365+00:00', 'seconds': 5.57, 'logSha256': 'f4f9315ce8bcb9465731f33705e2109a938af893fbde8bf0a960ef46a96db319', 'sourceStable': True, 'sourceBeforeSha256': '21764f7ef04dcd0229a73c612fddfec64167fdbd1de4fc38352224ebf0042617', 'sourceAfterSha256': '21764f7ef04dcd0229a73c612fddfec64167fdbd1de4fc38352224ebf0042617', 'ownerReceipt': 'docs/verification/pr1248-options-ux-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109185448-1.json', 'ownerReceiptSha256': '4b68e66c025b4725403a0c607ca2b2d056eff898a1237b3d10d91c0c5d998032', 'ownerState': 'FAILED'}",
+  "executionEnvironment": "owned local validation; not a GitHub Actions run",
+  "exit": 1,
+  "indexTreeAtStart": "431684388c9400be05ed6a3b66c6d9d319afc8f1",
+  "integratedDependency": "7d0483c995df95ea76e988029d0c229d2a0e177c",
+  "localDiagnosticAttempt": "1",
+  "localDiagnosticRunId": "20261109185448",
+  "logSha256": "f4f9315ce8bcb9465731f33705e2109a938af893fbde8bf0a960ef46a96db319",
+  "ownerReceipt": "docs/verification/pr1248-options-ux-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109185448-1.json",
+  "ownerReceiptSha256": "4b68e66c025b4725403a0c607ca2b2d056eff898a1237b3d10d91c0c5d998032",
+  "ownerSharedDeadlineMinutes": 84,
+  "ownerState": "FAILED",
+  "protectedMaster": "03af393ce05c12282003a3919cc473c032264922",
+  "schema": "terminal_pr1248_complete_ci_owner_validation.v1",
+  "seconds": 5.57,
+  "sourceAfterSha256": "21764f7ef04dcd0229a73c612fddfec64167fdbd1de4fc38352224ebf0042617",
+  "sourceBeforeSha256": "21764f7ef04dcd0229a73c612fddfec64167fdbd1de4fc38352224ebf0042617",
+  "sourceEntries": 1955,
+  "sourceStable": true,
+  "startedAt": "2026-11-09T18:52:13.850192+00:00",
+  "state": "FAILED",
+  "workflowBlob": "fc38b261161535f0cca571be91c51aa3e0ea87fe",
+  "workflowCaptureMinutes": 85
+}

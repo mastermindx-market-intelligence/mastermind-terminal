@@ -1,0 +1,49 @@
+{
+  "schema": "options_production_compiler_proof.v1",
+  "command": [
+    "npm",
+    "run",
+    "build"
+  ],
+  "compiler": "Turbopack selected by normal Next16build",
+  "exit": 0,
+  "timed_out": false,
+  "duration_seconds": 87.83,
+  "started_at": "2026-11-05T07:22:24.376501+00:00",
+  "completed_at": "2026-11-05T07:23:52.209436+00:00",
+  "source_input_count": 3124,
+  "source_input_sha256": "dd8b4c978741a32f576f08277841dbda3952aeb128c97fa76a73a8a18a38f514",
+  "source_after_sha256": "daf678d9c62606bcdcfeb1f6167b7d543a397bb913bbdbdede41996ad79c85d3",
+  "generated_input_changes": {
+    "terminal/next-env.d.ts": {
+      "before": "7ad303e40d4fddf44f156129e397511953a71481c5cfd86b1862649aaaf240cc",
+      "after": "7b550dda9686c16f36a17bf9051d5dbf31e98555b30d114ac49fc49a1e712651"
+    }
+  },
+  "canonical_preview_source_unchanged": true,
+  "config_sha256": "61735ce838f638226a74db791feaa283abd5dbef88dd7a852c1caaf6c235e1c1",
+  "font_response_sha256": "9022de643fe32ffd697908b07dca73d6b9faf2eafb7570d34076a55c1b16493f",
+  "explicit_environment": {
+    "NEXT_FONT_GOOGLE_MOCKED_RESPONSES": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-navigation-r4/google-responses-turbopack.cjs",
+    "NODE_OPTIONS": "--no-experimental-webstorage",
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "ANALYSIS_LOCAL_PREVIEW": "1",
+    "ADMIN_DEV": "1",
+    "TERMINAL_E2E_FIXTURE": "1",
+    "TERMINAL_E2E_EMAIL": "responsive@example.com",
+    "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+    "RATE_LIMIT_MAX": "100000",
+    "HUB_REALTIME_QUOTES": "1",
+    "TICKER_NEWS_RAIL": "1",
+    "FLOW_FIXTURE": "1",
+    "INVESTIGATION_API_ADMISSION": "open",
+    "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key",
+    "NEXT_DEPLOYMENT_ID": "options-navigation-r4-local-compiler-proof"
+  },
+  "log_sha256": "5d1788c2f4f6363b5adce629d9b064d89c0d6bebe96d50fc1a82cf6c942a9194",
+  "build_id": "build-TfctsWXpff2fKS",
+  "production_browser_authentication_claimed": false,
+  "isolated_copy": true,
+  "owned_process_completed": true
+}

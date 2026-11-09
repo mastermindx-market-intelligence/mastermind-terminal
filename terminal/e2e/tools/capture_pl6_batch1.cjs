@@ -27,7 +27,7 @@ let immutablePng = null;
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
-const OUT = join(ROOT, "docs", "pr-crops", "b-pl-6-batch-1");
+const OUT = process.env.TERMINAL_CROP_OUTPUT_DIR || join(ROOT, "docs", "pr-crops", "b-pl-6-batch-1");
 // Keep prior failure receipts intact when a continuation owns a separate diagnostic directory.
 const FAILURE_OUT = process.env.TERMINAL_CAPTURE_FAILURE_DIR || OUT;
 const LAYOUT_FILES = [

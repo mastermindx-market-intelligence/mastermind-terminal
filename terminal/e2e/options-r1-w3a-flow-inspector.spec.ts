@@ -62,6 +62,12 @@ test("selecting e1 shows the print inspector with premium arithmetic, named-meth
   await openDesk(page, "en");
   await card(page, "$504.0K").click();
   const inspector = page.locator('[data-testid="flow-print-inspector"]');
+  const evidence = inspector.locator("details");
+  await expect(evidence).not.toHaveAttribute("open", "");
+  await expect(inspector.getByText("Bought · estimate", { exact: true })).toBeVisible();
+  await expect(inspector.getByText("$0.84", { exact: true })).toBeVisible();
+  await expect(inspector.getByText("receipt not supplied", { exact: false })).not.toBeVisible();
+  await evidence.locator("summary").click();
   await expect(inspector).toContainText("AAPL 230 C · Oct 23, 2026");
   await expect(inspector).toContainText("Event 10:40:12 ET");
   await expect(inspector).toContainText("receipt not supplied by the flow owner");
@@ -78,7 +84,9 @@ test("selecting e5 shows the owner's figure as not reproducible from size × pri
   await openDesk(page, "en");
   await card(page, "$395.0K").click();
   const inspector = page.locator('[data-testid="flow-print-inspector"]');
-  await expect(inspector).toContainText("owner's figure · not reproducible from 4,100 × $0.95 × 100");
+  await expect(inspector.locator("details")).not.toHaveAttribute("open", "");
+  await expect(inspector.getByRole("note")).toBeVisible();
+  await expect(inspector.getByRole("note")).toContainText("owner's figure · not reproducible from 4,100 × $0.95 × 100");
   await expect(inspector).toContainText("Mixed");
 });
 
@@ -138,6 +146,8 @@ test("the 中文 view renders the same inspector sections with no Latin machine 
 
   await card(page, "$504.0K").click();
   const inspector = page.locator('[data-testid="flow-print-inspector"]');
+  await expect(inspector.getByText("买入 · 估计", { exact: true })).toBeVisible();
+  await inspector.getByText("成交依据", { exact: true }).click();
   await expect(inspector).toContainText("选定成交明细");
   await expect(inspector).toContainText("买入 · 估计");
   await expect(inspector).toContainText("方法： 逐笔成交规则推断");
@@ -150,3 +160,123 @@ test("the 中文 view renders the same inspector sections with no Latin machine 
     expect(text, `ZH inspector must not contain "${leak}"`).not.toContain(leak);
   }
 });
+
+test("inspect by keyboard and return to the source print with filters intact", async ({ page, viewport }) => {
+  await openDesk(page, "en");
+  const search = page.getByRole("searchbox", { name: "Filter flow by ticker" });
+  await search.fill("AAPL");
+  const source = page.locator("#inspect-flow-w3a-e1");
+  await source.focus();
+  await source.press("Enter");
+  const inspector = page.getByRole("region", { name: "AAPL · Print inspector" });
+  await expect(inspector).toBeFocused();
+  await expect(inspector).toBeInViewport();
+  await inspector.press("Escape");
+  await expect(source).toBeFocused();
+  await expect(search).toHaveValue("AAPL");
+  await search.fill("NOT-A-ROOT");
+  await expect(page.locator('[data-tut="flow-card"]')).toHaveCount(0);
+  await page.getByRole("button", { name: "Clear selection" }).click();
+  await expect(source).toBeVisible();
+
+  if (viewport && viewport.width < 1000) {
+    const filters = page.getByRole("button", { name: "Filters", exact: true });
+    await filters.click();
+    const list = await page.locator(".obs-fd-list").boundingBox();
+    const print = await page.locator('[data-tut="flow-card"]').first().boundingBox();
+    expect(list!.height).toBeGreaterThanOrEqual(2 * print!.height);
+    await filters.click();
+    const sections = page.getByRole("navigation", { name: "Flow Desk sections" });
+    await sections.getByRole("button", { name: "Chain Heat" }).click();
+    await expect(page.locator('[data-tut="chain-heat"]')).toBeFocused();
+    await expect(page.locator('[data-tut="chain-heat"]')).toBeInViewport();
+    const research = await page.locator(".obs-fd-right").boundingBox();
+    const market = await page.locator(".obs-fd-left").boundingBox();
+    expect(research!.height).toBeGreaterThan(40);
+    expect(market!.height).toBeGreaterThan(40);
+    expect(market!.y).toBeGreaterThanOrEqual(research!.y + research!.height - 1);
+  }
+});
+
+test("a slow previous ticker cannot replace the selected print's context", async ({ page }) => {
+  await openDesk(page, "en");
+  let release!: () => void;
+  const slow = new Promise<void>(resolve => { release = resolve; });
+  await page.route(url => ["ticker:AAPL", "ticker:NVDA"].includes(url.searchParams.get("f") ?? ""), async route => {
+    const symbol = new URL(route.request().url()).searchParams.get("f")!.slice(7);
+    if (symbol === "AAPL") await slow;
+    await route.fulfill({ json: { root: symbol, day: { gross: symbol === "AAPL" ? 1500000 : 6500000, call_share: .5, n_events: 20 } } });
+  });
+  const started = page.waitForRequest(req => new URL(req.url()).searchParams.get("f") === "ticker:AAPL");
+  await page.locator("#inspect-flow-w3a-e1").click();
+  await started;
+  await page.locator("#inspect-flow-w3a-e8").click();
+  const inspector = page.getByRole("region", { name: "NVDA · Print inspector" });
+  await expect(inspector).toContainText("$6.5M");
+  const finished = page.waitForResponse(res => new URL(res.url()).searchParams.get("f") === "ticker:AAPL");
+  release();
+  await finished;
+  await expect(inspector).toContainText("$6.5M");
+  await expect(inspector).not.toContainText("$1.5M");
+});
+
+for (const lang of ["en", "zh"] as const) {
+  test(`selected Command print has one natural page scroll on compact screens (${lang})`, async ({ page, viewport }, testInfo) => {
+    await openDesk(page, lang);
+    const source = page.locator("#inspect-flow-w3a-e1");
+    await source.focus();
+    await source.press("Enter");
+    const selected = page.locator(".obs-fd-inspector.has-event");
+    const body = selected.locator(".obs-insp-body");
+    await expect(selected).toBeVisible();
+    const evidence = selected.locator('[data-testid="flow-print-inspector"] details');
+    await evidence.locator("summary").click();
+    await expect(evidence).toHaveAttribute("open", "");
+
+    const compact = !!viewport && viewport.width <= 999;
+    const metrics = await body.evaluate(el => {
+      const scroll = el.closest(".obs-flowdesk")!;
+      const inspector = el.closest(".obs-fd-inspector")!;
+      return {
+        overflow: getComputedStyle(el).overflowY,
+        bodyOverflow: el.scrollHeight - el.clientHeight,
+        cardOverflow: inspector.scrollHeight - inspector.clientHeight,
+        cardHeight: inspector.getBoundingClientRect().height,
+        deskOverflow: scroll.scrollHeight - scroll.clientHeight,
+        horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      };
+    });
+    expect(metrics.horizontalOverflow).toBeLessThanOrEqual(1);
+    if (compact) {
+      expect(metrics.overflow).toBe("visible");
+      expect(metrics.bodyOverflow).toBeLessThanOrEqual(2);
+      expect(metrics.cardOverflow).toBeLessThanOrEqual(2);
+      expect(metrics.deskOverflow).toBeGreaterThan(20);
+      // Evidence is in the page's one native scroll path, not clipped behind
+      // an independently scrolling, capped card.
+      const last = body.locator(":scope > :last-child");
+      await last.scrollIntoViewIfNeeded();
+      await expect(last).toBeInViewport();
+      if (testInfo.project.name === "mobile") {
+        await page.setViewportSize({ width: 320, height: 700 });
+        const narrow = await body.evaluate(el => ({
+          bodyOverflow: el.scrollHeight - el.clientHeight,
+          cardOverflow: el.closest(".obs-fd-inspector")!.scrollHeight - el.closest(".obs-fd-inspector")!.clientHeight,
+          horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        }));
+        expect(narrow.bodyOverflow).toBeLessThanOrEqual(2);
+        expect(narrow.cardOverflow).toBeLessThanOrEqual(2);
+        expect(narrow.horizontalOverflow).toBeLessThanOrEqual(1);
+        await last.scrollIntoViewIfNeeded();
+        await expect(last).toBeInViewport();
+      }
+    } else {
+      // Desktop uses its dedicated research rail; keep that bounded scroller.
+      expect(metrics.overflow).toBe("auto");
+      expect(metrics.bodyOverflow).toBeGreaterThan(20);
+    }
+    await page.screenshot({ path: testInfo.outputPath(`command-inspector-scroll-${lang}-${testInfo.project.name}.png`) });
+    await selected.press("Escape");
+    await expect(source).toBeFocused();
+  });
+}

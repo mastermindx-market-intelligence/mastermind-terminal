@@ -1,0 +1,4560 @@
+{
+  "cases": [
+    "desktop|3D research lab exact selection and responsive fallback en",
+    "desktop|3D research lab exact selection and responsive fallback zh",
+    "desktop|Archived chart return en restores the same book and strike",
+    "desktop|Archived chart return en withdraws a corrected selection",
+    "desktop|Archived chart return zh restores the same book and strike",
+    "desktop|Archived chart return zh withdraws a corrected selection",
+    "desktop|Archived exposure changes en compare the selected book",
+    "desktop|Archived exposure changes zh compare the selected book",
+    "desktop|Connected exposure workspace en: chart, comparison scopes, scanner and return",
+    "desktop|Connected exposure workspace zh: chart, comparison scopes, scanner and return",
+    "desktop|Exposure 0DTE complete grid shows its total",
+    "desktop|Exposure 0DTE unknown cell withholds the total",
+    "desktop|Exposure All except 0DTE withholds the total when a chain expiration is outside the snapshot",
+    "desktop|Exposure opens on usable strikes and reaches Market State and history",
+    "desktop|Exposure selection opens the main chart en with the same book",
+    "desktop|Exposure selection opens the main chart zh with the same book",
+    "desktop|Flow Desk separates Connected transport from measured source freshness",
+    "desktop|Main chart rejects a book corrected during navigation",
+    "desktop|Matched reported Gamma en separates contributions and source coverage",
+    "desktop|Matched reported Gamma zh separates contributions and source coverage",
+    "desktop|One observed side en remains a measured book through chart and return",
+    "desktop|One observed side zh remains a measured book through chart and return",
+    "desktop|Options can leave Exposure while new scripts and styles are still loading",
+    "desktop|Options can leave Research Lab while new scripts and styles are still loading",
+    "desktop|Options follows query navigation and Back/Forward while retaining visited desks",
+    "desktop|Partial observed exposure en preserves measured contributions",
+    "desktop|Partial observed exposure zh preserves measured contributions",
+    "desktop|Projected exposure memory en preserves measurements without a false delta",
+    "desktop|Projected exposure memory zh preserves measurements without a false delta",
+    "desktop|Research Lab admits a valid current read before the stream supplies a frame",
+    "desktop|Research Lab preserves the selected archive without substituting an available live book",
+    "desktop|Research Lab withdraws a retained absent source and restores the exact pin on recovery",
+    "desktop|Research Lab withdraws a retained unavailable source and restores the exact pin on recovery",
+    "desktop|Source-relative zero Gamma en does not match rolling expiry identities",
+    "desktop|Source-relative zero Gamma zh does not match rolling expiry identities",
+    "desktop|Surface can select, drag and step to an actual observation",
+    "desktop|Withheld Gamma definition en explains the admitted comparison boundary",
+    "desktop|Withheld Gamma definition zh explains the admitted comparison boundary",
+    "desktop|Withheld Gamma scope en explains the admitted comparison boundary",
+    "desktop|Withheld Gamma scope zh explains the admitted comparison boundary",
+    "desktop|[en] Exposure complete grid keeps its date-only source session",
+    "desktop|[en] Exposure known subtotal keeps its date-only source session",
+    "desktop|[zh] Exposure complete grid keeps its date-only source session",
+    "desktop|[zh] Exposure known subtotal keeps its date-only source session",
+    "desktop|a slow previous ticker cannot replace the selected print's context",
+    "desktop|a sparse GOOGL book keeps the page in place and identifies older history",
+    "desktop|coverage line keeps unknown premium in the denominator and totals calls and puts unsigned",
+    "desktop|equal-timestamp prints keep their id order across re-sorts (e6 before e9)",
+    "desktop|exact Lab question stage and withdrawal en dark",
+    "desktop|exact Lab question stage and withdrawal en light",
+    "desktop|exact Lab question stage and withdrawal zh dark",
+    "desktop|exact Lab question stage and withdrawal zh light",
+    "desktop|inspect by keyboard and return to the source print with filters intact",
+    "desktop|real entitled screener rows compare without any new data request",
+    "desktop|revisiting an archived Exposure book consumes its corrected source (en)",
+    "desktop|revisiting an archived Exposure book consumes its corrected source (zh)",
+    "desktop|selected Command print has one natural page scroll on compact screens (en)",
+    "desktop|selected Command print has one natural page scroll on compact screens (zh)",
+    "desktop|selecting e1 shows the print inspector with premium arithmetic, named-method side and the not-supplied clocks",
+    "desktop|selecting e5 shows the owner's figure as not reproducible from size \u00d7 price \u00d7 100",
+    "desktop|synthetic exposure saved theme cold return en",
+    "desktop|synthetic exposure saved theme cold return zh",
+    "desktop|synthetic exposure surface journey en",
+    "desktop|synthetic exposure surface journey zh",
+    "desktop|the 23 Oct expiry filter hides the 20 Nov row and never changes the coverage line",
+    "desktop|the expiry filter survives a reload through flowdesk.filters.v1",
+    "desktop|the \u4e2d\u6587 view renders the same inspector sections with no Latin machine text",
+    "mobile|3D research lab exact selection and responsive fallback en",
+    "mobile|3D research lab exact selection and responsive fallback zh",
+    "mobile|Archived chart return en restores the same book and strike",
+    "mobile|Archived chart return en withdraws a corrected selection",
+    "mobile|Archived chart return zh restores the same book and strike",
+    "mobile|Archived chart return zh withdraws a corrected selection",
+    "mobile|Archived exposure changes en compare the selected book",
+    "mobile|Archived exposure changes zh compare the selected book",
+    "mobile|Connected exposure workspace en: chart, comparison scopes, scanner and return",
+    "mobile|Connected exposure workspace zh: chart, comparison scopes, scanner and return",
+    "mobile|Exposure 0DTE complete grid shows its total",
+    "mobile|Exposure 0DTE unknown cell withholds the total",
+    "mobile|Exposure All except 0DTE withholds the total when a chain expiration is outside the snapshot",
+    "mobile|Exposure opens on usable strikes and reaches Market State and history",
+    "mobile|Exposure selection opens the main chart en with the same book",
+    "mobile|Exposure selection opens the main chart zh with the same book",
+    "mobile|Flow Desk separates Connected transport from measured source freshness",
+    "mobile|Main chart rejects a book corrected during navigation",
+    "mobile|Matched reported Gamma en separates contributions and source coverage",
+    "mobile|Matched reported Gamma zh separates contributions and source coverage",
+    "mobile|One observed side en remains a measured book through chart and return",
+    "mobile|One observed side zh remains a measured book through chart and return",
+    "mobile|Options can leave Exposure while new scripts and styles are still loading",
+    "mobile|Options can leave Research Lab while new scripts and styles are still loading",
+    "mobile|Options follows query navigation and Back/Forward while retaining visited desks",
+    "mobile|Partial observed exposure en preserves measured contributions",
+    "mobile|Partial observed exposure zh preserves measured contributions",
+    "mobile|Projected exposure memory en preserves measurements without a false delta",
+    "mobile|Projected exposure memory zh preserves measurements without a false delta",
+    "mobile|Research Lab admits a valid current read before the stream supplies a frame",
+    "mobile|Research Lab preserves the selected archive without substituting an available live book",
+    "mobile|Research Lab withdraws a retained absent source and restores the exact pin on recovery",
+    "mobile|Research Lab withdraws a retained unavailable source and restores the exact pin on recovery",
+    "mobile|Source-relative zero Gamma en does not match rolling expiry identities",
+    "mobile|Source-relative zero Gamma zh does not match rolling expiry identities",
+    "mobile|Surface can select, drag and step to an actual observation",
+    "mobile|Withheld Gamma definition en explains the admitted comparison boundary",
+    "mobile|Withheld Gamma definition zh explains the admitted comparison boundary",
+    "mobile|Withheld Gamma scope en explains the admitted comparison boundary",
+    "mobile|Withheld Gamma scope zh explains the admitted comparison boundary",
+    "mobile|[en] Exposure complete grid keeps its date-only source session",
+    "mobile|[en] Exposure known subtotal keeps its date-only source session",
+    "mobile|[zh] Exposure complete grid keeps its date-only source session",
+    "mobile|[zh] Exposure known subtotal keeps its date-only source session",
+    "mobile|a slow previous ticker cannot replace the selected print's context",
+    "mobile|a sparse GOOGL book keeps the page in place and identifies older history",
+    "mobile|coverage line keeps unknown premium in the denominator and totals calls and puts unsigned",
+    "mobile|equal-timestamp prints keep their id order across re-sorts (e6 before e9)",
+    "mobile|exact Lab question stage and withdrawal en dark",
+    "mobile|exact Lab question stage and withdrawal en light",
+    "mobile|exact Lab question stage and withdrawal zh dark",
+    "mobile|exact Lab question stage and withdrawal zh light",
+    "mobile|inspect by keyboard and return to the source print with filters intact",
+    "mobile|real entitled screener rows compare without any new data request",
+    "mobile|revisiting an archived Exposure book consumes its corrected source (en)",
+    "mobile|revisiting an archived Exposure book consumes its corrected source (zh)",
+    "mobile|selected Command print has one natural page scroll on compact screens (en)",
+    "mobile|selected Command print has one natural page scroll on compact screens (zh)",
+    "mobile|selecting e1 shows the print inspector with premium arithmetic, named-method side and the not-supplied clocks",
+    "mobile|selecting e5 shows the owner's figure as not reproducible from size \u00d7 price \u00d7 100",
+    "mobile|synthetic exposure saved theme cold return en",
+    "mobile|synthetic exposure saved theme cold return zh",
+    "mobile|synthetic exposure surface journey en",
+    "mobile|synthetic exposure surface journey zh",
+    "mobile|the 23 Oct expiry filter hides the 20 Nov row and never changes the coverage line",
+    "mobile|the expiry filter survives a reload through flowdesk.filters.v1",
+    "mobile|the \u4e2d\u6587 view renders the same inspector sections with no Latin machine text",
+    "tablet|3D research lab exact selection and responsive fallback en",
+    "tablet|3D research lab exact selection and responsive fallback zh",
+    "tablet|Archived chart return en restores the same book and strike",
+    "tablet|Archived chart return en withdraws a corrected selection",
+    "tablet|Archived chart return zh restores the same book and strike",
+    "tablet|Archived chart return zh withdraws a corrected selection",
+    "tablet|Archived exposure changes en compare the selected book",
+    "tablet|Archived exposure changes zh compare the selected book",
+    "tablet|Connected exposure workspace en: chart, comparison scopes, scanner and return",
+    "tablet|Connected exposure workspace zh: chart, comparison scopes, scanner and return",
+    "tablet|Exposure 0DTE complete grid shows its total",
+    "tablet|Exposure 0DTE unknown cell withholds the total",
+    "tablet|Exposure All except 0DTE withholds the total when a chain expiration is outside the snapshot",
+    "tablet|Exposure opens on usable strikes and reaches Market State and history",
+    "tablet|Exposure selection opens the main chart en with the same book",
+    "tablet|Exposure selection opens the main chart zh with the same book",
+    "tablet|Flow Desk separates Connected transport from measured source freshness",
+    "tablet|Main chart rejects a book corrected during navigation",
+    "tablet|Matched reported Gamma en separates contributions and source coverage",
+    "tablet|Matched reported Gamma zh separates contributions and source coverage",
+    "tablet|One observed side en remains a measured book through chart and return",
+    "tablet|One observed side zh remains a measured book through chart and return",
+    "tablet|Options can leave Exposure while new scripts and styles are still loading",
+    "tablet|Options can leave Research Lab while new scripts and styles are still loading",
+    "tablet|Options follows query navigation and Back/Forward while retaining visited desks",
+    "tablet|Partial observed exposure en preserves measured contributions",
+    "tablet|Partial observed exposure zh preserves measured contributions",
+    "tablet|Projected exposure memory en preserves measurements without a false delta",
+    "tablet|Projected exposure memory zh preserves measurements without a false delta",
+    "tablet|Research Lab admits a valid current read before the stream supplies a frame",
+    "tablet|Research Lab preserves the selected archive without substituting an available live book",
+    "tablet|Research Lab withdraws a retained absent source and restores the exact pin on recovery",
+    "tablet|Research Lab withdraws a retained unavailable source and restores the exact pin on recovery",
+    "tablet|Source-relative zero Gamma en does not match rolling expiry identities",
+    "tablet|Source-relative zero Gamma zh does not match rolling expiry identities",
+    "tablet|Surface can select, drag and step to an actual observation",
+    "tablet|Withheld Gamma definition en explains the admitted comparison boundary",
+    "tablet|Withheld Gamma definition zh explains the admitted comparison boundary",
+    "tablet|Withheld Gamma scope en explains the admitted comparison boundary",
+    "tablet|Withheld Gamma scope zh explains the admitted comparison boundary",
+    "tablet|[en] Exposure complete grid keeps its date-only source session",
+    "tablet|[en] Exposure known subtotal keeps its date-only source session",
+    "tablet|[zh] Exposure complete grid keeps its date-only source session",
+    "tablet|[zh] Exposure known subtotal keeps its date-only source session",
+    "tablet|a slow previous ticker cannot replace the selected print's context",
+    "tablet|a sparse GOOGL book keeps the page in place and identifies older history",
+    "tablet|coverage line keeps unknown premium in the denominator and totals calls and puts unsigned",
+    "tablet|equal-timestamp prints keep their id order across re-sorts (e6 before e9)",
+    "tablet|exact Lab question stage and withdrawal en dark",
+    "tablet|exact Lab question stage and withdrawal en light",
+    "tablet|exact Lab question stage and withdrawal zh dark",
+    "tablet|exact Lab question stage and withdrawal zh light",
+    "tablet|inspect by keyboard and return to the source print with filters intact",
+    "tablet|real entitled screener rows compare without any new data request",
+    "tablet|revisiting an archived Exposure book consumes its corrected source (en)",
+    "tablet|revisiting an archived Exposure book consumes its corrected source (zh)",
+    "tablet|selected Command print has one natural page scroll on compact screens (en)",
+    "tablet|selected Command print has one natural page scroll on compact screens (zh)",
+    "tablet|selecting e1 shows the print inspector with premium arithmetic, named-method side and the not-supplied clocks",
+    "tablet|selecting e5 shows the owner's figure as not reproducible from size \u00d7 price \u00d7 100",
+    "tablet|synthetic exposure saved theme cold return en",
+    "tablet|synthetic exposure saved theme cold return zh",
+    "tablet|synthetic exposure surface journey en",
+    "tablet|synthetic exposure surface journey zh",
+    "tablet|the 23 Oct expiry filter hides the 20 Nov row and never changes the coverage line",
+    "tablet|the expiry filter survives a reload through flowdesk.filters.v1",
+    "tablet|the \u4e2d\u6587 view renders the same inspector sections with no Latin machine text"
+  ],
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/exposure-workspace.spec.ts",
+    "e2e/options-exposure-workspace.spec.ts",
+    "e2e/options-lab-source-state.spec.ts",
+    "e2e/options-exposure-surface-journey.spec.ts",
+    "e2e/options-research-question.spec.ts",
+    "e2e/exposure-partial-totals.spec.ts",
+    "e2e/options-contract-shortlist.spec.ts",
+    "e2e/options-deeplink.spec.ts",
+    "e2e/options-research-lab.spec.ts",
+    "e2e/options-workspace-usability.spec.ts",
+    "e2e/options-r1-w3a-flow-inspector.spec.ts",
+    "e2e/flow-freshness-responsive.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--list",
+    "--reporter=json",
+    "--grep",
+    "(?:3D\\ research\\ lab\\ exact\\ selection\\ and\\ responsive\\ fallback\\ en|3D\\ research\\ lab\\ exact\\ selection\\ and\\ responsive\\ fallback\\ zh|Archived\\ chart\\ return\\ en\\ restores\\ the\\ same\\ book\\ and\\ strike|Archived\\ chart\\ return\\ en\\ withdraws\\ a\\ corrected\\ selection|Archived\\ chart\\ return\\ zh\\ restores\\ the\\ same\\ book\\ and\\ strike|Archived\\ chart\\ return\\ zh\\ withdraws\\ a\\ corrected\\ selection|Archived\\ exposure\\ changes\\ en\\ compare\\ the\\ selected\\ book|Archived\\ exposure\\ changes\\ zh\\ compare\\ the\\ selected\\ book|Connected\\ exposure\\ workspace\\ en:\\ chart,\\ comparison\\ scopes,\\ scanner\\ and\\ return|Connected\\ exposure\\ workspace\\ zh:\\ chart,\\ comparison\\ scopes,\\ scanner\\ and\\ return|Exposure\\ 0DTE\\ complete\\ grid\\ shows\\ its\\ total|Exposure\\ 0DTE\\ unknown\\ cell\\ withholds\\ the\\ total|Exposure\\ All\\ except\\ 0DTE\\ withholds\\ the\\ total\\ when\\ a\\ chain\\ expiration\\ is\\ outside\\ the\\ snapshot|Exposure\\ opens\\ on\\ usable\\ strikes\\ and\\ reaches\\ Market\\ State\\ and\\ history|Exposure\\ selection\\ opens\\ the\\ main\\ chart\\ en\\ with\\ the\\ same\\ book|Exposure\\ selection\\ opens\\ the\\ main\\ chart\\ zh\\ with\\ the\\ same\\ book|Flow\\ Desk\\ separates\\ Connected\\ transport\\ from\\ measured\\ source\\ freshness|Main\\ chart\\ rejects\\ a\\ book\\ corrected\\ during\\ navigation|Matched\\ reported\\ Gamma\\ en\\ separates\\ contributions\\ and\\ source\\ coverage|Matched\\ reported\\ Gamma\\ zh\\ separates\\ contributions\\ and\\ source\\ coverage|One\\ observed\\ side\\ en\\ remains\\ a\\ measured\\ book\\ through\\ chart\\ and\\ return|One\\ observed\\ side\\ zh\\ remains\\ a\\ measured\\ book\\ through\\ chart\\ and\\ return|Options\\ can\\ leave\\ Exposure\\ while\\ new\\ scripts\\ and\\ styles\\ are\\ still\\ loading|Options\\ can\\ leave\\ Research\\ Lab\\ while\\ new\\ scripts\\ and\\ styles\\ are\\ still\\ loading|Options\\ follows\\ query\\ navigation\\ and\\ Back/Forward\\ while\\ retaining\\ visited\\ desks|Partial\\ observed\\ exposure\\ en\\ preserves\\ measured\\ contributions|Partial\\ observed\\ exposure\\ zh\\ preserves\\ measured\\ contributions|Projected\\ exposure\\ memory\\ en\\ preserves\\ measurements\\ without\\ a\\ false\\ delta|Projected\\ exposure\\ memory\\ zh\\ preserves\\ measurements\\ without\\ a\\ false\\ delta|Research\\ Lab\\ admits\\ a\\ valid\\ current\\ read\\ before\\ the\\ stream\\ supplies\\ a\\ frame|Research\\ Lab\\ preserves\\ the\\ selected\\ archive\\ without\\ substituting\\ an\\ available\\ live\\ book|Research\\ Lab\\ withdraws\\ a\\ retained\\ absent\\ source\\ and\\ restores\\ the\\ exact\\ pin\\ on\\ recovery|Research\\ Lab\\ withdraws\\ a\\ retained\\ unavailable\\ source\\ and\\ restores\\ the\\ exact\\ pin\\ on\\ recovery|Source\\-relative\\ zero\\ Gamma\\ en\\ does\\ not\\ match\\ rolling\\ expiry\\ identities|Source\\-relative\\ zero\\ Gamma\\ zh\\ does\\ not\\ match\\ rolling\\ expiry\\ identities|Surface\\ can\\ select,\\ drag\\ and\\ step\\ to\\ an\\ actual\\ observation|Withheld\\ Gamma\\ definition\\ en\\ explains\\ the\\ admitted\\ comparison\\ boundary|Withheld\\ Gamma\\ definition\\ zh\\ explains\\ the\\ admitted\\ comparison\\ boundary|Withheld\\ Gamma\\ scope\\ en\\ explains\\ the\\ admitted\\ comparison\\ boundary|Withheld\\ Gamma\\ scope\\ zh\\ explains\\ the\\ admitted\\ comparison\\ boundary|\\[en\\]\\ Exposure\\ complete\\ grid\\ keeps\\ its\\ date\\-only\\ source\\ session|\\[en\\]\\ Exposure\\ known\\ subtotal\\ keeps\\ its\\ date\\-only\\ source\\ session|\\[zh\\]\\ Exposure\\ complete\\ grid\\ keeps\\ its\\ date\\-only\\ source\\ session|\\[zh\\]\\ Exposure\\ known\\ subtotal\\ keeps\\ its\\ date\\-only\\ source\\ session|a\\ slow\\ previous\\ ticker\\ cannot\\ replace\\ the\\ selected\\ print's\\ context|a\\ sparse\\ GOOGL\\ book\\ keeps\\ the\\ page\\ in\\ place\\ and\\ identifies\\ older\\ history|coverage\\ line\\ keeps\\ unknown\\ premium\\ in\\ the\\ denominator\\ and\\ totals\\ calls\\ and\\ puts\\ unsigned|equal\\-timestamp\\ prints\\ keep\\ their\\ id\\ order\\ across\\ re\\-sorts\\ \\(e6\\ before\\ e9\\)|exact\\ Lab\\ question\\ stage\\ and\\ withdrawal\\ en\\ dark|exact\\ Lab\\ question\\ stage\\ and\\ withdrawal\\ en\\ light|exact\\ Lab\\ question\\ stage\\ and\\ withdrawal\\ zh\\ dark|exact\\ Lab\\ question\\ stage\\ and\\ withdrawal\\ zh\\ light|inspect\\ by\\ keyboard\\ and\\ return\\ to\\ the\\ source\\ print\\ with\\ filters\\ intact|real\\ entitled\\ screener\\ rows\\ compare\\ without\\ any\\ new\\ data\\ request|revisiting\\ an\\ archived\\ Exposure\\ book\\ consumes\\ its\\ corrected\\ source\\ \\(en\\)|revisiting\\ an\\ archived\\ Exposure\\ book\\ consumes\\ its\\ corrected\\ source\\ \\(zh\\)|selected\\ Command\\ print\\ has\\ one\\ natural\\ page\\ scroll\\ on\\ compact\\ screens\\ \\(en\\)|selected\\ Command\\ print\\ has\\ one\\ natural\\ page\\ scroll\\ on\\ compact\\ screens\\ \\(zh\\)|selecting\\ e1\\ shows\\ the\\ print\\ inspector\\ with\\ premium\\ arithmetic,\\ named\\-method\\ side\\ and\\ the\\ not\\-supplied\\ clocks|selecting\\ e5\\ shows\\ the\\ owner's\\ figure\\ as\\ not\\ reproducible\\ from\\ size\\ \u00d7\\ price\\ \u00d7\\ 100|synthetic\\ exposure\\ saved\\ theme\\ cold\\ return\\ en|synthetic\\ exposure\\ saved\\ theme\\ cold\\ return\\ zh|synthetic\\ exposure\\ surface\\ journey\\ en|synthetic\\ exposure\\ surface\\ journey\\ zh|the\\ 23\\ Oct\\ expiry\\ filter\\ hides\\ the\\ 20\\ Nov\\ row\\ and\\ never\\ changes\\ the\\ coverage\\ line|the\\ expiry\\ filter\\ survives\\ a\\ reload\\ through\\ flowdesk\\.filters\\.v1|the\\ \u4e2d\u6587\\ view\\ renders\\ the\\ same\\ inspector\\ sections\\ with\\ no\\ Latin\\ machine\\ text)$"
+  ],
+  "expectedCount": 201,
+  "report": {
+    "config": {
+      "argv": [
+        "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/node_modules/@playwright/test/cli.js",
+        "test",
+        "e2e/exposure-workspace.spec.ts",
+        "e2e/options-exposure-workspace.spec.ts",
+        "e2e/options-lab-source-state.spec.ts",
+        "e2e/options-exposure-surface-journey.spec.ts",
+        "e2e/options-research-question.spec.ts",
+        "e2e/exposure-partial-totals.spec.ts",
+        "e2e/options-contract-shortlist.spec.ts",
+        "e2e/options-deeplink.spec.ts",
+        "e2e/options-research-lab.spec.ts",
+        "e2e/options-workspace-usability.spec.ts",
+        "e2e/options-r1-w3a-flow-inspector.spec.ts",
+        "e2e/flow-freshness-responsive.spec.ts",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--list",
+        "--reporter=json",
+        "--grep",
+        "(?:3D\\ research\\ lab\\ exact\\ selection\\ and\\ responsive\\ fallback\\ en|3D\\ research\\ lab\\ exact\\ selection\\ and\\ responsive\\ fallback\\ zh|Archived\\ chart\\ return\\ en\\ restores\\ the\\ same\\ book\\ and\\ strike|Archived\\ chart\\ return\\ en\\ withdraws\\ a\\ corrected\\ selection|Archived\\ chart\\ return\\ zh\\ restores\\ the\\ same\\ book\\ and\\ strike|Archived\\ chart\\ return\\ zh\\ withdraws\\ a\\ corrected\\ selection|Archived\\ exposure\\ changes\\ en\\ compare\\ the\\ selected\\ book|Archived\\ exposure\\ changes\\ zh\\ compare\\ the\\ selected\\ book|Connected\\ exposure\\ workspace\\ en:\\ chart,\\ comparison\\ scopes,\\ scanner\\ and\\ return|Connected\\ exposure\\ workspace\\ zh:\\ chart,\\ comparison\\ scopes,\\ scanner\\ and\\ return|Exposure\\ 0DTE\\ complete\\ grid\\ shows\\ its\\ total|Exposure\\ 0DTE\\ unknown\\ cell\\ withholds\\ the\\ total|Exposure\\ All\\ except\\ 0DTE\\ withholds\\ the\\ total\\ when\\ a\\ chain\\ expiration\\ is\\ outside\\ the\\ snapshot|Exposure\\ opens\\ on\\ usable\\ strikes\\ and\\ reaches\\ Market\\ State\\ and\\ history|Exposure\\ selection\\ opens\\ the\\ main\\ chart\\ en\\ with\\ the\\ same\\ book|Exposure\\ selection\\ opens\\ the\\ main\\ chart\\ zh\\ with\\ the\\ same\\ book|Flow\\ Desk\\ separates\\ Connected\\ transport\\ from\\ measured\\ source\\ freshness|Main\\ chart\\ rejects\\ a\\ book\\ corrected\\ during\\ navigation|Matched\\ reported\\ Gamma\\ en\\ separates\\ contributions\\ and\\ source\\ coverage|Matched\\ reported\\ Gamma\\ zh\\ separates\\ contributions\\ and\\ source\\ coverage|One\\ observed\\ side\\ en\\ remains\\ a\\ measured\\ book\\ through\\ chart\\ and\\ return|One\\ observed\\ side\\ zh\\ remains\\ a\\ measured\\ book\\ through\\ chart\\ and\\ return|Options\\ can\\ leave\\ Exposure\\ while\\ new\\ scripts\\ and\\ styles\\ are\\ still\\ loading|Options\\ can\\ leave\\ Research\\ Lab\\ while\\ new\\ scripts\\ and\\ styles\\ are\\ still\\ loading|Options\\ follows\\ query\\ navigation\\ and\\ Back/Forward\\ while\\ retaining\\ visited\\ desks|Partial\\ observed\\ exposure\\ en\\ preserves\\ measured\\ contributions|Partial\\ observed\\ exposure\\ zh\\ preserves\\ measured\\ contributions|Projected\\ exposure\\ memory\\ en\\ preserves\\ measurements\\ without\\ a\\ false\\ delta|Projected\\ exposure\\ memory\\ zh\\ preserves\\ measurements\\ without\\ a\\ false\\ delta|Research\\ Lab\\ admits\\ a\\ valid\\ current\\ read\\ before\\ the\\ stream\\ supplies\\ a\\ frame|Research\\ Lab\\ preserves\\ the\\ selected\\ archive\\ without\\ substituting\\ an\\ available\\ live\\ book|Research\\ Lab\\ withdraws\\ a\\ retained\\ absent\\ source\\ and\\ restores\\ the\\ exact\\ pin\\ on\\ recovery|Research\\ Lab\\ withdraws\\ a\\ retained\\ unavailable\\ source\\ and\\ restores\\ the\\ exact\\ pin\\ on\\ recovery|Source\\-relative\\ zero\\ Gamma\\ en\\ does\\ not\\ match\\ rolling\\ expiry\\ identities|Source\\-relative\\ zero\\ Gamma\\ zh\\ does\\ not\\ match\\ rolling\\ expiry\\ identities|Surface\\ can\\ select,\\ drag\\ and\\ step\\ to\\ an\\ actual\\ observation|Withheld\\ Gamma\\ definition\\ en\\ explains\\ the\\ admitted\\ comparison\\ boundary|Withheld\\ Gamma\\ definition\\ zh\\ explains\\ the\\ admitted\\ comparison\\ boundary|Withheld\\ Gamma\\ scope\\ en\\ explains\\ the\\ admitted\\ comparison\\ boundary|Withheld\\ Gamma\\ scope\\ zh\\ explains\\ the\\ admitted\\ comparison\\ boundary|\\[en\\]\\ Exposure\\ complete\\ grid\\ keeps\\ its\\ date\\-only\\ source\\ session|\\[en\\]\\ Exposure\\ known\\ subtotal\\ keeps\\ its\\ date\\-only\\ source\\ session|\\[zh\\]\\ Exposure\\ complete\\ grid\\ keeps\\ its\\ date\\-only\\ source\\ session|\\[zh\\]\\ Exposure\\ known\\ subtotal\\ keeps\\ its\\ date\\-only\\ source\\ session|a\\ slow\\ previous\\ ticker\\ cannot\\ replace\\ the\\ selected\\ print's\\ context|a\\ sparse\\ GOOGL\\ book\\ keeps\\ the\\ page\\ in\\ place\\ and\\ identifies\\ older\\ history|coverage\\ line\\ keeps\\ unknown\\ premium\\ in\\ the\\ denominator\\ and\\ totals\\ calls\\ and\\ puts\\ unsigned|equal\\-timestamp\\ prints\\ keep\\ their\\ id\\ order\\ across\\ re\\-sorts\\ \\(e6\\ before\\ e9\\)|exact\\ Lab\\ question\\ stage\\ and\\ withdrawal\\ en\\ dark|exact\\ Lab\\ question\\ stage\\ and\\ withdrawal\\ en\\ light|exact\\ Lab\\ question\\ stage\\ and\\ withdrawal\\ zh\\ dark|exact\\ Lab\\ question\\ stage\\ and\\ withdrawal\\ zh\\ light|inspect\\ by\\ keyboard\\ and\\ return\\ to\\ the\\ source\\ print\\ with\\ filters\\ intact|real\\ entitled\\ screener\\ rows\\ compare\\ without\\ any\\ new\\ data\\ request|revisiting\\ an\\ archived\\ Exposure\\ book\\ consumes\\ its\\ corrected\\ source\\ \\(en\\)|revisiting\\ an\\ archived\\ Exposure\\ book\\ consumes\\ its\\ corrected\\ source\\ \\(zh\\)|selected\\ Command\\ print\\ has\\ one\\ natural\\ page\\ scroll\\ on\\ compact\\ screens\\ \\(en\\)|selected\\ Command\\ print\\ has\\ one\\ natural\\ page\\ scroll\\ on\\ compact\\ screens\\ \\(zh\\)|selecting\\ e1\\ shows\\ the\\ print\\ inspector\\ with\\ premium\\ arithmetic,\\ named\\-method\\ side\\ and\\ the\\ not\\-supplied\\ clocks|selecting\\ e5\\ shows\\ the\\ owner's\\ figure\\ as\\ not\\ reproducible\\ from\\ size\\ \u00d7\\ price\\ \u00d7\\ 100|synthetic\\ exposure\\ saved\\ theme\\ cold\\ return\\ en|synthetic\\ exposure\\ saved\\ theme\\ cold\\ return\\ zh|synthetic\\ exposure\\ surface\\ journey\\ en|synthetic\\ exposure\\ surface\\ journey\\ zh|the\\ 23\\ Oct\\ expiry\\ filter\\ hides\\ the\\ 20\\ Nov\\ row\\ and\\ never\\ changes\\ the\\ coverage\\ line|the\\ expiry\\ filter\\ survives\\ a\\ reload\\ through\\ flowdesk\\.filters\\.v1|the\\ \u4e2d\u6587\\ view\\ renders\\ the\\ same\\ inspector\\ sections\\ with\\ no\\ Latin\\ machine\\ text)$"
+      ],
+      "configFile": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/playwright.config.ts",
+      "failOnFlakyTests": false,
+      "forbidOnly": true,
+      "fullyParallel": true,
+      "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/e2e/globalSetup.ts",
+      "globalTeardown": null,
+      "globalTimeout": 0,
+      "grep": {},
+      "grepInvert": null,
+      "maxFailures": 0,
+      "metadata": {},
+      "preserveOutput": "always",
+      "projects": [
+        {
+          "id": "desktop",
+          "metadata": {},
+          "name": "desktop",
+          "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/test-results",
+          "repeatEach": 1,
+          "retries": 2,
+          "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/e2e",
+          "testIgnore": [
+            "/company-intelligence\\.spec\\.ts/",
+            "/terminal-chrome-responsive\\.spec\\.ts/",
+            "/w2a-workspaces\\.spec\\.ts/"
+          ],
+          "testMatch": [
+            "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+          ],
+          "timeout": 60000
+        },
+        {
+          "id": "tablet",
+          "metadata": {},
+          "name": "tablet",
+          "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/test-results",
+          "repeatEach": 1,
+          "retries": 2,
+          "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/e2e",
+          "testIgnore": [
+            "/company-intelligence\\.spec\\.ts/",
+            "/terminal-chrome-responsive\\.spec\\.ts/",
+            "/w2a-workspaces\\.spec\\.ts/"
+          ],
+          "testMatch": [
+            "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+          ],
+          "timeout": 60000
+        },
+        {
+          "id": "mobile",
+          "metadata": {},
+          "name": "mobile",
+          "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/test-results",
+          "repeatEach": 1,
+          "retries": 2,
+          "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/e2e",
+          "testIgnore": [
+            "/company-intelligence\\.spec\\.ts/",
+            "/terminal-chrome-responsive\\.spec\\.ts/",
+            "/w2a-workspaces\\.spec\\.ts/"
+          ],
+          "testMatch": [
+            "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+          ],
+          "timeout": 60000
+        },
+        {
+          "id": "company-intelligence-desktop",
+          "metadata": {},
+          "name": "company-intelligence-desktop",
+          "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/test-results",
+          "repeatEach": 1,
+          "retries": 2,
+          "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/e2e",
+          "testIgnore": [],
+          "testMatch": [
+            "/company-intelligence\\.spec\\.ts/"
+          ],
+          "timeout": 60000
+        },
+        {
+          "id": "company-intelligence-tablet",
+          "metadata": {},
+          "name": "company-intelligence-tablet",
+          "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/test-results",
+          "repeatEach": 1,
+          "retries": 2,
+          "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/e2e",
+          "testIgnore": [],
+          "testMatch": [
+            "/company-intelligence\\.spec\\.ts/"
+          ],
+          "timeout": 60000
+        },
+        {
+          "id": "company-intelligence-mobile",
+          "metadata": {},
+          "name": "company-intelligence-mobile",
+          "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/test-results",
+          "repeatEach": 1,
+          "retries": 2,
+          "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/e2e",
+          "testIgnore": [],
+          "testMatch": [
+            "/company-intelligence\\.spec\\.ts/"
+          ],
+          "timeout": 60000
+        },
+        {
+          "id": "terminal-chrome-intermediate",
+          "metadata": {},
+          "name": "terminal-chrome-intermediate",
+          "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/test-results",
+          "repeatEach": 1,
+          "retries": 2,
+          "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/e2e",
+          "testIgnore": [],
+          "testMatch": [
+            "/terminal-chrome-responsive\\.spec\\.ts/"
+          ],
+          "timeout": 60000
+        },
+        {
+          "id": "w2a-workspaces",
+          "metadata": {},
+          "name": "w2a-workspaces",
+          "outputDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/test-results",
+          "repeatEach": 1,
+          "retries": 2,
+          "testDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/e2e",
+          "testIgnore": [],
+          "testMatch": [
+            "/w2a-workspaces\\.spec\\.ts/"
+          ],
+          "timeout": 60000
+        }
+      ],
+      "quiet": false,
+      "reportSlowTests": {
+        "max": 5,
+        "threshold": 300000
+      },
+      "reporter": [
+        [
+          "json"
+        ]
+      ],
+      "rootDir": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/e2e",
+      "shard": null,
+      "tags": [],
+      "updateSnapshots": "missing",
+      "updateSourceMethod": "patch",
+      "version": "1.61.1",
+      "webServer": {
+        "command": "npm run dev -- --hostname 127.0.0.1 --port 3882",
+        "env": {
+          "ADMIN_DEV": "1",
+          "ANALYSIS_LOCAL_PREVIEW": "1",
+          "FLOW_FIXTURE": "1",
+          "HUB_REALTIME_QUOTES": "1",
+          "INVESTIGATION_API_ADMISSION": "open",
+          "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key",
+          "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+          "RATE_LIMIT_MAX": "100000",
+          "TERMINAL_E2E_EMAIL": "responsive@example.com",
+          "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+          "TERMINAL_E2E_FIXTURE": "1",
+          "TICKER_NEWS_RAIL": "1"
+        },
+        "reuseExistingServer": false,
+        "timeout": 120000,
+        "url": "http://127.0.0.1:3882/terminal?symbol=NVDA"
+      },
+      "workers": 1
+    },
+    "errors": [],
+    "stats": {
+      "duration": 623.1410000000001,
+      "expected": 0,
+      "flaky": 0,
+      "skipped": 201,
+      "startTime": "2026-11-09T18:31:45.946Z",
+      "unexpected": 0
+    },
+    "suites": [
+      {
+        "column": 0,
+        "file": "exposure-partial-totals.spec.ts",
+        "line": 0,
+        "specs": [
+          {
+            "column": 7,
+            "file": "exposure-partial-totals.spec.ts",
+            "id": "5401476cd4d8e1234d0e-11a6e6f581b8ad997240",
+            "line": 37,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Exposure 0DTE unknown cell withholds the total"
+          },
+          {
+            "column": 7,
+            "file": "exposure-partial-totals.spec.ts",
+            "id": "5401476cd4d8e1234d0e-8c83a5f74978444524a9",
+            "line": 37,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Exposure 0DTE complete grid shows its total"
+          },
+          {
+            "column": 5,
+            "file": "exposure-partial-totals.spec.ts",
+            "id": "5401476cd4d8e1234d0e-6342c88975ce980b4eb1",
+            "line": 118,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Exposure All except 0DTE withholds the total when a chain expiration is outside the snapshot"
+          },
+          {
+            "column": 9,
+            "file": "exposure-partial-totals.spec.ts",
+            "id": "5401476cd4d8e1234d0e-d2068708fdb05374015a",
+            "line": 174,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "[en] Exposure known subtotal keeps its date-only source session"
+          },
+          {
+            "column": 9,
+            "file": "exposure-partial-totals.spec.ts",
+            "id": "5401476cd4d8e1234d0e-085bd5bb1fa2811f8efb",
+            "line": 174,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "[en] Exposure complete grid keeps its date-only source session"
+          },
+          {
+            "column": 9,
+            "file": "exposure-partial-totals.spec.ts",
+            "id": "5401476cd4d8e1234d0e-e9dbcfe18abfb6dfda30",
+            "line": 174,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "[zh] Exposure known subtotal keeps its date-only source session"
+          },
+          {
+            "column": 9,
+            "file": "exposure-partial-totals.spec.ts",
+            "id": "5401476cd4d8e1234d0e-2a3dbe0cc3a7e1cbed62",
+            "line": 174,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "[zh] Exposure complete grid keeps its date-only source session"
+          },
+          {
+            "column": 7,
+            "file": "exposure-partial-totals.spec.ts",
+            "id": "5401476cd4d8e1234d0e-c0b6731316ac5d1cea71",
+            "line": 37,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Exposure 0DTE unknown cell withholds the total"
+          },
+          {
+            "column": 7,
+            "file": "exposure-partial-totals.spec.ts",
+            "id": "5401476cd4d8e1234d0e-474704b165e932ccca52",
+            "line": 37,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Exposure 0DTE complete grid shows its total"
+          },
+          {
+            "column": 5,
+            "file": "exposure-partial-totals.spec.ts",
+            "id": "5401476cd4d8e1234d0e-4079720b7ce6fbb07287",
+            "line": 118,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Exposure All except 0DTE withholds the total when a chain expiration is outside the snapshot"
+          },
+          {
+            "column": 9,
+            "file": "exposure-partial-totals.spec.ts",
+            "id": "5401476cd4d8e1234d0e-347642165a04207cb73d",
+            "line": 174,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "[en] Exposure known subtotal keeps its date-only source session"
+          },
+          {
+            "column": 9,
+            "file": "exposure-partial-totals.spec.ts",
+            "id": "5401476cd4d8e1234d0e-3ff8ca1277d62c58ae87",
+            "line": 174,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "[en] Exposure complete grid keeps its date-only source session"
+          },
+          {
+            "column": 9,
+            "file": "exposure-partial-totals.spec.ts",
+            "id": "5401476cd4d8e1234d0e-290ef3bc9755b1321256",
+            "line": 174,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "[zh] Exposure known subtotal keeps its date-only source session"
+          },
+          {
+            "column": 9,
+            "file": "exposure-partial-totals.spec.ts",
+            "id": "5401476cd4d8e1234d0e-d87b2907e62a4a66a265",
+            "line": 174,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "[zh] Exposure complete grid keeps its date-only source session"
+          },
+          {
+            "column": 7,
+            "file": "exposure-partial-totals.spec.ts",
+            "id": "5401476cd4d8e1234d0e-ce8a80ebd0e4bad41204",
+            "line": 37,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Exposure 0DTE unknown cell withholds the total"
+          },
+          {
+            "column": 7,
+            "file": "exposure-partial-totals.spec.ts",
+            "id": "5401476cd4d8e1234d0e-6b1296b1fb696899263d",
+            "line": 37,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Exposure 0DTE complete grid shows its total"
+          },
+          {
+            "column": 5,
+            "file": "exposure-partial-totals.spec.ts",
+            "id": "5401476cd4d8e1234d0e-c836320d147a40285cba",
+            "line": 118,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Exposure All except 0DTE withholds the total when a chain expiration is outside the snapshot"
+          },
+          {
+            "column": 9,
+            "file": "exposure-partial-totals.spec.ts",
+            "id": "5401476cd4d8e1234d0e-cd9e53d24d5336f31db2",
+            "line": 174,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "[en] Exposure known subtotal keeps its date-only source session"
+          },
+          {
+            "column": 9,
+            "file": "exposure-partial-totals.spec.ts",
+            "id": "5401476cd4d8e1234d0e-d3890f92b3d50bd4479f",
+            "line": 174,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "[en] Exposure complete grid keeps its date-only source session"
+          },
+          {
+            "column": 9,
+            "file": "exposure-partial-totals.spec.ts",
+            "id": "5401476cd4d8e1234d0e-bbffeeb1785b0ce79f02",
+            "line": 174,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "[zh] Exposure known subtotal keeps its date-only source session"
+          },
+          {
+            "column": 9,
+            "file": "exposure-partial-totals.spec.ts",
+            "id": "5401476cd4d8e1234d0e-296a7b4af5d0107a0253",
+            "line": 174,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "[zh] Exposure complete grid keeps its date-only source session"
+          }
+        ],
+        "title": "exposure-partial-totals.spec.ts"
+      },
+      {
+        "column": 0,
+        "file": "exposure-workspace.spec.ts",
+        "line": 0,
+        "specs": [
+          {
+            "column": 5,
+            "file": "exposure-workspace.spec.ts",
+            "id": "b590db1ffeac0b19b435-45816f7b74a353e97a79",
+            "line": 19,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Exposure opens on usable strikes and reaches Market State and history"
+          },
+          {
+            "column": 7,
+            "file": "exposure-workspace.spec.ts",
+            "id": "b590db1ffeac0b19b435-56f319dde64f027d0385",
+            "line": 120,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "revisiting an archived Exposure book consumes its corrected source (en)"
+          },
+          {
+            "column": 7,
+            "file": "exposure-workspace.spec.ts",
+            "id": "b590db1ffeac0b19b435-f70b95089f2524abcb86",
+            "line": 120,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "revisiting an archived Exposure book consumes its corrected source (zh)"
+          },
+          {
+            "column": 5,
+            "file": "exposure-workspace.spec.ts",
+            "id": "b590db1ffeac0b19b435-41f95731504d560c43c1",
+            "line": 154,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "a sparse GOOGL book keeps the page in place and identifies older history"
+          },
+          {
+            "column": 5,
+            "file": "exposure-workspace.spec.ts",
+            "id": "b590db1ffeac0b19b435-fe7936eb3fcd56310226",
+            "line": 19,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Exposure opens on usable strikes and reaches Market State and history"
+          },
+          {
+            "column": 7,
+            "file": "exposure-workspace.spec.ts",
+            "id": "b590db1ffeac0b19b435-2dd24819d7ccde51f7f9",
+            "line": 120,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "revisiting an archived Exposure book consumes its corrected source (en)"
+          },
+          {
+            "column": 7,
+            "file": "exposure-workspace.spec.ts",
+            "id": "b590db1ffeac0b19b435-0e6903bb7fd8503b320d",
+            "line": 120,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "revisiting an archived Exposure book consumes its corrected source (zh)"
+          },
+          {
+            "column": 5,
+            "file": "exposure-workspace.spec.ts",
+            "id": "b590db1ffeac0b19b435-05fe4741ba7ee404fe24",
+            "line": 154,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "a sparse GOOGL book keeps the page in place and identifies older history"
+          },
+          {
+            "column": 5,
+            "file": "exposure-workspace.spec.ts",
+            "id": "b590db1ffeac0b19b435-89649c10b65af7b8289e",
+            "line": 19,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Exposure opens on usable strikes and reaches Market State and history"
+          },
+          {
+            "column": 7,
+            "file": "exposure-workspace.spec.ts",
+            "id": "b590db1ffeac0b19b435-0472ff1582bdf6f49ef1",
+            "line": 120,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "revisiting an archived Exposure book consumes its corrected source (en)"
+          },
+          {
+            "column": 7,
+            "file": "exposure-workspace.spec.ts",
+            "id": "b590db1ffeac0b19b435-cd0e8c4c113c546bec2b",
+            "line": 120,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "revisiting an archived Exposure book consumes its corrected source (zh)"
+          },
+          {
+            "column": 5,
+            "file": "exposure-workspace.spec.ts",
+            "id": "b590db1ffeac0b19b435-0260d6b2ebe342d4c8ea",
+            "line": 154,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "a sparse GOOGL book keeps the page in place and identifies older history"
+          }
+        ],
+        "title": "exposure-workspace.spec.ts"
+      },
+      {
+        "column": 0,
+        "file": "flow-freshness-responsive.spec.ts",
+        "line": 0,
+        "specs": [
+          {
+            "column": 5,
+            "file": "flow-freshness-responsive.spec.ts",
+            "id": "a91f02f5a7c628a68aa3-79c8815b72b5116fa977",
+            "line": 3,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Flow Desk separates Connected transport from measured source freshness"
+          },
+          {
+            "column": 5,
+            "file": "flow-freshness-responsive.spec.ts",
+            "id": "a91f02f5a7c628a68aa3-d62859595554f628388e",
+            "line": 3,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Flow Desk separates Connected transport from measured source freshness"
+          },
+          {
+            "column": 5,
+            "file": "flow-freshness-responsive.spec.ts",
+            "id": "a91f02f5a7c628a68aa3-d5344751d8023fad15a2",
+            "line": 3,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Flow Desk separates Connected transport from measured source freshness"
+          }
+        ],
+        "title": "flow-freshness-responsive.spec.ts"
+      },
+      {
+        "column": 0,
+        "file": "options-contract-shortlist.spec.ts",
+        "line": 0,
+        "specs": [
+          {
+            "column": 5,
+            "file": "options-contract-shortlist.spec.ts",
+            "id": "1647a36d110082b60e4c-a337a373f7ed56e2f81e",
+            "line": 392,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "real entitled screener rows compare without any new data request"
+          },
+          {
+            "column": 5,
+            "file": "options-contract-shortlist.spec.ts",
+            "id": "1647a36d110082b60e4c-af6efe8c9a5992362f0b",
+            "line": 392,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "real entitled screener rows compare without any new data request"
+          },
+          {
+            "column": 5,
+            "file": "options-contract-shortlist.spec.ts",
+            "id": "1647a36d110082b60e4c-1532a17f9c0f728e03ac",
+            "line": 392,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "real entitled screener rows compare without any new data request"
+          }
+        ],
+        "title": "options-contract-shortlist.spec.ts"
+      },
+      {
+        "column": 0,
+        "file": "options-deeplink.spec.ts",
+        "line": 0,
+        "specs": [
+          {
+            "column": 5,
+            "file": "options-deeplink.spec.ts",
+            "id": "499d798c04fba4fb76cd-07545127b2122f6b5ce3",
+            "line": 87,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Options follows query navigation and Back/Forward while retaining visited desks"
+          },
+          {
+            "column": 5,
+            "file": "options-deeplink.spec.ts",
+            "id": "499d798c04fba4fb76cd-e9d190508417b0d6f14e",
+            "line": 138,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Options can leave Exposure while new scripts and styles are still loading"
+          },
+          {
+            "column": 5,
+            "file": "options-deeplink.spec.ts",
+            "id": "499d798c04fba4fb76cd-06119a1b88c9594c9a3e",
+            "line": 138,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Options can leave Research Lab while new scripts and styles are still loading"
+          },
+          {
+            "column": 5,
+            "file": "options-deeplink.spec.ts",
+            "id": "499d798c04fba4fb76cd-3a7019b08323ce141c4c",
+            "line": 87,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Options follows query navigation and Back/Forward while retaining visited desks"
+          },
+          {
+            "column": 5,
+            "file": "options-deeplink.spec.ts",
+            "id": "499d798c04fba4fb76cd-80b50aac8e048947dbf0",
+            "line": 138,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Options can leave Exposure while new scripts and styles are still loading"
+          },
+          {
+            "column": 5,
+            "file": "options-deeplink.spec.ts",
+            "id": "499d798c04fba4fb76cd-0bb8561e8cae943c583b",
+            "line": 138,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Options can leave Research Lab while new scripts and styles are still loading"
+          },
+          {
+            "column": 5,
+            "file": "options-deeplink.spec.ts",
+            "id": "499d798c04fba4fb76cd-441b596e7a56feb341e1",
+            "line": 87,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Options follows query navigation and Back/Forward while retaining visited desks"
+          },
+          {
+            "column": 5,
+            "file": "options-deeplink.spec.ts",
+            "id": "499d798c04fba4fb76cd-6b5d88a8c29f3863b983",
+            "line": 138,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Options can leave Exposure while new scripts and styles are still loading"
+          },
+          {
+            "column": 5,
+            "file": "options-deeplink.spec.ts",
+            "id": "499d798c04fba4fb76cd-bc2417dd719f635a48f9",
+            "line": 138,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Options can leave Research Lab while new scripts and styles are still loading"
+          }
+        ],
+        "title": "options-deeplink.spec.ts"
+      },
+      {
+        "column": 0,
+        "file": "options-exposure-surface-journey.spec.ts",
+        "line": 0,
+        "specs": [
+          {
+            "column": 7,
+            "file": "options-exposure-surface-journey.spec.ts",
+            "id": "75815a990560dfe307f4-3bd8936d87163e020e8a",
+            "line": 720,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "synthetic exposure surface journey en"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-surface-journey.spec.ts",
+            "id": "75815a990560dfe307f4-86dd837c76c92f08c3f0",
+            "line": 720,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "synthetic exposure surface journey zh"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-surface-journey.spec.ts",
+            "id": "75815a990560dfe307f4-f423cd036eb5bd0e2f19",
+            "line": 1413,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "synthetic exposure saved theme cold return en"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-surface-journey.spec.ts",
+            "id": "75815a990560dfe307f4-ff8bcafa14351ce5dd65",
+            "line": 1413,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "synthetic exposure saved theme cold return zh"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-surface-journey.spec.ts",
+            "id": "75815a990560dfe307f4-cb5f1a62aeb10e3b59f0",
+            "line": 720,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "synthetic exposure surface journey en"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-surface-journey.spec.ts",
+            "id": "75815a990560dfe307f4-f7b4b63ba0a04eb5118d",
+            "line": 720,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "synthetic exposure surface journey zh"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-surface-journey.spec.ts",
+            "id": "75815a990560dfe307f4-9e358ed2b4116e7c6696",
+            "line": 1413,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "synthetic exposure saved theme cold return en"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-surface-journey.spec.ts",
+            "id": "75815a990560dfe307f4-e355e55816379886dfa3",
+            "line": 1413,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "synthetic exposure saved theme cold return zh"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-surface-journey.spec.ts",
+            "id": "75815a990560dfe307f4-8b3a88e7a20e1f136416",
+            "line": 720,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "synthetic exposure surface journey en"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-surface-journey.spec.ts",
+            "id": "75815a990560dfe307f4-9301bd1e2d1d7795c499",
+            "line": 720,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "synthetic exposure surface journey zh"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-surface-journey.spec.ts",
+            "id": "75815a990560dfe307f4-10d5d8fdf9a021092c0c",
+            "line": 1413,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "synthetic exposure saved theme cold return en"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-surface-journey.spec.ts",
+            "id": "75815a990560dfe307f4-393759f1442d0e9979d6",
+            "line": 1413,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "synthetic exposure saved theme cold return zh"
+          }
+        ],
+        "title": "options-exposure-surface-journey.spec.ts"
+      },
+      {
+        "column": 0,
+        "file": "options-exposure-workspace.spec.ts",
+        "line": 0,
+        "specs": [
+          {
+            "column": 5,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-aceae79c50e0625a5576",
+            "line": 12,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Main chart rejects a book corrected during navigation"
+          },
+          {
+            "column": 9,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-5579d65236ec3c787345",
+            "line": 138,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Withheld Gamma scope en explains the admitted comparison boundary"
+          },
+          {
+            "column": 9,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-d03ffa5e992ee3a0b21e",
+            "line": 138,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Withheld Gamma definition en explains the admitted comparison boundary"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-2f7c18cbacdc4512313a",
+            "line": 164,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Source-relative zero Gamma en does not match rolling expiry identities"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-52187eaee89bad68defb",
+            "line": 186,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Matched reported Gamma en separates contributions and source coverage"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-7ce73de411b0ce92a1f1",
+            "line": 237,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "One observed side en remains a measured book through chart and return"
+          },
+          {
+            "column": 9,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-81c7e876e57ddca30cba",
+            "line": 277,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Archived chart return en restores the same book and strike"
+          },
+          {
+            "column": 9,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-5dfd70d036213cb40d6e",
+            "line": 277,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Archived chart return en withdraws a corrected selection"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-e644cb73eb20462cf278",
+            "line": 312,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Exposure selection opens the main chart en with the same book"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-cdfbf22638a16e611f2f",
+            "line": 339,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Partial observed exposure en preserves measured contributions"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-7989a052e72921fd2137",
+            "line": 386,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Projected exposure memory en preserves measurements without a false delta"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-4478928d767b7a40b694",
+            "line": 414,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Archived exposure changes en compare the selected book"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-6ae05176e115ddc39b3d",
+            "line": 439,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return"
+          },
+          {
+            "column": 9,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-aa370bba687ceefcc375",
+            "line": 138,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Withheld Gamma scope zh explains the admitted comparison boundary"
+          },
+          {
+            "column": 9,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-c1c2c087848c678ec68c",
+            "line": 138,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Withheld Gamma definition zh explains the admitted comparison boundary"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-c5ad8ce9057363d498fb",
+            "line": 164,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Source-relative zero Gamma zh does not match rolling expiry identities"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-7ad88e62ac462a92edfb",
+            "line": 186,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Matched reported Gamma zh separates contributions and source coverage"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-96d0853eeae07519e98a",
+            "line": 237,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "One observed side zh remains a measured book through chart and return"
+          },
+          {
+            "column": 9,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-ec99064f44789fb1b2d6",
+            "line": 277,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Archived chart return zh restores the same book and strike"
+          },
+          {
+            "column": 9,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-1e3c51bbed86971ff57c",
+            "line": 277,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Archived chart return zh withdraws a corrected selection"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-05a25bc31e6f33e25f35",
+            "line": 312,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Exposure selection opens the main chart zh with the same book"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-d7b5bef68df73e9a1c3f",
+            "line": 339,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Partial observed exposure zh preserves measured contributions"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-b21c14a9dc0deec8e669",
+            "line": 386,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Projected exposure memory zh preserves measurements without a false delta"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-792fac4c73533b0e88d5",
+            "line": 414,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Archived exposure changes zh compare the selected book"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-0c140ffae3c761f60932",
+            "line": 439,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Connected exposure workspace zh: chart, comparison scopes, scanner and return"
+          },
+          {
+            "column": 5,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-446c0cff0d414cde1c11",
+            "line": 12,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Main chart rejects a book corrected during navigation"
+          },
+          {
+            "column": 9,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-e9e7ec1cd787035504d2",
+            "line": 138,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Withheld Gamma scope en explains the admitted comparison boundary"
+          },
+          {
+            "column": 9,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-f99025e879b4647a42f0",
+            "line": 138,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Withheld Gamma definition en explains the admitted comparison boundary"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-1a3f91e86b936b2a6353",
+            "line": 164,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Source-relative zero Gamma en does not match rolling expiry identities"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-871964606a8d61a97502",
+            "line": 186,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Matched reported Gamma en separates contributions and source coverage"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-9f155688506a22fff232",
+            "line": 237,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "One observed side en remains a measured book through chart and return"
+          },
+          {
+            "column": 9,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-5962aab150adc3f73406",
+            "line": 277,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Archived chart return en restores the same book and strike"
+          },
+          {
+            "column": 9,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-debeaf10ff1088ce42ce",
+            "line": 277,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Archived chart return en withdraws a corrected selection"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-36195b0f62c3b6bb72c7",
+            "line": 312,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Exposure selection opens the main chart en with the same book"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-5d184d3da262d32fd8c6",
+            "line": 339,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Partial observed exposure en preserves measured contributions"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-0ac20c8bdffabfd6bda1",
+            "line": 386,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Projected exposure memory en preserves measurements without a false delta"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-60fb24cf3092f3a17918",
+            "line": 414,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Archived exposure changes en compare the selected book"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-f57ce40ae717d36b6786",
+            "line": 439,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return"
+          },
+          {
+            "column": 9,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-4aa6117ddb16def7b2a6",
+            "line": 138,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Withheld Gamma scope zh explains the admitted comparison boundary"
+          },
+          {
+            "column": 9,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-fa6ff31a7e402477ec2b",
+            "line": 138,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Withheld Gamma definition zh explains the admitted comparison boundary"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-c4ddb7d9ec2f64ffe996",
+            "line": 164,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Source-relative zero Gamma zh does not match rolling expiry identities"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-94e2361c11c0fb6e4ea0",
+            "line": 186,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Matched reported Gamma zh separates contributions and source coverage"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-6f84b41a15011429a620",
+            "line": 237,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "One observed side zh remains a measured book through chart and return"
+          },
+          {
+            "column": 9,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-b41c24157cb5617a7d8e",
+            "line": 277,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Archived chart return zh restores the same book and strike"
+          },
+          {
+            "column": 9,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-51f50e73a460fdb4f980",
+            "line": 277,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Archived chart return zh withdraws a corrected selection"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-dbb011945bc2937c1812",
+            "line": 312,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Exposure selection opens the main chart zh with the same book"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-f60061d4ba1a532dad6f",
+            "line": 339,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Partial observed exposure zh preserves measured contributions"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-4c74427d95e12d768fd7",
+            "line": 386,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Projected exposure memory zh preserves measurements without a false delta"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-c13ab923371ff0182219",
+            "line": 414,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Archived exposure changes zh compare the selected book"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-89febbd2fe12c0dc57e8",
+            "line": 439,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Connected exposure workspace zh: chart, comparison scopes, scanner and return"
+          },
+          {
+            "column": 5,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-e4df888c7e7e833db938",
+            "line": 12,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Main chart rejects a book corrected during navigation"
+          },
+          {
+            "column": 9,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-a529c36ce04e43f9fbc9",
+            "line": 138,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Withheld Gamma scope en explains the admitted comparison boundary"
+          },
+          {
+            "column": 9,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-a573ea7771a3efd9ef6f",
+            "line": 138,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Withheld Gamma definition en explains the admitted comparison boundary"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-3734a723059889026892",
+            "line": 164,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Source-relative zero Gamma en does not match rolling expiry identities"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-ee699c65d9fd56b5a415",
+            "line": 186,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Matched reported Gamma en separates contributions and source coverage"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-00a312a3a4131f5b2b6b",
+            "line": 237,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "One observed side en remains a measured book through chart and return"
+          },
+          {
+            "column": 9,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-56f449cd027e2f23d574",
+            "line": 277,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Archived chart return en restores the same book and strike"
+          },
+          {
+            "column": 9,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-a9d0b8e34f1737fd5a68",
+            "line": 277,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Archived chart return en withdraws a corrected selection"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-a3b2f8aefb8dea8bfa02",
+            "line": 312,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Exposure selection opens the main chart en with the same book"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-44a36e64c738d6dd6649",
+            "line": 339,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Partial observed exposure en preserves measured contributions"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-79f3db57b449f333d8d4",
+            "line": 386,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Projected exposure memory en preserves measurements without a false delta"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-a19b01b74e88870876ad",
+            "line": 414,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Archived exposure changes en compare the selected book"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-6c93e57c0ebdfeeef248",
+            "line": 439,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return"
+          },
+          {
+            "column": 9,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-15d2d30b7d5f46623965",
+            "line": 138,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Withheld Gamma scope zh explains the admitted comparison boundary"
+          },
+          {
+            "column": 9,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-604614577f5d5c804014",
+            "line": 138,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Withheld Gamma definition zh explains the admitted comparison boundary"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-99a85356b7ae01d962f8",
+            "line": 164,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Source-relative zero Gamma zh does not match rolling expiry identities"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-c310c073c46c8402d83b",
+            "line": 186,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Matched reported Gamma zh separates contributions and source coverage"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-928c82db8b8a2bd17c7a",
+            "line": 237,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "One observed side zh remains a measured book through chart and return"
+          },
+          {
+            "column": 9,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-327ac60f42c633b2657b",
+            "line": 277,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Archived chart return zh restores the same book and strike"
+          },
+          {
+            "column": 9,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-1506d38305aedc567eec",
+            "line": 277,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Archived chart return zh withdraws a corrected selection"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-a159df3a837e5c591e6d",
+            "line": 312,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Exposure selection opens the main chart zh with the same book"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-09595b1fea03ff02db6a",
+            "line": 339,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Partial observed exposure zh preserves measured contributions"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-beea82ac472b834a6310",
+            "line": 386,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Projected exposure memory zh preserves measurements without a false delta"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-8d5a3c5f3926626c4047",
+            "line": 414,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Archived exposure changes zh compare the selected book"
+          },
+          {
+            "column": 7,
+            "file": "options-exposure-workspace.spec.ts",
+            "id": "9e9678be14b351cb8dab-ac6b091440034955de0a",
+            "line": 439,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Connected exposure workspace zh: chart, comparison scopes, scanner and return"
+          }
+        ],
+        "title": "options-exposure-workspace.spec.ts"
+      },
+      {
+        "column": 0,
+        "file": "options-lab-source-state.spec.ts",
+        "line": 0,
+        "specs": [
+          {
+            "column": 7,
+            "file": "options-lab-source-state.spec.ts",
+            "id": "55327054537994b8999b-3e002d06c598aec388f6",
+            "line": 28,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 120000
+              }
+            ],
+            "title": "Research Lab withdraws a retained unavailable source and restores the exact pin on recovery"
+          },
+          {
+            "column": 7,
+            "file": "options-lab-source-state.spec.ts",
+            "id": "55327054537994b8999b-9d5a82ab68db8cd7291f",
+            "line": 28,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 120000
+              }
+            ],
+            "title": "Research Lab withdraws a retained absent source and restores the exact pin on recovery"
+          },
+          {
+            "column": 5,
+            "file": "options-lab-source-state.spec.ts",
+            "id": "55327054537994b8999b-c58fe7b20729d66aa47f",
+            "line": 81,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 120000
+              }
+            ],
+            "title": "Research Lab admits a valid current read before the stream supplies a frame"
+          },
+          {
+            "column": 5,
+            "file": "options-lab-source-state.spec.ts",
+            "id": "55327054537994b8999b-fc811dcbb0f1047f083c",
+            "line": 99,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 120000
+              }
+            ],
+            "title": "Research Lab preserves the selected archive without substituting an available live book"
+          },
+          {
+            "column": 7,
+            "file": "options-lab-source-state.spec.ts",
+            "id": "55327054537994b8999b-e51d0fe293ba2a4ec820",
+            "line": 28,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 120000
+              }
+            ],
+            "title": "Research Lab withdraws a retained unavailable source and restores the exact pin on recovery"
+          },
+          {
+            "column": 7,
+            "file": "options-lab-source-state.spec.ts",
+            "id": "55327054537994b8999b-dfffbfa6ce41afc0b3e3",
+            "line": 28,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 120000
+              }
+            ],
+            "title": "Research Lab withdraws a retained absent source and restores the exact pin on recovery"
+          },
+          {
+            "column": 5,
+            "file": "options-lab-source-state.spec.ts",
+            "id": "55327054537994b8999b-f51fe9db76cc462e9fe3",
+            "line": 81,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 120000
+              }
+            ],
+            "title": "Research Lab admits a valid current read before the stream supplies a frame"
+          },
+          {
+            "column": 5,
+            "file": "options-lab-source-state.spec.ts",
+            "id": "55327054537994b8999b-597d06beb27fb93c3f6f",
+            "line": 99,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 120000
+              }
+            ],
+            "title": "Research Lab preserves the selected archive without substituting an available live book"
+          },
+          {
+            "column": 7,
+            "file": "options-lab-source-state.spec.ts",
+            "id": "55327054537994b8999b-6b28d07ca6477e59658a",
+            "line": 28,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 120000
+              }
+            ],
+            "title": "Research Lab withdraws a retained unavailable source and restores the exact pin on recovery"
+          },
+          {
+            "column": 7,
+            "file": "options-lab-source-state.spec.ts",
+            "id": "55327054537994b8999b-cfe6528debffb2003e68",
+            "line": 28,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 120000
+              }
+            ],
+            "title": "Research Lab withdraws a retained absent source and restores the exact pin on recovery"
+          },
+          {
+            "column": 5,
+            "file": "options-lab-source-state.spec.ts",
+            "id": "55327054537994b8999b-233bae1f8503364337fe",
+            "line": 81,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 120000
+              }
+            ],
+            "title": "Research Lab admits a valid current read before the stream supplies a frame"
+          },
+          {
+            "column": 5,
+            "file": "options-lab-source-state.spec.ts",
+            "id": "55327054537994b8999b-22dabf9fe6dceb07c8d9",
+            "line": 99,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 120000
+              }
+            ],
+            "title": "Research Lab preserves the selected archive without substituting an available live book"
+          }
+        ],
+        "title": "options-lab-source-state.spec.ts"
+      },
+      {
+        "column": 0,
+        "file": "options-r1-w3a-flow-inspector.spec.ts",
+        "line": 0,
+        "specs": [
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-9ae0b8866310ea81d1e5",
+            "line": 54,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "coverage line keeps unknown premium in the denominator and totals calls and puts unsigned"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-8f8c3b39413c1b253a7f",
+            "line": 61,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "selecting e1 shows the print inspector with premium arithmetic, named-method side and the not-supplied clocks"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-f7d0d835993b0f584fb2",
+            "line": 83,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "selecting e5 shows the owner's figure as not reproducible from size \u00d7 price \u00d7 100"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-3d61d8035b10adb416fd",
+            "line": 93,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "the 23 Oct expiry filter hides the 20 Nov row and never changes the coverage line"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-7e91a6e3f6f071df8bb1",
+            "line": 106,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "the expiry filter survives a reload through flowdesk.filters.v1"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-78358214063927d95f38",
+            "line": 121,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "equal-timestamp prints keep their id order across re-sorts (e6 before e9)"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-e798d13fe5f9ca702a31",
+            "line": 141,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "the \u4e2d\u6587 view renders the same inspector sections with no Latin machine text"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-7c1ac9e06b76837165fe",
+            "line": 164,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "inspect by keyboard and return to the source print with filters intact"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-fbf5d6f24fd7953d6569",
+            "line": 201,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "a slow previous ticker cannot replace the selected print's context"
+          },
+          {
+            "column": 7,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-09b974b10b7233e09892",
+            "line": 224,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "selected Command print has one natural page scroll on compact screens (en)"
+          },
+          {
+            "column": 7,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-9c2208733155ad4bbdce",
+            "line": 224,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "selected Command print has one natural page scroll on compact screens (zh)"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-8aa0d4ae6b3e4526d0c1",
+            "line": 54,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "coverage line keeps unknown premium in the denominator and totals calls and puts unsigned"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-158067feb1d5c4d7b783",
+            "line": 61,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "selecting e1 shows the print inspector with premium arithmetic, named-method side and the not-supplied clocks"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-a86e9767411ae452b986",
+            "line": 83,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "selecting e5 shows the owner's figure as not reproducible from size \u00d7 price \u00d7 100"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-1597bb2540f725995b48",
+            "line": 93,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "the 23 Oct expiry filter hides the 20 Nov row and never changes the coverage line"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-1408b87cfb953e5e70c7",
+            "line": 106,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "the expiry filter survives a reload through flowdesk.filters.v1"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-c66579c384109615b2ca",
+            "line": 121,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "equal-timestamp prints keep their id order across re-sorts (e6 before e9)"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-9de21f995a8e27a22168",
+            "line": 141,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "the \u4e2d\u6587 view renders the same inspector sections with no Latin machine text"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-980371dd3b315023e746",
+            "line": 164,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "inspect by keyboard and return to the source print with filters intact"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-fbefc2ec46d8ce715388",
+            "line": 201,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "a slow previous ticker cannot replace the selected print's context"
+          },
+          {
+            "column": 7,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-8af385bdb0a23968888d",
+            "line": 224,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "selected Command print has one natural page scroll on compact screens (en)"
+          },
+          {
+            "column": 7,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-332c4a93b372227dc6e5",
+            "line": 224,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "selected Command print has one natural page scroll on compact screens (zh)"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-31335f6ff4d8f64e790b",
+            "line": 54,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "coverage line keeps unknown premium in the denominator and totals calls and puts unsigned"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-798b70049a343ed49302",
+            "line": 61,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "selecting e1 shows the print inspector with premium arithmetic, named-method side and the not-supplied clocks"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-40160515fe5b4e6692c5",
+            "line": 83,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "selecting e5 shows the owner's figure as not reproducible from size \u00d7 price \u00d7 100"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-6fce13a44092fa8f7208",
+            "line": 93,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "the 23 Oct expiry filter hides the 20 Nov row and never changes the coverage line"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-9a472b551f444e11b15b",
+            "line": 106,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "the expiry filter survives a reload through flowdesk.filters.v1"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-f8743f42a511cc6cf91f",
+            "line": 121,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "equal-timestamp prints keep their id order across re-sorts (e6 before e9)"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-c558bc39de335ef9e00a",
+            "line": 141,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "the \u4e2d\u6587 view renders the same inspector sections with no Latin machine text"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-d45e26893aba4f9d600f",
+            "line": 164,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "inspect by keyboard and return to the source print with filters intact"
+          },
+          {
+            "column": 5,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-639ab05128484420fb24",
+            "line": 201,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "a slow previous ticker cannot replace the selected print's context"
+          },
+          {
+            "column": 7,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-87495f2a8a9ea917ee96",
+            "line": 224,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "selected Command print has one natural page scroll on compact screens (en)"
+          },
+          {
+            "column": 7,
+            "file": "options-r1-w3a-flow-inspector.spec.ts",
+            "id": "3ca57bb461b4e1cd01b0-b1a086fb6d288591076a",
+            "line": 224,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "selected Command print has one natural page scroll on compact screens (zh)"
+          }
+        ],
+        "title": "options-r1-w3a-flow-inspector.spec.ts"
+      },
+      {
+        "column": 0,
+        "file": "options-research-lab.spec.ts",
+        "line": 0,
+        "specs": [
+          {
+            "column": 7,
+            "file": "options-research-lab.spec.ts",
+            "id": "d63cfc51691efb9c9707-78848905a2419fdb4969",
+            "line": 17,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "3D research lab exact selection and responsive fallback en"
+          },
+          {
+            "column": 7,
+            "file": "options-research-lab.spec.ts",
+            "id": "d63cfc51691efb9c9707-82d6268f23ad6473436b",
+            "line": 17,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "3D research lab exact selection and responsive fallback zh"
+          },
+          {
+            "column": 7,
+            "file": "options-research-lab.spec.ts",
+            "id": "d63cfc51691efb9c9707-e8ad9e52be0483b268fc",
+            "line": 17,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "3D research lab exact selection and responsive fallback en"
+          },
+          {
+            "column": 7,
+            "file": "options-research-lab.spec.ts",
+            "id": "d63cfc51691efb9c9707-b20ffd98b66595f553f1",
+            "line": 17,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "3D research lab exact selection and responsive fallback zh"
+          },
+          {
+            "column": 7,
+            "file": "options-research-lab.spec.ts",
+            "id": "d63cfc51691efb9c9707-4362b423db92dbe29835",
+            "line": 17,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "3D research lab exact selection and responsive fallback en"
+          },
+          {
+            "column": 7,
+            "file": "options-research-lab.spec.ts",
+            "id": "d63cfc51691efb9c9707-eae7458920d9c55704a7",
+            "line": 17,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "3D research lab exact selection and responsive fallback zh"
+          }
+        ],
+        "title": "options-research-lab.spec.ts"
+      },
+      {
+        "column": 0,
+        "file": "options-research-question.spec.ts",
+        "line": 0,
+        "specs": [
+          {
+            "column": 7,
+            "file": "options-research-question.spec.ts",
+            "id": "b6d25d42428f520fe69e-ccf9ab1405991e3518cc",
+            "line": 10,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "exact Lab question stage and withdrawal en dark"
+          },
+          {
+            "column": 7,
+            "file": "options-research-question.spec.ts",
+            "id": "b6d25d42428f520fe69e-e364b63f98ef317586bb",
+            "line": 10,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "exact Lab question stage and withdrawal en light"
+          },
+          {
+            "column": 7,
+            "file": "options-research-question.spec.ts",
+            "id": "b6d25d42428f520fe69e-53f9445e66b813ba0d07",
+            "line": 10,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "exact Lab question stage and withdrawal zh dark"
+          },
+          {
+            "column": 7,
+            "file": "options-research-question.spec.ts",
+            "id": "b6d25d42428f520fe69e-440cb83d05da33b4bf89",
+            "line": 10,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "exact Lab question stage and withdrawal zh light"
+          },
+          {
+            "column": 7,
+            "file": "options-research-question.spec.ts",
+            "id": "b6d25d42428f520fe69e-3fc8a7059203465bbcc5",
+            "line": 10,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "exact Lab question stage and withdrawal en dark"
+          },
+          {
+            "column": 7,
+            "file": "options-research-question.spec.ts",
+            "id": "b6d25d42428f520fe69e-2a4e551643ae9aa6a852",
+            "line": 10,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "exact Lab question stage and withdrawal en light"
+          },
+          {
+            "column": 7,
+            "file": "options-research-question.spec.ts",
+            "id": "b6d25d42428f520fe69e-59fcaea1cc7794f518c7",
+            "line": 10,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "exact Lab question stage and withdrawal zh dark"
+          },
+          {
+            "column": 7,
+            "file": "options-research-question.spec.ts",
+            "id": "b6d25d42428f520fe69e-52681fc87a97d62eb6fe",
+            "line": 10,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "exact Lab question stage and withdrawal zh light"
+          },
+          {
+            "column": 7,
+            "file": "options-research-question.spec.ts",
+            "id": "b6d25d42428f520fe69e-159ba77ce1b979b116f0",
+            "line": 10,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "exact Lab question stage and withdrawal en dark"
+          },
+          {
+            "column": 7,
+            "file": "options-research-question.spec.ts",
+            "id": "b6d25d42428f520fe69e-2e1946e576807afe7a1e",
+            "line": 10,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "exact Lab question stage and withdrawal en light"
+          },
+          {
+            "column": 7,
+            "file": "options-research-question.spec.ts",
+            "id": "b6d25d42428f520fe69e-40c5bd108a44d96cfdf6",
+            "line": 10,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "exact Lab question stage and withdrawal zh dark"
+          },
+          {
+            "column": 7,
+            "file": "options-research-question.spec.ts",
+            "id": "b6d25d42428f520fe69e-18bc4ff0c373fb1c85f1",
+            "line": 10,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "exact Lab question stage and withdrawal zh light"
+          }
+        ],
+        "title": "options-research-question.spec.ts"
+      },
+      {
+        "column": 0,
+        "file": "options-workspace-usability.spec.ts",
+        "line": 0,
+        "specs": [
+          {
+            "column": 5,
+            "file": "options-workspace-usability.spec.ts",
+            "id": "8c1d7d1037b0bc5891ed-6c381ae49bab78aae31e",
+            "line": 3,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "desktop",
+                "projectName": "desktop",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Surface can select, drag and step to an actual observation"
+          },
+          {
+            "column": 5,
+            "file": "options-workspace-usability.spec.ts",
+            "id": "8c1d7d1037b0bc5891ed-62e5f46a94a823d01548",
+            "line": 3,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "tablet",
+                "projectName": "tablet",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Surface can select, drag and step to an actual observation"
+          },
+          {
+            "column": 5,
+            "file": "options-workspace-usability.spec.ts",
+            "id": "8c1d7d1037b0bc5891ed-dea7faeaba1e6bb52716",
+            "line": 3,
+            "ok": true,
+            "tags": [],
+            "tests": [
+              {
+                "annotations": [],
+                "expectedStatus": "passed",
+                "projectId": "mobile",
+                "projectName": "mobile",
+                "results": [],
+                "status": "skipped",
+                "timeout": 60000
+              }
+            ],
+            "title": "Surface can select, drag and step to an actual observation"
+          }
+        ],
+        "title": "options-workspace-usability.spec.ts"
+      }
+    ]
+  }
+}

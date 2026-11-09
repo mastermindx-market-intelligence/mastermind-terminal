@@ -25,11 +25,14 @@ const LAYOUT_FILES = [
   "terminal/app/globals.css",
   "terminal/app/observatory.css",
   // W3A (flow print inspector)
+  "terminal/components/flowdesk/CommandWorkspace.module.css",
   "terminal/components/flowdesk/FeedPane.tsx",
   "terminal/components/flowdesk/FlowCard.tsx",
   "terminal/components/flowdesk/FlowDeskView.tsx",
   "terminal/components/flowdesk/InspectorPane.tsx",
   "terminal/components/flowdesk/PrintInspector.tsx",
+  "terminal/components/flowdesk/EvidenceDisclosure.module.css",
+  "terminal/components/flowdesk/CommandResearch.module.css",
   "terminal/lib/flowPrintInspector.ts",
   // W3B (constant-tenor comparison)
   "terminal/components/vol/VolComparePanel.tsx",
@@ -66,7 +69,14 @@ test.describe("Options R1 W3 crop packet", () => {
     await page.setViewportSize(VIEWPORTS[width]);
     await settle(page);
     const file = `${state}-${width}${lang === "zh" ? "-zh" : ""}.png`;
-    if (target) {
+    if (await page.locator("html").getAttribute("data-theme") !== "dark") throw new Error("Expected the default dark Options theme");
+    if (target && state.startsWith("flow-desk-inspector")) {
+      // The selected card fits the desk. Bring it into view at the actual viewport,
+      // preserving the inspection position inside its own scrolling body.
+      await target.scrollIntoViewIfNeeded();
+      await settle(page);
+      await target.screenshot({ path: path.join(OUT, file) });
+    } else if (target) {
       // The options shell scrolls inside the app at tablet/desktop widths, so a target
       // taller than the contract viewport is clipped: grow the height until it fits.
       // The target's scroll ancestors rest at their top first (never its own scroller,
@@ -130,7 +140,10 @@ test.describe("Options R1 W3 crop packet", () => {
           const body = document.querySelector('[data-tut="flow-inspector"] .obs-insp-body');
           if (body) body.scrollTop = 0;
         });
+        const evidence = section.locator("details");
+        if (await evidence.getAttribute("open") !== null) await evidence.locator("summary").click();
         await capture(page, "flow-desk-inspector", width, lang, card);
+        await evidence.locator("summary").click();
         await page.evaluate(() => document.querySelector('[data-testid="flow-print-inspector"]')?.scrollIntoView({ block: "end" }));
         await settle(page);
         await capture(page, "flow-desk-inspector-print-end", width, lang, card);
@@ -199,11 +212,12 @@ test.describe("Options R1 W3 crop packet", () => {
     // CAPTURE_HEAD names the commit an uncommitted working tree is built on; git is the fallback.
     const pinned = process.env.CAPTURE_HEAD ?? "";
     const head = /^[0-9a-f]{40}$/.test(pinned) ? pinned : execSync("git rev-parse HEAD", { cwd: root }).toString().trim();
+    if (new Set(crops.map(crop => crop.file)).size !== 24) throw new Error("Incomplete Options R1 crop run");
     const lines = [
       `capturedAtHead: ${head}`,
       `capturedAtHeadSource: ${head === pinned ? "CAPTURE_HEAD (the commit the captured working tree is built on)" : "git rev-parse HEAD"}`,
       `command: "OPTIONS_R1_CROPS=1 npx playwright test e2e/options-r1-w3-crops.spec.ts --project=desktop --workers=1"`,
-      `theme: Terminal and Options routes are dark-only.`,
+      `theme: Captured in the default dark Options theme.`,
       `sources: synthetic (e2e/fixtures/options-r1-w3a-flow.json, e2e/fixtures/options-r1-w3b-vol.json, e2e/fixtures/options-r1-w3-moves.json, mocked /data/AAPL.fund.json); not provider evidence.`,
       "layoutFiles:", ...LAYOUT_FILES.flatMap(file => [`  - path: ${file}`, `    sha256: ${sha(file)}`]),
       "crops:", ...crops.flatMap(crop => [`  - file: ${crop.file}`, `    viewport: ${crop.viewport}`, `    lang: ${crop.lang}`, `    state: ${crop.state}`,

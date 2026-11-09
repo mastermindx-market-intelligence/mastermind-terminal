@@ -94,7 +94,7 @@ export function replayReducer(state: ReplayState, action: ReplayAction): ReplayS
         else frame = prior;
       }
       return { ...state, stamps: action.stamps, frame, missingStamp,
-        playing: missingStamp != null || action.keepHead ? false : state.playing,
+        playing: action.stamps.length < 2 || missingStamp != null || action.keepHead ? false : state.playing,
         followHead: action.keepHead ? true : state.followHead };
     }
     case "toFirst":
@@ -106,11 +106,13 @@ export function replayReducer(state: ReplayState, action: ReplayAction): ReplayS
     case "stepFwd":
       return { ...state, frame: clampFrame(state.frame + 1, len), playing: false, followHead: false, missingStamp: undefined };
     case "togglePlay": {
+      if (len < 2) return state;
       const restart = !state.playing && isAtHead(state) && len > 1;
       return { ...state, frame: restart ? 0 : state.frame, playing: !state.playing,
         followHead: false, missingStamp: undefined };
     }
     case "play":
+      if (len < 2) return state;
       return { ...state, frame: isAtHead(state) && len > 1 ? 0 : state.frame,
         playing: true, followHead: false, missingStamp: undefined };
     case "pause":

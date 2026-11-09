@@ -1,0 +1,8 @@
+{
+  "path": "terminal/components/workspaces/OptionsWorkspace.tsx",
+  "before_sha256": "962f1caaafba37129e4b22e283eb838eb1a1d1eae7007af4f365418df4c8eb6e",
+  "after_sha256": "8cdc0773c3895949b2f6174ed4883a87d2c376d55c37d54c4b2b530a37269b8b",
+  "original_and_combined_equal": true,
+  "regression_before": "12 cases: 11 pass, new frozen-router regression fails with URL structure / UI gex",
+  "repair": "Observe the browser URL through useSyncExternalStore; notify on existing writer, popstate, and committed Next query; no alternate writable active-tab state"
+}

@@ -1,0 +1,24 @@
+{
+  "schema": "protected_shell_dependency_port.v1",
+  "protected_base": "11531481b0a540ee96bcd86df418fd1e42715363",
+  "options_parent": "98ffa891116ccc9e6be58a64148dbe45591e6ce8",
+  "authorship_base": "ac3762717ad150fd4f18614afd78072115a7c80a",
+  "reason": "Complete current shell dependencies before original native capture; these paths have no Options-authored changes.",
+  "files": [
+    {
+      "path": "terminal/components/Tracker.tsx",
+      "before_sha256": "8fefaab4bea66c49675d8d5127a02e00d31fe7debc893a310d7e1899f601e3df",
+      "after_sha256": "b59818635861d63aa4f10e205ab57546c82fc4bc2154babdc771cf0bc3264816"
+    },
+    {
+      "path": "terminal/lib/sharedShellCopy.ts",
+      "before_sha256": "2b66cde3a3fe1cda365c8b7ef07d307d70980a6764fd8263d96ab756a5176b6e",
+      "after_sha256": "4cef78b0145bc9968cb4fb324ad7f17b3a8a3f631fa62ba9402c0f5701abb2d3"
+    },
+    {
+      "path": "terminal/lib/sharedShellNavigation.ts",
+      "before_sha256": "fa0e75240770927f7225e803e0bc91bf87fc98f800e03bf2f6dbb7a235c41705",
+      "after_sha256": "cb338dd3eb2170ca96b4481f3111b534d31ec7555bf1705b56a3038dcce1f073"
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "schema": "options_eager_style_dependencies.v1",
+  "path": "terminal/components/workspaces/OptionsWorkspace.tsx",
+  "before_sha256": "8cdc0773c3895949b2f6174ed4883a87d2c376d55c37d54c4b2b530a37269b8b",
+  "after_sha256": "de955706ef8500a6b60038266381760fddaf82942402f76142eb3580e710e983",
+  "observed_asset_sha256": "11ec2f1d82df664b0249c6930b56e9567755e0997581722770293103e2ce1978",
+  "ordered_style_sources": [
+    "terminal/components/gexdesk/ExposureWorkspace.module.css",
+    "terminal/components/chrome/investor-shell-preview.css",
+    "terminal/components/chrome/shared-shell/shared-shell.css",
+    "terminal/components/MobileNav.module.css",
+    "terminal/components/exposure-map/FrozenNodeEntry.module.css",
+    "terminal/components/researchlab/ResearchAppearance.css",
+    "terminal/components/exposure-map/ExposureOriginStrip.module.css",
+    "terminal/components/exposure-map/ExposureMap.module.css",
+    "terminal/components/exposure-map/ExposureScanTable.module.css",
+    "terminal/components/exposure-map/ExposureReplay.module.css",
+    "terminal/components/exposure-map/ExposureSessionReview.module.css",
+    "terminal/components/exposure-map/ExposureScenario.module.css",
+    "terminal/components/research/SavedScenario.module.css",
+    "terminal/components/exposure-map/ExposureSurface.module.css",
+    "terminal/components/exposure-map/ExposureChangeInspector.module.css",
+    "terminal/components/options-companion/OptionsCompanion.module.css",
+    "terminal/components/shared/StrikeExpiryMatrixRail.module.css"
+  ],
+  "source_sha256": {
+    "terminal/components/gexdesk/ExposureWorkspace.module.css": "bf8a7d85fc594d9666e97445fde47e36cd64c4f6fc6883a75102d25115666158",
+    "terminal/components/chrome/investor-shell-preview.css": "83d1842b9b057014f698d5e62627c3e492a1061d0e8713b7a2bdc3ca8753650e",
+    "terminal/components/chrome/shared-shell/shared-shell.css": "ace6eda93612f229031e426b6246315dd5cdeb49add7ce1d24c45165e7eb2660",
+    "terminal/components/MobileNav.module.css": "ebc961c1a5ed307aca41b147d87a6373c8710d0a9298e3bfe0df215d287c6c15",
+    "terminal/components/exposure-map/FrozenNodeEntry.module.css": "f618354c1a9d02186aa287e50ebd423e4c59fcd52d589e47638f797c3e3be370",
+    "terminal/components/researchlab/ResearchAppearance.css": "3908567e53f67befd31106644087ba07a138a0a8e7bef7b56c2b7f55109e24fc",
+    "terminal/components/exposure-map/ExposureOriginStrip.module.css": "4f314e6381a2f705f27120ee94f470b6e9da3c260afab6831fb31bee9396436c",
+    "terminal/components/exposure-map/ExposureMap.module.css": "3e48dfb9a5bf152fc355633be1ef87a4c1d2586ff70462ac312b7e2431364901",
+    "terminal/components/exposure-map/ExposureScanTable.module.css": "06263ecac2277c2f2cd8b3cd179efe1b5c4b91e59a7b08b3e5bf029b5deb87ba",
+    "terminal/components/exposure-map/ExposureReplay.module.css": "7a9eb91d200dcbc6c3c9fbe3def00ce2b5e16eb7deef20ddcc92736a90b59a79",
+    "terminal/components/exposure-map/ExposureSessionReview.module.css": "f3c447ce77aad71304c22a61dd72ed430c5757a16054b567cd3c19b1371a6527",
+    "terminal/components/exposure-map/ExposureScenario.module.css": "d1b135bd1d8a952f8bdd0ff3d12222ce970b99741f39c0ef4e288335a71cdfb3",
+    "terminal/components/research/SavedScenario.module.css": "bb72add0844307c9f416685ae9c637732c82e2b2b5e0d090c9520010e5cf349f",
+    "terminal/components/exposure-map/ExposureSurface.module.css": "378f87be02b1136ba217fcda13a9d72a88ec48f57472bc7527fed6126b421614",
+    "terminal/components/exposure-map/ExposureChangeInspector.module.css": "b1efb662e118e18f5f4de6f6b8b4c03ac0b7b03de34be1741583c98134586964",
+    "terminal/components/options-companion/OptionsCompanion.module.css": "56fa1b120238409ee3089696414a07b9296f43e7071d5996218697d89f981091",
+    "terminal/components/shared/StrikeExpiryMatrixRail.module.css": "27a1c8f900c9c33e9be4946f633d850ce53f0674450d5f3961da88f68e2a5829"
+  },
+  "peer_equal": true,
+  "javascript_loading_unchanged": true,
+  "compatibility_css": {
+    "path": "terminal/components/exposure-map/ExposureMap.module.css",
+    "original_sha256": "4af3c86a779b1fc094cbaa7728c58bae82390951ba09b9fa34d9075a74504ecd",
+    "protected_sha256": "eba0280399983f53408d6c3b3a6e0ff909a4d29a9599b2c1b694b180657fea77",
+    "current_sha256": "3e48dfb9a5bf152fc355633be1ef87a4c1d2586ff70462ac312b7e2431364901",
+    "protected_bytes_preserved_as_prefix": true,
+    "retained_rules": [
+      ".momentumGrid>div desktop flex layout",
+      ".momentumGrid>div phone padding"
+    ],
+    "original_options_authored_css_delta": false
+  }
+}

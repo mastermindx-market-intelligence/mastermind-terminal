@@ -1,0 +1,39 @@
+{
+  "completedAt": "2026-11-09T19:06:06.578936+00:00",
+  "composition": {
+    "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261109185448-2-current.composition.json",
+    "selectedCases": 50,
+    "sha256": "4dd06a31f9c0d33206f14fd0b61be176865f2ef4e6fcf288f41034a5bf256126"
+  },
+  "results": {
+    "selected-consumers": {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+        "lib/__tests__/visualIntelligenceEvidence.test.ts",
+        "lib/__tests__/optionsLevelAxisEvidence.test.ts",
+        "lib/__tests__/b_pl_6Batch2Evidence.test.ts",
+        "lib/__tests__/pineBootPendingEvidence.test.ts",
+        "--pool=forks",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/docs/verification/pr1248-options-ux-integration-20261109/final-consumers-r2/selected-consumers.json"
+      ],
+      "exit": 0,
+      "logSha256": "30167b37b78c3bccef058e43a2f81bfca7dd40a309acb9defac10d543d764b85",
+      "report": {
+        "numFailedTests": 0,
+        "numPassedTests": 18,
+        "numPendingTests": 0,
+        "numTotalTests": 18,
+        "success": true
+      },
+      "seconds": 24.73
+    }
+  },
+  "schema": "terminal_pr1248_final_consumer_validation.v1",
+  "state": "QUALIFIED"
+}

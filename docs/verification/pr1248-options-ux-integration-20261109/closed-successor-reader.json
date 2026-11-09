@@ -1,0 +1,41 @@
+{
+  "currentInputCounts": {
+    "browser": 229,
+    "eod": 63,
+    "gex": 37,
+    "specs": 12
+  },
+  "expectedBrowserCases": 201,
+  "historicalInputCounts": {
+    "browser": 71,
+    "eod": 32,
+    "gex": 29
+  },
+  "legacyFallbackUnchanged": true,
+  "nativeExpected": {
+    "eod": 126,
+    "gex": 114
+  },
+  "preparedAt": "2026-11-09T18:19:32.775987+00:00",
+  "records": {
+    "terminal/e2e/tools/optionsExposureEvidence.cjs": {
+      "after": "011c4725457e197bfea1f5230805d4262f43544e0efdcda645d494dff94e85ab",
+      "archive": "docs/verification/pr1248-options-ux-integration-20261109/prior-options-reader/optionsExposureEvidence.cjs",
+      "before": "afe61815b1e0b49efb6f80b05d95f3f9f3fa0565fd21b70f2bb72f93e4e7d1a8"
+    },
+    "terminal/e2e/tools/optionsExposureEvidence.d.cts": {
+      "after": "0ba3f5cd6c080018efbff59babbacdc6b3fbc70d278d147c08f6d26e4f4d657c",
+      "archive": "docs/verification/pr1248-options-ux-integration-20261109/prior-options-reader/optionsExposureEvidence.d.cts",
+      "before": "18b0bd97d20a6062d54149894d31cd5c9357163c2d32fd3eaa58396b9db5fae4"
+    },
+    "terminal/lib/__tests__/helpers/optionsExposureEvidence.ts": {
+      "after": "e3a4b23d4ea0898335746f0ce54b0dff969eea8af83f3aca13040ff487bd4643",
+      "archive": "docs/verification/pr1248-options-ux-integration-20261109/prior-options-reader/optionsExposureEvidence.ts",
+      "before": "07c7f93d63cac39e2ecdedcc7c3c835ad0a0a1b6a068ab98cc0898c1838037ac"
+    }
+  },
+  "rootHistoryUsesBothArchivedDeclarations": true,
+  "schema": "terminal_pr1248_closed_successor_reader.v1",
+  "sharedParserRetained": true,
+  "state": "IMPLEMENTED_PENDING_ACTUAL_PROOF_BINDINGS"
+}

@@ -1,0 +1,1900 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/node_modules/.bin/playwright",
+      "test",
+      "e2e/options-lab-source-state.spec.ts",
+      "e2e/options-research-lab.spec.ts",
+      "e2e/options-exposure-workspace.spec.ts",
+      "e2e/options-deeplink.spec.ts",
+      "e2e/options-contract-shortlist.spec.ts",
+      "e2e/options-workspace-usability.spec.ts",
+      "--grep",
+      "Research Lab (withdraws a retained|admits a valid current read|preserves the selected archive)|3D research lab exact selection and responsive fallback|Connected exposure workspace .*: chart, comparison scopes, scanner and return|Options follows query navigation and Back/Forward|Options can leave (Exposure|Research Lab) while new scripts|real entitled screener rows compare without any new data request|Surface can select, drag and step to an actual observation",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--retries=0",
+      "--trace=on",
+      "--output=.next/options-final-journeys-preview-navigation-r4-20261105",
+      "--reporter=list,json"
+    ],
+    "configFile": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3693",
+      "url": "http://127.0.0.1:3693/terminal?symbol=NVDA",
+      "reuseExistingServer": true,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "options-contract-shortlist.spec.ts",
+      "file": "options-contract-shortlist.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "real entitled screener rows compare without any new data request",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2813,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:08:35.545Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-contract-shortlist-03634-ithout-any-new-data-request-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1647a36d110082b60e4c-a337a373f7ed56e2f81e",
+          "file": "options-contract-shortlist.spec.ts",
+          "line": 303,
+          "column": 5
+        },
+        {
+          "title": "real entitled screener rows compare without any new data request",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3985,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:09:40.983Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-contract-shortlist-03634-ithout-any-new-data-request-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1647a36d110082b60e4c-af6efe8c9a5992362f0b",
+          "file": "options-contract-shortlist.spec.ts",
+          "line": 303,
+          "column": 5
+        },
+        {
+          "title": "real entitled screener rows compare without any new data request",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2088,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:10:37.907Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-contract-shortlist-03634-ithout-any-new-data-request-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1647a36d110082b60e4c-1532a17f9c0f728e03ac",
+          "file": "options-contract-shortlist.spec.ts",
+          "line": 303,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "options-deeplink.spec.ts",
+      "file": "options-deeplink.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Options follows query navigation and Back/Forward while retaining visited desks",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8991,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:08:38.756Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-deeplink-Options-f-731cd-ile-retaining-visited-desks-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "499d798c04fba4fb76cd-07545127b2122f6b5ce3",
+          "file": "options-deeplink.spec.ts",
+          "line": 87,
+          "column": 5
+        },
+        {
+          "title": "Options can leave Exposure while new scripts and styles are still loading",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6147,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:08:47.871Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "pending-assets",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0eXBlIjogInNjcmlwdCIsCiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6MzY5My9fbmV4dC9zdGF0aWMvY2h1bmtzL19hcHAtcGFnZXMtYnJvd3Nlcl9jb21wb25lbnRzX2dleGRlc2tfR2V4RGVza1ZpZXdfdHN4LmpzIgogIH0KXQ=="
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-deeplink-Options-c-19c3c-nd-styles-are-still-loading-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "499d798c04fba4fb76cd-e9d190508417b0d6f14e",
+          "file": "options-deeplink.spec.ts",
+          "line": 138,
+          "column": 5
+        },
+        {
+          "title": "Options can leave Research Lab while new scripts and styles are still loading",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3269,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:08:54.089Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "pending-assets",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0eXBlIjogInNjcmlwdCIsCiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6MzY5My9fbmV4dC9zdGF0aWMvY2h1bmtzL19hcHAtcGFnZXMtYnJvd3Nlcl9jb21wb25lbnRzX3Jlc2VhcmNobGFiX0FkbWl0dGVkT3B0aW9uc1Jlc2VhcmNoTGFiX3RzeC5qcyIKICB9Cl0="
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-deeplink-Options-c-0259e-nd-styles-are-still-loading-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "499d798c04fba4fb76cd-06119a1b88c9594c9a3e",
+          "file": "options-deeplink.spec.ts",
+          "line": 138,
+          "column": 5
+        },
+        {
+          "title": "Options follows query navigation and Back/Forward while retaining visited desks",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2732,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:09:45.310Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-deeplink-Options-f-731cd-ile-retaining-visited-desks-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "499d798c04fba4fb76cd-3a7019b08323ce141c4c",
+          "file": "options-deeplink.spec.ts",
+          "line": 87,
+          "column": 5
+        },
+        {
+          "title": "Options can leave Exposure while new scripts and styles are still loading",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2095,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:09:48.173Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "pending-assets",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0eXBlIjogInNjcmlwdCIsCiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6MzY5My9fbmV4dC9zdGF0aWMvY2h1bmtzL19hcHAtcGFnZXMtYnJvd3Nlcl9jb21wb25lbnRzX2dleGRlc2tfR2V4RGVza1ZpZXdfdHN4LmpzIgogIH0KXQ=="
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-deeplink-Options-c-19c3c-nd-styles-are-still-loading-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "499d798c04fba4fb76cd-80b50aac8e048947dbf0",
+          "file": "options-deeplink.spec.ts",
+          "line": 138,
+          "column": 5
+        },
+        {
+          "title": "Options can leave Research Lab while new scripts and styles are still loading",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2619,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:09:50.360Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "pending-assets",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0eXBlIjogInNjcmlwdCIsCiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6MzY5My9fbmV4dC9zdGF0aWMvY2h1bmtzL19hcHAtcGFnZXMtYnJvd3Nlcl9jb21wb25lbnRzX3Jlc2VhcmNobGFiX0FkbWl0dGVkT3B0aW9uc1Jlc2VhcmNoTGFiX3RzeC5qcyIKICB9Cl0="
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-deeplink-Options-c-0259e-nd-styles-are-still-loading-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "499d798c04fba4fb76cd-0bb8561e8cae943c583b",
+          "file": "options-deeplink.spec.ts",
+          "line": 138,
+          "column": 5
+        },
+        {
+          "title": "Options follows query navigation and Back/Forward while retaining visited desks",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2317,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:10:40.385Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-deeplink-Options-f-731cd-ile-retaining-visited-desks-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "499d798c04fba4fb76cd-441b596e7a56feb341e1",
+          "file": "options-deeplink.spec.ts",
+          "line": 87,
+          "column": 5
+        },
+        {
+          "title": "Options can leave Exposure while new scripts and styles are still loading",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2379,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:10:42.895Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "pending-assets",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0eXBlIjogInNjcmlwdCIsCiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6MzY5My9fbmV4dC9zdGF0aWMvY2h1bmtzL19hcHAtcGFnZXMtYnJvd3Nlcl9jb21wb25lbnRzX2dleGRlc2tfR2V4RGVza1ZpZXdfdHN4LmpzIgogIH0KXQ=="
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-deeplink-Options-c-19c3c-nd-styles-are-still-loading-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "499d798c04fba4fb76cd-6b5d88a8c29f3863b983",
+          "file": "options-deeplink.spec.ts",
+          "line": 138,
+          "column": 5
+        },
+        {
+          "title": "Options can leave Research Lab while new scripts and styles are still loading",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3243,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:10:45.357Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "pending-assets",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0eXBlIjogInNjcmlwdCIsCiAgICAidXJsIjogImh0dHA6Ly8xMjcuMC4wLjE6MzY5My9fbmV4dC9zdGF0aWMvY2h1bmtzL19hcHAtcGFnZXMtYnJvd3Nlcl9jb21wb25lbnRzX3Jlc2VhcmNobGFiX0FkbWl0dGVkT3B0aW9uc1Jlc2VhcmNoTGFiX3RzeC5qcyIKICB9Cl0="
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-deeplink-Options-c-0259e-nd-styles-are-still-loading-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "499d798c04fba4fb76cd-bc2417dd719f635a48f9",
+          "file": "options-deeplink.spec.ts",
+          "line": 138,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "options-exposure-workspace.spec.ts",
+      "file": "options-exposure-workspace.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7815,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:08:57.521Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "momentum-layout",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0YWciOiAiQlVUVE9OIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI5cHgiLAogICAgImxlZnQiOiAiNnB4IgogIH0sCiAgewogICAgInRhZyI6ICJCVVRUT04iLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjlweCIsCiAgICAibGVmdCI6ICI2cHgiCiAgfSwKICB7CiAgICAidGFnIjogIkJVVFRPTiIsCiAgICAiZGlzcGxheSI6ICJmbGV4IiwKICAgICJkaXJlY3Rpb24iOiAiY29sdW1uIiwKICAgICJ0b3AiOiAiOXB4IiwKICAgICJsZWZ0IjogIjZweCIKICB9LAogIHsKICAgICJ0YWciOiAiQlVUVE9OIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI5cHgiLAogICAgImxlZnQiOiAiNnB4IgogIH0sCiAgewogICAgInRhZyI6ICJCVVRUT04iLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjlweCIsCiAgICAibGVmdCI6ICI2cHgiCiAgfQpd"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-exposure-workspace-3f35d-n-scopes-scanner-and-return-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9e9678be14b351cb8dab-6ae05176e115ddc39b3d",
+          "file": "options-exposure-workspace.spec.ts",
+          "line": 392,
+          "column": 7
+        },
+        {
+          "title": "Connected exposure workspace zh: chart, comparison scopes, scanner and return",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7929,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:09:05.665Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "momentum-layout",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0YWciOiAiQlVUVE9OIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI5cHgiLAogICAgImxlZnQiOiAiNnB4IgogIH0sCiAgewogICAgInRhZyI6ICJCVVRUT04iLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjlweCIsCiAgICAibGVmdCI6ICI2cHgiCiAgfSwKICB7CiAgICAidGFnIjogIkJVVFRPTiIsCiAgICAiZGlzcGxheSI6ICJmbGV4IiwKICAgICJkaXJlY3Rpb24iOiAiY29sdW1uIiwKICAgICJ0b3AiOiAiOXB4IiwKICAgICJsZWZ0IjogIjZweCIKICB9LAogIHsKICAgICJ0YWciOiAiQlVUVE9OIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI5cHgiLAogICAgImxlZnQiOiAiNnB4IgogIH0sCiAgewogICAgInRhZyI6ICJCVVRUT04iLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjlweCIsCiAgICAibGVmdCI6ICI2cHgiCiAgfQpd"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-exposure-workspace-eba30-n-scopes-scanner-and-return-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9e9678be14b351cb8dab-0c140ffae3c761f60932",
+          "file": "options-exposure-workspace.spec.ts",
+          "line": 392,
+          "column": 7
+        },
+        {
+          "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7049,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:09:53.109Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "momentum-layout",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0YWciOiAiQlVUVE9OIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI5cHgiLAogICAgImxlZnQiOiAiNnB4IgogIH0sCiAgewogICAgInRhZyI6ICJCVVRUT04iLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjlweCIsCiAgICAibGVmdCI6ICI2cHgiCiAgfSwKICB7CiAgICAidGFnIjogIkJVVFRPTiIsCiAgICAiZGlzcGxheSI6ICJmbGV4IiwKICAgICJkaXJlY3Rpb24iOiAiY29sdW1uIiwKICAgICJ0b3AiOiAiOXB4IiwKICAgICJsZWZ0IjogIjZweCIKICB9LAogIHsKICAgICJ0YWciOiAiQlVUVE9OIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI5cHgiLAogICAgImxlZnQiOiAiNnB4IgogIH0sCiAgewogICAgInRhZyI6ICJCVVRUT04iLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjlweCIsCiAgICAibGVmdCI6ICI2cHgiCiAgfQpd"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-exposure-workspace-3f35d-n-scopes-scanner-and-return-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9e9678be14b351cb8dab-f57ce40ae717d36b6786",
+          "file": "options-exposure-workspace.spec.ts",
+          "line": 392,
+          "column": 7
+        },
+        {
+          "title": "Connected exposure workspace zh: chart, comparison scopes, scanner and return",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7734,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:10:00.526Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "momentum-layout",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0YWciOiAiQlVUVE9OIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI5cHgiLAogICAgImxlZnQiOiAiNnB4IgogIH0sCiAgewogICAgInRhZyI6ICJCVVRUT04iLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjlweCIsCiAgICAibGVmdCI6ICI2cHgiCiAgfSwKICB7CiAgICAidGFnIjogIkJVVFRPTiIsCiAgICAiZGlzcGxheSI6ICJmbGV4IiwKICAgICJkaXJlY3Rpb24iOiAiY29sdW1uIiwKICAgICJ0b3AiOiAiOXB4IiwKICAgICJsZWZ0IjogIjZweCIKICB9LAogIHsKICAgICJ0YWciOiAiQlVUVE9OIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI5cHgiLAogICAgImxlZnQiOiAiNnB4IgogIH0sCiAgewogICAgInRhZyI6ICJCVVRUT04iLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjlweCIsCiAgICAibGVmdCI6ICI2cHgiCiAgfQpd"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-exposure-workspace-eba30-n-scopes-scanner-and-return-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9e9678be14b351cb8dab-89febbd2fe12c0dc57e8",
+          "file": "options-exposure-workspace.spec.ts",
+          "line": 392,
+          "column": 7
+        },
+        {
+          "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9686,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:10:48.728Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "momentum-layout",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0YWciOiAiQlVUVE9OIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI4cHgiLAogICAgImxlZnQiOiAiNHB4IgogIH0sCiAgewogICAgInRhZyI6ICJCVVRUT04iLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjhweCIsCiAgICAibGVmdCI6ICI0cHgiCiAgfSwKICB7CiAgICAidGFnIjogIkJVVFRPTiIsCiAgICAiZGlzcGxheSI6ICJmbGV4IiwKICAgICJkaXJlY3Rpb24iOiAiY29sdW1uIiwKICAgICJ0b3AiOiAiOHB4IiwKICAgICJsZWZ0IjogIjRweCIKICB9LAogIHsKICAgICJ0YWciOiAiQlVUVE9OIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI4cHgiLAogICAgImxlZnQiOiAiNHB4IgogIH0sCiAgewogICAgInRhZyI6ICJCVVRUT04iLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjhweCIsCiAgICAibGVmdCI6ICI0cHgiCiAgfQpd"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-exposure-workspace-3f35d-n-scopes-scanner-and-return-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9e9678be14b351cb8dab-6c93e57c0ebdfeeef248",
+          "file": "options-exposure-workspace.spec.ts",
+          "line": 392,
+          "column": 7
+        },
+        {
+          "title": "Connected exposure workspace zh: chart, comparison scopes, scanner and return",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8186,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:10:58.863Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "momentum-layout",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0YWciOiAiQlVUVE9OIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI4cHgiLAogICAgImxlZnQiOiAiNHB4IgogIH0sCiAgewogICAgInRhZyI6ICJCVVRUT04iLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjhweCIsCiAgICAibGVmdCI6ICI0cHgiCiAgfSwKICB7CiAgICAidGFnIjogIkJVVFRPTiIsCiAgICAiZGlzcGxheSI6ICJmbGV4IiwKICAgICJkaXJlY3Rpb24iOiAiY29sdW1uIiwKICAgICJ0b3AiOiAiOHB4IiwKICAgICJsZWZ0IjogIjRweCIKICB9LAogIHsKICAgICJ0YWciOiAiQlVUVE9OIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI4cHgiLAogICAgImxlZnQiOiAiNHB4IgogIH0sCiAgewogICAgInRhZyI6ICJCVVRUT04iLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjhweCIsCiAgICAibGVmdCI6ICI0cHgiCiAgfQpd"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-exposure-workspace-eba30-n-scopes-scanner-and-return-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9e9678be14b351cb8dab-ac6b091440034955de0a",
+          "file": "options-exposure-workspace.spec.ts",
+          "line": 392,
+          "column": 7
+        }
+      ]
+    },
+    {
+      "title": "options-lab-source-state.spec.ts",
+      "file": "options-lab-source-state.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Research Lab withdraws a retained unavailable source and restores the exact pin on recovery",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3629,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:09:13.881Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "55327054537994b8999b-3e002d06c598aec388f6",
+          "file": "options-lab-source-state.spec.ts",
+          "line": 28,
+          "column": 7
+        },
+        {
+          "title": "Research Lab withdraws a retained absent source and restores the exact pin on recovery",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3656,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:09:17.604Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "55327054537994b8999b-9d5a82ab68db8cd7291f",
+          "file": "options-lab-source-state.spec.ts",
+          "line": 28,
+          "column": 7
+        },
+        {
+          "title": "Research Lab admits a valid current read before the stream supplies a frame",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3227,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:09:21.337Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "55327054537994b8999b-c58fe7b20729d66aa47f",
+          "file": "options-lab-source-state.spec.ts",
+          "line": 81,
+          "column": 5
+        },
+        {
+          "title": "Research Lab preserves the selected archive without substituting an available live book",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4373,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:09:24.649Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-lab-source-state-R-85e29-ting-an-available-live-book-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "55327054537994b8999b-fc811dcbb0f1047f083c",
+          "file": "options-lab-source-state.spec.ts",
+          "line": 99,
+          "column": 5
+        },
+        {
+          "title": "Research Lab withdraws a retained unavailable source and restores the exact pin on recovery",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3711,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:10:08.571Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "55327054537994b8999b-e51d0fe293ba2a4ec820",
+          "file": "options-lab-source-state.spec.ts",
+          "line": 28,
+          "column": 7
+        },
+        {
+          "title": "Research Lab withdraws a retained absent source and restores the exact pin on recovery",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3735,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:10:12.381Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "55327054537994b8999b-dfffbfa6ce41afc0b3e3",
+          "file": "options-lab-source-state.spec.ts",
+          "line": 28,
+          "column": 7
+        },
+        {
+          "title": "Research Lab admits a valid current read before the stream supplies a frame",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4036,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:10:16.205Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "55327054537994b8999b-f51fe9db76cc462e9fe3",
+          "file": "options-lab-source-state.spec.ts",
+          "line": 81,
+          "column": 5
+        },
+        {
+          "title": "Research Lab preserves the selected archive without substituting an available live book",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3733,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:10:20.356Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-lab-source-state-R-85e29-ting-an-available-live-book-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "55327054537994b8999b-597d06beb27fb93c3f6f",
+          "file": "options-lab-source-state.spec.ts",
+          "line": 99,
+          "column": 5
+        },
+        {
+          "title": "Research Lab withdraws a retained unavailable source and restores the exact pin on recovery",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3374,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:11:07.282Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "55327054537994b8999b-6b28d07ca6477e59658a",
+          "file": "options-lab-source-state.spec.ts",
+          "line": 28,
+          "column": 7
+        },
+        {
+          "title": "Research Lab withdraws a retained absent source and restores the exact pin on recovery",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3472,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:11:10.746Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "55327054537994b8999b-cfe6528debffb2003e68",
+          "file": "options-lab-source-state.spec.ts",
+          "line": 28,
+          "column": 7
+        },
+        {
+          "title": "Research Lab admits a valid current read before the stream supplies a frame",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3082,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:11:14.310Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "55327054537994b8999b-233bae1f8503364337fe",
+          "file": "options-lab-source-state.spec.ts",
+          "line": 81,
+          "column": 5
+        },
+        {
+          "title": "Research Lab preserves the selected archive without substituting an available live book",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3497,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:11:17.483Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-lab-source-state-R-85e29-ting-an-available-live-book-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "55327054537994b8999b-22dabf9fe6dceb07c8d9",
+          "file": "options-lab-source-state.spec.ts",
+          "line": 99,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "options-research-lab.spec.ts",
+      "file": "options-research-lab.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "3D research lab exact selection and responsive fallback en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4313,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:09:29.238Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-research-lab-3D-re-72be8--and-responsive-fallback-en-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d63cfc51691efb9c9707-78848905a2419fdb4969",
+          "file": "options-research-lab.spec.ts",
+          "line": 17,
+          "column": 7
+        },
+        {
+          "title": "3D research lab exact selection and responsive fallback zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4121,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:09:33.632Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-research-lab-3D-re-102aa--and-responsive-fallback-zh-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d63cfc51691efb9c9707-82d6268f23ad6473436b",
+          "file": "options-research-lab.spec.ts",
+          "line": 17,
+          "column": 7
+        },
+        {
+          "title": "3D research lab exact selection and responsive fallback en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4620,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:10:24.199Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-research-lab-3D-re-72be8--and-responsive-fallback-en-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d63cfc51691efb9c9707-e8ad9e52be0483b268fc",
+          "file": "options-research-lab.spec.ts",
+          "line": 17,
+          "column": 7
+        },
+        {
+          "title": "3D research lab exact selection and responsive fallback zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5336,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:10:28.977Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-research-lab-3D-re-102aa--and-responsive-fallback-zh-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d63cfc51691efb9c9707-b20ffd98b66595f553f1",
+          "file": "options-research-lab.spec.ts",
+          "line": 17,
+          "column": 7
+        },
+        {
+          "title": "3D research lab exact selection and responsive fallback en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4808,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:11:21.072Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-research-lab-3D-re-72be8--and-responsive-fallback-en-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d63cfc51691efb9c9707-4362b423db92dbe29835",
+          "file": "options-research-lab.spec.ts",
+          "line": 17,
+          "column": 7
+        },
+        {
+          "title": "3D research lab exact selection and responsive fallback zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5629,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:11:26.043Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-research-lab-3D-re-102aa--and-responsive-fallback-zh-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d63cfc51691efb9c9707-eae7458920d9c55704a7",
+          "file": "options-research-lab.spec.ts",
+          "line": 17,
+          "column": 7
+        }
+      ]
+    },
+    {
+      "title": "options-workspace-usability.spec.ts",
+      "file": "options-workspace-usability.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Surface can select, drag and step to an actual observation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2436,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:09:37.847Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-workspace-usabilit-df150-ep-to-an-actual-observation-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8c1d7d1037b0bc5891ed-6c381ae49bab78aae31e",
+          "file": "options-workspace-usability.spec.ts",
+          "line": 3,
+          "column": 5
+        },
+        {
+          "title": "Surface can select, drag and step to an actual observation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2810,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:10:34.433Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-workspace-usabilit-df150-ep-to-an-actual-observation-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8c1d7d1037b0bc5891ed-62e5f46a94a823d01548",
+          "file": "options-workspace-usability.spec.ts",
+          "line": 3,
+          "column": 5
+        },
+        {
+          "title": "Surface can select, drag and step to an actual observation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2645,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:11:31.781Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-final-journeys-preview-navigation-r4-20261105/options-workspace-usabilit-df150-ep-to-an-actual-observation-mobile/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8c1d7d1037b0bc5891ed-dea7faeaba1e6bb52716",
+          "file": "options-workspace-usability.spec.ts",
+          "line": 3,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-05T09:07:22.558Z",
+    "duration": 252102.551,
+    "expected": 39,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

@@ -1,0 +1,366 @@
+{
+  "schema": "options_hub_lint_delta.v1",
+  "before_source_sha256": "44b4889738d258d69af37b0a00ad9e152290a3aa950bd076b1e829972666d7a3",
+  "current_source_sha256": "75bd73f5fca6b1685d8194617f9c66a50ad08f035e2f9c03e1fb9afcf2e5ff4e",
+  "only_css_ownership_imports_added": true,
+  "baseline_errors": 13,
+  "baseline_warnings": 12,
+  "current_errors": 13,
+  "current_warnings": 12,
+  "no_new_findings": true,
+  "scope": "No suppressions or rule changes; all other files in the focused lint command produced no findings.",
+  "baseline_findings": [
+    {
+      "rule": "@typescript-eslint/no-explicit-any",
+      "severity": 2,
+      "message": "Unexpected any. Specify a different type.",
+      "sourceLine": "<div className=\"num\" style={{ fontWeight: 650, fontSize: 13, marginTop: 4, color: (kv as any).color ?? \"var(--text)\", fontVariantNumeric: \"tabular-nums\" }}>{kv.v}</div>",
+      "column": 108
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": 1,
+      "message": "'filteredGexCandidates' is assigned a value but never used.",
+      "sourceLine": "const filteredGexCandidates = gexSearch.trim()",
+      "column": 9
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": 1,
+      "message": "'gexData' is assigned a value but never used.",
+      "sourceLine": "const [gexData, setGexData] = useState<GexPayload | null>(null);",
+      "column": 10
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": 1,
+      "message": "'GexExpiryBars' is assigned a value but never used.",
+      "sourceLine": "const GexExpiryBars = memo(function GexExpiryBars({ rows, greek, lang }: { rows: GexExpiryRow[]; greek: GreekKey; lang: string }) {",
+      "column": 7
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": 1,
+      "message": "'gexGreek' is assigned a value but never used.",
+      "sourceLine": "const [gexGreek, setGexGreek] = useState<GreekKey>(\"gamma\");",
+      "column": 10
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": 1,
+      "message": "'GexHistSparkline' is assigned a value but never used.",
+      "sourceLine": "const GexHistSparkline = memo(function GexHistSparkline({ history }: { history: GexHistRow[] }) {",
+      "column": 7
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": 1,
+      "message": "'gexLoading' is assigned a value but never used.",
+      "sourceLine": "const [gexLoading, setGexLoading] = useState(false);",
+      "column": 10
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": 1,
+      "message": "'GexStrikeLadder' is assigned a value but never used.",
+      "sourceLine": "const GexStrikeLadder = memo(function GexStrikeLadder({ rows, greek, spotRef, gammaFlip, callWall, putWall, lang }: {",
+      "column": 7
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": 1,
+      "message": "'lang' is assigned a value but never used.",
+      "sourceLine": "const { lang } = useLang();",
+      "column": 11
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": 1,
+      "message": "'lang' is assigned a value but never used.",
+      "sourceLine": "const { lang } = useLang();",
+      "column": 11
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": 1,
+      "message": "'setGexGreek' is assigned a value but never used.",
+      "sourceLine": "const [gexGreek, setGexGreek] = useState<GreekKey>(\"gamma\");",
+      "column": 20
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": 1,
+      "message": "'setGexSearch' is assigned a value but never used.",
+      "sourceLine": "const [gexSearch, setGexSearch] = useState(\"\");",
+      "column": 21
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": 1,
+      "message": "'setSelectedGexRoot' is assigned a value but never used.",
+      "sourceLine": "const [selectedGexRoot, setSelectedGexRoot] = useState<string | null>(null);",
+      "column": 27
+    },
+    {
+      "rule": "react-hooks/preserve-manual-memoization",
+      "severity": 2,
+      "message": "Compilation Skipped: Existing memoization could not be preserved",
+      "sourceLine": "const fetchLeaders = useCallback(async (force = false) => {",
+      "column": 36
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "message": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "sourceLine": "if (activeTab === \"leaders\") void fetchLeaders();",
+      "column": 39
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "message": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "sourceLine": "if (activeTab === \"radar\") fetchRadar();",
+      "column": 32
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "message": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "sourceLine": "if (activeTab === \"screener\") fetchScreener();",
+      "column": 35
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "message": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "sourceLine": "if (activeTab === \"tide\" || activeTab === \"gex\") fetchCtx();",
+      "column": 54
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "message": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "sourceLine": "if (selectedGexRoot) fetchGex(selectedGexRoot);",
+      "column": 26
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "message": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "sourceLine": "useEffect(() => { setTapeLimit(TAPE_PAGE); }, [minPrem, dteBuckets, mnyBuckets, groupFilter, drillTicker, deferredTapeSearch, sideFilter, flagFilter, sortKey, sortDir]);",
+      "column": 21
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "message": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "sourceLine": "void fetchDte();",
+      "column": 10
+    },
+    {
+      "rule": "react-hooks/static-components",
+      "severity": 2,
+      "message": "Error: Cannot create components during render",
+      "sourceLine": "{callWall != null && <Chip label={zh ? \"认购墙\" : \"Call Wall\"} val={`$${callWall}`} color=\"var(--up)\" />}",
+      "column": 31
+    },
+    {
+      "rule": "react-hooks/static-components",
+      "severity": 2,
+      "message": "Error: Cannot create components during render",
+      "sourceLine": "{maxPain != null && <Chip label={zh ? \"最大痛点\" : \"Max Pain\"} val={`$${maxPain}`} color=\"var(--text-2)\" />}",
+      "column": 30
+    },
+    {
+      "rule": "react-hooks/static-components",
+      "severity": 2,
+      "message": "Error: Cannot create components during render",
+      "sourceLine": "{putWall != null && <Chip label={zh ? \"认沽墙\" : \"Put Wall\"} val={`$${putWall}`} color=\"var(--down)\" />}",
+      "column": 30
+    },
+    {
+      "rule": "react-hooks/static-components",
+      "severity": 2,
+      "message": "Error: Cannot create components during render",
+      "sourceLine": "<Chip label={spotExact ? (zh ? \"现价\" : \"Spot\") : (zh ? \"约平值\" : \"ATM≈\")} val={atm ? `$${atm.toFixed(atm < 50 ? 2 : 0)}` : \"—\"} color=\"var(--warn)\" />",
+      "column": 10
+    }
+  ],
+  "current_findings": [
+    {
+      "rule": "@typescript-eslint/no-explicit-any",
+      "severity": 2,
+      "message": "Unexpected any. Specify a different type.",
+      "sourceLine": "<div className=\"num\" style={{ fontWeight: 650, fontSize: 13, marginTop: 4, color: (kv as any).color ?? \"var(--text)\", fontVariantNumeric: \"tabular-nums\" }}>{kv.v}</div>",
+      "column": 108
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": 1,
+      "message": "'filteredGexCandidates' is assigned a value but never used.",
+      "sourceLine": "const filteredGexCandidates = gexSearch.trim()",
+      "column": 9
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": 1,
+      "message": "'gexData' is assigned a value but never used.",
+      "sourceLine": "const [gexData, setGexData] = useState<GexPayload | null>(null);",
+      "column": 10
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": 1,
+      "message": "'GexExpiryBars' is assigned a value but never used.",
+      "sourceLine": "const GexExpiryBars = memo(function GexExpiryBars({ rows, greek, lang }: { rows: GexExpiryRow[]; greek: GreekKey; lang: string }) {",
+      "column": 7
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": 1,
+      "message": "'gexGreek' is assigned a value but never used.",
+      "sourceLine": "const [gexGreek, setGexGreek] = useState<GreekKey>(\"gamma\");",
+      "column": 10
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": 1,
+      "message": "'GexHistSparkline' is assigned a value but never used.",
+      "sourceLine": "const GexHistSparkline = memo(function GexHistSparkline({ history }: { history: GexHistRow[] }) {",
+      "column": 7
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": 1,
+      "message": "'gexLoading' is assigned a value but never used.",
+      "sourceLine": "const [gexLoading, setGexLoading] = useState(false);",
+      "column": 10
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": 1,
+      "message": "'GexStrikeLadder' is assigned a value but never used.",
+      "sourceLine": "const GexStrikeLadder = memo(function GexStrikeLadder({ rows, greek, spotRef, gammaFlip, callWall, putWall, lang }: {",
+      "column": 7
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": 1,
+      "message": "'lang' is assigned a value but never used.",
+      "sourceLine": "const { lang } = useLang();",
+      "column": 11
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": 1,
+      "message": "'lang' is assigned a value but never used.",
+      "sourceLine": "const { lang } = useLang();",
+      "column": 11
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": 1,
+      "message": "'setGexGreek' is assigned a value but never used.",
+      "sourceLine": "const [gexGreek, setGexGreek] = useState<GreekKey>(\"gamma\");",
+      "column": 20
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": 1,
+      "message": "'setGexSearch' is assigned a value but never used.",
+      "sourceLine": "const [gexSearch, setGexSearch] = useState(\"\");",
+      "column": 21
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": 1,
+      "message": "'setSelectedGexRoot' is assigned a value but never used.",
+      "sourceLine": "const [selectedGexRoot, setSelectedGexRoot] = useState<string | null>(null);",
+      "column": 27
+    },
+    {
+      "rule": "react-hooks/preserve-manual-memoization",
+      "severity": 2,
+      "message": "Compilation Skipped: Existing memoization could not be preserved",
+      "sourceLine": "const fetchLeaders = useCallback(async (force = false) => {",
+      "column": 36
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "message": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "sourceLine": "if (activeTab === \"leaders\") void fetchLeaders();",
+      "column": 39
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "message": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "sourceLine": "if (activeTab === \"radar\") fetchRadar();",
+      "column": 32
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "message": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "sourceLine": "if (activeTab === \"screener\") fetchScreener();",
+      "column": 35
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "message": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "sourceLine": "if (activeTab === \"tide\" || activeTab === \"gex\") fetchCtx();",
+      "column": 54
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "message": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "sourceLine": "if (selectedGexRoot) fetchGex(selectedGexRoot);",
+      "column": 26
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "message": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "sourceLine": "useEffect(() => { setTapeLimit(TAPE_PAGE); }, [minPrem, dteBuckets, mnyBuckets, groupFilter, drillTicker, deferredTapeSearch, sideFilter, flagFilter, sortKey, sortDir]);",
+      "column": 21
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "message": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "sourceLine": "void fetchDte();",
+      "column": 10
+    },
+    {
+      "rule": "react-hooks/static-components",
+      "severity": 2,
+      "message": "Error: Cannot create components during render",
+      "sourceLine": "{callWall != null && <Chip label={zh ? \"认购墙\" : \"Call Wall\"} val={`$${callWall}`} color=\"var(--up)\" />}",
+      "column": 31
+    },
+    {
+      "rule": "react-hooks/static-components",
+      "severity": 2,
+      "message": "Error: Cannot create components during render",
+      "sourceLine": "{maxPain != null && <Chip label={zh ? \"最大痛点\" : \"Max Pain\"} val={`$${maxPain}`} color=\"var(--text-2)\" />}",
+      "column": 30
+    },
+    {
+      "rule": "react-hooks/static-components",
+      "severity": 2,
+      "message": "Error: Cannot create components during render",
+      "sourceLine": "{putWall != null && <Chip label={zh ? \"认沽墙\" : \"Put Wall\"} val={`$${putWall}`} color=\"var(--down)\" />}",
+      "column": 30
+    },
+    {
+      "rule": "react-hooks/static-components",
+      "severity": 2,
+      "message": "Error: Cannot create components during render",
+      "sourceLine": "<Chip label={spotExact ? (zh ? \"现价\" : \"Spot\") : (zh ? \"约平值\" : \"ATM≈\")} val={atm ? `$${atm.toFixed(atm < 50 ? 2 : 0)}` : \"—\"} color=\"var(--warn)\" />",
+      "column": 10
+    }
+  ]
+}

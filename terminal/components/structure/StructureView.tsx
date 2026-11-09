@@ -1,4 +1,5 @@
 "use client";
+import research from "@/components/options/ResearchGrid.module.css";
 /**
  * StructureView — the Structure (OI) tab (R3): per-root open-interest posture
  * from the options_hub.oi_time/max_pain/oi_change payloads.
@@ -235,7 +236,7 @@ export function StructureView() {
             {!error && <div style={EMPTY_WHY}>{t("emptyWhy").replace("{sym}", root)}</div>}
           </div>
         ) : (
-          <div style={GRID}>
+          <div className={`options-research-pair ${research.grid}`} style={GRID}>
             <OiLadderPanel
               byStrike={maxPain?.by_strike}
               byStrikeFullN={maxPain?.by_strike_full_n}
@@ -369,7 +370,6 @@ const BODY: React.CSSProperties = {
 
 const GRID: React.CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(min(460px, 100%), 1fr))",
   gap: 12,
   alignItems: "start",
 };

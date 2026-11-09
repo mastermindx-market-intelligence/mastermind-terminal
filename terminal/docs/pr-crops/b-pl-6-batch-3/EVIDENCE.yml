@@ -23,21 +23,46 @@
 # 2026-09-19 seat recapture at master 62f2782f (#670 AlertDetail follow-on merged + live): AlertDetail-1440/390 EN+ZH crops regenerated with CAPTURE_ONLY=AlertDetail; layoutFiles hashes unchanged (already restamped in 05de3537); capturedAtHead informational
 # 2026-10-04 #808 dislocations screen: hash-only restamp of plainLabels.ts — +18 added lines (EPISODE_STATE_WORDS / episodeStateLabel) imported only by components/dislocations/DislocationsView.tsx, which no surface in this capture renders; crops unchanged
 layoutFiles:
-  terminal/components/options/OptionsFlowBoardView.tsx: "96e0d1d0a4e7eaed7f2d2bbec6722725afacc093e205defa280a483bc6e14b8e"
-  terminal/components/flowdesk/FiltersPanel.tsx: "3fad94845eed06acb8d6118f20667719e9292a37ea360c1bf518e4d9563f95a6"
-  terminal/components/flowdesk/FlowCard.tsx: "4a48b5c1504e4ce4ade31a05ceafd4441a96dafe4c3639cfda036ad03f1606af"
+  terminal/components/options/OptionsFlowBoardView.tsx: "c36de38cc2f12dfb5834237318439982d34aed7712b6e97a3990f5e338bb543b"
+  terminal/components/flowdesk/FiltersPanel.tsx: "35ca28d678ceb9de2c30ac78f6e083dd35e14e4efb59d56688141a302f42c479"
+  terminal/components/flowdesk/FlowCard.tsx: "15883037ea943c5030177b2ff507a9c4c2ee9ec811583461016a95bb337c52ab"
   terminal/components/alerts/AlertDetail.tsx: "a5121ed88b6eb4e639292de53e402ee41ef3599a7bacaa24c278d2298c8ddce0"
   terminal/components/alerts/alerts.module.css: "24316b370fa4b336251ec638b6397c92cd903785c79554de50481f4a6218ec02"
   terminal/components/heatmap/HeatmapView.tsx: "814db62170e8377c8871e98c6804fe18e9f6b38b497c8820dd23af464c820d3e"
   terminal/components/heatmap/Treemap.tsx: "0c5a7f2fd990c41f725d96b9aecb83f5f73eb6a42fbc66c811b43cd722947a0d"
   terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
-  terminal/lib/flowdeskStrings.ts: "cb3c1fe82dc58abd4fd1a7a954f3f343bcb3511de5345955305b2b5b8d772dbc"
+  terminal/lib/flowdeskStrings.ts: "580399a47bae6ab6aa16368d25ed54c94047799e4a600352385b5a9b7cc25c10"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/i18n.tsx: "858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f"
   terminal/components/PineEditor.tsx: "e48a009b44f32f9501d2890602cd5096257ad57b83bac59147d691e221a69f63"
-  terminal/components/flowdesk/InspectorPane.tsx: "661c7a7c4366988c1d2022e32cdeb0b67f76aabfb5b930be12a709b9eb148c29"
+  terminal/components/flowdesk/InspectorPane.tsx: "d9300fd421c4519dbf6a7fc8f1be29ba0d274f55be5525635b95ed175258fd07"
   terminal/components/flowdesk/RadarStrip.tsx: "cb10431ff4082c587132cb57919c5e4f83502fa94df14f44acb8529514a00356"
   terminal/lib/flowActivity.ts: "eb1433e57c7b63a52978aa4e63419e62b3e1a0e0210869f93838a8b7529ce332"
+optionsCommandRecapture:
+  capturedAt: "2026-11-03T05:58:59.371802+00:00"
+  sourceBase: "7bd947615ce5c806197dd52305c6dbedc2198e24"
+  command: "CAPTURE_ONLY=FlowDesk,OptionsFlowBoard node e2e/tools/capture_pl6_batch3.cjs"
+  server: "Shared working-tree fixture at 127.0.0.1:3521. Server lifecycle and output destination were adapted."
+  actualCases: 8
+  sources:
+    terminal/components/options/OptionsFlowBoardView.tsx: "c36de38cc2f12dfb5834237318439982d34aed7712b6e97a3990f5e338bb543b"
+    terminal/components/flowdesk/FlowDeskView.tsx: "d4217612605cfa8fad398ed198b503a6e32b709982473ff6e03a5765650c1d4f"
+    terminal/components/flowdesk/FeedPane.tsx: "6b8efe6ad2de988d357b47bdc325141215cf0a02feaa2e7c45efd5a2a8e84fad"
+    terminal/components/flowdesk/FlowCard.tsx: "15883037ea943c5030177b2ff507a9c4c2ee9ec811583461016a95bb337c52ab"
+    terminal/components/flowdesk/FiltersPanel.tsx: "35ca28d678ceb9de2c30ac78f6e083dd35e14e4efb59d56688141a302f42c479"
+    terminal/components/flowdesk/CommandWorkspace.module.css: "4f68349a5c21bf68204ca502b58bdc0b0c75d55e98a859b6659e9c4540a06c78"
+    terminal/components/flowdesk/CommandResearch.module.css: "0fc27adca23d66459c817baa917dd3fcad2c66fe9c0cf6d732db046296869c83"
+    terminal/lib/flowdeskStrings.ts: "580399a47bae6ab6aa16368d25ed54c94047799e4a600352385b5a9b7cc25c10"
+  selectedInspectorEvidence: "../options-r1-w3/EVIDENCE.yml"
+  cropSha256:
+    FlowDesk-1440-zh.png: "7e7d57dec3f0d9ee35057795d738cbb54f0e7aa645e805fc295ceee6f3a79372"
+    FlowDesk-1440.png: "88faf6fb6d394c95b8b5e8f25c2a1eb3fee532c4a74e4f800f074679c15c8d5f"
+    FlowDesk-390-zh.png: "2892b9d0fc05ae725399a3bc90fe161f88c9ffb69bdd29c3b43493b1d5b0c342"
+    FlowDesk-390.png: "76ab9cfbd74e7948df5425bdc40ddab97a4b21f618494ac2255f8fc59123f44f"
+    OptionsFlowBoard-1440-zh.png: "90207a6f9004557e2cb94102ad17889d54cb4fc48498b2d19f654fb9a9487a4d"
+    OptionsFlowBoard-1440.png: "83e8d6d5d485fd4ea0396dd0a3de7f5cd523d77c29668f34e8a838c3de414048"
+    OptionsFlowBoard-390-zh.png: "c2c8e0449312dbc77086f3b56e320a07688faf67a725bcac827776b268ef97a9"
+    OptionsFlowBoard-390.png: "e22269c40064db8b2660a9d1caabe2c990957b0cb4ccfd5819623f2bed45ab8f"
 theme: dark
 languages: [en, zh]
 viewports:

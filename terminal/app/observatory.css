@@ -560,6 +560,8 @@ html[data-research-appearance="lab"][data-theme="light"] .options-view-tabs .obs
   .obs-prophet-grid {
     display: flex;
     flex-direction: column;
+    /* Keep the stacked panes in page flow before the cohort that follows. */
+    flex: 0 0 auto;
     overflow: visible;
   }
   .obs-prophet-left,
@@ -1573,9 +1575,21 @@ html[data-mmx-shared-shell="1"][data-theme="light"] .obs-options-alpha-candidate
 .flow-artifact-source {
   min-width: 0;
   color: var(--text-dim);
-  font: 550 9px/1.2 var(--font-ui);
+  font: 600 11px/1.35 var(--font-ui);
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.flow-freshness-historical {
+  color: var(--warn);
+  font-weight: 700;
+}
+/* An old or undated Chain Heat source is a visible research caveat, not a live
+   signal. The source receipt uses source_asof only; no build-clock fallback. */
+.flow-artifact-source[data-flow-artifact-freshness="historical"],
+.flow-artifact-source[data-flow-artifact-freshness="unavailable"] {
+  color: var(--warn);
+  font-weight: 650;
 }
 
 @media (max-width: 820px) {

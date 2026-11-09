@@ -1,0 +1,72 @@
+{
+  "completedAt": "2026-11-09T18:50:04.373907+00:00",
+  "results": {
+    "affected-reader-lint": {
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "e2e/tools/optionsExposureEvidence.cjs",
+        "e2e/tools/optionsExposureEvidence.d.cts",
+        "lib/__tests__/helpers/optionsExposureEvidence.ts",
+        "lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+        "e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs"
+      ],
+      "exit": 1,
+      "logSha256": "827eb3becfb5982a891da8da1986c9881dd25db0f17dee8a8b2eb4b69246eabe",
+      "seconds": 2.24
+    },
+    "legacy-boundary": {
+      "command": [
+        "node",
+        "--test",
+        "e2e/tools/optionsExposureEvidence.cases.cjs"
+      ],
+      "exit": 0,
+      "logSha256": "f2d272ccaf706ab84aff50bc38667f0f71b239a69f05fdc6c9067379fd10175f",
+      "seconds": 0.26
+    },
+    "native-readers": {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/optionsExposureEvidence.test.ts",
+        "lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+        "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+        "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+        "lib/__tests__/eodHeatmapScopedRecapture.test.ts",
+        "--pool=forks",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/docs/verification/pr1248-options-ux-integration-20261109/consumer-validation-r1/native-readers.json"
+      ],
+      "exit": 0,
+      "logSha256": "c38f01c12961ab77f6f13f1ea8a1a182919acee2ef0714ffbe1a82a0db07442c",
+      "report": {
+        "numFailedTests": 0,
+        "numPassedTests": 117,
+        "numPendingTests": 0,
+        "numTotalTests": 117,
+        "success": true
+      },
+      "reportSha256": "e3f6a5462572c73a9fc475270c77a54427c74a7ecf823ddb12a9a576caf8d5c9",
+      "seconds": 13.76
+    },
+    "typecheck": {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seconds": 42.93
+    }
+  },
+  "schema": "terminal_pr1248_current_consumers.v1",
+  "startedAt": "2026-11-09T18:49:05.175140+00:00",
+  "state": "FAILED"
+}

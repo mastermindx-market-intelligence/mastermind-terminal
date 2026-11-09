@@ -1,0 +1,26 @@
+{
+  "images": [
+    {
+      "label": "native Chinese GEX phone refresh refusal",
+      "observation": "Refresh refusal, retained-data notice, Retry and source state remain visible in the 390px crop.",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/revisions/options-ux-integration-20261109/qualified-root/gex-live-refresh-failed-390-zh.png",
+      "sha256": "7853cb0ab745922a5c530c50ab80beb45e9cf514586a5fcfd058431fcf38593e"
+    },
+    {
+      "label": "native English Flow chain phone refresh refusal",
+      "observation": "Historical clock, failed-refresh notice, Retry, source disclosure and retained contract rows remain readable.",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/revisions/options-ux-integration-20261109/qualified-root/chainheat-refresh-failed-390.png",
+      "sha256": "afd8ea4c1f081190f759af75669a146f362dafb3f44dc8c64090764f264d55c2"
+    },
+    {
+      "label": "Chinese Exposure phone partial source",
+      "observation": "Partial coverage and unavailable observation clock remain explicit; the selected-strike sheet and workspace controls fit the phone layout.",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/options-ux-integration-20261109/browser-artifacts/direct/exposure-partial-mobile-zh.png",
+      "sha256": "c4629dd59d1bdc9b4c0016dfddadaf6e786cb010b2e1c863ebfa8f8c3afa1c0a"
+    }
+  ],
+  "reviewedAt": "2026-11-09T18:51:42.461630+00:00",
+  "reviewer": "assigned session self-check",
+  "schema": "terminal_pr1248_actual_visual_self_check.v1",
+  "scope": "Three actual current-output spot checks; the complete native and browser matrices are validated by their actual executions and readers."
+}

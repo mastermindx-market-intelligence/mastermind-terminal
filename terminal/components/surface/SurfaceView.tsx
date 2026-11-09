@@ -89,6 +89,7 @@ function GroupRoot({
 
   return (
     <div ref={bindGroupRef} tabIndex={-1} style={GROUP_ROOT}>
+      <ReplayBar lang={lang} sessions={archived ? sessions : sessions.filter(d => d !== indexDate)} onSessionDate={onSessionDate} />
       {view === "single" ? (
         <SurfacePane
           root={root}
@@ -123,7 +124,6 @@ function GroupRoot({
         </SurfaceSyncProvider>
       )}
 
-      <ReplayBar lang={lang} sessions={archived ? sessions : sessions.filter(d => d !== indexDate)} onSessionDate={onSessionDate} />
 
       {/* The session's premium tide, under the same scrubber. Collapsible and capped so the
           paint field — the reason this tab exists — always keeps the bulk of the height.
@@ -298,7 +298,7 @@ export function SurfaceView() {
 
           {/* Root picker — the materialised roots, plus a free-text box that tells the
               truth about anything else. */}
-          <div style={TICKER_GROUP}>
+          <div style={TICKER_GROUP} className="obs-surf-symbols">
             <input
               style={TICKER_INPUT}
               className="obs-surf-root-input"

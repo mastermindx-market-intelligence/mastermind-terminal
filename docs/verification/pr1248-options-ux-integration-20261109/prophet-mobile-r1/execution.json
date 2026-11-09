@@ -1,0 +1,87 @@
+{
+  "artifacts": {
+    ".last-run.json": "940cb688c7ebc47aae9dc8672de8c3167eca0e6c99e90813c9791f70c997984c",
+    "prophet-origination-the-pa-dc23b-when-the-row-has-no-receipt-mobile/error-context.md": "31cfa861e00e39e732cc73667f7f8484045a52106002558fedec8f94a0d1b0ce",
+    "prophet-origination-the-pa-dc23b-when-the-row-has-no-receipt-mobile/test-failed-1.png": "1bf4365c8a54dcd4b74de804fde3b26c86d26e1455b8af5a907d500640d48ab4",
+    "prophet-origination-the-pa-dc23b-when-the-row-has-no-receipt-mobile/trace.zip": "28e8191d1b9215ac349744eab7bc304dd2995e208d8ce39aa81b8b2b40620403"
+  },
+  "cases": [
+    {
+      "expectedStatus": "passed",
+      "file": "prophet-origination.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "Prophet's detail panel discloses the reconstruction in zh, above the geometry"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "prophet-origination.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "error": {
+            "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m",
+            "stack": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
+          },
+          "retry": 0,
+          "status": "timedOut"
+        }
+      ],
+      "status": "unexpected",
+      "title": "the panel's disclosure shows the clause alone when the row has no receipt"
+    }
+  ],
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/prophet-origination.spec.ts",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--grep",
+    "Prophet's detail panel discloses the reconstruction in zh, above the geometry|the panel's disclosure shows the clause alone when the row has no receipt",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/test-results/pr1248-prophet-mobile-r1"
+  ],
+  "completedAt": "2026-11-09T17:55:45.543411+00:00",
+  "dependency": "7d0483c995df95ea76e988029d0c229d2a0e177c",
+  "exit": 1,
+  "expectedCases": [
+    "Prophet's detail panel discloses the reconstruction in zh, above the geometry",
+    "the panel's disclosure shows the clause alone when the row has no receipt"
+  ],
+  "head": "753b4a90ebd31a1da76a9595bb2fedde912da042",
+  "lifecycle": {
+    "initialLockPresent": true,
+    "reconciliation": "docs/verification/pr1248-options-ux-integration-20261109/prophet-mobile-r1-lifecycle.json",
+    "serverAbsenceVerifiedAt": "2026-11-09T17:55:45.415763+00:00",
+    "sha256": "e59d836bdf30fbc5616dd745d90cbbd3e811c22cf9d57727756bf178c23668e7"
+  },
+  "logSha256": "3b1a050caa78ac58c3df3b1dd1299d709fcf7dd036e7048f007e85148bbade52",
+  "nextLockAbsent": true,
+  "ownedPortClosed": true,
+  "port": 3897,
+  "reportErrors": [],
+  "schema": "terminal_pr1248_current_prophet_mobile_reproduction.v1",
+  "seconds": 90.0,
+  "sourceEntries": 1955,
+  "sourceStable": true,
+  "startedAt": "2026-11-09T17:54:09.629602+00:00",
+  "state": "FAILED_REPRODUCTION_RETAINED",
+  "stats": {
+    "duration": 89113.217,
+    "expected": 1,
+    "flaky": 0,
+    "skipped": 0,
+    "startTime": "2026-11-09T17:54:10.287Z",
+    "unexpected": 1
+  }
+}

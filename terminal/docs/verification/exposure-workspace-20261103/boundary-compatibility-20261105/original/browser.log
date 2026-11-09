@@ -1,0 +1,32 @@
+[warmup] /terminal?symbol=NVDA → 200 in 498ms
+[warmup] /options → 200 in 163ms
+[warmup] /portfolio → 200 in 728ms
+[warmup] /alerts → 200 in 986ms
+[warmup] /analysis → 200 in 1634ms
+[warmup] /discover → 200 in 1368ms
+[warmup] /admin → 200 in 798ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 866ms
+[warmup] /login → 200 in 416ms
+[warmup] /reset-password → 200 in 1116ms
+[warmup] /api/me → 200 in 940ms
+[warmup] /api/watchlist → 200 in 768ms
+[warmup] /api/layouts → 200 in 588ms
+[warmup] /api/watchlist/annotations → 409 in 522ms
+[warmup] 14 routes compiled in 11s
+
+Running 12 tests using 1 worker
+
+  ✓   1 [desktop] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery (6.1s)
+  ✓   2 [desktop] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery (4.1s)
+  ✓   3 [desktop] › e2e/options-lab-source-state.spec.ts:81:5 › Research Lab admits a valid current read before the stream supplies a frame (3.2s)
+  ✓   4 [desktop] › e2e/options-lab-source-state.spec.ts:99:5 › Research Lab preserves the selected archive without substituting an available live book (3.4s)
+  ✓   5 [tablet] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery (2.8s)
+  ✓   6 [tablet] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery (3.4s)
+  ✓   7 [tablet] › e2e/options-lab-source-state.spec.ts:81:5 › Research Lab admits a valid current read before the stream supplies a frame (3.0s)
+  ✓   8 [tablet] › e2e/options-lab-source-state.spec.ts:99:5 › Research Lab preserves the selected archive without substituting an available live book (3.2s)
+  ✓   9 [mobile] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained unavailable source and restores the exact pin on recovery (3.0s)
+  ✓  10 [mobile] › e2e/options-lab-source-state.spec.ts:28:7 › Research Lab withdraws a retained absent source and restores the exact pin on recovery (3.0s)
+  ✓  11 [mobile] › e2e/options-lab-source-state.spec.ts:81:5 › Research Lab admits a valid current read before the stream supplies a frame (2.2s)
+  ✓  12 [mobile] › e2e/options-lab-source-state.spec.ts:99:5 › Research Lab preserves the selected archive without substituting an available live book (2.9s)
+
+  12 passed (59.7s)

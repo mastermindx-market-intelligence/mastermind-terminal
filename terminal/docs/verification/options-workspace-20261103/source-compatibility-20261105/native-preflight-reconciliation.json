@@ -1,0 +1,10 @@
+{
+  "schema": "capture_preflight_correction.v1",
+  "failure": "Declared Tip.ts path does not exist; inspected actual Tip.tsx in both original and peer.",
+  "capture_process_started": false,
+  "native_frames_produced": 0,
+  "prior_contract_sha256": "9a83ba28ce77517a3fcaf01f6a36b7f61574174f09bd10b1cbbb254be4d3a9c4",
+  "prior_driver_sha256": "c000ed2b932ab53da58c8e031c5fd1d51995c7104fe201205e342eed37e3042e",
+  "corrected_contract_sha256": "427c9fcec7a8c53da0c65e62190e7785aea9bd28183be474efaf991f6f558dc1",
+  "corrected_driver_sha256": "8b4839a3a7ad62406429faeff266bb1ee7753c466cc7e2191c1fcf7f0816ce29"
+}

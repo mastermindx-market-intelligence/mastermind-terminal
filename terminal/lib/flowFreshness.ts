@@ -32,7 +32,6 @@ export interface LiveFlowFreshness {
 
 export type UsOptionsSessionState = "regular" | "last_session";
 
-const SESSION_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 function record(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === "object" && !Array.isArray(value)
@@ -150,28 +149,14 @@ export function formatObservedCycle(observedSec: number | null): string | null {
   return minutes ? `${hours}h ${minutes}m` : `${hours}h`;
 }
 
-/**
- * Conservative session tone for an intraday payload. The regular-hours window
- * is necessary but not sufficient: the payload's ET `session_date` must also be
- * today. That makes weekends, pre-open/after-hours, and exchange holidays with a
- * last-session payload read as `last_session`, never as a stalled current feed.
- * The window is the Macro session projection's, so a 13:00 early close or a full
- * closure ends it, and a date outside the projection's coverage fails closed.
- */
-export function usOptionsSessionState(
-  sessionDate: unknown,
-  now: Date,
-): UsOptionsSessionState {
-  if (typeof sessionDate !== "string" || !SESSION_DATE_RE.test(sessionDate) || !Number.isFinite(now.getTime())) {
-    return "last_session";
-  }
+/** The exchange clock is independent of the date carried by a feed. */
+export function usOptionsMarketClock(now: Date): { date: string; open: boolean } | null {
   try {
     const parts = new Intl.DateTimeFormat("en-CA", {
       timeZone: "America/New_York",
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
-      weekday: "short",
       hour: "2-digit",
       minute: "2-digit",
       hour12: false,
@@ -179,15 +164,18 @@ export function usOptionsSessionState(
     const get = (type: Intl.DateTimeFormatPartTypes) =>
       parts.find((part) => part.type === type)?.value ?? "";
     const etDate = `${get("year")}-${get("month")}-${get("day")}`;
-    const weekday = get("weekday");
     const hour = Number(get("hour")) % 24;
     const minute = Number(get("minute"));
-    if (etDate !== sessionDate || weekday === "Sat" || weekday === "Sun") return "last_session";
-    if (!Number.isFinite(hour) || !Number.isFinite(minute)) return "last_session";
+    if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
     const minutes = hour * 60 + minute;
     const window = usRegularSessionWindow(Date.parse(`${etDate}T00:00:00Z`) / 1000 + minutes * 60);
-    return window !== null && minutes >= window[0] && minutes < window[1] ? "regular" : "last_session";
+    return { date: etDate, open: window !== null && minutes >= window[0] && minutes < window[1] };
   } catch {
-    return "last_session";
+    return null;
   }
+}
+
+export function usOptionsSessionState(sessionDate: unknown, now: Date): UsOptionsSessionState {
+  const clock = usOptionsMarketClock(now);
+  return clock?.open && clock.date === sessionDate ? "regular" : "last_session";
 }

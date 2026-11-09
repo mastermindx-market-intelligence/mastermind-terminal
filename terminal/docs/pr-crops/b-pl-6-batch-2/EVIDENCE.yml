@@ -1,13 +1,13 @@
 # B-PL-6 batch 2 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: d78b2e187893a99d0e8eccc311b1963bd84943a8
-# capturedAt: 2026-11-09T03:59:41.942Z
+# capturedAtHead: 753b4a90ebd31a1da76a9595bb2fedde912da042
+# capturedAt: 2026-11-09T19:02:10.768Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/GuidePanel.tsx: "7fa13e1add88d9acff9c10f44f585d893cdb7a86389f0404d82963982b54efef"
-  terminal/components/levels/LevelsView.tsx: "91a4d6fd86b12225e657c8a9c4b2b185e3940356af3cd11466ca30e04f05b0c9"
-  terminal/components/levels/LevelsLearn.tsx: "15e58675e29e147ecc39f7b9c3527aba9f67ea81df6978ecffe450ccf1562d92"
+  terminal/components/GuidePanel.tsx: "502cdfde51e973b35c8895682feafaedb062ac1acbd9202186ec80b0fc991146"
+  terminal/components/levels/LevelsView.tsx: "d200204df1cae5ee1401c152df8ce4992d5e88fa852d2505d6c64b1074128e17"
+  terminal/components/levels/LevelsLearn.tsx: "9af26fe987b849635c6e7d4e592d6fc0b140bd906dfdbdcb28bbbabd9af4145c"
   terminal/components/ChartConductor.tsx: "492f2580d8a7fc06d601b19ccbab65e75393481bd87e55f422376e50cc01b795"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/i18n.tsx: "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
@@ -59,28 +59,28 @@ files:
   - LevelsView-820-zh.png
   - LevelsView-820.png
 captureFiles:
-  ChartConductor-1440-zh.png: "66d9565d9812744b7be60d06a29aacdb3315283c71fa0b310a1e685c1de483c8"
-  ChartConductor-1440.png: "438f49bfe069fc7cec2baeed405f8be94668f9a90f3abb870db889da7201b81a"
-  ChartConductor-390-zh.png: "13b6779a3c0ccaa2b281b4cb38a87b65d0b1582f6985542076306ad619a9294b"
-  ChartConductor-390.png: "ab9552bd07af6ea6a146801a7af119719fc68007f4c9d0f5cb3e4d6053682262"
-  ChartConductor-820-zh.png: "7dc5a339ae8ddb275a2e0be31971326712638ae3e812f436b8637542aa688c09"
-  ChartConductor-820.png: "d435df4da206bfd5b0747875b0819083f7f3369ce927f7bbab3c59d8bf339fb7"
-  GuidePanel-1440-zh.png: "b2f7d0bd01800130b75e74be75592eff7289fddafa9d3510cbc29b67c447b4e4"
-  GuidePanel-1440.png: "0439d4f577998b2e18adbe9d0b42013b9a57265a2151d9e0483e8f9f43c73f9b"
-  GuidePanel-390-zh.png: "bf6a8dd8c3042b1c3a2187886f3c4258bfb872507e45046a70e2300bfea98dbe"
-  GuidePanel-390.png: "a6e04edaba3d154277d0051386a5b34344b91dbce891c5ca4901a9365a4605d7"
-  GuidePanel-820-zh.png: "a39ce2473ffcf64536c788a9d121dcf1f2c2838c009171d53aacba59abf7426f"
-  GuidePanel-820.png: "1aa90e4274589cb3f4f11fc80f7198e17c1190e1707356b75d25d335c298da6a"
-  LevelsLearn-1440-zh.png: "0f48d743202eb43a3f0525766710d9a85a697bd160378ecc8e14b30ca7f6bfaa"
-  LevelsLearn-1440.png: "47e9e3cca209dd767c9cd3a68f84a803579941d7d662431477cc2282d534bada"
-  LevelsLearn-390-zh.png: "d9495ae8dbf849dc7f19046115b8042afc875ff0fbe94aaf60d1704adc43ed8e"
-  LevelsLearn-390.png: "4f83b02c6316c9c84784a5106ce092afade8ec6de65b681c3598fe166feaad24"
-  LevelsLearn-820-zh.png: "3a92b2869aab86ca0fd87f031bc60520a7485b806d89452b97c8f11d424687d2"
-  LevelsLearn-820.png: "0d8269c8454059b7efe27bf32d482559bf3820dbd25bfb52dd3a095909e54a05"
-  LevelsView-1440-zh.png: "88d74aed8bc555dde6168799067f3c0159aa98e96b2e5c9a096d20b0f19546ad"
-  LevelsView-1440.png: "5a406a70cd87fba17c37386175a99faab328f59b5548d3b9bd34f1d061664ca0"
-  LevelsView-390-zh.png: "e3924838dd2fdcfe4d2a01cfe3c81eb4d5de4d73774c1239dabbaf6b6537a4db"
-  LevelsView-390.png: "f51988aa11aff92113d49660ce7614dd5cd0d5f9d0723f4141a6a8712444447e"
-  LevelsView-820-zh.png: "34821c6edca09b64e6b97e4a62f9468f8a2466cfcc23b5b551a23ad6e1bcc25d"
-  LevelsView-820.png: "82ddc816601a1620e2faa69cf8170aa1570fb1efe50359643b0a486d6000714d"
-previousManifest: history/before-deterministic-de75cc9a6723f05ac4e4494d5d45d52baa248b1a39ecd5bb7c0c45da3a61c6fa.yml
+  ChartConductor-1440-zh.png: "fda7d66325f7c8957a3dd8497c84f738eabd7f1254ec42e569e790ffc2aaabcf"
+  ChartConductor-1440.png: "fe0b5380d10099c9959706504fba8176754cebfdb8f0a8a58021c26a1c9ddcd3"
+  ChartConductor-390-zh.png: "2a2ef5203c042645671e5ab0974e97175b8fa1f07328f1414bc5ba211300b5ec"
+  ChartConductor-390.png: "a848ac853c889ee6fe3d8232cf25aee38347660bd9af19d0c22ae3b4f183870f"
+  ChartConductor-820-zh.png: "bc5633cf705d6903690352858fab78ee0249800f38972d6cca99d38257f88588"
+  ChartConductor-820.png: "335c91baf353a005e024c26a0b76f218396d3574bf32502bda8bc5f816887e59"
+  GuidePanel-1440-zh.png: "7b1ca37ed3d03089e4e9ee70940831d491563daf2b3942e5c500d5404f57d5eb"
+  GuidePanel-1440.png: "7d138a58591022f50857e301c2a18d230dfad670633fce089fa7436e80f65e99"
+  GuidePanel-390-zh.png: "f57301a51594b9d2d96578a35c109f70bac65649aba947a483f0d664f59827b9"
+  GuidePanel-390.png: "5b22742253e686c8b57cd91c5d953a75319a7f7e855db59eac4bb66825e3af3b"
+  GuidePanel-820-zh.png: "369a0f3e8233d8c141a01529297363dbc55789ff60ee3a69f0ffcbba792aa3f0"
+  GuidePanel-820.png: "09502573aab30393c635d448ffb7bc07eabcf809aa86c06c5906ebc1e357d741"
+  LevelsLearn-1440-zh.png: "ff6e9b5fa9b7f9b742746b6b1d48fad592a7608a34022a9fb0357455813ed747"
+  LevelsLearn-1440.png: "8a428602b4f7fbc38d60327036ff33ba4d14321fdaaa2ca03a905065e412bf12"
+  LevelsLearn-390-zh.png: "6857811b0e1f83c608f5e457fb171a3369a483d0d47c46b25a0d9d9a258924b6"
+  LevelsLearn-390.png: "53cd928e1f1ba98628c3eaa4d68a16b3ce51a97e7968e2db5a4a0a89b02ef4ae"
+  LevelsLearn-820-zh.png: "f8268941bf60046fc925d2975bba672bc1fa8642f00a648ca88e0eafd9326469"
+  LevelsLearn-820.png: "f82cc59099e59a8e762b5799a2bc19396f22a7d301c2c763458db1a188b27eab"
+  LevelsView-1440-zh.png: "99afae7fa7d8bf3210e8c73e08157497eab1b86acc6b8efc3cd54931c9de8817"
+  LevelsView-1440.png: "7bb4dd4dab89f9f85b51d160466082f62c32644b95c0aa090350784c120e9493"
+  LevelsView-390-zh.png: "566ef4ad5cc8c6aa0a3d617090b3c6c7ebaa4ce017c91255123e1894b0443f56"
+  LevelsView-390.png: "dbe2d899a2fca3d51932f008b0735b326a20d154220a4824e7b0c1252b3c44d3"
+  LevelsView-820-zh.png: "e531cb0bc01176cab8e2a2134482d3e1f204f4d859d647f77cb545e5b06116a2"
+  LevelsView-820.png: "aa91264b398204b6bca3f6214a607c697dc1b86bef8722bee20a3a984144f7e5"
+previousManifest: history/before-deterministic-d972899c158647ced8ede996c9e4502e5a03943fe578ec4f6b037bec255c60c6.yml

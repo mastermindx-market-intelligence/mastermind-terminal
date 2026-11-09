@@ -112,6 +112,13 @@ const SURFACE_LEX = {
   noFrame: ["No frame for this time.", "该时间点暂无数据。"],
 
   // ── Replay bar ──────────────────────────────────────────────────────────────
+  laterRegime: ["Regime updated {date} · after this session", "{date} 更新的状态晚于本交易日"],
+  releaseToView: ["Release to view", "松开查看"],
+  dragToSelect: ["Drag to select a snapshot", "拖动选择快照"],
+  overlayAfterSession: ["Source dated {date}, after this session", "来源日期 {date} 晚于当前交易日"],
+  replayTitle: ["Session replay", "交易时段回放"],
+  observation: ["Observation", "观测时点"],
+  chartControls: ["Chart settings", "图表设置"],
   replayFirst: ["First frame", "首帧"],
   replayPrev: ["Previous frame", "上一帧"],
   replayPlay: ["Play", "播放"],
@@ -203,6 +210,9 @@ const SURFACE_LEX = {
   // ── Strike hover popover + Intraday-Evolution modal (Wave 2E, RECON §4.2) ────
   popFromSpot: ["from spot", "距现价"],
   popClickHint: ["Click for evolution", "点击查看盘中演变"],
+  inspectStrike: ["Inspect strike", "查看行权价"],
+  strikeValueAt: ["{metric} at {time} ET", "{metric} · 美东时间 {time}"],
+  selectStrike: ["Strike price", "行权价"],
   evoTitle: ["Intraday Evolution", "盘中演变"],
   evoStrike: ["strike", "行权价"],
   evoClose: ["Close", "关闭"],
@@ -210,10 +220,9 @@ const SURFACE_LEX = {
   evoEscHint: ["Press Esc to close", "按 Esc 关闭"],
   evoSnapshots: ["snapshots", "快照"],
   evoSpot: ["Spot", "现价"],
-  evoNow: ["NOW", "当前"],
-  evoExpiryBreakdown: ["Expiry breakdown at NOW", "当前各到期日拆解"],
+  matrixGexByExpiry: ["GEX by expiry", "各到期日伽马敞口"],
+  matrixGexShare: ["Share of reported absolute GEX at this strike", "占该行权价已报告伽马敞口绝对值的比例"],
   evoNoSeries: ["No evolution for this strike yet.", "该行权价暂无演变数据。"],
-  evoMetricAt: ["at this strike", "在该行权价"],
 
   // ── B4: point-in-time honesty for the expiry breakdown ──────────────────────
   // The per-expiry matrix is a single head-of-day fetch, so it describes the PRESENT,
@@ -334,12 +343,15 @@ const SURFACE_LEX = {
   ],
 
   // ── Alert from the drill modal ──────────────────────────────────────────────
-  alertAtStrike: ["Alert me at this strike", "在该行权价提醒我"],
+  priceAlert: ["Price alert", "价格提醒"],
+  alertCondition: ["Price condition", "价格条件"],
+  chooseDirection: ["Choose direction", "选择方向"],
+  alertAbove: ["Above", "高于"],
+  alertBelow: ["Below", "低于"],
+  createAlert: ["Create alert", "创建提醒"],
   alertCreating: ["Creating…", "创建中…"],
   alertCreated: ["Alert created", "提醒已创建"],
   alertFailed: ["Could not create the alert", "无法创建提醒"],
-  alertCrossesAbove: ["when price crosses above", "当价格上穿"],
-  alertCrossesBelow: ["when price crosses below", "当价格下穿"],
   alertSignIn: ["Sign in to set alerts", "登录后可设置提醒"],
   alertSignInCta: ["Sign in", "登录"],
   alertManage: ["Manage alerts", "管理提醒"],

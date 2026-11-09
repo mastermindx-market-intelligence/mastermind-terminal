@@ -1,0 +1,32 @@
+{
+  "boundAt": "2026-11-09T18:48:45.860421+00:00",
+  "branchHead": "753b4a90ebd31a1da76a9595bb2fedde912da042",
+  "browserCases": 201,
+  "browserQualificationSha256": "7b42d3487fb6728231cc89c0b81a50ffe28c07d65e924f805b65252d4195b26d",
+  "currentInputsUnchanged": true,
+  "historicalPacketBytesUnchanged": true,
+  "integratedDependency": "7d0483c995df95ea76e988029d0c229d2a0e177c",
+  "nativeCases": 240,
+  "nativeDescriptorPins": {
+    "eod": "6689b3e6cd9d1200ff83885c135cac7103fe91f7a721de5e8e86beebae5b9042",
+    "gex": "e058fd8cb78a257e66cb54c9c62bb768e9de869c4e1a13eaf6290840a6894499"
+  },
+  "protectedMaster": "03af393ce05c12282003a3919cc473c032264922",
+  "reader": {
+    "after": "3d5e4cc4e74677f46b553dc0a7748b745d370742fb8984e0d376159f3d178391",
+    "archive": "docs/verification/pr1248-options-ux-integration-20261109/prior-unbound-reader/optionsExposureEvidence.cjs",
+    "before": "011c4725457e197bfea1f5230805d4262f43544e0efdcda645d494dff94e85ab"
+  },
+  "rootDeclarations": {
+    "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml": {
+      "after": "de681532c0c6304219a3ea24a791c0cadb8dbc5a2742011434b7b15115e80dc7",
+      "before": "b7df8447eee8292088f3f6fbe72aed2d24f405eb05e24fc6a7cde8481552d224"
+    },
+    "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml": {
+      "after": "287cbaf43fdcd2112339e5251e1e9ba2c7933758cec7feb4e1f0ca305d8f1b9c",
+      "before": "33484acc89e8d49dd65ac37715a8eb120fb28c67d8336a93abb6a4df58001969"
+    }
+  },
+  "schema": "terminal_pr1248_actual_evidence_binding.v1",
+  "state": "BOUND_TO_ACTUAL_240_NATIVE_AND_201_BROWSER_RESULTS"
+}

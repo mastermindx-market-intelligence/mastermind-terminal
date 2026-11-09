@@ -1,0 +1,139 @@
+{
+  "artifacts": {
+    ".last-run.json": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+  },
+  "cases": [
+    {
+      "expectedStatus": "passed",
+      "file": "prophet-origination.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "Prophet's detail panel discloses the reconstruction in zh, above the geometry"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "prophet-origination.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "the panel's disclosure shows the clause alone when the row has no receipt"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "prophet-origination.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "Prophet's detail panel discloses the reconstruction in zh, above the geometry"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "prophet-origination.spec.ts",
+      "project": "tablet",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "the panel's disclosure shows the clause alone when the row has no receipt"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "prophet-origination.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "Prophet's detail panel discloses the reconstruction in zh, above the geometry"
+    },
+    {
+      "expectedStatus": "passed",
+      "file": "prophet-origination.spec.ts",
+      "project": "mobile",
+      "results": [
+        {
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "the panel's disclosure shows the clause alone when the row has no receipt"
+    }
+  ],
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/prophet-origination.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--grep",
+    "Prophet's detail panel discloses the reconstruction in zh, above the geometry|the panel's disclosure shows the clause alone when the row has no receipt",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1248-options-ux-integration-20261109/terminal/test-results/pr1248-prophet-responsive-r2"
+  ],
+  "completedAt": "2026-11-09T17:58:27.001747+00:00",
+  "dependency": "7d0483c995df95ea76e988029d0c229d2a0e177c",
+  "exit": 0,
+  "expectedCases": [
+    "Prophet's detail panel discloses the reconstruction in zh, above the geometry",
+    "the panel's disclosure shows the clause alone when the row has no receipt"
+  ],
+  "head": "753b4a90ebd31a1da76a9595bb2fedde912da042",
+  "lifecycle": {
+    "initialLockPresent": true,
+    "reconciliation": "docs/verification/pr1248-options-ux-integration-20261109/prophet-responsive-r2-lifecycle.json",
+    "serverAbsenceVerifiedAt": "2026-11-09T17:58:26.878238+00:00",
+    "sha256": "f519c991cb01ed77e7d33f66fd6d78a1ef564775288e324c6a3a0702dc44f374"
+  },
+  "logSha256": "003bf0e657d2bcec1f8b0f499a91411f4de352fe572ca6008133b3520ff411fe",
+  "nextLockAbsent": true,
+  "ownedPortClosed": true,
+  "port": 3897,
+  "reportErrors": [],
+  "schema": "terminal_pr1248_prophet_responsive_qualification.v1",
+  "seconds": 15.68,
+  "sourceEntries": 1955,
+  "sourceStable": true,
+  "startedAt": "2026-11-09T17:58:04.242987+00:00",
+  "state": "QUALIFIED",
+  "stats": {
+    "duration": 15246.095,
+    "expected": 6,
+    "flaky": 0,
+    "skipped": 0,
+    "startTime": "2026-11-09T17:58:04.587Z",
+    "unexpected": 0
+  }
+}

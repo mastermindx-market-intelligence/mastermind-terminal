@@ -1,0 +1,17 @@
+[
+  "components/OptionsHubView.tsx -> @/components/TideChartLazy",
+  "components/OptionsHubView.tsx -> @/components/flowdesk/FlowDeskView",
+  "components/OptionsHubView.tsx -> @/components/gexdesk/GexDeskView",
+  "components/OptionsHubView.tsx -> @/components/levels/LevelsView",
+  "components/OptionsHubView.tsx -> @/components/msc/PositioningView",
+  "components/OptionsHubView.tsx -> @/components/prophet/ProphetLanesView",
+  "components/OptionsHubView.tsx -> @/components/structure/StructureView",
+  "components/OptionsHubView.tsx -> @/components/surface/SessionFlowPane",
+  "components/OptionsHubView.tsx -> @/components/surface/SurfaceView",
+  "components/OptionsHubView.tsx -> @/components/vol/VolView",
+  "components/gexdesk/GexDeskView.tsx -> @/components/options-companion/OptionsCompanion",
+  "components/gexdesk/GexDeskView.tsx -> @/components/researchlab/AdmittedOptionsResearchLab",
+  "components/researchlab/OptionsResearchLab.tsx -> ./ResearchScene",
+  "components/exposure-map/ExposureMap.tsx -> @/components/ChartPanel",
+  "components/exposure-map/ExposureComparisonChart.tsx -> @/components/ChartPanel"
+]

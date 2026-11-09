@@ -1,0 +1,55 @@
+{
+  "schema": "exposure_phone_framing_patch.v1",
+  "roots": {
+    "original": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3",
+    "preview": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree",
+    "exposure": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3"
+  },
+  "changes": [
+    {
+      "path": "terminal/components/exposure-map/ExposureMap.tsx",
+      "edits": [
+        [
+          "import type { ChartEngine, SeriesHandle } from \"@/lib/chart-engine/api\";",
+          "import { EnginePriceScaleMode, type ChartEngine, type SeriesHandle } from \"@/lib/chart-engine/api\";",
+          1
+        ],
+        [
+          "    const series = api.panes()[0]?.getSeries().find(item => item.kind === \"candles\");",
+          "    const pane = api.panes()[0];\n    const series = pane?.getSeries().find(item => item.kind === \"candles\");",
+          1
+        ],
+        [
+          "    if (!series || !count) return;",
+          "    if (!pane || !series || !count) return;",
+          1
+        ],
+        [
+          "    if (prices.length) {\n      const low = Math.min(...prices), high = Math.max(...prices), pad = Math.max((high-low)*.12,high*.0005);\n      series.priceScale().setVisibleRange({from:Math.max(.001,low-pad),to:high+pad});\n    }\n  }, [api, tf]);\n  useEffect(() => { if (chartCurrent) frameChart(); }, [chartCurrent, ready, frameChart, scope, metric, s.netLeader?.strike]);",
+          "    if (prices.length) {\n      const low = Math.min(...prices), high = Math.max(...prices), pad = Math.max((high-low)*.12,high*.0005);\n      const from = Math.max(.001, low-pad), to = high+pad, scale = series.priceScale();\n      scale.setVisibleRange({from, to});\n      // A phone's wrapped price header needs room above the framed strikes.\n      // Keep the shared chart's scale mode, margins, annotations and lower bound.\n      const options = scale.options();\n      if (!phone || options.mode !== EnginePriceScaleMode.Normal || options.invertScale === true) return;\n      const header = chartHost.current?.querySelector<HTMLElement>(\".statusline\");\n      const paneElement = pane.getHTMLElement(), height = pane.height();\n      if (!header || !paneElement || !Number.isFinite(height) || height <= 0) return;\n      const headerRect = header.getBoundingClientRect(), paneRect = paneElement.getBoundingClientRect();\n      if (headerRect.width <= 0 || headerRect.height <= 0 || paneRect.height <= 0) return;\n      // Convert DOM geometry to pane coordinates and clear the label's glyphs.\n      const headerBottom = Math.max(0, headerRect.bottom-paneRect.top)*height/paneRect.height;\n      const targetY = Math.max(44, headerBottom+16);\n      const yFrom = series.priceToCoordinate(from), yTo = series.priceToCoordinate(to), yHigh = series.priceToCoordinate(high);\n      if (yFrom == null || yTo == null || yHigh == null || ![yFrom,yTo,yHigh,targetY].every(Number.isFinite) ||\n        yFrom <= yTo || yHigh >= targetY || targetY >= yFrom-Math.max(24,height*.2)) return;\n      // Solve the actual linear projection, including its existing scale margins.\n      const nextTo = from+(high-from)*(yFrom-yTo)/(yFrom-targetY);\n      if (Number.isFinite(nextTo) && nextTo > to) scale.setVisibleRange({from,to:nextTo});\n    }\n  }, [api, tf, phone]);\n  useEffect(() => {\n    if (!chartCurrent) return;\n    const frame = requestAnimationFrame(frameChart);\n    return () => cancelAnimationFrame(frame);\n  }, [chartCurrent, ready, frameChart, scope, metric, s.netLeader?.strike]);",
+          1
+        ]
+      ]
+    },
+    {
+      "path": "terminal/e2e/options-exposure-workspace.spec.ts",
+      "edits": [
+        [
+          "async function workspaceSource(page: Page,",
+          "// Observe the real canvas label without adding a production chart API.\nasync function observeExposureHeaderClearance(page: Page) {\n  await page.addInitScript(() => {\n    const labels = new Map<HTMLCanvasElement, { backingTop: number; paint: number }>();\n    let paint = 0;\n    const original = CanvasRenderingContext2D.prototype.fillText;\n    CanvasRenderingContext2D.prototype.fillText = function (...args: Parameters<CanvasRenderingContext2D[\"fillText\"]>) {\n      original.apply(this, args);\n      const [text, x, y] = args, canvas = this.canvas;\n      if (!(canvas instanceof HTMLCanvasElement) || !/^757\\s+\\+[\\d.]+M$/.test(text) ||\n        !canvas.closest('[data-testid=\"exposure-map\"]')) return;\n      const transform = this.getTransform(), ascent = this.measureText(text).actualBoundingBoxAscent;\n      const backingTop = transform.b*x+transform.d*(y-ascent)+transform.f;\n      if (Number.isFinite(backingTop)) labels.set(canvas, {backingTop,paint:++paint});\n    };\n    (window as unknown as { __exposureHeaderClearance: () => unknown }).__exposureHeaderClearance = () => {\n      const result: { gap: number; paint: number; labelTop: number; headerBottom: number }[] = [];\n      for (const [canvas, label] of labels) {\n        if (!canvas.isConnected) { labels.delete(canvas); continue; }\n        const header = canvas.closest(\".chart-wrap\")?.querySelector(\".statusline\");\n        if (!header || !canvas.height) continue;\n        const rect = canvas.getBoundingClientRect();\n        if (rect.width <= 0 || rect.height <= 0) continue;\n        const labelTop = rect.top+label.backingTop*rect.height/canvas.height;\n        const headerBottom = header.getBoundingClientRect().bottom;\n        result.push({gap:labelTop-headerBottom,paint:label.paint,labelTop,headerBottom});\n      }\n      return result;\n    };\n  });\n}\nasync function exposureHeaderClearance(page: Page) {\n  return page.evaluate(() => (window as unknown as {\n    __exposureHeaderClearance: () => { gap: number; paint: number; labelTop: number; headerBottom: number }[];\n  }).__exposureHeaderClearance());\n}\n\nasync function workspaceSource(page: Page,",
+          1
+        ],
+        [
+          "    page.on(\"pageerror\", e => errors.push(e.message));\n    await workspaceSource(page, lang);",
+          "    page.on(\"pageerror\", e => errors.push(e.message));\n    await observeExposureHeaderClearance(page);\n    await workspaceSource(page, lang);",
+          1
+        ],
+        [
+          "    if (info.project.name !== \"mobile\") await expect(map.getByTestId(\"exposure-implied-distance\")).toContainText(\"0.49 σ\");",
+          "    // The highest framed ranked strike must remain readable beneath the price header.\n    try {\n      await expect.poll(async () => {\n        const rows = await exposureHeaderClearance(page);\n        return rows.length === 1 ? rows[0].gap : Number.NEGATIVE_INFINITY;\n      }).toBeGreaterThanOrEqual(4);\n    } finally {\n      await info.attach(\"exposure-header-clearance-initial\", {body:JSON.stringify(\n        await exposureHeaderClearance(page),null,2),contentType:\"application/json\"});\n    }\n    const initialClearance = (await exposureHeaderClearance(page))[0];\n    const priceHeader = map.locator(\".chart-wrap .statusline\");\n    await expect(priceHeader.locator(\".status-ohlc b\")).toHaveCount(4);\n    for (const value of await priceHeader.locator(\".status-ohlc b\").all()) await expect(value).toBeVisible();\n    await expect(priceHeader.locator(\".status-change\")).toBeVisible();\n    await map.getByTitle(lang === \"en\" ? \"Reset view\" : \"重置视图\", {exact:true}).click();\n    await expect.poll(async () => (await exposureHeaderClearance(page))[0]?.paint ?? 0)\n      .toBeGreaterThan(initialClearance.paint);\n    await expect.poll(async () => (await exposureHeaderClearance(page))[0]?.gap ?? Number.NEGATIVE_INFINITY)\n      .toBeGreaterThanOrEqual(4);\n    await info.attach(\"exposure-header-clearance\", {body:JSON.stringify({\n      initial:initialClearance,afterFit:(await exposureHeaderClearance(page))[0],\n    },null,2),contentType:\"application/json\"});\n    if (info.project.name !== \"mobile\") await expect(map.getByTestId(\"exposure-implied-distance\")).toContainText(\"0.49 σ\");",
+          1
+        ]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "branchHead": "753b4a90ebd31a1da76a9595bb2fedde912da042",
+  "capturedChildren": [
+    "pl6",
+    "vi",
+    "batch2"
+  ],
+  "command": [
+    "node",
+    "e2e/tools/capture_ci_evidence.cjs"
+  ],
+  "completedAt": "2026-11-09T19:02:38.328832+00:00",
+  "composition": {
+    "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261109185448-2-current.composition.json",
+    "selectedCases": 50,
+    "sha256": "4dd06a31f9c0d33206f14fd0b61be176865f2ef4e6fcf288f41034a5bf256126"
+  },
+  "executionEnvironment": "owned local validation; not a GitHub Actions run",
+  "exit": 0,
+  "indexTreeAtStart": "f7634175c0740c6028fdd1039555f214f062f3ef",
+  "integratedDependency": "7d0483c995df95ea76e988029d0c229d2a0e177c",
+  "localDiagnosticAttempt": "2",
+  "localDiagnosticRunId": "20261109185448",
+  "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "nativeReusedQualifiedCurrentSource": true,
+  "nativeSelectedImages": {
+    "eod": 126,
+    "gex": 114
+  },
+  "nextLockAbsent": true,
+  "ownedPortsClosed": true,
+  "ownerReceipt": "docs/verification/pr1248-options-ux-integration-20261109/ci-owner-r2/runner-temp/terminal-ci-evidence/ci-20261109185448-2.json",
+  "ownerReceiptSha256": "6e918e207207a0029626b837a0ea4263922cd8d834d02629a2a97d8df2efd0b6",
+  "ownerSharedDeadlineMinutes": 84,
+  "ownerState": "SELECTED",
+  "protectedMaster": "03af393ce05c12282003a3919cc473c032264922",
+  "schema": "terminal_pr1248_complete_ci_owner_validation.v1",
+  "seconds": 447.67,
+  "sourceAfterSha256": "21764f7ef04dcd0229a73c612fddfec64167fdbd1de4fc38352224ebf0042617",
+  "sourceBeforeSha256": "21764f7ef04dcd0229a73c612fddfec64167fdbd1de4fc38352224ebf0042617",
+  "sourceEntries": 1955,
+  "sourceStable": true,
+  "startedAt": "2026-11-09T18:55:10.655512+00:00",
+  "state": "FULL_OWNER_PATH_QUALIFIED_WITHIN_EXISTING_WORKFLOW_BUDGET",
+  "workflowBlob": "fc38b261161535f0cca571be91c51aa3e0ea87fe",
+  "workflowCaptureMinutes": 85
+}

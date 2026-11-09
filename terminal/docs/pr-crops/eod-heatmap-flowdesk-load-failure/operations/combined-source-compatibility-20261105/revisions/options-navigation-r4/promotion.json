@@ -1,0 +1,14 @@
+{
+  "schema": "options_navigation_revision_promotion.v1",
+  "revision": "options-navigation-r4",
+  "kind": "eod",
+  "actual_passed": 126,
+  "source_count": 319,
+  "native_canonical_crop_count": null,
+  "descriptor_sha256": "95de1a091bc2b152237921c3f3cb93aa3a95c5c9e029d1d8d4675fa7f3e855b5",
+  "preceding_descriptor_sha256": "a8d20f42412e10466c5330efc64168190f062cae9075543fe73a050bc992cf52",
+  "preceding_packet_inventory_sha256": "4515093ab9ba4915341a7e163dd4623c4b2698368f4d1988e3d3a8c89135cb42",
+  "preceding_packet_bytes_unchanged": true,
+  "original_and_combined_sources_equal_within_contract": true,
+  "entire_application_identity_claimed": false
+}

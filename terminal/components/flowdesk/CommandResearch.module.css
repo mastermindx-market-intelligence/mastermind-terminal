@@ -1,0 +1,12 @@
+/* In compact Command layouts the desk owns the outer scroll. Opening a filter
+   adds room to that desk instead of borrowing it from the visible prints. */
+@media (max-width: 999px) {
+  :global(.obs-flowdesk) > :global(.obs-fd-center):has(.feed > [data-tut="flow-filter-panel"]) {
+    height: calc(max(510px, 72dvh) + min(34dvh, 320px));
+  }
+  :global(.obs-flowdesk) :global(.obs-fd-right) > .inspector:global(.obs-card.has-event) {
+    max-height: none; /* compact desk is the single scroll owner */
+  }
+}
+.inspector :global(.obs-insp-kv) { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; }
+.inspector :global(.obs-insp-kv.wide) { grid-column: 1 / -1; }

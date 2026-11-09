@@ -370,6 +370,19 @@
 @media(max-width:540px) { .instrument h2 { font-size:28px; } .leaders>* { padding:10px 11px; } }
 @media(max-width:640px){.sectionHead{flex-wrap:wrap}.segment{flex-wrap:wrap}}
 
+/* Retained static momentum cells share the workspace with the newer interactive cells. */
+.momentumGrid>div {
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  padding:9px 6px;
+  background:var(--bg);
+  border-radius:5px;
+}
+@media(max-width:540px) {
+  .momentumGrid>div { padding:8px 4px; }
+}
+
 /* Light numeric/bias ink must read on the research surface. Signs and bias
    words carry meaning; the fixed exposure palette stays on chart marks. */
 :global(html[data-theme="light"]) .map .leaders strong[data-sign],

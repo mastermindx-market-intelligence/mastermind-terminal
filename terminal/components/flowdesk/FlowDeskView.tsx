@@ -26,6 +26,7 @@ import { makeFlowT } from "../../lib/flowdeskStrings";
 import { artifactSourceAgeMs } from "../../lib/flowFreshness";
 import { feedEvents } from "../../lib/flowPrintInspector";
 import { WatchlistRail } from "./WatchlistRail";
+import styles from "./CommandWorkspace.module.css";
 import { RadarStrip } from "./RadarStrip";
 import { FlowGauge } from "./FlowGauge";
 import { FeedPane, type FlowEvent, type FeedPayload, type EnrichPayload, normalizeEnrichPayload } from "./FeedPane";
@@ -33,12 +34,11 @@ import { InspectorPane } from "./InspectorPane";
 import { DEFAULT_FILTERS, type FlowFilters } from "./FiltersPanel";
 import { TutorialOverlay } from "../tutorial/TutorialOverlay";
 import { ArtifactSourceReceipt } from "./FlowFreshnessReceipt";
-
-const TUTORIAL_KEY = "flowdesk.tutorial";
-/** Written the moment the auto-prompt fires so it never re-fires on future visits,
- *  independent of whether the user completes a module (which writes TUTORIAL_KEY). */
-const TUTORIAL_SEEN_KEY = "flowdesk.tutorial.seen";
-const AUTO_PROMPT_DELAY_MS = 1500;
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { pick } from "@/lib/finFormat";
+import { createDefaultTapeView, encodeTapeView } from "@/lib/optionsTapeView";
+import heat from "./ChainHeat.module.css";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -257,10 +257,33 @@ const RETRY_INLINE: React.CSSProperties = { padding: "2px 10px", fontSize: 11, f
 function ChainHeatRail({ data, status, onRetry, lang }: ChainHeatRailProps) {
   const zh = lang === "zh";
   const t = makeFlowT(lang);
+  const rail = useRef<HTMLDivElement>(null);
+  const activeTab = useSearchParams()?.get("tab");
+  const session = data?.session_date ?? data?.asof?.slice(0, 10);
+
+  // The return target belongs to this history entry. A fresh desk or another
+  // market session must never inherit focus from a previous investigation.
+  useEffect(() => {
+    const state = window.history.state;
+    const target = state?.commandChainReturn;
+    if (!data || !target || target.session !== session) return;
+    const row = Array.from(rail.current?.querySelectorAll<HTMLDetailsElement>("[data-campaign-symbol]") ?? [])
+      .find(element => element.dataset.campaignSymbol === target.symbol);
+    if (!row) return;
+    const frame = requestAnimationFrame(() => {
+      row.open = true;
+      row.querySelector("summary")?.focus();
+      const restored = { ...window.history.state };
+      delete restored.commandChainReturn;
+      window.history.replaceState(restored, "");
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [activeTab, data, session]);
+
 
   if (!data) {
     return (
-      <div className="obs-card obs-fd-chain obs-scroll" data-tut="chain-heat">
+      <div className="obs-card obs-fd-chain obs-scroll" data-tut="chain-heat" tabIndex={-1}>
         <div className="obs-card-hd">
           <span className="obs-lbl">{t("chainHeatTitle")}</span>
         </div>
@@ -289,13 +312,16 @@ function ChainHeatRail({ data, status, onRetry, lang }: ChainHeatRailProps) {
   const note = zh ? (data.note_zh ?? "") : (data.note_en ?? "");
 
   return (
-    <div className="obs-card obs-fd-chain obs-scroll" data-tut="chain-heat">
-      <div className="obs-card-hd">
-        <span className="obs-lbl">{t("chainHeatTitle")}</span>
+    <div ref={rail} className="obs-card obs-fd-chain obs-scroll" data-tut="chain-heat" tabIndex={-1}>
+      <div className={heat.heading}>
+        <div className={heat.headingLine}>
+          <span className="obs-lbl">{t("chainHeatTitle")}</span>
+          <span className={heat.count}>{campaigns.length} {pick(zh, campaigns.length === 1 ? "contract" : "contracts", "个合约")}</span>
+          <span className={heat.threshold}>
+            {pick(zh, "Premium", "权利金")} ≥${threshold}M
+          </span>
+        </div>
         <ArtifactSourceReceipt artifact={data} lang={lang} sessionDate={data.session_date} />
-        <span className="obs-lbl" style={{ color: "var(--muted)" }}>
-          {zh ? `≥$${threshold}M` : `≥$${threshold}M cumul`}
-        </span>
       </div>
 
       {status === "unavailable" && (
@@ -307,33 +333,47 @@ function ChainHeatRail({ data, status, onRetry, lang }: ChainHeatRailProps) {
         </div>
       )}
 
-      {note && <div className="obs-fd-chain-note">{note}</div>}
+      {note && (
+        <details className={heat.source}>
+          <summary>{pick(zh, "Source notes", "来源说明")}</summary>
+          <p>{note}</p>
+        </details>
+      )}
 
       {campaigns.length === 0 && (
-        <div className="obs-fd-chain-empty">{t("chainHeatEmpty")}</div>
+        <div className="obs-fd-chain-empty">{pick(zh, "No campaigns today", "本时段无合约集群")}</div>
       )}
 
       {campaigns.map((c, idx) => (
-        <ChainCampaignRow key={c.option_symbol} campaign={c} zh={zh} t={t} firstCampaign={idx === 0} />
+        <ChainCampaignRow key={c.option_symbol} campaign={c} session={session} zh={zh} t={t} firstCampaign={idx === 0} />
       ))}
     </div>
   );
 }
 
+function tickerTapeHref(ticker: string): string | null {
+  try {
+    const tapeView = encodeTapeView({ ...createDefaultTapeView(), drillTicker: ticker });
+    return `/options?${new URLSearchParams({ tab: "tape", tapeView })}`;
+  } catch {
+    return null; // An unsupported root cannot link to an unfiltered tape.
+  }
+}
+
 function ChainCampaignRow({
   campaign,
+  session,
   zh,
   t,
   firstCampaign,
 }: {
   campaign: ChainHeatCampaign;
+  session?: string;
   zh: boolean;
   t: (key: Parameters<ReturnType<typeof makeFlowT>>[0]) => string;
   firstCampaign?: boolean;
 }) {
   const isCall = campaign.type === "CALL";
-  const isContested = campaign.lean === "contested";
-
   // Lean label (soft, never buy/sell assertion)
   const leanLabel = campaign.lean === "accumulation"
     ? t("chainHeatLeanAccum")
@@ -341,136 +381,80 @@ function ChainCampaignRow({
     ? t("chainHeatLeanDist")
     : t("chainHeatContested");
 
-  // Premium magnitude formatting
   const premStr = `$${campaign.total_premium_mn.toFixed(1)}M`;
-  const isBig = campaign.total_premium_mn >= 10;
-
-  // Category proxy state: "none" (legacy payload) | "invalid" (claimed but
-  // malformed) | "valid" (exact schema/basis + bounded finite share/mass).
+  const tapeHref = tickerTapeHref(campaign.ticker);
+  // A malformed modern proxy cannot inherit a legacy bar.
   const proxyState = resolveCategoryProxy(campaign.category_proxy);
-  const proxyW =
-    proxyState.kind === "valid" && proxyState.share !== null
-      ? Math.round(Math.min(1, Math.max(0, proxyState.share)) * 100)
-      : 0;
-  // Legacy numeric bar — shown ONLY when no new object is present, and clearly
-  // labelled as legacy with coverage unavailable.  A legacy ask_share that is
-  // not a finite 0..1 number renders as unavailable with NO fill (never NaN,
-  // never a 0 fallback).  Never presented as "at ask" or a measured neutral.
-  const legacyShareOk =
-    typeof campaign.ask_share === "number" &&
-    Number.isFinite(campaign.ask_share) &&
-    campaign.ask_share >= 0 &&
-    campaign.ask_share <= 1;
-  const legacyBarW = legacyShareOk
-    ? Math.round(Math.min(1, Math.max(0, campaign.ask_share)) * 100)
+  let rawShare: number | null = null;
+  if (proxyState.kind === "none") rawShare = campaign.ask_share;
+  if (proxyState.kind === "valid") rawShare = proxyState.share;
+  const share = typeof rawShare === "number" && Number.isFinite(rawShare) && rawShare >= 0 && rawShare <= 1
+    ? Math.round(rawShare * 100)
     : null;
 
-  // First-seen time (ET)
-  let firstSeenStr = "";
-  try {
-    firstSeenStr = new Date(campaign.first_seen).toLocaleTimeString("en-US", {
-      hour: "2-digit", minute: "2-digit", hour12: false,
-      timeZone: "America/New_York",
-    }) + " ET";
-  } catch {
-    firstSeenStr = campaign.first_seen.slice(11, 16);
-  }
+  const observedAt = new Date(campaign.first_seen);
+  const firstSeen = Number.isFinite(observedAt.getTime())
+    ? observedAt.toLocaleTimeString("en-GB", {
+        hour: "2-digit", minute: "2-digit", timeZone: "America/New_York",
+      }) + " ET"
+    : "—";
 
   return (
-    <div className="obs-fd-chain-row" {...(firstCampaign ? { "data-tut": "chain-heat-campaign" } : {})}>
-      {/* Row 1: ticker / type / strike / premium */}
-      <div className="obs-fd-chain-row1">
-        <span className="obs-fd-chain-ticker">{campaign.ticker}</span>
-        <span className={`obs-fd-chain-cp ${isCall ? "call" : "put"}`}>
-          {isCall ? t("chainHeatCall") : t("chainHeatPut")}
+    <details data-campaign-symbol={campaign.option_symbol} className={`obs-fd-chain-row ${heat.campaign}`} {...(firstCampaign ? { "data-tut": "chain-heat-campaign" } : {})}>
+      <summary className={heat.contract}>
+        <span className={heat.identity}>
+          <span className="obs-fd-chain-ticker">{campaign.ticker}</span>
+          <span className={heat.option}>{t(isCall ? "chainHeatCall" : "chainHeatPut")} ${campaign.strike}</span>
         </span>
-        <span className="obs-fd-chain-strike">${campaign.strike} · {campaign.expiry.slice(5)}</span>
-        <span className="obs-fd-chain-prem num" style={{ color: isBig ? "var(--signal)" : "var(--text)" }}>
-          {premStr}
+        <strong className={`num ${heat.premium}`}>{premStr}</strong>
+        <span className={heat.expiry}>
+          <time dateTime={campaign.expiry}>{campaign.expiry}</time>
+          <span aria-hidden="true"> · </span>
+          {campaign.alert_count} {t("chainHeatAlertCt")}
         </span>
-      </div>
+        <span aria-hidden="true" className={heat.chevron} />
+      </summary>
 
-      {/* Row 2: lean chip + caveat */}
-      <div className="obs-fd-chain-row2">
-        <span
-          className="obs-fd-chain-lean"
-          style={{ color: isContested ? "var(--muted)" : "var(--text-2)" }}
-        >
-          {leanLabel}
-        </span>
-        <span className="obs-fd-chain-caveat">{t("chainHeatLeanNote")}</span>
+      <div className={heat.breakdown}>
+        <dl className={heat.stats}>
+          <div><dt>{t("chainHeatFirstSeen")}</dt><dd>{firstSeen}</dd></div>
+          <div><dt>{t("chainHeatSpan")}</dt><dd>{campaign.span_minutes}m</dd></div>
+          <div><dt>{pick(zh, "Inferred lean", "推测倾向")}</dt><dd>{leanLabel}</dd></div>
+        </dl>
+        <div className={heat.proxyLine}>
+          <span>{t(proxyState.kind === "none" ? "chainHeatProxyLegacy" : "chainHeatAskShare")}</span>
+          <strong>{share === null ? t("chainHeatProxyUnavailable") : `${share}%`}</strong>
+        </div>
+        {share !== null && (
+          <div className="obs-fd-chain-askbar-track" aria-hidden="true">
+            <div className="obs-fd-chain-askbar-fill" style={{ width: `${share}%` }} />
+          </div>
+        )}
+        {proxyState.kind === "valid" && (
+          <span className={heat.coverage}>{t("chainHeatProxyCoverage")} {(proxyState.known / 1e6).toFixed(1)}M / {(proxyState.source / 1e6).toFixed(1)}M</span>
+        )}
+        <span className="obs-fd-chain-caveat">{t("chainHeatProxyNote")}</span>
+        {tapeHref && (
+          <Link href={tapeHref} prefetch={false} className={heat.tapeLink}
+            onNavigate={() => window.history.replaceState({
+              ...window.history.state, commandChainReturn: { symbol: campaign.option_symbol, session },
+            }, "")}>
+            {pick(zh, "View {ticker} tape", "查看 {ticker} 成交流").replace("{ticker}", campaign.ticker)}
+            <span aria-hidden="true">↗</span>
+          </Link>
+        )}
       </div>
-
-      {/* Row 3: stats */}
-      <div className="obs-fd-chain-stats">
-        <span>
-          <span className="obs-fd-chain-stat-key">{t("chainHeatAlertCt")}</span>
-          {" "}{campaign.alert_count}
-        </span>
-        <span>
-          <span className="obs-fd-chain-stat-key">{t("chainHeatSpan")}</span>
-          {" "}{campaign.span_minutes}m
-        </span>
-        <span>
-          <span className="obs-fd-chain-stat-key">{t("chainHeatFirstSeen")}</span>
-          {" "}{firstSeenStr}
-        </span>
-      </div>
-
-      {/* Category proxy bar — additive; never a measured NBBO */}
-      {proxyState.kind === "valid" ? (
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--sp-1)" }}>
-            <span className="obs-fd-chain-stat-key">{t("chainHeatAskShare")}</span>
-            <span className="num" style={{ fontSize: "var(--fs-micro)", color: "var(--text-2)" }}>
-              {proxyState.share === null ? t("chainHeatProxyUnavailable") : `${proxyW}%`}
-            </span>
-          </div>
-          <div className="obs-fd-chain-askbar-track">
-            {proxyState.share !== null && (
-              <div className="obs-fd-chain-askbar-fill" style={{ width: `${proxyW}%` }} />
-            )}
-          </div>
-          <div style={{ display: "grid", gap: "var(--sp-1)", marginTop: "var(--sp-1)" }}>
-            <span className="obs-fd-chain-caveat">{t("chainHeatProxyNote")}</span>
-            <span className="num" style={{ fontSize: "var(--fs-micro)", color: "var(--text-2)" }}>
-              {t("chainHeatProxyCoverage")} {(proxyState.known / 1e6).toFixed(1)}M / {(proxyState.source / 1e6).toFixed(1)}M
-            </span>
-          </div>
-        </div>
-      ) : proxyState.kind === "invalid" ? (
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--sp-1)" }}>
-            <span className="obs-fd-chain-stat-key">{t("chainHeatAskShare")}</span>
-            <span className="num" style={{ fontSize: "var(--fs-micro)", color: "var(--text-2)" }}>
-              {t("chainHeatProxyUnavailable")}
-            </span>
-          </div>
-          <div className="obs-fd-chain-askbar-track" />
-          <div style={{ marginTop: "var(--sp-1)" }}>
-            <span className="obs-fd-chain-caveat">{t("chainHeatProxyNote")}</span>
-          </div>
-        </div>
-      ) : (
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--sp-1)" }}>
-            <span className="obs-fd-chain-stat-key">{t("chainHeatProxyLegacy")}</span>
-            <span className="num" style={{ fontSize: "var(--fs-micro)", color: "var(--text-2)" }}>
-              {legacyBarW === null ? t("chainHeatProxyUnavailable") : `${legacyBarW}%`}
-            </span>
-          </div>
-          <div className="obs-fd-chain-askbar-track">
-            {legacyBarW !== null && (
-              <div className="obs-fd-chain-askbar-fill" style={{ width: `${legacyBarW}%` }} />
-            )}
-          </div>
-        </div>
-      )}
-    </div>
+    </details>
   );
 }
 
 // ─── FlowDeskView ─────────────────────────────────────────────────────────────
+
+function reveal(target: HTMLElement | null) {
+  if (!target) return;
+  target.focus({ preventScroll: true });
+  target.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+}
 
 export function FlowDeskView() {
   const { lang } = useLang();
@@ -493,12 +477,25 @@ export function FlowDeskView() {
 
   // ── Selection state ──────────────────────────────────────────────────────────
   const [selectedEvent, setSelectedEvent] = useState<FlowEvent | null>(null);
-  const [tickerCtx,     setTickerCtx]     = useState<TickerPayload | null>(null);
+  const [tickerCtx, setTickerCtx] = useState<TickerPayload | null>(null);
+  const selectedRoot = selectedEvent?.root ?? null;
+  const feedRef = useRef<HTMLDivElement>(null);
+  const marketRef = useRef<HTMLDivElement>(null);
+  const researchRef = useRef<HTMLDivElement>(null);
+  const opener = useRef<HTMLElement | null>(null);
+  const guideButton = useRef<HTMLButtonElement>(null);
+
+  const returnToFeed = useCallback(() => {
+    const target = opener.current?.isConnected ? opener.current : feedRef.current;
+    setSelectedEvent(null);
+    reveal(target);
+  }, []);
 
   // Stable reference so React.memo on FlowCard does not re-render all 200 cards
   // when the selection changes (an inline arrow at the JSX call site creates a new
   // reference on every render).
   const handleSelect = useCallback((ev: FlowEvent) => {
+    opener.current = document.getElementById(`inspect-flow-${ev.id}`);
     setSelectedEvent((prev) => prev?.id === ev.id ? null : ev);
   }, []);
 
@@ -513,7 +510,6 @@ export function FlowDeskView() {
 
   // ── Tutorial ─────────────────────────────────────────────────────────────────
   const [tutOpen, setTutOpen] = useState(false);
-  const autoPromptRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Polling refs ─────────────────────────────────────────────────────────────
   const tideTimerRef   = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -584,14 +580,6 @@ export function FlowDeskView() {
     setEnrich(normalized);
   }, []);
 
-  const fetchTickerCtx = useCallback(async (root: string) => {
-    setTickerCtx(null);
-    const data = await safeFetch<TickerPayload>(`/api/flow?f=ticker:${root}`);
-    // Fixture honest-empty {} (unknown root) has no `day`; InspectorPane derefs
-    // day.gross behind a truthiness check, so a day-less payload must stay null.
-    if (data?.day) setTickerCtx(data);
-  }, []);
-
   // ── Mount: initial fetch + polling ───────────────────────────────────────────
 
   useEffect(() => {
@@ -658,12 +646,15 @@ export function FlowDeskView() {
   // ── Ticker context fetch on event selection ───────────────────────────────────
 
   useEffect(() => {
-    if (selectedEvent) {
-      void fetchTickerCtx(selectedEvent.root);
-    } else {
-      setTickerCtx(null);
+    let current = true;
+    setTickerCtx(null);
+    if (selectedRoot) {
+      void safeFetch<TickerPayload>(`/api/flow?f=ticker:${selectedRoot}`).then((data) => {
+        if (current && data?.root === selectedRoot && data.day) setTickerCtx(data);
+      });
     }
-  }, [selectedEvent, fetchTickerCtx]);
+    return () => { current = false; };
+  }, [selectedRoot]);
 
   // ── Watchlist handlers ────────────────────────────────────────────────────────
 
@@ -680,12 +671,13 @@ export function FlowDeskView() {
   const handlePickTicker = useCallback((root: string) => {
     // Selecting a ticker from the watchlist selects its most recent event (latest timestamp)
     // Read through the one tape guard: a malformed `events` is no prints, so nothing is picked.
-    const eventsForRoot = feedEvents(feed).filter((ev) => ev.root === root);
+    const eventsForRoot = feedEvents(feed).filter((ev) => ev?.root === root);
     if (eventsForRoot.length === 0) return;
     // Pick the event with the latest timestamp
     const ev = eventsForRoot.reduce((best, cur) =>
       new Date(cur.ts) > new Date(best.ts) ? cur : best
     );
+    opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setSelectedEvent(ev);
   }, [feed]);
 
@@ -722,38 +714,27 @@ export function FlowDeskView() {
       }
     : { unusual_names: [], baseline_note: undefined };
 
-  // ── Auto-prompt tutorial exactly once per browser (gate on seen flag) ────────
-  // We check TUTORIAL_SEEN_KEY (not TUTORIAL_KEY) so that a user who opens and
-  // then closes/skips the overlay without completing a module is still marked as
-  // having seen the auto-prompt and does not see it again on the next /flow visit.
-  useEffect(() => {
-    let alreadySeen = false;
-    try {
-      alreadySeen = localStorage.getItem(TUTORIAL_SEEN_KEY) !== null;
-    } catch {}
-    if (!alreadySeen) {
-      // Mark as seen immediately — before the timeout fires — so that even if the
-      // component unmounts before the delay elapses the flag is persisted.
-      try {
-        localStorage.setItem(TUTORIAL_SEEN_KEY, "1");
-      } catch {}
-      autoPromptRef.current = setTimeout(() => {
-        setTutOpen(true);
-      }, AUTO_PROMPT_DELAY_MS);
-    }
-    return () => {
-      if (autoPromptRef.current) clearTimeout(autoPromptRef.current);
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   // ── Render ────────────────────────────────────────────────────────────────────
 
   return (
-    <div className="obs obs-ambient obs-flowdesk">
+    <div className={`obs obs-ambient obs-flowdesk ${styles.desk}`}>
+      <header className={styles.heading}>
+        <div className={styles.title}>
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M2 15h4l3-9 4 13 3-10 2 4h4" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" /></svg>
+          <h2>{t("tabFlow")}</h2>
+        </div>
+        <button type="button" className={styles.guide} ref={guideButton} onClick={() => setTutOpen(true)}>
+          {pick(lang === "zh", "Desk guide", "工作台指南")}
+        </button>
+      </header>
+      <nav className={styles.sectionLinks} aria-label={pick(lang === "zh", "Flow Desk sections", "资金流工作台区域")}>
+        <button onClick={() => reveal(feedRef.current)}>{pick(lang === "zh", "Flow feed", "资金流事件")}</button>
+        <button onClick={() => reveal(researchRef.current?.querySelector<HTMLElement>('[data-tut="chain-heat"]') ?? researchRef.current)}>{t("chainHeatTitle")}</button>
+        <button onClick={() => reveal(marketRef.current)}>{pick(lang === "zh", "Session & watchlist", "时段与自选")}</button>
+      </nav>
 
       {/* ═══ LEFT RAIL (FlowGauge strip + WatchlistRail + Smart Money Radar) ═ */}
-      <div className="obs-fd-left">
+      <div ref={marketRef} tabIndex={-1} role="region" aria-label={pick(lang === "zh", "Session and watchlist", "时段与自选")} className="obs-fd-left">
         {/* FlowGauge — slim strip pinned at top of left rail. Unknown is not zero: with
             no feed there is no session total or call/put split to draw, so the gauge is
             not rendered and the rail states below say what the read established. */}
@@ -777,7 +758,6 @@ export function FlowDeskView() {
             watchlist={watchlist}
             onToggleTicker={handleToggleTicker}
             onPickTicker={handlePickTicker}
-            onOpenTutorial={() => setTutOpen(true)}
           />
         )}
         {/* A feed the desk could not read is not an endless skeleton (UI-truth law):
@@ -804,7 +784,7 @@ export function FlowDeskView() {
       </div>
 
       {/* ═══ CENTER — feed ONLY (toolbar + card grid) ════════════════════════ */}
-      <div className="obs-fd-center">
+      <div ref={feedRef} tabIndex={-1} aria-label={pick(lang === "zh", "Flow feed", "资金流事件")} role="region" className="obs-fd-center">
         {/* FeedPane takes full center column height */}
         <FeedPane
           feed={feed}
@@ -825,14 +805,15 @@ export function FlowDeskView() {
       {/* ═══ RIGHT RAIL — Chain Heat FIRST, then Inspector ═══════════════════
           `has-sel` hands the height budget to the Inspector once an event is
           selected (Chain Heat keeps the rail when nothing is). */}
-      <div className={`obs-fd-right${selectedEvent ? " has-sel" : ""}`}>
+      <div ref={researchRef} tabIndex={-1} role="region" aria-label={pick(lang === "zh", "Contract research", "合约研究")} className={`obs-fd-right${selectedEvent ? " has-sel" : ""}`}>
         {/* Chain Heat Rail — top of right column, scrollable */}
         <ChainHeatRail data={chainHeat} status={chainHeatStatus} onRetry={retryChainHeat} lang={lang} />
 
         {/* Inspector — slim one-line hint when nothing selected; full view on click */}
         <InspectorPane
           event={selectedEvent}
-          tickerCtx={tickerCtx}
+          tickerCtx={tickerCtx?.root === selectedRoot ? tickerCtx : null}
+          onReturn={returnToFeed}
           enrichEv={selectedEvent ? (enrich?.events[selectedEvent.id] ?? null) : null}
           lang={lang}
         />
@@ -842,7 +823,7 @@ export function FlowDeskView() {
       {tutOpen && (
         <TutorialOverlay
           open={tutOpen}
-          onClose={() => setTutOpen(false)}
+          onClose={() => { setTutOpen(false); guideButton.current?.focus(); }}
         />
       )}
 

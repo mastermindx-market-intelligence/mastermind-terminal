@@ -13,9 +13,8 @@ const UNAVAILABLE = readFileSync(
 );
 const COHORT_ROUTE = /\/api\/nw\?f=selection_cohort_us$/;
 
-/** Flat Options navigation is 86px tall instead of 100px, returning 14px to
- * the grid. Measured at 1440x900 with TERMINAL_E2E_FIXTURE, 2026-10-22. */
-const GRID_CLIENT_HEIGHT_1440x900 = 490;
+// Keep at least the original usable area and all space reclaimed by the single-view nav.
+const MIN_GRID_HEIGHT_1440x900 = 490;
 
 async function gotoProphetWithCohort(
   page: import("@playwright/test").Page,
@@ -42,8 +41,9 @@ async function assertGridGeometry(page: import("@playwright/test").Page, popover
       innerH: window.innerHeight,
     };
   });
-  expect(Math.abs(metrics.gridH - GRID_CLIENT_HEIGHT_1440x900)).toBeLessThanOrEqual(1);
+  expect(metrics.gridH).toBeGreaterThanOrEqual(MIN_GRID_HEIGHT_1440x900 - 1);
   expect(metrics.scrollH).toBeLessThanOrEqual(metrics.innerH);
+  return metrics.gridH;
 }
 
 async function assertMastheadStatsOneRow(page: import("@playwright/test").Page) {
@@ -69,8 +69,9 @@ test.describe("Selection cohort masthead tile (D2)", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await gotoProphetWithCohort(page, READY);
     await page.getByTestId("selection-cohort-tile").waitFor({ state: "visible", timeout: 20_000 });
-    await assertGridGeometry(page, false);
-    await assertGridGeometry(page, true);
+    const closedHeight = await assertGridGeometry(page, false);
+    const openHeight = await assertGridGeometry(page, true);
+    expect(Math.abs(openHeight - closedHeight)).toBeLessThanOrEqual(1);
   });
 
   test("masthead stats share one offsetTop at 1200x800 and 1440x900", async ({ page }) => {

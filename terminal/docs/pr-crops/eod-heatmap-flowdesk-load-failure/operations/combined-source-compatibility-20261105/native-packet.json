@@ -1,0 +1,10 @@
+{
+  "schema": "options_exposure_packet.v1",
+  "kind": "eod",
+  "profile": "combined",
+  "operation": "combined-source-compatibility-20261105",
+  "receipt": "capture-receipt.json",
+  "receiptSha256": "95bad806593f8c597e753cbe8351fc2c7a4349b6e0e3ab7c62c348fc41479bda",
+  "manifest": "qualified-root/EVIDENCE.yml",
+  "manifestSha256": "335a6f3469456b8e3607f26816964bfb06307665af1e0f225a789e890e97bf73"
+}

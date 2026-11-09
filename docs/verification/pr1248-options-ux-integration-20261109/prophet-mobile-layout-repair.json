@@ -1,0 +1,21 @@
+{
+  "afterSha256": "51e099e00fca817ce09ba8299ab1cadddf5dcf4b6ea0720eb80fd940ccd6ec75",
+  "appliedAt": "2026-11-09T17:57:30.304795+00:00",
+  "assertionsWeakened": false,
+  "beforeSha256": "d469e84e92c47bb06a4ca27e9ea15122da078cbca9ed98d4415e199279a8347c",
+  "cause": "At <=760px the flex-column grid inherited flex:1 and min-height:0 despite three >=520px panes. The following in-flow cohort overlapped the overflowed PLTR card. Native locator click repeatedly reported the cohort header interception; root inspected the actual failure screenshot.",
+  "existingTestSpecUnchanged": true,
+  "forcedClicksAdded": false,
+  "path": "terminal/app/observatory.css",
+  "repair": "Use natural nonshrinking mobile grid height with flex:0 0 auto in the existing mobile rule. Desktop/tablet rules and cohort visibility, z-index and pointer semantics remain unchanged.",
+  "reproduction": {
+    "executionSha256": "e2e7aa2109ede943af826fe4d76e30893812eb11353e35ff4ab198285a5e8bb3",
+    "failed": 1,
+    "failedTitle": "the panel's disclosure shows the clause alone when the row has no receipt",
+    "passed": 1,
+    "sourceEntries": 1955
+  },
+  "retryChanges": false,
+  "schema": "terminal_pr1248_prophet_mobile_layout_repair.v1",
+  "testSpecSha256": "3e7382eabea27f4f930051b273cf034c2bb7f66821dcf47a2340dab816b478f0"
+}

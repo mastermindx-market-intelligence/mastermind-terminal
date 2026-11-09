@@ -732,6 +732,7 @@ test("Intraday Surface separates session, observed frames, and candle interval a
   await page.goto("/options?tab=surface");
 
   await expect(page.getByText("Intraday Flow Surface", { exact: true })).toBeVisible({ timeout: 15_000 });
+  await page.locator(".obs-surf-controls details > summary").click();
   const candleInterval = page.getByRole("group", { name: "Candle interval" });
   await expect(candleInterval).toBeVisible();
   await expect(candleInterval).toContainText("Candles");
@@ -923,11 +924,6 @@ test("the retired ?tab=prism deep-link opens the Exposure matrix", async ({ page
 });
 
 test("an archived session withholds the matrix instead of captioning today's grid", async ({ page }, testInfo) => {
-  test.skip(
-    testInfo.project.name === "mobile",
-    "Exposure content region collapses at 390px — pre-existing, filed as follow-up in PR #344 body"
-  );
-
   // The matrix store is a CURRENT-session read with no dated twin. Replaying a settled
   // session must NOT render today's grid inside the archived frame (the cross-session
   // adjacency replay mode exists to prevent) — and must not silently switch the user's
@@ -955,6 +951,9 @@ test("an archived session withholds the matrix instead of captioning today's gri
   // Matrix withheld, reason named, and the Matrix chip still the active view.
   await expect(page.getByTestId("gex-archived-matrix")).toBeVisible();
   await expect(matrix).toHaveCount(0);
+  if (testInfo.project.name === "mobile") {
+    await page.locator(".obs-gexdesk-left summary").filter({ hasText: /^Matrix$/ }).click();
+  }
   await expect(page.getByRole("button", { name: "Matrix", exact: true }))
     .toHaveAttribute("aria-pressed", "true");
 
@@ -1450,17 +1449,13 @@ test("Exposure desk replays an archived session's full ladder at every supported
   await expect(page.getByRole("group", { name: "Strike range" })).toBeVisible();
   await expect(page.getByTestId("gex-archived-chip")).toHaveCount(0);
 
-  // The ladder region must be a real band at every width. In the ≤860px
-  // page-scroll mode its flex:1 1 0px used to resolve against auto-height
-  // ancestors to a 0px band — the ladder/expiry-bars/lens were invisible on
-  // phones while these visibility checks stayed green (children overflow the
-  // clipped region, so their boxes are non-empty). Guard the region itself.
-  // 150 < the ~198px the 1440×900 desk actually yields and far above the 0px
-  // failure mode; phones/tablets floor at min(430px, 62dvh).
-  const ladderRegionH = await page
-    .locator(".obs-gexdesk-ladder-region")
+  // Child rows can be technically visible while a flex container collapses to zero height.
+  // Guard the actual ladder-region band at desktop, tablet and phone widths.
+  const ladderRegionH = await page.locator(".obs-gexdesk-ladder-region")
     .evaluate((el) => el.getBoundingClientRect().height);
   expect(ladderRegionH).toBeGreaterThanOrEqual(150);
+
+  // exposure-workspace.spec.ts measures fully visible rows before interacting with this picker.
 
   // Pick an archived session → that session's FULL ladder, labelled as archived.
   await picker.selectOption("2026-07-02");

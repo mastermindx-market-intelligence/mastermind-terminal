@@ -3,7 +3,8 @@ import type { Lang } from "./i18n";
 export function optionsWorkspaceCopy(lang: Lang) {
   const pick = (en: string, zh: string) => lang === "zh" ? zh : en;
   return {
-    browseCategories: pick("Swipe to browse more categories", "左右滑动查看更多类别"),
+    allViews: pick("All views", "所有视图"),
+    switchView: pick("Switch Options view", "切换期权视图"),
     statisticsEyebrow: pick("Options statistics", "期权统计"),
     statisticsTitle: pick("Trading composition", "交易构成"),
     statisticsDescription: pick("Observed prints. Explicit coverage.", "逐笔观测 · 覆盖范围明确"),

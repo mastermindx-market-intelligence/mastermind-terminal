@@ -1,0 +1,221 @@
+{
+  "terminal/app/(shell)/discover": [
+    "page.tsx"
+  ],
+  "terminal/app/(shell)/options": [
+    "page.tsx"
+  ],
+  "terminal/app/api/billing": [
+    "gateway.ts"
+  ],
+  "terminal/app": [
+    "fin.css",
+    "onboarding.css",
+    "settings.css"
+  ],
+  "terminal/components": [
+    "BrainWidget.tsx",
+    "BrandMark.tsx",
+    "DashboardBackButton.tsx",
+    "EmbeddedTerminalBridge.tsx",
+    "OptionsPaywall.tsx",
+    "OptionsServiceUnavailable.tsx",
+    "Tracker.tsx"
+  ],
+  "terminal/components/charts": [
+    "svgChart.ts"
+  ],
+  "terminal/components/chrome": [
+    "AnalysisBrainHost.tsx"
+  ],
+  "terminal/components/chrome/shared-shell": [
+    "SharedShellPresentation.tsx",
+    "SharedShellPresentationControls.tsx",
+    "SharedShellRuntime.tsx",
+    "SharedShellToolbar.tsx"
+  ],
+  "terminal/components/eodcontext": [
+    "VolRegimeChip.tsx",
+    "useEodContext.ts"
+  ],
+  "terminal/components/exposure-map": [
+    "ExposureChangeInspector.module.css",
+    "ExposureChangeInspector.tsx",
+    "exposureChangeInspectorStrings.ts"
+  ],
+  "terminal/components/flowdesk": [
+    "FiltersPanel.tsx",
+    "FlowGauge.tsx",
+    "RadarStrip.tsx"
+  ],
+  "terminal/components/gates": [
+    "MemberVerificationUnavailable.tsx",
+    "SignupGate.tsx"
+  ],
+  "terminal/components/gexdesk": [
+    "ExpiryBars.tsx",
+    "ExposureExpiryDrawer.tsx",
+    "ExposureMatrix.tsx",
+    "GexGuide.tsx",
+    "GexSummaryBar.tsx",
+    "MatrixConfluence.tsx",
+    "matrixDoc.ts",
+    "matrixUnusual.ts"
+  ],
+  "terminal/components/heatmap": [
+    "DetailPanel.tsx",
+    "HeatmapTable.tsx",
+    "Treemap.tsx",
+    "sectorMap.ts"
+  ],
+  "terminal/components/mounts": [
+    "DiscoverWorkspaceMount.tsx",
+    "OptionsWorkspaceMount.tsx"
+  ],
+  "terminal/components/onboarding": [
+    "OnboardingProvider.tsx",
+    "types.ts"
+  ],
+  "terminal/components/options-companion": [
+    "optionsStrings.ts",
+    "useOptionsSnapshot.ts"
+  ],
+  "terminal/components/options": [
+    "ContractShortlist.module.css",
+    "ContractShortlist.tsx",
+    "OptionsCsvExportButton.tsx",
+    "OptionsPlanDraftEditor.tsx",
+    "OptionsPlanPayoffPanel.module.css",
+    "OptionsPlanPayoffPanel.tsx",
+    "OptionsShortlistPlan.tsx",
+    "OptionsStatisticsView.module.css",
+    "OptionsTapeSavedViews.tsx",
+    "OptionsTapeViewLink.module.css",
+    "OptionsTapeViewLink.tsx",
+    "OptionsWorkflowGuide.tsx",
+    "optionsTapeViewStrings.ts"
+  ],
+  "terminal/components/researchlab": [
+    "ResearchAppearance.css",
+    "ResearchLab.module.css",
+    "ResearchVolatilitySlice.tsx",
+    "researchLabAdapter.ts",
+    "researchVolatility.ts",
+    "useResearchAppearance.ts"
+  ],
+  "terminal/components/settings": [
+    "SettingsButton.tsx",
+    "SettingsProvider.tsx"
+  ],
+  "terminal/components/shared": [
+    "StrikeExpiryMatrix.tsx",
+    "StrikeExpiryMatrixRail.module.css"
+  ],
+  "terminal/components/surface": [
+    "EodReplayTag.tsx",
+    "replayBus.ts"
+  ],
+  "terminal/components/tutorial": [
+    "TutorialOverlay.tsx"
+  ],
+  "terminal/components/ui": [
+    "RingGauge.tsx",
+    "Tip.tsx"
+  ],
+  "terminal/components/workspaces": [
+    "DiscoverWorkspace.tsx"
+  ],
+  "terminal/lib": [
+    "accountIdentity.ts",
+    "accountPlan.ts",
+    "accountPrefs.ts",
+    "activeSymbol.ts",
+    "analysisBrainEntry.ts",
+    "analysisRoute.ts",
+    "analysisSymbol.ts",
+    "analytics.ts",
+    "brainPrincipal.ts",
+    "chatQuotas.ts",
+    "dte.ts",
+    "entitlement.ts",
+    "entitlementStore.ts",
+    "expiryTermStructure.ts",
+    "exposureChangeInspector.ts",
+    "exposureChartLink.ts",
+    "exposureMap.ts",
+    "exposureMapProjection.ts",
+    "exposureOrigin.ts",
+    "exposureReportedChange.ts",
+    "finFormat.ts",
+    "fingerprint.ts",
+    "finvizThemes.ts",
+    "flowClientCache.ts",
+    "flowPrintInspector.ts",
+    "flowRoot.ts",
+    "flowStream.ts",
+    "futuresUiCopy.ts",
+    "gexLadder.ts",
+    "gexSessions.ts",
+    "heatmapCapitalization.ts",
+    "investigationOptionsReference.ts",
+    "marketStructure.ts",
+    "markets.ts",
+    "mastermindBrain.ts",
+    "mscGlance.ts",
+    "navSymbol.ts",
+    "onboardingPrefsOutbox.ts",
+    "optionsAccess.ts",
+    "optionsCompanion.ts",
+    "optionsContractShortlist.ts",
+    "optionsContractShortlistLex.ts",
+    "optionsCsv.ts",
+    "optionsFlowBoards.ts",
+    "optionsIa.ts",
+    "optionsObservedStatistics.ts",
+    "optionsPlanDraft.ts",
+    "optionsPlanPayoff.ts",
+    "optionsRoots.ts",
+    "optionsScreener.ts",
+    "optionsTapeSavedViews.ts",
+    "optionsTapeView.ts",
+    "originNav.ts",
+    "ownerStorage.ts",
+    "plainAbbrev.ts",
+    "prefDelivery.ts",
+    "rotationEligibility.ts",
+    "rotationRelativeTrend.ts",
+    "searchTrack.ts",
+    "sectorAbbrev.ts",
+    "sectorHoldingsCoverage.ts",
+    "sectorIntelligence.ts",
+    "sectorIntradayComparison.ts",
+    "sharedShellCopy.ts",
+    "sharedShellNavigation.ts",
+    "shellBrainSymbol.ts",
+    "startTf.ts",
+    "subscriptionTier.ts",
+    "terminalBoot.ts",
+    "theses.ts",
+    "thesisReadContext.ts",
+    "usEquitySessionClock.ts",
+    "usEquitySessionProjection.json",
+    "useMarketPrefs.ts",
+    "useOptionsPlanScope.ts",
+    "windowGexRows.mjs"
+  ],
+  "terminal/lib/shared-shell": [
+    "readingContracts.ts"
+  ],
+  "terminal/lib/supabase": [
+    "accessToken.ts",
+    "client.ts",
+    "cookies.ts",
+    "server.ts",
+    "sessionRecovery.ts"
+  ],
+  "terminal/lib/tutorial": [
+    "coach.tsx",
+    "steps.ts",
+    "tutorialStrings.ts"
+  ]
+}
