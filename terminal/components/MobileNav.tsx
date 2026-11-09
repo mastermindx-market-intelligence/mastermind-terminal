@@ -191,16 +191,10 @@ export default function MobileNav({
             <nav className="m-nav">
               {SHARED_SHELL_NAV.map((it) => {
                 const on = it.k === derivedKey;
-                const href = navHref(it, activeSymbol, navPath);
-                const prefetchOnIntent = intentPrefetch ? () => router.prefetch(href) : undefined;
                 return (
                   <Link
                     key={it.k}
-                    href={href}
-                    prefetch={intentPrefetch ? false : undefined}
-                    onMouseEnter={prefetchOnIntent}
-                    onFocus={prefetchOnIntent}
-                    onTouchStart={prefetchOnIntent}
+                    href={navHref(it, activeSymbol, navPath)}
                     className={on ? "on" : ""}
                     aria-current={on ? navPath === it.href ? "page" : "location" : undefined}
                     onClick={closeDrawer}
