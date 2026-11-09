@@ -1,52 +1,18 @@
 "use client";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { LEX, useLang } from "@/lib/i18n";
-import { futuresTextFor } from "@/lib/futuresUiCopy";
-import { SHARED_SHELL_COPY, useSharedShellT } from "@/lib/sharedShellCopy";
+import { useLang } from "@/lib/i18n";
+import { useSharedShellT } from "@/lib/sharedShellCopy";
 import { sharedShellCatalog, sharedShellDirectory } from "@/lib/sharedShellRoutes";
-import { SHARED_SHELL_NAV } from "@/lib/sharedShellNavigation";
-import { INTELLIGENCE_DESTINATIONS } from "@/lib/shared-shell/intelligenceNavigation";
+import { directoryEntryTitle, directorySection, normalizeDirectoryQuery, searchDirectoryEntries } from "@/lib/sharedShellDirectorySearch";
 
-type Entry = { href: string; kind: string; title: { en: string; zh: string }; group: string };
 const SECTIONS = ["all", "workspaces", "markets", "research", "learn", "tools", "about"] as const;
-function section(entry: Entry): string {
-  if (entry.kind === "native") return "workspaces";
-  if (/^\/learn(?:[/.]|$)|^\/reference/.test(entry.href)) return "learn";
-  if (/^\/(?:research|blog|stocks\/earnings)/.test(entry.href)) return "research";
-  if (/^\/tools\//.test(entry.href) || entry.href.includes("calc")) return "tools";
-  if (/^(public_nav|footer)\./.test(entry.group)) return "about";
-  return "markets";
-}
-const normalize = (value: string) => value.normalize("NFKC").toLocaleLowerCase().trim();
 const canReceiveFocus = (element: HTMLElement | null): element is HTMLElement => !!element
   && element.isConnected && element.getClientRects().length > 0
   && !element.closest('[hidden], [inert], [aria-hidden="true"], [aria-disabled="true"]')
   && !element.matches(':disabled, [aria-disabled="true"]')
   && getComputedStyle(element).visibility !== "hidden"
   && getComputedStyle(element).visibility !== "collapse";
-// These native tools already use these keys in AppShell's title owner. Keep
-// directory presentation on those keys; the projection still owns admission.
-const nativeTitle = (entry: Entry): { k?: string; label: string; copy?: Entry["title"] } | undefined => {
-  const intelligence = INTELLIGENCE_DESTINATIONS.find(item => item.href === entry.href);
-  if (intelligence) return { label: intelligence.label[0], copy: { en: intelligence.label[0], zh: intelligence.label[1] } };
-  if (entry.kind !== "native") return undefined;
-  if (entry.href === "/prophet") return { k: "shellProphet", label: "Model plans & options" };
-  const job = SHARED_SHELL_NAV.find(job => job.href === entry.href);
-  if (job) return job;
-  if (entry.href === "/options/futures") return {
-    label: futuresTextFor("en").navTitle,
-    copy: { en: futuresTextFor("en").navTitle, zh: futuresTextFor("zh").navTitle },
-  };
-  const k = entry.href === "/terminal" ? "setTerminal"
-    : entry.href === "/learn" ? "shellSection_learn"
-    : entry.href === "/alerts" ? "alerts"
-    : entry.href === "/options" ? "options"
-    : entry.href === "/scripts" ? "scripts"
-    : entry.href === "/dislocations" ? "pageDislocations" : undefined;
-  return k ? { k, label: entry.title.en } : undefined;
-};
-
 export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
   open: boolean; onClose: () => void; onSearchCompanies: () => void;
 }) {
@@ -65,50 +31,14 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
   const composing = useRef(false);
   const escapeRequest = useRef<{ event: KeyboardEvent; protected: boolean; expiry: number } | null>(null);
   const revealFocus = useRef<{ button: HTMLButtonElement; index: number } | null>(null);
-  const tokens = useMemo(() => normalize(query).split(/\s+/).filter(Boolean), [query]);
-  const entryTitle = (entry: Entry) => {
-    const job = nativeTitle(entry);
-    if (!job) return entry.title[lang];
-    return job.copy ? job.copy[lang] : job.k ? t(job.k, job.label) : job.label;
-  };
-
+  const tokens = useMemo(() => normalizeDirectoryQuery(query).split(/\s+/).filter(Boolean), [query]);
   const { matches, allCount } = useMemo(() => {
-    // Keep category-specific fallback semantics. Filtering an already-deduped
-    // All list would silently change some incumbent public-nav/path results.
-    const collect = (selectedCategory: string) => {
-      const seen = new Set<string>();
-      const result: Entry[] = [];
-      const ranked = [...sharedShellDirectory].sort((a, b) => {
-        const ai = SHARED_SHELL_NAV.findIndex(n => n.href === a.href);
-        const bi = SHARED_SHELL_NAV.findIndex(n => n.href === b.href);
-        return (ai < 0 ? 100 : ai) - (bi < 0 ? 100 : bi);
-      });
-      for (const entry of ranked) {
-        if (seen.has(entry.href) || (selectedCategory !== "all" && section(entry) !== selectedCategory)) continue;
-        const job = nativeTitle(entry);
-        const aliases = job ? [job.label, job.copy?.en, job.copy?.zh,
-          ...(job.k ? [SHARED_SHELL_COPY[job.k]?.("en"), SHARED_SHELL_COPY[job.k]?.("zh"),
-            ...(LEX[job.k] ?? [])] : [])] : [];
-        const haystack = normalize([entry.title.en, entry.title.zh, entry.href, ...aliases].join(" "));
-        if (!tokens.every(token => haystack.includes(token))) continue;
-        seen.add(entry.href); result.push(entry);
-      }
-      // A finite path search also reaches reports, calculators and lessons within
-      // canonical families. No speculative URL is synthesized from the query.
-      if (tokens.length && selectedCategory !== "workspaces" && selectedCategory !== "about") {
-        for (const href of sharedShellCatalog.legacyPaths) {
-          if (seen.has(href) || !tokens.every(token => normalize(href).includes(token))) continue;
-          const label = href.replace(/^\//, "").replace(/\.html$/, "").replace(/[_-]/g, " ").replace(/\//g, " / ");
-          const entry = { href, kind: "legacy", title: { en: label, zh: label }, group: "none" };
-          if (selectedCategory !== "all" && section(entry) !== selectedCategory) continue;
-          result.push(entry); seen.add(href);
-        }
-      }
-      return result;
-    };
-    const matches = collect(category);
-    return { matches, allCount: category === "all" ? matches.length : collect("all").length };
-  }, [tokens, category]);
+    // Search the same canonical finite projection; preserve current directory
+    // category-specific totals and its independently accepted focus lifecycle.
+    const matches = searchDirectoryEntries(sharedShellDirectory, sharedShellCatalog.legacyPaths, query, category);
+    return { matches, allCount: category === "all" ? matches.length
+      : searchDirectoryEntries(sharedShellDirectory, sharedShellCatalog.legacyPaths, query, "all").length };
+  }, [query, category]);
 
   useLayoutEffect(() => {
     const pending = revealFocus.current;
@@ -261,7 +191,7 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
                   <span className="shared-directory-link-icon" aria-hidden="true">
                     {entry.kind === "native" ? "↗" : "◫"}
                   </span>
-                  <span><strong>{entryTitle(entry)}</strong><small>{t("shellSection_" + section(entry))}</small></span>
+                  <span><strong>{directoryEntryTitle(entry, lang, t)}</strong><small>{t("shellSection_" + directorySection(entry))}</small></span>
                   <span className="shared-directory-arrow" aria-hidden="true">→</span>
                 </Link>
               ))}

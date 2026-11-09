@@ -48,13 +48,13 @@ import { DEFAULT_CHART_RIGHT_OFFSET, fullHistoryLogicalRange, futureAxisBarCount
 import { FUTURE_ANCHOR_BARS, futureBarTimes, futureCadence, futureSlotOf, type FutureCadence } from "@/lib/chart-engine/futureTime";
 import { keepIndicatorPaneAxisLabelsOnly } from "@/lib/indicatorPaneSeries";
 import { runPine, type RunResult } from "@/lib/pine-engine";
-import { createPineHost, type PineHost, type PineResult } from "@/lib/pine-engine/host";
+import { createPineHost, type PineHost } from "@/lib/pine-engine/host";
+import { PINE_ENGINE_WAIT_SLACK_MS, PINE_PENDING_GRACE_MS, pineFailurePinned, pineRowState, settleChartPineRun, type PineUnavailable } from "@/lib/pineChartRun";
 import {
   buildAllPineOnEngine,
   buildPineScriptOnEngine,
   clearPineLayer,
   paintPineFromCacheOnEngine,
-  pineOutcome,
 } from "@/lib/pineChartLayer";
 import { ORACLE_V1_PINE } from "@/lib/pine";
 import { DRAWING_SCHEMA_VERSION, MAX_DRAWING_PAYLOAD_BYTES, type Drawing, type DrawKind, type Bar as DBar, type Pt, uid, autoTrendlines, autoFib, srDrawings, mtfaDrawings } from "@/lib/drawings";
@@ -134,7 +134,7 @@ import { composeCaptureScene, isChartCaptureRequest, type CaptureDataCopy, type 
 import { dailyMultipleOf, groupSessionBars, parseSessionAnchor, resolveBarAnchor,
   sessionToBarTime, resampleTf, type SessionAnchor } from "@/lib/sessionBars";
 import { ichimoku, supertrend, avwap as computeAvwap, rollingVwap, weekAnchoredVwap, vprofile, volbox, rsiStack, accumPct, trendRibbon, bollingerBands, buyShare as mfBuyShare } from "@/lib/indicatorMath";
-import ChartOverlays, { type PaneInfo, type LegendEntry } from "@/components/ChartOverlays";
+import ChartOverlays, { type PaneInfo, type PineLegendState, type LegendEntry } from "@/components/ChartOverlays";
 import DayStatsStrip from "@/components/DayStatsStrip";
 import { tPlain, useLang, useT } from "@/lib/i18n";
 import { verdictLabel, type PlainLang } from "@/lib/plainLabels";
@@ -707,6 +707,17 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
   const pinePaneMapRef = useRef<Map<string, number>>(new Map());             // sub-pane scriptId → pane index (overlay scripts absent)
   const pineErrRef = useRef<Map<string, string>>(new Map());                 // scriptId → error text (surfaced in the legend)
   const pineCacheRef = useRef<Map<string, { key: string; result: RunResult | null; error: string | null }>>(new Map()); // memo: scriptId → last run
+  // scriptId → the script's in-flight host run, so its legend row can say "running" / "waiting for
+  // the engine" instead of reading as an active row with no plot while the worker boots (up to
+  // 2 × WORKER_BOOT_TIMEOUT_MS with the host's boot retry). `since` survives a superseding run (a
+  // live splice re-issues every ~250ms) so a long engine wait is still recognized as one; `token`
+  // names the run that currently owns the entry.
+  const pineInflightRef = useRef<Map<string, { token: number; since: number; graceMs: number; timers: ReturnType<typeof setTimeout>[] }>>(new Map());
+  const pineRunTokenRef = useRef(0);
+  // scriptId → why the ENGINE (not the script) failed on its latest run, and for which request. Kept
+  // out of pineCacheRef on purpose: a failed read is not the script's result. The same request re-runs
+  // only from the legend Retry (pineFailurePinned); new bars / timeframe / symbol / source run fresh.
+  const pineUnavailRef = useRef<Map<string, PineUnavailable>>(new Map());
   // ── worker-backed Pine host (PINE lane's host.ts) ──────────────────────────────────────────────
   // The host runs compile+execute in a terminateable Web Worker (SSR/tests fall back to a sync host,
   // same surface), caches the parsed AST by source hash (data-only re-runs skip re-parsing), and
@@ -1578,27 +1589,66 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
     const cached = pineCacheRef.current.get(script.id);
     return cached && cached.key === pineCacheKey(script, rows) ? { result: cached.result, error: cached.error } : null;
   };
-  // Launch an async host run for one script on `rows`, caching the outcome under the (script,data) key.
-  // Returns the cache-shaped outcome. `cancelled` results (superseded by a newer same-slot run) are
-  // dropped WITHOUT touching the cache so the newer run owns the entry. compile() is fire-and-forget to
-  // warm the AST cache — run() also carries `source` so it self-compiles if the astId isn't cached yet.
-  const runPineHost = async (script: PineScript, rows: Bar[]): Promise<{ result: RunResult | null; error: string | null } | null> => {
+  // Mark a run for `id` in flight (keeping `since` across a superseding run) and schedule the two
+  // legend refreshes its row needs: past the grace period ("running") and past the run budget
+  // ("waiting for the engine"). Returns the token that owns the entry.
+  const pineRunStart = (id: string, graceMs: number): number => {
+    const token = ++pineRunTokenRef.current;
+    const prev = pineInflightRef.current.get(id);
+    if (prev) { prev.token = token; prev.graceMs = Math.min(prev.graceMs, graceMs); return token; }
+    const since = performance.now();
+    const refresh = () => { if (pineInflightRef.current.get(id)?.since === since && engineRef.current) rebuildPaneMeta(); };
+    // +16ms: a timer must not land a hair before the threshold it exists to cross
+    const timers = [setTimeout(refresh, graceMs + 16), setTimeout(refresh, PINE_RUNTIME_CAP_MS + PINE_ENGINE_WAIT_SLACK_MS + 16)];
+    pineInflightRef.current.set(id, { token, since, graceMs, timers });
+    return token;
+  };
+  // Settle the in-flight entry if `token` still owns it. False = a newer run for `id` owns the row.
+  const pineRunEnd = (id: string, token: number): boolean => {
+    const cur = pineInflightRef.current.get(id);
+    if (!cur || cur.token !== token) return false;
+    for (const t of cur.timers) clearTimeout(t);
+    pineInflightRef.current.delete(id);
+    return true;
+  };
+  const clearPineInflight = () => {
+    for (const e of pineInflightRef.current.values()) for (const t of e.timers) clearTimeout(t);
+    pineInflightRef.current.clear();
+  };
+  // Launch an async host run for one script on `rows`. A SCRIPT outcome (result, script error, budget
+  // breach) is cached under the (script,data) key and returned. An ENGINE outcome (worker never booted,
+  // crashed, or was reset under the run past the bounded re-issue — lib/pineChartRun.ts) is recorded in
+  // pineUnavailRef and NOT cached, so it is shown as unavailable and re-runs from the legend Retry or
+  // when its request (bars / timeframe / symbol / source) changes. `superseded` (a newer same-slot run owns the outcome) records nothing. compile() is
+  // fire-and-forget to warm the AST cache — run() also carries `source` so it self-compiles if the
+  // astId isn't cached yet.
+  const runPineHost = async (script: PineScript, rows: Bar[], graceMs = PINE_PENDING_GRACE_MS): Promise<{ result: RunResult | null; error: string | null } | null> => {
     const key = pineCacheKey(script, rows);
     const host = pineHost();
+    const token = pineRunStart(script.id, graceMs);
     // warm/refresh the AST cache when the source changed for this script
     const prevAst = pineAstRef.current.get(script.id);
     if (!prevAst || prevAst.source !== script.source) {
       pineAstRef.current.set(script.id, { source: script.source, astId: null });
-      host.compile(script.source).then((c) => { if (pineAstRef.current.get(script.id)?.source === script.source) pineAstRef.current.set(script.id, { source: script.source, astId: c.astId }); }).catch(() => {});
+      host.compile(script.source).then((c) => { if (pineInflightRef.current.get(script.id)?.token === token && pineAstRef.current.get(script.id)?.source === script.source) pineAstRef.current.set(script.id, { source: script.source, astId: c.astId }); }).catch(() => {});
     }
-    let out: PineResult | null = null; let crash: unknown;
-    try {
-      out = await host.run({ slot: script.id, source: script.source, astId: pineAstRef.current.get(script.id)?.astId ?? undefined, bars: rows as any, inputs: script.params || {}, opts: { timeframe: timeframeRef.current, symbol, sessionAnchor: sessionAnchorRef.current }, budgetMs: PINE_RUNTIME_CAP_MS });
-    } catch (e) { crash = e; }
-    if (out && out.cancelled) return null;   // superseded → let the newer run win; don't cache
-    if (out && out.astId && pineAstRef.current.get(script.id)?.source === script.source) pineAstRef.current.set(script.id, { source: script.source, astId: out.astId });
-    const outcome = pineOutcome(out, crash);
+    // Inputs are pinned at launch so a re-issue after an interrupt runs exactly what `key` names.
+    const timeframe = timeframeRef.current, sessionAnchor = sessionAnchorRef.current;
+    const settled = await settleChartPineRun(
+      // each issue re-reads the astId: the compile that interrupted the first issue may have landed
+      () => host.run({ slot: script.id, source: script.source, astId: pineAstRef.current.get(script.id)?.astId ?? undefined, bars: rows as any, inputs: script.params || {}, opts: { timeframe, symbol, sessionAnchor }, budgetMs: PINE_RUNTIME_CAP_MS }),
+      { current: () => pineInflightRef.current.get(script.id)?.token === token },
+    );
+    const owns = pineRunEnd(script.id, token);
+    if (!owns || settled.kind === "superseded") return null;   // the newer run owns the entry; don't cache
+    if (settled.kind === "unavailable") {
+      pineUnavailRef.current.set(script.id, { reason: settled.reason, key });
+      return null;
+    }
+    if (settled.astId && pineAstRef.current.get(script.id)?.source === script.source) pineAstRef.current.set(script.id, { source: script.source, astId: settled.astId });
+    const outcome = { result: settled.result, error: settled.error };
     pineCacheRef.current.set(script.id, { key, ...outcome });
+    pineUnavailRef.current.delete(script.id);
     return outcome;
   };
 
@@ -1647,7 +1697,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
     );
   };
 
-  const buildAllPine = (rows: Bar[]) => {
+  const buildAllPine = (rows: Bar[], immediateId?: string) => {
     buildAllPineOnEngine(rows, {
       getEngine: () => engineRef.current,
       getScripts: () => pineScriptsRef.current,
@@ -1656,9 +1706,31 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
       readCache: readPineCache,
       clear: clearAllPine,
       paint: paintPineFromCache,
-      runMisses: async (misses) => { await Promise.all(misses.map((s) => runPineHost(s, rows).catch(() => null))); },
+      runMisses: async (misses) => {
+        const retryable = misses.filter((script) => !pineFailurePinned(pineUnavailRef.current.get(script.id), pineCacheKey(script, rows)));
+        await Promise.all(retryable.map((script) => runPineHost(script, rows,
+          script.id === immediateId ? 0 : PINE_PENDING_GRACE_MS).catch(() => null)));
+      },
       afterSlowRepaint: () => { normalizeStretch(); applyHidden(); renderSignalsRef.current(); measureRef.current(); },
     });
+  };
+
+  // Legend Retry for a script whose ENGINE failed: drop the failure and rebuild the pine layer on the
+  // bars already on the chart (cached scripts repaint synchronously; only this one re-runs). No
+  // symbol / timeframe change needed — the failure was never cached as the script's result.
+  const retryPine = (id: string) => {
+    const chart = engineRef.current; if (!chart || isIntradayRef.current || !barsRef.current.length) return;
+    if (!pineScriptsRef.current.some((s) => s.id === id)) return;
+    pineUnavailRef.current.delete(id);
+    pineCacheRef.current.delete(id);
+    const saved = (() => { try { const r = chart.timeScale().getVisibleLogicalRange(); return r ? { from: r.from as number, to: r.to as number } : null; } catch { return null; } })();
+    clearAllPine();
+    buildAllPine(barsRef.current, id);
+    normalizeStretch();
+    applyHidden();
+    renderSignalsRef.current(); renderRef.current();
+    if (saved) { try { chart.timeScale().setVisibleLogicalRange(saved); } catch {} }
+    measureRef.current();
   };
 
   // ── DT Technicals Suite builders ──────────────────────────────────────────
@@ -2303,11 +2375,33 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
     return tokensRef.current.mut || "#787b86";
   };
   // Build a LegendEntry for a custom script. `key` is the raw scriptId (isPine:true tells the shell
-  // to route Settings to the pine branch + resolve remove/eye by scriptId). An error surfaces in the
-  // label (⚠ suffix) and — because ChartOverlays doesn't take a tooltip — the shell can read it too.
-  const pineLegendEntry = (s: PineScript, kind: "overlay" | "pane", series: SeriesHandle[] | undefined, err?: string): Omit<LegendEntry, "hidden"> => ({
-    key: s.id, label: err ? `${s.name} ⚠` : s.name, kind, isPine: true, color: pineColorOf(series),
-  });
+  // to route Settings to the pine branch + resolve remove/eye by scriptId). A SCRIPT error surfaces in
+  // the label (⚠ suffix) and — because ChartOverlays doesn't take a tooltip — the shell can read it
+  // too. A run still in flight, or an ENGINE failure, rides as `pineState` (lib/pineChartRun.ts
+  // pineRowState): the row says running / waiting for the engine / engine failed + Retry, never a
+  // plotless row that reads as active.
+  const pineLegendEntry = (s: PineScript, kind: "overlay" | "pane", series: SeriesHandle[] | undefined, err?: string): Omit<LegendEntry, "hidden"> => {
+    const inflight = pineInflightRef.current.get(s.id);
+    const unavailable = pineUnavailRef.current.get(s.id);
+    // A cached request A must not display an infrastructure failure from request B.
+    const currentFailure = pineFailurePinned(unavailable, pineCacheKey(s, barsRef.current));
+    const st = pineRowState({
+      intraday: isIntradayRef.current,
+      inflightSince: inflight?.since ?? null,
+      graceMs: inflight?.graceMs ?? PINE_PENDING_GRACE_MS,
+      budgetMs: PINE_RUNTIME_CAP_MS,
+      now: performance.now(),
+      hasPlot: !!series?.length,
+      unavailable: currentFailure ? unavailable!.reason : null,
+      error: err,
+    });
+    const pineState: PineLegendState | undefined =
+      st.kind === "running" || st.kind === "engineWait" ? st.kind
+      : st.kind === "unavailable" ? (st.reason === "start" ? "engineFail" : st.reason === "crash" ? "engineError" : "interrupted")
+      : undefined;
+    const warn = st.kind === "intraday" || st.kind === "error";
+    return { key: s.id, label: warn ? `${s.name} ⚠` : s.name, kind, isPine: true, color: pineColorOf(series), ...(pineState ? { pineState } : {}) };
+  };
 
   // Rebuild the per-pane legend registry from the CURRENT indicator series + paneMapRef. The price pane
   // carries the active overlay entries (ema/bb/vwap/vol + overlay scripts); each sub-pane carries its own
@@ -5319,17 +5413,31 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
       while (layer.firstChild) layer.removeChild(layer.firstChild);
       if (priceProjHidden()) return;   // sub-pane maximized → price-anchored markers stay cleared
 
-      // Prophet receipts are deliberately outside the Oracle study toggle. A sapphire diamond
-      // says "another system surfaced this name here" without borrowing Oracle's star/pill grammar.
+      // Prophet receipts stay independent of Oracle and its star/pill grammar.
+      // The forecast pulse is a tiny sapphire lens with a rising trajectory, not
+      // a letter stamped into a diamond. Reversal watches retain their R identity.
       for (const m of sigMarksRef.current) {
         if (m.type !== "PROPHET") continue;
         const x = xOf(m.t), y = yOf(m.price); if (x == null || y == null) continue;
-        const cy = y + 22, r = 7, fill = "#5b8cff";
+        const cy = y + 22;
         const glyph = opportunityMarkerGlyph(m.source);
-        const g = mk("g", { opacity: 0.96, "data-signal-source": glyph === "R" ? "reversal_watch" : "prophet_board" });
-        g.appendChild(mk("path", { d: `M${x} ${cy - r} L${x + r} ${cy} L${x} ${cy + r} L${x - r} ${cy} Z`, fill, stroke: "#9bb7ff", "stroke-width": 1 }));
-        const tEl = mk("text", { x, y: cy + 3.2, fill: "#fff", "font-size": 8.5, "font-weight": 900, "text-anchor": "middle", "font-family": "var(--font-ui)" });
-        tEl.textContent = glyph; g.appendChild(tEl);
+        const g = mk("g", { opacity: 0.98, "data-signal-source": glyph === "R" ? "reversal_watch" : "prophet_board" });
+        if (glyph === "P") {
+          // A soft outer halo and crisp rim keep the badge readable at chart scale.
+          g.appendChild(mk("circle", { cx: x, cy, r: 10.5, fill: "#4b8cff", opacity: 0.19 }));
+          g.appendChild(mk("circle", { cx: x, cy, r: 8.35, fill: "#163f91", stroke: "#9bc8ff", "stroke-width": 1.05 }));
+          g.appendChild(mk("circle", { cx: x - 2.3, cy: cy - 3.2, r: 3, fill: "#8db7ff", opacity: 0.15 }));
+          g.appendChild(mk("path", {
+            d: `M${x - 4.6} ${cy + 2.5} L${x - 1.45} ${cy - 0.8} L${x + 0.65} ${cy + 0.85} L${x + 4.15} ${cy - 3.15}`,
+            fill: "none", stroke: "#f2fbff", "stroke-width": 1.75, "stroke-linecap": "round", "stroke-linejoin": "round",
+          }));
+          g.appendChild(mk("circle", { cx: x + 4.15, cy: cy - 3.15, r: 1.3, fill: "#71edff" }));
+        } else {
+          const r = 7;
+          g.appendChild(mk("path", { d: `M${x} ${cy - r} L${x + r} ${cy} L${x} ${cy + r} L${x - r} ${cy} Z`, fill: "#5b8cff", stroke: "#9bb7ff", "stroke-width": 1 }));
+          const tEl = mk("text", { x, y: cy + 3.2, fill: "#fff", "font-size": 8.5, "font-weight": 900, "text-anchor": "middle", "font-family": "var(--font-ui)" });
+          tEl.textContent = glyph; g.appendChild(tEl);
+        }
         addMarkerTitle(g, m); layer.appendChild(g);
       }
 
@@ -9124,6 +9232,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
       if (drawRaf != null) cancelAnimationFrame(drawRaf); if (resizeRaf != null) cancelAnimationFrame(resizeRaf);
       if (pineLiveTimerRef.current != null) { clearTimeout(pineLiveTimerRef.current); pineLiveTimerRef.current = null; }
       if (pineHostRef.current) { try { pineHostRef.current.dispose(); } catch {} pineHostRef.current = null; }
+      clearPineInflight();
       if (syncCleanupRef.current) { try { syncCleanupRef.current(); } catch {} syncCleanupRef.current = null; }
       if (dragCleanup) dragCleanup();
       drawingTransactionRef.current = false;
@@ -9200,6 +9309,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
       indPriceLinesRef.current = new Map();
       indSeriesRef.current.clear(); cmpSeriesRef.current.clear(); paneMapRef.current.clear();
       pineSeriesRef.current.clear(); pinePriceShapesRef.current.clear(); pinePaneMapRef.current.clear(); pineErrRef.current.clear(); pineCacheRef.current.clear(); pineAstRef.current.clear();
+      pineUnavailRef.current.clear(); clearPineInflight();
       // Marker sets live ON their host handles (M03): engine.destroy() disposes every series
       // with its attached plugin, so there is nothing to detach — only refs to drop.
       macdLineHRef.current = null;
@@ -10261,6 +10371,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
     const live = new Set(pineScriptsRef.current.map((s) => s.id));
     for (const id of Array.from(pineCacheRef.current.keys())) if (!live.has(id)) pineCacheRef.current.delete(id);
     for (const id of Array.from(pineErrRef.current.keys())) if (!live.has(id)) pineErrRef.current.delete(id);
+    for (const id of Array.from(pineUnavailRef.current.keys())) if (!live.has(id)) pineUnavailRef.current.delete(id);
+    for (const [id, e] of Array.from(pineInflightRef.current.entries())) if (!live.has(id)) { for (const t of e.timers) clearTimeout(t); pineInflightRef.current.delete(id); }
     // drop the worker's cached AST for removed scripts' sources (frees worker memory), then forget them
     for (const [id, a] of Array.from(pineAstRef.current.entries())) if (!live.has(id)) { try { pineHostRef.current?.evict(a.source); } catch {} pineAstRef.current.delete(id); }
     clearAllPine();
@@ -10843,6 +10955,7 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
         frameBackground={chartLight() ? appearance.frameBackground : undefined}
         paneButtons={chartSettings?.paneButtons ?? "hover"}
         onEye={(k) => onToggleHidden?.(k)} onSettings={(k) => onOpenSettings?.(k)} onSource={(k) => onOpenSource?.(k)} onRemove={(k) => onRemoveInd?.(k)}
+        onRetry={retryPine}
         onMoveUp={(pi) => doMove(pi, -1)} onMoveDown={(pi) => doMove(pi, 1)} onCollapse={doCollapse} onMaximize={doMaximize}
         canMoveUp={canMoveUp} canMoveDown={canMoveDown}
         coarse={isMobile}

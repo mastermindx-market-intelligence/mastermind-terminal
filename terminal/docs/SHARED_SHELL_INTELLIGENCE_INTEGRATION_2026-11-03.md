@@ -249,3 +249,14 @@ Two legacy visual-evidence source locks need current-source recapture/
 qualification under the existing immutable evidence law, not blind hash edits.
 Normal CI, independent exact-head reviews, protected merges, beta-only release,
 and authenticated live acceptance remain separate pending gates.
+
+
+## November 9 original-branch source reconciliation
+
+Current Chairman completion assignment continues the native intelligence family alongside independent Today PR #1381. Original remote input is 07f6c6aeca8b0c320fc414bc0533fff467cdf653; protected input is e33a4c3dd9f0965e7879fc5397175f6f49b0d751; common base is 3dd66dadc3ebca6126b07d12978fdab58e1a74ae. The original local 624dbc0 is an ancestor of remote (121 ahead, zero behind), positively reconciling that known immutable publication as applied/superseded, not the separate dirty unpublished objects.
+
+The current guarded M2 checkout remains untouched. This is GitHub-native source authoring under adopted #2118 and current source pin 3652d8907df1738de551dd3032b42aa2a2acb482, on the SAME original branch. No original local bi-p1244 visual object, provisional stash, or refused Fabric operation is read/replayed/published. Existing committed evidence and generated registry blobs are preserved by identity, not imported from local files.
+
+Three-way analysis found only CI-step ordering and the moved directory-title helper in conflict. Preserve protected-master ShellDirectory exactly; extend its current sharedShellDirectorySearch owner with the original intelligence labels and aliases. Retain the protected safe-summary reporter and original Intelligence hosted-browser qualification as separate, exactly-once steps. No weakened tests, artifact guard, access, route, search, focus or dismissal semantics. Added regression coverage binds display/search parity and separate Prophet stock-board versus paid model-plan/options scope.
+
+Prepublication validation: YAML parsed; safe reporter retained; both intelligence steps occur once; 13 direct title/search/admission assertions passed through compiled TypeScript with explicit test dependencies. The next natural hosted CI must qualify the merged-source candidate and existing real browser journeys. This source reconciliation does not claim full CI, deployment, real authentication or product acceptance. #1381's product source already has 223 focused tests, TypeScript/lint, 23 browser fixture cells and a production-mode build; those are separate exact-source proofs, not tests of this integration head.

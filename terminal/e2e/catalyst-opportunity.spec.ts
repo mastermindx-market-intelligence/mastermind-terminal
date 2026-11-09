@@ -182,3 +182,81 @@ test("Defense entitlement denial clears both lanes and a fresh authorized read c
   await root.getByRole("button",{name:"Refresh sources",exact:true}).first().click();
   await expect(root.locator("article")).toHaveCount(2);await expect(root).toContainText("4,101");await noOverflow(page);
 });
+
+
+// Follow-up to the Paper selection/copy audit: these fixtures prove the changed
+// component journey, not live entitlement, source freshness or deployment.
+for (const lang of ["en","zh"] as const) {
+  test("selection and copy: saved case survives filters - "+lang,async({page},testInfo)=>{
+    if(testInfo.project.name==="mobile" && lang==="zh")await page.setViewportSize({width:320,height:780});
+    await prepare(page,lang);await page.goto("/discover?tab=catalysts&case=defense");
+    const root=page.getByTestId("catalyst-opportunities");
+    const detail=root.locator("#catalyst-detail-title");
+    const name=lang==="en"?"Defense & Aerospace":"国防与航空航天";
+    await expect(detail).toHaveText(name);
+    await root.getByRole("button",{name:lang==="en"?"Energy":"能源",exact:true}).click();
+    await expect(root.locator("article")).toHaveCount(1);
+    await expect(root.locator('article[data-selected="true"]')).toHaveCount(0);
+    await expect(detail).toHaveText(name);
+    const search=root.getByLabel(lang==="en"?"Find a theme":"搜索主题",{exact:true});
+    await search.fill("no-match-for-this-snapshot");
+    await expect(search).toBeFocused();await expect(root.locator("article")).toHaveCount(0);
+    await expect(detail).toHaveText(name);
+    await expect(root).toContainText(lang==="en"?"Selected case is outside these filters.":"所选关注项不在当前筛选结果中。");
+    const clear=root.getByRole("button",{name:lang==="en"?"Clear filters":"清除筛选",exact:true});
+    await expect(clear).toHaveCount(1);await expect(page).toHaveURL(/case=defense/);
+    await noOverflow(page);
+    await page.screenshot({path:testInfo.outputPath("catalyst-"+testInfo.project.name+"-"+lang+"-selection-zero.png"),fullPage:true});
+    await clear.click();await expect(root.locator("article")).toHaveCount(2);
+    await expect(detail).toHaveText(name);await expect(page).toHaveURL(/case=defense/);
+    await noOverflow(page);
+  });
+
+  test("selection and copy: missing case never substitutes another case - "+lang,async({page},testInfo)=>{
+    if(testInfo.project.name==="mobile" && lang==="zh")await page.setViewportSize({width:320,height:780});
+    await prepare(page,lang);await page.goto("/discover?tab=catalysts&case=missing_theme");
+    const root=page.getByTestId("catalyst-opportunities");
+    await expect(root).toContainText(lang==="en"?"That saved case is not present":"该已保存关注项不在当前有效快照中");
+    await expect(root.locator("article")).toHaveCount(2);
+    await expect(root.locator("#catalyst-detail-title")).toHaveCount(0);
+    await expect(root.getByRole("button",{name:lang==="en"?"Copy case link":"复制关注项链接",exact:true})).toHaveCount(0);
+    await noOverflow(page);
+    await root.getByRole("button",{name:lang==="en"?"Inspect evidence: Defense & Aerospace":"查看证据: 国防与航空航天",exact:true}).click();
+    await expect(root.locator("#catalyst-detail-title")).toBeFocused();
+    await expect(page).toHaveURL(/case=defense/);
+  });
+
+  test("selection and copy: failed copy offers the exact selectable link - "+lang,async({page},testInfo)=>{
+    if(testInfo.project.name==="mobile" && lang==="zh")await page.setViewportSize({width:320,height:780});
+    await prepare(page,lang);await page.goto("/discover?tab=catalysts&source=paper%20audit#case-evidence");
+    const root=page.getByTestId("catalyst-opportunities");
+    await expect(root.locator("#catalyst-detail-title")).toHaveText(lang==="en"?"Energy Complex":"能源综合体");
+    await page.evaluate(()=>{
+      const state=window as Window & {catalystCopyWrites?:string[]};state.catalystCopyWrites=[];
+      Object.defineProperty(navigator,"clipboard",{configurable:true,value:{writeText:(url:string)=>{
+        state.catalystCopyWrites!.push(url);return Promise.reject(new Error("Synthetic clipboard rejection"));
+      }}});
+    });
+    const original=page.url(), expected=new URL(original);expected.searchParams.set("case","energy_complex");
+    const copy=root.getByRole("button",{name:lang==="en"?"Copy case link":"复制关注项链接",exact:true});
+    await copy.click();
+    const field=root.getByLabel(lang==="en"?"Case link":"关注项链接",{exact:true});
+    await expect(field).toHaveValue(expected.toString());await expect(field).toHaveAttribute("readonly","");
+    await expect(page).toHaveURL(original);
+    const select=root.getByRole("button",{name:lang==="en"?"Select link":"选择链接",exact:true});
+    await select.click();await expect(field).toBeFocused();
+    expect(await field.evaluate(element=>{
+      const input=element as HTMLTextAreaElement;
+      return {start:input.selectionStart,end:input.selectionEnd,length:input.value.length};
+    })).toEqual({start:0,end:expected.toString().length,length:expected.toString().length});
+    expect((await select.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    expect((await copy.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await noOverflow(page);
+    await field.scrollIntoViewIfNeeded();
+    await page.screenshot({path:testInfo.outputPath("catalyst-"+testInfo.project.name+"-"+lang+"-copy-fallback.png"),fullPage:true});
+    expect(await page.evaluate(()=>(window as Window & {catalystCopyWrites?:string[]}).catalystCopyWrites)).toEqual([expected.toString()]);
+    await root.getByRole("button",{name:lang==="en"?"Inspect evidence: Defense & Aerospace":"查看证据: 国防与航空航天",exact:true}).click();
+    await expect(field).toHaveCount(0);await expect(root.locator("#catalyst-detail-title")).toBeFocused();
+    await noOverflow(page);
+  });
+}

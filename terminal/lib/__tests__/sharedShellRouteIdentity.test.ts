@@ -6,6 +6,10 @@ describe("Shared Shell native job identity", () => {
     expect(sharedShellActiveKey("/today")).toBe("shellToday");
   });
 
+  it("keeps the retained Top Picks board outside the native Discover family", () => {
+    expect(sharedShellActiveKey("/discovery.html")).toBe("");
+  });
+
   it.each([
     "/crypto.html",
     "/vector.html",

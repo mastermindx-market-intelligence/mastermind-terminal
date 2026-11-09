@@ -1,0 +1,144 @@
+/* Keep access and recovery usable inside the shell's bounded content row. */
+.viewport {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scroll-padding-block: 24px;
+  padding: 32px 20px;
+  padding-bottom: max(32px, env(safe-area-inset-bottom));
+  color: var(--text);
+}
+
+.card {
+  box-sizing: border-box;
+  flex: none;
+  width: 100%;
+  max-width: 440px;
+  /* Auto margins center a short card and become zero when it must scroll.
+     Center alignment would put the top of a tall card above the scroll origin. */
+  margin-block: auto;
+  padding: 26px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--panel);
+  box-shadow: var(--shadow-card);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.stateCard {
+  max-width: 420px;
+}
+
+.eyebrow {
+  margin-bottom: 12px;
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0 0 10px;
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.body {
+  margin: 0 0 20px;
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.features {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+  text-align: start;
+}
+
+.features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.featureIcon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  color: var(--text-2);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.actions {
+  display: grid;
+  gap: 8px;
+}
+
+.action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  height: auto;
+  padding: 10px 16px;
+  border-radius: var(--r-md);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.secondary {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+}
+
+.secondary:hover {
+  background: var(--panel-2);
+}
+
+.action:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 3px;
+}
+
+:global(html[data-lang="zh"]) .eyebrow {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+@media (max-width: 520px), (max-height: 520px) {
+  .viewport {
+    padding: 20px 16px;
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+
+  .card {
+    padding: 24px 20px;
+  }
+}

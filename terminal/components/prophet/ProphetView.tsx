@@ -40,6 +40,7 @@ import type { PlanSummary } from "./SignalCard";
 import { ConfidencePanel } from "./ConfidencePanel";
 import type { ConfidenceComponents } from "./ConfidencePanel";
 import { GeometryRail } from "./GeometryRail";
+import { BottomPivotEvidence } from "./BottomPivotEvidence";
 import { OptionCard } from "./OptionCard";
 import type { LiveMark } from "./OptionCard";
 
@@ -724,6 +725,10 @@ export function AnalysisPanel({
           {origination.tip}
         </p>
       )}
+      {/* Daily per-name source context only; load on click, after plan content.
+          This lives inside the incumbent analysis scroll so no first-screen
+          geometry or action-guide space is consumed by another persistent card. */}
+      <BottomPivotEvidence key={plan.asset} symbol={plan.asset} lang={lang} />
     </div>
   );
 }

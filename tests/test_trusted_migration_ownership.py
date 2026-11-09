@@ -39,11 +39,11 @@ def run_data(event="merge_group", run_id=71):
             "head_sha": HEAD, "head_branch": "gh-readonly-queue/master/pr-1290-opaque" if event == "merge_group" else "claude/fixture",
             "repository": {"id": 123, "full_name": owner.REPO},
             "head_repository": {"id": 123, "full_name": owner.REPO},
-            "status": "completed", "conclusion": "success", "pull_requests": []}
+            "status": "in_progress", "conclusion": None, "pull_requests": []}
 
 
 def input_data(event="merge_group"):
-    envelope = {"action": "completed", "repository": {"id": 123, "full_name": owner.REPO,
+    envelope = {"action": "in_progress", "repository": {"id": 123, "full_name": owner.REPO,
                                                           "default_branch": "master"},
                 "workflow_run": run_data(event)}
     env = {"GITHUB_ACTIONS": "true", "GITHUB_EVENT_NAME": "workflow_run", "GITHUB_REPOSITORY": owner.REPO,
@@ -108,6 +108,7 @@ class Service:
                 raise group.OwnershipUnqualified("original mutation response unknown")
             result = check_data(self.run, **body)
             if method == "POST":
+                result["conclusion"] = None
                 if self.after_create:
                     self.after_create()
                 if self.post_override:
@@ -157,8 +158,7 @@ def test_real_issuer_owner_full_namespace_and_publication(event):
     assert "merge_group" not in envelope  # no synthetic old event was supplied
 
 
-@pytest.mark.parametrize("broken", [None, "incomplete", "duplicate", "chain", "profile"])
-def test_real_parallel_new_origin_full_prefix(broken):
+def parallel_service():
     api = Service()
     api.queue, old_event, _ = parallel_fixture()
     repo = api.queue["repository"]
@@ -170,6 +170,13 @@ def test_real_parallel_new_origin_full_prefix(broken):
     api.issuer["display_title"] = f"Migration owner {api.run['id']}/{api.run['run_attempt']} {api.run['head_sha']}"
     envelope, env = input_data()
     envelope["workflow_run"] = copy.deepcopy(api.run)
+    return api, envelope, env
+
+
+@pytest.mark.parametrize("broken", [None, "incomplete", "duplicate", "chain", "profile"])
+def test_real_parallel_new_origin_full_prefix(broken):
+    api, envelope, env = parallel_service()
+    repo = api.queue["repository"]
     if broken == "incomplete": repo["mergeQueue"]["entries"]["pageInfo"]["hasNextPage"] = True
     if broken == "duplicate": repo["mergeQueue"]["entries"]["nodes"][1]["position"] = 1
     if broken == "chain": repo["mergeQueue"]["entries"]["nodes"][1]["baseCommit"]["oid"] = BASE
@@ -209,6 +216,102 @@ def test_actual_fixed_client_serialization_and_distinct_tokens(monkeypatch):
     assert sum(method == "POST" and path.endswith("/check-runs") for method, path in uses) == 1
 
 
+@pytest.mark.parametrize("conclusion", ["success", "failure", "neutral", "cancelled", "skipped",
+                                      "timed_out", "action_required", "stale", "startup_failure"])
+def test_supplementary_owner_does_not_wait_for_source_ci_success(conclusion):
+    envelope, env = input_data()
+    api = Service()
+    api.run.update(status="completed", conclusion=conclusion)
+    assert owner.execute(envelope, env, api, APP)["state"] == "PUBLISHED"
+    assert api.mutations[-1][2]["conclusion"] == "success"
+
+
+@pytest.mark.parametrize("status,conclusion", [("queued", None), ("waiting", None),
+    ("completed", None), ("in_progress", "success"), ("completed", "unknown")])
+def test_inconsistent_current_source_lifecycle_refuses_before_post(status, conclusion):
+    api = Service()
+    api.run.update(status=status, conclusion=conclusion)
+    with pytest.raises(group.OwnershipUnqualified): owner.execute(*input_data(), api, APP)
+    assert not api.mutations
+
+
+@pytest.mark.parametrize("which", ["event", "current"])
+def test_missing_source_conclusion_is_not_authenticated_null(which):
+    envelope, env = input_data()
+    api = Service()
+    del (envelope["workflow_run"] if which == "event" else api.run)["conclusion"]
+    with pytest.raises(group.OwnershipUnqualified): owner.execute(envelope, env, api, APP)
+    assert not api.mutations
+
+
+@pytest.mark.parametrize("principal", ["source", "issuer"])
+@pytest.mark.parametrize("stage", ["before-post", "after-post"])
+def test_supersession_during_material_read_cannot_publish(principal, stage):
+    api = Service()
+    def supersede(_):
+        if stage == "before-post" or api.mutations:
+            (api.run if principal == "source" else api.issuer)["run_attempt"] = 2
+    api.contents_override = supersede
+    with pytest.raises(group.OwnershipUnqualified): owner.execute(*input_data(), api, APP)
+    assert [m[0] for m in api.mutations] == ([] if stage == "before-post" else ["POST"])
+
+
+@pytest.mark.parametrize("change", ["reorder", "append", "suffix", "append-and-reorder"])
+def test_unrelated_parallel_suffix_or_api_order_does_not_invalidate_prefix(change):
+    api, envelope, env = parallel_service()
+    entries = api.queue["repository"]["mergeQueue"]["entries"]["nodes"]
+    suffix = copy.deepcopy(entries[-1])
+    suffix.update(id="unrelated-suffix", position=3)
+    suffix["headCommit"]["oid"] = "7" * 40
+    if change == "suffix": entries.append(suffix)
+    def drift():
+        if change in {"append", "append-and-reorder"}: entries.append(suffix)
+        if change == "suffix": entries[-1]["pullRequest"]["headRefOid"] = "8" * 40
+        if change in {"reorder", "append-and-reorder"}: entries.reverse()
+    api.after_create = drift
+    assert owner.execute(envelope, env, api, APP)["state"] == "PUBLISHED"
+    assert [m[0] for m in api.mutations] == ["POST", "PATCH"]
+    assert api.mutations[-1][2]["conclusion"] == "success"
+
+
+def test_serial_candidate_does_not_depend_on_unrelated_waiting_suffix():
+    api = Service()
+    entries = api.queue["repository"]["mergeQueue"]["entries"]["nodes"]
+    suffix = copy.deepcopy(entries[0])
+    suffix.update(id="waiting-suffix", position=2)
+    suffix["headCommit"]["oid"] = "7" * 40
+    api.after_create = lambda: entries.append(suffix)
+    assert owner.execute(*input_data(), api, APP)["state"] == "PUBLISHED"
+    assert api.mutations[-1][2]["conclusion"] == "success"
+
+
+@pytest.mark.parametrize("field", ["id", "head-tree", "source", "base", "parent", "state"])
+def test_every_contributing_predecessor_stays_in_currentness_proof(field):
+    api, envelope, env = parallel_service()
+    first = api.queue["repository"]["mergeQueue"]["entries"]["nodes"][0]
+    paths = {"id": "id", "head-tree": "headCommit.tree.oid", "source": "pullRequest.headRefOid",
+             "base": "baseCommit.oid", "parent": "headCommit.parents.nodes.0.oid",
+             "state": "pullRequest.state"}
+    api.after_create = lambda: set_path(first, paths[field], "changed" if field in {"id", "state"} else "f" * 40)
+    with pytest.raises(group.OwnershipUnqualified): owner.execute(envelope, env, api, APP)
+    assert [m[0] for m in api.mutations] == ["POST", "PATCH"]
+    assert api.mutations[-1][2]["conclusion"] == "failure"
+
+
+@pytest.mark.parametrize("bad_suffix", ["duplicate-head", "incomplete", "position"])
+def test_prefix_projection_cannot_hide_an_unqualified_full_snapshot(bad_suffix):
+    api, envelope, env = parallel_service()
+    entries = api.queue["repository"]["mergeQueue"]["entries"]
+    suffix = copy.deepcopy(entries["nodes"][-1])
+    suffix.update(id="suffix", position=3)
+    if bad_suffix != "duplicate-head": suffix["headCommit"]["oid"] = "7" * 40
+    if bad_suffix == "incomplete": entries["pageInfo"]["hasNextPage"] = True
+    if bad_suffix == "position": suffix["position"] = 4
+    entries["nodes"].append(suffix)
+    with pytest.raises(group.OwnershipUnqualified): owner.execute(envelope, env, api, APP)
+    assert not api.mutations
+
+
 def test_queue_permission_error_closed_and_no_retry_or_raw_content(monkeypatch):
     class Reply:
         def __enter__(self): return self
@@ -235,7 +338,8 @@ def test_queue_permission_error_closed_and_no_retry_or_raw_content(monkeypatch):
     ("workflow_run.run_attempt", 2), ("workflow_run.id", 99),
     ("workflow_run.repository.full_name", "foreign/repo"),
     ("workflow_run.head_repository.id", 999),
-    ("workflow_run.head_branch", "claude/spoof"), ("action", "requested"),
+    ("workflow_run.head_branch", "claude/spoof"), ("action", "requested"), ("action", "completed"),
+    ("workflow_run.status", "completed"),
     ("workflow_run.conclusion", "failure"), ("repository.default_branch", "foreign"),
 ])
 def test_run_or_workflow_spoof_before_any_publication(path, value):
@@ -294,7 +398,89 @@ def test_late_currentness_refuses_success_publication(which):
     api.after_create = drift
     with pytest.raises(group.OwnershipUnqualified):
         owner.execute(envelope, env, api, APP)
-    assert [m[0] for m in api.mutations] == ["POST"]  # owned pending; never success
+    expected = ["POST"] if which == "run" else ["POST", "PATCH"]
+    assert [m[0] for m in api.mutations] == expected
+    if which != "run":
+        assert api.mutations[-1][1].endswith("/check-runs/91")
+        assert api.mutations[-1][2]["conclusion"] == "failure"
+
+
+@pytest.mark.parametrize("principal", ["source", "issuer"])
+def test_failed_qualification_cannot_settle_a_superseded_principal(principal):
+    api = Service()
+    def drift():
+        api.sql["0001_init.sql"] += b"-- changed\n"
+        (api.run if principal == "source" else api.issuer)["run_attempt"] = 2
+    api.after_create = drift
+    with pytest.raises(group.OwnershipUnqualified): owner.execute(*input_data(), api, APP)
+    assert [m[0] for m in api.mutations] == ["POST"]
+
+
+@pytest.mark.parametrize("principal", ["source", "issuer"])
+@pytest.mark.parametrize("change", ["superseded", "unavailable"])
+def test_failure_settlement_rechecks_principals_after_the_rejected_data_read(principal, change):
+    api = Service()
+    rejected = False
+    def drift(value):
+        nonlocal rejected
+        if api.mutations:
+            rejected = True
+            value["repository"]["object"]["entries"][0]["object"]["isTruncated"] = True
+            if change == "superseded":
+                (api.run if principal == "source" else api.issuer)["run_attempt"] = 2
+    api.contents_override = drift
+    original = api.request
+    def request(method, path, body=None):
+        target = "/actions/runs/71" if principal == "source" else "/actions/runs/81"
+        if rejected and change == "unavailable" and path.endswith(target):
+            raise owner.CapabilityUnavailable("unavailable")
+        return original(method, path, body)
+    api.request = request
+    with pytest.raises(group.OwnershipUnqualified): owner.execute(*input_data(), api, APP)
+    assert rejected and [m[0] for m in api.mutations] == ["POST"]
+
+
+@pytest.mark.parametrize("kind", ["forbidden", "rate_limited", "unavailable", "malformed"])
+def test_unavailable_post_create_read_is_not_a_known_failure(kind):
+    api = Service()
+    original = api.graphql
+    def unavailable(query, variables):
+        if api.mutations:
+            raise owner.CapabilityUnavailable(kind, "queue_snapshot")
+        return original(query, variables)
+    api.graphql = unavailable
+    with pytest.raises(owner.CapabilityUnavailable): owner.execute(*input_data(), api, APP)
+    assert [m[0] for m in api.mutations] == ["POST"]
+
+
+def test_lost_failure_settlement_response_never_retries():
+    api = Service()
+    api.after_create = lambda: api.sql.update({"0001_init.sql": b"-- changed\n"})
+    api.lose = "PATCH"
+    with pytest.raises(group.OwnershipUnqualified, match="response unknown"):
+        owner.execute(*input_data(), api, APP)
+    assert [m[0] for m in api.mutations] == ["POST", "PATCH"]
+    assert api.mutations[-1][1].endswith("/check-runs/91")
+    assert api.mutations[-1][2]["conclusion"] == "failure"
+
+
+@pytest.mark.parametrize("outcome", ["success", "failure"])
+@pytest.mark.parametrize("field,value", [("id", 92), ("status", "in_progress"), ("conclusion", None)])
+def test_settlement_requires_exact_original_check_and_confirmed_outcome(outcome, field, value):
+    api = Service()
+    if outcome == "failure":
+        api.after_create = lambda: api.sql.update({"0001_init.sql": b"-- changed\n"})
+    original = api.request
+    def wrong_ack(method, path, body=None):
+        result = original(method, path, body)
+        if method == "PATCH": result[field] = value
+        return result
+    api.request = wrong_ack
+    with pytest.raises(group.OwnershipUnqualified, match="unconfirmed"):
+        owner.execute(*input_data(), api, APP)
+    assert [m[0] for m in api.mutations] == ["POST", "PATCH"]
+    assert api.mutations[-1][1].endswith("/check-runs/91")
+    assert api.mutations[-1][2]["conclusion"] == outcome
 
 
 @pytest.mark.parametrize("which", ["ledger", "blob", "base", "absence"])
@@ -324,7 +510,8 @@ def test_candidate_blob_never_truncated_or_unhashed(field, value):
 
 
 @pytest.mark.parametrize("override", [{"app": {"id": 15368}}, {"head_sha": "f" * 40},
-    {"external_id": "foreign"}, {"name": "Ingest + signal-layer tests"}])
+    {"external_id": "foreign"}, {"name": "Ingest + signal-layer tests"},
+    {"status": "completed"}, {"conclusion": "success"}])
 def test_wrong_created_producer_cannot_publish_success(override):
     api = Service()
     api.post_override = override
@@ -472,6 +659,8 @@ class AdminService(Service):
         self.rules = [{"type": "merge_queue", "ruleset_id": 12345}]
         self.branch = {"name": "master", "commit": {"sha": BASE}}
         self.proofs = {71: run_data("merge_group", 71), 72: run_data("pull_request", 72)}
+        for run in self.proofs.values():
+            run.update(status="completed", conclusion="success")
         self.proofs[72]["head_sha"] = SOURCE
         self.issuers = {81: copy.deepcopy(self.issuer), 82: copy.deepcopy(self.issuer)}
         for issuer_id, record in self.issuers.items():
@@ -535,8 +724,18 @@ def test_premature_or_unpinned_gate_transfer_refuses(which):
 
 def test_pr_only_proof_cannot_transfer_group_gate():
     api = AdminService()
-    api.proofs[71] = run_data("pull_request", 71)
+    api.proofs[71].update(event="pull_request", head_branch="claude/fixture")
     with pytest.raises(group.OwnershipUnqualified): transition.prepare(api, APP, [71, 72])
+
+
+@pytest.mark.parametrize("status,conclusion", [("in_progress", None), ("completed", "failure"),
+    ("completed", "cancelled"), ("completed", None)])
+def test_transition_still_requires_successful_completed_source_ci(status, conclusion):
+    api = AdminService()
+    api.proofs[71].update(status=status, conclusion=conclusion)
+    with pytest.raises(group.OwnershipUnqualified, match="original CI has not passed"):
+        transition.prepare(api, APP, [71, 72])
+    assert not api.mutations
 
 
 @pytest.mark.parametrize("field,value", [("display_title", "foreign target"),
@@ -638,6 +837,10 @@ raise SystemExit(pytest.main(['-q', 'tests/test_merge_on_green.py', '--tb=short'
 """)
     result = subprocess.run([sys.executable, str(runner)], cwd=tmp_path, text=True, capture_output=True,
                             env={"PATH": os.defpath, "HOME": str(tmp_path),
+                                 # Keep the installed test dependencies available when the
+                                 # intentional temporary HOME hides a user-site install.
+                                 # No source checkout or parent environment is inherited.
+                                 "PYTHONPATH": str(Path(pytest.__file__).resolve().parent.parent),
                                  "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1", "PYTHONDONTWRITEBYTECODE": "1"})
     assert result.returncode == 0, result.stdout + result.stderr
     import xml.etree.ElementTree as ET
@@ -654,13 +857,24 @@ def test_real_workflow_no_candidate_execution_or_key_in_candidate_job():
     # PyYAML's YAML1.1 parser treats 'on' as True; this is source syntax only.
     workflow = yaml.safe_load((ROOT / ".github/workflows/trusted-migration-ownership.yml").read_text())
     trigger = workflow.get("on", workflow.get(True))
-    assert trigger == {"workflow_run": {"workflows": ["CI"], "types": ["completed"]}}
+    assert trigger == {"workflow_run": {"workflows": ["CI"], "types": ["in_progress"]}}
     assert workflow["run-name"] == ("Migration owner ${{ github.event.workflow_run.id }}/"
                                     "${{ github.event.workflow_run.run_attempt }} ${{ github.event.workflow_run.head_sha }}")
     assert workflow["permissions"] == {}
     job = workflow["jobs"]["qualify"]
     assert job["permissions"] == {"contents": "read", "actions": "read"}
     assert job["environment"] == "terminal-migration-owner"
+    assert "workflow_run.conclusion" not in job["if"]
+    # Only the documented repo-level zero/zero bootstrap selector may skip the
+    # supplementary job; missing/partial configuration must reach strict preflight.
+    selector = "(vars.MIGRATION_OWNER_APP_ID != '0' || vars.MIGRATION_OWNER_INSTALLATION_ID != '0')"
+    assert job["if"].strip().endswith(selector)
+    for app_id, installation, should_run in (
+        ("0", "0", False), ("0", "123", True), ("123", "0", True),
+        ("", "0", True), ("0", "", True), ("", "", True),
+        ("123", "456", True),
+    ):
+        assert (app_id != "0" or installation != "0") is should_run
     checkout, preflight, mint, invoke = job["steps"]
     assert checkout["with"]["ref"] == "${{ github.sha }}"
     assert checkout["with"]["persist-credentials"] is False
