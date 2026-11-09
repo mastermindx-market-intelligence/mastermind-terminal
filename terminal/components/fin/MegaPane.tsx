@@ -217,6 +217,8 @@ export default function MegaPane({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         if (txOpenRef.current || intelligenceEvidenceOpenRef.current) return; // nested inspector/drawer owns Esc
+        // An open seasonal year picker owns Escape before its enclosing pane.
+        if (e.target instanceof Element && e.target.closest('.fin-seas-yearpop-wrap[data-open="true"]')) return;
         e.stopPropagation();
         closePane();
       }
