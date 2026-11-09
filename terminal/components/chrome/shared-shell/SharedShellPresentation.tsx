@@ -15,7 +15,7 @@ type PresentationApi = {
 const PresentationContext = createContext<PresentationApi | null>(null);
 
 /** The existing Runtime presentation owner, shared by its host and public controls. */
-function PresentationOwner({ identity, children }: { identity: AccountIdentity; children: ReactNode }) {
+function PresentationOwner({ identity, children, appearanceOnly }: { identity: AccountIdentity; children: ReactNode; appearanceOnly: boolean }) {
   const identityKey = identityOwnerKey(identity);
   const { metaPrefs } = useAccountPrefs(identity);
   const { lang, setLang } = useLang();
@@ -32,18 +32,24 @@ function PresentationOwner({ identity, children }: { identity: AccountIdentity; 
 
   useLayoutEffect(() => {
     const root = document.documentElement;
-    root.dataset.mmxSharedShell = "1";
+    if (appearanceOnly) root.dataset.terminalAppearance = "1";
+    else root.dataset.mmxSharedShell = "1";
     const observer = new MutationObserver(readPresentation);
     observer.observe(root, { attributes: true, attributeFilter: ["data-theme", "data-lang"] });
     // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronize the external document presentation before paint.
     readPresentation();
     return () => {
       observer.disconnect();
-      delete root.dataset.mmxSharedShell;
-      // The chart workspace retains its incumbent dark presentation.
-      root.dataset.theme = "dark";
+      if (appearanceOnly) {
+        // This route owns only its marker; never clear another host's marker or theme.
+        delete root.dataset.terminalAppearance;
+      } else {
+        // Preserve the incumbent Shared Shell/error cleanup exactly.
+        delete root.dataset.mmxSharedShell;
+        root.dataset.theme = "dark";
+      }
     };
-  }, [readPresentation]);
+  }, [readPresentation, appearanceOnly]);
 
   // Account loads and explicit Settings choices share this applier. A repeated
   // choice is still an intent; applying it does not overwrite the guest cache.
@@ -97,14 +103,18 @@ function PresentationOwner({ identity, children }: { identity: AccountIdentity; 
   return <PresentationContext.Provider value={api}>{children}</PresentationContext.Provider>;
 }
 
-/** The ordinary shell mounts no presentation owner and receives no new effects. */
-export function SharedShellPresentation({ enabled, identity, children }: {
-  enabled: boolean; identity: AccountIdentity; children: ReactNode;
+/** Reuse the same account/identity applier for the chart route without Shared
+ * Shell chrome/bridge ownership. An inherited owner remains the single applier. */
+export function SharedShellPresentation({ enabled, identity, children, appearanceOnly = false }: {
+  enabled: boolean; identity: AccountIdentity; children: ReactNode; appearanceOnly?: boolean;
 }) {
-  return enabled ? <PresentationOwner identity={identity}>{children}</PresentationOwner> : children;
+  const inherited = useContext(PresentationContext);
+  return enabled && !inherited
+    ? <PresentationOwner identity={identity} appearanceOnly={appearanceOnly}>{children}</PresentationOwner>
+    : children;
 }
 
-/** Settings is also mounted by ordinary shells, where no presentation owner exists. */
+/** Settings can also mount without an appearance owner; those hosts retain their existing behavior. */
 export function useOptionalSharedShellPresentation(): PresentationApi | null {
   return useContext(PresentationContext);
 }
