@@ -1,0 +1,14 @@
+{
+  "images": {
+    "docs/verification/pr1291-source-integration-20261109/handoff-fixture-repair/validation-r1/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-dark-mobile/plan-en-dark.png": "48d1439226be724d7406a9868f839e13c104f00782b62d5cecfdb09a632f1c17",
+    "docs/verification/pr1291-source-integration-20261109/handoff-fixture-repair/validation-r1/browser-artifacts/options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-light-mobile/plan-zh-light.png": "86a8eae9244658e2448e022cb3ccc60a161e059537a2022a04fd8a67b26807bf",
+    "docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-artifacts/investigation-workspace-ev-45329-ion-en-Terminal-dark-theme--mobile/evidence-review-320-double-text.png": "0e82b4240eeaabd1c34e00916b931fa00dc0ffacdd5c7ac0dcc69ece4685353b"
+  },
+  "limits": "This visual review does not complete r2 PL6 or establish live authenticated acceptance.",
+  "observations": [
+    "Exact pinned contract and empty assumptions visible; no calculated payoff invented.",
+    "Dark EN and light ZH mobile layouts readable.",
+    "Enlarged-text evidence review retains incomplete-source disclosure and distinct observation states."
+  ],
+  "reviewer": "assigned root self-check"
+}

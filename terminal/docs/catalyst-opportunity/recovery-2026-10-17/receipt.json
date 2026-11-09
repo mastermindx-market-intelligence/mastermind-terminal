@@ -1,0 +1,75 @@
+{
+  "status": "LOCAL_VERIFIED_NOT_PUBLISHED",
+  "head": "16ccd341691817f8668705fa496efccbd53b39a1",
+  "checks": [
+    {
+      "name": "focused_unit",
+      "verdict": "PASS",
+      "scope": "110 decoder, gateway and React tests",
+      "log_path": "/Volumes/Mastermind 2/evidence/catalyst-opportunity-e2e-20261017/recovery-final-unit.log",
+      "log_sha256": "3bc45e7bd5cff40fcaf81c839ed867b07b1ef5759ed356b061a44602c977e5a5"
+    },
+    {
+      "name": "responsive_browser",
+      "verdict": "PASS",
+      "scope": "24 desktop/tablet/mobile EN/ZH intercepted-source browser journeys",
+      "log_path": "/Volumes/Mastermind 2/evidence/catalyst-opportunity-e2e-20261017/recovery-verified-browser.log",
+      "log_sha256": "361301335dc57bdc7d57bcc2252900a75352d43bfbb8006d68075194be1702be"
+    },
+    {
+      "name": "focused_eslint",
+      "verdict": "PASS",
+      "scope": "Changed and new Catalyst/Defense source and tests",
+      "log_path": "/Volumes/Mastermind 2/evidence/catalyst-opportunity-e2e-20261017/recovery-focused-eslint.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "typescript",
+      "verdict": "PASS",
+      "scope": "TypeScript no-emit; observed tool exit 0 for PID 70094",
+      "log_path": "/Volumes/Mastermind 2/evidence/catalyst-opportunity-e2e-20261017/recovery-final-typecheck.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "plain_language",
+      "verdict": "PASS",
+      "scope": "Changed-line check, observed exit 0; pre-existing other-route diagnostics not repaired",
+      "log_path": "/Volumes/Mastermind 2/evidence/catalyst-opportunity-e2e-20261017/recovery-final-plain.log",
+      "log_sha256": "7982ffb60b119a7dc5ee3554a6eea9f09285797255f5a0248c9fa10d14332fe8"
+    },
+    {
+      "name": "production_build",
+      "verdict": "PASS",
+      "scope": "Optimized local Next build, observed tool exit 0 for PID 94087; not deployment",
+      "log_path": "/Volumes/Mastermind 2/evidence/catalyst-opportunity-e2e-20261017/recovery-production-build.log",
+      "log_sha256": "b4d3a54c0d5e6bbd7269caf8b3bf4e2850fffff49cba4603819decd69d9694e4"
+    }
+  ],
+  "own_run_artifacts": [
+    {
+      "path": "terminal/docs/catalyst-opportunity/recovery-2026-10-17/dated-source-desktop.png",
+      "sha256": "43d47baea328638ea8e27b75cfb6ab0e3fd613149c8e53362b2a785d10a4957c",
+      "bytes": 164542
+    },
+    {
+      "path": "terminal/docs/catalyst-opportunity/recovery-2026-10-17/defense-mobile-zh-source-bound.png",
+      "sha256": "d4b66fbb2ce46ffcfd15444de25c1819d6261a3714c70189ba2d029e7d60c673",
+      "bytes": 331766
+    },
+    {
+      "path": "terminal/docs/catalyst-opportunity/recovery-2026-10-17/built-runtime-observation.json",
+      "sha256": "b72dcb64d04387f6e482932f1ae2688e1e40b33225eba1180911fa4ff780f9ff",
+      "bytes": 1619
+    }
+  ],
+  "runtime_auth": "BLOCKED_LOCAL_AUTH_CONFIGURATION; observed sanitized 503/private-no-store. No live entitlement or 401 behavior claim.",
+  "prior_failed_browser_run": "Wrong coverage-label test selector; corrected against the actual DOM; full 24-case suite passed afterward.",
+  "production_build_warning": "Existing next.config.ts -> lib/flowSource.ts -> app/api/flow/stream/route.ts tracing warning; build completed successfully.",
+  "scope_limits": [
+    "No deployment",
+    "No CI-green assertion",
+    "No accepted independent review of the new Defense delta",
+    "No predictor or entry validation",
+    "No copied refused review export"
+  ]
+}

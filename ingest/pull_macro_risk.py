@@ -11,6 +11,7 @@ import json
 import logging
 import math
 import os
+import stat
 import tempfile
 import urllib.request
 from datetime import date, datetime, timezone
@@ -20,6 +21,9 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parents[1]
 log = logging.getLogger(__name__)
 MACRO = Path(os.environ.get("MACRO_REPO", "/Users/chriswong/Documents/Cluade/Macro Dashboard"))
+# Same root/env as the incumbent Macro systemd publisher, not another feed.
+# The checkout's site/live is staging and can contain an older git snapshot.
+LIVE_DIR = Path(os.environ.get("MACRO_LIVE_DIR", "/var/lib/macro-live/public/live"))
 OUT = ROOT / "terminal" / "public" / "data" / "market_risk.json"
 MAX_STALE_DAYS = int(os.environ.get("RISK_MAX_STALE_DAYS", "5"))
 _UA = "mastermind-feed/1.0"
@@ -37,10 +41,16 @@ def _dict(value) -> dict:
 
 
 def _date(value) -> date | None:
-    try:
-        return date.fromisoformat(str(value)[:10])
-    except (TypeError, ValueError):
+    """Read an exact settled-session date, never a truncated quote timestamp."""
+    if type(value) is date:
+        return value
+    if not isinstance(value, str):
         return None
+    try:
+        parsed = date.fromisoformat(value)
+    except ValueError:
+        return None
+    return parsed if parsed.isoformat() == value else None
 
 
 def _timestamp(value) -> datetime | None:
@@ -139,7 +149,8 @@ def build_market_risk(src: dict, today: date | None = None, *,
         asof = src.get("asof")
         event_time = src.get("source_event_time")
         components = [
-            {key: c.get(key) for key in ("key", "label_en", "label_zh", "score", "tone", "weight", "degraded")
+            {key: _num(c.get(key)) if key == "score" else c.get(key)
+             for key in ("key", "label_en", "label_zh", "score", "tone", "weight", "degraded")
              if key in c}
             for c in (src.get("components") or []) if isinstance(c, dict)
         ] or None
@@ -161,11 +172,11 @@ def build_market_risk(src: dict, today: date | None = None, *,
         source_date = _date(asof)
         reasons.append("missing_or_invalid_asof" if source_date is None else
                        "future_asof" if source_date > today else "expired_asof")
-    if source_fresh.get("stale") is True:
+    if "stale" in source_fresh and source_fresh["stale"] is not False:
         reasons.append("owner_stale")
     # A stale quote plane after market close does not invalidate the chosen
     # settled view. Its original stale reason remains preserved below.
-    if src.get("stale") is True and (live_active or legacy or not wrapped):
+    if "stale" in src and src["stale"] is not False and (live_active or legacy or not wrapped):
         reasons.append("source_stale")
 
     built = src.get("built") or src.get("produced_at")
@@ -240,6 +251,55 @@ _ENVELOPE_FIELDS = ("schema", "bundle_id", "definition_id", "market", "revision"
 _AUTHORITY_FLAGS = ("envelope_may_execute", "envelope_may_gate", "envelope_may_rank", "envelope_may_size")
 
 
+_MULTI_ASSET_FIELDS = frozenset({
+    "schema", "method_version", "captured_at", "alignment_basis", "window", "status",
+    "reasons", "benchmark_instrument_id", "benchmark_return", "base_currency", "rows",
+    "coverage", "source_kind", "provider_available_at", "historical_original_availability_proven",
+    "capture_coherence", "display_only", "no_predictive_claim", "authority", "limitations", "context_digest",
+})
+_MULTI_ASSET_ROW_FIELDS = frozenset({
+    "instrument_id", "label_en", "label_zh", "asset_class", "exposure_region", "listing_market",
+    "currency", "return_basis", "start_session", "end_session", "last_source_session", "status",
+    "reasons", "absolute_return", "relative_return", "classification", "source_ref", "source_digest",
+    "evidence_family_id",
+})
+
+
+def _multi_asset_display_transport(raw, *, produced: datetime | None) -> dict | None:
+    """Bounded forwarding only; the native Terminal reader checks row semantics.
+
+    No new collector, return calculation, quote clock or investment authority.
+    Malformed optional data cannot replace the independently qualified core risk.
+    Closed field sets prevent unrelated/private fields from crossing this bridge.
+    """
+    if not isinstance(raw, dict) or set(raw) != _MULTI_ASSET_FIELDS:
+        return None
+    if (raw.get("schema") != "mastermind.multi_asset_daily_context/v1"
+            or raw.get("method_version") != "same_us_cash_session_snapshot.v1"
+            or raw.get("display_only") is not True or raw.get("no_predictive_claim") is not True):
+        return None
+    auth = raw.get("authority")
+    if (not isinstance(auth, dict) or set(auth) != {"can_rank", "can_gate", "can_size", "can_trade"}
+            or any(value is not False for value in auth.values())):
+        return None
+    captured = _timestamp(raw.get("captured_at"))
+    if produced is None or captured is None or captured > produced:
+        return None
+    rows = raw.get("rows")
+    if not isinstance(rows, list) or len(rows) != 11:
+        return None
+    if any(not isinstance(row, dict) or not _MULTI_ASSET_ROW_FIELDS <= set(row)
+           or set(row) - _MULTI_ASSET_ROW_FIELDS - {"comparison_status"} for row in rows):
+        return None
+    try:
+        payload = json.dumps(raw, allow_nan=False)
+        if len(payload.encode("utf-8")) > 65_536:
+            return None
+        return json.loads(payload)
+    except (ValueError, TypeError, OverflowError, RecursionError):
+        return None
+
+
 def qualify_risk_envelope(raw, asof, *, today: date, now: datetime | None = None) -> tuple[dict | None, dict]:
     """Carry a matching native envelope; transport clocks never refresh its evidence."""
     if now is not None:
@@ -250,6 +310,9 @@ def qualify_risk_envelope(raw, asof, *, today: date, now: datetime | None = None
         return None, {"qualified": False, "reasons": ["missing_envelope"]}
     if envelope.get("schema") != "mastermind.risk_envelope/v1":
         reasons.append("invalid_schema")
+    # This bridge owns US market context; matching dates cannot bind another market.
+    if envelope.get("market") != "US":
+        reasons.append("market_mismatch")
     session = envelope.get("source_session")
     if _is_stale(session, today, MAX_STALE_DAYS) or (_date(session) and _date(session).isoformat() != session):
         reasons.append("invalid_future_or_expired_session")
@@ -297,12 +360,37 @@ def qualify_risk_envelope(raw, asof, *, today: date, now: datetime | None = None
     # all_on_session includes optional organs. Their own stale/null coverage is
     # preserved; it must not erase independently qualified measured state.
     try:
-        json.dumps(envelope, allow_nan=False)
+        json.dumps({key: value for key, value in envelope.items() if key != "multi_asset_context"}, allow_nan=False)
     except (ValueError, TypeError):
         reasons.append("invalid_json_values")
     qualified = {key: envelope[key] for key in _ENVELOPE_FIELDS if key in envelope}
+    multi_asset = _multi_asset_display_transport(envelope.get("multi_asset_context"), produced=produced)
+    if multi_asset is not None:
+        qualified["multi_asset_context"] = multi_asset
     reasons = sorted(set(reasons))
     return (None if reasons else qualified), {"qualified": not reasons, "reasons": reasons}
+
+
+def _read_runtime_risk(filename: str) -> dict | None:
+    """Read one bounded regular artifact from the existing runtime publication owner."""
+    if filename not in {"risk_state.json", "risk_envelope.json"}:
+        return None
+    path = LIVE_DIR / filename
+    try:
+        # Atomic publisher renames are safe: this descriptor reads one generation.
+        # Never follow a symlink or block on a substituted pipe/device.
+        descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+        with os.fdopen(descriptor, "rb") as handle:
+            meta = os.fstat(handle.fileno())
+            if not stat.S_ISREG(meta.st_mode) or meta.st_size > 4 * 1024 * 1024:
+                return None
+            payload = handle.read(4 * 1024 * 1024 + 1)
+        if len(payload) > 4 * 1024 * 1024:
+            return None
+        raw = json.loads(payload)
+        return raw if isinstance(raw, dict) else None
+    except (OSError, ValueError, TypeError):
+        return None
 
 
 def resolve_risk_envelope(asof, *, today: date, now: datetime | None = None):
@@ -313,6 +401,10 @@ def resolve_risk_envelope(asof, *, today: date, now: datetime | None = None):
         candidate = _fetch_url(url)
         if candidate is not None:
             candidates.append(candidate)
+    runtime = _read_runtime_risk("risk_envelope.json")
+    runtime_active = runtime is not None and runtime.get("live_active") is True
+    if runtime_active:
+        candidates.append(runtime)
     for relative in ("site/riskdata/risk_envelope.json", "data/risk_envelope/latest.json"):
         try:
             candidate = json.loads((MACRO / relative).read_text())
@@ -320,6 +412,9 @@ def resolve_risk_envelope(asof, *, today: date, now: datetime | None = None):
                 candidates.append(candidate)
         except (OSError, ValueError):
             continue
+    # A closed/inactive provisional envelope must not displace the settled bundle.
+    if runtime is not None and not runtime_active:
+        candidates.append(runtime)
     for candidate in candidates:
         admitted, _ = qualify_risk_envelope(candidate, asof, today=today, now=now)
         if admitted is not None:
@@ -346,6 +441,10 @@ def resolve_source(*, today: date | None = None, now: datetime | None = None) ->
         raw = _fetch_url(url)
         if raw is not None:
             candidates.append((raw, "url:" + url))
+    runtime = _read_runtime_risk("risk_state.json")
+    runtime_active = runtime is not None and runtime.get("live_active") is True
+    if runtime_active:
+        candidates.append((runtime, "runtime:live/risk_state.json"))
     for relative in _LOCAL_SOURCES:
         path = MACRO / relative
         try:
@@ -355,6 +454,10 @@ def resolve_source(*, today: date | None = None, now: datetime | None = None) ->
                     candidates.append((raw, "local:" + relative))
         except Exception as exc:  # noqa: BLE001
             log.warning("could not read %s: %s", path, exc)
+    # After close, its carried prior-night snapshot can be valid but older than
+    # the newly settled owner. Prefer that settled source before inactive live.
+    if runtime is not None and not runtime_active:
+        candidates.append((runtime, "runtime:live/risk_state.json"))
     for raw, provenance in candidates:
         if not build_market_risk(raw, today, now=now)["stale"]:
             return raw, provenance
@@ -380,6 +483,11 @@ def main() -> int:
                                          prefix=".market-risk-", suffix=".tmp", delete=False) as handle:
             temporary = Path(handle.name)
             handle.write(payload)
+            handle.flush()
+            # This one artifact is served from terminal/public/data. Keep the
+            # private temporary file until complete, then set its public read
+            # mode on the owned descriptor before the atomic replacement.
+            os.fchmod(handle.fileno(), 0o644)
         temporary.replace(OUT)
     finally:
         if temporary is not None:

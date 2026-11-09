@@ -18,7 +18,8 @@ const unavailable=(reason:string)=>response({status:"unavailable",reason},503);
 /** Read-only review of one saved revision. Baseline advancement remains an explicit
  * Investigation mutation through the existing expected-head/operation-receipt path. */
 export async function GET(request:Request){
- const closed=investigationApiUnavailable();if(closed)return closed;
+ const unavailableResponse=investigationApiUnavailable();
+ if(unavailableResponse)return unavailableResponse;
  try{
   const db=await createClient();const {data:{user},error}=await db.auth.getUser();
   if(error||!user)return response({status:"unauthenticated"},401);

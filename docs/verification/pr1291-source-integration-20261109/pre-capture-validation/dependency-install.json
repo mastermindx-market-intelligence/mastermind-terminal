@@ -1,0 +1,19 @@
+{
+  "command": [
+    "npm",
+    "ci",
+    "--no-audit",
+    "--no-fund"
+  ],
+  "exit": 0,
+  "seconds": 22.11,
+  "before": {
+    "package.json": "d9d2392517838444ae8ecf778aa09e3c065c3296f1180400723a726d84f56eda",
+    "package-lock.json": "34dc99fb811ae2738a69077a5661ead672fdacc42087aa1da98992a4b7e4a2bb"
+  },
+  "after": {
+    "package.json": "d9d2392517838444ae8ecf778aa09e3c065c3296f1180400723a726d84f56eda",
+    "package-lock.json": "34dc99fb811ae2738a69077a5661ead672fdacc42087aa1da98992a4b7e4a2bb"
+  },
+  "unchanged": true
+}

@@ -1,0 +1,504 @@
+{
+  "branchHead": "797e8fed41963c6757dd35db8d77dd71e5d58fba",
+  "changedObservedSources": [
+    "terminal/e2e/options-lab-plan-handoff.spec.ts"
+  ],
+  "completedAt": "2026-11-09T15:17:53.765069+00:00",
+  "finalAcceptedCaseIdentities": [
+    "desktop|Lab Scenario to exact Plan en dark",
+    "desktop|Lab Scenario to exact Plan en light",
+    "desktop|Lab Scenario to exact Plan zh dark",
+    "desktop|Lab Scenario to exact Plan zh light",
+    "desktop|admitted Lab round trip preserves pins, requires native New/Add and retires the old account",
+    "desktop|evidence review advances only through an explicit saved revision (en, Terminal dark theme)",
+    "desktop|evidence review advances only through an explicit saved revision (zh, Terminal dark theme)",
+    "desktop|whole Plan explicit transfer, Save, exact reopen and recalculation (en)",
+    "desktop|whole Plan explicit transfer, Save, exact reopen and recalculation (zh)",
+    "mobile|Lab Scenario to exact Plan en dark",
+    "mobile|Lab Scenario to exact Plan en light",
+    "mobile|Lab Scenario to exact Plan zh dark",
+    "mobile|Lab Scenario to exact Plan zh light",
+    "mobile|admitted Lab round trip preserves pins, requires native New/Add and retires the old account",
+    "mobile|evidence review advances only through an explicit saved revision (en, Terminal dark theme)",
+    "mobile|evidence review advances only through an explicit saved revision (zh, Terminal dark theme)",
+    "mobile|whole Plan explicit transfer, Save, exact reopen and recalculation (en)",
+    "mobile|whole Plan explicit transfer, Save, exact reopen and recalculation (zh)",
+    "tablet|Lab Scenario to exact Plan en dark",
+    "tablet|Lab Scenario to exact Plan en light",
+    "tablet|Lab Scenario to exact Plan zh dark",
+    "tablet|Lab Scenario to exact Plan zh light",
+    "tablet|admitted Lab round trip preserves pins, requires native New/Add and retires the old account",
+    "tablet|evidence review advances only through an explicit saved revision (en, Terminal dark theme)",
+    "tablet|evidence review advances only through an explicit saved revision (zh, Terminal dark theme)",
+    "tablet|whole Plan explicit transfer, Save, exact reopen and recalculation (en)",
+    "tablet|whole Plan explicit transfer, Save, exact reopen and recalculation (zh)"
+  ],
+  "originalFailedCases": [
+    {
+      "key": "desktop|Lab Scenario to exact Plan en dark",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ]
+    },
+    {
+      "key": "desktop|Lab Scenario to exact Plan en light",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ]
+    },
+    {
+      "key": "desktop|Lab Scenario to exact Plan zh dark",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ]
+    },
+    {
+      "key": "desktop|Lab Scenario to exact Plan zh light",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ]
+    },
+    {
+      "key": "tablet|Lab Scenario to exact Plan en dark",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ]
+    },
+    {
+      "key": "tablet|Lab Scenario to exact Plan en light",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ]
+    },
+    {
+      "key": "tablet|Lab Scenario to exact Plan zh dark",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ]
+    },
+    {
+      "key": "tablet|Lab Scenario to exact Plan zh light",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ]
+    },
+    {
+      "key": "mobile|Lab Scenario to exact Plan en dark",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ]
+    },
+    {
+      "key": "mobile|Lab Scenario to exact Plan en light",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ]
+    },
+    {
+      "key": "mobile|Lab Scenario to exact Plan zh dark",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ]
+    },
+    {
+      "key": "mobile|Lab Scenario to exact Plan zh light",
+      "results": [
+        {
+          "retry": 0,
+          "status": "failed"
+        }
+      ]
+    }
+  ],
+  "originalReport": "docs/verification/pr1291-source-integration-20261109/post-capture-validation/browser-report.json",
+  "originalReportSha256": "1e8c2080d0d89abb4e7d00fb026af3b7e950f5d4656181d04c5c189ec3414b03",
+  "repairedHandoffPassed": 12,
+  "retainedOriginalPassed": 15,
+  "retainedOriginalPassedCases": [
+    {
+      "key": "desktop|evidence review advances only through an explicit saved revision (en, Terminal dark theme)",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "key": "desktop|evidence review advances only through an explicit saved revision (zh, Terminal dark theme)",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "key": "tablet|evidence review advances only through an explicit saved revision (en, Terminal dark theme)",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "key": "tablet|evidence review advances only through an explicit saved revision (zh, Terminal dark theme)",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "key": "mobile|evidence review advances only through an explicit saved revision (en, Terminal dark theme)",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "key": "mobile|evidence review advances only through an explicit saved revision (zh, Terminal dark theme)",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "key": "desktop|admitted Lab round trip preserves pins, requires native New/Add and retires the old account",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "key": "tablet|admitted Lab round trip preserves pins, requires native New/Add and retires the old account",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "key": "mobile|admitted Lab round trip preserves pins, requires native New/Add and retires the old account",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "key": "desktop|whole Plan explicit transfer, Save, exact reopen and recalculation (en)",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "key": "desktop|whole Plan explicit transfer, Save, exact reopen and recalculation (zh)",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "key": "tablet|whole Plan explicit transfer, Save, exact reopen and recalculation (en)",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "key": "tablet|whole Plan explicit transfer, Save, exact reopen and recalculation (zh)",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "key": "mobile|whole Plan explicit transfer, Save, exact reopen and recalculation (en)",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "key": "mobile|whole Plan explicit transfer, Save, exact reopen and recalculation (zh)",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "schema": "terminal_pr1291_handoff_fixture_validation.v1",
+  "scope": "15 accepted original cases retained against unchanged runtime; 12 repaired fixture cases passed separately. Original12 failures remain preserved. A fresh PL6/VI revision is still owed because its full source maps bind the edited spec.",
+  "sourceAfterSha256": "78733a30ecb1815ba234281c48c7ddc55f018b79421d349a377fd4f37444eb9f",
+  "sourceStable": true,
+  "stages": [
+    {
+      "artifacts": {
+        ".last-run.json": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+        "options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-dark-desktop/plan-en-dark.png": "79f2ad21c596277c566ab7e8f86f4ccaa78a9d34b879c22dd6136feb71ceae61",
+        "options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-dark-desktop/scenario-en-dark.png": "a1ce16933321bb7ce9cda2d2a41f6226d30b1335ebf82fcf4286f6656486418a",
+        "options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-dark-mobile/plan-en-dark.png": "48d1439226be724d7406a9868f839e13c104f00782b62d5cecfdb09a632f1c17",
+        "options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-dark-mobile/scenario-en-dark.png": "e0af460a94d121116ba7e524a465157a604c897d9cc91df63833e76005e3d06f",
+        "options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-dark-tablet/plan-en-dark.png": "3bc24064a8ce62b4af0581a2be3af212ecea45bce6dd7bba1349e9a7ee3bbb09",
+        "options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-dark-tablet/scenario-en-dark.png": "0626518c8c88d864cc7b529ccdc27294018349bac8a4b1874db47bdf3137d8c3",
+        "options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-light-desktop/plan-en-light.png": "790b9464ba3e2843a2d2cf4063bf55d4e5663c5340c10f11e9a3821161d2fc9a",
+        "options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-light-desktop/scenario-en-light.png": "b12ec9a69f8b5b05282a251f633439e423d6d0ab19507bf70891d79cfcaa731f",
+        "options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-light-mobile/plan-en-light.png": "d2dd02cbdf223356b38cdb5577b2a2650e708962117cd1a38dcda2cabc0aa852",
+        "options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-light-mobile/scenario-en-light.png": "31efeba1c7c1fc0263b1d9880bb26e813c17138bc28130a797f0ef9f23d52e60",
+        "options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-light-tablet/plan-en-light.png": "725f348048dda3429419452a844a6fe4828e501eb3d28fa339336c932e3563a2",
+        "options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-en-light-tablet/scenario-en-light.png": "c61754f41effc3f1bc49af68bd12f8c03d609c7b4629ea6f2a79e4002c6c85e8",
+        "options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-dark-desktop/plan-zh-dark.png": "fbfa7e020b70cdf9efe8c27122b61f100c882239c275c4b05e469dd00d5c41f3",
+        "options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-dark-desktop/scenario-zh-dark.png": "4620c9e0950b99edba2fe55e812c578421014183ac714ab03eef33a94472c0c4",
+        "options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-dark-mobile/plan-zh-dark.png": "83eb14ad90d46c6c3d30eb0448d39b94eb1573f9fc0354a6db7d7989071efb33",
+        "options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-dark-mobile/scenario-zh-dark.png": "0061d9fac2cf368cd9a866c6d10473866aae83f80eb89a365937a186261982f0",
+        "options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-dark-tablet/plan-zh-dark.png": "ab7c0a362f6085300985cfc912522bd4c3b68bd61fb4dcbac36ec7d5620a9153",
+        "options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-dark-tablet/scenario-zh-dark.png": "ad50ccf7a4a7f0071b937157993b06a6de34354c8fcfff0b203121ed9975b851",
+        "options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-light-desktop/plan-zh-light.png": "63de4c1a6023ac62d9046e826ee1a74cfdc48817310575d424b7cc7a0e836060",
+        "options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-light-desktop/scenario-zh-light.png": "18b107cb2b980b1628fe92af71a6878968beb66a435164acd7ae12ff2ac71b9e",
+        "options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-light-mobile/plan-zh-light.png": "86a8eae9244658e2448e022cb3ccc60a161e059537a2022a04fd8a67b26807bf",
+        "options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-light-mobile/scenario-zh-light.png": "775eb5a753a84c60517398090e6b7210c7a469cbe24150d8e1355765141bd549",
+        "options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-light-tablet/plan-zh-light.png": "d6448aaed1cb0bd5aa51f991753cb479d1896e0765cd9d53ce2e2d0d45a15e22",
+        "options-lab-plan-handoff-Lab-Scenario-to-exact-Plan-zh-light-tablet/scenario-zh-light.png": "1e0eb9e0560841792424bbf0dc9bffc26c2e27e18f03591c9cfc884a8b70d4bd"
+      },
+      "cases": [
+        {
+          "key": "desktop|Lab Scenario to exact Plan en dark",
+          "results": [
+            {
+              "retry": 0,
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "key": "desktop|Lab Scenario to exact Plan en light",
+          "results": [
+            {
+              "retry": 0,
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "key": "desktop|Lab Scenario to exact Plan zh dark",
+          "results": [
+            {
+              "retry": 0,
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "key": "desktop|Lab Scenario to exact Plan zh light",
+          "results": [
+            {
+              "retry": 0,
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "key": "tablet|Lab Scenario to exact Plan en dark",
+          "results": [
+            {
+              "retry": 0,
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "key": "tablet|Lab Scenario to exact Plan en light",
+          "results": [
+            {
+              "retry": 0,
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "key": "tablet|Lab Scenario to exact Plan zh dark",
+          "results": [
+            {
+              "retry": 0,
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "key": "tablet|Lab Scenario to exact Plan zh light",
+          "results": [
+            {
+              "retry": 0,
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "key": "mobile|Lab Scenario to exact Plan en dark",
+          "results": [
+            {
+              "retry": 0,
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "key": "mobile|Lab Scenario to exact Plan en light",
+          "results": [
+            {
+              "retry": 0,
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "key": "mobile|Lab Scenario to exact Plan zh dark",
+          "results": [
+            {
+              "retry": 0,
+              "status": "passed"
+            }
+          ]
+        },
+        {
+          "key": "mobile|Lab Scenario to exact Plan zh light",
+          "results": [
+            {
+              "retry": 0,
+              "status": "passed"
+            }
+          ]
+        }
+      ],
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "e2e/options-lab-plan-handoff.spec.ts",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=list,json",
+        "--output=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/docs/verification/pr1291-source-integration-20261109/handoff-fixture-repair/validation-r1/browser-artifacts"
+      ],
+      "exit": 0,
+      "failed": 0,
+      "flaky": 0,
+      "initialOwnedServerStopped": false,
+      "lifecycle": {
+        "initialLockPresent": true,
+        "reconciliation": "docs/verification/pr1291-source-integration-20261109/handoff-fixture-repair/validation-r1/handoff-browser-lifecycle.json",
+        "serverAbsenceVerifiedAt": "2026-11-09T15:16:46.308918+00:00",
+        "sha256": "5527302b0322bde6d28196b0bb0bb045222303599222aede57035d04c716881d"
+      },
+      "logSha256": "d1c90e156992dabd4dd98c7da233bbf471daf614f626a0cc82497b6fe6c13050",
+      "name": "handoff-browser",
+      "ownedServerStopped": true,
+      "passed": 12,
+      "port": 3539,
+      "reportSha256": "38d5dd820619aad93bd9841a22f472b00de80e7a5c96ee4fd2e93d7f3ed4a9da",
+      "retries": 0,
+      "seconds": 31.11,
+      "skipped": 0,
+      "sourceStable": true,
+      "startedAt": "2026-11-09T15:16:07.147230+00:00",
+      "state": "CLOSED",
+      "testCompletedAt": "2026-11-09T15:16:38.259565+00:00"
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "typecheck",
+      "port": null,
+      "seconds": 53.06,
+      "sourceStable": true,
+      "startedAt": "2026-11-09T15:16:46.320950+00:00",
+      "state": "CLOSED",
+      "testCompletedAt": "2026-11-09T15:17:39.383175+00:00"
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "e2e/options-lab-plan-handoff.spec.ts"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "affected-lint",
+      "port": null,
+      "seconds": 7.44,
+      "sourceStable": true,
+      "startedAt": "2026-11-09T15:17:43.315789+00:00",
+      "state": "CLOSED",
+      "testCompletedAt": "2026-11-09T15:17:50.973956+00:00"
+    }
+  ],
+  "startedAt": "2026-11-09T15:16:07.146276+00:00",
+  "state": "HANDOFF_QUALIFIED_FRESH_IMMUTABLE_REVISION_REQUIRED"
+}

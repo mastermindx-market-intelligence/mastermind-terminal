@@ -1,8 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { fixtureAuthSetup } from "./fixtures/investigation-auth";
 // Synthetic navigation proof: no production admission, calculation or Save.
 for (const lang of ["en", "zh"] as const) for (const theme of ["dark", "light"] as const) {
-  test(`Lab Scenario to exact Plan ${lang} ${theme}`, async ({ page }, info) => {
+  test(`Lab Scenario to exact Plan ${lang} ${theme}`, async ({ page, baseURL }, info) => {
     const t = (en: string, zh: string) => lang === "en" ? en : zh;
+    await fixtureAuthSetup(page, baseURL!);
     await page.context().addCookies([{ name: "mm_e2e_rs30", value: "1", domain: "127.0.0.1", path: "/" }]);
     await page.addInitScript(lang => localStorage.setItem("mm.lang", lang), lang);
     let calculations = 0;
@@ -31,6 +33,9 @@ for (const lang of ["en", "zh"] as const) for (const theme of ["dark", "light"] 
     await expect(page).toHaveURL(/tab=vol/);
     expect(new URL(page.url()).searchParams.get("keep")).toBe("lab");
     await expect(lab).toBeHidden();
+    await expect(page.getByTestId("shortlist-plan-path").getByRole("button", {
+      name: t("Open saved research", "打开已保存研究"), exact: true,
+    })).toBeEnabled();
     const open = page.getByTestId("shortlist-plan-path").getByRole("button", { name: t("Plan from pinned contracts", "用固定合约创建计划"), exact: true });
     // The IW2 composition may retain its native saved-research entry with no
     // pins. The navigation contract forbids an invented Plan, not that entry.

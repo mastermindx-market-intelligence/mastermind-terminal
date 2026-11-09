@@ -1,0 +1,149 @@
+{
+  "packet": "terminal/docs/pr-crops/b-pl-6-batch-2",
+  "files": {
+    "ChartConductor-1440-zh.png": {
+      "sha256": "66d9565d9812744b7be60d06a29aacdb3315283c71fa0b310a1e685c1de483c8",
+      "size": 87314
+    },
+    "ChartConductor-1440.png": {
+      "sha256": "438f49bfe069fc7cec2baeed405f8be94668f9a90f3abb870db889da7201b81a",
+      "size": 84441
+    },
+    "ChartConductor-390-zh.png": {
+      "sha256": "13b6779a3c0ccaa2b281b4cb38a87b65d0b1582f6985542076306ad619a9294b",
+      "size": 27848
+    },
+    "ChartConductor-390.png": {
+      "sha256": "ab9552bd07af6ea6a146801a7af119719fc68007f4c9d0f5cb3e4d6053682262",
+      "size": 27242
+    },
+    "ChartConductor-820-zh.png": {
+      "sha256": "7dc5a339ae8ddb275a2e0be31971326712638ae3e812f436b8637542aa688c09",
+      "size": 76178
+    },
+    "ChartConductor-820.png": {
+      "sha256": "d435df4da206bfd5b0747875b0819083f7f3369ce927f7bbab3c59d8bf339fb7",
+      "size": 73430
+    },
+    "EVIDENCE.yml": {
+      "sha256": "c9d8d3e249a031ed0ce795bc0d09aa2d37800e7dacf7187bd4d12e140618f36f",
+      "size": 5812
+    },
+    "GuidePanel-1440-zh.png": {
+      "sha256": "b2f7d0bd01800130b75e74be75592eff7289fddafa9d3510cbc29b67c447b4e4",
+      "size": 448669
+    },
+    "GuidePanel-1440.png": {
+      "sha256": "0439d4f577998b2e18adbe9d0b42013b9a57265a2151d9e0483e8f9f43c73f9b",
+      "size": 425759
+    },
+    "GuidePanel-390-zh.png": {
+      "sha256": "bf6a8dd8c3042b1c3a2187886f3c4258bfb872507e45046a70e2300bfea98dbe",
+      "size": 198650
+    },
+    "GuidePanel-390.png": {
+      "sha256": "a6e04edaba3d154277d0051386a5b34344b91dbce891c5ca4901a9365a4605d7",
+      "size": 180985
+    },
+    "GuidePanel-820-zh.png": {
+      "sha256": "a39ce2473ffcf64536c788a9d121dcf1f2c2838c009171d53aacba59abf7426f",
+      "size": 457418
+    },
+    "GuidePanel-820.png": {
+      "sha256": "1aa90e4274589cb3f4f11fc80f7198e17c1190e1707356b75d25d335c298da6a",
+      "size": 428090
+    },
+    "history/before-deterministic-6e3007f32f46a0c526e765831550557c95fcef68a49120540b755dc8cbaa2291.yml": {
+      "sha256": "6e3007f32f46a0c526e765831550557c95fcef68a49120540b755dc8cbaa2291",
+      "size": 2857
+    },
+    "history/before-deterministic-de75cc9a6723f05ac4e4494d5d45d52baa248b1a39ecd5bb7c0c45da3a61c6fa.yml": {
+      "sha256": "de75cc9a6723f05ac4e4494d5d45d52baa248b1a39ecd5bb7c0c45da3a61c6fa",
+      "size": 2695
+    },
+    "history/before-document-language-20261024.yml": {
+      "sha256": "ace8ad7f215f359f284e723c275538c222b0528cc6af0e3b20c9802a85980ebb",
+      "size": 1875
+    },
+    "history/before-integration-20261106-master-31cf16be.yml": {
+      "sha256": "0a73bc7972b407fcf963556ca6f842ae5a6647793c3c88b8e42a73ab35a92b3d",
+      "size": 4070
+    },
+    "history/before-integration-20261106-pr649-952f7d5c.yml": {
+      "sha256": "c9742958632b5c5f8fcb1b566da8e9edfaad128a772c713795fb81babff1a0ea",
+      "size": 2736
+    },
+    "history/ci-42021650300-1-capture.json": {
+      "sha256": "6ecb92d3439fb9885c2518351ea5bf43114f35287630283202bbf13983a03578",
+      "size": 6175
+    },
+    "history/ci-42021650300-1-checkout.json": {
+      "sha256": "c116822b266771557662d2162f711965b1d299bfb25f42af7443abd15603b280",
+      "size": 646
+    },
+    "history/ci-42557108595-1-capture.json": {
+      "sha256": "35f118739762e55ddb8203e6d79c3a4646802aed1dfad25cd745baab0c3a9747",
+      "size": 7338
+    },
+    "history/ci-42557108595-1-checkout.json": {
+      "sha256": "91c13adc250749bc5bc87d3ca8252483ee711c10d9fd106fa67ef409dc35dde2",
+      "size": 646
+    },
+    "history/master-20261105-before-pr649.yml": {
+      "sha256": "6e3007f32f46a0c526e765831550557c95fcef68a49120540b755dc8cbaa2291",
+      "size": 2857
+    },
+    "history/pr649-20260919-before-integration.yml": {
+      "sha256": "f32e54f22ae50996ca15a88d45f9f2eac0370ae4db72e700c7e3cde759a21fde",
+      "size": 2128
+    },
+    "LevelsLearn-1440-zh.png": {
+      "sha256": "0f48d743202eb43a3f0525766710d9a85a697bd160378ecc8e14b30ca7f6bfaa",
+      "size": 111161
+    },
+    "LevelsLearn-1440.png": {
+      "sha256": "47e9e3cca209dd767c9cd3a68f84a803579941d7d662431477cc2282d534bada",
+      "size": 70315
+    },
+    "LevelsLearn-390-zh.png": {
+      "sha256": "d9495ae8dbf849dc7f19046115b8042afc875ff0fbe94aaf60d1704adc43ed8e",
+      "size": 96649
+    },
+    "LevelsLearn-390.png": {
+      "sha256": "4f83b02c6316c9c84784a5106ce092afade8ec6de65b681c3598fe166feaad24",
+      "size": 47460
+    },
+    "LevelsLearn-820-zh.png": {
+      "sha256": "3a92b2869aab86ca0fd87f031bc60520a7485b806d89452b97c8f11d424687d2",
+      "size": 124546
+    },
+    "LevelsLearn-820.png": {
+      "sha256": "0d8269c8454059b7efe27bf32d482559bf3820dbd25bfb52dd3a095909e54a05",
+      "size": 82495
+    },
+    "LevelsView-1440-zh.png": {
+      "sha256": "88d74aed8bc555dde6168799067f3c0159aa98e96b2e5c9a096d20b0f19546ad",
+      "size": 152010
+    },
+    "LevelsView-1440.png": {
+      "sha256": "5a406a70cd87fba17c37386175a99faab328f59b5548d3b9bd34f1d061664ca0",
+      "size": 128183
+    },
+    "LevelsView-390-zh.png": {
+      "sha256": "e3924838dd2fdcfe4d2a01cfe3c81eb4d5de4d73774c1239dabbaf6b6537a4db",
+      "size": 55071
+    },
+    "LevelsView-390.png": {
+      "sha256": "f51988aa11aff92113d49660ce7614dd5cd0d5f9d0723f4141a6a8712444447e",
+      "size": 52005
+    },
+    "LevelsView-820-zh.png": {
+      "sha256": "34821c6edca09b64e6b97e4a62f9468f8a2466cfcc23b5b551a23ad6e1bcc25d",
+      "size": 134466
+    },
+    "LevelsView-820.png": {
+      "sha256": "82ddc816601a1620e2faa69cf8170aa1570fb1efe50359643b0a486d6000714d",
+      "size": 110148
+    }
+  }
+}

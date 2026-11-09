@@ -1,0 +1,45 @@
+{
+  "packet": "terminal/docs/pr-crops/options-level-axis-labels",
+  "files": {
+    "capture.mjs": {
+      "sha256": "91da3a38facfcaca3a1a11405fe7328312793ff67b7e1231be8693b8da9b8cf8",
+      "size": 11209
+    },
+    "captureRoutes.mjs": {
+      "sha256": "52a39810d8bb55495c9c1c7908e0ab6de0ab31a440e06a7d1b9208dfcda7061a",
+      "size": 1113
+    },
+    "coverage-audit-summary.json": {
+      "sha256": "0eb5f2f66a456bf12d6b8e6cfa2f88b3a166142eb3252ed04f626ee29bfa68f2",
+      "size": 16968
+    },
+    "desktop-compact.png": {
+      "sha256": "fec0ead8f7702635a90360d0003d132d3c053c8f362734fcbd26a4f131b9fe0b",
+      "size": 109490
+    },
+    "desktop-left-percentage.png": {
+      "sha256": "584c6806843ec668d8c0c95d1ff6865128a174a23ef550216a612d255d3884b5",
+      "size": 205653
+    },
+    "desktop.png": {
+      "sha256": "3ab9b2183ff974dc96ef8787e9278114cb988178fb099bc8c93ac2e458452b01",
+      "size": 186271
+    },
+    "manifest.json": {
+      "sha256": "2d5882bc00c38254cd7bd104b1a11e54e1b3f16395f4b507042cf81de81473be",
+      "size": 15697
+    },
+    "mobile.png": {
+      "sha256": "7a71803b6b6afbfd7e3b27f60be3a21bd11b8d3a98e55ffa105173f9f6cefa7c",
+      "size": 77011
+    },
+    "README.md": {
+      "sha256": "e8e90d28b21b8d08b07e36e5a7a9d4dd5648c0038a5b3c2414b0eec7931fb2a2",
+      "size": 6047
+    },
+    "tablet.png": {
+      "sha256": "e0c6c613b89511a320b857190805874bd1e921add3e0c6ca9af8b7b748bce345",
+      "size": 109216
+    }
+  }
+}

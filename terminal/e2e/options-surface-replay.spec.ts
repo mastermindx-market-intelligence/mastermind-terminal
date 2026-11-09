@@ -174,3 +174,76 @@ for (const lang of ["en", "zh"] as const) {
 
   });
 }
+
+
+for (const lang of ["en", "zh"] as const) {
+  test(`replay buttons keep native Space activation and the rail keeps shortcuts (${lang})`, async ({ page }, info) => {
+    test.setTimeout(60_000);
+    const pageErrors: string[] = [];
+    page.on("pageerror", error => pageErrors.push(error.message));
+    await page.addInitScript((value) => { localStorage.setItem("mm.lang", value); }, lang);
+    const date = "2026-09-17";
+    const stamps = ["0930", "0931", "0932", "0933"];
+    await page.route("**/api/intraday?**", route => route.fulfill({ json: { bars: [] } }));
+    await page.route("**/api/flow?**", async route => {
+      const f = new URL(route.request().url()).searchParams.get("f") ?? "";
+      if (f === "surface_idx:SPY") return route.fulfill({ json: {
+        root: "SPY", date, stamps, latest: stamps.at(-1), cadenceSec: 60,
+      } });
+      if (f === "surface_dates:SPY") return route.fulfill({ json: {
+        root: "SPY", dates: [date], latest: date, cadenceSec: 60,
+      } });
+      if (f.startsWith("surface:SPY:")) {
+        const selected = stamps.slice(0, stamps.indexOf(f.split(":").at(-1)!) + 1);
+        return route.fulfill({ json: {
+          root: "SPY", session_date: date, spot: 100.2, price_levels: [100, 105],
+          time_steps: selected.map(stamp => `${stamp.slice(0, 2)}:${stamp.slice(2)}`),
+          grids: { netprem: [selected.map(() => 1000), selected.map(() => -2000)] },
+          asof: `${date}T13:33:00Z`, cadence: "1-min",
+        } });
+      }
+      return route.continue();
+    });
+    await page.goto("/options?tab=surface");
+    const replay = page.locator(".obs-surf-replay");
+    const rail = replay.locator(".obs-surf-frame-rail");
+    const transport = replay.locator(".obs-surf-replay-transport button");
+    const play = transport.nth(2);
+    await expect(rail).toHaveAttribute("aria-valuemax", "4", { timeout: 30_000 });
+    // Freeze only after mount so assertions cannot race the 350ms play clock.
+    await page.clock.install({ time: new Date("2026-09-17T14:00:00Z") });
+    await page.clock.pauseAt(new Date("2026-09-17T14:00:01Z"));
+
+    const speed = replay.getByRole("button", { name: "2x", exact: true });
+    await speed.press("Space");
+    await expect(speed).toHaveAttribute("aria-pressed", "true");
+    await expect(play).not.toHaveClass(/\bon\b/);
+    await expect(rail).toHaveAttribute("aria-valuenow", "4");
+
+    await transport.nth(1).press("Space");
+    await expect(rail).toHaveAttribute("aria-valuenow", "3");
+    await expect(play).not.toHaveClass(/\bon\b/);
+    await play.press("Space");
+    await expect(play).toHaveClass(/\bon\b/);
+    await expect(rail).toHaveAttribute("aria-valuenow", "3");
+    await page.clock.runFor(350);
+    await expect(rail).toHaveAttribute("aria-valuenow", "4");
+    await play.press("Space");
+    await expect(play).not.toHaveClass(/\bon\b/);
+
+    for (const [key, frame] of [["Home", "1"], ["ArrowRight", "2"], ["ArrowLeft", "1"], ["End", "4"]]) {
+      await rail.press(key);
+      await expect(rail).toHaveAttribute("aria-valuenow", frame);
+    }
+    await rail.press("Space");
+    await expect(play).toHaveClass(/\bon\b/);
+    await expect(rail).toHaveAttribute("aria-valuenow", "1");
+    await replay.screenshot({ path: info.outputPath(`${lang}-keyboard-replay-playing.png`) });
+    await rail.press("Space");
+    await expect(play).not.toHaveClass(/\bon\b/);
+    await page.clock.runFor(700);
+    await expect(rail).toHaveAttribute("aria-valuenow", "1");
+    await replay.screenshot({ path: info.outputPath(`${lang}-keyboard-replay-paused.png`) });
+    expect(pageErrors, "Native control activation must not trip the route error boundary").toEqual([]);
+  });
+}

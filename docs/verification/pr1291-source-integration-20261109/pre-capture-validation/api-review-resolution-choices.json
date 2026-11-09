@@ -1,0 +1,9 @@
+{
+  "route": "Stored-read validator, Intl/selected-release dispatch with protected request-time closed gate before all auth/evidence I/O.",
+  "routeTests": "Protected gates + selected adapter mock and valid UUID principal; legacy v2 fixture remains without argument_relations; mixed v3 explicitly includes it.",
+  "earnings": "Protected numeric-only interpretation and real-normalizer not_applicable text tests; branch selected-release comparison retained.",
+  "cleanMergedSemanticChecks": [
+    "OptionsHub uses actual plan ownerKey and live isCurrent",
+    "Historical SQL namespace contract retains strict write separation"
+  ]
+}

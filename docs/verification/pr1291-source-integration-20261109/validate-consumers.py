@@ -1,0 +1,92 @@
+from pathlib import Path
+import subprocess,json,hashlib,os,time,datetime,stat
+repo=Path(__file__).resolve().parents[3];t=repo/'terminal';proof=Path(__file__).resolve().parent;out=proof/'post-capture-validation'
+head='797e8fed41963c6757dd35db8d77dd71e5d58fba'
+def now():return datetime.datetime.now(datetime.timezone.utc).isoformat()
+def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
+def put(p,x):p.write_text(json.dumps(x,indent=2,sort_keys=True)+'\n')
+def git(*a):return subprocess.run(['git','-C',str(repo),*a],capture_output=True,text=True,check=True).stdout.strip()
+def inspect(args):
+ r=subprocess.run(args,capture_output=True,text=True);return {'command':args,'exit':r.returncode,'stdout':r.stdout,'stderr':r.stderr,'observedAt':now()}
+def port_closed(port):
+ r=inspect(['lsof','-nP','-iTCP:'+str(port),'-sTCP:LISTEN']);assert r['exit'] in [0,1] and not r['stderr'].strip();return r['exit']==1
+def sources():return json.loads(subprocess.run(['node','-e',"console.log(JSON.stringify(require('./terminal/e2e/tools/visualEvidence.cjs').sourceSnapshot(process.cwd())))"],cwd=repo,capture_output=True,text=True,check=True).stdout)
+def packet(folder):return {str(p.relative_to(folder)):sha(p) for p in sorted(folder.rglob('*')) if p.is_file()}
+def reconcile_lock(port,label,extraPids=[]):
+ lock=t/'.next/dev/lock'
+ for _ in range(40):
+  if port_closed(port):break
+  time.sleep(.25)
+ assert port_closed(port),'Owned listener remains live'
+ if not lock.exists():return {'initialLockPresent':False,'serverAbsenceVerifiedAt':now()}
+ def identity():
+  st=lock.lstat();assert stat.S_ISREG(st.st_mode) and st.st_uid==501
+  return {'dev':st.st_dev,'ino':st.st_ino,'size':st.st_size,'mtimeNs':st.st_mtime_ns,'sha256':sha(lock),'content':json.loads(lock.read_text())}
+ initial=identity();assert initial['content']['port']==port
+ pids=[initial['content']['pid'],*extraPids]
+ def observations(withFd):
+  checks={}
+  for name,args in [('listener',['lsof','-nP','-iTCP:'+str(port),'-sTCP:LISTEN']),('recordedProcesses',['ps','-p',','.join(str(x) for x in pids),'-o','pid=,ppid=,comm='])]:
+   r=inspect(args);checks[name]=r;assert r['exit']==1 and not r['stdout'].strip() and not r['stderr'].strip(),checks
+  if withFd:
+   r=inspect(['lsof',str(lock)]);checks['lockDescriptors']=r;assert r['exit']==1 and not r['stdout'].strip() and not r['stderr'].strip()
+  else:assert not lock.exists();checks['lockDescriptors']={'state':'fileAbsent','observedAt':now()}
+  r=inspect(['lsof','-a','-u','chriswong','-d','cwd','-F','pcn']);cur=[];records=[]
+  for line in r['stdout'].splitlines():
+   if line.startswith('p'):
+    if any(x.startswith('n'+str(repo)) for x in cur):records.append(cur)
+    cur=[line]
+   else:cur.append(line)
+  if any(x.startswith('n'+str(repo)) for x in cur):records.append(cur)
+  checks['ownedWorkspaceCwds']={k:v for k,v in r.items() if k!='stdout'};checks['ownedWorkspaceCwds']['records']=records
+  assert r['exit']==0 and not r['stderr'].strip() and not records
+  return checks
+ receipt={'schema':'terminal_pr1291_owned_browser_lifecycle_reconciliation.v1','label':label,'startedAt':now(),'initialLockPresent':True,'initialLock':initial,'before':observations(True),'state':'ABSENCE_VERIFIED_PENDING_UNLINK'}
+ file=out/(label+'-lifecycle.json');assert not file.exists();put(file,receipt)
+ assert identity()==initial;receipt['immediatelyBeforeUnlink']=observations(True);assert identity()==initial;put(file,receipt)
+ lock.unlink();assert not lock.exists();receipt['after']=observations(False);receipt['state']='STALE_OWNED_LOCK_REMOVED_SERVER_ABSENCE_VERIFIED';receipt['completedAt']=now();put(file,receipt)
+ return {'initialLockPresent':True,'reconciliation':str(file.relative_to(repo)),'sha256':sha(file),'serverAbsenceVerifiedAt':receipt['completedAt']}
+
+assert git('rev-parse','HEAD')==head and not out.exists() and port_closed(3539) and not (t/'.next/dev/lock').exists()
+captureFile=proof/'capture-r1-continuation/capture-execution.json';capture=json.loads(captureFile.read_text());assert capture['state']=='CAPTURED_AWAITING_NATIVE_READERS' and capture['sourceStable']
+composition=capture['composition']['path'];assert sha(repo/composition)==capture['composition']['sha256'] and capture['composition']['actualCases']==54 and capture['composition']['selectedCases']==50
+before=json.loads((proof/'capture-r1/source-before.json').read_text());assert sources()==before
+sourceDelta=git('diff','--name-only',capture['resolvedIndexTree']).splitlines();sourceDelta=[p for p in sourceDelta if not p.startswith('docs/') and '/docs/' not in p];assert not sourceDelta,sourceDelta
+out.mkdir();put(out/'source-before.json',before)
+env=os.environ.copy()
+for key in ['TERMINAL_VISUAL_EVIDENCE_OPERATION','TERMINAL_PL6_EVIDENCE_OPERATION_ID','TERMINAL_EVIDENCE_COMPOSITION','TERMINAL_EVIDENCE_MODE','TERMINAL_CI_OPTIONS_AXIS_CAPTURE','TERMINAL_CI_OPTIONS_CAPTURE_ID']:env.pop(key,None)
+env.update({'MMX_SHARED_SHELL':'0','MMX_INVESTOR_SHELL_PREVIEW':'0','PLAYWRIGHT_BROWSERS_PATH':str(t/'node_modules/.cache/pr1291-playwright')})
+record={'schema':'terminal_pr1291_current_consumer_validation.v1','branchHead':head,'protectedMaster':capture['mergeParent'],'startedAt':now(),'state':'RUNNING','captureReceipt':str(captureFile.relative_to(repo)),'captureReceiptSha256':sha(captureFile),'composition':capture['composition'],'sourceFiles':len(before),'sourceDeltaSincePreCaptureChecks':sourceDelta,'stages':[]}
+def save():put(out/'execution.json',record)
+def stable():
+ current=sources();assert current==before and git('rev-parse','HEAD')==head;return current
+def execute(name,args,extra=None,port=None):
+ log=out/(name+'.log');assert not log.exists();stage={'name':name,'command':args,'startedAt':now(),'port':port,'state':'RUNNING'};record['stages'].append(stage);save();start=time.monotonic();print(json.dumps({'starting':name,'port':port}),flush=True)
+ with log.open('x') as h:r=subprocess.run(args,cwd=t,env={**env,**(extra or {})},stdout=h,stderr=subprocess.STDOUT)
+ stage.update({'exit':r.returncode,'testCompletedAt':now(),'seconds':round(time.monotonic()-start,2),'logSha256':sha(log),'sourceStable':stable()==before})
+ if port:
+  stage['initialOwnedServerStopped']=port_closed(port) and not (t/'.next/dev/lock').exists();stage['lifecycle']=reconcile_lock(port,name);stage['ownedServerStopped']=True
+ stage['state']='CLOSED' if r.returncode==0 else 'FAILED';save();print(json.dumps({k:v for k,v in stage.items() if k!='command'}),flush=True);assert r.returncode==0,log.read_text()[-6500:];return stage
+save()
+try:
+ files=['lib/__tests__/b_pl_6Batch1Evidence.test.ts','lib/__tests__/visualIntelligenceEvidence.test.ts','lib/__tests__/optionsLevelAxisEvidence.test.ts','lib/__tests__/b_pl_6Batch2Evidence.test.ts','lib/__tests__/pineBootPendingEvidence.test.ts']
+ s=execute('current-native-readers',['node','node_modules/vitest/vitest.mjs','run',*files,'--reporter=default','--reporter=json','--outputFile='+str(out/'native-readers.json')],{'TERMINAL_EVIDENCE_MODE':'records','TERMINAL_EVIDENCE_COMPOSITION':composition})
+ native=json.loads((out/'native-readers.json').read_text());assert native['success'] and native['numFailedTests']==native['numPendingTests']==0 and len(native['testResults'])==5
+ s['passed']=native['numPassedTests'];s['reportSha256']=sha(out/'native-readers.json');save()
+ specs=['e2e/options-plan-save-reopen.spec.ts','e2e/options-lab-plan-handoff.spec.ts','e2e/options-lab-plan-composition.spec.ts','e2e/investigation-workspace.spec.ts']
+ grep='whole Plan explicit transfer, Save, exact reopen and recalculation|Lab Scenario to exact Plan|admitted Lab round trip preserves pins, requires native New/Add and retires the old account|evidence review advances only through an explicit saved revision'
+ report=out/'browser-report.json';output=out/'browser-artifacts'
+ args=['node','node_modules/@playwright/test/cli.js','test',*specs,'--project=desktop','--project=tablet','--project=mobile','--grep',grep,'--workers=1','--retries=0','--reporter=list,json','--output='+str(output)]
+ s=execute('original-acceptance-browser',args,{'CI':'1','TERMINAL_E2E_PORT':'3539','PLAYWRIGHT_JSON_OUTPUT_FILE':str(report)},3539)
+ result=json.loads(report.read_text());stats=result['stats'];assert not result.get('errors') and stats['expected']==27 and stats['skipped']==stats['unexpected']==stats['flaky']==0,stats
+ cases=[]
+ def walk(x):
+  for spec in x.get('specs',[]):
+   for test in spec.get('tests',[]):cases.append({'project':test['projectName'],'title':spec['title'],'results':[{'status':q.get('status'),'retry':q.get('retry')} for q in test.get('results',[])]})
+  for child in x.get('suites',[]):walk(child)
+ walk(result);assert len(cases)==27 and all(c['results']==[{'status':'passed','retry':0}] for c in cases)
+ s.update({'passed':27,'skipped':0,'failed':0,'flaky':0,'retries':0,'reportSha256':sha(report),'cases':cases,'artifacts':packet(output)});save()
+ after=stable();put(out/'source-after.json',after)
+ record.update({'state':'QUALIFIED_AWAITING_VISUAL_REVIEW','completedAt':now(),'sourceStable':True,'sourceAfterSha256':sha(out/'source-after.json'),'nativeReaderAssertions':native['numPassedTests'],'browserPassed':27,'scope':'Local Plan transfer/explicitSave/exact-reopen, Lab handoff/account retirement and evidence review. No International native Saved, live-auth or installation acceptance claim.'});save()
+ print(json.dumps({'completed':True,'sourceFiles':len(before),'nativeReaders':native['numPassedTests'],'browserPassed':27}),flush=True)
+except BaseException as e:record['state']='FAILED';record['error']=str(e);record['completedAt']=now();save();raise

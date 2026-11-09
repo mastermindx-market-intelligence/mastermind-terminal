@@ -1,0 +1,69 @@
+[
+  {
+    "command": [
+      "npx",
+      "vitest",
+      "run",
+      "lib/__tests__/investigationEarningsReview.test.ts",
+      "lib/__tests__/investigationReviewRoute.test.ts",
+      "lib/__tests__/investigationEvidenceReview.test.tsx",
+      "lib/__tests__/investigationSelectionRace.test.tsx",
+      "lib/__tests__/optionsPlanPayoffPanel.test.tsx",
+      "lib/__tests__/investigationOptionsSelectionMigrationContract.test.ts",
+      "lib/__tests__/investigationIssuerRelease.test.ts",
+      "lib/__tests__/investigationContracts.test.ts",
+      "lib/__tests__/investigationIntlApi.test.ts",
+      "lib/__tests__/investigationIntlRead.test.ts",
+      "lib/__tests__/investigationIntlPolicyActualIntegration.test.tsx",
+      "lib/__tests__/investigationPlanTransport.test.ts",
+      "--maxWorkers=1",
+      "--minWorkers=1",
+      "--reporter=json",
+      "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/test-results/pr1291-source-integration-20261109/focused-unit-report.json"
+    ],
+    "exit": 0,
+    "seconds": 30.02,
+    "log": "check-0.log",
+    "sha256": "416b32f87550aa272873329f1f91572a2517490902f260dbf2d0acd6955ba0dd"
+  },
+  {
+    "command": [
+      "node",
+      "--test",
+      "e2e/tools/capture_ci_evidence.test.cjs",
+      "e2e/tools/capture_visual_evidence.test.cjs",
+      "scripts/ci/plan-evidence-capture.test.cjs",
+      "e2e/tools/sharedShellSafeReporter.test.cjs"
+    ],
+    "exit": 0,
+    "seconds": 9.77,
+    "log": "check-1.log",
+    "sha256": "970637e2a4d5dabf736b285f50bb15cefb635b3470b6936558c10eb5f460205c"
+  },
+  {
+    "command": [
+      "node",
+      "--test",
+      "e2e/tools/visualEvidence.test.cjs"
+    ],
+    "exit": 0,
+    "seconds": 179.25,
+    "log": "check-2.log",
+    "sha256": "657393f9e7279fbb8cb348fbf88d9837e1e7f1419a218dd15fb7d312cfe1358f"
+  },
+  {
+    "command": [
+      "npx",
+      "tsc",
+      "--noEmit",
+      "--pretty",
+      "false",
+      "--incremental",
+      "false"
+    ],
+    "exit": 0,
+    "seconds": 94.07,
+    "log": "check-3.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

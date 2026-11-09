@@ -1,0 +1,43 @@
+{
+  "schema": "terminal.theses-entry-output-redirect-result.v1",
+  "status": "passed",
+  "cases": [
+    {
+      "file": "desktop-en.png",
+      "sha256": "38ae5e7bc7a911e80c45554d3b13aaceb6c6c74c45bb676e3d35a75652178449",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "desktop-zh.png",
+      "sha256": "e94258e0d27c9d03bef9b5c1cf1d167f4279936f06ed0bffc229b4abfe465383",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "tablet-en.png",
+      "sha256": "4a5fb94b7497e8e8770c028bd198e027bdc776c2b1bfcc4f06f070768420ee0a",
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "file": "tablet-zh.png",
+      "sha256": "174817e14b86335c65e441f4436e3d6905828d361642bc086bfdb15bd7da8171",
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "file": "mobile-en.png",
+      "sha256": "eff420af1b49110a318e3dd74aacd9e03736d4f90de099571619248ef2aa87c5",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "mobile-zh.png",
+      "sha256": "54eb4d32d753142d6161faa1167e75f37a95d9dd3cdd69843831337e2ab21fe3",
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "sourceUnchanged": true
+}

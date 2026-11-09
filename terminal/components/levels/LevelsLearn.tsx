@@ -117,15 +117,21 @@ export function LevelsLearn() {
         <ol style={LIST}>
           {lessons(t).map((l, i) => (
             <li key={i} style={CARD}>
-              <div style={CARD_RAIL}>
-                <span style={CARD_NUM}>{String(i + 1).padStart(2, "0")}</span>
-                <span style={CARD_GLYPH}>{l.glyph}</span>
-              </div>
-              <div style={CARD_BODY}>
-                <div style={CARD_EYEBROW}>{l.eyebrow}</div>
-                <h2 style={CARD_TITLE}>{l.title}</h2>
-                <p style={CARD_TEXT}>{l.body}</p>
-              </div>
+              <details style={LESSON_DETAIL} open={i === 0}>
+                <summary style={LESSON_SUMMARY}>
+                  <span style={CARD_RAIL}>
+                    <span style={CARD_NUM}>{String(i + 1).padStart(2, "0")}</span>
+                    <span style={CARD_GLYPH}>{l.glyph}</span>
+                  </span>
+                  <span style={CARD_BODY}>
+                    <span style={CARD_EYEBROW}>{l.eyebrow}</span>
+                    <span style={CARD_TITLE}>{l.title}</span>
+                  </span>
+                </summary>
+                <div style={LESSON_COPY}>
+                  <p style={CARD_TEXT}>{l.body}</p>
+                </div>
+              </details>
             </li>
           ))}
         </ol>
@@ -170,8 +176,12 @@ const HERO_SUB: React.CSSProperties = {
 
 const LIST: React.CSSProperties = { listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 14 };
 const CARD: React.CSSProperties = {
-  display: "flex", gap: 18, padding: "20px 20px", background: "var(--panel)",
-  border: "1px solid var(--line)", borderRadius: "var(--r-lg)",
+  background: "var(--panel)", border: "1px solid var(--line)", borderRadius: "var(--r-lg)",
+  overflow: "hidden",
+};
+const LESSON_DETAIL: React.CSSProperties = { width: "100%" };
+const LESSON_SUMMARY: React.CSSProperties = {
+  display: "flex", gap: 18, padding: "18px 20px", cursor: "pointer", alignItems: "flex-start",
 };
 const CARD_RAIL: React.CSSProperties = {
   display: "flex", flexDirection: "column", alignItems: "center", gap: 10, flexShrink: 0, width: 40,
@@ -182,15 +192,18 @@ const CARD_NUM: React.CSSProperties = {
 const CARD_GLYPH: React.CSSProperties = {
   fontSize: 20, color: "var(--brand-2)", lineHeight: 1, textAlign: "center",
 };
-const CARD_BODY: React.CSSProperties = { flex: 1, minWidth: 0 };
+const CARD_BODY: React.CSSProperties = { display: "flex", flex: 1, minWidth: 0, flexDirection: "column" };
 const CARD_EYEBROW: React.CSSProperties = {
   fontSize: 10.5, fontWeight: 700, letterSpacing: "0.10em", textTransform: "uppercase",
   color: "var(--muted)", marginBottom: 6,
 };
 const CARD_TITLE: React.CSSProperties = {
-  fontSize: 17, fontWeight: 700, color: "var(--text)", margin: "0 0 9px", letterSpacing: "-0.01em",
+  fontSize: 17, fontWeight: 700, color: "var(--text)", letterSpacing: "-0.01em",
 };
-const CARD_TEXT: React.CSSProperties = { fontSize: 14, lineHeight: 1.62, color: "var(--text-2)", margin: 0 };
+const LESSON_COPY: React.CSSProperties = {
+  padding: "0 20px 20px 78px", borderTop: "1px solid var(--line)",
+};
+const CARD_TEXT: React.CSSProperties = { fontSize: 14, lineHeight: 1.62, color: "var(--text-2)", margin: "16px 0 0" };
 
 const FOOT: React.CSSProperties = {
   marginTop: 34, paddingTop: 22, borderTop: "1px solid var(--line)",

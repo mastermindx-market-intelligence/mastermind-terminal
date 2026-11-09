@@ -1,0 +1,179 @@
+{
+  "completedAt": "2026-11-09T14:57:49.157341+00:00",
+  "initialLock": {
+    "content": {
+      "appUrl": "http://localhost:3537",
+      "hostname": "localhost",
+      "pid": 42930,
+      "port": 3537,
+      "startedAt": 1794235438591
+    },
+    "dev": 16777252,
+    "ino": 343327803,
+    "mtimeNs": 1794235438592391011,
+    "sha256": "493335ec11c514c5cd372267d40a0d28f2cc083ff334f03c213bba4310a56ad6",
+    "size": 107
+  },
+  "lockAbsent": true,
+  "observationsAfter": {
+    "listener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:3537",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T14:57:47.654294+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "lockDescriptors": {
+      "observedAt": "2026-11-09T14:57:47.697177+00:00",
+      "state": "fileAbsent"
+    },
+    "ownedWorkspaceCwds": {
+      "command": [
+        "lsof",
+        "-a",
+        "-u",
+        "chriswong",
+        "-d",
+        "cwd",
+        "-F",
+        "pcn"
+      ],
+      "exit": 0,
+      "observedAt": "2026-11-09T14:57:49.155766+00:00",
+      "records": [],
+      "stderr": ""
+    },
+    "recordedProcesses": {
+      "command": [
+        "ps",
+        "-p",
+        "19399,42351,42751,42852,42902,42930",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T14:57:47.697059+00:00",
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "observationsBefore": {
+    "listener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:3537",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T14:57:41.657243+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "lockDescriptors": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T14:57:43.385536+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "ownedWorkspaceCwds": {
+      "command": [
+        "lsof",
+        "-a",
+        "-u",
+        "chriswong",
+        "-d",
+        "cwd",
+        "-F",
+        "pcn"
+      ],
+      "exit": 0,
+      "observedAt": "2026-11-09T14:57:44.638276+00:00",
+      "records": [],
+      "stderr": ""
+    },
+    "recordedProcesses": {
+      "command": [
+        "ps",
+        "-p",
+        "19399,42351,42751,42852,42902,42930",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T14:57:41.692518+00:00",
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "observationsImmediatelyBeforeUnlink": {
+    "listener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:3537",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T14:57:44.821937+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "lockDescriptors": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1291-source-integration-20261109/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T14:57:46.146216+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "ownedWorkspaceCwds": {
+      "command": [
+        "lsof",
+        "-a",
+        "-u",
+        "chriswong",
+        "-d",
+        "cwd",
+        "-F",
+        "pcn"
+      ],
+      "exit": 0,
+      "observedAt": "2026-11-09T14:57:47.463552+00:00",
+      "records": [],
+      "stderr": ""
+    },
+    "recordedProcesses": {
+      "command": [
+        "ps",
+        "-p",
+        "19399,42351,42751,42852,42902,42930",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T14:57:44.855806+00:00",
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "originalCaptureReceipt": "docs/verification/pr1291-source-integration-20261109/capture-r1/capture-execution.json",
+  "originalCaptureReceiptSha256": "84a8ee82485c9cdb4f377c1d6361a23e35d825a39df470a0ab502bb02e510c0c",
+  "originalChildExit": 0,
+  "originalOwnerState": "FAILED",
+  "originalServerSettled": false,
+  "schema": "terminal_pr1291_vi_lifecycle_reconciliation.v1",
+  "startedAt": "2026-11-09T14:57:41.362312+00:00",
+  "state": "STALE_OWNED_LOCK_REMOVED_SERVER_ABSENCE_VERIFIED"
+}

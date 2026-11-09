@@ -18,7 +18,7 @@
 import { describe, expect, it } from "vitest";
 import { createHash } from "node:crypto";
 import { INVESTIGATION_ADMISSION } from "../investigations";
-import { ledgerRowHeaderLine, migrationExists, readMigration, reservationRow } from "./helpers/reservations";
+import { ledgerHeaderLineFromRow, ledgerRowHeaderLine, migrationExists, readMigration, reservationRow } from "./helpers/reservations";
 
 const FILE = "0047_investigation_options_selection_evidence.sql";
 const FILE42 = "0042_investigation_scenario_reference.sql";
@@ -121,7 +121,7 @@ describe("0047 investigation options selection evidence admission contract", () 
     expect(head).toMatch(/^-- Ledger row:/m);
     expect(head).toMatch(/^-- Rollback:/m);
     expect(ledgerRowHeaderLine(sql)).toContain("OPT006-V3-SAVE-ADMISSION");
-    expect(ledgerRowHeaderLine(sql)).toContain("PR #1222 (packet OPT006-V3-SAVE-ADMISSION)");
+    expect(ledgerRowHeaderLine(sql)).toBe(ledgerHeaderLineFromRow(reservationRow("0047")));
   });
 
   it("replaces exactly two functions: the widened validator and the admission probe", () => {
@@ -214,6 +214,7 @@ describe("0047 investigation options selection evidence admission contract", () 
     // #1222 has landed; source custody is distinct from applying its SQL.
     expect(row.pr_state).toBe("merged");
     expect(row.merged_sha).toBe("3cc8da8432d8d2d4e4cb597f49c4eaa95f1980c9");
+    expect(row.merged_sha ?? "").toMatch(/^[0-9a-f]{40}$/);
     expect(row.applied_date).toBeNull();
   });
   it("refuse-closes in one transaction behind the exact-body md5 guard", () => {

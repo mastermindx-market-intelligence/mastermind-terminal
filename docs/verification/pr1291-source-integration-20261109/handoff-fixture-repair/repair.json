@@ -1,0 +1,13 @@
+{
+  "afterSha256": "15a7f20057a376cff41c2d50263ad0bd59bc362d8c8b9bdeb5b671730d089910",
+  "beforeSha256": "5638b808a0d9f555b7733b3f23aac6e288bba5f87204016b92448fec2f5dde04",
+  "createdAt": "2026-11-09T15:15:16.467108+00:00",
+  "diagnosis": "All12 EN/ZH dark/light handoff cases supplied entitlement only. Current Plan scope guard requires a verified principal and epoch. Passing composition uses existing fixtureAuthSetup. Native New/Add occurs later during research transfer, not before Plan editor.",
+  "immutableImpact": "Both existing PL6 and VI operations bind this spec; after12-case proof, create a fresh24+30 immutable revision/composition. Preserve r1 and all unchanged legacy captures.",
+  "originalFailed": 12,
+  "originalPassed": 15,
+  "originalReportSha256": "1e8c2080d0d89abb4e7d00fb026af3b7e950f5d4656181d04c5c189ec3414b03",
+  "path": "terminal/e2e/options-lab-plan-handoff.spec.ts",
+  "repair": "Use the incumbent signed loopback auth fixture and assert the mounted saved-research entry is enabled before pin/open. Preserve all exact-contract, empty-assumption, round-trip, zero-calculation, theme and viewport assertions. No runtime guard, timeout, assertion or native New/Add behavior is weakened.",
+  "schema": "pr1291_handoff_verified_fixture_repair.v1"
+}

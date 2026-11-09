@@ -43,6 +43,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from macro_catalog import (  # noqa: E402
     CATALOG, duplicates, manifest_rows, ohlc_symbols, retired_symbols, yahoo_symbols,
 )
+from cn_index_tushare import (  # noqa: E402
+    CN_INDEX_SYMBOLS, TU_SOURCE, fetch_cn_index_history, retain_prior_tushare_bars,
+)
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "terminal" / "public" / "data"
@@ -56,13 +59,22 @@ SPARK_BATCH = 18
 # Minimum daily bars for a macro series to be worth publishing. Every instrument in the catalog
 # is decades old, so anything thinner is Yahoo failing to serve history, not a young symbol.
 MIN_OHLC_BARS = 30
-# This benchmark underpins multi-decade Shanghai Composite charts. Yahoo's daily series
-# begins around 1997, but range=max silently returns 1mo bars even with interval=1d.
-# Owner staging verified 7107 non-null daily candles from 7279 timestamps
-# (1997-07-02 to 2026-11-04); other symbols remain on the cheaper rolling 5y leg.
-FULL_HISTORY_SYMBOLS = frozenset({"000001.SS"})
+# Yahoo silently substitutes monthly candles for range=max&interval=1d. Index history
+# instead uses explicit daily period bounds; non-index macro instruments retain 5y.
+# The exceptions currently return a SINGLE Yahoo daily candle (verified 2026-11-04),
+# so publishing an ETF as a mislabeled index, or replacing a sound file with a stub,
+# is not permitted. They stay on the existing guarded leg until an authentic index
+# feed becomes available.
+INDEX_WITHOUT_DAILY_HISTORY = frozenset({"000300.SS", "000905.SS", "399006.SZ"})
+FULL_HISTORY_SYMBOLS = frozenset(
+    row.sym for row in CATALOG
+    if row.sec == "Indices" and row.sym not in INDEX_WITHOUT_DAILY_HISTORY
+)
+# Preserve Shanghai's existing epoch; its backfill starts in 1997.
 FULL_HISTORY_START_TS = int(dt.datetime(1990, 1, 1, tzinfo=dt.timezone.utc).timestamp())
-# A 353-point monthly series must never be published as three decades of daily candles.
+# Other index archives start much earlier (S&P 500 1927, Nikkei 1965, TSX 1979).
+INDEX_ARCHIVE_START_TS = int(dt.datetime(1900, 1, 1, tzinfo=dt.timezone.utc).timestamp())
+# A 353-point monthly series must never be published as decades of daily candles.
 MIN_DEEP_DAILY_BARS = 1000
 
 
@@ -71,7 +83,8 @@ def ohlc_history_query(sym: str, now_ts: int | None = None) -> str:
     if sym in FULL_HISTORY_SYMBOLS:
         # period2 is exclusive. Include the current session even during UTC/CN date rollover.
         end = (int(time.time()) if now_ts is None else now_ts) + 86400
-        return f"period1={FULL_HISTORY_START_TS}&period2={end}&interval=1d"
+        start = FULL_HISTORY_START_TS if sym == "000001.SS" else INDEX_ARCHIVE_START_TS
+        return f"period1={start}&period2={end}&interval=1d"
     return "range=5y&interval=1d"
 
 
@@ -126,7 +139,7 @@ def publish_decision(fetched: int, have: int) -> str:
 
 
 def _valid_deep_bar(row: object) -> bool:
-    """Qualify a stored or provider Shanghai candle before counting or retaining it."""
+    """Qualify a stored or provider index candle before counting or retaining it."""
     if not isinstance(row, list) or len(row) != 6 or not isinstance(row[0], str):
         return False
     try:
@@ -147,7 +160,7 @@ def _valid_deep_bar(row: object) -> bool:
 
 
 def existing_bar_count(path: Path, *, deep_history: bool = False) -> int:
-    """Published depth, counting only qualified unique dates for the deep-history index."""
+    """Published depth, counting only qualified unique dates for deep-history indices."""
     try:
         bars = json.loads(path.read_text()).get("bars") or []
         if deep_history:
@@ -346,14 +359,42 @@ def main() -> int:
         wrote, thin, dropped = 0, [], []
         targets = ohlc_symbols()
         for sym in targets:
-            bars = fetch_ohlc(sym)
+            china_index = sym in CN_INDEX_SYMBOLS
+            if china_index:
+                # The exact native index levels are available through the Macro-owned
+                # licensed TuShare client. Yahoo returns a one-candle stub for these codes.
+                # A missing/denied/invalid TuShare response must NEVER delete an old file.
+                bars = fetch_cn_index_history(sym)
+                if not bars:
+                    print(f"  ohlc {sym}: TuShare history unavailable; keeping prior file",
+                          file=sys.stderr)
+                    continue
+            else:
+                bars = fetch_ohlc(sym)
             path = out_dir / f"{sym}.json"
-            have = existing_bar_count(path, deep_history=sym in FULL_HISTORY_SYMBOLS)
-            bars = merge_deep_history(sym, path, bars)
+            have = existing_bar_count(
+                path, deep_history=sym in FULL_HISTORY_SYMBOLS or china_index,
+            )
+            bars = (
+                retain_prior_tushare_bars(path, bars, is_valid_bar=_valid_deep_bar)
+                if china_index else merge_deep_history(sym, path, bars)
+            )
             decision = publish_decision(len(bars), have)
             if decision == "write":
-                payload = {"t": sym, "o": 1, "src": "yahoo", "bar_quality": "real_ohlc", "bars": bars}
-                if sym in FULL_HISTORY_SYMBOLS:
+                payload = {
+                    "t": sym, "o": 1,
+                    "src": TU_SOURCE if china_index else "yahoo",
+                    "bar_quality": "real_ohlc", "bars": bars,
+                }
+                if china_index:
+                    # TuShare index_daily vol is index-constituent lots (100 shares),
+                    # not entire-exchange market volume. Preserve the basis on disk.
+                    payload.update({
+                        "source_endpoint": "index_daily",
+                        "volume_unit": "shares",
+                        "volume_scope": "index_constituents",
+                    })
+                if sym in FULL_HISTORY_SYMBOLS or china_index:
                     # A multi-decade payload is never exposed half-written to the chart.
                     write_atomic(path, payload)
                     print(f"  ohlc {sym}: {len(bars)} bars ({bars[0][0]} to {bars[-1][0]})")

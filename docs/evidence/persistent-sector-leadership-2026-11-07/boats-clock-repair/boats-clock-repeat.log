@@ -1,0 +1,29 @@
+[warmup] /terminal?symbol=NVDA → 200 in 121ms
+[warmup] /options → 200 in 234ms
+[warmup] /portfolio → 200 in 200ms
+[warmup] /alerts → 200 in 105ms
+[warmup] /analysis → 200 in 181ms
+[warmup] /discover → 200 in 107ms
+[warmup] /admin → 200 in 82ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 69ms
+[warmup] /login → 200 in 109ms
+[warmup] /reset-password → 200 in 121ms
+[warmup] /api/me → 200 in 79ms
+[warmup] /api/watchlist → 200 in 46ms
+[warmup] /api/layouts → 200 in 39ms
+[warmup] /api/watchlist/annotations → 409 in 34ms
+[warmup] 14 routes compiled in 2s
+
+Running 9 tests using 1 worker
+
+  ✓  1 [desktop] › e2e/boats-display.spec.ts:48:5 › coalesced trailing null clears BOATS and a later failure cannot revive it (4.3s)
+  ✓  2 [desktop] › e2e/boats-display.spec.ts:48:5 › coalesced trailing null clears BOATS and a later failure cannot revive it (3.9s)
+  ✓  3 [desktop] › e2e/boats-display.spec.ts:48:5 › coalesced trailing null clears BOATS and a later failure cannot revive it (4.1s)
+  ✓  4 [tablet] › e2e/boats-display.spec.ts:48:5 › coalesced trailing null clears BOATS and a later failure cannot revive it (4.1s)
+  ✓  5 [tablet] › e2e/boats-display.spec.ts:48:5 › coalesced trailing null clears BOATS and a later failure cannot revive it (4.4s)
+  ✓  6 [tablet] › e2e/boats-display.spec.ts:48:5 › coalesced trailing null clears BOATS and a later failure cannot revive it (4.3s)
+  ✓  7 [mobile] › e2e/boats-display.spec.ts:48:5 › coalesced trailing null clears BOATS and a later failure cannot revive it (4.2s)
+  ✓  8 [mobile] › e2e/boats-display.spec.ts:48:5 › coalesced trailing null clears BOATS and a later failure cannot revive it (4.4s)
+  ✓  9 [mobile] › e2e/boats-display.spec.ts:48:5 › coalesced trailing null clears BOATS and a later failure cannot revive it (4.7s)
+
+  9 passed (1.0m)
