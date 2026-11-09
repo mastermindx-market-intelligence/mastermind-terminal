@@ -5997,6 +5997,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     if (id) setDrawingsVisible(true);
     return true;
   };
+  // Visible creation controls follow the same admission fence as their handler.
+  // The initial account placeholder enables them before the cloud GET settles.
+  const drawingControlDisabledReason = drawingCreationDisabledReason
+    ?? (drawingsReadyFor(active) ? null : "loading");
   const activeStoredDrawings = drawingOwnerMatches ? (drawStore[active] ?? []) : [];
   const activeUserDrawings = activeStoredDrawings.filter(isUserDrawing);
   const storedDetectedDrawingCount = activeStoredDrawings.length - activeUserDrawings.length;
@@ -6592,7 +6596,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           <div className="chart-body" style={{ "--subpanes": subPanes ?? impliedSubPanes } as React.CSSProperties}>
             <DrawingSidebar
               tool={drawingsReadyFor(active) ? activeDrawingTool : null}
-              creationDisabledReason={drawingCreationDisabledReason}
+              creationDisabledReason={drawingControlDisabledReason}
               magnet={magnet}
               sticky={drawingCreationDisabledReason ? false : drawingKeepsActive}
               stayActive={drawingSticky}
