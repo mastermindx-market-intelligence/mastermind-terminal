@@ -16,7 +16,7 @@ async function visibleSelection(input: Locator) {
 
 async function walkResults(page: Page, input: Locator) {
   await input.click();
-  const list = page.getByRole("listbox");
+  const list = page.locator(`[id="${await input.getAttribute("aria-controls")}"]`);
   await expect.poll(() => list.getByRole("option").count()).toBeGreaterThan(18);
   const before = await input.boundingBox();
   const pageScroll = await page.evaluate(() => ({ x: scrollX, y: scrollY }));
