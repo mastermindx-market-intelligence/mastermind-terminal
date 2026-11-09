@@ -14,6 +14,7 @@ const LAYOUT_FILES = [
   "terminal/lib/selectionCohort.ts",
   "terminal/components/prophet/SelectionCohortCard.tsx",
   "terminal/components/prophet/SelectionCohortCard.module.css",
+  "terminal/components/prophet/SelectionCohortCard.global.css",
   "terminal/components/prophet/ProphetView.tsx",
 ];
 // The shots the script takes, in its own order.
@@ -81,6 +82,24 @@ describe("GMI gate #8 cohort card evidence lock is the sha256 of the layout sour
       expect(existsSync(abs), file).toBe(true);
       expect(statSync(abs).size, file).toBeGreaterThan(0);
       expect(yml, `files is missing ${file}`).toContain(`\n  - ${file}\n`);
+    }
+  });
+
+  it("all thirteen actual PNG bytes match their capture hashes", () => {
+    const yml = evidenceText();
+    const rows = yml.match(/^captureFiles:\n((?:  [^\n]*\n)+)/m)?.[1];
+    expect(rows, "missing actual capture image hashes").toBeDefined();
+    const recorded = Object.fromEntries(rows!.trimEnd().split("\n").map(line => {
+      const match = line.match(/^  ([a-z0-9-]+\.png): "([0-9a-f]{64})"$/);
+      expect(match, `invalid captureFiles row: ${line}`).not.toBeNull();
+      return [match![1], match![2]];
+    }));
+    expect(rows!.trimEnd().split("\n")).toHaveLength(CROPS.length);
+    expect(Object.keys(recorded).sort()).toEqual([...CROPS].sort());
+    for (const file of CROPS) {
+      const bytes = readFileSync(join(CROP_DIR, file));
+      expect(bytes.subarray(0, 8).toString("hex"), file).toBe("89504e470d0a1a0a");
+      expect(createHash("sha256").update(bytes).digest("hex"), file).toBe(recorded[file]);
     }
   });
 

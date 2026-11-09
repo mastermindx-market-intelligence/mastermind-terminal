@@ -32,6 +32,10 @@ const PROPHET_LEX = {
   mastheadActive:   ["Active plans", "活跃计划"],
   mastheadFocus:    ["In focus", "当前焦点"],
   mastheadUpdated:  ["Model close", "模型收盘"],
+  mastheadSourceThrough: ["Data through", "数据截至"],
+  mastheadSourceUnknown: ["Source date unknown", "来源日期未知"],
+  mastheadSourceDelayed: ["Delayed", "数据延迟"],
+  mastheadSourceMixed: ["Mixed vintages", "数据时点不一致"],
   mastheadMarks:    ["Option marks", "期权报价"],
   mastheadMarksLive:["Live", "实时"],
 
@@ -533,10 +537,19 @@ const PROPHET_LEX = {
     "候选证据当前不可用。尚未加载任何已校验历史；下一次刷新将重试。",
   ],
   candidatePanelEmpty: [
-    "No formed candidates in this run; abstentions explain why. No executable contract or trade was issued.",
-    "本次运行未形成候选；保留记录说明了原因。本次未发布任何可执行合约或交易。",
+    "No formed candidates in this run, and no abstention was recorded either. No executable contract or trade was issued.",
+    "本次运行未形成候选，也没有记录任何保留。本次未发布任何可执行合约或交易。",
   ],
   candidateAbstention: ["Abstention", "保留"],
+  candidateReceiptMissing: [
+    "No receipt entry exists for this candidate, so its first publication time is unknown and it is not counted as published.",
+    "该候选没有凭据条目，因此其首次发布时间未知，且不计入已发布。",
+  ],
+  candidateReasonCode: ["Recorded code", "记录代码"],
+  optionsShadowAbsent: [
+    "No Options Alpha shadow projection is published right now.",
+    "当前没有已发布的期权阿尔法影子投影。",
+  ],
   candidatePanelFooter: [
     "Exact option performance is not yet published. These rows are research history, not a ranking or a trade.",
     "精确期权表现尚未发布。这些记录是研究历史，不是排名，也不是交易。",
@@ -598,6 +611,14 @@ const PROPHET_LEX = {
   candidateContextFrozenNote: [
     "This contract snapshot is from the frozen first qualification. The current revision may have changed.",
     "此合约快照来自冻结的首次合格。当前修订可能已变化。",
+  ],
+  // ── Underlying chart action (validated frozen context only) ───────────────
+  // The link opens the underlying's chart in a new tab; the caption keeps it from
+  // reading as an option fill or an entry recommendation.
+  candidateChartLink: ["Open underlying chart", "打开标的图表"],
+  candidateChartCaption: [
+    "The chart shows underlying market prices, not an option fill or a recommended entry.",
+    "图表显示标的市场价格，并非期权成交价或建议入场价。",
   ],
   // ── Measured NBBO prints (was wrongly labelled OI confirmation) ────────────
   candidateNbboPrints: ["Measured NBBO valid / source prints", "实测 NBBO 有效 / 来源成交"],

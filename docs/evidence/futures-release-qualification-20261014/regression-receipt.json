@@ -1,0 +1,46 @@
+{
+  "schema": "futures.qualified_candidate/v1",
+  "functionalHead": "54bf1bc931832655b7c0ca4de24e26fbab598d11",
+  "terminalTree": "45a84638cd30574abff9ff9f943413ca35b61d0e",
+  "upstreamIntegrated": "140894302f9e50637e1891799463d548c0c46c63",
+  "fullTerminal": {
+    "passed": 11322,
+    "todo": 4,
+    "failed": 0,
+    "files": 679,
+    "exit": 0,
+    "fullLogSha256": "f996b47514c197a6195fbab2d8cb35f9ed4b61b01b7675a5c7575cdd6a72aae3"
+  },
+  "focused": {
+    "passed": 272,
+    "files": 17
+  },
+  "browsers": {
+    "workspaceSynthetic": 27,
+    "labSynthetic": 15,
+    "realHistorical": 6,
+    "denseSynthetic": 3,
+    "unchangedLayoutRegressions": 13
+  },
+  "productionBuildExit": 0,
+  "compiledGuest": {
+    "viewports": 3,
+    "privateTraceFiles": 0,
+    "traceFiles": 117,
+    "apiStatus": 403,
+    "developmentAndPrivatePathsStatus": 404
+  },
+  "hostedUnitTypecheck": {
+    "status": "SUCCESS",
+    "jobId": "115626483770",
+    "runId": "38494211026"
+  },
+  "sourceActivation": "not_established_or_activated_by_this_work",
+  "deployed": false,
+  "independentReview": {
+    "sourceBoundary": "returned_and_adjudicated",
+    "displayNavigation": "no_blocking_findings_return_accepted",
+    "originalBroadDomain": "terminal_failure_output_limit_no_findings",
+    "splitBookAggregationGamma": "three_disjoint_requests_admitted_awaiting_returns"
+  }
+}

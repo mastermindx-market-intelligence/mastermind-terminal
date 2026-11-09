@@ -6,12 +6,14 @@
 // script's declared input() params instead.
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import type { EntitlementVisualState } from "@/lib/entitlementVisualState";
 import { IND_DEFS, withDefaults, defaultVis, VIS_UNITS, type IndField, type VisUnit, type VisRange } from "@/lib/indicators";
 import { studyParamsWithDefaults, studyTypeOf } from "@/lib/studyInstances";
 import { isSuiteKey, getSuiteDef, suiteDefaults } from "@/lib/suites/registry";
 import { getSuiteModuleCatalogEntry, type SuiteModuleCatalogEntry } from "@/lib/suites/catalog";
 import type { SuiteField, SuiteModuleMeta, SuiteTier } from "@/lib/indicator-canvas/types";
-import { useT } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
+import { largeTradesText } from "@/lib/largeTrades/labels";
 
 const SWATCHES = ["#4d82ff", "#26c281", "#f0566b", "#e8b339", "#e8a33d", "#9d86ff", "#19c2c2", "#d6dae3", "#868d9c", "#ff8a3d"];
 const hexOf = (c: string) => (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(c) ? c : "#888888");
@@ -30,13 +32,15 @@ function returnFocus(el: HTMLElement | null, frames = 3) {
   });
 }
 
-function NumberField({ value, min, max, step = 1, onChange }: { value: number; min?: number; max?: number; step?: number; onChange: (v: number) => void }) {
+function NumberField({ value, min, max, step = 1, onChange, label }: { value: number; min?: number; max?: number; step?: number; onChange: (v: number) => void; label?: string }) {
+  const { lang } = useLang();
+  const t = (key: string) => largeTradesText(lang, key);
   const clamp = (v: number) => Math.max(min ?? -Infinity, Math.min(max ?? Infinity, +v.toFixed(4)));
   return (
     <span className="is-stepper">
-      <button onClick={() => onChange(clamp(value - step))} aria-label="decrease">−</button>
-      <input type="number" value={value} step={step} min={min} max={max} onChange={(e) => { const v = parseFloat(e.target.value); if (!isNaN(v)) onChange(clamp(v)); }} />
-      <button onClick={() => onChange(clamp(value + step))} aria-label="increase">+</button>
+      <button onClick={() => onChange(clamp(value - step))} aria-label={label ? t("ltDecrease") + " " + label : "decrease"}>−</button>
+      <input type="number" aria-label={label} value={value} step={step} min={min} max={max} onChange={(e) => { const v = parseFloat(e.target.value); if (!isNaN(v)) onChange(clamp(v)); }} />
+      <button onClick={() => onChange(clamp(value + step))} aria-label={label ? t("ltIncrease") + " " + label : "increase"}>+</button>
     </span>
   );
 }
@@ -54,12 +58,14 @@ function ColorField({ value, onChange }: { value: string; onChange: (v: string) 
 }
 
 function Row({ f, val, onChange }: { f: IndField; val: any; onChange: (v: any) => void }) {
+  const { lang } = useLang();
+  const label = lang === "zh" && f.labelZh ? f.labelZh : f.label;
   return (
     <div className="is-row">
-      <span className="is-label">{f.label}</span>
-      {f.type === "number" && <NumberField value={typeof val === "number" ? val : 0} min={f.min} max={f.max} step={f.step} onChange={onChange} />}
+      <span className="is-label">{label}</span>
+      {f.type === "number" && <NumberField value={typeof val === "number" ? val : 0} min={f.min} max={f.max} step={f.step} onChange={onChange} label={label} />}
       {f.type === "color" && <ColorField value={String(val ?? "#888888")} onChange={onChange} />}
-      {f.type === "bool" && <span className={`is-switch${val ? " on" : ""}`} onClick={() => onChange(!val)} role="switch" aria-checked={!!val} tabIndex={0}
+      {f.type === "bool" && <span className={`is-switch${val ? " on" : ""}`} onClick={() => onChange(!val)} role="switch" aria-label={label} aria-checked={!!val} tabIndex={0}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onChange(!val); } }} />}
     </div>
   );
@@ -191,13 +197,15 @@ function SuiteRow({ f, val, onChange }: { f: SuiteField; val: any; onChange: (v:
   );
 }
 
-function ModuleSection({ m, values, locked, expanded, onToggle, onChange, onGuide, t }:
-  { m: SuiteModuleMeta; values: Record<string, any>; locked: boolean; expanded: boolean;
+function ModuleSection({ m, values, locked, accessState, expanded, onToggle, onChange, onGuide, t }:
+  { m: SuiteModuleMeta; values: Record<string, any>; locked: boolean; accessState: EntitlementVisualState; expanded: boolean;
     onToggle: () => void; onChange: (patch: Record<string, any>) => void; onGuide?: () => void; t: (k: string, f?: string) => string }) {
   const on = !!values[`${m.key}.on`] && !locked;
   const setOn = () => { if (!locked) onChange({ [`${m.key}.on`]: !on }); };
   const shown = m.fields.filter((f) => !f.showIf || sameVal(values[`${m.key}.${f.showIf.key}`], f.showIf.eq));
-  const unlockNote = m.tier === "pro" ? t("isSuiteUnlockPro", "Unlocks with PRO") : t("isSuiteUnlockInsider", "Unlocks with ESSENTIAL");
+  const unlockNote = accessState === "verified"
+    ? (m.tier === "pro" ? t("isSuiteUnlockPro", "Unlocks with PRO") : t("isSuiteUnlockInsider", "Unlocks with ESSENTIAL"))
+    : accessState === "checking" ? t("accessChecking", "Checking access…") : t("accessUnavailable", "Access unavailable");
   return (
     <div className={`is-mod${locked ? " locked" : ""}${on ? "" : " off"}`}>
       <div className="is-mod-h"
@@ -212,7 +220,7 @@ function ModuleSection({ m, values, locked, expanded, onToggle, onChange, onGuid
         {onGuide && <button className="is-guide" title={t("guideOpen", "Guide")} aria-label={t("guideOpen", "Guide")}
           onClick={(e) => { e.stopPropagation(); onGuide(); }}>?</button>}
         {m.tier !== "free" && <span className="is-tier" style={{ "--c": TIER_COLOR[m.tier] } as CSSProperties}>{TIER_LABEL[m.tier]}</span>}
-        {locked && <svg className="is-lock" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11h12v9H6z" /><path d="M9 11V7.5a3 3 0 0 1 6 0V11" /></svg>}
+        {locked && accessState === "verified" && <svg className="is-lock" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11h12v9H6z" /><path d="M9 11V7.5a3 3 0 0 1 6 0V11" /></svg>}
         <span className={`is-switch${on ? " on" : ""}${locked ? " dis" : ""}`} role="switch" aria-checked={on}
           aria-disabled={locked || undefined} aria-label={m.label} tabIndex={locked ? -1 : 0}
           onClick={(e) => { e.stopPropagation(); setOn(); }}
@@ -230,7 +238,7 @@ function ModuleSection({ m, values, locked, expanded, onToggle, onChange, onGuid
   );
 }
 
-export default function IndicatorSettings({ indKey, moduleTarget, params, onChange, pine, onPineChange, onClose, onReset, userTier = "free", onOpenGuide, title: instanceTitle }:
+export default function IndicatorSettings({ indKey, moduleTarget, params, onChange, pine, onPineChange, onClose, onReset, userTier = "free", accessState = "verified", onOpenGuide, title: instanceTitle }:
   { indKey: string;
     /** Display name of this study INSTANCE (e.g. "RSI 2 (7)") when several of one type are active. */
     title?: string;
@@ -243,8 +251,10 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
     onReset?: () => void;
     onOpenGuide?: (suiteKey: string, moduleKey: string, moduleLabel: string) => void;
     userTier?: Tier;   // fail closed: unknown/absent entitlement = free
+    accessState?: EntitlementVisualState;
   }) {
   const t = useT();
+  const { lang } = useLang();
   const moduleEntry = resolveIndicatorSettingsModule(indKey, moduleTarget);
   const suiteKey = moduleEntry?.suiteKey ?? (isSuiteKey(indKey) ? indKey : null);
   const suite = suiteKey ? getSuiteDef(suiteKey) : null;
@@ -285,9 +295,12 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
   // A study INSTANCE id ("rsi" or "rsi__<token>", E06) edits its type's fields under its own id.
   const studyType = !moduleEntry ? studyTypeOf(indKey) : null;
   const def = studyType ? IND_DEFS[studyType] : null;
+  const builtInTitle = instanceTitle && instanceTitle !== def?.label ? instanceTitle
+    : lang === "zh" && def?.labelZh ? def.labelZh
+    : instanceTitle || def?.label || indKey;
   const title = moduleEntry ? moduleEntry.label
     : suite ? (suite.tkey ? t(suite.tkey, suite.label) : suite.label)
-    : isPine ? (pine?.name || "Custom script") : instanceTitle || def?.label || indKey;
+    : isPine ? (pine?.name || "Custom script") : builtInTitle;
 
   const rank = TIER_RANK[userTier] ?? 0;
   const isLocked = (m: SuiteModuleMeta) => rank < (TIER_RANK[m.tier] ?? 0);
@@ -301,13 +314,15 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
   const inputs = def ? def.fields.filter((f) => f.group === "inputs") : [];
   const styles = def ? def.fields.filter((f) => f.group === "style") : [];
   const P = !def ? params : studyType === indKey ? withDefaults(indKey, params) : studyParamsWithDefaults(indKey, params);
+  const changeBuiltIn = (patch: Record<string, any>) => onChange(indKey === "largeTrades"
+    ? withDefaults(indKey, { ...P, ...patch }) : patch);
   const vis: Record<VisUnit, VisRange> = (P._vis as any) || defaultVis();
-  const setVis = (unit: VisUnit, patch: Partial<VisRange>) => onChange({ _vis: { ...vis, [unit]: { ...vis[unit], ...patch } } });
+  const setVis = (unit: VisUnit, patch: Partial<VisRange>) => changeBuiltIn({ _vis: { ...vis, [unit]: { ...vis[unit], ...patch } } });
 
   const cancel = () => {
     if (isPine) { /* revert pine inputs to the snapshot */ const cur = pine?.params || {}; const back: Record<string, any> = {}; for (const k of Object.keys(cur)) back[k] = (pineSnap.current as any)?.[k]; onPineChange?.(back); }
     else if (directModule) onChange(directSnap.current ?? {});
-    else onChange(snap.current);   // snapshot has all fields → merge restores the open-time state
+    else onChange(indKey === "largeTrades" ? withDefaults(indKey, snap.current) : snap.current);   // restore effective open-time criteria
     onClose();
   };
   const resetSettings = () => {
@@ -348,7 +363,9 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
           {activeTab === "inputs" && (moduleEntry && directModule ? (
             directLocked ? (
               <div className="is-empty">
-                {directModule.tier === "pro" ? t("isSuiteUnlockPro", "Unlocks with PRO") : t("isSuiteUnlockInsider", "Unlocks with ESSENTIAL")}
+                {accessState !== "verified"
+                  ? (accessState === "checking" ? t("accessChecking", "Checking access…") : t("accessUnavailable", "Access unavailable"))
+                  : directModule.tier === "pro" ? t("isSuiteUnlockPro", "Unlocks with PRO") : t("isSuiteUnlockInsider", "Unlocks with ESSENTIAL")}
               </div>
             ) : (
               <div className="is-sec">
@@ -366,7 +383,7 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
               {suite.modules.map((m) => {
                 const locked = isLocked(m);
                 return (
-                  <ModuleSection key={m.key} m={m} values={SV} locked={locked}
+                  <ModuleSection key={m.key} m={m} values={SV} locked={locked} accessState={accessState}
                     expanded={!locked && (modOpen[m.key] ?? !!SV[`${m.key}.on`])}
                     onToggle={() => setModOpen((o) => ({ ...o, [m.key]: !(o[m.key] ?? !!SV[`${m.key}.on`]) }))}
                     onChange={onChange} t={t}
@@ -389,13 +406,13 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
                 </div>
               ))
           ) : def ? (
-            inputs.length ? inputs.map((f) => <Row key={f.key} f={f} val={P[f.key]} onChange={(v) => onChange({ [f.key]: v })} />) : <div className="is-empty">{t("isEmptyNoInputs", "No inputs for this indicator.")}</div>
+            inputs.length ? inputs.map((f) => <Row key={f.key} f={f} val={P[f.key]} onChange={(v) => changeBuiltIn({ [f.key]: v })} />) : <div className="is-empty">{t("isEmptyNoInputs", "No inputs for this indicator.")}</div>
           ) : <div className="is-empty">{t("isEmptyNoSettings", "No settings for this item.")}</div>)}
 
           {activeTab === "style" && (suite
             ? <div className="is-empty">{t("isSuiteStyleHint", "Suite styling lives with each module's inputs.")}</div>
             : def && styles.length
-              ? styles.map((f) => <Row key={f.key} f={f} val={P[f.key]} onChange={(v) => onChange({ [f.key]: v })} />)
+              ? styles.map((f) => <Row key={f.key} f={f} val={P[f.key]} onChange={(v) => changeBuiltIn({ [f.key]: v })} />)
               : <div className="is-empty">{t("isEmptyNoStyle", "No style options.")}</div>)}
 
           {activeTab === "visibility" && (

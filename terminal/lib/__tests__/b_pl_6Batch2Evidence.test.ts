@@ -1,3 +1,5 @@
+import { assertCapturedLexProjection } from "./helpers/lexEvidenceProjection";
+// Preserve the raw capture pin; only unused onboarding copy has an AST dependency projection.
 // Git-free evidence lock for the B-PL-6 batch 2 capture packet.
 // The lock is the sha256 of the layout sources the crops depend on, recorded in
 // EVIDENCE.yml layoutFiles. capturedAtHead stays informational.
@@ -35,6 +37,14 @@ const CROPS = [
   "LevelsView-1440-zh.png",
   "LevelsView-390.png",
   "LevelsView-390-zh.png",
+  "ChartConductor-820.png",
+  "ChartConductor-820-zh.png",
+  "GuidePanel-820.png",
+  "GuidePanel-820-zh.png",
+  "LevelsLearn-820.png",
+  "LevelsLearn-820-zh.png",
+  "LevelsView-820.png",
+  "LevelsView-820-zh.png",
 ];
 
 function evidenceText(): string {
@@ -73,7 +83,11 @@ describe("B-PL-6 batch 2 evidence lock is the sha256 of the layout sources", () 
     for (const [rel, expected] of Object.entries(recorded)) {
       const abs = join(REPO, rel);
       expect(existsSync(abs), `${rel} is recorded in layoutFiles but absent from the tree`).toBe(true);
-      expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
+      if (rel === "terminal/lib/i18n.tsx") {
+        assertCapturedLexProjection(readFileSync(abs, "utf8"), expected, readFileSync(EVIDENCE, "utf8"));
+      } else {
+        expect(sha256Of(abs), `${rel} changed without a recapture`).toBe(expected);
+      }
     }
   });
 
@@ -85,14 +99,14 @@ describe("B-PL-6 batch 2 evidence lock is the sha256 of the layout sources", () 
     }
   });
 
-  it("EVIDENCE.yml declares the capture flag, the dark-only and dev-indicator laws and the two viewports", () => {
+  it("EVIDENCE.yml declares the capture flag, the dark-only and dev-indicator laws and the three viewports", () => {
     const yml = evidenceText();
     expect(yml).toMatch(/capture_flag:\s*TERMINAL_E2E_FIXTURE/);
     expect(yml).toMatch(/DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06/);
     expect(yml).toMatch(/DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR/);
     expect(yml).toMatch(/^theme:\s*dark$/m);
     expect(yml).toMatch(/capturedAtHead is informational\. The lock is layoutFiles\./);
-    for (const [name, width, height] of [["desktop", 1440, 900], ["mobile", 390, 844]] as const) {
+    for (const [name, width, height] of [["desktop", 1440, 900], ["tablet", 820, 1180], ["mobile", 390, 844]] as const) {
       expect(yml).toMatch(new RegExp(`name:\\s*${name},\\s*width:\\s*${width},\\s*height:\\s*${height}`));
     }
   });
