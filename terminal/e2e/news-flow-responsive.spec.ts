@@ -598,15 +598,14 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefin
     return route.fulfill({ json: snapshotFor(snapshotState, flow) });
   });
 
-  await page.goto("/terminal?symbol=NVDA");
-  await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
+  // Navigate after the locale and any scenario-specific routes are installed.
 }
 
 async function setPresentation(page: Page, lang: Lang) {
-  await page.evaluate((l) => {
+  await page.addInitScript((l) => {
     localStorage.setItem("mm.lang", l);
   }, lang);
-  await page.reload();
+  await page.goto("/terminal?symbol=NVDA");
   await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
   await expect(page.locator("html")).toHaveAttribute("data-lang", lang);
   await page.evaluate(() => document.documentElement.setAttribute("data-theme", "dark"));

@@ -20,6 +20,8 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
+from scripts.ci_e2e_scope import FULL_MATRIX, FOCUSED_MATRIX
+
 import pytest
 import yaml
 
@@ -36,7 +38,11 @@ def ci_workflow() -> dict[str, Any]:
 
 
 def e2e_matrix(workflow: dict[str, Any]) -> list[dict[str, Any]]:
-    return workflow["jobs"]["terminal-e2e"]["strategy"]["matrix"]["include"]
+    """Read the full audited shard contract, now emitted by the selector."""
+    assert workflow["jobs"]["terminal-e2e"]["strategy"]["matrix"] == (
+        "${{ fromJSON(needs.e2e-scope.outputs.matrix) }}"
+    )
+    return FULL_MATRIX
 
 
 def playwright_projects() -> set[str]:
@@ -191,9 +197,15 @@ SPLIT_PROJECTS = ("desktop", "tablet", "mobile")
 # subsequent passes at 19:39:49 before cancellation at 19:45:28 on 2026-10-21.
 # The assertion is repaired separately; the unchanged cap still detects hangs.
 # Green predecessor heads 7579 (58m50) and 60c2 (57m17) had little headroom.
-# Tablet's minimum is three: #1061 run 39416005343 tablet-1 passed in
-# 56m47s and #1090 run 39415184138 in 55m40s, approaching the same cap.
-MIN_SHARDS = {"desktop": 5, "tablet": 3, "mobile": 3}
+# Tablet's minimum is four: #1296 run 42547252309 job 128935057706 selected
+# 513 cases on one worker in shard 3/3, continued producing captures through
+# 02:48:22 UTC on 2026-11-09, and was cancelled at 02:49:31 after its 60-minute
+# job cap. The earlier transport reset did not stop subsequent passing work.
+# Keep every case and the cap; give each tablet shard a smaller allocation.
+# Desktop1/5 reached its fixed cap again in #801 run42550254306/job128946320810.
+# The annotation proves the one-hour cancellation; no late-progress claim is made.
+# Six full shards reduce allocation while preserving every case and the same cap.
+MIN_SHARDS = {"desktop": 6, "tablet": 4, "mobile": 3}
 
 
 @pytest.mark.parametrize("project", SPLIT_PROJECTS)
@@ -385,8 +397,18 @@ def test_e2e_artifacts_stay_distinct_per_matrix_row():
         step for step in steps
         if str(step.get("uses", "")).startswith("actions/upload-artifact")
     ]
-    assert len(uploads) == 1, uploads
-    assert "${{ matrix.shard }}" in uploads[0]["with"]["name"], uploads[0]
+    assert len(uploads) == 2, uploads
+    by_name = {step["name"]: step for step in uploads}
+    general = by_name["Upload responsive QA screenshots"]
+    assert general["if"] == "always()"
+    assert "${{ matrix.shard }}" in general["with"]["name"], general
+    summary = by_name["Retain bounded Shared Shell outcome"]
+    assert summary["if"] == (
+        "${{ always() && matrix.shard == 'serial' && "
+        "steps.safe_shared_shell_summary.outcome == 'success' && "
+        "steps.safe_shared_shell_summary.outputs.safe_shared_shell_summary_ready == 'true' }}"
+    )
+    assert "-serial-safe-summary-" in summary["with"]["name"]
     shards = [item["shard"] for item in e2e_matrix(ci_workflow())]
     assert len(set(shards)) == len(shards), shards
 
@@ -422,13 +444,14 @@ def test_required_aggregate_rejects_unsuccessful_expanded_matrix(matrix_result):
     aggregate = workflow["jobs"]["terminal"]
     assert "terminal-e2e" in aggregate["needs"]
     assert aggregate["if"] == "always()"
-    step = next(step for step in aggregate["steps"] if step.get("name") == "Assert every terminal shard succeeded")
+    step = next(step for step in aggregate["steps"] if step.get("name") == "Assert all event-required Terminal checks passed")
     # Run the actual aggregate shell with the matrix-level result GitHub supplies.
     # A new row remains inside terminal-e2e, so its failure/cancellation makes this
     # matrix result unsuccessful; no new optional job or aggregate exception exists.
     result = subprocess.run(
         ["bash", "-c", step["run"]],
-        env={**os.environ, "UNIT": "success", "E2E": matrix_result},
+        env={**os.environ, "EVENT": "pull_request", "PR_SCOPE": "success",
+             "PR_MODE": "full", "SCOPE": "success", "UNIT": "success", "E2E": matrix_result},
         capture_output=True, text=True, check=False,
     )
     assert (result.returncode == 0) is (matrix_result == "success"), result.stdout

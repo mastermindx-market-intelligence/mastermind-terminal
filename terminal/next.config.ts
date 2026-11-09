@@ -4,11 +4,14 @@ import { readFileSync, readdirSync } from "node:fs";
 import path from "path";
 
 const isProd = process.env.NODE_ENV === "production";
-// This source-component recipe owns a compiler namespace separate from PL6/VI.
-// Normal dev, builds, production and every other fixture retain Next defaults.
+// F11 owns a separate compiler namespace only in its exact development recipe.
 const isF11Capture = process.env.NODE_ENV === "development"
   && process.env.TERMINAL_E2E_FIXTURE === "1"
   && process.env.TERMINAL_F11_PROVIDER_CLOSED === "1";
+// Only the closed canonical fixture transport denies the optional debug WebSocket.
+const isClosedCanonicalTransport = process.env.NODE_ENV === "development"
+  && process.env.TERMINAL_E2E_FIXTURE === "1"
+  && process.env.TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT === "intl-fixture-v1";
 
 // ── Deployment id (version-skew protection / stale-chunk self-heal) ───────────
 // Each production deploy gets a DISTINCT id: prefer the git sha wired in by
@@ -171,7 +174,10 @@ const embedChartHeaders = embedHeaders.map((header) =>
 );
 
 const nextConfig: NextConfig = {
-  ...(isF11Capture ? { distDir: ".next/f11", typescript: { tsconfigPath: "tsconfig.f11.json" } } : {}),
+  ...(isF11Capture ? { distDir: ".next/f11" } : {}),
+  ...((isF11Capture || isClosedCanonicalTransport)
+    ? { experimental: { reactDebugChannel: false } }
+    : {}),
   // Internal public-sample diagnostics must never be copied into a deploy artifact.
   // Turbopack globs are project-relative; parent-traversal excludes panic at build time.
   // The pinned terminal root already excludes its parent; cover any nested diagnostic copy too.
@@ -206,16 +212,14 @@ const nextConfig: NextConfig = {
   // sets on its dev server's env for every e2e project (the sole place any capture
   // script runs from), so local `npm run dev` keeps the indicator by default.
   devIndicators: process.env.TERMINAL_E2E_FIXTURE ? false : undefined,
-  // React dev Flight dependencies normally arrive over the debug WebSocket.
-  // F11 intentionally closes every socket before connect; disable only that
-  // optional dev transport in its provider-closed child so hydration can settle.
-  // Production, normal development, and other e2e/capture recipes retain Next's default.
-  experimental: {
-    reactDebugChannel: !isF11Capture,
-  },
   // tsc --noEmit is clean as of 2026-07-11, so builds enforce types again — the
   // 2026-07-07 `typescript.ignoreBuildErrors` escape hatch (FinPage union nits)
   // is removed; CI (.github/workflows/ci.yml) also gates PRs on tsc + vitest.
+  // Production checks application + generated Next contracts in a bounded project.
+  // The unchanged full tsconfig.json remains the required CI typecheck (tests/tools included).
+  typescript: {
+    tsconfigPath: isProd ? "tsconfig.build.json" : isF11Capture ? "tsconfig.f11.json" : "tsconfig.json",
+  },
   // Note: `eslint` key was removed in Next.js 16 — ESLint is no longer built-in.
   // ── Wave-2 IA redirect contract (permanent 308) ────────────────────────────
   // The old single-purpose route dirs (screener/heatmap/alerts/scripts/flow) were

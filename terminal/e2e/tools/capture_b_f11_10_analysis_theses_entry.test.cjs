@@ -7,6 +7,32 @@ const os = require("node:os");
 const path = require("node:path");
 const { assertNoCaptureDotenv, captureServerEnv } = require("./capture_b_f11_10_analysis_theses_entry.cjs");
 
+for (const indicatorCount of [0, 1]) {
+  test(`indicator observation preserves the page and ${indicatorCount ? "refuses a visible control" : "accepts an empty portal host"}`, async () => {
+    const source=fs.readFileSync(path.join(__dirname,"capture_b_f11_10_analysis_theses_entry.cjs"),"utf8");
+    const vm=require("node:vm"), sandboxModule={exports:{}};
+    vm.runInNewContext(source+"\nmodule.exports.indicatorForTest=assertNoNextIndicator;", {
+      module:sandboxModule, exports:sandboxModule.exports, require, __dirname,
+      process:{env:{}}, console, Buffer,
+    });
+    const seen=[];
+    const page={
+      async waitForTimeout(ms){assert.equal(ms,400);},
+      locator(selector){
+        seen.push(selector);
+        if(selector==="[data-nextjs-dev-tools-button]") return {async count(){return indicatorCount;}};
+        if(selector==="nextjs-portal") return {async count(){return 1;}};
+        throw new Error("unexpected indicator query");
+      },
+      async evaluate(){throw new Error("INDICATOR_OBSERVATION_MUST_NOT_REMOVE_DOM");},
+    };
+    const observation=sandboxModule.exports.indicatorForTest(page,"fixture.png");
+    if(indicatorCount) await assert.rejects(observation,/Next.js N overlay still mounted \(1\)/);
+    else await observation;
+    assert.deepEqual(seen,["[data-nextjs-dev-tools-button]"]);
+  });
+}
+
 test("owned runtime startup or cleanup error leaves only a sanitized failure outcome",async()=>{
   const {captureCaseWithFailureArtifact}=require("./capture_b_f11_10_analysis_theses_entry.cjs");
   const out=fs.mkdtempSync(path.join(os.tmpdir(),"f11-runtime-failure-"));
@@ -321,18 +347,30 @@ function evaluateActualNextConfig(env) {
   vm.runInNewContext(compiled,{exports,process:{env},__dirname:"/fixture",require: name => name === "node:fs" ? { readFileSync(){throw Object.assign(new Error("fixture"),{code:"ENOENT"});},readdirSync(){return [];} } : require(name)});
   return exports.default;
 }
-test("actual Next config disables only F11 development debug transport; production and other capture defaults unchanged", () => {
+test("actual Next config composes exact F11 and closed-canonical modes without changing ordinary defaults", () => {
   const env={NODE_ENV:"development",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1"};
-  const f11=evaluateActualNextConfig(env);
-  assert.equal(f11.experimental.reactDebugChannel,false);
-  assert.equal(f11.distDir,".next/f11");
-  assert.equal(f11.typescript.tsconfigPath,"tsconfig.f11.json");
-  for (const other of [{NODE_ENV:"production",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1"},{NODE_ENV:"development"},{NODE_ENV:"development",TERMINAL_E2E_FIXTURE:"1"},{NODE_ENV:"development",TERMINAL_F11_PROVIDER_CLOSED:"1"},{NODE_ENV:"test",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1"}]) {
-    const normal=evaluateActualNextConfig(other);
-    assert.equal(normal.experimental.reactDebugChannel,true);
-    assert.equal(normal.distDir,undefined);
-    assert.equal(normal.typescript,undefined);
+  const cases=[
+    [env,"tsconfig.f11.json",".next/f11",false],
+    [{...env,TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT:"intl-fixture-v1"},"tsconfig.f11.json",".next/f11",false],
+    [{NODE_ENV:"development",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"0",TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT:"intl-fixture-v1"},"tsconfig.json",undefined,false],
+    [{NODE_ENV:"production",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1"},"tsconfig.build.json",undefined,undefined],
+    [{...env,NODE_ENV:"production",TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT:"intl-fixture-v1"},"tsconfig.build.json",undefined,undefined],
+    [{NODE_ENV:"development"},"tsconfig.json",undefined,undefined],
+    [{NODE_ENV:"development",TERMINAL_E2E_FIXTURE:"1"},"tsconfig.json",undefined,undefined],
+    [{NODE_ENV:"development",TERMINAL_F11_PROVIDER_CLOSED:"1"},"tsconfig.json",undefined,undefined],
+    [{NODE_ENV:"test",TERMINAL_E2E_FIXTURE:"1",TERMINAL_F11_PROVIDER_CLOSED:"1"},"tsconfig.json",undefined,undefined],
+    [{...env,TERMINAL_E2E_FIXTURE:"true"},"tsconfig.json",undefined,undefined],
+    [{...env,TERMINAL_F11_PROVIDER_CLOSED:"true"},"tsconfig.json",undefined,undefined],
+    [{NODE_ENV:"development",TERMINAL_E2E_FIXTURE:"1",TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT:"other"},"tsconfig.json",undefined,undefined],
+  ];
+  for (const [input,project,distDir,debug] of cases) {
+    const actual=evaluateActualNextConfig(input);
+    assert.equal(actual.experimental?.reactDebugChannel,debug,JSON.stringify(input));
+    assert.equal(actual.distDir,distDir,JSON.stringify(input));
+    assert.equal(actual.typescript.tsconfigPath,project,JSON.stringify(input));
+    if (debug === undefined) assert.equal(Object.hasOwn(actual,"experimental"),false);
   }
+  const f11=evaluateActualNextConfig(env);
   const ordinary=evaluateActualNextConfig({...env,TERMINAL_F11_PROVIDER_CLOSED:"0"});
   assert.equal(JSON.stringify({...f11,experimental:undefined,distDir:undefined,typescript:undefined}),JSON.stringify({...ordinary,experimental:undefined,distDir:undefined,typescript:undefined}));
   assert.equal(captureServerEnv({TERMINAL_F11_PROVIDER_CLOSED:"0"}).TERMINAL_F11_PROVIDER_CLOSED,"1");
