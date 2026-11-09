@@ -24,6 +24,7 @@ import {
   type ReactNode,
 } from "react";
 import { fmtNum, fmtPct, fmtDate, pick } from "../../lib/finFormat";
+import tableControls from "./MiniTableControls.module.css";
 
 /**
  * Measure the chart box's live pixel width so the SVG viewBox can be set to
@@ -1293,13 +1294,13 @@ export function MiniTable({ periods, rows, fmt = fmtNum, showChange, pageSize = 
     const out: ReactNode[] = [
       <tr key={key} className={"fin-row" + (r.bold ? " fin-row-b" : "") + (hover === key ? " fin-row-hl" : "")}
         onMouseEnter={() => setHover(key)} onMouseLeave={() => setHover((h) => (h === key ? null : h))}>
-        <th className="fin-cell fin-cell-sticky" style={{ paddingLeft: 8 + (r.depth ?? 0) * 12 }} scope="row">
-          {hasChildren && (
-            <button className="fin-row-toggle" onClick={() => setOpen((o) => ({ ...o, [key]: !o[key] }))} aria-expanded={isOpen}>
-              {isOpen ? "▾" : "▸"}
+        <th className={"fin-cell fin-cell-sticky" + (hasChildren ? ` ${tableControls.disclosureCell}` : "")} style={{ paddingLeft: 8 + (r.depth ?? 0) * 12 }} scope="row">
+          {hasChildren ? (
+            <button type="button" className={`fin-row-toggle ${tableControls.disclosureButton}`} onClick={() => setOpen((o) => ({ ...o, [key]: !o[key] }))} aria-expanded={isOpen}>
+              <span className={tableControls.chevron} aria-hidden>{isOpen ? "▾" : "▸"}</span>
+              <span>{r.label}</span>
             </button>
-          )}
-          <span>{r.label}</span>
+          ) : <span>{r.label}</span>}
         </th>
         {cols.map(({ i }) => (
           <td
@@ -1324,9 +1325,9 @@ export function MiniTable({ periods, rows, fmt = fmtNum, showChange, pageSize = 
     <div className="fin-table-wrap">
       {pages > 1 && (
         <div className="fin-table-pager">
-          <button className="fin-pg-chev" disabled={back >= pages - 1} onClick={() => setPaging({ sig: setSig, back: Math.min(pages - 1, back + 1) })} aria-label={pick(!!zh, "Earlier periods", "较早期")}>‹</button>
+          <button type="button" className={`fin-pg-chev ${tableControls.pagerButton}`} disabled={back >= pages - 1} onClick={() => setPaging({ sig: setSig, back: Math.min(pages - 1, back + 1) })} aria-label={pick(!!zh, "Earlier periods", "较早期")}>‹</button>
           <span className="fin-pg-info">{cols[0]?.p}–{cols[cols.length - 1]?.p}</span>
-          <button className="fin-pg-chev" disabled={back <= 0} onClick={() => setPaging({ sig: setSig, back: Math.max(0, back - 1) })} aria-label={pick(!!zh, "Later periods", "较近期")}>›</button>
+          <button type="button" className={`fin-pg-chev ${tableControls.pagerButton}`} disabled={back <= 0} onClick={() => setPaging({ sig: setSig, back: Math.max(0, back - 1) })} aria-label={pick(!!zh, "Later periods", "较近期")}>›</button>
         </div>
       )}
       <div className="fin-table-scroll">

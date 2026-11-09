@@ -49,6 +49,6 @@ export default function CatalystOpportunityWorkspace() {
     return ()=>{clearInterval(timer);document.removeEventListener("visibilitychange",refresh);};
   },[]);
   return <CatalystOpportunityView view={accessError?null:current?.view || null} error={accessError || current?.error || null}
-    lang={lang} loading={!accessError && current===null} onRefresh={()=>setRevision(v=>v+1)}
+    readContext={accessError?null:current} lang={lang} loading={!accessError && current===null} onRefresh={()=>setRevision(v=>v+1)}
     defensePanel={<DefenseContextWorkspace revision={revision} lang={lang} blocked={accessError || current?.error || null} onAccessDenied={onDefenseAccessDenied} onRefresh={()=>setRevision(v=>v+1)} />} />;
 }

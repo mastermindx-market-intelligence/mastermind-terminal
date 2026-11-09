@@ -1,0 +1,16 @@
+[warmup] /terminal?symbol=NVDA → 200 in 68ms
+[warmup] /options → 200 in 142ms
+[warmup] /portfolio → 200 in 67ms
+[warmup] /alerts → 200 in 75ms
+[warmup] /analysis → 200 in 137ms
+[warmup] /discover → 200 in 96ms
+[warmup] /admin → 200 in 55ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 45ms
+[warmup] /login → 200 in 65ms
+[warmup] /reset-password → 200 in 78ms
+[warmup] /api/me → 200 in 53ms
+[warmup] /api/watchlist → 200 in 27ms
+[warmup] /api/layouts → 200 in 25ms
+[warmup] /api/watchlist/annotations → 409 in 25ms
+[warmup] 14 routes compiled in 1s
+{"visualEvidence":"terminal/docs/pr-crops/terminal-visual-intelligence/d08c-plan-compare-vi-20261104-r2--operation.json","sha256":"fa3f61415d541408b7481b010764c79e1cbf0f65cef94f58f3f5a4c987e6ed78","actualCases":30}

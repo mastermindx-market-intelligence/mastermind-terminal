@@ -1,0 +1,238 @@
+{
+  "reviewedAt": "2026-11-09T07:02:34.220827+00:00",
+  "reviewer": "root assigned PR recovery session",
+  "method": "All56 original images inspected via14 labelled contact sheets; original files remain authoritative",
+  "result": "PASS within declared native viewport/section-crop contracts",
+  "images": [
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-field-error-1440-zh.png",
+      "sha256": "d9f6a56438bc84c7f48b8f96f76aede34c5e47a2265a2f7d0f4d67c8cbd4940f"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-field-error-1440.png",
+      "sha256": "66696e037bda603edfb4019faaffb691653060329598cbf600d29e1ba5b6413e"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-field-error-390-zh.png",
+      "sha256": "8aea9222f94f9c11fdd208df8ef4925d7d9679916565acacf42be27fa54dc80e"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-field-error-390.png",
+      "sha256": "263d53ed26fb10148faacacc8b8af3ac16e7990de5ea09d0b352339fd7481b69"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-populated-1440-zh.png",
+      "sha256": "59dd58c242d99673cfc8c0e4d9a8327cd62c5048ace6076c9432dc381fa0b209"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-populated-1440.png",
+      "sha256": "f5b8c74e80c07d5735ca113fada69ac3079dd4c58fced1b00baad7ab261fa523"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-populated-390-zh.png",
+      "sha256": "b3bd52a1367150ed288163f63e83eb9ae8ac99aef11422c5202d363456fab670"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-populated-390.png",
+      "sha256": "97491bbd734ac93d80389f991aee91baffc648a96a927a527c76bd782ddb8be3"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-quiet-hours-1440-zh.png",
+      "sha256": "28757ece5a9d16f4d67d2a00cbc0e31f7356404f3cc2eda5354f1213dd8fd089"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-quiet-hours-1440.png",
+      "sha256": "0ab8ac8e6438546aa2afdcc51af5196858de204790adb2fbbabc00f26868f9f1"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-quiet-hours-390-zh.png",
+      "sha256": "2a491f01775ae1bcf76131f04a5b6ae6a28c08d03461e3a0fd85670ebcc9fdf5"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-quiet-hours-390.png",
+      "sha256": "0a595727a197c69ab7d9074033116afbe70577b71172d188c2d4322f1991ee40"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-unavailable-1440-zh.png",
+      "sha256": "bc9e2aa33156b7347f0f7dd3825e086288ebd045e3d5e4526271c65c48b276e4"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-unavailable-1440.png",
+      "sha256": "72fd9f7954e637a3bad80a84d0aeb30b79b8dede6534b4f3e33e682f411e0867"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-unavailable-390-zh.png",
+      "sha256": "9a86ae2a26443394ef2a1ea911ac1e1c8e7231f3bb0c631b321c855e158d66d3"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-unavailable-390.png",
+      "sha256": "b90db3010a8702870adea3c999cc15ac95a37615c87fbb76db0e6e9d5f255552"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-cleared-1440-zh.png",
+      "sha256": "3d281854b41266dc65bbb3b22bc196c3ca99e2847d8d7a92100fa71f58843964"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-cleared-1440.png",
+      "sha256": "23d0f2513229560b94025d7b4e84d0922b7a8f90d282da206f323571f701c8ee"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-cleared-390-zh.png",
+      "sha256": "ff6749967d3af38d0f5d6fd079642f76628ff3f80b8f44f871df7d69e53848ce"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-cleared-390.png",
+      "sha256": "e352fa63eb75827518e7f07372df4397e28e5f5d897a8ac97aa929425684a05d"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-empty-1440-zh.png",
+      "sha256": "1cc7c889dbc0868875bab637de4789c4bb09dbaa6922d9c31e6e3a4342148a6d"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-empty-1440.png",
+      "sha256": "317d666ccff1d5cce5d7b5e549a84f3ee219a4bb820ba607b95c0894fd3884ca"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-empty-390-zh.png",
+      "sha256": "edf89ea4603db75aeafa83c39d8079fd97fa85a14ec636e6687438fdd81786fb"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-empty-390.png",
+      "sha256": "517c6fec61f38ee7088e87bd4d8a3ccd5be3d6ab809596e097e402130a7b5c90"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-orphaned-empty-book-1440-zh.png",
+      "sha256": "97b8e58361179760cf38239e01fb790c3ee891cebadd0544609a49cab4d1a881"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-orphaned-empty-book-1440.png",
+      "sha256": "8cb1078a7fb8770b93dee3513593580d0de74adeba32dd0c8e441c266c8289e5"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-orphaned-empty-book-390-zh.png",
+      "sha256": "004d799f11aa16de8eadfcf37cc26c6ecd08f2f82445097e28851b0505da9689"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-orphaned-empty-book-390.png",
+      "sha256": "a4fd9cde12ed1015b2d250b55f3a897ca30bc7c0af3ab91af3061461dc7a40b3"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-orphaned-target-disclosed-1440-zh.png",
+      "sha256": "129fdd5b4590532c308b8b83952f996e68a8018af1c55d1f9fc893be153f7bc3"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-orphaned-target-disclosed-1440.png",
+      "sha256": "fe5f8383df2aadacdba414bc4ba82b870106be85e9ee5d8c5ef5efc4d18f8f28"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-orphaned-target-disclosed-390-zh.png",
+      "sha256": "ff52c91937073a9aef8fd2fa531d64edcf32a000c03f431d02251950979dc74e"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-orphaned-target-disclosed-390.png",
+      "sha256": "35fd138da20f952f3adce95c513a1ea12663c17a1806178a537757d475b3edc4"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-populated-outside-band-1440-zh.png",
+      "sha256": "6add7795bac23009ba260a5eb25d4b97c71a13ee26bcb600b4f383c0bf40224f"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-populated-outside-band-1440.png",
+      "sha256": "839c2f280d23ef789753e7968e6ace73624f115f3351d5fd8818f0fe7e990116"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-populated-outside-band-390-zh.png",
+      "sha256": "8102cf86c0089d104defe01899356a52bc12b619738fc87a9aa3fe0ec11583d1"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-populated-outside-band-390.png",
+      "sha256": "8a38e353706baddab94c27e9fe8fb92bf6f7c6e7e714d3276843fb5cbda00507"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-populated-within-band-1440-zh.png",
+      "sha256": "8dc4c33b12a4c69d49398af6dc9721e947c4b8573dab6725287e63bf40fca05c"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-populated-within-band-1440.png",
+      "sha256": "eb6c6545763c6b6fda9b25b9759952aa6e546f37ccc6d5b26fcdc2af60016cd8"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-populated-within-band-390-zh.png",
+      "sha256": "e500166899fd64012e33d464156da47987bdadb898a752df3f9cad83dedfa890"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-populated-within-band-390.png",
+      "sha256": "65f45cf8ee344a031d503fa6a051f25d2bca0ba196abcae360daa8bd68154605"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-unavailable-1440-zh.png",
+      "sha256": "3a9e3f7760c7172304560a73619a90105e14f55f6e5159aa4461afe81b701dd1"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-unavailable-1440.png",
+      "sha256": "fec59264fde4cefd1221e30a2edf8266f4edd2a53a361986962b25afcec9d6a3"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-unavailable-390-zh.png",
+      "sha256": "6ad35f2f02bb3f393d39e09821d566eec4adfc119a6b1d095c818ac2ac5f1ed0"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-unavailable-390.png",
+      "sha256": "8b9db0a5773bcd2f7ab77628f4a6d89926751e035ab5c54392ae0be0d3e63a2b"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-unweighable-1440-zh.png",
+      "sha256": "19d1b5da7c076643f773b48c71b91f8a8f884cfd4405bb1e91695f697bed8436"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-unweighable-1440.png",
+      "sha256": "5c38dfe9cbc1f41d225b086be36ee8a59c6437ab5065d7a13f01a3071f1f23cc"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-unweighable-390-zh.png",
+      "sha256": "0af38583f1f0c126ee7b22f15c567b07e0be9ade102d70077376ac4471da2913"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f08-b5-1-targets/PortfolioTargets-unweighable-390.png",
+      "sha256": "f529f80846b9680c00ffa21ce3a4893a64faf5f719585770f335b13bebfd8009"
+    },
+    {
+      "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-empty-1440-en.png",
+      "sha256": "6096a7dff3f68cec58e64a9e26c6b2d85e99e2fd1bec1d59ef3582b86d3d848a"
+    },
+    {
+      "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-empty-1440-zh.png",
+      "sha256": "d1d3e5204bdbd197e0ada930a813181859f2de97159c37da2695193681111bd7"
+    },
+    {
+      "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-empty-390-en.png",
+      "sha256": "932faf8fe36348acd21982f16d5814a9c27096b71003e660275ab3e4e7f50fb3"
+    },
+    {
+      "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-empty-390-zh.png",
+      "sha256": "faf4819f5d3fdf06d0b203dc8b0f0b17bc23d64ce2ee23e570b483d8cd8ca555"
+    },
+    {
+      "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-populated-1440-en.png",
+      "sha256": "d891872dab9b00ac95002106b4c5d6cb4e089d67c9a4723355b570e8e30bab4f"
+    },
+    {
+      "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-populated-1440-zh.png",
+      "sha256": "87a5ec4ca26e183c8050c01091722241138902afe007997302acafab5be89fcb"
+    },
+    {
+      "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-populated-390-en.png",
+      "sha256": "26ca3144d5550b04a50dadc4e21c0a0affdf812cdd0653792a8e6ca993249086"
+    },
+    {
+      "path": "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-populated-390-zh.png",
+      "sha256": "27a5d74d1c318cc4db6fc3bcb279bc20dee7e37205e4cc86c32422ded715f575"
+    }
+  ],
+  "observations": [
+    "All four Alert states visible in EN/ZH desktop/mobile; no Next indicator",
+    "Alert English mobile field-error retains native internal scrolling; last quiet-hours control extends below first viewport",
+    "All32 Portfolio section crops include final controls/status; two mobile unweighable cases use disclosed taller viewport",
+    "Settings native empty and populated readouts match recorded API state;100/60/+40 figures visible in both languages and widths"
+  ]
+}

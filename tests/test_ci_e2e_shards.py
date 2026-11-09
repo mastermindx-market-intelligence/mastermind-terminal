@@ -145,9 +145,15 @@ SPLIT_PROJECTS = ("desktop", "tablet", "mobile")
 # subsequent passes at 19:39:49 before cancellation at 19:45:28 on 2026-10-21.
 # The assertion is repaired separately; the unchanged cap still detects hangs.
 # Green predecessor heads 7579 (58m50) and 60c2 (57m17) had little headroom.
-# Tablet's minimum is three: #1061 run 39416005343 tablet-1 passed in
-# 56m47s and #1090 run 39415184138 in 55m40s, approaching the same cap.
-MIN_SHARDS = {"desktop": 5, "tablet": 3, "mobile": 3}
+# Tablet's minimum is four: #1296 run 42547252309 job 128935057706 selected
+# 513 cases on one worker in shard 3/3, continued producing captures through
+# 02:48:22 UTC on 2026-11-09, and was cancelled at 02:49:31 after its 60-minute
+# job cap. The earlier transport reset did not stop subsequent passing work.
+# Keep every case and the cap; give each tablet shard a smaller allocation.
+# Desktop1/5 reached its fixed cap again in #801 run42550254306/job128946320810.
+# The annotation proves the one-hour cancellation; no late-progress claim is made.
+# Six full shards reduce allocation while preserving every case and the same cap.
+MIN_SHARDS = {"desktop": 6, "tablet": 4, "mobile": 3}
 
 
 @pytest.mark.parametrize("project", SPLIT_PROJECTS)

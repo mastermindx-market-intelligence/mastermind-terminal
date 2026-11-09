@@ -1,0 +1,8 @@
+{
+  "sourceAndManifestsExit": 0,
+  "rawOutputExit": 2,
+  "rawOutputWarnings": [
+    "docs/verification/pr902-evidence-20261109/evidence-gates.log:13: new blank line at EOF."
+  ],
+  "disposition": "Raw command logs are byte-exact; any output whitespace is retained and disclosed"
+}

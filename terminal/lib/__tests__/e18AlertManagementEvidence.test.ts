@@ -15,6 +15,9 @@ const LAYOUT_FILES = [
   "terminal/components/alerts/alertBulk.module.css",
   "terminal/lib/alertBulk.ts",
   "terminal/lib/alertBulkLex.ts",
+  "terminal/e2e/tools/capture_e18_alert_management.cjs",
+  "terminal/e2e/tools/capture_ci_evidence.cjs",
+  "terminal/next.config.ts",
 ];
 const STATES = ["review", "results"] as const;
 const CROPS = STATES.flatMap((state) =>
