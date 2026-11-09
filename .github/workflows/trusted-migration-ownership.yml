@@ -6,7 +6,8 @@ run-name: Migration owner ${{ github.event.workflow_run.id }}/${{ github.event.w
 on:
   workflow_run:
     workflows: [CI]
-    types: [completed]
+    # Namespace qualification must not wait for the CI gate it will support.
+    types: [in_progress]
 
 permissions: {}
 concurrency:
@@ -26,7 +27,6 @@ jobs:
       github.event.repository.default_branch == 'master' &&
       github.event.workflow_run.repository.full_name == github.repository &&
       github.event.workflow_run.head_repository.full_name == github.repository &&
-      github.event.workflow_run.conclusion == 'success' &&
       contains(fromJSON('["merge_group","pull_request","workflow_dispatch"]'), github.event.workflow_run.event) &&
       (vars.MIGRATION_OWNER_APP_ID != '0' || vars.MIGRATION_OWNER_INSTALLATION_ID != '0')
     runs-on: ubuntu-latest

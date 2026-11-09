@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import type { CatalystCase, CatalystView, ThemeLabel } from "@/lib/catalystOpportunity";
 import { catalystText, type CatalystTextKey } from "@/lib/catalystOpportunityLex";
@@ -9,6 +9,8 @@ import { defenseText } from "@/lib/catalystDefenseLex";
 export type CatalystLoadError = "auth" | "access" | "unavailable" | null;
 export type CatalystOpportunityViewProps = {
   view: CatalystView | null; lang: "en" | "zh"; loading: boolean;
+  /** The existing workspace result owns account/read identity; this view does not create one. */
+  readContext: object | null;
   error: CatalystLoadError; onRefresh: () => void; defensePanel?: ReactNode;
 };
 type Scope = "all" | "defense" | "energy";
@@ -25,16 +27,24 @@ function percentage(value: number | null, lang: "en"|"zh", relative = false): st
 }
 function stateKey(value: ThemeLabel): CatalystTextKey {return value;}
 
-export function CatalystOpportunityView({view,lang,loading,error,onRefresh,defensePanel}: CatalystOpportunityViewProps) {
+export function CatalystOpportunityView({view:loadedView,readContext,lang,loading,error,onRefresh,defensePanel}: CatalystOpportunityViewProps) {
   const t = (key:CatalystTextKey) => catalystText(lang,key);
   const [scope,setScope] = useState<Scope>("all"), [query,setQuery] = useState("");
   const [selectedId,setSelectedId] = useState<string|null>(null), [limit,setLimit] = useState(6);
-  const [copyStatus,setCopyStatus] = useState<CatalystTextKey|null>(null);
-  const heading = useRef<HTMLHeadingElement>(null);
+  const [selectionReady,setSelectionReady] = useState(false);
+  // Do not retain a prior read's detail, link or figures while the owner clears access.
+  const view = !loading && !error && readContext && loadedView?.status!=="unavailable" ? loadedView : null;
+  const heading = useRef<HTMLHeadingElement>(null), pageHeading = useRef<HTMLHeadingElement>(null);
+  const missingNotice = useRef<HTMLParagraphElement>(null), manualLink = useRef<HTMLTextAreaElement>(null);
+  const detailHasFocus = useRef(false);
+  const choiceFocus = useRef<{themeId:string;view:CatalystView|null;readContext:object|null}|null>(null);
+  const activeCopy = useRef<object|null>(null);
+  const [copyState,setCopyState] = useState<{context:object;url:string;status:"copying"|"copied"|"copyFailed"}|null>(null);
   useEffect(()=>{
     const sync = () => {
+      activeCopy.current=null;choiceFocus.current=null;setCopyState(null);
       const id = new URLSearchParams(window.location.search).get("case");
-      setSelectedId(id && VALID_THEME.test(id) ? id : null);
+      setSelectedId(id && VALID_THEME.test(id) ? id : null);setSelectionReady(true);
     };
     sync();window.addEventListener("popstate",sync);
     return ()=>window.removeEventListener("popstate",sync);
@@ -44,21 +54,48 @@ export function CatalystOpportunityView({view,lang,loading,error,onRefresh,defen
     return (view?.cases || []).filter(row=>(scope==="all" || row.sector===scope)
       && (!term || `${row.name} ${row.name_zh}`.toLocaleLowerCase().includes(term)));
   },[view,scope,query]);
-  const selected = watches.find(row=>row.theme_id===selectedId) || watches[0] || null;
-  const missingSelection = selectedId !== null && view !== null && !view.cases.some(row=>row.theme_id===selectedId);
+  // An explicit case belongs to the authorized snapshot, not to the filtered list.
+  // Only an absent URL selection may default to the first visible watch.
+  const selected = !selectionReady || !view ? null : selectedId===null
+    ? watches[0] || null : view.cases.find(row=>row.theme_id===selectedId) || null;
+  const missingSelection = selectionReady && selectedId!==null && view!==null && selected===null;
+  const outsideFilters = !!selected && selectedId!==null && !watches.some(row=>row.theme_id===selected.theme_id);
+  const copyContext = useMemo(()=>({view,readContext,themeId:selected?.theme_id,selectedId,selectionReady}),
+    [view,readContext,selected?.theme_id,selectedId,selectionReady]);
+  // A context change (including A -> B -> A) retires the attempt before paint.
+  // This suppresses late feedback; an already issued clipboard write is not cancellable.
+  useLayoutEffect(()=>()=>{activeCopy.current=null;},[copyContext]);
+  useLayoutEffect(()=>{
+    const request = choiceFocus.current;choiceFocus.current=null;
+    if (request && request.themeId===selected?.theme_id && request.view===view && request.readContext===readContext) {
+      heading.current?.focus();
+    } else if (!selected && detailHasFocus.current) {
+      detailHasFocus.current=false;
+      (missingNotice.current || pageHeading.current)?.focus();
+    }
+  },[selected,view,readContext]);
+  const currentCopy = copyState?.context===copyContext ? copyState : null;
+  const clearFilters = () => {setScope("all");setQuery("");setLimit(6);};
   const choose = (row:CatalystCase) => {
-    setSelectedId(row.theme_id);setCopyStatus(null);
+    activeCopy.current=null;setCopyState(null);
+    choiceFocus.current={themeId:row.theme_id,view,readContext};setSelectedId(row.theme_id);
     const url = new URL(window.location.href);url.searchParams.set("tab","catalysts");url.searchParams.set("case",row.theme_id);
     window.history.pushState(null,"",url);
-    window.requestAnimationFrame(()=>heading.current?.focus());
+    if (selected?.theme_id===row.theme_id) {choiceFocus.current=null;heading.current?.focus();}
   };
   const copy = async () => {
-    if (!selected) return;
-    const url = new URL(window.location.href);url.searchParams.set("tab","catalysts");url.searchParams.set("case",selected.theme_id);
-    try {await navigator.clipboard.writeText(url.toString());setCopyStatus("copied");}
-    catch {setCopyStatus("copyFailed");}
+    if (!selected || !view) return;
+    const prepared = new URL(window.location.href);prepared.searchParams.set("tab","catalysts");prepared.searchParams.set("case",selected.theme_id);
+    const url = prepared.toString(), attempt = {context:copyContext,url};
+    activeCopy.current=attempt;setCopyState({...attempt,status:"copying"});
+    try {
+      await navigator.clipboard.writeText(url);
+      if (activeCopy.current===attempt) setCopyState({...attempt,status:"copied"});
+    } catch {
+      if (activeCopy.current===attempt) setCopyState({...attempt,status:"copyFailed"});
+    }
   };
-  const empty = error || (!loading && (!view || view.status==="unavailable"));
+  const empty = error || (!loading && !view);
   const populationUnknown = view?.coverage.declared === null;
   const observationsIncomplete = !!view && (view.coverage.refused > 0 ||
     (view.coverage.declared !== null && view.coverage.declared !== view.coverage.observed));
@@ -68,7 +105,7 @@ export function CatalystOpportunityView({view,lang,loading,error,onRefresh,defen
   return <main className={`main2 ${styles.root}`} data-testid="catalyst-opportunities" aria-busy={loading}>
     <div className={styles.page}>
       <header className={styles.header}>
-        <div><p className={styles.eyebrow}>{t("eyebrow")}</p><h1>{t("title")}</h1><p className={styles.subtitle}>{t("subtitle")}</p></div>
+        <div><p className={styles.eyebrow}>{t("eyebrow")}</p><h1 ref={pageHeading} tabIndex={-1}>{t("title")}</h1><p className={styles.subtitle}>{t("subtitle")}</p></div>
         <div className={styles.actions}>{defensePanel && <a className={styles.button} href="#defense-evidence">{defenseText(lang,"inspect")}</a>}<button className={styles.button} onClick={onRefresh} disabled={loading}>{t("refresh")}</button></div>
       </header>
       <div className={styles.context}><span className={styles.badge}>{t("daily")}</span><span>{t("research")}</span>
@@ -88,7 +125,7 @@ export function CatalystOpportunityView({view,lang,loading,error,onRefresh,defen
         {view.status==="stale" && <aside className={styles.notice}><strong>{t("datedTitle")}</strong><p>{t("datedBody")}</p></aside>}
         {populationUnknown && <aside className={styles.notice}><strong>{t("unknownPopulationTitle")}</strong><p>{t("unknownPopulationBody")}</p></aside>}
         {observationsIncomplete && <aside className={styles.notice}><strong>{t("partialTitle")}</strong><p>{t("partialBody")}</p></aside>}
-        {missingSelection && <p className={styles.notice}>{t("invalidLink")}</p>}
+        {missingSelection && <p className={styles.notice} ref={missingNotice} tabIndex={-1} role="status">{t("invalidLink")}</p>}
         <div className={styles.counts}>
           <div><strong>{view.coverage.valid}</strong><span>{t("covered")}</span><small>{t("universe")}</small></div>
           <div><strong>{view.coverage.watch_count}</strong><span>{t("watches")}</span><small>{t("provisional")}</small></div>
@@ -99,13 +136,13 @@ export function CatalystOpportunityView({view,lang,loading,error,onRefresh,defen
           </div>
           <label>{t("search")}<input type="search" maxLength={120} value={query} onChange={event=>{setQuery(event.target.value);setLimit(6);}} autoComplete="off" /></label>
         </div>
-        {watches.length===0 ? <section className={styles.empty}>
+        <div className={styles.columns} data-has-detail={!!selected}>
+          {watches.length===0 ? <section className={styles.empty}>
           <h2>{t("noMatches")}</h2><p>{t("noMatchesBody")}</p>
           {scope==="defense" && view.inventory.some(row=>row.theme_id==="defense" && !row.watch) && <p>{t("defenseNoWatch")}</p>}
-          <div className={styles.actions}><button className={styles.button} onClick={()=>{setScope("all");setQuery("");}}>{t("clear")}</button>
+          <div className={styles.actions}><button className={styles.button} onClick={clearFilters}>{t("clear")}</button>
             <a className={styles.button} href="https://www.mastermind-x.com/government_revenue.html" target="_blank" rel="noopener noreferrer">{t("defenseLink")}</a></div>
-        </section> : <div className={styles.columns}>
-          <section className={styles.watchList} aria-label={t("watches")}>
+          </section> : <section className={styles.watchList} aria-label={t("watches")}>
             {watches.slice(0,limit).map(row=><article className={styles.watchCard} key={row.id} data-selected={selected?.id===row.id}>
               <div className={styles.cardTop}><span className={styles.badge}>{t(row.watch_kind==="emerging_watch"?"emergingWatch":"leadershipWatch")}</span><span>{t(stateKey(row.source_label))}</span></div>
               <h2>{localName(row,lang)}</h2><p>{lang==="zh"?row.summary_zh:row.summary}</p>
@@ -114,10 +151,15 @@ export function CatalystOpportunityView({view,lang,loading,error,onRefresh,defen
               <button className={styles.inspect} onClick={()=>choose(row)} aria-pressed={selected?.id===row.id} aria-label={`${t("openCase")}: ${localName(row,lang)}`}>{t("openCase")} <span aria-hidden="true">→</span></button>
             </article>)}
             {limit<watches.length && <button className={styles.button} onClick={()=>setLimit(value=>value+12)}>{t("more")} ({watches.length-limit})</button>}
-          </section>
-          {selected && <section className={styles.detail} aria-labelledby="catalyst-detail-title">
+          </section>}
+          {selected && <section className={styles.detail} aria-labelledby="catalyst-detail-title"
+            onFocusCapture={()=>{detailHasFocus.current=true;}}
+            onBlurCapture={event=>{detailHasFocus.current=event.currentTarget.contains(event.relatedTarget as Node|null);}}>
             <div className={styles.detailHead}><span className={styles.eyebrow}>{t("details")}</span><h2 id="catalyst-detail-title" ref={heading} tabIndex={-1}>{localName(selected,lang)}</h2>
-              <p>{lang==="zh"?selected.summary_zh:selected.summary}</p></div>
+              <p>{lang==="zh"?selected.summary_zh:selected.summary}</p>
+              {outsideFilters && <div className={styles.selectionNotice}><p role="status">{t("outsideFilters")}</p>
+                {watches.length>0 && <button className={styles.button} onClick={clearFilters}>{t("clear")}</button>}</div>}
+            </div>
             <div className={styles.detailMetrics}>
               <div><span>{t("relative")}</span><strong>{percentage(selected.metrics.rel_5d,lang,true)}</strong><small>{t("relativeFoot")}</small></div>
               <div><span>{t("breadth")}</span><strong>{percentage(selected.metrics.pct50,lang)}</strong><small>{t("breadthFoot")}</small></div>
@@ -133,10 +175,15 @@ export function CatalystOpportunityView({view,lang,loading,error,onRefresh,defen
               <div className={styles.actions}><Link className={styles.button} href="/discover?tab=sectors">{t("sectorLink")}</Link>
                 <a className={styles.button} href="https://www.mastermind-x.com/government_revenue.html" target="_blank" rel="noopener noreferrer">{t("defenseLink")}</a>
                 <button className={styles.button} onClick={()=>void copy()}>{t("copy")}</button></div>
-              {copyStatus && <p className={styles.copyStatus} role="status">{t(copyStatus)}</p>}
+              {currentCopy && <p className={styles.copyStatus} role="status">{t(currentCopy.status)}</p>}
+              {currentCopy?.status==="copyFailed" && <div className={styles.manualCopy}>
+                <label htmlFor="catalyst-case-link">{t("caseLink")}</label>
+                <textarea id="catalyst-case-link" ref={manualLink} readOnly rows={3} value={currentCopy.url} spellCheck={false} />
+                <button className={styles.button} onClick={()=>{manualLink.current?.focus();manualLink.current?.select();}}>{t("selectLink")}</button>
+              </div>}
             </div>
           </section>}
-        </div>}
+        </div>
         <details className={styles.coverage}><summary>{t("allCoverage")} ({view.inventory.length})</summary>
           <div className={styles.tableWrap}><table><thead><tr><th>{t("theme")}</th><th>{t("state")}</th><th>{t("watchColumn")}</th></tr></thead>
             <tbody>{view.inventory.map(row=><tr key={row.theme_id}><th scope="row">{localName(row,lang)}</th><td>{t(stateKey(row.source_label))}</td><td>{t(row.watch?"yes":"no")}</td></tr>)}</tbody></table></div>

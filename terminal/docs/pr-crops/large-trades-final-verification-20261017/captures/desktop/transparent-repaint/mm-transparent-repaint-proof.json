@@ -1,0 +1,60 @@
+{
+  "fixtureOnly": true,
+  "realCanvasPixels": true,
+  "productionProof": false,
+  "background": "transparent",
+  "width": 1000,
+  "height": 500,
+  "rowCount": 30,
+  "repainted": {
+    "beforeData": {
+      "scheduledCallbacksRun": 1,
+      "rowCount": 0,
+      "priceRange": {
+        "from": 0,
+        "to": 1
+      }
+    },
+    "afterData": {
+      "scheduledCallbacksRun": 2,
+      "rowCount": 30,
+      "priceRange": {
+        "from": 225,
+        "to": 225.12
+      }
+    }
+  },
+  "fresh": {
+    "beforeData": {
+      "scheduledCallbacksRun": 0,
+      "rowCount": 0,
+      "priceRange": {
+        "from": 0,
+        "to": 1
+      }
+    },
+    "afterData": {
+      "scheduledCallbacksRun": 1,
+      "rowCount": 30,
+      "priceRange": {
+        "from": 225,
+        "to": 225.12
+      }
+    }
+  },
+  "finalPngBytesEqual": true,
+  "identities": {
+    "empty": {
+      "sha256": "ac2579d6c028fe95808294d5d7e2b69c0858dfd68c5275e20b77b4361f375714",
+      "bytes": 17372
+    },
+    "repainted": {
+      "sha256": "ecfa23fc70198f458a7202ca8887370d247caaa1a10bd8c56eff0f07a08c8887",
+      "bytes": 55016
+    },
+    "fresh": {
+      "sha256": "ecfa23fc70198f458a7202ca8887370d247caaa1a10bd8c56eff0f07a08c8887",
+      "bytes": 55016
+    }
+  }
+}
