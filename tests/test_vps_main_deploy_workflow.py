@@ -63,3 +63,59 @@ def test_deploy_command_shell_parses_without_running() -> None:
     parsed = subprocess.run(["bash", "-n"], input=command, text=True,
                             capture_output=True, check=False)
     assert parsed.returncode == 0, parsed.stderr
+
+
+
+def test_active_beta_reuses_the_same_exact_source_publisher_and_receipt() -> None:
+    wf = _workflow()
+    command = wf["jobs"]["deploy"]["steps"][1]["run"]
+    assert '.github/workflows/vps-main-deploy.yml' in wf.get("on", wf.get(True))["push"]["paths"]
+    assert command.count("bash /opt/terminal/terminal-build.sh --target production") == 1
+    assert command.count("bash /opt/terminal/terminal-build.sh --target beta") == 1
+    assert command.count("--target-sha '$TARGET_SHA'") == 2
+    assert "systemctl is-active --quiet terminal-beta.service && systemctl is-enabled --quiet terminal-beta.service" in command
+    assert "test -L /opt/terminal/beta/.runtime-accepted" in command
+    assert command.index('test \\"\\$installed\\"') < command.index("systemctl is-active")
+    assert command.index("systemctl is-active") < command.index("--target beta")
+    assert command.index("--target beta") < command.index("python3 -c")
+    assert "existing stop/start policy preserved" in command
+    assert "/opt/terminal/beta/.deployment-id" not in command
+    for forbidden in ("--bootstrap", "--recover-attempt", "systemctl start", "systemctl enable", "systemctl reset-failed", "crontab", "sleep "):
+        assert forbidden not in command
+
+
+def test_beta_receipt_and_runtime_check_fails_closed() -> None:
+    import contextlib
+    import io
+    import json
+    import re
+    import sys
+    from unittest import mock
+
+    command = _workflow()["jobs"]["deploy"]["steps"][1]["run"]
+    match = re.search(r"python3 -c '([^']+)' /opt/terminal/beta/\.runtime-accepted", command)
+    assert match is not None
+    code = match.group(1).replace('\\"', '"')
+    compiled = compile(code, "<beta-receipt-origin-check>", "exec")
+    expected = "a" * 40
+    cases = [
+        ({"accepted_sha": expected}, {"buildId": expected, "enabled": True}, 0),
+        ({"accepted_sha": "b" * 40}, {"buildId": expected, "enabled": True}, 1),
+        ({"accepted_sha": expected}, {"buildId": "b" * 40, "enabled": True}, 1),
+        ({"accepted_sha": expected}, {"buildId": expected, "enabled": False}, 1),
+        ({"accepted_sha": expected}, {"buildId": expected, "enabled": "true"}, 1),
+        ({}, {}, 1),
+    ]
+    for receipt, status, exit_code in cases:
+        with (mock.patch("builtins.open", return_value=io.StringIO(json.dumps(receipt))) as opened,
+              mock.patch("urllib.request.urlopen", return_value=io.StringIO(json.dumps(status))) as fetched,
+              mock.patch.object(sys, "argv", ["check", "/opt/terminal/beta/.runtime-accepted", expected]),
+              contextlib.redirect_stdout(io.StringIO())):
+            try:
+                exec(compiled, {})
+            except SystemExit as exc:
+                assert exc.code == exit_code
+            else:
+                raise AssertionError("release validator must declare its outcome")
+            opened.assert_called_once_with("/opt/terminal/beta/.runtime-accepted")
+            fetched.assert_called_once_with("http://127.0.0.1:3001/api/shared-shell/status", timeout=15)
