@@ -89,7 +89,7 @@ function summary(
 
 function detailFor(row: ThesisSummary): ThesisDetail {
   const current: ThesisVersion = {
-    id: `${row.id}-v1`,
+    id: `${row.id}-v${row.currentVersion}`,
     thesisId: row.id,
     version: row.currentVersion,
     previousVersion: row.currentVersion > 1 ? row.currentVersion - 1 : null,
@@ -365,6 +365,89 @@ describe("ThesisWorkspace reopen with MarketOntology context", () => {
       else Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
     }
   });
+
+  it.each(["response", "decoded body"] as const)(
+    "ignores a retired recovery POST's late %s after owner A returns, retaining the same request for recovery",
+    async (lateKind) => {
+      const stored = seedPendingCreate("c3300000-0000-4000-8000-000000000001");
+      const originalEnvelope = window.localStorage.getItem(stored.key);
+      const currentRow = summary(MSFT_ID, listingSubject("MSFT"), "Returning owner current thesis");
+      const responseGate = deferredResponse();
+      let settleBody!: (body: unknown) => void;
+      const bodyGate = new Promise<unknown>((resolve) => { settleBody = resolve; });
+      let announceBoundary!: () => void;
+      const boundaryReached = new Promise<void>((resolve) => { announceBoundary = resolve; });
+      const receipt = { thesisId: NVDA_ID, version: 1, lifecycleState: "active", replayed: false };
+      const writes: string[] = [];
+      let listReads = 0;
+      let recovered = false;
+      const { requests } = installFetch({
+        mutationFor: (body) => {
+          writes.push(body);
+          if (writes.length > 1) {
+            recovered = true;
+            return jsonResponse({ ...receipt, replayed: true }, 201);
+          }
+          if (lateKind === "decoded body") {
+            return { ok: true, status: 201, json: () => {
+              announceBoundary();
+              return bodyGate;
+            } } as Response;
+          }
+          announceBoundary();
+          return responseGate.promise;
+        },
+        listFor: () => {
+          listReads += 1;
+          const theses = listReads < 3 ? [] : recovered ? [stored.row, currentRow] : [currentRow];
+          return jsonResponse({ theses, truncated: false });
+        },
+        detailFor: (id) => id === NVDA_ID ? jsonResponse({ thesis: detailFor(stored.row) }) : undefined,
+      });
+      const el = await mountAt("/analysis?view=theses");
+      const retryButton = () => Array.from(el.querySelectorAll<HTMLButtonElement>("button"))
+        .find(button => button.textContent === "Retry same request");
+      expect(retryButton()).toBeTruthy();
+      try {
+        await act(async () => { retryButton()!.click(); await boundaryReached; });
+        await act(async () => { root!.render(<ThesisWorkspace ownerKey="owner-b" />); });
+        await flush();
+        await act(async () => { root!.render(<ThesisWorkspace ownerKey={OWNER} />); });
+        await flush();
+        expect(thesisRow(el, currentRow.title)).toBeTruthy();
+        expect(window.localStorage.getItem(stored.key)).toBe(originalEnvelope);
+        const returningOwnerUrl = window.location.href;
+        const returningOwnerHistory = structuredClone(window.history.state);
+
+        await act(async () => {
+          if (lateKind === "decoded body") settleBody(receipt);
+          else responseGate.resolve(jsonResponse(receipt, 201));
+        });
+        await flush();
+        expect(window.location.href).toBe(returningOwnerUrl);
+        expect(window.history.state).toEqual(returningOwnerHistory);
+        expect(thesisRow(el, currentRow.title)).toBeTruthy();
+        expect(el.textContent).not.toContain("Saved as version 1");
+        expect(window.localStorage.getItem(stored.key)).toBe(originalEnvelope);
+        expect(writes).toEqual([stored.serializedBody]);
+        expect(requests.filter(request => request === "/api/theses ")).toHaveLength(3);
+        expect(requests.filter(request => request.startsWith(`/api/theses?id=${NVDA_ID} `))).toHaveLength(0);
+
+        expect(retryButton()).toBeTruthy();
+        expect(retryButton()!.disabled).toBe(false);
+        await act(async () => { retryButton()!.click(); });
+        await flush();
+        expect(writes).toEqual([stored.serializedBody, stored.serializedBody]);
+        expect(window.localStorage.getItem(stored.key)).toBeNull();
+        expect(el.textContent).toContain("Saved as version 1");
+        expect(el.querySelector<HTMLInputElement>('input[aria-label="Title"]')?.value).toBe(stored.row.title);
+        expect(requests.filter(request => request.startsWith(`/api/theses?id=${NVDA_ID} `))).toHaveLength(1);
+      } finally {
+        responseGate.resolve(jsonResponse(receipt, 201));
+        settleBody(receipt);
+      }
+    },
+  );
 
   it("does not start a saved-detail read after a later history navigation retires its generation", async () => {
     const stored = seedPendingCreate("c3200000-0000-4000-8000-000000000001");

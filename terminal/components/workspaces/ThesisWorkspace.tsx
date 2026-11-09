@@ -748,6 +748,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     // for an invalid link. Both are now derived together, in the same tick.
     setTheses([]);
     setListState(invalidLinkRef.current ? "ready" : "loading");
+    // A retired request cannot keep the new owner's recovery controls busy.
+    setSaving(false);
     return () => {
       detailRequest.current += 1;
       listRequest.current += 1;
@@ -2037,13 +2039,16 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     return true;
   }, [copy.carrierUnavailable]);
 
-  const consumeResponse = useCallback(async (response: Response, pendingMutation: Pending) => {
+  const consumeResponse = useCallback(async (response: Response, pendingMutation: Pending, requestToken: number) => {
+    if (requestToken !== detailRequest.current) return;
     let payload: Record<string, unknown>;
     try {
       const decoded = await response.json();
+      if (requestToken !== detailRequest.current) return;
       if (!decoded || typeof decoded !== "object" || Array.isArray(decoded)) throw new Error("non-object response");
       payload = decoded as Record<string, unknown>;
     } catch {
+      if (requestToken !== detailRequest.current) return;
       setSaving(false);
       setMessage(copy.ambiguous);
       return;
@@ -2136,6 +2141,10 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   }, [copy.ambiguous, copy.invalid, copy.replayed, copy.saved, copy.transition, loadDetail, loadList, removeTerminalPending, writeRoute]);
 
   const send = useCallback(async (pendingMutation: Pending) => {
+    if (pendingMutation.ownerKey !== ownerKey) return;
+    // Keep every response boundary on the originating detail/owner generation.
+    // Its pending bytes remain recoverable if that generation retires.
+    const requestToken = detailRequest.current;
     if (!storePending(pendingMutation)) {
       setSaving(false);
       setCarrierBlocked(true);
@@ -2150,12 +2159,14 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
         headers: { "content-type": "application/json" },
         body: pendingMutation.serializedBody,
       });
-      await consumeResponse(response, pendingMutation);
+      if (requestToken !== detailRequest.current) return;
+      await consumeResponse(response, pendingMutation, requestToken);
     } catch {
+      if (requestToken !== detailRequest.current) return;
       setSaving(false);
       setMessage(copy.ambiguous);
     }
-  }, [consumeResponse, copy.ambiguous, copy.carrierUnavailable]);
+  }, [consumeResponse, copy.ambiguous, copy.carrierUnavailable, ownerKey]);
 
   const submit = useCallback((action: ThesisAction) => {
     if (action !== "create" && action !== "revise" && substantiveDirty) {
