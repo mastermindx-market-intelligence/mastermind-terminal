@@ -1,5 +1,9 @@
 import { expect, test } from "@playwright/test";
 
+// The chooser exists only in the established beta presentation. CI runs this
+// specification in its explicit Shared Shell qualification as well as discovery.
+test.skip(process.env.MMX_SHARED_SHELL !== "1", "Shared Shell is an explicit beta opt-in");
+
 for (const lang of ["en", "zh"] as const) {
   test(`Discover chooser keeps keyboard focus with the selected task (${lang})`, async ({ page, baseURL }, info) => {
     test.setTimeout(90_000);
