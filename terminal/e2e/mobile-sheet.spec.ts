@@ -44,8 +44,7 @@ test("mobile sheet is labelled, contains focus, and restores its trigger", async
   await expect(sheet.locator(".msheet-title")).toHaveAttribute("id", titleId!);
   await expect(sheet.locator(".msheet-title")).toContainText(name);
 
-  // Focus lands inside the dialog — on the sheet itself when it carries no tab stops (the
-  // timeframe list), on its first control otherwise (the Drawings sheet's close button).
+  // Focus lands on a native control inside the timeframe or Drawings sheet.
   const focusContained = () => sheet.evaluate((element) => element.contains(document.activeElement));
   await expect.poll(focusContained).toBe(true);
 

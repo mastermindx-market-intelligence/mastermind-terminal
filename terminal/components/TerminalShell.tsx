@@ -3,6 +3,7 @@ import { mergeFormingQuote } from "@/lib/formingCandles";
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { PHONE_QUERY, useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
+import TimeframePicker from "@/components/TimeframePicker";
 import OptionsRail, { type OptionsRailHandle } from "@/components/options-companion/OptionsRail";
 import { optionsT } from "@/components/options-companion/optionsStrings";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
@@ -1295,6 +1296,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // id → script, in a ref so the legend callbacks (declared above the derivations) can look it up
   const scriptByIdRef = useRef<Record<string, UserScript>>({});
   const [favTF, setFavTF] = useState<string[]>(["D", "3D", "W", "1M"]);
+  const timeframeLauncherRef = useRef<HTMLButtonElement>(null);
+  const timeframePickerId = useId();
   // Starred timeframes in canonical order — the phone interval wheel and the native wheel
   // (bridge payload favTimeframes) rotate exactly what the TF grid's stars saved.
   const favTfOrder = useMemo(
@@ -6310,42 +6313,15 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                   <button key={tfi} className={`tfbtn${tf === tfi ? " on" : ""}${!FUNCTIONAL.has(tfi) ? " dis" : ""}`} disabled={!FUNCTIONAL.has(tfi)} onClick={() => FUNCTIONAL.has(tfi) && setTf(tfi)}>{tfi}</button>
                 ))}
                 {!favTF.includes(tf) && <button className="tfbtn tfbtn-current on" aria-label={tf}>{tf}</button>}
-                <button className="tfbtn tfbtn-edit" onClick={(e) => { e.stopPropagation(); const willOpen = !tfOpen; closeAll(); setTfOpen(willOpen); }} title={t("tfCustomize")}>
+                <button ref={timeframeLauncherRef} type="button" className="tfbtn tfbtn-edit" aria-label={t("tfCustomize")} aria-haspopup="dialog" aria-expanded={tfOpen} aria-controls={tfOpen && !isMobile ? timeframePickerId : undefined} onClick={(e) => { e.stopPropagation(); const willOpen = !tfOpen; closeAll(); setTfOpen(willOpen); }} title={t("tfCustomize")}>
                   <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M2 10.5V12h1.5l5-5-1.5-1.5-5 5zM11.3 3.7a.9.9 0 0 0 0-1.3l-.7-.7a.9.9 0 0 0-1.3 0L8 3l2 2 1.3-1.3z" /></svg>
                 </button>
               </div>
-              {/* desktop TF grid (hidden on mobile via CSS) */}
-              <div className={`tfgrid${tfOpen ? " show" : ""}`} onClick={(e) => e.stopPropagation()}>
-                {TF_GROUPS.map(([g, items]) => (<div key={g}><div className="g">{t(TFG_TKEY[g])}</div>{items.map((tfi) => { const fn = FUNCTIONAL.has(tfi); const fav = favTF.includes(tfi);
-                  return <div key={tfi} className={`it${tf === tfi ? " on" : ""}${fn ? "" : " dis"}`} onClick={() => { if (fn) { setTf(tfi); setTfOpen(false); } }}>
-                    {/* A disabled entry must say WHY. For the second band the reason is the
-                        plan's entitlement boundary (US stocks only), not a missing live feed —
-                        labelling it "live feed" would send a user hunting for a setting that
-                        cannot exist for their symbol. */}
-                    <span>{tfi}{!fn && <span style={{ color: "var(--text-dim)", marginLeft: 6, fontSize: 10 }}>{tfDisabledReason(tfi)}</span>}</span>
-                    <span className={`fav${fav ? " on" : ""}`} onClick={(e) => { e.stopPropagation(); setFavTF((f) => f.includes(tfi) ? f.filter((x) => x !== tfi) : [...f, tfi]); }}><svg viewBox="0 0 24 24"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z" /></svg></span>
-                  </div>; })}</div>))}
-              </div>
-              {/* mobile TF bottom sheet */}
-              {isMobile && (
-                <MobileSheet open={tfOpen} onClose={() => setTfOpen(false)} title={t("tfSheetTitle")}>
-                  {TF_GROUPS.map(([g, items]) => (
-                    <div key={g}>
-                      <div className="msheet-ghd">{t(TFG_TKEY[g])}</div>
-                      {items.map((tfi) => {
-                        const fn = FUNCTIONAL.has(tfi);
-                        const fav = favTF.includes(tfi);
-                        return (
-                          <div key={tfi} className={`msheet-row${tf === tfi ? " on" : ""}${fn ? "" : ""}`} style={fn ? {} : { opacity: 0.45 }} onClick={() => { if (fn) { setTf(tfi); setTfOpen(false); } }}>
-                            <span style={{ flex: 1 }}>{tfi}{!fn && <span style={{ color: "var(--text-dim)", marginLeft: 8, fontSize: 11 }}>{tfDisabledReason(tfi)}</span>}</span>
-                            <span className={`fav${fav ? " on" : ""}`} onClick={(e) => { e.stopPropagation(); setFavTF((f) => f.includes(tfi) ? f.filter((x) => x !== tfi) : [...f, tfi]); }} style={{ padding: "0 4px" }}><svg viewBox="0 0 24 24" width={16} height={16}><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z" /></svg></span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ))}
-                </MobileSheet>
-              )}
+              <TimeframePicker id={timeframePickerId} open={tfOpen} mobile={isMobile} timeframe={tf}
+                groups={TF_GROUPS.map(([group, items]) => [t(TFG_TKEY[group]), items] as const)} available={FUNCTIONAL} favorites={favTF}
+                disabledReason={tfDisabledReason} onSelect={setTf}
+                onFavorite={(tfi) => setFavTF((current) => current.includes(tfi) ? current.filter((value) => value !== tfi) : [...current, tfi])}
+                onClose={() => setTfOpen(false)} launcherRef={timeframeLauncherRef} />
             </div>
             <div className="pophost" data-toolbar-item data-toolbar-core="true">
               <button className="tbtn" onClick={(e) => { e.stopPropagation(); const willOpen = !ctOpen; closeAll(); setCtOpen(willOpen); }}><ChartTypeIcon kind={chartType} />{t(CT_TKEY[chartType])}<span style={{ color: "var(--muted)" }}>▾</span></button>
