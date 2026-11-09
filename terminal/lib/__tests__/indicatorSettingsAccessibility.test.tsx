@@ -2,15 +2,25 @@
 
 import React, { act, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import IndicatorSettings from "@/components/IndicatorSettings";
 import IndicatorSource from "@/components/IndicatorSource";
 import { IND_DEFS, defaultVis, withDefaults } from "@/lib/indicators";
+import { suiteDefaults } from "@/lib/suites/registry";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 let host: HTMLDivElement | null = null;
 let root: Root | null = null;
+let dialogMethods: ReadonlyArray<readonly ["showModal" | "close", PropertyDescriptor | undefined]>;
+
+beforeEach(() => {
+  // jsdom has dialog markup, but native modality is exercised by the browser regression.
+  dialogMethods = (["showModal", "close"] as const).map((name) =>
+    [name, Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, name)] as const);
+  Object.defineProperty(HTMLDialogElement.prototype, "showModal", { configurable: true, value() { this.setAttribute("open", ""); } });
+  Object.defineProperty(HTMLDialogElement.prototype, "close", { configurable: true, value() { this.removeAttribute("open"); } });
+});
 
 function mount(node: React.ReactNode): HTMLElement {
   host = document.createElement("div");
@@ -25,11 +35,20 @@ afterEach(() => {
   host?.remove();
   root = null;
   host = null;
+  for (const [name, original] of dialogMethods) {
+    if (original) Object.defineProperty(HTMLDialogElement.prototype, name, original);
+    else Reflect.deleteProperty(HTMLDialogElement.prototype, name);
+  }
 });
 
 function press(element: Element, key: string): KeyboardEvent {
   const event = new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true });
   act(() => { element.dispatchEvent(event); });
+  // A browser dispatches cancel for an unhandled Escape in a modal dialog.
+  if (key === "Escape" && !event.defaultPrevented) {
+    const dialog = element.closest<HTMLDialogElement>("dialog[open]");
+    if (dialog) act(() => { dialog.dispatchEvent(new Event("cancel", { cancelable: true })); });
+  }
   return event;
 }
 
@@ -133,6 +152,51 @@ function tabButton(dialog: HTMLElement, label: string): HTMLButtonElement {
 }
 
 describe("Indicator Settings keyboard journey", () => {
+  it("uses the existing native dialog lifecycle and restores body scrolling on close", async () => {
+    const spy = spies();
+    const view = mount(<SettingsOwner indKey="rsi" spy={spy} />);
+    const previousOverflow = document.body.style.overflow;
+    const dialog = await openSettings(view);
+    expect(dialog).toBeInstanceOf(HTMLDialogElement);
+    expect(dialog.hasAttribute("open")).toBe(true);
+    expect(document.body.style.overflow).toBe("hidden");
+    expect(tabButton(dialog, "Inputs").getAttribute("aria-pressed")).toBe("true");
+    press(dialog, "Escape");
+    expect(document.body.style.overflow).toBe(previousOverflow);
+  });
+
+  it("names the visibility controls and keeps their disabled state tied to the timeframe", async () => {
+    const view = mount(<SettingsOwner indKey="rsi" spy={spies()} />);
+    const dialog = await openSettings(view);
+    activateNativeButton(tabButton(dialog, "Visibility"));
+    expect(tabButton(dialog, "Visibility").getAttribute("aria-pressed")).toBe("true");
+    expect(tabButton(dialog, "Inputs").getAttribute("aria-pressed")).toBe("false");
+    const row = dialog.querySelector<HTMLElement>(".vis-row")!;
+    const toggle = row.querySelector<HTMLElement>('[role="checkbox"]')!;
+    expect(toggle.getAttribute("aria-label")).toBe("Days");
+    expect(Array.from(row.querySelectorAll("input")).map((input) => input.getAttribute("aria-label")))
+      .toEqual(["Days minimum", "Days maximum", "Days maximum"]);
+    press(toggle, " ");
+    expect(Array.from(row.querySelectorAll("input")).every((input) => input.disabled)).toBe(true);
+  });
+
+  it("names every Pine input from its declared parameter", async () => {
+    const view = mount(<SettingsOwner indKey="pine" pine={{ name: "Fixture", params: { enabled: true, length: 9, source: "close" } }} spy={spies()} />);
+    const dialog = await openSettings(view);
+    expect(rowControl(dialog, "enabled", '[role="switch"]').getAttribute("aria-label")).toBe("enabled");
+    expect(rowControl(dialog, "length", 'input[type="number"]').getAttribute("aria-label")).toBe("length");
+    expect(rowControl(dialog, "source", ".is-text").getAttribute("aria-label")).toBe("source");
+  });
+
+  it("names the controls of an expanded suite module", async () => {
+    const view = mount(<IndicatorSettings indKey="pulse" params={{ ...suiteDefaults("pulse"), "sig.on": true }}
+      onChange={vi.fn()} onClose={vi.fn()} userTier="pro" />);
+    await nextFrame();
+    const controls = Array.from(view.querySelectorAll(".is-row input, .is-row select, .is-row [role=switch]"));
+    expect(controls.length).toBeGreaterThan(5);
+    expect(controls.filter((control) => !control.getAttribute("aria-label")?.trim())).toEqual([]);
+  });
+
   it("reaches a classic boolean by Tab and toggles it exactly once per Enter or Space", async () => {
     const spy = spies();
     const view = mount(<SettingsOwner indKey="rsi" initial={{ length: 21 }} spy={spy} />);
