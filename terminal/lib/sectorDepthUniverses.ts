@@ -773,11 +773,11 @@ function readMember(m: unknown): UniverseMember {
     stock_bars_to_cross: ownFinite(src, "stock_bars_to_cross") ?? null,
     stock_buyable: ownBool(src, "stock_buyable") ?? null,
     stock_state: ownString(src, "stock_state"),
-    // R6-09 emergence marker: owner-flagged only. Tonight's wire carries no
-    // `emerging` key (absent stays absent) but the contract field must survive
-    // the read — a member the owner flags keeps its chip and evidence link.
-    emerging: ownBool(src, "emerging") ?? null,
-    emergence_href: ownString(src, "emergence_href"),
+    // S4 (review r1): `emerging`/`emergence_href` are NOT in the frozen wire
+    // member allow-list and the producer strips them, so the carried read
+    // drops both even when a stale member still carries them — no emergence
+    // chip can render from this path. The optional type fields above stay for
+    // the old `universes` payload path, which is untouched.
   };
 }
 

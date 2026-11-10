@@ -1123,7 +1123,7 @@ describe("rows increment — hostile rows never throw, soft cells never invalida
     expect(read.data.subsectors).toHaveLength(65); // nothing else changed
   });
 
-  it("an owner-flagged emerging member carries its marker and href through the read (R6-09 survives real reads)", () => {
+  it("S4 — a member arriving with emerging/emergence_href reads WITHOUT them (replaces the R6-09 carried-read test)", () => {
     const doc = mutateSp500((data) => {
       const rows = data.subsectors as Record<string, unknown>[];
       const members = (rows[0] as Record<string, unknown>).members as Record<string, unknown>[];
@@ -1133,13 +1133,12 @@ describe("rows increment — hostile rows never throw, soft cells never invalida
     const read = confluenceSp500FromCarriedBlock(carried(doc));
     expect(read.state).toBe("available");
     if (read.state !== "available") return;
-    // The real wire carries no `emerging` key tonight (absent stays absent on
-    // every unmutated member); a flagged member must keep chip + evidence link.
-    expect(read.data.subsectors![0]!.members[0]).toMatchObject({
-      emerging: true,
-      emergence_href: "/company/AMAT.html",
-    });
-    expect(read.data.subsectors![0]!.members[1]!.emerging).toBeNull();
-    expect(read.data.subsectors![0]!.members[1]!.emergence_href).toBeNull();
+    // The frozen wire member allow-list carries neither key and the producer
+    // strips them, so the read drops both even when a stale member still
+    // carries them — no emergence chip or evidence link can render from the
+    // carried path. (The optional type fields stay for the old `universes`
+    // payload path, untouched.)
+    expect(read.data.subsectors![0]!.members[0]!.emerging).toBeUndefined();
+    expect(read.data.subsectors![0]!.members[0]!.emergence_href).toBeUndefined();
   });
 });

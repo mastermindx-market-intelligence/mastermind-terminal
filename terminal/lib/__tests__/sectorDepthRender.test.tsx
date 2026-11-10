@@ -737,6 +737,29 @@ describe("rows increment — universes board from carried blocks (interactive)",
       expect(h).toMatch(/^\/subsector\/[a-z0-9][a-z0-9-]*\.html$/);
     }
   });
+
+  it("S4 — a stale member carrying emerging/emergence_href renders no emergence chip through the carried read", async () => {
+    const doc = structuredClone(sp500ValueFx) as { data: { subsectors: Record<string, unknown>[] } };
+    const members = doc.data.subsectors[0]!.members as Record<string, unknown>[];
+    members[0]!.emerging = true;
+    members[0]!.emergence_href = "/company/AMAT.html";
+    const blocks: Partial<Record<UniverseId, UniverseBlockRead>> = {
+      subsectors: confluenceSp500FromCarriedBlock({ status: "available", value: doc }),
+    };
+    await mount(<SectorConfluenceUniverses universeBlocks={blocks} />);
+    const expand = host.querySelector<HTMLButtonElement>("button[aria-expanded][aria-controls]");
+    expect(expand).not.toBeNull();
+    await act(async () => {
+      expand!.click();
+    });
+    // The member itself renders (its ticker is visible)…
+    const ticker = String(members[0]!.ticker);
+    expect(host.textContent).toContain(ticker);
+    // …but no emergence chip and no evidence link: the carried read drops
+    // both keys (frozen member allow-list).
+    expect(host.querySelector("[data-emergence]")).toBeNull();
+    expect(host.textContent).not.toContain("AMAT.html");
+  });
 });
 
 describe("rows increment — the carried theme table from the real specimen", () => {
