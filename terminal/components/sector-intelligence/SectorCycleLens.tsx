@@ -925,6 +925,7 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
       />
       <CycleLegSheet
         open={legSheetOpen}
+        benchmark={benchmark}
         onClose={() => setLegSheetOpen(false)}
         leg={{
           title: selectedLeg

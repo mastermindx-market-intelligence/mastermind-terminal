@@ -281,6 +281,7 @@ export function CycleSeriesSheet(props: CycleSeriesSheetProps) {
 
 export interface CycleLegSheetProps {
   open: boolean;
+  benchmark: string;
   onClose: () => void;
   leg: {
     title: string;
@@ -341,7 +342,7 @@ export function CycleLegSheet(props: CycleLegSheetProps) {
           )}
           {props.leg.vsBenchPct !== null && (
             <div>
-              <dt>vs SPY</dt>
+              <dt>{t("scLegVsBenchmark", { bench: props.benchmark })}</dt>
               <dd>
                 {(props.leg.vsBenchPct > 0 ? "+" : "") + props.leg.vsBenchPct.toFixed(1)}pp
               </dd>

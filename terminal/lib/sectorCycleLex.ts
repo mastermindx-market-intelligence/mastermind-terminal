@@ -123,6 +123,7 @@ export const SECTOR_CYCLE_LEX: Record<string, [string, string]> = {
   scLegOpenSessions: ["Open · {n} sessions", "开放 · {n} 个交易日"],
   scLegOpenNoCount: ["Open leg", "开放周期段"],
   scLegDetails: ["Leg details", "周期段详情"],
+  scLegVsBenchmark: ["vs {bench}", "相对 {bench}"],
   scStory: ["Story", "周期段解读"],
   scStoryAbsent: ["No story attached to this leg", "该周期段没有附带解读"],
   scStoryExpired: ["Story quarantined: its own TTL or staleness marker fired", "解读已隔离：其有效期或陈旧标记已触发"],
