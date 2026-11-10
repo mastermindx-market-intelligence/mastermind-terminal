@@ -444,12 +444,28 @@ describe("SectorPopulationMembers — item 5 (COO 19:15Z): lane 1 point-in-time 
   });
 
   it("B-1: the producer's non-agree roster_block_absent page renders the same honest states (zh)", async () => {
-    pageMutate = producerNonAgree({ status: "unavailable", reason: "roster_block_absent", roster_as_of: "2026-11-06" });
+    // r4 N-6 fidelity: the roster_block_* branches carry {status, reason}
+    // ONLY — no roster_as_of (sector_population.py:553-555).
+    pageMutate = producerNonAgree({ status: "unavailable", reason: "roster_block_absent" });
     await withZh(async ({ container }) => {
       expect(countsLine(container)).toContain("所有者未给出配置名单");
       expect(countsLine(container)).not.toContain("1020");
       expect(clockNote(container)).toContain("名册时钟与采集会话不一致");
     });
+  });
+
+  it("r4 N-6: the not_single list clock beside null counts renders the same honest states (en)", async () => {
+    // The not_single branch carries capture_effective_as_of as a sorted LIST
+    // (sector_population.py:574-576) with configured_current/complete/
+    // unaccounted all null — now covered at the render layer too.
+    pageMutate = producerNonAgree({ status: "mismatch", reason: "capture_effective_as_of_not_single",
+      roster_as_of: "2026-11-06", capture_effective_as_of: ["2026-11-06", "2026-11-07"] });
+    const { container, root } = await mount();
+    expect(countsLine(container)).toContain("configured roster not stated by the owner");
+    expect(countsLine(container)).not.toContain("1020");
+    expect(clockNote(container)).toContain("roster clock does not agree with the capture session");
+    expect(cell(container, 0, 0)).toBeTruthy(); // the member list itself still renders
+    act(() => root.unmount());
   });
 
   it("N-4: an agree label over differing clocks keeps the counts not stated beside a clock note (en)", async () => {

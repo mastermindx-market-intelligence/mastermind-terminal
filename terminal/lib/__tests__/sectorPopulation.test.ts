@@ -463,8 +463,10 @@ describe("sectorPopulationPage — lane 1 point-in-time facts (COO 19:15Z item 5
       { status: "mismatch", reason: "capture_effective_as_of_not_single", roster_as_of: "2026-11-06", capture_effective_as_of: ["2026-11-06", "2026-11-07"] },
       { status: "unavailable", reason: "capture_effective_as_of_malformed", roster_as_of: "2026-11-06" },
       { status: "unavailable", reason: "capture_effective_as_of_unavailable", roster_as_of: "2026-11-06" },
-      { status: "unavailable", reason: "roster_block_malformed", roster_as_of: "2026-11-06" },
-      { status: "unavailable", reason: "roster_block_absent", roster_as_of: "2026-11-06" },
+      // r4 N-6 fidelity: the roster_block_* branches carry {status, reason}
+      // ONLY — no roster_as_of (sector_population.py:553-555).
+      { status: "unavailable", reason: "roster_block_malformed" },
+      { status: "unavailable", reason: "roster_block_absent" },
       { status: "agree", roster_as_of: "2026-11-06", capture_effective_as_of: [] }, // agree with a broken field
       42, "agree", [], true,
     ];
@@ -501,7 +503,11 @@ describe("sectorPopulationPage — lane 1 point-in-time facts (COO 19:15Z item 5
   it("B-1: the producer's own non-agree page — clock beside null counts — decodes, never refuses", () => {
     for (const clock of [
       { status: "mismatch", reason: "roster_as_of_mismatch", roster_as_of: "2026-11-07", capture_effective_as_of: "2026-11-06" },
-      { status: "unavailable", reason: "roster_block_absent", roster_as_of: "2026-11-06" },
+      // r4 N-6 fidelity: {status, reason} only for roster_block_*; and the
+      // not_single branch carries capture_effective_as_of as a sorted LIST
+      // (sector_population.py:574-576) — now covered with null counts.
+      { status: "unavailable", reason: "roster_block_absent" },
+      { status: "mismatch", reason: "capture_effective_as_of_not_single", roster_as_of: "2026-11-06", capture_effective_as_of: ["2026-11-06", "2026-11-07"] },
     ]) {
       const mutated = clone();
       const pop = population(mutated);
@@ -727,7 +733,7 @@ describe("sectorPopulationPage — lane 1 point-in-time facts (COO 19:15Z item 5
     const mutated = clone();
     population(mutated).configured_current = null;
     population(mutated).complete = null;
-    population(mutated).roster_clock = { status: "unavailable", reason: "roster_block_malformed", roster_as_of: "2026-11-06" };
+    population(mutated).roster_clock = { status: "unavailable", reason: "roster_block_malformed" };
     const read = sectorPopulationPage(mutated)!;
     expect(read.counts.configuredCurrent).toBeNull();
     expect(read.rosterClock).toEqual({ status: "not_agree" });
