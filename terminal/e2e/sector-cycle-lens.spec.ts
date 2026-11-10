@@ -53,8 +53,8 @@ const T = (lang: "en" | "zh") => ({
   firstKnown: lang === "zh" ? "最早可知" : "first known",
   pivotNote: lang === "zh" ? "转折日期为拐点日期" : "Turn dates are pivot dates",
   headWithheld: lang === "zh" ? "暂缓显示" : "Withheld",
-  headWithdrawn: lang === "zh" ? "已撤回" : "Withdrawn",
-  headWithdrawnDate: lang === "zh" ? "已于 2026-10-30 撤回" : "Withdrawn 2026-10-30",
+  headWithdrawnWord: lang === "zh" ? "已撤回" : "Withdrawn",
+  reasonUnknown: lang === "zh" ? "因未说明的原因暂缓显示" : "Withheld for an unstated reason",
   reasonFailed: lang === "zh" ? "研究检验未通过" : "research test failed",
   reasonEpoch: lang === "zh" ? "与研究协议的转折口径不一致" : "does not match the research protocol",
   horizon20: lang === "zh" ? "20 个已完结交易日" : "20 completed sessions",
@@ -256,15 +256,21 @@ for (const [lang, theme] of cases) {
     await expect(heads).toContainText(L.reasonFailed);
     await expect(heads).toContainText(L.reasonEpoch);
     await expect(heads).toContainText(L.horizon20);
-    // H3/H4 are leg-direction facts, not cycle-timing edges (lane 8 wording).
-    await expect(heads).toContainText(L.directional);
+    // The leg-direction note rides the target head only — the transition-
+    // time head measures first-known timing, not a leg-direction fact.
+    await expect(
+      heads.locator('[data-head="target_before_invalidation"]'),
+    ).toContainText(L.directional);
+    await expect(heads.locator('[data-head="transition_time"]')).not.toContainText(L.directional);
 
-    /* Withdrawal is a first-class state: the withdrawn head carries its date
-     * and never a stale pass; its siblings and the observed facts remain. */
+    /* The producer's withdraw() shape: the withdrawn head stays "withheld"
+     * with a caller-supplied reason code (parity_lost) that renders the
+     * generic line — no Withdrawn status exists on the wire — and its
+     * siblings and the observed facts remain. */
     await page.getByRole("radio", { name: "One head withdrawn", exact: true }).check();
-    await expect(heads.locator('[data-status="withdrawn"]')).toHaveCount(1);
-    await expect(heads.locator('[data-status="withheld"]')).toHaveCount(3);
-    await expect(heads).toContainText(L.headWithdrawnDate);
+    await expect(heads.locator('[data-status="withheld"]')).toHaveCount(4);
+    await expect(heads.locator('[data-head="adverse_tail"]')).toContainText(L.reasonUnknown);
+    await expect(heads).not.toContainText(L.headWithdrawnWord);
     await expect(page.getByTestId("cycle-hero")).toBeVisible();
     await expect(page.getByTestId("cycle-leg-timeline")).toBeVisible();
     await expect(turns).toContainText(L.firstKnown);
@@ -279,7 +285,7 @@ for (const [lang, theme] of cases) {
      * from the same withdrawn-head state before moving on. */
     const otherTheme = theme === "light" ? "dark" : "light";
     await page.getByRole("radio", { name: otherTheme === "light" ? "Light" : "Dark" }).check();
-    await expect(heads.locator('[data-status="withdrawn"]')).toHaveCount(1);
+    await expect(heads.locator('[data-head="adverse_tail"]')).toContainText(L.reasonUnknown);
     await heads.screenshot({
       path: info.outputPath(`cycles-heads-${lang}-${otherTheme}-${info.project.name}.png`),
       animations: "disabled",

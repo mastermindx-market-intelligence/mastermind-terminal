@@ -116,25 +116,37 @@ const historyPayload = () => ({
       rs_63d: +((i - 4) * 0.8 - k).toFixed(2),
     })),
     turns: [
-      // SP11: the pivot is DATES[0]; it became knowable only at DATES[1].
-      { date: DATES[0], k: "trough" as const, major: true, provisional: false, mag_pct: null, known_since: DATES[1] },
+      // SP11: the pivot is DATES[0]; it became knowable only at confirmation
+      // (confirmed_at). The two sectors confirm the SAME pivot on DIFFERENT
+      // days — per-series keying must keep each series' own date (B2).
+      {
+        date: DATES[0],
+        k: "trough" as const,
+        major: true,
+        provisional: false,
+        mag_pct: null,
+        confirmed_at: id === "xlk" ? DATES[1] : DATES[2],
+      },
     ],
   })),
 });
 
-/* v1.1: the lane-8 wire `sector_cycles.forecast_heads.v1` exactly as
- * published today, with adverse_tail withdrawn (the first-class state). */
+/* v1.1: the lane-8 producer output exactly (engine/sector_heads.py
+ * @d70025383c2d). head_capabilities() emits status "withheld" for every
+ * head; `withdraw()` writes "withheld" plus a caller-supplied reason code —
+ * here adverse_tail is withdrawn via withdraw(block, "adverse_tail",
+ * "parity_lost"), the REAL output shape (no withdrawn status, no
+ * withdrawn_asof; an unmapped reason renders the generic line). */
 const headsWire = () => {
-  const head = (status: string, reason: string, extra: Record<string, unknown> = {}) => ({
-    status,
+  const head = (reason: string, disposition = "QUALIFIED_RESEARCH", reasons: string[] = []) => ({
+    status: "withheld",
     reason_code: reason,
-    research_disposition: reason === "research_withheld_failed" ? "WITHHELD_FAILED" : "QUALIFIED_RESEARCH",
-    research_reasons: [],
+    research_disposition: disposition,
+    research_reasons: reasons,
     evidence: { protocol: "p.md", report_ref: "r.json", results_doc: "d.md" },
     target: "what this head measures",
     horizon_sessions: 20,
     market: "US",
-    ...extra,
   });
   return {
     schema: "sector_cycles.forecast_heads.v1",
@@ -142,10 +154,14 @@ const headsWire = () => {
     protocol: "p.md",
     report_ref: "r.json",
     heads: {
-      remaining_return_distribution: head("withheld", "research_withheld_failed"),
-      adverse_tail: head("withdrawn", "research_withheld_failed", { withdrawn_asof: "2026-11-04" }),
-      target_before_invalidation: head("withheld", "live_state_not_protocol_epoch"),
-      transition_time: head("withheld", "live_state_not_protocol_epoch"),
+      remaining_return_distribution: head(
+        "research_withheld_failed",
+        "WITHHELD_FAILED",
+        ["skill_ci90_includes_or_below_zero", "fails_bh_fdr_q0.10"],
+      ),
+      adverse_tail: head("parity_lost"),
+      target_before_invalidation: head("live_state_not_protocol_epoch"),
+      transition_time: head("live_state_not_protocol_epoch"),
     },
     may_rank: false,
     may_gate: false,
@@ -617,13 +633,25 @@ describe("cycles controller: v1.1 per-head forecast capabilities (lane 8 wire)",
       "target_before_invalidation",
       "transition_time",
     ]);
-    // Withdrawal is first-class: the withdrawn head carries its date, never a stale pass.
-    expect(card!.textContent).toContain("Withdrawn 2026-11-04");
+    // The withdraw() shape: still "withheld", with the caller's unmapped
+    // reason rendering the generic line — never a Withdrawn/Qualified state
+    // (neither exists on the wire).
+    expect(
+      card!.querySelector('[data-head="adverse_tail"]')!.textContent,
+    ).toContain("Withheld for an unstated reason");
+    expect(card!.textContent).not.toContain("Withdrawn");
+    expect(card!.textContent).not.toContain("Qualified");
     // Each withheld head carries its OWN published reason line.
     expect(card!.textContent).toContain("the research test failed this forecast");
     expect(card!.textContent).toContain("does not match the research protocol");
     expect(card!.textContent).toContain("20 completed sessions");
-    expect(card!.textContent).toContain("Leg-direction fact");
+    // N3: the leg-direction note rides the target head only.
+    expect(
+      card!.querySelector('[data-head="target_before_invalidation"]')!.textContent,
+    ).toContain("Leg-direction fact");
+    expect(
+      card!.querySelector('[data-head="transition_time"]')!.textContent,
+    ).not.toContain("Leg-direction fact");
     // No number for a withheld or withdrawn head: no estimate, no percent.
     expect(card!.textContent).not.toContain("%");
     // The withdrawn head's siblings AND the observed Cycles facts both remain.
@@ -646,16 +674,19 @@ describe("cycles controller: v1.1 per-head forecast capabilities (lane 8 wire)",
     lens.unmount();
   });
 
-  it("keeps the pivot date and the first-known date distinct (SP11)", () => {
+  it("keeps the pivot date and the first-known date distinct, per series (SP11/B2)", () => {
     const lens = mountLens({
       cyclesFeed: { state: "ready", data: deepCycles() },
       historyFeed: { state: "ready", data: historyPayload() },
     });
     const turns = document.querySelector('[data-testid="cycle-turns"]');
     expect(turns).not.toBeNull();
-    // Both facts are shown for the same turn, as two different dates.
+    // Both facts are shown for the same turn, as two different dates —
+    // XLK's OWN confirmation date, never XLF's different one for the same
+    // pivot date (per-series keying, B2).
     expect(turns!.textContent).toContain(DATES[0]);
     expect(turns!.textContent).toContain(`first known ${DATES[1]}`);
+    expect(turns!.textContent).not.toContain(`first known ${DATES[2]}`);
     expect(turns!.textContent).toContain("Turn dates are pivot dates");
     lens.unmount();
   });

@@ -173,8 +173,10 @@ export const SECTOR_CYCLE_LEX: Record<string, [string, string]> = {
 
   /* v1.1 per-head forecast capabilities (lane 8 R3 wording, replaces the
    * generic "model not qualified today" line). Each head is judged ALONE:
-   * one withheld head never hides its siblings or the observed Cycles facts
-   * (SP10), and no withheld head ever shows a number. */
+   * one withdrawn head never hides its siblings or the observed Cycles facts
+   * (SP10), and no withheld head ever shows a number. On the wire every
+   * head — withdrawn included — carries status "withheld" with its own
+   * reason code; no qualified or dated-withdrawal status exists today. */
   scForecastHeads: ["Remaining-opportunity forecasts", "剩余机会预测"],
   scForecastHeadsFoot: ["Each forecast is withheld on its own; the observed cycle facts above are unaffected.", "每项预测单独判断是否暂缓显示；上方已观测的周期事实不受影响。"],
   scForecastHeadsAbsent: ["No forecast capability block is attached to this record; nothing is inferred.", "该记录未附带预测能力分块；不作任何推断。"],
@@ -185,20 +187,20 @@ export const SECTOR_CYCLE_LEX: Record<string, [string, string]> = {
   scHeadTargetBeforeInvalidation: ["Target before invalidation", "先达目标还是先失效"],
   scHeadTransitionTime: ["Transition time", "转折确认时间"],
   scHeadStatusWithheld: ["Withheld", "暂缓显示"],
-  scHeadStatusWithdrawn: ["Withdrawn", "已撤回"],
-  scHeadStatusQualified: ["Qualified", "已获资格"],
-  scHeadWithdrawn: ["Withdrawn {date} — previously qualified, no longer", "已于 {date} 撤回 — 此前已获资格，现不再满足"],
   scHeadWithheldNoNumber: ["No estimate is shown for a withheld forecast.", "暂缓显示的预测不展示任何数值。"],
   scHeadEvidence: ["Evidence", "证据"],
   scHeadHorizon: ["Horizon: {n} completed sessions", "时间跨度：{n} 个已完结交易日"],
   scHeadDirectional: ["Leg-direction fact: what the current up/down leg tends to reach, not a cycle-timing edge.", "周期段方向事实：描述当前上行/下行段的倾向，并非周期择时边界。"],
-  /* The five lane-8 reason codes, EN + ZH, exactly as published. */
+  /* Lane 8's reason-specific lines (its return names these five). */
   scReasonResearchWithheldFailed: ["Withheld: the research test failed this forecast on current data", "暂缓：该预测在当前数据上的研究检验未通过"],
   scReasonLiveStateNotProtocolEpoch: ["Withheld: live cycle state does not match the research protocol's turn epoch", "暂缓：实时周期状态与研究协议的转折口径不一致"],
   scReasonMembershipNotPointInTime: ["Withheld: membership is not point-in-time for this record", "暂缓：该记录的成分并非时点口径"],
   scReasonRecordKindNotEvaluated: ["Withheld: this record kind was not part of the research evaluation", "暂缓：该记录类型未纳入研究评估范围"],
   scReasonMarketNotEvaluated: ["Withheld: this market was not part of the research evaluation", "暂缓：该市场未纳入研究评估范围"],
-  /* Fallbacks for codes the producer may add later — never a bare code dump. */
+  /* The producer's other three CURRENT codes — its precedence ladder
+   * (engine/sector_heads.py head_capabilities) has eight codes, not five.
+   * Any code outside the eight — e.g. a caller-supplied withdraw() reason —
+   * falls to scReasonUnknown; never a bare code dump. */
   scReasonResearchWithheldUnderpowered: ["Withheld: not enough data to judge this forecast", "暂缓：数据不足以判断该预测"],
   scReasonResearchNotEvaluated: ["Withheld: this forecast was not evaluated in the research", "暂缓：该预测未经研究评估"],
   scReasonLiveEstimatorNotWired: ["Withheld: no live estimator produces this forecast yet", "暂缓：尚无实时估计器输出该预测"],

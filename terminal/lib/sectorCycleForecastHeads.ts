@@ -1,23 +1,27 @@
 import { object, text } from "./sectorIntelligence";
-import { strictDay } from "./sectorCycleRhythm";
 
 /* ────────────────────────────────────────────────────────────────────────────
  * Per-head forecast capabilities (Sector Intelligence v1.1). Binds EXACTLY to
- * lane 8's published wire contract `sector_cycles.forecast_heads.v1`
- * (macro engine/sector_heads.py @3e6b51ef09fc): a per-record block carrying
- * the four remaining-opportunity heads, each judged ALONE — a head that
- * fails is withdrawn on its own and its siblings and the observed Cycles
- * facts stay untouched (SP10).
+ * lane 8's published wire contract `sector_cycles.forecast_heads.v1` (macro
+ * engine/sector_heads.py @d70025383c2d): a per-record block carrying the four
+ * remaining-opportunity heads, each judged ALONE — withdrawing one head
+ * touches only that head and its siblings and the observed Cycles facts stay
+ * untouched (SP10).
+ *
+ * The producer is the contract. `head_capabilities()` emits exactly one
+ * status today — `withheld` — with the head's own reason code from its
+ * eight-code precedence ladder; `withdraw()` likewise writes `withheld` plus
+ * a caller-supplied reason code. The reader accepts ONLY what the producer
+ * can emit: any other status (`withdrawn`, `qualified`, anything else) is a
+ * contract violation and degrades that head to payload_invalid. A DATED
+ * withdrawal is not on the wire — no `withdrawn_asof` field exists — and
+ * waits for lane 8 to publish one; this reader claims no such state.
  *
  * This reader never invents a field, never re-dates a value, and never
  * surfaces a number: a head reading carries status/reason/target/horizon
  * text only. The strict key allowlist is the no-number invariant — a head
  * that tries to carry an estimate field outside the published contract is
  * refused per head (withheld, payload_invalid), never partially drawn.
- *
- * Qualification WITHDRAWAL is a first-class state: a head that was
- * qualified and no longer is reads as `withdrawn` with the date the
- * withdrawal took effect — never a stale pass.
  * ──────────────────────────────────────────────────────────────────────────── */
 
 export const FORECAST_HEADS_SCHEMA = "sector_cycles.forecast_heads.v1";
@@ -29,7 +33,8 @@ export const FORECAST_HEAD_KEYS = [
 ] as const;
 export type ForecastHeadKey = (typeof FORECAST_HEAD_KEYS)[number];
 
-export type ForecastHeadStatus = "qualified" | "withheld" | "withdrawn";
+/** The only status the producer emits today (sector_heads.py `_head`). */
+export type ForecastHeadStatus = "withheld";
 
 /** The published per-head fields, exactly (lane 8 contract). Anything else
  * on a head object is a contract violation — and a numeric one can never
@@ -43,7 +48,6 @@ const HEAD_WIRE_FIELDS = new Set([
   "target",
   "horizon_sessions",
   "market",
-  "withdrawn_asof",
 ]);
 const AUTHORITY_FLAGS = [
   "may_rank",
@@ -52,9 +56,6 @@ const AUTHORITY_FLAGS = [
   "may_trade",
   "may_escalate",
 ] as const;
-
-const finite = (v: unknown): number | null =>
-  typeof v === "number" && Number.isFinite(v) ? v : null;
 
 export interface ForecastHeadEvidence {
   protocol: string | null;
@@ -73,8 +74,6 @@ export interface ForecastHead {
   /** Protocol horizon in completed sessions — a window, never an estimate. */
   horizonSessions: number | null;
   market: string | null;
-  /** Present only on a withdrawn head: the date the withdrawal took effect. */
-  withdrawnAsOf: string | null;
   evidence: ForecastHeadEvidence;
 }
 
@@ -99,11 +98,10 @@ const ABSENT: ForecastHeadsReading = {
   heads: [],
 };
 
-const isStatus = (v: unknown): v is ForecastHeadStatus =>
-  v === "qualified" || v === "withheld" || v === "withdrawn";
-
-/** Strict per-head read. Any contract violation degrades ONLY this head to
- * `withheld`/payload_invalid — siblings are never collateral damage (SP10). */
+/** Strict per-head read. Any contract violation — unknown field, a status
+ * the producer cannot emit, a non-positive-integer horizon — degrades ONLY
+ * this head to withheld/payload_invalid; siblings are never collateral
+ * damage (SP10). */
 function readHead(key: ForecastHeadKey, raw: unknown): ForecastHead {
   const h = object(raw);
   const invalid: ForecastHead = {
@@ -114,7 +112,6 @@ function readHead(key: ForecastHeadKey, raw: unknown): ForecastHead {
     target: null,
     horizonSessions: null,
     market: null,
-    withdrawnAsOf: null,
     evidence: { protocol: null, reportRef: null, resultsDoc: null },
   };
   // The wire contract is an exact allowlist: an unknown field is never
@@ -122,24 +119,23 @@ function readHead(key: ForecastHeadKey, raw: unknown): ForecastHead {
   for (const field of Object.keys(h)) {
     if (!HEAD_WIRE_FIELDS.has(field)) return invalid;
   }
-  const status = h.status;
-  if (!isStatus(status)) return invalid;
-  // A withdrawal is never downgraded to a withholding — the two states are
-  // distinct facts. The wire has not yet published the withdrawal date field,
-  // so a withdrawn head without a date stays withdrawn, dated when the wire
-  // carries one. A date on a live head is a contract violation.
-  const withdrawnAsOf = strictDay(h.withdrawn_asof);
-  if (status !== "withdrawn" && h.withdrawn_asof !== undefined) return invalid;
+  // The producer emits exactly one status ("withheld", from `_head` and
+  // `withdraw` alike). "withdrawn"/"qualified" are not on the wire — a head
+  // claiming one is a contract violation, not a stale pass and not an
+  // implied qualified forecast.
+  if (h.status !== "withheld") return invalid;
+  // The horizon is a session count: a positive integer, never a fraction.
+  const hz = h.horizon_sessions;
+  if (typeof hz !== "number" || !Number.isInteger(hz) || hz <= 0) return invalid;
   const evidence = object(h.evidence);
   return {
     key,
-    status,
+    status: "withheld",
     reasonCode: text(h.reason_code) || null,
     researchDisposition: text(h.research_disposition) || null,
     target: text(h.target) || null,
-    horizonSessions: finite(h.horizon_sessions),
+    horizonSessions: hz,
     market: text(h.market) || null,
-    withdrawnAsOf: status === "withdrawn" ? withdrawnAsOf : null,
     evidence: {
       protocol: text(evidence.protocol) || null,
       reportRef: text(evidence.report_ref) || null,
@@ -149,31 +145,37 @@ function readHead(key: ForecastHeadKey, raw: unknown): ForecastHead {
 }
 
 export function forecastHeadsReading(record: unknown): ForecastHeadsReading {
-  const block = object(object(record).forecast_heads);
-  if (!block.schema) return ABSENT;
+  const rec = object(record);
+  // Only a truly absent block reads absent. A block that IS attached but is
+  // not an object, or carries no recognizable schema, is malformed — it
+  // reads invalid; "absent" would claim nothing was attached.
+  if (rec.forecast_heads === undefined || rec.forecast_heads === null) return ABSENT;
+  const block = object(rec.forecast_heads);
   if (block.schema !== FORECAST_HEADS_SCHEMA) {
-    return { ...ABSENT, state: "invalid", schema: text(block.schema) };
+    return { ...ABSENT, state: "invalid", schema: text(block.schema) || null };
   }
   // Observed Cycles facts are the record's own; the block only ever
   // confirms they stay shown. Anything else is a contract break.
   if (block.observed_cycles !== "shown") {
     return { ...ABSENT, state: "invalid", schema: FORECAST_HEADS_SCHEMA };
   }
-  // The block never carries authority. A payload that claims any is refused
-  // whole — the card is withheld, the observed facts are untouched.
+  // The block never carries authority. The producer emits the five flags
+  // FLAT on the block, each boolean false; every one must be present and
+  // exactly `false` — missing, stringly-typed, numeric, object-valued or
+  // nested inside an `authority` object, all refuse the block.
+  if (block.authority !== undefined && block.authority !== null) {
+    return { ...ABSENT, state: "invalid", schema: FORECAST_HEADS_SCHEMA };
+  }
   for (const flag of AUTHORITY_FLAGS) {
-    if (block[flag] === true) {
+    if (block[flag] !== false) {
       return { ...ABSENT, state: "invalid", schema: FORECAST_HEADS_SCHEMA };
     }
   }
+  // A missing, null or malformed head degrades ONLY that head; a broken
+  // optional depth never erases the qualified core (SP10).
   const headsRaw = object(block.heads);
   const heads: ForecastHead[] = [];
   for (const key of FORECAST_HEAD_KEYS) {
-    if (headsRaw[key] === undefined || headsRaw[key] === null) {
-      // All four heads are part of the contract; a missing one breaks the
-      // block, and a broken optional depth never erases the qualified core.
-      return { ...ABSENT, state: "invalid", schema: FORECAST_HEADS_SCHEMA };
-    }
     heads.push(readHead(key, headsRaw[key]));
   }
   return {
