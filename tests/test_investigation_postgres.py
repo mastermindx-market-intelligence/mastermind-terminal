@@ -497,3 +497,68 @@ def test_v3_down_block_restores_exact_0052_and_refuses_with_v3_records(v3_pg):
     # Re-apply the carrier: the guard accepts the restored 0052 body and the dispatcher returns.
     v3_pg(text)
     assert v3_pg(v2_md5) == dispatcher
+
+
+# --- SP15: account switch during save, late completion, lost response (real PostgreSQL 17) -------------
+# The authenticated actor is auth.uid(); the receipt key is (user_id, operation_id). These tests execute the
+# properties the client journey relies on: another account never reads or mutates the first account's
+# operation or record, a not_found read is inconclusive (never proof of failure), a late commit still lands
+# once, and recovery after a lost response is a READ of the original operation - the replay is never needed.
+
+SP15_ID = "22000000-0000-4000-8000-000000000015"
+SP15_KEY = "42000000-0000-4000-8000-000000000015"
+
+
+def _sp15_counts(pg, actor):
+    return (
+        pg("select count(*) from investigations where id='" + SP15_ID + "'", actor),
+        pg("select count(*) from investigation_revisions where investigation_id='" + SP15_ID + "'", actor),
+        pg("select count(*) from investigation_mutation_receipts where operation_id='" + SP15_KEY + "'", actor),
+    )
+
+
+def test_sp15_lost_response_recovers_by_reading_the_original_operation_without_replay(pg):
+    # Before the commit lands the original operation is not found: inconclusive, NOT proof of failure.
+    assert json.loads(pg("select read_investigation_operation_v2('" + SP15_KEY + "')", A)) == {"status": "not_found"}
+    # The save commits, but its HTTP response is lost (nothing here reads the apply return value).
+    pg("select public.apply_investigation_revision_v2('" + SP15_ID + "'::uuid,0,'create','" + SP15_KEY + "'::uuid,"
+       + quote(json.dumps(manifest("lost response"))) + "::jsonb,null);", A)
+    # Recovery is a read of the exact operation, not a second write.
+    recovered = json.loads(pg("select read_investigation_operation_v2('" + SP15_KEY + "')", A))
+    assert recovered["status"] == "committed" and recovered["id"] == SP15_ID and recovered["revision"] == 1
+    assert recovered["manifest"]["intent"]["question"] == "lost response"
+    assert _sp15_counts(pg, A) == ("1", "1", "1")  # one record, one revision, one receipt: nothing replayed
+
+
+def test_sp15_account_switch_cannot_read_or_mutate_the_first_accounts_operation(pg):
+    before = _sp15_counts(pg, A)
+    # The session switched to account B while A's save was in flight / just committed.
+    assert json.loads(pg("select read_investigation_operation_v2('" + SP15_KEY + "')", B)) == {"status": "not_found"}
+    assert json.loads(pg("select read_investigation_v2('" + SP15_ID + "',1)", B))["status"] == "not_found"
+    listing = json.loads(pg("select list_investigations_v2()", B))
+    assert SP15_ID not in [item["id"] for item in listing["items"]]
+    # B cannot mutate A's record by id, with or without A's expected revision or operation key.
+    for key, expected in ((SP15_KEY, 1), ("42000000-0000-4000-8000-0000000000b1", 1), ("42000000-0000-4000-8000-0000000000b2", 0)):
+        result = apply(pg, key, "revise" if expected else "create", expected, manifest("hijack"), target=SP15_ID, actor=B)
+        assert result["status"] in ("not_found", "version_conflict", "idempotency_conflict", "invalid_transition"), result
+        assert "hijack" not in json.dumps(result)
+    assert _sp15_counts(pg, A) == before
+    assert json.loads(pg("select read_investigation_v2('" + SP15_ID + "',1)", A))["manifest"]["intent"]["question"] == "lost response"
+
+
+def test_sp15_late_completion_lands_once_for_its_own_account_and_never_for_the_new_one(pg):
+    late_id, late_key = "22000000-0000-4000-8000-000000000016", "42000000-0000-4000-8000-000000000016"
+    # B is the active account; A's slow request completes late. It commits for A, only once.
+    assert json.loads(pg("select read_investigation_operation_v2('" + late_key + "')", B)) == {"status": "not_found"}
+    first = apply(pg, late_key, "create", 0, manifest("late A"), target=late_id, actor=A)
+    assert first["status"] == "committed" and first["revision"] == 1
+    # The late completion is invisible to B: B's own state is unchanged and B cannot see A's operation.
+    assert json.loads(pg("select read_investigation_operation_v2('" + late_key + "')", B)) == {"status": "not_found"}
+    assert late_id not in [item["id"] for item in json.loads(pg("select list_investigations_v2()", B))["items"]]
+    # A re-delivered copy of the same late request returns the original outcome without a second revision.
+    assert apply(pg, late_key, "create", 0, manifest("late A"), target=late_id, actor=A) == first
+    assert pg("select count(*) from investigation_revisions where investigation_id='" + late_id + "'", A) == "1"
+    # The same key under the other account is its own namespace and cannot collide with or reveal A's receipt.
+    other = apply(pg, late_key, "create", 0, manifest("B own"), target="22000000-0000-4000-8000-0000000000bb", actor=B)
+    assert other["status"] == "committed" and other["id"] == "22000000-0000-4000-8000-0000000000bb"
+    assert json.loads(pg("select read_investigation_operation_v2('" + late_key + "')", A))["manifest"]["intent"]["question"] == "late A"
