@@ -21,6 +21,10 @@
 #   * Build-time env mirrors the existing e2e lane's webServer.env block exactly;
 #     NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY are the same fixture
 #     literals the dev lane uses. No real credential enters this workflow.
+#   * There is deliberately NO checkout-ref input: every job checks out exactly the
+#     ref the run was dispatched on, so code from another branch can never execute in
+#     the default branch's cache scope (cache poisoning). To measure a branch, dispatch
+#     ON that branch (`gh workflow run ... --ref <branch>`); its caches stay in its scope.
 #   * The artifact is built from the dispatched ref and consumed only inside the same
 #     run. No deploy path reads CI artifacts (ops/terminal-build.sh builds on the VPS
 #     from a named SHA).
@@ -32,10 +36,6 @@ on:
       repeats:
         description: "Repeat each (server x workers) leg this many times, integer 1..5"
         default: "1"
-        type: string
-      ref:
-        description: "Optional git ref to check out (default: the ref the workflow was dispatched from)"
-        required: false
         type: string
 
 permissions:
@@ -52,7 +52,6 @@ jobs:
     timeout-minutes: 5
     outputs:
       repeats: ${{ steps.bound.outputs.repeats }}
-      ref: ${{ steps.bound.outputs.ref }}
       matrix: ${{ steps.bound.outputs.matrix }}
     steps:
       - name: Bound repeats to 1..5 and build the leg matrix
@@ -61,21 +60,14 @@ jobs:
         env:
           # Inputs enter as env DATA, never spliced into shell source.
           RAW_REPEATS: ${{ inputs.repeats }}
-          RAW_REF: ${{ inputs.ref || github.ref }}
         run: |
           set -euo pipefail
           if ! [[ "$RAW_REPEATS" =~ ^[1-5]$ ]]; then
             printf '::error::repeats must be an integer 1..5, got %q\n' "$RAW_REPEATS" >&2
             exit 2
           fi
-          # A ref with a newline/control char could forge GITHUB_OUTPUT keys; git ref
-          # names (and SHAs) never need characters outside this set.
-          if ! [[ "$RAW_REF" =~ ^[A-Za-z0-9/_.-]+$ ]]; then
-            printf '::error::ref must look like a git ref name or SHA, got %q\n' "$RAW_REF" >&2
-            exit 2
-          fi
           matrix=$(python3 -c 'import json,sys; n=int(sys.argv[1]); print(json.dumps({"server":["dev","prod"],"workers":[1,2],"repeat":list(range(1,n+1))}))' "$RAW_REPEATS")
-          printf 'repeats=%s\nref=%s\nmatrix=%s\n' "$RAW_REPEATS" "$RAW_REF" "$matrix" >> "$GITHUB_OUTPUT"
+          printf 'repeats=%s\nmatrix=%s\n' "$RAW_REPEATS" "$matrix" >> "$GITHUB_OUTPUT"
 
   canary-build:
     name: canary-build
@@ -105,7 +97,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.validate-inputs.outputs.ref }}
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -160,7 +151,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.validate-inputs.outputs.ref }}
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -175,9 +165,7 @@ jobs:
       - name: Resolve Playwright version
         id: pw
         run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
-      # Restore-only: this dispatch can check out an arbitrary `ref`, and an
-      # actions/cache save from a default-branch run is readable by every branch,
-      # so a ref's own install must never seed the browsers ordinary CI restores
+      # Restore-only: the canary never seeds the browser cache ordinary CI restores
       # (browser binaries carry no lockfile integrity check, unlike npm tarballs).
       - name: Restore Playwright browsers (restore-only)
         id: pwcache
@@ -319,7 +307,7 @@ jobs:
           import glob, json, os, statistics, sys
           raw_repeats = os.environ.get("EXPECTED_REPEATS", "")
           if not raw_repeats:
-              # validate-inputs failed (bad repeats/ref) or was cancelled; the run is
+              # validate-inputs failed (bad repeats) or was cancelled; the run is
               # already red upstream — say so plainly instead of crashing on int("").
               print("::error::validate-inputs did not produce a repeats bound; see its job log")
               sys.exit(1)
