@@ -23,12 +23,14 @@ import {
   patchUiState,
   rotationRead,
   rs60Of,
+  sectorRollupOf,
   sortGroups,
   toggleExpanded,
   universePresence,
   universeWordMatches,
 } from "@/lib/sectorDepthUniverses";
 import type {
+  UniverseBlockRead,
   UniverseClass,
   UniverseData,
   UniverseGroup,
@@ -37,8 +39,10 @@ import type {
   UniverseUiStates,
   UniverseView,
 } from "@/lib/sectorDepthUniverses";
+import { conformingChartKey } from "@/lib/sectorDepthRows";
 import { sameSiteHref } from "@/lib/sectorDepthHref";
 import { DepthUnavailable } from "./DepthUnavailable";
+import { RowBlockUnavailable } from "./RowBlockUnavailable";
 import { EmergenceMark } from "./EmergenceMark";
 import styles from "./SectorConfluenceUniverses.module.css";
 
@@ -53,12 +57,22 @@ import styles from "./SectorConfluenceUniverses.module.css";
  * ticks logic. Rows never cross between universes and there is no client
  * fallback across them: absent capability, no-access (ok:false), zero scored
  * groups and live data are four distinct states. A timing map, not a buy list.
+ *
+ * Rows increment (wire v1.1): `universeBlocks` mounts the same board from the
+ * four carried typed-block ENTRIES — a tab's available block read overrides
+ * the legacy payload for that tab, an unavailable block read shows its honest
+ * per-block reason state, and the index tabs add a separately labelled sector
+ * roll-up (`sectors` is never mixed into the subsector table).
  */
 
 export interface SectorConfluenceUniversesProps {
   /** Per-universe payloads from the Macro sector generation; null means the
    * whole capability is not carried by this reading. */
-  universes: Partial<Record<UniverseId, UniverseData>> | null;
+  universes?: Partial<Record<UniverseId, UniverseData>> | null;
+  /** Rows increment: per-universe reads of the carried
+   * `confluence_universe_<u>` typed-block ENTRIES (status/reason/value). When
+   * present, a tab's available block read overrides the legacy payload. */
+  universeBlocks?: Partial<Record<UniverseId, UniverseBlockRead>> | null;
   /** Navigation out through the host (exact href from the payload). */
   onNavigate?: (href: string) => void;
   /** Optional capture target for the root section. */
@@ -67,20 +81,47 @@ export interface SectorConfluenceUniversesProps {
 
 type UiSetter = Dispatch<SetStateAction<UniverseUiStates>>;
 
-/** Detail href from the payload's chart_key, exactly as the incumbent
- * template builds it (universe directory + basket prefix + key + .html),
- * expressed as a same-site absolute path (leading "/") per the N4 href law.
- * Keys without a chart_key have no detail destination — no invented link. */
+/** Detail href from the payload's chart_key: the universe directory + the
+ * CARRIED key verbatim + ".html", as a same-site absolute path per the N4
+ * href law. The real payloads already prefix basket keys ("b-crypto-rails"),
+ * so no consumer-side prefix is added — double-prefixing is the bug this
+ * verbatim law removes. A chart_key without a conforming id (navigable-id law
+ * plus the no-`..` refusal) has no detail destination — no invented link. */
 function detailHref(id: UniverseId, group: UniverseGroup): string | undefined {
-  if (!group.chart_key) return undefined;
+  const key = group.chart_key;
+  if (!key || !conformingChartKey(key)) return undefined;
   const dir =
     id === "nasdaq" ? "subsector_nasdaq/" : id === "russell" ? "subsector_russell/" : "subsector/";
-  const prefix = id === "baskets" ? "b-" : "";
-  return sameSiteHref(`/${dir}${prefix}${group.chart_key}.html`) ?? undefined;
+  return sameSiteHref(`/${dir}${key}.html`) ?? undefined;
+}
+
+/** S1 (review r1): the roll-up detail link renders only where a published
+ * sector-level detail page exists for that universe. The S&P tab's sector rows
+ * carry `sec-*` chart keys and NO `/subsector/sec-*.html` route exists (the
+ * route registry has none), so those labels render without a link; the Nasdaq
+ * tab's `amalg-*` sector rows have published `/subsector_nasdaq/` routes and
+ * keep theirs. Russell publishes no sector rows tonight and its keys would
+ * follow the S&P pattern, so its roll-up is linkless too. The render test
+ * keeps this honest: every href composed from the committed real fixtures
+ * must exist in sharedShellRoutes.generated.json. */
+const ROLLUP_HAS_DETAIL_ROUTES: ReadonlySet<UniverseId> = new Set(["nasdaq"]);
+
+/** Count cell (S3): null (not stated) renders the localized not-stated word —
+ * never a coerced 0 and never a bare dash. */
+function fmtCount(v: number | null | undefined, notStated: string): string {
+  return v == null ? notStated : String(v);
+}
+
+/** Count + noun (S3): a measured count reads "6 names"; a null count reads
+ * the not-stated word ALONE ("not stated"), never "not stated names" and
+ * never a coerced "0 names". */
+function fmtCountNoun(v: number | null | undefined, noun: string, notStated: string): string {
+  return v == null ? notStated : `${v} ${noun}`;
 }
 
 export function SectorConfluenceUniverses({
   universes,
+  universeBlocks,
   onNavigate,
   captureRef,
 }: SectorConfluenceUniversesProps) {
@@ -90,7 +131,7 @@ export function SectorConfluenceUniverses({
   const [ui, setUi] = useState<UniverseUiStates>(initialUiStates);
   const tablistRef = useRef<HTMLDivElement | null>(null);
 
-  if (universes === null) {
+  if (universes == null && universeBlocks == null) {
     return (
       <DepthUnavailable
         field="confluence"
@@ -138,7 +179,17 @@ export function SectorConfluenceUniverses({
           // carried zero stays visible (0); only an absent payload hides it.
           // R2-S1: a payload whose owner word names another universe is not
           // this tab's data — no count chip either, matching the refused panel.
-          const payload = universes[id];
+          // Rows increment + N5: when a block read is passed for a tab —
+          // available OR unavailable — the chip comes from that read alone; an
+          // unavailable read shows no count and never falls back to the legacy
+          // `universes` payload.
+          const block = universeBlocks?.[id];
+          const payload =
+            block !== undefined
+              ? block.state === "available"
+                ? block.data
+                : undefined
+              : universes?.[id];
           const count =
             payload !== undefined && universeWordMatches(id, payload)
               ? coverageModel(payload.coverage).gateable
@@ -174,7 +225,8 @@ export function SectorConfluenceUniverses({
         <UniversePanel
           key={active}
           id={active}
-          data={universes[active]}
+          data={universes?.[active]}
+          block={universeBlocks?.[active]}
           ui={ui[active]}
           setUi={setUi}
           onNavigate={onNavigate}
@@ -187,19 +239,32 @@ export function SectorConfluenceUniverses({
 function UniversePanel({
   id,
   data,
+  block,
   ui,
   setUi,
   onNavigate,
 }: {
   id: UniverseId;
   data: UniverseData | undefined;
+  block: UniverseBlockRead | undefined;
   ui: UniverseUiState;
   setUi: UiSetter;
   onNavigate?: (href: string) => void;
 }) {
   const t = useSectorDepthT();
   const meta = UNIVERSES[id];
-  const presence = universePresence(id, data);
+
+  // Rows increment: a classified unavailable block read is its own honest
+  // state — never the legacy panel, never a partial table.
+  if (block && block.state === "unavailable") {
+    return <RowBlockUnavailable reason={block.reason} title={t("siUniverseTitle")} />;
+  }
+  const resolved = block?.state === "available" ? block.data : data;
+  const envelope =
+    block?.state === "available"
+      ? { asOf: block.asOf, asOfField: block.asOfField }
+      : undefined;
+  const presence = universePresence(id, resolved);
 
   if (presence === "absent") {
     return (
@@ -213,20 +278,27 @@ function UniversePanel({
   if (presence === "no_access") {
     return <p className={styles.stateLine}>{t("siUniverseNoAccess")}</p>;
   }
-  // presence === "zero_groups" | "live" — data is defined either way.
-  const d = data as UniverseData;
+  // presence === "zero_groups" | "live" — resolved is defined either way.
+  const d = resolved as UniverseData;
   const groups = presence === "live" ? groupsOf(id, d) : [];
   const ribbon = classCounts(groups);
+  const rollup = sectorRollupOf(id, d);
 
   if (presence === "zero_groups") {
     // N2 (R3A-67): the zero-groups state KEEPS the population wording — the
     // coverage line, the thin / below-minimum / unscored chips and the
     // identity line all render above the zero-groups sentence, so a universe
     // whose groups are all thin still shows its counted population.
+    // Rows increment: when the sector roll-up carries rows, the empty
+    // subsector tab names the gate (no subsector crossed it) instead.
     return (
       <div className={styles.universe}>
-        <CoverageBlock id={id} data={d} />
-        <p className={styles.stateLine}>{t("siUniverseZeroGroups")}</p>
+        <CoverageBlock id={id} data={d} envelope={envelope}>
+          <p className={styles.stateLine} data-empty="subsectors">
+            {rollup.length > 0 ? t("siUniverseNoSubsectors") : t("siUniverseZeroGroups")}
+          </p>
+          <SectorRollup id={id} groups={rollup} onNavigate={onNavigate} />
+        </CoverageBlock>
       </div>
     );
   }
@@ -239,7 +311,7 @@ function UniversePanel({
 
   return (
     <div className={styles.universe}>
-      <CoverageBlock id={id} data={d}>
+      <CoverageBlock id={id} data={d} envelope={envelope}>
         {/* B01 RIBBON_ORDER: reading-class counts over this universe's scored
             groups — zeros included, so a carried zero is visible, never hidden. */}
         <ul className={styles.ribbon} data-ribbon="true">
@@ -368,6 +440,47 @@ function UniversePanel({
           )}
         </div>
       )}
+
+      {/* Rows increment: the separately labelled sector roll-up (wire v1.1
+          §1) — sector rows are never mixed into the subsector table above. */}
+      <SectorRollup id={id} groups={rollup} onNavigate={onNavigate} />
+    </div>
+  );
+}
+
+/** The separately labelled sector roll-up for an index tab: sector-level
+ * rows rendered as cards under their own heading, from the same GroupCard
+ * surface. `sectors` never substitutes for the subsector table. */
+function SectorRollup({
+  id,
+  groups,
+  onNavigate,
+}: {
+  id: UniverseId;
+  groups: UniverseGroup[];
+  onNavigate?: (href: string) => void;
+}) {
+  const t = useSectorDepthT();
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  if (groups.length === 0) return null;
+  return (
+    <div className={styles.rollup} data-rollup="sectors">
+      <h4 className={styles.rollupTitle}>{t("siUniverseSectorRollup")}</h4>
+      <div className={styles.cards}>
+        {groups.map((g) => (
+          <GroupCard
+            key={g.key}
+            id={id}
+            group={g}
+            allShown={!!expanded[g.key]}
+            onToggleAll={() => setExpanded((s) => ({ ...s, [g.key]: !s[g.key] }))}
+            onNavigate={onNavigate}
+            // S1: roll-up cards link only where a published sector-level route
+            // exists for this universe (see ROLLUP_HAS_DETAIL_ROUTES).
+            detailLink={ROLLUP_HAS_DETAIL_ROUTES.has(id)}
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -376,14 +489,19 @@ function UniversePanel({
  * N2): the coverage line (with the N1 absent-count law), the thin /
  * below-minimum / unscored chips, and the source-identity line (S5: the tab's
  * localized display name + localized benchmark, never raw ids). `children`
- * carries the live-only reading-class ribbon. */
+ * carries the live-only reading-class ribbon. Rows increment: `envelope`
+ * renders the carried block date labelled by its source field — a session
+ * `as_of`, or `generated_utc` (a build time, explicitly not a session date;
+ * `data.as_of` itself stays verbatim and may be null). */
 function CoverageBlock({
   id,
   data,
+  envelope,
   children,
 }: {
   id: UniverseId;
   data: UniverseData;
+  envelope?: { asOf: string; asOfField: string };
   children?: ReactNode;
 }) {
   const t = useSectorDepthT();
@@ -442,6 +560,13 @@ function CoverageBlock({
         {t("siUniverseSourceIdentity", { name: t(meta.tabKey), benchmark })}
         {data.as_of == null ? ` · ${t("siUniverseNoDate")}` : ""}
       </p>
+      {envelope && (
+        <p className={styles.envelope} data-envelope={envelope.asOfField}>
+          {envelope.asOfField === "generated_utc"
+            ? t("siUniverseBuiltAt", { date: envelope.asOf })
+            : t("siUniverseCarriedAsOf", { date: envelope.asOf })}
+        </p>
+      )}
       {children}
     </div>
   );
@@ -475,16 +600,16 @@ function SortHead({
   );
 }
 
-/** Six class badges; an unknown class (engine reclassified between sessions)
- * renders the localized "unclassified" word (R3-N4) — never an invented tier
- * label and never the raw English word on the ZH page. The raw engine value
- * rides data-cls so the reclassification is triageable. */
-function TierBadge({ cls }: { cls: UniverseClass | string }) {
+/** Six class badges; an unknown or absent class (engine reclassified between
+ * sessions) renders the localized "unclassified" word (R3-N4) — never an
+ * invented tier label and never the raw English word on the ZH page. The raw
+ * engine value rides data-cls so the reclassification is triageable. */
+function TierBadge({ cls }: { cls: UniverseClass | string | null | undefined }) {
   const t = useSectorDepthT();
-  const known = Object.hasOwn(CLASS_LABEL_KEYS, cls);
+  const known = cls != null && Object.hasOwn(CLASS_LABEL_KEYS, cls);
   if (!known) {
     return (
-      <span className={styles.tier} data-cls={cls}>
+      <span className={styles.tier} data-cls={cls ?? undefined}>
         {t("siUniverseClassUnknown")}
       </span>
     );
@@ -522,16 +647,24 @@ function GroupCard({
   allShown,
   onToggleAll,
   onNavigate,
+  detailLink = true,
 }: {
   id: UniverseId;
   group: UniverseGroup;
   allShown: boolean;
   onToggleAll: () => void;
   onNavigate?: (href: string) => void;
+  /** S1: the roll-up suppresses the detail control where no published
+   * sector-level route exists (the subsector card view keeps its links). */
+  detailLink?: boolean;
 }) {
   const t = useSectorDepthT();
   const { lang } = useLang();
-  const label = (lang === "zh" ? group.label_zh : undefined) || group.label;
+  // ZH fallback law (review r1 S2): label_zh is null on every real row
+  // tonight (all four universes) and sector_zh likewise — the English label
+  // stays under this documented fallback; translations are never authored
+  // consumer-side. Regime label_zh/action_zh ARE carried and localize.
+  const label = (lang === "zh" ? group.label_zh : undefined) || group.label || "–";
   const sector = (lang === "zh" ? group.sector_zh : undefined) || group.sector;
   const fresh = freshnessOf(group);
   const rel = groupReliability(group);
@@ -542,7 +675,7 @@ function GroupCard({
         <TierBadge cls={group.class} />
       </div>
       <p className={styles.cardLane}>
-        {sector || "–"} · {group.n_priced} {t("siUniverseNames")}
+        {sector || "–"} · {fmtCountNoun(group.n_priced, t("siUniverseNames"), t("siUniverseNotStated"))}
       </p>
       <p className={styles.cardMeta}>
         <span className={styles.fresh}>{t(fresh.key, fresh.params)}</span>
@@ -564,7 +697,7 @@ function GroupCard({
         onToggleMore={onToggleAll}
         onNavigate={onNavigate}
       />
-      <DetailLink href={detailHref(id, group)} name={label} onNavigate={onNavigate} />
+      {detailLink && <DetailLink href={detailHref(id, group)} name={label} onNavigate={onNavigate} />}
     </article>
   );
 }
@@ -590,7 +723,9 @@ function RotationRow({
 }) {
   const t = useSectorDepthT();
   const { lang } = useLang();
-  const label = (lang === "zh" ? group.label_zh : undefined) || group.label;
+  // Same ZH fallback law as GroupCard (review r1 S2): label_zh/sector_zh are
+  // null on every real row tonight — English stays, nothing is authored here.
+  const label = (lang === "zh" ? group.label_zh : undefined) || group.label || "–";
   const sector = (lang === "zh" ? group.sector_zh : undefined) || group.sector;
   const fresh = freshnessOf(group);
   const rel = groupReliability(group);
@@ -609,7 +744,7 @@ function RotationRow({
             {label}
           </button>
           <span className={styles.nMembers}>
-            {group.n_priced} {t("siUniverseNames")}
+            {fmtCountNoun(group.n_priced, t("siUniverseNames"), t("siUniverseNotStated"))}
             {" · "}
             <span className={styles.relMini} data-rel={rel.tier}>
               {t(RELIABILITY_LABEL_KEYS[rel.tier])}
@@ -632,7 +767,7 @@ function RotationRow({
           </span>
         </td>
         <td data-label={t("siUniverseColN")}>
-          <span className={styles.num}>{group.n_priced}</span>
+          <span className={styles.num}>{fmtCount(group.n_priced, t("siUniverseNotStated"))}</span>
         </td>
       </tr>
       {open && (

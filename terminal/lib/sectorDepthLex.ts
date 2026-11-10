@@ -286,6 +286,9 @@ export const SECTOR_DEPTH_LEX: Record<string, [string, string]> = {
   siUniverseFreshAboutTo: ["about to fire", "即将触发"],
   siUniverseFreshNone: ["—", "—"],
   siUniverseNames: ["names", "只"],
+  // S3 (review r1): a null count reads the localized not-stated word — never
+  // a coerced 0 and never a bare dash.
+  siUniverseNotStated: ["not stated", "未载明"],
   // S5: the identity line carries the tab's LOCALIZED display name (never the
   // raw tab id), and the baskets universe names its complex through
   // siUniverseBasketBenchmark instead of a raw English literal.
@@ -346,6 +349,92 @@ export const SECTOR_DEPTH_LEX: Record<string, [string, string]> = {
   siThemeTurnPeak: ["peak {date}", "峰值 {date}"],
   siThemeTurnTrough: ["trough {date}", "谷值 {date}"],
   siThemeTurnProvisional: ["provisional", "暂定"],
+
+  // ── rows increment (wire v1.1) — carried row blocks ────────────────────────
+  // Honest per-block unavailable copy for the five new typed blocks. The raw
+  // reason word never reaches the reader in either locale — these lines are
+  // the only surface for a refused block.
+  siRowsReasonEntitled: [
+    "Not included in your current subscription.",
+    "当前订阅不包含此读数。",
+  ],
+  siRowsReasonNotProduced: [
+    "The owner engine did not produce this reading tonight.",
+    "所有者引擎今晚未生成此读数。",
+  ],
+  siRowsReasonInvalidShape: [
+    "This reading arrived in a form we cannot present.",
+    "此读数的格式无法呈现。",
+  ],
+  siRowsReasonTooLarge: [
+    "This reading is too large to deliver and was not carried.",
+    "此读数过大，未予传输。",
+  ],
+  siRowsReasonUnknown: [
+    "This reading is unavailable right now.",
+    "此读数暂不可用。",
+  ],
+  // The envelope's carried date, labelled by WHICH field it came from: a
+  // session `as_of`, or `generated_utc` — a build time that is explicitly not
+  // a market session date (data.as_of null stays undated).
+  siUniverseCarriedAsOf: ["carried as of {date}", "携带截至 {date}"],
+  siUniverseBuiltAt: [
+    "Built {date} · a build time, not a market session",
+    "构建于 {date} · 构建时间，非交易日",
+  ],
+  siUniverseSectorRollup: ["Sector roll-up (sector-level rows)", "板块汇总（板块级行）"],
+  siUniverseNoSubsectors: [
+    "No subsector crossed the scoring gate tonight.",
+    "今晚没有子板块通过评分门槛。",
+  ],
+  // The carried theme table (theme_rows block).
+  siThemePerfAsOf: ["Performance as of {date}", "表现截至 {date}"],
+  siThemePerfNotStated: ["not stated", "未载明"],
+  siThemeStateUnknown: ["unclassified", "未分类"],
+  // N6: every perf window carries TWO numbers — the raw return and the
+  // return relative to the benchmark (SPY). The legend names the pair's
+  // order once above the table; a lone number names its own side in the cell.
+  siThemePerfLegend: ["Perf windows: return · vs benchmark (SPY).", "表现窗口：收益 · 相对基准（SPY）。"],
+  siThemePerfRetWord: ["return", "收益"],
+  siThemePerfRelWord: ["vs benchmark", "相对基准"],
+  siThemeColTheme: ["Theme", "主题"],
+  siThemeColState: ["State", "状态"],
+  siThemeColReco: ["Recommendation", "建议"],
+  siThemeColScore: ["Score", "评分"],
+  siThemeColRank: ["Rank", "排名"],
+  siThemeColAllocRank: ["Allocation rank", "配置排名"],
+  siThemeColHealth: ["Health", "健康度"],
+  siThemeColVal: ["Valuation", "估值状态"],
+  siThemeColBreadth: ["Breadth", "广度"],
+  siThemeColR10: ["10-day RS", "10日相对强弱"],
+  siThemeColDays: ["Days in state", "状态天数"],
+  siThemeColDelta5d: ["5-day Δ", "5日变化"],
+  siThemeWin1d: ["1D", "1日"],
+  siThemeWin5d: ["5D", "5日"],
+  siThemeWin10d: ["10D", "10日"],
+  siThemeWin20d: ["20D", "20日"],
+  siThemeWin60d: ["60D", "60日"],
+  siThemeWinMtd: ["MTD", "月初至今"],
+  siThemeWinYtd: ["YTD", "年初至今"],
+  siThemeWinFull: ["Full", "全程"],
+  // Producer state vocabularies, localized word by word (unknown words render
+  // siThemeStateUnknown; the raw word never reaches the ZH reader).
+  siThemeWordLabelDeteriorating: ["deteriorating", "走弱"],
+  siThemeWordLabelDominant: ["dominant", "主导"],
+  siThemeWordLabelEmerging: ["emerging", "萌芽"],
+  siThemeWordLabelNeutral: ["neutral", "中性"],
+  siThemeWordRecoAccumulate: ["accumulate", "增持"],
+  siThemeWordRecoAvoid: ["avoid", "回避"],
+  siThemeWordRecoEnter: ["enter", "入场"],
+  siThemeWordRecoHold: ["hold", "持有"],
+  siThemeWordHealthBroken: ["broken", "已破坏"],
+  siThemeWordHealthConfirmed: ["confirmed", "已确认"],
+  siThemeWordHealthMixed: ["mixed", "混合"],
+  siThemeWordValConfirming: ["confirming", "确认中"],
+  siThemeWordValDiverging: ["diverging", "背离"],
+  siThemeWordValFading: ["fading", "消退"],
+  siThemeWordValNoData: ["no data", "无数据"],
+  siThemeWordValQuiet: ["quiet", "平静"],
 };
 
 /** Resolve a lane-local key with {placeholder} interpolation. Falls back to the
