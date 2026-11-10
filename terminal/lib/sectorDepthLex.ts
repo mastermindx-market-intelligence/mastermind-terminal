@@ -135,6 +135,19 @@ export const SECTOR_DEPTH_LEX: Record<string, [string, string]> = {
   siWatchShowMore: ["Show all ({n} more)", "显示全部（还有 {n} 个）"],
   siWatchShowLess: ["Show less", "收起"],
 
+  // ── independent emergence (v1.1 R6-09, owner-carried flag only) ────────────
+  // Copy law: the carried flag is a boolean plus an optional href — NO numbers
+  // travel with it, so no percentage may appear in either locale. The bound
+  // board's example sentence ("gained 9.00% while its sector fell 1.00%") is
+  // illustrative mockup data and is deliberately not reproduced here.
+  siEmergKicker: ["Independent emergence", "独立走强"],
+  siEmergHeadline: ["Company strength is early", "公司强势尚早"],
+  siEmergBody: [
+    "Sector support is weak; original company evidence remains available. Entry qualification is separate.",
+    "板块支撑较弱；公司原始证据仍然可用。入场资格另行判定。",
+  ],
+  siEmergEvidence: ["Open company evidence →", "查看公司证据 →"],
+
   // ── flow matrix ────────────────────────────────────────────────────────────
   siFlowsTitle: ["Where sector-ETF money is flowing", "板块 ETF 资金流向何处"],
   siFlowsSub: [

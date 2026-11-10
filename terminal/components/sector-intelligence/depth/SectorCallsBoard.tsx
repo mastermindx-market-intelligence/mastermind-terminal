@@ -21,6 +21,7 @@ import {
   type SourceLaneKey,
 } from "@/lib/sectorDepthCalls";
 import { DepthUnavailable } from "./DepthUnavailable";
+import { EmergenceMark } from "./EmergenceMark";
 import styles from "./SectorCallsBoard.module.css";
 
 /** Lane copy is keyed per board column; the count beside each title is the
@@ -472,6 +473,14 @@ function CallRowCard({
           )
         )}
       </p>
+      {/* Owner-carried independent-emergence state (v1.1 R6-09): renders only
+          when the owner engine flagged the row — never derived from score/RS,
+          never moving the row between lanes or changing its qualification. */}
+      <EmergenceMark
+        emerging={row.emerging}
+        href={row.emergence_href}
+        onNavigate={onNavigate}
+      />
       <div className={styles.cardActions}>
         <button
           type="button"

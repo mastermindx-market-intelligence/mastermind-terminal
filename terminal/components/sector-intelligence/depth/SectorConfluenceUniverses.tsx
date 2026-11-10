@@ -39,6 +39,7 @@ import type {
   UniverseView,
 } from "@/lib/sectorDepthUniverses";
 import { DepthUnavailable } from "./DepthUnavailable";
+import { EmergenceMark } from "./EmergenceMark";
 import styles from "./SectorConfluenceUniverses.module.css";
 
 /** Four-universe Entry evidence (props-only mount; lane 3 integrates).
@@ -506,7 +507,12 @@ function GroupCard({
       <p className={styles.cardRegime}>
         <RegimeCell group={group} />
       </p>
-      <MembersList group={group} expanded={allShown} onToggleMore={onToggleAll} />
+      <MembersList
+        group={group}
+        expanded={allShown}
+        onToggleMore={onToggleAll}
+        onNavigate={onNavigate}
+      />
       <DetailLink href={detailHref(id, group)} name={label} onNavigate={onNavigate} />
     </article>
   );
@@ -582,7 +588,12 @@ function RotationRow({
         <tr className={styles.detailRow}>
           <td colSpan={7}>
             <div id={detailId} className={styles.detailBody}>
-              <MembersList group={group} expanded={allShown} onToggleMore={onToggleAll} />
+              <MembersList
+                group={group}
+                expanded={allShown}
+                onToggleMore={onToggleAll}
+                onNavigate={onNavigate}
+              />
               <DetailLink href={detailHref(id, group)} name={label} onNavigate={onNavigate} />
             </div>
           </td>
@@ -596,10 +607,12 @@ function MembersList({
   group,
   expanded,
   onToggleMore,
+  onNavigate,
 }: {
   group: UniverseGroup;
   expanded: boolean;
   onToggleMore?: () => void;
+  onNavigate?: (href: string) => void;
 }) {
   const t = useSectorDepthT();
   const { shown, hidden } = membersPreview(group.members, expanded);
@@ -612,6 +625,15 @@ function MembersList({
         {shown.map((m, i) => (
           <li key={`${m.ticker}-${i}`} className={styles.member}>
             <span className={styles.mName}>{m.ticker}</span>
+            {/* Owner-carried emergence marker (v1.1 R6-09): chip only, shown
+                when the owner flagged the member; the chip becomes the
+                company-evidence link when a destination is carried. */}
+            <EmergenceMark
+              variant="chip"
+              emerging={m.emerging}
+              href={m.emergence_href}
+              onNavigate={onNavigate}
+            />
             <span className={styles.mWeight}>{fmtWeight(m.stock_weight)}</span>
             <span className={styles.mVs} data-sign={signOf(m.vs_basket)}>
               {fmtSigned(m.vs_basket)}

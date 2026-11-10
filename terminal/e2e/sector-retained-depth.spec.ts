@@ -142,6 +142,67 @@ test("navigation out flows through the onNavigate callback with the exact href",
   await expect(log.locator("li")).toHaveCount(before + 1);
 });
 
+/* ── owner-carried emergence mark (v1.1 R6-09) ────────────────────────────── */
+
+test("emergence mark: owner-carried flag renders the R6-09 chip, copy and evidence link", async ({ page }) => {
+  const section = page.locator('[data-h-section="calls-emergence"]');
+  await expect(section).toBeVisible();
+  const blocks = section.locator('[data-emergence="block"]');
+  // Two flagged rows: the buy-now row (flag + href) and the hold row
+  // (flag only — its mark must render the copy with NO link). The phone
+  // accordion starts Stand aside collapsed; open it first (same control the
+  // navigation test drives).
+  if ((await blocks.count()) < 2) {
+    await section
+      .locator('[data-lane="stand_aside"]')
+      .getByRole("button", { name: /Stand aside|观望/i })
+      .click();
+  }
+  await expect(blocks).toHaveCount(2);
+  const first = blocks.first();
+  await expect(first).toContainText(/Independent emergence|独立走强/);
+  await expect(first).toContainText(/Company strength is early|公司强势尚早/);
+  await expect(first).toContainText(/Entry qualification is separate|入场资格另行判定/);
+  // Number-free law: the carried flag is boolean-only, so no percentage may
+  // appear (the bound board's example numbers are mockup data, not carried).
+  for (const b of await blocks.all()) {
+    expect((await b.innerText()).replace("→", "")).not.toMatch(/\d/);
+  }
+  // Exactly one evidence link, carrying the owner's href verbatim.
+  const link = section.locator("[data-emergence-link]");
+  await expect(link).toHaveCount(1);
+  await expect(link).toHaveAttribute("data-emergence-link", "company/SYN_S1.html");
+  // Routed through onNavigate, landing in the harness nav log verbatim.
+  const log = page.locator('[data-harness="navlog"]');
+  const before = await log.locator("li").count();
+  await link.click();
+  await expect(log.locator("li")).toHaveCount(before + 1);
+  // Absent flag renders nothing: the captured board and the unflagged
+  // contract board carry no emergence node at all.
+  await expect(page.locator('[data-h-section="calls"] [data-emergence]')).toHaveCount(0);
+  await expect(page.locator('[data-h-section="calls-contract"] [data-emergence]')).toHaveCount(0);
+  if (desktop(page)) await shot(page, "calls-emergence");
+});
+
+test("emergence chip: the member-line marker opens company evidence when carried", async ({ page }) => {
+  const uni = page.locator('[data-h-section="universes-emergence"]');
+  await expect(uni).toBeVisible();
+  const chips = uni.locator('[data-emergence="chip"]');
+  if ((await chips.count()) === 0) {
+    // Table layouts keep the member list behind the row's expand control;
+    // the tier sort puts the flagged entry-now group in the first row.
+    await uni.locator("th button[aria-expanded]").first().click();
+  }
+  await expect(chips).toHaveCount(1);
+  await expect(chips.first()).toContainText(/Independent emergence|独立走强/);
+  // The chip becomes the evidence link itself when a destination is carried.
+  await expect(chips.first()).toHaveAttribute("data-emergence-link", "company/AMAT.html");
+  const log = page.locator('[data-harness="navlog"]');
+  const before = await log.locator("li").count();
+  await chips.first().click();
+  await expect(log.locator("li")).toHaveCount(before + 1);
+});
+
 /* ── Bottoming Watch: display-only strip ─────────────────────────────────── */
 
 test("bottoming watch never carries an outbound action", async ({ page }) => {
