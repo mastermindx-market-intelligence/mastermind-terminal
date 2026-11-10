@@ -121,7 +121,8 @@ def test_required_aggregate_keeps_original_check_name_and_dependencies() -> None
     assert aggregate["name"] == "Terminal typecheck + tests"
     assert aggregate["if"] == "always()"
     assert set(aggregate["needs"]) == {
-        "pr_scope", "e2e-scope", "terminal-unit", "terminal-e2e"
+        "pr_scope", "e2e-scope", "terminal-unit", "terminal-e2e",
+        "terminal-e2e-build", "terminal-e2e-prodbuild",
     }
     step = aggregate_assertion_step()
     assert step["if"] == "${{ !cancelled() }}"
@@ -131,10 +132,21 @@ def test_required_aggregate_keeps_original_check_name_and_dependencies() -> None
         "PR_MODE": "${{ needs.pr_scope.outputs.mode }}",
         "UNIT": "${{ needs.terminal-unit.result }}",
         "E2E": "${{ needs.terminal-e2e.result }}",
+        "BUILD": "${{ needs.terminal-e2e-build.result }}",
+        "PRODBUILD": "${{ needs.terminal-e2e-prodbuild.result }}",
+        "PRODBUILD_COUNT": "${{ needs.e2e-scope.outputs.prodbuild_count }}",
         "EVENT": "${{ github.event_name }}",
     }
     assert "native merge group" in step["run"]
     assert 'if [ "$SCOPE" != "success" ]; then' in step["run"]
+
+
+def prod_lane_results(event: str) -> dict[str, str]:
+    """What the production-build lane reports when it did what the event asks:
+    a native merge group selects no prod shards, every other event runs four."""
+    if event == "merge_group":
+        return {"BUILD": "skipped", "PRODBUILD": "skipped", "PRODBUILD_COUNT": "0"}
+    return {"BUILD": "success", "PRODBUILD": "success", "PRODBUILD_COUNT": "4"}
 
 
 @pytest.mark.parametrize(
@@ -160,7 +172,7 @@ def test_required_aggregate_refuses_missing_or_failed_event_checks(
         ["bash", "-e", "-c", command],
         env={**os.environ, "EVENT": event, "SCOPE": "success",
              "PR_SCOPE": "success", "PR_MODE": "full",
-             "UNIT": unit, "E2E": e2e},
+             "UNIT": unit, "E2E": e2e, **prod_lane_results(event)},
         capture_output=True,
         text=True,
         check=False,
@@ -182,7 +194,7 @@ def test_unqualified_scope_can_never_pass_event_aggregate(
         ["bash", "-e", "-c", command],
         env={**os.environ, "EVENT": event, "SCOPE": scope_result,
              "PR_SCOPE": "success", "PR_MODE": "full",
-             "UNIT": "success", "E2E": e2e},
+             "UNIT": "success", "E2E": e2e, **prod_lane_results(event)},
         capture_output=True, text=True, check=False,
     )
     assert result.returncode != 0, (scope_result, event, result.stdout)
