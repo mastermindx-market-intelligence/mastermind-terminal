@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
 const digest = bytes => crypto.createHash("sha256").update(bytes).digest("hex");
-const typeTemplate = '/// <reference types="next" />\n/// <reference types="next/image-types/global" />\nimport "./.next/f11/dev/types/routes.d.ts";\n\n// NOTE: This file should not be edited\n// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.\n';
+const typeTemplate = '/// <reference types="next" />\n/// <reference types="next/image-types/global" />\nimport "./.next/f11/dev/types/routes.d.ts";\nimport "./.next/f11/dev/types/root-params.d.ts";\n\n// NOTE: This file should not be edited\n// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.\n';
 
 // The child object is the actual detached spawn receipt, never a discovered PID.
 // Dependencies permit pure tests; the capture owner always uses these defaults.
