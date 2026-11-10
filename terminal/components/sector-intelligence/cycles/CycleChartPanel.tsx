@@ -43,6 +43,10 @@ export interface CycleChartPanelProps {
   view: "chart" | "table";
   onView: (view: "chart" | "table") => void;
   onOpenSeriesPicker: () => void;
+  /** Rows offered by the picker (R5-Y01 shows the count on the Series control). */
+  seriesCount: number;
+  /** Opens the landscape fullscreen chart (R5-Y01 controls cluster). */
+  onOpenFullscreen: () => void;
   valuesOpen: boolean;
   onValuesOpen: (open: boolean) => void;
   valuesOffset: number;
@@ -124,21 +128,33 @@ export default function CycleChartPanel(props: CycleChartPanelProps) {
   const fmtSeries = (v: number) => formatValue(v, 1, "%", true);
   const chartLabel = t("scChartTitle", { bench: props.benchmark });
 
+  /* Turn markers carry their own visible labels (R5-Y01): kind + date,
+   * thinned by pixel gap so two nearby turns never overwrite each other. */
+  const turnDatesInWindow = props.turns
+    .filter((v) => {
+      const t0 = stamp(v.date);
+      return Number.isFinite(t0) && t0 >= domain[0] && t0 <= domain[1];
+    })
+    .map((v) => v.date)
+    .sort();
+  const labelledTurns = thinLabels(turnDatesInWindow, (d) => x(stamp(d) || 0), 72);
+
   return (
     <section className={s.plotCard} data-testid="cycle-chart-panel">
       <div className={s.tools}>
         <h3>{chartLabel}</h3>
-        <div className={s.toggle} role="group" aria-label={chartLabel}>
-          <button type="button" aria-pressed={props.view === "chart"} onClick={() => props.onView("chart")}>
-            {t("scChart")}
-          </button>
-          <button type="button" aria-pressed={props.view === "table"} onClick={() => props.onView("table")}>
-            {t("scTable")}
-          </button>
-        </div>
       </div>
 
       <div className={s.controls}>
+        <button
+          type="button"
+          className={s.pickerButton}
+          onClick={props.onOpenSeriesPicker}
+          aria-haspopup="dialog"
+        >
+          {t("scSeriesCount", { n: props.seriesCount })}
+          <span aria-hidden="true">＋</span>
+        </button>
         <label>
           {t("scChartRange")}
           <select
@@ -164,14 +180,22 @@ export default function CycleChartPanel(props: CycleChartPanelProps) {
             </option>
           </select>
         </label>
+        <div className={s.toggle} role="group" aria-label={chartLabel}>
+          <button type="button" aria-pressed={props.view === "chart"} onClick={() => props.onView("chart")}>
+            {t("scChart")}
+          </button>
+          <button type="button" aria-pressed={props.view === "table"} onClick={() => props.onView("table")}>
+            {t("scTable")}
+          </button>
+        </div>
         <button
           type="button"
           className={s.pickerButton}
-          onClick={props.onOpenSeriesPicker}
+          onClick={props.onOpenFullscreen}
           aria-haspopup="dialog"
         >
-          {t("scSeries")}
-          <span aria-hidden="true">＋</span>
+          {t("scFullscreenButton")}
+          <span aria-hidden="true">⤢</span>
         </button>
       </div>
       {!canLog && props.scale === "log" && (
@@ -301,6 +325,21 @@ export default function CycleChartPanel(props: CycleChartPanelProps) {
                       }
                     />
                   </g>
+                );
+              })}
+              {labelledTurns.map((d) => {
+                const turn = props.turns.find((v) => v.date === d);
+                if (!turn) return null;
+                return (
+                  <text
+                    key={"lbl-" + d}
+                    x={x(stamp(d))}
+                    y={padT - 8}
+                    textAnchor="middle"
+                    className={s.turnLabel}
+                  >
+                    {`${t(turn.kind === "peak" ? "scTurnWordPeak" : "scTurnWordTrough")} ${d}`}
+                  </text>
                 );
               })}
               {cursorT !== null && (

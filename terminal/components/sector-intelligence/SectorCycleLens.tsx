@@ -55,6 +55,7 @@ import CyclePhaseRail from "./cycles/CyclePhaseRail";
 import CycleChartPanel, { type CycleSeriesData } from "./cycles/CycleChartPanel";
 import CycleLegTimeline, { LegStoryBlock, legsFromTurns } from "./cycles/CycleLegTimeline";
 import CycleTiming from "./cycles/CycleTiming";
+import CycleHazard from "./cycles/CycleHazard";
 import CycleReadRecord from "./cycles/CycleReadRecord";
 import CycleMethodsGrader from "./cycles/CycleMethodsGrader";
 import { CycleLegSheet, CycleSeriesSheet, type PickerSeries } from "./cycles/CycleSheets";
@@ -130,7 +131,7 @@ export interface SectorCycleLensProps {
   eventsFeed?: SectorCycleFeed;
   /** Who owns the history stack: the lens pushes/restores, or the host does. */
   returnBinding?: "self" | "host";
-  denyAccess?: "denied" | "unauthenticated" | null;
+  denyAccess?: "denied" | "unauthenticated" | "locked" | null;
   /** Day used for rhythm placement; defaults to the generation's own day. */
   today?: string | null;
 }
@@ -152,7 +153,7 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
   const subjectInput: { family: CycleFamily; id: string | null } | null =
     props.subject ??
     (ctx?.subject?.id ? { family: "sectors", id: ctx.subject.id } : null);
-  const denyAccessInput: "denied" | "unauthenticated" | null =
+  const denyAccessInput: "denied" | "unauthenticated" | "locked" | null =
     props.denyAccess ?? (ctx?.transport === "access" ? "denied" : null);
   const ctxStale = ctx?.qualification === "stale";
   const ctxFeed = (
@@ -268,6 +269,21 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
     setSeriesSheetOpen(false);
   }, [pubKey]);
 
+  /* Device connectivity (R5-S06 cycles:offline): offline keeps the loaded
+   * view and says so — it never withholds data the host already delivered.
+   * Save-state copy belongs to the investigation lane, not the lens. */
+  const [offline, setOffline] = useState(false);
+  useEffect(() => {
+    const sync = () => setOffline(!navigator.onLine);
+    sync();
+    window.addEventListener("online", sync);
+    window.addEventListener("offline", sync);
+    return () => {
+      window.removeEventListener("online", sync);
+      window.removeEventListener("offline", sync);
+    };
+  }, []);
+
   /* ── Record + depths (each independent; C28) */
   const record = deepReady ? cycleRecordFor(payload, effectiveFamily, effectiveSubjectId) : null;
   const ontology = ontologyReading(record);
@@ -375,38 +391,44 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
         : [tExtent[1] - rangeLimit * DAY_MS, tExtent[1]];
   const range = rangeOverride ?? derivedRange;
 
-  /* ── Picker candidates (same-basis refusal, C08) */
-  const pickerSeries: PickerSeries[] = roster
-    .filter((r) => r.id !== effectiveSubjectId)
-    .map((r) => {
-      const rowBasis = r.basis ?? null;
-      const pillBasis: "price" | "tr" | null =
-        rowBasis === "price" ? "price" : rowBasis === null ? null : "tr";
-      const primaryRaw = selected?.basis ?? selectedUniverse?.basis ?? null;
-      const clash =
-        primaryRaw !== null &&
-        rowBasis !== null &&
-        primaryRaw !== rowBasis &&
-        comparisonId !== r.id;
-      return {
-        id: r.id,
-        label: zh ? r.nameZh || r.name : r.name,
-        ticker: r.ticker,
-        basis: pillBasis,
-        selected: comparisonId === r.id,
-        // A basis clash is a refusal, not a warning: the row is disabled so
-        // the mixed-measure overlay can never render (C08).
-        disabled: rowBasis === null || clash,
-        refusal: clash
-          ? t("scBasisRefusal", {
-              a: selected ? (zh ? selected.nameZh || selected.name : selected.name) : "",
-              b: zh ? r.nameZh || r.name : r.name,
-              basisA: t(primaryRaw === "price" ? "scBasisPillPrice" : primaryRaw === "tr" ? "scBasisPillTr" : "scFallbackBasis"),
-              basisB: t(rowBasis === "price" ? "scBasisPillPrice" : rowBasis === "tr" ? "scBasisPillTr" : "scFallbackBasis"),
-            })
-          : null,
-      };
-    });
+  /* ── Picker candidates (R5-Y02 rows: phase + position + same-basis refusal).
+   * The current subject row stays in the list (it is the picker's pressed
+   * row); comparing a subject with itself is disabled, a basis clash is a
+   * hard refusal (C08). */
+  const pickerSeries: PickerSeries[] = roster.map((r) => {
+    const rowBasis = r.basis ?? null;
+    const pillBasis: "price" | "tr" | null =
+      rowBasis === "price" ? "price" : rowBasis === null ? null : "tr";
+    const primaryRaw = selected?.basis ?? selectedUniverse?.basis ?? null;
+    const isSubject = r.id === effectiveSubjectId;
+    const clash =
+      !isSubject &&
+      primaryRaw !== null &&
+      rowBasis !== null &&
+      primaryRaw !== rowBasis &&
+      comparisonId !== r.id;
+    return {
+      id: r.id,
+      label: zh ? r.nameZh || r.name : r.name,
+      ticker: r.ticker,
+      basis: pillBasis,
+      phase: r.phase,
+      position: r.position,
+      isSubject,
+      selected: comparisonId === r.id,
+      // A basis clash is a refusal, not a warning: the row is disabled so
+      // the mixed-measure overlay can never render (C08).
+      disabled: isSubject || rowBasis === null || clash,
+      refusal: clash
+        ? t("scBasisRefusal", {
+            a: selected ? (zh ? selected.nameZh || selected.name : selected.name) : "",
+            b: zh ? r.nameZh || r.name : r.name,
+            basisA: t(primaryRaw === "price" ? "scBasisPillPrice" : primaryRaw === "tr" ? "scBasisPillTr" : "scFallbackBasis"),
+            basisB: t(rowBasis === "price" ? "scBasisPillPrice" : rowBasis === "tr" ? "scBasisPillTr" : "scFallbackBasis"),
+          })
+        : null,
+    };
+  });
 
   /* ── Capture/apply (donor #10707 two-phase semantics) */
   const captureSource: CycleViewSource = {
@@ -607,7 +629,11 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
   const selectedLeg = legs.find((l) => l.id === selectedLegId) ?? null;
 
   /* ── Access / data status screens */
-  if (denyAccessInput === "unauthenticated" || denyAccessInput === "denied") {
+  if (
+    denyAccessInput === "unauthenticated" ||
+    denyAccessInput === "denied" ||
+    denyAccessInput === "locked"
+  ) {
     return (
       <section className={s.lens} data-testid="sector-cycle-lens">
         <header className={s.top}>
@@ -615,7 +641,13 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
         </header>
         <div className={s.statusScreen} role="status">
           <p className={s.banner}>
-            {t(denyAccessInput === "denied" ? "scDenied" : "scUnauthenticated")}
+            {t(
+              denyAccessInput === "denied"
+                ? "scDenied"
+                : denyAccessInput === "locked"
+                  ? "scLocked"
+                  : "scUnauthenticated",
+            )}
           </p>
         </div>
       </section>
@@ -661,13 +693,23 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
     ? CYCLE_PHASE_LABELS[selected.legacyPhase].label[zh ? 1 : 0]
     : null;
 
+  /* Header basis note (R5-Y01): the declared history mode, described — never
+   * a claim the source does not make. Delivery cadence stays unstated until a
+   * published field carries it. */
+  const historyModeLabel =
+    text(meta.history_mode) === "reconstructed_price_history"
+      ? t("scModeReconstructed")
+      : null;
+
   return (
     <section className={s.lens} data-testid="sector-cycle-lens">
       <header className={s.top}>
         <div>
           <h2>{t("scTitle")}</h2>
           <p className={s.note}>
+            {selected ? `${zh ? selected.nameZh || selected.name : selected.name} ${selected.ticker} · ` : ""}
             {t("scAsOf")} {gen?.asOf} · {t(familyLabelKey[effectiveFamily])}
+            {historyModeLabel ? ` · ${historyModeLabel}` : ""}
             {cyclesFeed?.state === "stale" && (
               <span className={s.chipQuiet}>{t("scStaleChip")}</span>
             )}
@@ -682,18 +724,20 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
               gate.state === "loading"
                 ? "scLoading"
                 : gate.state === "incompatible_generation"
-                  ? "scIncompatibleGeneration"
+                  ? "scIncompatibleLegacy"
                   : "scCycleEvidence",
             )}
             {gate.state !== "loading" && gate.state !== "incompatible_generation" && (
               <small> · {t("scUnavailableBody")}</small>
             )}
-            {gate.state === "incompatible_generation" && (
-              <small> · {t("scIncompatibleBody")}</small>
-            )}
           </p>
         )}
       </header>
+      {offline && (
+        <p className={s.bannerWarn} role="status">
+          {t("scOfflineBanner")}
+        </p>
+      )}
 
       <div className={s.layout}>
         <CyclePhaseRail
@@ -744,13 +788,23 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
                 <p className={s.note}>{t("scLegacyWithheld")}</p>
               )}
             </div>
-            <button
-              type="button"
-              className={s.dossierButton}
-              onClick={() => navigate(effectiveFamily === "sectors" ? "dossier" : "members")}
-            >
-              {t(effectiveFamily === "sectors" ? "scOpenDossier" : "scMembers")}
-            </button>
+            <div className={s.heroActions}>
+              <button
+                type="button"
+                className={s.changeSeriesTrigger}
+                onClick={() => setSeriesSheetOpen(true)}
+                aria-haspopup="dialog"
+              >
+                {t("scChangeSeries")}
+              </button>
+              <button
+                type="button"
+                className={s.dossierButton}
+                onClick={() => navigate(effectiveFamily === "sectors" ? "dossier" : "members")}
+              >
+                {t(effectiveFamily === "sectors" ? "scOpenDossier" : "scMembers")}
+              </button>
+            </div>
           </section>
 
           <section className={s.clocks} data-testid="cycle-clocks">
@@ -795,6 +849,8 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
             view={view}
             onView={setView}
             onOpenSeriesPicker={() => setSeriesSheetOpen(true)}
+            seriesCount={roster.length}
+            onOpenFullscreen={() => setFullscreenOpen(true)}
             valuesOpen={valuesOpen}
             onValuesOpen={setValuesOpen}
             valuesOffset={valuesOffset}
@@ -812,34 +868,38 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
             asOf={gen?.asOf ?? ""}
           />
 
-          {record !== null && (
-            <CycleTiming
-              record={record}
-              meta={meta}
-              phaseAge={ageReading}
-              above200={above200}
-              timingState={text(object(object(object(record).now).clocks).ladder) || null}
-              rhythm={rhythm}
-              today={props.today ?? gen?.asOf ?? ""}
-              kindLabel={t(familyKindKey[effectiveFamily])}
-            />
-          )}
-
           <CycleReadRecord read={read} events={episodes} />
 
-          <CycleMethodsGrader
-            record={record}
-            meta={meta}
-            grader={grader}
-            structureBasis={text(meta.structure_basis) || history?.basis || selected?.basis || null}
-            membership={text(meta.membership) || null}
-            historyMode={text(meta.history_mode) || history?.mode || null}
-            seriesVerified={evidenceParts.series === "verified"}
-            publicationId={gen?.publicationId ?? null}
-            classifier={text(meta.classifier) || null}
-            sourcesOpen={sourcesOpen}
-            onSourcesOpen={setSourcesOpen}
-          />
+          {/* Depth outcomes row (R5-Y01 at 1440, R5-Y04 at 768): turn
+           * estimate & priors | grader | timing. Component contracts stay as
+           * the frozen spec defined them; only the arrangement is the frame's. */}
+          <div className={s.depthGrid} data-testid="cycle-depth-grid">
+            <CycleHazard record={record} meta={meta} />
+            <CycleMethodsGrader
+              record={record}
+              meta={meta}
+              grader={grader}
+              structureBasis={text(meta.structure_basis) || history?.basis || selected?.basis || null}
+              membership={text(meta.membership) || null}
+              historyMode={text(meta.history_mode) || history?.mode || null}
+              seriesVerified={evidenceParts.series === "verified"}
+              publicationId={gen?.publicationId ?? null}
+              classifier={text(meta.classifier) || null}
+              sourcesOpen={sourcesOpen}
+              onSourcesOpen={setSourcesOpen}
+            />
+            {record !== null && (
+              <CycleTiming
+                record={record}
+                phaseAge={ageReading}
+                above200={above200}
+                timingState={text(object(object(object(record).now).clocks).ladder) || null}
+                rhythm={rhythm}
+                today={props.today ?? gen?.asOf ?? ""}
+                kindLabel={t(familyKindKey[effectiveFamily])}
+              />
+            )}
+          </div>
 
           {baskets && baskets.length > 0 && (
             <SectorBasketCompare rows={baskets} asOf={gen?.asOf ?? ""} />
@@ -854,8 +914,14 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
         onClose={() => setSeriesSheetOpen(false)}
         series={pickerSeries}
         onToggle={(id) => setComparisonId((prev) => (prev === id ? null : id))}
-        onSelectAll={() => setComparisonId(null)}
-        onClear={() => setComparisonId(null)}
+        families={familiesPresent.map((f) => ({ key: f, label: t(familyLabelKey[f]) }))}
+        family={effectiveFamily}
+        onFamily={(f) => {
+          setFamily(f as CycleFamily);
+          retireSubject();
+        }}
+        subjectId={effectiveSubjectId}
+        onSelectSubject={handleSelect}
       />
       <CycleLegSheet
         open={legSheetOpen}

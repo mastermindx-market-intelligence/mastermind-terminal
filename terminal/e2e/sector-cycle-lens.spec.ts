@@ -30,6 +30,12 @@ const T = (lang: "en" | "zh") => ({
   legDetails: lang === "zh" ? "周期段详情" : "Leg details",
   fullscreen: lang === "zh" ? "周期全屏" : "Cycles fullscreen",
   openFullscreen: lang === "zh" ? "打开全屏" : "Open fullscreen",
+  fullscreenBtn: lang === "zh" ? "全屏" : "Full screen",
+  changeSeries: lang === "zh" ? "更换序列" : "Change series",
+  phaseAll: lang === "zh" ? "全部阶段" : "All phases",
+  expansion: lang === "zh" ? "扩张" : "Expansion",
+  selectedFoot: lang === "zh" ? "已选" : "Selected",
+  troughWord: lang === "zh" ? "底部" : "trough",
   prov: lang === "zh" ? "暂定" : "Provisional",
   rs63: lang === "zh" ? "63个交易日" : "63 sessions",
   trough: lang === "zh" ? "底部" : "Trough",
@@ -79,6 +85,23 @@ for (const [lang, theme] of cases) {
     /* ── Range select: All and 1-month windows (exact row counts) ── */
     await panel.getByLabel(L.range).selectOption("0");
     await expect(dataTable.locator("tbody tr")).toHaveCount(252);
+
+    /* ── Panel fullscreen (R5-Y03) at the full window: turn labels visible,
+     * the Chart/Exact toggle carries the same 252-row basis, Escape out. ── */
+    await panel.getByRole("button", { name: new RegExp(L.fullscreenBtn) }).click();
+    const fs = page.getByRole("dialog", { name: L.fullscreen });
+    await expect(fs).toBeVisible();
+    // Turn labels are visible on the measured chart (thinned by pixel gap).
+    // Scope to <text> nodes: the turn markers' <title> tooltips also carry
+    // the raw kind word, and the kept-label count varies by width.
+    await expect(fs.locator("svg text").filter({ hasText: L.troughWord }).first()).toBeVisible();
+    await fs.getByRole("button", { name: L.table, exact: true }).click();
+    await expect(fs.locator("tbody tr")).toHaveCount(252);
+    await fs.getByRole("button", { name: L.chart, exact: true }).click();
+    await expect(fs.locator("svg")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(fs).toBeHidden();
+
     await panel.getByLabel(L.range).selectOption("21");
     await expect(dataTable.locator("tbody tr")).toHaveCount(22); // 21-day span, inclusive
 
@@ -152,6 +175,38 @@ for (const [lang, theme] of cases) {
     });
   });
 
+  test(`cycles 768 structure ${lang}`, async ({ page }, info) => {
+    test.skip(info.project.name !== "desktop", "768 band is a desktop-project resize");
+    await page.goto("/dev/sector-cycles");
+    await page.getByRole("radio", { name: lang === "zh" ? "ZH" : "EN", exact: true }).check();
+    const lens = page.getByTestId("sector-cycle-lens");
+    await expect(lens).toBeVisible();
+    await page.setViewportSize({ width: 768, height: 1024 });
+
+    /* R5-Y04: the rail collapses to the Change-series trigger; the full
+     * picker (families, phases, rows) lives in the sheet it opens. */
+    await expect(page.getByTestId("cycle-phase-rail")).toBeHidden();
+    const trigger = lens.getByRole("button", { name: new RegExp(L.changeSeries) });
+    await expect(trigger).toBeVisible();
+    await trigger.click();
+    const sheet = page.locator('[role="dialog"]');
+    await expect(sheet).toBeVisible();
+    await expect(sheet.getByRole("button", { name: L.sectorsTab })).toBeVisible();
+    await sheet.getByRole("button", { name: L.apply, exact: true }).click();
+    await expect(sheet).toBeHidden();
+
+    /* Depth outcomes reflow to two columns with no horizontal overflow. */
+    const cols = await page
+      .getByTestId("cycle-depth-grid")
+      .evaluate((e) => getComputedStyle(e).gridTemplateColumns.split(/\s+/).filter(Boolean).length);
+    expect(cols).toBe(2);
+    expect(await lens.evaluate((e) => e.scrollWidth - e.clientWidth)).toBeLessThanOrEqual(1);
+    await lens.screenshot({
+      path: info.outputPath(`cycles-768-${lang}.png`),
+      animations: "disabled",
+    });
+  });
+
   test(`cycles mobile sheets ${lang}`, async ({ page }, info) => {
     test.skip(info.project.name !== "mobile", "half-sheet/full-sheet journey is the 390 contract");
     await page.goto("/dev/sector-cycles");
@@ -164,6 +219,14 @@ for (const [lang, theme] of cases) {
     await panel.getByRole("button", { name: new RegExp(L.series) }).tap();
     let sheet = page.locator('[role="dialog"]');
     await expect(sheet).toBeVisible();
+    /* ── R5-Y02 picker structure: 2×2 family control, phase filter chips,
+     * selected-series footer with the same-basis rule note. ── */
+    await expect(sheet.getByRole("button", { name: L.sectorsTab })).toBeVisible();
+    await sheet.getByRole("button", { name: L.expansion, exact: true }).tap();
+    await expect(sheet.locator("li")).toHaveCount(1); // only XLK sits in Expansion
+    await sheet.getByRole("button", { name: L.phaseAll, exact: true }).tap();
+    await expect(sheet.locator("li")).toHaveCount(5);
+    await expect(sheet).toContainText(L.selectedFoot);
     // XLF is price-basis vs XLK's total return: refused with the reason.
     const xlfRow = sheet.locator("li").filter({ hasText: L.financials });
     await expect(xlfRow.getByRole("checkbox")).toBeDisabled();

@@ -5,6 +5,7 @@ import {
   fmtTick,
   niceTicks,
   padDomain,
+  thinLabels,
   useChartWidth,
 } from "@/components/charts/svgChart";
 import { formatValue, type SectorRotationHistoryCycleTurn } from "@/lib/sectorIntelligence";
@@ -12,10 +13,11 @@ import { useSectorCycleT } from "@/lib/sectorCycleLex";
 import type { CycleSeriesData } from "./CycleChartPanel";
 import s from "../SectorCycleLens.module.css";
 
-/* Landscape/fullscreen chart (844×486, R3 2V3-0): the full-width measured
- * chart with a pointer/keyboard crosshair, exact values bottom-left, ✕ close
- * top-right. Escape closes; focus returns to the opener. Same svgChart law as
- * the inline panel — measured pixel-space viewBox, no distortion. */
+/* Landscape/fullscreen chart (844×390, R5-Y03): the full-width measured chart
+ * with a pointer/keyboard crosshair, a Chart / Exact values toggle, exact
+ * values bottom-left, ✕ close top-right. Escape closes; focus returns to the
+ * opener. Same svgChart law as the inline panel — measured pixel-space
+ * viewBox, no distortion. */
 
 const DAY_MS = 86_400_000;
 const GAP_DAYS = 4;
@@ -39,6 +41,7 @@ export default function CycleChartFullscreen(props: CycleChartFullscreenProps) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const w = useChartWidth(wrapRef, 320);
   const [h, setH] = useState(300);
+  const [fsView, setFsView] = useState<"chart" | "table">("chart");
   const openerRef = useRef<Element | null>(null);
   const [labelId] = useState(() => "cycle-fs-" + Math.random().toString(36).slice(2, 8));
 
@@ -139,7 +142,7 @@ export default function CycleChartFullscreen(props: CycleChartFullscreenProps) {
   };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
-    if (dates.length === 0) return;
+    if (dates.length === 0 || fsView !== "chart") return;
     const idx = cursorDate ? dates.indexOf(cursorDate) : dates.length - 1;
     if (e.key === "ArrowLeft" || e.key === "Home") {
       e.preventDefault();
@@ -166,12 +169,63 @@ export default function CycleChartFullscreen(props: CycleChartFullscreenProps) {
       >
         <div className={s.fullscreenTop}>
           <p id={labelId}>{chartLabel}</p>
-          <button type="button" onClick={props.onClose} aria-label={t("scCloseFullscreen")}>
-            ✕
-          </button>
+          <div className={s.fullscreenControls}>
+            <div className={s.toggle} role="group" aria-label={chartLabel}>
+              <button
+                type="button"
+                aria-pressed={fsView === "chart"}
+                onClick={() => setFsView("chart")}
+              >
+                {t("scChart")}
+              </button>
+              <button
+                type="button"
+                aria-pressed={fsView === "table"}
+                onClick={() => setFsView("table")}
+              >
+                {t("scTable")}
+              </button>
+            </div>
+            <button type="button" onClick={props.onClose} aria-label={t("scCloseFullscreen")}>
+              ✕
+            </button>
+          </div>
         </div>
         {shown.length === 0 || !cursorDate ? (
           <p role="status">{t("scNoHistory")}</p>
+        ) : fsView === "table" ? (
+          <div className={s.fsTableWrap}>
+            <div className={s.scrollTable}>
+              <table>
+                <caption>{chartLabel}</caption>
+                <thead>
+                  <tr>
+                    <th>{t("scObservationDate")}</th>
+                    {shown.map((x2) => (
+                      <th key={x2.subjectId + x2.label} scope="col">
+                        {x2.label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...dates].reverse().map((date) => (
+                    <tr key={date}>
+                      <th scope="row">{date}</th>
+                      {shown.map((x2) => {
+                        const point = x2.points.find((q) => q.date === date);
+                        return (
+                          <td key={x2.subjectId + x2.label}>
+                            {point ? fmtSeries(point.value) : "—"}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         ) : (
           <svg
             viewBox={`0 0 ${w} ${chartH}`}
@@ -223,6 +277,31 @@ export default function CycleChartFullscreen(props: CycleChartFullscreenProps) {
                 </path>
               );
             })}
+            {thinLabels(
+              props.turns
+                .filter((v) => {
+                  const t0 = stamp(v.date);
+                  return Number.isFinite(t0) && t0 >= domain[0] && t0 <= domain[1];
+                })
+                .map((v) => v.date)
+                .sort(),
+              (d) => x(stamp(d) || 0),
+              72,
+            ).map((d) => {
+              const turn = props.turns.find((v) => v.date === d);
+              if (!turn) return null;
+              return (
+                <text
+                  key={"lbl-" + d}
+                  x={x(stamp(d))}
+                  y={padT - 8}
+                  textAnchor="middle"
+                  className={s.turnLabel}
+                >
+                  {`${t(turn.kind === "peak" ? "scTurnWordPeak" : "scTurnWordTrough")} ${d}`}
+                </text>
+              );
+            })}
             <line
               x1={x(stamp(cursorDate) || 0)}
               x2={x(stamp(cursorDate) || 0)}
@@ -241,6 +320,7 @@ export default function CycleChartFullscreen(props: CycleChartFullscreenProps) {
             ))}
           </svg>
         )}
+        {fsView === "chart" && (
         <div className={s.fullscreenValues} data-testid="cycle-fullscreen-values" aria-live="polite">
           <time dateTime={cursorDate ?? undefined}>{cursorDate ?? "—"}</time>
           {cursorPoints.map((r) => (
@@ -249,6 +329,7 @@ export default function CycleChartFullscreen(props: CycleChartFullscreenProps) {
             </span>
           ))}
         </div>
+        )}
       </div>
     </div>
   );

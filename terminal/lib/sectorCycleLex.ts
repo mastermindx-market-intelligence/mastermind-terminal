@@ -236,6 +236,19 @@ export const SECTOR_CYCLE_LEX: Record<string, [string, string]> = {
   scCloseFullscreen: ["Close fullscreen", "关闭全屏"],
   scFullscreen: ["Cycles fullscreen", "周期全屏"],
 
+  /* R5 conformance (Paper R5 · Full Cycles depth / Contextual states) */
+  scSeriesCount: ["Series ({n})", "序列（{n}）"],
+  scChangeSeries: ["Change series", "更换序列"],
+  scFullscreenButton: ["Full screen", "全屏"],
+  scTurnEstimate: ["Turn estimate & priors", "拐点估计与先验"],
+  scModeReconstructed: ["reconstructed price history", "重构价格历史"],
+  scOfflineBanner: ["You're offline — showing the last loaded Cycles view.", "设备离线 — 显示最近载入的周期视图。"],
+  scIncompatibleLegacy: ["Cycles snapshot from a different generation — overlay refused across builds; showing the last compatible core.", "周期快照来自另一个生成版本 — 拒绝跨版本叠加；显示最近兼容的核心视图。"],
+  scLocked: ["Cycles evidence is locked at your access level", "当前访问等级未解锁周期证据"],
+  scPhaseFilterAll: ["All phases", "全部阶段"],
+  scSelectedSeries: ["Selected", "已选"],
+  scBasisRule: ["Comparison series must share the selected series' basis.", "对比序列须与已选序列口径一致。"],
+
   /* Footer */
   scFooter: ["Descriptive evidence. No stock recommendation, sizing or execution authority.", "描述性证据，不构成个股建议、仓位建议或执行授权。"],
   scFootnotePattern: ["Display-only context, never a signal.", "仅供展示，绝非信号。"],

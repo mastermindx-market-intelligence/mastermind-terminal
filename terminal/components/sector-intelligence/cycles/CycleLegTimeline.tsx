@@ -88,52 +88,54 @@ export default function CycleLegTimeline(props: CycleLegTimelineProps) {
   return (
     <section className={s.legWrap} data-testid="cycle-leg-timeline">
       <h3>{t("scLegTimeline")}</h3>
-      <ol className={s.legStrip}>
-        {legs.map((leg) => (
-          <li key={leg.id}>
-            <button
-              type="button"
-              aria-pressed={selected?.id === leg.id}
-              className={[
-                leg.open ? s.legOpen : "",
-                leg.kind === "up" ? s.legUp : s.legDown,
-                leg.provisionalEnd ? s.legProv : "",
-              ]
-                .filter(Boolean)
-                .join(" ")}
-              onClick={() =>
-                props.onSelectLeg(selected?.id === leg.id ? null : leg.id)
-              }
-            >
-              <span>
-                {leg.from}
-                {leg.open
-                  ? ` · ${t("scOpenLeg")}${props.openSessions !== null ? ` · ${t("scLegOpenSessions", { n: props.openSessions })}` : ""}`
-                  : ` → ${leg.to}${leg.provisionalEnd ? ` · ${t("scProvisional")}` : ""}`}
-              </span>
-              <b aria-hidden="true">{leg.kind === "up" ? "▲" : "▼"}</b>
-            </button>
-          </li>
-        ))}
-        {legs.length === 0 && <li className={s.note}>{t("scNoTurns")}</li>}
-      </ol>
-      {selected && (
-        <div className={s.legDetail} data-testid="cycle-leg-detail">
-          <h4>
-            {selected.open ? t("scLegOpenNoCount") : `${selected.from} → ${selected.to}`}
-          </h4>
-          <LegStoryBlock story={props.story} />
-          {props.onOpenLegSheet && (
-            <button
-              type="button"
-              className={s.legSheetButton}
-              onClick={() => props.onOpenLegSheet?.(true)}
-            >
-              {t("scLegDetails")}
-            </button>
-          )}
-        </div>
-      )}
+      <div className={s.legBody}>
+        <ol className={s.legStrip}>
+          {legs.map((leg) => (
+            <li key={leg.id}>
+              <button
+                type="button"
+                aria-pressed={selected?.id === leg.id}
+                className={[
+                  leg.open ? s.legOpen : "",
+                  leg.kind === "up" ? s.legUp : s.legDown,
+                  leg.provisionalEnd ? s.legProv : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+                onClick={() =>
+                  props.onSelectLeg(selected?.id === leg.id ? null : leg.id)
+                }
+              >
+                <span>
+                  {leg.from}
+                  {leg.open
+                    ? ` · ${t("scOpenLeg")}${props.openSessions !== null ? ` · ${t("scLegOpenSessions", { n: props.openSessions })}` : ""}`
+                    : ` → ${leg.to}${leg.provisionalEnd ? ` · ${t("scProvisional")}` : ""}`}
+                </span>
+                <b aria-hidden="true">{leg.kind === "up" ? "▲" : "▼"}</b>
+              </button>
+            </li>
+          ))}
+          {legs.length === 0 && <li className={s.note}>{t("scNoTurns")}</li>}
+        </ol>
+        {selected && (
+          <div className={s.legDetail} data-testid="cycle-leg-detail">
+            <h4>
+              {selected.open ? t("scLegOpenNoCount") : `${selected.from} → ${selected.to}`}
+            </h4>
+            <LegStoryBlock story={props.story} />
+            {props.onOpenLegSheet && (
+              <button
+                type="button"
+                className={s.legSheetButton}
+                onClick={() => props.onOpenLegSheet?.(true)}
+              >
+                {t("scLegDetails")}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
     </section>
   );
 }

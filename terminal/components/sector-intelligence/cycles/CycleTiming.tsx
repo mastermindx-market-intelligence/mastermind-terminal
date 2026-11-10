@@ -1,28 +1,20 @@
 "use client";
 import { useLang } from "@/lib/i18n";
 import { useSectorCycleT } from "@/lib/sectorCycleLex";
-import {
-  HAZARD_HORIZONS,
-  STATE_DISPLAY,
-  cellState,
-  legFamily,
-  parityQualification,
-  type EstimateKinds,
-} from "@/lib/sectorCycleHazard";
+import { STATE_DISPLAY } from "@/lib/sectorCycleHazard";
 import type { PhaseAgeReading } from "@/lib/sectorCyclePhaseAge";
 import type { RhythmReading } from "@/lib/sectorCycleRhythm";
 import s from "../SectorCycleLens.module.css";
 
 /* Timing & projection: the phase age (measured / lower bound / unavailable),
- * the trend line, the timing ladder chip, the FIXED rhythm window with its
- * position state, and the hazard ladder where MODEL and PRIOR are explicit and
- * a whole inverted curve is withheld rather than partially drawn. */
+ * the trend line, the timing ladder chip, and the FIXED rhythm window with its
+ * position state. The turn-estimate hazard ladder lives in its own card
+ * (CycleHazard) since the R5 depth row. */
 
 const MONTHS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 export interface CycleTimingProps {
   record: unknown;
-  meta: unknown;
   phaseAge: PhaseAgeReading;
   above200: boolean | null;
   timingState: string | null;
@@ -40,17 +32,6 @@ export default function CycleTiming(props: CycleTimingProps) {
     return zh ? `${y}年${mo}月` : `${MONTHS_EN[mo - 1]} ’${String(y).slice(2)}`;
   };
 
-  const leg = legFamily(props.record);
-  const hazard =
-    props.record && typeof props.record === "object" && "now" in (props.record as object)
-      ? (props.record as { now?: { hazard?: unknown } }).now
-      : null;
-  const hazardBlock = hazard && typeof hazard === "object" ? (hazard as { hazard?: unknown }).hazard : null;
-  const estimateKinds =
-    props.record && typeof props.record === "object" && "estimate_kinds" in (props.record as object)
-      ? ((props.record as { estimate_kinds?: EstimateKinds }).estimate_kinds ?? null)
-      : null;
-  const hazardWithheld = leg.hazardAgrees === false;
   const ladder = props.timingState && STATE_DISPLAY[props.timingState];
 
   const rhythmReady = props.rhythm.window.state === "ready";
@@ -142,82 +123,6 @@ export default function CycleTiming(props: CycleTimingProps) {
           </>
         ) : (
           <p className={s.note}>{t("scWindowUnavailable")}</p>
-        )}
-      </div>
-
-      <div
-        className={s.hazard}
-        data-withheld={hazardWithheld ? "true" : undefined}
-        role="group"
-        aria-label={t("scHazardLabel")}
-      >
-        <h4>{t("scHazardLabel")}</h4>
-        {hazardWithheld ? (
-          <p className={s.note}>{t("scHazardWithheld")}</p>
-        ) : (
-          <>
-            <div className={s.hzLadder}>
-              <span />
-              {HAZARD_HORIZONS.map((key) => (
-                <span key={key} className={s.hzHead}>
-                  {t(key === "1m" ? "scHz1m" : key === "3m" ? "scHz3m" : "scHz6m")}
-                </span>
-              ))}
-              <span className={s.hzRowlab}>
-                {leg.direction
-                  ? t(leg.direction === "up" ? "scHazardRowUp" : "scHazardRowDown")
-                  : ""}
-                {leg.turn
-                  ? ` · ${t(leg.turn === "peak" ? "scTurnWordPeak" : "scTurnWordTrough")}`
-                  : ""}
-              </span>
-              {HAZARD_HORIZONS.map((key) => {
-                const state = cellState(hazardBlock, estimateKinds, key);
-                const cell =
-                  hazardBlock && typeof hazardBlock === "object"
-                    ? (hazardBlock as Record<string, { p?: number }>)[key]
-                    : null;
-                if (state === "gap" || !cell || typeof cell.p !== "number") {
-                  return (
-                    <span key={key} className={s.hzCell} data-state="gap">
-                      <span className={s.hzVal} aria-label={t("scHazardUnavailable")}>
-                        —
-                      </span>
-                    </span>
-                  );
-                }
-                const pct = Math.round(cell.p * 100);
-                return (
-                  <span key={key} className={s.hzCell} data-state={state}>
-                    <span className={s.hzVal}>{pct}%</span>
-                    <span className={s.badge} data-source={state}>
-                      {t(state === "prior" ? "scBadgePrior" : "scBadgeModel")}
-                    </span>
-                  </span>
-                );
-              })}
-            </div>
-            <p className={s.note}>
-              {(() => {
-                const q = parityQualification(props.record, props.meta);
-                const notes: string[] = [];
-                const hasMuted = HAZARD_HORIZONS.some(
-                  (k) => cellState(hazardBlock, estimateKinds, k) === "muted",
-                );
-                const hasPrior = HAZARD_HORIZONS.some(
-                  (k) => cellState(hazardBlock, estimateKinds, k) === "prior",
-                );
-                const hasGap = HAZARD_HORIZONS.some(
-                  (k) => cellState(hazardBlock, estimateKinds, k) === "gap",
-                );
-                if (hasMuted) notes.push(t("scHazardFaceNote"));
-                if (hasPrior) notes.push(t("scPriorGloss"));
-                if (hasGap) notes.push(t("scHazardUnavailable"));
-                if (q === "parity_failed") notes.push(t("scParityFailed"));
-                return notes.join(" ") || t("scFootnotePattern");
-              })()}
-            </p>
-          </>
         )}
       </div>
     </section>

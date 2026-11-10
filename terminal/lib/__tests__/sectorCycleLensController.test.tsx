@@ -141,6 +141,8 @@ interface LensProps {
     subject?: { id: string } | null;
   } | null;
   subject?: { family: "sectors" | "baskets" | "nasdaq" | "russell"; id: string | null } | null;
+  /** Access denial reason (R5-S07 cycles slices); null keeps the normal path. */
+  denyAccess?: "denied" | "unauthenticated" | "locked" | null;
 }
 
 function mountLens(initial: LensProps) {
@@ -161,6 +163,7 @@ function mountLens(initial: LensProps) {
             accessGeneration={(props.gen ?? generation).accessGeneration}
             returnBinding={props.returnBinding ?? "host"}
             captureRef={handle}
+            denyAccess={props.denyAccess ?? null}
             cyclesFeed={props.cyclesFeed}
             historyFeed={props.historyFeed}
           />
@@ -191,6 +194,7 @@ function mountLens(initial: LensProps) {
             accessGeneration={(props.gen ?? generation).accessGeneration}
             returnBinding={props.returnBinding ?? "host"}
             captureRef={handle}
+            denyAccess={props.denyAccess ?? null}
             cyclesFeed={props.cyclesFeed}
             historyFeed={props.historyFeed}
           />
@@ -500,6 +504,61 @@ describe("cycles controller: lane-3 context mount (TERMINAL_SLOTS.md §2)", () =
     });
     expect(lensRoot()?.textContent).toContain("Cycle evidence unavailable");
     expect(document.querySelector('[data-testid="cycle-phase-rail"]')).toBeNull();
+    lens.unmount();
+  });
+});
+
+describe("cycles controller: R5 device and access states", () => {
+  it("going offline keeps the loaded view behind an honest device banner (S06)", () => {
+    const desc = Object.getOwnPropertyDescriptor(Navigator.prototype, "onLine");
+    Object.defineProperty(Navigator.prototype, "onLine", {
+      configurable: true,
+      get: () => false,
+    });
+    try {
+      const lens = mountLens({
+        cyclesFeed: { state: "ready", data: deepCycles() },
+        historyFeed: { state: "ready", data: historyPayload() },
+      });
+      act(() => {
+        window.dispatchEvent(new Event("offline"));
+      });
+      // Device state, not a data claim: the loaded experience stays mounted.
+      expect(lensRoot()?.textContent).toContain("showing the last loaded Cycles view");
+      expect(document.querySelector('[data-testid="cycle-phase-rail"]')).not.toBeNull();
+      expect(document.querySelector('[data-testid="cycle-depth-grid"]')).not.toBeNull();
+      lens.unmount();
+    } finally {
+      if (desc) Object.defineProperty(Navigator.prototype, "onLine", desc);
+    }
+  });
+
+  it("denyAccess 'locked' renders the locked screen with no rail (S07 cycles:locked)", () => {
+    const lens = mountLens({
+      denyAccess: "locked",
+      cyclesFeed: { state: "ready", data: deepCycles() },
+      historyFeed: { state: "ready", data: historyPayload() },
+    });
+    expect(lensRoot()?.textContent).toContain("Cycles evidence is locked at your access level");
+    expect(document.querySelector('[data-testid="cycle-phase-rail"]')).toBeNull();
+    lens.unmount();
+  });
+
+  it("an incompatible-generation snapshot keeps the legacy core with the refusal banner (S06)", () => {
+    const lens = mountLens({
+      cyclesFeed: { state: "ready", data: deepCycles() },
+      historyFeed: { state: "ready", data: historyPayload() },
+    });
+    expect(lens.handle.current!.captureView()).not.toBeNull();
+    // The publication is replaced under the same generation pin: the deep
+    // evidence no longer matches, but the legacy rs-history core still serves.
+    const foreign = deepCycles();
+    foreign.evidence = { ...foreign.evidence, publicationId: "cycp1-" + "ef".repeat(32) };
+    lens.rerender({ cyclesFeed: { state: "ready", data: foreign } });
+    expect(lensRoot()?.textContent).toContain("overlay refused across builds");
+    expect(document.querySelector('[data-testid="cycle-phase-rail"]')).not.toBeNull();
+    // Deep-only view state is gone with the refused overlay.
+    expect(lens.handle.current!.captureView()).toBeNull();
     lens.unmount();
   });
 });
