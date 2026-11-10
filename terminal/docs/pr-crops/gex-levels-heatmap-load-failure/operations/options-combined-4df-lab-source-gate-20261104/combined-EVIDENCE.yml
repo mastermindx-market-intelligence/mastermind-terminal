@@ -1,0 +1,1589 @@
+# GEX desk, Levels and Heatmap failure-state truth — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: 07616901eb3a33127bd5f2699d604c5b0dd1a2e5
+# capturedAt: 2026-11-04T05:00:30.674Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
+  terminal/components/gexdesk/ExposureWorkspace.module.css: "bf8a7d85fc594d9666e97445fde47e36cd64c4f6fc6883a75102d25115666158"
+  terminal/components/gexdesk/GexDeskView.tsx: "e2b1cea4319f0860321d86d3fc8d8fc133060ce11cd7e1bdc0768207613d0a98"
+  terminal/components/gexdesk/HeatSeekerCard.tsx: "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a"
+  terminal/components/gexdesk/MarketStateCard.tsx: "d197f5d243c3c998d6550717ddf18fa4f74658ec877ac0178139b0a6b894f09f"
+  terminal/components/gexdesk/StrikeLadder.tsx: "d5e73cded2c40be7566af46bd6314c8938f9acdd2fdd9bd4c7575cba5e8a7b33"
+  terminal/components/gexdesk/gexStrings.ts: "76ae4a42bdd91378006315e4c1b972d8548aa771843aae1fcc4aa5ca069b3637"
+  terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
+  terminal/lib/dataCache.ts: "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a"
+  terminal/components/levels/LevelsView.tsx: "d200204df1cae5ee1401c152df8ce4992d5e88fa852d2505d6c64b1074128e17"
+  terminal/components/levels/levelsLabels.ts: "361124ec9293623fefe69128212f5a25bfddf2c3d716252126d56ec5f356d0d9"
+  terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: tablet, width: 820, height: 1180 }
+  - { name: mobile, width: 390, height: 844 }
+harness:
+  gex-ladder-absent-1440-zh.png: { url: "/options?tab=gex", state: gex-ladder-absent, injected: { "gex:SPY": 404 }, stream: aborted }
+  gex-ladder-absent-1440.png: { url: "/options?tab=gex", state: gex-ladder-absent, injected: { "gex:SPY": 404 }, stream: aborted }
+  gex-ladder-absent-390-zh.png: { url: "/options?tab=gex", state: gex-ladder-absent, injected: { "gex:SPY": 404 }, stream: aborted }
+  gex-ladder-absent-390.png: { url: "/options?tab=gex", state: gex-ladder-absent, injected: { "gex:SPY": 404 }, stream: aborted }
+  gex-ladder-absent-820-zh.png: { url: "/options?tab=gex", state: gex-ladder-absent, injected: { "gex:SPY": 404 }, stream: aborted }
+  gex-ladder-absent-820.png: { url: "/options?tab=gex", state: gex-ladder-absent, injected: { "gex:SPY": 404 }, stream: aborted }
+  gex-ladder-retried-1440-zh.png: { url: "/options?tab=gex", state: gex-ladder-retried, injected: { "gex:SPY": 503 }, stream: aborted, then: "gex:SPY healed, Retry clicked" }
+  gex-ladder-retried-1440.png: { url: "/options?tab=gex", state: gex-ladder-retried, injected: { "gex:SPY": 503 }, stream: aborted, then: "gex:SPY healed, Retry clicked" }
+  gex-ladder-retried-390-zh.png: { url: "/options?tab=gex", state: gex-ladder-retried, injected: { "gex:SPY": 503 }, stream: aborted, then: "gex:SPY healed, Retry clicked" }
+  gex-ladder-retried-390.png: { url: "/options?tab=gex", state: gex-ladder-retried, injected: { "gex:SPY": 503 }, stream: aborted, then: "gex:SPY healed, Retry clicked" }
+  gex-ladder-retried-820-zh.png: { url: "/options?tab=gex", state: gex-ladder-retried, injected: { "gex:SPY": 503 }, stream: aborted, then: "gex:SPY healed, Retry clicked" }
+  gex-ladder-retried-820.png: { url: "/options?tab=gex", state: gex-ladder-retried, injected: { "gex:SPY": 503 }, stream: aborted, then: "gex:SPY healed, Retry clicked" }
+  gex-ladder-unavailable-1440-zh.png: { url: "/options?tab=gex", state: gex-ladder-unavailable, injected: { "gex:SPY": 503 }, stream: aborted }
+  gex-ladder-unavailable-1440.png: { url: "/options?tab=gex", state: gex-ladder-unavailable, injected: { "gex:SPY": 503 }, stream: aborted }
+  gex-ladder-unavailable-390-zh.png: { url: "/options?tab=gex", state: gex-ladder-unavailable, injected: { "gex:SPY": 503 }, stream: aborted }
+  gex-ladder-unavailable-390.png: { url: "/options?tab=gex", state: gex-ladder-unavailable, injected: { "gex:SPY": 503 }, stream: aborted }
+  gex-ladder-unavailable-820-zh.png: { url: "/options?tab=gex", state: gex-ladder-unavailable, injected: { "gex:SPY": 503 }, stream: aborted }
+  gex-ladder-unavailable-820.png: { url: "/options?tab=gex", state: gex-ladder-unavailable, injected: { "gex:SPY": 503 }, stream: aborted }
+  gex-live-refresh-failed-1440-zh.png: { url: "/options?tab=gex", state: gex-live-refresh-failed, injected: {  }, stream: "last frame, then event status unavailable" }
+  gex-live-refresh-failed-1440.png: { url: "/options?tab=gex", state: gex-live-refresh-failed, injected: {  }, stream: "last frame, then event status unavailable" }
+  gex-live-refresh-failed-390-zh.png: { url: "/options?tab=gex", state: gex-live-refresh-failed, injected: {  }, stream: "last frame, then event status unavailable" }
+  gex-live-refresh-failed-390.png: { url: "/options?tab=gex", state: gex-live-refresh-failed, injected: {  }, stream: "last frame, then event status unavailable" }
+  gex-live-refresh-failed-820-zh.png: { url: "/options?tab=gex", state: gex-live-refresh-failed, injected: {  }, stream: "last frame, then event status unavailable" }
+  gex-live-refresh-failed-820.png: { url: "/options?tab=gex", state: gex-live-refresh-failed, injected: {  }, stream: "last frame, then event status unavailable" }
+  gex-live-retried-1440-zh.png: { url: "/options?tab=gex", state: gex-live-retried, injected: {  }, stream: "last frame, then event status unavailable", then: "Retry clicked; the same ladder element kept" }
+  gex-live-retried-1440.png: { url: "/options?tab=gex", state: gex-live-retried, injected: {  }, stream: "last frame, then event status unavailable", then: "Retry clicked; the same ladder element kept" }
+  gex-live-retried-390-zh.png: { url: "/options?tab=gex", state: gex-live-retried, injected: {  }, stream: "last frame, then event status unavailable", then: "Retry clicked; the same ladder element kept" }
+  gex-live-retried-390.png: { url: "/options?tab=gex", state: gex-live-retried, injected: {  }, stream: "last frame, then event status unavailable", then: "Retry clicked; the same ladder element kept" }
+  gex-live-retried-820-zh.png: { url: "/options?tab=gex", state: gex-live-retried, injected: {  }, stream: "last frame, then event status unavailable", then: "Retry clicked; the same ladder element kept" }
+  gex-live-retried-820.png: { url: "/options?tab=gex", state: gex-live-retried, injected: {  }, stream: "last frame, then event status unavailable", then: "Retry clicked; the same ladder element kept" }
+  gex-pick-absent-1440-zh.png: { url: "/options?tab=gex", state: gex-pick-absent, injected: { "matrix:SPY": 404 }, stream: aborted }
+  gex-pick-absent-1440.png: { url: "/options?tab=gex", state: gex-pick-absent, injected: { "matrix:SPY": 404 }, stream: aborted }
+  gex-pick-absent-390-zh.png: { url: "/options?tab=gex", state: gex-pick-absent, injected: { "matrix:SPY": 404 }, stream: aborted }
+  gex-pick-absent-390.png: { url: "/options?tab=gex", state: gex-pick-absent, injected: { "matrix:SPY": 404 }, stream: aborted }
+  gex-pick-absent-820-zh.png: { url: "/options?tab=gex", state: gex-pick-absent, injected: { "matrix:SPY": 404 }, stream: aborted }
+  gex-pick-absent-820.png: { url: "/options?tab=gex", state: gex-pick-absent, injected: { "matrix:SPY": 404 }, stream: aborted }
+  gex-rail-retried-1440-zh.png: { url: "/options?tab=gex", state: gex-rail-retried, injected: { "gexstate:SPY": 503, "matrix:SPY": 503 }, stream: aborted, then: "gexstate:SPY + matrix:SPY healed, Retry clicked" }
+  gex-rail-retried-1440.png: { url: "/options?tab=gex", state: gex-rail-retried, injected: { "gexstate:SPY": 503, "matrix:SPY": 503 }, stream: aborted, then: "gexstate:SPY + matrix:SPY healed, Retry clicked" }
+  gex-rail-retried-390-zh.png: { url: "/options?tab=gex", state: gex-rail-retried, injected: { "gexstate:SPY": 503, "matrix:SPY": 503 }, stream: aborted, then: "gexstate:SPY + matrix:SPY healed, Retry clicked" }
+  gex-rail-retried-390.png: { url: "/options?tab=gex", state: gex-rail-retried, injected: { "gexstate:SPY": 503, "matrix:SPY": 503 }, stream: aborted, then: "gexstate:SPY + matrix:SPY healed, Retry clicked" }
+  gex-rail-retried-820-zh.png: { url: "/options?tab=gex", state: gex-rail-retried, injected: { "gexstate:SPY": 503, "matrix:SPY": 503 }, stream: aborted, then: "gexstate:SPY + matrix:SPY healed, Retry clicked" }
+  gex-rail-retried-820.png: { url: "/options?tab=gex", state: gex-rail-retried, injected: { "gexstate:SPY": 503, "matrix:SPY": 503 }, stream: aborted, then: "gexstate:SPY + matrix:SPY healed, Retry clicked" }
+  gex-rail-unavailable-1440-zh.png: { url: "/options?tab=gex", state: gex-rail-unavailable, injected: { "gexstate:SPY": 503, "matrix:SPY": 503 }, stream: aborted }
+  gex-rail-unavailable-1440.png: { url: "/options?tab=gex", state: gex-rail-unavailable, injected: { "gexstate:SPY": 503, "matrix:SPY": 503 }, stream: aborted }
+  gex-rail-unavailable-390-zh.png: { url: "/options?tab=gex", state: gex-rail-unavailable, injected: { "gexstate:SPY": 503, "matrix:SPY": 503 }, stream: aborted }
+  gex-rail-unavailable-390.png: { url: "/options?tab=gex", state: gex-rail-unavailable, injected: { "gexstate:SPY": 503, "matrix:SPY": 503 }, stream: aborted }
+  gex-rail-unavailable-820-zh.png: { url: "/options?tab=gex", state: gex-rail-unavailable, injected: { "gexstate:SPY": 503, "matrix:SPY": 503 }, stream: aborted }
+  gex-rail-unavailable-820.png: { url: "/options?tab=gex", state: gex-rail-unavailable, injected: { "gexstate:SPY": 503, "matrix:SPY": 503 }, stream: aborted }
+  gex-state-refresh-failed-1440-zh.png: { url: "/options?tab=gex", state: gex-state-refresh-failed, injected: {  }, stream: aborted, then: "healthy read landed; gexstate:SPY answer 503; page clock moved past two polls" }
+  gex-state-refresh-failed-1440.png: { url: "/options?tab=gex", state: gex-state-refresh-failed, injected: {  }, stream: aborted, then: "healthy read landed; gexstate:SPY answer 503; page clock moved past two polls" }
+  gex-state-refresh-failed-390-zh.png: { url: "/options?tab=gex", state: gex-state-refresh-failed, injected: {  }, stream: aborted, then: "healthy read landed; gexstate:SPY answer 503; page clock moved past two polls" }
+  gex-state-refresh-failed-390.png: { url: "/options?tab=gex", state: gex-state-refresh-failed, injected: {  }, stream: aborted, then: "healthy read landed; gexstate:SPY answer 503; page clock moved past two polls" }
+  gex-state-refresh-failed-820-zh.png: { url: "/options?tab=gex", state: gex-state-refresh-failed, injected: {  }, stream: aborted, then: "healthy read landed; gexstate:SPY answer 503; page clock moved past two polls" }
+  gex-state-refresh-failed-820.png: { url: "/options?tab=gex", state: gex-state-refresh-failed, injected: {  }, stream: aborted, then: "healthy read landed; gexstate:SPY answer 503; page clock moved past two polls" }
+  heatmap-absent-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-absent, injected: { "manifest": 404, "/data/manifest.json": 404 } }
+  heatmap-absent-1440.png: { url: "/discover?tab=heatmap", state: heatmap-absent, injected: { "manifest": 404, "/data/manifest.json": 404 } }
+  heatmap-absent-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-absent, injected: { "manifest": 404, "/data/manifest.json": 404 } }
+  heatmap-absent-390.png: { url: "/discover?tab=heatmap", state: heatmap-absent, injected: { "manifest": 404, "/data/manifest.json": 404 } }
+  heatmap-absent-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-absent, injected: { "manifest": 404, "/data/manifest.json": 404 } }
+  heatmap-absent-820.png: { url: "/discover?tab=heatmap", state: heatmap-absent, injected: { "manifest": 404, "/data/manifest.json": 404 } }
+  heatmap-persisted-refresh-failed-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-failed, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded" }
+  heatmap-persisted-refresh-failed-1440.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-failed, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded" }
+  heatmap-persisted-refresh-failed-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-failed, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded" }
+  heatmap-persisted-refresh-failed-390.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-failed, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded" }
+  heatmap-persisted-refresh-failed-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-failed, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded" }
+  heatmap-persisted-refresh-failed-820.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-failed, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded" }
+  heatmap-persisted-refresh-refused-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-refused, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json refuse the connection; page reloaded" }
+  heatmap-persisted-refresh-refused-1440.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-refused, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json refuse the connection; page reloaded" }
+  heatmap-persisted-refresh-refused-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-refused, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json refuse the connection; page reloaded" }
+  heatmap-persisted-refresh-refused-390.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-refused, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json refuse the connection; page reloaded" }
+  heatmap-persisted-refresh-refused-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-refused, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json refuse the connection; page reloaded" }
+  heatmap-persisted-refresh-refused-820.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-refused, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json refuse the connection; page reloaded" }
+  heatmap-persisted-retried-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-retried, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded; then manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-persisted-retried-1440.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-retried, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded; then manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-persisted-retried-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-retried, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded; then manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-persisted-retried-390.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-retried, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded; then manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-persisted-retried-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-retried, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded; then manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-persisted-retried-820.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-retried, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded; then manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-retried-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-retried, injected: { "manifest": 503, "/data/manifest.json": 503 }, then: "manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-retried-1440.png: { url: "/discover?tab=heatmap", state: heatmap-retried, injected: { "manifest": 503, "/data/manifest.json": 503 }, then: "manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-retried-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-retried, injected: { "manifest": 503, "/data/manifest.json": 503 }, then: "manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-retried-390.png: { url: "/discover?tab=heatmap", state: heatmap-retried, injected: { "manifest": 503, "/data/manifest.json": 503 }, then: "manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-retried-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-retried, injected: { "manifest": 503, "/data/manifest.json": 503 }, then: "manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-retried-820.png: { url: "/discover?tab=heatmap", state: heatmap-retried, injected: { "manifest": 503, "/data/manifest.json": 503 }, then: "manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-unavailable-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-unavailable, injected: { "manifest": 503, "/data/manifest.json": 503 } }
+  heatmap-unavailable-1440.png: { url: "/discover?tab=heatmap", state: heatmap-unavailable, injected: { "manifest": 503, "/data/manifest.json": 503 } }
+  heatmap-unavailable-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-unavailable, injected: { "manifest": 503, "/data/manifest.json": 503 } }
+  heatmap-unavailable-390.png: { url: "/discover?tab=heatmap", state: heatmap-unavailable, injected: { "manifest": 503, "/data/manifest.json": 503 } }
+  heatmap-unavailable-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-unavailable, injected: { "manifest": 503, "/data/manifest.json": 503 } }
+  heatmap-unavailable-820.png: { url: "/discover?tab=heatmap", state: heatmap-unavailable, injected: { "manifest": 503, "/data/manifest.json": 503 } }
+  levels-absent-1440-zh.png: { url: "/options?tab=levels", state: levels-absent, injected: { "levels:SPY": 404 } }
+  levels-absent-1440.png: { url: "/options?tab=levels", state: levels-absent, injected: { "levels:SPY": 404 } }
+  levels-absent-390-zh.png: { url: "/options?tab=levels", state: levels-absent, injected: { "levels:SPY": 404 } }
+  levels-absent-390.png: { url: "/options?tab=levels", state: levels-absent, injected: { "levels:SPY": 404 } }
+  levels-absent-820-zh.png: { url: "/options?tab=levels", state: levels-absent, injected: { "levels:SPY": 404 } }
+  levels-absent-820.png: { url: "/options?tab=levels", state: levels-absent, injected: { "levels:SPY": 404 } }
+  levels-refresh-failed-1440-zh.png: { url: "/options?tab=levels", state: levels-refresh-failed, injected: {  }, then: "healthy read landed; levels:SPY answer 503; page clock moved past two polls" }
+  levels-refresh-failed-1440.png: { url: "/options?tab=levels", state: levels-refresh-failed, injected: {  }, then: "healthy read landed; levels:SPY answer 503; page clock moved past two polls" }
+  levels-refresh-failed-390-zh.png: { url: "/options?tab=levels", state: levels-refresh-failed, injected: {  }, then: "healthy read landed; levels:SPY answer 503; page clock moved past two polls" }
+  levels-refresh-failed-390.png: { url: "/options?tab=levels", state: levels-refresh-failed, injected: {  }, then: "healthy read landed; levels:SPY answer 503; page clock moved past two polls" }
+  levels-refresh-failed-820-zh.png: { url: "/options?tab=levels", state: levels-refresh-failed, injected: {  }, then: "healthy read landed; levels:SPY answer 503; page clock moved past two polls" }
+  levels-refresh-failed-820.png: { url: "/options?tab=levels", state: levels-refresh-failed, injected: {  }, then: "healthy read landed; levels:SPY answer 503; page clock moved past two polls" }
+  levels-retried-1440-zh.png: { url: "/options?tab=levels", state: levels-retried, injected: { "levels:SPY": 503 }, then: "levels:SPY healed, Retry clicked" }
+  levels-retried-1440.png: { url: "/options?tab=levels", state: levels-retried, injected: { "levels:SPY": 503 }, then: "levels:SPY healed, Retry clicked" }
+  levels-retried-390-zh.png: { url: "/options?tab=levels", state: levels-retried, injected: { "levels:SPY": 503 }, then: "levels:SPY healed, Retry clicked" }
+  levels-retried-390.png: { url: "/options?tab=levels", state: levels-retried, injected: { "levels:SPY": 503 }, then: "levels:SPY healed, Retry clicked" }
+  levels-retried-820-zh.png: { url: "/options?tab=levels", state: levels-retried, injected: { "levels:SPY": 503 }, then: "levels:SPY healed, Retry clicked" }
+  levels-retried-820.png: { url: "/options?tab=levels", state: levels-retried, injected: { "levels:SPY": 503 }, then: "levels:SPY healed, Retry clicked" }
+  levels-unavailable-1440-zh.png: { url: "/options?tab=levels", state: levels-unavailable, injected: { "levels:SPY": 503 } }
+  levels-unavailable-1440.png: { url: "/options?tab=levels", state: levels-unavailable, injected: { "levels:SPY": 503 } }
+  levels-unavailable-390-zh.png: { url: "/options?tab=levels", state: levels-unavailable, injected: { "levels:SPY": 503 } }
+  levels-unavailable-390.png: { url: "/options?tab=levels", state: levels-unavailable, injected: { "levels:SPY": 503 } }
+  levels-unavailable-820-zh.png: { url: "/options?tab=levels", state: levels-unavailable, injected: { "levels:SPY": 503 } }
+  levels-unavailable-820.png: { url: "/options?tab=levels", state: levels-unavailable, injected: { "levels:SPY": 503 } }
+surfaces: [GexDeskView, HeatSeekerCard, MarketStateCard, LevelsView, HeatmapView]
+injection: page.route answers /api/flow (by f-param) and /data/manifest.json with 503 / 404, or refuses the connection (abort); /api/flow/stream is refused on the GEX desk, or (gex-live-*) answers the last frame then its named status event; every other read is the FLOW_FIXTURE server
+persisted: the heatmap-persisted-* states age the browser's own IndexedDB record of /data/manifest.json (dataCache write-through), never a mocked cache
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_gex_levels_heatmap_load_failure.cjs
+files:
+  - gex-ladder-absent-1440-zh.png
+  - gex-ladder-absent-1440.png
+  - gex-ladder-absent-390-zh.png
+  - gex-ladder-absent-390.png
+  - gex-ladder-absent-820-zh.png
+  - gex-ladder-absent-820.png
+  - gex-ladder-retried-1440-zh.png
+  - gex-ladder-retried-1440.png
+  - gex-ladder-retried-390-zh.png
+  - gex-ladder-retried-390.png
+  - gex-ladder-retried-820-zh.png
+  - gex-ladder-retried-820.png
+  - gex-ladder-unavailable-1440-zh.png
+  - gex-ladder-unavailable-1440.png
+  - gex-ladder-unavailable-390-zh.png
+  - gex-ladder-unavailable-390.png
+  - gex-ladder-unavailable-820-zh.png
+  - gex-ladder-unavailable-820.png
+  - gex-live-refresh-failed-1440-zh.png
+  - gex-live-refresh-failed-1440.png
+  - gex-live-refresh-failed-390-zh.png
+  - gex-live-refresh-failed-390.png
+  - gex-live-refresh-failed-820-zh.png
+  - gex-live-refresh-failed-820.png
+  - gex-live-retried-1440-zh.png
+  - gex-live-retried-1440.png
+  - gex-live-retried-390-zh.png
+  - gex-live-retried-390.png
+  - gex-live-retried-820-zh.png
+  - gex-live-retried-820.png
+  - gex-pick-absent-1440-zh.png
+  - gex-pick-absent-1440.png
+  - gex-pick-absent-390-zh.png
+  - gex-pick-absent-390.png
+  - gex-pick-absent-820-zh.png
+  - gex-pick-absent-820.png
+  - gex-rail-retried-1440-zh.png
+  - gex-rail-retried-1440.png
+  - gex-rail-retried-390-zh.png
+  - gex-rail-retried-390.png
+  - gex-rail-retried-820-zh.png
+  - gex-rail-retried-820.png
+  - gex-rail-unavailable-1440-zh.png
+  - gex-rail-unavailable-1440.png
+  - gex-rail-unavailable-390-zh.png
+  - gex-rail-unavailable-390.png
+  - gex-rail-unavailable-820-zh.png
+  - gex-rail-unavailable-820.png
+  - gex-state-refresh-failed-1440-zh.png
+  - gex-state-refresh-failed-1440.png
+  - gex-state-refresh-failed-390-zh.png
+  - gex-state-refresh-failed-390.png
+  - gex-state-refresh-failed-820-zh.png
+  - gex-state-refresh-failed-820.png
+  - heatmap-absent-1440-zh.png
+  - heatmap-absent-1440.png
+  - heatmap-absent-390-zh.png
+  - heatmap-absent-390.png
+  - heatmap-absent-820-zh.png
+  - heatmap-absent-820.png
+  - heatmap-persisted-refresh-failed-1440-zh.png
+  - heatmap-persisted-refresh-failed-1440.png
+  - heatmap-persisted-refresh-failed-390-zh.png
+  - heatmap-persisted-refresh-failed-390.png
+  - heatmap-persisted-refresh-failed-820-zh.png
+  - heatmap-persisted-refresh-failed-820.png
+  - heatmap-persisted-refresh-refused-1440-zh.png
+  - heatmap-persisted-refresh-refused-1440.png
+  - heatmap-persisted-refresh-refused-390-zh.png
+  - heatmap-persisted-refresh-refused-390.png
+  - heatmap-persisted-refresh-refused-820-zh.png
+  - heatmap-persisted-refresh-refused-820.png
+  - heatmap-persisted-retried-1440-zh.png
+  - heatmap-persisted-retried-1440.png
+  - heatmap-persisted-retried-390-zh.png
+  - heatmap-persisted-retried-390.png
+  - heatmap-persisted-retried-820-zh.png
+  - heatmap-persisted-retried-820.png
+  - heatmap-retried-1440-zh.png
+  - heatmap-retried-1440.png
+  - heatmap-retried-390-zh.png
+  - heatmap-retried-390.png
+  - heatmap-retried-820-zh.png
+  - heatmap-retried-820.png
+  - heatmap-unavailable-1440-zh.png
+  - heatmap-unavailable-1440.png
+  - heatmap-unavailable-390-zh.png
+  - heatmap-unavailable-390.png
+  - heatmap-unavailable-820-zh.png
+  - heatmap-unavailable-820.png
+  - levels-absent-1440-zh.png
+  - levels-absent-1440.png
+  - levels-absent-390-zh.png
+  - levels-absent-390.png
+  - levels-absent-820-zh.png
+  - levels-absent-820.png
+  - levels-refresh-failed-1440-zh.png
+  - levels-refresh-failed-1440.png
+  - levels-refresh-failed-390-zh.png
+  - levels-refresh-failed-390.png
+  - levels-refresh-failed-820-zh.png
+  - levels-refresh-failed-820.png
+  - levels-retried-1440-zh.png
+  - levels-retried-1440.png
+  - levels-retried-390-zh.png
+  - levels-retried-390.png
+  - levels-retried-820-zh.png
+  - levels-retried-820.png
+  - levels-unavailable-1440-zh.png
+  - levels-unavailable-1440.png
+  - levels-unavailable-390-zh.png
+  - levels-unavailable-390.png
+  - levels-unavailable-820-zh.png
+  - levels-unavailable-820.png
+
+labPlanNavigationRecapture20261030:
+  sourceHead: "284f09f748e6a7107ceffe0a0c54fc1e0af14fc9"
+  actualCases: 54
+  qualification: "terminal/docs/verification/lab-plan-handoff-20261030/evidence-lock-recapture.json"
+  qualificationSha256: "b34344fad4050563f59223f81056de0415527a98e6bc8047f99a6bfccbdc6be4"
+  scope: "Actual scoped browser captures on the navigation candidate. Other surfaces and earlier reports retain their historical identities; no production or full-matrix recapture claim."
+
+scopedRecaptures:
+  - surface: GexDeskView
+    capturedAtHead: 798e8bdc673a8284fedc475d7bb288fd7f10194d
+    capturedAt: 2026-11-03T04:41:32.927644+00:00
+    sourceSha256: "3f83dabea69d9461005e53aac3d812e73fcb0ac2f7ea515c60f91a3de38f7c02"
+    priorManifestSha256: "f7ef71c053b296845f0400c6be0faf4545f5561bcd7c1ebc3cf9dc13158cebdf"
+    priorImages: preserved byte-for-byte at their original paths
+    receipt: ../sector-exposure-depth-return-20261102/recapture/receipt.json
+    outputDirectory: ../sector-exposure-depth-return-20261102/recapture/gex_levels_heatmap
+    passingCaptures: 54
+    cropSha256:
+      gex-ladder-absent-1440-zh.png: "3cbf2e68b41f0fe0a3f4edd46e0cf327fb4146caab2be2bd5b222669d24ce3ea"
+      gex-ladder-absent-1440.png: "69f76a72644e14f435ab677245eb39cbab2917082068444b3dead30874f0577e"
+      gex-ladder-absent-390-zh.png: "e218d88a678bf102c356c2df72e44ca74c9ae53283bf73b1b26d9870a4206282"
+      gex-ladder-absent-390.png: "3ac036554a7e7e838eee69edf03cb70505b9b2577f6b606b913b8cf34b0e5ece"
+      gex-ladder-absent-820-zh.png: "7b13e26bbfe1bf25d9f0ef6ee243f6a3156937f20c8129ac42f16e0454dfa4f0"
+      gex-ladder-absent-820.png: "7903b828a6d327fe43ec3c710102f76761b614717bf98ef0e4cc934aebb8db64"
+      gex-ladder-retried-1440-zh.png: "12efd1e7174120c7076ab4e66be8757abb912c04a8f60733c11ce4ff49454e06"
+      gex-ladder-retried-1440.png: "dc824f083f73f2cfc9a518ec995661caa7f42efe7a898ef7ab0a2845c05e36a2"
+      gex-ladder-retried-390-zh.png: "991686ac1c920308a85de33275477b619e3011c72c5a4217c142aaa6d356636c"
+      gex-ladder-retried-390.png: "bb5b0b092f32fe53100e96b4b08a1a1a97ebfba7d184a5e263d75799ab69309d"
+      gex-ladder-retried-820-zh.png: "1cab97de5273e6ffd9e838f709d13278ddb5f21c24e7d9fc61b1b17d21a527e9"
+      gex-ladder-retried-820.png: "e493849b80052b0d2713b6b0e5072cec98d2fee9748635cf2608e62201f99705"
+      gex-ladder-unavailable-1440-zh.png: "fa62dcaf315c4bd17dcc9040c64129079b16c00669a8055c5769e9a3255b26e7"
+      gex-ladder-unavailable-1440.png: "f9f67fb80e0618a65b68f7fa1d4691c16a7816f1c72ecb08785512c9034d800f"
+      gex-ladder-unavailable-390-zh.png: "5861d563faaaef4cf388626ad478b1e731d1da636e0bab3d2b8b7031e99e83f1"
+      gex-ladder-unavailable-390.png: "178bf2c649c7a85697c624a2355683b4ffcec9d54d6101b1cf8ae487ed8a5b55"
+      gex-ladder-unavailable-820-zh.png: "978c18a96630c3c507a57cfafa21260a01e895300bebcc6fb67ae1336a0bc55e"
+      gex-ladder-unavailable-820.png: "8075255643fd960290dba0f8cf3bf61235ce75dacffebcf7a66778f87f8093d1"
+      gex-live-refresh-failed-1440-zh.png: "594c1b6641c90d5641a1e784f2e23c543ea8546c08b117f3d2e191a7daf02f62"
+      gex-live-refresh-failed-1440.png: "9dc6e40acc3e9cb9cde0d2a3f8b21728770f60abfba6316ba84a32bc56f3056e"
+      gex-live-refresh-failed-390-zh.png: "7b31abe9d2abdea18a9ff533bc149c1cfa6e3963ea4130f63145a06ce599f08c"
+      gex-live-refresh-failed-390.png: "4aa4b0b4edac13b64ef24a5f643e834eefe554d547ff8f869fa2eea7b54845bf"
+      gex-live-refresh-failed-820-zh.png: "e330e32e8a4d7b8a83af896857114be84dcfbb28c7ab0e20275784f0388ca520"
+      gex-live-refresh-failed-820.png: "1907e819917e31c0ae0d589bc2b5dc432c946ca79b933d1d16044d881a152d1e"
+      gex-live-retried-1440-zh.png: "3043739db7f15ada3f9175b4e6d3b3437e555f119ef6e8615c8ee5e25671e5fc"
+      gex-live-retried-1440.png: "6cb42184bfb3af126ca6a2873e594e7c4a62c925589b6d0cff014317b32d69a7"
+      gex-live-retried-390-zh.png: "1f8e38df6877314818b446811835c25ed3f8d7e01340549a7fee0d8c17adf7bc"
+      gex-live-retried-390.png: "e22cff8c22941a366a175fb19316cfd8665d227bfb52c5db1c9b7b7ebe9eb56c"
+      gex-live-retried-820-zh.png: "1d4153217acbfe7d3c73e9cf7e43454b3902ce5c4f3f61ede6016796647d6bc2"
+      gex-live-retried-820.png: "3a35e29fc246408c330e72411f46398581cba79074b25a2e7f9a49c12ff09520"
+      gex-pick-absent-1440-zh.png: "50dc1509cc18f9f15e443a81638577d4185f6cbbacb5830f864b732bd0fd80d7"
+      gex-pick-absent-1440.png: "a5081d7c81b0beeffeec277e2032cd3061ae49e124d67ed87c859cbcc282a0eb"
+      gex-pick-absent-390-zh.png: "62e551ad31a8ae4d6886d48e7f27a71f4447abb3b6ba90bee132451fc39c3236"
+      gex-pick-absent-390.png: "b981a0535d0d8f1407da03850c959808086100554d8808e1d360ab6d83365644"
+      gex-pick-absent-820-zh.png: "7cebe248263f6a30040d4a02498ce9b5a164a06dd2e8cfb014aa7d0cb08f099e"
+      gex-pick-absent-820.png: "66eafabc825b314dea25b53978c1b6a155cfb30b9987d06ba717cbeaa300c1d6"
+      gex-rail-retried-1440-zh.png: "b7dd117af879ba87e63032cb4598e34a265bcc736a435ee31dccfae4d11fb215"
+      gex-rail-retried-1440.png: "6cdbfaf91db4df60165cd1feaa42c780e276675292d2386eb7c3bf016d890b2d"
+      gex-rail-retried-390-zh.png: "a9a35a6a6ac90083b8bb15f66a6608d75138e80ac1b0b30e2eae40ed0ee9e0d1"
+      gex-rail-retried-390.png: "3f374d2ef927f8a70b77a769b2925455c682709d03d3f960241c79f11211c749"
+      gex-rail-retried-820-zh.png: "5900c6af2fe28cee9e1b3c17f7cc5b390d29bd5ea604003e6b3d5960c5170a34"
+      gex-rail-retried-820.png: "0a1a5b7cc63325c9f3d156d40e3aec059c7495f73af21ea215f4273d238c8673"
+      gex-rail-unavailable-1440-zh.png: "093795efebab5f06ddeb44cc25940e852f5318ca12146dbee31c50873f335335"
+      gex-rail-unavailable-1440.png: "59f71a37e4cd4f6f3169184a324747d611efaf4e7c874c951a43eaad79239ef6"
+      gex-rail-unavailable-390-zh.png: "2a440fee2938f8d102911215d413bcf2814bc06d05c2d6945aa3ca43d6c7c35c"
+      gex-rail-unavailable-390.png: "18f52ecf2d03ca02cdb1a9d98b9ca78931fc709be0e2c41ae8f9bd5a34c3ae11"
+      gex-rail-unavailable-820-zh.png: "dcc4448a92837917ba1256de2e01aa477259b7da553cd3784f5400fb634f0070"
+      gex-rail-unavailable-820.png: "523be9a60b1fc642af079e293dfc5a96cbe480cf337e832ee1111fdcf575d829"
+      gex-state-refresh-failed-1440-zh.png: "e8855162ab80dbdb0ecc2d02a540a2bdf1e187d75d000aef158f2b00b8b0eedc"
+      gex-state-refresh-failed-1440.png: "8b83deab97294bef94b4c54cbd0817660b4ca2cacf9f4de01006ea57b9cf8e82"
+      gex-state-refresh-failed-390-zh.png: "25cac2b601cb432c3ee0c12f71f335bd9604e862e3ae53f4d01c6799dc7ab5af"
+      gex-state-refresh-failed-390.png: "b2615f61b8ea3af6cb3cabe6445557a5a7192c38ec11351dd61c4cc4803d45c3"
+      gex-state-refresh-failed-820-zh.png: "ce4aca4e45edfc01865c5ba550a4f7352abd3f76f6cc495b691549642c0200db"
+      gex-state-refresh-failed-820.png: "6a3c440283f4befb3052c90ba2ad647d84778f1ffd007273c7c33154f96bfd8c"
+currentCacheQualification:
+  sourceHead: "ca43fd0f9d1aaf13658a1553ea244c8815369591"
+  previousCacheSha256: "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be"
+  cases: 114
+  report: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/1224-cache-ca43fd0f/result.json"
+  reportSha256: "4f1b2c7cea9606d01f803d03c802d03853567dd032d56ebc7f41a918dd5bf567"
+  scope: "The report maps every current capture to its actual file and digest. Packet-root PNGs and earlier capture records retain their historical identity."
+
+composedSectorReturnQualification:
+  sourceHead: "7f1a7982ba0bb14f3845f83c883eeb815c62a6b8"
+  protectedBase: "c8a1d0e23255c2d5374258b52197bdf1aed85b27"
+  report: "terminal/docs/pr-crops/sector-exposure-depth-return-20261102/composition-c8a/receipt.json"
+  reportSha256: "fb88d89decf0f21f3a25b5b537baa97522d0d308b2bf747a199419343318ab3a"
+  scope: "Actual96 Gex/belt assertions and18sector-return journeys on composed GexDesk/dataCache bytes; original histories preserved; ancillary pick observation disclosed."
+
+archiveSelectionQualification1254:
+  sourceHead: "6c629ce900e3954cc2374c05a063b75a7cf08c36"
+  cases: 54
+  report: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/1254-archive-6c629ce9/result.json"
+  reportSha256: "6b643e25f1e3c0dc507d7601354fe8af0a538c68c5bcb47256460625a5e5447f"
+  scope: "Actual GEX-only recapture for awaited archive selection. Other boards, packet-root images and earlier records retain their historical identities."
+
+sectorArchiveComposition1254:
+  sourceHead: "c82b70d2cfa676405db574315c93de84fe8bc13d"
+  protectedBase: "d1f4f42f5b5d170bd65e75e57d24ffb891207ca4"
+  cases: 54
+  report: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/1254-sector-c82b70d2/result.json"
+  reportSha256: "ac3a8f6c0c26d7d01faa8fea3248fd123b437d164046576b6bd02662f78fe16f"
+  scope: "Actual scoped recapture on combined Sector and archive source. Both earlier histories and other boards remain unchanged."
+exposureWorkspaceRecapture:
+  sourceHead: "a4a250b12bc27692cb1a8f5eafaf339e6ef11b43"
+  capturedAt: "2026-11-03T02:43:35.702611+00:00"
+  command: "CAPTURE_ONLY=^gex- TERMINAL_CROP_PORT=3487 node e2e/tools/capture_gex_levels_heatmap_load_failure.cjs"
+  captureScriptSha256: "cd00374b7576373efa9a5b6a876a261ce1ff30c9d1cd9ce4c196ceca10361b1b"
+  actualCases: 54
+  cropSha256:
+    gex-ladder-absent-1440-zh.png: "f53e442854ef440848a64d6141302704894442f19ddc714a7aa4cb2b5ab15e17"
+    gex-ladder-absent-1440.png: "18944490520bd18ee86451c408b2ff5e794dd65e3ff51359944626593b24e9da"
+    gex-ladder-absent-390-zh.png: "c1fe8a6ac30724f92dc1f1123da6e721e7ce2a31bce4f7409faaae510650339b"
+    gex-ladder-absent-390.png: "1b5790b455377dca467ebf368d8c1b116462891db351eb630f4c33af9463bce1"
+    gex-ladder-absent-820-zh.png: "2d20e5b7e7db5e7dfc9426b17dbf796ddb777a268266bda21701610fc3e61858"
+    gex-ladder-absent-820.png: "6710d12d9c06a4223340c9edee525f2f9cd171ba05239d9f20788b064eedf236"
+    gex-ladder-retried-1440-zh.png: "a95ee353c74511a31accbf82ab4215401defd51c8a6805fbc860919755ed4e98"
+    gex-ladder-retried-1440.png: "e457175b2b6b33de94e8ce7c9b06247f051f2af8f9a3146d3edfe3c2c9e8c59b"
+    gex-ladder-retried-390-zh.png: "a5683c467ee1d11a65f49977e67e096e99f5cbbf941022bca270341d58cea010"
+    gex-ladder-retried-390.png: "af5f5601d2280d1374365c695d51f4b87d787b152d260e8601d09c9b40c3fe4f"
+    gex-ladder-retried-820-zh.png: "bf982026cc1650de1bb3837fc92ef418dbcfc6c4cd2bbf18ee983d3d19460461"
+    gex-ladder-retried-820.png: "a97295351179bf29820b3d7b4450795c575401c69e9e7aaf1cf98a221a969b9d"
+    gex-ladder-unavailable-1440-zh.png: "a5664fb748a1bc49a83fd3f471894e75a0cd4f6c06fed51163367736988778be"
+    gex-ladder-unavailable-1440.png: "3211e05adc6c84363ae98132b90845cfb06eb3e3de8d8af3ebff0867e579d3b4"
+    gex-ladder-unavailable-390-zh.png: "9478e50211437330330f29fa65e0d86a2df138b3a09558872241a9b037ded796"
+    gex-ladder-unavailable-390.png: "67d59983df7d030e6b1957291a8ef69b7f032ba06d57acf838f4359eba8a3f96"
+    gex-ladder-unavailable-820-zh.png: "375814568db967558c1f2d6ac9c13e061a5383298511624e568abe5a3166fbc6"
+    gex-ladder-unavailable-820.png: "31d560861a6d6e4b72c26cb5fbe24801954c236b199b3a792bcca92eba0b6a84"
+    gex-live-refresh-failed-1440-zh.png: "aeb32bfedb0a70705918d6bdddfb8dca367cb6e231b264f98bd869e37960fcb9"
+    gex-live-refresh-failed-1440.png: "5f779d818ea3f137e5ac42c767bab8f9c5c3ecfde1d0875f716a139000712f1a"
+    gex-live-refresh-failed-390-zh.png: "6107783ea156b4c75c6646691dd76a6757c1d5ebb37ff74260b6fc2051282672"
+    gex-live-refresh-failed-390.png: "d9cea7854c7dc1f783c3ddf7d2c9b7e769565d35cdbda73395cb4904cc99876c"
+    gex-live-refresh-failed-820-zh.png: "7293ea6764d14cb8b0cd6bae21b4e9c54511da8014f83a453cf9744d70d88db1"
+    gex-live-refresh-failed-820.png: "c9fcbe536350ceb6a512302299ff7c88a12c234a47de1284fb9bf4770ec7dc14"
+    gex-live-retried-1440-zh.png: "e2f86464c4292a2461bf0652b92b24981c9340a3e4d40220e3e01c4ad0a43d0f"
+    gex-live-retried-1440.png: "e124564c685be1b32708cd1b4885c3d33e2d706edbe29ff31a06fecb1bff72b0"
+    gex-live-retried-390-zh.png: "a5d9b75e9d5bb05458f7192715996ccd594c948b36ba5562f1c2be5d0b6a29c1"
+    gex-live-retried-390.png: "2f5952efcb70e27c362aaf9559920361ea4098b6976dd402e631c36babd92244"
+    gex-live-retried-820-zh.png: "a9cd7acd29b91d3c6416f97e0dba8b64613aaa2bf71cdbd9f7187ee0223fc652"
+    gex-live-retried-820.png: "66f437cd20cdca2bed9cdb13f2ae1c075c3c84400dac4f54d931180a9237ae9f"
+    gex-pick-absent-1440-zh.png: "2be2f9ff0ae069ac163bd9c3d6988b9f49b031c3fb14bb9c9b93eea36b532436"
+    gex-pick-absent-1440.png: "e6613ae7b27f4e4f14284bcbdb848118c4b210df71e09f5a8a7b752485ae399e"
+    gex-pick-absent-390-zh.png: "d2564adc31e901f50c5db46b1c648663319dbc80f767cf40fa55cec14bdf2c49"
+    gex-pick-absent-390.png: "c01ae9870e334a55298ddc7fb71cf6fa845b2baecd5e2b473f9c659ab2352ced"
+    gex-pick-absent-820-zh.png: "b6cf71d6e069e807405fb0188015e0d0805d699e4ae62d0ec6b324e7b1c36d5b"
+    gex-pick-absent-820.png: "d588ffc64dbdffd2708dfde9143f7276926aa44d674b758367562c3a432a604c"
+    gex-rail-retried-1440-zh.png: "37a2982c11152a68860c642dd29d6459710d835f2f0c2bd71a6684b9e3f076db"
+    gex-rail-retried-1440.png: "5c9088889843eadf78895d9715c1eef2fb9052e9ffa797a842d4ef79f10daf0f"
+    gex-rail-retried-390-zh.png: "62d964f5951ebbdd8689b1435b7e0464184fab6f9df5b0c7487b97c408458db3"
+    gex-rail-retried-390.png: "f657c2f92d9d0f79ec511d55c090509d921d683c99e62326a6aa0a40b0a6aa28"
+    gex-rail-retried-820-zh.png: "b9b60b59e149d436e184f571f575096fd3141f9866cf5244b105629f9772d8fc"
+    gex-rail-retried-820.png: "0fc403d49e9ba5efac729a49cb1e685ded83b284015f5339d38bdb015f1ce891"
+    gex-rail-unavailable-1440-zh.png: "28bf02259d41a5c1d4fd2641addab6dba03350785fd306b5a12dba2a3da4ef9a"
+    gex-rail-unavailable-1440.png: "b5f4c27f307112f428fd1a89088647b68ff9d8a0c6b11ef6d07784d65e559db2"
+    gex-rail-unavailable-390-zh.png: "a65ce9e3ea577a9e9f3462244fcc2a61ee29a06966bc6ecfb9eeda84dac1f5a7"
+    gex-rail-unavailable-390.png: "b1ea7ef44dcff920856e99fc8bb60ce49964ee8faa6faa68fc745a720da74051"
+    gex-rail-unavailable-820-zh.png: "16a30a7453be100f11477e20d6d7e416cd281f10bab5e2fd4a0ae530826a1e9c"
+    gex-rail-unavailable-820.png: "94bf2b44a7ba0f2336e9f5e493c489a5c735c581b3abf9bd0b299e7a0314f790"
+    gex-state-refresh-failed-1440-zh.png: "7ed586ef939dee141218e7dbe5088159f00d2766665a1cd8ebd21e1a130ff458"
+    gex-state-refresh-failed-1440.png: "40e6f284fbb50799dace1a1d8365b8cb2e714c7df1d64539441019aa925d2117"
+    gex-state-refresh-failed-390-zh.png: "199aa272ccead5d8ab6821ee2c9bdccd4dacf5e34dd6f16167de954b863bfdc7"
+    gex-state-refresh-failed-390.png: "c170c43ce36ea2030a7f72b395d5e7787b8648162ea802c278d659edab9521b5"
+    gex-state-refresh-failed-820-zh.png: "8725ef4e6563ed193e8af2ab780e2dadc2cb017a480b9a82a92a83804be7c164"
+    gex-state-refresh-failed-820.png: "c120bb91f850bc1f4acba0be8b72a55d3f8e394b1467380a6369fedd1411cf8e"
+exposureFilterRecapture:
+  productBlob: "730b1074fd1da125549546b00b720ad83f502870"
+  productSha256: "5fb39c16a6766a9cd26b995c3e0ec7567587f6783f6837de8d7ca333f398a5fe"
+  actualCases: 54
+  cropSha256:
+    gex-ladder-absent-1440-zh.png: "f53e442854ef440848a64d6141302704894442f19ddc714a7aa4cb2b5ab15e17"
+    gex-ladder-absent-1440.png: "18944490520bd18ee86451c408b2ff5e794dd65e3ff51359944626593b24e9da"
+    gex-ladder-absent-390-zh.png: "c1fe8a6ac30724f92dc1f1123da6e721e7ce2a31bce4f7409faaae510650339b"
+    gex-ladder-absent-390.png: "1b5790b455377dca467ebf368d8c1b116462891db351eb630f4c33af9463bce1"
+    gex-ladder-absent-820-zh.png: "2d20e5b7e7db5e7dfc9426b17dbf796ddb777a268266bda21701610fc3e61858"
+    gex-ladder-absent-820.png: "6710d12d9c06a4223340c9edee525f2f9cd171ba05239d9f20788b064eedf236"
+    gex-ladder-retried-1440-zh.png: "a95ee353c74511a31accbf82ab4215401defd51c8a6805fbc860919755ed4e98"
+    gex-ladder-retried-1440.png: "e457175b2b6b33de94e8ce7c9b06247f051f2af8f9a3146d3edfe3c2c9e8c59b"
+    gex-ladder-retried-390-zh.png: "a5683c467ee1d11a65f49977e67e096e99f5cbbf941022bca270341d58cea010"
+    gex-ladder-retried-390.png: "af5f5601d2280d1374365c695d51f4b87d787b152d260e8601d09c9b40c3fe4f"
+    gex-ladder-retried-820-zh.png: "bf982026cc1650de1bb3837fc92ef418dbcfc6c4cd2bbf18ee983d3d19460461"
+    gex-ladder-retried-820.png: "a97295351179bf29820b3d7b4450795c575401c69e9e7aaf1cf98a221a969b9d"
+    gex-ladder-unavailable-1440-zh.png: "a5664fb748a1bc49a83fd3f471894e75a0cd4f6c06fed51163367736988778be"
+    gex-ladder-unavailable-1440.png: "3211e05adc6c84363ae98132b90845cfb06eb3e3de8d8af3ebff0867e579d3b4"
+    gex-ladder-unavailable-390-zh.png: "9478e50211437330330f29fa65e0d86a2df138b3a09558872241a9b037ded796"
+    gex-ladder-unavailable-390.png: "67d59983df7d030e6b1957291a8ef69b7f032ba06d57acf838f4359eba8a3f96"
+    gex-ladder-unavailable-820-zh.png: "375814568db967558c1f2d6ac9c13e061a5383298511624e568abe5a3166fbc6"
+    gex-ladder-unavailable-820.png: "31d560861a6d6e4b72c26cb5fbe24801954c236b199b3a792bcca92eba0b6a84"
+    gex-live-refresh-failed-1440-zh.png: "aeb32bfedb0a70705918d6bdddfb8dca367cb6e231b264f98bd869e37960fcb9"
+    gex-live-refresh-failed-1440.png: "5f779d818ea3f137e5ac42c767bab8f9c5c3ecfde1d0875f716a139000712f1a"
+    gex-live-refresh-failed-390-zh.png: "6107783ea156b4c75c6646691dd76a6757c1d5ebb37ff74260b6fc2051282672"
+    gex-live-refresh-failed-390.png: "d9cea7854c7dc1f783c3ddf7d2c9b7e769565d35cdbda73395cb4904cc99876c"
+    gex-live-refresh-failed-820-zh.png: "7293ea6764d14cb8b0cd6bae21b4e9c54511da8014f83a453cf9744d70d88db1"
+    gex-live-refresh-failed-820.png: "c9fcbe536350ceb6a512302299ff7c88a12c234a47de1284fb9bf4770ec7dc14"
+    gex-live-retried-1440-zh.png: "e2f86464c4292a2461bf0652b92b24981c9340a3e4d40220e3e01c4ad0a43d0f"
+    gex-live-retried-1440.png: "e124564c685be1b32708cd1b4885c3d33e2d706edbe29ff31a06fecb1bff72b0"
+    gex-live-retried-390-zh.png: "a5d9b75e9d5bb05458f7192715996ccd594c948b36ba5562f1c2be5d0b6a29c1"
+    gex-live-retried-390.png: "2f5952efcb70e27c362aaf9559920361ea4098b6976dd402e631c36babd92244"
+    gex-live-retried-820-zh.png: "a9cd7acd29b91d3c6416f97e0dba8b64613aaa2bf71cdbd9f7187ee0223fc652"
+    gex-live-retried-820.png: "66f437cd20cdca2bed9cdb13f2ae1c075c3c84400dac4f54d931180a9237ae9f"
+    gex-pick-absent-1440-zh.png: "2be2f9ff0ae069ac163bd9c3d6988b9f49b031c3fb14bb9c9b93eea36b532436"
+    gex-pick-absent-1440.png: "e6613ae7b27f4e4f14284bcbdb848118c4b210df71e09f5a8a7b752485ae399e"
+    gex-pick-absent-390-zh.png: "d2564adc31e901f50c5db46b1c648663319dbc80f767cf40fa55cec14bdf2c49"
+    gex-pick-absent-390.png: "c01ae9870e334a55298ddc7fb71cf6fa845b2baecd5e2b473f9c659ab2352ced"
+    gex-pick-absent-820-zh.png: "b6cf71d6e069e807405fb0188015e0d0805d699e4ae62d0ec6b324e7b1c36d5b"
+    gex-pick-absent-820.png: "d588ffc64dbdffd2708dfde9143f7276926aa44d674b758367562c3a432a604c"
+    gex-rail-retried-1440-zh.png: "37a2982c11152a68860c642dd29d6459710d835f2f0c2bd71a6684b9e3f076db"
+    gex-rail-retried-1440.png: "5c9088889843eadf78895d9715c1eef2fb9052e9ffa797a842d4ef79f10daf0f"
+    gex-rail-retried-390-zh.png: "62d964f5951ebbdd8689b1435b7e0464184fab6f9df5b0c7487b97c408458db3"
+    gex-rail-retried-390.png: "f657c2f92d9d0f79ec511d55c090509d921d683c99e62326a6aa0a40b0a6aa28"
+    gex-rail-retried-820-zh.png: "b9b60b59e149d436e184f571f575096fd3141f9866cf5244b105629f9772d8fc"
+    gex-rail-retried-820.png: "0fc403d49e9ba5efac729a49cb1e685ded83b284015f5339d38bdb015f1ce891"
+    gex-rail-unavailable-1440-zh.png: "28bf02259d41a5c1d4fd2641addab6dba03350785fd306b5a12dba2a3da4ef9a"
+    gex-rail-unavailable-1440.png: "b5f4c27f307112f428fd1a89088647b68ff9d8a0c6b11ef6d07784d65e559db2"
+    gex-rail-unavailable-390-zh.png: "a65ce9e3ea577a9e9f3462244fcc2a61ee29a06966bc6ecfb9eeda84dac1f5a7"
+    gex-rail-unavailable-390.png: "b1ea7ef44dcff920856e99fc8bb60ce49964ee8faa6faa68fc745a720da74051"
+    gex-rail-unavailable-820-zh.png: "16a30a7453be100f11477e20d6d7e416cd281f10bab5e2fd4a0ae530826a1e9c"
+    gex-rail-unavailable-820.png: "94bf2b44a7ba0f2336e9f5e493c489a5c735c581b3abf9bd0b299e7a0314f790"
+    gex-state-refresh-failed-1440-zh.png: "7ed586ef939dee141218e7dbe5088159f00d2766665a1cd8ebd21e1a130ff458"
+    gex-state-refresh-failed-1440.png: "40e6f284fbb50799dace1a1d8365b8cb2e714c7df1d64539441019aa925d2117"
+    gex-state-refresh-failed-390-zh.png: "199aa272ccead5d8ab6821ee2c9bdccd4dacf5e34dd6f16167de954b863bfdc7"
+    gex-state-refresh-failed-390.png: "c170c43ce36ea2030a7f72b395d5e7787b8648162ea802c278d659edab9521b5"
+    gex-state-refresh-failed-820-zh.png: "8725ef4e6563ed193e8af2ab780e2dadc2cb017a480b9a82a92a83804be7c164"
+    gex-state-refresh-failed-820.png: "c120bb91f850bc1f4acba0be8b72a55d3f8e394b1467380a6369fedd1411cf8e"
+
+exposureArchivedRefreshRecapture:
+  operation: "exposure-1243-archive-refresh-20261104"
+  originalHead: "6c666caaf3c0126b00d3a54830d1b4184d640fee"
+  capturedAt: "2026-11-04T00:58:20.434336+00:00"
+  source: "terminal/components/gexdesk/GexDeskView.tsx"
+  previousSourceSha256: "5fb39c16a6766a9cd26b995c3e0ec7567587f6783f6837de8d7ca333f398a5fe"
+  currentSourceSha256: "9e6d33630f56c9f5b99617d4f3cf7972e93f93c23f5fc077740a1985b938fc32"
+  command: "TERMINAL_CROP_PORT=3574 CAPTURE_ONLY=^gex- node e2e/tools/capture_gex_levels_heatmap_load_failure.cjs"
+  outputDir: "operations/exposure-1243-archive-refresh-20261104"
+  actualCases: 54
+  failedCases: 0
+  packetRootCrops: "preserved at original committed bytes"
+  cropSha256:
+    gex-ladder-absent-1440-zh.png: "f53e442854ef440848a64d6141302704894442f19ddc714a7aa4cb2b5ab15e17"
+    gex-ladder-absent-1440.png: "18944490520bd18ee86451c408b2ff5e794dd65e3ff51359944626593b24e9da"
+    gex-ladder-absent-390-zh.png: "c1fe8a6ac30724f92dc1f1123da6e721e7ce2a31bce4f7409faaae510650339b"
+    gex-ladder-absent-390.png: "1b5790b455377dca467ebf368d8c1b116462891db351eb630f4c33af9463bce1"
+    gex-ladder-absent-820-zh.png: "2d20e5b7e7db5e7dfc9426b17dbf796ddb777a268266bda21701610fc3e61858"
+    gex-ladder-absent-820.png: "6710d12d9c06a4223340c9edee525f2f9cd171ba05239d9f20788b064eedf236"
+    gex-ladder-retried-1440-zh.png: "a95ee353c74511a31accbf82ab4215401defd51c8a6805fbc860919755ed4e98"
+    gex-ladder-retried-1440.png: "e457175b2b6b33de94e8ce7c9b06247f051f2af8f9a3146d3edfe3c2c9e8c59b"
+    gex-ladder-retried-390-zh.png: "a5683c467ee1d11a65f49977e67e096e99f5cbbf941022bca270341d58cea010"
+    gex-ladder-retried-390.png: "af5f5601d2280d1374365c695d51f4b87d787b152d260e8601d09c9b40c3fe4f"
+    gex-ladder-retried-820-zh.png: "bf982026cc1650de1bb3837fc92ef418dbcfc6c4cd2bbf18ee983d3d19460461"
+    gex-ladder-retried-820.png: "a97295351179bf29820b3d7b4450795c575401c69e9e7aaf1cf98a221a969b9d"
+    gex-ladder-unavailable-1440-zh.png: "a5664fb748a1bc49a83fd3f471894e75a0cd4f6c06fed51163367736988778be"
+    gex-ladder-unavailable-1440.png: "3211e05adc6c84363ae98132b90845cfb06eb3e3de8d8af3ebff0867e579d3b4"
+    gex-ladder-unavailable-390-zh.png: "9478e50211437330330f29fa65e0d86a2df138b3a09558872241a9b037ded796"
+    gex-ladder-unavailable-390.png: "67d59983df7d030e6b1957291a8ef69b7f032ba06d57acf838f4359eba8a3f96"
+    gex-ladder-unavailable-820-zh.png: "375814568db967558c1f2d6ac9c13e061a5383298511624e568abe5a3166fbc6"
+    gex-ladder-unavailable-820.png: "31d560861a6d6e4b72c26cb5fbe24801954c236b199b3a792bcca92eba0b6a84"
+    gex-live-refresh-failed-1440-zh.png: "ab0babee88c209868bbdd35efc0ba1626ee13e3bfaeffb389250653c282c1ea7"
+    gex-live-refresh-failed-1440.png: "3650b55e7982a33559ffc44221e235acee9371d5da9c9f890c6a5926919f7818"
+    gex-live-refresh-failed-390-zh.png: "83173b4cedc6f71cc0e62c4687a6ce99fd73ddc9b50b6614babaf7d1bf57ee84"
+    gex-live-refresh-failed-390.png: "970ea7d3bdbb0807726478190c3d85dda1a84eda2f98d0024732f1237298cb85"
+    gex-live-refresh-failed-820-zh.png: "6e3a9bf67fc80b8d0e6d473604de08f80c1a78b2c9fe21520416a9c0dbc09fe2"
+    gex-live-refresh-failed-820.png: "4be33b718aa6ce44de9ad276f1b9a91fe52222bc755759ac7f0987933dff1778"
+    gex-live-retried-1440-zh.png: "5dd727f2165ebc94ba409ffbfef2ce67a8c978da5ff9b40e5a5714b6a96252a4"
+    gex-live-retried-1440.png: "088f9f1f6b1f61ddedbe533e752ed4a3ce8be2e59d82d0c405ffff74a27869c9"
+    gex-live-retried-390-zh.png: "e7bcc972e7c20ca25fb3626db8570c368f1a06bf0a57a0b10ed783da40b09c16"
+    gex-live-retried-390.png: "3e60e5bb9645a1a0434c00d5b42c27799f54a4e5fa1c175227c4fe4bf7b2ae27"
+    gex-live-retried-820-zh.png: "571cf219e5a733ed3a67072d9a3a3afc0672e34e54791340acc6758d3c6e9772"
+    gex-live-retried-820.png: "f4e78a75d4d5ad4ca3874e758ef474d0029a3e486f3817a3f886db88a0f3edb4"
+    gex-pick-absent-1440-zh.png: "2be2f9ff0ae069ac163bd9c3d6988b9f49b031c3fb14bb9c9b93eea36b532436"
+    gex-pick-absent-1440.png: "e6613ae7b27f4e4f14284bcbdb848118c4b210df71e09f5a8a7b752485ae399e"
+    gex-pick-absent-390-zh.png: "d2564adc31e901f50c5db46b1c648663319dbc80f767cf40fa55cec14bdf2c49"
+    gex-pick-absent-390.png: "c01ae9870e334a55298ddc7fb71cf6fa845b2baecd5e2b473f9c659ab2352ced"
+    gex-pick-absent-820-zh.png: "b6cf71d6e069e807405fb0188015e0d0805d699e4ae62d0ec6b324e7b1c36d5b"
+    gex-pick-absent-820.png: "d588ffc64dbdffd2708dfde9143f7276926aa44d674b758367562c3a432a604c"
+    gex-rail-retried-1440-zh.png: "37a2982c11152a68860c642dd29d6459710d835f2f0c2bd71a6684b9e3f076db"
+    gex-rail-retried-1440.png: "5c9088889843eadf78895d9715c1eef2fb9052e9ffa797a842d4ef79f10daf0f"
+    gex-rail-retried-390-zh.png: "62d964f5951ebbdd8689b1435b7e0464184fab6f9df5b0c7487b97c408458db3"
+    gex-rail-retried-390.png: "f657c2f92d9d0f79ec511d55c090509d921d683c99e62326a6aa0a40b0a6aa28"
+    gex-rail-retried-820-zh.png: "b9b60b59e149d436e184f571f575096fd3141f9866cf5244b105629f9772d8fc"
+    gex-rail-retried-820.png: "0fc403d49e9ba5efac729a49cb1e685ded83b284015f5339d38bdb015f1ce891"
+    gex-rail-unavailable-1440-zh.png: "28bf02259d41a5c1d4fd2641addab6dba03350785fd306b5a12dba2a3da4ef9a"
+    gex-rail-unavailable-1440.png: "b5f4c27f307112f428fd1a89088647b68ff9d8a0c6b11ef6d07784d65e559db2"
+    gex-rail-unavailable-390-zh.png: "a65ce9e3ea577a9e9f3462244fcc2a61ee29a06966bc6ecfb9eeda84dac1f5a7"
+    gex-rail-unavailable-390.png: "b1ea7ef44dcff920856e99fc8bb60ce49964ee8faa6faa68fc745a720da74051"
+    gex-rail-unavailable-820-zh.png: "16a30a7453be100f11477e20d6d7e416cd281f10bab5e2fd4a0ae530826a1e9c"
+    gex-rail-unavailable-820.png: "94bf2b44a7ba0f2336e9f5e493c489a5c735c581b3abf9bd0b299e7a0314f790"
+    gex-state-refresh-failed-1440-zh.png: "7ed586ef939dee141218e7dbe5088159f00d2766665a1cd8ebd21e1a130ff458"
+    gex-state-refresh-failed-1440.png: "40e6f284fbb50799dace1a1d8365b8cb2e714c7df1d64539441019aa925d2117"
+    gex-state-refresh-failed-390-zh.png: "199aa272ccead5d8ab6821ee2c9bdccd4dacf5e34dd6f16167de954b863bfdc7"
+    gex-state-refresh-failed-390.png: "c170c43ce36ea2030a7f72b395d5e7787b8648162ea802c278d659edab9521b5"
+    gex-state-refresh-failed-820-zh.png: "8725ef4e6563ed193e8af2ab780e2dadc2cb017a480b9a82a92a83804be7c164"
+    gex-state-refresh-failed-820.png: "c120bb91f850bc1f4acba0be8b72a55d3f8e394b1467380a6369fedd1411cf8e"
+
+exposureSectorOriginRecapture:
+  operation: "exposure-1243-sector-origin-20261104"
+  originalHead: "5e6fef8bae346bb86219ac6eb06bbff787fac24e"
+  capturedAt: "2026-11-04T01:23:48Z"
+  previousGexSourceSha256: "9e6d33630f56c9f5b99617d4f3cf7972e93f93c23f5fc077740a1985b938fc32"
+  sourceSha256:
+    terminal/components/gexdesk/GexDeskView.tsx: "66d82e8c956b551caad27661082211c74e7aaadd4be71ae643ad2748374ba85c"
+    terminal/lib/exposureOrigin.ts: "9104d1eb713f7a39f8e84d22d0afb3f6a323ecd5da9545cc40437b466d1c2aaf"
+    terminal/lib/sectorDepthReturn.ts: "fd8ee3f188cb2be12e5bb9f5c62071c664fe2898df8f7fa93c429b6c0e14459b"
+  command: "TERMINAL_CROP_PORT=3577 CAPTURE_ONLY=^gex- node e2e/tools/capture_gex_levels_heatmap_load_failure.cjs"
+  outputDir: "operations/exposure-1243-sector-origin-20261104"
+  actualCases: 54
+  failedCases: 0
+  packetRootCrops: "restored or unchanged from previous committed bytes"
+  cropSha256:
+    gex-ladder-absent-1440-zh.png: "f53e442854ef440848a64d6141302704894442f19ddc714a7aa4cb2b5ab15e17"
+    gex-ladder-absent-1440.png: "18944490520bd18ee86451c408b2ff5e794dd65e3ff51359944626593b24e9da"
+    gex-ladder-absent-390-zh.png: "c1fe8a6ac30724f92dc1f1123da6e721e7ce2a31bce4f7409faaae510650339b"
+    gex-ladder-absent-390.png: "1b5790b455377dca467ebf368d8c1b116462891db351eb630f4c33af9463bce1"
+    gex-ladder-absent-820-zh.png: "2d20e5b7e7db5e7dfc9426b17dbf796ddb777a268266bda21701610fc3e61858"
+    gex-ladder-absent-820.png: "6710d12d9c06a4223340c9edee525f2f9cd171ba05239d9f20788b064eedf236"
+    gex-ladder-retried-1440-zh.png: "a95ee353c74511a31accbf82ab4215401defd51c8a6805fbc860919755ed4e98"
+    gex-ladder-retried-1440.png: "e457175b2b6b33de94e8ce7c9b06247f051f2af8f9a3146d3edfe3c2c9e8c59b"
+    gex-ladder-retried-390-zh.png: "a5683c467ee1d11a65f49977e67e096e99f5cbbf941022bca270341d58cea010"
+    gex-ladder-retried-390.png: "af5f5601d2280d1374365c695d51f4b87d787b152d260e8601d09c9b40c3fe4f"
+    gex-ladder-retried-820-zh.png: "bf982026cc1650de1bb3837fc92ef418dbcfc6c4cd2bbf18ee983d3d19460461"
+    gex-ladder-retried-820.png: "a97295351179bf29820b3d7b4450795c575401c69e9e7aaf1cf98a221a969b9d"
+    gex-ladder-unavailable-1440-zh.png: "a5664fb748a1bc49a83fd3f471894e75a0cd4f6c06fed51163367736988778be"
+    gex-ladder-unavailable-1440.png: "3211e05adc6c84363ae98132b90845cfb06eb3e3de8d8af3ebff0867e579d3b4"
+    gex-ladder-unavailable-390-zh.png: "9478e50211437330330f29fa65e0d86a2df138b3a09558872241a9b037ded796"
+    gex-ladder-unavailable-390.png: "67d59983df7d030e6b1957291a8ef69b7f032ba06d57acf838f4359eba8a3f96"
+    gex-ladder-unavailable-820-zh.png: "375814568db967558c1f2d6ac9c13e061a5383298511624e568abe5a3166fbc6"
+    gex-ladder-unavailable-820.png: "31d560861a6d6e4b72c26cb5fbe24801954c236b199b3a792bcca92eba0b6a84"
+    gex-live-refresh-failed-1440-zh.png: "ab0babee88c209868bbdd35efc0ba1626ee13e3bfaeffb389250653c282c1ea7"
+    gex-live-refresh-failed-1440.png: "3650b55e7982a33559ffc44221e235acee9371d5da9c9f890c6a5926919f7818"
+    gex-live-refresh-failed-390-zh.png: "83173b4cedc6f71cc0e62c4687a6ce99fd73ddc9b50b6614babaf7d1bf57ee84"
+    gex-live-refresh-failed-390.png: "970ea7d3bdbb0807726478190c3d85dda1a84eda2f98d0024732f1237298cb85"
+    gex-live-refresh-failed-820-zh.png: "6e3a9bf67fc80b8d0e6d473604de08f80c1a78b2c9fe21520416a9c0dbc09fe2"
+    gex-live-refresh-failed-820.png: "4be33b718aa6ce44de9ad276f1b9a91fe52222bc755759ac7f0987933dff1778"
+    gex-live-retried-1440-zh.png: "5dd727f2165ebc94ba409ffbfef2ce67a8c978da5ff9b40e5a5714b6a96252a4"
+    gex-live-retried-1440.png: "088f9f1f6b1f61ddedbe533e752ed4a3ce8be2e59d82d0c405ffff74a27869c9"
+    gex-live-retried-390-zh.png: "e7bcc972e7c20ca25fb3626db8570c368f1a06bf0a57a0b10ed783da40b09c16"
+    gex-live-retried-390.png: "3e60e5bb9645a1a0434c00d5b42c27799f54a4e5fa1c175227c4fe4bf7b2ae27"
+    gex-live-retried-820-zh.png: "571cf219e5a733ed3a67072d9a3a3afc0672e34e54791340acc6758d3c6e9772"
+    gex-live-retried-820.png: "f4e78a75d4d5ad4ca3874e758ef474d0029a3e486f3817a3f886db88a0f3edb4"
+    gex-pick-absent-1440-zh.png: "2be2f9ff0ae069ac163bd9c3d6988b9f49b031c3fb14bb9c9b93eea36b532436"
+    gex-pick-absent-1440.png: "e6613ae7b27f4e4f14284bcbdb848118c4b210df71e09f5a8a7b752485ae399e"
+    gex-pick-absent-390-zh.png: "d2564adc31e901f50c5db46b1c648663319dbc80f767cf40fa55cec14bdf2c49"
+    gex-pick-absent-390.png: "c01ae9870e334a55298ddc7fb71cf6fa845b2baecd5e2b473f9c659ab2352ced"
+    gex-pick-absent-820-zh.png: "b6cf71d6e069e807405fb0188015e0d0805d699e4ae62d0ec6b324e7b1c36d5b"
+    gex-pick-absent-820.png: "d588ffc64dbdffd2708dfde9143f7276926aa44d674b758367562c3a432a604c"
+    gex-rail-retried-1440-zh.png: "37a2982c11152a68860c642dd29d6459710d835f2f0c2bd71a6684b9e3f076db"
+    gex-rail-retried-1440.png: "5c9088889843eadf78895d9715c1eef2fb9052e9ffa797a842d4ef79f10daf0f"
+    gex-rail-retried-390-zh.png: "62d964f5951ebbdd8689b1435b7e0464184fab6f9df5b0c7487b97c408458db3"
+    gex-rail-retried-390.png: "f657c2f92d9d0f79ec511d55c090509d921d683c99e62326a6aa0a40b0a6aa28"
+    gex-rail-retried-820-zh.png: "b9b60b59e149d436e184f571f575096fd3141f9866cf5244b105629f9772d8fc"
+    gex-rail-retried-820.png: "0fc403d49e9ba5efac729a49cb1e685ded83b284015f5339d38bdb015f1ce891"
+    gex-rail-unavailable-1440-zh.png: "28bf02259d41a5c1d4fd2641addab6dba03350785fd306b5a12dba2a3da4ef9a"
+    gex-rail-unavailable-1440.png: "b5f4c27f307112f428fd1a89088647b68ff9d8a0c6b11ef6d07784d65e559db2"
+    gex-rail-unavailable-390-zh.png: "a65ce9e3ea577a9e9f3462244fcc2a61ee29a06966bc6ecfb9eeda84dac1f5a7"
+    gex-rail-unavailable-390.png: "b1ea7ef44dcff920856e99fc8bb60ce49964ee8faa6faa68fc745a720da74051"
+    gex-rail-unavailable-820-zh.png: "16a30a7453be100f11477e20d6d7e416cd281f10bab5e2fd4a0ae530826a1e9c"
+    gex-rail-unavailable-820.png: "94bf2b44a7ba0f2336e9f5e493c489a5c735c581b3abf9bd0b299e7a0314f790"
+    gex-state-refresh-failed-1440-zh.png: "7ed586ef939dee141218e7dbe5088159f00d2766665a1cd8ebd21e1a130ff458"
+    gex-state-refresh-failed-1440.png: "40e6f284fbb50799dace1a1d8365b8cb2e714c7df1d64539441019aa925d2117"
+    gex-state-refresh-failed-390-zh.png: "199aa272ccead5d8ab6821ee2c9bdccd4dacf5e34dd6f16167de954b863bfdc7"
+    gex-state-refresh-failed-390.png: "c170c43ce36ea2030a7f72b395d5e7787b8648162ea802c278d659edab9521b5"
+    gex-state-refresh-failed-820-zh.png: "8725ef4e6563ed193e8af2ab780e2dadc2cb017a480b9a82a92a83804be7c164"
+    gex-state-refresh-failed-820.png: "c120bb91f850bc1f4acba0be8b72a55d3f8e394b1467380a6369fedd1411cf8e"
+
+exposureLegacyPacketRootPreservation:
+  sourceHead: "b7fa41c222decf0545d110c535b872950b994e46"
+  retainedAt: "2026-11-04T03:22:36Z"
+  sourceSections: [exposureWorkspaceRecapture, exposureFilterRecapture]
+  originalCaptureLocation: "packet-root"
+  retainedCopyDir: "operations/exposure-1243-root-history-20261104"
+  copyMethod: "byte-for-byte relocation for future protected-root coexistence; not a new browser capture"
+  protectedRootDisposition: "newer protected-master packet-root retains its own source and image qualification"
+  copiedFiles: 54
+  filesSha256:
+    gex-ladder-absent-1440-zh.png: "f53e442854ef440848a64d6141302704894442f19ddc714a7aa4cb2b5ab15e17"
+    gex-ladder-absent-1440.png: "18944490520bd18ee86451c408b2ff5e794dd65e3ff51359944626593b24e9da"
+    gex-ladder-absent-390-zh.png: "c1fe8a6ac30724f92dc1f1123da6e721e7ce2a31bce4f7409faaae510650339b"
+    gex-ladder-absent-390.png: "1b5790b455377dca467ebf368d8c1b116462891db351eb630f4c33af9463bce1"
+    gex-ladder-absent-820-zh.png: "2d20e5b7e7db5e7dfc9426b17dbf796ddb777a268266bda21701610fc3e61858"
+    gex-ladder-absent-820.png: "6710d12d9c06a4223340c9edee525f2f9cd171ba05239d9f20788b064eedf236"
+    gex-ladder-retried-1440-zh.png: "a95ee353c74511a31accbf82ab4215401defd51c8a6805fbc860919755ed4e98"
+    gex-ladder-retried-1440.png: "e457175b2b6b33de94e8ce7c9b06247f051f2af8f9a3146d3edfe3c2c9e8c59b"
+    gex-ladder-retried-390-zh.png: "a5683c467ee1d11a65f49977e67e096e99f5cbbf941022bca270341d58cea010"
+    gex-ladder-retried-390.png: "af5f5601d2280d1374365c695d51f4b87d787b152d260e8601d09c9b40c3fe4f"
+    gex-ladder-retried-820-zh.png: "bf982026cc1650de1bb3837fc92ef418dbcfc6c4cd2bbf18ee983d3d19460461"
+    gex-ladder-retried-820.png: "a97295351179bf29820b3d7b4450795c575401c69e9e7aaf1cf98a221a969b9d"
+    gex-ladder-unavailable-1440-zh.png: "a5664fb748a1bc49a83fd3f471894e75a0cd4f6c06fed51163367736988778be"
+    gex-ladder-unavailable-1440.png: "3211e05adc6c84363ae98132b90845cfb06eb3e3de8d8af3ebff0867e579d3b4"
+    gex-ladder-unavailable-390-zh.png: "9478e50211437330330f29fa65e0d86a2df138b3a09558872241a9b037ded796"
+    gex-ladder-unavailable-390.png: "67d59983df7d030e6b1957291a8ef69b7f032ba06d57acf838f4359eba8a3f96"
+    gex-ladder-unavailable-820-zh.png: "375814568db967558c1f2d6ac9c13e061a5383298511624e568abe5a3166fbc6"
+    gex-ladder-unavailable-820.png: "31d560861a6d6e4b72c26cb5fbe24801954c236b199b3a792bcca92eba0b6a84"
+    gex-live-refresh-failed-1440-zh.png: "aeb32bfedb0a70705918d6bdddfb8dca367cb6e231b264f98bd869e37960fcb9"
+    gex-live-refresh-failed-1440.png: "5f779d818ea3f137e5ac42c767bab8f9c5c3ecfde1d0875f716a139000712f1a"
+    gex-live-refresh-failed-390-zh.png: "6107783ea156b4c75c6646691dd76a6757c1d5ebb37ff74260b6fc2051282672"
+    gex-live-refresh-failed-390.png: "d9cea7854c7dc1f783c3ddf7d2c9b7e769565d35cdbda73395cb4904cc99876c"
+    gex-live-refresh-failed-820-zh.png: "7293ea6764d14cb8b0cd6bae21b4e9c54511da8014f83a453cf9744d70d88db1"
+    gex-live-refresh-failed-820.png: "c9fcbe536350ceb6a512302299ff7c88a12c234a47de1284fb9bf4770ec7dc14"
+    gex-live-retried-1440-zh.png: "e2f86464c4292a2461bf0652b92b24981c9340a3e4d40220e3e01c4ad0a43d0f"
+    gex-live-retried-1440.png: "e124564c685be1b32708cd1b4885c3d33e2d706edbe29ff31a06fecb1bff72b0"
+    gex-live-retried-390-zh.png: "a5d9b75e9d5bb05458f7192715996ccd594c948b36ba5562f1c2be5d0b6a29c1"
+    gex-live-retried-390.png: "2f5952efcb70e27c362aaf9559920361ea4098b6976dd402e631c36babd92244"
+    gex-live-retried-820-zh.png: "a9cd7acd29b91d3c6416f97e0dba8b64613aaa2bf71cdbd9f7187ee0223fc652"
+    gex-live-retried-820.png: "66f437cd20cdca2bed9cdb13f2ae1c075c3c84400dac4f54d931180a9237ae9f"
+    gex-pick-absent-1440-zh.png: "2be2f9ff0ae069ac163bd9c3d6988b9f49b031c3fb14bb9c9b93eea36b532436"
+    gex-pick-absent-1440.png: "e6613ae7b27f4e4f14284bcbdb848118c4b210df71e09f5a8a7b752485ae399e"
+    gex-pick-absent-390-zh.png: "d2564adc31e901f50c5db46b1c648663319dbc80f767cf40fa55cec14bdf2c49"
+    gex-pick-absent-390.png: "c01ae9870e334a55298ddc7fb71cf6fa845b2baecd5e2b473f9c659ab2352ced"
+    gex-pick-absent-820-zh.png: "b6cf71d6e069e807405fb0188015e0d0805d699e4ae62d0ec6b324e7b1c36d5b"
+    gex-pick-absent-820.png: "d588ffc64dbdffd2708dfde9143f7276926aa44d674b758367562c3a432a604c"
+    gex-rail-retried-1440-zh.png: "37a2982c11152a68860c642dd29d6459710d835f2f0c2bd71a6684b9e3f076db"
+    gex-rail-retried-1440.png: "5c9088889843eadf78895d9715c1eef2fb9052e9ffa797a842d4ef79f10daf0f"
+    gex-rail-retried-390-zh.png: "62d964f5951ebbdd8689b1435b7e0464184fab6f9df5b0c7487b97c408458db3"
+    gex-rail-retried-390.png: "f657c2f92d9d0f79ec511d55c090509d921d683c99e62326a6aa0a40b0a6aa28"
+    gex-rail-retried-820-zh.png: "b9b60b59e149d436e184f571f575096fd3141f9866cf5244b105629f9772d8fc"
+    gex-rail-retried-820.png: "0fc403d49e9ba5efac729a49cb1e685ded83b284015f5339d38bdb015f1ce891"
+    gex-rail-unavailable-1440-zh.png: "28bf02259d41a5c1d4fd2641addab6dba03350785fd306b5a12dba2a3da4ef9a"
+    gex-rail-unavailable-1440.png: "b5f4c27f307112f428fd1a89088647b68ff9d8a0c6b11ef6d07784d65e559db2"
+    gex-rail-unavailable-390-zh.png: "a65ce9e3ea577a9e9f3462244fcc2a61ee29a06966bc6ecfb9eeda84dac1f5a7"
+    gex-rail-unavailable-390.png: "b1ea7ef44dcff920856e99fc8bb60ce49964ee8faa6faa68fc745a720da74051"
+    gex-rail-unavailable-820-zh.png: "16a30a7453be100f11477e20d6d7e416cd281f10bab5e2fd4a0ae530826a1e9c"
+    gex-rail-unavailable-820.png: "94bf2b44a7ba0f2336e9f5e493c489a5c735c581b3abf9bd0b299e7a0314f790"
+    gex-state-refresh-failed-1440-zh.png: "7ed586ef939dee141218e7dbe5088159f00d2766665a1cd8ebd21e1a130ff458"
+    gex-state-refresh-failed-1440.png: "40e6f284fbb50799dace1a1d8365b8cb2e714c7df1d64539441019aa925d2117"
+    gex-state-refresh-failed-390-zh.png: "199aa272ccead5d8ab6821ee2c9bdccd4dacf5e34dd6f16167de954b863bfdc7"
+    gex-state-refresh-failed-390.png: "c170c43ce36ea2030a7f72b395d5e7787b8648162ea802c278d659edab9521b5"
+    gex-state-refresh-failed-820-zh.png: "8725ef4e6563ed193e8af2ab780e2dadc2cb017a480b9a82a92a83804be7c164"
+    gex-state-refresh-failed-820.png: "c120bb91f850bc1f4acba0be8b72a55d3f8e394b1467380a6369fedd1411cf8e"
+optionsWorkspaceRecapture:
+  capturedAt: "2026-11-03T04:23:22.807129+00:00"
+  sourceBase: "ac3762717ad150fd4f18614afd78072115a7c80a"
+  command: "CAPTURE_ONLY='^levels-' node e2e/tools/capture_gex_levels_heatmap_load_failure.cjs"
+  actualCases: 24
+  logSha256: "465590617428dc332789ad2e2450a42299f550033706ed2463b4e70d4ed93c19"
+  sources:
+    terminal/components/levels/LevelsView.tsx: "a3c1af0dd72065398cf40586ddff1919e47d091690707924a957a709b00ae0ef"
+  crops:
+    levels-absent-1440-zh.png: "0c0587f788de411b21b079d8969d068fc3a4e81eb236c35cca210d5eecb350eb"
+    levels-absent-1440.png: "cdca3d17829f77f1162c0ba8310963306451aad5e1f4e597b2b48ff024e30491"
+    levels-absent-390-zh.png: "60b21559ea78024916033513c54aa159ae32cff669831a698e8f034154ec9185"
+    levels-absent-390.png: "7d3fcf4a669125a3fbe85afbfa648301e77d114c226f567b5412499dc4f44497"
+    levels-absent-820-zh.png: "07932ee814ea2700be2dd3308e7aa9d86158410ce97119b1b1bba17bebb48ac8"
+    levels-absent-820.png: "577a26b87bfcc804c51fbcdf5e894cd4967bf1921da0bb491bfc9e927f2116d5"
+    levels-refresh-failed-1440-zh.png: "a57164b2fada3b229d2b4f5a887c35ad1b20c430391fbf091def8d4115a4589f"
+    levels-refresh-failed-1440.png: "507422334429eb457e050ed17ebf99ec6064123f6c0725886b6a3fdd664ce9ae"
+    levels-refresh-failed-390-zh.png: "1cd4524b32a648714482c3d576881328970320c169d278e0c79156ac367d43e9"
+    levels-refresh-failed-390.png: "cb4c815e01ab2eb09dbf4ee87c822f6f8da7a0ecc92bee1256454706c13cd50a"
+    levels-refresh-failed-820-zh.png: "04858bbd428b6e92e7b4490d6e87d29895cc415fcfbf6d47c7eb04d929fa10c0"
+    levels-refresh-failed-820.png: "88401e321c8f565f2e6ebd808672c53478dc0145adadcb1f2d6039ef2f3f0471"
+    levels-retried-1440-zh.png: "f48adbf6e76e10beb6f453338ce6cbd7206ef1720185f6e641431249b900c6b6"
+    levels-retried-1440.png: "4413c8b0558622fe3c7bcded10e836cc00c44b7b4a0d72b3f3c5b751713eedb7"
+    levels-retried-390-zh.png: "18cf38c22cec3c5092cb7572e82ab9a932bc6b65bd508267431de8466fa5de7e"
+    levels-retried-390.png: "15469f763464694992fefb0ae4b91db37098fea8699f5957fd3c2ff52d8b7842"
+    levels-retried-820-zh.png: "4f9c906dee182cd95786bc91df7dbb1a63dedb25253a0e69565303c09c22c9a7"
+    levels-retried-820.png: "b2b0495a5653f311e4f94119a61105c58e207b7588347afcda08939fe1fb1bd3"
+    levels-unavailable-1440-zh.png: "c657ddc3dceef6e3dfefe5d5f52d26782c0344873d762a56b2d0dddd189d83cb"
+    levels-unavailable-1440.png: "7d8001a05f02717158d26c0f69b54e209abc2e8099289b57d4419201a02c5961"
+    levels-unavailable-390-zh.png: "2ada896285e9f132e8714d2686b3870eb8d02a89f9814609e4d729098c8e3dfc"
+    levels-unavailable-390.png: "bd6189a660cfb51cf87f09d985e72eddcccc8226918fee5c020cb8bb39e4f59b"
+    levels-unavailable-820-zh.png: "284b73019b3529db5c2d11085ea4ae442761bea605046eaa692f67e76936d2ac"
+    levels-unavailable-820.png: "0ca0f54f25587b629cc9de5b7f2d3526756e925ffd650391f6f3f37cec344f34"
+levelsGuideNavigationQualification:
+  sourceBase: "a6a88081be25c37e7da59f2c9102fee5c5d20b82"
+  capturedAt: "2026-11-03T06:23:30.684703+00:00"
+  command: "CAPTURE_ONLY=^levels- capture_gex_levels_heatmap_load_failure.cjs"
+  fixture: "Candidate Next development server, shared at port 3521; original browser cases and selectors"
+  actualCases: 24
+  logSha256: "da9bba2b65f8fcc86834e06ce12edadfda48bd42fb0b605d8d6ce5290e4bc813"
+  sources:
+    terminal/components/levels/LevelsView.tsx: "d200204df1cae5ee1401c152df8ce4992d5e88fa852d2505d6c64b1074128e17"
+    terminal/components/levels/levelsNavigation.ts: "c92295f5e11007a5cef612b0803120e69d20a2dcc0987834bbd2b6cafcc87807"
+  files:
+    levels-absent-1440-zh.png: "0c0587f788de411b21b079d8969d068fc3a4e81eb236c35cca210d5eecb350eb"
+    levels-absent-1440.png: "cdca3d17829f77f1162c0ba8310963306451aad5e1f4e597b2b48ff024e30491"
+    levels-absent-390-zh.png: "0e389eb5398f1e512a1f6aa675ea7dc0621cd11afbbcf60caa86e7fa449d6217"
+    levels-absent-390.png: "20c95c59e4180fc748f228a36a7c40d779e88a969a185c65d46be0377cfb7467"
+    levels-absent-820-zh.png: "24f667b8b9a1d642b297150482236fe2ee6eadbfb62139f39667d869dd842be1"
+    levels-absent-820.png: "4473bcc3d6a3f4099a01e695b0907f2a9a3093ce1ebf9970e1764d5efd63b87e"
+    levels-refresh-failed-1440-zh.png: "a57164b2fada3b229d2b4f5a887c35ad1b20c430391fbf091def8d4115a4589f"
+    levels-refresh-failed-1440.png: "507422334429eb457e050ed17ebf99ec6064123f6c0725886b6a3fdd664ce9ae"
+    levels-refresh-failed-390-zh.png: "e65f5ffa90d3e00f231a57504d64e51ba4df85f7b322291c76b40035d1e1c023"
+    levels-refresh-failed-390.png: "7d13a37b3d440f0e98823ac8000cd29249235fa6fedebc6bb1d073b0f2bb20bb"
+    levels-refresh-failed-820-zh.png: "90d8eca3bb76aba4bc6b9b11f43105be95dbda36a3c17fe7d92f8cddd892f54f"
+    levels-refresh-failed-820.png: "ae73a27cdb8454e9ac587446dacbf57a89848d39ba9d6ffcf198fd5ecf681c01"
+    levels-retried-1440-zh.png: "f48adbf6e76e10beb6f453338ce6cbd7206ef1720185f6e641431249b900c6b6"
+    levels-retried-1440.png: "4413c8b0558622fe3c7bcded10e836cc00c44b7b4a0d72b3f3c5b751713eedb7"
+    levels-retried-390-zh.png: "38877cfb4dfdd90a7779811034a470969663f85d69a6f7fbe1d29f9dc5fd3a32"
+    levels-retried-390.png: "08fcded9bb0cfdb64175390f3b5c733cbfa5a8f4246e44376884d621bf38af41"
+    levels-retried-820-zh.png: "a13e4e7147e7a0bc89e3a3ca4aac447c7cc2af32639f3fdd8026f4f89a3a4bac"
+    levels-retried-820.png: "811458dc92352abb17a556bc4d4264346f31d0ad45d6784f2b7db500098593e8"
+    levels-unavailable-1440-zh.png: "c657ddc3dceef6e3dfefe5d5f52d26782c0344873d762a56b2d0dddd189d83cb"
+    levels-unavailable-1440.png: "7d8001a05f02717158d26c0f69b54e209abc2e8099289b57d4419201a02c5961"
+    levels-unavailable-390-zh.png: "189cdb968950fc9db8b04bf390a32a36b98fac802d907ff72f2e28667bbd2fdb"
+    levels-unavailable-390.png: "61154466ce9b676c0ee5eaac6dc885b2ecf07008b4288fbdb3c774ed4931a8fa"
+    levels-unavailable-820-zh.png: "24d2fd128f84d8e471752fd212ca30b0fe1639758a0ab66bf94ae233926080ae"
+    levels-unavailable-820.png: "baf0d252ef54e5919b7366239d4ae7849d318da89352ad62b8a96a262f237edc"
+
+integratedSourceQualification20261104:
+  status: "COMBINED_PREVIEW_RENDERED_NOT_MERGED"
+  sourceInputs:
+    protected: "f528a219cc5d73e94e058575e3df83d689632bf9"
+    exposure: "07616901eb3a33127bd5f2699d604c5b0dd1a2e5"
+    suite: "98ffa891116ccc9e6be58a64148dbe45591e6ce8"
+  sourceProvenanceNote: "generated runner Git HEAD is the enclosing workspace; input triplet is authoritative"
+  environment: "Next 16.2.9 webpack, 13 sha256-verified cached font files, local deterministic route fixtures"
+  qualifiedAt: "2026-11-04T05:02:08Z"
+  packet: "gex-levels-heatmap-load-failure"
+  protectedOriginalRoot: "operations/protected-before-composition-gex-20261104"
+  protectedOriginalManifest: "operations/protected-before-composition-gex-20261104/EVIDENCE.protected-original.yml"
+  rootImagesQualified: 114
+  historicalSectionsPreserved: 13
+  sourceSha256:
+    terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
+    terminal/components/gexdesk/ExposureWorkspace.module.css: "e51bc7085cec2c51d2dc351f1fb3d7bb320b13c664ae2e395a0acdcb8c1eee44"
+    terminal/components/gexdesk/GexDeskView.tsx: "d9b4c0ef9cf72dacc8f30554000a61e48fa2fb43a7a46c65ecf80c88a0f3b864"
+    terminal/components/gexdesk/HeatSeekerCard.tsx: "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a"
+    terminal/components/gexdesk/MarketStateCard.tsx: "f18b78fd4ca997741e65d122eea0844722761a0d8e34380b9b8bd7d9cc41054b"
+    terminal/components/gexdesk/StrikeLadder.tsx: "d5e73cded2c40be7566af46bd6314c8938f9acdd2fdd9bd4c7575cba5e8a7b33"
+    terminal/components/gexdesk/gexStrings.ts: "a15e524c4f81248b031187d1e05ee07ceba863c11cc0b7e20b1f1383a4a34bc6"
+    terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
+    terminal/lib/dataCache.ts: "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a"
+    terminal/components/levels/LevelsView.tsx: "d200204df1cae5ee1401c152df8ce4992d5e88fa852d2505d6c64b1074128e17"
+    terminal/components/levels/levelsLabels.ts: "361124ec9293623fefe69128212f5a25bfddf2c3d716252126d56ec5f356d0d9"
+    terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
+  previousProtectedRootSha256:
+    gex-ladder-absent-1440-zh.png: "3cbf2e68b41f0fe0a3f4edd46e0cf327fb4146caab2be2bd5b222669d24ce3ea"
+    gex-ladder-absent-1440.png: "69f76a72644e14f435ab677245eb39cbab2917082068444b3dead30874f0577e"
+    gex-ladder-absent-390-zh.png: "e218d88a678bf102c356c2df72e44ca74c9ae53283bf73b1b26d9870a4206282"
+    gex-ladder-absent-390.png: "3ac036554a7e7e838eee69edf03cb70505b9b2577f6b606b913b8cf34b0e5ece"
+    gex-ladder-absent-820-zh.png: "7b13e26bbfe1bf25d9f0ef6ee243f6a3156937f20c8129ac42f16e0454dfa4f0"
+    gex-ladder-absent-820.png: "7903b828a6d327fe43ec3c710102f76761b614717bf98ef0e4cc934aebb8db64"
+    gex-ladder-retried-1440-zh.png: "12efd1e7174120c7076ab4e66be8757abb912c04a8f60733c11ce4ff49454e06"
+    gex-ladder-retried-1440.png: "dc824f083f73f2cfc9a518ec995661caa7f42efe7a898ef7ab0a2845c05e36a2"
+    gex-ladder-retried-390-zh.png: "991686ac1c920308a85de33275477b619e3011c72c5a4217c142aaa6d356636c"
+    gex-ladder-retried-390.png: "bb5b0b092f32fe53100e96b4b08a1a1a97ebfba7d184a5e263d75799ab69309d"
+    gex-ladder-retried-820-zh.png: "1cab97de5273e6ffd9e838f709d13278ddb5f21c24e7d9fc61b1b17d21a527e9"
+    gex-ladder-retried-820.png: "e493849b80052b0d2713b6b0e5072cec98d2fee9748635cf2608e62201f99705"
+    gex-ladder-unavailable-1440-zh.png: "fa62dcaf315c4bd17dcc9040c64129079b16c00669a8055c5769e9a3255b26e7"
+    gex-ladder-unavailable-1440.png: "9aee73c5d2dfab354dbf12db8712a691438a816e2350231bd0e1bd9e8e8ea6c3"
+    gex-ladder-unavailable-390-zh.png: "5861d563faaaef4cf388626ad478b1e731d1da636e0bab3d2b8b7031e99e83f1"
+    gex-ladder-unavailable-390.png: "178bf2c649c7a85697c624a2355683b4ffcec9d54d6101b1cf8ae487ed8a5b55"
+    gex-ladder-unavailable-820-zh.png: "978c18a96630c3c507a57cfafa21260a01e895300bebcc6fb67ae1336a0bc55e"
+    gex-ladder-unavailable-820.png: "8075255643fd960290dba0f8cf3bf61235ce75dacffebcf7a66778f87f8093d1"
+    gex-live-refresh-failed-1440-zh.png: "9dc0cce876860531a778e1693006c62ba8d078e701ffe9c101fbf082f857764a"
+    gex-live-refresh-failed-1440.png: "d847b905197bfff0921e03c5d70e10c63adfebb4542a627aa9e833e12e0afdca"
+    gex-live-refresh-failed-390-zh.png: "aedbe6087f866252639e74a945a617b4741e4b873ba362c9bfa17c893bd499f1"
+    gex-live-refresh-failed-390.png: "e51c11bcdf5b3315cd3085596957204d9da3620e8c28035e0e76dd108f7b52a4"
+    gex-live-refresh-failed-820-zh.png: "4c234f1c3b75682c30381b396793dca0ecf7926ccc7a6f97efac0b736f013ea2"
+    gex-live-refresh-failed-820.png: "ca0bc5e4655e256e76b71087cf722eea931b15ae88405ea008b0531f446ffd97"
+    gex-live-retried-1440-zh.png: "571b53ffeb70ab4a81f5c1f4124f4b593604b668e71399001e1ee9bed9daa099"
+    gex-live-retried-1440.png: "d0284a0e0106e8fd271746d39e892fe20d545bd2514c46ac11e0aa4d8b5585be"
+    gex-live-retried-390-zh.png: "a32d489f11f37a53acdab4ce036c0ab22dc3a94ffaa5bef99cc2d82254174fe2"
+    gex-live-retried-390.png: "a68a7179dee8d6f51828fa9cc274bf538ff4ee7c0e8500134eb0cd94cbf93cc6"
+    gex-live-retried-820-zh.png: "d4150d92f904b940a30fcbf9118a1d83f4a2df7925fe3d7e8c028cf22fb70800"
+    gex-live-retried-820.png: "375ce0e7856181fc508b486846de3d81eda0d8b359ff0a02b908f43824da58a0"
+    gex-pick-absent-1440-zh.png: "9475f836c43af0bf9ed679a7b864a1b5514feb33781b246b9194ed1ad1fe2ab3"
+    gex-pick-absent-1440.png: "1c8944de7b273d1037c83dca731eadd810be6b2da217040030413bb65062b7d0"
+    gex-pick-absent-390-zh.png: "83a861936b5f54891aeb0a22eed290cccf19c05153bd30fe3629e8b6d38c711f"
+    gex-pick-absent-390.png: "f60f2c6e0c43572e3b7063c53a6f632b6e5cab9d22fa14373a80dd2f6262950e"
+    gex-pick-absent-820-zh.png: "3718d3782ffbfe2932afa4d8cedf9362ff34f1fbe425ab8cd62c5b001dc2e622"
+    gex-pick-absent-820.png: "fbed39a12dfb90cddb7395e32f00552bab1a54628dedac2f73745d081d967436"
+    gex-rail-retried-1440-zh.png: "b75d79ef1cacaa5cbfa4b1afab4a55a03ba4460ab0693f48b70475119ac23c65"
+    gex-rail-retried-1440.png: "6bd52f366393ed5b5a169cb4fbc0841c7afc2bc3bc6a4c5917d7db9f96bbc0bb"
+    gex-rail-retried-390-zh.png: "d4cd1528e0110283889dc3160f2a7d0feb810e138aa3d1347a9733ed3c3f97bb"
+    gex-rail-retried-390.png: "ff7c5764502f64095440074c43362ad32ca15470672233b7daf0cb1e4d3df5b1"
+    gex-rail-retried-820-zh.png: "5c42d9a274c158a2a4ea6d3eee3ab6bd898a6351628b09140761647a1c9b5feb"
+    gex-rail-retried-820.png: "1802950008aedc2ac519adc5c8f962eb3db4776c409ae231d5849223f3a6dab9"
+    gex-rail-unavailable-1440-zh.png: "db3c8733acf6db4d7f2764e46d54f15aaa24019dc224692d78f39f337290961e"
+    gex-rail-unavailable-1440.png: "7e353be28702f67da7d69a53b776e6399b985536f5aed0f195b18a7913f61ed2"
+    gex-rail-unavailable-390-zh.png: "ad16ba032d5d07cbea93c4dfaca4cd45f1cd4a0f320d8f51722f43e7a43712bd"
+    gex-rail-unavailable-390.png: "8bb4efb14dca5cac3489379685ac00bac11a049f9c6e4bc15f80af446f37848a"
+    gex-rail-unavailable-820-zh.png: "bd826ef353be6517617b622181e8e398a924682c7805a629f3abd5dd9c729e6c"
+    gex-rail-unavailable-820.png: "8bb4efb14dca5cac3489379685ac00bac11a049f9c6e4bc15f80af446f37848a"
+    gex-state-refresh-failed-1440-zh.png: "0b7901d267417a69f33cc92ef88133ee23bb0c13ca2b4bae72b9a341f0304b81"
+    gex-state-refresh-failed-1440.png: "719ff0505a324e5bd1be31f8d4fb4bbca0611c6750ccb65cd283f4540d65a7f5"
+    gex-state-refresh-failed-390-zh.png: "8d2b104bee8b8cb477b483909f6821f80806a35a1954a5ebb26ecc5eeefb8550"
+    gex-state-refresh-failed-390.png: "5d3ed82d199a7bc8ad02ee9e90bb936b10d016a47e70e34b9f26b4a4dc352174"
+    gex-state-refresh-failed-820-zh.png: "cd51a1e0cc706cbd9518bebe08dbb2e5631c0086cf2fe00f52a81c4bbbf65578"
+    gex-state-refresh-failed-820.png: "7f3e9b620ea7d5ec408e73650b7dccafa57847c90c42980532cbb63f15040b1f"
+    heatmap-absent-1440-zh.png: "6a3c43450ac299a8562c15fdecd289dd42a6cf75c473b817ec31555ad0cdda83"
+    heatmap-absent-1440.png: "51b8ed5591fbea455ecf84ba571a94c1617200e6121af9dff84b6df5d4ed9cc9"
+    heatmap-absent-390-zh.png: "cb197a569d504f266055e86b03d7bf27eea64a2cb87dcd44bfb84daeed8269dc"
+    heatmap-absent-390.png: "dc516974c51ebb734e0ef37c765164bb35cd711a5d4df48b01be87fe06bc263a"
+    heatmap-absent-820-zh.png: "b399a37a1f4c8e2523351c15c48d218c5a3f15fc273347efd6da02ba81243f65"
+    heatmap-absent-820.png: "4c486d29a5ac06722db31534b39a1dc30ce7319da8cb0c5cf19685480d5d6229"
+    heatmap-persisted-refresh-failed-1440-zh.png: "9f18425dc283dc1540978708b276bafd6dee80773c92179b707a3a1610264dfb"
+    heatmap-persisted-refresh-failed-1440.png: "c2208806519498f942f3281751d052918256ec225fa25fe29e7c3ba6c2486960"
+    heatmap-persisted-refresh-failed-390-zh.png: "723b14822a00dc194b73c7281a1150f36e082f4fec5574ef5998125462a65a59"
+    heatmap-persisted-refresh-failed-390.png: "6abc41e81954d3481f4784ef9441ae2166360f1f5383950c4655255a782b2673"
+    heatmap-persisted-refresh-failed-820-zh.png: "77fb6a20c0b13d9f714931ceac76249bb708f7b5eb286721cc84f1cc5846e8df"
+    heatmap-persisted-refresh-failed-820.png: "36f3b9bfbe224891d1fb839d3c623c4fc9f99cf6f232bd01c37c753977ab6f83"
+    heatmap-persisted-refresh-refused-1440-zh.png: "9f18425dc283dc1540978708b276bafd6dee80773c92179b707a3a1610264dfb"
+    heatmap-persisted-refresh-refused-1440.png: "c2208806519498f942f3281751d052918256ec225fa25fe29e7c3ba6c2486960"
+    heatmap-persisted-refresh-refused-390-zh.png: "723b14822a00dc194b73c7281a1150f36e082f4fec5574ef5998125462a65a59"
+    heatmap-persisted-refresh-refused-390.png: "6abc41e81954d3481f4784ef9441ae2166360f1f5383950c4655255a782b2673"
+    heatmap-persisted-refresh-refused-820-zh.png: "77fb6a20c0b13d9f714931ceac76249bb708f7b5eb286721cc84f1cc5846e8df"
+    heatmap-persisted-refresh-refused-820.png: "36f3b9bfbe224891d1fb839d3c623c4fc9f99cf6f232bd01c37c753977ab6f83"
+    heatmap-persisted-retried-1440-zh.png: "b14357af620670dae9409ee626a621eb0a8dcffabaf77cbfffaf57e0ec6f806c"
+    heatmap-persisted-retried-1440.png: "59c153ba4a1f381b10a89e667380a1a460a28f067ce0d9b4d3dadf608ee85283"
+    heatmap-persisted-retried-390-zh.png: "e07427eddd3322a8015f4e5fa9f3fc39318c5e28eaeb26632c5f8c175f8f91ec"
+    heatmap-persisted-retried-390.png: "495aeaae5cb23b5fcabd4fcc42a02767e999c946df8221abe277f46b0a932176"
+    heatmap-persisted-retried-820-zh.png: "2a62a410da21235e1003ecc564c540128a3399705eebf79fe725d53379e37c03"
+    heatmap-persisted-retried-820.png: "327650e37b6f861469916e4bf4fad03b3b5b87398fced3718ef3fe2499f86c08"
+    heatmap-retried-1440-zh.png: "b14357af620670dae9409ee626a621eb0a8dcffabaf77cbfffaf57e0ec6f806c"
+    heatmap-retried-1440.png: "59c153ba4a1f381b10a89e667380a1a460a28f067ce0d9b4d3dadf608ee85283"
+    heatmap-retried-390-zh.png: "2c0892b280fb204d981c7f324e1a6aa79e6f5001d427e2b90ca94cfeaffc4618"
+    heatmap-retried-390.png: "218370bb664fa3aa8524ca9e54ef8b69688abf42ae3eaba44c016da5c4fd5280"
+    heatmap-retried-820-zh.png: "2a62a410da21235e1003ecc564c540128a3399705eebf79fe725d53379e37c03"
+    heatmap-retried-820.png: "327650e37b6f861469916e4bf4fad03b3b5b87398fced3718ef3fe2499f86c08"
+    heatmap-unavailable-1440-zh.png: "dbac4df02d0922c6081ec3920280362ba1e68cb17ead9ec2719ba86d7d54c68a"
+    heatmap-unavailable-1440.png: "a2e896b564c6166937ba7ddbe545faa81145657c6b9572f0f9c3a5b9908a86e1"
+    heatmap-unavailable-390-zh.png: "000a5b6aaf61e9d2e124fc3b536de3dbd74f45e17180421826f083f0c61936af"
+    heatmap-unavailable-390.png: "0cfc83bbf1dbfc40081c3b429cac34eab58a5fd1f867e55484d7e974f904e2c9"
+    heatmap-unavailable-820-zh.png: "f7248994e9fb1d785df3b3a09e08272eaae1bc6c64cbb3977ccf27e46949e5c8"
+    heatmap-unavailable-820.png: "cd039b58c1e823924e5a0d8c1061f03c262cebb5ebdd7f8e6a0fcb142fe9d5ce"
+    levels-absent-1440-zh.png: "10111af4cf84b5f93d0c8eee774a9d5f197c8947147921dfecfab5fc9e31968c"
+    levels-absent-1440.png: "af29d369bc2b63024f221e06b14eeb944e40e38b6fb324010ef114a93f23be9d"
+    levels-absent-390-zh.png: "b5b679b5233cf32742373d6129959c9497f3ff492d96d43b8b24e4e23d1fbbdf"
+    levels-absent-390.png: "5d112497fbc7ff4101b0255335c236bca9f00a4a3c91a0f6110b272068529987"
+    levels-absent-820-zh.png: "da28ddf1171875d871fdeefc7b919c4ba9be66d524b2ebbbff445c9ae4af95de"
+    levels-absent-820.png: "577a26b87bfcc804c51fbcdf5e894cd4967bf1921da0bb491bfc9e927f2116d5"
+    levels-refresh-failed-1440-zh.png: "8f0a205737dda69905d8361919bb527e0704bca9dda31474f335bbd01ede92c2"
+    levels-refresh-failed-1440.png: "1f5fe76e983fd0dc16ba5a6ebcb9ecbe3ea63834b8f31dda6f7651386783ba8c"
+    levels-refresh-failed-390-zh.png: "8d45d55714f47507b3f0c7ae8e423c2f1ea9a55d429e686149266f9057c67192"
+    levels-refresh-failed-390.png: "6f55f6b012527b2224452e295d1a404fd5eed56976e83e8fd299922c48090204"
+    levels-refresh-failed-820-zh.png: "83da013d842f6447e3394b018b0262c1dffa18461159fdf3e0a7d9f8fe75c367"
+    levels-refresh-failed-820.png: "3cde0b09e6aa199a9d626ad16321b8cba86043f2f67240ee2d43b2d05789551e"
+    levels-retried-1440-zh.png: "bdc10fd401c7713880f96cf274ce1ccfc2d039706395ee84078a3a7c2c018d32"
+    levels-retried-1440.png: "5b9bfc68fe984375ca47f54357cb9d7c33ee224a1af039664835278ecb756439"
+    levels-retried-390-zh.png: "6288b67ccf7e89bf3d9ebad68f2827534a1adc7bb139cff916f9290c9f66a293"
+    levels-retried-390.png: "bb8d5929274be93b315e840b820d4b42152539677b481347b2308e96c4ca03a7"
+    levels-retried-820-zh.png: "bdd00055926396b50b3b0065c42b9c94206db032b93fa306e77de954bc74c9ae"
+    levels-retried-820.png: "764f16e22873dca319deae69d1afe2374e24cd2c3e372326092da6e923d66db0"
+    levels-unavailable-1440-zh.png: "ef244d3503672ccdd58b3f0f34bd003b0fd3e093557966765e0e321892788fa1"
+    levels-unavailable-1440.png: "af67c57c5064d71d2394678f3a60d7ba181acca099c921f37be4510ade07793c"
+    levels-unavailable-390-zh.png: "f6dd3c8d442f042e1d4e788ab27faa3e7a85260a48dbdba306893741984a458e"
+    levels-unavailable-390.png: "0cb8495f7dc12075e70abfb0bb492e99cbff412c36fd96bf700351c48b383839"
+    levels-unavailable-820-zh.png: "2a8bfdd40ff5174b4008128f9262fab269c0a7010c71b72bf64b098b8e0bf67e"
+    levels-unavailable-820.png: "0ca0f54f25587b629cc9de5b7f2d3526756e925ffd650391f6f3f37cec344f34"
+  actualCombinedRootSha256:
+    gex-ladder-absent-1440-zh.png: "f53e442854ef440848a64d6141302704894442f19ddc714a7aa4cb2b5ab15e17"
+    gex-ladder-absent-1440.png: "18944490520bd18ee86451c408b2ff5e794dd65e3ff51359944626593b24e9da"
+    gex-ladder-absent-390-zh.png: "62899504ea65f92ccc946ced50a3f08ae89b2d6db51c95cf73d2ca7e1be04168"
+    gex-ladder-absent-390.png: "76e6b5b446afa261aec1db4a5255090a062146c1c979980bd104dda0fe08190d"
+    gex-ladder-absent-820-zh.png: "2d20e5b7e7db5e7dfc9426b17dbf796ddb777a268266bda21701610fc3e61858"
+    gex-ladder-absent-820.png: "6710d12d9c06a4223340c9edee525f2f9cd171ba05239d9f20788b064eedf236"
+    gex-ladder-retried-1440-zh.png: "a95ee353c74511a31accbf82ab4215401defd51c8a6805fbc860919755ed4e98"
+    gex-ladder-retried-1440.png: "e457175b2b6b33de94e8ce7c9b06247f051f2af8f9a3146d3edfe3c2c9e8c59b"
+    gex-ladder-retried-390-zh.png: "ffaacc06d9b3067fee2d24a446445419ecf8b5a9ef9634bf8285fe82e2779d1a"
+    gex-ladder-retried-390.png: "aef9440520bc4b4717a08e5ced963c20ab8c1a213be78cb619a8785558a6a9b8"
+    gex-ladder-retried-820-zh.png: "bf982026cc1650de1bb3837fc92ef418dbcfc6c4cd2bbf18ee983d3d19460461"
+    gex-ladder-retried-820.png: "a97295351179bf29820b3d7b4450795c575401c69e9e7aaf1cf98a221a969b9d"
+    gex-ladder-unavailable-1440-zh.png: "a5664fb748a1bc49a83fd3f471894e75a0cd4f6c06fed51163367736988778be"
+    gex-ladder-unavailable-1440.png: "ee946ba908ba2738d261f26fdb23e0b0b37f286e13338a3f2728cc800e79bf33"
+    gex-ladder-unavailable-390-zh.png: "9478e50211437330330f29fa65e0d86a2df138b3a09558872241a9b037ded796"
+    gex-ladder-unavailable-390.png: "f729fce460124ad4034783976976d44f8c47bbcfc77e85179a27da95b216ae35"
+    gex-ladder-unavailable-820-zh.png: "375814568db967558c1f2d6ac9c13e061a5383298511624e568abe5a3166fbc6"
+    gex-ladder-unavailable-820.png: "31d560861a6d6e4b72c26cb5fbe24801954c236b199b3a792bcca92eba0b6a84"
+    gex-live-refresh-failed-1440-zh.png: "b9ce51d40cc8f05ff1f84d1d21f62b98301cee6f2e98115cff776045faf9f772"
+    gex-live-refresh-failed-1440.png: "25e7fc27f541a41d0cf11b0dbbf45ad3f512f6557ce71c371dfc7eee2d1eda9f"
+    gex-live-refresh-failed-390-zh.png: "5fd76f8fb77fdcaa63d1e049afedcb133c647dcf138b976352a36377d03d5bd0"
+    gex-live-refresh-failed-390.png: "2e92daba7126c7f3932c2f3a718e959f8b6fd1d98c326bb716483c657f45bf3f"
+    gex-live-refresh-failed-820-zh.png: "11f49fb87eaf07e5b2783cef15f45354b186e5bae321dfa018eb0636812a828d"
+    gex-live-refresh-failed-820.png: "8e53f23d4e955c1e4dcafc2a6609035227c28d16703895d4341a7144a4792d43"
+    gex-live-retried-1440-zh.png: "fc895ff13b511fd6b29e8c83df2bd69f6fabc5367eb9d7519169772f85c79642"
+    gex-live-retried-1440.png: "8cc08ee3f016b63998535109ee792d9e88d83406c1cc406dd76b2deacf9e32d9"
+    gex-live-retried-390-zh.png: "0575f541563640ae6eb282caa1b7649c9508b8399bc05583d6d499cb2293ad2b"
+    gex-live-retried-390.png: "b3ca19ff02dcb0b4c67c59e20e776bc2cb4ad966dc070891caa484bf88d69337"
+    gex-live-retried-820-zh.png: "a72e9776bda8d3460713c28e1f27aeac903d3d51880ef7dbe7e10aba4268d0c3"
+    gex-live-retried-820.png: "9d99a34cde8fb454cce9a21204980a3ef3f50b00e4e9cce3f206029dcb5a089b"
+    gex-pick-absent-1440-zh.png: "aeadf09e3d5fdfaad96d540f172a60db9f6d7f7874323ab9b85a4c7eeb66e8c4"
+    gex-pick-absent-1440.png: "6c076c86c507b2e6e96817d2894ad53aad5cc909dd3d35f88a258375dbbbd159"
+    gex-pick-absent-390-zh.png: "5acc5d884dc63c79e95ea9aa74cb6bfac99c1d664c1e3c7a2c324e404b09bc8a"
+    gex-pick-absent-390.png: "dfd97fa2da61ba6168c45eeca7d47139a839907064c3369c95bd1bf75779abc1"
+    gex-pick-absent-820-zh.png: "83bd77f9bd24face97a08ec0ddd1bd826cf1acc080275b09a42cedb5487a1304"
+    gex-pick-absent-820.png: "48678af613a5995c60bfbd0cf54f962faa01711114d32c1b114d9764d668c813"
+    gex-rail-retried-1440-zh.png: "5b080f954d34868eb514fa837fde59055157c5c97ff5c57775548a555d876221"
+    gex-rail-retried-1440.png: "69bb9682ab6d3e7aaf537255f6568afacb0d9405bfda8068b0b7ab0c0239233e"
+    gex-rail-retried-390-zh.png: "90b0fbfbccf4871cf8ded0754785989c4a0d1c571654db72fd329d7cc0b8d4d0"
+    gex-rail-retried-390.png: "da7bf5351fe1d3ab4ccdd254cd6797e4841efa04b82dc01efe8b38d5b4b2f040"
+    gex-rail-retried-820-zh.png: "40dafb6a719eec066303e813669dbf4f149d2a9b7e63701e6f652c10e417934a"
+    gex-rail-retried-820.png: "df28347d4eed62c403d742a0820276b0d86300664694990218b224a3ed4c371f"
+    gex-rail-unavailable-1440-zh.png: "2dc0ed999a995c353e74ce77b974e9dfe850b7da2b115f08871521c1a7064b49"
+    gex-rail-unavailable-1440.png: "d84759b85baa7c7522a8385bf452bfb828b014dd437ea1aecd475e981e9e82c5"
+    gex-rail-unavailable-390-zh.png: "713e09a298695cb2ddbd5e2cf58a59caf82f7dbda47c478e902d180728996ba1"
+    gex-rail-unavailable-390.png: "5ea7b9f7209806c50e3dd9bf27382f262121885b850b27f4ca3015f83eb4595b"
+    gex-rail-unavailable-820-zh.png: "add843b184f81a3d4ba7cb4cfa25a523fb39db5e97a3e559a9c850af9d85f2c4"
+    gex-rail-unavailable-820.png: "f6c732a9912c5383ed4433ef2a41ba21337e5844f2189767aacf103be15eb9a9"
+    gex-state-refresh-failed-1440-zh.png: "f852c477e0e11258635d13d297b35785f6557ff18b7f543c8a666e4ec3011f2e"
+    gex-state-refresh-failed-1440.png: "6f53df2d8bdcb42ec94513dab304540f3c307e7c621bb67a58d25f3a5a107126"
+    gex-state-refresh-failed-390-zh.png: "c3a1d8c62d2644d74e89de1db4959ad5d09cb26328ac4822b639dcd7fb0734a2"
+    gex-state-refresh-failed-390.png: "e01b6d811a6f89be0925c758a495004bec0ad468233eb487991e9f827efbf36a"
+    gex-state-refresh-failed-820-zh.png: "e2ad50ee5d2d51e48a264907fbb95ea1a450c4ca78f4102913d402a2c51f8c14"
+    gex-state-refresh-failed-820.png: "257415462be82403eee6769863a771c4238b1c9530853f858810de4b9386c0ed"
+    heatmap-absent-1440-zh.png: "7c62ec6cb0a31046057bfdbd9702065707c0c35f7bb8c548d0bb0921718886b6"
+    heatmap-absent-1440.png: "51b8ed5591fbea455ecf84ba571a94c1617200e6121af9dff84b6df5d4ed9cc9"
+    heatmap-absent-390-zh.png: "013c35190668f5dc633903c801c1466ef2179d18228348af51b9f3244cc2d565"
+    heatmap-absent-390.png: "dc516974c51ebb734e0ef37c765164bb35cd711a5d4df48b01be87fe06bc263a"
+    heatmap-absent-820-zh.png: "ab5eb75945abe2deb1c31cacd2707943781ffb9c9feabdebff3e4ddc594fffc6"
+    heatmap-absent-820.png: "4c486d29a5ac06722db31534b39a1dc30ce7319da8cb0c5cf19685480d5d6229"
+    heatmap-persisted-refresh-failed-1440-zh.png: "7ae72cb7d6a77b0b6aabb1a9f995f82211f9b43b8f95671c080cc4a7d9f1ba62"
+    heatmap-persisted-refresh-failed-1440.png: "c2208806519498f942f3281751d052918256ec225fa25fe29e7c3ba6c2486960"
+    heatmap-persisted-refresh-failed-390-zh.png: "69b332c7b0721483039db1f50414f84f343b4068f82bda0bacc758f7fd3e4a50"
+    heatmap-persisted-refresh-failed-390.png: "6abc41e81954d3481f4784ef9441ae2166360f1f5383950c4655255a782b2673"
+    heatmap-persisted-refresh-failed-820-zh.png: "db1cbe7ccdf04e2fcff7ee19278c7de575c1f07ffa3b6f74e05317cde430dc27"
+    heatmap-persisted-refresh-failed-820.png: "36f3b9bfbe224891d1fb839d3c623c4fc9f99cf6f232bd01c37c753977ab6f83"
+    heatmap-persisted-refresh-refused-1440-zh.png: "7ae72cb7d6a77b0b6aabb1a9f995f82211f9b43b8f95671c080cc4a7d9f1ba62"
+    heatmap-persisted-refresh-refused-1440.png: "c2208806519498f942f3281751d052918256ec225fa25fe29e7c3ba6c2486960"
+    heatmap-persisted-refresh-refused-390-zh.png: "69b332c7b0721483039db1f50414f84f343b4068f82bda0bacc758f7fd3e4a50"
+    heatmap-persisted-refresh-refused-390.png: "6abc41e81954d3481f4784ef9441ae2166360f1f5383950c4655255a782b2673"
+    heatmap-persisted-refresh-refused-820-zh.png: "db1cbe7ccdf04e2fcff7ee19278c7de575c1f07ffa3b6f74e05317cde430dc27"
+    heatmap-persisted-refresh-refused-820.png: "36f3b9bfbe224891d1fb839d3c623c4fc9f99cf6f232bd01c37c753977ab6f83"
+    heatmap-persisted-retried-1440-zh.png: "2fe3de85f078ec2dbd8ec7f2c9ec1f9126526e5edd7655b785b0c2cd66a1eea5"
+    heatmap-persisted-retried-1440.png: "59c153ba4a1f381b10a89e667380a1a460a28f067ce0d9b4d3dadf608ee85283"
+    heatmap-persisted-retried-390-zh.png: "eb329a7037912615cd5a6ee3cb62bc35f9e3ae745bcdbae734d1583e70a5313d"
+    heatmap-persisted-retried-390.png: "495aeaae5cb23b5fcabd4fcc42a02767e999c946df8221abe277f46b0a932176"
+    heatmap-persisted-retried-820-zh.png: "336ab3aa137ccbd61e03c13879e2fee987d4fbaae4cadbdf50f1986990688dc5"
+    heatmap-persisted-retried-820.png: "327650e37b6f861469916e4bf4fad03b3b5b87398fced3718ef3fe2499f86c08"
+    heatmap-retried-1440-zh.png: "2fe3de85f078ec2dbd8ec7f2c9ec1f9126526e5edd7655b785b0c2cd66a1eea5"
+    heatmap-retried-1440.png: "59c153ba4a1f381b10a89e667380a1a460a28f067ce0d9b4d3dadf608ee85283"
+    heatmap-retried-390-zh.png: "eb329a7037912615cd5a6ee3cb62bc35f9e3ae745bcdbae734d1583e70a5313d"
+    heatmap-retried-390.png: "218370bb664fa3aa8524ca9e54ef8b69688abf42ae3eaba44c016da5c4fd5280"
+    heatmap-retried-820-zh.png: "336ab3aa137ccbd61e03c13879e2fee987d4fbaae4cadbdf50f1986990688dc5"
+    heatmap-retried-820.png: "327650e37b6f861469916e4bf4fad03b3b5b87398fced3718ef3fe2499f86c08"
+    heatmap-unavailable-1440-zh.png: "31b3b5daf17811c3c4a0fbc96a5f005954780346fa64426ccaaf8f66943942bc"
+    heatmap-unavailable-1440.png: "a2e896b564c6166937ba7ddbe545faa81145657c6b9572f0f9c3a5b9908a86e1"
+    heatmap-unavailable-390-zh.png: "5869631ec0ea3de3a92dd9d6d99ea7bd527ff5833f4c37fe308b4f51b7a97e08"
+    heatmap-unavailable-390.png: "0cfc83bbf1dbfc40081c3b429cac34eab58a5fd1f867e55484d7e974f904e2c9"
+    heatmap-unavailable-820-zh.png: "65be10ffce53092c201e98479b6a24e6f21047bc31e7492616ad70666c0e0abd"
+    heatmap-unavailable-820.png: "cd039b58c1e823924e5a0d8c1061f03c262cebb5ebdd7f8e6a0fcb142fe9d5ce"
+    levels-absent-1440-zh.png: "0c0587f788de411b21b079d8969d068fc3a4e81eb236c35cca210d5eecb350eb"
+    levels-absent-1440.png: "cdca3d17829f77f1162c0ba8310963306451aad5e1f4e597b2b48ff024e30491"
+    levels-absent-390-zh.png: "0e389eb5398f1e512a1f6aa675ea7dc0621cd11afbbcf60caa86e7fa449d6217"
+    levels-absent-390.png: "20c95c59e4180fc748f228a36a7c40d779e88a969a185c65d46be0377cfb7467"
+    levels-absent-820-zh.png: "24f667b8b9a1d642b297150482236fe2ee6eadbfb62139f39667d869dd842be1"
+    levels-absent-820.png: "4473bcc3d6a3f4099a01e695b0907f2a9a3093ce1ebf9970e1764d5efd63b87e"
+    levels-refresh-failed-1440-zh.png: "a57164b2fada3b229d2b4f5a887c35ad1b20c430391fbf091def8d4115a4589f"
+    levels-refresh-failed-1440.png: "507422334429eb457e050ed17ebf99ec6064123f6c0725886b6a3fdd664ce9ae"
+    levels-refresh-failed-390-zh.png: "e65f5ffa90d3e00f231a57504d64e51ba4df85f7b322291c76b40035d1e1c023"
+    levels-refresh-failed-390.png: "7d13a37b3d440f0e98823ac8000cd29249235fa6fedebc6bb1d073b0f2bb20bb"
+    levels-refresh-failed-820-zh.png: "90d8eca3bb76aba4bc6b9b11f43105be95dbda36a3c17fe7d92f8cddd892f54f"
+    levels-refresh-failed-820.png: "ae73a27cdb8454e9ac587446dacbf57a89848d39ba9d6ffcf198fd5ecf681c01"
+    levels-retried-1440-zh.png: "f48adbf6e76e10beb6f453338ce6cbd7206ef1720185f6e641431249b900c6b6"
+    levels-retried-1440.png: "4413c8b0558622fe3c7bcded10e836cc00c44b7b4a0d72b3f3c5b751713eedb7"
+    levels-retried-390-zh.png: "38877cfb4dfdd90a7779811034a470969663f85d69a6f7fbe1d29f9dc5fd3a32"
+    levels-retried-390.png: "08fcded9bb0cfdb64175390f3b5c733cbfa5a8f4246e44376884d621bf38af41"
+    levels-retried-820-zh.png: "a13e4e7147e7a0bc89e3a3ca4aac447c7cc2af32639f3fdd8026f4f89a3a4bac"
+    levels-retried-820.png: "811458dc92352abb17a556bc4d4264346f31d0ad45d6784f2b7db500098593e8"
+    levels-unavailable-1440-zh.png: "c657ddc3dceef6e3dfefe5d5f52d26782c0344873d762a56b2d0dddd189d83cb"
+    levels-unavailable-1440.png: "7d8001a05f02717158d26c0f69b54e209abc2e8099289b57d4419201a02c5961"
+    levels-unavailable-390-zh.png: "189cdb968950fc9db8b04bf390a32a36b98fac802d907ff72f2e28667bbd2fdb"
+    levels-unavailable-390.png: "61154466ce9b676c0ee5eaac6dc885b2ecf07008b4288fbdb3c774ed4931a8fa"
+    levels-unavailable-820-zh.png: "24d2fd128f84d8e471752fd212ca30b0fe1639758a0ab66bf94ae233926080ae"
+    levels-unavailable-820.png: "baf0d252ef54e5919b7366239d4ae7849d318da89352ad62b8a96a262f237edc"
+
+exposureHierarchyRecapture:
+  packet: "gex-levels-heatmap-load-failure"
+  operation: "exposure-1243-paper-hierarchy-fit-20261104"
+  originalHead: "07616901eb3a33127bd5f2699d604c5b0dd1a2e5"
+  capturedAt: "2026-11-04T08:54:28.650400+00:00"
+  previousGexSourceSha256: "66d82e8c956b551caad27661082211c74e7aaadd4be71ae643ad2748374ba85c"
+  sourceSha256:
+    terminal/components/gexdesk/ExposureWorkspace.module.css: "bf8a7d85fc594d9666e97445fde47e36cd64c4f6fc6883a75102d25115666158"
+    terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
+    terminal/components/gexdesk/GexDeskView.tsx: "cefc542a6fdfb76f2ac0f8df0d79b3e09085ee91b82ce4113dd2b29ff0cccf50"
+    terminal/components/gexdesk/HeatSeekerCard.tsx: "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a"
+    terminal/components/gexdesk/MarketStateCard.tsx: "d197f5d243c3c998d6550717ddf18fa4f74658ec877ac0178139b0a6b894f09f"
+    terminal/components/gexdesk/StrikeLadder.tsx: "d5e73cded2c40be7566af46bd6314c8938f9acdd2fdd9bd4c7575cba5e8a7b33"
+    terminal/components/gexdesk/gexStrings.ts: "76ae4a42bdd91378006315e4c1b972d8548aa771843aae1fcc4aa5ca069b3637"
+    terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
+    terminal/lib/dataCache.ts: "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be"
+    terminal/components/levels/LevelsView.tsx: "91a4d6fd86b12225e657c8a9c4b2b185e3940356af3cd11466ca30e04f05b0c9"
+    terminal/components/levels/levelsLabels.ts: "361124ec9293623fefe69128212f5a25bfddf2c3d716252126d56ec5f356d0d9"
+    terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
+    terminal/lib/exposureOrigin.ts: "9104d1eb713f7a39f8e84d22d0afb3f6a323ecd5da9545cc40437b466d1c2aaf"
+    terminal/lib/sectorDepthReturn.ts: "fd8ee3f188cb2be12e5bb9f5c62071c664fe2898df8f7fa93c429b6c0e14459b"
+  captureHarnessSha256: "f6c52d0666cee5a497d0836ec8e9c8eb05a9ba51fad63ba9f443d623ad99bc28"
+  command: "TERMINAL_CROP_WEBPACK=1 CAPTURE_ONLY=^gex- TERMINAL_CROP_PORT=3643 TERMINAL_CROP_OUTPUT_DIR=/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104 node e2e/tools/capture_gex_levels_heatmap_load_failure.cjs"
+  runtime: "Next 16.2.9 webpack; fresh generated dev cache for each packet; verified local font fixtures; synthetic HTTP/SSE failure injection"
+  outputDir: "operations/exposure-1243-paper-hierarchy-fit-20261104"
+  actualCases: 54
+  failedCases: 0
+  sourceStableAcrossCapture: true
+  packetRootCrops: "preserved at original committed bytes"
+  packetRootSha256:
+    gex-ladder-absent-1440-zh.png: "f53e442854ef440848a64d6141302704894442f19ddc714a7aa4cb2b5ab15e17"
+    gex-ladder-absent-1440.png: "18944490520bd18ee86451c408b2ff5e794dd65e3ff51359944626593b24e9da"
+    gex-ladder-absent-390-zh.png: "c1fe8a6ac30724f92dc1f1123da6e721e7ce2a31bce4f7409faaae510650339b"
+    gex-ladder-absent-390.png: "1b5790b455377dca467ebf368d8c1b116462891db351eb630f4c33af9463bce1"
+    gex-ladder-absent-820-zh.png: "2d20e5b7e7db5e7dfc9426b17dbf796ddb777a268266bda21701610fc3e61858"
+    gex-ladder-absent-820.png: "6710d12d9c06a4223340c9edee525f2f9cd171ba05239d9f20788b064eedf236"
+    gex-ladder-retried-1440-zh.png: "a95ee353c74511a31accbf82ab4215401defd51c8a6805fbc860919755ed4e98"
+    gex-ladder-retried-1440.png: "e457175b2b6b33de94e8ce7c9b06247f051f2af8f9a3146d3edfe3c2c9e8c59b"
+    gex-ladder-retried-390-zh.png: "a5683c467ee1d11a65f49977e67e096e99f5cbbf941022bca270341d58cea010"
+    gex-ladder-retried-390.png: "af5f5601d2280d1374365c695d51f4b87d787b152d260e8601d09c9b40c3fe4f"
+    gex-ladder-retried-820-zh.png: "bf982026cc1650de1bb3837fc92ef418dbcfc6c4cd2bbf18ee983d3d19460461"
+    gex-ladder-retried-820.png: "a97295351179bf29820b3d7b4450795c575401c69e9e7aaf1cf98a221a969b9d"
+    gex-ladder-unavailable-1440-zh.png: "a5664fb748a1bc49a83fd3f471894e75a0cd4f6c06fed51163367736988778be"
+    gex-ladder-unavailable-1440.png: "3211e05adc6c84363ae98132b90845cfb06eb3e3de8d8af3ebff0867e579d3b4"
+    gex-ladder-unavailable-390-zh.png: "9478e50211437330330f29fa65e0d86a2df138b3a09558872241a9b037ded796"
+    gex-ladder-unavailable-390.png: "67d59983df7d030e6b1957291a8ef69b7f032ba06d57acf838f4359eba8a3f96"
+    gex-ladder-unavailable-820-zh.png: "375814568db967558c1f2d6ac9c13e061a5383298511624e568abe5a3166fbc6"
+    gex-ladder-unavailable-820.png: "31d560861a6d6e4b72c26cb5fbe24801954c236b199b3a792bcca92eba0b6a84"
+    gex-live-refresh-failed-1440-zh.png: "aeb32bfedb0a70705918d6bdddfb8dca367cb6e231b264f98bd869e37960fcb9"
+    gex-live-refresh-failed-1440.png: "5f779d818ea3f137e5ac42c767bab8f9c5c3ecfde1d0875f716a139000712f1a"
+    gex-live-refresh-failed-390-zh.png: "6107783ea156b4c75c6646691dd76a6757c1d5ebb37ff74260b6fc2051282672"
+    gex-live-refresh-failed-390.png: "d9cea7854c7dc1f783c3ddf7d2c9b7e769565d35cdbda73395cb4904cc99876c"
+    gex-live-refresh-failed-820-zh.png: "7293ea6764d14cb8b0cd6bae21b4e9c54511da8014f83a453cf9744d70d88db1"
+    gex-live-refresh-failed-820.png: "c9fcbe536350ceb6a512302299ff7c88a12c234a47de1284fb9bf4770ec7dc14"
+    gex-live-retried-1440-zh.png: "e2f86464c4292a2461bf0652b92b24981c9340a3e4d40220e3e01c4ad0a43d0f"
+    gex-live-retried-1440.png: "e124564c685be1b32708cd1b4885c3d33e2d706edbe29ff31a06fecb1bff72b0"
+    gex-live-retried-390-zh.png: "a5d9b75e9d5bb05458f7192715996ccd594c948b36ba5562f1c2be5d0b6a29c1"
+    gex-live-retried-390.png: "2f5952efcb70e27c362aaf9559920361ea4098b6976dd402e631c36babd92244"
+    gex-live-retried-820-zh.png: "a9cd7acd29b91d3c6416f97e0dba8b64613aaa2bf71cdbd9f7187ee0223fc652"
+    gex-live-retried-820.png: "66f437cd20cdca2bed9cdb13f2ae1c075c3c84400dac4f54d931180a9237ae9f"
+    gex-pick-absent-1440-zh.png: "2be2f9ff0ae069ac163bd9c3d6988b9f49b031c3fb14bb9c9b93eea36b532436"
+    gex-pick-absent-1440.png: "e6613ae7b27f4e4f14284bcbdb848118c4b210df71e09f5a8a7b752485ae399e"
+    gex-pick-absent-390-zh.png: "d2564adc31e901f50c5db46b1c648663319dbc80f767cf40fa55cec14bdf2c49"
+    gex-pick-absent-390.png: "c01ae9870e334a55298ddc7fb71cf6fa845b2baecd5e2b473f9c659ab2352ced"
+    gex-pick-absent-820-zh.png: "b6cf71d6e069e807405fb0188015e0d0805d699e4ae62d0ec6b324e7b1c36d5b"
+    gex-pick-absent-820.png: "d588ffc64dbdffd2708dfde9143f7276926aa44d674b758367562c3a432a604c"
+    gex-rail-retried-1440-zh.png: "37a2982c11152a68860c642dd29d6459710d835f2f0c2bd71a6684b9e3f076db"
+    gex-rail-retried-1440.png: "5c9088889843eadf78895d9715c1eef2fb9052e9ffa797a842d4ef79f10daf0f"
+    gex-rail-retried-390-zh.png: "62d964f5951ebbdd8689b1435b7e0464184fab6f9df5b0c7487b97c408458db3"
+    gex-rail-retried-390.png: "f657c2f92d9d0f79ec511d55c090509d921d683c99e62326a6aa0a40b0a6aa28"
+    gex-rail-retried-820-zh.png: "b9b60b59e149d436e184f571f575096fd3141f9866cf5244b105629f9772d8fc"
+    gex-rail-retried-820.png: "0fc403d49e9ba5efac729a49cb1e685ded83b284015f5339d38bdb015f1ce891"
+    gex-rail-unavailable-1440-zh.png: "28bf02259d41a5c1d4fd2641addab6dba03350785fd306b5a12dba2a3da4ef9a"
+    gex-rail-unavailable-1440.png: "b5f4c27f307112f428fd1a89088647b68ff9d8a0c6b11ef6d07784d65e559db2"
+    gex-rail-unavailable-390-zh.png: "a65ce9e3ea577a9e9f3462244fcc2a61ee29a06966bc6ecfb9eeda84dac1f5a7"
+    gex-rail-unavailable-390.png: "b1ea7ef44dcff920856e99fc8bb60ce49964ee8faa6faa68fc745a720da74051"
+    gex-rail-unavailable-820-zh.png: "16a30a7453be100f11477e20d6d7e416cd281f10bab5e2fd4a0ae530826a1e9c"
+    gex-rail-unavailable-820.png: "94bf2b44a7ba0f2336e9f5e493c489a5c735c581b3abf9bd0b299e7a0314f790"
+    gex-state-refresh-failed-1440-zh.png: "7ed586ef939dee141218e7dbe5088159f00d2766665a1cd8ebd21e1a130ff458"
+    gex-state-refresh-failed-1440.png: "40e6f284fbb50799dace1a1d8365b8cb2e714c7df1d64539441019aa925d2117"
+    gex-state-refresh-failed-390-zh.png: "199aa272ccead5d8ab6821ee2c9bdccd4dacf5e34dd6f16167de954b863bfdc7"
+    gex-state-refresh-failed-390.png: "c170c43ce36ea2030a7f72b395d5e7787b8648162ea802c278d659edab9521b5"
+    gex-state-refresh-failed-820-zh.png: "8725ef4e6563ed193e8af2ab780e2dadc2cb017a480b9a82a92a83804be7c164"
+    gex-state-refresh-failed-820.png: "c120bb91f850bc1f4acba0be8b72a55d3f8e394b1467380a6369fedd1411cf8e"
+    heatmap-absent-1440-zh.png: "6a3c43450ac299a8562c15fdecd289dd42a6cf75c473b817ec31555ad0cdda83"
+    heatmap-absent-1440.png: "51b8ed5591fbea455ecf84ba571a94c1617200e6121af9dff84b6df5d4ed9cc9"
+    heatmap-absent-390-zh.png: "cb197a569d504f266055e86b03d7bf27eea64a2cb87dcd44bfb84daeed8269dc"
+    heatmap-absent-390.png: "dc516974c51ebb734e0ef37c765164bb35cd711a5d4df48b01be87fe06bc263a"
+    heatmap-absent-820-zh.png: "b399a37a1f4c8e2523351c15c48d218c5a3f15fc273347efd6da02ba81243f65"
+    heatmap-absent-820.png: "4c486d29a5ac06722db31534b39a1dc30ce7319da8cb0c5cf19685480d5d6229"
+    heatmap-persisted-refresh-failed-1440-zh.png: "9f18425dc283dc1540978708b276bafd6dee80773c92179b707a3a1610264dfb"
+    heatmap-persisted-refresh-failed-1440.png: "c2208806519498f942f3281751d052918256ec225fa25fe29e7c3ba6c2486960"
+    heatmap-persisted-refresh-failed-390-zh.png: "723b14822a00dc194b73c7281a1150f36e082f4fec5574ef5998125462a65a59"
+    heatmap-persisted-refresh-failed-390.png: "6abc41e81954d3481f4784ef9441ae2166360f1f5383950c4655255a782b2673"
+    heatmap-persisted-refresh-failed-820-zh.png: "77fb6a20c0b13d9f714931ceac76249bb708f7b5eb286721cc84f1cc5846e8df"
+    heatmap-persisted-refresh-failed-820.png: "36f3b9bfbe224891d1fb839d3c623c4fc9f99cf6f232bd01c37c753977ab6f83"
+    heatmap-persisted-refresh-refused-1440-zh.png: "9f18425dc283dc1540978708b276bafd6dee80773c92179b707a3a1610264dfb"
+    heatmap-persisted-refresh-refused-1440.png: "c2208806519498f942f3281751d052918256ec225fa25fe29e7c3ba6c2486960"
+    heatmap-persisted-refresh-refused-390-zh.png: "723b14822a00dc194b73c7281a1150f36e082f4fec5574ef5998125462a65a59"
+    heatmap-persisted-refresh-refused-390.png: "6abc41e81954d3481f4784ef9441ae2166360f1f5383950c4655255a782b2673"
+    heatmap-persisted-refresh-refused-820-zh.png: "77fb6a20c0b13d9f714931ceac76249bb708f7b5eb286721cc84f1cc5846e8df"
+    heatmap-persisted-refresh-refused-820.png: "36f3b9bfbe224891d1fb839d3c623c4fc9f99cf6f232bd01c37c753977ab6f83"
+    heatmap-persisted-retried-1440-zh.png: "b14357af620670dae9409ee626a621eb0a8dcffabaf77cbfffaf57e0ec6f806c"
+    heatmap-persisted-retried-1440.png: "59c153ba4a1f381b10a89e667380a1a460a28f067ce0d9b4d3dadf608ee85283"
+    heatmap-persisted-retried-390-zh.png: "e07427eddd3322a8015f4e5fa9f3fc39318c5e28eaeb26632c5f8c175f8f91ec"
+    heatmap-persisted-retried-390.png: "495aeaae5cb23b5fcabd4fcc42a02767e999c946df8221abe277f46b0a932176"
+    heatmap-persisted-retried-820-zh.png: "2a62a410da21235e1003ecc564c540128a3399705eebf79fe725d53379e37c03"
+    heatmap-persisted-retried-820.png: "327650e37b6f861469916e4bf4fad03b3b5b87398fced3718ef3fe2499f86c08"
+    heatmap-retried-1440-zh.png: "b14357af620670dae9409ee626a621eb0a8dcffabaf77cbfffaf57e0ec6f806c"
+    heatmap-retried-1440.png: "59c153ba4a1f381b10a89e667380a1a460a28f067ce0d9b4d3dadf608ee85283"
+    heatmap-retried-390-zh.png: "2c0892b280fb204d981c7f324e1a6aa79e6f5001d427e2b90ca94cfeaffc4618"
+    heatmap-retried-390.png: "218370bb664fa3aa8524ca9e54ef8b69688abf42ae3eaba44c016da5c4fd5280"
+    heatmap-retried-820-zh.png: "2a62a410da21235e1003ecc564c540128a3399705eebf79fe725d53379e37c03"
+    heatmap-retried-820.png: "327650e37b6f861469916e4bf4fad03b3b5b87398fced3718ef3fe2499f86c08"
+    heatmap-unavailable-1440-zh.png: "dbac4df02d0922c6081ec3920280362ba1e68cb17ead9ec2719ba86d7d54c68a"
+    heatmap-unavailable-1440.png: "a2e896b564c6166937ba7ddbe545faa81145657c6b9572f0f9c3a5b9908a86e1"
+    heatmap-unavailable-390-zh.png: "000a5b6aaf61e9d2e124fc3b536de3dbd74f45e17180421826f083f0c61936af"
+    heatmap-unavailable-390.png: "0cfc83bbf1dbfc40081c3b429cac34eab58a5fd1f867e55484d7e974f904e2c9"
+    heatmap-unavailable-820-zh.png: "f7248994e9fb1d785df3b3a09e08272eaae1bc6c64cbb3977ccf27e46949e5c8"
+    heatmap-unavailable-820.png: "cd039b58c1e823924e5a0d8c1061f03c262cebb5ebdd7f8e6a0fcb142fe9d5ce"
+    levels-absent-1440-zh.png: "10111af4cf84b5f93d0c8eee774a9d5f197c8947147921dfecfab5fc9e31968c"
+    levels-absent-1440.png: "af29d369bc2b63024f221e06b14eeb944e40e38b6fb324010ef114a93f23be9d"
+    levels-absent-390-zh.png: "b5b679b5233cf32742373d6129959c9497f3ff492d96d43b8b24e4e23d1fbbdf"
+    levels-absent-390.png: "5d112497fbc7ff4101b0255335c236bca9f00a4a3c91a0f6110b272068529987"
+    levels-absent-820-zh.png: "da28ddf1171875d871fdeefc7b919c4ba9be66d524b2ebbbff445c9ae4af95de"
+    levels-absent-820.png: "577a26b87bfcc804c51fbcdf5e894cd4967bf1921da0bb491bfc9e927f2116d5"
+    levels-refresh-failed-1440-zh.png: "8f0a205737dda69905d8361919bb527e0704bca9dda31474f335bbd01ede92c2"
+    levels-refresh-failed-1440.png: "1f5fe76e983fd0dc16ba5a6ebcb9ecbe3ea63834b8f31dda6f7651386783ba8c"
+    levels-refresh-failed-390-zh.png: "8d45d55714f47507b3f0c7ae8e423c2f1ea9a55d429e686149266f9057c67192"
+    levels-refresh-failed-390.png: "6f55f6b012527b2224452e295d1a404fd5eed56976e83e8fd299922c48090204"
+    levels-refresh-failed-820-zh.png: "83da013d842f6447e3394b018b0262c1dffa18461159fdf3e0a7d9f8fe75c367"
+    levels-refresh-failed-820.png: "3cde0b09e6aa199a9d626ad16321b8cba86043f2f67240ee2d43b2d05789551e"
+    levels-retried-1440-zh.png: "bdc10fd401c7713880f96cf274ce1ccfc2d039706395ee84078a3a7c2c018d32"
+    levels-retried-1440.png: "5b9bfc68fe984375ca47f54357cb9d7c33ee224a1af039664835278ecb756439"
+    levels-retried-390-zh.png: "6288b67ccf7e89bf3d9ebad68f2827534a1adc7bb139cff916f9290c9f66a293"
+    levels-retried-390.png: "bb8d5929274be93b315e840b820d4b42152539677b481347b2308e96c4ca03a7"
+    levels-retried-820-zh.png: "bdd00055926396b50b3b0065c42b9c94206db032b93fa306e77de954bc74c9ae"
+    levels-retried-820.png: "764f16e22873dca319deae69d1afe2374e24cd2c3e372326092da6e923d66db0"
+    levels-unavailable-1440-zh.png: "ef244d3503672ccdd58b3f0f34bd003b0fd3e093557966765e0e321892788fa1"
+    levels-unavailable-1440.png: "af67c57c5064d71d2394678f3a60d7ba181acca099c921f37be4510ade07793c"
+    levels-unavailable-390-zh.png: "f6dd3c8d442f042e1d4e788ab27faa3e7a85260a48dbdba306893741984a458e"
+    levels-unavailable-390.png: "0cb8495f7dc12075e70abfb0bb492e99cbff412c36fd96bf700351c48b383839"
+    levels-unavailable-820-zh.png: "2a8bfdd40ff5174b4008128f9262fab269c0a7010c71b72bf64b098b8e0bf67e"
+    levels-unavailable-820.png: "0ca0f54f25587b629cc9de5b7f2d3526756e925ffd650391f6f3f37cec344f34"
+  captureLogSha256: "079120c79f9a40cb6b9d4ba9e452a5adfa64938b55f612ff321df24f08d0e465"
+  cropSha256:
+    gex-ladder-absent-1440-zh.png: "f53e442854ef440848a64d6141302704894442f19ddc714a7aa4cb2b5ab15e17"
+    gex-ladder-absent-1440.png: "18944490520bd18ee86451c408b2ff5e794dd65e3ff51359944626593b24e9da"
+    gex-ladder-absent-390-zh.png: "c1fe8a6ac30724f92dc1f1123da6e721e7ce2a31bce4f7409faaae510650339b"
+    gex-ladder-absent-390.png: "1b5790b455377dca467ebf368d8c1b116462891db351eb630f4c33af9463bce1"
+    gex-ladder-absent-820-zh.png: "2d20e5b7e7db5e7dfc9426b17dbf796ddb777a268266bda21701610fc3e61858"
+    gex-ladder-absent-820.png: "6710d12d9c06a4223340c9edee525f2f9cd171ba05239d9f20788b064eedf236"
+    gex-ladder-retried-1440-zh.png: "ebaa7b4a639f5932d45a2c5d6222ed9d4e75e14f38bf0b827fc3a76bc417e1cf"
+    gex-ladder-retried-1440.png: "ba77f4fb7f4073be02f3847043a3f2f9ce60ad35bb33f70e65ffe95db7cc4762"
+    gex-ladder-retried-390-zh.png: "54e04d7234849494101699a4ed5b49b88ff3365a4c32336836c3e0c3c2ce00a2"
+    gex-ladder-retried-390.png: "85ff6307658d1deffd3c9b2869852a6026952312fa58407caa9c22427349c949"
+    gex-ladder-retried-820-zh.png: "38e64b5a498a6d3a62e0ac1685fe6e13de73f1059a6f4005660439cd879b3480"
+    gex-ladder-retried-820.png: "c231ea75720550d73eb23ee8c30a8dbaebd077f6f2b0de223322362d2826d38b"
+    gex-ladder-unavailable-1440-zh.png: "a5664fb748a1bc49a83fd3f471894e75a0cd4f6c06fed51163367736988778be"
+    gex-ladder-unavailable-1440.png: "ee946ba908ba2738d261f26fdb23e0b0b37f286e13338a3f2728cc800e79bf33"
+    gex-ladder-unavailable-390-zh.png: "9478e50211437330330f29fa65e0d86a2df138b3a09558872241a9b037ded796"
+    gex-ladder-unavailable-390.png: "67d59983df7d030e6b1957291a8ef69b7f032ba06d57acf838f4359eba8a3f96"
+    gex-ladder-unavailable-820-zh.png: "375814568db967558c1f2d6ac9c13e061a5383298511624e568abe5a3166fbc6"
+    gex-ladder-unavailable-820.png: "31d560861a6d6e4b72c26cb5fbe24801954c236b199b3a792bcca92eba0b6a84"
+    gex-live-refresh-failed-1440-zh.png: "f0cc95389823c0cd46b0642cec4c115c1601f053c72ff98761aa1924ea8a510d"
+    gex-live-refresh-failed-1440.png: "5e1b5120e55fc6af1c8bf1c0d1ba684eb74eb574f209b6cce39020d238e1b4fb"
+    gex-live-refresh-failed-390-zh.png: "d3ff932c9a8457db3b0156b12b1695c2e1ce9641f267815a91b083a3d306e346"
+    gex-live-refresh-failed-390.png: "f41a26ab91dfeb9e4a33f2d84f5055bf8514f7025d31dd17a19fe0ace2406d7b"
+    gex-live-refresh-failed-820-zh.png: "2f02cc7f32f9e1e19f290cf09b9c12bcdbaa8f338038c6a5931ec03c531e40f0"
+    gex-live-refresh-failed-820.png: "67b611b8d88dd38ccde51fc222d08cc36b3072dc34ad1c0dd36b32f36811584a"
+    gex-live-retried-1440-zh.png: "8a567ce1c4ba4f7686deaea589b4126f4a43b6f806322d0fb5aa50da52712e7c"
+    gex-live-retried-1440.png: "98fbc3df246814674b7c16a0d6956e3964a16ba0b4602d73630db2d71f9c0978"
+    gex-live-retried-390-zh.png: "2f49174d7ec552e20fee32dce71364430ea23066288c7f2abfd3d12ad87e4f3a"
+    gex-live-retried-390.png: "bbb3ea7ef11d1181ab6070ddb7c245ad3bd416217754e3e9e7a6916327d11ef0"
+    gex-live-retried-820-zh.png: "e324ef1ee548e4e5df88010b62c6d60234fee8b369ded77615a7bd20cf36a79d"
+    gex-live-retried-820.png: "4e3a47ca51b1ba786af3d62d1bb39df374d8e66c347f7fb33c18e98686b49100"
+    gex-pick-absent-1440-zh.png: "e2ee5b57ffd06adbe0c6ea5211dc0afadf15fed03ae68cb171c1d1414617cde1"
+    gex-pick-absent-1440.png: "5f3defdf862eadb98a43470e24b94ca2f147754f9f4e1495ef63f55743091d31"
+    gex-pick-absent-390-zh.png: "60a89d2515535a82bb98e139ef58ebe98e30d54b6e67f4580873c6388b21f669"
+    gex-pick-absent-390.png: "b0bded6e45649739227cf78713edc8a63ef3f21d2d9e3650f4d27248ce2428f6"
+    gex-pick-absent-820-zh.png: "ff2b670fe50c2b41eb01e9f7faa8eabe3248b428ee24c06f58fde178118a849d"
+    gex-pick-absent-820.png: "22c942410566d2c787f94ce3314b39003541fd55722a6602f7afcc2888586c16"
+    gex-rail-retried-1440-zh.png: "b66d18b87827834848b1d67a2a7fe9053f9c62fae24593f5477bbadfc3ced223"
+    gex-rail-retried-1440.png: "090b673e4a69a886bc00870e9517f08c0207935f577966458f748727897902c4"
+    gex-rail-retried-390-zh.png: "202d6345ba2334160c765e41d32f03b24628d22ed93e1f2f80cc60a83d655a3a"
+    gex-rail-retried-390.png: "f8c5a4f9605703f7b7621b7ea0836459e198c4b98e412a3de71c9ae841c335d7"
+    gex-rail-retried-820-zh.png: "f3b1b12309a4bad0e6dd151c653ddca9d35aa1c50cdaaaa43c1f23fc591edf21"
+    gex-rail-retried-820.png: "4db6291e1d44327226977a07fc609e9ceebea5b9e57cb82a2998f8f6b2f40c83"
+    gex-rail-unavailable-1440-zh.png: "2bb9942b36a49559421a8f50b5925dc3ee2fe8daf36d9322355298f2dd4bc5ad"
+    gex-rail-unavailable-1440.png: "e804bb5cd8b2557037cdf1749d4a11dd361b2253326477b0e8c825b67a343b30"
+    gex-rail-unavailable-390-zh.png: "bda0b542942d1048a987f6da6df22c291761d93d5e6005b92567bb0cf9ce4035"
+    gex-rail-unavailable-390.png: "71d2574c5effc1e78d99809d74926e2f75914dbc3770255697f2999422e3e7e6"
+    gex-rail-unavailable-820-zh.png: "32f2bfcdf90f852c4e2a17756ef4d7af9bdf5acc2672b31f9e99efdddeab2994"
+    gex-rail-unavailable-820.png: "87433fff648068df6b503a7be7e59ce5efe1e4be2c608290dc891ec99c9933e1"
+    gex-state-refresh-failed-1440-zh.png: "a63b56844a0894ec3adacee55f01e52757a4f752360ee1e737fb5529f1d6773c"
+    gex-state-refresh-failed-1440.png: "f2664b8c50fb1f44944452c7f01256c339e1e8d948a7b59a2e4712a6c6fa9aba"
+    gex-state-refresh-failed-390-zh.png: "49f180f2da10c6b47e54adbab8c4710d642b7037853cbe1bccd2c0bd1921dfd6"
+    gex-state-refresh-failed-390.png: "05d849e8112010ce41601c6f561dbb9b275d8c05842a01490413eb8aec595aff"
+    gex-state-refresh-failed-820-zh.png: "f004af7fb41ead64616fe7a473bfea887f7725ff3bbf91de1b462dbbab2cf4d3"
+    gex-state-refresh-failed-820.png: "d691ed84c34eb5212f228130d9561275a211b7cf03b56e31d65ef71d6852cf8a"
+  priorManifestSha256: "3ad0a2a698a72957fd8293d4cbfd815c606871d588a0c0f41bccb25679101708"
+  visualQa:
+    result: "PASS"
+    images:
+      - "gex-live-retried-1440.png"
+      - "gex-ladder-retried-390-zh.png"
+      - "gex-live-refresh-failed-820.png"
+      - "gex-pick-absent-1440-zh.png"
+    notes: "Actual rendered desktop, tablet and phone EN/ZH captures examined. Signed bars and zero axis, dated state, retained stale-read retry, published-absence pick and legibility are preserved."
+
+currentBaseCapture20261104:
+  status: "SOURCE_COMPOSED_PREVIEW_NOT_RELEASED"
+  protectedBase: "cd2a335f8f8fcf4fa947aa8a47f7dbf5748b2fdc"
+  exposureHead: "6d6cdc727b9e8d0d70af23d8b0caa239c6304b5b"
+  optionsHead: "98ffa891116ccc9e6be58a64148dbe45591e6ce8"
+  gitHeadOnCapture: "original-exposure-worktree; not a merged commit"
+  currentCaptureHarnessSha256: "f6c52d0666cee5a497d0836ec8e9c8eb05a9ba51fad63ba9f443d623ad99bc28"
+  captureManifestSha256: "92a2ef123d820d9fb56e1e8240a8521de84beb2ebd7614514736534207eea80d"
+  priorManifestSha256: "c3f3f45d1483b1cdb0b4e43b699ef23db53677a2c3d5eb5705adaca4192e0779"
+  oldRootArchive: "operations/protected-before-paper6d6-currentbase-20261104"
+  oldRootImageCount: 114
+  capturedImageCount: 114
+  captureSourceSha256:
+    terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
+    terminal/components/gexdesk/ExposureWorkspace.module.css: "bf8a7d85fc594d9666e97445fde47e36cd64c4f6fc6883a75102d25115666158"
+    terminal/components/gexdesk/GexDeskView.tsx: "09b47b889c7d2f463a6fdca8572f92bd1c77218bc4800b93ffbd45aec1f0b509"
+    terminal/components/gexdesk/HeatSeekerCard.tsx: "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a"
+    terminal/components/gexdesk/MarketStateCard.tsx: "d197f5d243c3c998d6550717ddf18fa4f74658ec877ac0178139b0a6b894f09f"
+    terminal/components/gexdesk/StrikeLadder.tsx: "d5e73cded2c40be7566af46bd6314c8938f9acdd2fdd9bd4c7575cba5e8a7b33"
+    terminal/components/gexdesk/gexStrings.ts: "76ae4a42bdd91378006315e4c1b972d8548aa771843aae1fcc4aa5ca069b3637"
+    terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
+    terminal/lib/dataCache.ts: "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a"
+    terminal/components/levels/LevelsView.tsx: "d200204df1cae5ee1401c152df8ce4992d5e88fa852d2505d6c64b1074128e17"
+    terminal/components/levels/levelsLabels.ts: "361124ec9293623fefe69128212f5a25bfddf2c3d716252126d56ec5f356d0d9"
+    terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
+  cropSha256:
+    gex-ladder-absent-1440-zh.png: "f53e442854ef440848a64d6141302704894442f19ddc714a7aa4cb2b5ab15e17"
+    gex-ladder-absent-1440.png: "18944490520bd18ee86451c408b2ff5e794dd65e3ff51359944626593b24e9da"
+    gex-ladder-absent-390-zh.png: "62899504ea65f92ccc946ced50a3f08ae89b2d6db51c95cf73d2ca7e1be04168"
+    gex-ladder-absent-390.png: "76e6b5b446afa261aec1db4a5255090a062146c1c979980bd104dda0fe08190d"
+    gex-ladder-absent-820-zh.png: "2d20e5b7e7db5e7dfc9426b17dbf796ddb777a268266bda21701610fc3e61858"
+    gex-ladder-absent-820.png: "6710d12d9c06a4223340c9edee525f2f9cd171ba05239d9f20788b064eedf236"
+    gex-ladder-retried-1440-zh.png: "ebaa7b4a639f5932d45a2c5d6222ed9d4e75e14f38bf0b827fc3a76bc417e1cf"
+    gex-ladder-retried-1440.png: "ba77f4fb7f4073be02f3847043a3f2f9ce60ad35bb33f70e65ffe95db7cc4762"
+    gex-ladder-retried-390-zh.png: "14f1f048d03f1f1c98b8bb1ceb41c77acc82e2886a127b9b13cc47c29cef065c"
+    gex-ladder-retried-390.png: "258968403e7bca479cfe8a74a164a467ef427e0b7973c12cd0ee1eb799ec99bb"
+    gex-ladder-retried-820-zh.png: "38e64b5a498a6d3a62e0ac1685fe6e13de73f1059a6f4005660439cd879b3480"
+    gex-ladder-retried-820.png: "c231ea75720550d73eb23ee8c30a8dbaebd077f6f2b0de223322362d2826d38b"
+    gex-ladder-unavailable-1440-zh.png: "a5664fb748a1bc49a83fd3f471894e75a0cd4f6c06fed51163367736988778be"
+    gex-ladder-unavailable-1440.png: "ee946ba908ba2738d261f26fdb23e0b0b37f286e13338a3f2728cc800e79bf33"
+    gex-ladder-unavailable-390-zh.png: "9478e50211437330330f29fa65e0d86a2df138b3a09558872241a9b037ded796"
+    gex-ladder-unavailable-390.png: "f729fce460124ad4034783976976d44f8c47bbcfc77e85179a27da95b216ae35"
+    gex-ladder-unavailable-820-zh.png: "375814568db967558c1f2d6ac9c13e061a5383298511624e568abe5a3166fbc6"
+    gex-ladder-unavailable-820.png: "31d560861a6d6e4b72c26cb5fbe24801954c236b199b3a792bcca92eba0b6a84"
+    gex-live-refresh-failed-1440-zh.png: "f0cc95389823c0cd46b0642cec4c115c1601f053c72ff98761aa1924ea8a510d"
+    gex-live-refresh-failed-1440.png: "5e1b5120e55fc6af1c8bf1c0d1ba684eb74eb574f209b6cce39020d238e1b4fb"
+    gex-live-refresh-failed-390-zh.png: "688a9c22cb61bdd67d32bacd5c0e3c93378416941c2659d5a12e6f076d20d6e7"
+    gex-live-refresh-failed-390.png: "42395d58c8ec2202b6effb17a3b82eab7ab236c498d22d2515c7513f7c9698d5"
+    gex-live-refresh-failed-820-zh.png: "dc2c06120fcce2b0b81aee84bbdec42a61a5fdfca83af4efb4a04034a954e677"
+    gex-live-refresh-failed-820.png: "b85f7e837a23b18562b5b662e0cb8697b83dc20bebd7478113c3446f21898052"
+    gex-live-retried-1440-zh.png: "8a567ce1c4ba4f7686deaea589b4126f4a43b6f806322d0fb5aa50da52712e7c"
+    gex-live-retried-1440.png: "98fbc3df246814674b7c16a0d6956e3964a16ba0b4602d73630db2d71f9c0978"
+    gex-live-retried-390-zh.png: "44ea4acdbfe2ecd3aed89481d76105d3b6f484c2f559fe3fd493e5b9d4198345"
+    gex-live-retried-390.png: "93f5b9e0e14b24032143d3dfaa40d37ced6165ad57864c1640f80fb1638a437d"
+    gex-live-retried-820-zh.png: "93825badc06b37cc0b4419187d1c41a0ed650781ea0a9b9cc9953c0b3ce17ab5"
+    gex-live-retried-820.png: "853b5810e730c50ebf96e5d3dd264fd35739431f6d9c1eb53fb9a327823bd9ed"
+    gex-pick-absent-1440-zh.png: "e2ee5b57ffd06adbe0c6ea5211dc0afadf15fed03ae68cb171c1d1414617cde1"
+    gex-pick-absent-1440.png: "5f3defdf862eadb98a43470e24b94ca2f147754f9f4e1495ef63f55743091d31"
+    gex-pick-absent-390-zh.png: "a9f83b64b6362d2e4c6b45bcf1a1867fc7d97b933eae64555ad6c17f420308a2"
+    gex-pick-absent-390.png: "b0bded6e45649739227cf78713edc8a63ef3f21d2d9e3650f4d27248ce2428f6"
+    gex-pick-absent-820-zh.png: "83bd77f9bd24face97a08ec0ddd1bd826cf1acc080275b09a42cedb5487a1304"
+    gex-pick-absent-820.png: "48678af613a5995c60bfbd0cf54f962faa01711114d32c1b114d9764d668c813"
+    gex-rail-retried-1440-zh.png: "b66d18b87827834848b1d67a2a7fe9053f9c62fae24593f5477bbadfc3ced223"
+    gex-rail-retried-1440.png: "090b673e4a69a886bc00870e9517f08c0207935f577966458f748727897902c4"
+    gex-rail-retried-390-zh.png: "d42f324a9731194e513bc648d79a0232ddba37db73d7cd52df60923aea6f2945"
+    gex-rail-retried-390.png: "da7bf5351fe1d3ab4ccdd254cd6797e4841efa04b82dc01efe8b38d5b4b2f040"
+    gex-rail-retried-820-zh.png: "866c94de6a29616a97709f4754926f8e5b047cc5b497fe1531f1d7af7e74088f"
+    gex-rail-retried-820.png: "67dbfb4f2204320acbbcb5bdf326aea425fa074b7357dd0d53b46e685752af61"
+    gex-rail-unavailable-1440-zh.png: "2bb9942b36a49559421a8f50b5925dc3ee2fe8daf36d9322355298f2dd4bc5ad"
+    gex-rail-unavailable-1440.png: "e804bb5cd8b2557037cdf1749d4a11dd361b2253326477b0e8c825b67a343b30"
+    gex-rail-unavailable-390-zh.png: "713e09a298695cb2ddbd5e2cf58a59caf82f7dbda47c478e902d180728996ba1"
+    gex-rail-unavailable-390.png: "5ea7b9f7209806c50e3dd9bf27382f262121885b850b27f4ca3015f83eb4595b"
+    gex-rail-unavailable-820-zh.png: "32f2bfcdf90f852c4e2a17756ef4d7af9bdf5acc2672b31f9e99efdddeab2994"
+    gex-rail-unavailable-820.png: "87433fff648068df6b503a7be7e59ce5efe1e4be2c608290dc891ec99c9933e1"
+    gex-state-refresh-failed-1440-zh.png: "a63b56844a0894ec3adacee55f01e52757a4f752360ee1e737fb5529f1d6773c"
+    gex-state-refresh-failed-1440.png: "f2664b8c50fb1f44944452c7f01256c339e1e8d948a7b59a2e4712a6c6fa9aba"
+    gex-state-refresh-failed-390-zh.png: "c3a1d8c62d2644d74e89de1db4959ad5d09cb26328ac4822b639dcd7fb0734a2"
+    gex-state-refresh-failed-390.png: "e01b6d811a6f89be0925c758a495004bec0ad468233eb487991e9f827efbf36a"
+    gex-state-refresh-failed-820-zh.png: "bb332d3d4c14b9133b072d9742fd4ff125885623b00ea08b0d346446646d16c8"
+    gex-state-refresh-failed-820.png: "0caafc62b0a0a16a5fe6c09fa43d9a1d8fc6dd74b5677d16e1edad229089af20"
+    heatmap-absent-1440-zh.png: "7c62ec6cb0a31046057bfdbd9702065707c0c35f7bb8c548d0bb0921718886b6"
+    heatmap-absent-1440.png: "51b8ed5591fbea455ecf84ba571a94c1617200e6121af9dff84b6df5d4ed9cc9"
+    heatmap-absent-390-zh.png: "013c35190668f5dc633903c801c1466ef2179d18228348af51b9f3244cc2d565"
+    heatmap-absent-390.png: "dc516974c51ebb734e0ef37c765164bb35cd711a5d4df48b01be87fe06bc263a"
+    heatmap-absent-820-zh.png: "ab5eb75945abe2deb1c31cacd2707943781ffb9c9feabdebff3e4ddc594fffc6"
+    heatmap-absent-820.png: "4c486d29a5ac06722db31534b39a1dc30ce7319da8cb0c5cf19685480d5d6229"
+    heatmap-persisted-refresh-failed-1440-zh.png: "7ae72cb7d6a77b0b6aabb1a9f995f82211f9b43b8f95671c080cc4a7d9f1ba62"
+    heatmap-persisted-refresh-failed-1440.png: "c2208806519498f942f3281751d052918256ec225fa25fe29e7c3ba6c2486960"
+    heatmap-persisted-refresh-failed-390-zh.png: "69b332c7b0721483039db1f50414f84f343b4068f82bda0bacc758f7fd3e4a50"
+    heatmap-persisted-refresh-failed-390.png: "6abc41e81954d3481f4784ef9441ae2166360f1f5383950c4655255a782b2673"
+    heatmap-persisted-refresh-failed-820-zh.png: "db1cbe7ccdf04e2fcff7ee19278c7de575c1f07ffa3b6f74e05317cde430dc27"
+    heatmap-persisted-refresh-failed-820.png: "36f3b9bfbe224891d1fb839d3c623c4fc9f99cf6f232bd01c37c753977ab6f83"
+    heatmap-persisted-refresh-refused-1440-zh.png: "7ae72cb7d6a77b0b6aabb1a9f995f82211f9b43b8f95671c080cc4a7d9f1ba62"
+    heatmap-persisted-refresh-refused-1440.png: "c2208806519498f942f3281751d052918256ec225fa25fe29e7c3ba6c2486960"
+    heatmap-persisted-refresh-refused-390-zh.png: "69b332c7b0721483039db1f50414f84f343b4068f82bda0bacc758f7fd3e4a50"
+    heatmap-persisted-refresh-refused-390.png: "6abc41e81954d3481f4784ef9441ae2166360f1f5383950c4655255a782b2673"
+    heatmap-persisted-refresh-refused-820-zh.png: "db1cbe7ccdf04e2fcff7ee19278c7de575c1f07ffa3b6f74e05317cde430dc27"
+    heatmap-persisted-refresh-refused-820.png: "36f3b9bfbe224891d1fb839d3c623c4fc9f99cf6f232bd01c37c753977ab6f83"
+    heatmap-persisted-retried-1440-zh.png: "2fe3de85f078ec2dbd8ec7f2c9ec1f9126526e5edd7655b785b0c2cd66a1eea5"
+    heatmap-persisted-retried-1440.png: "59c153ba4a1f381b10a89e667380a1a460a28f067ce0d9b4d3dadf608ee85283"
+    heatmap-persisted-retried-390-zh.png: "f8a31f087ef5b5d82f660aefed965496f75d5dc6acca5586a93758daf7b366d7"
+    heatmap-persisted-retried-390.png: "495aeaae5cb23b5fcabd4fcc42a02767e999c946df8221abe277f46b0a932176"
+    heatmap-persisted-retried-820-zh.png: "336ab3aa137ccbd61e03c13879e2fee987d4fbaae4cadbdf50f1986990688dc5"
+    heatmap-persisted-retried-820.png: "327650e37b6f861469916e4bf4fad03b3b5b87398fced3718ef3fe2499f86c08"
+    heatmap-retried-1440-zh.png: "2fe3de85f078ec2dbd8ec7f2c9ec1f9126526e5edd7655b785b0c2cd66a1eea5"
+    heatmap-retried-1440.png: "59c153ba4a1f381b10a89e667380a1a460a28f067ce0d9b4d3dadf608ee85283"
+    heatmap-retried-390-zh.png: "eb329a7037912615cd5a6ee3cb62bc35f9e3ae745bcdbae734d1583e70a5313d"
+    heatmap-retried-390.png: "218370bb664fa3aa8524ca9e54ef8b69688abf42ae3eaba44c016da5c4fd5280"
+    heatmap-retried-820-zh.png: "336ab3aa137ccbd61e03c13879e2fee987d4fbaae4cadbdf50f1986990688dc5"
+    heatmap-retried-820.png: "327650e37b6f861469916e4bf4fad03b3b5b87398fced3718ef3fe2499f86c08"
+    heatmap-unavailable-1440-zh.png: "31b3b5daf17811c3c4a0fbc96a5f005954780346fa64426ccaaf8f66943942bc"
+    heatmap-unavailable-1440.png: "a2e896b564c6166937ba7ddbe545faa81145657c6b9572f0f9c3a5b9908a86e1"
+    heatmap-unavailable-390-zh.png: "5869631ec0ea3de3a92dd9d6d99ea7bd527ff5833f4c37fe308b4f51b7a97e08"
+    heatmap-unavailable-390.png: "0cfc83bbf1dbfc40081c3b429cac34eab58a5fd1f867e55484d7e974f904e2c9"
+    heatmap-unavailable-820-zh.png: "65be10ffce53092c201e98479b6a24e6f21047bc31e7492616ad70666c0e0abd"
+    heatmap-unavailable-820.png: "cd039b58c1e823924e5a0d8c1061f03c262cebb5ebdd7f8e6a0fcb142fe9d5ce"
+    levels-absent-1440-zh.png: "0c0587f788de411b21b079d8969d068fc3a4e81eb236c35cca210d5eecb350eb"
+    levels-absent-1440.png: "cdca3d17829f77f1162c0ba8310963306451aad5e1f4e597b2b48ff024e30491"
+    levels-absent-390-zh.png: "0e389eb5398f1e512a1f6aa675ea7dc0621cd11afbbcf60caa86e7fa449d6217"
+    levels-absent-390.png: "20c95c59e4180fc748f228a36a7c40d779e88a969a185c65d46be0377cfb7467"
+    levels-absent-820-zh.png: "24f667b8b9a1d642b297150482236fe2ee6eadbfb62139f39667d869dd842be1"
+    levels-absent-820.png: "4473bcc3d6a3f4099a01e695b0907f2a9a3093ce1ebf9970e1764d5efd63b87e"
+    levels-refresh-failed-1440-zh.png: "a57164b2fada3b229d2b4f5a887c35ad1b20c430391fbf091def8d4115a4589f"
+    levels-refresh-failed-1440.png: "507422334429eb457e050ed17ebf99ec6064123f6c0725886b6a3fdd664ce9ae"
+    levels-refresh-failed-390-zh.png: "e65f5ffa90d3e00f231a57504d64e51ba4df85f7b322291c76b40035d1e1c023"
+    levels-refresh-failed-390.png: "7d13a37b3d440f0e98823ac8000cd29249235fa6fedebc6bb1d073b0f2bb20bb"
+    levels-refresh-failed-820-zh.png: "90d8eca3bb76aba4bc6b9b11f43105be95dbda36a3c17fe7d92f8cddd892f54f"
+    levels-refresh-failed-820.png: "ae73a27cdb8454e9ac587446dacbf57a89848d39ba9d6ffcf198fd5ecf681c01"
+    levels-retried-1440-zh.png: "f48adbf6e76e10beb6f453338ce6cbd7206ef1720185f6e641431249b900c6b6"
+    levels-retried-1440.png: "4413c8b0558622fe3c7bcded10e836cc00c44b7b4a0d72b3f3c5b751713eedb7"
+    levels-retried-390-zh.png: "38877cfb4dfdd90a7779811034a470969663f85d69a6f7fbe1d29f9dc5fd3a32"
+    levels-retried-390.png: "08fcded9bb0cfdb64175390f3b5c733cbfa5a8f4246e44376884d621bf38af41"
+    levels-retried-820-zh.png: "a13e4e7147e7a0bc89e3a3ca4aac447c7cc2af32639f3fdd8026f4f89a3a4bac"
+    levels-retried-820.png: "811458dc92352abb17a556bc4d4264346f31d0ad45d6784f2b7db500098593e8"
+    levels-unavailable-1440-zh.png: "c657ddc3dceef6e3dfefe5d5f52d26782c0344873d762a56b2d0dddd189d83cb"
+    levels-unavailable-1440.png: "7d8001a05f02717158d26c0f69b54e209abc2e8099289b57d4419201a02c5961"
+    levels-unavailable-390-zh.png: "189cdb968950fc9db8b04bf390a32a36b98fac802d907ff72f2e28667bbd2fdb"
+    levels-unavailable-390.png: "61154466ce9b676c0ee5eaac6dc885b2ecf07008b4288fbdb3c774ed4931a8fa"
+    levels-unavailable-820-zh.png: "24d2fd128f84d8e471752fd212ca30b0fe1639758a0ab66bf94ae233926080ae"
+    levels-unavailable-820.png: "baf0d252ef54e5919b7366239d4ae7849d318da89352ad62b8a96a262f237edc"
+
+labGammaMountedRecapture20261104:
+  sourceHead: "3bd342b59cb3df2cb920725870e41ff582581a48"
+  actualCases: 54
+  qualification: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/lab-gamma-recapture-20261104.json"
+  qualificationSha256: "58ffdbfc7821e7a59baff21c0afb99b582c9aa0f505bc18539f85fcebcb37955"
+  scope: "Actual scoped GEX/EOD capture; unrelated sources, historical packets and assertions preserved; not production."
+
+protectedLabGammaRootPreservation20261104:
+  protected: "4df7aad16ea775ad8112858a5095210c076efe08"
+  folder: "operations/protected-lab-gamma-4df7aad-20261104"
+  receiptSha256: "811f56280cb0be78bea54185bd28be4ea3b9a748b67020057acec090c443a68b"
+  scope: "Historical protected pixels; current composed UI awaits separate native capture."
+
+labSourceGateRecapture20261104:
+  scope: "source-composed-preview-not-released"
+  originalParentHead: "04afd94cb11649820688912cf23df2f3b0a5b2c3"
+  protectedBase: "4df7aad16ea775ad8112858a5095210c076efe08"
+  optionsHead: "98ffa891116ccc9e6be58a64148dbe45591e6ce8"
+  outputDir: "operations/options-combined-4df-lab-source-gate-20261104/gate-fixed"
+  priorManifestPath: "operations/options-combined-4df-lab-source-gate-20261104/EVIDENCE.before.yml"
+  priorManifestSha256: "a7201f679c379df0f5b391c353c1dbd41186928c00b92a283441171a3822d54c"
+  captureReceiptSha256: "b48b81c381528c42b7f38fa63813a66a0aabcf78fb38110945eb0310ed9594cd"
+  captureLogSha256: "5fe73486ff7f15178a7017fa854083124bbf8ea674478b8ae45879f60a0978f9"
+  currentCaptureHarnessSha256: "f6c52d0666cee5a497d0836ec8e9c8eb05a9ba51fad63ba9f443d623ad99bc28"
+  captureSelector: "^gex-"
+  actualCases: 54
+  failedCases: 0
+  sourceStableAcrossCapture: true
+  packetRootCrops: "composed from the full 4df baseline and the affected gate-fixed recapture"
+  captureSourceSha256:
+    terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
+    terminal/components/gexdesk/ExposureWorkspace.module.css: "bf8a7d85fc594d9666e97445fde47e36cd64c4f6fc6883a75102d25115666158"
+    terminal/components/gexdesk/GexDeskView.tsx: "e2b1cea4319f0860321d86d3fc8d8fc133060ce11cd7e1bdc0768207613d0a98"
+    terminal/components/gexdesk/HeatSeekerCard.tsx: "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a"
+    terminal/components/gexdesk/MarketStateCard.tsx: "d197f5d243c3c998d6550717ddf18fa4f74658ec877ac0178139b0a6b894f09f"
+    terminal/components/gexdesk/StrikeLadder.tsx: "d5e73cded2c40be7566af46bd6314c8938f9acdd2fdd9bd4c7575cba5e8a7b33"
+    terminal/components/gexdesk/gexStrings.ts: "76ae4a42bdd91378006315e4c1b972d8548aa771843aae1fcc4aa5ca069b3637"
+    terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
+    terminal/components/levels/LevelsView.tsx: "d200204df1cae5ee1401c152df8ce4992d5e88fa852d2505d6c64b1074128e17"
+    terminal/components/levels/levelsLabels.ts: "361124ec9293623fefe69128212f5a25bfddf2c3d716252126d56ec5f356d0d9"
+    terminal/components/options-companion/GexMarketMemory.tsx: "6d166c952ad9ea732c1917b9984eb4d5bd14b12298c247f4524197d6998310cb"
+    terminal/components/researchlab/OptionsResearchLab.tsx: "365223a8182effc04fa956a8004062aa86c1426de8fc24eccebf6952e1571820"
+    terminal/components/researchlab/ResearchReportedGammaPanel.tsx: "8a4fd4e87d3342845b244a5bc2f7ce4e980851617805770ddfb1f328f5e01e15"
+    terminal/components/researchlab/researchReportedGamma.ts: "21d9d9f10d810a07bd9ae6acb28696d818dbe47e1b30c346c0bb0f7cdc1319f2"
+    terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs: "f6c52d0666cee5a497d0836ec8e9c8eb05a9ba51fad63ba9f443d623ad99bc28"
+    terminal/lib/dataCache.ts: "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a"
+    terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
+  cropSha256:
+    gex-ladder-absent-1440-zh.png: "f53e442854ef440848a64d6141302704894442f19ddc714a7aa4cb2b5ab15e17"
+    gex-ladder-absent-1440.png: "18944490520bd18ee86451c408b2ff5e794dd65e3ff51359944626593b24e9da"
+    gex-ladder-absent-390-zh.png: "62899504ea65f92ccc946ced50a3f08ae89b2d6db51c95cf73d2ca7e1be04168"
+    gex-ladder-absent-390.png: "76e6b5b446afa261aec1db4a5255090a062146c1c979980bd104dda0fe08190d"
+    gex-ladder-absent-820-zh.png: "2d20e5b7e7db5e7dfc9426b17dbf796ddb777a268266bda21701610fc3e61858"
+    gex-ladder-absent-820.png: "6710d12d9c06a4223340c9edee525f2f9cd171ba05239d9f20788b064eedf236"
+    gex-ladder-retried-1440-zh.png: "ebaa7b4a639f5932d45a2c5d6222ed9d4e75e14f38bf0b827fc3a76bc417e1cf"
+    gex-ladder-retried-1440.png: "ba77f4fb7f4073be02f3847043a3f2f9ce60ad35bb33f70e65ffe95db7cc4762"
+    gex-ladder-retried-390-zh.png: "14f1f048d03f1f1c98b8bb1ceb41c77acc82e2886a127b9b13cc47c29cef065c"
+    gex-ladder-retried-390.png: "258968403e7bca479cfe8a74a164a467ef427e0b7973c12cd0ee1eb799ec99bb"
+    gex-ladder-retried-820-zh.png: "38e64b5a498a6d3a62e0ac1685fe6e13de73f1059a6f4005660439cd879b3480"
+    gex-ladder-retried-820.png: "c231ea75720550d73eb23ee8c30a8dbaebd077f6f2b0de223322362d2826d38b"
+    gex-ladder-unavailable-1440-zh.png: "a5664fb748a1bc49a83fd3f471894e75a0cd4f6c06fed51163367736988778be"
+    gex-ladder-unavailable-1440.png: "ee946ba908ba2738d261f26fdb23e0b0b37f286e13338a3f2728cc800e79bf33"
+    gex-ladder-unavailable-390-zh.png: "9478e50211437330330f29fa65e0d86a2df138b3a09558872241a9b037ded796"
+    gex-ladder-unavailable-390.png: "f729fce460124ad4034783976976d44f8c47bbcfc77e85179a27da95b216ae35"
+    gex-ladder-unavailable-820-zh.png: "375814568db967558c1f2d6ac9c13e061a5383298511624e568abe5a3166fbc6"
+    gex-ladder-unavailable-820.png: "31d560861a6d6e4b72c26cb5fbe24801954c236b199b3a792bcca92eba0b6a84"
+    gex-live-refresh-failed-1440-zh.png: "f0cc95389823c0cd46b0642cec4c115c1601f053c72ff98761aa1924ea8a510d"
+    gex-live-refresh-failed-1440.png: "5e1b5120e55fc6af1c8bf1c0d1ba684eb74eb574f209b6cce39020d238e1b4fb"
+    gex-live-refresh-failed-390-zh.png: "688a9c22cb61bdd67d32bacd5c0e3c93378416941c2659d5a12e6f076d20d6e7"
+    gex-live-refresh-failed-390.png: "42395d58c8ec2202b6effb17a3b82eab7ab236c498d22d2515c7513f7c9698d5"
+    gex-live-refresh-failed-820-zh.png: "dc2c06120fcce2b0b81aee84bbdec42a61a5fdfca83af4efb4a04034a954e677"
+    gex-live-refresh-failed-820.png: "b85f7e837a23b18562b5b662e0cb8697b83dc20bebd7478113c3446f21898052"
+    gex-live-retried-1440-zh.png: "8a567ce1c4ba4f7686deaea589b4126f4a43b6f806322d0fb5aa50da52712e7c"
+    gex-live-retried-1440.png: "98fbc3df246814674b7c16a0d6956e3964a16ba0b4602d73630db2d71f9c0978"
+    gex-live-retried-390-zh.png: "44ea4acdbfe2ecd3aed89481d76105d3b6f484c2f559fe3fd493e5b9d4198345"
+    gex-live-retried-390.png: "93f5b9e0e14b24032143d3dfaa40d37ced6165ad57864c1640f80fb1638a437d"
+    gex-live-retried-820-zh.png: "93825badc06b37cc0b4419187d1c41a0ed650781ea0a9b9cc9953c0b3ce17ab5"
+    gex-live-retried-820.png: "853b5810e730c50ebf96e5d3dd264fd35739431f6d9c1eb53fb9a327823bd9ed"
+    gex-pick-absent-1440-zh.png: "e2ee5b57ffd06adbe0c6ea5211dc0afadf15fed03ae68cb171c1d1414617cde1"
+    gex-pick-absent-1440.png: "5f3defdf862eadb98a43470e24b94ca2f147754f9f4e1495ef63f55743091d31"
+    gex-pick-absent-390-zh.png: "a9f83b64b6362d2e4c6b45bcf1a1867fc7d97b933eae64555ad6c17f420308a2"
+    gex-pick-absent-390.png: "b0bded6e45649739227cf78713edc8a63ef3f21d2d9e3650f4d27248ce2428f6"
+    gex-pick-absent-820-zh.png: "83bd77f9bd24face97a08ec0ddd1bd826cf1acc080275b09a42cedb5487a1304"
+    gex-pick-absent-820.png: "48678af613a5995c60bfbd0cf54f962faa01711114d32c1b114d9764d668c813"
+    gex-rail-retried-1440-zh.png: "b66d18b87827834848b1d67a2a7fe9053f9c62fae24593f5477bbadfc3ced223"
+    gex-rail-retried-1440.png: "090b673e4a69a886bc00870e9517f08c0207935f577966458f748727897902c4"
+    gex-rail-retried-390-zh.png: "d42f324a9731194e513bc648d79a0232ddba37db73d7cd52df60923aea6f2945"
+    gex-rail-retried-390.png: "da7bf5351fe1d3ab4ccdd254cd6797e4841efa04b82dc01efe8b38d5b4b2f040"
+    gex-rail-retried-820-zh.png: "866c94de6a29616a97709f4754926f8e5b047cc5b497fe1531f1d7af7e74088f"
+    gex-rail-retried-820.png: "67dbfb4f2204320acbbcb5bdf326aea425fa074b7357dd0d53b46e685752af61"
+    gex-rail-unavailable-1440-zh.png: "2bb9942b36a49559421a8f50b5925dc3ee2fe8daf36d9322355298f2dd4bc5ad"
+    gex-rail-unavailable-1440.png: "e804bb5cd8b2557037cdf1749d4a11dd361b2253326477b0e8c825b67a343b30"
+    gex-rail-unavailable-390-zh.png: "713e09a298695cb2ddbd5e2cf58a59caf82f7dbda47c478e902d180728996ba1"
+    gex-rail-unavailable-390.png: "5ea7b9f7209806c50e3dd9bf27382f262121885b850b27f4ca3015f83eb4595b"
+    gex-rail-unavailable-820-zh.png: "32f2bfcdf90f852c4e2a17756ef4d7af9bdf5acc2672b31f9e99efdddeab2994"
+    gex-rail-unavailable-820.png: "87433fff648068df6b503a7be7e59ce5efe1e4be2c608290dc891ec99c9933e1"
+    gex-state-refresh-failed-1440-zh.png: "a63b56844a0894ec3adacee55f01e52757a4f752360ee1e737fb5529f1d6773c"
+    gex-state-refresh-failed-1440.png: "f2664b8c50fb1f44944452c7f01256c339e1e8d948a7b59a2e4712a6c6fa9aba"
+    gex-state-refresh-failed-390-zh.png: "c3a1d8c62d2644d74e89de1db4959ad5d09cb26328ac4822b639dcd7fb0734a2"
+    gex-state-refresh-failed-390.png: "e01b6d811a6f89be0925c758a495004bec0ad468233eb487991e9f827efbf36a"
+    gex-state-refresh-failed-820-zh.png: "bb332d3d4c14b9133b072d9742fd4ff125885623b00ea08b0d346446646d16c8"
+    gex-state-refresh-failed-820.png: "0caafc62b0a0a16a5fe6c09fa43d9a1d8fc6dd74b5677d16e1edad229089af20"
+  baselineManifestPath: "operations/options-combined-4df-lab-source-gate-20261104/baseline-before-gate/EVIDENCE.yml"
+  baselineReceiptSha256: "794c3432f959ed569f12ee7985f5bce51f941ac90df4c911c21bcdbf86bc9448"
+  priorRootArchive: "operations/options-combined-4df-lab-source-gate-20261104/prior-root"
+  priorRootImageCount: 114
+  unaffectedImageCount: 60
+  unaffectedSourceDecision: "Only GexDeskView changed after the full baseline; Levels, Chain Heat, Flow Desk and Heatmap source families are unchanged."
+  activeCropSha256:
+    gex-ladder-absent-1440-zh.png: "f53e442854ef440848a64d6141302704894442f19ddc714a7aa4cb2b5ab15e17"
+    gex-ladder-absent-1440.png: "18944490520bd18ee86451c408b2ff5e794dd65e3ff51359944626593b24e9da"
+    gex-ladder-absent-390-zh.png: "62899504ea65f92ccc946ced50a3f08ae89b2d6db51c95cf73d2ca7e1be04168"
+    gex-ladder-absent-390.png: "76e6b5b446afa261aec1db4a5255090a062146c1c979980bd104dda0fe08190d"
+    gex-ladder-absent-820-zh.png: "2d20e5b7e7db5e7dfc9426b17dbf796ddb777a268266bda21701610fc3e61858"
+    gex-ladder-absent-820.png: "6710d12d9c06a4223340c9edee525f2f9cd171ba05239d9f20788b064eedf236"
+    gex-ladder-retried-1440-zh.png: "ebaa7b4a639f5932d45a2c5d6222ed9d4e75e14f38bf0b827fc3a76bc417e1cf"
+    gex-ladder-retried-1440.png: "ba77f4fb7f4073be02f3847043a3f2f9ce60ad35bb33f70e65ffe95db7cc4762"
+    gex-ladder-retried-390-zh.png: "14f1f048d03f1f1c98b8bb1ceb41c77acc82e2886a127b9b13cc47c29cef065c"
+    gex-ladder-retried-390.png: "258968403e7bca479cfe8a74a164a467ef427e0b7973c12cd0ee1eb799ec99bb"
+    gex-ladder-retried-820-zh.png: "38e64b5a498a6d3a62e0ac1685fe6e13de73f1059a6f4005660439cd879b3480"
+    gex-ladder-retried-820.png: "c231ea75720550d73eb23ee8c30a8dbaebd077f6f2b0de223322362d2826d38b"
+    gex-ladder-unavailable-1440-zh.png: "a5664fb748a1bc49a83fd3f471894e75a0cd4f6c06fed51163367736988778be"
+    gex-ladder-unavailable-1440.png: "ee946ba908ba2738d261f26fdb23e0b0b37f286e13338a3f2728cc800e79bf33"
+    gex-ladder-unavailable-390-zh.png: "9478e50211437330330f29fa65e0d86a2df138b3a09558872241a9b037ded796"
+    gex-ladder-unavailable-390.png: "f729fce460124ad4034783976976d44f8c47bbcfc77e85179a27da95b216ae35"
+    gex-ladder-unavailable-820-zh.png: "375814568db967558c1f2d6ac9c13e061a5383298511624e568abe5a3166fbc6"
+    gex-ladder-unavailable-820.png: "31d560861a6d6e4b72c26cb5fbe24801954c236b199b3a792bcca92eba0b6a84"
+    gex-live-refresh-failed-1440-zh.png: "f0cc95389823c0cd46b0642cec4c115c1601f053c72ff98761aa1924ea8a510d"
+    gex-live-refresh-failed-1440.png: "5e1b5120e55fc6af1c8bf1c0d1ba684eb74eb574f209b6cce39020d238e1b4fb"
+    gex-live-refresh-failed-390-zh.png: "688a9c22cb61bdd67d32bacd5c0e3c93378416941c2659d5a12e6f076d20d6e7"
+    gex-live-refresh-failed-390.png: "42395d58c8ec2202b6effb17a3b82eab7ab236c498d22d2515c7513f7c9698d5"
+    gex-live-refresh-failed-820-zh.png: "dc2c06120fcce2b0b81aee84bbdec42a61a5fdfca83af4efb4a04034a954e677"
+    gex-live-refresh-failed-820.png: "b85f7e837a23b18562b5b662e0cb8697b83dc20bebd7478113c3446f21898052"
+    gex-live-retried-1440-zh.png: "8a567ce1c4ba4f7686deaea589b4126f4a43b6f806322d0fb5aa50da52712e7c"
+    gex-live-retried-1440.png: "98fbc3df246814674b7c16a0d6956e3964a16ba0b4602d73630db2d71f9c0978"
+    gex-live-retried-390-zh.png: "44ea4acdbfe2ecd3aed89481d76105d3b6f484c2f559fe3fd493e5b9d4198345"
+    gex-live-retried-390.png: "93f5b9e0e14b24032143d3dfaa40d37ced6165ad57864c1640f80fb1638a437d"
+    gex-live-retried-820-zh.png: "93825badc06b37cc0b4419187d1c41a0ed650781ea0a9b9cc9953c0b3ce17ab5"
+    gex-live-retried-820.png: "853b5810e730c50ebf96e5d3dd264fd35739431f6d9c1eb53fb9a327823bd9ed"
+    gex-pick-absent-1440-zh.png: "e2ee5b57ffd06adbe0c6ea5211dc0afadf15fed03ae68cb171c1d1414617cde1"
+    gex-pick-absent-1440.png: "5f3defdf862eadb98a43470e24b94ca2f147754f9f4e1495ef63f55743091d31"
+    gex-pick-absent-390-zh.png: "a9f83b64b6362d2e4c6b45bcf1a1867fc7d97b933eae64555ad6c17f420308a2"
+    gex-pick-absent-390.png: "b0bded6e45649739227cf78713edc8a63ef3f21d2d9e3650f4d27248ce2428f6"
+    gex-pick-absent-820-zh.png: "83bd77f9bd24face97a08ec0ddd1bd826cf1acc080275b09a42cedb5487a1304"
+    gex-pick-absent-820.png: "48678af613a5995c60bfbd0cf54f962faa01711114d32c1b114d9764d668c813"
+    gex-rail-retried-1440-zh.png: "b66d18b87827834848b1d67a2a7fe9053f9c62fae24593f5477bbadfc3ced223"
+    gex-rail-retried-1440.png: "090b673e4a69a886bc00870e9517f08c0207935f577966458f748727897902c4"
+    gex-rail-retried-390-zh.png: "d42f324a9731194e513bc648d79a0232ddba37db73d7cd52df60923aea6f2945"
+    gex-rail-retried-390.png: "da7bf5351fe1d3ab4ccdd254cd6797e4841efa04b82dc01efe8b38d5b4b2f040"
+    gex-rail-retried-820-zh.png: "866c94de6a29616a97709f4754926f8e5b047cc5b497fe1531f1d7af7e74088f"
+    gex-rail-retried-820.png: "67dbfb4f2204320acbbcb5bdf326aea425fa074b7357dd0d53b46e685752af61"
+    gex-rail-unavailable-1440-zh.png: "2bb9942b36a49559421a8f50b5925dc3ee2fe8daf36d9322355298f2dd4bc5ad"
+    gex-rail-unavailable-1440.png: "e804bb5cd8b2557037cdf1749d4a11dd361b2253326477b0e8c825b67a343b30"
+    gex-rail-unavailable-390-zh.png: "713e09a298695cb2ddbd5e2cf58a59caf82f7dbda47c478e902d180728996ba1"
+    gex-rail-unavailable-390.png: "5ea7b9f7209806c50e3dd9bf27382f262121885b850b27f4ca3015f83eb4595b"
+    gex-rail-unavailable-820-zh.png: "32f2bfcdf90f852c4e2a17756ef4d7af9bdf5acc2672b31f9e99efdddeab2994"
+    gex-rail-unavailable-820.png: "87433fff648068df6b503a7be7e59ce5efe1e4be2c608290dc891ec99c9933e1"
+    gex-state-refresh-failed-1440-zh.png: "a63b56844a0894ec3adacee55f01e52757a4f752360ee1e737fb5529f1d6773c"
+    gex-state-refresh-failed-1440.png: "f2664b8c50fb1f44944452c7f01256c339e1e8d948a7b59a2e4712a6c6fa9aba"
+    gex-state-refresh-failed-390-zh.png: "c3a1d8c62d2644d74e89de1db4959ad5d09cb26328ac4822b639dcd7fb0734a2"
+    gex-state-refresh-failed-390.png: "e01b6d811a6f89be0925c758a495004bec0ad468233eb487991e9f827efbf36a"
+    gex-state-refresh-failed-820-zh.png: "bb332d3d4c14b9133b072d9742fd4ff125885623b00ea08b0d346446646d16c8"
+    gex-state-refresh-failed-820.png: "0caafc62b0a0a16a5fe6c09fa43d9a1d8fc6dd74b5677d16e1edad229089af20"
+    heatmap-absent-1440-zh.png: "7c62ec6cb0a31046057bfdbd9702065707c0c35f7bb8c548d0bb0921718886b6"
+    heatmap-absent-1440.png: "51b8ed5591fbea455ecf84ba571a94c1617200e6121af9dff84b6df5d4ed9cc9"
+    heatmap-absent-390-zh.png: "013c35190668f5dc633903c801c1466ef2179d18228348af51b9f3244cc2d565"
+    heatmap-absent-390.png: "dc516974c51ebb734e0ef37c765164bb35cd711a5d4df48b01be87fe06bc263a"
+    heatmap-absent-820-zh.png: "ab5eb75945abe2deb1c31cacd2707943781ffb9c9feabdebff3e4ddc594fffc6"
+    heatmap-absent-820.png: "4c486d29a5ac06722db31534b39a1dc30ce7319da8cb0c5cf19685480d5d6229"
+    heatmap-persisted-refresh-failed-1440-zh.png: "7ae72cb7d6a77b0b6aabb1a9f995f82211f9b43b8f95671c080cc4a7d9f1ba62"
+    heatmap-persisted-refresh-failed-1440.png: "c2208806519498f942f3281751d052918256ec225fa25fe29e7c3ba6c2486960"
+    heatmap-persisted-refresh-failed-390-zh.png: "69b332c7b0721483039db1f50414f84f343b4068f82bda0bacc758f7fd3e4a50"
+    heatmap-persisted-refresh-failed-390.png: "6abc41e81954d3481f4784ef9441ae2166360f1f5383950c4655255a782b2673"
+    heatmap-persisted-refresh-failed-820-zh.png: "db1cbe7ccdf04e2fcff7ee19278c7de575c1f07ffa3b6f74e05317cde430dc27"
+    heatmap-persisted-refresh-failed-820.png: "36f3b9bfbe224891d1fb839d3c623c4fc9f99cf6f232bd01c37c753977ab6f83"
+    heatmap-persisted-refresh-refused-1440-zh.png: "7ae72cb7d6a77b0b6aabb1a9f995f82211f9b43b8f95671c080cc4a7d9f1ba62"
+    heatmap-persisted-refresh-refused-1440.png: "c2208806519498f942f3281751d052918256ec225fa25fe29e7c3ba6c2486960"
+    heatmap-persisted-refresh-refused-390-zh.png: "69b332c7b0721483039db1f50414f84f343b4068f82bda0bacc758f7fd3e4a50"
+    heatmap-persisted-refresh-refused-390.png: "6abc41e81954d3481f4784ef9441ae2166360f1f5383950c4655255a782b2673"
+    heatmap-persisted-refresh-refused-820-zh.png: "db1cbe7ccdf04e2fcff7ee19278c7de575c1f07ffa3b6f74e05317cde430dc27"
+    heatmap-persisted-refresh-refused-820.png: "36f3b9bfbe224891d1fb839d3c623c4fc9f99cf6f232bd01c37c753977ab6f83"
+    heatmap-persisted-retried-1440-zh.png: "2fe3de85f078ec2dbd8ec7f2c9ec1f9126526e5edd7655b785b0c2cd66a1eea5"
+    heatmap-persisted-retried-1440.png: "59c153ba4a1f381b10a89e667380a1a460a28f067ce0d9b4d3dadf608ee85283"
+    heatmap-persisted-retried-390-zh.png: "f8a31f087ef5b5d82f660aefed965496f75d5dc6acca5586a93758daf7b366d7"
+    heatmap-persisted-retried-390.png: "495aeaae5cb23b5fcabd4fcc42a02767e999c946df8221abe277f46b0a932176"
+    heatmap-persisted-retried-820-zh.png: "336ab3aa137ccbd61e03c13879e2fee987d4fbaae4cadbdf50f1986990688dc5"
+    heatmap-persisted-retried-820.png: "327650e37b6f861469916e4bf4fad03b3b5b87398fced3718ef3fe2499f86c08"
+    heatmap-retried-1440-zh.png: "2fe3de85f078ec2dbd8ec7f2c9ec1f9126526e5edd7655b785b0c2cd66a1eea5"
+    heatmap-retried-1440.png: "59c153ba4a1f381b10a89e667380a1a460a28f067ce0d9b4d3dadf608ee85283"
+    heatmap-retried-390-zh.png: "eb329a7037912615cd5a6ee3cb62bc35f9e3ae745bcdbae734d1583e70a5313d"
+    heatmap-retried-390.png: "218370bb664fa3aa8524ca9e54ef8b69688abf42ae3eaba44c016da5c4fd5280"
+    heatmap-retried-820-zh.png: "336ab3aa137ccbd61e03c13879e2fee987d4fbaae4cadbdf50f1986990688dc5"
+    heatmap-retried-820.png: "327650e37b6f861469916e4bf4fad03b3b5b87398fced3718ef3fe2499f86c08"
+    heatmap-unavailable-1440-zh.png: "31b3b5daf17811c3c4a0fbc96a5f005954780346fa64426ccaaf8f66943942bc"
+    heatmap-unavailable-1440.png: "a2e896b564c6166937ba7ddbe545faa81145657c6b9572f0f9c3a5b9908a86e1"
+    heatmap-unavailable-390-zh.png: "5869631ec0ea3de3a92dd9d6d99ea7bd527ff5833f4c37fe308b4f51b7a97e08"
+    heatmap-unavailable-390.png: "0cfc83bbf1dbfc40081c3b429cac34eab58a5fd1f867e55484d7e974f904e2c9"
+    heatmap-unavailable-820-zh.png: "65be10ffce53092c201e98479b6a24e6f21047bc31e7492616ad70666c0e0abd"
+    heatmap-unavailable-820.png: "cd039b58c1e823924e5a0d8c1061f03c262cebb5ebdd7f8e6a0fcb142fe9d5ce"
+    levels-absent-1440-zh.png: "0c0587f788de411b21b079d8969d068fc3a4e81eb236c35cca210d5eecb350eb"
+    levels-absent-1440.png: "cdca3d17829f77f1162c0ba8310963306451aad5e1f4e597b2b48ff024e30491"
+    levels-absent-390-zh.png: "0e389eb5398f1e512a1f6aa675ea7dc0621cd11afbbcf60caa86e7fa449d6217"
+    levels-absent-390.png: "20c95c59e4180fc748f228a36a7c40d779e88a969a185c65d46be0377cfb7467"
+    levels-absent-820-zh.png: "24f667b8b9a1d642b297150482236fe2ee6eadbfb62139f39667d869dd842be1"
+    levels-absent-820.png: "4473bcc3d6a3f4099a01e695b0907f2a9a3093ce1ebf9970e1764d5efd63b87e"
+    levels-refresh-failed-1440-zh.png: "a57164b2fada3b229d2b4f5a887c35ad1b20c430391fbf091def8d4115a4589f"
+    levels-refresh-failed-1440.png: "507422334429eb457e050ed17ebf99ec6064123f6c0725886b6a3fdd664ce9ae"
+    levels-refresh-failed-390-zh.png: "e65f5ffa90d3e00f231a57504d64e51ba4df85f7b322291c76b40035d1e1c023"
+    levels-refresh-failed-390.png: "7d13a37b3d440f0e98823ac8000cd29249235fa6fedebc6bb1d073b0f2bb20bb"
+    levels-refresh-failed-820-zh.png: "90d8eca3bb76aba4bc6b9b11f43105be95dbda36a3c17fe7d92f8cddd892f54f"
+    levels-refresh-failed-820.png: "ae73a27cdb8454e9ac587446dacbf57a89848d39ba9d6ffcf198fd5ecf681c01"
+    levels-retried-1440-zh.png: "f48adbf6e76e10beb6f453338ce6cbd7206ef1720185f6e641431249b900c6b6"
+    levels-retried-1440.png: "4413c8b0558622fe3c7bcded10e836cc00c44b7b4a0d72b3f3c5b751713eedb7"
+    levels-retried-390-zh.png: "38877cfb4dfdd90a7779811034a470969663f85d69a6f7fbe1d29f9dc5fd3a32"
+    levels-retried-390.png: "08fcded9bb0cfdb64175390f3b5c733cbfa5a8f4246e44376884d621bf38af41"
+    levels-retried-820-zh.png: "a13e4e7147e7a0bc89e3a3ca4aac447c7cc2af32639f3fdd8026f4f89a3a4bac"
+    levels-retried-820.png: "811458dc92352abb17a556bc4d4264346f31d0ad45d6784f2b7db500098593e8"
+    levels-unavailable-1440-zh.png: "c657ddc3dceef6e3dfefe5d5f52d26782c0344873d762a56b2d0dddd189d83cb"
+    levels-unavailable-1440.png: "7d8001a05f02717158d26c0f69b54e209abc2e8099289b57d4419201a02c5961"
+    levels-unavailable-390-zh.png: "189cdb968950fc9db8b04bf390a32a36b98fac802d907ff72f2e28667bbd2fdb"
+    levels-unavailable-390.png: "61154466ce9b676c0ee5eaac6dc885b2ecf07008b4288fbdb3c774ed4931a8fa"
+    levels-unavailable-820-zh.png: "24d2fd128f84d8e471752fd212ca30b0fe1639758a0ab66bf94ae233926080ae"
+    levels-unavailable-820.png: "baf0d252ef54e5919b7366239d4ae7849d318da89352ad62b8a96a262f237edc"

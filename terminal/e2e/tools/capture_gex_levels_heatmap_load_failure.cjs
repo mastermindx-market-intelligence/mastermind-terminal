@@ -53,6 +53,7 @@ const REPO = join(ROOT, "..");
 const OUT = process.env.TERMINAL_CROP_OUTPUT_DIR || join(ROOT, "docs", "pr-crops", "gex-levels-heatmap-load-failure");
 const LAYOUT_FILES = [
   "terminal/app/globals.css",
+  "terminal/components/gexdesk/ExposureWorkspace.module.css",
   "terminal/components/gexdesk/GexDeskView.tsx",
   "terminal/components/gexdesk/HeatSeekerCard.tsx",
   "terminal/components/gexdesk/MarketStateCard.tsx",
@@ -188,7 +189,7 @@ function startServer() {
     NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
     NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
   };
-  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT)], {
+  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT), ...(process.env.TERMINAL_CROP_WEBPACK === "1" ? ["--webpack"] : [])], {
     cwd: ROOT,
     env,
     stdio: ["ignore", "pipe", "pipe"],
@@ -277,15 +278,8 @@ async function newPage(browser, width, lang, board, replies, withClock, stream) 
   return { context, page };
 }
 
-async function stripDevOverlay(page) {
-  await page.evaluate(() => {
-    document.querySelectorAll("nextjs-portal").forEach((el) => el.remove());
-  });
-}
-
 async function assertNoNextIndicator(page, file) {
   await page.waitForTimeout(400);
-  await stripDevOverlay(page);
   const n = await page.locator("[data-nextjs-dev-tools-button]").count();
   if (n > 0) {
     throw new Error(`${file}: Next.js N overlay still mounted (${n}); TERMINAL_E2E_FIXTURE gate failed`);
@@ -306,6 +300,7 @@ async function cropBoxes(page, boxes, outPath, pad) {
   const height = Math.max(8, Math.min(vp.height - y, Math.ceil(bottom - top + pad * 2)));
   // Finish CSS transitions (the RingGauge arc sweeps for 0.6 s) and reset infinite ones (the as-of
   // pulse), so a crop never catches a frame mid-animation.
+  await assertNoNextIndicator(page, outPath);
   await page.screenshot({ path: outPath, clip: { x, y, width, height }, animations: "disabled" });
 }
 
@@ -429,16 +424,21 @@ async function captureGex(page, lang, state, replies, outPath) {
       await ladder.waitFor({ state: "visible" });
     }
   }
-  // The pick card above, and the state card down to the row this state is about.
-  const pickSlot = stateCard.locator("xpath=preceding-sibling::div[1]");
-  await pickSlot.evaluate((el) => el.scrollIntoView({ block: "start" }));
+  // Market State now opens the rail. Crop the card that owns each observation.
+  const pickSlot = stateCard.locator("xpath=following-sibling::div[1]");
+  if (state === "gex-pick-absent") {
+    await assertNoNextIndicator(page, outPath);
+    await pickSlot.screenshot({ path: outPath, animations: "disabled" });
+    return;
+  }
+  await stateCard.evaluate((el) => el.scrollIntoView({ block: "start" }));
   await page.waitForTimeout(250);
   const row = failAfter
     ? stateCard.getByTestId("gex-state-refresh-failed")
-    : healKeys || state === "gex-pick-absent"
+    : healKeys
       ? stateCard.locator(".obs-card-hd").first()
       : stateCard.getByTestId("gex-state-error");
-  if (!failAfter && !healKeys && state !== "gex-pick-absent") {
+  if (!failAfter && !healKeys) {
     // The state card is its own scroll region on a short desktop rail. Its error's Retry must
     // be reachable without scrolling the card: the crop is taken unscrolled, and fails if not.
     const fold = await row.getByRole("button", { name: copy.retry, exact: true }).evaluate((el) => {
@@ -456,8 +456,12 @@ async function captureGex(page, lang, state, replies, outPath) {
   const rowBox = await row.boundingBox();
   if (!slotBox || !cardBox || !rowBox) throw new Error(`${state}: rail not laid out`);
   const cardBottom = cardBox.y + cardBox.height;
-  const through = Math.min(cardBottom, healKeys || state === "gex-pick-absent" ? rowBox.y + 220 : rowBox.y + rowBox.height + 8);
-  await cropBoxes(page, [slotBox, { ...cardBox, height: through - cardBox.y }], outPath, 0);
+  if (!failAfter && !healKeys) {
+    await cropBoxes(page, [cardBox, slotBox], outPath, 0);
+    return;
+  }
+  const through = Math.min(cardBottom, healKeys ? rowBox.y + 220 : rowBox.y + rowBox.height + 8);
+  await cropBoxes(page, [{ ...cardBox, height: through - cardBox.y }], outPath, 0);
 }
 
 async function captureLevels(page, lang, state, replies, outPath) {
@@ -658,7 +662,6 @@ async function main() {
             try {
               await page.goto(`${BASE}${URLS[board]}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
               await CAPTURE[board](page, lang, state, replies, join(OUT, file));
-              await assertNoNextIndicator(page, file);
               files.push(file);
               console.log("ok");
             } catch (err) {
@@ -752,7 +755,7 @@ async function main() {
   console.log(`wrote ${files.length} crops + EVIDENCE.yml (head ${capturedAtHead})`);
 }
 
-module.exports = { updateHeatmapEvidence };
+module.exports = { updateHeatmapEvidence, assertNoNextIndicator, cropBoxes };
 
 if (require.main === module) {
   main().catch((err) => {

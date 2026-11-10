@@ -1,3 +1,10 @@
+# Current source proof is the complete Exposure indicator-guard revision.
+exposureMasterIntegration20261109:
+  revision: "operations/exposure-source-compatibility-20261105/revisions/indicator-guard-20261109"
+  descriptorSha256: "eb5a4aac927a5bf8f308f1b6536e7992306df2a78e110cc8012099a4dc185ba9"
+  branchHead: "483554457f302a90305f03c360636ca97ed75fb3"
+  protectedMaster: "f2aa1e0cb27d459149f59d3b24d98cd6e2e8389f"
+
 # EOD belt, Flow Desk chain heat and Heatmap flow layer failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR

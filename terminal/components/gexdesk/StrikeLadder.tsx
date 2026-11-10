@@ -458,6 +458,10 @@ export function StrikeLadder({
       const spotIdx = findSpotRowIndex(rows);
       const spotRow: Element | null = spotIdx >= 0 ? rows[spotIdx] : null;
       if (!spotRow) return false;
+      // A sparse book already fits in this desk's bounded list. Scrolling its ancestors
+      // would move the entire page away from the ticker on first paint or a lens change.
+      if (container.clientHeight > 0 && container.scrollHeight <= container.clientHeight &&
+          container.closest(".obs-gexdesk-ladder-region")) return true;
       (spotRow as HTMLElement).scrollIntoView({ block: "center", inline: "nearest" });
       const r = (spotRow as HTMLElement).getBoundingClientRect();
       // Success = the spot row is actually on screen (non-degenerate rect).
@@ -839,7 +843,7 @@ export function StrikeLadder({
       <div style={{ ...COL_HEADER_ROW, gridTemplateColumns: gridTemplate }}>
         <span className="obs-lbl">{t("ladderStrike")}</span>
         <span className="obs-lbl" style={COL_BAR_HDR}>
-          {effSide === "split" ? `${t("ladderPutGex")} · ${t("ladderCallGex")}` : netLabel}
+          {effSide === "split" ? `${t("ladderPutGex")} · ${t("ladderCallGex")}` : t("ladderRelative")}
         </span>
         <span style={COL_TAG_HDR}>{/* level tag column — no header */}</span>
         <span className="obs-lbl" style={COL_VAL_HDR}>
@@ -895,6 +899,7 @@ export function StrikeLadder({
               )}
 
               <div
+                data-strike={s.strike}
                 ref={isCurrent ? spotRowRef : undefined}
                 {...(isCurrent ? { [SPOT_ROW_ATTR]: SPOT_ROW_VAL } : {})}
                 style={{

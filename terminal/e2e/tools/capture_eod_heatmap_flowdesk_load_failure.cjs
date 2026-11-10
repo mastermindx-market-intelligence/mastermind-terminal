@@ -57,6 +57,7 @@ const LAYOUT_FILES = [
   "terminal/components/eodcontext/StructureStrip.tsx",
   "terminal/components/eodcontext/eodStrings.ts",
   "terminal/components/flowdesk/FlowDeskView.tsx",
+  "terminal/components/gexdesk/ExposureWorkspace.module.css",
   "terminal/components/gexdesk/GexDeskView.tsx",
   "terminal/components/heatmap/HeatmapView.tsx",
   "terminal/lib/dataCache.ts",
@@ -221,7 +222,7 @@ function startServer() {
     NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
     NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
   };
-  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT)], {
+  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT), ...(process.env.TERMINAL_CROP_WEBPACK === "1" ? ["--webpack"] : [])], {
     cwd: ROOT,
     env,
     stdio: ["ignore", "pipe", "pipe"],
@@ -306,15 +307,8 @@ async function newPage(browser, width, lang, board, replies, withClock) {
   return { context, page };
 }
 
-async function stripDevOverlay(page) {
-  await page.evaluate(() => {
-    document.querySelectorAll("nextjs-portal").forEach((el) => el.remove());
-  });
-}
-
 async function assertNoNextIndicator(page, file) {
   await page.waitForTimeout(400);
-  await stripDevOverlay(page);
   const n = await page.locator("[data-nextjs-dev-tools-button]").count();
   if (n > 0) {
     throw new Error(`${file}: Next.js N overlay still mounted (${n}); TERMINAL_E2E_FIXTURE gate failed`);
@@ -333,6 +327,7 @@ async function cropBoxes(page, boxes, outPath, pad) {
   const y = Math.max(0, Math.floor(top - pad));
   const width = Math.max(8, Math.min(vp.width - x, Math.ceil(right - left + pad * 2)));
   const height = Math.max(8, Math.min(vp.height - y, Math.ceil(bottom - top + pad * 2)));
+  await assertNoNextIndicator(page, outPath);
   await page.screenshot({ path: outPath, clip: { x, y, width, height }, animations: "disabled" });
 }
 
@@ -681,7 +676,6 @@ async function main() {
             try {
               await page.goto(`${BASE}${URLS[board]}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
               await CAPTURE[board](page, lang, state, replies, join(OUT, file));
-              await assertNoNextIndicator(page, file);
               files.push(file);
               console.log("ok");
             } catch (err) {
@@ -778,7 +772,7 @@ async function main() {
   console.log(`wrote ${files.length} crops + EVIDENCE.yml (head ${capturedAtHead})`);
 }
 
-module.exports = { updateHeatmapEvidence };
+module.exports = { updateHeatmapEvidence, assertNoNextIndicator, cropBoxes };
 
 if (require.main === module) {
   main().catch((err) => {
