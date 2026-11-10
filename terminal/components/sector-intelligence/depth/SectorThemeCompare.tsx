@@ -319,18 +319,25 @@ export function SectorThemeCompare({
     : ([0, 1] as [number, number]);
   const ticks = niceTicks(dom[0], dom[1], 5);
 
-  const PAD = { t: 14, r: 14, b: 30, l: 46 };
+  // N7: x labels are ISO dates at the 10px numeric face (~6.6px per char, so
+  // "2026-02-13" ≈ 66px). The thin gap AND the right pad both derive from that
+  // width: a gap narrower than the label it separates printed two dates as one
+  // run ("2026-02-132026-03-06"), and a 14px right pad clipped the newest date
+  // to "2026-11-". Label positions stay exactly mapped — only density and plot
+  // padding adapt. Real-font truth at each viewport is pinned by the e2e shots.
+  const xLabelDates = activeSeries[0]?.deltas.map((d) => d.date) ?? [];
+  const xLabelW = Math.ceil(Math.max(10, ...xLabelDates.map((d) => d.length), 0) * 6.6);
+  const PAD = { t: 14, r: Math.max(14, Math.ceil(xLabelW / 2) + 4), b: 30, l: 46 };
   const iw = Math.max(1, vw - PAD.l - PAD.r);
   const ih = vh - PAD.t - PAD.b;
   const maxPts = Math.max(1, ...activeSeries.map((s) => s.deltas.length));
   const x = (i: number) => PAD.l + (i / Math.max(1, maxPts - 1)) * iw;
   const y = (v: number) => PAD.t + ih - ((v - dom[0]) / (dom[1] - dom[0] || 1)) * ih;
 
-  const xLabelDates = activeSeries[0]?.deltas.map((d) => d.date) ?? [];
   const thinnedX = themeXLabels(
     xLabelDates.map((date, i) => ({ date, i })),
     (t2) => x(t2.i),
-    56,
+    xLabelW + 8,
   );
 
   const line = (deltas: { v: number }[]) =>

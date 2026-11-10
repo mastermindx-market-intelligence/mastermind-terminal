@@ -114,6 +114,33 @@ describe("S5 — the ZH surface names the owner and field in Chinese, never raw 
     expect(zh).not.toContain("Macro sector generation");
   });
 
+  it("N7 — x-axis date labels never overlap and the last one never clips (width-derived gap and right pad)", () => {
+    const markup = html(<SectorThemeCompare history={capturedHistory} labels={{}} />);
+    const labels = [...markup.matchAll(/class="[^"]*axisX[^"]*"[^>]*x="([0-9.]+)"[^>]*>([0-9-]+)</g)]
+      .map((m) => ({ x: Number(m[1]), date: m[2] }))
+      .sort((a, b) => a.x - b.x);
+    expect(labels.length).toBeGreaterThanOrEqual(2);
+    // An ISO date label at the 10px numeric face renders ~6.6px/char, so a
+    // conservative width floor of 66px keeps centers at least one full label
+    // apart — the r1 finding was two dates printing as one run
+    // ("2026-02-132026-03-06") because the thin gap (56px) was narrower than
+    // the label it had to separate. The real-font truth at every viewport is
+    // pinned by the e2e screenshots; this test pins the geometry law.
+    const W = 66;
+    for (let i = 1; i < labels.length; i++) {
+      expect(labels[i]!.x - labels[i - 1]!.x).toBeGreaterThanOrEqual(W);
+    }
+    // useChartWidth's pre-measure default is 640: every kept label fits inside
+    // the viewBox with its full rendered width — the newest date ("2026-11-"
+    // clipped to a half word in r1) must print whole.
+    for (const l of labels) {
+      expect(l.x - W / 2).toBeGreaterThanOrEqual(0);
+      expect(l.x + W / 2).toBeLessThanOrEqual(640);
+    }
+    // The newest session stays labeled (thinLabels anchors the endpoints).
+    expect(labels[labels.length - 1]!.date).toBe(capturedHistory!.asOf);
+  });
+
   it("theme compare WITH the captured history — the unconditional theme_table block's owner line is localized", () => {
     expect(capturedHistory).not.toBeNull();
     const zh = text(html(<SectorThemeCompare history={capturedHistory} labels={{}} />));

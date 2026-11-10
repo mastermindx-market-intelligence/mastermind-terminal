@@ -252,6 +252,20 @@ function HarnessBody() {
         <SectorThemeCompare history={null} labels={{}} themeRows={carriedThemeRows} />
       </HarnessSection>
 
+      <HarnessSection
+        id="theme-unavailable"
+        title="Theme table · CONTRACT unavailable read (synthetic audience_not_entitled, no rs_history)"
+        synthetic
+      >
+        {/* N7 proof surface: the per-reason unavailable copy beside the
+            history's own unavailable state — never a partial or invented table. */}
+        <SectorThemeCompare
+          history={null}
+          labels={{}}
+          themeRows={{ state: "unavailable", reason: "audience_not_entitled" }}
+        />
+      </HarnessSection>
+
       {/* ── synthetic contract fixtures (clearly labelled) ────────────────── */}
       <HarnessSection id="calls-contract" title="Calls board · CONTRACT fixture (synthetic)" synthetic>
         {/* No onNavigate here on purpose: this instance proves the exact-anchor
