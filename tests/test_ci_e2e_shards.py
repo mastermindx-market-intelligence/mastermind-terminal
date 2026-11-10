@@ -155,8 +155,8 @@ SPLIT_PROJECTS = ("desktop", "tablet", "mobile")
 # Six full shards reduce allocation while preserving every case and the same cap.
 # Mobile's minimum is now five, not three: #1411 run 42753497499 on 2026-11-10 had
 # mobile-1 at 54 min and mobile-3 at 58 min, while mobile-2 was cancelled at the
-# 60-minute cap twice with ZERO test failures — attempt 2 completed 492 of 560
-# tests on the single CI worker before the host cancelled it. Fifths shrink each
+# 60-minute cap twice with ZERO test failures — on attempt 2 the suite alone took
+# 58.0 min on the single CI worker, leaving no room for artifact upload. Fifths shrink each
 # mobile allocation under the same cap while keeping every case.
 MIN_SHARDS = {"desktop": 6, "tablet": 4, "mobile": 5}
 
@@ -178,7 +178,7 @@ def test_each_large_project_is_split_so_no_single_job_carries_it_whole(project):
 
 def test_mobile_runs_in_exactly_five_shards():
     # #1411: mobile thirds hit the unchanged 60-minute cap with zero failures
-    # (run 42753497499; mobile-2 cancelled twice, 492/560 done at 60m). Fifths
+    # (run 42753497499; mobile-2 cancelled twice; suite alone 58.0 min). Fifths
     # shrink each allocation without raising the cap or dropping a case.
     entries = [
         item for item in e2e_matrix(ci_workflow())
