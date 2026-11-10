@@ -67,11 +67,17 @@ export function followState(inputs: FollowInputs = FOLLOW_PRODUCER_ADMISSION, v3
     return { state: "configured_unavailable", reason: "transport_unavailable", notificationClaimed: false,
       missingStep: "The delivery path reports no actual transport status." };
   }
-  // A notification is claimed only for an ACTUAL queued or sent transport. failed / unknown names the
-  // delivery problem and claims nothing ("queued" is not delivered; "sent" is not read).
-  if (inputs.transport === "failed" || inputs.transport === "unknown") {
-    return { state: "delivery_problem", reason: inputs.transport === "failed" ? "transport_failed" : "transport_unknown", notificationClaimed: false,
-      transport: inputs.transport, missingStep: inputs.transport === "failed" ? "The delivery path reports a failed transport." : "The delivery path reports no usable transport outcome." };
+  // A notification is claimed ONLY by an allow-list: an ACTUAL queued or sent transport ("queued" is not
+  // delivered; "sent" is not read). Everything else - failed, unknown, and any value outside the TypeScript
+  // union that a runtime JSON readback could carry ("delivered", "QUEUED", null, 42...) - names the delivery
+  // problem and claims nothing.
+  if (inputs.transport === "queued" || inputs.transport === "sent") {
+    return { state: "following", notificationClaimed: true, transport: inputs.transport };
   }
-  return { state: "following", notificationClaimed: true, transport: inputs.transport };
+  if (inputs.transport === "failed") {
+    return { state: "delivery_problem", reason: "transport_failed", notificationClaimed: false, transport: "failed",
+      missingStep: "The delivery path reports a failed transport." };
+  }
+  return { state: "delivery_problem", reason: "transport_unknown", notificationClaimed: false, transport: "unknown",
+    missingStep: "The delivery path reports no usable transport outcome." };
 }

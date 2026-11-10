@@ -79,14 +79,22 @@ function allowList(body: string): Record<string, string[]> {
   }
   return out;
 }
-function registry(): Record<string, string[]> {
+function registry(admission: typeof INVESTIGATION_ADMISSION = INVESTIGATION_ADMISSION): Record<string, string[]> {
   const out: Record<string, string[]> = {};
-  for (const adapter of INVESTIGATION_ADMISSION.evidence ?? []) out[adapter.owner] = [...adapter.object_types].sort();
+  for (const adapter of admission.evidence ?? []) {
+    // One adapter per owner, enforced. The route admits with `.some(...)` over ALL adapters, so a duplicate
+    // owner would be admitted at runtime; merging the lists would accept that silently, failing is stricter.
+    if (Object.hasOwn(out, adapter.owner)) throw new Error(`duplicate owner in INVESTIGATION_ADMISSION.evidence: ${adapter.owner}`);
+    out[adapter.owner] = [...adapter.object_types].sort();
+  }
   return out;
 }
-function subjectRegistry(): Record<string, string[]> {
+function subjectRegistry(admission: typeof INVESTIGATION_ADMISSION = INVESTIGATION_ADMISSION): Record<string, string[]> {
   const out: Record<string, string[]> = {};
-  for (const adapter of INVESTIGATION_ADMISSION.subjects ?? []) out[adapter.owner] = [...adapter.kinds].sort();
+  for (const adapter of admission.subjects ?? []) {
+    if (Object.hasOwn(out, adapter.owner)) throw new Error(`duplicate owner in INVESTIGATION_ADMISSION.subjects: ${adapter.owner}`);
+    out[adapter.owner] = [...adapter.kinds].sort();
+  }
   return out;
 }
 /** `(r->>'owner'='X' and r->>'kind'='Y')` and `(... r->>'kind' in ('a','b'))` of the validator's subject check. */
@@ -213,6 +221,23 @@ describe("0047 investigation options selection evidence admission contract", () 
 
     expect(allowList(liveBody(sql))["terminal.options_exposure"]).toEqual(["exposure_chart_request", "options_matrix_selection", "rotation_measurement", "sector_origin"]);
     expect(allowList(liveBody(sql))["earnings.workspace_generation"]).toEqual(["event_workspace"]);
+  });
+
+  it("N4: a second adapter for an EXISTING owner, inserted BEFORE the original, can no longer hide its pair", () => {
+    // The route admits with `.some(adapter => adapter.owner === owner && adapter.types.includes(type))`, so a
+    // duplicate-owner adapter is admitted at runtime. The contract helpers must therefore see it (they used to
+    // key by owner with the last entry winning, so an earlier duplicate was invisible).
+    const evidence = INVESTIGATION_ADMISSION.evidence ?? [];
+    const subjects = INVESTIGATION_ADMISSION.subjects ?? [];
+    const rogueEvidence = { ...INVESTIGATION_ADMISSION, evidence: [{ owner: "macro.sector", object_types: ["rogue_type"] }, ...evidence] };
+    expect(() => registry(rogueEvidence)).toThrow(/duplicate owner/);
+    const rogueSubjects = { ...INVESTIGATION_ADMISSION, subjects: [{ owner: "macro.sector", kinds: ["rogue_kind"] }, ...subjects] };
+    expect(() => subjectRegistry(rogueSubjects)).toThrow(/duplicate owner/);
+    // an exact repeat of an existing adapter is a duplicate too (strictest form: one adapter per owner)
+    expect(() => registry({ ...INVESTIGATION_ADMISSION, evidence: [...evidence, ...evidence.slice(0, 1)] })).toThrow(/duplicate owner/);
+    // and the real registry has exactly one adapter per owner
+    expect(() => registry()).not.toThrow();
+    expect(() => subjectRegistry()).not.toThrow();
   });
 
   it("differs from the 0042 validator by the one allow-list widening only", () => {
