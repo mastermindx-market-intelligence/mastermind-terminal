@@ -1,0 +1,92 @@
+{
+  "schema": "terminal.pr1426.visual-review-partial.v1",
+  "state": "EIGHT_CURRENT_IMAGES_REVIEWED_TWO_PENDING",
+  "sourceHead": "139ec0574b57ecbb59d237dc315c8276dd307794",
+  "reviewedAt": "2026-11-10T17:06:32.434690+00:00",
+  "reviewer": "Assigned PR-duty principal; direct inspection of actual decoded PNGs",
+  "images": [
+    {
+      "file": "desktop-en-dark.png",
+      "sha256": "1cf4243535bb60dc496b17eec7e4579da1f678619b3b8f8c0947d70a5334fb04",
+      "bytes": 52359,
+      "pngWidth": 344,
+      "pngHeight": 707,
+      "mtimeNs": 1794330005363796530,
+      "freshAtThisSnapshot": true
+    },
+    {
+      "file": "desktop-zh-dark.png",
+      "sha256": "bd2bf6d2fca06b90b940f71f626566e5032a2d245655857abcaa27fbf593a87d",
+      "bytes": 51972,
+      "pngWidth": 344,
+      "pngHeight": 707,
+      "mtimeNs": 1794330024735326029,
+      "freshAtThisSnapshot": true
+    },
+    {
+      "file": "mobile-en-dark.png",
+      "sha256": "e70ddcd7919e80e4bfebd22d4cc896f31d959d4336e2fedfaf99b7dc652cdb28",
+      "bytes": 52998,
+      "pngWidth": 390,
+      "pngHeight": 669,
+      "mtimeNs": 1794330073174555124,
+      "freshAtThisSnapshot": true
+    },
+    {
+      "file": "mobile-zh-dark.png",
+      "sha256": "38008b52ac9059047535a68c6e8d19542bccabf42cf2cbc416cee0e752b80585",
+      "bytes": 53955,
+      "pngWidth": 390,
+      "pngHeight": 655,
+      "mtimeNs": 1794330089238530500,
+      "freshAtThisSnapshot": true
+    },
+    {
+      "file": "tablet-en-dark.png",
+      "sha256": "97bf15bdb7b057efefebd7ab82217c02eb544cb6620e884d7219cd6328101d69",
+      "bytes": 54550,
+      "pngWidth": 820,
+      "pngHeight": 565,
+      "mtimeNs": 1794330041070498920,
+      "freshAtThisSnapshot": true
+    },
+    {
+      "file": "tablet-zh-dark.png",
+      "sha256": "17af7ca96782a2a3dd38a8005eefc0cf188235893c970dcb61c411a9c8de3df5",
+      "bytes": 55964,
+      "pngWidth": 820,
+      "pngHeight": 565,
+      "mtimeNs": 1794330057394769801,
+      "freshAtThisSnapshot": true
+    },
+    {
+      "file": "unavailable-desktop-en-dark.png",
+      "sha256": "d76b8c5bd5a5f1ba3a9bdc8328ab32794230cd0164f064d2a1bceffc48423048",
+      "bytes": 10069,
+      "pngWidth": 344,
+      "pngHeight": 707,
+      "mtimeNs": 1794330100037902952,
+      "freshAtThisSnapshot": true
+    },
+    {
+      "file": "unavailable-desktop-zh-dark.png",
+      "sha256": "b3e01fed5c9d2885fb9a9c664c1680f1aa69c82e6546c5d6dbf82f0bd89156f8",
+      "bytes": 8590,
+      "pngWidth": 344,
+      "pngHeight": 707,
+      "mtimeNs": 1794330109487200453,
+      "freshAtThisSnapshot": true
+    }
+  ],
+  "findings": [
+    "All six EN/ZH live-feed panel crops inspected at actual desktop/tablet/mobile sizes.",
+    "News title, NVDA identity, editorial selector, source filters, counts, headlines, metadata links and review controls are readable; no horizontal clipping or overlapping controls observed.",
+    "Localized ZH interface retains the fixture stories' original language.",
+    "Both desktop unavailable crops show the unavailable message and readable Retry control without clipped panel content."
+  ],
+  "pending": [
+    "unavailable-mobile-en-dark.png",
+    "unavailable-mobile-zh-dark.png"
+  ],
+  "limits": "Fixture-backed local panel images. Full capture acceptance remains pending; no light-theme screenshot, authenticated device, installed-production, provider-freshness or live-news acceptance."
+}

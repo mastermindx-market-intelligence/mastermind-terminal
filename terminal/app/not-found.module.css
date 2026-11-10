@@ -48,14 +48,50 @@
 .secondary:hover { background: var(--panel-2); }
 .chart { color: var(--text-2); font-size: 14px; font-weight: 500; }
 .chart:hover { background: var(--panel); color: var(--text); }
-.action:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 3px; }
+.action:focus-visible, .companyAction:focus-visible { outline: 2px solid var(--brand-2); outline-offset: 3px; }
 
 /* The catch-all route hosts this page in the shell's available content row. */
 :global(.shared-shell) .page { height: 100%; }
 
 :global(.shared-shell) .mark { display: none; }
 
+.companyRecovery { display: none; }
+
 @media (max-width: 600px) {
+  :global(.shared-shell) .companyRecovery {
+    display: grid;
+    gap: 12px;
+    margin-top: 24px;
+    padding: 20px;
+    border: 1px solid var(--line-3);
+    border-radius: 12px;
+    background: var(--panel);
+  }
+  .companyRecovery h2 { margin: 0; font-size: 17px; line-height: 25px; font-weight: 600; }
+  .companyRecovery p { margin: 0; color: var(--muted); font-size: 14px; line-height: 23px; }
+  .companyAction {
+    box-sizing: border-box;
+    display: flex;
+    align-items: baseline;
+    justify-self: start;
+    gap: 4px;
+    min-width: 44px;
+    min-height: 44px;
+    max-width: 100%;
+    /* Use the gap above and panel padding below to keep the 18px visual row. */
+    margin-block: -12px -14px;
+    padding: 12px 0 14px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--link);
+    font: inherit;
+    font-size: 14px;
+    line-height: 18px;
+    text-align: start;
+    cursor: pointer;
+  }
+  .companyAction:hover { text-decoration: underline; }
   .page { padding: 32px 20px; }
   .card { margin: 0 auto; }
   .title { font-size: 28px; }
