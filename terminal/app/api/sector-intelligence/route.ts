@@ -325,20 +325,26 @@ function populationRefuse(status: number, code: string, extra?: Record<string, s
 
 /** S3 (review): the ONLY body this gateway ever relays for an upstream refusal.
  * The client's refusal table reads the owner's own status + code — so the code
- * rides a closed set, the reason is a bounded string, and EVERYTHING else the
- * owner wrote (hostnames, file paths, stack frames, tokens, field names) is
- * collapsed to the generic unavailable code before it can reach the browser. */
+ * rides a closed set, and EVERYTHING else the owner wrote (hostnames, file
+ * paths, stack frames, tokens, field names) is collapsed to the generic
+ * unavailable code before it can reach the browser. The reason rides the same
+ * law (r2 SF-1): it is relayed ONLY as the owner's machine token — a
+ * snake_case identifier (`^[a-z][a-z0-9_]{0,63}$`, ≤160 chars) such as lane 1's
+ * `binding_changed` — and any free-text, URL-, path- or credential-shaped
+ * value is DROPPED, never shortened or excerpted. */
 const POPULATION_RELAY_SCHEMA = "sector_generation.error/v1";
 const POPULATION_RELAY_CODES = new Set([
   "AUTHENTICATION_REQUIRED", "FORBIDDEN", "REQUEST_INVALID",
   "CURSOR_RESET", "ORIGINAL_UNAVAILABLE", "SERVICE_UNAVAILABLE",
 ]);
+const POPULATION_RELAY_REASON = /^[a-z][a-z0-9_]{0,63}$/;
 function populationRelayBody(body: unknown): { schema: string; code: string; reason?: string } {
   const source = typeof body === "object" && body !== null ? body as Record<string, unknown> : null;
   const code = source !== null && typeof source.code === "string" ? source.code : null;
   if (code !== null && POPULATION_RELAY_CODES.has(code)) {
     const reason = source !== null && typeof source.reason === "string"
-      && source.reason.length > 0 && source.reason.length <= 160 ? source.reason : undefined;
+      && source.reason.length > 0 && source.reason.length <= 160
+      && POPULATION_RELAY_REASON.test(source.reason) ? source.reason : undefined;
     return { schema: POPULATION_RELAY_SCHEMA, code, ...(reason !== undefined ? { reason } : {}) };
   }
   return { schema: POPULATION_RELAY_SCHEMA, code: "UPSTREAM_UNAVAILABLE" };
