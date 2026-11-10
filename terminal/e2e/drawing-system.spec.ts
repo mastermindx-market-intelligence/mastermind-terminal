@@ -2976,3 +2976,169 @@ test("a segmented path finishes on a double-click between bar centres", async ({
     { timeout: 5_000, message: "the double-click must persist four control anchors, not repeat the fourth" },
   ).toBe(4);
 });
+
+test("a desktop Path finishes exactly once when its closing double-click has no native dblclick", async ({ page }) => {
+  test.slow();
+  test.skip(
+    (page.viewportSize()?.width ?? 1440) <= 860,
+    "Desktop precision geometry; the coarse-pointer finish is covered above.",
+  );
+  const saves: DrawingSavePayload[] = [];
+  await openTerminal(page, {
+    drawings: [
+      {
+        id: "closing-target",
+        kind: "trendline",
+        source: "user",
+        points: [{ t: "2026-05-01", p: 200 }, { t: "2026-07-01", p: 200 }],
+        color: "#26c281",
+        width: 2,
+        dash: "solid",
+      },
+    ],
+    onPut: (payload) => saves.push(payload),
+  });
+
+  const layer = page.locator(".pane.on .drawing-layer");
+  const layerBox = await layer.boundingBox();
+  expect(layerBox).not.toBeNull();
+  const committedPaths = layer.locator('g[data-drawing-kind="path"]:not([data-id="_p"])');
+  const preview = layer.locator('g[data-id="_p"]');
+  const inspector = page.getByRole("toolbar", { name: "Selected drawing properties" });
+  const savedPaths = () => saves.flatMap((payload) => payload.drawings ?? []).filter((drawing) => drawing.kind === "path");
+
+  // The seeded object's own hit line is the close target, so the press really does land on a
+  // node this layer is about to detach. Read it from the DOM rather than guessing a pixel.
+  const closingHit = layer.locator('g[data-id="closing-target"] line[stroke="transparent"]').first();
+  await expect(closingHit).toHaveCount(1);
+  // Read the line's own attributes and offset them by the already-stabilized layer box. A quote
+  // repaint can replace the SVG subtree between locator resolution and evaluation, which makes
+  // `ownerSVGElement` transiently null even though the geometry is valid — the same hazard the
+  // vertical-line assertion above documents.
+  const closingLocal = await closingHit.evaluate((node) => {
+    const line = node as SVGLineElement;
+    return {
+      x: (Number(line.getAttribute("x1")) + Number(line.getAttribute("x2"))) / 2,
+      y: (Number(line.getAttribute("y1")) + Number(line.getAttribute("y2"))) / 2,
+    };
+  });
+  const closing = { x: layerBox!.x + closingLocal.x, y: layerBox!.y + closingLocal.y };
+  // Every anchor is placed in a band around the seeded object's own row so the whole gesture
+  // stays inside the PRICE pane. Anchors that stray into an indicator sub-pane carry that
+  // pane's reading rather than a price, which is a different contract (see the sub-pane
+  // rescale test below) and not what this one is measuring.
+  const near = (dx: number, dy: number) => ({ x: closing.x + dx, y: closing.y + dy });
+  expect(closing.x - 560).toBeGreaterThan(layerBox!.x);
+
+  // ── Phase 1: Strong magnet, so the committed anchor is deliberately NOT under the cursor ──
+  // The magnet parks each price on an OHLC level, so the closing click's raw coordinates sit
+  // well outside the 3px desktop radius from the previous PROJECTED anchor while meaning
+  // exactly it. Closing over the seeded drawing removes the native-dblclick rescue at the same
+  // time, which is what makes this the discriminating case rather than a cosmetic one.
+  await selectMagnet(page, "strong");
+  await page.getByTestId("drawing-group-freehand-menu-trigger").click();
+  await page.getByTestId("drawing-tool-path").press("Enter");
+  await page.mouse.click(near(-560, 70).x, near(-560, 70).y);
+  await page.mouse.click(near(-420, -50).x, near(-420, -50).y);
+  await page.mouse.click(near(-280, 40).x, near(-280, 40).y);
+  // Nothing may commit before the closing gesture; a swallowed anchor must report as a
+  // setup failure here rather than impersonating the finish defect below.
+  await expect(committedPaths).toHaveCount(0);
+  await page.mouse.dblclick(closing.x, closing.y, { delay: 60 });
+
+  await expect(committedPaths).toHaveCount(1);
+  await expect(preview).toHaveCount(0);
+  await expect.poll(
+    () => savedPaths().at(-1)?.points?.length ?? 0,
+    { timeout: 5_000, message: "the closing double-click should persist one four-anchor Path" },
+  ).toBe(4);
+  // The completion must not fall through into editing: no settings editor, and the seeded
+  // object under the closing anchor must not have been selected by the finishing gesture.
+  await expect(page.locator(".settings-open")).toHaveCount(0);
+  await expect(page.locator(".text-edit")).toHaveCount(0);
+  if (await inspector.count()) {
+    await expect(inspector).not.toHaveAttribute("data-drawing-id", "closing-target");
+  }
+
+  // A native `dblclick` that arrives after the gesture already committed is the tail of that
+  // same gesture. It must be consumed: no editor, and above all no second Path.
+  await committedPaths.first().dispatchEvent("dblclick", { bubbles: true, cancelable: true, detail: 2 });
+  await expect(committedPaths).toHaveCount(1);
+  await expect(page.locator(".settings-open")).toHaveCount(0);
+  await expect(preview).toHaveCount(0);
+
+  // ── Phase 2: magnet off, the unsnapped price path, closing over the seeded drawing again ──
+  await layer.evaluate(node => {
+    const record = {
+      phase: "completion",
+      events: [] as { phase: string; type: string; trusted: boolean; targetId: string | null }[],
+    };
+    (window as unknown as { __pr632Gesture: typeof record }).__pr632Gesture = record;
+    for (const type of ["pointerdown", "dblclick"]) node.addEventListener(type, event => {
+      const target = event.target instanceof Element ? event.target : null;
+      record.events.push({
+        phase: record.phase, type: event.type, trusted: event.isTrusted,
+        targetId: target?.closest("g[data-id]")?.getAttribute("data-id") ?? null,
+      });
+    }, true);
+  });
+  await selectMagnet(page, "off");
+  await page.getByTestId("drawing-group-freehand-menu-trigger").click();
+  await page.getByTestId("drawing-tool-path").press("Enter");
+  await page.mouse.click(near(-200, 60).x, near(-200, 60).y);
+  await page.mouse.click(near(-110, -30).x, near(-110, -30).y);
+  await expect(committedPaths).toHaveCount(1);
+  await page.mouse.dblclick(closing.x, closing.y, { delay: 60 });
+
+  await expect(committedPaths).toHaveCount(2);
+  await expect(preview).toHaveCount(0);
+  await expect.poll(
+    () => savedPaths().at(-1)?.points?.length ?? 0,
+    { timeout: 5_000, message: "an unsnapped closing click should persist one three-anchor Path" },
+  ).toBe(3);
+  await expect(page.locator(".settings-open")).toHaveCount(0);
+  // A new physical gesture must restore editing after completion with no native tail.
+  await expect(page.getByTestId("drawing-tool-cursor")).toHaveAttribute("aria-pressed", "true");
+  const phaseTwoPath = committedPaths.last();
+  const phaseTwoId = await phaseTwoPath.getAttribute("data-id");
+  expect(phaseTwoId).toBeTruthy();
+  const editPoint = await phaseTwoPath.locator('polyline[data-segment="1"]').evaluate((node, expectedId) => {
+    const hit = node as SVGPolylineElement, matrix = hit.getScreenCTM();
+    if (!matrix || !hit.isConnected) return null;
+    for (let i = 1; i < hit.points.numberOfItems; i++) {
+      const a = hit.points.getItem(i - 1), b = hit.points.getItem(i);
+      for (const fraction of [0.5, 0.35, 0.65]) {
+        const point = new DOMPoint(a.x + (b.x - a.x) * fraction, a.y + (b.y - a.y) * fraction).matrixTransform(matrix);
+        if (point.x <= 0 || point.y <= 0 || point.x >= innerWidth || point.y >= innerHeight) continue;
+        const target = document.elementFromPoint(point.x, point.y);
+        if (target?.closest("[data-handle]")) continue;
+        if (target?.closest("g[data-id]")?.getAttribute("data-id") === expectedId) return { x: point.x, y: point.y };
+      }
+    }
+    return null;
+  }, phaseTwoId);
+  expect(editPoint, "an unobstructed physical hit point on the completed Path").not.toBeNull();
+  await page.evaluate(() => {
+    (window as unknown as { __pr632Gesture: { phase: string } }).__pr632Gesture.phase = "editing";
+  });
+  await page.mouse.dblclick(editPoint!.x, editPoint!.y, { delay: 60 });
+  const gesture = await page.evaluate(() =>
+    (window as unknown as { __pr632Gesture: {
+      phase: string; events: { phase: string; type: string; trusted: boolean; targetId: string | null }[];
+    } }).__pr632Gesture);
+  await test.info().attach("path-completion-and-fresh-editing", {
+    body: Buffer.from(JSON.stringify({ phaseTwoId, editPoint, ...gesture })), contentType: "application/json",
+  });
+  expect(gesture.events.filter(event => event.phase === "completion" && event.type === "dblclick" && event.trusted)).toHaveLength(0);
+  const freshDowns = gesture.events.filter(event => event.phase === "editing" && event.type === "pointerdown" && event.trusted);
+  expect(freshDowns).toHaveLength(2);
+  expect(freshDowns[0].targetId).toBe(phaseTwoId);
+  expect(gesture.events.filter(event => event.phase === "editing" && event.type === "dblclick" && event.trusted)).toHaveLength(1);
+  await expect(inspector).toBeVisible();
+  await expect(inspector).toHaveAttribute("data-drawing-id", phaseTwoId!);
+  await expect(inspector).toHaveClass(/(?:^|\s)settings-open(?:\s|$)/);
+  await expect(committedPaths).toHaveCount(2);
+  await expect(preview).toHaveCount(0);
+
+});
+

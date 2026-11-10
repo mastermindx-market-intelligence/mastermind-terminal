@@ -1,0 +1,40 @@
+{
+  "sourceHead": "6c9cde3550d2ab6281c2ea309c56f714f58b2ae1",
+  "implementationSourceHead": "6c9cde3550d2ab6281c2ea309c56f714f58b2ae1",
+  "recordedAt": "2026-10-22T09:13:28.968149+00:00",
+  "command": "env -u MMX_SHARED_SHELL -u MMX_INVESTOR_SHELL_PREVIEW CAPTURE_ONLY=AnalysisWorkspace TERMINAL_CROP_PORT=3123 TERMINAL_CAPTURE_FAILURE_DIR=/tmp/shared-shell-pr1124-company-capture-failures node e2e/tools/capture_pl6_batch1.cjs",
+  "environment": {
+    "node": "v20.20.2",
+    "MMX_SHARED_SHELL": "unset",
+    "MMX_INVESTOR_SHELL_PREVIEW": "unset",
+    "TERMINAL_E2E_FIXTURE": "1 via harness"
+  },
+  "actualCaptures": 4,
+  "sourceChanges": {
+    "terminal/app/company-intelligence.css": {
+      "before": "2bd8643832428198d38e8a5140cb7029687466781b2366976cb3ca5ddad9892b",
+      "after": "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
+    },
+    "terminal/components/chrome/shared-shell/shared-shell.css": {
+      "before": "2f1759ba734abcd5cb079fd4af032c9b1f93aea7a575f87e042070b3445b92ce",
+      "after": "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339"
+    }
+  },
+  "sourceHashes": {
+    "terminal/app/company-intelligence.css": "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34",
+    "terminal/components/chrome/shared-shell/shared-shell.css": "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339"
+  },
+  "outputs": {
+    "AnalysisWorkspace-1440.png": "7427faf26f49b141052e8912621d9aa8d25f110110980d168818cda38d7d7d5e",
+    "AnalysisWorkspace-1440-zh.png": "c4922fcdad7b487c317cc9c2ea15c92df5f718579a4e2fafdd4206c2527601b1",
+    "AnalysisWorkspace-390.png": "b429558568562d6a65df28c27c2133b25728879d12e136045e4c046d1e8a0595",
+    "AnalysisWorkspace-390-zh.png": "2396f566f9b55ea502c988666d613b38558cab181f8f55a58f225f9772328781"
+  },
+  "captureLog": {
+    "path": "shared-shell-company-recapture.log",
+    "sha256": "f398faa76c5f7c9f6f48c7da3fe79246a2826699fba64251e3ed8ae631b6ec8c"
+  },
+  "qualification": "Actual scoped local incumbent-profile captures. Existing full reports and older acceptance history remain historical; no live account, current-data or deployment claim. The new light shadow token is Shared Shell opt-in only.",
+  "preservedHistoricalManifestSha256": "7ad4ff71ae7f5780d59412a77c61b10f77b175401405f7073429b834e07dbf0b",
+  "reuse": "SearchModal, ChartChrome, and other unchanged incumbent surfaces retain their qualified captures; only AnalysisWorkspace affected by the new Company CSS delta was recaptured."
+}
