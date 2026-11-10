@@ -188,12 +188,17 @@ test("universes: filter narrows live, zero matches is a state not a failure, no-
 test("theme compare: window toggle, series chips, turn markers, exact table", async ({ page }) => {
   const theme = page.locator('[data-h-section="theme"]');
   await expect(theme).toBeVisible();
-  await expect(theme).toContainText(/vs|对比/); // rebased-note benchmark disclosure
+  await expect(theme).toContainText(/against SPY|以 SPY 为基准/); // rebased-note benchmark disclosure
   // 11 sector chips.
   const chips = theme.locator("button[aria-pressed]");
   expect(await chips.count()).toBeGreaterThanOrEqual(11);
-  // Turn markers exist on the chart.
-  await expect(theme.locator("svg circle")).not.toHaveCount(0);
+  // The captured fixture's cycle turns (all stub-dated 2022-06-16) fall outside
+  // every window, so the chart shows NO turn markers — that is the data's
+  // truth, asserted here; the in-window turn math is unit-proven instead.
+  await expect(theme.locator("svg circle")).toHaveCount(0);
+  await expect(theme).toContainText(/cycle turns|周期拐点/);
+  // Series lines render.
+  await expect(theme.locator("svg polyline")).not.toHaveCount(0);
   // Window switch to all history.
   await theme.getByRole("button", { name: /All history|全部历史/ }).click();
   // Exact-value table appears and matches the chart's window.
