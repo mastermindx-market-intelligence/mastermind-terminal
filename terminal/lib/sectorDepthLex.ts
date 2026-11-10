@@ -53,7 +53,7 @@ export const SECTOR_DEPTH_LEX: Record<string, [string, string]> = {
     "另有 {n} 个 · 完整访问可见",
   ],
   siCallsPreviewBanner: [
-    "Preview: {shown} of {total} names shown. Column counts are complete; the remaining {locked} names need full access.",
+    "Preview: {shown} of {total} names shown. Column counts are complete; the remaining {locked} need full access.",
     "预览：{total} 条建议中显示 {shown} 个名称。各栏计数完整，其余 {locked} 个名称需完整访问权限。",
   ],
   siCallsAsOfPill: ["Board as of {date} close", "榜单截至 {date} 收盘"],
