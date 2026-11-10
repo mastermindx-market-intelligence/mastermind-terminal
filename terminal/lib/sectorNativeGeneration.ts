@@ -11,6 +11,11 @@ import { object, sectorRows, sectorRotationHistory, sectorMeasuredRead,
 
 export const SECTOR_GENERATION_PATH = "/api/sector-generation?audience=preview";
 const MAX_BYTES = 4 * 1024 * 1024;
+/** One typed block's value can be up to 516 KiB encoded (COO 19:56Z item 7).
+ * UTF-8 bytes ≥ UTF-16 code units, so 516 * 1024 code units admits every
+ * string that encodes to 516 KiB; the 4 MiB whole-document byte bound and the
+ * ingress content-length guard above it are unchanged. */
+const MAX_BLOCK_CHARS = 516 * 1024;
 const HASH = /^[0-9a-f]{64}$/;
 const TOKEN = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/;
 const has = (value: Row, key: string) => Object.hasOwn(value, key);
@@ -31,21 +36,26 @@ function clock(value: unknown): value is string {
   return !!match && day(match[1]) && +match[2] < 24 && +match[3] < 60
     && (!match[4] || +match[4] < 60) && Number.isFinite(Date.parse(value));
 }
-/** Bound ordinary JSON before inspecting companions, including client-injected values. */
+/** Bound ordinary JSON before inspecting companions, including client-injected values.
+ * The walk budget (600k nodes) sits above the largest legal single typed block:
+ * a 516 KiB array value needs at most 264,192 minimal two-byte elements, and the
+ * 4 MiB whole-document bound plus the ingress content-length guard remain the
+ * outer limits. Per-container caps: ≤10,000 keys on an object; arrays follow
+ * the node budget so a legal 516 KiB array value is never refused. */
 export function bounded(value: unknown): boolean {
   const pending: { value: unknown; depth: number }[] = [{ value, depth: 0 }];
   const seen = new Set<object>(); let count = 0;
   while (pending.length) {
     const { value: item, depth } = pending.pop()!;
-    if (++count > 200000 || depth > 32) return false;
+    if (++count > 600000 || depth > 32) return false;
     if (item === null || typeof item === "boolean") continue;
     if (typeof item === "number") { if (!Number.isFinite(item)) return false; continue; }
-    if (typeof item === "string") { if (item.length > 262144) return false; continue; }
+    if (typeof item === "string") { if (item.length > MAX_BLOCK_CHARS) return false; continue; }
     if (typeof item !== "object" || seen.has(item)) return false;
     seen.add(item);
     if (!Array.isArray(item) && Object.getPrototypeOf(item) !== Object.prototype) return false;
     const entries = Object.entries(item);
-    if (entries.length > 10000) return false;
+    if (!Array.isArray(item) && entries.length > 10000) return false;
     for (const [key, entry] of entries) {
       // Opaque companion receipts own their key contract. Ordinary JSON keys
       // such as constructor/prototype are data; the whole-wire byte bound still
@@ -74,8 +84,9 @@ export interface NativeSectorGeneration {
   historyWire: Row;
   /** Owner action-board output, transported as bounded opaque data (lane 7). */
   actionBoard: Row;
-  /** Carried typed blocks (lane 1 wire §3): an absent key means every block
-   * is unavailable — never an error, never zero. */
+  /** Carried typed blocks (lane 1 wire §3, twelve names as of COO 19:56Z
+   * item 7): an absent key means every block is unavailable — never an error,
+   * never zero. Unknown extra names in the owner map are ignored, not refused. */
   typedBlocks: SectorTypedBlocks;
   /** Identity for local presentation reset only, never a new generation allocator. */
   key: string;
@@ -91,11 +102,21 @@ export interface SectorTypedBlock {
 export type SectorTypedBlocks = Record<string, SectorTypedBlock>;
 
 const TYPED_BLOCK_KEYS = ["r1_rising_priced_share", "r2_display_order", "r2_hazard_qualification",
-  "etf_flows", "confluence", "bottoming_watch", "theme_table"] as const;
+  "etf_flows", "confluence", "bottoming_watch", "theme_table",
+  // Lane 1's v11 increment (COO 19:56Z item 7) — five entitled-only blocks
+  // appended after theme_table. Carried opaque this round: no reader, no
+  // rendering, no per-name schema beyond the generic {status, reason, value}.
+  "confluence_universe_sp500", "confluence_universe_nasdaq", "confluence_universe_russell",
+  "confluence_universe_baskets", "theme_rows"] as const;
 
-/** Absent `typed_blocks` ⇒ all seven blocks unavailable/not_produced; a present
+/** Absent `typed_blocks` ⇒ all twelve blocks unavailable/not_produced; a present
  * block keeps its own status/reason verbatim. Nothing is recomputed here —
- * the generation owner is the producer. */
+ * the generation owner is the producer. Typed-block names outside the twelve
+ * are ignored: the `typed_blocks` map is the owner's open surface, so an
+ * unknown (thirteenth or later) name never refuses the generation and never
+ * throws — future lane 1 increments arrive without a Terminal release. A
+ * value may be up to 516 KiB encoded (see MAX_BLOCK_CHARS); no per-block cap
+ * below that exists in this parser. */
 export function sectorTypedBlocks(data: Row): SectorTypedBlocks {
   const source = has(data, "typed_blocks") && data.typed_blocks !== null
     && typeof data.typed_blocks === "object" && !Array.isArray(data.typed_blocks)
