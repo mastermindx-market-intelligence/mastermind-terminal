@@ -21,11 +21,7 @@ Rules (Meta-CEO ruling 2026-09-05, under issue #485):
 
 | Spec:line | Test title | Project | Evidence runs | Owner | Re-enable condition |
 | --- | --- | --- | --- | --- | --- |
-| terminal/e2e/intl-history-date-intent.spec.ts:19 | History accepts real date intent, compares exact reconstruction and returns with supported context | serial (desktop, tablet) | 42571976409 (route.fulfill disposed in real-next-legacy-transport), 42564412411 (scrollIntoViewIfNeeded timeout), 42559135163 (empty scenario-contribution text), 42516865791 (history-tab click never visible) — four failed runs in 36 h, four different mechanisms, so rule 1's harness-race clause, not one product defect. Coverage given up: the entire shared-shell History date-intent journey (exact reconstruction + return-context + retained-fixture provenance assertions) leaves the serial shard. | ci-lightning (Terminal CI program) | Re-enable when the serial lane's transport/visibility races are stabilized (fleet lane or legacy-transport fixture rework), then hold on 3 consecutive green full runs. |
-| terminal/e2e/options-exposure-surface-journey.spec.ts:1413 | synthetic exposure saved theme cold return en + zh | desktop, tablet, mobile | 42647618300 (desktop-4, mobile-2, tablet-3), 42516865791 (desktop-3, mobile-2, tablet-2) — six shards across two failed runs, every attempt timing out at the canonical-fixture poll's 5 s default with authReads 0 while data-chart-ready (30 s gate) had already passed. Coverage given up: saved-theme persistence across Exposure cold navigation in both languages. | ci-lightning (Terminal CI program) | The same PR raises that poll to 30 s; re-enable once 3 consecutive full-matrix runs are green with the raised poll (or sooner by principal ruling). |
-| terminal/e2e/drawing-system.spec.ts:2173 | a cross-pane price gesture clamps on a logarithmic price scale | desktop | 42634428249 (desktop-2) — initial attempt and every retry failed at the same line: the pane midpoint still read linear after the shipped Alt+l toggle, so rule 1's deterministic single-run clause. Coverage given up: the cross-pane clamp contract on a logarithmic scale (anchor-inside-band + endpoint-clamped-to-pane-bottom assertions in the same body). | ci-lightning (Terminal CI program) | Re-enable after #1401's chart-keyboard rework shows 3 consecutive green full runs for both cross-pane titles. |
-| terminal/e2e/drawing-system.spec.ts:2203 | a cross-pane price gesture clamps on an inverted price scale | desktop | 42634428249 (desktop-2) — same run and same clause as the logarithmic sibling: every attempt failed at the precondition line (Alt+i left the scale un-inverted at calibration time). Coverage given up: the inverted-orientation clamp contract (larger-price target + no Math.min shortcut). | ci-lightning (Terminal CI program) | Same as the logarithmic sibling row above. |
-| terminal/e2e/boats-display.spec.ts:48 | coalesced trailing null clears BOATS and a later failure cannot revive it | tablet, mobile | 42347628408 — failed mobile-1 with BOTH retries at the same line (rule 1's deterministic clause): the coalesced catch-up request count read 4 against the contract's exactly-3, racing #864's request coalescing against the test's held-request choreography; the same run's tablet-1 shard saw it pass only after a retry. Coverage given up: trailing-null clearing, no-revive-on-failure, and freshness-not-expired contracts in one body. | ci-lightning (Terminal CI program) | Re-enable when the ext-quote coalescing count assertion is made deterministic or after 3 consecutive green full runs. |
+| terminal/e2e/intl-history-date-intent.spec.ts:24 | History accepts real date intent, compares exact reconstruction and returns with supported context | serial (desktop, tablet, mobile) | 42571976409 (desktop: route.fulfill response disposed in real-next-legacy-transport), 42564412411 (desktop: scrollIntoViewIfNeeded timeout) — two failed runs on unchanged test blob 32928f4fc5d1a9de4aea663006ba03f1684f7601, satisfying rule 1's repeated-run clause. Root cause remains unresolved. Coverage given up: the entire shared-shell History date-intent journey (exact reconstruction + return-context + retained-fixture provenance assertions) leaves the serial shard in all three projects. | ci-lightning (Terminal CI program) | Re-enable the original assertions after a fixture or product correction is qualified on current source; prove 3 consecutive full serial-lane runs with this journey active. |
 
 Previously closed under rule 2 on 2026-10-18: the row `drawing-system.spec.ts:992` ("flagship geometry,
 editing, and path limits survive adversarial interaction", desktop, evidence run 33942726252). The Path tool's double-click finisher was repaired in
@@ -45,14 +41,13 @@ clicking through it.
 
 ## Observed but NOT quarantined (watch list — no coverage given up)
 
-These recur but have never turned the required check red: Playwright counts a retry-pass as a
-pass (issue #485 body: run 33286870497 "passed only after seven flaky retries"). Quarantining
-them would be coverage loss with no effect on the check. Re-open the question if any of them
-appears in a `failed` bucket on a run made after 2026-09-04.
+These entries do not disable any journey. Most record retry-pass observations; the
+`drawing-save-concurrency` row explicitly records a failed bucket whose quarantine conditions
+have not been qualified. Re-open a case when current-source failure evidence meets the ruling
+above, and prefer an identified small product fix under rule 2.
 
-Every run id below is cited as a *flake* (a check-run annotation's `flaky` bucket, or a
-retry-then-pass with no annotation at all), never as a `failed` bucket entry — the column is
-titled "Flaked in" rather than "Evidence runs" for exactly that reason. Two rows were
+Each row labels its observed result. A retry-pass is not a failed check, and a recorded failed
+bucket does not establish its root cause. Two rows were
 verified directly: run 33787644981's annotations list both
 `watchlist-bulk-actions.spec.ts:143` and `drawing-system.spec.ts:1586` under "3 flaky", with
 no failure stack trace for either — confirming they never reached the `failed` bucket in that

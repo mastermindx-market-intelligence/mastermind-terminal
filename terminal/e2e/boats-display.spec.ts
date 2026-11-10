@@ -45,11 +45,7 @@ for(const lang of ["en","zh"] as const){
  });
 }
 
-// QUARANTINE.md: failed mobile-1 of CI run 42347628408 with BOTH retries at the
-// same line — the coalesced catch-up request count read 4 where the contract
-// says exactly 3 (#864's coalescing races the test's held-request choreography);
-// the same run's tablet-1 shard saw it pass only after a retry.
-test.fixme("coalesced trailing null clears BOATS and a later failure cannot revive it",async({page},info)=>{
+test("coalesced trailing null clears BOATS and a later failure cannot revive it",async({page},info)=>{
  test.setTimeout(60_000);
  // Hold browser time below the recurring 5s/30s poll cadence. Only the
  // visibility triggers and their zero-delay catch-up belong to this assertion.

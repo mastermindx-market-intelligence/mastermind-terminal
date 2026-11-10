@@ -16,11 +16,11 @@ const HTML_SHA = "2756b62267ade84f0316c4f3e93847fa5fd4cce9e2ee6e6004fb2d3f1de740
 const dates = ["2026-01-01T00:00:00+09:00", "2026-01-03T00:00:00.123456789+09:00"];
 const digest = (value: Buffer) => createHash("sha256").update(value).digest("hex");
 
-// QUARANTINE.md: 4 failed CI runs in 36 h (42571976409, 42564412411, 42559135163,
-// 42516865791) with four DIFFERENT mechanisms — route.fulfill disposed inside
-// real-next-legacy-transport, scrollIntoViewIfNeeded timeout, empty
-// scenario-contribution text, and an invisible history-tab click. No single
-// product defect; a nondeterministic harness race on hosted runners.
+// QUARANTINE.md: CI runs 42571976409 and 42564412411 failed this unchanged
+// journey in the serial lane: route.fulfill used a disposed response, and
+// scrollIntoViewIfNeeded timed out. This satisfies the repeated-run clause;
+// the root cause remains unresolved. Re-enable only with the original
+// assertions active and current-source passing proof.
 test.fixme("History accepts real date intent, compares exact reconstruction and returns with supported context", async ({ page, context, baseURL }, info) => {
   const retained = readRetainedLegacyFixture(path.join(__dirname, "fixtures/intl-history-page-reviewed-query/fixture.json.gz"), BUNDLE_SHA);
   expect(retained.provenance.macro_source).toBe("389c3ac3442547b0f38a81e7922f9581d25b1e5b");

@@ -1410,12 +1410,7 @@ if(ACCESS_ACCEPTANCE)test("synthetic S9 phone inspector keyboard trap",async({pa
 // This fixture has no live account service: it qualifies the incumbent local
 // preference/identity consumer, never real-account or production persistence.
 for (const lang of ["en", "zh"] as const) {
-  // QUARANTINE.md: failed 6 shards across 2 CI runs (42647618300, 42516865791);
-  // every attempt died at the canonical-fixture poll below with authReads=0 after
-  // data-chart-ready had already passed — the 5 s poll is too tight on cold
-  // hosted runners. The poll is raised to 30 s in the same PR; this quarantine
-  // stops the red until that repair proves out.
-  test.fixme(`synthetic exposure saved theme cold return ${lang}`, async ({ page, baseURL }, info) => {
+  test(`synthetic exposure saved theme cold return ${lang}`, async ({ page, baseURL }, info) => {
     test.setTimeout(90_000);
     const origin = new URL(baseURL!).origin;
     const outside: string[] = [];
@@ -1510,13 +1505,7 @@ for (const lang of ["en", "zh"] as const) {
       await page.goto("/options?tab=prism&symbol=SPY&view=chart");
       await expect(map).toHaveAttribute("data-source-session", SESSION);
       await expect(map).toHaveAttribute("data-chart-ready", "true", { timeout: 30_000 });
-      // 30 s, aligned with the data-chart-ready gate directly above it: CI runs
-      // 42647618300 and 42516865791 failed six shards where every attempt timed
-      // out here at exactly the 5 s default with authReads still 0 while
-      // data-chart-ready had already passed — on a cold hosted runner the
-      // fixture account read lands well after chart readiness. 30 s stays far
-      // inside this test's 90 s timeout.
-      await expect.poll(() => authReads, { message: "canonical fixture account actually loaded", timeout: 30_000 }).toBeGreaterThan(0);
+      await expect.poll(() => authReads, { message: "canonical fixture account actually loaded" }).toBeGreaterThan(0);
       await selectActualLight(page, lang, "s14-first-intent");
       await expect.poll(() => user.user_metadata.theme, { message: "Settings preference write acknowledged by local fixture" }).toBe("light");
       expect(user.user_metadata.theme_auto, "explicit Settings choice is acknowledged, not auto mode").toBe("0");
