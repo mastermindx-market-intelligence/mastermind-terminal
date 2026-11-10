@@ -17,7 +17,9 @@
  *    non-conforming chart_key yields no link; nothing is invented.
  *  • The per-theme 21/63-session RS series are NOT carried (no producer
  *    artifact holds them) — that depth stays on the rs_history surface.
- *  • Never throws on any input.
+ *  • Never throws for any JSON-parsed value (N1: the readers sit behind
+ *    JSON.parse; the claim is scoped to what a parsed document can hold, not
+ *    to arbitrary JS objects such as cycles or getter-throwing proxies).
  */
 import { sameSiteHref } from "./sectorDepthHref";
 import {

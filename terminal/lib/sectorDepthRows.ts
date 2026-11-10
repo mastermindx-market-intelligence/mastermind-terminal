@@ -17,7 +17,9 @@
  *  • Soft cells never invalidate a block: a non-finite or non-numeric number
  *    reads `null` (not stated), an absent allow-listed key stays absent, and
  *    unknown keys are ignored.
- *  • Never throws on any input.
+ *  • Never throws for any JSON-parsed value (N1: the readers sit behind
+ *    JSON.parse; the claim is scoped to what a parsed document can hold, not
+ *    to arbitrary JS objects such as cycles or getter-throwing proxies).
  */
 
 import { isNavigableId } from "./sectorDepthCalls";
