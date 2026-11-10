@@ -18,6 +18,12 @@
  *   - 401 is the only sign-in state; 503/5xx/network offer Retry, never sign-in.
  *   - 409 CURSOR_RESET (and a 400 on a server-given cursor until lane 1's fix)
  *     restarts page one instead of silently losing the list.
+ *   - Point-in-time facts (item 5, COO 19:15Z): first-known dates are LOWER
+ *     BOUNDS ("first seen in stored snapshots on or before"), never join dates;
+ *     a null pair means no stored snapshot holds it, never "not a member"; a
+ *     non-agree roster clock forces the configured counts not stated; the
+ *     stored-snapshot line renders for the selected group only; the taxonomy
+ *     basis note renders only on the owner's current-not-point-in-time stamp.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
@@ -137,6 +143,25 @@ export default function SectorPopulationMembers() {
 
   const head = pages[0] ?? null;
   const counts = head?.counts ?? null;
+  // Item 5 (COO 19:15Z): the roster clock gates the completeness figures on the
+  // CONSUMER side too — a carried clock that is not `agree` (mismatch,
+  // unavailable or unreadable) makes the configured roster not stated, even if
+  // the wire still states numbers beside it. An absent clock is today's wire:
+  // counts render exactly as before.
+  const rosterClock = head?.rosterClock ?? null;
+  const clockAgrees = rosterClock === null || rosterClock.status === "agree";
+  const configuredCurrent = counts ? (clockAgrees ? counts.configuredCurrent : null) : null;
+  // The stored-snapshot fact renders for the SELECTED group only; a carried
+  // fact without an entry for that group (or unavailable whole) is the generic
+  // unavailable line — never an invented count.
+  const snapshotFact = head?.membershipSnapshot ?? null;
+  const snapshotEntry = group && snapshotFact && snapshotFact.carried
+    ? (snapshotFact.status === "available"
+      ? snapshotFact.groups[group] ?? { status: "unavailable" as const }
+      : { status: "unavailable" as const })
+    : null;
+  const firstKnownGroups = head && head.firstKnown.carried && head.firstKnown.status === "available"
+    ? head.firstKnown.groups : null;
   const rows = pages.flatMap(page => page.rows);
   const nextCursor = pages.length ? pages[pages.length - 1].nextCursor : null;
   // The picker reads the CAPTURE's list (B1), not the current page's — a
@@ -177,15 +202,26 @@ export default function SectorPopulationMembers() {
     <h2 className={styles.cardTitle}>{t("siPopulationTitle")}</h2>
     <p className={styles.stateCopy}>{t("siPopulationIntro")}</p>
     {counts ? <p className={styles.chartNote} data-testid="sector-population-counts">
-      {counts.configuredCurrent === null
+      {configuredCurrent === null
         // F1: no readable roster — unknown is "not stated", never zero, never complete.
+        // Item 5: a non-agree roster clock also forces not-stated, by law here.
         ? nativeFill(t("siPopulationCountsNotStated"), { served: String(counts.served) })
-        : nativeFill(t("siPopulationCounts"), { served: String(counts.served), configured: String(counts.configuredCurrent) })}
+        : nativeFill(t("siPopulationCounts"), { served: String(counts.served), configured: String(configuredCurrent) })}
       {" · "}{nativeFill(t("siPopulationCountsUnserved"), { n: String(counts.accountedUnserved) })}
       {counts.unaccounted > 0 ? ` · ${nativeFill(t("siPopulationCountsUnaccounted"), { n: String(counts.unaccounted) })}` : ""}
       {" · "}{nativeFill(t("siPopulationGroups"), { n: String(counts.groups) })}
       {head ? ` · ${nativeFill(t("siPopulationAsOf"), { session: head.sourceSession })}` : ""}
     </p> : null}
+    {counts && rosterClock !== null && rosterClock.status !== "agree"
+      ? <p className={styles.chartNote} data-testid="sector-population-roster-clock">{t("siPopulationRosterClockMismatch")}</p>
+      : null}
+    {group && snapshotEntry ? (snapshotEntry.status === "available"
+      ? <p className={styles.chartNote} data-testid="sector-population-snapshot">
+        {nativeFill(t("siPopulationSnapshotLine"), { date: snapshotEntry.snapshotDate, n: String(snapshotEntry.memberCount) })}
+        {" · "}{snapshotEntry.equalsCurrentRoster === null ? t("siPopulationSnapshotCompareUnavailable")
+          : snapshotEntry.equalsCurrentRoster ? t("siPopulationSnapshotMatches") : t("siPopulationSnapshotDiffers")}
+      </p>
+      : <p className={styles.chartNote} data-testid="sector-population-snapshot">{t("siPopulationSnapshotUnavailable")}</p>) : null}
 
     <div className={styles.populationControls}>
       <label className={styles.populationLabel} htmlFor="sector-population-group">{t("siPopulationGroupLabel")}</label>
@@ -244,7 +280,8 @@ export default function SectorPopulationMembers() {
                 row.industry.status === "available" ? localize(row.industry.label, row.industry.labelZh) : undefined)}</td>
               <td>{taxonomyLabel(t, row.subIndustry.status, row.subIndustry.status === "unavailable" ? row.subIndustry.reason : undefined,
                 row.subIndustry.status === "available" ? localize(row.subIndustry.label, row.subIndustry.labelZh) : undefined)}</td>
-              <td>{row.membership.effectiveOn ?? t("siPopulationMemberSinceCurrent")}</td>
+              <td>{row.membership.effectiveOn ?? t("siPopulationMemberSinceCurrent")}
+                {firstKnownGroups ? <FirstKnownNote groups={firstKnownGroups} groupId={row.groupId} symbol={row.symbol} /> : null}</td>
               <td>{row.alsoInGroups > 0 ? String(row.alsoInGroups) : "—"}</td>
             </tr>)}
           </tbody>
@@ -260,6 +297,9 @@ export default function SectorPopulationMembers() {
           <button type="button" className={shell.button} data-testid="sector-population-page-retry"
             onClick={() => { setPageFailure(false); void run({ cursor: nextCursor }); }}>{t("siPopulationRetryAction")}</button>
         </p> : null}
+        {head?.taxonomyRevision.currentNotPointInTime
+          ? <p className={styles.chartNote} data-testid="sector-population-taxonomy-basis">{t("siPopulationTaxonomyBasisCurrent")}</p>
+          : null}
       </div>
       : null}
 
@@ -290,4 +330,20 @@ export default function SectorPopulationMembers() {
         : t("siPopulationRemovedUnavailable")}
     </p> : null}
   </section>;
+}
+
+/** Item 5 (COO 19:15Z): the lower-bound first-known line beside the
+ * current-basis effective date. The date is worded as a bound ("on or before")
+ * — never a join date; a null pair says no stored snapshot holds it, never
+ * "not a member". A pair the fact does not cover renders nothing. */
+function FirstKnownNote({ groups, groupId, symbol }: {
+  groups: Record<string, Record<string, string | null>>; groupId: string; symbol: string;
+}) {
+  const t = useSectorT();
+  const pairs = Object.hasOwn(groups, groupId) ? groups[groupId] : null;
+  if (!pairs || !Object.hasOwn(pairs, symbol)) return null;
+  const value = pairs[symbol];
+  return <span className={styles.chartNote} data-testid="sector-population-first-known">
+    {` · ${value === null ? t("siPopulationFirstKnownAbsentPair") : nativeFill(t("siPopulationFirstKnown"), { date: value })}`}
+  </span>;
 }

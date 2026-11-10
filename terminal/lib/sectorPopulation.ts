@@ -19,6 +19,11 @@
  *     owner down) is a RETRY state; a retry never prompts sign-in.
  *   - 409 CURSOR_RESET restarts page one. 400 REQUEST_INVALID on a server-given
  *     cursor is treated as a reset until lane 1's grammar fix lands (COO order 2).
+ *   - Lane 1 point-in-time facts (item 5, Macro #10965 §2b): membership_snapshot,
+ *     roster_clock, membership_first_known and taxonomy_revision are WHOLE-fact
+ *     tolerant reads — absent, unavailable, unknown reason or wrong type degrades
+ *     to the fact's own unavailable state, never a refused page, never zero.
+ *     roster_clock non-agree forces the completeness figures not stated here.
  *
  * The decoder is a closed admission: anything outside the wire contract is null and
  * the surface renders unavailable — never a partial read, never invented members.
@@ -119,6 +124,31 @@ export type PopulationRemovedMembers = {
   status: "available"; n: number; source: string; version: string; asOf: string;
   members: { groupId: string; symbol: string; removedOn: string }[];
 } | { status: "unavailable"; reason: string };
+/** Lane 1 point-in-time facts (COO 19:15Z item 5, Macro #10965 §2b). Each is a
+ * WHOLE-fact tolerant read: absent, owner-unavailable, unknown reason or wrong
+ * type degrades to the fact's own unavailable state — the page is never
+ * refused and a number is never invented. */
+export type PopulationSnapshotEntry =
+  | { status: "available"; snapshotDate: string; membersSha: string | null;
+      memberCount: number; equalsCurrentRoster: boolean | null }
+  | { status: "unavailable" };
+export type PopulationMembershipSnapshot =
+  | { carried: false }
+  | { carried: true; status: "available"; asOf: string; groups: Record<string, PopulationSnapshotEntry> }
+  | { carried: true; status: "unavailable" };
+/** `membership_first_known`: per (group, symbol) a LOWER-BOUND snapshot date —
+ * null means NO stored snapshot holds the pair, never "not a member". */
+export type PopulationFirstKnown =
+  | { carried: false }
+  | { carried: true; status: "available"; groups: Record<string, Record<string, string | null>> }
+  | { carried: true; status: "unavailable" };
+/** `roster_clock`: null when the wire carries no clock (today); any carried
+ * non-agree — mismatch, unavailable or malformed — reads not_agree, and the
+ * surface must treat the completeness figures as not stated. */
+export type PopulationRosterClock = { status: "agree" } | { status: "not_agree" };
+/** `taxonomy_revision`: the one statement lane 1 makes today is that the
+ * classification labels are current-basis, not point-in-time. */
+export type PopulationTaxonomyRevision = { currentNotPointInTime: boolean };
 /** Counts only — never a completeness claim. `configuredCurrent`/`complete` are
  * null when the capture has no readable roster (F1): null means UNKNOWN — render
  * "not stated", never zero and never complete. */
@@ -142,6 +172,11 @@ export type PopulationPage = {
   groupIndex: PopulationGroupIndexEntry[] | null;
   unservedMatching: PopulationUnservedEntry[] | null;
   nextCursor: string | null; contextRef: string;
+  /** Lane 1 point-in-time facts (item 5) — tolerant whole-fact reads. */
+  membershipSnapshot: PopulationMembershipSnapshot;
+  firstKnown: PopulationFirstKnown;
+  rosterClock: PopulationRosterClock | null;
+  taxonomyRevision: PopulationTaxonomyRevision;
 };
 
 function taxonomy(value: unknown, withKeys: boolean): PopulationTaxonomy | null {
@@ -227,10 +262,90 @@ export function groupIndexRefused(entry: {
     && entry.configuredCurrent !== null && entry.unserved === entry.configuredCurrent;
 }
 
-/**
- * Closed admission for `sector_population.read/v1` (success shape). Returns the
- * normalized page, or null — a null page is an unavailable surface, never a guess.
- */
+/** `capture.identity.membership_snapshot` — tolerant whole-fact read (item 5).
+ * Absent reads not-carried; owner-unavailable, unknown reason, wrong type or a
+ * malformed shape each read carried-unavailable. The ONE whole-fact trigger
+ * inside entries is a stamped `members_sha` outside null|64-hex (owner S3:
+ * never a partially trusted group set); every other entry fault degrades that
+ * entry alone, matching the owner's per-group unavailable. */
+function readMembershipSnapshot(value: unknown): PopulationMembershipSnapshot {
+  if (value === undefined || value === null) return { carried: false };
+  const unavailable = { carried: true, status: "unavailable" } as const;
+  if (!record(value) || value.status !== "available"
+    || !str(value.source, 200) || !day(value.as_of) || value.suite !== "baskets" || !record(value.groups)) {
+    return unavailable;
+  }
+  const groups: Record<string, PopulationSnapshotEntry> = {};
+  for (const [groupId, entry] of Object.entries(value.groups)) {
+    if (!POPULATION_GROUP_ID.test(groupId)) return unavailable; // malformed group set
+    if (record(entry) && entry.status === "unavailable") { groups[groupId] = { status: "unavailable" }; continue; }
+    const shaFault = record(entry) && Object.hasOwn(entry, "members_sha") && entry.members_sha !== null
+      && !(typeof entry.members_sha === "string" && HASH.test(entry.members_sha));
+    if (shaFault) return unavailable;
+    const ok = record(entry) && entry.status === "available"
+      && closed(entry, ["status", "snapshot_date", "members_sha", "member_count", "equals_current_roster"])
+      && day(entry.snapshot_date) && int(entry.member_count, 0, 1_000_000)
+      && (entry.equals_current_roster === null || bool(entry.equals_current_roster));
+    if (!ok) { groups[groupId] = { status: "unavailable" }; continue; }
+    groups[groupId] = { status: "available", snapshotDate: entry.snapshot_date,
+      membersSha: entry.members_sha as string | null, memberCount: entry.member_count as number,
+      equalsCurrentRoster: entry.equals_current_roster as boolean | null };
+  }
+  return { carried: true, status: "available", asOf: value.as_of as string, groups };
+}
+
+/** `capture.identity.membership_first_known` — the LOWER-BOUND fact (item 5).
+ * The basis and absent-pair literals are validated so the reader's fixed
+ * lower-bound wording can never mislabel a different fact; every day value
+ * (store bounds and pair dates) is pattern- AND calendar-checked, and any
+ * fault degrades the whole fact — a partially trusted pair set is never read. */
+function readFirstKnown(value: unknown): PopulationFirstKnown {
+  if (value === undefined || value === null) return { carried: false };
+  const unavailable = { carried: true, status: "unavailable" } as const;
+  if (!record(value) || value.status !== "available"
+    || value.basis !== "lower_bound_from_stored_snapshots" || value.absent_pair_reason !== "no_stored_snapshot"
+    || !str(value.source, 200) || !day(value.as_of)
+    || !(value.store_first === null || day(value.store_first))
+    || !(value.store_last === null || day(value.store_last))
+    || !record(value.groups)) return unavailable;
+  const groups: Record<string, Record<string, string | null>> = {};
+  for (const [groupId, pairs] of Object.entries(value.groups)) {
+    if (!POPULATION_GROUP_ID.test(groupId) || !record(pairs)) return unavailable;
+    const out: Record<string, string | null> = {};
+    for (const [symbol, date] of Object.entries(pairs)) {
+      if (!POPULATION_SYMBOL.test(symbol) || (date !== null && !day(date))) return unavailable;
+      out[symbol] = date;
+    }
+    groups[groupId] = out;
+  }
+  return { carried: true, status: "available", groups };
+}
+
+/** `capture.population.roster_clock` — null when not carried; agree only on the
+ * owner's exact agree shape; every mismatch/unavailable/malformed reads
+ * not_agree (item 5: the completeness figures are then not stated). */
+function readRosterClock(value: unknown): PopulationRosterClock | null {
+  if (value === undefined || value === null) return null;
+  if (record(value) && value.status === "agree"
+    && typeof value.roster_as_of === "string" && str(value.roster_as_of, 32)
+    && typeof value.capture_effective_as_of === "string" && str(value.capture_effective_as_of, 32)) {
+    return { status: "agree" };
+  }
+  return { status: "not_agree" };
+}
+
+/** `capture.identity.taxonomy_revision` — the only consumed statement is the
+ * current-not-point-in-time labels basis; every other shape reads false. */
+function readTaxonomyRevision(value: unknown): PopulationTaxonomyRevision {
+  if (!record(value) || value.status !== "unavailable"
+    || value.labels_basis !== "current_not_point_in_time"
+    || !Array.isArray(value.labels) || !value.labels.every(label => typeof label === "string")) {
+    return { currentNotPointInTime: false };
+  }
+  return { currentNotPointInTime: true };
+}
+
+
 export function sectorPopulationPage(value: unknown): PopulationPage | null {
   if (!bounded(value) || !closed(value, ["schema", "audience", "source_session", "published_at", "qualification", "page"])
     || value.schema !== "sector_population.read/v1" || value.audience !== "entitled"
@@ -265,7 +380,7 @@ export function sectorPopulationPage(value: unknown): PopulationPage | null {
     || (ownerRefRaw.retained_resolver_ref_durability !== "durable" && ownerRefRaw.retained_resolver_ref_durability !== "process_lifetime_only")) return null;
 
   const population = capture.population;
-  if (!closed(population, ["configured_current", "served", "accounted_unserved", "unaccounted", "complete", "complete_rule", "unserved_reason_note", "unserved_reasons", "groups", "unserved_members", "removed_members", "eligible", "measured", "entitled_visibility_scope"])
+  if (!closed(population, ["configured_current", "served", "accounted_unserved", "unaccounted", "complete", "complete_rule", "unserved_reason_note", "unserved_reasons", "groups", "unserved_members", "removed_members", "eligible", "measured", "entitled_visibility_scope"], ["roster_clock"])
     // F1: configured_current/complete are NULL when the capture has no readable
     // roster — null is unknown, never zero, never complete.
     || !(population.configured_current === null || int(population.configured_current, 0, 1_000_000))
@@ -282,8 +397,9 @@ export function sectorPopulationPage(value: unknown): PopulationPage | null {
 
   let removedMembers: PopulationRemovedMembers | null;
   const removed = population.removed_members;
-  // §2: no producer emits removals ⇒ exactly unavailable/not_produced.
-  if (closed(removed, ["status", "reason"]) && removed.status === "unavailable" && removed.reason === "not_produced") {
+  // §2 unavailable: any owner string reason renders the generic unavailable
+  // note (item 5: lane 1 adds `carried_block_undated`; unlisted stays generic).
+  if (closed(removed, ["status", "reason"]) && removed.status === "unavailable" && str(removed.reason, 200)) {
     removedMembers = { status: "unavailable", reason: removed.reason };
   } else if (closed(removed, ["status", "n", "source", "version", "as_of", "members"]) && removed.status === "available"
     && int(removed.n, 0, 1_000_000) && str(removed.source, 200) && str(removed.version, 128) && day(removed.as_of)
@@ -390,6 +506,14 @@ export function sectorPopulationPage(value: unknown): PopulationPage | null {
     unservedMatching = (page.unserved_matching as unknown[]).map(entry => unservedEntry(entry)!);
   }
 
+  // Lane 1 point-in-time facts (item 5): tolerant whole-fact reads — none of
+  // them can refuse the page, and none invents a number on a bad shape.
+  const identity = record(capture.identity) ? capture.identity : null;
+  const membershipSnapshot = readMembershipSnapshot(identity?.membership_snapshot);
+  const firstKnown = readFirstKnown(identity?.membership_first_known);
+  const rosterClock = readRosterClock(Object.hasOwn(population, "roster_clock") ? population.roster_clock : undefined);
+  const taxonomyRevision = readTaxonomyRevision(identity?.taxonomy_revision);
+
   // Internal consistency (review S2): the wire's own invariants. A page that
   // breaks them is refused whole — the surface reads unavailable, never a
   // partial table that renders impossible counts or follows an end-of-list
@@ -420,6 +544,7 @@ export function sectorPopulationPage(value: unknown): PopulationPage | null {
     filter: { group: page.filter.group ?? null, q: page.filter.q ?? null },
     limit: page.limit, offset: page.offset, totalMatching: page.total_matching, complete: page.complete,
     rows, groups, groupIndex, unservedMatching, nextCursor: page.next_cursor, contextRef: page.context_ref,
+    membershipSnapshot, firstKnown, rosterClock, taxonomyRevision,
   };
 }
 

@@ -353,3 +353,156 @@ describe("SectorPopulationMembers — r2 SF-4/N-B/S1 render gates", () => {
     act(() => root.unmount());
   });
 });
+
+describe("SectorPopulationMembers — item 5 (COO 19:15Z): lane 1 point-in-time facts render honestly", () => {
+  const cell = (c: HTMLElement, row: number, column: number): string =>
+    (c.querySelectorAll('[data-testid="sector-population-table"] tbody tr')[row]?.children[column] as HTMLElement | undefined)?.textContent ?? "";
+  const withZh = async (run: (mounted: { container: HTMLElement; root: Root }) => Promise<void>): Promise<void> => {
+    document.documentElement.setAttribute("data-lang", "zh");
+    const mounted = await mount();
+    try { await run(mounted); } finally {
+      act(() => mounted.root.unmount());
+      document.documentElement.removeAttribute("data-lang");
+    }
+  };
+  const countsLine = (c: HTMLElement) => c.querySelector('[data-testid="sector-population-counts"]')?.textContent ?? "";
+  const clockNote = (c: HTMLElement) => c.querySelector('[data-testid="sector-population-roster-clock"]')?.textContent ?? null;
+  const snapshotLine = (c: HTMLElement) => c.querySelector('[data-testid="sector-population-snapshot"]')?.textContent ?? null;
+  const taxonomyNote = (c: HTMLElement) => c.querySelector('[data-testid="sector-population-taxonomy-basis"]')?.textContent ?? null;
+  const firstKnownCell = (c: HTMLElement, row: number) => cell(c, row, 4);
+  const snapshotFact = (equals: boolean | null) => ({
+    status: "available", source: "baskets_membership_pit", as_of: "2026-11-06", suite: "baskets",
+    groups: { housing: { status: "available", snapshot_date: "2026-11-05", members_sha: "a".repeat(64), member_count: 18, equals_current_roster: equals } },
+  });
+  const firstKnownFact = () => ({
+    status: "available", source: "baskets_membership_pit", as_of: "2026-11-06",
+    basis: "lower_bound_from_stored_snapshots", basis_note: "note",
+    store_first: "2025-01-15", store_last: "2026-11-05", absent_pair_reason: "no_stored_snapshot",
+    groups: { housing: { MHK: "2025-06-02", FBIN: null } },
+  });
+  const identityOf = (page: Record<string, unknown>) =>
+    ((page as { capture: { identity: Record<string, unknown> } }).capture).identity;
+  const populationOf = (page: Record<string, unknown>) =>
+    ((page as { capture: { population: Record<string, unknown> } }).capture).population;
+
+  it("a non-agree roster clock forces the not-stated counts and names the clock (en)", async () => {
+    // The wire still states configured_current 1020 — the CONSUMER enforces the
+    // clock law, never trusting completeness beside a disagreeing clock.
+    pageMutate = page => {
+      populationOf(page).roster_clock = { status: "mismatch", reason: "roster_as_of_mismatch",
+        roster_as_of: "2026-11-07", capture_effective_as_of: "2026-11-06" };
+    };
+    const { container, root } = await mount();
+    expect(countsLine(container)).toContain("configured roster not stated by the owner");
+    expect(countsLine(container)).not.toContain("1020");
+    expect(clockNote(container)).toContain("roster clock does not agree with the capture session");
+    act(() => root.unmount());
+  });
+
+  it("the same page in zh renders the zh clock wording (zh)", async () => {
+    pageMutate = page => {
+      populationOf(page).roster_clock = { status: "unavailable", reason: "roster_block_malformed", roster_as_of: "2026-11-06" };
+    };
+    await withZh(async ({ container }) => {
+      expect(countsLine(container)).not.toContain("1020");
+      expect(clockNote(container)).toContain("名册时钟与采集会话不一致");
+    });
+  });
+
+  it("an agreeing clock keeps the stated counts and renders no clock note", async () => {
+    pageMutate = page => {
+      populationOf(page).roster_clock = { status: "agree", roster_as_of: "2026-11-06", capture_effective_as_of: "2026-11-06" };
+    };
+    const { container, root } = await mount();
+    expect(countsLine(container)).toContain("1020");
+    expect(clockNote(container)).toBeNull();
+    act(() => root.unmount());
+  });
+
+  it("a carried-but-unreadable clock is not-agree: counts not stated even against a stated roster", async () => {
+    pageMutate = page => {
+      populationOf(page).roster_clock = 42;
+    };
+    const { container, root } = await mount();
+    expect(countsLine(container)).not.toContain("1020");
+    expect(clockNote(container)).toContain("roster clock does not agree");
+    act(() => root.unmount());
+  });
+
+  it("first-known dates word the lower bound, and a null pair is not 'not a member' (en)", async () => {
+    pageMutate = page => { identityOf(page).membership_first_known = firstKnownFact(); };
+    const { container, root } = await mount();
+    expect(firstKnownCell(container, 0)).toContain("First seen in stored snapshots on or before 2025-06-02");
+    expect(firstKnownCell(container, 0)).toContain("2023-05-09"); // the current-basis date stays
+    expect(firstKnownCell(container, 1)).toContain("No stored snapshot holds this pair");
+    expect(container.textContent).not.toMatch(/joined/i);
+    act(() => root.unmount());
+  });
+
+  it("zh lower-bound and null-pair wordings (zh)", async () => {
+    pageMutate = page => { identityOf(page).membership_first_known = firstKnownFact(); };
+    await withZh(async ({ container }) => {
+      expect(firstKnownCell(container, 0)).toContain("不晚于 2025-06-02 已见于存储成员快照");
+      expect(firstKnownCell(container, 1)).toContain("存储快照中没有该配对的记录");
+    });
+  });
+
+  it("an unavailable or absent first-known fact keeps the column exactly as today", async () => {
+    const { container, root } = await mount(); // fixture placeholder: unavailable/not_produced
+    expect(firstKnownCell(container, 0)).toBe("2023-05-09");
+    act(() => root.unmount());
+    pageMutate = page => { identityOf(page).membership_first_known = { status: "available", basis: "wrong" }; };
+    const second = await mount();
+    expect(firstKnownCell(second.container, 0)).toBe("2023-05-09");
+    act(() => second.root.unmount());
+  });
+
+  it("the selected group's stored snapshot states date, count and roster comparison", async () => {
+    for (const [equals, expected] of [[true, "matches the current roster"],
+      [false, "differs from the current roster"], [null, "current-roster comparison unavailable"]] as const) {
+      pageMutate = page => { identityOf(page).membership_snapshot = snapshotFact(equals); };
+      const { container, root } = await mount();
+      await chooseGroup(container, "housing");
+      expect(snapshotLine(container)).toContain("Stored membership snapshot 2026-11-05: 18 members");
+      expect(snapshotLine(container)).toContain(expected);
+      act(() => root.unmount());
+    }
+  });
+
+  it("a carried-unavailable snapshot for the selected group renders the generic line; an absent one renders nothing", async () => {
+    pageMutate = page => { identityOf(page).membership_snapshot = { status: "unavailable", reason: "carried_block_undated" }; };
+    const { container, root } = await mount();
+    await chooseGroup(container, "housing");
+    expect(snapshotLine(container)).toContain("Point-in-time membership snapshot unavailable");
+    act(() => root.unmount());
+    pageMutate = null; // today's wire carries no snapshot fact at all
+    const second = await mount();
+    await chooseGroup(second.container, "housing");
+    expect(snapshotLine(second.container)).toBeNull();
+    act(() => second.root.unmount());
+  });
+
+  it("the taxonomy current-basis stamp renders the basis note; today's placeholder does not", async () => {
+    pageMutate = page => {
+      identityOf(page).taxonomy_revision = { status: "unavailable", reason: "no_point_in_time_classification_source",
+        labels_basis: "current_not_point_in_time", labels: ["industry", "sub_industry"] };
+    };
+    const { container, root } = await mount();
+    expect(taxonomyNote(container)).toContain("Classifications are current-basis, not point-in-time");
+    act(() => root.unmount());
+    pageMutate = null;
+    const second = await mount();
+    expect(taxonomyNote(second.container)).toBeNull();
+    act(() => second.root.unmount());
+  });
+
+  it("removed_members carried_block_undated renders the generic unavailable note, never a number", async () => {
+    pageMutate = page => { populationOf(page).removed_members = { status: "unavailable", reason: "carried_block_undated" }; };
+    const { container, root } = await mount();
+    expect(table(container)).not.toBeNull(); // the page was never refused
+    const removed = container.querySelector('[data-testid="sector-population-removed"]')?.textContent ?? "";
+    expect(removed).toContain("Removed-member list unavailable");
+    expect(removed).not.toMatch(/\d/);
+    act(() => root.unmount());
+  });
+});

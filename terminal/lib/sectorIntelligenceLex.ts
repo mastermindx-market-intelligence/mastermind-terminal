@@ -687,6 +687,18 @@ export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siPopulationMoreHidden: ["+{n} more not shown here.", "另有 {n} 名未在此显示。"],
   siPopulationRemovedNote: ["{n} members removed before this observation (list {version}) are not shown as gaps.", "{n} 名成员在本观察前已被移除（名单版本 {version}），不会显示为空缺。"],
   siPopulationRemovedUnavailable: ["Removed-member list unavailable for this reading.", "本次读取无法获得已移除成员名单。"],
+  // Item 5 (COO 19:15Z) — lane 1 point-in-time facts. The first-known date is a
+  // LOWER BOUND (the store may lack earlier snapshots), never a join date; a
+  // null pair means no stored snapshot holds it, never "not a member".
+  siPopulationFirstKnown: ["First seen in stored snapshots on or before {date}", "不晚于 {date} 已见于存储成员快照"],
+  siPopulationFirstKnownAbsentPair: ["No stored snapshot holds this pair", "存储快照中没有该配对的记录"],
+  siPopulationRosterClockMismatch: ["The roster clock does not agree with the capture session — configured counts are not stated.", "名册时钟与采集会话不一致——未列明配置成员数。"],
+  siPopulationSnapshotLine: ["Stored membership snapshot {date}: {n} members", "存储成员快照 {date}：{n} 名成员"],
+  siPopulationSnapshotMatches: ["matches the current roster", "与当前名册一致"],
+  siPopulationSnapshotDiffers: ["differs from the current roster", "与当前名册不一致"],
+  siPopulationSnapshotCompareUnavailable: ["current-roster comparison unavailable", "无法与当前名册比较"],
+  siPopulationSnapshotUnavailable: ["Point-in-time membership snapshot unavailable.", "时点成员快照不可用。"],
+  siPopulationTaxonomyBasisCurrent: ["Classifications are current-basis, not point-in-time.", "分类为当前口径，非时点口径。"],
   siPopulationEmpty: ["No members match this filter.", "没有成员匹配此筛选。"],
   siPopulationLoading: ["Loading members…", "正在加载成员…"],
   siPopulationSignedOut: ["Sign in to view basket members.", "登录后查看篮子成员。"],
