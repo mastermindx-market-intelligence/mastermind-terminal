@@ -22,6 +22,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   CARRIED_FLOW_LABELS,
+  carriedWindowOf,
   cellIntensity,
   effectiveWindowDays,
   FLOW_FUND_MAX,
@@ -962,6 +963,51 @@ describe("r2 — prototype-named keys, empty flow_mn, and real calendar dates", 
         flowsFromCarriedBlock(variant((b) => { b.as_of = good; }))?.asof,
         good,
       ).toBe(good);
+    }
+  });
+
+  it("R3-N5 — a window labeled “constructor” with an otherwise-valid day count is refused BY THE LABEL", () => {
+    // trading_days stays 1 — the exact count the 1D window would carry — so
+    // the only reason this block dies is the closed label set (ownership:
+    // “constructor” is not a carried label, it is Object.prototype's).
+    const setWindow0 =
+      (label: string) =>
+      (b: Record<string, unknown>): void => {
+        (b.windows as { label: string; trading_days: number; full_window: boolean }[])[0] = {
+          label,
+          trading_days: 1,
+          full_window: true,
+        };
+      };
+    expect(flowsFromCarriedBlock(variant(setWindow0("constructor")))).toBeNull();
+    // Control: the same surgery with a real label is accepted.
+    expect(flowsFromCarriedBlock(variant(setWindow0("1D")))).not.toBeNull();
+  });
+
+  it("R3-N5 — carriedWindowOf resolves labels by ownership, never through the prototype (the sectorDepthFlows.ts:497 pin)", () => {
+    // Real labels resolve; everything else — prototype names, an own
+    // JSON-parsed "__proto__", unknowns, non-strings — is undefined. This is
+    // the seam the windows loop reads; reverting its hasOwn to a plain
+    // lookup makes "constructor" resolve to Object.prototype.constructor and
+    // fails here.
+    expect(carriedWindowOf("1D")).toBe("1d");
+    expect(carriedWindowOf("3D")).toBe("3d");
+    expect(carriedWindowOf("1W")).toBe("1w");
+    expect(carriedWindowOf("2W")).toBe("2w");
+    expect(carriedWindowOf("1M")).toBe("1m");
+    for (const name of [
+      "constructor",
+      "toString",
+      "valueOf",
+      "hasOwnProperty",
+      "__proto__",
+      "zz",
+      "",
+      undefined,
+      null,
+      1,
+    ]) {
+      expect(carriedWindowOf(name), String(name)).toBeUndefined();
     }
   });
 });

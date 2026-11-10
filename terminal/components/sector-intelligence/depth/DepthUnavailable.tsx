@@ -6,8 +6,9 @@ import styles from "./DepthUnavailable.module.css";
 /** Reader-facing display names for the carried field ids (review S5): the
  * wire id still rides the section's data attribute for tests, but the body
  * copy shows the localized capability name — never the raw internal id in the
- * ZH surface. An unmapped id renders verbatim (still an internal name, and a
- * signal to add its lex entry). */
+ * ZH surface. An id with no entry renders the localized generic
+ * (R3-N1) — never the raw key, "undefined", or (for a prototype-named id) a
+ * function's source; the raw id stays findable in the data attributes. */
 const FIELD_LABEL_KEYS: Record<string, string> = {
   action_board: "siDepthFieldActionBoard",
   bottoming_watch: "siDepthFieldBottomingWatch",
@@ -39,17 +40,29 @@ export function DepthUnavailable({
   title: string;
 }) {
   const t = useSectorDepthT();
-  const fieldKey = FIELD_LABEL_KEYS[field];
-  const ownerKey = OWNER_LABEL_KEYS[owner];
+  // Ownership, not value lookup (R3-N1): a prototype-named id ("constructor",
+  // "toString") must fall to the generic phrase rather than resolve through
+  // Object.prototype — and "undefined" never reaches the reader.
+  const fieldKey = Object.hasOwn(FIELD_LABEL_KEYS, field) ? FIELD_LABEL_KEYS[field] : undefined;
+  const ownerKey = Object.hasOwn(OWNER_LABEL_KEYS, owner) ? OWNER_LABEL_KEYS[owner] : undefined;
   return (
-    <section className={styles.root} aria-label={title} data-depth-unavailable={field}>
+    <section
+      className={styles.root}
+      aria-label={title}
+      data-depth-unavailable={field}
+      data-owner-id={owner}
+    >
       <h3 className={styles.title}>{title}</h3>
       <p className={styles.state}>{t("siDepthUnavailableTitle")}</p>
       <p className={styles.body}>
-        {t("siDepthUnavailableBody", { field: fieldKey ? t(fieldKey) : field })}
+        {t("siDepthUnavailableBody", {
+          field: fieldKey ? t(fieldKey) : t("siDepthFieldGeneric"),
+        })}
       </p>
       <p className={styles.owner}>
-        {t("siDepthUnavailableOwner", { owner: ownerKey ? t(ownerKey) : owner })}
+        {t("siDepthUnavailableOwner", {
+          owner: ownerKey ? t(ownerKey) : t("siDepthOwnerGeneric"),
+        })}
       </p>
     </section>
   );

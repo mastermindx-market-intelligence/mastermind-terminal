@@ -152,14 +152,17 @@ function HarnessBody() {
   const { lang } = useLang();
   const [navLog, setNavLog] = useState<NavEntry[]>([]);
   /** Shared onNavigate sink — the e2e asserts clicks land here verbatim. The
-   * calls board hands a CallsNavigateTarget (href + entity identity, lane-3
-   * consumer delta); the log line stays the href so the e2e pattern is
-   * unchanged. Other surfaces still pass a bare href string. */
+   * calls board hands a CallsNavigateTarget (entity identity, lane-3 consumer
+   * delta); when its href is null (relative owner href, N4-refused) the log
+   * line falls back to "kind/id" so the click is still visible. Surfaces with
+   * a conforming href keep logging the href string itself. */
   const onNavigate = useCallback(
     (hrefOrTarget: string | CallsNavigateTarget) => {
-      const href =
-        typeof hrefOrTarget === "string" ? hrefOrTarget : hrefOrTarget.href;
-      setNavLog((prev) => [...prev, { id: prev.length + 1, label: href }]);
+      const label =
+        typeof hrefOrTarget === "string"
+          ? hrefOrTarget
+          : (hrefOrTarget.href ?? `${hrefOrTarget.kind}/${hrefOrTarget.id}`);
+      setNavLog((prev) => [...prev, { id: prev.length + 1, label }]);
     },
     [],
   );

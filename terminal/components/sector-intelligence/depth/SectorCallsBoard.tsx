@@ -21,6 +21,7 @@ import {
   type CallsNavigateHandler,
   type LaneData,
   type SourceLaneKey,
+  isNavigableId,
 } from "@/lib/sectorDepthCalls";
 import { sameSiteHref } from "@/lib/sectorDepthHref";
 import { DepthUnavailable } from "./DepthUnavailable";
@@ -495,7 +496,7 @@ function CallRowCard({
         emerging={row.emerging}
         href={row.emergence_href}
         onNavigate={
-          onNavigate
+          onNavigate && isNavigableId(row.slug) && isNavigableId(row.ticker)
             ? (href) => onNavigate({ href, kind: row.kind, id: row.slug, ticker: row.ticker })
             : undefined
         }
@@ -510,33 +511,38 @@ function CallRowCard({
         >
           {t(traceOpen ? "siCallsTraceHide" : "siCallsTrace")}
         </button>
-        {/* N4 href law: the row's carried href is actionable only as a
-            same-site relative path beginning with one "/". A non-conforming
-            href renders NO detail control (never a rewritten or invented
-            destination) and the navigation callback is never called with it.
-            When it IS conforming, the callback carries the entity identity
-            beside the href (CallsNavigateTarget, lane-3 consumer delta). */}
-        {sameSiteHref(row.href) !== null &&
-          (onNavigate ? (
-            <button
-              type="button"
-              className={styles.detailBtn}
-              onClick={() =>
-                onNavigate({
-                  href: sameSiteHref(row.href) as string,
-                  kind: row.kind,
-                  id: row.slug,
-                  ticker: row.ticker,
-                })
-              }
-            >
-              {t("siCallsDetail")}
-            </button>
-          ) : (
-            <a className={styles.detailBtn} href={sameSiteHref(row.href) as string}>
-              {t("siCallsDetail")}
-            </a>
-          ))}
+        {/* Navigate-target law (N4 + R3-N2/R3-N3): WITH a callback, the
+            control renders whenever the row's identity (slug AND ticker) is a
+            plain bounded identifier — the target then carries href:
+            sameSiteHref(row.href), which is null for a relative or hostile
+            href, so a hostile href never reaches the callback as a string;
+            routing is by kind + id. A row whose identity fails the law
+            renders as a row but yields no control and no callback. WITHOUT a
+            callback the behaviour is unchanged: the exact-anchor fallback
+            exists only for a conforming same-site href. */}
+        {onNavigate
+          ? isNavigableId(row.slug) &&
+            isNavigableId(row.ticker) && (
+              <button
+                type="button"
+                className={styles.detailBtn}
+                onClick={() =>
+                  onNavigate({
+                    href: sameSiteHref(row.href),
+                    kind: row.kind,
+                    id: row.slug,
+                    ticker: row.ticker,
+                  })
+                }
+              >
+                {t("siCallsDetail")}
+              </button>
+            )
+          : sameSiteHref(row.href) !== null && (
+              <a className={styles.detailBtn} href={sameSiteHref(row.href) as string}>
+                {t("siCallsDetail")}
+              </a>
+            )}
       </div>
       {traceOpen && (
         <div id={traceId} className={styles.trace}>
