@@ -27,6 +27,7 @@ import { SectorFlowMatrix } from "@/components/sector-intelligence/depth/SectorF
 import { SectorThemeCompare } from "@/components/sector-intelligence/depth/SectorThemeCompare";
 import { SectorConfluenceUniverses } from "@/components/sector-intelligence/depth/SectorConfluenceUniverses";
 import { DepthUnavailable } from "@/components/sector-intelligence/depth/DepthUnavailable";
+import type { ThemeRowsRead } from "@/lib/sectorDepthThemeRows";
 import { sectorRotationHistory } from "@/lib/sectorIntelligence";
 import { cellFocusSelector, flowsFromCarriedBlock, type FlowsData } from "@/lib/sectorDepthFlows";
 import type { ActionBoardData, CallsNavigateTarget } from "@/lib/sectorDepthCalls";
@@ -721,13 +722,29 @@ describe("rows increment — the carried theme table from the real specimen", ()
     }
   });
 
-  it("an unavailable theme_rows read keeps the honest unavailable state (never a partial table)", () => {
+  it("an unavailable theme_rows read renders its OWN per-reason copy beside the history (never a partial table)", () => {
     const markup = html(
       <SectorThemeCompare history={capturedHistory} labels={{}} themeRows={{ state: "unavailable", reason: "not_produced" }} />,
     );
-    expect(markup).toContain('data-depth-unavailable="theme_table"');
+    // B1: the carried reason names itself in reader words — the false "this
+    // generation does not carry a Performance table" claim is gone.
+    expect(text(markup)).toContain("The owner engine did not produce this reading tonight.");
+    expect(markup).toContain('data-block-state="unavailable"');
     expect(markup).not.toContain('data-theme-rows');
     expect(markup).not.toContain("not_produced");
+    expect(text(markup)).not.toContain("does not carry");
+    G.__SD_LANG = "zh";
+    try {
+      const zh = html(
+        <SectorThemeCompare history={capturedHistory} labels={{}} themeRows={{ state: "unavailable", reason: "not_produced" }} />,
+      );
+      expect(text(zh)).toContain("所有者引擎今晚未生成此读数。");
+      expect(zh).not.toContain("not_produced");
+      // The false "generation does not carry this field" claim never prints.
+      expect(text(zh)).not.toContain("此版本未携带");
+    } finally {
+      G.__SD_LANG = "en";
+    }
   });
 
   it("history null + carried table available: the chart shows its own unavailable state INSIDE the section, the table still renders", () => {
@@ -747,5 +764,99 @@ describe("rows increment — the carried theme table from the real specimen", ()
     expect(markup).not.toContain("javascript:");
     expect(markup).not.toContain('href="/subsector/.."');
     expect(markup).toContain('href="/subsector/b-defensives.html"'); // row 3 (defensives) still links
+  });
+});
+
+/* ── B1 (review r1): the theme table's unavailable state is its own — per-reason
+ * copy through the same RowBlockUnavailable law the universes board uses, and
+ * the history chart and the table render their available/unavailable states
+ * independently of each other. An omitted themeRows prop keeps the exact
+ * pre-increment (master) behaviour. */
+
+describe("B1 — the theme table says WHY it is unavailable (per-reason, EN+ZH)", () => {
+  afterEach(() => {
+    G.__SD_LANG = "en";
+  });
+
+  it.each([
+    ["audience_not_entitled", "Not included in your current subscription.", "当前订阅不包含此读数。"],
+    ["not_produced", "The owner engine did not produce this reading tonight.", "所有者引擎今晚未生成此读数。"],
+    ["invalid_shape", "This reading arrived in a form we cannot present.", "此读数的格式无法呈现。"],
+    ["block_too_large", "This reading is too large to deliver and was not carried.", "此读数过大，未予传输。"],
+  ])(
+    "reason %s renders its own honest copy with the history present; the raw reason word appears nowhere",
+    (reason, enNeedle, zhNeedle) => {
+      const read: ThemeRowsRead = { state: "unavailable", reason: reason as RowBlockReason };
+      const en = html(<SectorThemeCompare history={capturedHistory} labels={{}} themeRows={read} />);
+      expect(text(en)).toContain(enNeedle);
+      expect(en).toContain('data-block-state="unavailable"');
+      expect(en).not.toContain(reason); // raw reason word never in the DOM
+      expect(en).not.toContain('data-theme-rows');
+      // The false "generation does not carry this field" claim never prints.
+      expect(text(en)).not.toContain("does not carry");
+      G.__SD_LANG = "zh";
+      try {
+        const zh = html(<SectorThemeCompare history={capturedHistory} labels={{}} themeRows={read} />);
+        expect(text(zh)).toContain(zhNeedle);
+        expect(zh).not.toContain(reason);
+        expect(text(zh)).not.toContain("此版本未携带");
+      } finally {
+        G.__SD_LANG = "en";
+      }
+    },
+  );
+
+  it("a hostile out-of-set reason prop falls to the generic copy in both locales, raw word absent", () => {
+    const read: ThemeRowsRead = {
+      state: "unavailable",
+      reason: "solar_flare" as unknown as RowBlockReason,
+    };
+    const en = html(<SectorThemeCompare history={capturedHistory} labels={{}} themeRows={read} />);
+    expect(text(en)).toContain("This reading is unavailable right now.");
+    expect(en).not.toContain("solar_flare");
+    G.__SD_LANG = "zh";
+    try {
+      const zh = html(<SectorThemeCompare history={capturedHistory} labels={{}} themeRows={read} />);
+      expect(text(zh)).toContain("此读数暂不可用。");
+      expect(zh).not.toContain("solar_flare");
+    } finally {
+      G.__SD_LANG = "en";
+    }
+  });
+
+  it("history null + unavailable read: BOTH independent unavailable states render, each with its own copy", () => {
+    const markup = html(
+      <SectorThemeCompare history={null} labels={{}} themeRows={{ state: "unavailable", reason: "audience_not_entitled" }} />,
+    );
+    // The history chart's own state (field-named, chart title)…
+    expect(markup).toContain('data-depth-unavailable="rs_history"');
+    expect(text(markup)).toContain("does not carry");
+    // …and the theme table's own per-reason state, beside it — not collapsed away.
+    expect(markup).toContain('data-block-state="unavailable"');
+    expect(text(markup)).toContain("Not included in your current subscription.");
+    G.__SD_LANG = "zh";
+    try {
+      const zh = html(
+        <SectorThemeCompare history={null} labels={{}} themeRows={{ state: "unavailable", reason: "audience_not_entitled" }} />,
+      );
+      expect(zh).toContain('data-depth-unavailable="rs_history"');
+      expect(text(zh)).toContain("此版本未携带"); // the rs_history state's own copy
+      expect(text(zh)).toContain("当前订阅不包含此读数。"); // the table's own copy
+    } finally {
+      G.__SD_LANG = "en";
+    }
+  });
+
+  it("themeRows prop omitted entirely: exactly the master behaviour in both mounts", () => {
+    // history null → the whole-component rs_history state, no theme state at all.
+    const noHistory = html(<SectorThemeCompare history={null} labels={{}} />);
+    expect(noHistory).toContain('data-depth-unavailable="rs_history"');
+    expect(noHistory).not.toContain('data-block-state="unavailable"');
+    // history present → the chart renders and the table keeps the typed
+    // theme_table field state (the pre-increment mount).
+    const withHistory = html(<SectorThemeCompare history={capturedHistory} labels={{}} />);
+    expect(withHistory).toContain('data-depth-unavailable="theme_table"');
+    expect(withHistory).not.toContain('data-block-state="unavailable"');
+    expect(withHistory).not.toContain('data-theme-rows');
   });
 });

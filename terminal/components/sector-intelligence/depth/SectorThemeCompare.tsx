@@ -14,10 +14,13 @@
  *  rebased numbers so chart and table can never disagree.
  *  • The theme performance TABLE reads the carried `theme_rows` typed block
  *    (wire v1.1 §3): names, the eleven state keys and the perf windows, one
- *    row per theme id in the producer's own order. An absent or unavailable
- *    block renders the typed unavailable state (never a substitute panel).
- *    The 21/63-session RS series stay on the history surface — the table
- *    carries no per-theme series, and none is invented here.
+ *    row per theme id in the producer's own order. The table and the history
+ *    chart are INDEPENDENT blocks: each renders its own available/unavailable
+ *    state whatever the other carries. A carried unavailable read renders its
+ *    own per-reason state (RowBlockUnavailable — never a substitute panel); an
+ *    omitted themeRows prop keeps the typed theme_table field state. The
+ *    21/63-session RS series stay on the history surface — the table carries
+ *    no per-theme series, and none is invented here.
  *
  * Props-only: no routing, no fetching, no URL state. Pure helpers are exported
  * for unit tests (window slicing, rebasing, default selection, turn-window
@@ -34,6 +37,7 @@ import {
   type ThemeRowsRead,
 } from "@/lib/sectorDepthThemeRows";
 import { DepthUnavailable } from "./DepthUnavailable";
+import { RowBlockUnavailable } from "./RowBlockUnavailable";
 import { MIN_CHART_H, fmtTick, niceTicks, padDomain, thinLabels, useChartWidth } from "@/components/charts/svgChart";
 import styles from "./SectorThemeCompare.module.css";
 
@@ -265,9 +269,12 @@ export function SectorThemeCompare({
     [entries, activeIds, window, horizon],
   );
 
-  // Both surfaces absent → the whole capability reads unavailable (the old
-  // rs_history mount). A carried table alone still renders the section.
-  if (!history && themeRows?.state !== "available") {
+  // The two blocks are INDEPENDENT (review r1 B1): the history chart and the
+  // theme table each render their own available/unavailable state whatever the
+  // other carries. The whole-component state survives only when BOTH are absent
+  // — history null with NO themeRows read passed at all, exactly the
+  // pre-increment (master) mount.
+  if (!history && !themeRows) {
     return (
       <DepthUnavailable
         field="rs_history"
@@ -594,9 +601,14 @@ export function SectorThemeCompare({
             </table>
           </div>
         </div>
+      ) : themeRows ? (
+        // A carried but unavailable read: its own honest per-reason state — the
+        // same copy law the universes board uses (the raw reason word never
+        // reaches the DOM; a hostile out-of-set reason falls to the generic).
+        <RowBlockUnavailable reason={themeRows.reason} title={t("siThemeTableTitle")} />
       ) : (
-        // No carried theme_rows block tonight (or it read unavailable): the
-        // typed unavailable state — never a partial or invented table.
+        // No themeRows read passed at all: the pre-increment typed field state
+        // (master behaviour) — never a partial or invented table.
         <DepthUnavailable
           field="theme_table"
           owner="macro_sector_generation"
