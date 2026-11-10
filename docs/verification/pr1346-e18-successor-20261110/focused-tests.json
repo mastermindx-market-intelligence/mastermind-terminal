@@ -1,0 +1,16 @@
+{
+  "schema": "terminal_pr1346_focused_validation.v1",
+  "command": [
+    "npm",
+    "exec",
+    "--",
+    "vitest",
+    "run",
+    "lib/__tests__/alertBulk.test.ts",
+    "lib/__tests__/e18AlertManagementEvidence.test.ts",
+    "lib/__tests__/alertBulkReviewValidation.test.tsx"
+  ],
+  "exitCode": 0,
+  "seconds": 14.92,
+  "logSha256": "83bec4ce5b56ca15fa7ae14238c32fd2d0b9918e593c4b334b9b5207b03376c8"
+}

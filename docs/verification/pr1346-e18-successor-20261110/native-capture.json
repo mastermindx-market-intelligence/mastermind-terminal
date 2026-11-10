@@ -1,0 +1,165 @@
+{
+  "captureId": "terminal-pr1346-e18-successor-20261110-r1",
+  "captured": 12,
+  "command": [
+    "node",
+    "e2e/tools/capture_e18_alert_management.cjs"
+  ],
+  "completedAt": "2026-11-10T06:12:59.757704+00:00",
+  "exit": 0,
+  "fixtureOverrides": {
+    "TERMINAL_CAPTURE_HEAD": null,
+    "TERMINAL_CAPTURE_ONLY": null,
+    "TERMINAL_CROP_OUTPUT_DIR": null,
+    "TERMINAL_EVIDENCE_COMPOSITION": null,
+    "TERMINAL_EVIDENCE_MODE": null,
+    "TERMINAL_PL6_EVIDENCE_OPERATION_ID": null,
+    "TERMINAL_UPDATE_HEATMAP_EVIDENCE": null,
+    "TERMINAL_VISUAL_EVIDENCE_OPERATION": null
+  },
+  "head": "33d55577356a55ed2839d38c507b568b3caafed2",
+  "images": {
+    "results-desktop-en.png": {
+      "bytes": 132499,
+      "height": 900,
+      "sha256": "f5f3aa12c84cd071764525e690a86ca8b60a6c815e565c96b7a5d91807392341",
+      "width": 1440
+    },
+    "results-desktop-zh.png": {
+      "bytes": 144938,
+      "height": 900,
+      "sha256": "b9100d042ef29d7cb7cfd0139a3fe56953da539ce07a2f5a1276989ee652ed08",
+      "width": 1440
+    },
+    "results-mobile-en.png": {
+      "bytes": 60856,
+      "height": 844,
+      "sha256": "14205e697b54178021ff7c7435cf6ccd7dcb9c2640eb1168e0512dad6de3919d",
+      "width": 390
+    },
+    "results-mobile-zh.png": {
+      "bytes": 71135,
+      "height": 844,
+      "sha256": "967aa0a8e8e7859f40792883b5db319cce2e927a2c61950d4eee70b5ca764229",
+      "width": 390
+    },
+    "results-tablet-en.png": {
+      "bytes": 126800,
+      "height": 1180,
+      "sha256": "7421b91002fa4a067fff352139a271c8693cff4fe194d3d2d569856a87f3b0a0",
+      "width": 820
+    },
+    "results-tablet-zh.png": {
+      "bytes": 151354,
+      "height": 1180,
+      "sha256": "abba7bc13a1a70c675e5f481084af22b3be1f2f780f216a604066e6bf3954f66",
+      "width": 820
+    },
+    "review-desktop-en.png": {
+      "bytes": 119401,
+      "height": 900,
+      "sha256": "7b7eb94e2a28cdcbb0d4766847e0f7c7d1913a23f9647715688d6809ace599ab",
+      "width": 1440
+    },
+    "review-desktop-zh.png": {
+      "bytes": 126411,
+      "height": 900,
+      "sha256": "09d397b0c967b43551b4ee834c1bb6beb126606b1ad326b7d94b4ed316c3997b",
+      "width": 1440
+    },
+    "review-mobile-en.png": {
+      "bytes": 67012,
+      "height": 844,
+      "sha256": "c52ea5d4e4b0a54ac666ad53d4e6f50376f1787e8739632e1e1eb4f7006e2c7f",
+      "width": 390
+    },
+    "review-mobile-zh.png": {
+      "bytes": 71046,
+      "height": 844,
+      "sha256": "fb2fba694ffa373ee6c940efe54a5339d5cd9c1069ae37c3d3a3bbdf9841892c",
+      "width": 390
+    },
+    "review-tablet-en.png": {
+      "bytes": 116207,
+      "height": 1180,
+      "sha256": "d069e49efcfce8a316f69ec2a398e36dd728a33a9757fc998116f07e24a4fdb5",
+      "width": 820
+    },
+    "review-tablet-zh.png": {
+      "bytes": 130895,
+      "height": 1180,
+      "sha256": "85f01ad5b129ccfacc0a9059d46f2580ecada055ffff8e5179ed8fbec2b4ef1e",
+      "width": 820
+    }
+  },
+  "integratedDependency": "9ef372c8086ceaac8bcb153bd2d2d71b5b63d62c",
+  "layoutInputs": {
+    "terminal/components/alerts/AlertBulkManager.tsx": "7ebdb5f4f4918e3b13afe465293288d8a1ce84b58dd6fd29bac6b9b7f58bef27",
+    "terminal/components/alerts/alertBulk.module.css": "204bd08ac5e221aaf5a5a5bb04f4eae7f017d7eafedd90254a1fbfa9608c5ba8",
+    "terminal/e2e/tools/capture_ci_evidence.cjs": "856da74c32caa80a6bb0d18a243e90db1c3a1c65690c44e5703887a855d834e4",
+    "terminal/e2e/tools/capture_e18_alert_management.cjs": "a97f08742f1c664e673b1870f800e4559e1f5a853a1b2186b08042d6bc743e88",
+    "terminal/lib/alertBulk.ts": "34a6b791f500b217184d7b23ccb9b71cbbc83dd6bc55824d73937008d0f5633c",
+    "terminal/lib/alertBulkLex.ts": "35f1b91b9b331cbce4231ed7d106b8ad0b1524e46fbd0c2b22a872dc336c03dd",
+    "terminal/next.config.ts": "f6dbf2cd6da2894cc2049b77ac11fb42c0523df5f39f433753d66f8c491279a7"
+  },
+  "lifecycleSha256": "9a6a528d1a0fc065e7571c963dc26de05598752051457f18e9f4004026fcd7e0",
+  "logSha256": "86fb6537c3e5756d9c78f9ed5a363eaa93e929fab995b74cf4c27e530ac65bd3",
+  "manifestSha256": "2283e45f2c3af08d47fde7b37ad03cf70d301bfb66786b70c74aa3e5964929b3",
+  "ownedServerStopped": true,
+  "pidReadback": {
+    "command": [
+      "ps",
+      "-p",
+      "25148,25153",
+      "-o",
+      "pid=,ppid=,comm="
+    ],
+    "exit": 1,
+    "stderr": "",
+    "stdout": ""
+  },
+  "port": 47283,
+  "priorPacketPreserved": true,
+  "protectedMaster": "d15741d452403594a4ddb540a97b9a981c2a62ca",
+  "schema": "terminal_pr1346_e18_native_capture.v1",
+  "seconds": 57.71,
+  "sourceEntries": 3516,
+  "sourceStable": true,
+  "sourceTree": "7f28a3cb32fe2eabd4a889cf6705eefbfc1cd23c",
+  "stage": "/tmp/mmx-capture_e18_alert_management-E96UXx",
+  "stageFiles": {
+    "EVIDENCE.yml": "2283e45f2c3af08d47fde7b37ad03cf70d301bfb66786b70c74aa3e5964929b3",
+    "capture-proof.json": "fdf3b834bae0733a7b946292877adcdbaba36689199e7b3885f9bdfdfb85e1ca",
+    "results-desktop-en.png": "f5f3aa12c84cd071764525e690a86ca8b60a6c815e565c96b7a5d91807392341",
+    "results-desktop-zh.png": "b9100d042ef29d7cb7cfd0139a3fe56953da539ce07a2f5a1276989ee652ed08",
+    "results-mobile-en.png": "14205e697b54178021ff7c7435cf6ccd7dcb9c2640eb1168e0512dad6de3919d",
+    "results-mobile-zh.png": "967aa0a8e8e7859f40792883b5db319cce2e927a2c61950d4eee70b5ca764229",
+    "results-tablet-en.png": "7421b91002fa4a067fff352139a271c8693cff4fe194d3d2d569856a87f3b0a0",
+    "results-tablet-zh.png": "abba7bc13a1a70c675e5f481084af22b3be1f2f780f216a604066e6bf3954f66",
+    "review-desktop-en.png": "7b7eb94e2a28cdcbb0d4766847e0f7c7d1913a23f9647715688d6809ace599ab",
+    "review-desktop-zh.png": "09d397b0c967b43551b4ee834c1bb6beb126606b1ad326b7d94b4ed316c3997b",
+    "review-mobile-en.png": "c52ea5d4e4b0a54ac666ad53d4e6f50376f1787e8739632e1e1eb4f7006e2c7f",
+    "review-mobile-zh.png": "fb2fba694ffa373ee6c940efe54a5339d5cd9c1069ae37c3d3a3bbdf9841892c",
+    "review-tablet-en.png": "d069e49efcfce8a316f69ec2a398e36dd728a33a9757fc998116f07e24a4fdb5",
+    "review-tablet-zh.png": "85f01ad5b129ccfacc0a9059d46f2580ecada055ffff8e5179ed8fbec2b4ef1e"
+  },
+  "startedAt": "2026-11-10T06:12:02.045896+00:00",
+  "state": "NATIVE_CAPTURE_QUALIFIED",
+  "supervisionCommand": [
+    "node",
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1346-e18-successor/docs/verification/pr1346-e18-successor-20261110/legacy-driver.cjs"
+  ],
+  "supervisionSha256": "69c635dd163fc76b7a4fb70ee781c7c49bb028a868e952b99b0889b607a19517",
+  "supervisor": {
+    "closed": true,
+    "error": null,
+    "pid": 25148,
+    "serverPid": 25153,
+    "serverRefused": null,
+    "serverReportedStopped": true,
+    "serverSettled": true,
+    "signal": null,
+    "status": 0,
+    "timedOut": false
+  }
+}

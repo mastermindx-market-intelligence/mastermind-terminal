@@ -72,7 +72,14 @@ function ohlcCloseOnlyBars(n, seed) {
   return bars;
 }
 
-export function startFixtureStockdataServer(port = 0) {
+// The opt-in mode supplies only these locally generated price inputs to the
+// native risk-history capture. It is not credential-forwarding or regwall proof.
+const PUBLIC_RISK_HISTORY_PRICES = new Set(["ZZTA", "ZZTB", "THIN", "SPY"]);
+
+export function startFixtureStockdataServer(port = 0, { ohlcMode = "credentialed" } = {}) {
+  if (!["credentialed", "public-fixture"].includes(ohlcMode)) {
+    throw new TypeError("Unknown synthetic OHLC fixture mode");
+  }
   const server = createServer((req, res) => {
     const url = new URL(req.url ?? "/", "http://127.0.0.1");
     const stock = /^\/stockdata\/([A-Za-z0-9.]+)\.json$/.exec(url.pathname);
@@ -82,7 +89,9 @@ export function startFixtureStockdataServer(port = 0) {
       res.end(JSON.stringify({ error: "not found" }));
       return;
     }
-    if (!hasSessionCookie(req.headers.cookie)) {
+    const publicFixturePrice = ohlcMode === "public-fixture" && req.method === "GET"
+      && ohlc && PUBLIC_RISK_HISTORY_PRICES.has(ohlc[1].toUpperCase());
+    if (!publicFixturePrice && !hasSessionCookie(req.headers.cookie)) {
       res.writeHead(401, { "content-type": "application/json", "x-regwall": "deny" });
       res.end(JSON.stringify({ locked: true, reason: "authentication_required" }));
       return;

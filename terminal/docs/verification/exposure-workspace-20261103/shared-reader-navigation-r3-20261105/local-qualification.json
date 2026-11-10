@@ -1,0 +1,35 @@
+{
+  "schema": "exposure_shared_reader_revision.v1",
+  "published_parent": "4624a10e48b348b7298074d28cc26510fb1d6353",
+  "shared_reader_sha256": "f06fee2f94eb136fc97f67866ce4df51f913c8b7c96174dcb448bed3b45e29d4",
+  "new_combined_native_source_count": 312,
+  "revision": "options-navigation-r3",
+  "current_exposure_capture_profile_unchanged": true,
+  "checks": [
+    {
+      "check": "unit",
+      "command": [
+        "./node_modules/.bin/vitest",
+        "run",
+        "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+        "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+        "lib/__tests__/optionsExposureEvidence.test.ts"
+      ],
+      "exit": 0,
+      "log_sha256": "df3ba5040e303dee7bad225db9f5bd735d13bb80514c7cd088e8f12bf8b9f158",
+      "passed": 32
+    },
+    {
+      "check": "lint",
+      "command": [
+        "./node_modules/.bin/eslint",
+        "lib/__tests__/helpers/optionsExposureEvidence.ts"
+      ],
+      "exit": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "passed": null
+    }
+  ],
+  "source_stable": true,
+  "completed_at": "2026-11-05T06:29:58.603574+00:00"
+}

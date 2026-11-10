@@ -1,0 +1,14 @@
+{
+  "branchHead": "90f275f15b4d174f003fb5b1087823dce6ec865a",
+  "integratedDependency": "d3bd6b2d98c6c23398be0bed6c7450caa47bd665",
+  "kind": "gex",
+  "operation": "exposure-source-compatibility-20261105",
+  "packet": "gex-levels-heatmap-load-failure",
+  "predecessor": {
+    "descriptorSha256": "c0d9dc8fff216b73afc8dbc3490ca9bd84fbeecde6fe14eeac1452af5e0c0f1b",
+    "revision": "indicator-guard-20261109"
+  },
+  "protectedMaster": "03af393ce05c12282003a3919cc473c032264922",
+  "revision": "options-integration-20261109",
+  "schema": "exposure_options_integration_history.v1"
+}

@@ -247,3 +247,113 @@
 .today .jumpReadings:hover { background:var(--panel-3); }
 
 @media(max-width:699px) { .today .jobHeader > a { min-height:44px; } }
+
+/* Daily desk: one compact market snapshot, then personal work. Full source depth stays
+   in one native disclosure; reflow never mounts a second source or personal reader. */
+.snapshotHeader { display:flex;justify-content:space-between;align-items:flex-start;gap:20px;padding:20px 24px 16px; }
+.today .snapshotHeader h2 { margin:6px 0 0;font-size:22px;line-height:1.3;font-weight:600;letter-spacing:-.025em; }
+.snapshotMeta { display:flex;flex-direction:column;align-items:flex-end;gap:8px;max-width:55%;text-align:right; }
+.snapshotReadings { grid-template-columns:repeat(4,minmax(0,1fr));background:var(--panel); }
+.today .snapshotReadings .reading { padding:14px 20px;gap:6px;border-bottom:0; }
+.snapshotReadings > :only-child { grid-column:1 / -1; }
+.today .snapshotReadings .readingLabel { font-size:12px; }
+.today .snapshotReadings .reading > strong { font-size:15px;line-height:1.4; }
+.today .snapshotReadings .readingClock { margin-top:4px; }
+.today .briefActions { margin:0;padding:14px 24px;gap:18px;border-top:1px solid var(--line); }
+.today .briefActions > .commandLink { background:transparent;color:var(--text-2);min-height:42px;padding:0; }
+.today .briefActions > .commandLink:hover { background:transparent;color:var(--text);text-decoration:underline; }
+.today .sourceDisclosure { margin:0;border:0;border-top:1px solid var(--line);border-radius:0;padding:0; }
+.sourceDisclosure > summary { cursor:pointer;min-height:44px;align-content:center;padding:10px 24px;font-size:12px;font-weight:500;color:var(--text-2); }
+.sourceDisclosure > summary:hover { color:var(--text);background:var(--panel-2); }
+.sourceDisclosure > summary:focus-visible,.watchIdentity > a:focus-visible { outline:2px solid var(--info);outline-offset:-2px; }
+.today .sourceDisclosure .marketRead { margin:16px 24px 12px;font-size:15px;line-height:1.65;max-width:80ch;letter-spacing:0; }
+.today .sourceDisclosure .readingDate { margin:0 24px 16px; }
+.sourceNotes { margin:12px 24px 16px;padding-inline-start:18px;color:var(--text-2);font-size:12px;line-height:1.6; }
+.sourceNotes li + li { margin-top:6px; }
+.watchIdentity > a { font-size:15px;font-weight:600;letter-spacing:.01em;color:var(--text);text-decoration:none; }
+.watchIdentity > a:hover { color:var(--link);text-decoration:underline; }
+@media(min-width:700px) {
+ .jobs:not([data-since-state="teaser"]) .sinceJob { grid-column:1;grid-row:1;padding-bottom:16px; }
+ .jobs:not([data-since-state="teaser"]) .watchJob { grid-column:1;grid-row:2; }
+ .jobs:not([data-since-state="teaser"]) .continuationJob { grid-column:2;grid-row:1 / span 2; }
+ .jobs:not([data-since-state="teaser"]) .researchJob { grid-column:1 / -1;grid-row:3; }
+}
+@media(max-width:699px) {
+ .snapshotHeader { padding:18px;gap:12px;flex-direction:column; }
+ .snapshotMeta { align-items:flex-start;max-width:none;text-align:start;gap:6px; }
+ .today .snapshotHeader h2 { font-size:21px; }
+ .snapshotReadings { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .today .snapshotReadings .reading { flex-direction:column;align-items:stretch;gap:6px;padding:14px 18px;border-bottom:1px solid var(--line); }
+ .today .snapshotReadings .reading > strong { text-align:start;margin-inline-start:0;font-size:14px; }
+ .today .snapshotReadings .reading:nth-child(2n) { border-inline-end:0; }
+ .today .snapshotReadings .readingLabel { width:auto; }
+ .today .snapshotReadings .readingClock,.today .snapshotReadings .readingAge { width:auto;flex:auto;margin:0;font-size:11px; }
+ .today .briefActions { padding:14px 18px;gap:8px;align-items:stretch; }
+ .today .briefActions > a { min-height:44px; }
+ .sourceDisclosure > summary { padding-inline:18px; }
+ .today .sourceDisclosure .marketRead { margin:14px 18px 10px;font-size:14px; }
+ .today .sourceDisclosure .readingDate { margin:0 18px 14px; }
+ .sourceNotes { margin-inline:18px; }
+}
+
+/* A comparison belongs to its exact saved reading, not a claimed visit time. */
+.today .comparisonBasis { margin-top:12px;border:1px solid var(--line);border-radius:8px;padding:0;background:var(--panel); }
+.comparisonBasis > summary { cursor:pointer;min-height:44px;padding:12px 14px;font-size:12px;font-weight:500;color:var(--text); }
+.comparisonBasis > summary > span { margin-inline-start:12px;font-size:11px;font-weight:400;color:var(--text-2); }
+.comparisonBasis > summary:focus-visible { outline:2px solid var(--info);outline-offset:2px;border-radius:6px; }
+.comparisonBasis dl { display:grid;grid-template-columns:1fr 1fr;gap:14px 20px;margin:0;padding:4px 14px 14px; }
+.comparisonBasis dt { font-size:11px;color:var(--text-2);margin-bottom:4px; }
+.comparisonBasis dd { margin:0;color:var(--text);font-size:13px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere; }
+.today .comparisonBasis p { margin:0;padding:0 14px 12px;font-size:12px;color:var(--text-2); }
+.today .saveWarning { margin:12px 0 0;color:var(--warn);font-size:12px;line-height:1.6; }
+:global(html[data-theme="light"]) .saveWarning { color:var(--mx-light-ink-warn, #7D5922); }
+@media(max-width:699px) {
+ .today .pageHeading { margin-bottom:18px;gap:0; }
+ .today .briefActions { flex-direction:row;align-items:center;gap:12px; }
+ .today .briefActions > a { width:auto;flex:1; }
+ .today .briefActions > .commandLink { flex:1;font-size:12px; }
+ .comparisonBasis > summary > span { display:block;margin:4px 0 0; }
+ .comparisonBasis dl { gap:12px; }
+}
+
+.deskDestinations { margin-top:22px;padding-top:20px;border-top:1px solid var(--line); }
+.today .deskDestinations h2 { font-size:16px;margin-bottom:8px; }
+.deskDestination { display:grid;grid-template-columns:20px minmax(0,1fr) 14px;align-items:center;gap:12px;min-height:64px;padding:10px 0;color:var(--text);text-decoration:none;border-bottom:1px solid var(--line); }
+.deskDestination > svg { width:19px;height:19px;color:var(--text-2); }
+.deskDestination strong { display:block;font-size:13px;font-weight:550;line-height:1.5; }
+.deskDestination small { display:block;font-size:11px;line-height:1.5;color:var(--text-2);margin-top:2px; }
+.destinationArrow { color:var(--text-2); }
+.deskDestination:hover strong,.deskDestination:hover .destinationArrow { color:var(--link); }
+.deskDestination:focus-visible,.marketDestinations a:focus-visible { outline:2px solid var(--info);outline-offset:3px;border-radius:4px; }
+.marketDestinations { margin-top:20px; }
+.today .marketDestinations h3 { color:var(--text-2);font-size:12px;font-weight:500;margin:0 0 8px; }
+.marketDestinations nav { display:flex;flex-wrap:wrap;gap:0 16px; }
+.marketDestinations a { display:inline-flex;align-items:center;min-height:36px;color:var(--text);font-size:12px;text-decoration:none; }
+.marketDestinations a:hover { color:var(--link);text-decoration:underline; }
+@media(max-width:699px) {
+ .marketDestinations a { min-height:44px; }
+ .deskDestination { min-height:66px; }
+ .deskDestination strong { font-size:14px; }
+ .deskDestination small { font-size:12px; }
+}
+
+.contextJob { min-width:0;padding-bottom:18px;border-bottom:1px solid var(--line); }
+.today .contextClock { margin:0 0 12px;color:var(--text-2);font-size:11px;font-variant-numeric:tabular-nums; }
+.today .contextRegime > p { margin:0 0 12px;font-size:14px;line-height:1.65;color:var(--text); }
+.today .contextRegime details { margin:8px 0 16px; }
+.today .contextEvents h3 { margin:16px 0 4px;color:var(--text-2);font-size:12px;font-weight:500; }
+.contextEvents ul { list-style:none;margin:0;padding:0; }
+.contextEvents li { display:grid;grid-template-columns:minmax(68px,1fr) auto auto;align-items:center;gap:16px;min-height:44px;border-bottom:1px solid var(--line);font-size:12px; }
+.contextEvents li a { display:inline-flex;align-items:center;min-height:44px;font-weight:550;text-decoration:none; }
+.contextEvents li a:hover { text-decoration:underline; }
+.contextEvents li time { font-variant-numeric:tabular-nums;color:var(--text); }
+.contextEvents li > span { color:var(--text-2); }
+.today .contextEvents .helper { margin-top:10px;font-size:11px; }
+@media(min-width:700px) {
+ .jobs[data-has-context="true"] .contextJob { grid-column:1;grid-row:2; }
+ .jobs[data-has-context="true"] .watchJob { grid-column:1;grid-row:3; }
+ .jobs[data-has-context="true"] .continuationJob { grid-column:2;grid-row:1 / span 3; }
+ .jobs[data-has-context="true"] .researchJob { grid-column:1 / -1;grid-row:4; }
+ .jobs[data-has-context="true"] .coverageJob { grid-column:1 / -1;grid-row:5; }
+}
+@media(max-width:429px) { .contextEvents li { gap:10px; } }

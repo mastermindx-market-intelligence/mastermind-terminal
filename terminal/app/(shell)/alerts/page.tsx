@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { workspaceMetadata } from "@/lib/shared-shell/metadata";
 import { createClient } from "@/lib/supabase/server";
 import AlertsCockpitMount from "@/components/alerts/AlertsCockpitMount";
 import AlertsViewMount from "@/components/mounts/AlertsViewMount";
@@ -25,7 +26,7 @@ import SignupGate from "@/components/gates/SignupGate";
 // second page-level <main>/`.pg` — this is one page composition, not two mounts
 // stitched together at the page level.
 
-export const metadata: Metadata = { title: "Alerts · Mastermind Terminal" };
+export const metadata: Metadata = workspaceMetadata("Alerts");
 
 function AlertsSurfaces({ email }: { email: string }) {
   return (

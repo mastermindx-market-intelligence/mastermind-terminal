@@ -1,0 +1,22 @@
+{
+  "schema": "terminal.typed-publication-input-reconciliation.v1",
+  "operation_id": "exposure-strike-workspace-ux-20261103-c3",
+  "repository": "terminal",
+  "refused_request": {
+    "effect_state": "NOT_APPLIED",
+    "code": "TYPED_GIT_PRECHECK_REFUSED",
+    "input_issue": "The supplied commit message contained newlines and exceeded 240 characters."
+  },
+  "readback": {
+    "local_head_sha": "04afd94cb11649820688912cf23df2f3b0a5b2c3",
+    "remote_head_sha": "04afd94cb11649820688912cf23df2f3b0a5b2c3",
+    "clean": false
+  },
+  "owner_contract": {
+    "source_pin": "700eef54bca4a2dc4e30d94a6b30dcfa733ad57c",
+    "path": "integrations/studio_direct_mcp/git-publish.mjs",
+    "blob_sha": "52ba6ef7eadab0ea82d8a1582b7b3bc590051408",
+    "rule": "validateCommitMessage requires a nonempty single-line message of no more than 240 characters."
+  },
+  "correction": "Use the same original typed publisher with the same exact parent head and a bounded single-line subject. No alternate carrier, policy change, index/ref modification, or blind replay."
+}

@@ -1,0 +1,41 @@
+{
+  "schema": "terminal_pr1346_existing_legacy_supervision.v1",
+  "captureId": "terminal-pr1346-e18-successor-20261110-r1",
+  "events": [
+    {
+      "at": "2026-11-10T06:12:02.262Z",
+      "pid": 25148
+    },
+    {
+      "at": "2026-11-10T06:12:03.022Z",
+      "serverPid": 25153,
+      "serverReportedStopped": false,
+      "serverRefused": null
+    },
+    {
+      "at": "2026-11-10T06:12:54.839Z",
+      "serverPid": 25153,
+      "serverReportedStopped": true,
+      "serverRefused": null
+    },
+    {
+      "at": "2026-11-10T06:12:54.909Z",
+      "serverPid": 25153,
+      "serverReportedStopped": true,
+      "serverRefused": null,
+      "serverSettled": true
+    }
+  ],
+  "result": {
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "timedOut": false,
+    "closed": true,
+    "pid": 25148,
+    "serverPid": 25153,
+    "serverReportedStopped": true,
+    "serverRefused": null,
+    "serverSettled": true
+  }
+}

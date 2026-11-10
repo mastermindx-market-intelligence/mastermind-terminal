@@ -1,0 +1,13 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1346-e18-successor/terminal
+
+ ✓ lib/__tests__/e18AlertManagementEvidence.test.ts (5 tests) 26ms
+ ✓ lib/__tests__/alertBulk.test.ts (26 tests) 18ms
+ ✓ lib/__tests__/alertBulkReviewValidation.test.tsx (38 tests) 1729ms
+
+ Test Files  3 passed (3)
+      Tests  69 passed (69)
+   Start at  22:20:55
+   Duration  4.74s (transform 493ms, setup 0ms, collect 581ms, tests 1.77s, environment 1.21s, prepare 967ms)
+

@@ -1,0 +1,17 @@
+{
+  "original": {
+    "count": 3054,
+    "source_map_sha256": "69044e5ba9fd1915f562ab8205eab707f59af42f0497e6a5d6e3caa0edaeb7d3",
+    "unchanged_since_final_gates": true
+  },
+  "preview": {
+    "count": 3129,
+    "source_map_sha256": "1de3d02e1421f78c68149b58eddb5792033ea13be88b9fa7a34efd320491b8b6",
+    "unchanged_since_final_gates": true
+  },
+  "exposure": {
+    "count": 3029,
+    "source_map_sha256": "1afe27f1efdfcca5dc94b0855acde67181d8fcf8e63b75404a434ecd902a47b0",
+    "unchanged_since_final_gates": true
+  }
+}

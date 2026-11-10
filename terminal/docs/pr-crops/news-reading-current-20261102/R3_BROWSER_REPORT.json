@@ -1,0 +1,3699 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/node_modules/.bin/playwright",
+      "test",
+      "e2e/news-flow-responsive.spec.ts",
+      "e2e/news-reading-slice.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--retries=0",
+      "--reporter=list,json"
+    ],
+    "configFile": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/playwright.config.ts",
+    "rootDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 47329",
+      "url": "http://127.0.0.1:47329/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "news-flow-responsive.spec.ts",
+      "file": "news-flow-responsive.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "E1 east convention keeps the live dot neutral",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8839,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-02T07:14:28.658Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6e8b5ad2f2ab60f5bc4e-1cf80450964792a17440",
+          "file": "news-flow-responsive.spec.ts",
+          "line": 719,
+          "column": 5
+        },
+        {
+          "title": "light treatment SPECIMEN captures from the static specimen page",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 421,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-02T07:14:37.509Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6e8b5ad2f2ab60f5bc4e-468458cabdc8b993005b",
+          "file": "news-flow-responsive.spec.ts",
+          "line": 745,
+          "column": 5
+        },
+        {
+          "title": "E1 east convention keeps the live dot neutral",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "E1 runs in desktop only.",
+                  "location": {
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-flow-responsive.spec.ts",
+                    "line": 720,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 98,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-02T07:18:22.688Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "E1 runs in desktop only.",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-flow-responsive.spec.ts",
+                        "line": 720,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "6e8b5ad2f2ab60f5bc4e-cb5d941a0bb2ff0091be",
+          "file": "news-flow-responsive.spec.ts",
+          "line": 719,
+          "column": 5
+        },
+        {
+          "title": "light treatment SPECIMEN captures from the static specimen page",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 423,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-02T07:18:22.796Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6e8b5ad2f2ab60f5bc4e-74b97ca729cfc60de8ca",
+          "file": "news-flow-responsive.spec.ts",
+          "line": 745,
+          "column": 5
+        },
+        {
+          "title": "E1 east convention keeps the live dot neutral",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "E1 runs in desktop only.",
+                  "location": {
+                    "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-flow-responsive.spec.ts",
+                    "line": 720,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 70,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-02T07:21:25.414Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "E1 runs in desktop only.",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-flow-responsive.spec.ts",
+                        "line": 720,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "6e8b5ad2f2ab60f5bc4e-e13e5d79558b33cad852",
+          "file": "news-flow-responsive.spec.ts",
+          "line": 719,
+          "column": 5
+        },
+        {
+          "title": "light treatment SPECIMEN captures from the static specimen page",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 354,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-02T07:21:25.492Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6e8b5ad2f2ab60f5bc4e-6a0b86dffe66afaefa06",
+          "file": "news-flow-responsive.spec.ts",
+          "line": 745,
+          "column": 5
+        }
+      ],
+      "suites": [
+        {
+          "title": "EN News consumer cells",
+          "file": "news-flow-responsive.spec.ts",
+          "line": 708,
+          "column": 8,
+          "specs": [
+            {
+              "title": "busier state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7697,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:13:00.474Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-e4f0e2d4934e959ea862",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "typical state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7256,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:13:08.529Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-03c501d7459c5c28b9e4",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "quieter state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6250,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:13:15.794Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-a328ca845d4c9c0b967c",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "thin state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6112,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:13:22.053Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-558dbd1cbc491a9c8f41",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "partial state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7005,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:13:28.173Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-89439b6079e23db599db",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "unavailable state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6062,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:13:35.185Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-621cf13161fad5f0c9d9",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "busier state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9995,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:16:33.711Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-f0dc176850d6cb246d79",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "typical state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9667,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:16:43.986Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-fa02a07eb939b5a5370a",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "quieter state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9555,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:16:53.662Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-48420e96775a2d64fcd8",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "thin state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9741,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:17:03.225Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-1af2e64f6dffa9fb4009",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "partial state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7703,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:17:12.980Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-78ecbc9105e696f99848",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "unavailable state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9048,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:17:20.700Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-7729f49d813f92a0aefa",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "busier state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7863,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:19:45.791Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-20300797a3853bb5a744",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "typical state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9513,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:19:53.856Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-8db0ba6c6f82db3c10bb",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "quieter state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8939,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:20:03.377Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-f61c9d8000d43d1b4046",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "thin state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9750,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:20:12.323Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-9914cf5e08ad23ab0b0f",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "partial state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7760,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:20:22.081Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-4590f07d55c588903157",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "unavailable state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8910,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:20:29.850Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-1b6dba94de6f1e40e72b",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            }
+          ]
+        },
+        {
+          "title": "ZH News consumer cells",
+          "file": "news-flow-responsive.spec.ts",
+          "line": 708,
+          "column": 8,
+          "specs": [
+            {
+              "title": "busier state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6568,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:13:41.256Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-1e4416f74c78a4934fff",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "typical state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7446,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:13:47.831Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-dd9b5f148eae4ab52016",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "quieter state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7793,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:13:55.288Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-d308f712e3130daa4144",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "thin state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8839,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:14:03.091Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-93665e2f3433ebe6ad69",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "partial state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7933,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:14:11.942Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-492f70c88856031dbe03",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "unavailable state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8765,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:14:19.884Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-38fa4a4668e4808cc48a",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "busier state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7921,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:17:29.761Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-e935425185a7eb56b639",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "typical state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8145,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:17:37.689Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-3ed5ce0f55af60a1fb71",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "quieter state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9994,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:17:45.851Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-1444222783a735c0aa37",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "thin state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8633,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:17:55.855Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-eb9f48e4385514a9e22f",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "partial state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8827,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:18:04.496Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-d4ab1908ab9e876a26b5",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "unavailable state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9342,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:18:13.335Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-16c7acf1bce518df0216",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "busier state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9025,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:20:38.768Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-e0f2d99080323c84e9e4",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "typical state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7924,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:20:47.805Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-bdcd0b019ff15b019365",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "quieter state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7489,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:20:55.740Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-cc7cb2052d815947e5b1",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "thin state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7268,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:21:03.238Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-b04855ae0ae44ef19417",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "partial state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7810,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:21:10.514Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-798537f96e65cad17249",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            },
+            {
+              "title": "unavailable state renders the News rows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7074,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:21:18.333Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-1a4885684368b306c764",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 710,
+              "column": 11
+            }
+          ]
+        },
+        {
+          "title": "R2 evidence ladder",
+          "file": "news-flow-responsive.spec.ts",
+          "line": 833,
+          "column": 6,
+          "specs": [
+            {
+              "title": "collapsed cell (en)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8010,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:14:37.945Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-5f0b927a3e37d61bf4ba",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 835,
+              "column": 9
+            },
+            {
+              "title": "expanded cell (en)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8874,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:14:45.963Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-851007d678d9d092612f",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 890,
+              "column": 9
+            },
+            {
+              "title": "restricted cell (en)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8392,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:14:54.848Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-e793e7207c26233b131f",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 986,
+              "column": 9
+            },
+            {
+              "title": "unavailable cell (en)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7088,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:15:03.250Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-16e881f8f6da59a6fce9",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 1000,
+              "column": 9
+            },
+            {
+              "title": "limited cell (en)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8473,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:15:10.345Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-fac54f3431e4c83192e2",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 1014,
+              "column": 9
+            },
+            {
+              "title": "collapsed cell (zh)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7780,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:15:18.827Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-cb45236d0053ad652524",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 835,
+              "column": 9
+            },
+            {
+              "title": "expanded cell (zh)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8710,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:15:26.615Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-0a1dabdb4edafec31790",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 890,
+              "column": 9
+            },
+            {
+              "title": "restricted cell (zh)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8574,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:15:35.334Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-ac780af2362d29b7cbf3",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 986,
+              "column": 9
+            },
+            {
+              "title": "unavailable cell (zh)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8828,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:15:43.916Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-f3642677b54bcd9fd2ff",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 1000,
+              "column": 9
+            },
+            {
+              "title": "limited cell (zh)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8281,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:15:52.754Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-5feaf738343704d0f4b3",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 1014,
+              "column": 9
+            },
+            {
+              "title": "static cell (en)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 10627,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:16:01.042Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-fa4db33a02ac8098699c",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 1036,
+              "column": 7
+            },
+            {
+              "title": "wrap cell (mobile)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "the wrap cell pins mobile ladder wrapping (R3 §4).",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-flow-responsive.spec.ts",
+                        "line": 1057,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 104,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:16:11.678Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "the wrap cell pins mobile ladder wrapping (R3 §4).",
+                          "location": {
+                            "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-flow-responsive.spec.ts",
+                            "line": 1057,
+                            "column": 10
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-c8f974f75d6ac5dea894",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 1056,
+              "column": 7
+            },
+            {
+              "title": "catchup cell (en)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9822,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:16:11.792Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-78259f13d17b2c812adf",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 1082,
+              "column": 7
+            },
+            {
+              "title": "collapsed cell (en)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9280,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:18:23.230Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-5f7fe6faf7f43e0363a7",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 835,
+              "column": 9
+            },
+            {
+              "title": "expanded cell (en)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9915,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:18:32.518Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-b193ad899d13c3643e45",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 890,
+              "column": 9
+            },
+            {
+              "title": "restricted cell (en)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "restricted/unavailable are desktop cells (spec §7 R7).",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-flow-responsive.spec.ts",
+                        "line": 987,
+                        "column": 12
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 86,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:18:42.442Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "restricted/unavailable are desktop cells (spec §7 R7).",
+                          "location": {
+                            "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-flow-responsive.spec.ts",
+                            "line": 987,
+                            "column": 12
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-34e9f0f69892cb15bda0",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 986,
+              "column": 9
+            },
+            {
+              "title": "unavailable cell (en)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "restricted/unavailable are desktop cells (spec §7 R7).",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-flow-responsive.spec.ts",
+                        "line": 1001,
+                        "column": 12
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 72,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:18:42.537Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "restricted/unavailable are desktop cells (spec §7 R7).",
+                          "location": {
+                            "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-flow-responsive.spec.ts",
+                            "line": 1001,
+                            "column": 12
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-c3157716245510faad47",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 1000,
+              "column": 9
+            },
+            {
+              "title": "limited cell (en)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9992,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:18:42.616Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-3c23aa46a732aef3a26c",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 1014,
+              "column": 9
+            },
+            {
+              "title": "collapsed cell (zh)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9189,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:18:52.618Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-a5c7765230b4471e84a8",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 835,
+              "column": 9
+            },
+            {
+              "title": "expanded cell (zh)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8751,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:19:01.814Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-d106da9783a2a7837faf",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 890,
+              "column": 9
+            },
+            {
+              "title": "restricted cell (zh)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "restricted/unavailable are desktop cells (spec §7 R7).",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-flow-responsive.spec.ts",
+                        "line": 987,
+                        "column": 12
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 93,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:19:10.571Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "restricted/unavailable are desktop cells (spec §7 R7).",
+                          "location": {
+                            "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-flow-responsive.spec.ts",
+                            "line": 987,
+                            "column": 12
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-66a5d17a51d3de795d2d",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 986,
+              "column": 9
+            },
+            {
+              "title": "unavailable cell (zh)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "restricted/unavailable are desktop cells (spec §7 R7).",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-flow-responsive.spec.ts",
+                        "line": 1001,
+                        "column": 12
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 63,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:19:10.672Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "restricted/unavailable are desktop cells (spec §7 R7).",
+                          "location": {
+                            "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-flow-responsive.spec.ts",
+                            "line": 1001,
+                            "column": 12
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-3d2b02610f236e183ffb",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 1000,
+              "column": 9
+            },
+            {
+              "title": "limited cell (zh)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8622,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:19:10.741Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-a796c1c6f92c2052664f",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 1014,
+              "column": 9
+            },
+            {
+              "title": "static cell (en)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 10114,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:19:19.369Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-574b13c3fe32927c06c2",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 1036,
+              "column": 7
+            },
+            {
+              "title": "wrap cell (mobile)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "the wrap cell pins mobile ladder wrapping (R3 §4).",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-flow-responsive.spec.ts",
+                        "line": 1057,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 87,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:19:29.491Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "the wrap cell pins mobile ladder wrapping (R3 §4).",
+                          "location": {
+                            "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-flow-responsive.spec.ts",
+                            "line": 1057,
+                            "column": 10
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-df5a3d3bbbd8bf7abd9e",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 1056,
+              "column": 7
+            },
+            {
+              "title": "catchup cell (en)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 10183,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:19:29.585Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-e674d88a4a46502590fc",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 1082,
+              "column": 7
+            },
+            {
+              "title": "collapsed cell (en)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8532,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:21:25.854Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-e6674aa4d68ef08dff28",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 835,
+              "column": 9
+            },
+            {
+              "title": "expanded cell (en)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8640,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:21:34.393Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-02001b24b3901a61a10d",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 890,
+              "column": 9
+            },
+            {
+              "title": "restricted cell (en)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "restricted/unavailable are desktop cells (spec §7 R7).",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-flow-responsive.spec.ts",
+                        "line": 987,
+                        "column": 12
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 82,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:21:43.038Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "restricted/unavailable are desktop cells (spec §7 R7).",
+                          "location": {
+                            "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-flow-responsive.spec.ts",
+                            "line": 987,
+                            "column": 12
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-369523b08403e25e1d4f",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 986,
+              "column": 9
+            },
+            {
+              "title": "unavailable cell (en)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "restricted/unavailable are desktop cells (spec §7 R7).",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-flow-responsive.spec.ts",
+                        "line": 1001,
+                        "column": 12
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 61,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:21:43.127Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "restricted/unavailable are desktop cells (spec §7 R7).",
+                          "location": {
+                            "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-flow-responsive.spec.ts",
+                            "line": 1001,
+                            "column": 12
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-fc17fb834ebea7bec1a5",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 1000,
+              "column": 9
+            },
+            {
+              "title": "limited cell (en)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7731,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:21:43.195Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-ea6011555b9cd51912c2",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 1014,
+              "column": 9
+            },
+            {
+              "title": "collapsed cell (zh)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7832,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:21:50.932Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-3bee2b72142d95456241",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 835,
+              "column": 9
+            },
+            {
+              "title": "expanded cell (zh)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9009,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:21:58.770Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-19882171d03e3572da64",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 890,
+              "column": 9
+            },
+            {
+              "title": "restricted cell (zh)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "restricted/unavailable are desktop cells (spec §7 R7).",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-flow-responsive.spec.ts",
+                        "line": 987,
+                        "column": 12
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 97,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:22:07.786Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "restricted/unavailable are desktop cells (spec §7 R7).",
+                          "location": {
+                            "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-flow-responsive.spec.ts",
+                            "line": 987,
+                            "column": 12
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-5f6683daa9ad09a3ff6c",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 986,
+              "column": 9
+            },
+            {
+              "title": "unavailable cell (zh)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "restricted/unavailable are desktop cells (spec §7 R7).",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-flow-responsive.spec.ts",
+                        "line": 1001,
+                        "column": 12
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 82,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:22:07.893Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "restricted/unavailable are desktop cells (spec §7 R7).",
+                          "location": {
+                            "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-flow-responsive.spec.ts",
+                            "line": 1001,
+                            "column": 12
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-60383aed788d483b98ae",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 1000,
+              "column": 9
+            },
+            {
+              "title": "limited cell (zh)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7897,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:22:07.985Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-13742fcd7c0f0a4e938c",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 1014,
+              "column": 9
+            },
+            {
+              "title": "static cell (en)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7725,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:22:15.892Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-c4b962a00a8439080e8f",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 1036,
+              "column": 7
+            },
+            {
+              "title": "wrap cell (mobile)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7812,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:22:23.624Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-4febef8ac8b11236c2e0",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 1056,
+              "column": 7
+            },
+            {
+              "title": "catchup cell (en)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7754,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:22:31.443Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6e8b5ad2f2ab60f5bc4e-f960a07e0b1182c01ddd",
+              "file": "news-flow-responsive.spec.ts",
+              "line": 1082,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "news-reading-slice.spec.ts",
+      "file": "news-reading-slice.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "News reading slice",
+          "file": "news-reading-slice.spec.ts",
+          "line": 208,
+          "column": 6,
+          "specs": [
+            {
+              "title": "the panel owns the rail column while News is the active source",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4770,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:16:21.636Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "News reading: full-height-reader",
+                          "contentType": "image/png",
+                          "path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/test-results/news-reading-slice-News-re-9b6e4-e-News-is-the-active-source-desktop/attachments/News-reading-full-height-reader-ba290a1d4706421043b6a2851fa0e081266c90f5.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ccd97468914597faa991-ad0ee621b947932a3f4a",
+              "file": "news-reading-slice.spec.ts",
+              "line": 209,
+              "column": 7
+            },
+            {
+              "title": "the company card comes back when News is left",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5152,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:16:26.419Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "News reading: news-selected",
+                          "contentType": "image/png",
+                          "path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/test-results/news-reading-slice-News-re-9848b-omes-back-when-News-is-left-desktop/attachments/News-reading-news-selected-aab8cbbeb009f1f12d7ec90a85b901c15caa862b.png"
+                        },
+                        {
+                          "name": "News reading: company-restored",
+                          "contentType": "image/png",
+                          "path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/test-results/news-reading-slice-News-re-9848b-omes-back-when-News-is-left-desktop/attachments/News-reading-company-restored-d8465cf3812baea74a8d48caf33829996c851ecc.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ccd97468914597faa991-43c364f80c08fc3f61e3",
+              "file": "news-reading-slice.spec.ts",
+              "line": 236,
+              "column": 7
+            },
+            {
+              "title": "the phone's Symbol details leaves News and reveals the dossier",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "the Analysis hub is a phone surface.",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-reading-slice.spec.ts",
+                        "line": 272,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 171,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:16:31.586Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "the Analysis hub is a phone surface.",
+                          "location": {
+                            "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-reading-slice.spec.ts",
+                            "line": 272,
+                            "column": 10
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ccd97468914597faa991-2a7bd5f2544935842e38",
+              "file": "news-reading-slice.spec.ts",
+              "line": 271,
+              "column": 7
+            },
+            {
+              "title": "the panel owns the rail column while News is the active source",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "the column is a desktop layout; at 860px and below the panel is in the document's own flow.",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-reading-slice.spec.ts",
+                        "line": 210,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 106,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:19:39.782Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "the column is a desktop layout; at 860px and below the panel is in the document's own flow.",
+                          "location": {
+                            "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-reading-slice.spec.ts",
+                            "line": 210,
+                            "column": 10
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ccd97468914597faa991-124e677c596893e4a3ad",
+              "file": "news-reading-slice.spec.ts",
+              "line": 209,
+              "column": 7
+            },
+            {
+              "title": "the company card comes back when News is left",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5059,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:19:39.896Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "News reading: news-selected",
+                          "contentType": "image/png",
+                          "path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/test-results/news-reading-slice-News-re-9848b-omes-back-when-News-is-left-tablet/attachments/News-reading-news-selected-32e2ffdb00a08fac411d62011687cd560ccf3c6e.png"
+                        },
+                        {
+                          "name": "News reading: company-restored",
+                          "contentType": "image/png",
+                          "path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/test-results/news-reading-slice-News-re-9848b-omes-back-when-News-is-left-tablet/attachments/News-reading-company-restored-424f20772905a157b1dda8631d24d3d452039617.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ccd97468914597faa991-117d61fc7175da042380",
+              "file": "news-reading-slice.spec.ts",
+              "line": 236,
+              "column": 7
+            },
+            {
+              "title": "the phone's Symbol details leaves News and reveals the dossier",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "the Analysis hub is a phone surface.",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-reading-slice.spec.ts",
+                        "line": 272,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "tablet",
+                  "projectName": "tablet",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 89,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:19:44.966Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "the Analysis hub is a phone surface.",
+                          "location": {
+                            "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-reading-slice.spec.ts",
+                            "line": 272,
+                            "column": 10
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ccd97468914597faa991-b2ade87b86c318bef4a1",
+              "file": "news-reading-slice.spec.ts",
+              "line": 271,
+              "column": 7
+            },
+            {
+              "title": "the panel owns the rail column while News is the active source",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "the column is a desktop layout; at 860px and below the panel is in the document's own flow.",
+                      "location": {
+                        "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-reading-slice.spec.ts",
+                        "line": 210,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 70,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:22:39.208Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "the column is a desktop layout; at 860px and below the panel is in the document's own flow.",
+                          "location": {
+                            "file": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/e2e/news-reading-slice.spec.ts",
+                            "line": 210,
+                            "column": 10
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ccd97468914597faa991-8af2a2f81b162b20b094",
+              "file": "news-reading-slice.spec.ts",
+              "line": 209,
+              "column": 7
+            },
+            {
+              "title": "the company card comes back when News is left",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5776,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:22:39.284Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "News reading: news-selected",
+                          "contentType": "image/png",
+                          "path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/test-results/news-reading-slice-News-re-9848b-omes-back-when-News-is-left-mobile/attachments/News-reading-news-selected-3bcc221f241f812f93abc8107b78e7b0a9c6ad4e.png"
+                        },
+                        {
+                          "name": "News reading: company-restored",
+                          "contentType": "image/png",
+                          "path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/test-results/news-reading-slice-News-re-9848b-omes-back-when-News-is-left-mobile/attachments/News-reading-company-restored-948bb56888865c99b4cf50877728ffbc56eb45d8.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ccd97468914597faa991-4fa9311b829db1ffe326",
+              "file": "news-reading-slice.spec.ts",
+              "line": 236,
+              "column": 7
+            },
+            {
+              "title": "the phone's Symbol details leaves News and reveals the dossier",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4947,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-02T07:22:45.068Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "News reading: symbol-details",
+                          "contentType": "image/png",
+                          "path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/news-reading-current-20261102-c4/terminal/test-results/news-reading-slice-News-re-05a05-ews-and-reveals-the-dossier-mobile/attachments/News-reading-symbol-details-f28b529f797af9338541067ba2421d91b7a85af2.png"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ccd97468914597faa991-1ae4370aa098b523db82",
+              "file": "news-reading-slice.spec.ts",
+              "line": 271,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-02T07:12:53.120Z",
+    "duration": 597226.089,
+    "expected": 74,
+    "skipped": 16,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

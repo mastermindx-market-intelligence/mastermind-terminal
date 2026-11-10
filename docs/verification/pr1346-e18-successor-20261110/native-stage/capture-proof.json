@@ -1,0 +1,362 @@
+[
+  {
+    "file": "review-desktop-en.png",
+    "state": "review",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "lang": "en",
+    "reviewValidated": true,
+    "geometry": {
+      "x": 97,
+      "y": 65.90625,
+      "width": 1306,
+      "height": 388.640625
+    }
+  },
+  {
+    "file": "review-desktop-zh.png",
+    "state": "review",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "lang": "zh",
+    "reviewValidated": true,
+    "geometry": {
+      "x": 97,
+      "y": 65.90625,
+      "width": 1306,
+      "height": 388.640625
+    }
+  },
+  {
+    "file": "review-tablet-en.png",
+    "state": "review",
+    "viewport": {
+      "width": 820,
+      "height": 1180
+    },
+    "lang": "en",
+    "reviewValidated": true,
+    "geometry": {
+      "x": 37,
+      "y": 345.5,
+      "width": 746,
+      "height": 394.640625
+    }
+  },
+  {
+    "file": "review-tablet-zh.png",
+    "state": "review",
+    "viewport": {
+      "width": 820,
+      "height": 1180
+    },
+    "lang": "zh",
+    "reviewValidated": true,
+    "geometry": {
+      "x": 37,
+      "y": 364.90625,
+      "width": 746,
+      "height": 394.640625
+    }
+  },
+  {
+    "file": "review-mobile-en.png",
+    "state": "review",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "lang": "en",
+    "reviewValidated": true,
+    "geometry": {
+      "x": 33,
+      "y": 12.21875,
+      "width": 324,
+      "height": 433.109375
+    }
+  },
+  {
+    "file": "review-mobile-zh.png",
+    "state": "review",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "lang": "zh",
+    "reviewValidated": true,
+    "geometry": {
+      "x": 33,
+      "y": 11.53125,
+      "width": 324,
+      "height": 433.109375
+    }
+  },
+  {
+    "file": "results-desktop-en.png",
+    "state": "results",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "lang": "en",
+    "outcomes": {
+      "a1": {
+        "kind": "acknowledged",
+        "text": "NVDA\nGolden Oracle flips to BUY\nPaused"
+      },
+      "a2": {
+        "kind": "unknown",
+        "text": "AAPL\nGolden Oracle flips to SELL\nNot confirmed — latest saved state: Paused"
+      },
+      "a3": {
+        "kind": "unknown",
+        "text": "TSLA\nRSI crosses below 30\nNot confirmed — latest saved state: Armed"
+      },
+      "a4": {
+        "kind": "refused",
+        "text": "MSFT\nRegime flips to Uptrend\nRefused — not found in your alerts"
+      },
+      "a5": {
+        "kind": "skipped",
+        "text": "AMD\nGolden Oracle flips to BUY\nSkipped — already paused"
+      }
+    },
+    "summary": "1 paused · 1 refused · 2 not confirmed · 1 skipped of 5 selected",
+    "sent": [
+      "a1:pause",
+      "a2:pause",
+      "a3:pause",
+      "a4:pause"
+    ],
+    "geometry": {
+      "x": 97,
+      "y": 66.375,
+      "width": 1306,
+      "height": 383.078125
+    }
+  },
+  {
+    "file": "results-desktop-zh.png",
+    "state": "results",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "lang": "zh",
+    "outcomes": {
+      "a1": {
+        "kind": "acknowledged",
+        "text": "NVDA\n黄金神谕翻转为买入\n已暂停"
+      },
+      "a2": {
+        "kind": "unknown",
+        "text": "AAPL\n黄金神谕翻转为卖出\n未获确认——最新保存的状态：已暂停"
+      },
+      "a3": {
+        "kind": "unknown",
+        "text": "TSLA\nRSI 下穿 30\n未获确认——最新保存的状态：已启用"
+      },
+      "a4": {
+        "kind": "refused",
+        "text": "MSFT\n趋势翻转为上升\n被拒绝——在你的提醒中未找到"
+      },
+      "a5": {
+        "kind": "skipped",
+        "text": "AMD\n黄金神谕翻转为买入\n跳过——已暂停"
+      }
+    },
+    "summary": "已暂停 1 条 · 被拒绝 1 条 · 未获确认 2 条 · 跳过 1 条 共选 5 条",
+    "sent": [
+      "a1:pause",
+      "a2:pause",
+      "a3:pause",
+      "a4:pause"
+    ],
+    "geometry": {
+      "x": 97,
+      "y": 66.375,
+      "width": 1306,
+      "height": 383.078125
+    }
+  },
+  {
+    "file": "results-tablet-en.png",
+    "state": "results",
+    "viewport": {
+      "width": 820,
+      "height": 1180
+    },
+    "lang": "en",
+    "outcomes": {
+      "a1": {
+        "kind": "acknowledged",
+        "text": "NVDA\nGolden Oracle flips to BUY\nPaused"
+      },
+      "a2": {
+        "kind": "unknown",
+        "text": "AAPL\nGolden Oracle flips to SELL\nNot confirmed — latest saved state: Paused"
+      },
+      "a3": {
+        "kind": "unknown",
+        "text": "TSLA\nRSI crosses below 30\nNot confirmed — latest saved state: Armed"
+      },
+      "a4": {
+        "kind": "refused",
+        "text": "MSFT\nRegime flips to Uptrend\nRefused — not found in your alerts"
+      },
+      "a5": {
+        "kind": "skipped",
+        "text": "AMD\nGolden Oracle flips to BUY\nSkipped — already paused"
+      }
+    },
+    "summary": "1 paused · 1 refused · 2 not confirmed · 1 skipped of 5 selected",
+    "sent": [
+      "a1:pause",
+      "a2:pause",
+      "a3:pause",
+      "a4:pause"
+    ],
+    "geometry": {
+      "x": 37,
+      "y": 172.375,
+      "width": 746,
+      "height": 440.578125
+    }
+  },
+  {
+    "file": "results-tablet-zh.png",
+    "state": "results",
+    "viewport": {
+      "width": 820,
+      "height": 1180
+    },
+    "lang": "zh",
+    "outcomes": {
+      "a1": {
+        "kind": "acknowledged",
+        "text": "NVDA\n黄金神谕翻转为买入\n已暂停"
+      },
+      "a2": {
+        "kind": "unknown",
+        "text": "AAPL\n黄金神谕翻转为卖出\n未获确认——最新保存的状态：已暂停"
+      },
+      "a3": {
+        "kind": "unknown",
+        "text": "TSLA\nRSI 下穿 30\n未获确认——最新保存的状态：已启用"
+      },
+      "a4": {
+        "kind": "refused",
+        "text": "MSFT\n趋势翻转为上升\n被拒绝——在你的提醒中未找到"
+      },
+      "a5": {
+        "kind": "skipped",
+        "text": "AMD\n黄金神谕翻转为买入\n跳过——已暂停"
+      }
+    },
+    "summary": "已暂停 1 条 · 被拒绝 1 条 · 未获确认 2 条 · 跳过 1 条 共选 5 条",
+    "sent": [
+      "a1:pause",
+      "a2:pause",
+      "a3:pause",
+      "a4:pause"
+    ],
+    "geometry": {
+      "x": 37,
+      "y": 260.375,
+      "width": 746,
+      "height": 395.078125
+    }
+  },
+  {
+    "file": "results-mobile-en.png",
+    "state": "results",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "lang": "en",
+    "outcomes": {
+      "a1": {
+        "kind": "acknowledged",
+        "text": "NVDA\nGolden Oracle flips to BUY\nPaused"
+      },
+      "a2": {
+        "kind": "unknown",
+        "text": "AAPL\nGolden Oracle flips to SELL\nNot confirmed — latest saved state: Paused"
+      },
+      "a3": {
+        "kind": "unknown",
+        "text": "TSLA\nRSI crosses below 30\nNot confirmed — latest saved state: Armed"
+      },
+      "a4": {
+        "kind": "refused",
+        "text": "MSFT\nRegime flips to Uptrend\nRefused — not found in your alerts"
+      },
+      "a5": {
+        "kind": "skipped",
+        "text": "AMD\nGolden Oracle flips to BUY\nSkipped — already paused"
+      }
+    },
+    "summary": "1 paused · 1 refused · 2 not confirmed · 1 skipped of 5 selected",
+    "sent": [
+      "a1:pause",
+      "a2:pause",
+      "a3:pause",
+      "a4:pause"
+    ],
+    "geometry": {
+      "x": 33,
+      "y": 12.421875,
+      "width": 324,
+      "height": 560.34375
+    }
+  },
+  {
+    "file": "results-mobile-zh.png",
+    "state": "results",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "lang": "zh",
+    "outcomes": {
+      "a1": {
+        "kind": "acknowledged",
+        "text": "NVDA\n黄金神谕翻转为买入\n已暂停"
+      },
+      "a2": {
+        "kind": "unknown",
+        "text": "AAPL\n黄金神谕翻转为卖出\n未获确认——最新保存的状态：已暂停"
+      },
+      "a3": {
+        "kind": "unknown",
+        "text": "TSLA\nRSI 下穿 30\n未获确认——最新保存的状态：已启用"
+      },
+      "a4": {
+        "kind": "refused",
+        "text": "MSFT\n趋势翻转为上升\n被拒绝——在你的提醒中未找到"
+      },
+      "a5": {
+        "kind": "skipped",
+        "text": "AMD\n黄金神谕翻转为买入\n跳过——已暂停"
+      }
+    },
+    "summary": "已暂停 1 条 · 被拒绝 1 条 · 未获确认 2 条 · 跳过 1 条 共选 5 条",
+    "sent": [
+      "a1:pause",
+      "a2:pause",
+      "a3:pause",
+      "a4:pause"
+    ],
+    "geometry": {
+      "x": 33,
+      "y": 11.734375,
+      "width": 324,
+      "height": 513
+    }
+  }
+]

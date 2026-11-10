@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { workspaceMetadata } from "@/lib/shared-shell/metadata";
 import { readShellMember } from "@/lib/shared-shell/memberIdentity";
 import ResearchWorkspaceMount from "@/components/mounts/ResearchWorkspaceMount";
 import SignupGate from "@/components/gates/SignupGate";
@@ -6,7 +7,7 @@ import MemberVerificationUnavailable from "@/components/gates/MemberVerification
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
-export const metadata: Metadata = { title: "Research · Mastermind Terminal" };
+export const metadata: Metadata = workspaceMetadata("Research");
 
 export default async function ResearchPage() {
   const member = await readShellMember();

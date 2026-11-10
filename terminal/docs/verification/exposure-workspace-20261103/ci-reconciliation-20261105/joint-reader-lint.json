@@ -1,0 +1,11 @@
+{
+  "exit": 0,
+  "command": [
+    "./node_modules/.bin/eslint",
+    "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+    "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+    "lib/__tests__/optionsExposureEvidence.test.ts",
+    "lib/__tests__/helpers/optionsExposureEvidence.ts"
+  ],
+  "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

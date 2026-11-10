@@ -1,0 +1,93 @@
+{
+  "schema": "options_independent_branch_reader_projection.v1",
+  "phase": "green",
+  "state": "RESTORED",
+  "base_options_tree": "3406788889facc2d8e89b4730e1c66d2d975e115",
+  "combined_tree": "e0e001c553c7c9875e39bed4548e2e13a7fac90e",
+  "paths": [
+    {
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml",
+      "before_sha256": "8f40409e568a2c3e613cfbdb25cbf51eb54fb80ce49289bf4b5e04502d8d2897",
+      "projected_sha256": "2fbd72468ad8d62c06c12964b0d51b7867750e578900a1291e890b0761b52323",
+      "projected_git_blob": "00762e97884fd7e0db0ba1ccef8ea48ec8ca8c9c"
+    },
+    {
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml",
+      "before_sha256": "920aac260a6d9a1eeb737de055d2cda7def52e94b6116ff3d1b6369f6464e2a2",
+      "projected_sha256": "be8cbe0d2326eee92b3c1f90ddd45a592ed50cc37f81e348d203b8854e0ce713",
+      "projected_git_blob": "f932f1090b7cc76dbcbcf88d62de2625f06d42cf"
+    },
+    {
+      "path": "terminal/e2e/exposure-partial-totals.spec.ts",
+      "before_sha256": "15be383d94284d83c7b893dc9c1a83c3d023528b97b2527891c7801c0f1f9c16",
+      "projected_sha256": "b99a0c69fb7913cceaea8ab2bce2e25d22a870114a8f88e1e168b4fb5f8896fd",
+      "projected_git_blob": "0c0bdae2d91c549feb9bfb419c0d334259472162"
+    },
+    {
+      "path": "terminal/e2e/exposure-workspace.spec.ts",
+      "before_sha256": "b97552c974dcfcb63129083397f83156dd09c2fc012212aaaff84805cd17a630",
+      "projected_sha256": null,
+      "projected_git_blob": null
+    },
+    {
+      "path": "terminal/e2e/options-exposure-workspace.spec.ts",
+      "before_sha256": "c3cdb23766b8fa6cc69a04209f2eeef945728108cf14946a779b431ac1402de5",
+      "projected_sha256": "94794d7172931d4f45b34d54dfe104083e5c581fda0470a973f252b0638b9d7e",
+      "projected_git_blob": "93e4f641c78db0422c7634e09b8675899c89e8de"
+    },
+    {
+      "path": "terminal/e2e/responsive.spec.ts",
+      "before_sha256": "b45e77c6295aacd937dba1d20433339687a4c88b40f33fc2cc060719ac670b1e",
+      "projected_sha256": "3b20dcb4a5bf1cc8701d0f1447ef3cb4b0ffe9420f0194183269b484c2830e84",
+      "projected_git_blob": "63312d32defb2d6122d26bd3c18ce762833b92ee"
+    },
+    {
+      "path": "terminal/e2e/sector-exposure-journey.spec.ts",
+      "before_sha256": "939182d605acb5cf1a2c7964b878a0ecf8889d574c53c672d33c8f88b7f63cec",
+      "projected_sha256": "ba0d3a8166e917a9e2b49ddafd0c78a458fba4b5d87133219499a82a730ca364",
+      "projected_git_blob": "c2a7f61c83ef7697c443e664a2e5aad8d6b2c3e6"
+    },
+    {
+      "path": "terminal/lib/__tests__/exposureOrigin.test.ts",
+      "before_sha256": "bd78dd28c8af2d562f1366111d24aa05e2c1d71783b6194441cf0571568e56f1",
+      "projected_sha256": "c0b0b6e46bb7fd453f1ecd50b543cea750bd844d6072d3ae69c9e0df05cc7fb9",
+      "projected_git_blob": "2000f88c1dcc3c11bd34c1845564766e6f526eb4"
+    }
+  ],
+  "effects": "Temporary non-Git preview projection; exact application/test files and native root manifests; unrelated retained proof files remain present but undeclared.",
+  "started_at": "2026-11-05T10:49:25.904748+00:00",
+  "verified_tracked_files": 3319,
+  "candidate_overlays": {
+    "terminal/lib/__tests__/helpers/optionsExposureEvidence.ts": {
+      "git_tree_blob": "6ab3f66589e2040620548638d84db5c6ce1ce864",
+      "candidate_git_blob": "2f121f335d6c31577dc70d16520e2bc3704529a1",
+      "sha256": "e66704686098ea1b6463061065a7ab25339d68c63685453ae600bd6226bb9325"
+    },
+    "terminal/lib/__tests__/optionsExposureEvidence.test.ts": {
+      "git_tree_blob": "b97bce809e1a49282d36d7c3139c6472ae1903d5",
+      "candidate_git_blob": "22e1e3cfe1172a8d387f6046a402d5098492fb88",
+      "sha256": "8cdfbdfa60da0cdbc8978ba4f5bbb2809a8e46e5d6ff87ab264ef01dffe250a9"
+    }
+  },
+  "exit": 0,
+  "seconds": 13.146,
+  "passed": 39,
+  "failed": 0,
+  "pending": 0,
+  "failures": [],
+  "command": [
+    "./node_modules/.bin/vitest",
+    "run",
+    "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+    "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+    "lib/__tests__/optionsExposureEvidence.test.ts",
+    "--maxWorkers=2",
+    "--minWorkers=1",
+    "--reporter=default",
+    "--reporter=json",
+    "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/options-only-observer-green-r4/unit-report.json"
+  ],
+  "raw_log_sha256": "74f44878a9409b0d30603e65c90023b8826145fdcc3409954b4b9fea6d2147ee",
+  "owned_source_restored": true,
+  "completed_at": "2026-11-05T10:49:41.760431+00:00"
+}

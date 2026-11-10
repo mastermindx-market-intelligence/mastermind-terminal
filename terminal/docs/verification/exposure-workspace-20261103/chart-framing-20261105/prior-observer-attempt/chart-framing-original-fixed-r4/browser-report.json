@@ -1,0 +1,612 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/node_modules/.bin/playwright",
+      "test",
+      "e2e/options-exposure-workspace.spec.ts",
+      "--grep",
+      "Connected exposure workspace (?:en|zh): chart, comparison scopes, scanner and return$",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--retries=0",
+      "--trace=on",
+      "--output=.next/options-chart-framing-original-fixed-r4",
+      "--reporter=list,json"
+    ],
+    "configFile": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-chart-framing-original-fixed-r4",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-chart-framing-original-fixed-r4",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-chart-framing-original-fixed-r4",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-chart-framing-original-fixed-r4",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-chart-framing-original-fixed-r4",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-chart-framing-original-fixed-r4",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-chart-framing-original-fixed-r4",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-chart-framing-original-fixed-r4",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3697",
+      "url": "http://127.0.0.1:3697/terminal?symbol=NVDA",
+      "reuseExistingServer": true,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "options-exposure-workspace.spec.ts",
+      "file": "options-exposure-workspace.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8039,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:34:59.505Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "exposure-header-clearance-initial",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJnYXAiOiA1LjQ5MjM5NzkzMzQ2ODUxLAogICAgInBhaW50IjogNCwKICAgICJsYWJlbFRvcCI6IDYxNy4yMTExNDc5MzM0Njg1LAogICAgImhlYWRlckJvdHRvbSI6IDYxMS43MTg3NQogIH0KXQ=="
+                    },
+                    {
+                      "name": "exposure-header-clearance",
+                      "contentType": "application/json",
+                      "body": "ewogICJpbml0aWFsIjogewogICAgImdhcCI6IDUuNDkyMzk3OTMzNDY4NTEsCiAgICAicGFpbnQiOiA0LAogICAgImxhYmVsVG9wIjogNjE3LjIxMTE0NzkzMzQ2ODUsCiAgICAiaGVhZGVyQm90dG9tIjogNjExLjcxODc1CiAgfSwKICAiYWZ0ZXJGaXQiOiB7CiAgICAiZ2FwIjogNS40OTIzOTc5MzM0Njg1MSwKICAgICJwYWludCI6IDYsCiAgICAibGFiZWxUb3AiOiA2MTcuMjExMTQ3OTMzNDY4NSwKICAgICJoZWFkZXJCb3R0b20iOiA2MTEuNzE4NzUKICB9Cn0="
+                    },
+                    {
+                      "name": "momentum-layout",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0YWciOiAiRElWIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI5cHgiLAogICAgImxlZnQiOiAiNnB4IgogIH0sCiAgewogICAgInRhZyI6ICJESVYiLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjlweCIsCiAgICAibGVmdCI6ICI2cHgiCiAgfSwKICB7CiAgICAidGFnIjogIkRJViIsCiAgICAiZGlzcGxheSI6ICJmbGV4IiwKICAgICJkaXJlY3Rpb24iOiAiY29sdW1uIiwKICAgICJ0b3AiOiAiOXB4IiwKICAgICJsZWZ0IjogIjZweCIKICB9LAogIHsKICAgICJ0YWciOiAiRElWIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI5cHgiLAogICAgImxlZnQiOiAiNnB4IgogIH0sCiAgewogICAgInRhZyI6ICJESVYiLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjlweCIsCiAgICAibGVmdCI6ICI2cHgiCiAgfQpd"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-chart-framing-original-fixed-r4/options-exposure-workspace-3f35d-n-scopes-scanner-and-return-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9e9678be14b351cb8dab-6ae05176e115ddc39b3d",
+          "file": "options-exposure-workspace.spec.ts",
+          "line": 427,
+          "column": 7
+        },
+        {
+          "title": "Connected exposure workspace zh: chart, comparison scopes, scanner and return",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6878,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:35:08.050Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "exposure-header-clearance-initial",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJnYXAiOiA1LjQ5MjM5NzkzMzQ2ODUxLAogICAgInBhaW50IjogNCwKICAgICJsYWJlbFRvcCI6IDYwMS45OTIzOTc5MzM0Njg1LAogICAgImhlYWRlckJvdHRvbSI6IDU5Ni41CiAgfQpd"
+                    },
+                    {
+                      "name": "exposure-header-clearance",
+                      "contentType": "application/json",
+                      "body": "ewogICJpbml0aWFsIjogewogICAgImdhcCI6IDUuNDkyMzk3OTMzNDY4NTEsCiAgICAicGFpbnQiOiA0LAogICAgImxhYmVsVG9wIjogNjAxLjk5MjM5NzkzMzQ2ODUsCiAgICAiaGVhZGVyQm90dG9tIjogNTk2LjUKICB9LAogICJhZnRlckZpdCI6IHsKICAgICJnYXAiOiA1LjQ5MjM5NzkzMzQ2ODUxLAogICAgInBhaW50IjogNiwKICAgICJsYWJlbFRvcCI6IDYwMS45OTIzOTc5MzM0Njg1LAogICAgImhlYWRlckJvdHRvbSI6IDU5Ni41CiAgfQp9"
+                    },
+                    {
+                      "name": "momentum-layout",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0YWciOiAiRElWIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI5cHgiLAogICAgImxlZnQiOiAiNnB4IgogIH0sCiAgewogICAgInRhZyI6ICJESVYiLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjlweCIsCiAgICAibGVmdCI6ICI2cHgiCiAgfSwKICB7CiAgICAidGFnIjogIkRJViIsCiAgICAiZGlzcGxheSI6ICJmbGV4IiwKICAgICJkaXJlY3Rpb24iOiAiY29sdW1uIiwKICAgICJ0b3AiOiAiOXB4IiwKICAgICJsZWZ0IjogIjZweCIKICB9LAogIHsKICAgICJ0YWciOiAiRElWIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI5cHgiLAogICAgImxlZnQiOiAiNnB4IgogIH0sCiAgewogICAgInRhZyI6ICJESVYiLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjlweCIsCiAgICAibGVmdCI6ICI2cHgiCiAgfQpd"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-chart-framing-original-fixed-r4/options-exposure-workspace-eba30-n-scopes-scanner-and-return-desktop/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9e9678be14b351cb8dab-0c140ffae3c761f60932",
+          "file": "options-exposure-workspace.spec.ts",
+          "line": 427,
+          "column": 7
+        },
+        {
+          "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7385,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:35:15.764Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "exposure-header-clearance-initial",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJnYXAiOiA1LjQ5MjM5NzkzMzQ2ODUxLAogICAgInBhaW50IjogNCwKICAgICJsYWJlbFRvcCI6IDgwMS40NzY3NzI5MzM0Njg1LAogICAgImhlYWRlckJvdHRvbSI6IDc5NS45ODQzNzUKICB9Cl0="
+                    },
+                    {
+                      "name": "exposure-header-clearance",
+                      "contentType": "application/json",
+                      "body": "ewogICJpbml0aWFsIjogewogICAgImdhcCI6IDUuNDkyMzk3OTMzNDY4NTEsCiAgICAicGFpbnQiOiA0LAogICAgImxhYmVsVG9wIjogODAxLjQ3Njc3MjkzMzQ2ODUsCiAgICAiaGVhZGVyQm90dG9tIjogNzk1Ljk4NDM3NQogIH0sCiAgImFmdGVyRml0IjogewogICAgImdhcCI6IDUuNDkyMzk3OTMzNDY4NTEsCiAgICAicGFpbnQiOiA2LAogICAgImxhYmVsVG9wIjogODAxLjQ3Njc3MjkzMzQ2ODUsCiAgICAiaGVhZGVyQm90dG9tIjogNzk1Ljk4NDM3NQogIH0KfQ=="
+                    },
+                    {
+                      "name": "momentum-layout",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0YWciOiAiRElWIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI5cHgiLAogICAgImxlZnQiOiAiNnB4IgogIH0sCiAgewogICAgInRhZyI6ICJESVYiLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjlweCIsCiAgICAibGVmdCI6ICI2cHgiCiAgfSwKICB7CiAgICAidGFnIjogIkRJViIsCiAgICAiZGlzcGxheSI6ICJmbGV4IiwKICAgICJkaXJlY3Rpb24iOiAiY29sdW1uIiwKICAgICJ0b3AiOiAiOXB4IiwKICAgICJsZWZ0IjogIjZweCIKICB9LAogIHsKICAgICJ0YWciOiAiRElWIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI5cHgiLAogICAgImxlZnQiOiAiNnB4IgogIH0sCiAgewogICAgInRhZyI6ICJESVYiLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjlweCIsCiAgICAibGVmdCI6ICI2cHgiCiAgfQpd"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-chart-framing-original-fixed-r4/options-exposure-workspace-3f35d-n-scopes-scanner-and-return-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9e9678be14b351cb8dab-f57ce40ae717d36b6786",
+          "file": "options-exposure-workspace.spec.ts",
+          "line": 427,
+          "column": 7
+        },
+        {
+          "title": "Connected exposure workspace zh: chart, comparison scopes, scanner and return",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7174,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:35:23.691Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "exposure-header-clearance-initial",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJnYXAiOiA1LjQ5MjM5NzkzMzQ2ODUxLAogICAgInBhaW50IjogNCwKICAgICJsYWJlbFRvcCI6IDc1Ny41MzkyNzI5MzM0Njg1LAogICAgImhlYWRlckJvdHRvbSI6IDc1Mi4wNDY4NzUKICB9Cl0="
+                    },
+                    {
+                      "name": "exposure-header-clearance",
+                      "contentType": "application/json",
+                      "body": "ewogICJpbml0aWFsIjogewogICAgImdhcCI6IDUuNDkyMzk3OTMzNDY4NTEsCiAgICAicGFpbnQiOiA0LAogICAgImxhYmVsVG9wIjogNzU3LjUzOTI3MjkzMzQ2ODUsCiAgICAiaGVhZGVyQm90dG9tIjogNzUyLjA0Njg3NQogIH0sCiAgImFmdGVyRml0IjogewogICAgImdhcCI6IDUuNDkyMzk3OTMzNDY4NTEsCiAgICAicGFpbnQiOiA2LAogICAgImxhYmVsVG9wIjogNzU3LjUzOTI3MjkzMzQ2ODUsCiAgICAiaGVhZGVyQm90dG9tIjogNzUyLjA0Njg3NQogIH0KfQ=="
+                    },
+                    {
+                      "name": "momentum-layout",
+                      "contentType": "application/json",
+                      "body": "WwogIHsKICAgICJ0YWciOiAiRElWIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI5cHgiLAogICAgImxlZnQiOiAiNnB4IgogIH0sCiAgewogICAgInRhZyI6ICJESVYiLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjlweCIsCiAgICAibGVmdCI6ICI2cHgiCiAgfSwKICB7CiAgICAidGFnIjogIkRJViIsCiAgICAiZGlzcGxheSI6ICJmbGV4IiwKICAgICJkaXJlY3Rpb24iOiAiY29sdW1uIiwKICAgICJ0b3AiOiAiOXB4IiwKICAgICJsZWZ0IjogIjZweCIKICB9LAogIHsKICAgICJ0YWciOiAiRElWIiwKICAgICJkaXNwbGF5IjogImZsZXgiLAogICAgImRpcmVjdGlvbiI6ICJjb2x1bW4iLAogICAgInRvcCI6ICI5cHgiLAogICAgImxlZnQiOiAiNnB4IgogIH0sCiAgewogICAgInRhZyI6ICJESVYiLAogICAgImRpc3BsYXkiOiAiZmxleCIsCiAgICAiZGlyZWN0aW9uIjogImNvbHVtbiIsCiAgICAidG9wIjogIjlweCIsCiAgICAibGVmdCI6ICI2cHgiCiAgfQpd"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-chart-framing-original-fixed-r4/options-exposure-workspace-eba30-n-scopes-scanner-and-return-tablet/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9e9678be14b351cb8dab-89febbd2fe12c0dc57e8",
+          "file": "options-exposure-workspace.spec.ts",
+          "line": 427,
+          "column": 7
+        },
+        {
+          "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 8721,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m4\u001b[39m\nReceived:    \u001b[31m-Infinity\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m4\u001b[39m\nReceived:    \u001b[31m-Infinity\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/e2e/options-exposure-workspace.spec.ts:444:10",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/e2e/options-exposure-workspace.spec.ts",
+                      "column": 10,
+                      "line": 444
+                    },
+                    "snippet": "  442 |         const rows = await exposureHeaderClearance(page);\n  443 |         return rows.length === 1 ? rows[0].gap : Number.NEGATIVE_INFINITY;\n> 444 |       }).toBeGreaterThanOrEqual(4);\n      |          ^\n  445 |     } finally {\n  446 |       await info.attach(\"exposure-header-clearance-initial\", {body:JSON.stringify(\n  447 |         await exposureHeaderClearance(page),null,2),contentType:\"application/json\"});"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/e2e/options-exposure-workspace.spec.ts",
+                        "column": 10,
+                        "line": 444
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m4\u001b[39m\nReceived:    \u001b[31m-Infinity\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  442 |         const rows = await exposureHeaderClearance(page);\n  443 |         return rows.length === 1 ? rows[0].gap : Number.NEGATIVE_INFINITY;\n> 444 |       }).toBeGreaterThanOrEqual(4);\n      |          ^\n  445 |     } finally {\n  446 |       await info.attach(\"exposure-header-clearance-initial\", {body:JSON.stringify(\n  447 |         await exposureHeaderClearance(page),null,2),contentType:\"application/json\"});\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/e2e/options-exposure-workspace.spec.ts:444:10"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:35:31.486Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "exposure-header-clearance-initial",
+                      "contentType": "application/json",
+                      "body": "W10="
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-chart-framing-original-fixed-r4/options-exposure-workspace-3f35d-n-scopes-scanner-and-return-mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-chart-framing-original-fixed-r4/options-exposure-workspace-3f35d-n-scopes-scanner-and-return-mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-chart-framing-original-fixed-r4/options-exposure-workspace-3f35d-n-scopes-scanner-and-return-mobile/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/e2e/options-exposure-workspace.spec.ts",
+                    "column": 10,
+                    "line": 444
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "9e9678be14b351cb8dab-6c93e57c0ebdfeeef248",
+          "file": "options-exposure-workspace.spec.ts",
+          "line": 427,
+          "column": 7
+        },
+        {
+          "title": "Connected exposure workspace zh: chart, comparison scopes, scanner and return",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 8752,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m4\u001b[39m\nReceived:    \u001b[31m-Infinity\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m4\u001b[39m\nReceived:    \u001b[31m-Infinity\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/e2e/options-exposure-workspace.spec.ts:444:10",
+                    "location": {
+                      "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/e2e/options-exposure-workspace.spec.ts",
+                      "column": 10,
+                      "line": 444
+                    },
+                    "snippet": "  442 |         const rows = await exposureHeaderClearance(page);\n  443 |         return rows.length === 1 ? rows[0].gap : Number.NEGATIVE_INFINITY;\n> 444 |       }).toBeGreaterThanOrEqual(4);\n      |          ^\n  445 |     } finally {\n  446 |       await info.attach(\"exposure-header-clearance-initial\", {body:JSON.stringify(\n  447 |         await exposureHeaderClearance(page),null,2),contentType:\"application/json\"});"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/e2e/options-exposure-workspace.spec.ts",
+                        "column": 10,
+                        "line": 444
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m4\u001b[39m\nReceived:    \u001b[31m-Infinity\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n\n  442 |         const rows = await exposureHeaderClearance(page);\n  443 |         return rows.length === 1 ? rows[0].gap : Number.NEGATIVE_INFINITY;\n> 444 |       }).toBeGreaterThanOrEqual(4);\n      |          ^\n  445 |     } finally {\n  446 |       await info.attach(\"exposure-header-clearance-initial\", {body:JSON.stringify(\n  447 |         await exposureHeaderClearance(page),null,2),contentType:\"application/json\"});\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/e2e/options-exposure-workspace.spec.ts:444:10"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-05T09:35:40.800Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "exposure-header-clearance-initial",
+                      "contentType": "application/json",
+                      "body": "W10="
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-chart-framing-original-fixed-r4/options-exposure-workspace-eba30-n-scopes-scanner-and-return-mobile/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-chart-framing-original-fixed-r4/options-exposure-workspace-eba30-n-scopes-scanner-and-return-mobile/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-chart-framing-original-fixed-r4/options-exposure-workspace-eba30-n-scopes-scanner-and-return-mobile/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/e2e/options-exposure-workspace.spec.ts",
+                    "column": 10,
+                    "line": 444
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "9e9678be14b351cb8dab-ac6b091440034955de0a",
+          "file": "options-exposure-workspace.spec.ts",
+          "line": 427,
+          "column": 7
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-05T09:34:34.510Z",
+    "duration": 75415.989,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}

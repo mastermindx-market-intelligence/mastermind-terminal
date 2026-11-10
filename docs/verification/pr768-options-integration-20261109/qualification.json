@@ -1,0 +1,80 @@
+{
+  "browserFailed": 0,
+  "browserFlaky": 0,
+  "browserPassed": 144,
+  "browserQualificationSha256": "48f4d579a9c661e35f51e5070424a53f509ac1a480430ee9fda9afab8bb6df90",
+  "browserRetries": 0,
+  "browserSkipped": 0,
+  "capturedDependency": "d3bd6b2d98c6c23398be0bed6c7450caa47bd665",
+  "composition": {
+    "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261109160768-2-current.composition.json",
+    "selectedCases": 50,
+    "sha256": "0bd6c1f928fceb8bd6dfc783de56220ae55beb98256c43a2c2b6f28ad86ab755"
+  },
+  "descriptorBoundLogs": {
+    "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/revisions/options-integration-20261109/capture.log": "b2f6e812056bbc3f4835ae82446e786ff53ab6e09e3f3ae3d3ed27ff58e952d8",
+    "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/revisions/options-integration-20261109/capture.log": "3cf1928d5c63e10eeec8948be8cc10771afb6fc7cfaa6c80c3c26dd290a40aaf",
+    "terminal/docs/verification/exposure-workspace-20261103/options-integration-20261109/browser.log": "09edd96a53e86d1a16f2dcdb30432d687ad9341627aae7350ef2feda9ff4254a"
+  },
+  "finalSelectedConsumersPassed": 18,
+  "fullCIOwnerSeconds": 408.17,
+  "fullCISourceEntries": 1940,
+  "fullCISourceSha256": "cc379a53d8af6ed185c156b862a53027074da0b46bf673118067eb700c3c97ec",
+  "lifecycleReconciled": true,
+  "nativeDescriptors": {
+    "eod": "77b3b7f07746290cad33262a3d95c221e947a5acd5e940ae95b9d9458f510a18",
+    "gex": "fd7c4364bcfb3f8b44773792c4f5d16fbc654eb47cf58a142eb169b3bac24ad7"
+  },
+  "nativeImages": {
+    "eod": 126,
+    "gex": 114
+  },
+  "nativeReaderAssertionsPassed": 101,
+  "nodeAssertionsPassed": 231,
+  "originalFailedPostconditionPreserved": true,
+  "originalHead": "90f275f15b4d174f003fb5b1087823dce6ec865a",
+  "parents": [
+    "90f275f15b4d174f003fb5b1087823dce6ec865a",
+    "03af393ce05c12282003a3919cc473c032264922",
+    "0e7e6ddc5eb40345909e4acff47fb13609052aa2"
+  ],
+  "playwrightCollectedFiles": 293,
+  "playwrightCollectedTests": 4966,
+  "preparedAt": "2026-11-09T17:16:09.515861+00:00",
+  "productLogSha256": "c4b2fc22d8a2d5d7f783b9728fabfcf87113c2f771ee7574f657616875554101",
+  "productUnitCounts": {
+    "dte": 19,
+    "gexDeskPartialData": 16,
+    "gexLadder": 43
+  },
+  "productUnitsPassed": 78,
+  "protectedMaster": "03af393ce05c12282003a3919cc473c032264922",
+  "publicationDependency": "0e7e6ddc5eb40345909e4acff47fb13609052aa2",
+  "pythonAssertionsPassed": 18,
+  "records": {
+    "actual-evidence-binding.json": "58c6ed9656964eb3db4de7612ea0554fe8c13142985a9cc1d3d774a7a99c8760",
+    "ci-contract-checks-r1/execution.json": "a84e4aea2b136a5e3fc70e539ba8e61947ce4b6575336d3c02afc71bfac3f36c",
+    "ci-contract-repair.json": "d49ce8f658dcf9cacc20274d4b2c5351c2e04cedb4d6bf852621e26a0c8d21e5",
+    "ci-owner-r1/execution.json": "1a7db2dd9d2d49d2ef4ef1c8078ef8395426bc08b6d0e04ef06ba565bc14fe1b",
+    "ci-owner-r2/ci-owner-r2-lifecycle.json": "c7eca72fff49f3936db08c8590a9e4ecb4354fea9f199c9ab516a32d8ae9a54c",
+    "ci-owner-r2/execution-final.json": "b374ec4b925a941ea6ecd63709143fc6e174bcd0c36b6ff60d537f3ee9e3f86e",
+    "ci-owner-r2/execution.json": "923ddd41b06982c3b5768ac69a94276953fff46ac3af0eeff9d6def205465878",
+    "consumer-validation-r1/execution.json": "3e14a122368a3bd27cbfe12345fe11ff2446e9556d7d5f7aee01df98f5f9aa38",
+    "final-consumers-r2/execution.json": "e777270d7a6fc97ead71c63d1bfb70af01bdf90c93230e363d1bf4a7cf1b6658",
+    "native-validation-r1.json": "1c560220259c09be053152c7f48e3d2d9c9fb6548f60b6fd9d2703d5519de291",
+    "product-unit-r1.json": "32162a07453c2d4a75043cf562d7b6824d805cfdfd2d1908f203924205402f84",
+    "visual-review.json": "4c5f150381704e3aef8361db1c3025065750919cd60e49139d8473f4b0869f5c"
+  },
+  "renderingInputCounts": {
+    "browser": 71,
+    "eod": 32,
+    "gex": 29
+  },
+  "renderingRecaptureAfterTestRename": false,
+  "schema": "terminal_pr768_options_integration_qualification.v1",
+  "sharedOwnerDeadlineMinutes": 84,
+  "state": "SOURCE_NATIVE_BROWSER_AND_CURRENT_CI_OWNER_QUALIFIED",
+  "typecheckSeconds": 43.94,
+  "workflowBlob": "fc38b261161535f0cca571be91c51aa3e0ea87fe",
+  "workflowCaptureMinutes": 85
+}

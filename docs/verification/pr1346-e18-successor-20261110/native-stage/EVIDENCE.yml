@@ -1,0 +1,41 @@
+# E18 alert management — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: 33d55577356a55ed2839d38c507b568b3caafed2
+# capturedAt: 2026-11-10T06:12:54.876Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/alerts/AlertBulkManager.tsx: "7ebdb5f4f4918e3b13afe465293288d8a1ce84b58dd6fd29bac6b9b7f58bef27"
+  terminal/components/alerts/alertBulk.module.css: "204bd08ac5e221aaf5a5a5bb04f4eae7f017d7eafedd90254a1fbfa9608c5ba8"
+  terminal/lib/alertBulk.ts: "34a6b791f500b217184d7b23ccb9b71cbbc83dd6bc55824d73937008d0f5633c"
+  terminal/lib/alertBulkLex.ts: "35f1b91b9b331cbce4231ed7d106b8ad0b1524e46fbd0c2b22a872dc336c03dd"
+  terminal/e2e/tools/capture_e18_alert_management.cjs: "a97f08742f1c664e673b1870f800e4559e1f5a853a1b2186b08042d6bc743e88"
+  terminal/e2e/tools/capture_ci_evidence.cjs: "856da74c32caa80a6bb0d18a243e90db1c3a1c65690c44e5703887a855d834e4"
+  terminal/next.config.ts: "f6dbf2cd6da2894cc2049b77ac11fb42c0523df5f39f433753d66f8c491279a7"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: tablet, width: 820, height: 1180 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [AlertBulkManager]
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+states:
+  review: five alerts ticked, pause preview open (four to pause, AMD already paused and skipped)
+  results: the batch confirmed against a scripted owner (NVDA paused, MSFT refused, AAPL and TSLA not confirmed, AMD skipped)
+crops:
+  results-desktop-en.png: { url: "/alerts", state: results }
+  results-desktop-zh.png: { url: "/alerts", state: results }
+  results-mobile-en.png: { url: "/alerts", state: results }
+  results-mobile-zh.png: { url: "/alerts", state: results }
+  results-tablet-en.png: { url: "/alerts", state: results }
+  results-tablet-zh.png: { url: "/alerts", state: results }
+  review-desktop-en.png: { url: "/alerts", state: review }
+  review-desktop-zh.png: { url: "/alerts", state: review }
+  review-mobile-en.png: { url: "/alerts", state: review }
+  review-mobile-zh.png: { url: "/alerts", state: review }
+  review-tablet-en.png: { url: "/alerts", state: review }
+  review-tablet-zh.png: { url: "/alerts", state: review }
+command: |
+  TERMINAL_CROP_PORT=47283 node e2e/tools/capture_e18_alert_management.cjs
