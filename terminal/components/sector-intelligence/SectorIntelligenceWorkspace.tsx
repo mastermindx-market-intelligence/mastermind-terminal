@@ -9,7 +9,7 @@ import { useShellIdentity } from "@/components/chrome/AppShell";
 import { SECTOR_FEEDS, FINVIZ_FEEDS, SECTOR_VIEWS, DEFAULT_SECTOR_STATE, object, text, number, sectorRows,
   groupRows, themeRows, themeEntryReady, themeStaleLegs, sectorRotationEpisodes, sectorMeasuredRead, members, concentration, sortMembers, parseSectorState, writeSectorState,
   formatValue, type FeedMap, type FeedPayload, type FeedStatus,
-  type SectorFeed, type SectorState, type SectorView, type Row } from "@/lib/sectorIntelligence";
+  type SectorFeed, type SectorJob, type SectorState, type SectorView, type Row } from "@/lib/sectorIntelligence";
 import SectorGroupBrowser from "./SectorGroupBrowser";
 import FinvizDiscovery from "./FinvizDiscovery";
 import SectorCentralDiscovery from "./SectorCentralDiscovery";
@@ -20,6 +20,9 @@ import SectorIntradayComparison, { useSectorPresentationClock } from "./SectorIn
 import SectorLeadershipDossier from "./SectorLeadershipDossier";
 import SectorGenerationQualification from "./SectorGenerationQualification";
 import SectorConstituentEvidence from "./SectorConstituentEvidence";
+import SectorNativeJobShell from "./SectorNativeJobShell";
+import SectorNativeDossier from "./SectorNativeDossier";
+import { sectorNativeContext } from "./sectorNativeSlots";
 import { sectorOriginFromState, withExposureOrigin } from "@/lib/exposureOrigin";
 import { sectorRotationRelativeTrend } from "@/lib/rotationRelativeTrend";
 import { holdingsCoverageFor, sectorHoldingsCoverage } from "@/lib/sectorHoldingsCoverage";
@@ -107,7 +110,9 @@ export default function SectorIntelligenceWorkspace() {
   useEffect(() => {
     const sync = () => {
       const params = new URLSearchParams(window.location.search);
-      const next = parseSectorState(params);
+      // The clean canonical /sectors entry (no sector keys at all) opens the
+      // Brief job; every other URL keeps its exact legacy meaning.
+      const next = parseSectorState(params, window.location.pathname);
       if (next.workspace !== currentWorkspace.current) saveWorkspaceScroll();
       if (next.workspace !== "detail") { setReturnWorkspace(next.workspace); setReturnState(null); }
       else {
@@ -214,6 +219,16 @@ export default function SectorIntelligenceWorkspace() {
   const nativeEvidence = useMemo(() => nativeSectorEvidence(feeds.generation), [feeds.generation]);
   const nativeGeneration = nativeEvidence.generation;
   const nativeStatus = nativeEvidence.feed?.receipt.status || "loading";
+  // The native job/dossier surfaces bind every render to this one context: a
+  // replaced generation, subject, language, theme or owner revision produces a
+  // different binding, so a late reply for the old tuple can never render.
+  const nativeContext = useMemo(() => sectorNativeContext({
+    generation: nativeGeneration, transport: nativeStatus, subjectId: state.sector || null,
+    language: lang === "zh" ? "zh" : "en", theme: state.theme,
+    ownerRevision: `${identity.kind === "account" ? identity.userId : "guest"}#${revision}`,
+  }), [nativeGeneration, nativeStatus, state.sector, state.theme, lang, identity, revision]);
+  const nativeJobActive = state.sectorJob !== null && state.workspace !== "detail";
+  const nativeDossierActive = state.workspace === "detail" && state.sectorJob !== null;
   const selectedNative = nativeGeneration?.sectors.find(row => row.id === state.sector);
   const selectionSectors = useMemo(() => {
     const native = nativeGeneration?.sectors || [];
@@ -301,11 +316,20 @@ export default function SectorIntelligenceWorkspace() {
   }, [state, saveWorkspaceScroll, returnState]);
   const openOuterWorkspace = (workspace: OuterWorkspace) => {
     setReturnWorkspace(workspace); setReturnState(null);
-    change({ workspace, sourcesOpen: false }, true);
+    // Leaving the native job family for a legacy outer workspace restores the
+    // legacy meaning (no sectorJob in the address).
+    change({ workspace, sourcesOpen: false, sectorJob: null }, true);
   };
   const openSectorResearch = (sectorId: string) => {
     if (state.workspace !== "detail") { setReturnWorkspace(state.workspace); setReturnState(state); }
     change({ sector: sectorId, workspace: "detail", view: "intelligence", group: "", company: "", query: "", expanded: false, sourcesOpen: false }, true, state.workspace !== "detail" ? state : returnState);
+  };
+  const setJob = (job: SectorJob) => {
+    change({ sectorJob: job, workspace: "discover", sourcesOpen: false }, true);
+  };
+  const openNativeDossier = (sectorId: string, view: SectorView = "intelligence") => {
+    if (state.workspace !== "detail") { setReturnWorkspace(state.workspace); setReturnState(state); }
+    change({ sector: sectorId, workspace: "detail", view, group: "", company: "", query: "", expanded: false, sourcesOpen: false }, true, state.workspace !== "detail" ? state : returnState);
   };
   const returnToOuterWorkspace = () => {
     const target = returnState ? { ...returnState, sourcesOpen: false } : { workspace: returnWorkspace, sourcesOpen: false };
@@ -387,6 +411,7 @@ export default function SectorIntelligenceWorkspace() {
       </div>
     </MobileSheet>
     <div className={styles.page}>
+      {!nativeJobActive && !nativeDossierActive && <>
       <header className={styles.header}><div><p className={styles.eyebrow}>{t("siEyebrow")}</p><h1>{t("siTitle")}</h1><p className={styles.subtitle}>{t("siSubtitle")}</p></div>
         <div className={`${styles.controls} ${state.workspace === "detail" ? styles.detailControls : styles.utilityControls}`}>
           {state.workspace === "detail" && <><label>{t("siSector")}<select aria-label={t("siSector")} value={state.sector} onChange={e => change({ sector: e.target.value, group: "", query: "", company: "", expanded: false })}>
@@ -417,7 +442,18 @@ export default function SectorIntelligenceWorkspace() {
       </nav>}
       {state.workspace === "rotation" && state.rotationMethod !== "relative_trend_ema" &&
         <SectorGenerationQualification qualification={nativeGeneration?.receipt.qualification} />}
-      {state.workspace === "discover" && state.sourceFamily === "finviz" ? <FinvizDiscovery feed={feeds.finviz} state={state} onChange={patch => change(patch, !Object.hasOwn(patch, "discoveryQuery"))} /> : state.workspace === "rotation" ? <SectorRotationMap
+      </>}
+      {nativeJobActive ? <SectorNativeJobShell context={nativeContext} job={state.sectorJob as SectorJob}
+        onJob={setJob} onSelect={sector => change({ sector }, true)}
+        onOpenDossier={openNativeDossier} onOpenRotation={() => openOuterWorkspace("rotation")}
+        onTheme={() => change({ theme: state.theme === "dark" ? "light" : "dark" })}
+        onRefresh={() => setRevision(n => n + 1)} onSources={() => openSources()} />
+      : nativeDossierActive ? <SectorNativeDossier context={nativeContext} view={state.view}
+        onView={view => go(view)} onBack={returnToOuterWorkspace} onJob={setJob}
+        onOpenRotation={() => openOuterWorkspace("rotation")}
+        onTheme={() => change({ theme: state.theme === "dark" ? "light" : "dark" })}
+        onRefresh={() => setRevision(n => n + 1)} onSources={() => openSources()} />
+      : state.workspace === "discover" && state.sourceFamily === "finviz" ? <FinvizDiscovery feed={feeds.finviz} state={state} onChange={patch => change(patch, !Object.hasOwn(patch, "discoveryQuery"))} /> : state.workspace === "rotation" ? <SectorRotationMap
         rows={state.rotationMethod === "relative_trend_ema" ? sectors : nativeGeneration?.sectors || []}
         status={state.rotationMethod === "relative_trend_ema" ? status : nativeStatus} risk={feeds.risk}
         asOf={state.rotationMethod === "relative_trend_ema" ? feeds.sector?.receipt.asOf || null : nativeGeneration?.receipt.source_session || null}
