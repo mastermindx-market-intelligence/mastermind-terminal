@@ -1,0 +1,15 @@
+{
+  "indexTree": "d0372ce4287313db9aba421205cf02a443279e7b",
+  "mergeExit": 0,
+  "operation": "terminal-pr-duty-20261110-726-readout-successor",
+  "originalHead": "a7250e960cd9031375663bc67a2c45805dee6da7",
+  "ownedOriginalBlobs": {
+    "terminal/components/PrecisionEntryStrip.module.css": "4bc889bff529b3848b050afd37f1bcf8b6647871",
+    "terminal/components/PrecisionEntryStrip.tsx": "5119e3c66e9f3d14c10358b24728ff81d49f16d3",
+    "terminal/lib/__tests__/precisionEntryReadout.test.ts": "9a7284a6f0c56e122efbf95f36fbece74b2370c4",
+    "terminal/lib/__tests__/precisionEntryStrip.test.tsx": "125455ae5f4abd457fff9ab2702ae73c13c0b541",
+    "terminal/lib/precisionEntryReadout.ts": "e432c0f9e540daeb15bd0c2a27192ed4fdbefc60"
+  },
+  "protectedBase": "b5afc7eca5c37b3e2eee25871b764807203957a6",
+  "unmerged": ""
+}

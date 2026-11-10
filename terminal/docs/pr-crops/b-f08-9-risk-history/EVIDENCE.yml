@@ -1,19 +1,23 @@
 # B-F08-9 Historical risk of today's book — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 7dc811d87d9a3402accadd86c95d695213313aad
-# capturedAt: 2026-09-13T15:04:19.998Z
+# capturedAtHead: 0f077993fc1a1244531f825d3d829491f47d338c
+# capturedAt: 2026-11-10T07:48:09.409Z
 # capturedAtHead is informational. The lock is layoutFiles.
-# Heal round (META-CEO B, packet T_F08_9, 2026-09-13): the only code commit after
-# capturedAtHead touched terminal/app/api/portfolio/risk-history/route.ts (how a holding the
-# fan-out cap never requested is typed). That file is not a layoutFile, and no rendered
-# sentence or layout changed, so these twelve pixels still depict the head and the
-# layoutFiles sha256 lock below still holds against the files on disk.
-# 2026-09-19 seat merge of master 1c46b277 into #584 (B-F12-13): hash-only restamp of terminal/components/PortfolioView.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit.
 layoutFiles:
-  terminal/components/PortfolioView.tsx: "26cc1d903906d7e38fd276558699b0d49d301c1202a58e7b8e0eb11d4473cadc"
-  terminal/lib/portfolioRiskHistory.ts: "1f260800522bc61e54c4cd8731b95583aedc3dbd7214ccd5c66e6a3e5498f871"
+  terminal/components/PortfolioView.tsx: "b64d934a2cd1a05dedfac6213bcabb15683b22967e86476dc970ad9994018aec"
+  terminal/lib/portfolioRiskHistory.ts: "b03afe2a7bf55e17bea15676d974e6e37b2571ed0fab2ebbc86ff49d6893ad7e"
   terminal/components/PortfolioRiskHistory.module.css: "8627eca665ea7115ce929fad67d453cb7e715ea5e6cdfe1541a2ee4216b48796"
+  terminal/components/PortfolioWorkspace.tsx: "9d990ffd5eedfd58f152df7bda75ea3931127f46185bbb83540731aef7f8ba51"
+  terminal/components/PortfolioWorkspace.module.css: "44c92cf281693c8e1f444c8551cfd603ce99338190ea85aa0326072caf92cabf"
+  terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
+  terminal/e2e/tools/portfolioEvidenceCapture.cjs: "c7129910d0592fe857794985aba35b1ba66e4d28f1cb6d1296038f091161e355"
+  terminal/e2e/tools/capture_b_f08_9_risk_history.cjs: "c6914538889e1c5afba8d7ee3df5a8a55d7da17ba8d23252b2c11b17a7c48286"
+  terminal/e2e/fixtureStockdataServer.mjs: "b3aae22c3306e3654c7ca1b0b12ac1a50f857e3b8e03eda0b308a9f18b921f1f"
+  terminal/app/api/portfolio/risk-history/route.ts: "6b10d78519ba88f7c506037f8a8ffe0bc91413d10f115b27e0e364d31672569c"
+  terminal/app/api/portfolio/route.ts: "2977665e85ba697c99fd7d50d0d1363a3618eb2d8825c7c50069b5c6d0c011c0"
+  terminal/lib/portfolio.ts: "6342930c395a75eae74fdbb79441365c2af55c743f3dfcd28999d8a8e6704695"
+  terminal/lib/portfolioMoney.ts: "24e6fdaa6766ede2554b2d2d07be81e8f0b202028ecd03301ccbb1549652c7b1"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -33,8 +37,11 @@ harness:
   populated-390-zh.png: { url: "/portfolio", state: populated }
   populated-390.png: { url: "/portfolio", state: populated }
 surfaces: [PortfolioRiskHistoryReadout]
+fixture_ohlc_mode: public-fixture
+risk_free_fixture_status: unreadable
+# Public locally generated OHLC is fixture input, not credential-forwarding proof.
 capture_flag: TERMINAL_E2E_FIXTURE
-capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
 command: |
   cd terminal
   node e2e/tools/capture_b_f08_9_risk_history.cjs

@@ -186,3 +186,18 @@ describe("canSpliceRegularBar — today's completed session belongs on the chart
     expect(canSpliceRegularBar("SKY", { marketSession: "rth" }, null)).toBe(false);
   });
 });
+
+
+it("fences retained daily OHLCV after history acceptance while permitting a newer measured price",()=>{
+  const t=Date.parse("2026-10-21T13:30:00Z"), display=Date.parse("2026-10-21T00:00:00Z")/1000;
+  const formingCandles={version:1 as const,source:"polygon-live-second" as const,
+    generation:"d4606eb2-61c0-43a9-b89e-ff8da926ebf4",generationStartedMs:t,revision:5,asOfMs:t+1000,
+    timeframes:"",series:{},day:{time:display,o:100,h:150,l:90,c:101,v:1600,complete:true}};
+  const daily=[{time:"2026-10-21",o:100,h:120,l:95,c:110,v:2000}];
+  const q={last:101,high:150,low:90,vol:1600,asOfMs:t+1000,formingCandles};
+  expect(spliceDaily(daily,q,"2026-10-21",formingCandles)).toBe(daily);
+  expect(spliceDaily(daily,{...q,last:111,asOfMs:t+2000},"2026-10-21",formingCandles).at(-1))
+    .toMatchObject({h:120,l:95,c:111,v:2000});
+  expect(spliceDaily(daily,{...q,formingCandles:{...formingCandles,revision:6}},"2026-10-21",formingCandles).at(-1))
+    .toMatchObject({h:150,l:90,c:101,v:1600});
+});

@@ -1,0 +1,143 @@
+{
+  "file": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/b-delta003-portfolio-role-20261024-dc18e996b48571ac/supabase/migrations/0044_portfolio_target_role.sql",
+  "sha256": "2db2e52171fd525ffbbe6d2e6e75dc7291da65ad1512e037dd5e5349f7fb2075",
+  "pre": [
+    {
+      "statement": "SELECT attname, format_type(atttypid,atttypmod) AS type, attnotnull, atthasdef, attgenerated FROM pg_attribute WHERE attrelid='public.portfolio_targets'::regclass AND attname='role_label' AND NOT attisdropped",
+      "rows": []
+    },
+    {
+      "statement": "SELECT pg_get_constraintdef(oid), convalidated, connoinherit FROM pg_constraint WHERE conrelid='public.portfolio_targets'::regclass AND conname='portfolio_targets_role_label_valid'",
+      "rows": []
+    },
+    {
+      "statement": "SELECT relrowsecurity, relforcerowsecurity, relacl FROM pg_class WHERE oid='public.portfolio_targets'::regclass",
+      "rows": [
+        {
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}"
+        }
+      ]
+    },
+    {
+      "statement": "SELECT polname, polcmd, polroles, pg_get_expr(polqual,polrelid), pg_get_expr(polwithcheck,polrelid) FROM pg_policy WHERE polrelid='public.portfolio_targets'::regclass ORDER BY polname",
+      "rows": [
+        {
+          "polname": "portfolio_targets_delete_own",
+          "polcmd": "d",
+          "polroles": [
+            0
+          ],
+          "pg_get_expr": null
+        },
+        {
+          "polname": "portfolio_targets_insert_own",
+          "polcmd": "a",
+          "polroles": [
+            0
+          ],
+          "pg_get_expr": "(auth.uid() = user_id)"
+        },
+        {
+          "polname": "portfolio_targets_select_own",
+          "polcmd": "r",
+          "polroles": [
+            0
+          ],
+          "pg_get_expr": null
+        },
+        {
+          "polname": "portfolio_targets_update_own",
+          "polcmd": "w",
+          "polroles": [
+            0
+          ],
+          "pg_get_expr": "(auth.uid() = user_id)"
+        }
+      ]
+    }
+  ],
+  "post": [
+    {
+      "statement": "SELECT attname, format_type(atttypid,atttypmod) AS type, attnotnull, atthasdef, attgenerated FROM pg_attribute WHERE attrelid='public.portfolio_targets'::regclass AND attname='role_label' AND NOT attisdropped",
+      "rows": [
+        {
+          "attname": "role_label",
+          "type": "text",
+          "attnotnull": false,
+          "atthasdef": false,
+          "attgenerated": ""
+        }
+      ]
+    },
+    {
+      "statement": "SELECT pg_get_constraintdef(oid), convalidated, connoinherit FROM pg_constraint WHERE conrelid='public.portfolio_targets'::regclass AND conname='portfolio_targets_role_label_valid'",
+      "rows": [
+        {
+          "pg_get_constraintdef": "CHECK (((role_label IS NULL) OR (((char_length(role_label) >= 1) AND (char_length(role_label) <= 48)) AND (role_label !~ '[\u0001-\u001f\u007f-\u009f]'::text) AND (role_label = btrim(role_label, ' \u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000\ufeff'::text)))))",
+          "convalidated": true,
+          "connoinherit": false
+        }
+      ]
+    },
+    {
+      "statement": "SELECT relrowsecurity, relforcerowsecurity, relacl FROM pg_class WHERE oid='public.portfolio_targets'::regclass",
+      "rows": [
+        {
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}"
+        }
+      ]
+    },
+    {
+      "statement": "SELECT polname, polcmd, polroles, pg_get_expr(polqual,polrelid), pg_get_expr(polwithcheck,polrelid) FROM pg_policy WHERE polrelid='public.portfolio_targets'::regclass ORDER BY polname",
+      "rows": [
+        {
+          "polname": "portfolio_targets_delete_own",
+          "polcmd": "d",
+          "polroles": [
+            0
+          ],
+          "pg_get_expr": null
+        },
+        {
+          "polname": "portfolio_targets_insert_own",
+          "polcmd": "a",
+          "polroles": [
+            0
+          ],
+          "pg_get_expr": "(auth.uid() = user_id)"
+        },
+        {
+          "polname": "portfolio_targets_select_own",
+          "polcmd": "r",
+          "polroles": [
+            0
+          ],
+          "pg_get_expr": null
+        },
+        {
+          "polname": "portfolio_targets_update_own",
+          "polcmd": "w",
+          "polroles": [
+            0
+          ],
+          "pg_get_expr": "(auth.uid() = user_id)"
+        }
+      ]
+    }
+  ],
+  "applied_at": "2026-10-24T20:43:40Z",
+  "statements_n": 1,
+  "status": "unverified",
+  "project_ref": "<redacted-existing-project>",
+  "apply_mode": "statement-at-a-time",
+  "expected_objects": [],
+  "missing_after": [],
+  "failed_statement_index": null,
+  "error": null,
+  "tool_version": "supabase_apply/1",
+  "readback_excluded": []
+}

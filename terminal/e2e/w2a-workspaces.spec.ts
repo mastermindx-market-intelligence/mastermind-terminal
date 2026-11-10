@@ -246,6 +246,7 @@ test.describe("W2-A workspace menu — 1440×900 EN", () => {
     await isolateLayoutStore(page, testInfo, baseURL);
     await gotoTerminal(page);
     await seedUnknownWidgetTypeWorkspace(page, "UnknownWidget");
+    await gotoTerminal(page);
     const menu = await openLayoutMenu(page);
     // The row itself must be "ok" — never the unsupported_schema/blocked treatment M5 forbids for a
     // per-widget-type defect.
@@ -684,8 +685,8 @@ test.describe("F12 fixture regression — distinct synthetic browser identities"
 });
 
 test.describe("W2-A workspace menu — non-screenshot assertions (spec §7)", () => {
-  test("tap targets are >=44x44 at tablet and phone widths", async ({ page, baseURL }, testInfo) => {
-    for (const width of [820, 390] as const) {
+  for (const width of [820, 390] as const) {
+    test(`tap targets are >=44x44 at ${width}px`, async ({ page, baseURL }, testInfo) => {
       await page.setViewportSize({ width, height: 1180 });
       await isolateLayoutStore(page, testInfo, baseURL);
       await joinLayoutTeam(page, `tap-team-${width}-${testInfo.workerIndex}`, "owner", baseURL);
@@ -742,8 +743,8 @@ test.describe("W2-A workspace menu — non-screenshot assertions (spec §7)", ()
       await menu.locator("[data-layout-save-btn]").click();
       await expectTapTarget(menu.locator('[data-ws-fork="reload"]'), { width: 44, height: 44 });
       await expectTapTarget(menu.locator('[data-ws-fork="copy"]'), { width: 44, height: 44 });
-    }
-  });
+    });
+  }
 
   test("zero horizontal document overflow at all three widths with the menu open + a row unfolded", async ({ page, baseURL }, testInfo) => {
     await isolateLayoutStore(page, testInfo, baseURL);
@@ -878,6 +879,7 @@ test.describe("W2-A workspace menu — non-screenshot assertions (spec §7)", ()
     await isolateLayoutStore(page, testInfo, baseURL);
     await gotoTerminal(page);
     await seedUnreadableWorkspace(page, "Broken");
+    await gotoTerminal(page);
     const menu = await openLayoutMenu(page);
     const row = menu.locator('[data-layout-row="Broken"]');
     await expect(row).toBeVisible();

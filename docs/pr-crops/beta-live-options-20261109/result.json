@@ -1,0 +1,110 @@
+{
+  "url": "https://beta.mastermind-x.com/options",
+  "checks": [
+    {
+      "sample": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 900,
+        "lang": "en",
+        "theme": "dark"
+      },
+      "title": "Unlock the Options desk",
+      "button": "Start 7-day free trial",
+      "width": 390,
+      "height": 44,
+      "y": 584.546875,
+      "bottom": 628.546875,
+      "hit": true,
+      "rootLang": "en",
+      "rootTheme": "dark",
+      "mainScroll": 0,
+      "mainClientHeight": 836,
+      "documentOverflow": false,
+      "windowScrollY": 0,
+      "dialogVisible": true,
+      "dialogHeadings": [
+        "Create your account"
+      ],
+      "screenshot": "desktop-en.png"
+    },
+    {
+      "sample": {
+        "name": "tablet",
+        "width": 820,
+        "height": 1180,
+        "lang": "en",
+        "theme": "dark"
+      },
+      "title": "Unlock the Options desk",
+      "button": "Start 7-day free trial",
+      "width": 390,
+      "height": 44,
+      "y": 720.546875,
+      "bottom": 764.546875,
+      "hit": true,
+      "rootLang": "en",
+      "rootTheme": "dark",
+      "mainScroll": 0,
+      "mainClientHeight": 1124,
+      "documentOverflow": false,
+      "windowScrollY": 0,
+      "screenshot": "tablet-en.png"
+    },
+    {
+      "sample": {
+        "name": "phone",
+        "width": 320,
+        "height": 568,
+        "lang": "zh",
+        "theme": "light"
+      },
+      "title": "解锁期权终端",
+      "button": "开启 7 天免费试用",
+      "width": 246,
+      "height": 44,
+      "y": 424.9375,
+      "bottom": 468.9375,
+      "hit": true,
+      "rootLang": "zh",
+      "rootTheme": "light",
+      "mainScroll": 0,
+      "mainClientHeight": 512,
+      "documentOverflow": false,
+      "windowScrollY": 0,
+      "screenshot": "phone-zh.png"
+    },
+    {
+      "sample": {
+        "name": "short",
+        "width": 568,
+        "height": 320,
+        "lang": "en",
+        "theme": "dark"
+      },
+      "title": "Unlock the Options desk",
+      "button": "Start 7-day free trial",
+      "width": 398,
+      "height": 44,
+      "y": 201.328125,
+      "bottom": 245.328125,
+      "hit": true,
+      "rootLang": "en",
+      "rootTheme": "dark",
+      "mainScroll": 178,
+      "mainClientHeight": 264,
+      "documentOverflow": false,
+      "windowScrollY": 0,
+      "screenshot": "short-en.png"
+    }
+  ],
+  "observedAt": "2026-11-09T11:59:26.423Z",
+  "status": {
+    "enabled": true,
+    "protocol": "mmx.shared-shell.v1",
+    "buildId": "f2aa1e0cb27d459149f59d3b24d98cd6e2e8389f",
+    "bridgeVersion": "20261018.1",
+    "documentVersion": "20261018.1",
+    "registrySha256": "8d6346856bf24eb42525cfd0a7cbb6de3ff00092a907874012d8187e44623fbe"
+  }
+}

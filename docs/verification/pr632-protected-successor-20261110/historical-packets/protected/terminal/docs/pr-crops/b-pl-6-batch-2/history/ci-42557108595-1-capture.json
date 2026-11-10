@@ -1,0 +1,152 @@
+{
+  "operationIds": {
+    "pl6": "ci-42557108595-1-pl6",
+    "vi": "ci-42557108595-1-vi",
+    "composition": "ci-42557108595-1-current",
+    "prefix": "ci-42557108595-1"
+  },
+  "state": "SELECTED",
+  "children": [
+    {
+      "packet": "pl6",
+      "command": [
+        "/opt/hostedtoolcache/node/20.20.2/x64/bin/node",
+        "e2e/tools/capture_pl6_batch1.cjs"
+      ],
+      "stdoutPath": "/home/runner/work/_temp/terminal-ci-evidence/ci-42557108595-1-pl6.stdout.log",
+      "stderrPath": "/home/runner/work/_temp/terminal-ci-evidence/ci-42557108595-1-pl6.stderr.log",
+      "state": "RETURNED",
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "packet": "vi",
+      "command": [
+        "/opt/hostedtoolcache/node/20.20.2/x64/bin/node",
+        "e2e/tools/capture_visual_evidence.cjs",
+        "--id",
+        "ci-42557108595-1-vi",
+        "--port",
+        "3537"
+      ],
+      "stdoutPath": "/home/runner/work/_temp/terminal-ci-evidence/ci-42557108595-1-vi.stdout.log",
+      "stderrPath": "/home/runner/work/_temp/terminal-ci-evidence/ci-42557108595-1-vi.stderr.log",
+      "state": "RETURNED",
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "packet": "batch2",
+      "command": [
+        "/opt/hostedtoolcache/node/20.20.2/x64/bin/node",
+        "e2e/tools/capture_pl6_batch2.cjs"
+      ],
+      "stdoutPath": "/home/runner/work/_temp/terminal-ci-evidence/ci-42557108595-1-batch2.stdout.log",
+      "stderrPath": "/home/runner/work/_temp/terminal-ci-evidence/ci-42557108595-1-batch2.stderr.log",
+      "state": "RETURNED",
+      "status": 0,
+      "signal": null,
+      "error": null
+    }
+  ],
+  "actualCheckout": {
+    "commit": "d78b2e187893a99d0e8eccc311b1963bd84943a8",
+    "tree": "bc080a959d1e4529fe10d46cf9cb0b31950c0dae"
+  },
+  "githubEvent": {
+    "name": "pull_request",
+    "sha": "d78b2e187893a99d0e8eccc311b1963bd84943a8",
+    "ref": "refs/pull/906/merge",
+    "pullRequestBase": "6da72ccd43fd12168887243d708634ccc05d6763",
+    "pullRequestHead": "0482b9464abd29be8096f7fc04762ca0497f9168",
+    "mergeGroupBase": null,
+    "mergeGroupHead": null
+  },
+  "profile": {
+    "fixture": "terminal-e2e.v1",
+    "buildMode": "next-dev",
+    "sharedShell": "0",
+    "investorShellPreview": "0",
+    "theme": "dark"
+  },
+  "batch2": {
+    "required": true,
+    "reasons": [
+      "capture-setting:conductor_step",
+      "capture-setting:screenshot_animations",
+      "capture-setting:screenshot_raster",
+      "capture-setting:guide_motion",
+      "capture-setting:guide_backdrop",
+      "actual-image-hashes-absent"
+    ],
+    "manifestPath": "/home/runner/work/mastermind-terminal/mastermind-terminal/terminal/docs/pr-crops/b-pl-6-batch-2/EVIDENCE.yml",
+    "manifestSha256": "c9d8d3e249a031ed0ce795bc0d09aa2d37800e7dacf7187bd4d12e140618f36f",
+    "sourceFiles": {
+      "terminal/components/GuidePanel.tsx": "7fa13e1add88d9acff9c10f44f585d893cdb7a86389f0404d82963982b54efef",
+      "terminal/components/levels/LevelsView.tsx": "91a4d6fd86b12225e657c8a9c4b2b185e3940356af3cd11466ca30e04f05b0c9",
+      "terminal/components/levels/LevelsLearn.tsx": "15e58675e29e147ecc39f7b9c3527aba9f67ea81df6978ecffe450ccf1562d92",
+      "terminal/components/ChartConductor.tsx": "492f2580d8a7fc06d601b19ccbab65e75393481bd87e55f422376e50cc01b795",
+      "terminal/lib/plainLabels.ts": "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a",
+      "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
+    },
+    "imageHashes": {
+      "ChartConductor-1440-zh.png": "66d9565d9812744b7be60d06a29aacdb3315283c71fa0b310a1e685c1de483c8",
+      "ChartConductor-1440.png": "438f49bfe069fc7cec2baeed405f8be94668f9a90f3abb870db889da7201b81a",
+      "ChartConductor-390-zh.png": "13b6779a3c0ccaa2b281b4cb38a87b65d0b1582f6985542076306ad619a9294b",
+      "ChartConductor-390.png": "ab9552bd07af6ea6a146801a7af119719fc68007f4c9d0f5cb3e4d6053682262",
+      "ChartConductor-820-zh.png": "7dc5a339ae8ddb275a2e0be31971326712638ae3e812f436b8637542aa688c09",
+      "ChartConductor-820.png": "d435df4da206bfd5b0747875b0819083f7f3369ce927f7bbab3c59d8bf339fb7",
+      "GuidePanel-1440-zh.png": "b2f7d0bd01800130b75e74be75592eff7289fddafa9d3510cbc29b67c447b4e4",
+      "GuidePanel-1440.png": "0439d4f577998b2e18adbe9d0b42013b9a57265a2151d9e0483e8f9f43c73f9b",
+      "GuidePanel-390-zh.png": "bf6a8dd8c3042b1c3a2187886f3c4258bfb872507e45046a70e2300bfea98dbe",
+      "GuidePanel-390.png": "a6e04edaba3d154277d0051386a5b34344b91dbce891c5ca4901a9365a4605d7",
+      "GuidePanel-820-zh.png": "a39ce2473ffcf64536c788a9d121dcf1f2c2838c009171d53aacba59abf7426f",
+      "GuidePanel-820.png": "1aa90e4274589cb3f4f11fc80f7198e17c1190e1707356b75d25d335c298da6a",
+      "LevelsLearn-1440-zh.png": "0f48d743202eb43a3f0525766710d9a85a697bd160378ecc8e14b30ca7f6bfaa",
+      "LevelsLearn-1440.png": "47e9e3cca209dd767c9cd3a68f84a803579941d7d662431477cc2282d534bada",
+      "LevelsLearn-390-zh.png": "d9495ae8dbf849dc7f19046115b8042afc875ff0fbe94aaf60d1704adc43ed8e",
+      "LevelsLearn-390.png": "4f83b02c6316c9c84784a5106ce092afade8ec6de65b681c3598fe166feaad24",
+      "LevelsLearn-820-zh.png": "3a92b2869aab86ca0fd87f031bc60520a7485b806d89452b97c8f11d424687d2",
+      "LevelsLearn-820.png": "0d8269c8454059b7efe27bf32d482559bf3820dbd25bfb52dd3a095909e54a05",
+      "LevelsView-1440-zh.png": "88d74aed8bc555dde6168799067f3c0159aa98e96b2e5c9a096d20b0f19546ad",
+      "LevelsView-1440.png": "5a406a70cd87fba17c37386175a99faab328f59b5548d3b9bd34f1d061664ca0",
+      "LevelsView-390-zh.png": "e3924838dd2fdcfe4d2a01cfe3c81eb4d5de4d73774c1239dabbaf6b6537a4db",
+      "LevelsView-390.png": "f51988aa11aff92113d49660ce7614dd5cd0d5f9d0723f4141a6a8712444447e",
+      "LevelsView-820-zh.png": "34821c6edca09b64e6b97e4a62f9468f8a2466cfcc23b5b551a23ad6e1bcc25d",
+      "LevelsView-820.png": "82ddc816601a1620e2faa69cf8170aa1570fb1efe50359643b0a486d6000714d"
+    },
+    "historicalManifest": "history/before-deterministic-de75cc9a6723f05ac4e4494d5d45d52baa248b1a39ecd5bb7c0c45da3a61c6fa.yml",
+    "state": "CAPTURED_AWAITING_NATIVE_VALIDATION",
+    "historicalDiagnostic": "/home/runner/work/_temp/terminal-ci-evidence/ci-42557108595-1.batch2.previous-manifest.yml",
+    "actualCheckout": "d78b2e187893a99d0e8eccc311b1963bd84943a8"
+  },
+  "optionsAxis": {
+    "plan": {
+      "required": true,
+      "changed": [
+        "components/ChartPanel.tsx"
+      ]
+    },
+    "state": "CAPTURED_AWAITING_UNIT_VALIDATION",
+    "path": "terminal/docs/pr-crops/options-level-axis-labels/manifest.json",
+    "sha256": "e79038062addda897d43c28033d6c22f3b0354c39c5c534a8b5492c983820d77",
+    "sourceHead": "d78b2e187893a99d0e8eccc311b1963bd84943a8"
+  },
+  "references": [
+    {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-42557108595-1-pl6--operation.json",
+      "sha256": "90a78586ded1ba5f8fd98299ea429f2a86608291c9722211ff0c34e267da22e1"
+    },
+    {
+      "path": "terminal/docs/pr-crops/terminal-visual-intelligence/ci-42557108595-1-vi--operation.json",
+      "sha256": "109cb56475a6cdcf63c2a689fe639064c9113da0cf5795f36f60c2afa26bd012"
+    }
+  ],
+  "composition": {
+    "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-42557108595-1-current.composition.json",
+    "sha256": "3bfc1e239fc0a93b073336099ac08a7048644c9592e9496f822ea2c808856c1f",
+    "selectedCases": 50
+  }
+}

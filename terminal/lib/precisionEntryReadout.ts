@@ -130,8 +130,40 @@ export function buildPrecisionEntryReadout(intel: unknown): PrecisionEntryReadou
   const spot = positiveNum(entry?.spot);
   const zone = buyZone(entry?.buy_zone);
   const chaseAbove = positiveNum(entry?.chase_above);
+  const stop = positiveNum(entry?.stop);
+  const posture = {
+    status: str(entry?.status),
+    urgency: str(entry?.urgency),
+    headline: str(entry?.headline),
+    headlineZh: str(entry?.headline_zh),
+    action: str(entry?.action),
+    actionZh: str(entry?.action_zh),
+  };
+  const bottomConfidence = boundedNum(entry?.confidence, 0, 100);
+  const confluenceFacts = {
+    tier: str(confluence?.tier),
+    sub: str(confluence?.sub),
+    ticks: int(confluence?.ticks),
+    barsToCross: num(confluence?.bars_to_cross),
+    provisional: bool(confluence?.provisional),
+    notTopped: bool(confluence?.not_topped),
+    htfS1: bool(confluence?.htf_s1),
+  };
+  const trigger = { next: str(entry?.next_trigger), ...confluenceFacts };
+  const structure = {
+    w2Washout: bool(sniper?.w2_washout),
+    w2StochD: boundedNum(sniper?.w2_stoch_d, 0, 100),
+    daysSince63dLow: int(sniper?.days_since_63d_low),
+    coiled: bool(sniper?.coiled),
+  };
 
-  const present = [entry, confluence, sniper].filter(Boolean).length;
+  // Coverage follows validated source facts, independently of freshness or metadata.
+  const hasEntry = [
+    ...Object.values(posture), bottomConfidence, trigger.next, spot, zone, chaseAbove, stop,
+  ].some(value => value !== null);
+  const hasConfluence = Object.values(confluenceFacts).some(value => value !== null);
+  const hasSniper = Object.values(structure).some(value => value !== null);
+  const present = [hasEntry, hasConfluence, hasSniper].filter(Boolean).length;
   const stale = bool(tape?.stale);
 
   return {
@@ -142,36 +174,15 @@ export function buildPrecisionEntryReadout(intel: unknown): PrecisionEntryReadou
       confluence: str(confluence?.asof),
       sniper: str(sniper?.asof),
     },
-    posture: {
-      status: str(entry?.status),
-      urgency: str(entry?.urgency),
-      headline: str(entry?.headline),
-      headlineZh: str(entry?.headline_zh),
-      action: str(entry?.action),
-      actionZh: str(entry?.action_zh),
-    },
-    bottomConfidence: boundedNum(entry?.confidence, 0, 100),
-    trigger: {
-      next: str(entry?.next_trigger),
-      tier: str(confluence?.tier),
-      sub: str(confluence?.sub),
-      ticks: int(confluence?.ticks),
-      barsToCross: num(confluence?.bars_to_cross),
-      provisional: bool(confluence?.provisional),
-      notTopped: bool(confluence?.not_topped),
-      htfS1: bool(confluence?.htf_s1),
-    },
-    structure: {
-      w2Washout: bool(sniper?.w2_washout),
-      w2StochD: boundedNum(sniper?.w2_stoch_d, 0, 100),
-      daysSince63dLow: int(sniper?.days_since_63d_low),
-      coiled: bool(sniper?.coiled),
-    },
+    posture,
+    bottomConfidence,
+    trigger,
+    structure,
     geometry: {
       spot,
       buyZone: zone,
       chaseAbove,
-      stop: positiveNum(entry?.stop),
+      stop,
       location: location({ spot, zone, chaseAbove }),
     },
   };

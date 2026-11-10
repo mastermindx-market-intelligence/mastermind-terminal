@@ -1,11 +1,15 @@
 "use client";
-import { useEffect } from "react";
+import { useRef } from "react";
+import { createPortal } from "react-dom";
+import Link from "next/link";
+import { useDialogFocus } from "@/components/studyTemplates/useDialogFocus";
+import layout from "./AlertDetail.module.css";
 import s from "./alerts.module.css";
 import { pick } from "@/lib/finFormat";
-import { copy, firedEventTextZh, type DeliveryState, type ReadState, type ResolutionState } from "@/lib/alertsView";
+import { copy, firedEventTextZh, formatFiredAt, type DeliveryState, type ReadState, type ResolutionState } from "@/lib/alertsView";
 
 export interface AlertDetailData {
-  kind?: "alert" | "thesis";
+  kind?: "alert" | "thesis" | "position";
   conditionText: string;
   // Ticker only — there is no portfolio/position join yet (F08 V2 owns true holding-coverage
   // mapping). `null` means the ticker itself could not be resolved, never a fabricated match.
@@ -40,12 +44,8 @@ export interface AlertDetailData {
 }
 
 export default function AlertDetail({ data, lang, onClose }: { data: AlertDetailData; lang: "en" | "zh"; onClose: () => void }) {
-  // Major 2: a dialog with no Esc and no visual containment reads as page debris.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(dialogRef, onClose);
   // Plain-language law: a human reads a date and a time, never a machine timestamp with
   // seconds. toLocaleString's default includes seconds; force minute precision instead.
   const plainOpts: Intl.DateTimeFormatOptions = { year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" };
@@ -54,17 +54,22 @@ export default function AlertDetail({ data, lang, onClose }: { data: AlertDetail
     if (iso) return new Date(iso).toLocaleString(lang === "zh" ? "zh-CN" : "en-US", plainOpts);
     return copy(state === "READ_UNAVAILABLE" ? "null.cannotRead" : "null.notRecorded", lang);
   };
-  return (
-    <div className={s.detailScrim} onClick={onClose}>
-    <div className={s.detail} data-cockpit-state="drillback" role="dialog" aria-modal="true" aria-label={pick(lang === "zh", "Alert detail", "警报详情")} onClick={(e) => e.stopPropagation()}>
-      <button type="button" className={s.detailClose} onClick={onClose}>{lang === "zh" ? "关闭" : "Close"}</button>
-      <div className={s.detailFact}><span className={s.detailLabel}>{lang === "zh" ? "条件" : "Condition"}</span><span>{data.conditionText}</span></div>
+  // Escape the workspace pane's stacking context so shell chrome cannot cover the dialog.
+  if (typeof document === "undefined") return null;
+  return createPortal(
+    <div className={`${s.detailScrim} ${layout.scrim}`} onClick={onClose}>
+    <div ref={dialogRef} tabIndex={-1} className={`${s.detail} ${layout.panel}`} data-cockpit-state="drillback" role="dialog" aria-modal="true" aria-label={pick(lang === "zh", "Alert detail", "警报详情")} onClick={(e) => e.stopPropagation()}>
+      <div className={layout.header}>
+        <h2 className={layout.title} tabIndex={-1} data-autofocus>{pick(lang === "zh", "Alert detail", "警报详情")}</h2>
+        <button type="button" className={`${s.detailClose} ${layout.close}`} onClick={onClose}>{lang === "zh" ? "关闭" : "Close"}</button>
+      </div>
+      <div className={`${s.detailFact} ${layout.fact}`}><span className={s.detailLabel}>{data.kind === "position" ? (lang === "zh" ? "事件" : "Event") : (lang === "zh" ? "条件" : "Condition")}</span><span>{data.conditionText}</span></div>
       {data.kind !== "thesis" && (
-      <div className={s.detailFact}>
+      <div className={`${s.detailFact} ${layout.fact}`}>
         <span className={s.detailLabel}>{lang === "zh" ? "代码" : "Symbol"}</span>
         {/* No holdings join yet (F08 V2) — labelled Symbol, never Holding, so this never
             asserts ownership the account has not established. */}
-        <span>{data.holdingSymbol ? <a href="/portfolio">{data.holdingSymbol}</a> : copy("null.notCovered", lang)}</span>
+        <span>{data.holdingSymbol ? <Link href="/portfolio" prefetch={false}>{data.holdingSymbol}</Link> : copy("null.notCovered", lang)}</span>
       </div>
       )}
       {/* Minor 4 (round-6 review): summaryPlain/conditionPlain are the fired-event payload's own
@@ -87,25 +92,26 @@ export default function AlertDetail({ data, lang, onClose }: { data: AlertDetail
           firedEventTextZh only claims "price" for an actual `type === "price"` condition, and
           says "数值" (value) — unit-neutral — for every other kind. */}
       {data.kind !== "thesis" && (
-      <div className={s.detailFact}><span className={s.detailLabel}>{pick(lang === "zh", "What changed", "发生了什么")}</span><span>{lang === "zh" ? firedEventTextZh(data.triggeredValue, data.conditionType) : (data.summaryPlain || data.conditionPlain || copy("null.notRecorded", lang))}</span></div>
+      <div className={`${s.detailFact} ${layout.fact}`}><span className={s.detailLabel}>{pick(lang === "zh", "What changed", "发生了什么")}</span><span>{data.kind === "position" ? data.summaryPlain : lang === "zh" ? firedEventTextZh(data.triggeredValue, data.conditionType) : (data.summaryPlain || data.conditionPlain || copy("null.notRecorded", lang))}</span></div>
       )}
-      <div className={s.detailFact}><span className={s.detailLabel}>{lang === "zh" ? "时间线" : "Timeframe"}</span><span>{data.firedAt ? (lang === "zh" ? `触发于 ${fmt(data.firedAt)}` : `Fired ${fmt(data.firedAt)}`) : copy("null.notRecorded", lang)}{lang === "zh" ? `，建立于 ${fmt(data.armedAt)}` : `, armed ${fmt(data.armedAt)}`}</span></div>
-      <div className={s.detailFact}>
+      <div className={`${s.detailFact} ${layout.fact}`}><span className={s.detailLabel}>{lang === "zh" ? "时间线" : "Timeframe"}</span><span>{data.kind === "position" ? (lang === "zh" ? `来源观察于 ${fmt(data.firedAt)}，记录于 ${fmt(data.armedAt)}` : `Source observed ${fmt(data.firedAt)}, recorded ${fmt(data.armedAt)}`) : <>{data.firedAt ? (lang === "zh" ? `触发于 ${formatFiredAt(data.firedAt, lang)}` : `Fired ${formatFiredAt(data.firedAt, lang)}`) : copy("null.notRecorded", lang)}{lang === "zh" ? `，建立于 ${fmt(data.armedAt)}` : `, armed ${fmt(data.armedAt)}`}</>}</span></div>
+      <div className={`${s.detailFact} ${layout.fact}`}>
         <span className={s.detailLabel}>{lang === "zh" ? "证据" : "Evidence"}</span>
         <span>{data.evidenceUrl ? <a href={data.evidenceUrl}>{pick(lang === "zh", "View evidence", "查看证据")}</a> : pick(lang === "zh", "No evidence link", "无证据链接")}</span>
       </div>
-      <div className={s.detailFact}><span className={s.detailLabel}>{copy("fact.lastAttempt", lang)}</span><span>{fmtState(data.lastAttemptAt, data.lastAttemptState)}</span></div>
-      <div className={s.detailFact}><span className={s.detailLabel}>{copy("fact.lastSuccess", lang)}</span><span>{fmtState(data.lastSuccessAt, data.lastSuccessState)}</span></div>
+      <div className={`${s.detailFact} ${layout.fact}`}><span className={s.detailLabel}>{copy("fact.lastAttempt", lang)}</span><span>{fmtState(data.lastAttemptAt, data.lastAttemptState)}</span></div>
+      <div className={`${s.detailFact} ${layout.fact}`}><span className={s.detailLabel}>{copy("fact.lastSuccess", lang)}</span><span>{fmtState(data.lastSuccessAt, data.lastSuccessState)}</span></div>
       <div className={s.ceiling}>{copy("ceiling", lang)}</div>
-      <div className={s.detailFact}><span className={s.detailLabel}>{lang === "zh" ? "解决状态" : "Resolution"}</span><span>{copy(`resolution.${data.resolution}`, lang)}</span></div>
-      <div className={s.detailFact}><span className={s.detailLabel}>{lang === "zh" ? "投递结果" : "Delivery"}</span><span>{copy(`delivery.${data.delivery}`, lang)}</span></div>
+      <div className={`${s.detailFact} ${layout.fact}`}><span className={s.detailLabel}>{lang === "zh" ? "解决状态" : "Resolution"}</span><span>{copy(`resolution.${data.resolution}`, lang)}</span></div>
+      <div className={`${s.detailFact} ${layout.fact}`}><span className={s.detailLabel}>{lang === "zh" ? "投递结果" : "Delivery"}</span><span>{copy(`delivery.${data.delivery}`, lang)}</span></div>
       <details className={s.receiptDisclosure}>
-        <summary>{lang === "zh" ? "回执" : "Receipt"}</summary>
+        <summary tabIndex={0}>{lang === "zh" ? "回执" : "Receipt"}</summary>
         <div>{copy("receipt.attempts", lang)}: {data.attempts}</div>
         <div>{copy("receipt.lastError", lang)}: {data.lastError ?? copy("null.notRecorded", lang)}</div>
         <div>{copy("receipt.deliverAfter", lang)}: {data.deliverAfter ? fmt(data.deliverAfter) : copy("null.notRecorded", lang)}</div>
       </details>
     </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

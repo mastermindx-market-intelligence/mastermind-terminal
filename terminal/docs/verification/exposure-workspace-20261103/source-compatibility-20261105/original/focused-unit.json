@@ -1,0 +1,23 @@
+{
+  "command": [
+    "./node_modules/.bin/vitest",
+    "run",
+    "lib/__tests__/dataCacheAbsenceTtl.test.ts",
+    "lib/__tests__/dataCacheAvailability.test.ts",
+    "lib/__tests__/dataCacheChartDataIndependence.test.ts",
+    "lib/__tests__/dataCacheInvalidationEpoch.test.ts",
+    "lib/__tests__/dataCachePersist.test.ts",
+    "lib/__tests__/dataCacheRequestOwnership.test.ts",
+    "lib/__tests__/dataCacheStaleServe.test.ts",
+    "lib/__tests__/dataCacheViewIdentity.test.ts",
+    "lib/__tests__/exposureOrigin.test.ts",
+    "lib/__tests__/flowClientCache.callForms.test.ts",
+    "lib/__tests__/flowClientCache.test.ts",
+    "lib/__tests__/flowClientCacheOutcome.test.ts",
+    "lib/__tests__/flowClientCacheRefresh.test.ts",
+    "lib/__tests__/researchLabView.test.tsx",
+    "lib/__tests__/researchReportedGamma.test.ts",
+    "lib/__tests__/researchReportedGammaMounted.test.tsx"
+  ],
+  "exit": 0
+}

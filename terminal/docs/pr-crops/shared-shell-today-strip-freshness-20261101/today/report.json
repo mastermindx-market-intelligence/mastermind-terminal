@@ -1,0 +1,2222 @@
+{
+  "sourceHead": "e0f9d406-worktree",
+  "kind": "ISOLATED_ACTUAL_TODAY_COMPONENT_FIXTURE",
+  "clocks": {
+    "live": "2026-11-02T15:30:00Z",
+    "other": "2026-11-01T12:00:00Z"
+  },
+  "results": [
+    {
+      "width": 320,
+      "theme": "dark",
+      "lang": "en",
+      "state": "mixed",
+      "layout": {
+        "scroll": 320,
+        "width": 320,
+        "mains": 1,
+        "stripRight": 303
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 days ago · 1 session old",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "lang": "zh",
+      "state": "mixed",
+      "layout": {
+        "scroll": 320,
+        "width": 320,
+        "mains": 1,
+        "stripRight": 303
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 天前 · 落后 1 个交易日",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 7.39
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 8.23
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "lang": "en",
+      "state": "mixed",
+      "layout": {
+        "scroll": 320,
+        "width": 320,
+        "mains": 1,
+        "stripRight": 303
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 days ago · 1 session old",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 5.58
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 5.55
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "lang": "zh",
+      "state": "mixed",
+      "layout": {
+        "scroll": 320,
+        "width": 320,
+        "mains": 1,
+        "stripRight": 303
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 天前 · 落后 1 个交易日",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "en",
+      "state": "mixed",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 373
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 days ago · 1 session old",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "zh",
+      "state": "mixed",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 373
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 天前 · 落后 1 个交易日",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 7.39
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 8.23
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "en",
+      "state": "mixed",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 373
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 days ago · 1 session old",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 5.58
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 5.55
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "mixed",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 373
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 天前 · 落后 1 个交易日",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 820,
+      "theme": "dark",
+      "lang": "en",
+      "state": "mixed",
+      "layout": {
+        "scroll": 820,
+        "width": 820,
+        "mains": 1,
+        "stripRight": 793
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 days ago · 1 session old",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 820,
+      "theme": "dark",
+      "lang": "zh",
+      "state": "mixed",
+      "layout": {
+        "scroll": 820,
+        "width": 820,
+        "mains": 1,
+        "stripRight": 793
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 天前 · 落后 1 个交易日",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 7.39
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 8.23
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 820,
+      "theme": "light",
+      "lang": "en",
+      "state": "mixed",
+      "layout": {
+        "scroll": 820,
+        "width": 820,
+        "mains": 1,
+        "stripRight": 793
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 days ago · 1 session old",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 5.58
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 5.55
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 820,
+      "theme": "light",
+      "lang": "zh",
+      "state": "mixed",
+      "layout": {
+        "scroll": 820,
+        "width": 820,
+        "mains": 1,
+        "stripRight": 793
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 天前 · 落后 1 个交易日",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "state": "mixed",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "stripRight": 1295
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 days ago · 1 session old",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "zh",
+      "state": "mixed",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "stripRight": 1295
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 天前 · 落后 1 个交易日",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 7.39
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 8.23
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "en",
+      "state": "mixed",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "stripRight": 1295
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 days ago · 1 session old",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 5.58
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 5.55
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "zh",
+      "state": "mixed",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "stripRight": 1295
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "current"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "live"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "4 天前 · 落后 1 个交易日",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "state": "stale",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "stripRight": 1295
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 4,
+        "kinds": [
+          "stale",
+          "stale",
+          "stale"
+        ],
+        "readKind": [
+          "stale"
+        ],
+        "breadth": [
+          "withheld"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "stale",
+            "text": "16 days ago · 10 sessions old — check source",
+            "ratio": 8
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "en",
+      "state": "stale",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "stripRight": 1295
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 4,
+        "kinds": [
+          "stale",
+          "stale",
+          "stale"
+        ],
+        "readKind": [
+          "stale"
+        ],
+        "breadth": [
+          "withheld"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "stale",
+            "text": "16 days ago · 10 sessions old — check source",
+            "ratio": 6.32
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 5.58
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 5.58
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 5.58
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "stale",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 373
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 4,
+        "kinds": [
+          "stale",
+          "stale",
+          "stale"
+        ],
+        "readKind": [
+          "stale"
+        ],
+        "breadth": [
+          "withheld"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "stale",
+            "text": "16 天前 · 已落后 10 个交易日，请核对来源",
+            "ratio": 6.32
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "zh",
+      "state": "stale",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 373
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 4,
+        "kinds": [
+          "stale",
+          "stale",
+          "stale"
+        ],
+        "readKind": [
+          "stale"
+        ],
+        "breadth": [
+          "withheld"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "stale",
+            "text": "16 天前 · 已落后 10 个交易日，请核对来源",
+            "ratio": 8
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 7.39
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 7.39
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 7.39
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "state": "aged",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "stripRight": 1295
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "ahead"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "withheld"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "3 days ago · 1 session old",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          },
+          {
+            "kind": "ahead",
+            "text": "Dated after today — check source",
+            "ratio": 7.39
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "en",
+      "state": "aged",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "stripRight": 1295
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "ahead"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "withheld"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "3 days ago · 1 session old",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 5.58
+          },
+          {
+            "kind": "ahead",
+            "text": "Dated after today — check source",
+            "ratio": 5.58
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "aged",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 373
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "ahead"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "withheld"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "3 天前 · 落后 1 个交易日",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          },
+          {
+            "kind": "ahead",
+            "text": "日期晚于今天，请核对来源",
+            "ratio": 5.58
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "zh",
+      "state": "aged",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 373
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale",
+          "ahead"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [
+          "withheld"
+        ],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "3 天前 · 落后 1 个交易日",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 7.39
+          },
+          {
+            "kind": "ahead",
+            "text": "日期晚于今天，请核对来源",
+            "ratio": 7.39
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "lang": "en",
+      "state": "unavailable",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "stripRight": 1295
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "3 days ago · 1 session old",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 7.39
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "lang": "en",
+      "state": "unavailable",
+      "layout": {
+        "scroll": 1440,
+        "width": 1440,
+        "mains": 1,
+        "stripRight": 1295
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "3 days ago · 1 session old",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "Latest session",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "1 session old",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "10 sessions old — check source",
+            "ratio": 5.58
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "lang": "zh",
+      "state": "unavailable",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 373
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "3 天前 · 落后 1 个交易日",
+            "ratio": 6.29
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 5.55
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 5.58
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "lang": "zh",
+      "state": "unavailable",
+      "layout": {
+        "scroll": 390,
+        "width": 390,
+        "mains": 1,
+        "stripRight": 373
+      },
+      "proof": {
+        "inDetails": false,
+        "cells": 5,
+        "kinds": [
+          "current",
+          "behind",
+          "stale"
+        ],
+        "readKind": [
+          "behind"
+        ],
+        "breadth": [],
+        "breadthLinks": 0,
+        "breadthReads": 1,
+        "breadthAfterToday": true,
+        "contrast": [
+          {
+            "kind": "behind",
+            "text": "3 天前 · 落后 1 个交易日",
+            "ratio": 8.91
+          },
+          {
+            "kind": "current",
+            "text": "最新交易日",
+            "ratio": 8.23
+          },
+          {
+            "kind": "behind",
+            "text": "落后 1 个交易日",
+            "ratio": 8.23
+          },
+          {
+            "kind": "stale",
+            "text": "已落后 10 个交易日，请核对来源",
+            "ratio": 7.39
+          }
+        ]
+      },
+      "errors": [],
+      "calls": [
+        {
+          "path": "/api/portfolio-brief",
+          "method": "GET"
+        },
+        {
+          "path": "/api/watchlist",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/research/catalog",
+          "method": "GET"
+        },
+        {
+          "path": "/api/shared-shell/today",
+          "method": "GET"
+        },
+        {
+          "path": "/api/market-breadth",
+          "method": "GET"
+        }
+      ]
+    }
+  ]
+}

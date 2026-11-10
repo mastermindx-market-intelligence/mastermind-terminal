@@ -11,15 +11,18 @@
  * From terminal/:
  *   node e2e/tools/capture_pl6_batch3.cjs
  *
- * Writes PNGs + EVIDENCE.yml under docs/pr-crops/b-pl-6-batch-3/.
+ * Writes PNGs under docs/pr-crops/b-pl-6-batch-3/. Only a complete successful
+ * 20-frame run writes EVIDENCE.yml and the existing owner's native receipt.
+ * Earlier packets and their appendices are retained as described in CAPTURE_HISTORY.md.
  */
 "use strict";
 
-const { spawn, execFileSync } = require("node:child_process");
+const { execFileSync } = require("node:child_process");
 const { createHash } = require("node:crypto");
-const { mkdirSync, readdirSync, readFileSync, writeFileSync } = require("node:fs");
+const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
-const { chromium } = require("@playwright/test");
+const { startLegacyServer, waitLegacyServer, reportLegacyServer, settleLegacyServer,
+  captureRefusal, emitLegacyReceipt } = require("./capture_ci_evidence.cjs");
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
@@ -30,6 +33,7 @@ const LAYOUT_FILES = [
   "terminal/components/flowdesk/FiltersPanel.tsx",
   "terminal/components/flowdesk/FlowCard.tsx",
   "terminal/components/alerts/AlertDetail.tsx",
+  "terminal/components/alerts/alerts.module.css",
   "terminal/components/heatmap/HeatmapView.tsx",
   "terminal/components/heatmap/Treemap.tsx",
   "terminal/lib/heatmapStrings.ts",
@@ -37,6 +41,11 @@ const LAYOUT_FILES = [
   "terminal/lib/plainLabels.ts",
   "terminal/lib/i18n.tsx",
   "terminal/components/PineEditor.tsx",
+  // Capture inputs share the existing source lock so owner/fixture-only drift recaptures.
+  "terminal/e2e/tools/capture_ci_evidence.cjs",
+  "terminal/e2e/tools/capture_pl6_batch3.cjs",
+  "terminal/next.config.ts",
+  "terminal/e2e/fixtures/heatmap-price-only-tile.json",
 ];
 const ONLY = (process.env.CAPTURE_ONLY || "")
   .split(",")
@@ -48,8 +57,6 @@ const VIEWPORTS = {
   1440: { width: 1440, height: 900 },
   390: { width: 390, height: 844 },
 };
-
-mkdirSync(OUT, { recursive: true });
 
 function currentGitHead() {
   return execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
@@ -67,59 +74,6 @@ function cropName(surface, width, lang) {
   return `${surface}-${width}${lang === "zh" ? "-zh" : ""}.png`;
 }
 
-function startServer() {
-  const env = {
-    ...process.env,
-    ANALYSIS_LOCAL_PREVIEW: "1",
-    ADMIN_DEV: "1",
-    TERMINAL_E2E_FIXTURE: "1",
-    TERMINAL_E2E_EMAIL: "responsive@example.com",
-    TERMINAL_E2E_ENTITLEMENT: "unlimited",
-    RATE_LIMIT_MAX: "100000",
-    HUB_REALTIME_QUOTES: "1",
-    FLOW_FIXTURE: "1",
-    NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
-  };
-  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT)], {
-    cwd: ROOT,
-    env,
-    stdio: ["ignore", "pipe", "pipe"],
-    detached: true,
-  });
-  child.stdout.on("data", (buf) => {
-    const line = String(buf);
-    if (/Ready|compiled|error|Error/i.test(line)) process.stdout.write(`[dev] ${line}`);
-  });
-  child.stderr.on("data", (buf) => process.stderr.write(`[dev:err] ${buf}`));
-  return child;
-}
-
-function stopServer(child) {
-  if (!child || !child.pid) return;
-  try {
-    process.kill(-child.pid, "SIGTERM");
-  } catch {
-    try { child.kill("SIGTERM"); } catch { /* already gone */ }
-  }
-}
-
-async function waitForServer(timeoutMs) {
-  const deadline = Date.now() + timeoutMs;
-  let last = "not tried";
-  while (Date.now() < deadline) {
-    try {
-      const res = await fetch(`${BASE}/terminal?symbol=SPY`, { redirect: "manual" });
-      last = String(res.status);
-      if (res.status >= 200 && res.status < 500) return;
-    } catch (err) {
-      last = err.cause?.code || err.message;
-    }
-    await new Promise((r) => setTimeout(r, 750));
-  }
-  throw new Error(`dev server on ${PORT} never answered (${last})`);
-}
-
 async function newPage(browser, width, lang) {
   const context = await browser.newContext({
     viewport: VIEWPORTS[width],
@@ -133,15 +87,6 @@ async function newPage(browser, width, lang) {
     localStorage.setItem("theme_auto", "0");
     document.documentElement.setAttribute("data-theme", "dark");
     document.documentElement.setAttribute("data-lang", l);
-    const hide = () => {
-      document.querySelectorAll("nextjs-portal").forEach((el) => el.remove());
-    };
-    const start = () => {
-      hide();
-      new MutationObserver(hide).observe(document.documentElement, { childList: true, subtree: true });
-    };
-    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
-    else start();
   }, lang);
   const page = await context.newPage();
   page.setDefaultTimeout(45_000);
@@ -164,88 +109,20 @@ async function gotoReady(page, path, lang) {
   await page.waitForTimeout(400);
 }
 
-async function hideNextIndicatorCss(page) {
-  await page.evaluate(() => {
-    const id = "mm-hide-next-indicator";
-    if (document.getElementById(id)) return;
-    const s = document.createElement("style");
-    s.id = id;
-    s.textContent = [
-      "nextjs-portal,",
-      "script[data-nextjs-dev-overlay],",
-      "#next-logo,",
-      "[data-next-mark],",
-      "[data-nextjs-dev-tools-button],",
-      "[data-nextjs-toast] {",
-      "  display: none !important;",
-      "  visibility: hidden !important;",
-      "  opacity: 0 !important;",
-      "  pointer-events: none !important;",
-      "}",
-    ].join("\n");
-    document.documentElement.appendChild(s);
-  });
-}
-
-async function stripDevOverlay(page) {
-  await hideNextIndicatorCss(page);
-  await page.evaluate(() => {
-    const kill = (el) => {
-      if (!el) return;
-      if (el.shadowRoot) {
-        const s = document.createElement("style");
-        s.textContent = "*{display:none!important;visibility:hidden!important;opacity:0!important}";
-        el.shadowRoot.appendChild(s);
-      }
-      el.remove();
-    };
-    document.querySelectorAll("script[data-nextjs-dev-overlay], nextjs-portal").forEach(kill);
-    document.querySelectorAll("#next-logo, [data-next-mark]").forEach(kill);
-  });
-  for (const sel of ["nextjs-portal", "script[data-nextjs-dev-overlay]", "#next-logo", "[data-nextjs-dev-tools-button]", "[data-next-mark]"]) {
-    const loc = page.locator(sel);
-    const n = await loc.count();
-    for (let i = 0; i < n; i++) {
-      try { await loc.nth(i).evaluate((el) => el.remove()); } catch { /* detached */ }
-    }
-  }
-}
-
 async function assertNoNextIndicator(page, file) {
-  await stripDevOverlay(page);
   const n = await page.locator("[data-nextjs-dev-tools-button]").count();
-  async function visibleCount(locator) {
-    const c = await locator.count();
-    let v = 0;
-    for (let i = 0; i < c; i++) {
-      if (await locator.nth(i).isVisible()) v += 1;
-    }
-    return v;
-  }
-  const zhHint = await visibleCount(page.getByText("激活捷径"));
-  const enHint = await visibleCount(page.getByText("Activate shortcut"));
-  if (n > 0 || zhHint > 0 || enHint > 0) {
-    throw new Error(`${file}: Next.js N overlay still mounted (button=${n} zhHint=${zhHint} enHint=${enHint})`);
-  }
+  if (n > 0) throw new Error(`${file}: Next.js N overlay still mounted (${n}); TERMINAL_E2E_FIXTURE gate failed`);
 }
 
 async function cropBox(page, box, outPath, pad) {
   await assertNoNextIndicator(page, outPath);
   await page.waitForTimeout(120);
-  await stripDevOverlay(page);
   const vp = page.viewportSize();
   if (!box || !vp) throw new Error(`no box for ${outPath}`);
   const x = Math.max(0, Math.floor(box.x - pad));
   const y = Math.max(0, Math.floor(box.y - pad));
-  // 390 AlertDetail: the Next N pill sits in the 40px under the rounded card.
-  // Viewport-bottom guards miss it because the card is not flush with the frame.
-  const trimBottom = /AlertDetail-390/.test(String(outPath)) ? 40 : 0;
   const width = Math.max(8, Math.min(vp.width - x, Math.ceil(box.width + pad * 2)));
-  const height = Math.max(8, Math.min(vp.height - y, Math.ceil(box.height + pad * 2)) - trimBottom);
-  const nPortals = await page.locator("nextjs-portal").count();
-  if (nPortals > 0) {
-    throw new Error(`${outPath}: nextjs-portal still in DOM (${nPortals})`);
-  }
+  const height = Math.max(8, Math.min(vp.height - y, Math.ceil(box.height + pad * 2)));
   await page.screenshot({ path: outPath, clip: { x, y, width, height } });
 }
 
@@ -264,6 +141,10 @@ async function captureFlowBoard(page, width, lang, outPath) {
   await board.waitFor({ state: "visible", timeout: 60_000 });
   const needle = lang === "zh" ? "0DTE 事件看板" : "0DTE Event Dashboard";
   await board.getByText(needle).first().waitFor({ state: "visible", timeout: 20_000 });
+  // The heading paints before the feed answers. On a cold dev server the first
+  // crop caught "Loading intraday flow…", so wait for a rendered event row
+  // (table at 1440, cards at 390).
+  await board.locator("[data-flow-event-row]:visible").first().waitFor({ state: "visible", timeout: 45_000 });
   await cropLocator(page, board, outPath, width === 390 ? 6 : 10);
 }
 
@@ -286,7 +167,6 @@ async function captureFlowDesk(page, width, lang, outPath) {
   await filters.getByText(caveat).first().waitFor({ state: "visible", timeout: 15_000 });
   await assertNoNextIndicator(page, outPath);
   await page.waitForTimeout(120);
-  await stripDevOverlay(page);
   const filterBox = await filters.boundingBox();
   const cardBox = await card.boundingBox();
   const vp = page.viewportSize();
@@ -403,6 +283,9 @@ const SURFACES = [
   { name: "PineLibrary", run: capturePineLibrary },
 ];
 
+const FILES = [1440, 390].flatMap(width => ["en", "zh"].flatMap(lang =>
+  SURFACES.map(surface => cropName(surface.name, width, lang))));
+
 function shouldCapture(surfaceName, width, lang) {
   if (!ONLY.length) return true;
   const stem = cropName(surfaceName, width, lang).replace(/\.png$/, "");
@@ -410,12 +293,17 @@ function shouldCapture(surfaceName, width, lang) {
 }
 
 async function main() {
+  if (process.env.TERMINAL_LEGACY_CAPTURE_ID && ONLY.length)
+    throw new Error("BATCH3_OWNER_REQUIRES_FULL_CAPTURE");
+  const { chromium } = require("@playwright/test");
+  mkdirSync(OUT, { recursive: true });
   const capturedAtHead = currentGitHead();
-  const child = startServer();
+  const child = startLegacyServer(ROOT, PORT);
   const files = [];
   let failed = 0;
   try {
-    await waitForServer(180_000);
+    await reportLegacyServer(child, "started");
+    await waitLegacyServer(child, `${BASE}/terminal?symbol=SPY`, 180_000);
     const browser = await chromium.launch({ headless: true });
     try {
       for (const width of [1440, 390]) {
@@ -430,6 +318,7 @@ async function main() {
               files.push(file);
               console.log("ok");
             } catch (err) {
+              if (captureRefusal(err)) throw err;
               failed += 1;
               console.log(`FAIL ${err && err.message ? err.message : err}`);
               try {
@@ -445,7 +334,14 @@ async function main() {
       await browser.close();
     }
   } finally {
-    stopServer(child);
+    await settleLegacyServer(child);
+  }
+
+  if (failed || files.length !== FILES.length || new Set(files).size !== FILES.length ||
+      FILES.some(file => !files.includes(file))) {
+    console.log("Partial or failed capture: EVIDENCE.yml and a complete receipt were not written");
+    if (failed || !ONLY.length) process.exitCode = 1;
+    return;
   }
 
   const evidence = [
@@ -464,7 +360,7 @@ async function main() {
     "  - { name: mobile, width: 390, height: 844 }",
     "surfaces: [OptionsFlowBoard, FlowDesk, AlertDetail, HeatmapTreemap, PineLibrary]",
     "capture_flag: TERMINAL_E2E_FIXTURE",
-    "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
+    "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
     "heatmap_price_only_fixture: terminal/e2e/fixtures/heatmap-price-only-tile.json",
     "heatmap_crops:",
     "  - HeatmapTreemap-1440.png",
@@ -473,21 +369,20 @@ async function main() {
     "  - HeatmapTreemap-390-zh.png",
     "command: |",
     "  cd terminal",
-    "  CAPTURE_ONLY=HeatmapTreemap node e2e/tools/capture_pl6_batch3.cjs",
+    `  ${ONLY.length ? `CAPTURE_ONLY=${ONLY.join(",")} ` : ""}node e2e/tools/capture_pl6_batch3.cjs`,
     "files:",
-    ...[...new Set([
-      ...readdirSync(OUT).filter((f) => f.endsWith(".png") && !f.startsWith("FAIL-")).sort(),
-      ...files,
-    ])].map((f) => `  - ${f}`),
+    ...[...files].sort().map((f) => `  - ${f}`),
     "",
   ].join("\n");
   writeFileSync(join(OUT, "EVIDENCE.yml"), evidence);
+  emitLegacyReceipt({ packet: "batch3", outputDir: OUT, files, capturedAtHead });
   console.log(`capturedAtHead ${capturedAtHead}`);
   console.log(`wrote ${files.length} crops + EVIDENCE.yml to ${OUT}`);
-  if (failed) process.exitCode = 1;
 }
 
-main().catch((err) => {
+if (require.main === module) main().catch((err) => {
   console.error(err);
-  process.exit(1);
+  process.exitCode = 1;
 });
+
+module.exports = { LAYOUT_FILES, FILES, assertNoNextIndicator };

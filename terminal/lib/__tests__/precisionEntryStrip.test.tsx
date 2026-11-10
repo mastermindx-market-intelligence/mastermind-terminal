@@ -120,7 +120,7 @@ describe("PrecisionEntryStrip", () => {
   });
 
   it("makes stale data visible with the source as-of date", () => {
-    const intel = structuredClone(READY_INTEL) as any;
+    const intel = structuredClone(READY_INTEL);
     intel.tape.stale = true;
     const el = mount(intel);
     const state = el.querySelector("[data-testid='precision-data-state']");
@@ -232,4 +232,78 @@ describe("PrecisionEntryStrip", () => {
     expect(text).not.toContain("Buy");
     expect(el.querySelector("[data-testid='precision-posture']")).toBeNull();
   });
+
+  for (const lang of ["en", "zh"] as const) {
+    const headline = lang === "en" ? "Wait for confluence" : "等待共振";
+    const opposite = lang === "en" ? "等待共振" : "Wait for confluence";
+    const withoutSelectedHeadline = {
+      ...READY_INTEL,
+      analysis: {
+        ...READY_INTEL.analysis,
+        entry: {
+          ...READY_INTEL.analysis.entry,
+          headline: lang === "en" ? "" : READY_INTEL.analysis.entry.headline,
+          headline_zh: lang === "zh" ? "" : READY_INTEL.analysis.entry.headline_zh,
+        },
+      },
+    };
+
+    it("omits absent " + lang + " posture without falling back to the opposite headline", () => {
+      const el = mount(withoutSelectedHeadline, { lang });
+      expect(el.querySelector("[data-testid='precision-posture']")).toBeNull();
+      expect(el.textContent).not.toContain(opposite);
+      expect(el.querySelector("[data-testid='precision-entry-strip']")?.getAttribute("data-precision-availability")).toBe("ready");
+    });
+
+    it("updates " + lang + " posture through omission, restoration and a language change", () => {
+      const el = mount(READY_INTEL, { lang });
+      expect(el.querySelector("[data-testid='precision-posture']")?.textContent).toContain(headline);
+      act(() => root!.render(
+        <PrecisionEntryStrip readout={buildPrecisionEntryReadout(withoutSelectedHeadline)} horizon="swing" lang={lang} />,
+      ));
+      expect(el.querySelector("[data-testid='precision-posture']")).toBeNull();
+      expect(el.textContent).not.toContain(opposite);
+      act(() => root!.render(
+        <PrecisionEntryStrip readout={buildPrecisionEntryReadout(READY_INTEL)} horizon="swing" lang={lang} />,
+      ));
+      expect(el.querySelector("[data-testid='precision-posture']")?.textContent).toContain(headline);
+      act(() => root!.render(
+        <PrecisionEntryStrip readout={buildPrecisionEntryReadout(READY_INTEL)} horizon="swing" lang={lang === "en" ? "zh" : "en"} />,
+      ));
+      expect(el.querySelector("[data-testid='precision-posture']")?.textContent).toContain(opposite);
+      expect(el.textContent).not.toContain(headline);
+    });
+
+    for (const [name, analysis] of [
+      ["empty", { entry: {}, confluence: {}, sniper: {} }],
+      ["metadata-only", { entry: { asof: "2026-11-10" }, confluence: { asof: "2026-11-10" }, sniper: { asof: "2026-11-10" } }],
+      ["malformed", { entry: { confidence: "0" }, confluence: { htf_s1: "false" }, sniper: { coiled: 0 } }],
+    ] as const) {
+      it("shows localized unavailability for " + name + " containers in " + lang, () => {
+        const el = mount({ tape: { stale: false }, analysis }, { lang });
+        expect(el.querySelector("[data-testid='precision-entry-strip']")?.getAttribute("data-precision-availability")).toBe("unavailable");
+        const badge = el.querySelector("[data-testid='precision-data-state']");
+        expect(badge?.getAttribute("data-precision-data")).toBe("unavailable");
+        expect(badge?.textContent).toBe(lang === "en" ? "Intel unavailable" : "智能数据不可用");
+        expect(el.querySelector("[data-testid='precision-posture']")).toBeNull();
+      });
+    }
+
+    it("renders zero and false facts without a missing-data badge in " + lang, () => {
+      const el = mount({
+        analysis: {
+          entry: { confidence: 0 },
+          confluence: { htf_s1: false, bars_to_cross: 0 },
+          sniper: { w2_stoch_d: 0, w2_washout: false, coiled: false },
+        },
+      }, { lang });
+      expect(el.querySelector("[data-testid='precision-entry-strip']")?.getAttribute("data-precision-availability")).toBe("ready");
+      expect(el.querySelector("[data-testid='precision-data-state']")).toBeNull();
+      expect(el.querySelector("[data-testid='precision-bottom-confidence']")?.textContent).toContain("0");
+      expect(el.querySelector("[data-testid='precision-htf']")?.textContent).toContain(lang === "en" ? "Not confirmed" : "未确认");
+      expect(el.querySelector("[data-testid='precision-trigger']")?.textContent).toContain(lang === "en" ? "Crossing" : "正在交叉");
+      expect(el.querySelector("[data-testid='precision-w2']")?.textContent).toContain(lang === "en" ? "Stoch D 0" : "随机指标 D 0");
+    });
+  }
+
 });

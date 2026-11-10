@@ -32,11 +32,13 @@ describe("Research Workspace page families", () => {
       ["statistics", "financials"],
       ["revenue", "financials"],
       ["dividends", "financials"],
+      ["compare", "financials"],
       ["earnings", "earnings"],
       ["forecast", "earnings"],
       ["transcripts", "earnings"],
       ["technicals", "market"],
       ["seasonals", "market"],
+      ["ownership", "ownership"],
       ["insider", "ownership"],
       ["lab", "lab"],
     ];

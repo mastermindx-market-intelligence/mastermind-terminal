@@ -424,3 +424,45 @@ for (const vp of [1440, 390] as const) {
     });
   }
 }
+
+
+test("recent activity opens detail with Space, Enter and pointer", async ({ page }, info) => {
+  if (info.project.name === "mobile") await page.setViewportSize({ width: 320, height: 568 });
+  const writes: string[] = [];
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname.startsWith("/api/alerts") && !["GET", "HEAD"].includes(request.method())) {
+      writes.push(request.method());
+    }
+  });
+  await setLang(page, "en");
+  await installFixtures(page, {
+    alerts: [FIRED_ALERT], run: FRESH_RUN, runsState: "READ_OK",
+    lastSuccessAt: FRESH_RUN.concluded_at, outbox: SENT_OUTBOX, outboxState: "READ_OK",
+  });
+  await page.goto("/alerts");
+  const row = page.locator('[data-alerts-module="recent-activity"]').getByRole("button").first();
+  await expect(row).toBeVisible();
+  for (const input of ["Space", "Enter", "pointer"]) {
+    await row.scrollIntoViewIfNeeded();
+    await row.focus();
+    if (input === "pointer") await row.click();
+    else await row.press(input);
+    const detail = page.getByRole("dialog", { name: "Alert detail", exact: true });
+    await expect(detail).toBeVisible();
+    await expect(detail).toContainText("NVDA");
+    await detail.getByRole("button", { name: "Close", exact: true }).click();
+    await expect(detail).toBeHidden();
+  }
+  await row.focus();
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Shift+Tab");
+  await expect(row).toBeFocused();
+  const bounds = await row.boundingBox();
+  expect(bounds!.height).toBeGreaterThanOrEqual(44);
+  expect(bounds!.x).toBeGreaterThanOrEqual(0);
+  expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(page.viewportSize()!.width + 1);
+  await expect(row).toHaveCSS("outline-style", "solid");
+  await expect(row).toHaveCSS("outline-width", "2px");
+  expect(writes).toEqual([]);
+  await page.screenshot({ animations: "disabled", path: info.outputPath("alert-timeline-keyboard-focus.png") });
+});

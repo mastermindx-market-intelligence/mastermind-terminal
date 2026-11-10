@@ -1,0 +1,18 @@
+
+> terminal@0.1.0 test
+> vitest run lib/__tests__/technicalsUnavailableRows.test.tsx
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal[39m
+
+ [32m✓[39m lib/__tests__/technicalsUnavailableRows.test.tsx [2m([22m[2m8 tests[22m[2m)[22m[33m 2293[2mms[22m[39m
+   [33m[2m✓[22m[39m Technicals table: unavailable numeric values[2m > [22mupdates the 50/200-bar boundaries in both directions without stale cells [33m367[2mms[22m[39m
+   [33m[2m✓[22m[39m Technicals unavailable rows on real daily-derived timeframes[2m > [22mW: uses active buckets through EN/ZH/EN boundary reversals [33m631[2mms[22m[39m
+   [33m[2m✓[22m[39m Technicals unavailable rows on real daily-derived timeframes[2m > [22m1M: uses active buckets through EN/ZH/EN boundary reversals [33m402[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m8 passed[39m[22m[90m (8)[39m
+[2m   Start at [22m 00:27:31
+[2m   Duration [22m 15.99s[2m (transform 688ms, setup 0ms, collect 1.12s, tests 2.29s, environment 1.52s, prepare 8.68s)[22m
+

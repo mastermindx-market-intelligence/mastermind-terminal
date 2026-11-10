@@ -166,8 +166,8 @@ export default function PrecisionEntryStrip({
   const w2 = w2Detail(readout, lang);
   const freshness = freshnessDetail(readout, lang);
   const posture = lang === "zh"
-    ? readout.posture.headlineZh || readout.posture.headline
-    : readout.posture.headline || readout.posture.headlineZh;
+    ? readout.posture.headlineZh
+    : readout.posture.headline;
 
   return (
     <div

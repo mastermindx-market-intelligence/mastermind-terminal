@@ -1,0 +1,52 @@
+# GMI gate #8 — Shared themes · latest U.S. picks card — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: 587b33a5fc66346cc3a223955174b33d012b078a
+# capturedAt: 2026-11-09T04:43:48.452Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/lib/selectionCohort.ts: "795de709d83958ebf9cb7022969037430203a6a1c9b6091ceade89cecc2c9795"
+  terminal/components/prophet/SelectionCohortCard.tsx: "b2d4517b7706b9bdc61d15e4ab031a0bfc9b012bf5353f54954b8ccb2c08efb5"
+  terminal/components/prophet/SelectionCohortCard.module.css: "9dcf3eb272a684a63728e79c5a94ca7efd4ae7474979fcdfdd11be35be86f2ff"
+  terminal/components/prophet/SelectionCohortCard.global.css: "3b30065deec77b3193737648b3059a53134a5190f3e144fa2aa0edf43a6dc9b4"
+  terminal/components/prophet/ProphetView.tsx: "8e5bf61af4596e3e3baac3c6b1bdd19db43a8e425e422cbf3e176cf210dbe13f"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: tablet, width: 820, height: 1180 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [SelectionCohortCard]
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_gmi_gate8_cohort_card.cjs
+files:
+  - desktop-en-closed-unavailable.png
+  - desktop-en-closed.png
+  - desktop-en-open.png
+  - desktop-en-page-open.png
+  - desktop-zh-closed.png
+  - desktop-zh-open.png
+  - mobile-en-empty.png
+  - mobile-en-ready.png
+  - mobile-en-unavailable.png
+  - mobile-zh-empty.png
+  - mobile-zh-ready.png
+  - mobile-zh-unavailable.png
+  - tablet-en-ready.png
+captureFiles:
+  desktop-en-closed-unavailable.png: "2c0751bcc704e0093df2645ae9a871062ad0afdaca817d7460cfa5156a92ae3c"
+  desktop-en-closed.png: "967a6107da5bff3900406efa48697d825c680750f571886808f7c81758d52305"
+  desktop-en-open.png: "3e58bf71afef3c1e51e2b14ff585522279ae187e0e03f01b0cdbd8649a0f35d3"
+  desktop-en-page-open.png: "8da4275c965e802166f607e883875673cab63eb143ab61ab07339dbbaf8b9571"
+  desktop-zh-closed.png: "96cf2900ecaa92ec7ad37b3d89b3213992dcc21fbd61c05b43e60059998569dd"
+  desktop-zh-open.png: "b8a0ffa7fb5d18de85268dcee924a1691a2256457fcaedaeec08f587cedc169e"
+  mobile-en-empty.png: "62c60715c64925278daed5ad497c9601b0e2c0f65bb6232c76fba819bea6bc9b"
+  mobile-en-ready.png: "cf69a1f36a869897c79410fb4f311f05530e5c1d397e6a3cc2eff3d312c0c497"
+  mobile-en-unavailable.png: "e4ca456294813dbd9b8bbaa6b82fcad0b2eff0cc8ae8b8962b95438ecdd73b72"
+  mobile-zh-empty.png: "62564e6b202b3ca1963e1f6b4b40b8e43a7f1b352fc22ca735feef3aabf12450"
+  mobile-zh-ready.png: "5d4962ba3c7ce056d6375f0b1f4476a61d262f18fa5c0ccaa6957a8f3444a487"
+  mobile-zh-unavailable.png: "cee75b08b59c4ea77eee59f969e5e3332d5d36b4d3ecbfd4c9eee1e88b1d4120"
+  tablet-en-ready.png: "40ceebd59b0b02f8d1faeb5a693df7e6714f51453fb022be28787ab4c1396a9b"

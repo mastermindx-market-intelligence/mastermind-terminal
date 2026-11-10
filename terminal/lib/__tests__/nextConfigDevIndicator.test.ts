@@ -31,3 +31,28 @@ describe("next.config.ts devIndicators gate", () => {
     expect(nextConfig.devIndicators).toBeUndefined();
   });
 });
+
+describe("fixture development cache isolation", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it.each([
+    { mode: "development", fixture: "1", transport: undefined, cache: false, debug: undefined },
+    { mode: "development", fixture: "1", transport: "intl-fixture-v1", cache: false, debug: false },
+    { mode: "development", fixture: "0", transport: "intl-fixture-v1", cache: undefined, debug: undefined },
+    { mode: "development", fixture: undefined, transport: undefined, cache: undefined, debug: undefined },
+    { mode: "production", fixture: "1", transport: "intl-fixture-v1", cache: undefined, debug: undefined },
+    { mode: "test", fixture: "1", transport: "intl-fixture-v1", cache: undefined, debug: undefined },
+  ])("keeps the actual config boundary for $mode / fixture=$fixture / transport=$transport", async ({ mode, fixture, transport, cache, debug }) => {
+    vi.stubEnv("NODE_ENV", mode);
+    vi.stubEnv("TERMINAL_E2E_FIXTURE", fixture);
+    vi.stubEnv("TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT", transport);
+    vi.resetModules();
+    const { default: nextConfig } = await import("../../next.config");
+    expect(nextConfig.experimental?.turbopackFileSystemCacheForDev).toBe(cache);
+    expect(nextConfig.experimental?.reactDebugChannel).toBe(debug);
+    expect(nextConfig.experimental?.turbopackFileSystemCacheForBuild).toBeUndefined();
+  });
+});

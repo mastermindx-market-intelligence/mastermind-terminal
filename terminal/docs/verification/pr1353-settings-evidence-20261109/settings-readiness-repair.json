@@ -1,0 +1,8 @@
+{
+  "producer": "terminal/e2e/tools/capture_w9t_f08_13_targets.cjs",
+  "beforeSha256": "87a599c415ce3314a282c1fc156e3eff5ec5fbce5a5a1b0bf4e79e243b6bf966",
+  "afterSha256": "e982063f3d9565efb289592f633fb0b0c954cd99343e1c23f7906428c84d3694",
+  "existingContract": "mm:terminal-visual-ready",
+  "observedFailure": "Both diagnostic clicks preceded the existing readiness event; EN observed the provider-less app2 placeholder, ZH observed unhydrated app chrome. Neither opened a panel; no page errors.",
+  "change": "Observe the existing runtime event before clicking a real .app Settings control. No event dispatch, sleep, UI masking, matrix or native data changes."
+}
