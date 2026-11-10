@@ -223,6 +223,45 @@ test("flow matrix: phone surface shows all five windows with units and the sourc
   await shot(page, "flows-phone");
 });
 
+test("flow matrix: the carried typed block renders the real producer run (v1.1)", async ({ page }) => {
+  // The carried etf_flows block (wire §3) adapted through the real parser:
+  // the committed producer's own run — as-of 2026-11-05, depth 79, 11 funds,
+  // every window full. The matrix layout is the >=760px case; the phone
+  // picker path is proven by the contract-fixture test above.
+  test.skip(mobile(page), "carried-block matrix assertions are the >=760px layout");
+  const carried = page.locator('[data-h-section="flows-carried"]');
+  await expect(carried).toBeVisible();
+  // The block's own as_of is shown, never synthesized.
+  await expect(carried).toContainText(/source as of 2026-11-05|数据截至 2026-11-05/);
+  // The producer's uppercase window labels are what the reader sees, in order.
+  // (The corner ETF column head is an empty <th> — filtered out.)
+  const heads = await carried.locator('thead th[scope="col"]').allInnerTexts();
+  expect(
+    heads.map((h) => h.trim().split(/\s|·/)[0]).filter((h) => h !== ""),
+  ).toEqual(["1D", "3D", "1W", "2W", "1M"]);
+  // 11 funds plus the net row; the funds carry tickers only — no invented
+  // name line rides beside them (the fixture block has no names).
+  expect(await carried.locator("tbody tr").count()).toBe(12);
+  const rowHeads = await carried.locator('tbody th[scope="row"]').allInnerTexts();
+  expect(rowHeads.slice(0, 11).map((h) => h.trim())).toEqual([
+    "XLB", "XLC", "XLE", "XLF", "XLI", "XLK", "XLP", "XLRE", "XLU", "XLV", "XLY",
+  ]);
+  // Depth 79: every window full, every reading present — no missing cells.
+  await expect(carried.locator("td[data-missing]")).toHaveCount(0);
+  if (desktop(page)) await shot(page, "flows-carried");
+});
+
+test("flow matrix: an owner-stated partial window is visibly partial (full_window:false)", async ({ page }) => {
+  test.skip(mobile(page), "matrix column-header assertions are the >=760px layout");
+  const accruing = page.locator('[data-h-section="flows-carried-accruing"]');
+  await expect(accruing).toBeVisible();
+  // The 1M column carries the owner's own partial statement: effective 14
+  // trading days shown beside the label, distinct from a full 21.
+  const oneM = accruing.locator('thead th[scope="col"]').filter({ hasText: "1M" });
+  await expect(oneM).toContainText(/14 trading days|14 个交易日/);
+  await expect(oneM).not.toContainText(/21 trading days|21 个交易日/);
+});
+
 /* ── four universes: separate identities, switching, filter, zero states ─── */
 
 test("universes: tabs switch payloads and rows never cross universes", async ({ page }) => {

@@ -6,10 +6,10 @@ import { useLang } from "@/lib/i18n";
 import { useSectorDepthT } from "@/lib/sectorDepthLex";
 import {
   cellIntensity,
-  effectiveWindowDays,
+  FLOW_WINDOW_LABEL,
   phoneModel,
   tableModel,
-  WINDOW_DAYS,
+  windowHeaderOf,
   type FlowCell,
   type FlowWindow,
   type FlowsData,
@@ -30,24 +30,25 @@ interface CellSel {
   window: FlowWindow;
 }
 
-/** Column header for one window. When the collected history (depth) is still
- * shorter than a window's full length, the header shows the effective day
- * count visibly (siFlowsWindowDays {n}) so capped windows cannot masquerade
- * as full ones. */
-function windowHead(w: FlowWindow, depth: number, t: DepthT): {
+/** Column header for one window. A window is partial when the collected
+ * history is still shorter than its full length OR the carried block's owner
+ * states full_window:false — either way the header shows the effective day
+ * count visibly (siFlowsWindowDays {n}) so a partial window can never
+ * masquerade as a full one. Uses windowHeaderOf — the same law the cells
+ * use — so headers and cells can never disagree. */
+function windowHead(w: FlowWindow, flows: FlowsData, t: DepthT): {
   id: string;
   cappedSuffix: string | null;
   aria: string;
 } {
-  const full = WINDOW_DAYS[w];
-  const eff = effectiveWindowDays(w, depth);
-  const capped = eff < full;
+  const { days, full, capped } = windowHeaderOf(w, flows);
+  const label = FLOW_WINDOW_LABEL[w];
   const fullLabel = t("siFlowsWindowDays", { n: full });
-  const effLabel = t("siFlowsWindowDays", { n: eff });
+  const effLabel = t("siFlowsWindowDays", { n: days });
   return {
-    id: w,
+    id: label,
     cappedSuffix: capped ? effLabel : null,
-    aria: capped ? `${w}, ${effLabel}` : `${w}, ${fullLabel}`,
+    aria: capped ? `${label}, ${effLabel}` : `${label}, ${fullLabel}`,
   };
 }
 
@@ -145,7 +146,7 @@ export function SectorFlowMatrix({
       <p className={styles.readout} data-readout="true" aria-live="polite">
         {t("siFlowsReadout", {
           etf: `${sel.ticker} ${nameOf(row?.name ?? "", row?.nameZh)}`.trim(),
-          window: sel.window,
+          window: FLOW_WINDOW_LABEL[sel.window],
           days: selCell.days,
           asof: flows.asof,
           value: selCell.text,
@@ -231,7 +232,7 @@ export function SectorFlowMatrix({
       <tr>
         <th scope="col" className={`${styles.colHead} ${styles.colEtf}`} />
         {model.windows.map((w) => {
-          const h = windowHead(w, flows.depth, t);
+          const h = windowHead(w, flows, t);
           return (
             <th key={w} scope="col" className={styles.colHead} aria-label={h.aria}>
               <span className={styles.windowId}>{h.id}</span>
@@ -259,7 +260,11 @@ export function SectorFlowMatrix({
         <tr key={row.ticker}>
           <th scope="row" className={styles.rowHead}>
             <span className={styles.ticker}>{row.ticker}</span>
-            <span className={styles.rowName}>{nameOf(row.name, row.nameZh)}</span>
+            {/* The v1.1 carried block provides tickers only; the name line is
+                rendered when a source carries one and never invented. */}
+            {row.name ? (
+              <span className={styles.rowName}>{nameOf(row.name, row.nameZh)}</span>
+            ) : null}
           </th>
           {renderCells(row.cells, { heat, net: false, ticker: row.ticker })}
           {withCoverage ? (
@@ -375,10 +380,14 @@ export function SectorFlowMatrix({
               ))}
             </div>
             <h4 className={styles.selected}>
-              {t("siFlowsSelectedEtf", {
-                ticker: phone.selectedTicker,
-                name: nameOf(phone.selectedName, phone.selectedNameZh),
-              })}
+              {phone.selectedName && phone.selectedName !== phone.selectedTicker ? (
+                t("siFlowsSelectedEtf", {
+                  ticker: phone.selectedTicker,
+                  name: nameOf(phone.selectedName, phone.selectedNameZh),
+                })
+              ) : (
+                phone.selectedTicker
+              )}
             </h4>
             <ul className={styles.windowList}>
               {phone.windows.map((w) => (
@@ -391,7 +400,7 @@ export function SectorFlowMatrix({
                   data-zero={w.zero || undefined}
                 >
                   <span className={styles.windowLabel}>
-                    {w.window}
+                    {FLOW_WINDOW_LABEL[w.window]}
                     {w.capped
                       ? ` · ${t("siFlowsWindowDays", { n: w.days })}`
                       : ""}
@@ -413,7 +422,7 @@ export function SectorFlowMatrix({
                     <span className={styles.partLine}>
                       {t("siFlowsParticipation", {
                         pct: w.participationPct,
-                        window: w.window,
+                        window: FLOW_WINDOW_LABEL[w.window],
                       })}
                     </span>
                   ) : null}
