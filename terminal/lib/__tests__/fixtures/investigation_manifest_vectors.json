@@ -13523,6 +13523,579 @@
         ],
         "continuation": {}
       }
+    },
+    {
+      "name": "v3 REAL lane1 capture identity with members and hint admitted",
+      "valid": true,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "prophet.research",
+            "object_types": [
+              "today_selection",
+              "b03_occurrence",
+              "plan_origin",
+              "evaluation"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v3",
+        "intent": {
+          "title": "Question",
+          "question": "  Why \ud83e\udde0?\r\ne\u0301",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "macro.sector",
+            "object_type": "sector_observation",
+            "object_id": "xlf",
+            "mode": "pinned",
+            "version_ref": "real-g1",
+            "fingerprint": "7bad66c81bb45cea8da07b2fe247d44f028168b1107cc21ffe2f47c4d31d003c",
+            "context_ref": "eyJhIjoiZW50aXRsZWQiLCJiIjoic2VjdG9yX3BvcHVsYXRpb24uYmFzaXMvdjE6YmFza2V0cy5tZW1iZXJzIiwiYyI6IjdiYWQ2NmM4MWJiNDVjZWE4ZGEwN2IyZmUyNDdkNDRmMDI4MTY4YjExMDdjYzIxZmZlMmY0N2M0ZDMxZDAwM2MiLCJmIjoiKiIsImciOiJyZWFsLWcxIiwiayI6IngiLCJsIjowLCJvIjowLCJ1IjoiNDE2N2VhYWQyZGU1MWIwM2NmMzMwNDQxYmJlMjVkMDVmMGZjYjhkNzhjMGIyNjc5ODQ0MTI4NTVlNjMyYjJhMiIsInYiOjF9.ebfbffaeb7f45f4ca05df22f96c0a64b460f38b4401b6a370653ad2a685c6fc7",
+            "member_sha256": {
+              "basketdata/action_board.json": "7865d55ebe2c997ac1d0a5ca24672e0049258384cb4660327459dae6020e742b",
+              "basketdata/baskets.json": "7aae1c894fb362927737f0a0374d0e4142cdad549ca50d5be57b926c937dec4e",
+              "basketdata/si_handoff.json": "e53f9aea28e90a381231b0083a3ddf016d156bad6cd6609818b8a11588298e60",
+              "sectordata/sector_central.json": "f56a27b9ff656066529054ce800a87ead835c05901c8bf6c42ad24f94be89e4d",
+              "sectordata/sector_cycles.json": "f635c63a8b36c55c06e470498436df262e8e2beccbcd3a22f6be15de0f46cb3a"
+            }
+          }
+        ],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "v3 sector durable identity without context_ref hint admitted",
+      "valid": true,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "prophet.research",
+            "object_types": [
+              "today_selection",
+              "b03_occurrence",
+              "plan_origin",
+              "evaluation"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v3",
+        "intent": {
+          "title": "Question",
+          "question": "  Why \ud83e\udde0?\r\ne\u0301",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "macro.sector",
+            "object_type": "sector_observation",
+            "object_id": "xlf",
+            "mode": "pinned",
+            "version_ref": "real-g1",
+            "fingerprint": "7bad66c81bb45cea8da07b2fe247d44f028168b1107cc21ffe2f47c4d31d003c",
+            "member_sha256": {
+              "basketdata/action_board.json": "7865d55ebe2c997ac1d0a5ca24672e0049258384cb4660327459dae6020e742b",
+              "basketdata/baskets.json": "7aae1c894fb362927737f0a0374d0e4142cdad549ca50d5be57b926c937dec4e",
+              "basketdata/si_handoff.json": "e53f9aea28e90a381231b0083a3ddf016d156bad6cd6609818b8a11588298e60",
+              "sectordata/sector_central.json": "f56a27b9ff656066529054ce800a87ead835c05901c8bf6c42ad24f94be89e4d",
+              "sectordata/sector_cycles.json": "f635c63a8b36c55c06e470498436df262e8e2beccbcd3a22f6be15de0f46cb3a"
+            }
+          }
+        ],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "v3 member_sha256 empty refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "prophet.research",
+            "object_types": [
+              "today_selection",
+              "b03_occurrence",
+              "plan_origin",
+              "evaluation"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v3",
+        "intent": {
+          "title": "Question",
+          "question": "  Why \ud83e\udde0?\r\ne\u0301",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "macro.sector",
+            "object_type": "sector_observation",
+            "object_id": "xlf",
+            "mode": "pinned",
+            "version_ref": "real-g1",
+            "fingerprint": "7bad66c81bb45cea8da07b2fe247d44f028168b1107cc21ffe2f47c4d31d003c",
+            "context_ref": "eyJhIjoiZW50aXRsZWQi.0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+            "member_sha256": {}
+          }
+        ],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "v3 member_sha256 bad digest refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "prophet.research",
+            "object_types": [
+              "today_selection",
+              "b03_occurrence",
+              "plan_origin",
+              "evaluation"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v3",
+        "intent": {
+          "title": "Question",
+          "question": "  Why \ud83e\udde0?\r\ne\u0301",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "macro.sector",
+            "object_type": "sector_observation",
+            "object_id": "xlf",
+            "mode": "pinned",
+            "version_ref": "real-g1",
+            "fingerprint": "7bad66c81bb45cea8da07b2fe247d44f028168b1107cc21ffe2f47c4d31d003c",
+            "context_ref": "eyJhIjoiZW50aXRsZWQi.0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+            "member_sha256": {
+              "a/b.json": "XYZ"
+            }
+          }
+        ],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "v3 member_sha256 bad path refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "prophet.research",
+            "object_types": [
+              "today_selection",
+              "b03_occurrence",
+              "plan_origin",
+              "evaluation"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v3",
+        "intent": {
+          "title": "Question",
+          "question": "  Why \ud83e\udde0?\r\ne\u0301",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "macro.sector",
+            "object_type": "sector_observation",
+            "object_id": "xlf",
+            "mode": "pinned",
+            "version_ref": "real-g1",
+            "fingerprint": "7bad66c81bb45cea8da07b2fe247d44f028168b1107cc21ffe2f47c4d31d003c",
+            "context_ref": "eyJhIjoiZW50aXRsZWQi.0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+            "member_sha256": {
+              "../x": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          }
+        ],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "v3 member_sha256 nine entries refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "prophet.research",
+            "object_types": [
+              "today_selection",
+              "b03_occurrence",
+              "plan_origin",
+              "evaluation"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v3",
+        "intent": {
+          "title": "Question",
+          "question": "  Why \ud83e\udde0?\r\ne\u0301",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "macro.sector",
+            "object_type": "sector_observation",
+            "object_id": "xlf",
+            "mode": "pinned",
+            "version_ref": "real-g1",
+            "fingerprint": "7bad66c81bb45cea8da07b2fe247d44f028168b1107cc21ffe2f47c4d31d003c",
+            "context_ref": "eyJhIjoiZW50aXRsZWQi.0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+            "member_sha256": {
+              "m0.json": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "m1.json": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "m2.json": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "m3.json": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "m4.json": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "m5.json": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "m6.json": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "m7.json": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "m8.json": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          }
+        ],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "v3 member_sha256 not an object refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "prophet.research",
+            "object_types": [
+              "today_selection",
+              "b03_occurrence",
+              "plan_origin",
+              "evaluation"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v3",
+        "intent": {
+          "title": "Question",
+          "question": "  Why \ud83e\udde0?\r\ne\u0301",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "macro.sector",
+            "object_type": "sector_observation",
+            "object_id": "xlf",
+            "mode": "pinned",
+            "version_ref": "real-g1",
+            "fingerprint": "7bad66c81bb45cea8da07b2fe247d44f028168b1107cc21ffe2f47c4d31d003c",
+            "context_ref": "eyJhIjoiZW50aXRsZWQi.0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+            "member_sha256": [
+              "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ]
+          }
+        ],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "v2 member_sha256 refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "prophet.research",
+            "object_types": [
+              "today_selection",
+              "b03_occurrence",
+              "plan_origin",
+              "evaluation"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Question",
+          "question": "  Why \ud83e\udde0?\r\ne\u0301",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "macro.sector",
+            "object_type": "sector_observation",
+            "object_id": "xlf",
+            "mode": "pinned",
+            "version_ref": "real-g1",
+            "fingerprint": "7bad66c81bb45cea8da07b2fe247d44f028168b1107cc21ffe2f47c4d31d003c",
+            "context_ref": "eyJhIjoiZW50aXRsZWQi.0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+            "member_sha256": {
+              "a.json": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+          }
+        ],
+        "continuation": {}
+      }
     }
   ]
 }

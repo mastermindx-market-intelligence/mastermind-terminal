@@ -34,6 +34,9 @@ export const PROPHET_RESEARCH_EVIDENCE_TYPES: readonly string[] = ["today_select
 const RFC3339 = /^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]{1,9})?(Z|[+-]([01][0-9]|2[0-3]):[0-5][0-9])$/;
 /** Persisted advisory resolver hint for a retained Sector capture (lane 1 `page.context_ref`, ≤1024). */
 const CONTEXT_REF = /^[A-Za-z0-9_.-]{1,1024}$/;
+/** Lane 1 compatibility tuple `capture.owner_ref.member_sha256` keys (source member paths), ≤8 entries. */
+const MEMBER_PATH = /^[A-Za-z0-9][A-Za-z0-9_./-]{0,127}$/;
+export const INVESTIGATION_MAX_MEMBER_SHA256 = 8;
 const MAX_ERRORS = 32;
 const MAX_NODES = 4096;
 const SUBJECT_KINDS = new Set([
@@ -91,6 +94,10 @@ export type InvestigationEvidenceRef = {
    *  capture. The durable identity stays `version_ref` (= capture generation_id) + `fingerprint`
    *  (= capture content_id); this token is a resolver hint and never a substitute for them. */
   context_ref?: string;
+  /** v3 only, macro.sector observations only: the capture's member sha256 set (compatibility tuple).
+   *  Together with version_ref (generation_id) and fingerprint (content_id) this is the DURABLE capture
+   *  identity; reopen resolves by it and reads ORIGINAL_UNAVAILABLE when the retained capture is gone. */
+  member_sha256?: Record<string, string>;
 };
 export type InvestigationMilestone = {
   id: string;
@@ -319,7 +326,7 @@ class Validator {
     return JSON.stringify([ref.thesis_id, ref.version_id]);
   }
   evidence(value: unknown, path: string, baseline = false): string | null {
-    const ref = this.object(value, path, ["owner", "object_type", "object_id", "mode"], this.v3 ? ["version_ref", "fingerprint", "selection", "context_ref"] : ["version_ref", "fingerprint", "selection"]);
+    const ref = this.object(value, path, ["owner", "object_type", "object_id", "mode"], this.v3 ? ["version_ref", "fingerprint", "selection", "context_ref", "member_sha256"] : ["version_ref", "fingerprint", "selection"]);
     if (!ref) return null;
     this.namespace(ref.owner, `${path}.owner`); this.namespace(ref.object_type, `${path}.object_type`);
     this.text(ref.object_id, `${path}.object_id`, 256, true);
@@ -363,6 +370,15 @@ class Validator {
             || typeof ref.context_ref !== "string" || !CONTEXT_REF.test(ref.context_ref)) this.add(`${path}.context_ref`, "invalid_context_ref");
       } else if (Object.hasOwn(ref, "context_ref")) {
         this.add(`${path}.context_ref`, "unsupported_context_ref");
+      }
+      if (Object.hasOwn(ref, "member_sha256")) {
+        const members = ref.member_sha256;
+        const entries = members && typeof members === "object" && !Array.isArray(members) ? Object.entries(members as Obj) : null;
+        if (ref.owner !== "macro.sector" || !(ref.object_type === "sector_observation" || ref.object_type === "basket_observation")
+            || !entries || entries.length < 1 || entries.length > INVESTIGATION_MAX_MEMBER_SHA256
+            || entries.some(([k, v]) => !MEMBER_PATH.test(k) || typeof v !== "string" || !DIGEST.test(v))) {
+          this.add(`${path}.member_sha256`, "invalid_member_sha256");
+        }
       }
       if (ref.owner === "prophet.research" && this.v3) {
         // Closed adapter namespace. Pinned-only: native readers issue object_id/version_ref and the

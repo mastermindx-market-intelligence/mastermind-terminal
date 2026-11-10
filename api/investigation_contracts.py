@@ -20,6 +20,8 @@ DIGEST = re.compile(r"[0-9a-f]{64}\Z")
 # parser and the shared admission registry). RFC 3339 profile is byte-identical to TS and SQL.
 RFC3339 = re.compile(r"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]{1,9})?(Z|[+-]([01][0-9]|2[0-3]):[0-5][0-9])\Z")
 CONTEXT_REF = re.compile(r"[A-Za-z0-9_.-]{1,1024}\Z")
+MEMBER_PATH = re.compile(r"[A-Za-z0-9][A-Za-z0-9_./-]{0,127}\Z")
+MAX_MEMBER_SHA256 = 8
 PROPHET_RESEARCH_EVIDENCE_TYPES = ("today_selection", "b03_occurrence", "plan_origin", "evaluation")
 USER_DECISION_DISPOSITIONS = ("investigate", "watch", "pass")
 MILESTONE_STATES = ("open", "met", "missed", "withdrawn")
@@ -215,7 +217,7 @@ def validate_investigation_manifest(raw, admission=None):
             return [r["thesis_id"], r["version_id"]]
 
         def evidence(v, p, baseline=False):
-            r = obj(v, p, ("owner", "object_type", "object_id", "mode"), ("version_ref", "fingerprint", "selection", "context_ref") if v3 else ("version_ref", "fingerprint", "selection"))
+            r = obj(v, p, ("owner", "object_type", "object_id", "mode"), ("version_ref", "fingerprint", "selection", "context_ref", "member_sha256") if v3 else ("version_ref", "fingerprint", "selection"))
             for key in ("owner", "object_type"):
                 pattern(r[key], p + "." + key, NAMESPACE, "invalid_namespace")
             text(r["object_id"], p + ".object_id", 256, True)
@@ -244,6 +246,12 @@ def validate_investigation_manifest(raw, admission=None):
                     pattern(r["context_ref"], p + ".context_ref", CONTEXT_REF, "invalid_context_ref")
                 else:
                     require("context_ref" not in r, p + ".context_ref", "unsupported_context_ref")
+                if "member_sha256" in r:
+                    ms = r["member_sha256"]
+                    ok = (r["owner"] == "macro.sector" and r["object_type"] in ("sector_observation", "basket_observation")
+                          and type(ms) is dict and 1 <= len(ms) <= MAX_MEMBER_SHA256
+                          and all(type(k) is str and MEMBER_PATH.fullmatch(k) and type(x) is str and DIGEST.fullmatch(x) for k, x in ms.items()))
+                    require(ok, p + ".member_sha256", "invalid_member_sha256")
                 if r["owner"] == "prophet.research" and v3:
                     # Closed adapter namespace, pinned-only; native readers issue object_id/version_ref.
                     require(r["object_type"] in PROPHET_RESEARCH_EVIDENCE_TYPES, p + ".object_type", "unsupported_owner_kind")
