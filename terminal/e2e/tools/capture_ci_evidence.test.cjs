@@ -117,7 +117,7 @@ function fixture(t, change = {}) {
     historical: change.batch2Legacy ? null : seedHistory }));
   const priorManifest = fs.readFileSync(manifest);
   for (const definition of packets) {
-    write(definition.directory + "/EVIDENCE.yml", packetManifest(definition, Boolean(change.legacyStale)));
+    write(definition.directory + "/EVIDENCE.yml", packetManifest(definition, change.legacyStale === true || change.legacyStale === definition.packet));
     for (const file of definition.files) write(definition.directory + "/" + file, "old synthetic image " + file);
   }
   const writeOptions = (stale, sourceHead = "a".repeat(40)) => {
@@ -129,6 +129,7 @@ function fixture(t, change = {}) {
     write(optionsDirectory + "/manifest.json", JSON.stringify(manifest));
     return captures;
   };
+  if (change.legacyChangedSource) fs.appendFileSync(path.join(repoRoot, change.legacyChangedSource), "changed capture input\n");
   writeOptions(Boolean(change.optionsStale));
   if (change.optionsChanged) fs.appendFileSync(path.join(repoRoot, "terminal/" + optionsSources[0]), "changed source\n");
   if (change.optionsScopeChanged) fs.appendFileSync(path.join(repoRoot, "terminal/lib/pricePaneSvgScope.ts"), "changed scope\n");
@@ -354,9 +355,9 @@ for (const failure of [false, true]) test(`VI outputDir cleanup preserves ${fail
   assert.equal(Boolean(f.selected()), !failure);
 });
 
-test("the stale Pine packet runs all30 cases, retain complete prior bytes and leave validation with native readers", async t => {
+test("stale Pine and batch3 packets run all50 cases and preserve complete prior bytes", async t => {
   const f = fixture(t, { legacyStale: true }), result = await f.invoke();
-  assert.deepEqual(f.legacyCalls, ["pine"]);
+  assert.deepEqual(f.legacyCalls, ["pine", "batch3"]);
   assert.equal(f.calls.length, 2);
   assert.equal(result.composition.selectedCases, 50);
   let cases = 0;
@@ -369,8 +370,25 @@ test("the stale Pine packet runs all30 cases, retain complete prior bytes and le
     assert.equal(fs.readFileSync(path.join(packet.returned.path, image), "utf8"), "fresh synthetic image " + image);
     assert.equal(packet.receipt.captureId, f.ids.prefix + "-" + definition.packet);
   }
-  assert.equal(cases, 30);
+  assert.equal(cases, 50);
 });
+
+test("batch3-only source drift recaptures all20 files while Pine is reused", async t => {
+  const f = fixture(t, { legacyStale: "batch3" }), result = await f.invoke();
+  assert.deepEqual(f.legacyCalls, ["batch3"]);
+  assert.equal(result.legacyPackets.batch3.images.length, 20);
+  assert.equal(result.legacyPackets.pine.state, "EXISTING_PACKET_AWAITING_UNIT_VALIDATION");
+});
+
+for (const source of ["terminal/e2e/tools/capture_pl6_batch3.cjs",
+  "terminal/e2e/fixtures/heatmap-price-only-tile.json"]) {
+  test("batch3 capture input drift requires fresh20: " + source, async t => {
+    const f = fixture(t, { legacyChangedSource: source }), result = await f.invoke();
+    assert.deepEqual(f.legacyCalls, ["batch3"]);
+    assert.equal(result.legacyPackets.batch3.images.length, 20);
+    assert.equal(result.legacyPackets.pine.state, "EXISTING_PACKET_AWAITING_UNIT_VALIDATION");
+  });
+}
 
 test("current packets preserve their old capture identity and do not launch replacement captures", async t => {
   const f = fixture(t), result = await f.invoke();
@@ -380,22 +398,22 @@ test("current packets preserve their old capture identity and do not launch repl
   assert.equal(f.calls[0].options.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE, "0");
 });
 
-for (const [name, change, expected] of [
+for (const packetName of ["pine", "batch3"]) for (const [name, change, expected] of [
   ["nonzero producer", { legacyStatus: 1 }, /CHILD_FAILED_OR_UNSETTLED/],
   ["missing current receipt", { missingLegacyReceipt: true }, /RECEIPT_COUNT/],
   ["partial fresh inventory", { partialLegacy: true }, /RECEIPT_BINDING/],
   ["different attempt", { wrongAttempt: true }, /RECEIPT_BINDING/],
   ["changed image bytes", { imageMismatch: true }, /IMAGE_BINDING/],
   ["source changed during capture", { mutateLegacySource: true }, /SOURCE_CHANGED/],
-]) test(name + " keeps diagnostics and refuses selector export", async t => {
-  const f = fixture(t, { legacyStale: true, ...change });
+]) test(packetName + ": " + name + " keeps diagnostics and refuses selector export", async t => {
+  const f = fixture(t, { legacyStale: packetName, ...change });
   await assert.rejects(f.invoke, expected);
   assert.equal(f.selected(), ""); assert.equal(f.diagnostic().state, "FAILED");
   const packet = f.diagnostic().legacyPackets[f.legacyCalls.at(-1)];
   assert.ok(fs.existsSync(packet.prior.path));
   assert.ok(fs.existsSync(packet.returned.path));
   assert.notEqual(packet.state, "CAPTURED_AWAITING_UNIT_VALIDATION");
-  assert.deepEqual(f.legacyCalls, ["pine"]);
+  assert.deepEqual(f.legacyCalls, [packetName]);
 });
 
 test("Options uses the full PL6 owner, records five fresh images, and preserves its historical audit", async t => {

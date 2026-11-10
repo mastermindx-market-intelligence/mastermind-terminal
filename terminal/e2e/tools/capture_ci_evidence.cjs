@@ -75,14 +75,15 @@ function archivePacket(repoRoot, relative, destination) {
 function legacyPackets() {
   return [
     ["pine", "pine-boot-pending-state", "capture_pine_boot_pending.cjs", "3571"],
+    ["batch3", "b-pl-6-batch-3", "capture_pl6_batch3.cjs", "3572"],
   ].map(([packet, directory, script, port]) => {
     const producer = require("./" + script); // Import-safe; --checkout-only never loads producers.
     return { packet, directory: "terminal/docs/pr-crops/" + directory, script: "e2e/tools/" + script, port,
       sources: producer.LAYOUT_FILES, files: producer.FILES,
       controls: [CONTROL, "terminal/e2e/tools/" + script, "terminal/next.config.ts"],
-      // Twelve original page flows include ~192 seconds of deliberate boot waiting.
-      // This bounded Pine allowance stays inside the unchanged overall capture deadline.
-      deadlineMs: 12 * 60_000 };
+      // Pine includes ~192 seconds of deliberate boot waiting; batch3 uses the
+      // existing eight-minute child budget. Both obey the unchanged overall deadline.
+      deadlineMs: (packet === "pine" ? 12 : 8) * 60_000 };
   });
 }
 
