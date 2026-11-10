@@ -76,9 +76,11 @@ describe("strict production TypeScript project", () => {
       vi.resetModules();
       const { default: config } = await import("../../next.config");
       expect(config.experimental?.reactDebugChannel).toBe(debug);
+      const fixtureDev = mode === "development" && fixture === "1";
+      expect(config.experimental?.turbopackFileSystemCacheForDev).toBe(fixtureDev ? false : undefined);
       expect(config.typescript?.tsconfigPath).toBe(project);
       expect(config.distDir).toBe(distDir);
-      if (debug === undefined) expect(config).not.toHaveProperty("experimental");
+      if (debug === undefined && !fixtureDev) expect(config).not.toHaveProperty("experimental");
     } finally { vi.unstubAllEnvs(); vi.resetModules(); }
   });
   it("inherits every full-project compiler option unchanged", () => {

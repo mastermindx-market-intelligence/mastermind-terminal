@@ -1,0 +1,27 @@
+{
+  "command": [
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/portfolio-event-refresh.spec.ts",
+    "e2e/sector-leadership-dossier.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/portfolio-protected-artifacts",
+    "--grep",
+    "(?:Portfolio event panel refreshes after a holding edit|a\\ withdrawn\\ access\\ clears\\ every\\ figure\\ and\\ leaves\\ the\\ rest\\ of\\ the\\ overview\\ intact$|a\\ withdrawn\\ access\\ clears\\ the\\ companion\\ and\\ leaves\\ the\\ rest\\ of\\ the\\ overview\\ intact$)"
+  ],
+  "completedAt": "2026-11-10T11:46:48.890681+00:00",
+  "exit": 0,
+  "logSha256": "44bb32d0d24a635931160c459e3f0ecbbdd056f3fed749a64679dfc6db58ff13",
+  "port": 34229,
+  "seconds": 100.654,
+  "source": "3f6a75b7d5f82802c010edc0e42b7ffd501c9cf0",
+  "sourceCount": 3532,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T11:45:08.268452+00:00"
+}

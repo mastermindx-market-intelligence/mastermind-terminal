@@ -1,0 +1,68 @@
+{
+  "source": "18a0cbd8014cd5a064e4107c624de2d75322d9f2",
+  "portfolio": [
+    {
+      "file": "desktop-en-refreshed.png",
+      "sha256": "e4889cd96ad7ce123284f65c9d57a4077104d6856743448ea1fa79e93177ee48",
+      "width": 851,
+      "height": 308,
+      "result": "VIEWED_LEGIBLE_REFRESHED_STATE"
+    },
+    {
+      "file": "desktop-zh-refreshed.png",
+      "sha256": "1a9c312aa07d41602ad49fd523995b11030b181b9daecd6089cdc472ddbf6dfd",
+      "width": 851,
+      "height": 292,
+      "result": "VIEWED_LEGIBLE_REFRESHED_STATE"
+    },
+    {
+      "file": "tablet-en-refreshed.png",
+      "sha256": "db5baf5b1ab70490572c890431404d11f4206061bbb32f9be4e82ddb042333dc",
+      "width": 746,
+      "height": 308,
+      "result": "VIEWED_LEGIBLE_REFRESHED_STATE"
+    },
+    {
+      "file": "tablet-zh-refreshed.png",
+      "sha256": "953ba08895478d9d7b98f0d7cded71320cc77b950a2f35378dceb7d28a1d5955",
+      "width": 746,
+      "height": 291,
+      "result": "VIEWED_LEGIBLE_REFRESHED_STATE"
+    },
+    {
+      "file": "mobile-en-refreshed.png",
+      "sha256": "98bc6b7828883c3053c8f166d6d55e22af49f977c25ef4c6ca1723de4abe747d",
+      "width": null,
+      "height": null,
+      "result": "BYTE_IDENTICAL_TO_PREVIOUSLY_VIEWED_LEGIBLE_IMAGE"
+    },
+    {
+      "file": "mobile-zh-refreshed.png",
+      "sha256": "e6674b51cbfe742452ec0097dc8ef9a9f9b6d742333c263291a7c2070fd87316",
+      "width": 324,
+      "height": 414,
+      "result": "VIEWED_LEGIBLE_REFRESHED_STATE"
+    },
+    {
+      "file": "desktop-en-expansion-retired.png",
+      "sha256": "872be349f87b3bebaf00cd538163b5f47b2a630d63513cf9381fedabb3cb9e87",
+      "width": 851,
+      "height": 1118,
+      "result": "VIEWED_BLURRED_VISUAL_PROOF_INSUFFICIENT"
+    },
+    {
+      "file": "desktop-zh-expansion-retired.png",
+      "sha256": "3b65a78d08cef7d9e51148dfeb03641d7ecc7b35decc8f69f46ff290ec7db6f9",
+      "width": 851,
+      "height": 1101,
+      "result": "VIEWED_BLURRED_VISUAL_PROOF_INSUFFICIENT"
+    }
+  ],
+  "intelligence": {
+    "variant": "pr1422-next-r4",
+    "viewedImages": 9,
+    "result": "SCOPED_READING_AND_JOURNEY_VISUALS_ACCEPTED",
+    "scope": "Six overview cells and Prophet/Sector company-return screenshots; no production/CSP or full-application claim."
+  },
+  "limits": "Passing DOM assertions are independent from the two blurred expansion screenshots; no legible visual acceptance is claimed for them."
+}
