@@ -760,6 +760,32 @@ describe("rows increment — universes board from carried blocks (interactive)",
     expect(host.querySelector("[data-emergence]")).toBeNull();
     expect(host.textContent).not.toContain("AMAT.html");
   });
+
+  it("S5 — the no-access state and the no-session-date line keep rendered coverage (EN+ZH)", async () => {
+    // ok:false (the contract russell payload) → the no-access state line.
+    await mount(<SectorConfluenceUniverses universes={universesContract.universes} />);
+    const rt = host.querySelector<HTMLButtonElement>('[data-universe="russell"]');
+    await act(async () => {
+      rt!.click();
+    });
+    expect(host.textContent).toContain("requires access");
+    G.__SD_LANG = "zh";
+    await mount(<SectorConfluenceUniverses universes={universesContract.universes} />);
+    expect(host.textContent).toContain("不具备的权限");
+    G.__SD_LANG = "en";
+    // as_of null (the real nasdaq payload) → the identity line's no-date
+    // suffix, beside the build-time envelope label.
+    await mount(<SectorConfluenceUniverses universeBlocks={realUniverseBlocks()} />);
+    const nt = host.querySelector<HTMLButtonElement>('[data-universe="nasdaq"]');
+    await act(async () => {
+      nt!.click();
+    });
+    expect(host.textContent).toContain("did not report a session date");
+    G.__SD_LANG = "zh";
+    await mount(<SectorConfluenceUniverses universeBlocks={realUniverseBlocks()} />);
+    expect(host.textContent).toContain("此版本未报告交易日");
+    G.__SD_LANG = "en";
+  });
 });
 
 describe("rows increment — the carried theme table from the real specimen", () => {
