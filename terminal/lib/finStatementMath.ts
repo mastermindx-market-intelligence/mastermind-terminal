@@ -111,14 +111,13 @@ export function isCumulativeShape(vals: NumArr | undefined): boolean {
 }
 
 /**
- * Fiscal-year token from a period label, for detecting a year boundary the labels cross
- * without a "Q1" column. Both label shapes in the contract end in the year:
- * "Q1 2023" (CN/HK generators) → "2023", "Q3 '26" (US backfill) → "26". Compared for
- * equality only — never parsed into a date — so the two shapes never have to agree.
+ * Fiscal quarter identity from either documented label shape: "Q1 2023" or "Q3 '26".
+ * Year tokens are compared as supplied, without inferring a century or a calendar date.
+ * An unparseable label cannot establish the immediately preceding cumulative base.
  */
-function fiscalYearToken(label: string | undefined): string | null {
-  const m = /(\d{2,4})\s*$/.exec(label ?? "");
-  return m ? m[1] : null;
+function fiscalQuarter(label: string | undefined): { quarter: number; year: string } | null {
+  const m = /^Q([1-4])\s+'?(\d{2}|\d{4})\s*$/.exec(label ?? "");
+  return m ? { quarter: Number(m[1]), year: m[2] } : null;
 }
 
 /**
@@ -126,8 +125,8 @@ function fiscalYearToken(label: string | undefined): string | null {
  *
  * A cell is emitted ONLY when its cumulative base is known:
  *   • label starts with "Q1"            → as-is (Q1 IS the first quarter of the fiscal year)
- *   • same fiscal year as the prior cell → raw[i] − raw[i−1]
- *   • otherwise (array starts mid-year, or a year boundary with no Q1 column) → null
+ *   • immediately preceding quarter in the same fiscal year → raw[i] − raw[i−1]
+ *   • otherwise (missing, repeated, reversed, or unparseable base period) → null
  *
  * WHAT CHANGED AND WHY: this used to fall back to the RAW cumulative value both when the
  * difference came out negative (`d >= 0 ? d : cur`) and whenever a base was missing. That
@@ -147,10 +146,11 @@ export function discreteQuarters(vals: NumArr, periods: readonly string[]): NumA
       out.push(vals[i] ?? null);
       continue;
     }
-    const yr = fiscalYearToken(label);
-    const prevYr = i > 0 ? fiscalYearToken(periods[i - 1]) : null;
-    // i === 0, or a fiscal year we entered without seeing its Q1 → no base to difference.
-    if (i === 0 || yr == null || prevYr == null || yr !== prevYr) {
+    const current = fiscalQuarter(label);
+    const previous = i > 0 ? fiscalQuarter(periods[i - 1]) : null;
+    // Adjacent array entries are not necessarily consecutive fiscal quarters.
+    if (!current || !previous || current.year !== previous.year
+        || current.quarter !== previous.quarter + 1) {
       out.push(null);
       continue;
     }
@@ -644,3 +644,4 @@ export function cumulativeQuarterNote(view: IncomeView, zh: boolean): string | n
   // shows no note rather than a sentence about somebody else's filing convention.
   return null;
 }
+
