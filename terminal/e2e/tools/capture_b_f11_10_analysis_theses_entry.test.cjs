@@ -285,7 +285,7 @@ for (const stage of ["allowed-fetch", "script-body", "allowed-fulfill", "unavail
     else {
       const url = stage === "unavailable-fulfill" ? "http://127.0.0.1:3565/data/NVDA.fund.json"
         : stage === "blocked-abort" ? "https://foreign.invalid/app.js" : "http://127.0.0.1:3565/_next/static/app.js";
-      const route = requestDouble(url, "script", stage === "bad-status-abort" ? 302 : 200);
+      const route = requestDouble(url, stage === "unavailable-fulfill" ? "fetch" : "script", stage === "bad-status-abort" ? 302 : 200);
       if (stage === "allowed-fetch") route.fetch = fail;
       if (stage === "script-body" || stage === "allowed-fulfill") route.fetch = async () => ({
         status: () => 200, headers: () => ({ "content-type": "application/javascript" }),

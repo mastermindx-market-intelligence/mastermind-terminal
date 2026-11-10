@@ -140,7 +140,7 @@ test("historical signal-only finalizer can publish before close; current owned p
 });
 test("actual capture main awaits stop and generated restoration before writing eligibility",()=>{
   const source=fs.readFileSync(path.join(__dirname,"capture_b_f11_10_analysis_theses_entry.cjs"),"utf8");
-  assert.match(source,/finally \{\s*await stopServer\(owner\);\s*namespace\.restoreGeneratedTypeFile\(\);/);
+  assert.match(source,/finally \{\s*try \{\s*await stopServer\(owner\);\s*(?:\/\/[^\n]*\n\s*)*namespace\.restoreGeneratedTypeFile\(\);/);
   assert.ok(source.indexOf("await stopServer(owner)")<source.indexOf("const fixturePayload"));
   assert.ok(source.indexOf("serverSettlement: owner.settlement()")<source.indexOf("writeSuccessArtifact(OUT, files, fixturePayload)"));
 });
@@ -159,3 +159,4 @@ test("F11 TypeScript config retains enforced defaults and pinned Next does not r
     assert.ok(fs.readFileSync(target).equals(before));
   } finally {fs.rmSync(root,{recursive:true,force:true});}
 });
+
