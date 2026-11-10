@@ -49,6 +49,11 @@
           "expected_live_type": "directory"
         },
         {
+          "path": ".next.broken",
+          "classification": "rollback_build_artifact",
+          "expected_live_type": "directory"
+        },
+        {
           "path": "node_modules",
           "classification": "generated_dependency_tree",
           "expected_live_type": "directory"
