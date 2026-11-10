@@ -131,7 +131,13 @@ export function SectorCallsBoard({
       <div className={styles.columns}>
         {BOARD_LANE_ORDER.map((key) =>
           key === "stand_aside" ? (
-            <StandAsideColumn key={key} lane={folded[key]} lanes={board.lanes} asOf={board.as_of} />
+            <StandAsideColumn
+              key={key}
+              lane={folded[key]}
+              lanes={board.lanes}
+              asOf={board.as_of}
+              onNavigate={onNavigate}
+            />
           ) : (
             <BoardColumn
               key={key}
@@ -276,10 +282,12 @@ function StandAsideColumn({
   lane,
   lanes,
   asOf,
+  onNavigate,
 }: {
   lane: LaneData;
   lanes: Record<SourceLaneKey, LaneData>;
   asOf: string;
+  onNavigate?: (href: string) => void;
 }) {
   const t = useSectorDepthT();
   const isPhone = useIsPhone();
@@ -324,6 +332,7 @@ function StandAsideColumn({
                 expanded={holdExpanded}
                 onExpand={() => setHoldExpanded(true)}
                 onCollapse={() => setHoldExpanded(false)}
+                onNavigate={onNavigate}
               />
               <LaneGroup
                 groupKey="siCallsGroupAvoid"
@@ -332,6 +341,7 @@ function StandAsideColumn({
                 expanded={avoidExpanded}
                 onExpand={() => setAvoidExpanded(true)}
                 onCollapse={() => setAvoidExpanded(false)}
+                onNavigate={onNavigate}
               />
             </div>
           )}
@@ -360,6 +370,7 @@ function LaneGroup({
   expanded,
   onExpand,
   onCollapse,
+  onNavigate,
 }: {
   groupKey: string;
   lane: LaneData;
@@ -367,6 +378,7 @@ function LaneGroup({
   expanded: boolean;
   onExpand: () => void;
   onCollapse: () => void;
+  onNavigate?: (href: string) => void;
 }) {
   const t = useSectorDepthT();
   const label = t(groupKey);
@@ -380,7 +392,13 @@ function LaneGroup({
       {slice.shown.length > 0 && (
         <ul className={styles.cards}>
           {slice.shown.map((row, i) => (
-            <CallRowCard key={`${row.kind}:${row.ticker}`} row={row} order={i + 1} of={lane.total} />
+            <CallRowCard
+              key={`${row.kind}:${row.ticker}`}
+              row={row}
+              onNavigate={onNavigate}
+              order={i + 1}
+              of={lane.total}
+            />
           ))}
         </ul>
       )}

@@ -122,8 +122,11 @@ test("calls contract board: keyboard show-more and trace disclosure", async ({ p
 
 test("navigation out flows through the onNavigate callback with the exact href", async ({ page }) => {
   const section = page.locator('[data-h-section="calls"]');
+  // The log box is visible; the empty <ol> inside it has no height yet, so
+  // assert on the container and drive the count through the list itself.
+  const logBox = page.locator('[aria-label="navigation log"]');
+  await expect(logBox).toBeVisible();
   const log = page.locator('[data-harness="navlog"]');
-  await expect(log).toBeVisible();
   const before = await log.locator("li").count();
   // The captured section mounts WITH onNavigate: its detail control is a
   // button that must call back with the row href verbatim. (The captured
