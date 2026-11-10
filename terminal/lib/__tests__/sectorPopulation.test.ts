@@ -476,6 +476,24 @@ describe("sectorPopulationPage — lane 1 point-in-time facts (COO 19:15Z item 5
     }
   });
 
+  // r4 N-5 (fourth review): the key PRESENT with a null value is one more
+  // carried clock that does not agree — it reads not_agree like 42/[]/{},
+  // so the surface's generic not-stated reason line has a case to print for.
+  // Only an ABSENT key reads null (the pre-#10965 wire keeps stated counts).
+  it("a CARRIED null roster_clock reads not_agree with counts not stated; an absent key still reads null with stated counts", () => {
+    const carriedNull = clone();
+    population(carriedNull).roster_clock = null;
+    const read = sectorPopulationPage(carriedNull)!;
+    expect(read, "carried null clock must not refuse the page").not.toBeNull();
+    expect(read.rosterClock).toEqual({ status: "not_agree" });
+    expect(read.counts.countsStated).toBe(false);
+    const absent = clone();
+    delete population(absent).roster_clock;
+    const absentRead = sectorPopulationPage(absent)!;
+    expect(absentRead.rosterClock).toBeNull();
+    expect(absentRead.counts.countsStated).toBe(true);
+  });
+
   // B-1 (third review): lane 1's producer sends unaccounted/configured_current/
   // complete ALL null whenever roster_clock is not agree (Macro #10965,
   // lib/sector_population.py:613). That page must decode and render its member

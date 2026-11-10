@@ -426,6 +426,23 @@ describe("SectorPopulationMembers — item 5 (COO 19:15Z): lane 1 point-in-time 
     act(() => root.unmount());
   });
 
+  it("r4 N-5: a carried null roster_clock still prints the generic not-stated reason line (en + zh)", async () => {
+    // The producer always emits a clock OBJECT (sector_population.py:553-582),
+    // but a carried null decodes and must not read as "not stated, no reason":
+    // it is one more clock that does not agree, and the surface's existing
+    // mismatch line is the generic not-stated reason in both languages.
+    pageMutate = page => { populationOf(page).roster_clock = null; };
+    const { container, root } = await mount();
+    expect(countsLine(container)).toContain("configured roster not stated by the owner");
+    expect(clockNote(container)).toContain("The roster clock does not agree with the capture session");
+    expect(clockNote(container)).toContain("configured counts are not stated");
+    act(() => root.unmount());
+    await withZh(async ({ container: zhContainer }) => {
+      expect(countsLine(zhContainer)).toContain("所有者未给出配置名单");
+      expect(clockNote(zhContainer)).toContain("名册时钟与采集会话不一致——未列明配置成员数。");
+    });
+  });
+
   it("B-1: the producer's non-agree roster_block_absent page renders the same honest states (zh)", async () => {
     pageMutate = producerNonAgree({ status: "unavailable", reason: "roster_block_absent", roster_as_of: "2026-11-06" });
     await withZh(async ({ container }) => {
