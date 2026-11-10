@@ -2178,6 +2178,11 @@ test("a cross-pane price gesture clamps on a logarithmic price scale", async ({ 
   test.skip(!(await rangePaneBoxes(page)), "This chart mounted no indicator sub-pane.");
   const layer = page.locator(".pane.on .drawing-layer");
   await selectMagnet(page, "off");
+  // Finish menu focus return, then activate the chart before its shortcut.
+  const magnetMenuTrigger = page.getByTestId("drawing-magnet-menu-trigger");
+  await expect(magnetMenuTrigger).toBeFocused();
+  await page.locator(".pane.on").getByTestId("cfb-currency").click();
+  await expect(magnetMenuTrigger).not.toBeFocused();
 
   await page.keyboard.press("Alt+l");            // the shipped logarithmic toggle
   const band = await calibratePriceBand(page, saves, paneProbe(page, layer));
@@ -2203,6 +2208,11 @@ test("a cross-pane price gesture clamps on an inverted price scale", async ({ pa
   test.skip(!(await rangePaneBoxes(page)), "This chart mounted no indicator sub-pane.");
   const layer = page.locator(".pane.on .drawing-layer");
   await selectMagnet(page, "off");
+  // Finish menu focus return, then activate the chart before its shortcut.
+  const magnetMenuTrigger = page.getByTestId("drawing-magnet-menu-trigger");
+  await expect(magnetMenuTrigger).toBeFocused();
+  await page.locator(".pane.on").getByTestId("cfb-currency").click();
+  await expect(magnetMenuTrigger).not.toBeFocused();
 
   await page.keyboard.press("Alt+i");            // the shipped invert toggle
   const band = await calibratePriceBand(page, saves, paneProbe(page, layer));
