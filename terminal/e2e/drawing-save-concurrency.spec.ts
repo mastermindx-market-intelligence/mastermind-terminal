@@ -118,7 +118,7 @@ test("a failed drawings read is shown and keeps drawing disabled",async({page})=
   await page.getByTestId("drawings-cat-trendlines").click({timeout:20_000});
   await page.getByTestId("drawings-tile-trendline").click({timeout:20_000});
  }else{
-  await lines.click({timeout:20_000});
+  await expect(lines).toBeDisabled({timeout:20_000});
  }
  await expect(lines).toHaveAttribute("aria-pressed","false",{timeout:20_000});
  expect(puts).toBe(0);
