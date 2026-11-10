@@ -175,9 +175,13 @@ jobs:
       - name: Resolve Playwright version
         id: pw
         run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
-      - name: Cache Playwright browsers
+      # Restore-only: this dispatch can check out an arbitrary `ref`, and an
+      # actions/cache save from a default-branch run is readable by every branch,
+      # so a ref's own install must never seed the browsers ordinary CI restores
+      # (browser binaries carry no lockfile integrity check, unlike npm tarballs).
+      - name: Restore Playwright browsers (restore-only)
         id: pwcache
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: ~/.cache/ms-playwright
           key: pw-${{ runner.os }}-${{ steps.pw.outputs.version }}
