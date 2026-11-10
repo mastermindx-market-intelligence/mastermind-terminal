@@ -1,0 +1,16 @@
+[WebServer] npm warn Unknown user config "allow-scripts". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+Running 9 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  1 [desktop] › e2e/workspace-loading.spec.ts:6:7 › workspace transition stays visible (en, no-preference) (13.1s)
+  ✓  2 [desktop] › e2e/workspace-loading.spec.ts:6:7 › workspace transition stays visible (en, reduce) (4.1s)
+  ✓  3 [desktop] › e2e/workspace-loading.spec.ts:6:7 › workspace transition stays visible (zh, reduce) (2.5s)
+  ✓  4 [tablet] › e2e/workspace-loading.spec.ts:6:7 › workspace transition stays visible (en, no-preference) (2.7s)
+  ✓  5 [tablet] › e2e/workspace-loading.spec.ts:6:7 › workspace transition stays visible (en, reduce) (2.5s)
+  ✓  6 [tablet] › e2e/workspace-loading.spec.ts:6:7 › workspace transition stays visible (zh, reduce) (2.5s)
+  ✓  7 [mobile] › e2e/workspace-loading.spec.ts:6:7 › workspace transition stays visible (en, no-preference) (2.6s)
+  ✓  8 [mobile] › e2e/workspace-loading.spec.ts:6:7 › workspace transition stays visible (en, reduce) (2.5s)
+  ✓  9 [mobile] › e2e/workspace-loading.spec.ts:6:7 › workspace transition stays visible (zh, reduce) (2.6s)
+
+  9 passed (47.2s)

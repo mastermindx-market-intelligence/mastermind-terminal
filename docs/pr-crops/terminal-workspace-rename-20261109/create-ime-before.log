@@ -1,0 +1,119 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/a2c76c60e583/terminal-ui/terminal
+
+ ❯ lib/__tests__/layoutRenameFocus.test.tsx (21 tests | 4 failed | 15 skipped) 112ms
+   × workspace creation composition > preserves the IME default for Enter ({"isComposing":true}) 77ms
+     → expected "spy" to not be called at all, but actually been called 1 times
+
+Received: 
+
+  1st spy call:
+
+    Array []
+
+
+Number of calls: 1
+
+   × workspace creation composition > preserves the IME default for Escape ({"isComposing":true}) 9ms
+     → expected "spy" to not be called at all, but actually been called 1 times
+
+Received: 
+
+  1st spy call:
+
+    Array [
+      KeyboardEvent {
+        "isTrusted": false,
+      },
+    ]
+
+
+Number of calls: 1
+
+   × workspace creation composition > preserves the IME default for Enter ({"keyCode":229}) 7ms
+     → expected "spy" to not be called at all, but actually been called 1 times
+
+Received: 
+
+  1st spy call:
+
+    Array []
+
+
+Number of calls: 1
+
+   × workspace creation composition > preserves the IME default for Escape ({"keyCode":229}) 7ms
+     → expected "spy" to not be called at all, but actually been called 1 times
+
+Received: 
+
+  1st spy call:
+
+    Array [
+      KeyboardEvent {
+        "isTrusted": false,
+      },
+    ]
+
+
+Number of calls: 1
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/layoutRenameFocus.test.tsx > workspace creation composition > preserves the IME default for Enter ({"isComposing":true})
+ FAIL  lib/__tests__/layoutRenameFocus.test.tsx > workspace creation composition > preserves the IME default for Enter ({"keyCode":229})
+AssertionError: expected "spy" to not be called at all, but actually been called 1 times
+
+Received: 
+
+  1st spy call:
+
+    Array []
+
+
+Number of calls: 1
+
+ ❯ lib/__tests__/layoutRenameFocus.test.tsx:67:30
+     65|     finally { document.removeEventListener("keydown", outer); }
+     66|     expect(event.defaultPrevented).toBe(false);
+     67|     expect(props.onSave).not.toHaveBeenCalled(); expect(outer).not.toH…
+       |                              ^
+     68|     expect(document.activeElement).toBe(create);
+     69|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  lib/__tests__/layoutRenameFocus.test.tsx > workspace creation composition > preserves the IME default for Escape ({"isComposing":true})
+ FAIL  lib/__tests__/layoutRenameFocus.test.tsx > workspace creation composition > preserves the IME default for Escape ({"keyCode":229})
+AssertionError: expected "spy" to not be called at all, but actually been called 1 times
+
+Received: 
+
+  1st spy call:
+
+    Array [
+      KeyboardEvent {
+        "isTrusted": false,
+      },
+    ]
+
+
+Number of calls: 1
+
+ ❯ lib/__tests__/layoutRenameFocus.test.tsx:67:68
+     65|     finally { document.removeEventListener("keydown", outer); }
+     66|     expect(event.defaultPrevented).toBe(false);
+     67|     expect(props.onSave).not.toHaveBeenCalled(); expect(outer).not.toH…
+       |                                                                    ^
+     68|     expect(document.activeElement).toBe(create);
+     69|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 2 passed | 15 skipped (21)
+   Start at  07:13:19
+   Duration  2.45s (transform 470ms, setup 0ms, collect 607ms, tests 112ms, environment 832ms, prepare 204ms)
+

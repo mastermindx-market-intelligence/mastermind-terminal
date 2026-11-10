@@ -1,0 +1,14 @@
+diff --git a/terminal/e2e/drawing-system.spec.ts b/terminal/e2e/drawing-system.spec.ts
+index 46ceb03e16..7e92dd1f54 100644
+--- a/terminal/e2e/drawing-system.spec.ts
++++ b/terminal/e2e/drawing-system.spec.ts
+@@ -640,6 +640,9 @@ test("phone drawing chrome keeps one collision-free editing surface", async ({ p
+     body.style.setProperty("--drawing-safe-right", "27px");
+   });
+   await expectNoDocumentOverflow(page);
++  // Measure the details panel after both lazy sections have rendered their content.
++  await expect(details.locator(".sa")).toBeVisible();
++  await expect(details.getByTestId("seasonality-card")).toBeVisible();
+   const initialLayout = await Promise.all([
+     chartBody.boundingBox(),
+     details.boundingBox(),

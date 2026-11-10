@@ -119,6 +119,7 @@ describe("mounted Exposure desk — partial expiry totals", () => {
     expect(ladderValue(770)).toBe("+3.3M");
     expect(ladderValue(771)).toBe("+3.3M");
     expect(node.textContent).toContain(t()("expiryGammaOnlyNote"));
+    expect(node.querySelector('[data-testid="gex-lens-source"]')).toBeNull();
     expect(button(t()("expiry0Dte")).getAttribute("aria-disabled")).toBe("true");
     expect(button(t()("expiry0Dte")).getAttribute("aria-pressed")).toBe("false");
   });
@@ -138,7 +139,7 @@ describe("mounted Exposure desk — partial expiry totals", () => {
 // one population — the ladder's strikes × the chain expirations the lens names.
 type Gex = { by_expiry: { exp: string; gamma_net: number }[] };
 const wallNet = () => {
-  const label = [...node.querySelectorAll("span")].find((s) => s.textContent?.startsWith(`${t()("ladderWallsNet")} · `));
+  const label = [...node.querySelectorAll("span")].find((s) => s.textContent?.startsWith(`${t()("sumReportedGex")} · `));
   expect(label, "scoped NET GEX wall chip").toBeDefined();
   return label!.nextElementSibling!.textContent;
 };
@@ -218,4 +219,33 @@ describe("mounted Exposure desk — one population for summary, WallChip and lad
     hoverStrike(771);
     expect(sharesShown()).toBe(false);
   });
+});
+
+// #768 residual: a complete display grid does not certify source completeness, and a
+// date-only source session must not move to the previous New York evening.
+describe("mounted Exposure desk — reported source and date-only session", () => {
+  for (const lang of ["en", "zh"] as const) {
+    for (const complete of [false, true]) {
+      it(`[${lang}] discloses source completeness for a ${complete ? "complete" : "partial"} selection`, async () => {
+        input.lang = lang;
+        input.matrix = fixture([cell(770, 8e6), cell(771, complete ? -3e6 : null)]);
+        (input.gex as { asof: string }).asof = session;
+        await mount(); await click(t()("expiry0Dte"));
+        expect(netMetric().textContent).toContain(t()("sumReportedGex"));
+        expect(netValue()).toBe(complete ? "+5.0M" : "—");
+        const source = node.querySelector('[data-testid="gex-lens-source"]');
+        expect(source?.textContent).toBe(t()("lensReportedBasis").replace("{date}", session));
+        expect((source as HTMLElement).style.fontSize).toBe("12px");
+        expect(node.textContent).toMatch(lang === "zh"
+          ? /9月25日.*源交易日/
+          : /Fri, Sep 25 · source session/);
+        const partial = node.querySelector('[data-testid="gex-lens-partial"]');
+        if (complete) expect(partial).toBeNull();
+        else {
+          expect(partial?.textContent).toContain("+8.0M");
+          expect(partial?.textContent).toContain(session);
+        }
+      });
+    }
+  }
 });

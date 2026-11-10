@@ -1,0 +1,40 @@
+{
+  "command": [
+    "./node_modules/.bin/vitest",
+    "run",
+    "lib/__tests__/gexStateIdentity.test.ts",
+    "lib/__tests__/gexDeskStateRace.test.tsx",
+    "lib/__tests__/gexDeskPartialData.test.tsx",
+    "lib/__tests__/gexDeskLoadFailureState.test.tsx",
+    "lib/__tests__/exposureChartReference.test.tsx",
+    "lib/__tests__/exposureChartLink.test.ts",
+    "lib/__tests__/exposureReplay.test.tsx",
+    "lib/__tests__/sectorExposureDepthReturn.test.ts",
+    "lib/__tests__/volTradingDaysRange.test.ts",
+    "lib/__tests__/indicatorMathFixes.test.ts",
+    "--minWorkers=1",
+    "--maxWorkers=2"
+  ],
+  "exit": 0,
+  "sha256": "3bf88fd6799900d6af20837778e2815cd8bce68e753a578d9b773886d78268a7",
+  "tail": [
+    " \u2713 lib/__tests__/gexDeskPartialData.test.tsx (12 tests) 483ms",
+    " \u2713 lib/__tests__/exposureChartReference.test.tsx (18 tests) 162ms",
+    " \u2713 lib/__tests__/exposureReplay.test.tsx (8 tests) 184ms",
+    " \u2713 lib/__tests__/gexDeskStateRace.test.tsx (12 tests) 346ms",
+    " \u2713 lib/__tests__/indicatorMathFixes.test.ts (17 tests) 12ms",
+    " \u2713 lib/__tests__/sectorExposureDepthReturn.test.ts (10 tests) 42ms",
+    " \u2713 lib/__tests__/exposureChartLink.test.ts (31 tests) 12ms",
+    " \u2713 lib/__tests__/gexStateIdentity.test.ts (22 tests) 5ms",
+    " \u2713 lib/__tests__/gexDeskLoadFailureState.test.tsx (52 tests) 5515ms",
+    "   \u2713 GEX desk: an unread matrix is not an unpublished one > the confluence board does not judge alignment on a partial read 309ms",
+    " \u2713 lib/__tests__/volTradingDaysRange.test.ts (82 tests) 1118ms",
+    "   \u2713 complete weekday-only expected-move horizons > preserves Gregorian weekday arithmetic 0000-01-01 to 9999-12-31 1101ms",
+    "",
+    " Test Files  10 passed (10)",
+    "      Tests  264 passed (264)",
+    "   Start at  03:27:20",
+    "   Duration  9.93s (transform 1.78s, setup 0ms, collect 4.85s, tests 7.88s, environment 2.53s, prepare 550ms)",
+    ""
+  ]
+}

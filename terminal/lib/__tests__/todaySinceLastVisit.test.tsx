@@ -94,7 +94,7 @@ describe("Today — since your last visit", () => {
     expect(sentPrevious(1)).toBeNull();
     await answer(1, changes([], { first_visit: true }));
     expect(state()).toBe("ready");
-    expect(container.textContent).toContain("First visit on this device");
+    expect(container.textContent).toContain("No earlier comparison is available");
     expect(envelope()).toEqual({ [ownerSlot(A)]: DIGEST_NEW });
   });
 
@@ -119,7 +119,7 @@ describe("Today — since your last visit", () => {
     await renderOwner(A);
     await answer(0, BRIEF);
     await answer(1, changes([]));
-    expect(container.textContent).toContain("Nothing the desk tracks moved");
+    expect(container.textContent).toContain("No tracked changes in this reading");
     expect(container.querySelectorAll("li")).toHaveLength(0);
   });
 
@@ -341,11 +341,115 @@ describe("Today — since your last visit", () => {
     await renderOwner(A);
     await answer(0, BRIEF);
     await answer(1, changes([STAGE, ...["B", "C", "D", "E", "F", "G"].map(stageLine)]));
-    expect(container.textContent).toContain("自你上次查看以来");
+    expect(container.textContent).toContain("与已保存读数比较");
     expect(container.textContent).toContain(STAGE.zh);
     expect(container.textContent).not.toContain(STAGE.en);
     expect(container.textContent).toContain(CURSOR.note_zh);
     expect(container.textContent).toContain("此判读描述你持有的 2 只个股。");
     expect(button("显示另外 1 项变化")).toBeTruthy();
+  });
+});
+
+
+describe("Today request-bound comparison basis", () => {
+  const fields = () => Array.from(container.querySelectorAll("[data-today-comparison-basis] dd")).map(n => n.textContent);
+
+  it("keeps the request's actual saved date after the slot has been overwritten", async () => {
+    seed({ [A]: DIGEST_OLD }); await renderOwner(A); await answer(0, BRIEF);
+    expect(sentPrevious(1)).toEqual(DIGEST_OLD);
+    // A separate browser event changes storage while the accepted request is in flight.
+    seed({ [A]: { ...DIGEST_OLD, asof: "2026-10-28" } });
+    await answer(1, changes([STAGE]));
+    expect(slot(A)).toEqual(DIGEST_NEW);
+    expect(fields()).toEqual(["2026-10-29", "2026-10-30", "Held names", "Not recorded"]);
+    const count = held.length;
+    const details = container.querySelector<HTMLDetailsElement>("[data-today-comparison-basis]")!;
+    expect(details.open).toBe(false);
+    await act(async () => details.querySelector("summary")!.click()); await flush();
+    expect(details.open).toBe(true); expect(held).toHaveLength(count);
+    expect(fields()[0]).toBe("2026-10-29");
+  });
+
+  it("does not equate a valid empty baseline with no history or an empty portfolio", async () => {
+    const baseline = { names: {} }; seed({ [A]: baseline });
+    await renderOwner(A); await answer(0, BRIEF); await answer(1, changes([]));
+    expect(sentPrevious(1)).toEqual(baseline);
+    expect(fields()[0]).toBe("Date unavailable");
+    expect(container.textContent).toContain("No tracked changes in this reading");
+    expect(container.textContent).toContain("does not mean your lists or holdings are empty");
+    expect(container.textContent).not.toContain("No usable saved reading");
+  });
+
+  it("retains the valid response and exposes a failed local save without retrying", async () => {
+    seed({ [A]: DIGEST_OLD, [B]: { names: { PRIVATE: {} } } });
+    await renderOwner(A); await answer(0, BRIEF);
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new DOMException("quota", "QuotaExceededError"); });
+    await answer(1, changes([STAGE]));
+    expect(state()).toBe("ready"); expect(container.textContent).toContain(STAGE.en);
+    expect(container.querySelector('[role="status"]')?.textContent).toContain("saving the next comparison was not confirmed");
+    expect(slot(A)).toEqual(DIGEST_OLD); expect(slot(B)).toEqual({ names: { PRIVATE: {} } });
+    expect(held).toHaveLength(2); expect(fields()[0]).toBe("2026-10-29");
+  });
+
+  it("does not borrow the brief's population when the current comparison differs", async () => {
+    seed({ [A]: DIGEST_OLD }); await renderOwner(A); await answer(0, BRIEF);
+    await answer(1, changes([STAGE], { population: "watchlist_union" }));
+    expect(fields().slice(2)).toEqual(["Watchlist symbols", "Not recorded"]);
+    expect(container.textContent).not.toContain("This read describes the 2 names you hold");
+  });
+
+  it.each(["2026-02-30", "2026-10", "not-a-date", null])("does not normalize an invalid saved date %s", async (date) => {
+    seed({ [A]: { ...DIGEST_OLD, asof: date } }); await renderOwner(A); await answer(0, BRIEF);
+    await answer(1, changes([])); expect(fields()[0]).toBe("Date unavailable");
+    expect(fields()[1]).toBe("2026-10-30");
+  });
+
+  it.each(["2026-10-30", "2026-11-01"])("keeps equal/reversed reading dates %s without inventing visit chronology", async (date) => {
+    seed({ [A]: { ...DIGEST_OLD, asof: date } }); await renderOwner(A); await answer(0, BRIEF);
+    await answer(1, changes([])); expect(fields().slice(0, 2)).toEqual([date, "2026-10-30"]);
+    expect(container.textContent).toContain("Reading dates are not visit times");
+  });
+});
+
+
+describe("Today risk and earnings share the existing brief read", () => {
+  const fullBrief = { ...BRIEF, generated_at: "2026-10-30T06:00:00Z", stale: true,
+    weighting: { mode: "equal", label_en: "Equal weighted", label_zh: "等权" },
+    book: { n: 2, covered: 2, uncovered: [] }, headline: { en: "Source headline", zh: "来源标题" },
+    sections: [{ key: "regime", title_en: "Regime", title_zh: "环境", lines: [{ en: "SOURCE RISK CONTEXT", zh: "来源风险背景" }] }],
+    data: { events: { earnings_10d: [{ ticker: "NVDA", date: "2026-11-06", days_to: 7 }] } } };
+  const mountContext = async () => {
+    const scope = { current: new AbortController() };
+    await mountNode(<TodaySinceLastVisit ownerKey={A} scope={scope} onUnauthenticated={unauthenticated}
+      render={({ priority, teaser, context }) => <>{priority}{teaser}{context}</>} />);
+    return scope;
+  };
+  it("presents the qualified brief with one existing request and keeps dates source-bound", async () => {
+    await mountContext(); await answer(0, fullBrief);
+    const context = container.querySelector("[data-today-brief-context]")!;
+    expect(context.textContent).toContain("SOURCE RISK CONTEXT");
+    expect(context.textContent).toContain("Source marked behind");
+    expect(context.querySelector('time[datetime="2026-11-06"]')).toBeTruthy();
+    expect(context.querySelector('a[href="/analysis?symbol=NVDA"]')).toBeTruthy();
+    expect(held.map(r => r.url)).toEqual(["/api/portfolio-brief", "/api/portfolio-changes"]);
+    expect(context.textContent).not.toMatch(/in 7 days|upcoming|buy now/i);
+  });
+  it("a comparison outage preserves independently valid risk/event context", async () => {
+    await mountContext(); await answer(0, fullBrief); await answer(1, {}, 503);
+    expect(state()).toBe("unavailable");
+    expect(container.querySelector("[data-today-brief-context]")?.textContent).toContain("SOURCE RISK CONTEXT");
+    expect(held).toHaveLength(2);
+  });
+  it.each([401, 403])("removes the private context when the later comparison denies access: %i", async status => {
+    await mountContext(); await answer(0, fullBrief); await answer(1, {}, status);
+    expect(container.querySelector("[data-today-brief-context]")).toBeNull();
+    expect(container.textContent).not.toContain("SOURCE RISK CONTEXT");
+  });
+  it("an aborted owner lifetime drops its context and cannot resurrect a late comparison", async () => {
+    const scope = await mountContext(); await answer(0, fullBrief);
+    await act(async () => scope.current.abort()); await flush();
+    await answer(1, changes([STAGE]));
+    expect(container.textContent).not.toContain("SOURCE RISK CONTEXT");
+    expect(container.querySelector("[data-today-brief-context]")).toBeNull();
   });
 });

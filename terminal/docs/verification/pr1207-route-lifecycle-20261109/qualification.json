@@ -1,0 +1,22 @@
+{
+  "browserCases": 12,
+  "existingAssertionsPreserved": true,
+  "originalHead": "8470d4c5bba5848aca0f25fda439af55047e86d6",
+  "proofFiles": {
+    "browser-execution.json": "0dd8ced650d36a5435f675a326c1782d982e00b466101a9ced9a6ab9d4d6d6e8",
+    "browser-report.json": "957f36b9ba60aaa42532254d7e8b4afe2af34674c25444b005869efba171857d",
+    "ci-failure.json": "541074f07f0eca8c99c1baf5f00ec7a0f31b6a17d5c2ffbdade462e678de3ebd",
+    "focused-checks.json": "14bc591ac9757bf045cef3fd92d46db3d907d052060ed1bbac5e1b35a3a6c099",
+    "lifecycle/server-reconciliation.json": "6ad1f99ef12a3d0c097e4884d4e61b8132908bebe6e719b0de8ecbd28621d81e",
+    "source-after.json": "94d409cd737c41b3d495120b81c5a7334ad20da313a61f36bdf8b539cab44afa",
+    "source-before.json": "94d409cd737c41b3d495120b81c5a7334ad20da313a61f36bdf8b539cab44afa"
+  },
+  "recordedAt": "2026-11-09T12:43:25.086445+00:00",
+  "retries": 0,
+  "schema": "pr1207_route_lifecycle_qualification.v1",
+  "sourceFile": "terminal/e2e/portfolio-risk-reasons.spec.ts",
+  "sourceGitBlob": "7a1fb225c86a0cd02347d42a00de028433174f89",
+  "sourceInputCount": 1484,
+  "sourceSha256": "9ee2347d88b99c442322677824d7fdcd5dd8d9534289073ad61748006e242cea",
+  "validationOperation": "terminal-pr1207-route-lifecycle-validation-20261109"
+}

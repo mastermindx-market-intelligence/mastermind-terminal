@@ -1,3 +1,11 @@
+# Current source proof is the complete Options integration revision.
+exposureMasterIntegration20261109:
+  revision: "operations/exposure-source-compatibility-20261105/revisions/options-integration-20261109"
+  descriptorSha256: "77b3b7f07746290cad33262a3d95c221e947a5acd5e940ae95b9d9458f510a18"
+  branchHead: "90f275f15b4d174f003fb5b1087823dce6ec865a"
+  protectedMaster: "03af393ce05c12282003a3919cc473c032264922"
+  integratedDependency: "d3bd6b2d98c6c23398be0bed6c7450caa47bd665"
+
 # EOD belt, Flow Desk chain heat and Heatmap flow layer failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
