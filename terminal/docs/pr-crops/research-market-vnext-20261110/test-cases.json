@@ -1,0 +1,893 @@
+[
+  {
+    "title": "bottom-pivot-context.spec.ts > daily pivot on demand dark en",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "bottom-pivot-context.spec.ts > daily pivot on demand dark zh",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "bottom-pivot-context.spec.ts > stale original dates are not refreshed by a fresh envelope",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "bottom-pivot-context.spec.ts > partial and conflicting evidence never becomes an all-clear",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "bottom-pivot-context.spec.ts > historical issuance is visibly not current evidence",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "bottom-pivot-context.spec.ts > source refusal 401 has no invented evidence",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "bottom-pivot-context.spec.ts > source refusal 403 has no invented evidence",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "bottom-pivot-context.spec.ts > source refusal 503 has no invented evidence",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "bottom-pivot-context.spec.ts > daily pivot on demand dark en",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "bottom-pivot-context.spec.ts > daily pivot on demand dark zh",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "bottom-pivot-context.spec.ts > stale original dates are not refreshed by a fresh envelope",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "bottom-pivot-context.spec.ts > partial and conflicting evidence never becomes an all-clear",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "bottom-pivot-context.spec.ts > historical issuance is visibly not current evidence",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "bottom-pivot-context.spec.ts > source refusal 401 has no invented evidence",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "bottom-pivot-context.spec.ts > source refusal 403 has no invented evidence",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "bottom-pivot-context.spec.ts > source refusal 503 has no invented evidence",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "bottom-pivot-context.spec.ts > daily pivot on demand dark en",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "bottom-pivot-context.spec.ts > daily pivot on demand dark zh",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "bottom-pivot-context.spec.ts > stale original dates are not refreshed by a fresh envelope",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "bottom-pivot-context.spec.ts > partial and conflicting evidence never becomes an all-clear",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "bottom-pivot-context.spec.ts > historical issuance is visibly not current evidence",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "bottom-pivot-context.spec.ts > source refusal 401 has no invented evidence",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "bottom-pivot-context.spec.ts > source refusal 403 has no invented evidence",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "bottom-pivot-context.spec.ts > source refusal 503 has no invented evidence",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > company page families preserve exact FinPage deep links",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > family selection lands on the existing family default without a second router",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Overview vNext keeps snapshot, ownership, capital and valuation in one research canvas",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Overview vNext remains bilingual and overflow-safe on mobile",
+    "project": "desktop",
+    "expected": "skipped",
+    "status": "skipped",
+    "results": [
+      "skipped"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Overview labels an older available annual EPS without inventing current or historical P/E (en)",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Overview labels an older available annual EPS without inventing current or historical P/E (zh)",
+    "project": "desktop",
+    "expected": "skipped",
+    "status": "skipped",
+    "results": [
+      "skipped"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Ownership family defaults to Institutional and preserves Insider as its sibling",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market vNext projects canonical technicals, pivots and five-year seasonality",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market vNext remains bilingual and overflow-safe on mobile",
+    "project": "desktop",
+    "expected": "skipped",
+    "status": "skipped",
+    "results": [
+      "skipped"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market summary keeps seasonality ahead of deep indicator tables",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 29 active observations",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 30 active observations",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 49 active observations",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 50 active observations",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 199 active observations",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 200 active observations",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 220 active observations",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 29 active observations",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 30 active observations",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 49 active observations",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 50 active observations",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 199 active observations",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 200 active observations",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 220 active observations",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market full-history hierarchy remains readable in Chinese",
+    "project": "desktop",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > company page families preserve exact FinPage deep links",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > family selection lands on the existing family default without a second router",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Overview vNext keeps snapshot, ownership, capital and valuation in one research canvas",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Overview vNext remains bilingual and overflow-safe on mobile",
+    "project": "tablet",
+    "expected": "skipped",
+    "status": "skipped",
+    "results": [
+      "skipped"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Overview labels an older available annual EPS without inventing current or historical P/E (en)",
+    "project": "tablet",
+    "expected": "skipped",
+    "status": "skipped",
+    "results": [
+      "skipped"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Overview labels an older available annual EPS without inventing current or historical P/E (zh)",
+    "project": "tablet",
+    "expected": "skipped",
+    "status": "skipped",
+    "results": [
+      "skipped"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Ownership family defaults to Institutional and preserves Insider as its sibling",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market vNext projects canonical technicals, pivots and five-year seasonality",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market vNext remains bilingual and overflow-safe on mobile",
+    "project": "tablet",
+    "expected": "skipped",
+    "status": "skipped",
+    "results": [
+      "skipped"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market summary keeps seasonality ahead of deep indicator tables",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 29 active observations",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 30 active observations",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 49 active observations",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 50 active observations",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 199 active observations",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 200 active observations",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 220 active observations",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 29 active observations",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 30 active observations",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 49 active observations",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 50 active observations",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 199 active observations",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 200 active observations",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 220 active observations",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market full-history hierarchy remains readable in Chinese",
+    "project": "tablet",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > company page families preserve exact FinPage deep links",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > family selection lands on the existing family default without a second router",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Overview vNext keeps snapshot, ownership, capital and valuation in one research canvas",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Overview vNext remains bilingual and overflow-safe on mobile",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Overview labels an older available annual EPS without inventing current or historical P/E (en)",
+    "project": "mobile",
+    "expected": "skipped",
+    "status": "skipped",
+    "results": [
+      "skipped"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Overview labels an older available annual EPS without inventing current or historical P/E (zh)",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Ownership family defaults to Institutional and preserves Insider as its sibling",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market vNext projects canonical technicals, pivots and five-year seasonality",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market vNext remains bilingual and overflow-safe on mobile",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market summary keeps seasonality ahead of deep indicator tables",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 29 active observations",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 30 active observations",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 49 active observations",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 50 active observations",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 199 active observations",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 200 active observations",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral en at 220 active observations",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 29 active observations",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 30 active observations",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 49 active observations",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 50 active observations",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 199 active observations",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 200 active observations",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market numeric availability thresholds and measured Neutral zh at 220 active observations",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  },
+  {
+    "title": "research-workspace-nav.spec.ts > Market full-history hierarchy remains readable in Chinese",
+    "project": "mobile",
+    "expected": "passed",
+    "status": "expected",
+    "results": [
+      "passed"
+    ]
+  }
+]

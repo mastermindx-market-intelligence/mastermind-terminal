@@ -1,0 +1,27 @@
+{
+  "acceptedValues": [
+    "",
+    "ticker-news"
+  ],
+  "completedAt": "2026-11-09T17:22:56.717005+00:00",
+  "gateAfterSha256": "18e014810439152117b9506d6a39b0907266323fc206434597c9f5baffde687a",
+  "gateBeforeSha256": "ca58ac7417eceb31ae0766cc681103d952c2692a6b9be2bc9cb60f28125874d8",
+  "gateExecutableBodyUnchanged": true,
+  "legacyMatrixCell": {
+    "mode": "news",
+    "theme": "dark"
+  },
+  "legacyMatrixNames": 6,
+  "legacyUnavailableNames": 4,
+  "otherValuesRefusedBeforeOutputMutation": true,
+  "priorOutputGuards": 10,
+  "producerAfterSha256": "a52e854a34f2841278e5ca539e4988671330e003fbec8c497cc7331d164689f1",
+  "producerBeforeSha256": "3439c02b8a7ff78cf4c509bab5cc4a0c980abe1c0317e497aad1c0ab745dac1e",
+  "retainedExpectCalls": 72,
+  "retainedPollAssertions": 4,
+  "retainedProjectSkips": 6,
+  "retainedTests": 7,
+  "schema": "terminal_pr910_closed_capture_selector_repair.v1",
+  "selector": "TERMINAL_TICKER_NEWS_CAPTURE_PACKET",
+  "state": "SELECTOR_ADDED_ASSERTIONS_AND_DEFAULT_BEHAVIOR_PRESERVED"
+}

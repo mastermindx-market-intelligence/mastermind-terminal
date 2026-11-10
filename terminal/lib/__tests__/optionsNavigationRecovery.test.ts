@@ -9,6 +9,8 @@ describe("one-shot route error recovery matcher", () => {
   ])("preserves existing chunk recovery on %s", (pathname) => {
     expect(shouldAutoRecoverNavigationError(new Error("ChunkLoadError: Loading chunk abc failed"), pathname)).toBe(true);
     expect(shouldAutoRecoverNavigationError(new Error("module factory is not available"), pathname)).toBe(true);
+    expect(shouldAutoRecoverNavigationError(new TypeError("Failed to fetch dynamically imported module: /_next/static/chunks/SettingsPanel.js"), pathname)).toBe(true);
+    expect(shouldAutoRecoverNavigationError(new TypeError("Importing a module script failed"), pathname)).toBe(true);
   });
 
   it.each([

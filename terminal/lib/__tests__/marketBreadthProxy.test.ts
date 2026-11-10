@@ -281,3 +281,38 @@ describe("projection guards", () => {
     expect(breadthExpiresAt(projectBreadth(LIVE, SUNDAY)!)).toBeNull();
   });
 });
+
+
+describe("source age advances after the producer's build", () => {
+  const built = Date.parse(LIVE.built_at);
+  const at = (minutes: number) => new Date(built + minutes * 60_000);
+  it("withholds a 20-minute-old source after six elapsed minutes, even with a recent build", () => {
+    const payload = projectBreadth({ ...LIVE, source_age_min: 20 }, at(6));
+    expect(payload).toMatchObject({ usable: false, unusable_reason: "source_stale", large: null, comp: null });
+    expect(payload?.source_age_min).toBe(20); // retain the producer's immutable receipt
+  });
+  it.each([0, 5, 15, 20, 24, 25])("expires at the remaining budget for a source age of %s", age => {
+    const live = projectBreadth({ ...LIVE, source_age_min: age }, at(0))!;
+    expect(live.usable).toBe(true);
+    expect(breadthExpiresAt(live)).toBe(built + (25 - age) * 60_000);
+    expect(marketBreadthPayload(live, at(25 - age))?.usable).toBe(true);
+    expect(marketBreadthPayload(live, at(25 - age + 1 / 60))?.usable).toBe(false);
+  });
+  it("server and client rechecks count elapsed time once, never reset the source receipt", () => {
+    const server = projectBreadth({ ...LIVE, source_age_min: 15 }, at(4))!;
+    const client = marketBreadthPayload(server, at(8))!;
+    expect(client.usable).toBe(true);
+    expect(client.source_age_min).toBe(15);
+    expect(breadthExpiresAt(client)).toBe(built + 10 * 60_000);
+    expect(marketBreadthPayload(client, at(11))?.usable).toBe(false);
+  });
+  it("slightly future source clocks never extend the build window", () => {
+    const live = projectBreadth({ ...LIVE, source_age_min: -2 }, at(0))!;
+    expect(breadthExpiresAt(live)).toBe(built + 25 * 60_000);
+    expect(marketBreadthPayload(live, at(26))?.usable).toBe(false);
+  });
+  it("preserves the source owner refusal instead of replacing it with a guessed session state", () => {
+    expect(projectBreadth({ ...LIVE, usable: false, unusable_reason: "session_closed", source_age_min: 20 }, at(60)))
+      .toMatchObject({ usable: false, unusable_reason: "session_closed", large: null, comp: null });
+  });
+});

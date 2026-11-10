@@ -1,0 +1,152 @@
+[
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/trace.zip",
+    "sha256": "fea245d91fba3d466ad432f2139dee17e2bff4c2ad2f4da2fd8b27c5320aaddf",
+    "bytes": 1011890
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/unavailable-recovered.png",
+    "sha256": "9151a2225aa67a4d1eec69392c77f9dda4c96e76c8e99c70ffbaf0c26ce1da3f",
+    "bytes": 40066
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-desktop/unavailable-withdrawn.png",
+    "sha256": "289bc70aabbdfeb42d50e3c8832f6155af4c771dd289c0028a0dbf2c5eff39e3",
+    "bytes": 91775
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/trace.zip",
+    "sha256": "786d8b99811cb29b277025ee155e28a7c565001783d1dc37902700feb4c7e684",
+    "bytes": 1125702
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/unavailable-recovered.png",
+    "sha256": "394968d41b331ca380a49b5323a75adbbde16f867c756d6feb1de79774249e94",
+    "bytes": 39956
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-mobile/unavailable-withdrawn.png",
+    "sha256": "659deeff451fdf2b4b8e6b09f2782d8d71833c78f5e23663265e12e2780b253f",
+    "bytes": 146149
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/trace.zip",
+    "sha256": "ccf017aa623376f4731b689a7f7b5892ee5f4c95d5f12c43cc2522cd25d2ff74",
+    "bytes": 1031767
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/unavailable-recovered.png",
+    "sha256": "3a45ab91307a14958b97f5ef12db8049c119817f25e07710e7302e8d480030b9",
+    "bytes": 40485
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-1ff68-s-the-exact-pin-on-recovery-tablet/unavailable-withdrawn.png",
+    "sha256": "c376e46186da69bf65d2ac3a4e73914d069327723af828f28fd669c1f3b221d0",
+    "bytes": 154707
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/absent-recovered.png",
+    "sha256": "9151a2225aa67a4d1eec69392c77f9dda4c96e76c8e99c70ffbaf0c26ce1da3f",
+    "bytes": 40066
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/absent-withdrawn.png",
+    "sha256": "289bc70aabbdfeb42d50e3c8832f6155af4c771dd289c0028a0dbf2c5eff39e3",
+    "bytes": 91775
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-desktop/trace.zip",
+    "sha256": "dd434fe019196202275a1d321059ba1d226731a1fdb4f54925a558750abab044",
+    "bytes": 907948
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/absent-recovered.png",
+    "sha256": "394968d41b331ca380a49b5323a75adbbde16f867c756d6feb1de79774249e94",
+    "bytes": 39956
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/absent-withdrawn.png",
+    "sha256": "659deeff451fdf2b4b8e6b09f2782d8d71833c78f5e23663265e12e2780b253f",
+    "bytes": 146149
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-mobile/trace.zip",
+    "sha256": "97b895ac22907d70df18f2f76f9a2d4e8dd728e35b6c487167bde1f9374c1f98",
+    "bytes": 985417
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/absent-recovered.png",
+    "sha256": "3a45ab91307a14958b97f5ef12db8049c119817f25e07710e7302e8d480030b9",
+    "bytes": 40485
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/absent-withdrawn.png",
+    "sha256": "c376e46186da69bf65d2ac3a4e73914d069327723af828f28fd669c1f3b221d0",
+    "bytes": 154707
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-8019e-s-the-exact-pin-on-recovery-tablet/trace.zip",
+    "sha256": "51979e49aebaf3550de1a2fae9fc95cbfd1f49ca56e3a91d750f2dbf37ce76c7",
+    "bytes": 1013538
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-85e29-ting-an-available-live-book-desktop/archived-no-live-fallback.png",
+    "sha256": "1ce56c8f79cd5bade3c5bb7b8ac5610121ba15d7f3fab5c5070961440e910a7f",
+    "bytes": 88535
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-85e29-ting-an-available-live-book-desktop/trace.zip",
+    "sha256": "9a0ca96bbd1134501aa03ac9c5b0fc88163df6b44933bfb66520629fb11fe85e",
+    "bytes": 988208
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-85e29-ting-an-available-live-book-mobile/archived-no-live-fallback.png",
+    "sha256": "5b76c191f55c1ed844f963f29f2221164f1f06da9628abc3239485e0b3cfd090",
+    "bytes": 103727
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-85e29-ting-an-available-live-book-mobile/trace.zip",
+    "sha256": "ad303e867456cf033b3e4b87265d1724a0ba74160c63e73f488888492bcfb3ba",
+    "bytes": 1154545
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-85e29-ting-an-available-live-book-tablet/archived-no-live-fallback.png",
+    "sha256": "a36fe641e5f9b311d9b08816d66256f82dc8eb566a05cb6668b5586264dddbcc",
+    "bytes": 103098
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-85e29-ting-an-available-live-book-tablet/trace.zip",
+    "sha256": "255ce9cdc9c56dc919a443411cb4a1ccfbf635aa7f13fe9f84b547067c34cab1",
+    "bytes": 984051
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-desktop/current-read-before-stream.png",
+    "sha256": "92cf822a357e3a91f7f39786eb35939b12bef6d14b0c41917213739b5da0106d",
+    "bytes": 39780
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-desktop/trace.zip",
+    "sha256": "035c0eddc8fdc69453cffd655234cbfb0bd64852dfe50f7fb318c72179961a8e",
+    "bytes": 723634
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-mobile/current-read-before-stream.png",
+    "sha256": "50c7cd08ee0a715f4d8386710ceb343d76948dad7b68a3f904a7f5e21039ed9a",
+    "bytes": 39547
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-mobile/trace.zip",
+    "sha256": "b210a30358b0a2c1b9d593164486fc049841eeba703e0d3f7de3f76d078b5ad5",
+    "bytes": 932949
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-tablet/current-read-before-stream.png",
+    "sha256": "ddd7a6ef30d769fa67a027ce367d84b0f91d2c9fcfca5e749e739fa5f260bdc7",
+    "bytes": 40218
+  },
+  {
+    "path": "browser-artifacts/original/options-lab-source-state-R-c32a0-the-stream-supplies-a-frame-tablet/trace.zip",
+    "sha256": "215a64fdec0efb821fb6fc808a822e8812df21ac09642f05d72a886ce40e6393",
+    "bytes": 782647
+  }
+]

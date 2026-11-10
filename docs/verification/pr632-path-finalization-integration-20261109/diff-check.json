@@ -1,0 +1,4769 @@
+{
+  "affectedSourceCheckExit": 2,
+  "affectedSourcePaths": [
+    "terminal/components/ChartPanel.tsx",
+    "terminal/e2e/drawing-system.spec.ts"
+  ],
+  "fullCheckExit": 2,
+  "inheritedOrArtifactFindings": [
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 3,
+      "message": "trailing whitespace.",
+      "path": "docs/TERMINAL_EXPERIENCE_MASTERPLAN_2026-10-22.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 4,
+      "message": "trailing whitespace.",
+      "path": "docs/TERMINAL_EXPERIENCE_MASTERPLAN_2026-10-22.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 5,
+      "message": "trailing whitespace.",
+      "path": "docs/TERMINAL_EXPERIENCE_MASTERPLAN_2026-10-22.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 6,
+      "message": "trailing whitespace.",
+      "path": "docs/TERMINAL_EXPERIENCE_MASTERPLAN_2026-10-22.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 7,
+      "message": "trailing whitespace.",
+      "path": "docs/TERMINAL_EXPERIENCE_MASTERPLAN_2026-10-22.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 402,
+      "message": "trailing whitespace.",
+      "path": "docs/TERMINAL_EXPERIENCE_MASTERPLAN_2026-10-22.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 403,
+      "message": "trailing whitespace.",
+      "path": "docs/TERMINAL_EXPERIENCE_MASTERPLAN_2026-10-22.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 404,
+      "message": "trailing whitespace.",
+      "path": "docs/TERMINAL_EXPERIENCE_MASTERPLAN_2026-10-22.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 358,
+      "message": "new blank line at EOF.",
+      "path": "docs/chart-engine-completion/acceptance-ledger.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 99,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M01_PRIMARY.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 139,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M01_PRIMARY.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 155,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M01_PRIMARY.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 180,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M01_PRIMARY.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 193,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M01_PRIMARY.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 217,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M01_PRIMARY.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 254,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M01_PRIMARY.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 353,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M01_PRIMARY.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 357,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M01_PRIMARY.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 409,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M01_PRIMARY.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 55,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 63,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 232,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 234,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 261,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 276,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 290,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 305,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 316,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 327,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 336,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 345,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 362,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 374,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 412,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 420,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 430,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 448,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 483,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 511,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 539,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 555,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 569,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 611,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 721,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M02_STUDIES.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 139,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M03_DECOR.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 134,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M03_DECOR.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 210,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M03_DECOR.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 278,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M03_DECOR.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 282,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M03_DECOR.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 334,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M03_DECOR.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 444,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M03_DECOR.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 472,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M03_DECOR.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 499,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M03_DECOR.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 649,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M03_DECOR.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 735,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M03_DECOR.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 776,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M03_DECOR.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 804,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M03_DECOR.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 912,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M03_DECOR.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 974,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M03_DECOR.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 988,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M03_DECOR.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 996,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M03_DECOR.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1004,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M03_DECOR.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1012,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M03_DECOR.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1038,
+      "message": "trailing whitespace.",
+      "path": "docs/chart-engine/migration/M03_DECOR.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 39,
+      "message": "new blank line at EOF.",
+      "path": "docs/ci-evidence/20261109-desktop-capacity/investigation.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 14,
+      "message": "new blank line at EOF.",
+      "path": "docs/evidence/options-workbench-r0-20260917/current-base-integration-20260929/focused-green.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 47,
+      "message": "new blank line at EOF.",
+      "path": "docs/evidence/options-workbench-r0-20260917/current-base-integration-20260929/frame-refresh-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 16,
+      "message": "new blank line at EOF.",
+      "path": "docs/evidence/options-workbench-r0-20260917/current-base-integration-20260929/surface-family-green.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 11,
+      "message": "new blank line at EOF.",
+      "path": "docs/evidence/options-workbench-r0-20260917/review-hardening-v3-20260929/cold-index-green.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 31,
+      "message": "new blank line at EOF.",
+      "path": "docs/evidence/options-workbench-r0-20260917/review-hardening-v3-20260929/cold-index-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 14,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/options-workbench-r0-20260917/review-hardening-v3-20260929/render-boundary-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 17,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/options-workbench-r0-20260917/review-hardening-v3-20260929/render-boundary-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 48,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/options-workbench-r0-20260917/review-hardening-v3-20260929/render-boundary-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 69,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/options-workbench-r0-20260917/review-hardening-v3-20260929/render-boundary-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 123,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/options-workbench-r0-20260917/review-hardening-v3-20260929/render-boundary-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 131,
+      "message": "new blank line at EOF.",
+      "path": "docs/evidence/options-workbench-r0-20260917/review-hardening-v3-20260929/render-boundary-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 20,
+      "message": "new blank line at EOF.",
+      "path": "docs/evidence/options-workbench-r0-20260917/review-hardening-v3-20260929/surface-family-green.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 151,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/combined-browser.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 182,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/combined-browser.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 213,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/combined-browser.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 245,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/combined-browser.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 246,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/combined-browser.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 247,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/combined-browser.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 54,
+      "message": "new blank line at EOF.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/focused-after.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 22,
+      "message": "new blank line at EOF.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/private-chain.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 24,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/regressions-before.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 27,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/regressions-before.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 64,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/regressions-before.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 67,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/regressions-before.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 76,
+      "message": "trailing whitespace.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/regressions-before.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 84,
+      "message": "new blank line at EOF.",
+      "path": "docs/evidence/persistent-sector-leadership-2026-11-07/integrated-consumers/regressions-before.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 16,
+      "message": "new blank line at EOF.",
+      "path": "docs/prophet-wmko-review-20261019/terminal-focused-tests.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 3,
+      "message": "trailing whitespace.",
+      "path": "docs/superpowers/specs/2026-09-20-company-intelligence-redesign-design.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 4,
+      "message": "trailing whitespace.",
+      "path": "docs/superpowers/specs/2026-09-20-company-intelligence-redesign-design.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 5,
+      "message": "trailing whitespace.",
+      "path": "docs/superpowers/specs/2026-09-20-company-intelligence-redesign-design.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 6,
+      "message": "trailing whitespace.",
+      "path": "docs/superpowers/specs/2026-09-20-company-intelligence-redesign-design.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 7,
+      "message": "trailing whitespace.",
+      "path": "docs/superpowers/specs/2026-09-20-company-intelligence-redesign-design.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 103,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 107,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 110,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 112,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 114,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 116,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 118,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 159,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 161,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 164,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 166,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 169,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 172,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 188,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 191,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 193,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 195,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 217,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 225,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 229,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 231,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 239,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 254,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 257,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 260,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 269,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 277,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 280,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 283,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 292,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 295,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 299,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 303,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 308,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 314,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 325,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 328,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 331,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 339,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 342,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 355,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 368,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 381,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 394,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 404,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 407,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 411,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 415,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 419,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 422,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 475,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 478,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 489,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 493,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 509,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 513,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 517,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 521,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 524,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 535,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 636,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 639,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 642,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 645,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 648,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 651,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 656,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 710,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 716,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 732,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 738,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 742,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 812,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 868,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 871,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 877,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 880,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 893,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 922,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 926,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 960,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 994,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 997,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1003,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1006,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1012,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1015,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1021,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1024,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1030,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1033,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1039,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1042,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1048,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1051,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1057,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1060,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1065,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1069,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1072,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1079,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1085,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1088,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1094,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1097,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1103,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1106,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1112,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1115,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1121,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1124,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1130,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1133,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1139,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1142,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1148,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1151,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1157,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1160,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1166,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1169,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1175,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1178,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1198,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1203,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1207,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1210,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1218,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1221,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1225,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1228,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1236,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1239,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1242,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1245,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1249,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1252,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1260,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1263,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1266,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1270,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1273,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1281,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1284,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1288,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1291,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1299,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1302,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1307,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1312,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1315,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1327,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1330,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1338,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1341,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1346,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1351,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1355,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1358,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1366,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1369,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1374,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1377,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1382,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1385,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1393,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1396,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1401,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1404,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1409,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1412,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1416,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1419,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1428,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1431,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1435,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1440,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1449,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1452,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1456,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1461,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1470,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1473,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1477,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1482,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1491,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1494,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1498,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1503,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1512,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1515,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1519,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1524,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1528,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1531,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1590,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1594,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1621,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1623,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1626,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1629,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1637,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1639,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1642,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1645,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1653,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1655,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1658,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1661,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1669,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1671,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1674,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1677,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1685,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1687,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1690,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1693,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1701,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1703,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1706,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1709,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1717,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1719,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1722,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1725,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1733,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1735,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1738,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1741,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1749,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1751,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1754,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1757,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1765,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1767,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1770,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1773,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1781,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1783,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1786,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1789,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1797,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1799,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1804,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1805,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1814,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1823,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1832,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1841,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1850,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1859,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1868,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1877,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1886,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1895,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-c0bf-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 136,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 140,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 143,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 145,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 147,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 149,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 151,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 185,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 187,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 190,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 192,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 195,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 198,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 214,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 217,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 219,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 221,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 248,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 256,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 260,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 268,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 272,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 287,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 291,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 294,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 303,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 307,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 310,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 313,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 321,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 325,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 329,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 333,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 338,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 346,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 360,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 363,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 366,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 375,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 378,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 392,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 405,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 418,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 431,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 436,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 440,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 444,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 449,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 452,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 456,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 507,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 510,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 522,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 526,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 540,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 544,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 548,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 552,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 555,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 566,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 659,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 662,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 665,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 668,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 671,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 674,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 679,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 733,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 739,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 753,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 759,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 763,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 834,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 883,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 886,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 895,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 898,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 909,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 938,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 941,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 977,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1011,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1014,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1020,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1023,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1029,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1032,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1038,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1041,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1047,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1050,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1056,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1059,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1065,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1068,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1074,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1077,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1081,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1084,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1088,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1091,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1097,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1100,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1106,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1109,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1115,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1118,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1124,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1127,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1133,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1136,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1142,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1146,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1152,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1155,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1161,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1164,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1170,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1173,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1179,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1182,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1188,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1191,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1197,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1200,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1221,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1226,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1230,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1233,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1241,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1244,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1248,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1251,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1259,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1262,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1265,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1268,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1272,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1275,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1283,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1286,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1289,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1293,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1296,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1304,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1308,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1312,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1315,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1323,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1326,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1331,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1335,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1338,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1350,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1353,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1361,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1364,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1369,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1374,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1378,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1381,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1389,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1392,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1397,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1400,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1405,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1408,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1416,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1419,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1424,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1427,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1431,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1434,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1438,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1441,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1450,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1453,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1457,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1462,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1471,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1474,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1478,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1483,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1492,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1495,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1499,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1504,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1513,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1516,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1520,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1525,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1534,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1537,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1541,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1546,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1550,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1553,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1614,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1618,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1645,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1650,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1713,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1714,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1715,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1716,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-955-unit-hosted-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1549,
+      "message": "new blank line at EOF.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-boats-feature-copy-full-vitest.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 13,
+      "message": "new blank line at EOF.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-boats-final-route-tests.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 13,
+      "message": "new blank line at EOF.",
+      "path": "docs/tiingo-evidence/20261011-boats-consumer/terminal-boats-unchanged-chart-evidence-tests.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 103,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261012-peer-base-integration/terminal-955-head9a-ingest-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 107,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261012-peer-base-integration/terminal-955-head9a-ingest-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 110,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261012-peer-base-integration/terminal-955-head9a-ingest-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 112,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261012-peer-base-integration/terminal-955-head9a-ingest-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 114,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261012-peer-base-integration/terminal-955-head9a-ingest-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 116,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261012-peer-base-integration/terminal-955-head9a-ingest-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 118,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261012-peer-base-integration/terminal-955-head9a-ingest-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 211,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261012-peer-base-integration/terminal-955-head9a-ingest-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 252,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261012-peer-base-integration/terminal-955-head9a-ingest-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 256,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261012-peer-base-integration/terminal-955-head9a-ingest-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 263,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261012-peer-base-integration/terminal-955-head9a-ingest-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 272,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261012-peer-base-integration/terminal-955-head9a-ingest-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 282,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261012-peer-base-integration/terminal-955-head9a-ingest-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 285,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261012-peer-base-integration/terminal-955-head9a-ingest-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 287,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261012-peer-base-integration/terminal-955-head9a-ingest-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 302,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261012-peer-base-integration/terminal-955-head9a-ingest-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 309,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261012-peer-base-integration/terminal-955-head9a-ingest-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 314,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261012-peer-base-integration/terminal-955-head9a-ingest-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 317,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261012-peer-base-integration/terminal-955-head9a-ingest-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 323,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261012-peer-base-integration/terminal-955-head9a-ingest-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 326,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261012-peer-base-integration/terminal-955-head9a-ingest-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 328,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261012-peer-base-integration/terminal-955-head9a-ingest-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 8,
+      "message": "trailing whitespace.",
+      "path": "docs/tiingo-evidence/20261012-peer-base-integration/terminal-955-peer957-ledger-tests.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 15,
+      "message": "new blank line at EOF.",
+      "path": "docs/tiingo-evidence/20261012-peer-base-integration/terminal-boats-base857-affected-tests.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 16,
+      "message": "new blank line at EOF.",
+      "path": "docs/verification/forex-r26/ci-evidence-lock-tests.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 15,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/forex-r26/initial-ledger-note-storage-tests.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 34,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/forex-r26/initial-ledger-note-storage-tests.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 9,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/forex-r26/storage-review-qualified.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 41,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/forex-r26/storage-review-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 42,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/forex-r26/storage-review-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 64,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/forex-r26/storage-review-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 65,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/forex-r26/storage-review-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 9,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/forex-r26/storage-tests.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 11,
+      "message": "new blank line at EOF.",
+      "path": "docs/verification/forex-r26/terminal-identity-final.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 23,
+      "message": "new blank line at EOF.",
+      "path": "docs/verification/forex-r26/terminal-unit-ui-final.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 37,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/frozen-pause-race-20261109/baseline-junit.xml"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 41,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/frozen-pause-race-20261109/baseline.log"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 3074,
+      "message": "new blank line at EOF.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/before-guard-r2/drawing-system.spec.ts"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 768,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/drawing-guard-r2/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 782,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/drawing-guard-r2/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 789,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/drawing-guard-r2/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 812,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/drawing-guard-r2/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 863,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/drawing-guard-r2/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 865,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/drawing-guard-r2/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 866,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/drawing-guard-r2/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 771,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/drawing-red-r1/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 779,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/drawing-red-r1/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 801,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/drawing-red-r1/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 809,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/drawing-red-r1/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 832,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/drawing-red-r1/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 848,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/drawing-red-r1/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 862,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/drawing-red-r1/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 870,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/drawing-red-r1/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 879,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/drawing-red-r1/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 888,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/drawing-red-r1/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 889,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/drawing-red-r1/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/error-context.md"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 14,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 17,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 33,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 36,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 52,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 55,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 69,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 74,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 91,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 94,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 109,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 125,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 128,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 142,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 147,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 163,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 166,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 168,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 180,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 185,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 241,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 258,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 270,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 325,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 19135,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 19229,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 19268,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 19275,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 19291,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 19310,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/protected-156c-integration.patch"
+    },
+    {
+      "classification": "retained evidence artifact bytes",
+      "line": 51,
+      "message": "new blank line at EOF.",
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/validate-ci-owner.py"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 13,
+      "message": "new blank line at EOF.",
+      "path": "docs/verification/pr902-evidence-20261109/evidence-gates.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 34,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr902-evidence-20261109/historical-packet-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 37,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr902-evidence-20261109/historical-packet-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 81,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr902-evidence-20261109/historical-packet-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 84,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr902-evidence-20261109/historical-packet-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 128,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr902-evidence-20261109/historical-packet-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 140,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr902-evidence-20261109/historical-packet-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 143,
+      "message": "trailing whitespace.",
+      "path": "docs/verification/pr902-evidence-20261109/historical-packet-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 204,
+      "message": "new blank line at EOF.",
+      "path": "docs/verification/pr902-evidence-20261109/historical-packet-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 221,
+      "message": "new blank line at EOF.",
+      "path": "terminal/components/chrome/shared-shell/ShellDirectory.tsx"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 102,
+      "message": "new blank line at EOF.",
+      "path": "terminal/components/exposure-map/ExposureReplay.module.css"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 293,
+      "message": "new blank line at EOF.",
+      "path": "terminal/components/exposure-map/ExposureReplay.tsx"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 346,
+      "message": "new blank line at EOF.",
+      "path": "terminal/components/exposure-map/ExposureScanTable.tsx"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 37,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/catalyst-opportunity/recovery-2026-10-17/evidence-inspection/defense-evidence-build.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 38,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/catalyst-opportunity/recovery-2026-10-17/evidence-inspection/defense-evidence-build.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 39,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/catalyst-opportunity/recovery-2026-10-17/evidence-inspection/defense-evidence-build.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 170,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/catalyst-opportunity/recovery-2026-10-17/evidence-inspection/defense-evidence-build.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 16,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/catalyst-opportunity/recovery-2026-10-17/evidence-inspection/defense-evidence-unit-final.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 67,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/catalyst-opportunity/recovery-2026-10-17/evidence-inspection/defense-revocation-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 3,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/pr-crops/ex03-search/README.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 4,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/pr-crops/ex03-search/README.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 5,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/pr-crops/ex03-search/README.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 6,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/pr-crops/ex03-search/README.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 84,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/pr-crops/ex03-search/README.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 25,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/pr-crops/ex03-search/ci-clock-repair-20261022/guard-mutant.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 59,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/pr-crops/ex03-search/ci-clock-repair-20261022/guard-mutant.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 92,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/pr-crops/ex03-search/ci-repair-20261022/final-focused-unit.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 19,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/pr-crops/ex03-search/ci-repair-20261022/focus-green.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 66,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/pr-crops/ex03-search/ci-repair-20261022/focus-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 116,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/pr-crops/ex03-search/ci-repair-20261022/focus-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 124,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/pr-crops/ex03-search/ci-repair-20261022/focus-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 45,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/isolated/mobile-integration-fresh-unit.log.tail.txt"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 45,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/isolated/native-shell-final-unit.log.tail.txt"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 40,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/isolated/native-shell-fresh-browser.log.tail.txt"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 41,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/isolated/native-shell-fresh-browser.log.tail.txt"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 42,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/isolated/native-shell-fresh-browser.log.tail.txt"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 43,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/isolated/native-shell-fresh-browser.log.tail.txt"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 45,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/mobile-dependency/mobile-integration-unit.log.tail.txt"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 25,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/native-shell-browser-final.log.tail.txt"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 26,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/native-shell-browser-final.log.tail.txt"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 27,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/native-shell-browser-final.log.tail.txt"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 28,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/native-shell-browser-final.log.tail.txt"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 30,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/native-shell-full-verified.log.tail.txt"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 6,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/pr-crops/native-error-theme-20261103/checks/eslint-protected-baseline.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 6,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/pr-crops/native-error-theme-20261103/checks/eslint.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 12,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/pr-crops/native-error-theme-20261103/checks/tests-final-css.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 71,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/pr-crops/news-corrected-save/README.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 20,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/pr-crops/sector-exposure-depth-return-20261102/composition-c8a/composition-focused.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 8,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/pr-crops/sector-exposure-depth-return-20261102/composition-c8a/composition-namespace.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 91,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/rotation-regime/r1/README.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 277,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/failure_mounted/source-preset-context.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 367,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/failure_mounted/source-preset-context.md"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 27,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/calculation-clocks-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 13,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/focused-final.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 69,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/node26-webstorage-correction.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 51,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/precision-native-owner-green.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 96,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/precision-native-owner-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 106,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/production-build-final.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 107,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/production-build-final.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 108,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/production-build-final.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 262,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/production-build-final.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 128,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/production-build.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 129,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/production-build.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 130,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/production-build.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 284,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/production-build.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 161,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 217,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 273,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 329,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 385,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 441,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 497,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 553,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 609,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 665,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 721,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 777,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 834,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 835,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 836,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 837,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 838,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 839,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 840,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 841,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 842,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 843,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 844,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 845,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/responsive-mounted.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 78,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/source-delta.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 138,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/d08c-plan-compare-20261104/logs/source-delta.patch"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 26,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/portfolio-workspace/chart-position-owner-20261102/e2e-baseline-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 56,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/portfolio-workspace/chart-position-owner-20261102/e2e-baseline-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 86,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/portfolio-workspace/chart-position-owner-20261102/e2e-baseline-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 116,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/portfolio-workspace/chart-position-owner-20261102/e2e-baseline-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 147,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/portfolio-workspace/chart-position-owner-20261102/e2e-baseline-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 148,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/portfolio-workspace/chart-position-owner-20261102/e2e-baseline-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 149,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/portfolio-workspace/chart-position-owner-20261102/e2e-baseline-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 150,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/portfolio-workspace/chart-position-owner-20261102/e2e-baseline-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 33,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/portfolio-workspace/chart-position-owner-20261102/unit-baseline-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 12,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/portfolio-workspace/chart-position-owner-20261102/unit-full.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 320,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/portfolio-workspace/owner-panel-repair-20261021/bounded-regression.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 59,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/portfolio-workspace/owner-panel-repair-20261021/native-controller-baseline.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 50,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/portfolio-workspace/owner-panel-repair-20261021/native-event-owner-probe.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 50,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/portfolio-workspace/owner-panel-repair-20261021/native-owner-probe-envelope.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 50,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/portfolio-workspace/owner-panel-repair-20261021/native-owner-probe.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 77,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/portfolio-workspace/owner-panel-repair-20261021/native-repair-recheck.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 20,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/portfolio-workspace/owner-panel-repair-20261021/regression-green.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 128,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/portfolio-workspace/owner-panel-repair-20261021/regression-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 2,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/portfolio-workspace/readback-order-assertion-20261021/hosted-unit-failure-excerpt.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 5,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/portfolio-workspace/readback-order-assertion-20261021/hosted-unit-failure-excerpt.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 8,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/portfolio-workspace/readback-order-assertion-20261021/hosted-unit-failure-excerpt.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 11,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/portfolio-workspace/readback-order-assertion-20261021/hosted-unit-failure-excerpt.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 18,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/portfolio-workspace/readback-order-assertion-20261021/hosted-unit-failure-excerpt.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 19,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/portfolio-workspace/readback-order-assertion-20261021/hosted-unit-failure-excerpt.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 21,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/portfolio-workspace/readback-order-assertion-20261021/hosted-unit-failure-excerpt.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 26,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/portfolio-workspace/readback-order-assertion-20261021/hosted-unit-failure-excerpt.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 27,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/portfolio-workspace/readback-order-assertion-20261021/hosted-unit-failure-excerpt.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 17,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/stock-intelligence-r6-20261103/recovery-20261104/price-search-green.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 49,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/stock-intelligence-r6-20261103/recovery-20261104/price-search-red.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 12,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/stock-intelligence-r6-20261103/recovery-20261104/webstorage-diagnostic.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 66,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/stock-intelligence-r6-20261103/recovery-20261104/webstorage-requalified.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 17,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/stock-intelligence-r6-20261103/unit-qualified.txt"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 31,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/baseline.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/dark-captures.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 4,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/dark-captures.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 7,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/dark-captures.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 9,
+      "message": "trailing whitespace.",
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/dark-captures.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 27,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/dark-captures.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 16,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/final-native.log"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 15,
+      "message": "new blank line at EOF.",
+      "path": "terminal/docs/verification/vol-horizon-grammar-20261104/native.log"
+    },
+    {
+      "classification": "known terminal blank line in qualified test",
+      "line": 3131,
+      "message": "new blank line at EOF.",
+      "path": "terminal/e2e/drawing-system.spec.ts"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 58,
+      "message": "new blank line at EOF.",
+      "path": "terminal/e2e/heatmap-table-keyboard.spec.ts"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 1,
+      "message": "trailing whitespace.",
+      "path": "terminal/fixtures/dislocations/malformed.json"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 773,
+      "message": "new blank line at EOF.",
+      "path": "terminal/lib/__tests__/chartEngineGapPrimitives.test.ts"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 166,
+      "message": "new blank line at EOF.",
+      "path": "terminal/lib/__tests__/exposureReplay.test.tsx"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 184,
+      "message": "new blank line at EOF.",
+      "path": "terminal/lib/__tests__/exposureReplayFrames.test.ts"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 225,
+      "message": "new blank line at EOF.",
+      "path": "terminal/lib/__tests__/exposureScan.test.ts"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 222,
+      "message": "new blank line at EOF.",
+      "path": "terminal/lib/__tests__/exposureScanTableView.test.tsx"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 68,
+      "message": "new blank line at EOF.",
+      "path": "terminal/lib/__tests__/flowActivity.test.ts"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 72,
+      "message": "new blank line at EOF.",
+      "path": "terminal/lib/__tests__/heatmapTableAccessibility.test.tsx"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 142,
+      "message": "new blank line at EOF.",
+      "path": "terminal/lib/__tests__/trackerEmbedLifetime.test.tsx"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 790,
+      "message": "new blank line at EOF.",
+      "path": "terminal/lib/chart-engine/canvas/index.ts"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 195,
+      "message": "new blank line at EOF.",
+      "path": "terminal/lib/exposureReplayFrames.ts"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 90,
+      "message": "new blank line at EOF.",
+      "path": "terminal/lib/sharedShellCopy.ts"
+    },
+    {
+      "classification": "unchanged real-parent bytes",
+      "line": 498,
+      "message": "new blank line at EOF.",
+      "path": "tests/test_migration_merge_group.py"
+    }
+  ],
+  "note": "Protected or original source bytes and exact evidence artifacts are preserved; no unrelated accepted code is restyled."
+}

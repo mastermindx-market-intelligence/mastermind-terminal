@@ -1,0 +1,19 @@
+{
+  "branchHead": "883fee550a9628812a4fbcdc77e479ab8cad3b3a",
+  "captureRevision": "master-integration-20261109",
+  "files": {
+    "capture-execution.json": "98217d84ce2815a51c93ae67a98ab49d555587c81712a3d215a4149df3055615",
+    "capture-sources-after.json": "fee200a47e1b0f37f232a4a25b2c7af5a16bf91eefe80ee9ad9ce7c329bae027",
+    "capture-sources-before.json": "fee200a47e1b0f37f232a4a25b2c7af5a16bf91eefe80ee9ad9ce7c329bae027",
+    "history.json": "c894d2a7241a5b3da2c9f7b3ab2a7978286ad14c8092348d6e4649e67fd597b0",
+    "prior-exposure-root-sha256.json": "b98ca38abe6ec26a2fa0156c3ca1e2e2caedad04ea81a4a862f1f38f4ff309e6",
+    "prior-protected-root-sha256.json": "5bad92213f181ace64539f60e5b9e7312906e3f893a9d3fb7fe2044dcc37601e",
+    "qualified-root/EVIDENCE.yml": "55c26de6668f93058385a0e503ce01bed892700d4427001275bf89d89c386d9b",
+    "source-contract.json": "0fe09870703589d0590dba103dddcfffc5de89ea86606fb4d379a443d96a7bfa"
+  },
+  "kind": "gex",
+  "operation": "exposure-source-compatibility-20261105",
+  "profile": "exposure",
+  "protectedMaster": "f2aa1e0cb27d459149f59d3b24d98cd6e2e8389f",
+  "schema": "options_exposure_master_packet.v1"
+}

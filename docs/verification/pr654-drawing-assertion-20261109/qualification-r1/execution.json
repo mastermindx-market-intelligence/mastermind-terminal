@@ -1,0 +1,619 @@
+{
+  "branchHead": "bf47f5429a2395bf9fcf1e2e5a69ffeae00ae16f",
+  "completedAt": "2026-11-09T15:59:40.356476+00:00",
+  "existingDesktopOnlySkips": 18,
+  "newBrowserPassed": 72,
+  "repairSha256": "3342744b6e1f467c92da3fc3c3037962da23b796668898d1e6fe43a43722428d",
+  "retainedPriorNavigationUnits": 15,
+  "runtimeChanged": false,
+  "schema": "terminal_pr654_drawing_assertion_validation.v1",
+  "sourceAfterSha256": "4d7ab638002e1d34829ff79567951348fac976b71fad82fcd9a5752a12210507",
+  "sourceEntries": 1896,
+  "sourceStable": true,
+  "stages": [
+    {
+      "artifacts": {
+        ".last-run.json": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+      },
+      "cases": [
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "drawing reads and saves carry the auth-UUID owner, never the email, and never in a URL"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "lost response retries the exact operation after reload before sending newer edits"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "site-data loss before a retry keeps the unsaved drawing and its exact operation for an explicit choice"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "a failed drawings read is shown and keeps drawing disabled"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "two devices conflict and cloud survives until an explicit recovery choice"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "superseded replay parks queued edits and use-cloud clears the recovered symbol"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "a load that settles while the exact replay waits for the journal defers to its receipt"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "a load that deferred to a save another tab acknowledged loads the symbol again once that save settles"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "old local clear-all is not silently replayed against a fresh cloud read"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "competing local copies require explicit selection and are discarded individually"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "selecting another copy then using cloud discards that copy without an intervening save"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "owner_conflict keeps the local copy and does not offer replace"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "unavailable durable serialization warns to keep the tab open and never starts a save"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "a stale overlapping drawings GET cannot overwrite a newer load before the next save"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "drawing before the pane GET settles merges cloud ids and does not claim the cloud changed"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "a stroke made while a lost preload-merge save re-reads the cloud stays and asks for a choice"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "a copy another tab leaves while a lost preload-merge save re-reads the cloud stays for review"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "a copy another tab leaves while a save waits for its receipt stays for review"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "a copy another tab leaves while a save waits for an owner conflict stays for review"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "a copy another tab leaves while a save waits for a request that fails stays for review"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "a pre-GET drawing survives reload while the GET is still held and then saves against the GET revision"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "a pre-GET drawing survives pagehide, leave/return, and reload while the GET is held"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "pagehide flushes a revision-bearing PUT before the 600ms debounce can fire"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "a leftover preload row already on the cloud acknowledges without a prompt or PUT"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "keep-mine of a differing preload overlap PUTs every cloud-only id"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "another account claiming the legacy copy during the first locked write drops the alternative, clears the prompt and saves the own copy once"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "without another account's claim the legacy alternative survives and the prompt offers another local copy"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "keep-local with two local copies PUTs the copy the user chose"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "a 5xx PUT keeps 'Retry save' visible across the next stroke and clears only on a successful retry"
+        },
+        {
+          "project": "desktop",
+          "retry": 0,
+          "status": "passed",
+          "title": "too_many parks with exactly one button, never offers replace or a PUT, and the journal row clears on use-cloud"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "drawing reads and saves carry the auth-UUID owner, never the email, and never in a URL"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "lost response retries the exact operation after reload before sending newer edits"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "site-data loss before a retry keeps the unsaved drawing and its exact operation for an explicit choice"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "a failed drawings read is shown and keeps drawing disabled"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "two devices conflict and cloud survives until an explicit recovery choice"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "superseded replay parks queued edits and use-cloud clears the recovered symbol"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "a load that settles while the exact replay waits for the journal defers to its receipt"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "a load that deferred to a save another tab acknowledged loads the symbol again once that save settles"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "old local clear-all is not silently replayed against a fresh cloud read"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "competing local copies require explicit selection and are discarded individually"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "selecting another copy then using cloud discards that copy without an intervening save"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "owner_conflict keeps the local copy and does not offer replace"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "unavailable durable serialization warns to keep the tab open and never starts a save"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "skipped",
+          "title": "a stale overlapping drawings GET cannot overwrite a newer load before the next save"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "skipped",
+          "title": "drawing before the pane GET settles merges cloud ids and does not claim the cloud changed"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "skipped",
+          "title": "a stroke made while a lost preload-merge save re-reads the cloud stays and asks for a choice"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "a copy another tab leaves while a lost preload-merge save re-reads the cloud stays for review"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "a copy another tab leaves while a save waits for its receipt stays for review"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "a copy another tab leaves while a save waits for an owner conflict stays for review"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "a copy another tab leaves while a save waits for a request that fails stays for review"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "skipped",
+          "title": "a pre-GET drawing survives reload while the GET is still held and then saves against the GET revision"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "skipped",
+          "title": "a pre-GET drawing survives pagehide, leave/return, and reload while the GET is held"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "skipped",
+          "title": "pagehide flushes a revision-bearing PUT before the 600ms debounce can fire"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "skipped",
+          "title": "a leftover preload row already on the cloud acknowledges without a prompt or PUT"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "skipped",
+          "title": "keep-mine of a differing preload overlap PUTs every cloud-only id"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "another account claiming the legacy copy during the first locked write drops the alternative, clears the prompt and saves the own copy once"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "without another account's claim the legacy alternative survives and the prompt offers another local copy"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "keep-local with two local copies PUTs the copy the user chose"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "skipped",
+          "title": "a 5xx PUT keeps 'Retry save' visible across the next stroke and clears only on a successful retry"
+        },
+        {
+          "project": "tablet",
+          "retry": 0,
+          "status": "passed",
+          "title": "too_many parks with exactly one button, never offers replace or a PUT, and the journal row clears on use-cloud"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "drawing reads and saves carry the auth-UUID owner, never the email, and never in a URL"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "lost response retries the exact operation after reload before sending newer edits"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "site-data loss before a retry keeps the unsaved drawing and its exact operation for an explicit choice"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "a failed drawings read is shown and keeps drawing disabled"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "two devices conflict and cloud survives until an explicit recovery choice"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "superseded replay parks queued edits and use-cloud clears the recovered symbol"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "a load that settles while the exact replay waits for the journal defers to its receipt"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "a load that deferred to a save another tab acknowledged loads the symbol again once that save settles"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "old local clear-all is not silently replayed against a fresh cloud read"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "competing local copies require explicit selection and are discarded individually"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "selecting another copy then using cloud discards that copy without an intervening save"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "owner_conflict keeps the local copy and does not offer replace"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "unavailable durable serialization warns to keep the tab open and never starts a save"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "skipped",
+          "title": "a stale overlapping drawings GET cannot overwrite a newer load before the next save"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "skipped",
+          "title": "drawing before the pane GET settles merges cloud ids and does not claim the cloud changed"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "skipped",
+          "title": "a stroke made while a lost preload-merge save re-reads the cloud stays and asks for a choice"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "a copy another tab leaves while a lost preload-merge save re-reads the cloud stays for review"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "a copy another tab leaves while a save waits for its receipt stays for review"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "a copy another tab leaves while a save waits for an owner conflict stays for review"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "a copy another tab leaves while a save waits for a request that fails stays for review"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "skipped",
+          "title": "a pre-GET drawing survives reload while the GET is still held and then saves against the GET revision"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "skipped",
+          "title": "a pre-GET drawing survives pagehide, leave/return, and reload while the GET is held"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "skipped",
+          "title": "pagehide flushes a revision-bearing PUT before the 600ms debounce can fire"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "skipped",
+          "title": "a leftover preload row already on the cloud acknowledges without a prompt or PUT"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "skipped",
+          "title": "keep-mine of a differing preload overlap PUTs every cloud-only id"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "another account claiming the legacy copy during the first locked write drops the alternative, clears the prompt and saves the own copy once"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "without another account's claim the legacy alternative survives and the prompt offers another local copy"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "keep-local with two local copies PUTs the copy the user chose"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "skipped",
+          "title": "a 5xx PUT keeps 'Retry save' visible across the next stroke and clears only on a successful retry"
+        },
+        {
+          "project": "mobile",
+          "retry": 0,
+          "status": "passed",
+          "title": "too_many parks with exactly one button, never offers replace or a PUT, and the journal row clears on use-cloud"
+        }
+      ],
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "e2e/drawing-save-concurrency.spec.ts",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=list,json",
+        "--output=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/docs/verification/pr654-drawing-assertion-20261109/qualification-r1/browser-artifacts"
+      ],
+      "exit": 0,
+      "failed": 0,
+      "flaky": 0,
+      "initialOwnedServerStopped": false,
+      "lifecycle": {
+        "initialLockPresent": true,
+        "reconciliation": "docs/verification/pr654-drawing-assertion-20261109/qualification-r1/drawing-save-concurrency-lifecycle.json",
+        "serverAbsenceVerifiedAt": "2026-11-09T15:58:49.507261+00:00",
+        "sha256": "3aa48a08860a05fb4cbb6be0e6f68f3d7dddbcd9149fdb2c663974625f9bb736"
+      },
+      "logSha256": "5afd35b2bdc9ae3bb7a37a7400365ccbf1708b3b23f0f1d702c3b2b03f06bd94",
+      "name": "drawing-save-concurrency",
+      "ownedServerStopped": true,
+      "passed": 72,
+      "port": 3561,
+      "repairedCasePassed": 3,
+      "reportSha256": "1df35b5050e8a30f3012dbc23f95f76c402909631770173688974d4d59fba0ee",
+      "retries": 0,
+      "seconds": 588.61,
+      "skipped": 18,
+      "sourceStable": true,
+      "startedAt": "2026-11-09T15:48:52.688688+00:00",
+      "state": "CLOSED",
+      "testCompletedAt": "2026-11-09T15:58:41.295685+00:00"
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "typecheck",
+      "port": null,
+      "seconds": 46.96,
+      "sourceStable": true,
+      "startedAt": "2026-11-09T15:58:49.509664+00:00",
+      "state": "CLOSED",
+      "testCompletedAt": "2026-11-09T15:59:36.466801+00:00"
+    }
+  ],
+  "startedAt": "2026-11-09T15:48:52.688401+00:00",
+  "state": "QUALIFIED"
+}

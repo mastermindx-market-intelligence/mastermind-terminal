@@ -6,6 +6,7 @@ import { breadthExpiresAt, marketBreadthPayload, type BreadthSession, type Marke
 import { freshnessLabel, readingFreshness } from "@/lib/shared-shell/readingFreshness";
 import { readingJson } from "@/lib/shared-shell/useReadingScope";
 import today from "./TodayWorkspace.module.css";
+import recovery from "./TodayBreadthReading.module.css";
 
 type Props = {
   ownerKey: string;
@@ -16,7 +17,7 @@ type Props = {
   /** Presentation slot: by default the cell itself, so standalone strip use is unchanged. */
   render?: (cell: ReactNode) => ReactNode;
 };
-type Phase = "loading" | "ready" | "unavailable" | "ended";
+type Phase = "loading" | "ready" | "unavailable" | "restricted" | "ended";
 
 const BREADTH_URL = "/api/market-breadth";
 
@@ -25,6 +26,8 @@ const COPY = {
     label: "S&P 500 breadth",
     loading: "Checking breadth…",
     unavailable: "Breadth reading unavailable",
+    restricted: "Current access does not include this reading",
+    retry: "Check breadth again",
     advancing: (n: number) => `${n}% advancing`,
     above200: (n: number) => `${n}% above 200-day`,
     delayed: (n: number) => `${n}-min delayed`,
@@ -42,6 +45,8 @@ const COPY = {
     label: "标普 500 市场广度",
     loading: "正在读取市场广度…",
     unavailable: "市场广度读数暂不可用",
+    restricted: "当前权限不包含此读数",
+    retry: "重新读取市场广度",
     advancing: (n: number) => `${n}% 上涨`,
     above200: (n: number) => `${n}% 位于 200 日均线上方`,
     delayed: (n: number) => `延迟 ${n} 分钟`,
@@ -90,9 +95,15 @@ export default function TodayBreadthReading({ ownerKey, scope, onUnauthenticated
   const c = COPY[lang];
   // The answer is remembered with the owner it was read for, so a new owner starts as loading
   // without a synchronous reset inside the effect.
-  const [answer, setAnswer] = useState<{ owner: string; phase: Phase; reading: MarketBreadth | null } | null>(null);
-  const phase: Phase = answer?.owner === ownerKey ? answer.phase : "loading";
-  const reading = answer?.owner === ownerKey ? answer.reading : null;
+  const [answer, setAnswer] = useState<{ owner: string; generation: AbortController; phase: Phase; reading: MarketBreadth | null } | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const pending = useRef(false);
+  const cell = useRef<HTMLDivElement | null>(null);
+  const retryButton = useRef<HTMLButtonElement | null>(null);
+  const retryFocus = useRef<AbortController | null>(null);
+  const current = answer?.owner === ownerKey && answer.generation === scope.current;
+  const phase: Phase = current ? answer.phase : "loading";
+  const reading = current ? answer.reading : null;
   const onUnauthenticatedRef = useRef(onUnauthenticated);
   useEffect(() => { onUnauthenticatedRef.current = onUnauthenticated; });
   // Every return goes through one presentation helper: `render` places the cell (or the ended
@@ -100,22 +111,58 @@ export default function TodayBreadthReading({ ownerKey, scope, onUnauthenticated
   const present = (cell: ReactNode): ReactNode => (render ? render(cell) : cell);
 
   useEffect(() => {
-    if (!enabled) return;
+    const controller = scope.current;
+    if (!enabled || !controller || controller.signal.aborted) return;
     let live = true;
-    const settle = (next: Phase, value: MarketBreadth | null = null) => { if (live) setAnswer({ owner: ownerKey, phase: next, reading: value }); };
+    pending.current = true;
+    const active = () => live && scope.current === controller && !controller.signal.aborted;
+    const settle = (next: Phase, value: MarketBreadth | null = null) => {
+      if (!live || scope.current !== controller) return;
+      pending.current = false;
+      setAnswer({ owner: ownerKey, generation: controller, phase: next, reading: value });
+    };
+    const onAbort = () => settle("ended");
+    controller.signal.addEventListener("abort", onAbort, { once: true });
     (async () => {
       try {
         const { response, value } = await readingJson(scope, BREADTH_URL);
-        if (!live) return;
+        if (!active()) return;
         if (response.status === 401) { settle("ended"); onUnauthenticatedRef.current(); return; }
+        if (response.status === 403) { settle("restricted"); return; }
         const parsed = response.ok ? marketBreadthPayload(value, new Date()) : null;
         settle(parsed ? "ready" : "unavailable", parsed);
       } catch {
-        settle("unavailable");
+        if (active()) settle("unavailable");
       }
     })();
-    return () => { live = false; };
-  }, [enabled, ownerKey, scope]);
+    return () => { live = false; controller.signal.removeEventListener("abort", onAbort); };
+  }, [enabled, ownerKey, scope, attempt]);
+
+  // Explicit user action only: no poll, automatic retry, new identity or sibling
+  // refresh. The ref closes the same-event double-activation window before render.
+  const retry = () => {
+    const controller = scope.current;
+    if (!enabled || !controller || controller.signal.aborted || pending.current
+      || phase === "loading" || phase === "restricted" || phase === "ended") return;
+    pending.current = true;
+    retryFocus.current = document.activeElement === retryButton.current ? controller : null;
+    setAnswer({ owner: ownerKey, generation: controller, phase: "loading", reading: null });
+    setAttempt(value => value + 1);
+  };
+  const retryAction = <button ref={retryButton} type="button" className={recovery.retry} onClick={retry} aria-label={c.retry}>{c.retry}</button>;
+
+  // Keep explicit keyboard activation at this reading when its button disappears.
+  // Settlement never moves focus again, and another owner cannot inherit this intent.
+  useEffect(() => {
+    const generation = retryFocus.current;
+    retryFocus.current = null;
+    if (!generation || scope.current !== generation || generation.signal.aborted) return;
+    if (document.activeElement === document.body || document.activeElement === cell.current) {
+      cell.current?.focus({ preventScroll: true });
+    }
+  }, [attempt, scope]);
+  const cellProps = { ref: cell, tabIndex: -1, role: "group", "data-breadth-cell": true,
+    "aria-label": c.label, "aria-live": "polite" as const };
 
   // A tab left open must not keep a live reading past its window: when the window closes the
   // reading is re-checked on the reader's clock and withheld like any other old file. A timer
@@ -125,20 +172,23 @@ export default function TodayBreadthReading({ ownerKey, scope, onUnauthenticated
     if (at === null || !reading) return;
     const recheck = () => {
       const next = marketBreadthPayload(reading, new Date());
-      setAnswer({ owner: ownerKey, phase: next ? "ready" : "unavailable", reading: next });
+      const controller = scope.current;
+      if (!controller || controller.signal.aborted || controller !== answer?.generation) return;
+      setAnswer({ owner: ownerKey, generation: controller, phase: next ? "ready" : "unavailable", reading: next });
     };
     const onVisible = () => { if (document.visibilityState === "visible" && Date.now() > at) recheck(); };
     const id = setTimeout(recheck, Math.max(0, at - Date.now()) + 1000);
     document.addEventListener("visibilitychange", onVisible);
     return () => { clearTimeout(id); document.removeEventListener("visibilitychange", onVisible); };
-  }, [phase, reading, ownerKey]);
+  }, [phase, reading, ownerKey, scope, answer?.generation]);
 
-  if (phase === "ended") return present(null);
+  if (!enabled || phase === "ended" || scope.current?.signal.aborted) return present(null);
   if (phase !== "ready" || !reading) {
     return present(
-      <div className={`${today.reading} ${today.readingStatic}`} aria-busy={phase === "loading"}>
+      <div {...cellProps} className={`${today.reading} ${today.readingStatic} ${recovery.cell}`} aria-busy={phase === "loading"}>
         <span className={today.readingLabel}>{c.label}</span>
-        <strong className={today.readingQuiet}>{phase === "loading" ? c.loading : c.unavailable}</strong>
+        <strong className={today.readingQuiet}>{phase === "loading" ? c.loading : phase === "restricted" ? c.restricted : c.unavailable}</strong>
+        {phase === "unavailable" && retryAction}
       </div>,
     );
   }
@@ -150,16 +200,17 @@ export default function TodayBreadthReading({ ownerKey, scope, onUnauthenticated
     // A withheld reading keeps only its own timestamp: the session word, the delay and the age
     // all describe a live reading, which this is not.
     return present(
-      <div className={`${today.reading} ${today.readingStatic}`} data-breadth="withheld">
+      <div {...cellProps} className={`${today.reading} ${today.readingStatic} ${recovery.cell}`} data-breadth="withheld">
         <span className={today.readingLabel}>{c.label}</span>
         <strong className={today.readingQuiet}>{breadthReason(reading.unusable_reason, lang)}</strong>
         {clock && <span className={today.readingClock}>{clock}</span>}
+        {retryAction}
       </div>,
     );
   }
   const age = readingFreshness(reading.asof, new Date());
   return present(
-    <div className={`${today.reading} ${today.readingStatic}`} data-breadth="live">
+    <div {...cellProps} className={`${today.reading} ${today.readingStatic} ${recovery.cell}`} data-breadth="live">
       <span className={today.readingLabel}>{c.label}</span>
       <strong>{c.advancing(Math.round(large.adv_pct as number))}</strong>
       {large.pa200 !== null && <span className={today.readingNote}>{c.above200(Math.round(large.pa200))}</span>}

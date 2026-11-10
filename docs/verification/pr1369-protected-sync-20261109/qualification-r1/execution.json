@@ -1,0 +1,195 @@
+{
+  "branchHead": "230b0f9db6f37f5b37e260d5ce2a1108918fca3e",
+  "browserFailed": 0,
+  "browserPassed": 6,
+  "browserRetries": 0,
+  "browserSkipped": 0,
+  "completedAt": "2026-11-09T18:49:18.116665+00:00",
+  "nativeRecapturePerformed": false,
+  "nextLockAbsent": true,
+  "packetsUnchanged": true,
+  "parents": [
+    "230b0f9db6f37f5b37e260d5ce2a1108918fca3e",
+    "156c4b3ecfa27b9137c64068b3ed969e07efbe49"
+  ],
+  "portsClosed": true,
+  "protectedMaster": "156c4b3ecfa27b9137c64068b3ed969e07efbe49",
+  "schema": "terminal_pr1369_protected_sync_qualification.v1",
+  "sourceEntries": 1937,
+  "sourceStable": true,
+  "stages": [
+    {
+      "artifacts": {
+        ".last-run.json": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+        "analysis-company-read-life-4114b-d-without-unused-quotes-zh--desktop/company-loading-zh.png": "79d9c1e0c4043d59a6fe788b42120d3e6b773884b742a7380bae977c58fd483c",
+        "analysis-company-read-life-4114b-d-without-unused-quotes-zh--desktop/selected-company-statistics-zh.png": "642bfff6429453c6971899c926bd0fdf2e9a8197af9fd45232874aff1a372037",
+        "analysis-company-read-life-4114b-d-without-unused-quotes-zh--mobile/company-loading-zh.png": "ae5dd4c4a5e896886d9bceaa39dbc4c9d7be289759d08ccdde1ffbe7337fecfc",
+        "analysis-company-read-life-4114b-d-without-unused-quotes-zh--mobile/selected-company-statistics-zh.png": "45ce74efb49b567160f29c924a829e8ca71d83fb2663575113a3022d86994c9c",
+        "analysis-company-read-life-4114b-d-without-unused-quotes-zh--tablet/company-loading-zh.png": "83136e6a126d9ff5813c36cb292b15e7c7fb3b09adf936bed80e1b87f499f8ec",
+        "analysis-company-read-life-4114b-d-without-unused-quotes-zh--tablet/selected-company-statistics-zh.png": "5aa8ce911fcdffbc132cf0af1e6548f6c2e27595faaf9ed714fbeaed407a307f",
+        "analysis-company-read-life-b3006-d-without-unused-quotes-en--desktop/company-loading-en.png": "0f2fe8951188ef398f468223798b75c2eaf99e9c9e2ace8d83e809635dd66a8d",
+        "analysis-company-read-life-b3006-d-without-unused-quotes-en--desktop/selected-company-statistics-en.png": "bfba9517b85f983a43cfe6bafb7b50d017e3afe5cdfd979df8c7787e0afc1f1b",
+        "analysis-company-read-life-b3006-d-without-unused-quotes-en--mobile/company-loading-en.png": "6c8406d31f27185b70858a5d6b85e20ede1049be735efc200de9a815b894bf8c",
+        "analysis-company-read-life-b3006-d-without-unused-quotes-en--mobile/selected-company-statistics-en.png": "84a71297bf36992bc8559d51de718b005ccd78f9ed23585a145c5f999d362828",
+        "analysis-company-read-life-b3006-d-without-unused-quotes-en--tablet/company-loading-en.png": "fe07c4adfcdff91d61c9e90683f764c974a7e76482a33e5b3580233d95f88f44",
+        "analysis-company-read-life-b3006-d-without-unused-quotes-en--tablet/selected-company-statistics-en.png": "a0590712340eeac2a1eec74303d68d452407ea4c2dc032e2154ab827d3d694af"
+      },
+      "cases": [
+        {
+          "attempts": [
+            {
+              "error": null,
+              "retry": 0,
+              "status": "passed"
+            }
+          ],
+          "expectedStatus": "passed",
+          "project": "desktop",
+          "title": "company switch keeps published statistics scoped without unused quotes (en)"
+        },
+        {
+          "attempts": [
+            {
+              "error": null,
+              "retry": 0,
+              "status": "passed"
+            }
+          ],
+          "expectedStatus": "passed",
+          "project": "desktop",
+          "title": "company switch keeps published statistics scoped without unused quotes (zh)"
+        },
+        {
+          "attempts": [
+            {
+              "error": null,
+              "retry": 0,
+              "status": "passed"
+            }
+          ],
+          "expectedStatus": "passed",
+          "project": "tablet",
+          "title": "company switch keeps published statistics scoped without unused quotes (en)"
+        },
+        {
+          "attempts": [
+            {
+              "error": null,
+              "retry": 0,
+              "status": "passed"
+            }
+          ],
+          "expectedStatus": "passed",
+          "project": "tablet",
+          "title": "company switch keeps published statistics scoped without unused quotes (zh)"
+        },
+        {
+          "attempts": [
+            {
+              "error": null,
+              "retry": 0,
+              "status": "passed"
+            }
+          ],
+          "expectedStatus": "passed",
+          "project": "mobile",
+          "title": "company switch keeps published statistics scoped without unused quotes (en)"
+        },
+        {
+          "attempts": [
+            {
+              "error": null,
+              "retry": 0,
+              "status": "passed"
+            }
+          ],
+          "expectedStatus": "passed",
+          "project": "mobile",
+          "title": "company switch keeps published statistics scoped without unused quotes (zh)"
+        }
+      ],
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "e2e/analysis-company-read-lifetime.spec.ts",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=list,json",
+        "--output=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1369-protected-sync-20261109/terminal/test-results/pr1369-protected-beta-r1"
+      ],
+      "exit": 0,
+      "label": "beta-company-lifetime",
+      "lifecycle": {
+        "initialLockPresent": true,
+        "reconciliation": "docs/verification/pr1369-protected-sync-20261109/protected-beta-r1-lifecycle.json",
+        "serverAbsenceVerifiedAt": "2026-11-09T18:48:32.170999+00:00",
+        "sha256": "995948d3c9efe9d869830bb8105e93da5dbe33536b8543c0776ac8f3a874622e"
+      },
+      "logSha256": "5f03a21c8314075fb86aef7ee9b3417effb4501f064c9cbd363fe2ee6456331c",
+      "nextLockAbsent": true,
+      "packetsUnchanged": true,
+      "portClosed": true,
+      "reportErrors": [],
+      "seconds": 36.57,
+      "sharedShell": "1",
+      "sourceStable": true,
+      "startedAt": "2026-11-09T18:47:49.276219+00:00",
+      "state": "CLOSED",
+      "stats": {
+        "duration": 36004.655,
+        "expected": 6,
+        "flaky": 0,
+        "skipped": 0,
+        "startTime": "2026-11-09T18:47:49.829Z",
+        "unexpected": 0
+      }
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/analysisCompanyReadLifetime.test.tsx",
+        "lib/__tests__/megaPaneFundamentalLoading.test.tsx",
+        "lib/__tests__/analysisWorkspaceNavigation.test.tsx",
+        "lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts",
+        "lib/__tests__/b_mi_g10_b4tThemeEmptyEvidence.test.ts",
+        "lib/__tests__/sharedShellMetadata.test.ts",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1369-protected-sync-20261109/docs/verification/pr1369-protected-sync-20261109/qualification-r1/unit-report.json"
+      ],
+      "exit": 0,
+      "label": "affected-unit-and-evidence-readers",
+      "logSha256": "c1f1f6c37308f9940ebb657c703025d80bee90fac06909210bda3c6c2120a8d3",
+      "packetsUnchanged": true,
+      "seconds": 3.9,
+      "sourceStable": true,
+      "startedAt": "2026-11-09T18:48:32.302279+00:00",
+      "state": "CLOSED"
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exit": 0,
+      "label": "typecheck",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "packetsUnchanged": true,
+      "seconds": 41.41,
+      "sourceStable": true,
+      "startedAt": "2026-11-09T18:48:36.274403+00:00",
+      "state": "CLOSED"
+    }
+  ],
+  "startedAt": "2026-11-09T18:47:49.276031+00:00",
+  "state": "QUALIFIED",
+  "unitTestsPassed": 76
+}

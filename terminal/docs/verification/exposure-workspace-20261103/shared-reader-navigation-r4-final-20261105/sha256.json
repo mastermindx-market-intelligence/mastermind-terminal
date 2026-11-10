@@ -1,0 +1,23 @@
+{
+  "README.md": "67f518e28385b204898f0dc428d808d9e8c6a91f49aee5ae6ddab91cd6b40c08",
+  "capture-native-navigation-r4-qualified.py": "caa135fb04633289178636e9ba24b5484a988ee6797f572bd4aee0c93d9285ed",
+  "consumer-qualification.json": "4010f39e052e1b8557eedacc0d4c4a8058440d27e10d2ae6f46b67db9563a386",
+  "eod-native-receipt.json": "f3997e23542a5244db67330d65df13b4ed7f27a4bf69190257c0cd8963208377",
+  "exposure-lint.log.gz": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+  "exposure-source-sha256.json": "0584a49721951ceeaf07701f709a2c6f2b681d1ffe4cc0154513a7a71f914089",
+  "exposure-unit.log.gz": "71dcdde62a617b9bd81682e9850c3f34ce8d4d56a1893df1e42839bd4d5bfda8",
+  "gex-native-receipt.json": "6082e547e9e615fafc2675a68535bc89411a1e64b1d0a8ee2caeab47d8df38d4",
+  "manifest-placement-qualification.json": "bd87fb5f851dfe89980df36f18e217213a4f762a867a965dccb8292289782737",
+  "native-source-contract-navigation-r4.json": "a7cd2ce244a0ae278fc24bf25a51566c0053c89f9ce3fb17ae12b350f1541db7",
+  "original-lint.log.gz": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+  "original-source-sha256.json": "32bf4112981444875c93f79d81742dd07f6410a848db4061ce256e57b5cb6c62",
+  "original-unit.log.gz": "6ed25c099df736ffb63b9794d542d5ba36e3bbc704d3dcd1c70071afa227e105",
+  "parent-ci-41985765450.json": "1a48d9c8e164662fd1ed14af068e03a852b3d4c921c3b71c494523657cb1c06b",
+  "playwright.captured.ts.gz": "f4038e3618b8f2d88960d884d3f6129e4f10b8c53b6119c04ffc5a7e5f9d5fd6",
+  "playwright.protected.ts.gz": "f7de6f19a247b803662d3deda279191052239f0721f3c80947d3dbe7b05ad2c3",
+  "preview-lint.log.gz": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+  "preview-source-sha256.json": "32bf4112981444875c93f79d81742dd07f6410a848db4061ce256e57b5cb6c62",
+  "preview-unit.log.gz": "4f88764056bee4090e995b023128db585b1d41815ee0ad918620aca14fc0c4f0",
+  "qualification.json": "938ba4ae9628c055d3a99b2aca0013eb8b441dc9ecc7483ceccf20fce3e4b719",
+  "qualify-manifest-compatibility-r4.py": "5c5f3275a246d0612a67725326eb4319eb0f0342d3b45850d7f3b07e2a97e7b7"
+}

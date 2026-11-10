@@ -1,0 +1,14 @@
+{
+  "desktop-en-dark.png": "b94c7926f198d5cbcfd7e788809f4c79c079e95b2829c0978d6198b41c68edb1",
+  "desktop-en-light.png": "887611c014b0fad8583ffedafc62a46db599f9bc81957ecd7bfb280697ff303e",
+  "desktop-zh-dark.png": "394734814098c63efb30a8630c3d93ddd5719960e6215999a666632506214d81",
+  "desktop-zh-light.png": "ef25d653fea46c43daa7facd3ffd86cd9d2c5938786219714b7a8a06401d4fcd",
+  "mobile-en-dark.png": "6f2bd5277af53727c7594c6fa5d16c63de762736c0df86412ed1f61093545599",
+  "mobile-en-light.png": "6f2bd5277af53727c7594c6fa5d16c63de762736c0df86412ed1f61093545599",
+  "mobile-zh-dark.png": "871392cdfd54649bdba079808f977da497f840ea2ac1e94103310dd030ffab7d",
+  "mobile-zh-light.png": "cd1129a290e18e99d2aeab6d01351716eda0329d532dc513a957f4bd9bd8a00c",
+  "tablet-en-dark.png": "85aabd08eea536ea7b34005599cd59546e08127d4838f0234ddf1cd6d22207aa",
+  "tablet-en-light.png": "3dda3130c6b931cc42d4b738e3b21d15808327540da42561c3dc7acb5e75bdb4",
+  "tablet-zh-dark.png": "8e384f89acbe0ec38b9ac6fde4acd951bb0d7b74e09ee56020f14cf5229ccb68",
+  "tablet-zh-light.png": "8e384f89acbe0ec38b9ac6fde4acd951bb0d7b74e09ee56020f14cf5229ccb68"
+}
