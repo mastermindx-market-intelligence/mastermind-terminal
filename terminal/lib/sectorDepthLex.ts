@@ -251,6 +251,11 @@ export const SECTOR_DEPTH_LEX: Record<string, [string, string]> = {
   ],
   siThemeNaturallyObserved: ["live-tracked series", "实时追踪序列"],
   siThemeExactValues: ["Exact values", "精确数值"],
+  siThemeNoneSelected: [
+    "All series are off — toggle one back on to compare.",
+    "全部系列已关闭——请重新开启至少一个以进行比较。",
+  ],
+  siThemeDateCol: ["Date", "日期"],
   siThemeTurnMarkers: ["cycle turns", "周期拐点"],
   siThemeTurnPeak: ["peak {date}", "峰值 {date}"],
   siThemeTurnTrough: ["trough {date}", "谷值 {date}"],
