@@ -1,0 +1,12 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr650-native-validation-20261109/terminal
+
+ ✓ lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts (5 tests) 39ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  05:17:58
+   Duration  1.55s (transform 59ms, setup 0ms, collect 137ms, tests 39ms, environment 0ms, prepare 888ms)
+
+JSON report written to /Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr650-native-validation-20261109/terminal/test-results/pr650-recovery-20261109/native-evidence-tests-report.json

@@ -1,0 +1,9 @@
+{
+  "failedAttempt": "failed-native-attempt-browser-cache",
+  "classification": "execution prerequisite missing before first browser launch",
+  "images": 0,
+  "sourceStable": true,
+  "closed": true,
+  "repair": "Installed exact Playwright1.61.1 Chromium headless revision1228 into the owned validation cache without changing the shared cache. Both actual drivers now select that cache.",
+  "replayedAfterMaterialRepair": true
+}

@@ -1,14 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { useLang } from "@/lib/i18n";
 import { ownerKeyFor } from "@/lib/accountIdentity";
 import { browserStorage, readOwnerSlot, writeOwnerSlot } from "@/lib/ownerStorage";
 import { readingJson } from "@/lib/shared-shell/useReadingScope";
+import { freshnessLabel, readingFreshness } from "@/lib/shared-shell/readingFreshness";
+import { useReadingClock } from "@/lib/shared-shell/useReadingClock";
 import styles from "@/components/workspaces/ReadingWorkspace.module.css";
 import today from "./TodayWorkspace.module.css";
+import TodayRiskEvents from "./TodayRiskEvents";
+import { todayBriefContext, type TodayBriefContext } from "@/lib/shared-shell/todayBriefContext";
 
 // "Since your last visit" — the retention half of the portfolio brief, on the product home.
 //
@@ -26,13 +30,21 @@ import today from "./TodayWorkspace.module.css";
 /** Composition handles for the desk's jobs: the paid slot, the unpaid teaser, and the phase
  *  that chose between them. The consumer nests the rest of Today around these nodes, so this
  *  holder — and its reads, its stored digest, and its focus state — never remounts. */
-type SinceParts = { priority: ReactNode; teaser: ReactNode; phase: Phase };
+type SinceParts = { priority: ReactNode; teaser: ReactNode; context: ReactNode; phase: Phase };
 type Props = { ownerKey: string; scope: { current: AbortController | null }; onUnauthenticated: () => void;
   render?: (parts: SinceParts) => ReactNode };
 type Change = { kind: string; en: string; zh: string; ticker?: string; sector?: string };
 type Cursor = { note_en: string; note_zh: string } | null;
 type Population = { mode: string; en: string; zh: string };
+type ComparisonBasis = {
+  previousAvailable: boolean;
+  previousAsOf: string | null;
+  previousEmpty: boolean;
+  population: string | null;
+  saved: boolean;
+};
 type Reading = {
+  basis: ComparisonBasis;
   asof: string | null;
   firstVisit: boolean;
   changes: Change[];
@@ -73,11 +85,11 @@ function readStored(ownerKey: string): Record<string, unknown> | null {
 }
 
 /** Replace (or, with undefined, delete) this owner's digest; every other owner's slot is
- *  left byte-identical. A refused write (private mode, quota) is not an error: the section
- *  still renders, and the next visit simply reads as a first visit again. */
-function writeStored(ownerKey: string, digest: Record<string, unknown> | undefined): void {
+ *  left byte-identical. A refused write keeps the current reading useful, but must be
+ *  disclosed: a later comparison may use an older baseline or no usable baseline. */
+function writeStored(ownerKey: string, digest: Record<string, unknown> | undefined): boolean {
   const storage = browserStorage();
-  if (storage) writeOwnerSlot(storage, STORAGE_KEY, ownerSlot(ownerKey), digest);
+  return storage ? writeOwnerSlot(storage, STORAGE_KEY, ownerSlot(ownerKey), digest) : false;
 }
 
 function parseChange(value: unknown): Change | null {
@@ -89,7 +101,7 @@ function parseChange(value: unknown): Change | null {
   return change;
 }
 
-type Parsed = { reading: Omit<Reading, "population">; population: string | null; digest: Record<string, unknown> };
+type Parsed = { reading: Omit<Reading, "population" | "basis">; population: string | null; digest: Record<string, unknown> };
 
 function parseChanges(payload: unknown): Parsed | null {
   if (!isRecord(payload) || payload.schema !== "portfolio_changes.v1") return null;
@@ -133,32 +145,55 @@ function populationFor(brief: Population | null, changes: string | null): { en: 
   return { en: brief.en, zh: brief.zh };
 }
 
+/** A desk date is not a visit time. Do not normalize malformed dates or infer chronology. */
+function deskDate(value: unknown): string | null {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const at = Date.parse(`${value}T00:00:00Z`);
+  return Number.isFinite(at) && new Date(at).toISOString().slice(0, 10) === value ? value : null;
+}
+
 const COPY = {
   en: {
-    title: "Since your last visit",
+    title: "Since your last reading",
     portfolio: "Open Portfolio",
     loading: "Reading what changed in your names…",
-    teaser: "The desk's since-last-visit read is part of the Pro portfolio brief, composed over the names you hold.",
+    teaser: "Compare saved readings with the Pro portfolio brief.",
     teaserLink: "See the Pro brief",
-    unavailable: "What changed in your names could not be read. Your stored marker is kept.",
+    unavailable: "The comparison is unavailable. Existing saved readings are unchanged.",
     retry: "Check again",
-    first: "First visit on this device. Changes to your names will appear from your next visit.",
-    quiet: "Nothing the desk tracks moved for your names since your last visit.",
+    first: "No earlier comparison is available for this reading.",
+    quiet: "No tracked changes in this reading.",
     asof: "Desk read as of",
+    basis: "Comparison basis", local: "This account · this browser",
+    previousDate: "Saved reading date", returnedDate: "Returned reading date",
+    population: "Current selection", priorPopulation: "Previous selection type",
+    noDate: "Date unavailable", noPrevious: "No usable saved reading", notRecorded: "Not recorded",
+    positions: "Held names", watchlists: "Watchlist symbols", unspecified: "Not specified",
+    basisNote: "Reading dates are not visit times. Only the returned fields are compared.",
+    emptyBasis: "The saved reading has no covered names. This does not mean your lists or holdings are empty.",
+    saveUnconfirmed: "This reading is available, but saving the next comparison was not confirmed.",
     more: (count: number) => `Show ${count} more change${count === 1 ? "" : "s"}`,
     open: (ticker: string) => `Open ${ticker} in Analysis`,
   },
   zh: {
-    title: "自你上次查看以来",
+    title: "与已保存读数比较",
     portfolio: "打开投资组合",
     loading: "正在读取你的持仓变化…",
-    teaser: "桌面的“自你上次查看以来”判读属于 Pro 投资组合简报，基于你持有的名称生成。",
+    teaser: "通过 Pro 投资组合简报，比较已保存的读数。",
     teaserLink: "查看 Pro 简报",
-    unavailable: "无法读取你的持仓变化。已保存的记录将保留。",
+    unavailable: "暂时无法读取比较。已有的保存读数保持不变。",
     retry: "重新检查",
-    first: "这是本设备的首次查看。你的持仓变化将从下次查看起显示。",
-    quiet: "自你上次查看以来，桌面跟踪的内容在你的名称上没有变化。",
+    first: "此次读数没有可用的先前比较。",
+    quiet: "此次读数未返回已跟踪项目的变化。",
     asof: "桌面读数截至",
+    basis: "比较依据", local: "当前账户 · 当前浏览器",
+    previousDate: "已保存读数日期", returnedDate: "此次返回读数日期",
+    population: "当前标的范围", priorPopulation: "先前标的范围类型",
+    noDate: "日期不可用", noPrevious: "无可用的已保存读数", notRecorded: "未记录",
+    positions: "持仓标的", watchlists: "关注列表标的", unspecified: "未指定",
+    basisNote: "读数日期不是访问时间；比较仅涵盖返回的字段。",
+    emptyBasis: "已保存读数未覆盖任何标的，不代表你的关注列表或持仓为空。",
+    saveUnconfirmed: "此次读数仍可查看，但尚未确认已保存供下次比较的记录。",
     more: (count: number) => `显示另外 ${count} 项变化`,
     open: (ticker: string) => `在分析页打开 ${ticker}`,
   },
@@ -175,6 +210,7 @@ function TodaySinceLastVisitSession({ ownerKey, scope, onUnauthenticated, render
   const pick = (pair: { en: string; zh: string }) => (lang === "zh" ? pair.zh : pair.en);
   const [phase, setPhase] = useState<Phase>("loading");
   const [reading, setReading] = useState<Reading | null>(null);
+  const [contextRead, setContextRead] = useState<TodayBriefContext | null>(null);
   const [showAll, setShowAll] = useState(false);
   // The expand control unmounts once pressed; focus moves to the first revealed line so a
   // keyboard or screen-reader user does not land on <body>.
@@ -191,7 +227,7 @@ function TodaySinceLastVisitSession({ ownerKey, scope, onUnauthenticated, render
     const read = ++generation.current;
     let alive = true;
     const stale = () => !alive || read !== generation.current || scope.current !== controller || controller.signal.aborted;
-    const hide = () => { if (!alive) return; setPhase("ended"); setReading(null); };
+    const hide = () => { if (!alive) return; setPhase("ended"); setReading(null); setContextRead(null); };
     controller.signal.addEventListener("abort", hide, { once: true });
     queueMicrotask(() => {
       if (stale()) return;
@@ -205,6 +241,7 @@ function TodaySinceLastVisitSession({ ownerKey, scope, onUnauthenticated, render
           if (brief.response.status === 403) { setPhase("teaser"); return; }
           if (!brief.response.ok) { setPhase("unavailable"); return; }
           const population = parsePopulation(brief.value);
+          setContextRead(todayBriefContext(brief.value));
 
           const previous = readStored(ownerKey);
           const changes = await readingJson(scope, CHANGES_URL, {
@@ -217,9 +254,16 @@ function TodaySinceLastVisitSession({ ownerKey, scope, onUnauthenticated, render
           if (changes.response.status === 403) { setPhase("teaser"); return; }
           const parsed = changes.response.ok ? parseChanges(changes.value) : null;
           if (!parsed) { setPhase("unavailable"); return; }
-          // Only a desk answer advances the marker.
-          writeStored(ownerKey, parsed.digest);
-          setReading({ ...parsed.reading, population: populationFor(population, parsed.population) });
+          // Capture the request's actual prior baseline BEFORE advancing the slot. The
+          // inspector must never reconstruct it by rereading the now-overwritten storage.
+          const basis: ComparisonBasis = {
+            previousAvailable: previous !== null,
+            previousAsOf: deskDate(previous?.asof),
+            previousEmpty: previous !== null && Object.keys(previous.names as Record<string, unknown>).length === 0,
+            population: parsed.population,
+            saved: writeStored(ownerKey, parsed.digest),
+          };
+          setReading({ ...parsed.reading, population: populationFor(population, parsed.population), basis });
           setPhase("ready");
         } catch {
           if (stale()) return;
@@ -230,12 +274,20 @@ function TodaySinceLastVisitSession({ ownerKey, scope, onUnauthenticated, render
     return () => { alive = false; controller.signal.removeEventListener("abort", hide); };
   }, [attempt, ownerKey, scope]);
 
-  const retry = () => { setPhase("loading"); setReading(null); setShowAll(false); setAttempt(value => value + 1); };
+  const clockBucket = useCallback((at: Date) => {
+    const age = readingFreshness(reading?.asof, at);
+    const contextAge = readingFreshness(contextRead?.asof, at);
+    return `${age.kind}|${age.sessions}|${age.days}|${contextAge.kind}|${contextAge.sessions}`;
+  }, [reading?.asof, contextRead?.asof]);
+  const now = useReadingClock(clockBucket);
+  const age = readingFreshness(reading?.asof, now);
+
+  const retry = () => { setPhase("loading"); setReading(null); setContextRead(null); setShowAll(false); setAttempt(value => value + 1); };
 
   // Paid first: every state except the teaser holds the opening slot. The unpaid teaser —
   // and only the teaser — moves after the saved watch attention, reading continuation, and
   // research briefing through `render`; one session renders both slots, so nothing remounts.
-  if (phase === "ended") return render ? <>{render({ priority: null, teaser: null, phase })}</> : null;
+  if (phase === "ended") return render ? <>{render({ priority: null, teaser: null, context: null, phase })}</> : null;
 
   const all = reading?.changes ?? [];
   const lines = showAll ? all : all.slice(0, MAX_LINES);
@@ -266,8 +318,21 @@ function TodaySinceLastVisitSession({ ownerKey, scope, onUnauthenticated, render
       {(reading.asof || reading.population) && <p className={today.sinceMeta}>
         {reading.asof && <>{c.asof} <strong>{reading.asof}</strong>{reading.population ? " · " : ""}</>}
         {reading.population && pick(reading.population)}
+        {reading.asof && age.kind !== "undated" && <span className={today.readingAge} data-kind={age.kind}> · {freshnessLabel(age, lang)}</span>}
       </p>}
-      {reading.cursor && <p className={today.sinceFoot}>{lang === "zh" ? reading.cursor.note_zh : reading.cursor.note_en}</p>}
+      {!reading.basis.saved && <p className={today.saveWarning} role="status">{c.saveUnconfirmed}</p>}
+      <details className={today.comparisonBasis} data-today-comparison-basis>
+        <summary>{c.basis}<span>{c.local}</span></summary>
+        <dl>
+          <div><dt>{c.previousDate}</dt><dd>{reading.basis.previousAvailable ? reading.basis.previousAsOf || c.noDate : c.noPrevious}</dd></div>
+          <div><dt>{c.returnedDate}</dt><dd>{deskDate(reading.asof) || c.noDate}</dd></div>
+          <div><dt>{c.population}</dt><dd>{reading.basis.population === "positions" ? c.positions : reading.basis.population === "watchlist_union" ? c.watchlists : c.unspecified}</dd></div>
+          <div><dt>{c.priorPopulation}</dt><dd>{c.notRecorded}</dd></div>
+        </dl>
+        <p>{c.basisNote}</p>
+        {reading.basis.previousEmpty && <p>{c.emptyBasis}</p>}
+        {reading.cursor && <p>{lang === "zh" ? reading.cursor.note_zh : reading.cursor.note_en}</p>}
+      </details>
     </>}
   </section>;
   const teaser = phase === "teaser" ? <section className={today.sinceJob} data-today-since-state={phase} aria-label={c.title}>
@@ -277,6 +342,10 @@ function TodaySinceLastVisitSession({ ownerKey, scope, onUnauthenticated, render
     </p>
   </section> : null;
 
-  if (render) return <>{render({ priority, teaser, phase })}</>;
+  // A failed comparison does not erase a separately valid brief. A 401/403 does.
+  // The source snapshot is never persisted or fetched again by the presentation.
+  const context = phase !== "teaser" && contextRead && (contextRead.regime.length > 0 || (contextRead.earnings?.length ?? 0) > 0)
+    ? <TodayRiskEvents value={contextRead} now={now} /> : null;
+  if (render) return <>{render({ priority, teaser, context, phase })}</>;
   return teaser ?? priority;
 }

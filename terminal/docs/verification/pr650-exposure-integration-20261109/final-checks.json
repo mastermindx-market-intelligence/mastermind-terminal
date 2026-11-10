@@ -1,0 +1,46 @@
+[
+  {
+    "command": [
+      "node",
+      "--test",
+      "e2e/tools/optionsExposureEvidence.test.cjs",
+      "e2e/tools/capture_ci_evidence.test.cjs",
+      "scripts/ci/plan-evidence-capture.test.cjs"
+    ],
+    "exit": 0,
+    "log": "terminal/docs/verification/pr650-exposure-integration-20261109/final-node.log",
+    "logSha256": "a93855505e87b486a3b9812aa6f5bae1af664f095dd9b4e0b69f4eb0a510e32f",
+    "name": "final-node",
+    "seconds": 19.71
+  },
+  {
+    "command": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "lib/__tests__/optionsExposureEvidence.test.ts",
+      "lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+      "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+      "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts"
+    ],
+    "exit": 0,
+    "log": "terminal/docs/verification/pr650-exposure-integration-20261109/final-native.log",
+    "logSha256": "a1059e822865802b22201ccf4a9ea60efbc2de9d30a794bec5e99013d2c90ff2",
+    "name": "final-native",
+    "seconds": 7.22
+  },
+  {
+    "command": [
+      "node",
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--incremental",
+      "false"
+    ],
+    "exit": 0,
+    "log": "terminal/docs/verification/pr650-exposure-integration-20261109/final-typecheck.log",
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "name": "final-typecheck",
+    "seconds": 102.13
+  }
+]

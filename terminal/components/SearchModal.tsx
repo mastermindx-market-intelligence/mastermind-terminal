@@ -1,6 +1,6 @@
 "use client";
 import { pick } from "@/lib/finFormat";
-import { Fragment, useCallback, useDeferredValue, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Fragment, useCallback, useDeferredValue, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import { useLang, useT } from "@/lib/i18n";
 import { verdictLabel } from "@/lib/plainLabels";
@@ -19,6 +19,7 @@ import { categoryBrowse, isCompanySearchRow, tabOf } from "@/lib/searchCategory"
 import { useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
 import { useDialogFocus } from "@/components/studyTemplates/useDialogFocus";
+import type { DialogFocusSession } from "@/lib/dialogFocusReturn";
 import styles from "./SearchModal.module.css";
 import CompanyListingIdentity from "./CompanyListingIdentity";
 import SharedSearchWorkspace, { type SharedSearchOptions } from "./SharedSearchWorkspace";
@@ -176,6 +177,14 @@ export default function SearchModal({
   const compareChoiceRef = useRef<HTMLButtonElement>(null);
   const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [dialogHost, setDialogHost] = useState<HTMLDivElement | null>(null);
+  const focusSessionRef = useRef<DialogFocusSession>({ opener: null, predecessors: null });
+  const searchWasOpen = useRef(false);
+  useLayoutEffect(() => {
+    // Reset before the presentation's passive focus owner captures a new opener.
+    // Responsive remounts within the same open task retain that original target.
+    if (open && !searchWasOpen.current) focusSessionRef.current = { opener: null, predecessors: null };
+    searchWasOpen.current = open;
+  }, [open]);
   const pickerRef = useRef<HTMLDivElement>(null);
   const pickerTriggerRef = useRef<HTMLButtonElement>(null);
   const pickerCreateRef = useRef<HTMLButtonElement>(null);
@@ -1135,6 +1144,7 @@ export default function SearchModal({
     return (
       <MobileSheet
         open
+        focusSessionRef={focusSessionRef}
         onClose={onClose}
         title={title}
         detents={sharedSearch ? [92, 96] : SEARCH_DETENTS}
@@ -1153,6 +1163,7 @@ export default function SearchModal({
     : pick(lang === "zh", "Close symbol search", "关闭代码搜索");
 
   return <SearchDialog shared={!!sharedSearch} onScopeChange={setDialogHost} title={title} titleId={`${uid}-title`}
+    focusSessionRef={focusSessionRef}
     closeLabel={closeLabel} onClose={onClose} onEscape={dismissSearch} compare={cmp} focusPanel={!focusSearchInput}
     panelClassName={`smodal${sharedSearch ? ` ${styles.sharedPanel}` : ""}${cmp ? " smodal-cmp" : ""}${isAdd ? " smodal-add" : ""}${isHub ? " smodal-hub" : ""}`}>
     {presentedBody}
@@ -1160,8 +1171,9 @@ export default function SearchModal({
 }
 
 /** One focus owner for the panel AND its overflow-escaping picker. Phone navigation keeps MobileSheet. */
-function SearchDialog({ shared = false, onScopeChange, title, titleId, closeLabel, panelClassName, compare, focusPanel, onClose, onEscape, children }: {
+function SearchDialog({ shared = false, onScopeChange, title, titleId, closeLabel, panelClassName, compare, focusPanel, focusSessionRef, onClose, onEscape, children }: {
   onScopeChange: (scope: HTMLDivElement | null) => void;
+  focusSessionRef: RefObject<DialogFocusSession>;
   title: string; titleId: string; closeLabel: string; panelClassName: string; compare: boolean; focusPanel: boolean;
   onClose: () => void; onEscape: () => void; children: ReactNode; shared?: boolean;
 }) {
@@ -1170,7 +1182,7 @@ function SearchDialog({ shared = false, onScopeChange, title, titleId, closeLabe
     ref.current = scope;
     onScopeChange(scope);
   }, [onScopeChange]);
-  useDialogFocus(ref, onEscape);
+  useDialogFocus(ref, onEscape, { focusSessionRef });
   useLayoutEffect(() => {
     if (!shared) return;
     const scope = ref.current;

@@ -44,7 +44,7 @@ afterEach(async () => { await act(async () => root.unmount()); host.remove(); })
 describe("Discover question chooser", () => {
   it("opens each incumbent tool and the independent company-search scope", async () => {
     const onSelect = vi.fn(), onSearchCompanies = vi.fn();
-    await act(async () => root.render(<DiscoverLanding onSelect={onSelect} onSearchCompanies={onSearchCompanies} />));
+    await act(async () => root.render(<DiscoverLanding ready onSelect={onSelect} onSearchCompanies={onSearchCompanies} />));
     const buttons = Array.from(host.querySelectorAll("button"));
     for (const label of ["Open Stock Screener", "Open Heatmap", "Open Sectors", "Leaders", "Leader Radar", "Open study"]) {
       const button = buttons.find(item => item.textContent?.trim() === label)!;
@@ -60,7 +60,7 @@ describe("Discover question chooser", () => {
   });
   it("uses translated chooser controls and qualified regional Prophet wording", async () => {
     locale.lang = "zh";
-    await act(async () => root.render(<DiscoverLanding onSelect={vi.fn()} onSearchCompanies={vi.fn()} />));
+    await act(async () => root.render(<DiscoverLanding ready onSelect={vi.fn()} onSearchCompanies={vi.fn()} />));
     expect(host.querySelector("h1")?.textContent).toBe("发现");
     expect(host.textContent).toContain("搜索公司");
     expect(host.textContent).not.toContain("Open Stock Screener");
