@@ -63,11 +63,17 @@ export const SECTOR_DEPTH_LEX: Record<string, [string, string]> = {
   siCallsThemeKind: ["Theme", "主题"],
   siCallsSectorKind: ["Sector", "板块"],
   siCallsWhy: ["Why", "理由"],
+  siCallsSignalGrade: ["Signal grade", "信号等级"],
   siCallsTrace: ["Trace", "依据"],
   siCallsTraceHide: ["Hide trace", "收起依据"],
   siCalls20dVsMarket: ["20d vs market", "20日对比市场"],
   siCallsRolloverBand: ["rollover risk {band}", "滚动风险 {band}"],
   siCallsScoreLabel: ["score {score}", "评分 {score}"],
+  siCallsBreadth: ["Breadth (50-day)", "广度（50 日）"],
+  siCallsRsPctile: ["RS percentile", "相对强弱百分位"],
+  siCallsAllocRank: ["Allocation rank", "配置排名"],
+  siCallsBookWt: ["Book weight", "组合权重"],
+  siCallsDurability: ["Durability", "持续性"],
   siCallsFlipDistance: ["{n} pts from a lane flip", "距分组切换 {n} 点"],
   siCallsMembers: ["members", "成分"],
   siCallsDetail: ["Open detail", "打开详情"],
@@ -170,8 +176,8 @@ export const SECTOR_DEPTH_LEX: Record<string, [string, string]> = {
     "{gateable}/{total} 个{noun}有足够数据可计时",
   ],
   siUniverseCoverageThin: [
-    "{n} thin — listed in the table, not timed",
-    "{n} 个数据稀疏——列于表内，不计时",
+    "{n} thin — counted, not timed",
+    "{n} 个数据稀疏——计入统计，不计时",
   ],
   siUniverseCoverageBelowMin: [
     "{n} below the {min}-name minimum",
@@ -193,6 +199,10 @@ export const SECTOR_DEPTH_LEX: Record<string, [string, string]> = {
   siUniverseZeroGroups: [
     "This universe carries no groups tonight.",
     "今晚此样本域没有分组。",
+  ],
+  siUniverseBuyableEmpty: [
+    "No group is in the entry tiers right now — the rotation read carries the full map.",
+    "当前没有分组处于入场层级——轮动读数包含完整地图。",
   ],
   siUniverseNoAccess: [
     "This universe's source requires access your reading does not carry.",
