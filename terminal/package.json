@@ -10,6 +10,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
+    "gen:sector-dossiers-validator": "node scripts/gen_sector_dossiers_validator.mjs",
     "test:e2e:responsive": "playwright test"
   },
   "dependencies": {
