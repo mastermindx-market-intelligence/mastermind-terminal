@@ -330,8 +330,10 @@ describe("0049 sector intelligence investigation admission contract", () => {
     // those examples must be exactly what validateInvestigationManifest admits under
     // INVESTIGATION_ADMISSION — the same corpus witness values the parity suites pin.
     const evidence = probeBody(sql, "investigation_evidence_admitted_v2");
+    const escapeRegExp = (value: string): string =>
+      value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const example = (probe: string, owner: string, type: string): string => {
-      const m = probe.match(new RegExp(`\\$1='${owner.replace(/\./g, "\\.")}' and \\$2='${type}'\\s*then\\s+'([^']+)'`));
+      const m = probe.match(new RegExp(`\\$1='${escapeRegExp(owner)}' and \\$2='${escapeRegExp(type)}'\\s*then\\s+'([^']+)'`));
       expect(m).not.toBeNull();
       return m?.[1] ?? "";
     };
