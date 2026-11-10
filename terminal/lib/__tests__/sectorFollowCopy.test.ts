@@ -10,7 +10,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { followCopyKey, SECTOR_INTELLIGENCE_LEX } from "../sectorIntelligenceLex";
-import { followState, type FollowInputs, type FollowTransport } from "../investigationFollow";
+import { followState, type FollowInputs, type FollowState, type FollowTransport } from "../investigationFollow";
 
 /** Everything confirmed except the transport under test — the only axis that
  * separates `following` from `delivery_problem`. */
@@ -32,6 +32,19 @@ describe("followCopyKey — the Follow line's copy decision (COO 19:15Z item 2)"
     expect(followCopyKey(open(admitted("unavailable")))).toBe("siFollowUnavailable");
     expect(followCopyKey(open(admitted("queued")))).toBe("siFollowActive");
     expect(followCopyKey(open(admitted("sent")))).toBe("siFollowActive");
+  });
+
+  it("SF-1 (third review): anything the mapper does not recognise fails closed to the closed, non-claiming line", () => {
+    for (const hostile of [
+      { state: "paused" }, // an unlisted state a future lane might add
+      {},                  // an empty object
+      { state: "" },       // an empty-string state
+      { state: "following", notificationClaimed: true, transport: "failed" }, // following label, non-claiming transport
+    ] as unknown as FollowState[]) {
+      const key = followCopyKey(hostile);
+      expect(key, JSON.stringify(hostile)).toBe("siFollowClosed");
+      expect(SECTOR_INTELLIGENCE_LEX[key][0]).not.toMatch(/following/i);
+    }
   });
 
   it("a failed transport is a named delivery problem, never the following line", () => {

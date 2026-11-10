@@ -726,7 +726,11 @@ export function useSectorT() {
 /** The Follow line's copy decision (COO 19:15Z item 2): the machine's own state
  * names the reader-facing line. A delivery problem gets its own named line —
  * failed and unknown are distinguished — and is NEVER the "following" line;
- * lane 6's followState owns the rule, this only maps its output. */
+ * lane 6's followState owns the rule, this only maps its output.
+ * SF-1 (third review): "Following" is a claim, so it is returned ONLY for the
+ * exact following shape — `state === "following"` with transport `queued` or
+ * `sent`. Anything the mapper does not recognise fails closed to the closed,
+ * non-claiming line. */
 export function followCopyKey(follow: FollowState): string {
   if (follow.state === "delivery_problem") {
     return follow.reason === "transport_failed" ? "siFollowDeliveryFailed" : "siFollowDeliveryUnknown";
@@ -734,5 +738,8 @@ export function followCopyKey(follow: FollowState): string {
   if (follow.state === "closed") return "siFollowClosed";
   if (follow.state === "saved_preference_only") return "siFollowPreferenceOnly";
   if (follow.state === "configured_unavailable") return "siFollowUnavailable";
-  return "siFollowActive";
+  if (follow.state === "following" && (follow.transport === "queued" || follow.transport === "sent")) {
+    return "siFollowActive";
+  }
+  return "siFollowClosed";
 }
