@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type APIResponse, type Page, type Route } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import projection from "../lib/usEquitySessionProjection.json";
 import { renderAsGuest } from "./layoutStore";
@@ -7,6 +7,34 @@ import type { Bar6 } from "../lib/intradayShared";
 test.beforeEach(async ({page,baseURL}) => {
   await page.context().addCookies([{name:"mm_e2e_rs30",value:"1",url:baseURL!}]);
 });
+
+// Match the emitted factory itself. Turbopack can group it into an opaque chunk,
+// while its importer also mentions the module without defining the client action.
+const STUDY_FACTORY = '"[project]/components/workspaces/RSPivotStudy.tsx [app-client] (ecmascript)", ((';
+
+async function interceptStudyFactory(page: Page, baseURL: string, intercept: (route: Route, response: APIResponse) => Promise<void>) {
+  const origin = new URL(baseURL).origin;
+  await page.route(url => url.origin === origin && url.pathname.startsWith("/_next/static/chunks/")
+    && url.pathname.endsWith(".js"), async route => {
+    const request = route.request();
+    if (request.method() !== "GET") return route.fallback();
+    const response = await route.fetch({
+      headers: { ...await request.allHeaders(), "accept-encoding": "identity" },
+      maxRedirects: 0, maxRetries: 0,
+    });
+    try {
+      const encoding = response.headers()["content-encoding"];
+      expect(encoding ?? "identity", "static fixture response uses the requested identity encoding").toBe("identity");
+      if (response.ok() && (await response.text()).includes(STUDY_FACTORY)) {
+        await intercept(route, response);
+      } else {
+        await route.fulfill({ response });
+      }
+    } finally {
+      await response.dispose();
+    }
+  });
+}
 
 // Synthetic, nominal geometry fixtures. Never treated as a production/PIT data receipt.
 function input(symbol: string): Bar6[] {
@@ -88,13 +116,13 @@ test("logged-out user gets the existing sign-in path and cannot request research
   await expect(page.getByRole("link",{name:"Sign in",exact:true})).toBeVisible(); expect(requests).toBe(0);
 });
 
-test("streamed study action waits for its lazy client handlers before accepting a run", async ({ page }) => {
+test("streamed study action waits for its lazy client handlers before accepting a run", async ({ page, baseURL }) => {
   let release!: () => void;
   const gate = new Promise<void>(resolve => { release = resolve; });
   let held = 0;
   let inputs = 0;
-  await page.route(/\/_next\/static\/chunks\/[^/]*RSPivotStudy[^/]*\.js(?:\?.*)?$/, async route => {
-    held++; await gate; await route.continue();
+  await interceptStudyFactory(page, baseURL!, async (route, response) => {
+    held++; await gate; await route.fulfill({ response });
   });
   await page.route("**/api/intraday?**", route => {
     inputs++;
@@ -110,7 +138,7 @@ test("streamed study action waits for its lazy client handlers before accepting 
     await page.goto("/discover?tab=rs-pivot", { waitUntil: "commit" });
     const run = page.getByRole("button", { name: "Run local study", exact: true });
     await expect(page.getByRole("heading", { name: "RS × 30m Pivot Study" })).toBeVisible();
-    await expect.poll(() => held).toBeGreaterThan(0);
+    await expect.poll(() => held).toBe(1);
     await expect(run).toBeDisabled();
     await run.evaluate((button: HTMLButtonElement) => button.click());
     expect(inputs).toBe(0);
@@ -119,21 +147,23 @@ test("streamed study action waits for its lazy client handlers before accepting 
     await run.click();
     await expect(page.getByTestId("rs-pivot-chart")).toBeVisible({ timeout: 30000 });
     expect(inputs).toBe(2);
+    expect(held).toBe(1);
   } finally { release(); }
 });
 
-test("a missing study client chunk leaves the streamed action inert", async ({ page }) => {
+test("a missing study client chunk leaves the streamed action inert", async ({ page, baseURL }) => {
   let rejected = 0;
   let inputs = 0;
-  await page.route(/\/_next\/static\/chunks\/[^/]*RSPivotStudy[^/]*\.js(?:\?.*)?$/, async route => {
+  await interceptStudyFactory(page, baseURL!, async route => {
     rejected++; await route.abort("failed");
   });
   page.on("request", request => { if (request.url().includes("/api/intraday?")) inputs++; });
   await page.goto("/discover?tab=rs-pivot", { waitUntil: "commit" });
   const run = page.getByRole("button", { name: "Run local study", exact: true });
-  await expect.poll(() => rejected).toBeGreaterThan(0);
+  await expect.poll(() => rejected).toBe(1);
   // A rejected lazy chunk may remove its boundary. Neither an enabled action
   // nor a research request may survive that failure.
   await expect(run.and(page.locator(":enabled"))).toHaveCount(0);
   expect(inputs).toBe(0);
+  expect(rejected).toBe(1);
 });

@@ -438,9 +438,15 @@ test("AC-E05-03 — concurrent edits merge disjoint fields and surface a same-fi
     await menuNote(page, "NVDA", MINE);
     await expectSync(page, "retrying");
   } else {
-    await editSlot(page, E2E_WL_NOTES_KEY, owner, "NVDA", MINE);
+    // Set the offline edit before the next document restores the owner slot.
+    await seedSlots(page, "conflict-offline", [[E2E_WL_NOTES_KEY, owner, { NVDA: MINE }]]);
     await boot(page);
     await expectSync(page, "readFailed");
+    await expect(row(page, "NVDA").locator(".wl-note-mark")).toHaveAttribute("title", MINE);
+    await expect.poll(() => slot(page, ANNOTATION_SYNC_KEY, owner)).toMatchObject({
+      acked: { "NVDA|note": { value: "shared base", rev: 1 } },
+      pending: { "NVDA|note": { value: MINE, base: 1 } },
+    });
   }
   // ...while the other device changes the same note and, separately, the flag.
   await serverWrite(request, key, [{ symbol: "NVDA", field: "note", value: THEIRS, baseRevision: 1 }, { symbol: "NVDA", field: "flag", value: BLUE, baseRevision: 0 }]);

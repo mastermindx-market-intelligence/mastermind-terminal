@@ -46,14 +46,13 @@ const tiles = ["AAA", "BBB", "CCC", "DDD", "EEE"].map((ticker, index) => ({ t: t
  * overview. The dossier is the owner's own `measured_read` document, delivered exactly as the
  * producer delivers it — no new gateway and no new route. */
 async function prepare(page: Page, options: {
-  language?: string; read?: unknown; denied?: boolean; withdrawAfterFirst?: boolean;
+  language?: string; read?: unknown; denied?: boolean; accessWithdrawn?: () => boolean;
   /** Serve the producer's exact-session companion inside a synthetic November 5 parent. */
   companion?: unknown;
 } = {}) {
   await page.addInitScript(lang => {
     localStorage.setItem("mm.lang", lang); document.documentElement?.setAttribute("data-lang", lang);
   }, options.language || "en");
-  let sectorReads = 0;
   await page.route("**/api/sector-intelligence?**", async (route: Route) => {
     const source = new URL(route.request().url()).searchParams.get("source") || "";
     if (source === "heatmap") return route.fulfill({ status: 200, json: { data: {
@@ -61,9 +60,7 @@ async function prepare(page: Page, options: {
       receipt: { source, path: "/marketdata/sp500_heatmap.json", status: "ready", asOf: "2026-10-09",
         observedAt: "2026-10-09T21:00:00Z", stale: false, contentHash: null } } });
     if (source !== "sector") return sectorFixture(route);
-    sectorReads += 1;
-    const withdrawn = options.denied || (options.withdrawAfterFirst && sectorReads > 1);
-    if (withdrawn) return route.fulfill({ status: 401, json: { data: null, receipt: {
+    if (options.denied || options.accessWithdrawn?.()) return route.fulfill({ status: 401, json: { data: null, receipt: {
       source, path: "/sectordata/sector_central.json", status: "access", asOf: null,
       observedAt: null, stale: false, contentHash: null } } });
     const read = options.companion !== undefined ? nov5Parent(options.companion)
@@ -77,6 +74,13 @@ async function prepare(page: Page, options: {
 }
 
 const root = (page: Page) => page.getByTestId("sector-intelligence");
+async function refreshAfterWithdrawal(page: Page, withdraw: () => void) {
+  const expected = new URL("/api/sector-intelligence?source=sector", page.url()).href;
+  const denied = page.waitForResponse(response => response.url() === expected
+    && response.request().method() === "GET" && response.status() === 401);
+  withdraw();
+  await Promise.all([denied, root(page).getByRole("button", { name: "Refresh" }).click()]);
+}
 const panel = (page: Page) => page.getByTestId("sector-leadership-dossier");
 const metric = (page: Page, window: string) =>
   panel(page).locator(`[data-testid="sector-dossier-metric"][data-window="${window}"]`);
@@ -208,9 +212,10 @@ test("the rotation workspace opens the same research depth", async ({ page }) =>
 });
 
 test("a withdrawn access clears every figure and leaves the rest of the overview intact", async ({ page }) => {
-  await prepare(page, { withdrawAfterFirst: true }); await page.goto(detail);
+  let withdrawn = false;
+  await prepare(page, { accessWithdrawn: () => withdrawn }); await page.goto(detail);
   await expect(metric(page, "21")).toContainText("-0.50%");
-  await root(page).getByRole("button", { name: "Refresh" }).click();
+  await refreshAfterWithdrawal(page, () => { withdrawn = true; });
   await expect(panel(page)).toContainText("Leadership evidence requires access");
   await expect(metric(page, "21")).toHaveCount(0);
   await expect(panel(page)).not.toContainText("-0.50%");
@@ -388,9 +393,10 @@ test("a valid all-null companion block stays visible with its identities and cau
 });
 
 test("a withdrawn access clears the companion and leaves the rest of the overview intact", async ({ page }) => {
-  await prepare(page, { companion: complete, withdrawAfterFirst: true }); await page.goto(detail);
+  let withdrawn = false;
+  await prepare(page, { companion: complete, accessWithdrawn: () => withdrawn }); await page.goto(detail);
   await expect(exactWindow(page, "63").locator('[data-testid="sector-exact-absolute"]')).toHaveText("-8.85%");
-  await root(page).getByRole("button", { name: "Refresh" }).click();
+  await refreshAfterWithdrawal(page, () => { withdrawn = true; });
   await expect(panel(page)).toContainText("Leadership evidence requires access");
   await expect(exact(page)).toHaveCount(0);
   await expect(root(page).getByTestId("sector-detail-return")).toBeVisible();
