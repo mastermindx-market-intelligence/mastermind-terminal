@@ -336,8 +336,9 @@ kill -KILL "$$"
  assert 'pending' in out2.stdout+out2.stderr
 
 
-# The PIPE ignore taken with the build lock (both profiles).
-EARLY_PIPE_IGNORE="\ntrap '' PIPE\nif [ \"$TARGET\" = beta ]; then\n"
+# The PIPE ignore taken just before the build lock (both profiles).
+LOCK_ENTRANCE='deploy_lock_acquire "$SHARED_BUILD_LOCK_DIR" "$TARGET" || exit $?\n'
+EARLY_PIPE_IGNORE="\ntrap '' PIPE\n"+LOCK_ENTRANCE
 
 def closed_channel_upgrade(box):
  """The B upgrade with its output on a pipe. Parked in the stage step, the
@@ -389,7 +390,7 @@ def _case_mutant_without_the_early_pipe_ignore_never_reaches_the_beta_build(box)
  # trap or not, and with which status) differs between bash 5.2 and 5.3.
  script=box.owner.read_text()
  assert script.count(EARLY_PIPE_IGNORE)==1,'mutation anchor vanished from ops/terminal-build.sh'
- box.owner.write_text(script.replace(EARLY_PIPE_IGNORE,'\n:  # MUTANT: PIPE keeps its default disposition\nif [ "$TARGET" = beta ]; then\n'))
+ box.owner.write_text(script.replace(EARLY_PIPE_IGNORE,'\n:  # MUTANT: PIPE keeps its default disposition\n'+LOCK_ENTRANCE))
  box.bootstrap()
  start=len(box.effects())
  status=closed_channel_upgrade(box)

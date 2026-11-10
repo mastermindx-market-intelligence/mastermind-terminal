@@ -508,14 +508,20 @@ def _mutate(tmp_path: Path, anchor: str, replacement: str, *more: tuple) -> Path
     return mutant
 
 
-# The PIPE ignore taken with the build lock, for both profiles. Every mutant that
-# needs PIPE at its default disposition has to remove this one first.
-EARLY_PIPE_IGNORE = "\ntrap '' PIPE\nif [ \"$TARGET\" = beta ]; then\n"
+# The PIPE ignore taken just before the build lock, for both profiles. Every
+# mutant that needs PIPE at its default disposition has to remove this one first.
+LOCK_ENTRANCE = (
+    'deploy_lock_acquire "$SHARED_BUILD_LOCK_DIR" "$TARGET" || exit $?\n'
+    "trap cleanup_deploy_attempt EXIT\n"
+)
+EARLY_PIPE_IGNORE = "\ntrap '' PIPE\n" + LOCK_ENTRANCE
 NO_EARLY_PIPE_IGNORE = (
     EARLY_PIPE_IGNORE,
     "\n:  # MUTANT: PIPE keeps its default disposition while the lock is held\n"
-    "if [ \"$TARGET\" = beta ]; then\n",
+    + LOCK_ENTRANCE,
 )
+# The ignore taken only once the lock is held and the EXIT trap is set.
+PIPE_IGNORE_AFTER_THE_LOCK = (EARLY_PIPE_IGNORE, "\n" + LOCK_ENTRANCE + "trap '' PIPE\n")
 
 # The exit path's own route into the single abort (cleanup_deploy_attempt): an
 # open, uncommitted production generation is rolled back there too. A mutant
@@ -695,6 +701,18 @@ SHIMS = {
         '    kill -TERM $$ ;;\n'
         '  esac\n'
         'fi\nexec /bin/mv "$@"\n'
+    ),
+    # HOLD_MKDIR_MATCH parks one matching mkdir before it happens. The per-target
+    # lock marker directory is the last command of deploy_lock_acquire ahead of
+    # its "build lock acquired" line, with the hold and its owner record on disk.
+    "mkdir": (
+        '#!/bin/sh\n'
+        'if [ -n "${HOLD_MKDIR_MATCH:-}" ]; then\n'
+        '  case "$*" in *"$HOLD_MKDIR_MATCH"*)\n'
+        '    : > "$HOLD_MKDIR.started"\n'
+        '    while [ ! -e "$HOLD_MKDIR.release" ]; do /bin/sleep 0.05; done ;;\n'
+        '  esac\n'
+        'fi\nexec /bin/mkdir "$@"\n'
     ),
     # The real rsync, behind one hold: HOLD_RSYNC parks the FIRST call (the stage
     # step's copy of the target source), before any signal trap is taken.
@@ -3473,6 +3491,53 @@ def test_mutant_without_the_early_pipe_ignore_dies_before_the_build(tmp_path):
     )
     assert "npm run build" not in _effect_lines(tmp_path)
     assert not _reset_to_accepted(tmp_path), "the exit path recovered the checkout after all"
+
+
+# -- a closed deploy channel at the lock itself --
+#
+# deploy_lock_acquire ends with a log line, written after the hold and its owner
+# record exist and before the caller sets the EXIT trap. A channel closed just
+# ahead of that line must not cost the hold: nothing would ever release it.
+
+LOCK_MARKER = "/build-lock"     # the per-target marker directory, made last
+
+
+def test_closed_output_at_the_lock_acquired_line_does_not_leak_the_hold(tmp_path):
+    """The channel closes with the hold taken and "build lock acquired" not yet
+    written. The run goes on, reaches its own verdict and releases the lock."""
+    before: dict = {}
+    rc, out, app = _interrupted(
+        tmp_path, SCRIPT, "HOLD_MKDIR", HOLD_MKDIR_MATCH=LOCK_MARKER,
+        deps=deps_unchanged, before=before, close=True,
+    )
+
+    assert "build lock acquired" not in out, "fixture: the channel closed after the line"
+    # (the sandbox has no ops/terminal-data, so step 8 exits non-zero after acceptance)
+    assert rc >= 0, f"the deploy was killed by signal {-rc}"
+    assert not build_lock_hold(app).exists(), "the build lock was never released"
+    assert _service_actions(tmp_path) == ["systemctl restart terminal"]
+    assert marker_of(app) == NEW_SHA and live_build_id(app) == NEW_BUILD_ID
+    assert not (app / ".deployment-id.bak").exists(), "the accepted generation was not committed"
+    assert not list(app.parent.glob(".stage.*")), "the stage was left behind"
+
+
+def test_mutant_with_the_pipe_ignore_after_the_lock_leaks_the_hold(tmp_path):
+    """Take the ignore only after the lock -> "build lock acquired" kills the shell
+    with the hold on disk and no EXIT trap set yet (so this does not depend on
+    whether a bash enters its EXIT trap on a fatal SIGPIPE). Nothing else ran."""
+    mutant = _mutate(tmp_path, *PIPE_IGNORE_AFTER_THE_LOCK)
+    rc, out, app = _interrupted(
+        tmp_path, mutant, "HOLD_MKDIR", HOLD_MKDIR_MATCH=LOCK_MARKER,
+        deps=deps_unchanged, before={}, close=True,
+    )
+
+    assert rc == -signal.SIGPIPE, (
+        f"mutation was inert — the ignore ahead of the lock is not what survives a "
+        f"channel closed at the lock (rc={rc}):\n{out}"
+    )
+    hold = build_lock_hold(app)
+    assert hold.is_dir() and (hold / "owner").is_file(), "the hold was released after all"
+    assert not [l for l in _effect_lines(tmp_path) if l.startswith(("git ", "npm ", "systemctl "))]
 
 
 def test_log_survives_a_closed_output_channel():

@@ -6545,17 +6545,20 @@ fi
 # first provisioning archive, the first staging directory, the first Git command
 # and the first service effect, for EITHER profile. The per-target identity and
 # path guards run immediately behind it and stay exactly as strict.
-deploy_lock_acquire "$SHARED_BUILD_LOCK_DIR" "$TARGET" || exit $?
-trap cleanup_deploy_attempt EXIT
-# From the first moment the lock is held, for EITHER profile: a cancelled caller
+#
+# PIPE is ignored BEFORE the lock is taken, for EITHER profile: a cancelled caller
 # closes the deploy channel without sending a signal, and the next write raises
-# SIGPIPE. bash 5.3 then dies without its EXIT trap: the lock stays held, the
-# canonical checkout stays on the unaccepted target and the stage leaks. bash 5.2
-# enters the trap with status 0, so it skips the recovery and dies again on its
-# own next log line: the checkout is still left on the unaccepted target.
+# SIGPIPE. The first such write can be deploy_lock_acquire's own last line, after
+# the hold exists and before the EXIT trap below does: the hold was then left
+# behind and every later deploy refused. Later in the run bash 5.3 dies without
+# its EXIT trap (lock held, canonical checkout on the unaccepted target, stage
+# leaked) and bash 5.2 enters the trap with status 0, skips the recovery and dies
+# again on its own next log line.
 # Ignored (never trapped, see deploy_take_signal_traps) the write just fails,
 # `log` discards that, and the run reaches its own verdict and its cleanup.
 trap '' PIPE
+deploy_lock_acquire "$SHARED_BUILD_LOCK_DIR" "$TARGET" || exit $?
+trap cleanup_deploy_attempt EXIT
 if [ "$TARGET" = beta ]; then
   trap 'exit 129' HUP
   trap 'exit 130' INT
