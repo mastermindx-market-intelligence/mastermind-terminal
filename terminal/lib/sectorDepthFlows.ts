@@ -419,20 +419,32 @@ export const CARRIED_FLOW_LABELS: readonly string[] = Object.keys(
   CARRIED_LABEL_TO_WINDOW,
 );
 
-function finiteOrNull(v: unknown): number | null {
-  return typeof v === "number" && Number.isFinite(v) ? v : null;
-}
+/** Stated upper bound on the carried fund count (review S3). The committed
+ * producer emits the fixed 11-fund sector-SPDR complex; 64 is a generous
+ * sanity ceiling (~6× the real set) for an owner that widens coverage. A
+ * block claiming more funds than this is treated as malformed (null), never
+ * truncated — a silent head-slice would invent a coverage the owner did not
+ * state. */
+export const FLOW_FUND_MAX = 64;
 
 /** Adapt the carried etf_flows block into FlowsData. Strict closed-shape read:
  * unit must be "usd_mn" (never silently re-unit), all five windows must be
- * present under their known uppercase labels with finite trading_days and a
- * boolean full_window, and funds/net_flow_mn must be well-formed — anything
- * else returns null so the surface renders its unavailable state instead of
- * an invented number. A window key absent (or null) inside flow_mn is NO
- * READING (null), never zero. The block carries no fund names: the ticker is
- * the identity. The block's own as_of/depth/source are carried through. */
+ * present under their known uppercase labels with EXACTLY their contract
+ * trading-day counts (1D/3D/1W/2W/1M = 1/3/5/10/21, integers — a mismatch is
+ * malformed, review S4) and a boolean full_window; funds/net_flow_mn must be
+ * plain objects whose keys are all known labels and whose present values are
+ * finite numbers or null — anything else returns null so the surface renders
+ * its unavailable state instead of an invented or partial number (review S3).
+ * A window key ABSENT (or null) inside flow_mn is NO READING (null), never
+ * zero; a key PRESENT with a wrong-typed value (string, array, object…) makes
+ * the whole block null. Duplicate tickers and more than FLOW_FUND_MAX funds
+ * are malformed. `funds: []` is ALSO malformed: the producer always carries
+ * the full collected fund set, so an empty array means collection failed —
+ * unavailable, not a measured-empty matrix. The block carries no fund names:
+ * the ticker is the identity. The block's own as_of/depth/source carry
+ * through. */
 export function flowsFromCarriedBlock(block: unknown): FlowsData | null {
-  if (typeof block !== "object" || block === null) return null;
+  if (typeof block !== "object" || block === null || Array.isArray(block)) return null;
   const b = block as Partial<CarriedEtfFlowsBlock>;
   if (typeof b.as_of !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(b.as_of)) {
     return null;
@@ -444,7 +456,11 @@ export function flowsFromCarriedBlock(block: unknown): FlowsData | null {
   if (typeof b.source !== "string" || !b.source) return null;
   if (typeof b.measure !== "string" || !b.measure) return null;
   if (!Array.isArray(b.windows) || !Array.isArray(b.funds)) return null;
-  if (typeof b.net_flow_mn !== "object" || b.net_flow_mn === null) return null;
+  if (b.funds.length === 0) return null; // collection failure, not a measured empty
+  if (b.funds.length > FLOW_FUND_MAX) return null; // stated bound, never truncated
+  if (typeof b.net_flow_mn !== "object" || b.net_flow_mn === null || Array.isArray(b.net_flow_mn)) {
+    return null;
+  }
 
   const windowMeta: Partial<Record<FlowWindow, CarriedWindowMeta>> = {};
   const labelToWindow: Record<string, FlowWindow> = {};
@@ -452,11 +468,9 @@ export function flowsFromCarriedBlock(block: unknown): FlowsData | null {
     if (typeof w !== "object" || w === null) return null;
     const win = CARRIED_LABEL_TO_WINDOW[w.label as string];
     if (win === undefined) return null; // closed label set
-    if (
-      typeof w.trading_days !== "number" ||
-      !Number.isFinite(w.trading_days) ||
-      w.trading_days < 1
-    ) {
+    // S4: the label must match its trading-day count exactly — the contract
+    // table is 1/3/5/10/21 integers, and the producer pins the same table.
+    if (!Number.isInteger(w.trading_days) || w.trading_days !== WINDOW_DAYS[win]) {
       return null;
     }
     if (typeof w.full_window !== "boolean") return null;
@@ -468,29 +482,45 @@ export function flowsFromCarriedBlock(block: unknown): FlowsData | null {
     if (!windowMeta[w]) return null; // all five, or the block is unusable
   }
 
-  const valuesOf = (src: Record<string, unknown>): Record<FlowWindow, number | null> => {
+  /** S3: every key must be a known label; a present value must be a finite
+   * number or null. Absent keys stay absent (no reading) — that part is the
+   * wire's absent-key rule and is unchanged. */
+  const valuesOf = (src: Record<string, unknown>): Record<FlowWindow, number | null> | null => {
     const out = {} as Record<FlowWindow, number | null>;
     for (const w of FLOW_WINDOWS) out[w] = null;
-    for (const [label, v] of Object.entries(src ?? {})) {
+    for (const [label, v] of Object.entries(src)) {
       const win = labelToWindow[label];
-      if (win !== undefined) out[win] = finiteOrNull(v);
+      if (win === undefined) return null; // unknown key ⇒ malformed block
+      if (v === null) continue; // carried no-reading
+      if (typeof v !== "number" || !Number.isFinite(v)) return null; // wrong type
+      out[win] = v;
     }
     return out;
   };
 
   const rows: FlowRow[] = [];
+  const seenTickers = new Set<string>();
   for (const f of b.funds) {
     if (typeof f !== "object" || f === null) return null;
     if (typeof f.ticker !== "string" || !f.ticker) return null;
-    if (typeof f.flow_mn !== "object" || f.flow_mn === null) return null;
-    rows.push({ ticker: f.ticker, values: valuesOf(f.flow_mn as Record<string, unknown>) });
+    if (seenTickers.has(f.ticker)) return null; // duplicate ticker ⇒ malformed
+    seenTickers.add(f.ticker);
+    if (typeof f.flow_mn !== "object" || f.flow_mn === null || Array.isArray(f.flow_mn)) {
+      return null;
+    }
+    const values = valuesOf(f.flow_mn as Record<string, unknown>);
+    if (values === null) return null;
+    rows.push({ ticker: f.ticker, values });
   }
+
+  const net = valuesOf(b.net_flow_mn as Record<string, unknown>);
+  if (net === null) return null;
 
   return {
     asof: b.as_of,
     depth: Math.floor(b.depth),
     rows,
-    net: valuesOf(b.net_flow_mn as Record<string, unknown>),
+    net,
     source: b.source,
     windowMeta,
   };

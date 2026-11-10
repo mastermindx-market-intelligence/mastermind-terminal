@@ -14,19 +14,26 @@
  *    rows, the watch payload's id-membership sets, and the payload-only
  *    fields that must never reach a rendered model output.
  *
- * Pure Node vitest — no DOM, no React: everything here is the props-in/model
- * seam the components render.
+ * Pure Node vitest — no DOM, no jsdom: everything here is the props-in/model
+ * seam the components render, plus the S2 closed-shape boundary verified with
+ * renderToStaticMarkup (server render, no DOM needed).
  */
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { SectorCallsBoard } from "../../components/sector-intelligence/depth/SectorCallsBoard";
+import { SectorBottomingWatch } from "../../components/sector-intelligence/depth/SectorBottomingWatch";
 import {
   BOARD_LANE_ORDER,
   BOTTOMING_CAP,
   NO_GRADE,
   PREVIEW_ROWS,
+  actionBoardFromCarried,
   boardTotals,
+  bottomingWatchFromCarried,
   columnPreview,
   foldSixToFive,
   hasRecovering,
@@ -678,3 +685,193 @@ describe("stand-aside groups (R5 C01) — hold/avoid keep named identity", () =>
 function foldedStandAside(): LaneData {
   return foldSixToFive(contract.action_board.lanes).stand_aside;
 }
+
+// ── S2: closed-shape carried readers ─────────────────────────────────────────
+
+describe("S2 — actionBoardFromCarried (closed-shape reader)", () => {
+  it("accepts the real captured board and the synthetic contract board, as the SAME object", () => {
+    expect(actionBoardFromCarried(capturedBoard)).toBe(capturedBoard);
+    expect(actionBoardFromCarried(contract.action_board)).toBe(contract.action_board);
+    expect(actionBoardFromCarried(capturedBoard)?.lanes.hold.rows).toHaveLength(3);
+  });
+
+  it("returns null for every malformed or incomplete board — never throws", () => {
+    const variant = (mutate: (b: Record<string, unknown>) => void): unknown => {
+      const b = JSON.parse(JSON.stringify(contract.action_board)) as Record<string, unknown>;
+      mutate(b);
+      return b;
+    };
+    const lanes = (b: Record<string, unknown>) => b.lanes as Record<string, unknown>;
+    /** The hold lane's FIRST row of this variant's own clone. */
+    const holdRow0 = (b: Record<string, unknown>) =>
+      (lanes(b).hold as { rows: Record<string, unknown>[] }).rows[0]!;
+
+    // Not an object.
+    for (const bad of [undefined, null, "board", 42, [], true]) {
+      expect(actionBoardFromCarried(bad)).toBeNull();
+    }
+    // Envelope violations.
+    expect(actionBoardFromCarried(variant((b) => { delete b.as_of; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { b.as_of = "2026/11/03"; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { b.as_of = 20261103; }))).toBeNull();
+    // Absent total never reaches the reader as "undefined" text (S2 defect).
+    expect(actionBoardFromCarried(variant((b) => { delete b.total; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { b.total = "19"; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { b.total = 19.5; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { b.total = -1; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { delete b.locked; }))).toBeNull();
+    // Lane-record violations — a missing lanes object or ONE missing lane was
+    // the S2 defect that threw inside the component.
+    expect(actionBoardFromCarried(variant((b) => { delete b.lanes; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { b.lanes = []; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { delete lanes(b).avoid; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { delete lanes(b).buy_now; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { delete (lanes(b).hold as { rows?: unknown }).rows; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { delete (lanes(b).hold as { total?: unknown }).total; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { delete (lanes(b).hold as { locked?: unknown }).locked; }))).toBeNull();
+    // Row-shape violations on one row poison the whole board (closed shape).
+    expect(actionBoardFromCarried(variant((b) => { delete holdRow0(b).href; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { delete holdRow0(b).name_zh; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { holdRow0(b).kind = "basket"; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { holdRow0(b).score = "63"; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { holdRow0(b).score = Number.NaN; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { holdRow0(b).eligible = "true"; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { holdRow0(b).top_members = "H0001"; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { holdRow0(b).top_members = [1]; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { holdRow0(b).book_wt = "0.2"; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { holdRow0(b).signal_grade = 1; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { holdRow0(b).days = "3"; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { holdRow0(b).stat_en = 5; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { holdRow0(b).emerging = "yes"; }))).toBeNull();
+    expect(actionBoardFromCarried(variant((b) => { holdRow0(b).emergence_href = 7; }))).toBeNull();
+    // buy_soon's nullable days and null book_wt/signal_grade stay accepted.
+    expect(
+      actionBoardFromCarried(
+        variant((b) => {
+          const rows = (lanes(b).buy_soon as { rows: Record<string, unknown>[] }).rows;
+          rows[4].days = null;
+          rows[0].book_wt = null;
+        }),
+      ),
+    ).not.toBeNull();
+  });
+});
+
+describe("S2 — bottomingWatchFromCarried (closed-shape reader)", () => {
+  const watch = contract.bottoming_watch_payload;
+
+  it("accepts the contract watch payload as the SAME object", () => {
+    expect(bottomingWatchFromCarried(watch)).toBe(watch);
+    expect(bottomingWatchFromCarried(watch)?.bottoming_watch).toHaveLength(10);
+  });
+
+  it("returns null for every malformed or incomplete payload — never throws", () => {
+    const variant = (mutate: (w: Record<string, unknown>) => void): unknown => {
+      const w = JSON.parse(JSON.stringify(watch)) as Record<string, unknown>;
+      mutate(w);
+      return w;
+    };
+    const entries = (w: Record<string, unknown>) => w.bottoming_watch as Record<string, unknown>[];
+
+    for (const bad of [undefined, null, "watch", 42, [], true]) {
+      expect(bottomingWatchFromCarried(bad)).toBeNull();
+    }
+    // A missing/empty entries array was the S2 defect ("is not iterable").
+    expect(bottomingWatchFromCarried(variant((w) => { delete w.bottoming_watch; }))).toBeNull();
+    expect(bottomingWatchFromCarried(variant((w) => { w.bottoming_watch = {}; }))).toBeNull();
+    // A shorter (but well-formed) list is fine — measured empties stay legal.
+    expect(
+      bottomingWatchFromCarried(variant((w) => { entries(w).splice(2, 1); })),
+    ).not.toBeNull();
+    // Entry-shape violations poison the whole payload.
+    expect(bottomingWatchFromCarried(variant((w) => { entries(w)[0].kind = "basket"; }))).toBeNull();
+    expect(bottomingWatchFromCarried(variant((w) => { delete entries(w)[0].name_zh; }))).toBeNull();
+    expect(bottomingWatchFromCarried(variant((w) => { entries(w)[1].pos = "14"; }))).toBeNull();
+    expect(bottomingWatchFromCarried(variant((w) => { entries(w)[1].osc_slope = Number.POSITIVE_INFINITY; }))).toBeNull();
+    expect(bottomingWatchFromCarried(variant((w) => { entries(w)[3].above200d = "false"; }))).toBeNull();
+    expect(bottomingWatchFromCarried(variant((w) => { entries(w)[3].gate_conflict = 1; }))).toBeNull();
+    expect(bottomingWatchFromCarried(variant((w) => { entries(w)[0].signal = 5; }))).toBeNull();
+    expect(bottomingWatchFromCarried(variant((w) => { entries(w)[0].cycle_signal = 5; }))).toBeNull();
+    expect(bottomingWatchFromCarried(variant((w) => { delete entries(w)[0].timing_state; }))).toBeNull();
+    expect(bottomingWatchFromCarried(variant((w) => { delete entries(w)[0].href; }))).toBeNull();
+    // Membership-set violations.
+    expect(bottomingWatchFromCarried(variant((w) => { delete w.dual_read_ids; }))).toBeNull();
+    expect(bottomingWatchFromCarried(variant((w) => { w.recovering_ids = "syn_w5"; }))).toBeNull();
+    expect(bottomingWatchFromCarried(variant((w) => { (w.dual_read_ids as unknown[])[0] = 5; }))).toBeNull();
+    // Authority violations: wrong tier, an escaped may_* flag, bad disclosure.
+    expect(bottomingWatchFromCarried(variant((w) => { delete w.bottoming_authority; }))).toBeNull();
+    expect(bottomingWatchFromCarried(variant((w) => { (w.bottoming_authority as { tier: string }).tier = "trade"; }))).toBeNull();
+    expect(bottomingWatchFromCarried(variant((w) => { (w.bottoming_authority as { may_rank: boolean }).may_rank = true; }))).toBeNull();
+    expect(bottomingWatchFromCarried(variant((w) => { (w.bottoming_authority as { may_size: boolean }).may_size = true; }))).toBeNull();
+    expect(
+      bottomingWatchFromCarried(
+        variant((w) => { (w.bottoming_authority as { null_disclosure_en: unknown }).null_disclosure_en = 5; }),
+      ),
+    ).toBeNull();
+  });
+});
+
+describe("S2 — component boundary: malformed payloads render unavailable, never throw", () => {
+  const renderBoard = (board: unknown): string =>
+    renderToStaticMarkup(createElement(SectorCallsBoard, { board: board as never }));
+  const renderWatch = (watch: unknown): string =>
+    renderToStaticMarkup(createElement(SectorBottomingWatch, { watch: watch as never }));
+
+  it("a valid board still renders fully (control)", () => {
+    const markup = renderBoard(contract.action_board);
+    expect(markup).not.toContain("data-depth-unavailable");
+    expect(markup).toContain("Synthetic theme 1");
+  });
+
+  it("a missing lanes object renders the typed unavailable state — the S2 throw is gone", () => {
+    const bad = JSON.parse(JSON.stringify(contract.action_board)) as Record<string, unknown>;
+    delete bad.lanes;
+    const markup = renderBoard(bad);
+    expect(markup).toContain('data-depth-unavailable="action_board"');
+  });
+
+  it("an absent board total renders unavailable — never 'undefined qualified rows' text", () => {
+    const bad = JSON.parse(JSON.stringify(contract.action_board)) as Record<string, unknown>;
+    delete bad.total;
+    const markup = renderBoard(bad);
+    expect(markup).toContain('data-depth-unavailable="action_board"');
+    expect(markup).not.toContain("undefined");
+    expect(markup).not.toContain("NaN");
+  });
+
+  it("one malformed row renders unavailable for the whole board (closed shape)", () => {
+    const bad = JSON.parse(JSON.stringify(contract.action_board)) as {
+      lanes: { hold: { rows: Record<string, unknown>[] } };
+    };
+    delete bad.lanes.hold.rows[0].href;
+    expect(renderBoard(bad)).toContain('data-depth-unavailable="action_board"');
+  });
+
+  it("an absent or {} watch payload renders unavailable — the iterable throw is gone", () => {
+    for (const bad of [undefined, null, {}]) {
+      const markup = renderWatch(bad);
+      expect(markup).toContain('data-depth-unavailable="bottoming_watch"');
+      expect(markup).not.toContain("undefined");
+      expect(markup).not.toContain("NaN");
+    }
+    const noEntries = JSON.parse(JSON.stringify(contract.bottoming_watch_payload)) as Record<string, unknown>;
+    delete noEntries.bottoming_watch;
+    expect(renderWatch(noEntries)).toContain('data-depth-unavailable="bottoming_watch"');
+  });
+
+  it("a valid watch still renders fully (control)", () => {
+    const markup = renderWatch(contract.bottoming_watch_payload);
+    expect(markup).not.toContain("data-depth-unavailable");
+    expect(markup).toContain("Synthetic watch 5");
+  });
+
+  it("S5 wiring: the unavailable state names the localized owner, never the raw wire id", () => {
+    const markup = renderBoard(null);
+    expect(markup).toContain("Macro sector generation");
+    expect(markup).toContain("the action board");
+    expect(markup).not.toContain("macro_sector_generation");
+    const watchMarkup = renderWatch(null);
+    expect(watchMarkup).toContain("Macro sector generation");
+    expect(watchMarkup).toContain("the bottoming watch");
+  });
+});

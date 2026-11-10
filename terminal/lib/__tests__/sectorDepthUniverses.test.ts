@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
-  BASKET_BENCHMARK_LABEL,
   CLASS_LABEL_KEYS,
   CLASS_ORDER,
   MEMBERS_PREVIEW,
@@ -60,6 +59,92 @@ const ndx = U.nasdaq;
 
 const keys = (groups: UniverseGroup[]) => groups.map((g) => g.key);
 
+/** Real basket_confluence.json shape (owner field names and nullability
+ * exactly as emitted; VALUES synthetic — this is a contract probe, never a
+ * generation). Used by the S1 regression test: the payload's own `universe`
+ * string is the owner word "curated_baskets", which is NOT a tab id. */
+function realShapedBaskets(n: number): UniverseData {
+  const classes = ["entry_now", "forming", "tailwind", "neutral", "late", "headwind"] as const;
+  const tiers = ["high", "med", "low"] as const;
+  const baskets: UniverseGroup[] = Array.from({ length: n }, (_, i) => ({
+    key: `theme-${i + 1}`,
+    kind: "basket",
+    label: `Synthetic theme ${i + 1}`,
+    label_zh: i % 3 === 2 ? null : `合成主题${i + 1}`,
+    sector: "Thematic",
+    sector_zh: "主题",
+    n_members: 4,
+    n_priced: 4,
+    reliability: tiers[i % tiers.length],
+    coverage_pct: 1,
+    n_live: 4,
+    start: "2019-01-02",
+    as_of: "2026-11-06",
+    price_level: "above_200d",
+    class: classes[i % classes.length],
+    entry: {
+      tier: "T1",
+      weight: 0.5,
+      tier_sub: null,
+      ticks: 0,
+      bars_to_cross: null,
+      fresh_bars: null,
+      eligible: true,
+      buyable: true,
+      above200: true,
+      reason: "synthetic contract probe",
+    },
+    regime: {
+      state: "uptrend",
+      side: "buy",
+      label: "Tailwind",
+      label_zh: "顺风",
+      action: null,
+      action_zh: null,
+      rs_60d: 1.5,
+    },
+    members: [0, 1, 2, 3].map((m) => ({
+      ticker: `TB${i}M${m}`,
+      name_zh: null,
+      price: 10 + m,
+      ret_20d: 1 - m * 0.5,
+      vs_basket: 0.5 - m * 0.25,
+      stock_tier: m === 0 ? "T1" : null,
+      stock_weight: 0.25,
+      stock_ticks: null,
+      stock_bars_to_cross: null,
+      stock_buyable: m === 0,
+      stock_state: "entry",
+    })),
+    basket_id: `syn-theme-${i + 1}`,
+    chart_key: `theme-${i + 1}`,
+    has_signals: true,
+  }));
+  return {
+    ok: true,
+    universe: "curated_baskets",
+    weighting: "equal",
+    benchmark: null,
+    region: "US",
+    as_of: "2026-11-06",
+    coverage: {
+      n_baskets: n,
+      n_gateable: n,
+      n_thin: 0,
+      n_below_min_members: 0,
+      n_unscored: 0,
+      n_high: 33,
+      n_med: 14,
+      n_low_conf: 2,
+    },
+    entry_now: baskets.filter((g) => g.class === "entry_now").map((g) => g.key),
+    forming: [],
+    headwind: [],
+    baskets,
+    generated_utc: "2026-11-07T03:00:00Z",
+  };
+}
+
 describe("fixture contract (real owner field names)", () => {
   it("declares itself synthetic", () => {
     expect(fixtureDoc.note).toBe(
@@ -80,7 +165,7 @@ describe("fixture contract (real owner field names)", () => {
     expect(sub.forming).toEqual(["aerospace-defense", "software-infra"]);
     expect(ndx.as_of).toBeNull();
     expect(sub.as_of).toBe("2026-11-07");
-    for (const g of groupsOf(sub)) {
+    for (const g of groupsOf("subsectors", sub)) {
       expect(typeof g.key).toBe("string");
       expect(typeof g.class).toBe("string");
       expect(typeof g.entry.tier).toBe("string");
@@ -90,7 +175,7 @@ describe("fixture contract (real owner field names)", () => {
   });
 
   it("covers the required states: classes incl. one forming + one unknown, all four freshness kinds, 7-member group, zero groups, ok:false, n_listed-only, null label_zh", () => {
-    const groups = groupsOf(sub);
+    const groups = groupsOf("subsectors", sub);
     expect(groups.length).toBeGreaterThanOrEqual(3);
     for (const cls of CLASS_ORDER) expect(groups.map((g) => g.class)).toContain(cls);
     // One scored row carries a class outside the engine order.
@@ -99,13 +184,13 @@ describe("fixture contract (real owner field names)", () => {
     expect(classRank(unknown!.class)).toBe(UNKNOWN_CLASS_RANK);
     expect(UNKNOWN_CLASS_RANK).toBe(9);
 
-    const kinds = new Set([...groupsOf(sub), ...groupsOf(ndx)].map((g) => freshnessOf(g).kind));
+    const kinds = new Set([...groupsOf("subsectors", sub), ...groupsOf("nasdaq", ndx)].map((g) => freshnessOf(g).kind));
     for (const kind of ["just_fired", "fired_ago", "about_to_fire", "none"] as FreshnessKind[]) {
       expect(kinds.has(kind)).toBe(true);
     }
 
     expect(groups.find((g) => g.key === "semis-equip")!.members.length).toBe(7);
-    expect(universePresence(U.baskets)).toBe("zero_groups");
+    expect(universePresence("baskets", U.baskets)).toBe("zero_groups");
     expect(U.russell.ok).toBe(false);
     expect(ndx.coverage.n_subsectors).toBeUndefined();
     expect(ndx.coverage.n_listed).toBe(62);
@@ -124,7 +209,6 @@ describe("fixture contract (real owner field names)", () => {
     expect(UNIVERSES.baskets.laneColKey).toBe("siUniverseColCategory");
     expect(UNIVERSES.baskets.filterPlaceholderKey).toBe("siUniverseFilterPlaceholderBk");
     expect(UNIVERSES.baskets.benchmarkKey).toBeNull();
-    expect(BASKET_BENCHMARK_LABEL).toBe("equal-weight basket complex");
     for (const id of ["subsectors", "nasdaq", "russell"] as const) {
       expect(UNIVERSES[id].groupsKey).toBe("subsectors");
       expect(UNIVERSES[id].nounKey).toBe("siUniverseSubsectors");
@@ -138,11 +222,11 @@ describe("fixture contract (real owner field names)", () => {
 
 describe("groupsOf + league keys (scored rows only)", () => {
   it("reads the universe's own array and nothing else", () => {
-    expect(keys(groupsOf(sub))).toHaveLength(8);
-    expect(keys(groupsOf(ndx))).toEqual(["software-infra", "semis-complex", "networking"]);
-    expect(groupsOf(U.russell)).toEqual([]);
-    expect(groupsOf(U.baskets)).toEqual([]);
-    expect(groupsOf(undefined)).toEqual([]);
+    expect(keys(groupsOf("subsectors", sub))).toHaveLength(8);
+    expect(keys(groupsOf("nasdaq", ndx))).toEqual(["software-infra", "semis-complex", "networking"]);
+    expect(groupsOf("russell", U.russell)).toEqual([]);
+    expect(groupsOf("baskets", U.baskets)).toEqual([]);
+    expect(groupsOf("subsectors", undefined)).toEqual([]);
   });
 
   it("leagues are key sets from the same universe and never fabricate rows", () => {
@@ -152,14 +236,63 @@ describe("groupsOf + league keys (scored rows only)", () => {
     expect(leagues.headwind.has("networking-equipment")).toBe(true);
     // A league key with no scored row stays a key — it never becomes a row.
     expect(leagues.headwind.has("thin-ghost")).toBe(true);
-    const scored = new Set(keys(groupsOf(sub)));
+    const scored = new Set(keys(groupsOf("subsectors", sub)));
     expect(scored.has("thin-ghost")).toBe(false);
     // Resolving league keys happens only against the SAME universe's rows.
-    const ndxScored = new Map(keys(groupsOf(ndx)).map((k) => [k, k]));
+    const ndxScored = new Map(keys(groupsOf("nasdaq", ndx)).map((k) => [k, k]));
     expect(ndxScored.has("software-infra")).toBe(true); // same key, other universe
     const ndxLeagues = leagueKeys(ndx);
     expect(ndxLeagues.entry_now.has("software-infra")).toBe(true);
     expect(ndxLeagues.entry_now.has("semis-equip")).toBe(false);
+  });
+});
+
+describe("S1 — the group array follows the TAB id, never the payload's universe string", () => {
+  it("the contract fixture carries the real owner universe vocabulary", () => {
+    expect(sub.universe).toBe("sp500_subsectors");
+    expect(ndx.universe).toBe("nasdaq_subsectors");
+    expect(U.russell.universe).toBe("russell_subsectors");
+    expect(U.baskets.universe).toBe("curated_baskets");
+  });
+
+  it("no owner universe word is a tab id, so the payload string can never select the array", () => {
+    for (const word of [
+      "sp500_subsectors",
+      "nasdaq_subsectors",
+      "russell_subsectors",
+      "curated_baskets",
+    ]) {
+      expect(UNIVERSE_ORDER).not.toContain(word);
+      expect((UNIVERSES as Record<string, unknown>)[word]).toBeUndefined();
+    }
+  });
+
+  it("the real basket shape (baskets[49], universe 'curated_baskets') tables all 49 groups under the baskets tab", () => {
+    const payload = realShapedBaskets(49);
+    expect(payload.universe).toBe("curated_baskets");
+    expect(payload.baskets).toHaveLength(49);
+    expect(payload.coverage.n_baskets).toBe(49);
+    const groups = groupsOf("baskets", payload);
+    expect(groups).toHaveLength(49);
+    expect(groups[48].key).toBe("theme-49");
+    expect(universePresence("baskets", payload)).toBe("live");
+    // The same file read under any other tab stays empty — one payload never
+    // leaks into another universe's table.
+    expect(groupsOf("subsectors", payload)).toEqual([]);
+  });
+
+  it("keying on the payload string would render the real baskets file empty — the exact S1 defect", () => {
+    const payload = realShapedBaskets(49);
+    // What the old code effectively did: look the owner word up in the tab
+    // map, miss, fall back to `subsectors`, and find no such array.
+    const ownerWord = payload.universe;
+    const fallbackKey =
+      (UNIVERSES as Record<string, { groupsKey: string } | undefined>)[ownerWord]?.groupsKey ??
+      "subsectors";
+    const viaOwnerWord = (
+      payload as unknown as Partial<Record<string, UniverseGroup[]>>
+    )[fallbackKey];
+    expect(Array.isArray(viaOwnerWord) ? viaOwnerWord.length : 0).toBe(0);
   });
 });
 
@@ -175,7 +308,7 @@ describe("classCounts + RIBBON_ORDER (B01 coverage ribbon)", () => {
   });
 
   it("counts scored groups per class; unribboned classes report 0, never undefined", () => {
-    const counts = classCounts(groupsOf(sub));
+    const counts = classCounts(groupsOf("subsectors", sub));
     // The fixture carries 8 scored groups: 7 known classes + one unknown
     // "rotated" word, which the ribbon skips (its row still renders raw).
     let known = 0;
@@ -193,7 +326,7 @@ describe("classCounts + RIBBON_ORDER (B01 coverage ribbon)", () => {
   it("an unknown class word is not ribboned (its rows stay counted nowhere here)", () => {
     // Runtime-only shape: the engine can reclassify between sessions; the
     // component already renders the raw word, the ribbon must skip it.
-    const g = { ...groupsOf(sub)[0], class: "rotated" } as unknown as UniverseGroup;
+    const g = { ...groupsOf("subsectors", sub)[0], class: "rotated" } as unknown as UniverseGroup;
     const counts = classCounts([g]);
     expect(Object.values(counts).reduce((a, b) => a + b, 0)).toBe(0);
   });
@@ -217,7 +350,7 @@ describe("classRank / defaultSort", () => {
   });
 
   it("sorts tier ascending with unknown-class rows last, keeping source order within a tier", () => {
-    const out = defaultSort(groupsOf(sub));
+    const out = defaultSort(groupsOf("subsectors", sub));
     // Source order is deliberately scrambled: headwind, entry_now, forming(A&D),
     // forming(Software), tailwind, neutral, late, unknown("rotated").
     expect(keys(out)).toEqual([
@@ -233,7 +366,7 @@ describe("classRank / defaultSort", () => {
   });
 
   it("returns a copy and never mutates the source order", () => {
-    const source = groupsOf(sub);
+    const source = groupsOf("subsectors", sub);
     const before = keys(source);
     const out = defaultSort(source);
     expect(out).not.toBe(source);
@@ -243,7 +376,7 @@ describe("classRank / defaultSort", () => {
 
 describe("local sorts never mutate the input array", () => {
   it("label, rs60, n_members and dispatch all leave the source untouched and return new arrays", () => {
-    const source = groupsOf(sub);
+    const source = groupsOf("subsectors", sub);
     const before = keys(source);
     for (const out of [
       sortByLabel(source),
@@ -262,7 +395,7 @@ describe("local sorts never mutate the input array", () => {
 
   it("sorts labels case-insensitively ascending", () => {
     const groups = ["bBanana", "apple", "Cherry", "apple2"].map((label, i) => ({
-      ...groupsOf(sub)[0],
+      ...groupsOf("subsectors", sub)[0],
       key: `x-${i}`,
       label,
     }));
@@ -275,7 +408,7 @@ describe("local sorts never mutate the input array", () => {
   });
 
   it("sorts RS60 (regime rs_60d) descending with nulls last, ties in source order", () => {
-    const base = groupsOf(sub)[0];
+    const base = groupsOf("subsectors", sub)[0];
     const groups: UniverseGroup[] = [
       { ...base, key: "a", regime: { ...base.regime, rs_60d: null } },
       { ...base, key: "b", regime: { ...base.regime, rs_60d: 3.2 } },
@@ -287,7 +420,7 @@ describe("local sorts never mutate the input array", () => {
   });
 
   it("sorts priced-name count descending, ties in source order", () => {
-    const base = groupsOf(sub)[0];
+    const base = groupsOf("subsectors", sub)[0];
     const groups: UniverseGroup[] = [
       { ...base, key: "a", n_priced: 5 },
       { ...base, key: "b", n_priced: 9 },
@@ -335,11 +468,55 @@ describe("coverageModel", () => {
     expect(model.total).toBeNull();
     expect(model.basis).toBeNull();
   });
+
+  it("N1 — absent counts stay null (not stated), never 0", () => {
+    const model = coverageModel({ n_subsectors: 10 });
+    expect(model.total).toBe(10);
+    expect(model.gateable).toBeNull();
+    expect(model.scored).toBeNull();
+    expect(model.thin).toBeNull();
+    expect(model.belowMin).toBeNull();
+    expect(model.unscored).toBeNull();
+    expect(model.high).toBeNull();
+    expect(model.med).toBeNull();
+    expect(model.lowConf).toBeNull();
+  });
+
+  it("N1 — a carried 0 is a measured zero, structurally distinct from absent", () => {
+    const model = coverageModel({
+      n_subsectors: 5,
+      n_gateable: 0,
+      n_thin: 0,
+      n_below_min_members: 0,
+      n_unscored: 0,
+      n_high: 0,
+      n_med: 0,
+      n_low_conf: 0,
+    });
+    expect(model.gateable).toBe(0);
+    expect(model.thin).toBe(0);
+    expect(model.belowMin).toBe(0);
+    expect(model.unscored).toBe(0);
+    expect(model.high).toBe(0);
+    expect(model.med).toBe(0);
+    expect(model.lowConf).toBe(0);
+  });
+
+  it("N1 — a non-numeric count value is not stated either (null, never coerced)", () => {
+    const model = coverageModel({
+      n_subsectors: "49",
+      n_gateable: Number.NaN,
+      n_thin: null,
+    } as unknown as Parameters<typeof coverageModel>[0]);
+    expect(model.total).toBeNull();
+    expect(model.gateable).toBeNull();
+    expect(model.thin).toBeNull();
+  });
 });
 
 describe("reliability", () => {
   it("per-group: the payload field is the source of truth (no fallback)", () => {
-    const groups = groupsOf(sub);
+    const groups = groupsOf("subsectors", sub);
     const semis = groups.find((g) => g.key === "semis-equip")!;
     expect(groupReliability(semis)).toEqual({ tier: "high", fallback: false });
     // 18 members, 9 priced — thresholds would say med, but the payload says low.
@@ -349,7 +526,7 @@ describe("reliability", () => {
   });
 
   it("threshold recompute is marked as a fallback for payloads missing the field", () => {
-    const base = groupsOf(sub)[0];
+    const base = groupsOf("subsectors", sub)[0];
     expect(groupReliability({ ...base, reliability: undefined, n_priced: 12 })).toEqual({
       tier: "high",
       fallback: true,
@@ -381,21 +558,21 @@ describe("reliability", () => {
 
 describe("filterGroups", () => {
   it("matches on EN label, ZH label and sector", () => {
-    const groups = groupsOf(sub);
+    const groups = groupsOf("subsectors", sub);
     expect(keys(filterGroups(groups, "Regional").matches)).toEqual(["regional-banks"]);
     expect(keys(filterGroups(groups, "financials").matches)).toEqual(["regional-banks"]);
     expect(keys(filterGroups(groups, "半导体设备").matches)).toEqual(["semis-equip"]);
   });
 
   it("is case-insensitive", () => {
-    expect(keys(filterGroups(groupsOf(sub), "SEMICONDUCTOR EQUIPMENT").matches)).toEqual([
+    expect(keys(filterGroups(groupsOf("subsectors", sub), "SEMICONDUCTOR EQUIPMENT").matches)).toEqual([
       "semis-equip",
     ]);
-    expect(keys(filterGroups(groupsOf(sub), "hEaLtH cArE").matches)).toEqual(["biotech"]);
+    expect(keys(filterGroups(groupsOf("subsectors", sub), "hEaLtH cArE").matches)).toEqual(["biotech"]);
   });
 
   it("returns everything for empty text and nothing for no match", () => {
-    const groups = groupsOf(sub);
+    const groups = groupsOf("subsectors", sub);
     expect(filterGroups(groups, "").count).toBe(groups.length);
     expect(filterGroups(groups, "   ").count).toBe(groups.length);
     const miss = filterGroups(groups, "zzz-no-such-group");
@@ -406,7 +583,7 @@ describe("filterGroups", () => {
 });
 
 describe("freshnessOf (template logic exactly)", () => {
-  const byKey = (k: string) => groupsOf(sub).concat(groupsOf(ndx)).find((g) => g.key === k)!;
+  const byKey = (k: string) => groupsOf("subsectors", sub).concat(groupsOf("nasdaq", ndx)).find((g) => g.key === k)!;
 
   it("T3/T4 tiers read about-to-fire, even with ticks present", () => {
     // SP software-infra: tier T3 with NULL ticks → about to fire.
@@ -441,7 +618,7 @@ describe("freshnessOf (template logic exactly)", () => {
   });
 
   it("covers all four kinds across the fixture", () => {
-    const kinds = [...groupsOf(sub), ...groupsOf(ndx)].map((g) => freshnessOf(g).kind);
+    const kinds = [...groupsOf("subsectors", sub), ...groupsOf("nasdaq", ndx)].map((g) => freshnessOf(g).kind);
     expect(new Set(kinds)).toEqual(
       new Set(["just_fired", "fired_ago", "about_to_fire", "none"]),
     );
@@ -450,7 +627,7 @@ describe("freshnessOf (template logic exactly)", () => {
 
 describe("rs60Of", () => {
   it("reads the regime rs_60d and keeps missing as null (never 0)", () => {
-    const groups = groupsOf(sub).concat(groupsOf(ndx));
+    const groups = groupsOf("subsectors", sub).concat(groupsOf("nasdaq", ndx));
     expect(rs60Of(groups.find((g) => g.key === "semis-equip")!)).toBe(7.4);
     expect(rs60Of(groups.find((g) => g.key === "oil-gas-ep")!)).toBeNull();
     expect(rs60Of(groups.find((g) => g.key === "networking")!)).toBeNull();
@@ -458,7 +635,7 @@ describe("rs60Of", () => {
 });
 
 describe("membersPreview", () => {
-  const seven = groupsOf(sub).find((g) => g.key === "semis-equip")!.members;
+  const seven = groupsOf("subsectors", sub).find((g) => g.key === "semis-equip")!.members;
 
   it("shows the first five and counts the rest until expanded", () => {
     const collapsed = membersPreview(seven, false);
@@ -490,7 +667,7 @@ describe("membersPreview", () => {
   });
 
   it("shows short member lists whole", () => {
-    const two = groupsOf(sub).find((g) => g.key === "biotech")!.members;
+    const two = groupsOf("subsectors", sub).find((g) => g.key === "biotech")!.members;
     const res = membersPreview(two, false);
     expect(res.shown.length).toBe(2);
     expect(res.hidden).toBe(0);
@@ -499,7 +676,7 @@ describe("membersPreview", () => {
 
 describe("buyableNow vs rotationRead", () => {
   it("partitions the universe: buy view is entry_now + forming; rotation view is every scored row", () => {
-    const groups = groupsOf(sub);
+    const groups = groupsOf("subsectors", sub);
     const buy = buyableNow(groups);
     const rot = rotationRead(groups);
     expect(keys(buy)).toEqual(["semis-equip", "aerospace-defense", "software-infra"]);
@@ -513,7 +690,7 @@ describe("buyableNow vs rotationRead", () => {
   });
 
   it("keeps the nasdaq buy view to its own universe", () => {
-    expect(keys(buyableNow(groupsOf(ndx)))).toEqual(["software-infra"]);
+    expect(keys(buyableNow(groupsOf("nasdaq", ndx)))).toEqual(["software-infra"]);
   });
 });
 
@@ -521,8 +698,8 @@ describe("NEVER-MERGED: identical labels (and keys) stay two rows in two univers
   const sharedLabel = "Software — Infrastructure";
 
   it("the fixture carries the same label AND key in both universes as distinct groups", () => {
-    const inSub = groupsOf(sub).find((g) => g.label === sharedLabel)!;
-    const inNdx = groupsOf(ndx).find((g) => g.label === sharedLabel)!;
+    const inSub = groupsOf("subsectors", sub).find((g) => g.label === sharedLabel)!;
+    const inNdx = groupsOf("nasdaq", ndx).find((g) => g.label === sharedLabel)!;
     expect(inSub.key).toBe("software-infra");
     expect(inNdx.key).toBe("software-infra");
     expect(inSub).not.toBe(inNdx);
@@ -530,10 +707,10 @@ describe("NEVER-MERGED: identical labels (and keys) stay two rows in two univers
   });
 
   it("filtering one universe never returns the other's rows", () => {
-    const subHit = filterGroups(groupsOf(sub), "software");
+    const subHit = filterGroups(groupsOf("subsectors", sub), "software");
     expect(subHit.count).toBe(1);
     expect(keys(subHit.matches)).toEqual(["software-infra"]);
-    const ndxHit = filterGroups(groupsOf(ndx), "software");
+    const ndxHit = filterGroups(groupsOf("nasdaq", ndx), "software");
     expect(ndxHit.count).toBe(1);
     expect(keys(ndxHit.matches)).toEqual(["software-infra"]);
     // Same key and label — each hit is its OWN universe's object.
@@ -544,12 +721,12 @@ describe("NEVER-MERGED: identical labels (and keys) stay two rows in two univers
 
   it("sorted, view and league models stay inside their own universe", () => {
     const subKeys = new Set([
-      ...keys(defaultSort(groupsOf(sub))),
-      ...keys(buyableNow(groupsOf(sub))),
+      ...keys(defaultSort(groupsOf("subsectors", sub))),
+      ...keys(buyableNow(groupsOf("subsectors", sub))),
     ]);
     const ndxKeys = new Set([
-      ...keys(defaultSort(groupsOf(ndx))),
-      ...keys(buyableNow(groupsOf(ndx))),
+      ...keys(defaultSort(groupsOf("nasdaq", ndx))),
+      ...keys(buyableNow(groupsOf("nasdaq", ndx))),
     ]);
     // Same key string exists in both — each model holds only its own OBJECT.
     expect([...subKeys].sort()).toEqual([
@@ -563,35 +740,35 @@ describe("NEVER-MERGED: identical labels (and keys) stay two rows in two univers
       "software-infra",
     ]);
     expect([...ndxKeys].sort()).toEqual(["networking", "semis-complex", "software-infra"]);
-    const subObjs = new Set(groupsOf(sub));
-    const ndxObjs = new Set(groupsOf(ndx));
-    for (const g of groupsOf(ndx)) expect(subObjs.has(g)).toBe(false);
-    for (const g of groupsOf(sub)) expect(ndxObjs.has(g)).toBe(false);
+    const subObjs = new Set(groupsOf("subsectors", sub));
+    const ndxObjs = new Set(groupsOf("nasdaq", ndx));
+    for (const g of groupsOf("nasdaq", ndx)) expect(subObjs.has(g)).toBe(false);
+    for (const g of groupsOf("subsectors", sub)) expect(ndxObjs.has(g)).toBe(false);
     // SP's forming league contains "software-infra" — it resolves to the SP
     // object, never the nasdaq object with the same key.
     const leagues = leagueKeys(sub);
-    const spRow = groupsOf(sub).find((g) => leagues.forming.has(g.key))!;
+    const spRow = groupsOf("subsectors", sub).find((g) => leagues.forming.has(g.key))!;
     expect(spRow.entry.weight).toBe(0.55); // aerospace-defense, first SP forming row
   });
 });
 
 describe("absent capability vs no-access vs zero groups are three distinct states", () => {
   it("classifies each differently", () => {
-    expect(universePresence(undefined)).toBe("absent");
-    expect(universePresence(null)).toBe("absent");
-    expect(universePresence(U.russell)).toBe("no_access");
-    expect(universePresence(U.baskets)).toBe("zero_groups");
-    expect(universePresence(sub)).toBe("live");
+    expect(universePresence("subsectors", undefined)).toBe("absent");
+    expect(universePresence("subsectors", null)).toBe("absent");
+    expect(universePresence("russell", U.russell)).toBe("no_access");
+    expect(universePresence("baskets", U.baskets)).toBe("zero_groups");
+    expect(universePresence("subsectors", sub)).toBe("live");
   });
 
   it("keeps the states pairwise distinct even with edge payloads", () => {
     const noAccessWithRows: UniverseData = { ...sub, ok: false };
-    expect(universePresence(noAccessWithRows)).toBe("no_access");
+    expect(universePresence("subsectors", noAccessWithRows)).toBe("no_access");
     const zeroWithOk: UniverseData = { ...sub, subsectors: [] };
-    expect(universePresence(zeroWithOk)).toBe("zero_groups");
+    expect(universePresence("subsectors", zeroWithOk)).toBe("zero_groups");
     const states = new Set(
       [undefined, U.russell, zeroWithOk, sub].map((d) =>
-        universePresence(d as UniverseData | undefined),
+        universePresence("subsectors", d as UniverseData | undefined),
       ),
     );
     expect(states.size).toBe(4);

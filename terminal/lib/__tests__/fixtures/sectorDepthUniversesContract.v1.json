@@ -1,10 +1,10 @@
 {
   "note": "synthetic contract-shape fixture for tests; not a real generation",
-  "schema": "sector_depth_universes.contract/v2",
+  "schema": "sector_depth_universes.contract/v3",
   "universes": {
     "subsectors": {
       "ok": true,
-      "universe": "subsectors",
+      "universe": "sp500_subsectors",
       "weighting": "equal",
       "benchmark": "SPY",
       "region": "US",
@@ -397,7 +397,7 @@
     },
     "nasdaq": {
       "ok": true,
-      "universe": "nasdaq",
+      "universe": "nasdaq_subsectors",
       "weighting": "equal",
       "benchmark": "QQQ",
       "region": "US",
@@ -557,7 +557,7 @@
     },
     "russell": {
       "ok": false,
-      "universe": "russell",
+      "universe": "russell_subsectors",
       "weighting": "equal",
       "benchmark": "IWM",
       "region": "US",
@@ -581,7 +581,7 @@
     },
     "baskets": {
       "ok": true,
-      "universe": "baskets",
+      "universe": "curated_baskets",
       "weighting": "equal",
       "benchmark": null,
       "region": "US",

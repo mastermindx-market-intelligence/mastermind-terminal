@@ -5,6 +5,7 @@ import { useLang } from "@/lib/i18n";
 import { useSectorDepthT } from "@/lib/sectorDepthLex";
 import {
   BOTTOMING_CAP,
+  bottomingWatchFromCarried,
   hasRecovering,
   watchDisclosure,
   watchModel,
@@ -41,20 +42,25 @@ export function SectorBottomingWatch({
   // budget, not a cap — every entry stays reachable (R6-09 member coverage).
   const [expanded, setExpanded] = useState(false);
 
-  if (watch === null) {
+  // S2 closed-shape boundary: a malformed or incomplete payload (missing
+  // entries array, bad id sets, wrong authority shape) renders the shared
+  // unavailable state — no input can throw here.
+  const parsed = watch === null ? null : bottomingWatchFromCarried(watch);
+
+  if (parsed === null) {
     return (
       <DepthUnavailable
         field="bottoming_watch"
-        owner="Macro sector generation"
+        owner="macro_sector_generation"
         title={t("siWatchTitle")}
       />
     );
   }
 
-  const entries = watchModel(watch, expanded);
-  const total = watch.bottoming_watch.length;
+  const entries = watchModel(parsed, expanded);
+  const total = parsed.bottoming_watch.length;
   const hidden = Math.max(0, total - BOTTOMING_CAP);
-  const disclosure = watchDisclosure(watch, lang) ?? t("siWatchDisclosure");
+  const disclosure = watchDisclosure(parsed, lang) ?? t("siWatchDisclosure");
 
   return (
     <section
@@ -67,9 +73,9 @@ export function SectorBottomingWatch({
         <div className={styles.headRow}>
           <h3 className={styles.title}>
             {t("siWatchTitle")}
-            <span className={styles.count} data-count> · {watch.bottoming_watch.length}</span>
+            <span className={styles.count} data-count> · {parsed.bottoming_watch.length}</span>
           </h3>
-          {watch.bottoming_authority.tier === "display" && (
+          {parsed.bottoming_authority.tier === "display" && (
             <span className={styles.badge}>{t("siDepthDisplayOnly")}</span>
           )}
         </div>
@@ -103,7 +109,7 @@ export function SectorBottomingWatch({
         </>
       )}
 
-      {hasRecovering(watch) && (
+      {hasRecovering(parsed) && (
         <p className={styles.recoveringNote}>{t("siWatchRecoveringDisclosure")}</p>
       )}
     </section>

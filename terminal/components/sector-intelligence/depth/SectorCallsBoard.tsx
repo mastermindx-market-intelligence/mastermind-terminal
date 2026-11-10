@@ -6,6 +6,7 @@ import { useSectorDepthT } from "@/lib/sectorDepthLex";
 import {
   BOARD_LANE_ORDER,
   PREVIEW_ROWS,
+  actionBoardFromCarried,
   boardTotals,
   columnPreview,
   foldSixToFive,
@@ -20,6 +21,7 @@ import {
   type LaneData,
   type SourceLaneKey,
 } from "@/lib/sectorDepthCalls";
+import { sameSiteHref } from "@/lib/sectorDepthHref";
 import { DepthUnavailable } from "./DepthUnavailable";
 import { EmergenceMark } from "./EmergenceMark";
 import styles from "./SectorCallsBoard.module.css";
@@ -54,11 +56,13 @@ const fmt2 = (v: number): string => v.toFixed(2);
  * rendered as two named groups inside the column). Props-only mount — no
  * fetching, no routing, no URL state. Navigation out goes through
  * `onNavigate`; when it is absent the same control renders as an exact
- * `<a href>` using the generation's href verbatim. Methodology/access footer
- * links render only when the mount supplies real hrefs — none are invented.
- * A null board is the ONLY unavailable path: a zero-total lane is a measured
- * empty state, and a lane whose rows are all withheld shows its withheld
- * line, never empty copy.
+ * `<a href>` using the generation's href — accepted only as a same-site
+ * relative path beginning with one "/" (review N4; anything else renders no
+ * link). Methodology/access footer links render only when the mount supplies
+ * real hrefs — none are invented. A null OR MALFORMED board is unavailable
+ * (the closed-shape reader `actionBoardFromCarried` gates the prop, review
+ * S2): a zero-total lane is a measured empty state, and a lane whose rows are
+ * all withheld shows its withheld line, never empty copy.
  */
 export function SectorCallsBoard({
   board,
@@ -76,14 +80,22 @@ export function SectorCallsBoard({
   methodologyHref?: string;
 }) {
   const t = useSectorDepthT();
-  const folded = useMemo(() => (board === null ? null : foldSixToFive(board.lanes)), [board]);
-  const totals = useMemo(() => (board === null ? null : boardTotals(board)), [board]);
+  // S2 closed-shape boundary: the prop runs through the carried reader, so a
+  // malformed or incomplete board (missing lane, missing totals, bad row
+  // shape) renders the shared unavailable state — no input can throw here,
+  // and an absent total can never reach the reader as "undefined".
+  const parsed = useMemo(
+    () => (board === null ? null : actionBoardFromCarried(board)),
+    [board],
+  );
+  const folded = useMemo(() => (parsed === null ? null : foldSixToFive(parsed.lanes)), [parsed]);
+  const totals = useMemo(() => (parsed === null ? null : boardTotals(parsed)), [parsed]);
 
-  if (board === null || folded === null || totals === null) {
+  if (parsed === null || folded === null || totals === null) {
     return (
       <DepthUnavailable
         field="action_board"
-        owner="Macro sector generation"
+        owner="macro_sector_generation"
         title={t("siCallsTitle")}
       />
     );
@@ -107,10 +119,10 @@ export function SectorCallsBoard({
         <p className={styles.meta}>
           <span>{t("siCallsBoardTotal", { total: totals.total })}</span>
           {totals.locked > 0 && <span>{t("siCallsLockedCount", { n: totals.locked })}</span>}
-          <span>{t("siDepthAsOf", { date: board.as_of })}</span>
+          <span>{t("siDepthAsOf", { date: parsed.as_of })}</span>
         </p>
         <p className={styles.note}>{t("siCallsThemesBeforeSectorsNote")}</p>
-        {board.locked > 0 && (
+        {parsed.locked > 0 && (
           <p className={styles.previewBanner} data-preview="true">
             {t("siCallsPreviewBanner", {
               shown: visibleRows,
@@ -135,8 +147,8 @@ export function SectorCallsBoard({
             <StandAsideColumn
               key={key}
               lane={folded[key]}
-              lanes={board.lanes}
-              asOf={board.as_of}
+              lanes={parsed.lanes}
+              asOf={parsed.as_of}
               onNavigate={onNavigate}
             />
           ) : (
@@ -145,14 +157,14 @@ export function SectorCallsBoard({
               laneKey={key}
               lane={folded[key]}
               onNavigate={onNavigate}
-              asOf={board.as_of}
+              asOf={parsed.as_of}
             />
           ),
         )}
       </div>
 
       <footer className={styles.foot}>
-        <span className={styles.asOfPill}>{t("siCallsAsOfPill", { date: board.as_of })}</span>
+        <span className={styles.asOfPill}>{t("siCallsAsOfPill", { date: parsed.as_of })}</span>
         {methodologyHref && (
           <a className={styles.footLink} href={methodologyHref}>
             {t("siCallsHowItWorks")}
@@ -491,15 +503,24 @@ function CallRowCard({
         >
           {t(traceOpen ? "siCallsTraceHide" : "siCallsTrace")}
         </button>
-        {onNavigate ? (
-          <button type="button" className={styles.detailBtn} onClick={() => onNavigate(row.href)}>
-            {t("siCallsDetail")}
-          </button>
-        ) : (
-          <a className={styles.detailBtn} href={row.href}>
-            {t("siCallsDetail")}
-          </a>
-        )}
+        {/* N4 href law: the row's carried href is actionable only as a
+            same-site relative path beginning with one "/". A non-conforming
+            href renders NO detail control (never a rewritten or invented
+            destination) and the navigation callback is never called with it. */}
+        {sameSiteHref(row.href) !== null &&
+          (onNavigate ? (
+            <button
+              type="button"
+              className={styles.detailBtn}
+              onClick={() => onNavigate(sameSiteHref(row.href) as string)}
+            >
+              {t("siCallsDetail")}
+            </button>
+          ) : (
+            <a className={styles.detailBtn} href={sameSiteHref(row.href) as string}>
+              {t("siCallsDetail")}
+            </a>
+          ))}
       </div>
       {traceOpen && (
         <div id={traceId} className={styles.trace}>

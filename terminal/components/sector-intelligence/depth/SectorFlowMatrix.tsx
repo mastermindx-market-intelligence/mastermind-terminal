@@ -80,7 +80,7 @@ export function SectorFlowMatrix({
     return (
       <DepthUnavailable
         field="etf_flows"
-        owner="Macro sector generation"
+        owner="macro_sector_generation"
         title={t("siFlowsTitle")}
       />
     );
@@ -107,12 +107,16 @@ export function SectorFlowMatrix({
           .find((r) => r.ticker === sel.ticker)
           ?.cells.find((c) => c.window === sel.window) ?? null);
 
+  /** N7: a ticker interpolated into a quoted attribute selector must have its
+   * quotes and backslashes escaped, or a ticker containing `"` throws inside
+   * the rAF callback. The window id is a closed enum and needs no escape. */
   const focusCell = (next: CellSel): void => {
     setSel(next);
+    const ticker = next.ticker.replace(/["\\]/g, "\\$&");
     requestAnimationFrame(() => {
       document
         .querySelector<HTMLTableCellElement>(
-          `td[data-cell-ticker="${next.ticker}"][data-cell-window="${next.window}"]`,
+          `td[data-cell-ticker="${ticker}"][data-cell-window="${next.window}"]`,
         )
         ?.focus();
     });

@@ -35,7 +35,7 @@
             "reco_why_zh": "合成理由——新周期低点已确认。",
             "rs_pctile": 0.96,
             "flip_distance": 6.2,
-            "href": "sector/syn_sector_1.html",
+            "href": "/sector/syn_sector_1.html",
             "stat_en": "Synthetic sector stat — breadth improving three sessions running.",
             "stat_zh": "合成板块统计——广度连续三个交易日改善。"
           },
@@ -67,7 +67,7 @@
             "reco_why_zh": "合成理由——新周期低点已确认。",
             "rs_pctile": 0.98,
             "flip_distance": 7.4,
-            "href": "basket/syn_theme_1.html"
+            "href": "/basket/syn_theme_1.html"
           }
         ],
         "total": 2,
@@ -103,7 +103,7 @@
             "reco_why_zh": "合成理由——构筑中，待触发日。",
             "rs_pctile": 0.72,
             "flip_distance": 4.1,
-            "href": "basket/syn_soon_b.html",
+            "href": "/basket/syn_soon_b.html",
             "days": 5
           },
           {
@@ -134,7 +134,7 @@
             "reco_why_zh": "合成理由——构筑中，待触发日。",
             "rs_pctile": 0.78,
             "flip_distance": 5.0,
-            "href": "basket/syn_soon_a.html",
+            "href": "/basket/syn_soon_a.html",
             "days": 2
           },
           {
@@ -165,7 +165,7 @@
             "reco_why_zh": "合成理由——构筑中，待触发日。",
             "rs_pctile": 0.64,
             "flip_distance": 3.3,
-            "href": "sector/syn_soon_sector.html",
+            "href": "/sector/syn_soon_sector.html",
             "days": 1
           },
           {
@@ -196,7 +196,7 @@
             "reco_why_zh": "合成理由——构筑中，待触发日。",
             "rs_pctile": 0.6,
             "flip_distance": 2.8,
-            "href": "basket/syn_soon_c.html",
+            "href": "/basket/syn_soon_c.html",
             "days": 9
           },
           {
@@ -227,7 +227,7 @@
             "reco_why_zh": "合成理由——构筑中，触发日未定。",
             "rs_pctile": 0.55,
             "flip_distance": 2.2,
-            "href": "basket/syn_soon_n.html",
+            "href": "/basket/syn_soon_n.html",
             "days": null
           }
         ],
@@ -269,7 +269,7 @@
             "reco_why_zh": "合成理由——已延伸，保护利润。",
             "rs_pctile": 0.99,
             "flip_distance": 1.1,
-            "href": "basket/syn_tp_t1.html"
+            "href": "/basket/syn_tp_t1.html"
           },
           {
             "kind": "theme",
@@ -299,7 +299,7 @@
             "reco_why_zh": "合成理由——已延伸，保护利润。",
             "rs_pctile": 0.97,
             "flip_distance": 1.6,
-            "href": "basket/syn_tp_t2.html"
+            "href": "/basket/syn_tp_t2.html"
           },
           {
             "kind": "theme",
@@ -329,7 +329,7 @@
             "reco_why_zh": "合成理由——已延伸，保护利润。",
             "rs_pctile": 0.95,
             "flip_distance": 1.9,
-            "href": "basket/syn_tp_t3.html"
+            "href": "/basket/syn_tp_t3.html"
           },
           {
             "kind": "theme",
@@ -359,7 +359,7 @@
             "reco_why_zh": "合成理由——已延伸，保护利润。",
             "rs_pctile": 0.93,
             "flip_distance": 2.4,
-            "href": "basket/syn_tp_t4.html"
+            "href": "/basket/syn_tp_t4.html"
           },
           {
             "kind": "sector",
@@ -389,7 +389,7 @@
             "reco_why_zh": "合成理由——已延伸，保护利润。",
             "rs_pctile": 0.91,
             "flip_distance": 2.9,
-            "href": "sector/syn_tp_sector.html"
+            "href": "/sector/syn_tp_sector.html"
           }
         ],
         "total": 7,
@@ -425,7 +425,7 @@
             "reco_why_zh": "合成理由——仍在运行，此处无新优势。",
             "rs_pctile": 1.0,
             "flip_distance": 1.2,
-            "href": "basket/syn_hold_t1.html"
+            "href": "/basket/syn_hold_t1.html"
           },
           {
             "kind": "theme",
@@ -455,7 +455,7 @@
             "reco_why_zh": "合成理由——仍在运行，此处无新优势。",
             "rs_pctile": 1.0,
             "flip_distance": 1.4,
-            "href": "basket/syn_hold_t2.html"
+            "href": "/basket/syn_hold_t2.html"
           },
           {
             "kind": "theme",
@@ -485,7 +485,7 @@
             "reco_why_zh": "合成理由——仍在运行，此处无新优势。",
             "rs_pctile": 0.98,
             "flip_distance": 1.7,
-            "href": "basket/syn_hold_t3.html"
+            "href": "/basket/syn_hold_t3.html"
           }
         ],
         "total": 3,
@@ -521,7 +521,7 @@
             "reco_why_zh": "合成理由——下行趋势，观望。",
             "rs_pctile": 0.08,
             "flip_distance": 0.9,
-            "href": "sector/syn_avoid_s1.html",
+            "href": "/sector/syn_avoid_s1.html",
             "stat_en": "Synthetic sector stat — still below every tracked gate.",
             "stat_zh": "合成板块统计——仍低于所有跟踪门槛。"
           },
@@ -553,7 +553,7 @@
             "reco_why_zh": "合成理由——下行趋势，观望。",
             "rs_pctile": 0.05,
             "flip_distance": 0.7,
-            "href": "sector/syn_avoid_s2.html"
+            "href": "/sector/syn_avoid_s2.html"
           }
         ],
         "total": 2,
@@ -576,7 +576,7 @@
         "above200d": true,
         "cycle_signal": null,
         "gate_conflict": false,
-        "href": "basket/syn_w1.html"
+        "href": "/basket/syn_w1.html"
       },
       {
         "id": "syn_w2",
@@ -591,7 +591,7 @@
         "above200d": true,
         "cycle_signal": null,
         "gate_conflict": false,
-        "href": "sector/syn_w2.html"
+        "href": "/sector/syn_w2.html"
       },
       {
         "id": "syn_w3",
@@ -606,7 +606,7 @@
         "above200d": false,
         "cycle_signal": "PAYLOAD-CYCLE",
         "gate_conflict": true,
-        "href": "basket/syn_w3.html"
+        "href": "/basket/syn_w3.html"
       },
       {
         "id": "syn_w4",
@@ -621,7 +621,7 @@
         "above200d": false,
         "cycle_signal": null,
         "gate_conflict": true,
-        "href": "sector/syn_w4.html"
+        "href": "/sector/syn_w4.html"
       },
       {
         "id": "syn_w5",
@@ -636,7 +636,7 @@
         "above200d": false,
         "cycle_signal": null,
         "gate_conflict": true,
-        "href": "basket/syn_w5.html"
+        "href": "/basket/syn_w5.html"
       },
       {
         "id": "syn_w6",
@@ -651,7 +651,7 @@
         "above200d": true,
         "cycle_signal": null,
         "gate_conflict": false,
-        "href": "sector/syn_w6.html"
+        "href": "/sector/syn_w6.html"
       },
       {
         "id": "syn_w7",
@@ -666,7 +666,7 @@
         "above200d": true,
         "cycle_signal": null,
         "gate_conflict": false,
-        "href": "basket/syn_w7.html"
+        "href": "/basket/syn_w7.html"
       },
       {
         "id": "syn_w8",
@@ -681,7 +681,7 @@
         "above200d": false,
         "cycle_signal": null,
         "gate_conflict": false,
-        "href": "sector/syn_w8.html"
+        "href": "/sector/syn_w8.html"
       },
       {
         "id": "syn_w9",
@@ -696,7 +696,7 @@
         "above200d": true,
         "cycle_signal": null,
         "gate_conflict": false,
-        "href": "basket/syn_w9.html"
+        "href": "/basket/syn_w9.html"
       },
       {
         "id": "syn_w10",
@@ -711,7 +711,7 @@
         "above200d": true,
         "cycle_signal": null,
         "gate_conflict": false,
-        "href": "sector/syn_w10.html"
+        "href": "/sector/syn_w10.html"
       }
     ],
     "dual_read_ids": ["syn_w5", "syn_w10", "syn_w3"],

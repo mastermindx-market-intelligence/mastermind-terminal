@@ -1,11 +1,10 @@
 "use client";
 
 import { Fragment, useId, useRef, useState } from "react";
-import type { Dispatch, KeyboardEvent, Ref, SetStateAction } from "react";
+import type { Dispatch, KeyboardEvent, ReactNode, Ref, SetStateAction } from "react";
 import { useLang } from "@/lib/i18n";
 import { useSectorDepthT } from "@/lib/sectorDepthLex";
 import {
-  BASKET_BENCHMARK_LABEL,
   CLASS_LABEL_KEYS,
   CLASS_ORDER,
   MEMBERS_PREVIEW,
@@ -38,6 +37,7 @@ import type {
   UniverseUiStates,
   UniverseView,
 } from "@/lib/sectorDepthUniverses";
+import { sameSiteHref } from "@/lib/sectorDepthHref";
 import { DepthUnavailable } from "./DepthUnavailable";
 import { EmergenceMark } from "./EmergenceMark";
 import styles from "./SectorConfluenceUniverses.module.css";
@@ -68,14 +68,15 @@ export interface SectorConfluenceUniversesProps {
 type UiSetter = Dispatch<SetStateAction<UniverseUiStates>>;
 
 /** Detail href from the payload's chart_key, exactly as the incumbent
- * template builds it (universe directory + basket prefix + key + .html).
+ * template builds it (universe directory + basket prefix + key + .html),
+ * expressed as a same-site absolute path (leading "/") per the N4 href law.
  * Keys without a chart_key have no detail destination — no invented link. */
 function detailHref(id: UniverseId, group: UniverseGroup): string | undefined {
   if (!group.chart_key) return undefined;
   const dir =
     id === "nasdaq" ? "subsector_nasdaq/" : id === "russell" ? "subsector_russell/" : "subsector/";
   const prefix = id === "baskets" ? "b-" : "";
-  return `${dir}${prefix}${group.chart_key}.html`;
+  return sameSiteHref(`/${dir}${prefix}${group.chart_key}.html`) ?? undefined;
 }
 
 export function SectorConfluenceUniverses({
@@ -93,7 +94,7 @@ export function SectorConfluenceUniverses({
     return (
       <DepthUnavailable
         field="confluence"
-        owner="Macro sector generation"
+        owner="macro_sector_generation"
         title={t("siUniverseTitle")}
       />
     );
@@ -196,13 +197,13 @@ function UniversePanel({
 }) {
   const t = useSectorDepthT();
   const meta = UNIVERSES[id];
-  const presence = universePresence(data);
+  const presence = universePresence(id, data);
 
   if (presence === "absent") {
     return (
       <DepthUnavailable
-        field={t(meta.tabKey)}
-        owner="Macro sector generation"
+        field="confluence"
+        owner="macro_sector_generation"
         title={t("siUniverseTitle")}
       />
     );
@@ -210,20 +211,24 @@ function UniversePanel({
   if (presence === "no_access") {
     return <p className={styles.stateLine}>{t("siUniverseNoAccess")}</p>;
   }
-  if (presence === "zero_groups") {
-    return <p className={styles.stateLine}>{t("siUniverseZeroGroups")}</p>;
-  }
-  // presence === "live" — data is defined and carries scored rows.
+  // presence === "zero_groups" | "live" — data is defined either way.
   const d = data as UniverseData;
-  const groups = groupsOf(d);
+  const groups = presence === "live" ? groupsOf(id, d) : [];
   const ribbon = classCounts(groups);
 
-  const cov = coverageModel(d.coverage);
-  const relCounts =
-    cov.high + cov.med + cov.lowConf > 0
-      ? `${cov.high}/${cov.med}/${cov.lowConf}`
-      : null;
-  const benchmark = meta.benchmarkKey ? t(meta.benchmarkKey) : BASKET_BENCHMARK_LABEL;
+  if (presence === "zero_groups") {
+    // N2 (R3A-67): the zero-groups state KEEPS the population wording — the
+    // coverage line, the thin / below-minimum / unscored chips and the
+    // identity line all render above the zero-groups sentence, so a universe
+    // whose groups are all thin still shows its counted population.
+    return (
+      <div className={styles.universe}>
+        <CoverageBlock id={id} data={d} />
+        <p className={styles.stateLine}>{t("siUniverseZeroGroups")}</p>
+      </div>
+    );
+  }
+
   const filterActive = ui.filter.trim().length > 0;
 
   const base = ui.view === "buyable" ? buyableNow(groups) : rotationRead(groups);
@@ -232,44 +237,7 @@ function UniversePanel({
 
   return (
     <div className={styles.universe}>
-      <div className={styles.coverage}>
-        {(cov.total != null || d.as_of != null) && (
-          <p className={styles.covMain}>
-            {cov.total != null &&
-              t("siUniverseCoverage", {
-                gateable: cov.gateable,
-                total: cov.total,
-                noun: t(meta.nounKey),
-              })}
-            {cov.total != null && d.as_of != null ? " · " : ""}
-            {d.as_of != null ? t("siDepthAsOf", { date: d.as_of }) : ""}
-          </p>
-        )}
-        <ul className={styles.chips}>
-          {cov.thin > 0 && (
-            <li className={styles.chip}>{t("siUniverseCoverageThin", { n: cov.thin })}</li>
-          )}
-          {cov.belowMin > 0 && (
-            <li className={styles.chip}>
-              {t("siUniverseCoverageBelowMin", { n: cov.belowMin, min: cov.minMembers })}
-            </li>
-          )}
-          {cov.unscored > 0 && (
-            <li className={styles.chip}>
-              {t("siUniverseCoverageUnscored", { n: cov.unscored })}
-            </li>
-          )}
-          {relCounts && (
-            <li className={styles.chip}>
-              {t("siUniverseReliabilityHigh")} {cov.high} · {t("siUniverseReliabilityMed")}{" "}
-              {cov.med} · {t("siUniverseReliabilityLow")} {cov.lowConf}
-            </li>
-          )}
-        </ul>
-        <p className={styles.identity}>
-          {t("siUniverseSourceIdentity", { id, benchmark })}
-          {d.as_of == null ? ` · ${t("siUniverseNoDate")}` : ""}
-        </p>
+      <CoverageBlock id={id} data={d}>
         {/* B01 RIBBON_ORDER: reading-class counts over this universe's scored
             groups — zeros included, so a carried zero is visible, never hidden. */}
         <ul className={styles.ribbon} data-ribbon="true">
@@ -280,7 +248,7 @@ function UniversePanel({
             </li>
           ))}
         </ul>
-      </div>
+      </CoverageBlock>
 
       <div className={styles.viewBar} role="group" aria-label={t(meta.tabKey)}>
         {(["buyable", "rotation"] as const).map((view: UniverseView) => (
@@ -398,6 +366,81 @@ function UniversePanel({
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+/** The population wording shared by the live and zero-groups states (review
+ * N2): the coverage line (with the N1 absent-count law), the thin /
+ * below-minimum / unscored chips, and the source-identity line (S5: the tab's
+ * localized display name + localized benchmark, never raw ids). `children`
+ * carries the live-only reading-class ribbon. */
+function CoverageBlock({
+  id,
+  data,
+  children,
+}: {
+  id: UniverseId;
+  data: UniverseData;
+  children?: ReactNode;
+}) {
+  const t = useSectorDepthT();
+  const meta = UNIVERSES[id];
+  const cov = coverageModel(data.coverage);
+  // N1: an absent count renders as not stated — never as 0. The reliability
+  // line needs all three counts; anything less is simply not shown.
+  const relCounts =
+    cov.high !== null && cov.med !== null && cov.lowConf !== null
+      ? `${cov.high}/${cov.med}/${cov.lowConf}`
+      : null;
+  const benchmark = meta.benchmarkKey
+    ? t(meta.benchmarkKey)
+    : t("siUniverseBasketBenchmark");
+  return (
+    <div className={styles.coverage}>
+      {(cov.total != null || data.as_of != null) && (
+        <p className={styles.covMain}>
+          {cov.total != null &&
+            (cov.gateable !== null
+              ? t("siUniverseCoverage", {
+                  gateable: cov.gateable,
+                  total: cov.total,
+                  noun: t(meta.nounKey),
+                })
+              : t("siUniverseCoverageNotStated", {
+                  total: cov.total,
+                  noun: t(meta.nounKey),
+                }))}
+          {cov.total != null && data.as_of != null ? " · " : ""}
+          {data.as_of != null ? t("siDepthAsOf", { date: data.as_of }) : ""}
+        </p>
+      )}
+      <ul className={styles.chips}>
+        {cov.thin != null && cov.thin > 0 && (
+          <li className={styles.chip}>{t("siUniverseCoverageThin", { n: cov.thin })}</li>
+        )}
+        {cov.belowMin != null && cov.belowMin > 0 && (
+          <li className={styles.chip}>
+            {t("siUniverseCoverageBelowMin", { n: cov.belowMin, min: cov.minMembers })}
+          </li>
+        )}
+        {cov.unscored != null && cov.unscored > 0 && (
+          <li className={styles.chip}>
+            {t("siUniverseCoverageUnscored", { n: cov.unscored })}
+          </li>
+        )}
+        {relCounts && (
+          <li className={styles.chip}>
+            {t("siUniverseReliabilityHigh")} {cov.high} · {t("siUniverseReliabilityMed")}{" "}
+            {cov.med} · {t("siUniverseReliabilityLow")} {cov.lowConf}
+          </li>
+        )}
+      </ul>
+      <p className={styles.identity}>
+        {t("siUniverseSourceIdentity", { name: t(meta.tabKey), benchmark })}
+        {data.as_of == null ? ` · ${t("siUniverseNoDate")}` : ""}
+      </p>
+      {children}
     </div>
   );
 }
