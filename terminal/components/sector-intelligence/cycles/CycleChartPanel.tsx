@@ -10,6 +10,7 @@ import {
 } from "@/components/charts/svgChart";
 import { formatValue, type SectorRotationHistoryCycleTurn } from "@/lib/sectorIntelligence";
 import { useSectorCycleT } from "@/lib/sectorCycleLex";
+import { type SeriesFirstKnown, firstKnownAt } from "@/lib/sectorCycleTurnKnowledge";
 import type { OscPoint } from "@/lib/sectorCycleRecord";
 import s from "../SectorCycleLens.module.css";
 
@@ -53,7 +54,7 @@ export interface CycleChartPanelProps {
   onValuesOffset: (offset: number) => void;
   benchmark: string;
   /** Event date → first-known (confirmed-at) date, SP11. Distinct facts. */
-  firstKnown?: Record<string, string>;
+  firstKnown?: SeriesFirstKnown;
 }
 
 const DAY_MS = 86_400_000;
@@ -407,15 +408,18 @@ export default function CycleChartPanel(props: CycleChartPanelProps) {
             .slice(-3)
             .reverse();
           return list.length ? (
-            list.map((v) => (
-              <div key={v.date + v.kind}>
-                <time>{v.date}</time> <b>{t(v.kind === "peak" ? "scPeak" : "scTrough")}</b>{" "}
-                {v.provisional ? <em>{t("scProvisional")}</em> : <em>{t("scConfirmed")}</em>}
-                {props.firstKnown?.[v.date] && (
-                  <em> · {t("scTurnKnownSince", { date: props.firstKnown[v.date] })}</em>
-                )}
-              </div>
-            ))
+            list.map((v) => {
+              // SP11: this series' OWN confirmation date only — keyed per
+              // series, never borrowed from another sector's same-date turn.
+              const fk = firstKnownAt(props.firstKnown, v.date, v.kind);
+              return (
+                <div key={v.date + v.kind}>
+                  <time>{v.date}</time> <b>{t(v.kind === "peak" ? "scPeak" : "scTrough")}</b>{" "}
+                  {v.provisional ? <em>{t("scProvisional")}</em> : <em>{t("scConfirmed")}</em>}
+                  {fk && <em> · {t("scTurnKnownSince", { date: fk })}</em>}
+                </div>
+              );
+            })
           ) : (
             <span>{t("scNoTurns")}</span>
           );

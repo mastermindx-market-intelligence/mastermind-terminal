@@ -52,7 +52,7 @@ import { rhythmReading } from "@/lib/sectorCycleRhythm";
 import { CYCLE_PHASE_LABELS, clockDisagreements } from "@/lib/sectorCycleHazard";
 import { useSectorCycleT } from "@/lib/sectorCycleLex";
 import { forecastHeadsReading } from "@/lib/sectorCycleForecastHeads";
-import { turnFirstKnown } from "@/lib/sectorCycleTurnKnowledge";
+import { seriesFirstKnown, turnFirstKnownIndex } from "@/lib/sectorCycleTurnKnowledge";
 import CyclePhaseRail from "./cycles/CyclePhaseRail";
 import CycleChartPanel, { type CycleSeriesData } from "./cycles/CycleChartPanel";
 import CycleLegTimeline, { LegStoryBlock, legsFromTurns } from "./cycles/CycleLegTimeline";
@@ -320,9 +320,12 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
    * record's own forecast_heads block (lane 8 wire contract). A withdrawn or
    * withheld head never hides its siblings or the observed facts above. */
   const headsReading = record !== null ? forecastHeadsReading(record) : null;
-  /* v1.1 SP11: event dates vs first-known dates are distinct facts; the map
-   * is read from the raw feed, never inferred from the event dates. */
-  const firstKnown = feedUsable(historyFeed) ? turnFirstKnown(historyFeed!.data) : {};
+  /* v1.1 SP11: event dates vs confirmed dates are distinct facts. The raw
+   * feed's `confirmed_at` values are indexed per series — confirmation is a
+   * per-series fact — and ONLY the selected series' map reaches the charts:
+   * one sector's date can never attach to another's turn. */
+  const firstKnownIndex = feedUsable(historyFeed) ? turnFirstKnownIndex(historyFeed!.data) : {};
+  const firstKnown = seriesFirstKnown(firstKnownIndex, effectiveSubjectId);
   const baskets =
     mode === "deep" && gen && effectiveFamily === "baskets"
       ? cycleBaskets(payload, gen.asOf)
