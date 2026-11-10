@@ -1,0 +1,15 @@
+{
+  "caseModuleCurrentSha256": "fa3cf71de52ae0a2ce2a7437a0190c2f2eaca8d949240f5d51145806e90819da",
+  "caseModulePriorSha256": "fa3cf71de52ae0a2ce2a7437a0190c2f2eaca8d949240f5d51145806e90819da",
+  "completedAt": "2026-11-09T16:56:23.757882+00:00",
+  "head": "90f275f15b4d174f003fb5b1087823dce6ec865a",
+  "ownerTestSha256": "d5d55f670e1fd4273fed5e2423da98ac2475f8a3509038ab83be2f75eb6b4002",
+  "priorOwnerTestSha256": "b11e41a013518ec4249ee2d9a3c0b69c0a10c27c6876c64bf10f53855a591b9d",
+  "priorSetupTestSha256": "5d822413ba6484403c3e884e63245cba3e975366f4dba33c434c73524ac7be6f",
+  "schema": "terminal_ci_contract_and_collection_repair.v1",
+  "setupTestSha256": "3e882d849b1aa27a5f195ab6189d36476e30c28f61b7ceed03ea148819b93c26",
+  "startedAt": "2026-11-09T16:56:23.697999+00:00",
+  "state": "EXACT_CASES_RELOCATED_AND_EXISTING_BUDGET_ASSERTION_ALIGNED",
+  "workflowBlobBefore": "fc38b261161535f0cca571be91c51aa3e0ea87fe",
+  "workflowUnchanged": true
+}

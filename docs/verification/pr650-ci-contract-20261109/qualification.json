@@ -1,0 +1,26 @@
+{
+  "executionRecords": {
+    "ci-contract-checks-r1/execution.json": "2845d0c4b614456beb5b190f4126d559ce13f206809d07487ceb784b3b90aba2",
+    "ci-contract-checks-r1/native-consumers.json": "fc0dc365f48a07cd63f3c05e993407da969599a5de305c7a2db15eb0ca06eed2",
+    "ci-contract-repair.json": "ce9d9ae7d32ae3585b5d21e54a7ce489fce011ae18d37644eeb580477d790b29"
+  },
+  "failed": 0,
+  "movedCasesByteIdentical": true,
+  "nativeEvidenceReaderAssertionsPassed": 77,
+  "nodeAssertionsPassed": 167,
+  "originalHead": "d3bd6b2d98c6c23398be0bed6c7450caa47bd665",
+  "parents": [
+    "d3bd6b2d98c6c23398be0bed6c7450caa47bd665"
+  ],
+  "playwrightCollectedFiles": 289,
+  "playwrightCollectedTests": 4900,
+  "playwrightSelectionRulesChanged": false,
+  "preparedAt": "2026-11-09T17:05:48.241217+00:00",
+  "pythonAssertionsPassed": 18,
+  "runtimeChanged": false,
+  "schema": "terminal_pr650_ci_contract_qualification.v1",
+  "skipped": 0,
+  "sourceControlsStable": true,
+  "state": "SOURCE_AND_CI_COLLECTION_QUALIFIED",
+  "workflowChanged": false
+}
