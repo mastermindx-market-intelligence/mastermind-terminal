@@ -1,0 +1,29 @@
+{
+  "findings": "Root inspected actual current desktop English, phone Chinese live-feed and phone Chinese unavailable crops. Header, source context, filters, article text, grouped-report metadata and Retry remain readable within the cropped rail. Original English source headlines remain unchanged inside the Chinese UI. No clipping or sideways overflow observed.",
+  "images": {
+    "desktop-en-dark.png": {
+      "bytes": 37447,
+      "modifiedDuringCapture": true,
+      "pngHeight": 395,
+      "pngWidth": 344,
+      "sha256": "f9ce8c69fa250a5275c1506b4f275012f3a6ba55fdad2fbccb4ed09ac68a3d8c"
+    },
+    "mobile-zh-dark.png": {
+      "bytes": 53955,
+      "modifiedDuringCapture": true,
+      "pngHeight": 655,
+      "pngWidth": 390,
+      "sha256": "38008b52ac9059047535a68c6e8d19542bccabf42cf2cbc416cee0e752b80585"
+    },
+    "unavailable-mobile-zh-dark.png": {
+      "bytes": 6790,
+      "modifiedDuringCapture": true,
+      "pngHeight": 180,
+      "pngWidth": 390,
+      "sha256": "2ab064368a438c7e4d15b4a58af96ffe8aaf0b54a2c05a48e7fdaa20af18f0b1"
+    }
+  },
+  "productionAccepted": false,
+  "reviewedAt": "2026-11-09T17:46:23.327451+00:00",
+  "schema": "terminal_pr910_actual_visual_review.v1"
+}

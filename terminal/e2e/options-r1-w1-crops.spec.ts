@@ -6,6 +6,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { exposureMapT } from "../components/exposure-map/exposureMapStrings";
 import { reportedGammaBook } from "../lib/__tests__/fixtures/reportedGammaBooks";
 import { MARKET_RISK_NOW, marketRiskSourceFixture, riskEnvelopeFixture } from "../lib/__tests__/marketRiskFixture";
+import { nativeGenerationFixture } from "../lib/__tests__/fixtures/sectorNativeGeneration";
 import { HASH_A, HASH_B, exposureHrefFor, originStrip, prepareSectorJourney, type JourneyLang } from "./helpers/optionsR1Journey";
 
 // Options R1 W1 PR crop packet: regenerates docs/pr-crops/options-r1-w1 on synthetic sources.
@@ -144,6 +145,10 @@ test.describe("Options R1 W1 crop packet", () => {
         const envelope = riskEnvelopeFixture();
         await page.route("**/api/sector-intelligence?**", route => {
           const source = new URL(route.request().url()).searchParams.get("source")!;
+          if (source === "generation") return route.fulfill({ json: { data: nativeGenerationFixture(sector), receipt: {
+            source, status: "ready", path: "/api/sector-generation?audience=preview", asOf: sector.as_of,
+            observedAt: "2026-10-08T12:00:00Z", stale: false, contentHash: null,
+          } } });
           const data = source === "sector" ? sector : source === "risk" ? envelope : null;
           return route.fulfill({ status: data ? 200 : 404, json: { data, receipt: { source, status: data ? "ready" : "unavailable",
             path: source === "risk" ? "/riskdata/risk_envelope.json" : "/sectordata/sector_central.json",

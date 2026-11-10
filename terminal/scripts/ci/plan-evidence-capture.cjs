@@ -1,13 +1,20 @@
 "use strict";
 // Fail-closed source-lock planner for the expensive immutable browser evidence
 // capture. Native merge_group may reuse checked-in legacy evidence only when
-// all registered screenshot-packet locks and the exact EOD packet match the integrated tree.
+// all registered screenshot-packet locks and both exact native packets match the integrated tree.
 // A missing/altered manifest, file, conflicting lock, or hash mismatch orders
 // fresh, fully validated captures. No false-green source hash overrides.
+//
+// pull_request runs always capture their own fresh evidence, and additionally
+// gate on their own diff: when a PR-touched evidence-locked source no longer
+// matches its checked-in lock, the PR itself fails with "recapture evidence
+// and commit the lock in this PR". Without this PR-time gate the identical
+// drift is only discovered by the merge_group backstop AFTER merge qualification
+// starts, turning one forgotten recapture into hours of red groups.
 const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
-const { eodPacket } = require("../../e2e/tools/capture_ci_evidence.cjs");
+const { eodPacket, gexPacket } = require("../../e2e/tools/capture_ci_evidence.cjs");
 
 const ROOT = path.resolve(__dirname, "../../..");
 const MANIFESTS = [
@@ -46,13 +53,13 @@ function planEvidenceCapture(root = ROOT) {
         locks.set(rel, expected);
       }
     }
-    // Reuse the native owner's complete current-source and126-case qualification.
-    // Its malformed/missing packet cannot authorize a merge-group capture skip.
-    const eod = eodPacket(root);
-    for (const [rel, expected] of Object.entries(eod.layoutFiles)) {
-      if (locks.has(rel) && locks.get(rel) !== expected)
-        throw new Error("conflicting evidence source locks");
-      locks.set(rel, expected);
+    // The shared owner checks declared histories; corruption cannot authorize reuse.
+    for (const packet of [eodPacket(root), gexPacket(root)]) {
+      for (const [rel, expected] of Object.entries(packet.sourceFiles || packet.layoutFiles)) {
+        if (locks.has(rel) && locks.get(rel) !== expected)
+          throw new Error("conflicting evidence source locks");
+        locks.set(rel, expected);
+      }
     }
     const stale = [];
     for (const [rel, expected] of locks) {
@@ -66,9 +73,52 @@ function planEvidenceCapture(root = ROOT) {
   }
 }
 
+// PR-time drift attribution. `touchedText` is the newline-separated list of
+// repo-relative paths the pull request itself changed (ci.yml records
+// `git diff --name-only --no-renames HEAD^1 HEAD` of the synthetic merge
+// commit into EVIDENCE_PR_TOUCHED_FILE). Only KNOWN source-drift on a
+// PR-touched path fails the PR: inherited drift on untouched paths stays with
+// the merge_group backstop, and fail-closed plans (missing/malformed manifest)
+// cannot attribute drift and leave PR capture behavior unchanged.
+function driftedTouchedSources(root = ROOT, touchedText = process.env.EVIDENCE_PR_TOUCHED_FILE || "") {
+  const plan = planEvidenceCapture(root);
+  const touched = new Set();
+  for (const line of String(touchedText).split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (trimmed) touched.add(trimmed);
+  }
+  const drifted = plan.reason === "source-drift"
+    ? plan.stale.filter(rel => touched.has(rel))
+    : [];
+  return {plan, touched: [...touched], drifted};
+}
+
 if (require.main === module) {
-  const result = process.env.GITHUB_EVENT_NAME === "merge_group"
-    ? planEvidenceCapture() : {capture: true, reason: "full-pr-proof"};
+  const eventName = process.env.GITHUB_EVENT_NAME;
+  let result;
+  let prGate = null;
+  if (eventName === "merge_group") {
+    result = planEvidenceCapture();
+  } else if (eventName === "pull_request") {
+    prGate = driftedTouchedSources();
+    if (prGate.drifted.length) {
+      for (const rel of prGate.drifted) {
+        console.error("::error title=evidence-lock-drift::" + rel
+          + " drifted from its checked-in evidence lock — recapture evidence and commit the lock in this PR");
+      }
+      console.error("PR evidence drift gate: " + prGate.drifted.length
+        + " PR-touched locked source(s) drifted from the checked-in lock; failing this PR now"
+        + " instead of the merge group later");
+    } else if (prGate.plan.reason === "fail-closed" || prGate.touched.length === 0) {
+      console.warn("::warning::PR evidence drift gate could not attribute drift"
+        + " (reason=" + prGate.plan.reason + ", touched_paths=" + prGate.touched.length
+        + "); merge-group backstop still enforces the locks");
+    }
+    // PRs always earn their own fresh capture regardless of the gate verdict.
+    result = {capture: true, reason: "full-pr-proof", stale: prGate.plan.stale};
+  } else {
+    result = {capture: true, reason: "full-pr-proof"};
+  }
   const value = result.capture ? "true" : "false";
   if (!process.env.GITHUB_OUTPUT) {
     console.error("GITHUB_OUTPUT missing: cannot authorize evidence skip");
@@ -78,7 +128,8 @@ if (require.main === module) {
     console.log("evidence capture=" + value + " reason=" + result.reason
       + " drifted_files=" + (result.stale || []).length);
     if (result.error) console.warn("::warning::Evidence planner fallback: " + result.error);
+    if (prGate && prGate.drifted.length) process.exitCode = 1;
   }
 }
 
-module.exports = {MANIFESTS, manifestLocks, planEvidenceCapture};
+module.exports = {MANIFESTS, manifestLocks, planEvidenceCapture, driftedTouchedSources};

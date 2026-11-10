@@ -1,0 +1,57 @@
+{
+  "completedAt": "2026-11-10T12:32:01.913885+00:00",
+  "results": {
+    "lint": {
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "e2e/ticker-news.spec.ts",
+        "lib/__tests__/tickerNewsEvidence.test.ts",
+        "--max-warnings=0"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seconds": 7.69
+    },
+    "typecheck": {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seconds": 140.13
+    },
+    "units": {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/tickerNewsEvidence.test.ts",
+        "--pool=forks",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-910-protected-successor/docs/verification/pr910-protected-successor-20261110/source-consumers-current/units.json"
+      ],
+      "exit": 0,
+      "logSha256": "876b7f8b21d556721793ec6ce9934550dff55146f13dd3a437de7466a2a0f447",
+      "report": {
+        "numFailedTests": 0,
+        "numPassedTests": 4,
+        "numPendingTests": 0,
+        "numTotalTests": 4,
+        "success": true
+      },
+      "seconds": 2.67
+    }
+  },
+  "schema": "terminal_pr910_final_source_consumers.v1",
+  "sourceAndPacketEntries": 2030,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T12:29:29.944091+00:00",
+  "state": "QUALIFIED"
+}

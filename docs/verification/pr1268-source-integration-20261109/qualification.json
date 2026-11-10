@@ -1,0 +1,60 @@
+{
+  "auxiliaryCurrentCapturesPreserved": 45,
+  "browserFailed": 0,
+  "browserFlaky": 0,
+  "browserPassed": 88,
+  "browserRetries": 0,
+  "capturedChildren": [
+    "pl6",
+    "vi",
+    "batch2",
+    "pine"
+  ],
+  "composition": {
+    "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261109171268-1-current.composition.json",
+    "selectedCases": 50,
+    "sha256": "4307c34a4403a2cb0ad25d59e3e7dc2427ae37963ad2b917da370a0c598e687d"
+  },
+  "currentStatusImages": 12,
+  "existingBrowserSkipped": 8,
+  "finalRecordConsumerAssertionsPassed": 18,
+  "focusedUnitsPassed": 86,
+  "fullCIOwnerSeconds": 685.51,
+  "fullCISourceEntries": 1937,
+  "fullCISourceSha256": "59e04117e5f48c189fcb5ee2fffb5618a0f1ea174c60a8035e4e3a99cb7f3913",
+  "optionsAxisImages": 5,
+  "optionsManifestSha256": "bbc79ccd1f36477f09814096ffbf260a0e153f4282aaf63e5bf5c6c32456859e",
+  "originalArchiveFiles": 480,
+  "originalArchives": {
+    "pl6": 248,
+    "test-results": 7,
+    "vi": 225
+  },
+  "ownerSharedDeadlineMinutes": 54,
+  "parents": [
+    "f7276cf077b877a54509cba28ab247b5524d8530",
+    "03af393ce05c12282003a3919cc473c032264922"
+  ],
+  "preparedAt": "2026-11-09T17:36:56.801642+00:00",
+  "priorStatusImages": 12,
+  "productionAccepted": false,
+  "records": {
+    "boats-browser-r1-lifecycle.json": "b7a9245cfca39989f2fb4e7724b043e5e07f0a37b01d6646fda79606b3f53dd8",
+    "browser-r1/auxiliary-capture-preservation.json": "dd43968a084a377d6db36ed4b73e5a42471959cbe6e2146e10905e056d765ec3",
+    "browser-r1/execution.json": "c4265c8f17d08024ef1d0f1f649b9f6324790fc4ca66ccb6eff31b91417bd023",
+    "ci-owner-r1/execution.json": "f7f5c3f61dd37a918903729d7e2057a91f0b8a1be4691ae4d31a18e987d130b4",
+    "dependencies.json": "83b4f6c2ccc873b832ddad50fa90f6d10fbb91df190c0dea3bdac7412a0bbcf1",
+    "final-consumers-r1/execution.json": "d1d94f8de6024132733989ad57e0b5479badf483e123c9ba4b2e61444507215e",
+    "integration-preparation.json": "8909883e36c69c52947aae272bda298047437a93047d15e78c640cd0328e0bc3",
+    "original-preservation.json": "ce5d944c8455394bad524750833158fdc2b9419ad0669f04b328e81a2239f817",
+    "prior-tiingo-status.json": "99d5ac4d37da3498f0abb250d73872564507bf0702927207f2322e40970d7540",
+    "unit-type-lint-r1/execution.json": "06ff89cf603a194cd226c7ba67257ffd3c7b7876b6a20a0e36f8571759bebb02",
+    "visual-review.json": "b80e732231310ab3149fd283fe808fab5f2fcb6195d71507012b1af8a0cde93c"
+  },
+  "schema": "terminal_pr1268_source_integration_qualification.v1",
+  "scopedLintFiles": 4,
+  "state": "SOURCE_BROWSER_AND_COMPLETE_CI_OWNER_QUALIFIED",
+  "typecheckSeconds": 53.64,
+  "workflowBlob": "637c518ecf481d9af5224c21e93db83b00593cea",
+  "workflowCaptureMinutes": 55
+}
