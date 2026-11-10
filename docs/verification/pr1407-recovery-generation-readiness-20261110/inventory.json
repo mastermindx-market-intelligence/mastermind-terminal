@@ -1,0 +1,141 @@
+{
+  "files": {
+    "README.md": {
+      "bytes": 2936,
+      "gitBlob": "7dcdde0ceb2082be4cf3a78471bbb0274cea6334",
+      "sha256": "beab232a5d8962d0b27f850295f4ba5ceb0dc4c9fee3322716233ba857e31926"
+    },
+    "artifacts/.last-run.json": {
+      "bytes": 45,
+      "gitBlob": "cbcc1fbac11a74b608b2b3edc3a2ffd6ab639cb2",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    "artifacts/shared-shell-refinement-le-82928-serves-a-newer-focus-choice-desktop/trace.zip": {
+      "bytes": 541488,
+      "gitBlob": "0954bfe9de1a18a4a438f3985668f17b2e1cf5f2",
+      "sha256": "5d6fffa0fb9f33f22680fa444d0c3a71d8bc7afd796a771d1ad5d8a4b7536c75"
+    },
+    "artifacts/shared-shell-refinement-le-82928-serves-a-newer-focus-choice-desktop/workspace-recovery-320x480.png": {
+      "bytes": 17011,
+      "gitBlob": "a71ea54f7a581bd6c1298aac8ac850742ee07016",
+      "sha256": "cc747e7f7a184762cc9dc1014bbb8b5294e2055b63fbecec25715b10432475b4"
+    },
+    "artifacts/shared-shell-refinement-le-82928-serves-a-newer-focus-choice-desktop/workspace-recovery-568x320.png": {
+      "bytes": 18492,
+      "gitBlob": "24c939a63c516199570051cb759da8801165e68c",
+      "sha256": "f510c3adfe2f2ad08f44d533690d9cd7fb21f84bb3afb4692d9eef16bf076180"
+    },
+    "artifacts/shared-shell-refinement-le-82928-serves-a-newer-focus-choice-desktop/workspace-recovery-light-zh.png": {
+      "bytes": 56762,
+      "gitBlob": "fff0303d8f016d3411153f422fbd54137c948c33",
+      "sha256": "96e8bc309b7e21be3bc08d88b13f9d6528db717a5180ec820e2e9ee0932cf925"
+    },
+    "artifacts/shared-shell-refinement-le-82928-serves-a-newer-focus-choice-mobile/trace.zip": {
+      "bytes": 308854,
+      "gitBlob": "bfd328f95780b0c4f6c042723fff1491b8b292aa",
+      "sha256": "27dc907bb05855299a87530193c3083c3f73b5f48c0d4793c2f06d17ff81bb72"
+    },
+    "artifacts/shared-shell-refinement-le-82928-serves-a-newer-focus-choice-mobile/workspace-recovery-light-zh.png": {
+      "bytes": 19463,
+      "gitBlob": "4ea660bd441d840ffbf476956fafe1a3ff32dfed",
+      "sha256": "d7eeb666cba60a4eb8680ddedf432efb9ecadedca64137600b6bf577d2f49e5e"
+    },
+    "artifacts/shared-shell-refinement-le-82928-serves-a-newer-focus-choice-tablet/trace.zip": {
+      "bytes": 292318,
+      "gitBlob": "3fa5d62619268c09588e7e531578187d30749792",
+      "sha256": "eb4328f0ce1d7a162e09f98e5dea343b98c8191ee6516fd96b639b91586e831c"
+    },
+    "artifacts/shared-shell-refinement-le-82928-serves-a-newer-focus-choice-tablet/workspace-recovery-light-zh.png": {
+      "bytes": 24393,
+      "gitBlob": "dd86f8288ae6fa3320d83db6995657f11fb6238f",
+      "sha256": "8975f75ee493b67fc67b20afb9256d8b840f3778f58f8b0a86c842ab9007b3c6"
+    },
+    "artifacts/shared-shell-refinement-le-ce23a-ocus-into-the-new-workspace-desktop/trace.zip": {
+      "bytes": 511308,
+      "gitBlob": "91b781f4a679fe6af7efe4968c286ba71c3212c6",
+      "sha256": "dbbd4c398868055b1543f617cb709577b2c9f7716af6db433220c20d9b613046"
+    },
+    "artifacts/shared-shell-refinement-le-ce23a-ocus-into-the-new-workspace-desktop/workspace-recovery-dark-en.png": {
+      "bytes": 63933,
+      "gitBlob": "ef9bff90d2ecdb2b2f6f9298ad2b4e3797faf663",
+      "sha256": "34d93f154850ffb70e65a6ab1a13762b670495ba5bf0fbd2b596fcc13021610d"
+    },
+    "artifacts/shared-shell-refinement-le-ce23a-ocus-into-the-new-workspace-mobile/trace.zip": {
+      "bytes": 310456,
+      "gitBlob": "09be8a8d65983a5b0303c9e9bac8d40cbfff65b1",
+      "sha256": "8abfad547359cc178e9d0d608677e824ef2c10675492a4909821b8a447b9afdf"
+    },
+    "artifacts/shared-shell-refinement-le-ce23a-ocus-into-the-new-workspace-mobile/workspace-recovery-dark-en.png": {
+      "bytes": 20641,
+      "gitBlob": "fb333e0c62d3bae6f5f99642561717e85c734060",
+      "sha256": "b7481ca75cb0fc0f8a64e7942c9dc005d2018d621a1591eed82443b437aa8211"
+    },
+    "artifacts/shared-shell-refinement-le-ce23a-ocus-into-the-new-workspace-tablet/trace.zip": {
+      "bytes": 297651,
+      "gitBlob": "78c0f933972d7ca726fb21d8deb701c902fb98e6",
+      "sha256": "198fce06585122fee844af1621fb27c8a9a1480a9c456b52c4db8c5c720940f7"
+    },
+    "artifacts/shared-shell-refinement-le-ce23a-ocus-into-the-new-workspace-tablet/workspace-recovery-dark-en.png": {
+      "bytes": 26022,
+      "gitBlob": "8425eb62240d1d1df8e859289ee2caf133d2a539",
+      "sha256": "98779946ed8006b1b9faa59fc98aae4548aa298ef494d91dc2d848cfe2c03e13"
+    },
+    "browser-report.json": {
+      "bytes": 19274,
+      "gitBlob": "014f87989a5ac35ba1eb4ee232ae48a11f070bdd",
+      "sha256": "5eacac66ae7f490100cde82e2149d4f2d60f3c14184f3367ee7abb178441c0ee"
+    },
+    "browser.log": {
+      "bytes": 1859,
+      "gitBlob": "b59e459dca11090bacd492116ed919d5a7201c49",
+      "sha256": "b75bac3b31b31b29c2b28640ac98ad0caad7a348c76bd84eb681d515591a00cf"
+    },
+    "config.json": {
+      "bytes": 697,
+      "gitBlob": "477e4e3fee264e4407654666732134dc417ca7f8",
+      "sha256": "8b3fd9c08f02a7f0cb83959dff4054b7994e26b137f69f0b0312af726e7c1454"
+    },
+    "execution.json": {
+      "bytes": 6108,
+      "gitBlob": "158e8be2ede47886b4f7e054db8fb2f5c2b48717",
+      "sha256": "cc739943fe509ecf1352cd033179839e1be8e2b9b7515e83a0534262f5595585"
+    },
+    "lifecycle.json": {
+      "bytes": 933,
+      "gitBlob": "e0d918320958718f6a917ec4b856f7f03ae7962c",
+      "sha256": "bf52e04f0d4b09c6f80b51b4e1922e6540498182d10519e57e3359e26d556371"
+    },
+    "preparation.json": {
+      "bytes": 840,
+      "gitBlob": "a1f8c5d5b44731c0a2895d5ed99722c4b148e588",
+      "sha256": "94f3bbc6755b4e99c6c286a752b62818449514c5fce4fcc53adfe3570127d05d"
+    },
+    "run-browser.py": {
+      "bytes": 6839,
+      "gitBlob": "62c247581a99b0835dd0e908a7202714be1552f2",
+      "sha256": "11d33b1e38523e768dbf0e697e46829312b01f8c9f62c004e3c36699001b5dd9"
+    },
+    "selection.log": {
+      "bytes": 1104,
+      "gitBlob": "280546548267eeaaa02fd76bb1b9e038e22bc419",
+      "sha256": "126275f9366af671bf979e6434e30168254084c26c5ab7346ce6177d101982bd"
+    },
+    "source-after.json": {
+      "bytes": 232727,
+      "gitBlob": "c7c7902d7551712ef36073a3f676f343e3ea5f61",
+      "sha256": "5b0931ca062392470767d3890c2811bfd0f673c28b40e94f4f4478e7391bc337"
+    },
+    "source-before.json": {
+      "bytes": 232727,
+      "gitBlob": "c7c7902d7551712ef36073a3f676f343e3ea5f61",
+      "sha256": "5b0931ca062392470767d3890c2811bfd0f673c28b40e94f4f4478e7391bc337"
+    },
+    "source.diff": {
+      "bytes": 1431,
+      "gitBlob": "c5bc7def7fe6c49532be6cb8f85aa39ce65ce406",
+      "sha256": "3b2a6ef14c45809f49c30736362c2b796f780623ce5ac4010534a5d1e07e341e"
+    }
+  },
+  "pr": 1407,
+  "schema": "terminal_pr_test_readiness_inventory.v1"
+}
