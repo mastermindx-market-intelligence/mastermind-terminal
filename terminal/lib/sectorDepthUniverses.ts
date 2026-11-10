@@ -46,6 +46,16 @@ export interface UniverseMember {
   stock_bars_to_cross?: number | null;
   stock_buyable: boolean;
   stock_state: string;
+  /** Independent-emergence marker (v1.1, R6-09 "Company strength is early"):
+   * true ONLY when the owner engine flags this member — strength that stands
+   * apart from the universe's own timing read; components never derive it
+   * from return/RS/tier, and it never changes timing classification or
+   * gateable counts. Absent/null = not flagged. */
+  emerging?: boolean | null;
+  /** Company-evidence destination for an emerging member, used EXACTLY as
+   * carried; absent/null on every other member and whenever the owner
+   * publishes no distinct route. */
+  emergence_href?: string | null;
 }
 
 export interface UniverseEntry {

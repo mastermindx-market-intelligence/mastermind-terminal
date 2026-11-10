@@ -159,6 +159,19 @@
   line-height: 1.5;
 }
 
+/* Full-population continuation control (v1.1): the pre-expansion slice is a
+   display budget, not a cap. Touch-target sized; token colors only. */
+.more {
+  min-height: 44px;
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--link);
+  font: 600 11.5px var(--font-ui);
+  cursor: pointer;
+}
+
 /* ── responsive: entries re-flow; nothing scrolls horizontally at 200% zoom ── */
 
 @media (max-width: 760px) {

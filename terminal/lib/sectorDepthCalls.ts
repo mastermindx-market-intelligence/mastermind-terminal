@@ -59,6 +59,16 @@ export interface CallRow {
    * never show a score). Absent/null on rows whose owner wrote no stat. */
   stat_en?: string | null;
   stat_zh?: string | null;
+  /** Independent-emergence marker (v1.1, R6-09 "Company strength is early"):
+   * true ONLY when the owner engine itself flags this row — a strong company
+   * in a weak sector stays discoverable; components never derive it from
+   * score/RS/perf, and it never changes entry qualification or may_* flags.
+   * Absent/null = not flagged. */
+  emerging?: boolean | null;
+  /** Company-evidence destination for an emerging row, used EXACTLY as
+   * carried; absent/null on every other row and whenever the owner publishes
+   * no distinct route (the row's own `href` detail remains). */
+  emergence_href?: string | null;
 }
 
 /** The six source lanes of the owner board. */
@@ -394,7 +404,10 @@ export interface BottomingWatchData {
   bottoming_authority: WatchAuthority;
 }
 
-/** Entries shown in the watch strip — hard cap. */
+/** Entries shown in the watch strip before its continuation control — NOT a
+ * hard cap: the strip is display-only but the full population stays reachable
+ * through Show all (v1.1 full-population continuation; R6-09 member coverage
+ * keeps every entry in the population). */
 export const BOTTOMING_CAP = 8;
 
 /** The chip set the watch renders per entry: the cycle-turn base chip every
@@ -440,10 +453,11 @@ function watchChips(entry: WatchEntry, data: BottomingWatchData): WatchChipKind[
  * Only display fields survive the fold — payload-only fields are dropped here,
  * not hidden in CSS.
  */
-export function watchModel(data: BottomingWatchData): WatchModelEntry[] {
-  return [...data.bottoming_watch]
-    .sort((a, b) => a.pos - b.pos)
-    .slice(0, BOTTOMING_CAP)
+export function watchModel(data: BottomingWatchData, expanded = false): WatchModelEntry[] {
+  const all = [...data.bottoming_watch].sort((a, b) => a.pos - b.pos);
+  const shown =
+    expanded || all.length <= BOTTOMING_CAP ? all : all.slice(0, BOTTOMING_CAP);
+  return shown
     .map((entry) => ({
       id: entry.id,
       name: entry.name,
@@ -457,10 +471,14 @@ export function watchModel(data: BottomingWatchData): WatchModelEntry[] {
     }));
 }
 
-/** True when any VISIBLE (post-cap) entry is recovering from its cycle low —
- * the condition for the strip's single recovering disclosure line. */
+/** True when any entry in the FULL population (not just the pre-expansion
+ * slice) is recovering from its cycle low — the condition for the strip's
+ * single recovering disclosure line. Population truth, independent of what is
+ * currently shown (v1.1 full-population continuation). */
 export function hasRecovering(data: BottomingWatchData): boolean {
-  return watchModel(data).some((entry) => entry.recovering);
+  return [...data.bottoming_watch]
+    .sort((a, b) => a.pos - b.pos)
+    .some((entry) => data.recovering_ids.includes(entry.id));
 }
 
 /**
