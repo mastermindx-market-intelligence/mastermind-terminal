@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { workspaceMetadata } from "@/lib/shared-shell/metadata";
 import { createClient } from "@/lib/supabase/server";
+import { isSharedShellDevOpen } from "@/lib/shared-shell/devOpen";
 import DiscoverWorkspaceMount from "@/components/mounts/DiscoverWorkspaceMount";
 import SignupGate from "@/components/gates/SignupGate";
 
@@ -19,6 +20,10 @@ export const metadata: Metadata = workspaceMetadata("Discover");
 
 export default async function DiscoverPage() {
   if (process.env.TERMINAL_E2E_FIXTURE === "1") return <DiscoverWorkspaceMount />;
+
+  // Beta development mode (lib/shared-shell/devOpen.ts): open the workspace to
+  // signed-out development sessions with no auth read at all.
+  if (isSharedShellDevOpen()) return <DiscoverWorkspaceMount />;
 
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
