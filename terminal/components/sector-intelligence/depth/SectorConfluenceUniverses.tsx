@@ -106,9 +106,17 @@ function detailHref(id: UniverseId, group: UniverseGroup): string | undefined {
  * must exist in sharedShellRoutes.generated.json. */
 const ROLLUP_HAS_DETAIL_ROUTES: ReadonlySet<UniverseId> = new Set(["nasdaq"]);
 
-/** Count cell: null (not stated) renders the dash, never a coerced 0. */
-function fmtCount(v: number | null | undefined): string {
-  return v == null ? "–" : String(v);
+/** Count cell (S3): null (not stated) renders the localized not-stated word —
+ * never a coerced 0 and never a bare dash. */
+function fmtCount(v: number | null | undefined, notStated: string): string {
+  return v == null ? notStated : String(v);
+}
+
+/** Count + noun (S3): a measured count reads "6 names"; a null count reads
+ * the not-stated word ALONE ("not stated"), never "not stated names" and
+ * never a coerced "0 names". */
+function fmtCountNoun(v: number | null | undefined, noun: string, notStated: string): string {
+  return v == null ? notStated : `${v} ${noun}`;
 }
 
 export function SectorConfluenceUniverses({
@@ -660,7 +668,7 @@ function GroupCard({
         <TierBadge cls={group.class} />
       </div>
       <p className={styles.cardLane}>
-        {sector || "–"} · {fmtCount(group.n_priced)} {t("siUniverseNames")}
+        {sector || "–"} · {fmtCountNoun(group.n_priced, t("siUniverseNames"), t("siUniverseNotStated"))}
       </p>
       <p className={styles.cardMeta}>
         <span className={styles.fresh}>{t(fresh.key, fresh.params)}</span>
@@ -729,7 +737,7 @@ function RotationRow({
             {label}
           </button>
           <span className={styles.nMembers}>
-            {fmtCount(group.n_priced)} {t("siUniverseNames")}
+            {fmtCountNoun(group.n_priced, t("siUniverseNames"), t("siUniverseNotStated"))}
             {" · "}
             <span className={styles.relMini} data-rel={rel.tier}>
               {t(RELIABILITY_LABEL_KEYS[rel.tier])}
@@ -752,7 +760,7 @@ function RotationRow({
           </span>
         </td>
         <td data-label={t("siUniverseColN")}>
-          <span className={styles.num}>{fmtCount(group.n_priced)}</span>
+          <span className={styles.num}>{fmtCount(group.n_priced, t("siUniverseNotStated"))}</span>
         </td>
       </tr>
       {open && (

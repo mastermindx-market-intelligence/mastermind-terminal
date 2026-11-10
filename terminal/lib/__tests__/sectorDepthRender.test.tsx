@@ -579,6 +579,34 @@ describe("rows increment — universes board from carried blocks (static renders
       G.__SD_LANG = "en";
     }
   });
+
+  it("S3 — a null member count reads not stated in both locales, never 0 or a bare dash", () => {
+    const doc = structuredClone(sp500ValueFx) as { data: { subsectors: Record<string, unknown>[] } };
+    doc.data.subsectors[0]!.n_priced = null; // row 0: Software - Application
+    const blocks: Partial<Record<UniverseId, UniverseBlockRead>> = {
+      subsectors: confluenceSp500FromCarriedBlock({ status: "available", value: doc }),
+    };
+    const markup = html(<SectorConfluenceUniverses universeBlocks={blocks} />);
+    // The FIRST row's count span (rows render in payload order): the
+    // not-stated word — the old surface printed a bare dash here, and a null-
+    // coercing regression would print "0 names". (A measured 0 elsewhere —
+    // e.g. roll-up sector rows — legitimately keeps "0 names"; the assertion
+    // stays scoped to this row's span.)
+    const firstCount = markup.match(/class="[^"]*nMembers[^"]*"[^>]*>([^<]*)/);
+    expect(firstCount).not.toBeNull();
+    expect(firstCount![1]).toContain("not stated");
+    expect(firstCount![1]).not.toMatch(/\b0\b/);
+    G.__SD_LANG = "zh";
+    try {
+      const zh = html(<SectorConfluenceUniverses universeBlocks={blocks} />);
+      const zhFirst = zh.match(/class="[^"]*nMembers[^"]*"[^>]*>([^<]*)/);
+      expect(zhFirst).not.toBeNull();
+      expect(zhFirst![1]).toContain("未载明");
+      expect(zhFirst![1]).not.toContain("0 ");
+    } finally {
+      G.__SD_LANG = "en";
+    }
+  });
 });
 
 describe("rows increment — universes board from carried blocks (interactive)", () => {
@@ -809,6 +837,47 @@ describe("rows increment — the carried theme table from the real specimen", ()
     expect(markup).not.toContain("javascript:");
     expect(markup).not.toContain('href="/subsector/.."');
     expect(markup).toContain('href="/subsector/b-defensives.html"'); // row 3 (defensives) still links
+  });
+
+  it("S3 — a null theme score reads not stated in its cell, never 0 (both locales)", () => {
+    const doc = structuredClone(themeRowsValueFx) as { rows: Record<string, unknown>[] };
+    const rid = doc.rows[0]!.id as string;
+    doc.rows[0]!.state = { ...(doc.rows[0]!.state as Record<string, unknown>), score: null };
+    const read = themeRowsFromCarriedBlock({ status: "available", value: doc });
+    const markup = html(<SectorThemeCompare history={capturedHistory} labels={{}} themeRows={read} />);
+    const scoreCell = markup.split(`data-r-id="${rid}"`)[1]?.split('data-k="score"')[1] ?? "";
+    expect(scoreCell).toMatch(/^>\s*not stated</);
+    G.__SD_LANG = "zh";
+    try {
+      const zh = html(<SectorThemeCompare history={capturedHistory} labels={{}} themeRows={read} />);
+      const zhCell = zh.split(`data-r-id="${rid}"`)[1]?.split('data-k="score"')[1] ?? "";
+      expect(zhCell).toMatch(/^>\s*未载明</);
+    } finally {
+      G.__SD_LANG = "en";
+    }
+  });
+
+  it("S3 — an out-of-set state word renders unclassified in both locales; the raw word never reaches the reader", () => {
+    const doc = structuredClone(themeRowsValueFx) as { rows: Record<string, unknown>[] };
+    const rid = doc.rows[0]!.id as string;
+    doc.rows[0]!.state = { ...(doc.rows[0]!.state as Record<string, unknown>), label: "warping" };
+    const read = themeRowsFromCarriedBlock({ status: "available", value: doc });
+    const markup = html(<SectorThemeCompare history={capturedHistory} labels={{}} themeRows={read} />);
+    const rowChunk = markup.split(`data-r-id="${rid}"`)[1]?.split("</tr>")[0] ?? "";
+    expect(text(rowChunk)).toContain("unclassified");
+    expect(text(rowChunk)).not.toContain("warping");
+    // The raw engine word rides data-val for triage — never as visible text.
+    expect(rowChunk).toContain('data-val="warping"');
+    G.__SD_LANG = "zh";
+    try {
+      const zh = html(<SectorThemeCompare history={capturedHistory} labels={{}} themeRows={read} />);
+      const zhChunk = zh.split(`data-r-id="${rid}"`)[1]?.split("</tr>")[0] ?? "";
+      expect(text(zhChunk)).toContain("未分类");
+      expect(text(zhChunk)).not.toContain("warping");
+      expect(zhChunk).toContain('data-val="warping"');
+    } finally {
+      G.__SD_LANG = "en";
+    }
   });
 });
 

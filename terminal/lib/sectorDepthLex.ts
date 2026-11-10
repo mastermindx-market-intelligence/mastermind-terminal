@@ -286,6 +286,9 @@ export const SECTOR_DEPTH_LEX: Record<string, [string, string]> = {
   siUniverseFreshAboutTo: ["about to fire", "即将触发"],
   siUniverseFreshNone: ["—", "—"],
   siUniverseNames: ["names", "只"],
+  // S3 (review r1): a null count reads the localized not-stated word — never
+  // a coerced 0 and never a bare dash.
+  siUniverseNotStated: ["not stated", "未载明"],
   // S5: the identity line carries the tab's LOCALIZED display name (never the
   // raw tab id), and the baskets universe names its complex through
   // siUniverseBasketBenchmark instead of a raw English literal.
