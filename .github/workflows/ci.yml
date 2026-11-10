@@ -183,6 +183,7 @@ jobs:
                   for project, old_count, new_count, before, after in (
                       ("desktop", 5, 6, "fifths", "sixths"),
                       ("tablet", 3, 4, "thirds", "quarters"),
+                      ("mobile", 3, 5, "thirds", "fifths"),
                   ):
                       rows = matrix["include"]
                       if not isinstance(rows, list) or not all(isinstance(row, dict) for row in rows):
@@ -215,7 +216,7 @@ jobs:
               {"shard": f"{name}-{i}",
                "projects": f"--project={name} --shard={i}/{total}",
                "specs": ""}
-              for name, total in (("desktop", 6), ("tablet", 4), ("mobile", 3))
+              for name, total in (("desktop", 6), ("tablet", 4), ("mobile", 5))
               for i in range(1, total + 1)
           ]
           matrix.append({
@@ -499,6 +500,12 @@ jobs:
     # the single CI worker at 09:49:29, and was still passing with no assertion
     # failure when the host cancelled it at 10:48:24 (60m17s), so mobile runs in
     # thirds below.
+    # On 2026-11-10 mobile thirds still reached the unchanged cap (#1411): run
+    # 42753497499, mobile-1 took 54 min and mobile-3 took 58 min, while mobile-2 was
+    # cancelled at the 60-minute cap twice with ZERO test failures — on attempt 2 the
+    # suite itself took 58.0 min on the single CI worker (416 passed, 144 skipped) and
+    # the job was cancelled during the artifact upload that follows.
+    # So mobile now runs in fifths below, same cap untouched.
     # This cap is a hang detector, not a budget to grow into: when a shard creeps toward it,
     # split that shard (as desktop, tablet and mobile are below), never just raise the number.
     timeout-minutes: 60
