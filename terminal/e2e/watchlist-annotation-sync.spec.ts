@@ -342,11 +342,20 @@ test("AC-E05-04 — a failed save never shows Synced and never overwrites the lo
     expect(attempt).toContain("retrying");
     expect(attempt).not.toContain("synced");
   } else {
-    await editSlot(page, E2E_WL_NOTES_KEY, owner, "NVDA", V2);
+    // This case models an edit made with the app closed. Apply it before the
+    // next document starts, without racing the live shell's persistence effects.
+    await seedSlots(page, "failed-save-reload", [[E2E_WL_NOTES_KEY, owner, { NVDA: V2 }]]);
   }
 
   // Reload with the save still failing: the local edit survives the server read (no overwrite).
-  await boot(page);
+  const failedSave = page.waitForResponse((response) => {
+    if (new URL(response.url()).pathname !== ENDPOINT
+      || response.request().method() !== "POST" || response.status() !== 500) return false;
+    const body = response.request().postDataJSON() as { writes?: Write[] } | null;
+    return body?.writes?.some((write) =>
+      write.symbol === "NVDA" && write.field === "note" && write.value === V2) ?? false;
+  }, { timeout: 20_000 });
+  await Promise.all([boot(page), failedSave]);
   await expectSync(page, "retrying");
   expect((await slot(page, E2E_WL_NOTES_KEY, owner)).NVDA).toBe(V2);
   if (isDesktop(testInfo)) await expect(row(page, "NVDA").locator(".wl-note-mark")).toHaveAttribute("title", V2);

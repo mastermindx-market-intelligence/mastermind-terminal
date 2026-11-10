@@ -160,10 +160,16 @@ test("a missing study client chunk leaves the streamed action inert", async ({ p
   page.on("request", request => { if (request.url().includes("/api/intraday?")) inputs++; });
   await page.goto("/discover?tab=rs-pivot", { waitUntil: "commit" });
   const run = page.getByRole("button", { name: "Run local study", exact: true });
-  await expect.poll(() => rejected).toBe(1);
+  await expect.poll(() => rejected).toBeGreaterThan(0);
+  // The runtime can retry the chunk, and the existing boundary permits one
+  // recovery reload. Observe the manual error screen on that new document
+  // before checking that the study remains inert.
+  await page.waitForFunction(() =>
+    (performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined)?.type === "reload");
+  await expect(page.getByRole("heading", { name: "Something went wrong", exact: true })).toBeVisible();
   // A rejected lazy chunk may remove its boundary. Neither an enabled action
   // nor a research request may survive that failure.
   await expect(run.and(page.locator(":enabled"))).toHaveCount(0);
   expect(inputs).toBe(0);
-  expect(rejected).toBe(1);
+  expect(rejected).toBeGreaterThan(0);
 });
