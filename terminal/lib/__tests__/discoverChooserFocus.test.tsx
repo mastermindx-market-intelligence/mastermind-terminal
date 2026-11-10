@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { act, type ReactNode } from "react";
-import { createRoot, type Root } from "react-dom/client";
+import { createRoot, hydrateRoot, type Root } from "react-dom/client";
+import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import DiscoverWorkspace from "@/components/workspaces/DiscoverWorkspace";
 
@@ -10,7 +11,7 @@ vi.mock("next/navigation", async () => {
     const search = useSyncExternalStore(callback => {
       window.addEventListener("mmx:shell-location", callback);
       return () => window.removeEventListener("mmx:shell-location", callback);
-    }, () => window.location.search);
+    }, () => window.location.search, () => window.location.search);
     return new URLSearchParams(search);
   } };
 });
@@ -38,6 +39,26 @@ async function activate(target: HTMLButtonElement) { target.focus(); await act(a
 function navigate(query: string) { window.history.pushState(null, "", "/discover" + query); window.dispatchEvent(new Event("mmx:shell-location")); }
 
 describe("Discover chooser focus continuity", () => {
+  it("keeps server-rendered actions unavailable until their owner hydrates and ready on return", async () => {
+    await act(async () => root.unmount());
+    host.innerHTML = renderToString(<DiscoverWorkspace />);
+    const actions = () => [...host.querySelectorAll<HTMLButtonElement>("button")];
+    expect(actions()).toHaveLength(7);
+    expect(actions().every(action => action.disabled)).toBe(true);
+    expect(document.activeElement).toBe(external);
+
+    await act(async () => { root = hydrateRoot(host, <DiscoverWorkspace />); });
+    expect(actions().every(action => !action.disabled)).toBe(true);
+    expect(document.activeElement).toBe(external);
+    await activate(button("Open Heatmap"));
+    expect(selected().id).toBe("wtab-heatmap");
+    expect(document.activeElement).toBe(selected());
+    await activate(button("Discover ←"));
+    expect(actions()).toHaveLength(7);
+    expect(actions().every(action => !action.disabled)).toBe(true);
+    expect(document.activeElement).toBe(host.querySelector("h1"));
+  });
+
   it.each([["Open Heatmap", "heatmap"], ["Open Stock Screener", "screener"], ["Open study", "rs-pivot"]])("continues from %s into the selected tool and back to the chooser", async (label, key) => {
     await render(); expect(document.activeElement).toBe(external);
     await activate(button(label));

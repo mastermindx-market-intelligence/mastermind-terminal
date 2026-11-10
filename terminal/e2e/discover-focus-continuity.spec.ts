@@ -15,6 +15,7 @@ for (const lang of ["en", "zh"] as const) {
 
     for (const [label, key] of [[lang === "zh" ? "打开热图" : "Open Heatmap", "heatmap"], [lang === "zh" ? "打开研究" : "Open study", "rs-pivot"]]) {
       const launch = page.getByRole("button", { name: label, exact: true });
+      await expect(launch).toBeEnabled();
       await launch.focus();
       const outerScroll = await page.evaluate(() => ({ x: scrollX, y: scrollY }));
       await launch.press("Enter");

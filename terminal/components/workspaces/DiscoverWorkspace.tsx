@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import DiscoverLanding from "./DiscoverLanding";
@@ -64,6 +64,9 @@ export default function DiscoverWorkspace() {
   // reset). Cheap: it's only used as a React `key` on the two hub mounts.
   const [nonce, setNonce] = useState(0);
   const [focusRevision, setFocusRevision] = useState(0);
+  // Server-rendered chooser controls become available only after this owner can handle them.
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
   const workspaceRef = useRef<HTMLDivElement | null>(null);
   const chooserHeadingRef = useRef<HTMLHeadingElement | null>(null);
   const focusIntent = useRef<{ tab: string | null; pathname: string; from: Element | null } | null>(null);
@@ -103,7 +106,7 @@ export default function DiscoverWorkspace() {
   }, []);
 
   if (chooser) return <div ref={workspaceRef} className="main2 ws-shell discover-chooser-shell">
-    <DiscoverLanding headingRef={chooserHeadingRef} onSelect={key => {
+    <DiscoverLanding ready={ready} headingRef={chooserHeadingRef} onSelect={key => {
       if (!KEYS.has(key)) return;
       recordFocusIntent(key);
       onSelect(key);

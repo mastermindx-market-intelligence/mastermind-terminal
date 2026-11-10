@@ -7,12 +7,13 @@ import { useLang } from '@/lib/i18n';
 import styles from './DiscoverLanding.module.css';
 
 interface DiscoverLandingProps {
+  ready: boolean;
   onSelect: (key: string) => void;
   onSearchCompanies: () => void;
   headingRef?: Ref<HTMLHeadingElement>;
 }
 
-export default function DiscoverLanding({ onSelect, onSearchCompanies, headingRef }: DiscoverLandingProps) {
+export default function DiscoverLanding({ ready, onSelect, onSearchCompanies, headingRef }: DiscoverLandingProps) {
   const { lang } = useLang();
   const zh = lang === 'zh';
 
@@ -25,7 +26,7 @@ export default function DiscoverLanding({ onSelect, onSearchCompanies, headingRe
             {pick(zh, 'Choose a question. Open the right workspace.', '选择问题，打开合适的工作区。')}
           </p>
         </div>
-        <button type="button" className={styles.btn} onClick={onSearchCompanies}>
+        <button type="button" disabled={!ready} className={styles.btn} onClick={onSearchCompanies}>
           {pick(zh, 'Search companies', '搜索公司')}
         </button>
       </header>
@@ -41,7 +42,7 @@ export default function DiscoverLanding({ onSelect, onSearchCompanies, headingRe
           </p>
           <div className={styles.actions}>
             <button
-              type="button"
+              type="button" disabled={!ready}
               className={`btn btn-primary ${styles.btnPrimary}`}
               onClick={() => onSelect('screener')}
             >
@@ -59,10 +60,10 @@ export default function DiscoverLanding({ onSelect, onSearchCompanies, headingRe
             {pick(zh, 'Move from the market map to the sectors and companies behind it.', '从市场热图深入相关板块与公司。')}
           </p>
           <div className={styles.actions}>
-            <button type="button" className={styles.btn} onClick={() => onSelect('heatmap')}>
+            <button type="button" disabled={!ready} className={styles.btn} onClick={() => onSelect('heatmap')}>
               {pick(zh, 'Open Heatmap', '打开热图')}
             </button>
-            <button type="button" className={styles.btn} onClick={() => onSelect('sectors')}>
+            <button type="button" disabled={!ready} className={styles.btn} onClick={() => onSelect('sectors')}>
               {pick(zh, 'Open Sectors', '打开板块')}
             </button>
           </div>
@@ -77,14 +78,14 @@ export default function DiscoverLanding({ onSelect, onSearchCompanies, headingRe
           </p>
           <div className={styles.actions}>
             <button
-              type="button"
+              type="button" disabled={!ready}
               className={`${styles.btn} ${styles.btnText}`}
               onClick={() => onSelect('leaders')}
             >
               {pick(zh, 'Leaders', '领导者')}
             </button>
             <button
-              type="button"
+              type="button" disabled={!ready}
               className={`${styles.btn} ${styles.btnText}`}
               onClick={() => onSelect('radar')}
             >
@@ -101,7 +102,7 @@ export default function DiscoverLanding({ onSelect, onSearchCompanies, headingRe
             {pick(zh, "Explore the study's conditions, timing and limitations.", '了解研究条件、时点与限制。')}
           </p>
           <div className={styles.actions}>
-            <button type="button" className={styles.btn} onClick={() => onSelect('rs-pivot')}>
+            <button type="button" disabled={!ready} className={styles.btn} onClick={() => onSelect('rs-pivot')}>
               {pick(zh, 'Open study', '打开研究')}
             </button>
           </div>
