@@ -93,6 +93,29 @@ def test_pl6_vi_capture_is_selective_while_f11_keeps_its_browser_prerequisite() 
     assert "if" not in by_name["Plain-language guard (forward-only, added lines block)"]
 
 
+def test_pr_time_evidence_drift_gate_feeds_the_planner() -> None:
+    """Evidence-lock drift in a PR's own diff must fail the PR, not only the
+    merge group: one workflow step records the PR-touched paths (from the
+    synthetic merge commit's exact first parent), the unchanged planner step
+    consumes EVIDENCE_PR_TOUCHED_FILE, and the recording step is ordered
+    before it so the gate can never run on a stale environment."""
+    steps = jobs()["terminal-unit"]["steps"]
+    names = [s.get("name") for s in steps]
+    record = next(
+        s for s in steps if s.get("name") == "Record PR-touched paths for the evidence drift gate"
+    )
+    assert record["if"] == "github.event_name == 'pull_request'"
+    run = record["run"]
+    assert 'git diff --name-only --no-renames "${BASE}" HEAD' in run
+    assert "git rev-parse HEAD^1" in run
+    assert "EVIDENCE_PR_TOUCHED_FILE" in run and "GITHUB_ENV" in run
+    assert names.index("Record PR-touched paths for the evidence drift gate") < names.index(
+        "Plan current-source evidence capture"
+    )
+    # The merge-group backstop itself must remain byte-identical: the planner
+    # step's command and both capture-skip conditions are pinned above.
+
+
 def test_required_aggregate_keeps_original_check_name_and_dependencies() -> None:
     aggregate = jobs()["terminal"]
     assert aggregate["name"] == "Terminal typecheck + tests"

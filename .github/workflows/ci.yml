@@ -312,6 +312,25 @@ jobs:
       - name: Check immutable evidence orchestration (synthetic)
         timeout-minutes: 1
         run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs e2e/tools/f11_provider_closed_policy.test.cjs
+      - name: Record PR-touched paths for the evidence drift gate
+        # The planner below fails a pull request whose OWN diff drifted an
+        # evidence-locked source without a recaptured, committed lock — the
+        # same drift the merge-group backstop discovers only after merge
+        # qualification starts. HEAD^1 of the pull_request synthetic merge
+        # commit is the exact base tip this candidate received (the same
+        # identity the plain-language guard below relies on); the depth-2
+        # checkout already fetches it. Non-PR events skip this step and the
+        # gate stays silent for them.
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          BASE=$(git rev-parse HEAD^1)
+          git diff --name-only --no-renames "${BASE}" HEAD > "${RUNNER_TEMP}/evidence-pr-touched.txt"
+          {
+            echo "EVIDENCE_PR_TOUCHED_FILE<<__mmx-evidence-touched-eof__"
+            cat "${RUNNER_TEMP}/evidence-pr-touched.txt"
+            echo "__mmx-evidence-touched-eof__"
+          } >> "${GITHUB_ENV}"
       - name: Plan current-source evidence capture
         id: evidence_plan
         run: node scripts/ci/plan-evidence-capture.cjs

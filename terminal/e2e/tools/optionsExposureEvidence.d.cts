@@ -85,8 +85,12 @@ export type IntegrationExecution = {
     }>;
 };
 /** A failed full GEX run may still emit a manifest; its actual result is decisive. */
-export declare function requireIntegrationExecution(value: IntegrationExecution, kind: EvidenceKind, crops: string[], identity?: "indicator-guard" | "master-integration" | "ui-copy-integration" | "options-integration"): void;
+export declare function requireIntegrationExecution(value: IntegrationExecution, kind: EvidenceKind, crops: string[], identity?: "indicator-guard" | "master-integration" | "ui-copy-integration" | "options-integration" | "expiry-greeks-integration"): void;
 /** Legacy is eligible only when neither a declaration nor any qualified operation history exists. */
 export declare function optionalQualifiedOptionsExposurePacket(repo: string, kind: EvidenceKind, crops: string[]): SelectedPacket | null;
 export declare function requireOptionsIntegrationBrowserCases(current: { expectedPassed: string[]; expectedSkipped: string[] }, historical: { expectedPassed: string[]; expectedSkipped: string[] }): void;
+export declare const expiryGreeksJourneyInputs: () => string[];
+export declare const EXPIRY_JOURNEY_SPECS: string[];
+export declare function requireExpiryGreeksBrowserCases(proof: { expectedPassed: string[]; expectedSkipped: string[] }): void;
+export declare function requireExpiryGreeksScreenshotSet(artifactFiles: SourceMap): void;
 export {};

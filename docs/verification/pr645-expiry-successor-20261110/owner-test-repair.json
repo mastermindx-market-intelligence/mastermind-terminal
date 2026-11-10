@@ -1,0 +1,7 @@
+{
+  "schema": "terminal_pr645_owner_test_repair.v1",
+  "cause": "New tests referred to a non-exported GEX_CROPS constant; use the existing native producer expectedFiles() contract as the owner does.",
+  "productChanges": false,
+  "priorFocusedResult": "focused-tests-r1.json",
+  "testFileSha256": "8ab6ed8434f67f4f9307e9114bd352518170db767f8dcc4f7fa66babac2109a8"
+}

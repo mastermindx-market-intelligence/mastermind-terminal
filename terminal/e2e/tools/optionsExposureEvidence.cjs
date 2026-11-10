@@ -419,6 +419,8 @@ function qualifiedOptionsExposurePacket(repo, kind, crops) {
         crops.every(name => /^[a-z0-9-]+\.png$/.test(name)), "EXPECTED_CROP_SET");
     const root = join(repo, "terminal/docs/pr-crops", PACKETS[kind]);
     const text = readFileSync(join(root, "EVIDENCE.yml"), "utf8");
+    if (text.includes(EXPIRY_INTEGRATION_REVISION) || text.includes("exposureExpiryGreeksIntegration20261110") || existsSync(expiryIntegrationDirectory(repo)))
+        return readExpiryIntegration(repo, kind, crops, text);
     if (text.includes(OPTIONS_INTEGRATION_REVISION))
         return readOptionsIntegration(repo, root, kind, crops, text);
     if (text.includes("exposureMasterIntegration20261109"))
@@ -504,6 +506,14 @@ const OPTIONS_INTEGRATION_PRODUCERS = {
     gex: "dbb92e88972bd39984427d054f431159401fcb16bd49b4479cc1c83456f7777d",
     eod: "671062f250f16c812ffdebfb1714d5c62a8c54be0f439fa34dc1e70452c086e9",
 };
+const EXPIRY_INTEGRATION_REVISION = "expiry-greeks-integration-20261110";
+const EXPIRY_INTEGRATION_PRIOR = "a985bf7f37b9a5a9fc490f8b3eb72be04869bfe4";
+const EXPIRY_INTEGRATION_PROTECTED = "dad33e10089c9d51d931a1fe72e7fa1acb37abe1";
+const EXPIRY_INTEGRATION_DEPENDENCY = "9ef372c8086ceaac8bcb153bd2d2d71b5b63d62c";
+// Pinned to the actual full GEX, 144-case browser and nine-case expiry executions.
+const EXPIRY_INTEGRATION_PACKET = "6432faf8713536aaa14319bb310289b26a68cfa5dd923801d2f4a7b7bf1fc453";
+const EXPIRY_INTEGRATION_BROWSER = "fee8ee7eb79e7a1a680c51b2121e94f78708fba5b14551c3ea701a42556f8210";
+const EXPIRY_INTEGRATION_JOURNEYS = "436bbf7bdbee1bb9d7e5d8043878a286093a59f8a54690f71b2b7ae1eff39303";
 const INDICATOR_REVISION = "indicator-guard-20261109";
 const INDICATOR_PRIOR = "483554457f302a90305f03c360636ca97ed75fb3";
 const INDICATOR_PACKET = { gex: "c0d9dc8fff216b73afc8dbc3490ca9bd84fbeecde6fe14eeac1452af5e0c0f1b", eod: "eb5a4aac927a5bf8f308f1b6536e7992306df2a78e110cc8012099a4dc185ba9" };
@@ -568,17 +578,23 @@ const optionsIntegrationInputs = kind => [...new Set([...uiCopyIntegrationInputs
 const OPTIONS_INTEGRATION_BROWSER_SPECS = [...MASTER_BROWSER_SPECS, "terminal/e2e/exposure-partial-totals.spec.ts"];
 const optionsIntegrationBrowserInputs = () => [...new Set([...uiCopyIntegrationBrowserInputs(), ...OPTIONS_INTEGRATION_INPUTS,
     "terminal/e2e/exposure-partial-totals.spec.ts", "terminal/public/data/gex_fixture.json"])].sort();
+const EXPIRY_JOURNEY_SPECS = ["terminal/e2e/exposure-expiry-greeks.spec.ts", "terminal/e2e/responsive.spec.ts"];
+const EXPIRY_JOURNEY_INPUTS = ["terminal/components/gexdesk/ExpiryBars.tsx",
+    "terminal/components/gexdesk/ExposureExpiryDrawer.tsx", "terminal/lib/expiryTermStructure.ts", ...EXPIRY_JOURNEY_SPECS];
+const expiryGreeksJourneyInputs = () => [...new Set([...optionsIntegrationBrowserInputs(), ...EXPIRY_JOURNEY_INPUTS])].sort();
 /** A failed full GEX run may still emit a manifest; its actual result is decisive. */
 function requireIntegrationExecution(value, kind, crops, identity = "indicator-guard") {
-    check(["master-integration", "indicator-guard", "ui-copy-integration", "options-integration"].includes(identity), "INTEGRATION_CAPTURE_IDENTITY_KIND");
-    const historical = identity === "master-integration", successor = identity === "ui-copy-integration", options = identity === "options-integration";
+    check(["master-integration", "indicator-guard", "ui-copy-integration", "options-integration", "expiry-greeks-integration"].includes(identity), "INTEGRATION_CAPTURE_IDENTITY_KIND");
+    const historical = identity === "master-integration", successor = identity === "ui-copy-integration";
+    const expiry = identity === "expiry-greeks-integration", options = identity === "options-integration" || expiry;
+    if (expiry) check(kind === "gex", "EXPIRY_INTEGRATION_RETAINS_EOD_IDENTITY");
     const producerPins = options ? OPTIONS_INTEGRATION_PRODUCERS : INDICATOR_PRODUCERS;
     check(value.schema === "exposure_master_integration_capture.v1" && value.operation === OP.exposure &&
-        value.revision === (options ? OPTIONS_INTEGRATION_REVISION : historical ? MASTER_REVISION : successor ? UI_COPY_REVISION : INDICATOR_REVISION) &&
+        value.revision === (expiry ? EXPIRY_INTEGRATION_REVISION : options ? OPTIONS_INTEGRATION_REVISION : historical ? MASTER_REVISION : successor ? UI_COPY_REVISION : INDICATOR_REVISION) &&
         value.kind === kind && value.packet === PACKETS[kind] &&
-        value.branchHead === (options ? OPTIONS_INTEGRATION_PRIOR : historical ? MASTER_PRIOR : successor ? UI_COPY_PRIOR : INDICATOR_PRIOR) &&
-        value.protectedMaster === (options ? OPTIONS_INTEGRATION_PROTECTED : successor ? UI_COPY_PROTECTED : MASTER_PROTECTED) &&
-        (!options || value.integratedDependency === OPTIONS_INTEGRATION_DEPENDENCY) &&
+        value.branchHead === (expiry ? EXPIRY_INTEGRATION_PRIOR : options ? OPTIONS_INTEGRATION_PRIOR : historical ? MASTER_PRIOR : successor ? UI_COPY_PRIOR : INDICATOR_PRIOR) &&
+        value.protectedMaster === (expiry ? EXPIRY_INTEGRATION_PROTECTED : options ? OPTIONS_INTEGRATION_PROTECTED : successor ? UI_COPY_PROTECTED : MASTER_PROTECTED) &&
+        (!options || value.integratedDependency === (expiry ? EXPIRY_INTEGRATION_DEPENDENCY : OPTIONS_INTEGRATION_DEPENDENCY)) &&
         (!successor || (kind === "eod" && value.integratedDependency === UI_COPY_DEPENDENCY)), "INTEGRATION_CAPTURE_IDENTITY");
     if (!historical) {
         check(value.portClosed === true && value.nextLockAbsent === true, "INTEGRATION_CAPTURE_LIFECYCLE");
@@ -642,15 +658,15 @@ function exposurePrefix(dir) {
         }) + "\n";
 }
 function verifyIntegrationBrowserRecord(repo, revision, requireCurrent = true) {
-    check(["master", "ui-copy", "options-integration"].includes(revision), "INTEGRATION_BROWSER_REVISION");
-    const successor = revision === "ui-copy", options = revision === "options-integration";
-    const dir = join(repo, "terminal/docs/verification/exposure-workspace-20261103", options ? OPTIONS_INTEGRATION_REVISION : successor ? UI_COPY_REVISION : MASTER_REVISION);
-    check(sha(join(dir, "qualification.json")) === (options ? OPTIONS_INTEGRATION_BROWSER : successor ? UI_COPY_BROWSER : MASTER_BROWSER), "INTEGRATION_BROWSER_QUALIFICATION");
+    check(["master", "ui-copy", "options-integration", "expiry-greeks"].includes(revision), "INTEGRATION_BROWSER_REVISION");
+    const successor = revision === "ui-copy", expiry = revision === "expiry-greeks", options = revision === "options-integration" || expiry;
+    const dir = join(repo, "terminal/docs/verification/exposure-workspace-20261103", expiry ? EXPIRY_INTEGRATION_REVISION : options ? OPTIONS_INTEGRATION_REVISION : successor ? UI_COPY_REVISION : MASTER_REVISION);
+    check(sha(join(dir, "qualification.json")) === (expiry ? EXPIRY_INTEGRATION_BROWSER : options ? OPTIONS_INTEGRATION_BROWSER : successor ? UI_COPY_BROWSER : MASTER_BROWSER), "INTEGRATION_BROWSER_QUALIFICATION");
     const proof = json(join(dir, "qualification.json"));
     check(proof.schema === "exposure_master_integration_browser.v1" &&
-        proof.branchHead === (options ? OPTIONS_INTEGRATION_PRIOR : successor ? UI_COPY_PRIOR : MASTER_PRIOR) &&
-        proof.protectedMaster === (options ? OPTIONS_INTEGRATION_PROTECTED : successor ? UI_COPY_PROTECTED : MASTER_PROTECTED) &&
-        (!options || proof.integratedDependency === OPTIONS_INTEGRATION_DEPENDENCY) &&
+        proof.branchHead === (expiry ? EXPIRY_INTEGRATION_PRIOR : options ? OPTIONS_INTEGRATION_PRIOR : successor ? UI_COPY_PRIOR : MASTER_PRIOR) &&
+        proof.protectedMaster === (expiry ? EXPIRY_INTEGRATION_PROTECTED : options ? OPTIONS_INTEGRATION_PROTECTED : successor ? UI_COPY_PROTECTED : MASTER_PROTECTED) &&
+        (!options || proof.integratedDependency === (expiry ? EXPIRY_INTEGRATION_DEPENDENCY : OPTIONS_INTEGRATION_DEPENDENCY)) &&
         (!successor || proof.integratedDependency === UI_COPY_DEPENDENCY), "INTEGRATION_BROWSER_IDENTITY");
     requireSourceKeys(proof.files, ["browser-report.json", "browser-execution.json", "source-before.json", "source-after.json",
         ...((successor || options) ? ["browser.log"] : [])]);
@@ -669,7 +685,7 @@ function verifyIntegrationBrowserRecord(repo, revision, requireCurrent = true) {
     const execution = json(join(dir, "browser-execution.json"));
     check(execution.schema === "exposure_master_integration_browser_execution.v1" &&
         execution.branchHead === proof.branchHead && execution.protectedMaster === proof.protectedMaster &&
-        (!(successor || options) || (execution.integratedDependency === (options ? OPTIONS_INTEGRATION_DEPENDENCY : UI_COPY_DEPENDENCY) &&
+        (!(successor || options) || (execution.integratedDependency === (expiry ? EXPIRY_INTEGRATION_DEPENDENCY : options ? OPTIONS_INTEGRATION_DEPENDENCY : UI_COPY_DEPENDENCY) &&
             execution.logSha256 === proof.files["browser.log"])), "INTEGRATION_BROWSER_EXECUTION_IDENTITY");
     const overrideKeys = ["EXPOSURE_P09_CURRENT_WITNESS", "EXPOSURE_P09_PREVIOUS_WITNESS", "EXPOSURE_NATIVE_WITNESS",
         "TERMINAL_EXPOSURE_LIGHT_ACCEPTANCE", "TERMINAL_EXPOSURE_ACCESS_ACCEPTANCE", "TERMINAL_EXPOSURE_PAINT_PROBE"];
@@ -737,7 +753,7 @@ function readIntegrationNativePayload(repo, dir, kind, crops, descriptor, identi
     requireIntegrationExecution(execution, kind, crops, identity);
     check(execution.logSha256 === descriptor.files["capture.log"], "INTEGRATION_CAPTURE_LOG");
     const contract = json(join(dir, "source-contract.json"));
-    const options = identity === "options-integration", pins = options ? OPTIONS_INTEGRATION_PRODUCERS : INDICATOR_PRODUCERS;
+    const options = identity === "options-integration" || identity === "expiry-greeks-integration", pins = options ? OPTIONS_INTEGRATION_PRODUCERS : INDICATOR_PRODUCERS;
     const paths = options ? optionsIntegrationInputs(kind) : identity === "ui-copy-integration" ? uiCopyIntegrationInputs(kind) : masterIntegrationInputs(kind);
     check(contract.schema === "exposure_master_capture_sources.v1" && contract.kind === kind &&
         sameKeys(contract.currentInputs, paths) && new Set(contract.currentInputs).size === paths.length, "INTEGRATION_SOURCE_CONTRACT");
@@ -934,27 +950,178 @@ function requireOptionsIntegrationBrowserCases(current, historical) {
         current.expectedPassed.length === 144 && sameKeys(current.expectedPassed, expected) &&
         current.expectedSkipped.length === 0 && historical.expectedSkipped.length === 0, "OPTIONS_INTEGRATION_BROWSER_CASE_SET");
 }
-function verifyOptionsIntegrationBrowser(repo) {
-    requireOptionsIntegrationBrowserCases(verifyIntegrationBrowserRecord(repo, "options-integration"), verifyIntegrationBrowser(repo, false));
+function verifyOptionsIntegrationBrowser(repo, requireCurrent = true) {
+    const current = verifyIntegrationBrowserRecord(repo, "options-integration", requireCurrent);
+    requireOptionsIntegrationBrowserCases(current, verifyIntegrationBrowser(repo, false));
+    return current;
 }
-function readOptionsIntegration(repo, root, kind, crops, text) {
+/** Validate both immutable predecessor roots together; only an internal successor
+ * may separate their historical qualification from fresh current-source checks. */
+function readOptionsIntegrationPair(repo, kind, crops, rootTexts, requireCurrent) {
     const packets = Object.fromEntries(["gex", "eod"].map(family => [family, readOptionsIntegrationDescriptor(repo, family)]));
-    let historical, selected;
+    const selected = {};
     for (const family of ["gex", "eod"]) {
         const packet = packets[family];
         const expected = family === kind ? crops : require("./" + harness(family).split("/").at(-1)).expectedFiles();
         const prior = readExposureMasterIntegration(repo, packet.root, family, expected,
             readFileSync(join(packet.dir, "EVIDENCE.before.yml"), "utf8"), false);
-        const current = readIntegrationNativePayload(repo, packet.dir, family, expected, packet.descriptor, "options-integration", true);
-        const actual = family === kind ? text : readFileSync(join(packet.root, "EVIDENCE.yml"), "utf8");
-        check(actual === optionsIntegrationDeclaration(family) + readFileSync(prior.protectedManifest, "utf8"), "OPTIONS_INTEGRATION_ROOT:" + family);
-        if (family === kind) { historical = prior; selected = current; }
+        const current = readIntegrationNativePayload(repo, packet.dir, family, expected, packet.descriptor, "options-integration", requireCurrent);
+        check(rootTexts[family] === optionsIntegrationDeclaration(family) + readFileSync(prior.protectedManifest, "utf8"), "OPTIONS_INTEGRATION_ROOT:" + family);
+        selected[family] = { ...prior, ...current, captureRevision: OPTIONS_INTEGRATION_REVISION,
+            descriptorSha256: OPTIONS_INTEGRATION_PACKET[family] };
     }
-    verifyOptionsIntegrationBrowser(repo);
-    return { ...historical, ...selected, captureRevision: OPTIONS_INTEGRATION_REVISION,
-        descriptorSha256: OPTIONS_INTEGRATION_PACKET[kind] };
+    verifyOptionsIntegrationBrowser(repo, requireCurrent);
+    return selected;
+}
+function readOptionsIntegration(repo, root, kind, crops, text) {
+    const rootTexts = Object.fromEntries(["gex", "eod"].map(family => [family,
+        family === kind ? text : readFileSync(join(repo, "terminal/docs/pr-crops", PACKETS[family], "EVIDENCE.yml"), "utf8")]));
+    return readOptionsIntegrationPair(repo, kind, crops, rootTexts, true)[kind];
 }
 
+function expiryIntegrationDirectory(repo) {
+    return join(repo, "terminal/docs/pr-crops", PACKETS.gex, "operations", OP.exposure, "revisions", EXPIRY_INTEGRATION_REVISION);
+}
+function expiryIntegrationDeclaration(kind) {
+    return "# Current source proof retains the original EOD capture and qualifies fresh expiry-aware GEX and browser journeys.\n" +
+        yamlBlock("exposureExpiryGreeksIntegration20261110", {
+            selectedFamily: kind,
+            selectedCaptureRevision: kind === "eod" ? OPTIONS_INTEGRATION_REVISION : EXPIRY_INTEGRATION_REVISION,
+            freshGexRevision: "terminal/docs/pr-crops/" + PACKETS.gex + "/operations/" + OP.exposure + "/revisions/" + EXPIRY_INTEGRATION_REVISION,
+            freshGexDescriptorSha256: EXPIRY_INTEGRATION_PACKET,
+            retainedEodDescriptorSha256: OPTIONS_INTEGRATION_PACKET.eod,
+            branchHead: EXPIRY_INTEGRATION_PRIOR, protectedMaster: EXPIRY_INTEGRATION_PROTECTED,
+            integratedDependency: EXPIRY_INTEGRATION_DEPENDENCY,
+            browserQualificationSha256: EXPIRY_INTEGRATION_BROWSER,
+            expiryQualificationSha256: EXPIRY_INTEGRATION_JOURNEYS,
+        }) + "\n";
+}
+function readExpiryIntegrationDescriptor(repo) {
+    const dir = expiryIntegrationDirectory(repo), descriptorFile = join(dir, "native-packet.json");
+    check(sha(descriptorFile) === EXPIRY_INTEGRATION_PACKET, "EXPIRY_INTEGRATION_PACKET_DIGEST");
+    const descriptor = json(descriptorFile);
+    check(descriptor.schema === "options_exposure_master_packet.v1" && descriptor.kind === "gex" && descriptor.profile === "exposure" &&
+        descriptor.operation === OP.exposure && descriptor.captureRevision === EXPIRY_INTEGRATION_REVISION &&
+        descriptor.branchHead === EXPIRY_INTEGRATION_PRIOR && descriptor.protectedMaster === EXPIRY_INTEGRATION_PROTECTED &&
+        descriptor.integratedDependency === EXPIRY_INTEGRATION_DEPENDENCY, "EXPIRY_INTEGRATION_PACKET_IDENTITY");
+    requireSourceKeys(descriptor.files, ["capture-execution.json", "capture-sources-before.json", "capture-sources-after.json", "source-contract.json",
+        "qualified-root/EVIDENCE.yml", "history.json", "EVIDENCE.before.yml", "capture.log"]);
+    for (const [name, digest] of Object.entries(descriptor.files))
+        check(sha(join(dir, name)) === digest, "EXPIRY_INTEGRATION_PAYLOAD:" + name);
+    const history = json(join(dir, "history.json"));
+    check(history.schema === "exposure_expiry_greeks_integration_history.v1" && history.operation === OP.exposure &&
+        history.revision === EXPIRY_INTEGRATION_REVISION && history.branchHead === EXPIRY_INTEGRATION_PRIOR &&
+        history.protectedMaster === EXPIRY_INTEGRATION_PROTECTED && history.integratedDependency === EXPIRY_INTEGRATION_DEPENDENCY &&
+        history.browserQualificationSha256 === EXPIRY_INTEGRATION_BROWSER &&
+        history.expiryQualificationSha256 === EXPIRY_INTEGRATION_JOURNEYS &&
+        sameKeys(Object.keys(history.predecessors ?? {}), ["gex", "eod"]), "EXPIRY_INTEGRATION_HISTORY");
+    for (const family of ["gex", "eod"]) {
+        const prior = history.predecessors[family];
+        check(prior.revision === OPTIONS_INTEGRATION_REVISION && prior.descriptorSha256 === OPTIONS_INTEGRATION_PACKET[family] &&
+            typeof prior.rootText === "string" && createHash("sha256").update(prior.rootText).digest("hex") === prior.rootSha256, "EXPIRY_INTEGRATION_PREDECESSOR:" + family);
+    }
+    check(readFileSync(join(dir, "EVIDENCE.before.yml"), "utf8") === history.predecessors.gex.rootText, "EXPIRY_INTEGRATION_PRIOR_GEX_ROOT");
+    check(history.retainedEod?.revision === OPTIONS_INTEGRATION_REVISION &&
+        history.retainedEod.descriptorSha256 === OPTIONS_INTEGRATION_PACKET.eod &&
+        history.retainedEod.capturedAtHead === OPTIONS_INTEGRATION_PRIOR, "EXPIRY_INTEGRATION_RETAINED_EOD");
+    return { dir, descriptor, history };
+}
+function requireExpiryGreeksBrowserCases(proof) {
+    const titles = [
+        "Exposure desk carries expiry Vanna/Charm through bars and drawer in en",
+        "Exposure desk carries expiry Vanna/Charm through bars and drawer in zh",
+        "Exposure desk renders expiry VEX and CHEX from the enriched owner payload",
+    ];
+    const expected = ["desktop", "tablet", "mobile"].flatMap(project => titles.map(title => project + "|" + title));
+    check(Array.isArray(proof.expectedPassed) && proof.expectedPassed.length === 9 &&
+        new Set(proof.expectedPassed).size === 9 && sameKeys(proof.expectedPassed, expected) &&
+        Array.isArray(proof.expectedSkipped) && proof.expectedSkipped.length === 0, "EXPIRY_INTEGRATION_BROWSER_CASE_SET");
+}
+function requireExpiryGreeksScreenshotSet(artifactFiles) {
+    const expectedScreenshots = ["desktop", "tablet", "mobile"].flatMap(project => [
+        ...["en", "zh"].flatMap(lang => ["vanna-bars", "vanna-drawer", "charm-drawer", "charm-bars"]
+            .map(state => project + "-" + lang + "-expiry-" + state + ".png")),
+        project + "-expiry-vex-chex.png",
+    ]);
+    const screenshots = Object.keys(artifactFiles).filter(path => path.endsWith(".png")).map(path => path.split("/").at(-1));
+    check(screenshots.length === 27 && new Set(screenshots).size === 27 && sameKeys(screenshots, expectedScreenshots),
+        "EXPIRY_INTEGRATION_JOURNEY_SCREENSHOT_SET");
+}
+function verifyExpiryGreeksJourneys(repo, joint) {
+    const dir = join(repo, "terminal/docs/verification/exposure-workspace-20261103", EXPIRY_INTEGRATION_REVISION, "expiry-journeys");
+    check(sha(join(dir, "qualification.json")) === EXPIRY_INTEGRATION_JOURNEYS, "EXPIRY_INTEGRATION_JOURNEY_QUALIFICATION");
+    const proof = json(join(dir, "qualification.json"));
+    check(proof.schema === "exposure_expiry_greeks_browser.v1" && proof.branchHead === EXPIRY_INTEGRATION_PRIOR &&
+        proof.protectedMaster === EXPIRY_INTEGRATION_PROTECTED && proof.integratedDependency === EXPIRY_INTEGRATION_DEPENDENCY,
+        "EXPIRY_INTEGRATION_JOURNEY_IDENTITY");
+    requireExpiryGreeksBrowserCases(proof);
+    requireSourceKeys(proof.files, ["browser-report.json", "browser-execution.json", "source-before.json", "source-after.json", "browser.log"]);
+    for (const [name, digest] of Object.entries(proof.files))
+        check(sha(join(dir, name)) === digest, "EXPIRY_INTEGRATION_JOURNEY_FILE:" + name);
+    const before = json(join(dir, "source-before.json")), after = json(join(dir, "source-after.json"));
+    const inputs = expiryGreeksJourneyInputs();
+    requireSourceKeys(proof.currentSources, inputs);
+    check(proof.files["source-before.json"] === proof.files["source-after.json"], "EXPIRY_INTEGRATION_JOURNEY_SOURCE_STABILITY");
+    for (const [path, digest] of Object.entries(proof.currentSources))
+        check(before[path] === digest && after[path] === digest, "EXPIRY_INTEGRATION_JOURNEY_RECORDED_SOURCE:" + path);
+    for (const path of optionsIntegrationBrowserInputs())
+        check(proof.currentSources[path] === joint.currentSources[path], "EXPIRY_INTEGRATION_JOINT_SOURCE:" + path);
+    selectWholeFingerprint([{ sources: proof.currentSources }], Object.fromEntries(inputs.map(path => [path, sha(join(repo, path))])));
+    const execution = json(join(dir, "browser-execution.json"));
+    check(execution.schema === "exposure_expiry_greeks_browser_execution.v1" &&
+        execution.branchHead === proof.branchHead && execution.protectedMaster === proof.protectedMaster &&
+        execution.integratedDependency === proof.integratedDependency && execution.logSha256 === proof.files["browser.log"],
+        "EXPIRY_INTEGRATION_JOURNEY_EXECUTION");
+    const overrides = ["EXPOSURE_P09_CURRENT_WITNESS", "EXPOSURE_P09_PREVIOUS_WITNESS", "EXPOSURE_NATIVE_WITNESS",
+        "TERMINAL_EXPOSURE_LIGHT_ACCEPTANCE", "TERMINAL_EXPOSURE_ACCESS_ACCEPTANCE", "TERMINAL_EXPOSURE_PAINT_PROBE"];
+    check(sameKeys(Object.keys(execution.fixtureOverrides ?? {}), overrides) &&
+        overrides.every(key => execution.fixtureOverrides[key] === null), "EXPIRY_INTEGRATION_JOURNEY_FIXTURES");
+    check(execution.exit === 0 && execution.passed === 9 && execution.failed === 0 && execution.flaky === 0 &&
+        execution.skipped === 0 && execution.retries === 0 && execution.sourceStable === true && execution.ownedServerStopped === true &&
+        sameKeys(execution.command.filter(arg => arg.endsWith(".spec.ts")), EXPIRY_JOURNEY_SPECS.map(path => path.replace(/^terminal\//, ""))),
+        "EXPIRY_INTEGRATION_JOURNEY_RESULT");
+    check(execution.artifactFiles && typeof execution.artifactFiles === "object" && Object.keys(execution.artifactFiles).length > 0, "EXPIRY_INTEGRATION_JOURNEY_ARTIFACTS");
+    for (const [path, digest] of Object.entries(execution.artifactFiles))
+        check(path.startsWith("browser-artifacts/") && !path.split("/").includes("..") &&
+            /^[0-9a-f]{64}$/.test(digest) && sha(join(dir, path)) === digest, "EXPIRY_INTEGRATION_JOURNEY_ARTIFACT:" + path);
+    requireExpiryGreeksScreenshotSet(execution.artifactFiles);
+    const report = json(join(dir, "browser-report.json")), passed = [];
+    check(!report.errors?.length && report.stats.expected === 9 && report.stats.unexpected === 0 &&
+        report.stats.flaky === 0 && report.stats.skipped === 0, "EXPIRY_INTEGRATION_JOURNEY_REPORT");
+    function visit(suite) {
+        for (const spec of suite.specs ?? []) for (const test of spec.tests) {
+            check(test.results.length === 1 && test.results[0].status === "passed" && test.results[0].retry === 0,
+                "EXPIRY_INTEGRATION_JOURNEY_ATTEMPT");
+            passed.push(test.projectName + "|" + spec.title);
+        }
+        for (const child of suite.suites ?? []) visit(child);
+    }
+    visit(report);
+    requireExpiryGreeksBrowserCases({ expectedPassed: passed, expectedSkipped: [] });
+    check(sameKeys(passed, proof.expectedPassed), "EXPIRY_INTEGRATION_JOURNEY_REPORT_CASES");
+    return proof;
+}
+function readExpiryIntegration(repo, kind, crops, text) {
+    const packet = readExpiryIntegrationDescriptor(repo);
+    const roots = Object.fromEntries(["gex", "eod"].map(family => [family, packet.history.predecessors[family].rootText]));
+    const historical = readOptionsIntegrationPair(repo, kind, crops, roots, false);
+    for (const family of ["gex", "eod"]) {
+        const actual = family === kind ? text : readFileSync(join(repo, "terminal/docs/pr-crops", PACKETS[family], "EVIDENCE.yml"), "utf8");
+        check(actual === expiryIntegrationDeclaration(family) + roots[family], "EXPIRY_INTEGRATION_ROOT:" + family);
+    }
+    const eod = readOptionsIntegrationDescriptor(repo, "eod");
+    const retainedEod = readIntegrationNativePayload(repo, eod.dir, "eod",
+        kind === "eod" ? crops : require("./" + harness("eod").split("/").at(-1)).expectedFiles(),
+        eod.descriptor, "options-integration", true);
+    const freshGex = readIntegrationNativePayload(repo, packet.dir, "gex",
+        kind === "gex" ? crops : require("./" + harness("gex").split("/").at(-1)).expectedFiles(),
+        packet.descriptor, "expiry-greeks-integration", true);
+    const browser = verifyIntegrationBrowserRecord(repo, "expiry-greeks");
+    requireOptionsIntegrationBrowserCases(browser, verifyIntegrationBrowser(repo, false));
+    verifyExpiryGreeksJourneys(repo, browser);
+    return kind === "eod" ? { ...historical.eod, ...retainedEod } :
+        { ...historical.gex, ...freshGex, captureRevision: EXPIRY_INTEGRATION_REVISION, descriptorSha256: EXPIRY_INTEGRATION_PACKET };
+}
 /** Legacy is eligible only when neither a declaration nor any qualified operation history exists. */
 function optionalQualifiedOptionsExposurePacket(repo, kind, crops) {
     const root = join(repo, "terminal/docs/pr-crops", PACKETS[kind]);
@@ -962,8 +1129,8 @@ function optionalQualifiedOptionsExposurePacket(repo, kind, crops) {
     let text;
     try { text = readFileSync(join(root, "EVIDENCE.yml"), "utf8"); }
     catch (error) { if (error.code === "ENOENT" && !history) return null; throw error; }
-    const declared = /exposureMasterIntegration20261109|exposureSourceCompatibility20261105|optionsSourceCompatibility20261105/.test(text);
+    const declared = /exposureExpiryGreeksIntegration20261110|exposureMasterIntegration20261109|exposureSourceCompatibility20261105|optionsSourceCompatibility20261105/.test(text);
     return declared || history ? qualifiedOptionsExposurePacket(repo, kind, crops) : null;
 }
 
-module.exports = { requireSourceKeys, selectWholeFingerprint, projectR4CaptureHarness, projectIndicatorGuardBrowserSources, layoutSources, requireR4ChartIdentity, qualifiedOptionsExposurePacket, masterIntegrationInputs, MASTER_BROWSER_SPECS, masterIntegrationBrowserInputs, uiCopyIntegrationInputs, uiCopyIntegrationBrowserInputs, requireIntegrationExecution, optionalQualifiedOptionsExposurePacket, optionsIntegrationInputs, OPTIONS_INTEGRATION_BROWSER_SPECS, optionsIntegrationBrowserInputs, requireOptionsIntegrationBrowserCases };
+module.exports = { requireSourceKeys, selectWholeFingerprint, projectR4CaptureHarness, projectIndicatorGuardBrowserSources, layoutSources, requireR4ChartIdentity, qualifiedOptionsExposurePacket, masterIntegrationInputs, MASTER_BROWSER_SPECS, masterIntegrationBrowserInputs, uiCopyIntegrationInputs, uiCopyIntegrationBrowserInputs, requireIntegrationExecution, optionalQualifiedOptionsExposurePacket, optionsIntegrationInputs, OPTIONS_INTEGRATION_BROWSER_SPECS, optionsIntegrationBrowserInputs, requireOptionsIntegrationBrowserCases, expiryGreeksJourneyInputs, EXPIRY_JOURNEY_SPECS, requireExpiryGreeksBrowserCases, requireExpiryGreeksScreenshotSet };
