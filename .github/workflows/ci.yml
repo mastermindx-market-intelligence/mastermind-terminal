@@ -244,11 +244,12 @@ jobs:
     if: ${{ !cancelled() && needs.e2e-scope.result == 'success' && !(github.event_name == 'pull_request' && needs.pr_scope.result == 'success' && needs.pr_scope.outputs.mode == 'docs') }}
     name: Terminal unit + typecheck (shard)
     runs-on: ubuntu-latest
-    # Existing stages had20min. Add bounded10min browser setup +55min captures
-    # +5min retention margin. Original30-case M2 report took1,018,995ms (~17min)
-    # before the24layout cases; this90min cap is not a hosted timing claim.
+    # Existing stages had20min. Allow10min setup +55min incumbent captures,
+    # +30min conditional full EOD capture +5min retention. Original30-case M2
+    # report took1,018,995ms (~17min) before24layout cases. These120min bounds
+    # are not a claim that126 EOD captures finish within their30min allowance.
     # See8f1dc846: terminal/docs/pr-crops/terminal-visual-intelligence/asc1233-vi-ci-20261103--report.json.
-    timeout-minutes: 90
+    timeout-minutes: 120
     defaults:
       run:
         working-directory: terminal
@@ -295,7 +296,7 @@ jobs:
             || { echo "::warning::Dependency installation failed or stalled; trying browser-only installation"; timeout --signal=TERM --kill-after=15s 180s npx playwright install chromium; }
       - name: Capture and validate evidence on this checkout
         if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
-        timeout-minutes: 55
+        timeout-minutes: 85
         run: node e2e/tools/capture_ci_evidence.cjs
       - run: npm test
         timeout-minutes: 20
@@ -438,6 +439,15 @@ jobs:
             terminal/test-results/
             terminal/docs/pr-crops/b-pl-6-batch-1/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/terminal-visual-intelligence/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/*.png
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/native-packet.json
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/capture-*
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/capture.log
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/source-contract.json
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/history.json
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/EVIDENCE.before.yml
+            terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/**/revisions/**/qualified-root/
             terminal/docs/pr-crops/b-pl-6-batch-2/
             terminal/docs/pr-crops/options-level-axis-labels/manifest.json
             terminal/docs/pr-crops/options-level-axis-labels/*.png

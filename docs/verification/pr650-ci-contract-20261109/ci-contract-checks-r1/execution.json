@@ -1,0 +1,106 @@
+{
+  "completedAt": "2026-11-09T17:00:08.186236+00:00",
+  "pr": 650,
+  "results": {
+    "full-playwright-collection": {
+      "collection": [
+        {
+          "files": 289,
+          "tests": 4900
+        }
+      ],
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--list",
+        "--reporter=list"
+      ],
+      "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr650-ci-contract-20261109/terminal",
+      "exit": 0,
+      "logSha256": "6e70e8945fc3d2d96518bd1fb4cbe1eb884450bd992f7d8e24d0c8024572f46b",
+      "seconds": 11.09
+    },
+    "node-ci-entrypoints": {
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "e2e/tools/capture_ci_evidence.test.cjs",
+        "e2e/tools/capture_visual_evidence.test.cjs",
+        "scripts/ci/plan-evidence-capture.test.cjs",
+        "e2e/tools/sharedShellSafeReporter.test.cjs"
+      ],
+      "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr650-ci-contract-20261109/terminal",
+      "exit": 0,
+      "logSha256": "b52d86ebb96467d4baea2a7476d4a59bb595e189be7b9cd5d9d1f2ca641b7829",
+      "seconds": 5.98,
+      "totals": {
+        "cancelled": 0,
+        "fail": 0,
+        "pass": 167,
+        "skipped": 0,
+        "tests": 167
+      }
+    },
+    "python-browser-setup": {
+      "command": [
+        "python3",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_ci_browser_setup.py"
+      ],
+      "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr650-ci-contract-20261109",
+      "exit": 0,
+      "logSha256": "77a33dd1eae4050657fd9b1fe948582d92a3d45214e4019ff78e3058bb71c3b1",
+      "passed": 18,
+      "seconds": 1.0
+    },
+    "unchanged-native-consumers": {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/optionsExposureEvidence.test.ts",
+        "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+        "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+        "--pool=forks",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr650-ci-contract-20261109/docs/verification/pr650-ci-contract-20261109/ci-contract-checks-r1/native-consumers.json"
+      ],
+      "cwd": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr650-ci-contract-20261109/terminal",
+      "exit": 0,
+      "logSha256": "d7bb512d14505372773e5d54fafea90f11fac4026c54475213fcb2a40c3bc0d3",
+      "report": {
+        "numFailedTests": 0,
+        "numPassedTests": 77,
+        "numPendingTests": 0,
+        "numTotalTests": 77,
+        "success": true
+      },
+      "seconds": 2.88
+    }
+  },
+  "schema": "terminal_ci_contract_repair_validation.v1",
+  "sourceControlsAfter": {
+    ".github/workflows/ci.yml": "08bebbfa0b65a9aa19572eb0576346051ab1355edac67a09af1f140fc0936dee",
+    "terminal/e2e/tools/capture_ci_evidence.cjs": "90f1bf39585dabda13376e6c6287d0ce7ee72cd2864cabc8e1800f091c9122a1",
+    "terminal/e2e/tools/capture_ci_evidence.test.cjs": "ad2f5987cb223fb2ccff668104bb74243f3aa963121dc4bd4e1e9051c758a90e",
+    "terminal/e2e/tools/optionsExposureEvidence.cases.cjs": "fa3cf71de52ae0a2ce2a7437a0190c2f2eaca8d949240f5d51145806e90819da",
+    "terminal/playwright.config.ts": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+    "tests/test_ci_browser_setup.py": "3e882d849b1aa27a5f195ab6189d36476e30c28f61b7ceed03ea148819b93c26"
+  },
+  "sourceControlsBefore": {
+    ".github/workflows/ci.yml": "08bebbfa0b65a9aa19572eb0576346051ab1355edac67a09af1f140fc0936dee",
+    "terminal/e2e/tools/capture_ci_evidence.cjs": "90f1bf39585dabda13376e6c6287d0ce7ee72cd2864cabc8e1800f091c9122a1",
+    "terminal/e2e/tools/capture_ci_evidence.test.cjs": "ad2f5987cb223fb2ccff668104bb74243f3aa963121dc4bd4e1e9051c758a90e",
+    "terminal/e2e/tools/optionsExposureEvidence.cases.cjs": "fa3cf71de52ae0a2ce2a7437a0190c2f2eaca8d949240f5d51145806e90819da",
+    "terminal/playwright.config.ts": "de74d9150283eb9dd5243b57c4ee597171d50f328be749d6c43ba8287a6f4525",
+    "tests/test_ci_browser_setup.py": "3e882d849b1aa27a5f195ab6189d36476e30c28f61b7ceed03ea148819b93c26"
+  },
+  "sourceStable": true,
+  "state": "QUALIFIED"
+}
