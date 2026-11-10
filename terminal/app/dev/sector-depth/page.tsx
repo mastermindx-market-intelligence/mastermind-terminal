@@ -78,6 +78,40 @@ const universesContract = universesContractFixture as unknown as {
   universes: Partial<Record<UniverseId, UniverseData>>;
 };
 
+/** Owner-carried emergence demonstration (v1.1 R6-09): the CONTRACT board and
+ * the CONTRACT S&P universe with the flag SIMULATED on a few rows — no owner
+ * emits `emerging` today. This mount exists only to exercise the rendering
+ * law: the mark is driven exclusively by the carried `emerging` boolean and
+ * `emergence_href` string, never derived, never changing qualification. */
+const emergenceBoard: ActionBoardData = (() => {
+  const clone = structuredClone(callsContract.action_board) as ActionBoardData;
+  const buyNow = clone.lanes.buy_now.rows;
+  if (buyNow[0]) {
+    buyNow[0] = { ...buyNow[0], emerging: true, emergence_href: "company/SYN_S1.html" };
+  }
+  const hold = clone.lanes.hold.rows;
+  if (hold[0]) {
+    // No href on purpose: the copy renders, the evidence link does not.
+    hold[0] = { ...hold[0], emerging: true };
+  }
+  return clone;
+})();
+
+const emergenceUniverses: Partial<Record<UniverseId, UniverseData>> = (() => {
+  const clone = structuredClone(universesContract.universes) as Partial<
+    Record<UniverseId, UniverseData>
+  >;
+  // Flag the default sort's FIRST group (tier sort puts entry_now first), so
+  // the compact member chip is reachable by expanding the top row.
+  const group = clone.subsectors?.subsectors?.find((g) => g.key === "semis-equip");
+  const member = group?.members?.[0];
+  if (member) {
+    member.emerging = true;
+    member.emergence_href = "company/AMAT.html";
+  }
+  return clone;
+})();
+
 /** id → localized display name from the captured core sectors. */
 const CAPTURED_LABELS: Record<string, Record<string, string>> = (() => {
   const core = captured.projection.data.core as
@@ -203,6 +237,20 @@ function HarnessBody() {
       </HarnessSection>
       <HarnessSection id="universes-contract" title="Entry evidence · CONTRACT fixture (synthetic)" synthetic>
         <SectorConfluenceUniverses universes={universesContract.universes} onNavigate={onNavigate} />
+      </HarnessSection>
+      <HarnessSection
+        id="calls-emergence"
+        title="Calls board · owner-carried emergence mark (CONTRACT fixture — flag simulated; no owner emits it today)"
+        synthetic
+      >
+        <SectorCallsBoard board={emergenceBoard} onNavigate={onNavigate} />
+      </HarnessSection>
+      <HarnessSection
+        id="universes-emergence"
+        title="Entry evidence · member emergence chips (CONTRACT fixture — flag simulated)"
+        synthetic
+      >
+        <SectorConfluenceUniverses universes={emergenceUniverses} onNavigate={onNavigate} />
       </HarnessSection>
     </main>
   );
