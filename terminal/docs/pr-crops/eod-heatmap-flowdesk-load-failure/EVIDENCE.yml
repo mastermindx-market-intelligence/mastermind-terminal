@@ -1,8 +1,29 @@
+# Current source proof retains the original EOD capture and qualifies fresh expiry-aware GEX and browser journeys.
+exposureExpiryGreeksIntegration20261110:
+  selectedFamily: "eod"
+  selectedCaptureRevision: "options-integration-20261109"
+  freshGexRevision: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/revisions/expiry-greeks-integration-20261110"
+  freshGexDescriptorSha256: "6432faf8713536aaa14319bb310289b26a68cfa5dd923801d2f4a7b7bf1fc453"
+  retainedEodDescriptorSha256: "77b3b7f07746290cad33262a3d95c221e947a5acd5e940ae95b9d9458f510a18"
+  branchHead: "a985bf7f37b9a5a9fc490f8b3eb72be04869bfe4"
+  protectedMaster: "dad33e10089c9d51d931a1fe72e7fa1acb37abe1"
+  integratedDependency: "9ef372c8086ceaac8bcb153bd2d2d71b5b63d62c"
+  browserQualificationSha256: "fee8ee7eb79e7a1a680c51b2121e94f78708fba5b14551c3ea701a42556f8210"
+  expiryQualificationSha256: "436bbf7bdbee1bb9d7e5d8043878a286093a59f8a54690f71b2b7ae1eff39303"
+
+# Current source proof is the complete Options integration revision.
+exposureMasterIntegration20261109:
+  revision: "operations/exposure-source-compatibility-20261105/revisions/options-integration-20261109"
+  descriptorSha256: "77b3b7f07746290cad33262a3d95c221e947a5acd5e940ae95b9d9458f510a18"
+  branchHead: "90f275f15b4d174f003fb5b1087823dce6ec865a"
+  protectedMaster: "03af393ce05c12282003a3919cc473c032264922"
+  integratedDependency: "d3bd6b2d98c6c23398be0bed6c7450caa47bd665"
+
 # EOD belt, Flow Desk chain heat and Heatmap flow layer failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: daab948465d37a18f42a0682cf56a3ea2426e4fb
-# capturedAt: 2026-11-01T13:04:34.676Z
+# capturedAtHead: a842de07ad2b6e5b2a8c29cbb39226a5443eb490
+# capturedAt: 2026-11-05T12:17:25.344Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
@@ -16,7 +37,7 @@ layoutFiles:
   terminal/lib/dataCache.ts: "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a"
   terminal/lib/eodContext.ts: "1d0ce3ccde7a2fa05948cc0ac2ee93d16ec06724a7edcbd8c95c61e39d98b9e7"
   terminal/lib/flowdeskStrings.ts: "580399a47bae6ab6aa16368d25ed54c94047799e4a600352385b5a9b7cc25c10"
-  terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
+  terminal/lib/heatmapStrings.ts: "d24d5cff73246b1a426fe4034723dae30968cd6779d35cef29a4eaf3b55315b7"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -375,3 +396,10 @@ labGammaMountedRecapture20261104:
   qualification: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/lab-gamma-recapture-20261104.json"
   qualificationSha256: "58ffdbfc7821e7a59baff21c0afb99b582c9aa0f505bc18539f85fcebcb37955"
   scope: "Actual scoped GEX/EOD capture; unrelated sources, historical packets and assertions preserved; not production."
+
+terminal610CaptureRepair20261105:
+  sourceHead: "a842de07ad2b6e5b2a8c29cbb39226a5443eb490"
+  actualCases: 126
+  command: "cd terminal && node e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs"
+  capturedAt: "2026-11-05T12:17:25.344Z"
+  scope: "Actual full capture of every state at 1440/820/390 in en and zh against the current source, because heatmapStrings.ts changed the sizeCap label to Price x volume / 价格 x 成交量. The scoped Heatmap mode was refused by its own guard (heatmapStrings.ts is outside HeatmapView.tsx), so the full owner ran. Historical trailing records above are preserved unchanged."

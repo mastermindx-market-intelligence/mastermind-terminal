@@ -1,0 +1,14 @@
+{
+  "adaptations": [
+    "current exact PR head/effective protected parent/computed source tree",
+    "new owned port and output names",
+    "current matching existing browser cache and dependency receipt",
+    "reuse original invalid-selector/readiness receipts with unchanged complete producer bytes"
+  ],
+  "assertionPolicy": "Original full-spec21-case14pass/7skip,source stability,103-file preservation,10fresh images,no retries,owned lifecycle and exact stale-lock protocol retained.",
+  "currentDriver": "docs/verification/pr910-protected-successor-20261110/validate-browser.py",
+  "currentSha256": "7012bf701aa4717fdddc5f464b84d8b0165a3824845faefed096cd90dc4efd65",
+  "originalDriver": "docs/verification/pr910-ticker-news-integration-20261109/validate-browser-r2.py",
+  "originalSha256": "74045eb4ac74f9b2f60d7ed1f1aa2aa1d38675d9f77b4260537852166d55748b",
+  "schema": "terminal.pr910.incumbent-driver-adaptation.v1"
+}

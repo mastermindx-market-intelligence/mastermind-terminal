@@ -1,0 +1,68 @@
+{
+  "checks": [
+    {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/drawingTools.test.ts",
+        "lib/__tests__/drawingInteraction.test.ts",
+        "lib/__tests__/drawingGeometry.test.ts",
+        "lib/__tests__/drawingSettings.test.ts",
+        "lib/__tests__/boatsChartCoverage.test.ts",
+        "--pool=forks",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/docs/verification/pr632-protected-successor-20261110/focused-tests-report.json"
+      ],
+      "exitCode": 0,
+      "logSha256": "751a4a16d7a9c9b6f40ab1848083a149107fa026f1934b7aba9cba39efe2fc15",
+      "name": "focused-tests",
+      "seconds": 6.35,
+      "stats": {
+        "numFailedTests": 0,
+        "numPassedTests": 30,
+        "numPendingTests": 0,
+        "numTotalTests": 30,
+        "success": true
+      }
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/next/dist/bin/next",
+        "typegen"
+      ],
+      "exitCode": 0,
+      "logSha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a",
+      "name": "typegen",
+      "seconds": 5.54
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--pretty",
+        "false"
+      ],
+      "exitCode": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "typescript",
+      "seconds": 80.25
+    }
+  ],
+  "completedAt": "2026-11-10T08:43:40.187181+00:00",
+  "head": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f",
+  "localNodeWebStorageDisabledForJsdom": true,
+  "protectedMaster": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39",
+  "publishedDependency": "f6ff4bb4bbde8a162557cd4e15115cb085e7f77d",
+  "schema": "terminal_pr632_focused_composition_validation.v1",
+  "sourceAfterSha256": "a267f9bc32a2e5f8e93fbdff43c3d86b99d1b1fb557b7e9e8fc1dcc8c288efe9",
+  "sourceBeforeSha256": "a267f9bc32a2e5f8e93fbdff43c3d86b99d1b1fb557b7e9e8fc1dcc8c288efe9",
+  "sourceEntries": 2006,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T08:42:04.672598+00:00",
+  "state": "QUALIFIED"
+}

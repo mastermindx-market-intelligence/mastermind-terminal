@@ -1,0 +1,34 @@
+[
+  {
+    "command": [
+      "node",
+      "--check",
+      "e2e/tools/capture_gex_levels_heatmap_load_failure.cjs"
+    ],
+    "exit": 0,
+    "seconds": 0.11
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs"
+    ],
+    "exit": 0,
+    "seconds": 0.08
+  },
+  {
+    "command": [
+      "npx",
+      "vitest",
+      "run",
+      "lib/__tests__/nativeCaptureIndicatorGate.test.ts",
+      "lib/__tests__/eodHeatmapScopedRecapture.test.ts",
+      "--reporter=default",
+      "--reporter=json",
+      "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/test-results/pr1243-indicator-guard-20261109/producer-tests-report.json"
+    ],
+    "exit": 0,
+    "seconds": 3.67
+  }
+]

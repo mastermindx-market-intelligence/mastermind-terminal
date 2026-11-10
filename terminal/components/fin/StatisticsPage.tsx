@@ -10,6 +10,7 @@
  * - zh: boolean — language selector
  */
 import { useState } from "react"
+import styles from "./StatisticsBasisControls.module.css"
 import type { Fund, RatiosCurrent } from "../../lib/fund"
 import { fmtDate, fmtNum, fmtPct, pick, statementCurrencyLabel } from "../../lib/finFormat"
 import {
@@ -21,6 +22,7 @@ import {
   statementCadenceLabel,
 } from "../../lib/finStatementMath"
 import { Bars, type Series } from "./FinCharts"
+import currentTables from "./StatisticsCurrentTables.module.css"
 
 // ── prop types ──────────────────────────────────────────────────────────────
 
@@ -187,11 +189,23 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
         <div className="fin-sec-h fin-rail" style={{ "--rail": "var(--brand)" } as React.CSSProperties}>
           {pick(!!zh, "Statistics", "统计数据")}
         </div>
-        <div className="fin-toggle">
-          <button className={mode === "annual" ? "on" : ""} onClick={() => setMode("annual")} disabled={!annualAvailable}>
+        <div
+          className={`fin-toggle ${styles.basis}`}
+          role="group"
+          aria-label={pick(!!zh, "Statistics basis", "统计数据口径")}
+        >
+          <button
+            type="button"
+            aria-pressed={mode === "annual"}
+            className={mode === "annual" ? "on" : ""}
+            onClick={() => setMode("annual")}
+            disabled={!annualAvailable}
+          >
             {pick(!!zh, "Annual", "年度")}
           </button>
           <button
+            type="button"
+            aria-pressed={mode === "quarterly"}
             className={mode === "quarterly" ? "on" : ""}
             onClick={() => setMode("quarterly")}
             disabled={!interimAvailable}
@@ -232,7 +246,7 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
       {/* ── Key stats ── */}
       <div className="fin-sec">
         <div className="fin-table-scroll">
-          <table className="fin-table fin-stats-tbl">
+          <table className={`fin-table fin-stats-tbl ${currentTables.currentTable}`}>
             <thead>
               <tr>
                 <th className="fin-cell fin-cell-sticky fin-cell-corner" scope="col">
@@ -311,10 +325,15 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
               {zh ? `暂无${interimLabel}估值比率` : `No ${interimLabel.toLowerCase()} valuation ratios`}
             </span>
             <span className="fin-empty-why">
-              {pick(!!zh,
-                "The fundamentals feed publishes valuation ratios on annual fiscal periods only — switch to Annual to see the series.",
-                "基本面数据源仅按年度报告期发布估值比率——切换到年度视图即可查看该序列。"
-              )}
+              {annualAvailable
+                ? pick(!!zh,
+                    "The fundamentals feed publishes valuation ratios on annual fiscal periods only — switch to Annual to see the series.",
+                    "基本面数据源仅按年度报告期发布估值比率——切换到年度视图即可查看该序列。"
+                  )
+                : pick(!!zh,
+                    "The fundamentals feed publishes valuation ratios on annual fiscal periods only. Annual statement history is unavailable in this snapshot.",
+                    "基本面数据源仅按年度报告期发布估值比率。该快照暂无年度报表历史。"
+                  )}
             </span>
           </div>
         ) : (
@@ -396,7 +415,7 @@ export default function StatisticsPage({ fund, quote, zh, sym }: StatisticsPageP
           </div>
         )}
         <div className="fin-table-scroll">
-          <table className="fin-table fin-stats-tbl">
+          <table className={`fin-table fin-stats-tbl ${currentTables.currentTable}`}>
             <thead>
               <tr>
                 <th className="fin-cell fin-cell-sticky fin-cell-corner" scope="col">

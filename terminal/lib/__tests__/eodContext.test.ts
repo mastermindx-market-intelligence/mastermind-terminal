@@ -403,17 +403,17 @@ describe("off-exchange component — rendered copy and provenance", () => {
     expect(failed).toContain("Could not load the off-exchange panel");
     expect(failed).toContain("Retry");
     expect(failed).not.toContain("Unusual, unclear");
-    expect(failed).not.toContain("hasn&#x27;t published");
+    expect(failed).not.toContain("hasn&#x27;t been published");
     const pending = renderStatus("loading");
     expect(pending).not.toContain("Off-exchange panel unavailable");
-    expect(pending).not.toContain("hasn&#x27;t published");
+    expect(pending).not.toContain("hasn&#x27;t been published");
     expect(pending).not.toContain("Retry");
     const absent = renderStatus("absent");
-    expect(absent).toContain("hasn&#x27;t published");
+    expect(absent).toContain("hasn&#x27;t been published");
     expect(absent).not.toContain("Retry");
     const malformed = renderStatus("data", { ...v2Payload(baseRow()), schema: "unknown" });
     expect(malformed).toContain("Off-exchange panel unavailable");
-    expect(malformed).not.toContain("hasn&#x27;t published");
+    expect(malformed).not.toContain("hasn&#x27;t been published");
     expect(malformed).not.toContain("Retry");
   });
 
@@ -433,7 +433,7 @@ describe("off-exchange component — rendered copy and provenance", () => {
   it("does not invent a not-published explanation for an unsupported or historical source", () => {
     const html = render({ ...v2Payload(baseRow()), schema: "unknown" });
     expect(html).toContain("Off-exchange panel unavailable");
-    expect(html).not.toContain("hasn&#x27;t published");
+    expect(html).not.toContain("hasn&#x27;t been published");
     expect(html).not.toContain("Nothing unusual");
   });
 

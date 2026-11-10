@@ -1,0 +1,36 @@
+{
+  "capturedAtHead": "af6647a242e7a1f1e08ed3a00470a566f699c656",
+  "capturedAt": "2026-10-04T05:20:34.976Z",
+  "layoutFiles": {
+    "terminal/components/workspaces/AnalysisWorkspace.tsx": "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e",
+    "terminal/app/company-intelligence.css": "16ca4e131ad1f2973b6346e7f051af802dbfa27227d6c33615af87578e73f885",
+    "terminal/lib/i18n.tsx": "51276ecc8db6956c6c4e5cc67c55eab029c0b468ccb61e34f8bb92f25e42b9f8"
+  },
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "project": "mobile",
+  "captures": [
+    {
+      "file": "analysis-entry-mobile-en.png",
+      "url": "/analysis?symbol=NVDA&lang=en",
+      "state": "context-bar-with-theses-control-and-saved-research"
+    },
+    {
+      "file": "AnalysisWorkspace-390.png",
+      "url": "/analysis?symbol=SPY&lang=en",
+      "state": "analysis-context-bar"
+    },
+    {
+      "file": "analysis-entry-mobile-zh.png",
+      "url": "/analysis?symbol=NVDA&lang=zh",
+      "state": "context-bar-with-theses-control-and-saved-research"
+    },
+    {
+      "file": "AnalysisWorkspace-390-zh.png",
+      "url": "/analysis?symbol=SPY&lang=zh",
+      "state": "analysis-context-bar"
+    }
+  ]
+}

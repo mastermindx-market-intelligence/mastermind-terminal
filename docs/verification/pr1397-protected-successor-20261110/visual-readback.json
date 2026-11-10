@@ -1,0 +1,24 @@
+{
+  "at": "2026-11-10T07:25:13.340367+00:00",
+  "boundedReadOnlyReview": {
+    "artifactHashMatches": 104,
+    "basisControlMinHeight": 44,
+    "basisControlMinWidth": 46,
+    "horizontalOverflow": false,
+    "images": 10,
+    "matchedModePairs": 5,
+    "phoneCurrentTableWidth": 272,
+    "semiannualGuidanceOffersUnavailableAnnual": false
+  },
+  "findings": [
+    "Annual and Quarterly selected states and focus are visible with the current values retained.",
+    "EN and ZH current-value cells fit beside their labels; unavailable values retain dashes.",
+    "Semiannual-only guidance explains unavailable annual history without offering an unavailable basis."
+  ],
+  "rootViewed": [
+    "browser-beta/artifacts/statistics-basis-controls--43dff-is-matches-available-ratios-desktop/analysis-en-initial.png",
+    "browser-beta/artifacts/statistics-basis-controls--cdd30-is-matches-available-ratios-mobile/terminal-zh-interim.png"
+  ],
+  "schema": "terminal_pr1397_visual_readback.v1",
+  "scope": "Existing synthetic fundamental-data fixtures on actual application routes; not production data or release acceptance."
+}

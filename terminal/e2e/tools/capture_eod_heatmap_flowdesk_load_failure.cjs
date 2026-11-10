@@ -41,12 +41,10 @@
  */
 "use strict";
 
-const { execFileSync } = require("node:child_process");
+const { spawn, execFileSync } = require("node:child_process");
 const { createHash } = require("node:crypto");
 const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
-const { startLegacyServer, waitLegacyServer, reportLegacyServer, settleLegacyServer,
-  captureRefusal, emitLegacyReceipt } = require("./capture_ci_evidence.cjs");
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
@@ -58,6 +56,7 @@ const LAYOUT_FILES = [
   "terminal/components/eodcontext/StructureStrip.tsx",
   "terminal/components/eodcontext/eodStrings.ts",
   "terminal/components/flowdesk/FlowDeskView.tsx",
+  "terminal/components/gexdesk/ExposureWorkspace.module.css",
   "terminal/components/gexdesk/GexDeskView.tsx",
   "terminal/components/heatmap/HeatmapView.tsx",
   "terminal/lib/dataCache.ts",
@@ -208,6 +207,127 @@ function cropName(state, width, lang) {
   return `${state}-${width}${lang === "zh" ? "-zh" : ""}.png`;
 }
 
+function startServer() {
+  const env = {
+    ...process.env,
+    ANALYSIS_LOCAL_PREVIEW: "1",
+    ADMIN_DEV: "1",
+    TERMINAL_E2E_FIXTURE: "1",
+    TERMINAL_E2E_EMAIL: "responsive@example.com",
+    TERMINAL_E2E_ENTITLEMENT: "unlimited",
+    RATE_LIMIT_MAX: "100000",
+    FLOW_FIXTURE: "1",
+    NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key",
+  };
+  const child = spawn("npm", ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", String(PORT), ...(process.env.TERMINAL_CROP_WEBPACK === "1" ? ["--webpack"] : [])], {
+    cwd: ROOT,
+    env,
+    stdio: ["ignore", "pipe", "pipe"],
+    detached: true,
+  });
+  child.closed = new Promise(resolve => child.once("close", resolve));
+  child.ready = new Promise((resolve, reject) => {
+    child.once("error", reject);
+    child.once("exit", (code, signal) => reject(new Error(`dev server exited before readiness: ${code}/${signal || "none"}`)));
+    let tail = "";
+    child.stdout.on("data", buf => {
+      const line = String(buf);
+      tail = (tail + line).slice(-16_384);
+      if (/Ready|compiled|error|Error/i.test(line)) process.stdout.write(`[dev] ${line}`);
+      if (/✓ Ready/i.test(tail)) resolve();
+    });
+  });
+  // Retain the rejection until readiness is awaited; do not emit an unhandled promise.
+  child.ready.catch(() => {});
+  child.stderr.on("data", buf => process.stderr.write(`[dev:err] ${buf}`));
+  return child;
+}
+
+async function bounded(promise, milliseconds, message) {
+  let timer;
+  try {
+    return await Promise.race([promise, new Promise((_, reject) => {
+      timer = setTimeout(() => reject(new Error(message)), milliseconds);
+    })]);
+  } finally { clearTimeout(timer); }
+}
+
+async function reportServer(child, phase, code) {
+  if (typeof process.send !== "function") return; // Standalone capture owns its cleanup.
+  const captureId = process.env.TERMINAL_NATIVE_CAPTURE_ID;
+  if (!captureId || !Number.isInteger(child?.pid) || child.pid < 1) throw new Error("NATIVE_SERVER_REPORT_IDENTITY");
+  await bounded(new Promise((resolve, reject) => process.send({ nativeCaptureServer: {
+    captureId, phase, pid: child.pid, pgid: child.pid, ...(code ? { code } : {}),
+  } }, error => error ? reject(error) : resolve())), 2_000, "NATIVE_SERVER_REPORT_UNSETTLED");
+}
+
+function stopServer(child, { kill = process.kill.bind(process), now = Date.now,
+  wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds)) } = {}) {
+  if (!child || !child.pid) return Promise.resolve();
+  if (!Number.isInteger(child.pid) || child.pid < 1 || !child.closed || typeof child.closed.then !== "function") {
+    return Promise.reject(new Error("NATIVE_SERVER_IDENTITY_OR_CLOSE_MISSING"));
+  }
+  if (child.shutdown) return child.shutdown;
+  child.shutdown = (async () => {
+    const alive = () => {
+      try { kill(-child.pid, 0); return true; }
+      catch (error) { if (error.code === "ESRCH") return false; throw error; }
+    };
+    const signal = name => {
+      try { kill(-child.pid, name); }
+      catch (error) { if (error.code !== "ESRCH") throw error; }
+    };
+    const drain = async milliseconds => {
+      const deadline = now() + milliseconds;
+      while (alive() && now() < deadline) await wait(50);
+      return !alive();
+    };
+    if (alive()) {
+      signal("SIGTERM");
+      if (!await drain(8_000)) {
+        signal("SIGKILL");
+        if (!await drain(5_000)) throw new Error("NATIVE_SERVER_GROUP_UNSETTLED");
+      }
+    }
+    await bounded(child.closed, 2_000, "NATIVE_SERVER_CLOSE_UNSETTLED");
+  })();
+  return child.shutdown;
+}
+
+async function settleNativeServer(child, { stop = stopServer, report = reportServer } = {}) {
+  try { await stop(child); }
+  catch (error) {
+    if (["EPERM", "EACCES"].includes(error.code)) {
+      try { await report(child, "refused", error.code); }
+      catch (reportError) { throw new AggregateError([error, reportError], "NATIVE_SERVER_REFUSAL_REPORT_FAILED"); }
+    }
+    throw error;
+  }
+  await report(child, "stopped");
+}
+
+
+/** Ready only when the page AND the fixture flow route answer 200: a broken `next dev` 404s every route. */
+async function waitForServer(child, timeoutMs) {
+  await bounded(child.ready, timeoutMs, "dev server never printed Ready");
+  const deadline = Date.now() + 60_000;
+  let last = "not tried";
+  while (Date.now() < deadline) {
+    if (child.exitCode !== null || child.signalCode) throw new Error("dev server exited during readiness");
+    try {
+      const page = await fetch(`${BASE}${URLS.belt}`, { redirect: "manual", signal: AbortSignal.timeout(5_000) });
+      const flow = await fetch(`${BASE}/api/flow?f=chainheat`, { redirect: "manual", signal: AbortSignal.timeout(5_000) });
+      last = `page ${page.status}, flow ${flow.status}`;
+      if (page.status === 200 && flow.status === 200) return;
+    } catch (err) {
+      last = err.cause?.code || err.message;
+    }
+    await new Promise((r) => setTimeout(r, 750));
+  }
+  throw new Error(`dev server on ${PORT} never answered (${last})`);
+}
+
 const keyOf = (url) => (url.pathname === "/api/flow" ? url.searchParams.get("f") ?? "" : url.pathname);
 
 async function newPage(browser, width, lang, board, replies, withClock) {
@@ -222,12 +342,8 @@ async function newPage(browser, width, lang, board, replies, withClock) {
     localStorage.setItem("theme", "dark");
     localStorage.setItem("theme_auto", "0");
     localStorage.setItem("flowdesk.tutorial.seen", "1");
-    const applyLocale = () => {
-      document.documentElement.setAttribute("data-theme", "dark");
-      document.documentElement.setAttribute("data-lang", l);
-    };
-    if (document.documentElement) applyLocale();
-    else document.addEventListener("DOMContentLoaded", applyLocale, { once: true });
+    document.documentElement.setAttribute("data-theme", "dark");
+    document.documentElement.setAttribute("data-lang", l);
   }, lang);
   // Mirror the shell's existing dev-only, opt-in fixture identity. The
   // capture runner starts next dev with TERMINAL_E2E_FIXTURE=1; production
@@ -689,10 +805,79 @@ function updateHeatmapEvidence(previous, { files, layoutFiles, cropHashes, captu
   return updated + entry;
 }
 
+function layoutSnapshot() {
+  return Object.fromEntries(LAYOUT_FILES.map(rel => [rel, sha256File(rel)]));
+}
+
+function preserveManifest() {
+  let bytes;
+  try { bytes = readFileSync(join(OUT, "EVIDENCE.yml")); }
+  catch (error) { if (error.code === "ENOENT") return null; throw error; }
+  const sha256 = createHash("sha256").update(bytes).digest("hex");
+  const file = `EVIDENCE.history-${sha256}.yml`;
+  try { writeFileSync(join(OUT, file), bytes, { flag: "wx" }); }
+  catch (error) {
+    if (error.code !== "EEXIST" || !readFileSync(join(OUT, file)).equals(bytes)) throw error;
+  }
+  return { file, sha256 };
+}
+
+function expectedFiles() {
+  return Object.keys(STATES).flatMap(state => [1440, 820, 390]
+    .flatMap(width => ["en", "zh"].map(lang => cropName(state, width, lang)))).sort();
+}
+
+function harnessRow(name) {
+  const state = Object.keys(STATES).find((s) => name.startsWith(`${s}-`));
+  const { board, replies, heal: healKeys, failAfter, search, persisted } = STATES[state];
+  const injected = Object.entries(replies).map(([k, r]) => `"${k}": ${r}`).join(", ");
+  // One `then:` per row (a flow mapping cannot repeat a key); the steps run in this order.
+  const failure = persisted === "abort" ? "refuse the connection" : `answer ${persisted}`;
+  const steps = [
+    persisted && `${STATIC_FLOW} answered the fixture's flow_idx payload, written to IndexedDB and aged 6h; flow_idx + ${STATIC_FLOW} ${failure}; page reloaded`,
+    healKeys && `${healKeys.join(" + ")} healed, Retry clicked`,
+    failAfter && `healthy read landed; ${failAfter.join(" + ")} answer 503; page clock moved past two polls`,
+    search && `searched ${search}`,
+  ].filter(Boolean);
+  const then = steps.length ? `, then: "${steps.join("; then ")}"` : "";
+  const stream = board === "belt" ? ", stream: aborted" : "";
+  return `  ${name}: { url: "${captureUrl(state)}", state: ${state}, injected: { ${injected} }${stream}${then} }`;
+}
+
+function renderEvidence({ files, capturedAtHead, layoutFiles, capturedAt = new Date().toISOString(), history = null }) {
+  return [
+    "# EOD belt, Flow Desk chain heat and Heatmap flow layer failure-state truth — capture evidence",
+    "# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+    "# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR",
+    `# capturedAtHead: ${capturedAtHead}`,
+    `# capturedAt: ${capturedAt}`,
+    "# capturedAtHead is informational. The lock is layoutFiles.",
+    ...(history ? [`# priorManifest: ${history.file}`, `# priorManifestSha256: ${history.sha256}`] : []),
+    "layoutFiles:",
+    ...LAYOUT_FILES.map((rel) => `  ${rel}: "${layoutFiles[rel]}"`),
+    "theme: dark",
+    "languages: [en, zh]",
+    "viewports:",
+    "  - { name: desktop, width: 1440, height: 900 }",
+    "  - { name: tablet, width: 820, height: 1180 }",
+    "  - { name: mobile, width: 390, height: 844 }",
+    "harness:",
+    ...files.map(harnessRow),
+    "surfaces: [EodContextBelt, StructureStrip, DarkPoolMini, FlowDeskView, HeatmapView]",
+    "injection: page.route answers /api/flow (by f-param), /data/flow_idx.json and /api/quote with 503 / 403 / 404 or a refused request; /api/flow/stream is refused on the GEX desk; every other read is the FLOW_FIXTURE server",
+    "persisted: the heatmap-flow-persisted-* states age the browser's own IndexedDB record of /data/flow_idx.json (dataCache write-through), never a mocked cache",
+    "capture_flag: TERMINAL_E2E_FIXTURE",
+    "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
+    "command: |",
+    "  cd terminal",
+    "  node e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs",
+    "files:",
+    ...files.map((name) => `  - ${name}`),
+    "",
+  ].join("\n");
+}
+
 async function main() {
-  if (process.env.TERMINAL_LEGACY_CAPTURE_ID && (process.env.CAPTURE_ONLY || process.env.UPDATE_HEATMAP_EVIDENCE))
-    throw new Error("CI_EVIDENCE_CAPTURE_FILTER");
-  const { chromium } = require("@playwright/test");
   mkdirSync(OUT, { recursive: true });
   const only = process.env.CAPTURE_ONLY ? new RegExp(process.env.CAPTURE_ONLY) : null;
   const updateHeatmap = process.env.UPDATE_HEATMAP_EVIDENCE === "1";
@@ -700,17 +885,35 @@ async function main() {
     throw new Error("UPDATE_HEATMAP_EVIDENCE requires CAPTURE_ONLY='^heatmap-'");
   }
   const capturedAtHead = currentGitHead();
-  const capturedLayoutFiles = updateHeatmap
-    ? Object.fromEntries(LAYOUT_FILES.map((rel) => [rel, sha256File(rel)])) : null;
-  const child = startLegacyServer(ROOT, PORT);
+  if (!/^[0-9a-f]{40}$/.test(capturedAtHead)) throw new Error("NATIVE_CAPTURE_HEAD");
+  const capturedLayoutFiles = layoutSnapshot();
+  const history = only ? null : preserveManifest();
+  const child = startServer();
   const files = [];
   let failed = 0;
+  let browser, captureError, cleanupPromise;
+  let terminated = false;
+  const cleanup = () => cleanupPromise ||= (async () => {
+    const errors = [];
+    try { if (browser) await bounded(browser.close(), 10_000, "NATIVE_BROWSER_CLOSE_UNSETTLED"); }
+    catch (error) { errors.push(error); }
+    try { await settleNativeServer(child); }
+    catch (error) { errors.push(error); }
+    if (errors.length) throw new AggregateError(errors, "NATIVE_CLEANUP_UNSETTLED");
+  })();
+  const terminate = async signal => {
+    terminated = true;
+    try { await cleanup(); } catch (error) { console.error(error); }
+    console.error(`NATIVE_TERMINATED: ${signal}`);
+    process.exit(1);
+  };
+  const onTerm = () => void terminate("SIGTERM"), onInt = () => void terminate("SIGINT");
+  process.once("SIGTERM", onTerm); process.once("SIGINT", onInt);
   try {
-    await reportLegacyServer(child, "started");
-    await waitLegacyServer(child, `${BASE}${URLS.belt}`, 180_000);
-    await waitLegacyServer(child, `${BASE}/api/flow?f=chainheat`, 180_000);
-    const browser = await chromium.launch({ headless: true, args: BROWSER_ARGS });
-    try {
+    await reportServer(child, "started");
+    await waitForServer(child, 180_000);
+    const { chromium } = require("@playwright/test");
+    browser = await chromium.launch({ headless: true, args: BROWSER_ARGS });
       for (const width of [1440, 820, 390]) {
         for (const lang of ["en", "zh"]) {
           for (const state of Object.keys(STATES)) {
@@ -727,24 +930,26 @@ async function main() {
               files.push(file);
               console.log("ok");
             } catch (err) {
-              if (captureRefusal(err)) throw err;
               failed += 1;
               console.log(`FAIL ${err && err.message ? err.message : err}`);
               try {
                 await page.screenshot({ path: join(OUT, `FAIL-${file}`), fullPage: false });
-              } catch (captureError) { if (captureRefusal(captureError)) throw captureError; }
+              } catch { /* ignore */ }
             } finally {
-              await context.close();
+              await bounded(context.close(), 5_000, "NATIVE_CONTEXT_CLOSE_UNSETTLED");
             }
           }
         }
       }
-    } finally {
-      await browser.close();
-    }
+  } catch (error) {
+    captureError = error;
   } finally {
-    await settleLegacyServer(child);
+    try { await cleanup(); }
+    catch (error) { throw new AggregateError([captureError, error].filter(Boolean), "NATIVE_CAPTURE_OR_CLEANUP_FAILED"); }
+    finally { process.removeListener("SIGTERM", onTerm); process.removeListener("SIGINT", onInt); }
   }
+  if (captureError) throw captureError;
+  if (terminated) throw new Error("NATIVE_CAPTURE_TERMINATED");
 
   if (failed) process.exitCode = 1;
   if (only) {
@@ -772,62 +977,31 @@ async function main() {
     console.log(`run with failures: ${files.length} crops, ${failed} failed; EVIDENCE.yml not written`);
     return;
   }
+  const expected = expectedFiles();
+  if (files.length !== expected.length || new Set(files).size !== expected.length || expected.some(file => !files.includes(file))) {
+    throw new Error("NATIVE_CAPTURE_MEMBERSHIP");
+  }
+  if (currentGitHead() !== capturedAtHead || JSON.stringify(layoutSnapshot()) !== JSON.stringify(capturedLayoutFiles)) {
+    throw new Error("source changed during full capture; EVIDENCE.yml not written");
+  }
   files.sort();
-  const evidence = [
-    "# EOD belt, Flow Desk chain heat and Heatmap flow layer failure-state truth — capture evidence",
-    "# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
-    "# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR",
-    `# capturedAtHead: ${capturedAtHead}`,
-    `# capturedAt: ${new Date().toISOString()}`,
-    "# capturedAtHead is informational. The lock is layoutFiles.",
-    "layoutFiles:",
-    ...LAYOUT_FILES.map((rel) => `  ${rel}: "${sha256File(rel)}"`),
-    "theme: dark",
-    "languages: [en, zh]",
-    "viewports:",
-    "  - { name: desktop, width: 1440, height: 900 }",
-    "  - { name: tablet, width: 820, height: 1180 }",
-    "  - { name: mobile, width: 390, height: 844 }",
-    "harness:",
-    ...files.map((name) => {
-      const state = Object.keys(STATES).find((s) => name.startsWith(`${s}-`));
-      const { board, replies, heal: healKeys, failAfter, search, persisted } = STATES[state];
-      const injected = Object.entries(replies).map(([k, r]) => `"${k}": ${r}`).join(", ");
-      // One `then:` per row (a flow mapping cannot repeat a key); the steps run in this order.
-      const failure = persisted === "abort" ? "refuse the connection" : `answer ${persisted}`;
-      const steps = [
-        persisted && `${STATIC_FLOW} answered the fixture's flow_idx payload, written to IndexedDB and aged 6h; flow_idx + ${STATIC_FLOW} ${failure}; page reloaded`,
-        healKeys && `${healKeys.join(" + ")} healed, Retry clicked`,
-        failAfter && `healthy read landed; ${failAfter.join(" + ")} answer 503; page clock moved past two polls`,
-        search && `searched ${search}`,
-      ].filter(Boolean);
-      const then = steps.length ? `, then: "${steps.join("; then ")}"` : "";
-      const stream = board === "belt" ? ", stream: aborted" : "";
-      return `  ${name}: { url: "${captureUrl(state)}", state: ${state}, injected: { ${injected} }${stream}${then} }`;
-    }),
-    "surfaces: [EodContextBelt, StructureStrip, DarkPoolMini, FlowDeskView, HeatmapView]",
-    "injection: page.route answers /api/flow (by f-param), /data/flow_idx.json and /api/quote with 503 / 403 / 404 or a refused request; /api/flow/stream is refused on the GEX desk; every other read is the FLOW_FIXTURE server",
-    "persisted: the heatmap-flow-persisted-* states age the browser's own IndexedDB record of /data/flow_idx.json (dataCache write-through), never a mocked cache",
-    "capture_flag: TERMINAL_E2E_FIXTURE",
-    "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
-    "command: |",
-    "  cd terminal",
-    "  node e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs",
-    "files:",
-    ...files.map((name) => `  - ${name}`),
-    "",
-  ].join("\n");
+  const evidence = renderEvidence({ files, capturedAtHead, layoutFiles: capturedLayoutFiles, history });
   writeFileSync(join(OUT, "EVIDENCE.yml"), evidence);
-  emitLegacyReceipt({ packet: "eod", outputDir: OUT, files, capturedAtHead });
   console.log(`wrote ${files.length} crops + EVIDENCE.yml (head ${capturedAtHead})`);
+  console.log(JSON.stringify({ nativeEvidence: {
+    family: "eod", captureId: process.env.TERMINAL_NATIVE_CAPTURE_ID || null,
+    capturedAtHead, manifestSha256: createHash("sha256").update(evidence).digest("hex"), history,
+    files: files.map(file => ({ file, sha256: createHash("sha256").update(readFileSync(join(OUT, file))).digest("hex") })),
+  } }));
 }
 
-module.exports = { updateHeatmapEvidence, assertNoNextIndicator, captureUrl, persistedFlowAccess, STATES, LAYOUT_FILES,
-  FILES: Object.keys(STATES).flatMap(state => [1440, 820, 390].flatMap(width => ["en", "zh"].map(lang => cropName(state,width,lang)))) };
+module.exports = { updateHeatmapEvidence, LAYOUT_FILES, STATES, VIEWPORTS, URLS, cropName, expectedFiles, harnessRow,
+  captureUrl, persistedFlowAccess,
+  renderEvidence, bounded, stopServer, settleNativeServer, assertNoNextIndicator, waitForServer, cropBoxes };
 
 if (require.main === module) {
   main().catch((err) => {
     console.error(err);
-    process.exitCode = 1;
+    process.exit(1);
   });
 }

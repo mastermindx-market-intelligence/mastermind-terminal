@@ -4,6 +4,11 @@ import { readFileSync, readdirSync } from "node:fs";
 import path from "path";
 
 const isProd = process.env.NODE_ENV === "production";
+const isFixtureDevelopment = process.env.NODE_ENV === "development"
+  && process.env.TERMINAL_E2E_FIXTURE === "1";
+// Only the closed canonical fixture transport denies the optional debug WebSocket.
+const isClosedCanonicalTransport = isFixtureDevelopment
+  && process.env.TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT === "intl-fixture-v1";
 
 // ── Deployment id (version-skew protection / stale-chunk self-heal) ───────────
 // Each production deploy gets a DISTINCT id: prefer the git sha wired in by
@@ -90,8 +95,8 @@ const CSP = [
 ].join("; ");
 
 // Applied to every app response (Caddy reverse_proxies to `next start` and passes these through).
-// NOTE: /data/* is served DIRECTLY by Caddy file_server in production, so it is NOT covered here —
-// its CORP/nosniff headers live in the Caddyfile (app/deploy/Caddyfile, macro repo).
+// Caddy serves public /data files in production and owns their success cache policy.
+// Leave Next's missing-data responses to the route handler's no-store policy.
 const securityHeaders = [
   { key: "Content-Security-Policy", value: CSP },
   // No X-Frame-Options: the legacy header cannot express an exact cross-origin
@@ -166,6 +171,16 @@ const embedChartHeaders = embedHeaders.map((header) =>
 );
 
 const nextConfig: NextConfig = {
+  ...(isFixtureDevelopment ? {
+    experimental: {
+      // Sequential fixture servers change public environment values. Next 16.4's
+      // persistent dev-cache restoration can restart the shared client entry forever:
+      // https://github.com/vercel/next.js/issues/100251 and /issues/100267.
+      // Keep Turbopack/HMR; each fixture server computes its own development state.
+      turbopackFileSystemCacheForDev: false,
+      ...(isClosedCanonicalTransport ? { reactDebugChannel: false } : {}),
+    },
+  } : {}),
   // Internal public-sample diagnostics must never be copied into a deploy artifact.
   // Turbopack globs are project-relative; parent-traversal excludes panic at build time.
   // The pinned terminal root already excludes its parent; cover any nested diagnostic copy too.
@@ -203,6 +218,9 @@ const nextConfig: NextConfig = {
   // tsc --noEmit is clean as of 2026-07-11, so builds enforce types again — the
   // 2026-07-07 `typescript.ignoreBuildErrors` escape hatch (FinPage union nits)
   // is removed; CI (.github/workflows/ci.yml) also gates PRs on tsc + vitest.
+  // Production checks application + generated Next contracts in a bounded project.
+  // The unchanged full tsconfig.json remains the required CI typecheck (tests/tools included).
+  typescript: { tsconfigPath: isProd ? "tsconfig.build.json" : "tsconfig.json" },
   // Note: `eslint` key was removed in Next.js 16 — ESLint is no longer built-in.
   // ── Wave-2 IA redirect contract (permanent 308) ────────────────────────────
   // The old single-purpose route dirs (screener/heatmap/alerts/scripts/flow) were
@@ -291,16 +309,6 @@ const nextConfig: NextConfig = {
       {
         source: "/embed/chart",
         headers: embedChartHeaders,
-      },
-      // Cache static market-data JSON served from /data/* for 5 min, stale for 1 hour.
-      {
-        source: "/data/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=300, stale-while-revalidate=3600",
-          },
-        ],
       },
       // Statically-prerendered HTML would otherwise ship Next's s-maxage=31536000, which the
       // EdgeOne CDN pins for a year (a deploy then can't refresh these shells without a manual

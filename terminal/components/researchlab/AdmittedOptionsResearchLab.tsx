@@ -9,7 +9,14 @@ import "./ResearchAppearance.css";
 import styles from "./ResearchLab.module.css";
 
 /** Subscribe to the established account owner; no separate entitlement reader or cache. */
-export function AdmittedOptionsResearchLab(props: React.ComponentProps<typeof OptionsResearchLab>) {
+type Props = React.ComponentProps<typeof OptionsResearchLab> & {
+  /** The host source state must qualify retained snapshot bytes before comparison. */
+  currentGexSourceAvailable?: boolean;
+};
+
+export function AdmittedOptionsResearchLab({
+  currentGexSnapshot, currentGexSourceAvailable = false, ...props
+}: Props) {
   const identity = useShellIdentity(), entitlement = useEntitlementSnapshot(identity);
   useResearchAppearance(identity);
   const verified = entitlement.owner === identityOwnerKey(identity)
@@ -23,5 +30,6 @@ export function AdmittedOptionsResearchLab(props: React.ComponentProps<typeof Op
       ? pick("Verifying options access…", "正在验证期权访问权限…")
       : pick("Options access is unavailable. Research values and selections have been withdrawn.", "期权访问权限不可用，已撤回研究数值与选择。")}</p>
   </section>;
-  return <OptionsResearchLab {...props} />;
+  return <OptionsResearchLab key={identityOwnerKey(identity)} {...props} questionOwnerKey={identityOwnerKey(identity)}
+    currentGexSnapshot={currentGexSourceAvailable ? currentGexSnapshot : null} />;
 }

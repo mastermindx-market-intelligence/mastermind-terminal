@@ -49,6 +49,11 @@
           "expected_live_type": "directory"
         },
         {
+          "path": ".next.broken",
+          "classification": "rollback_build_artifact",
+          "expected_live_type": "directory"
+        },
+        {
           "path": "node_modules",
           "classification": "generated_dependency_tree",
           "expected_live_type": "directory"
@@ -57,7 +62,7 @@
           "path": "public/data",
           "classification": "host_owned_runtime_market_data",
           "allow_tracked_runtime_subtree": true,
-          "canonical_git_tree": "7a37b96c90802c66be79e1757a82aecc7288e1a0"
+          "canonical_git_tree": "5549cc7b8b34013ae22a6714d27e9f79e8d2ac72"
         },
         {
           "path": "scripts/dist/score_personal_accuracy.mjs",

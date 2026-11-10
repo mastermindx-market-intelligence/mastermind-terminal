@@ -1,0 +1,84 @@
+{
+  "branchHead": "496ef734fafb64500bb95384770b59eb51555e00",
+  "capturedIndexTree": "bce8ccb2999a46437452533b9c8dba9b86fc4113",
+  "completedAt": "2026-11-09T14:55:39.870192+00:00",
+  "error": "[warmup] /terminal?symbol=NVDA \u2192 200 in 113ms\n[warmup] /options \u2192 200 in 3373ms\n[warmup] /portfolio \u2192 200 in 1330ms\n[warmup] /alerts \u2192 200 in 1312ms\n[warmup] /analysis \u2192 200 in 227ms\n[warmup] /discover \u2192 200 in 2319ms\n[warmup] /admin \u2192 200 in 743ms\n[warmup] /embed/chart?symbol=NVDA \u2192 200 in 558ms\n[warmup] /login \u2192 200 in 122ms\n[warmup] /reset-password \u2192 200 in 828ms\n[warmup] /api/me \u2192 200 in 707ms\n[warmup] /api/watchlist \u2192 200 in 239ms\n[warmup] /api/layouts \u2192 200 in 370ms\n[warmup] /api/watchlist/annotations \u2192 409 in 296ms\n[warmup] 14 routes compiled in 13s\n[fixture-ready] prophet_idx fixture 200 in 794ms\n\nRunning 6 tests using 1 worker\n\n  -  1 [desktop] \u203a e2e/analysis-company-read-lifetime.spec.ts:15:5 \u203a company switch keeps published statistics scoped without unused quotes (en)\n  -  2 [desktop] \u203a e2e/analysis-company-read-lifetime.spec.ts:15:5 \u203a company switch keeps published statistics scoped without unused quotes (zh)\n  -  3 [tablet] \u203a e2e/analysis-company-read-lifetime.spec.ts:15:5 \u203a company switch keeps published statistics scoped without unused quotes (en)\n  -  4 [tablet] \u203a e2e/analysis-company-read-lifetime.spec.ts:15:5 \u203a company switch keeps published statistics scoped without unused quotes (zh)\n  -  5 [mobile] \u203a e2e/analysis-company-read-lifetime.spec.ts:15:5 \u203a company switch keeps published statistics scoped without unused quotes (en)\n  -  6 [mobile] \u203a e2e/analysis-company-read-lifetime.spec.ts:15:5 \u203a company switch keeps published statistics scoped without unused quotes (zh)\n\n  6 skipped\n",
+  "integratedDependency": "5b4fe809fa43e164415a71ec0cc129110632e587",
+  "protectedMaster": "03af393ce05c12282003a3919cc473c032264922",
+  "retainedB4": {
+    "1440x900-en-dark-theme-empty.png": "6418425f0dd1bbcaadc9a9e00c54e6f9dc2503ae371f9545dbbe84e995264005",
+    "1440x900-zh-dark-theme-empty.png": "b51647c4f8350398f8ab0522552a760b30573d3089e2cbce6081a5a3f36ee599",
+    "390x844-en-dark-theme-empty.png": "947b797321141bd15c347d3203637171a0f2c41ea007b73bcb8a815c01da1694",
+    "390x844-zh-dark-theme-empty.png": "b1c0d0dd691683dd0f4343b428e4194e4412088489c112bf13e5b9d407af3463",
+    "EVIDENCE.yml": "3c5db6c6776280621c8674b76729f747fa0963660d907192c365a7129d45e862",
+    "capture-log.json": "630e5d41b7a7c70b7438f62fe63562758dd452b4ba2b4863588411f2210358b3",
+    "shared-shell-company-recapture.json": "9a63d390c76e9dcba71bef991dd8b0f565662a93135fe7e93c534ae47f370e09",
+    "shared-shell-company-recapture.log": "9cebd1f7972790fb28a74adb78612f981a6bed33cb894d43fcdf52585033d6fc",
+    "shared-shell-company-recapture/1440x900-en-light-theme-empty.png": "904e5d49419eb1d943d04a7b984f3b95e1883b764cdd53165e7de87c4352ec9b",
+    "shared-shell-company-recapture/1440x900-zh-light-theme-empty.png": "03348507e725c396f12a24a1b12689eb849efcf3a8f4e65a0e6c35d319044c6a",
+    "shared-shell-company-recapture/390x844-en-light-theme-empty.png": "349ac6e78a1aa0f709193881cc6828a02dd95f8e82b8bffa58edbe0e6769dfbb",
+    "shared-shell-company-recapture/390x844-zh-light-theme-empty.png": "bb96b3f4d216fdc37d3321b5c915858302175681337ce74cec514a21304579ac",
+    "shared-shell-company-recapture/initial-1440x900-en-dark-theme-empty.png": "d07a166f45d7974d8120acddb383488331e32b8a94c86855403381116a9ececd",
+    "shared-shell-company-recapture/initial-1440x900-en-light-theme-empty.png": "904e5d49419eb1d943d04a7b984f3b95e1883b764cdd53165e7de87c4352ec9b",
+    "shared-shell-company-recapture/initial-capture-log.json": "48fdf6733d65c01c77567d84e01f2012dad9409936d90d6dbed717352a786796"
+  },
+  "schema": "terminal_pr1369_combined_qualification_execution.v1",
+  "sourceBeforeSha256": "ca635c843b101dc55aeb0b1de073f6fe10019e126b4cacb4f280329ebeef0628",
+  "sourceFiles": 1936,
+  "stages": [
+    {
+      "actualCases": 6,
+      "command": [
+        "node",
+        "e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs"
+      ],
+      "completedAt": "2026-11-09T14:54:51.175798+00:00",
+      "exit": 0,
+      "images": {
+        "desktop-en.png": "1fd2af8bd1365159ba67972d7af30e57f524af4b42d5bae0ae960b99fdf820d0",
+        "desktop-zh.png": "2e23f182aa171000dc27393d8fa166b3a18e19b4a2ff18c90099a817330f88a9",
+        "mobile-en.png": "2588706457839cc101195447a70ebab4fc7e96c98d187079c132206727dbf325",
+        "mobile-zh.png": "fc5a929620fe3689c490566bb6e7e3705636cbfde2c2e9a55407548878b50de7",
+        "tablet-en.png": "78c9dc24efe04f3d85b81c73914fe040b7911bfce365ccfbce38bc6eca114d21",
+        "tablet-zh.png": "cc275b6a32c20a6d0e322453319837f8b1859291f7077e8bb1e018f00f2828f6"
+      },
+      "logSha256": "aca717387f14f79310823be2f5792244da4c3d4fd1689d2d18eec6453bd4b520",
+      "manifestSha256": "f847837ba48b69064e9af89c7e4ec9fa39fac581c6a71b7a72573c76ce1d6332",
+      "name": "native-bf11",
+      "ownedServerStopped": true,
+      "port": 3805,
+      "preservedAppendixSha256": "71f6291ecebb133db4058933a5164355414ac0ca3a493f49db9bf0dbd7324903",
+      "seconds": 35.84,
+      "sourceStable": true,
+      "startedAt": "2026-11-09T14:54:15.336070+00:00",
+      "state": "CLOSED"
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "e2e/analysis-company-read-lifetime.spec.ts",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=list,json",
+        "--output=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1369-analysis-integration-20261109/docs/verification/pr1369-analysis-integration-20261109/qualification-r1/browser-lifetime-artifacts"
+      ],
+      "completedAt": "2026-11-09T14:55:16.596544+00:00",
+      "exit": 0,
+      "logSha256": "70458b5b510c0996b820301eee7b8edfe5c3c175bd696806946fd2f059c825e5",
+      "name": "browser-lifetime",
+      "ownedServerStopped": false,
+      "port": 3806,
+      "seconds": 23.1,
+      "sourceStable": true,
+      "startedAt": "2026-11-09T14:54:53.498494+00:00",
+      "state": "FAILED"
+    }
+  ],
+  "startedAt": "2026-11-09T14:54:15.335002+00:00",
+  "state": "FAILED"
+}

@@ -1,0 +1,398 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/a2c76c60e583/terminal-polish2/terminal
+
+ ❯ lib/__tests__/chartShortcutOwnership.test.tsx (10 tests | 9 failed) 231ms
+   × Mounted chart shortcut ownership > pans and zooms only the active frame, then transfers ownership 59ms
+     → expected "spy" to not be called at all, but actually been called 1 times
+
+Received: 
+
+  1st spy call:
+
+    Array [
+      Object {
+        "from": -10,
+        "to": 90,
+      },
+    ]
+
+
+Number of calls: 1
+
+   × Mounted chart shortcut ownership > scopes all Alt toggles to the selected frame 13ms
+     → expected "spy" to not be called at all, but actually been called 3 times
+
+Received: 
+
+  1st spy call:
+
+    Array [
+      Object {
+        "invertScale": true,
+      },
+    ]
+
+  2nd spy call:
+
+    Array [
+      Object {
+        "mode": 2,
+      },
+    ]
+
+  3rd spy call:
+
+    Array [
+      Object {
+        "mode": 1,
+      },
+    ]
+
+
+Number of calls: 3
+
+   × Mounted chart shortcut ownership > yields before either branch to handled events, composition and browser modifiers 15ms
+     → expected "spy" to not be called at all, but actually been called 2 times
+
+Received: 
+
+  1st spy call:
+
+    Array [
+      Object {
+        "from": -10,
+        "to": 90,
+      },
+    ]
+
+  2nd spy call:
+
+    Array [
+      Object {
+        "from": -20,
+        "to": 80,
+      },
+    ]
+
+
+Number of calls: 2
+
+   × Mounted chart shortcut ownership > respects editable and native control ownership even when the event targets body 35ms
+     → expected "spy" to not be called at all, but actually been called 4 times
+
+Received: 
+
+  1st spy call:
+
+    Array [
+      Object {
+        "from": -10,
+        "to": 90,
+      },
+    ]
+
+  2nd spy call:
+
+    Array [
+      Object {
+        "from": -20,
+        "to": 80,
+      },
+    ]
+
+  3rd spy call:
+
+    Array [
+      Object {
+        "from": -30,
+        "to": 70,
+      },
+    ]
+
+  4th spy call:
+
+    Array [
+      Object {
+        "from": -40,
+        "to": 60,
+      },
+    ]
+
+
+Number of calls: 4
+
+   × Mounted chart shortcut ownership > yields while a visible modal owns the page, including body-retargeted keys 21ms
+     → expected "spy" to not be called at all, but actually been called 1 times
+
+Received: 
+
+  1st spy call:
+
+    Array [
+      Object {
+        "from": -10,
+        "to": 90,
+      },
+    ]
+
+
+Number of calls: 1
+
+   × Symbol search keyboard ownership > preserves bare symbol seeds and explicit search shortcuts 13ms
+     → symbolSearchSeedFromKey is not a function
+   × Symbol search keyboard ownership > does not reopen search from handled, repeating, composing or modal-owned keys 15ms
+     → symbolSearchSeedFromKey is not a function
+   × Symbol search keyboard ownership > keeps typing in selects, editable descendants and custom text fields 19ms
+     → symbolSearchSeedFromKey is not a function
+   × Symbol search keyboard ownership > recognizes native modality without treating every open dialog as modal 20ms
+     → expected false to be true // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/chartShortcutOwnership.test.tsx > Mounted chart shortcut ownership > pans and zooms only the active frame, then transfers ownership
+AssertionError: expected "spy" to not be called at all, but actually been called 1 times
+
+Received: 
+
+  1st spy call:
+
+    Array [
+      Object {
+        "from": -10,
+        "to": 90,
+      },
+    ]
+
+
+Number of calls: 1
+
+ ❯ lib/__tests__/chartShortcutOwnership.test.tsx:39:114
+     37| describe("Mounted chart shortcut ownership", () => {
+     38|   it("pans and zooms only the active frame, then transfers ownership",…
+     39|     key("ArrowLeft"); expect(a.setRange).toHaveBeenLastCalledWith({ fr…
+       |                                                                                                                  ^
+     40|     key("+"); expect(a.setRange).toHaveBeenLastCalledWith({ from: 0, t…
+     41|     render(1); const calls = a.setRange.mock.calls.length;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  lib/__tests__/chartShortcutOwnership.test.tsx > Mounted chart shortcut ownership > scopes all Alt toggles to the selected frame
+AssertionError: expected "spy" to not be called at all, but actually been called 3 times
+
+Received: 
+
+  1st spy call:
+
+    Array [
+      Object {
+        "invertScale": true,
+      },
+    ]
+
+  2nd spy call:
+
+    Array [
+      Object {
+        "mode": 2,
+      },
+    ]
+
+  3rd spy call:
+
+    Array [
+      Object {
+        "mode": 1,
+      },
+    ]
+
+
+Number of calls: 3
+
+ ❯ lib/__tests__/chartShortcutOwnership.test.tsx:49:25
+     47|     key("i", { altKey: true }); key("p", { altKey: true }); key("l", {…
+     48|     expect(changeA.mock.calls.map(([patch]) => patch)).toEqual([{ inve…
+     49|     expect(changeB).not.toHaveBeenCalled();
+       |                         ^
+     50|     render(1); key("i", { altKey: true }); expect(changeA).toHaveBeenC…
+     51|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+ FAIL  lib/__tests__/chartShortcutOwnership.test.tsx > Mounted chart shortcut ownership > yields before either branch to handled events, composition and browser modifiers
+AssertionError: expected "spy" to not be called at all, but actually been called 2 times
+
+Received: 
+
+  1st spy call:
+
+    Array [
+      Object {
+        "from": -10,
+        "to": 90,
+      },
+    ]
+
+  2nd spy call:
+
+    Array [
+      Object {
+        "from": -20,
+        "to": 80,
+      },
+    ]
+
+
+Number of calls: 2
+
+ ❯ lib/__tests__/chartShortcutOwnership.test.tsx:58:28
+     56|       key("ArrowLeft", init); key("i", { ...init, altKey: true });
+     57|     }
+     58|     expect(a.setRange).not.toHaveBeenCalled(); expect(b.setRange).not.…
+       |                            ^
+     59|     expect(changeA).not.toHaveBeenCalled(); expect(changeB).not.toHave…
+     60|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯
+
+ FAIL  lib/__tests__/chartShortcutOwnership.test.tsx > Mounted chart shortcut ownership > respects editable and native control ownership even when the event targets body
+AssertionError: expected "spy" to not be called at all, but actually been called 4 times
+
+Received: 
+
+  1st spy call:
+
+    Array [
+      Object {
+        "from": -10,
+        "to": 90,
+      },
+    ]
+
+  2nd spy call:
+
+    Array [
+      Object {
+        "from": -20,
+        "to": 80,
+      },
+    ]
+
+  3rd spy call:
+
+    Array [
+      Object {
+        "from": -30,
+        "to": 70,
+      },
+    ]
+
+  4th spy call:
+
+    Array [
+      Object {
+        "from": -40,
+        "to": 60,
+      },
+    ]
+
+
+Number of calls: 4
+
+ ❯ lib/__tests__/chartShortcutOwnership.test.tsx:71:28
+     69|     key("ArrowLeft", {}, controls.querySelector("button span")!);
+     70|     key("i", { altKey: true }, controls.querySelector("button span")!);
+     71|     expect(a.setRange).not.toHaveBeenCalled(); expect(changeA).not.toH…
+       |                            ^
+     72|   });
+     73|   it("yields while a visible modal owns the page, including body-retar…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯
+
+ FAIL  lib/__tests__/chartShortcutOwnership.test.tsx > Mounted chart shortcut ownership > yields while a visible modal owns the page, including body-retargeted keys
+AssertionError: expected "spy" to not be called at all, but actually been called 1 times
+
+Received: 
+
+  1st spy call:
+
+    Array [
+      Object {
+        "from": -10,
+        "to": 90,
+      },
+    ]
+
+
+Number of calls: 1
+
+ ❯ lib/__tests__/chartShortcutOwnership.test.tsx:75:74
+     73|   it("yields while a visible modal owns the page, including body-retar…
+     74|     const dialog = document.createElement("div"); dialog.setAttribute(…
+     75|     key("ArrowLeft"); key("i", { altKey: true }); expect(a.setRange).n…
+       |                                                                          ^
+     76|     dialog.hidden = true; key("ArrowLeft"); expect(a.setRange).toHaveB…
+     77|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯
+
+ FAIL  lib/__tests__/chartShortcutOwnership.test.tsx > Symbol search keyboard ownership > preserves bare symbol seeds and explicit search shortcuts
+TypeError: symbolSearchSeedFromKey is not a function
+ ❯ lib/__tests__/chartShortcutOwnership.test.tsx:88:12
+     86|   const env = () => ({ target: document.body, active: document.body, m…
+     87|   it("preserves bare symbol seeds and explicit search shortcuts", () =…
+     88|     expect(symbolSearchSeedFromKey({ key: "A" }, env())).toBe("A");
+       |            ^
+     89|     expect(symbolSearchSeedFromKey({ key: "7" }, env())).toBe("7");
+     90|     expect(symbolSearchSeedFromKey({ key: "k", metaKey: true }, env())…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/9]⎯
+
+ FAIL  lib/__tests__/chartShortcutOwnership.test.tsx > Symbol search keyboard ownership > does not reopen search from handled, repeating, composing or modal-owned keys
+TypeError: symbolSearchSeedFromKey is not a function
+ ❯ lib/__tests__/chartShortcutOwnership.test.tsx:96:14
+     94|   it("does not reopen search from handled, repeating, composing or mod…
+     95|     for (const init of [{ defaultPrevented: true }, { repeat: true }, …
+     96|       expect(symbolSearchSeedFromKey({ key: "A", ...init }, env())).to…
+       |              ^
+     97|       expect(symbolSearchSeedFromKey({ key: "k", ctrlKey: true, ...ini…
+     98|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/9]⎯
+
+ FAIL  lib/__tests__/chartShortcutOwnership.test.tsx > Symbol search keyboard ownership > keeps typing in selects, editable descendants and custom text fields
+TypeError: symbolSearchSeedFromKey is not a function
+ ❯ lib/__tests__/chartShortcutOwnership.test.tsx:108:14
+    106|     document.body.append(group);
+    107|     for (const target of group.querySelectorAll("select, b, [role=text…
+    108|       expect(symbolSearchSeedFromKey({ key: "A" }, { ...env(), target …
+       |              ^
+    109|       expect(symbolSearchSeedFromKey({ key: "k", metaKey: true }, { ..…
+    110|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/9]⎯
+
+ FAIL  lib/__tests__/chartShortcutOwnership.test.tsx > Symbol search keyboard ownership > recognizes native modality without treating every open dialog as modal
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ lib/__tests__/chartShortcutOwnership.test.tsx:120:50
+    118|     vi.spyOn(document, "querySelectorAll").mockImplementation(((select…
+    119|     expect(hasOpenModal(document)).toBe(false);
+    120|     modal = true; expect(hasOpenModal(document)).toBe(true);
+       |                                                  ^
+    121|     dialog.hidden = true; expect(hasOpenModal(document)).toBe(false);
+    122|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/9]⎯
+
+ Test Files  1 failed (1)
+      Tests  9 failed | 1 passed (10)
+   Start at  08:56:43
+   Duration  2.23s (transform 848ms, setup 0ms, collect 1.16s, tests 231ms, environment 367ms, prepare 82ms)
+

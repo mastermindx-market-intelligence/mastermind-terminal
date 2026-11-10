@@ -1,0 +1,125 @@
+{
+  "sourceHead": "a57bd879088d4b35789939935fe932ecbf4a340c",
+  "files": [
+    {
+      "path": ".gitignore",
+      "sha256": "4fa7e5801d60dc3ebea33a18d10c28c488ae5e7bdf41dbc015f5eef8418f443d"
+    },
+    {
+      "path": "1440-dark-en-first.png",
+      "sha256": "b13495e038e436d2de5653231f79e299d95a675997877ceae888f2d7cadaa52e"
+    },
+    {
+      "path": "1440-dark-en-overflow-collapsed.png",
+      "sha256": "ad82531cb448e7a9a7301c847aeacbb829c8c832fce9b7c27d76a64765312256"
+    },
+    {
+      "path": "1440-dark-en-overflow.png",
+      "sha256": "71e73c6649f16ee5031d5a11af876df40a7653f682845fd9de6a05604d98b155"
+    },
+    {
+      "path": "1440-dark-en-quiet.png",
+      "sha256": "8fd339ceac7782f2b2de60698e69c922754ac04b41e07635388fc238b1e94ca9"
+    },
+    {
+      "path": "1440-dark-en-ready.png",
+      "sha256": "c95499b13dea8c6ec184ffb46f5714c1a6ffeaa1e2a815f8e098d89ea7c1e746"
+    },
+    {
+      "path": "1440-dark-en-teaser.png",
+      "sha256": "2c7a713d6da45c0002eded4ba5b40b56b42a704daa815b7ce2a67589f6da85af"
+    },
+    {
+      "path": "1440-dark-en-unavailable.png",
+      "sha256": "05c73bfd1ff4f1e1296a83640502aab9143f48b3bed8d7a6380dcbc4f79471d8"
+    },
+    {
+      "path": "1440-dark-zh-ready.png",
+      "sha256": "8eb29877dae4cd213babc3d9b1ba5014630aaf44e35e3dcad6b3faec5c163465"
+    },
+    {
+      "path": "1440-light-en-ready.png",
+      "sha256": "b470e75b270f17507f80fdd45c8d0dc18c57077ffd8b9fce69aec005ba78aa52"
+    },
+    {
+      "path": "1440-light-zh-ready.png",
+      "sha256": "f5234a57d2f374d230a7b30e417d9a814ca5a965943c81680bb4eb0c9bc4afba"
+    },
+    {
+      "path": "320-light-zh-ready.png",
+      "sha256": "5b1bb7099f1c492f8fdee855cfafb3620b7525050acf1a0bdf56ee9c35979c66"
+    },
+    {
+      "path": "390-dark-en-ready.png",
+      "sha256": "a5cd9e8ec1933b92de3e9d2afc04da9c14cbee46ec09b62f57536ac6b4cdc5c6"
+    },
+    {
+      "path": "390-dark-zh-ready.png",
+      "sha256": "ac5513772bea8b85545f661dd308e3afde3e4ee0e0d9f162c05471adc1617a50"
+    },
+    {
+      "path": "390-light-en-ready.png",
+      "sha256": "8d8f776cb75c4461e5df2daad84ffdbea1481fb6c6ad8d392d3a28f7199a5263"
+    },
+    {
+      "path": "390-light-zh-first.png",
+      "sha256": "753d703704b08374932be90602f18d70d3c011c5ddaf1879f214997d53069e56"
+    },
+    {
+      "path": "390-light-zh-overflow-collapsed.png",
+      "sha256": "fd4f2bbe11fccc6860fcca56dd317b56f707708bee54227b8b129f70ee8a8829"
+    },
+    {
+      "path": "390-light-zh-overflow.png",
+      "sha256": "fe2ffcb8fb48ecf4c6900df74971b131f0f6480f9816fdd539abfbc8e9ba6689"
+    },
+    {
+      "path": "390-light-zh-quiet.png",
+      "sha256": "a16d374ce0df90ce66593db8b86cf6b3031e8a717560ebcaadea604d06557f6f"
+    },
+    {
+      "path": "390-light-zh-ready.png",
+      "sha256": "916ca5d555e134d240a1ab8f33c65970b6d369b17a44dd34fd55de23643cc8a6"
+    },
+    {
+      "path": "390-light-zh-teaser.png",
+      "sha256": "b6005aa284ad11326ed81a63659c036b2022f44b6b8d3d0a4a5c271ed6501477"
+    },
+    {
+      "path": "390-light-zh-unavailable.png",
+      "sha256": "859b21c9121e034a626c910a9dbd7752c147c2b7a539bc305df5fbaaac8dae1c"
+    },
+    {
+      "path": "820-dark-en-ready.png",
+      "sha256": "c4b6770d9fe98c1e3bf5a2d07ace401d3d0666c9475a19ddfc90e8e972c47137"
+    },
+    {
+      "path": "820-dark-zh-ready.png",
+      "sha256": "d15d8f7827e4bcb3c8935d4dc078f89c9da6316d4a010f8bc6a18275131b87d5"
+    },
+    {
+      "path": "820-light-en-ready.png",
+      "sha256": "3fb06aaf00f89d10e14e59bd2156fefd7550f4f3f5e5c0c98a6c4edb23dd610f"
+    },
+    {
+      "path": "820-light-zh-ready.png",
+      "sha256": "906f0c6154ca3a30788921eda8e1608dfe15c069872609783d05bb329cab27b0"
+    },
+    {
+      "path": "README.md",
+      "sha256": "b137b748a9bd8c9cc39700f16679b6784b7ce53922be30aff610b0aad3cb5167"
+    },
+    {
+      "path": "capture.mjs",
+      "sha256": "d1f04d90ad68bfbf6c0c3d3b83baac2ce24fe36d9ea606a205b6796b59708bbe"
+    },
+    {
+      "path": "input-manifest.json",
+      "sha256": "1fede33e790746810f40df24f7b39fc024c17d3d654eccdcfe0437f4d286877c"
+    },
+    {
+      "path": "report.json",
+      "sha256": "bd3dd97f3812c3d4fa49f483b96d2bef5c60aaeef0cad6e316dc2edca6aad6c1"
+    }
+  ]
+}

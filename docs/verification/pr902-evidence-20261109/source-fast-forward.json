@@ -1,0 +1,32 @@
+{
+  "head": "2064cc9ed0588d4a27ba40a0b3e150bc76cc0d84",
+  "preservedCaptureFiles": {
+    "terminal/docs/pr-crops/b-f08-6-alert-prefs/EVIDENCE.yml": "22bee7507e6edca1cd3c5778a6ef4a6c04dc8eca457a77f29ecf72145f643ec1",
+    "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-field-error-1440-zh.png": "d9f6a56438bc84c7f48b8f96f76aede34c5e47a2265a2f7d0f4d67c8cbd4940f",
+    "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-field-error-1440.png": "66696e037bda603edfb4019faaffb691653060329598cbf600d29e1ba5b6413e",
+    "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-field-error-390-zh.png": "8aea9222f94f9c11fdd208df8ef4925d7d9679916565acacf42be27fa54dc80e",
+    "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-field-error-390.png": "263d53ed26fb10148faacacc8b8af3ac16e7990de5ea09d0b352339fd7481b69",
+    "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-populated-1440-zh.png": "59dd58c242d99673cfc8c0e4d9a8327cd62c5048ace6076c9432dc381fa0b209",
+    "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-populated-1440.png": "f5b8c74e80c07d5735ca113fada69ac3079dd4c58fced1b00baad7ab261fa523",
+    "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-populated-390-zh.png": "b3bd52a1367150ed288163f63e83eb9ae8ac99aef11422c5202d363456fab670",
+    "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-populated-390.png": "97491bbd734ac93d80389f991aee91baffc648a96a927a527c76bd782ddb8be3",
+    "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-quiet-hours-1440-zh.png": "28757ece5a9d16f4d67d2a00cbc0e31f7356404f3cc2eda5354f1213dd8fd089",
+    "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-quiet-hours-1440.png": "0ab8ac8e6438546aa2afdcc51af5196858de204790adb2fbbabc00f26868f9f1",
+    "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-quiet-hours-390-zh.png": "2a491f01775ae1bcf76131f04a5b6ae6a28c08d03461e3a0fd85670ebcc9fdf5",
+    "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-quiet-hours-390.png": "0a595727a197c69ab7d9074033116afbe70577b71172d188c2d4322f1991ee40",
+    "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-unavailable-1440-zh.png": "bc9e2aa33156b7347f0f7dd3825e086288ebd045e3d5e4526271c65c48b276e4",
+    "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-unavailable-1440.png": "72fd9f7954e637a3bad80a84d0aeb30b79b8dede6534b4f3e33e682f411e0867",
+    "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-unavailable-390-zh.png": "9a86ae2a26443394ef2a1ea911ac1e1c8e7231f3bb0c631b321c855e158d66d3",
+    "terminal/docs/pr-crops/b-f08-6-alert-prefs/SectionAlertDelivery-unavailable-390.png": "b90db3010a8702870adea3c999cc15ac95a37615c87fbb76db0e6e9d5f255552",
+    "terminal/docs/pr-crops/w9t-f08-13-targets-readout/EVIDENCE.yml": "1f80f672869ac10fa8d835a46f969de87574af748ca3d60f24e690bcdbeeb289",
+    "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-empty-1440-en.png": "6096a7dff3f68cec58e64a9e26c6b2d85e99e2fd1bec1d59ef3582b86d3d848a",
+    "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-empty-1440-zh.png": "d1d3e5204bdbd197e0ada930a813181859f2de97159c37da2695193681111bd7",
+    "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-empty-390-en.png": "932faf8fe36348acd21982f16d5814a9c27096b71003e660275ab3e4e7f50fb3",
+    "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-empty-390-zh.png": "faf4819f5d3fdf06d0b203dc8b0f0b17bc23d64ce2ee23e570b483d8cd8ca555",
+    "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-populated-1440-en.png": "d891872dab9b00ac95002106b4c5d6cb4e089d67c9a4723355b570e8e30bab4f",
+    "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-populated-1440-zh.png": "87a5ec4ca26e183c8050c01091722241138902afe007997302acafab5be89fcb",
+    "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-populated-390-en.png": "26ca3144d5550b04a50dadc4e21c0a0affdf812cdd0653792a8e6ca993249086",
+    "terminal/docs/pr-crops/w9t-f08-13-targets-readout/PortfolioTargetsSettings-populated-390-zh.png": "27a5d74d1c318cc4db6fc3bcb279bc20dee7e37205e4cc86c32422ded715f575",
+    "terminal/docs/pr-crops/w9t-f08-13-targets-readout/NATIVE_READBACKS.json": "0854fc1fd534816668b3ba8ac06e2d8ede0bcad099f1f519e4639bca7147ff38"
+  }
+}

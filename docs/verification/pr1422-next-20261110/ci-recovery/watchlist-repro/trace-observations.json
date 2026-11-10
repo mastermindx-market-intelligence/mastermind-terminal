@@ -1,0 +1,130 @@
+{
+  "trace": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/watchlist-failed-save-repro/watchlist-annotation-sync--fa0d2-r-overwrites-the-local-edit-mobile/trace.zip",
+  "network": [
+    {
+      "started": "2026-11-10T13:37:11.774Z",
+      "method": "GET",
+      "status": 200,
+      "fault_fixture_cookies": {
+        "mm_e2e_wl": "e05-mobile-failed-save-0-0-86ac5fba"
+      },
+      "postData": null,
+      "response": {
+        "schemaVersion": 1,
+        "annotations": [
+          {
+            "symbol": "NVDA",
+            "note": "v1 from the other device",
+            "noteRevision": 1,
+            "noteUpdatedAt": "2026-11-10T13:37:08.354Z",
+            "flag": null,
+            "flagRevision": 0,
+            "flagUpdatedAt": null
+          }
+        ],
+        "complete": true
+      }
+    },
+    {
+      "started": "2026-11-10T13:37:13.675Z",
+      "method": "GET",
+      "status": 200,
+      "fault_fixture_cookies": {
+        "mm_e2e_wl": "e05-mobile-failed-save-0-0-86ac5fba"
+      },
+      "postData": null,
+      "response": {
+        "schemaVersion": 1,
+        "annotations": [
+          {
+            "symbol": "NVDA",
+            "note": "v1 from the other device",
+            "noteRevision": 1,
+            "noteUpdatedAt": "2026-11-10T13:37:08.354Z",
+            "flag": null,
+            "flagRevision": 0,
+            "flagUpdatedAt": null
+          }
+        ],
+        "complete": true
+      }
+    },
+    {
+      "started": "2026-11-10T13:37:21.063Z",
+      "method": "GET",
+      "status": 200,
+      "fault_fixture_cookies": {
+        "mm_e2e_wl": "e05-mobile-failed-save-0-0-86ac5fba",
+        "mm_e2e_fault": "annotations_write"
+      },
+      "postData": null,
+      "response": {
+        "schemaVersion": 1,
+        "annotations": [
+          {
+            "symbol": "NVDA",
+            "note": "v1 from the other device",
+            "noteRevision": 1,
+            "noteUpdatedAt": "2026-11-10T13:37:08.354Z",
+            "flag": null,
+            "flagRevision": 0,
+            "flagUpdatedAt": null
+          }
+        ],
+        "complete": true
+      }
+    },
+    {
+      "started": "2026-11-10T13:37:22.538Z",
+      "method": "GET",
+      "status": 200,
+      "fault_fixture_cookies": {
+        "mm_e2e_wl": "e05-mobile-failed-save-0-0-86ac5fba",
+        "mm_e2e_fault": "annotations_write"
+      },
+      "postData": null,
+      "response": {
+        "schemaVersion": 1,
+        "annotations": [
+          {
+            "symbol": "NVDA",
+            "note": "v1 from the other device",
+            "noteRevision": 1,
+            "noteUpdatedAt": "2026-11-10T13:37:08.354Z",
+            "flag": null,
+            "flagRevision": 0,
+            "flagUpdatedAt": null
+          }
+        ],
+        "complete": true
+      }
+    },
+    {
+      "started": "2026-11-10T13:37:08.271Z",
+      "method": "POST",
+      "status": 200,
+      "fault_fixture_cookies": {
+        "mm_e2e_wl": "e05-mobile-failed-save-0-0-86ac5fba"
+      },
+      "postData": {
+        "mimeType": "application/json",
+        "text": "",
+        "params": [],
+        "_sha1": "407ae76e362fe65d0247d2d9ed7ed99878529c34.json"
+      },
+      "response": {
+        "results": [
+          {
+            "symbol": "NVDA",
+            "field": "note",
+            "status": "ok",
+            "revision": 1,
+            "value": "v1 from the other device",
+            "updatedAt": "2026-11-10T13:37:08.354Z"
+          }
+        ]
+      }
+    }
+  ],
+  "storage_actions": []
+}

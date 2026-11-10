@@ -156,3 +156,80 @@ follow-up. Overall capture/workflow budgets are unchanged. No manual CI rerun,
 partial-packet promotion, synthetic record or timeout expansion occurred.
 The new head still requires genuine full natural CI capture and native
 validation; the original Draft/transport/production release holds remain.
+
+
+## Current protected composition — 2026-11-10
+
+This source-only continuation composes settled original head
+`677a285f3116d773bc9423e6114d49feed953d0c` onto protected master
+`b5afc7eca5c37b3e2eee25871b764807203957a6`. The complete protected tree is
+retained, including the Next.js 16.4.6/security repair and production-build
+canary. Historical sections above describe their original inputs and outcomes.
+
+### Source retained and composed
+
+- Preserve the original DarkPoolMini and eodContext v2 consumer blobs, plus the
+  exact dated 341,121-byte darkpool fixture
+  (`bec8d5310e640f4e6804d8743349de091ac455ff`). It is a frozen test input, not a
+  live feed.
+- Preserve current master copy. Correct all five positive/negative absence
+  assertions to the canonical “hasn't been published” wording, retaining their
+  semantic distinction. Keep the valid v1 mounted fixture's `tier: "eod"`.
+- Keep the current native EOD126 owner. Port the bounded, non-creating
+  IndexedDB observer and its 22 callback cases; age only an existing record
+  and acknowledge it only after transaction completion. Distinguish unproven
+  write settlement from confirmed absence.
+- Route only the three DarkPool states to the fixture's current NVDA row.
+  Structure cases retain SPY. The actual navigation and every native
+  `harnessRow` now record the same route. Keep all 126 case identities,
+  current native lifecycle/IPC/history and exports.
+- Add the frozen darkpool fixture to the existing EOD native control
+  before/after checks. A fixture mutation during capture must prevent evidence
+  selection. GEX controls and the current legacy Pine/batch3 owners remain.
+- Keep current master `capture_pl6_batch1.cjs`
+  (`9a26818a1e2de0e3f937967f9ff51a9676ceb677`) and options-axis `capture.mjs`
+  (`bf6f375bc876bfd5a7ebab957c29541444e0de43`) byte-for-byte.
+- Change only the data-tree value in the current production source-audit
+  policy. The 134-entry protected data tree was independently reconstructed as
+  `7563b3ef09f94d854b9a7b38a67a141313446e54`; replacing only the original frozen
+  fixture derives `5549cc7b8b34013ae22a6714d27e9f79e8d2ac72`.
+
+### Verification performed
+
+An isolated local source subset used actual protected dependencies and the
+repository's server-only Vitest alias. Its temporary configuration and
+dependency copies are not publication inputs.
+
+| Check | Observed result |
+| --- | --- |
+| Consumer, fixture/provenance and mounted load-failure suites | 122 passed (99 + 23), zero failures |
+| Current native/capture owner suite plus original observer/route cases and new fixture-drift regression | 210 passed, zero failures/skips |
+| Identical consumer tests with only current-master DarkPoolMini/eodContext restored | 40 failed / 82 passed |
+| New fixture-drift regression with only current-master capture controls restored | Failed with missing expected rejection |
+| EOD producer syntax | Passed |
+| Shared source and fixture preservation; derived data-tree reconstruction | Exact bytes/hashes verified |
+
+The Node callback tests use controlled event ports and synthetic orchestration
+fixtures. They do not establish real browser storage, screenshots, a full
+TypeScript build or installed behavior. No browser/capture/server/deployment
+was launched for this local verification.
+
+### Current acceptance boundary
+
+The existing qualified EOD identity remains historical:
+`options-integration-20261109`, capture head
+`90f275f15b4d174f003fb5b1087823dce6ec865a`, descriptor SHA-256
+`77b3b7f07746290cad33262a3d95c221e947a5acd5e940ae95b9d9458f510a18`.
+
+The composed consumer and producer change locked native inputs. The current
+paired EOD/GEX reader must reject reuse of stale qualified history. The native
+owner calls that reader outside the legacy repair catch, so ordinary CI does
+not automatically recapture this qualified packet. Historical declarations,
+contracts, images and identities have not been restamped, removed or promoted
+to proof of this composition.
+
+Fresh native/browser qualification through the incumbent owner, with the
+frozen fixture bound to the successor, remains required. Authenticated
+transport, current-generation deployment and production acceptance remain
+unproven; prior original-carrier refusals and other PRs' live/unknown effects
+are preserved. This PR remains Draft and unarmed.
