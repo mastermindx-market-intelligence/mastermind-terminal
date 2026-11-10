@@ -180,6 +180,29 @@
   letter-spacing: 0.02em;
 }
 
+/* ── rows increment: carried envelope date + sector roll-up ─────────────── */
+
+.envelope {
+  margin: 2px 0 0;
+  color: var(--text-2);
+  font: 400 10.5px var(--font-num);
+  letter-spacing: 0.02em;
+}
+
+.rollup {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.rollupTitle {
+  margin: 0 0 10px;
+  color: var(--text-2);
+  font: 600 11px var(--font-ui);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 /* ── view toggle + filter ──────────────────────────────────────────────── */
 
 .viewBar {

@@ -218,17 +218,18 @@ test("emergence mark: owner-carried flag renders the R6-09 chip, copy and eviden
 test("emergence chip: the member-line marker opens company evidence when carried", async ({ page }) => {
   const uni = page.locator('[data-h-section="universes-emergence"]');
   await expect(uni).toBeVisible();
+  // The simulated flag rides the REAL specimen's Semiconductors group
+  // (members[0] = NXPI; no owner emits `emerging` tonight and the wire member
+  // carries no such key — S4 — so the harness flags the PARSED read). Table
+  // layouts keep the member list behind the row's expand control, so expand
+  // that group's own row — never assume which row the tier sort surfaces.
+  await uni.getByRole("button", { name: /^Semiconductors\b/ }).first().click();
   const chips = uni.locator('[data-emergence="chip"]');
-  if ((await chips.count()) === 0) {
-    // Table layouts keep the member list behind the row's expand control;
-    // the tier sort puts the flagged entry-now group in the first row.
-    await uni.locator("th button[aria-expanded]").first().click();
-  }
   await expect(chips).toHaveCount(1);
   await expect(chips.first()).toContainText(/Independent emergence|独立走强/);
   // The chip becomes the evidence link itself when a destination is carried
   // (N4: same-site path, verbatim).
-  await expect(chips.first()).toHaveAttribute("data-emergence-link", "/company/AMAT.html");
+  await expect(chips.first()).toHaveAttribute("data-emergence-link", "/company/NXPI.html");
   const log = page.locator('[data-harness="navlog"]');
   const before = await log.locator("li").count();
   await chips.first().click();
@@ -358,7 +359,7 @@ test("flow matrix: an owner-stated partial window is visibly partial (full_windo
 /* ── four universes: separate identities, switching, filter, zero states ─── */
 
 test("universes: tabs switch payloads and rows never cross universes", async ({ page }) => {
-  const uni = page.locator('[data-h-section="universes-contract"]');
+  const uni = page.locator('[data-h-section="universes-carried"]');
   await expect(uni).toBeVisible();
   // S&P tab is first; its source identity line names its own id + benchmark.
   await expect(uni).toContainText(/S&P 500|标普500/);
@@ -370,34 +371,39 @@ test("universes: tabs switch payloads and rows never cross universes", async ({ 
   const ribbonItems = uni.locator("[data-ribbon] li");
   await expect(ribbonItems).toHaveCount(5);
   await expect(uni.locator("[data-ribbon]")).toContainText(/Entry now|现可入场/);
-  const spRows = await uni.locator("table tr, [data-group]").count();
-  // Switch to Nasdaq-100 — identity and rows change; its fixture carries
-  // as_of null, stated as prose in the identity line (E02), never a fake date.
+  const spRows = await uni.locator("table tr, article").count();
+  expect(spRows).toBeGreaterThan(0);
+  // Switch to Nasdaq-100: tonight's real read carries 0 subsectors plus 6
+  // sector rows — the honest zero state, with sectors ONLY under the labelled
+  // roll-up, and the envelope dated as a BUILD time (as_of_field), never a session.
   await uni.getByRole("tab", { name: /Nasdaq-100|纳斯达克100/ }).click();
   await expect(uni).toContainText(/\(QQQ\)|（QQQ）/);
-  await expect(uni).toContainText(/did not report a session date|未报告交易日/);
-  const ndRows = await uni.locator("table tr, [data-group]").count();
-  expect(spRows).toBeGreaterThan(0);
-  expect(ndRows).toBeGreaterThan(0);
+  await expect(uni).toContainText(/No subsector crossed the scoring gate|没有子板块通过评分门槛/);
+  await expect(uni.locator('[data-rollup="sectors"] article')).toHaveCount(6);
+  await expect(uni).toContainText(/Built .+ not a market session|构建于.+非交易日/);
   // Back to S&P: per-universe state survives the round trip (identity line again).
   await uni.getByRole("tab", { name: /S&P 500|标普500/ }).click();
   await expect(uni).toContainText(/\(SPY\)|（SPY）/);
   if (desktop(page)) await shot(page, "universes");
 });
 
-test("universes: filter narrows live, zero matches is a state not a failure, no-access is distinct", async ({ page }) => {
-  const uni = page.locator('[data-h-section="universes-contract"]');
-  const filter = uni.getByPlaceholder(/Filter subsector|筛选子行业/);
+test("universes: filter narrows live, zero matches is a state not a failure, russell is an honest zero", async ({ page }) => {
+  const uni = page.locator('[data-h-section="universes-carried"]');
+  const filter = uni.getByPlaceholder(/Filter subsector or sector|筛选子行业或板块/);
   await filter.fill("zzz-no-such-group");
   // E01: the zero-matches state echoes the reader's own query.
   await expect(uni).toContainText(/No matches for|没有匹配/);
-  await expect(uni).toContainText(/zzz-no-such-group/);
+  await expect(uni).toContainText("zzz-no-such-group");
   await uni.getByRole("button", { name: /Clear filter|清除筛选/ }).click();
-  // The contract fixture carries one no-access universe: switching to it shows
-  // the access state, distinct from zero groups.
-  const noAccessTab = uni.getByRole("tab", { name: /Russell-2000|罗素2000/ });
-  await noAccessTab.click();
-  await expect(uni).toContainText(/requires access|不具备的权限/);
+  // The real Russell-2000 read carries zero groups tonight: an honest zero on
+  // both surfaces — distinct from an access failure, with nothing invented.
+  await uni.getByRole("tab", { name: /Russell-2000|罗素2000/ }).click();
+  await expect(uni).toContainText(/carries no groups tonight|今晚此样本域没有分组/);
+  await expect(uni.locator('[data-empty="subsectors"]')).toBeVisible();
+  await expect(uni.locator('[data-rollup="sectors"]')).toHaveCount(0);
+  // The baskets tab lists the real 49-basket universe.
+  await uni.getByRole("tab", { name: /Basket|篮子/ }).click();
+  await expect(uni.locator("table tr, article").first()).toBeVisible();
 });
 
 /* ── theme/compare/history controls ──────────────────────────────────────── */
@@ -418,12 +424,73 @@ test("theme compare: window toggle, series chips, turn markers, exact table", as
   await expect(theme.locator("svg polyline")).not.toHaveCount(0);
   // Window switch to all history.
   await theme.getByRole("button", { name: /All history|全部历史/ }).click();
+  // N7: the all-history window is the densest x-axis. Real-font proof at this
+  // viewport — every kept date label is a separate word (no two boxes touch,
+  // the r1 finding printed runs like "2026-02-132026-03-06") and none clips
+  // past the SVG edge (the newest date was cut to "2026-11-"). Label positions
+  // stay exactly mapped; only density and plot padding adapt (unit law in
+  // sectorDepthRender.test.tsx; this pins the rendered truth per viewport).
+  const chart = theme.locator("svg").first();
+  await chart.scrollIntoViewIfNeeded();
+  const axis = await theme.locator('svg text[class*="axisX"]').evaluateAll((els) => {
+    const svg = (els[0] as SVGTextElement).ownerSVGElement;
+    const sb = svg!.getBoundingClientRect();
+    return els.map((el) => {
+      const b = el.getBoundingClientRect();
+      return { left: b.left, right: b.right, text: el.textContent ?? "", svgLeft: sb.left, svgRight: sb.right };
+    });
+  });
+  expect(axis.length).toBeGreaterThan(1);
+  axis.sort((a, b) => a.left - b.left);
+  for (let i = 1; i < axis.length; i++) {
+    expect(axis[i]!.text).not.toContain(axis[i - 1]!.text);
+    expect(axis[i]!.left).toBeGreaterThan(axis[i - 1]!.right);
+  }
+  for (const a of axis) {
+    expect(a.left).toBeGreaterThanOrEqual(a.svgLeft - 0.5);
+    expect(a.right).toBeLessThanOrEqual(a.svgRight + 0.5);
+  }
+  await shot(page, "theme-axis");
   // Exact-value table appears and matches the chart's window.
   await theme.getByRole("button", { name: /Exact values|精确数值/ }).click();
   const table = theme.locator('[role="region"] table');
   await expect(table).toBeVisible();
   expect(await table.locator("tr").count()).toBeGreaterThan(60);
+  if (desktop(page)) await shot(page, "theme-chart");
+});
+
+test("carried theme table: its own as-of date, labelled perf pair, breadth as percent", async ({ page }) => {
+  // The v1.1 served specimen (2026-11-06) mounted WITHOUT rs_history: the table
+  // block carries its OWN date (B2), never the chart's absence or a borrowed one.
+  const sec = page.locator('[data-h-section="theme-carried"]');
+  await expect(sec).toBeVisible();
+  await expect(sec.locator('[data-rows-asof="2026-11-06"]')).toBeVisible();
+  await expect(sec).toContainText("as of 2026-11-06");
+  // N6: the legend names the perf pair's two numbers once, above the table…
+  await expect(sec.locator('[data-perf-legend="true"]')).toContainText("return · vs benchmark");
+  // …and breadth prints as a percent of the 0-1 wire share, not a bare fraction.
+  const breadth = sec.locator('[data-k="breadth"]').first();
+  await expect(breadth).toBeVisible();
+  await expect(breadth).toContainText("%");
+  await expect(breadth).not.toContainText(/^-?[01]\.\d+$/);
+  // Real specimen proof image: the carried table with its own date in view.
+  await sec.locator('[data-rows-asof="2026-11-06"]').scrollIntoViewIfNeeded();
   if (desktop(page)) await shot(page, "theme-compare");
+});
+
+test("unavailable theme table: its own per-reason copy, no invented rows or dates", async ({ page }) => {
+  // N7 proof surface: a CONTRACT unavailable theme_rows read (synthetic
+  // audience_not_entitled) beside the history's own unavailable state — the
+  // table never renders partial rows and never borrows the chart's dates.
+  const sec = page.locator('[data-h-section="theme-unavailable"]');
+  await expect(sec).toBeVisible();
+  await expect(sec.locator('[data-block-state="unavailable"]')).toBeVisible();
+  await expect(sec).toContainText("Not included in your current subscription.");
+  await expect(sec.locator('[data-depth-unavailable="rs_history"]')).toBeVisible();
+  await expect(sec).not.toContainText(/20\d{2}-\d{2}-\d{2}/);
+  await expect(sec.locator("table")).toHaveCount(0);
+  await sec.locator('[data-block-state="unavailable"]').scrollIntoViewIfNeeded();
+  if (desktop(page)) await shot(page, "theme-unavailable");
 });
 
 /* ── language: EN ↔ ZH through the shared lexicon ────────────────────────── */

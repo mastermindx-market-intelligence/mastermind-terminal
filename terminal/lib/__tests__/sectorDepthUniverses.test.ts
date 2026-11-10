@@ -36,13 +36,34 @@ import {
   toggleExpanded,
   universePresence,
   universeWordMatches,
+  sectorRollupOf,
+  confluenceBasketsFromCarriedBlock,
+  confluenceNasdaqFromCarriedBlock,
+  confluenceRussellFromCarriedBlock,
+  confluenceSp500FromCarriedBlock,
 } from "../sectorDepthUniverses";
 import type {
   FreshnessKind,
+  UniverseBlockRead,
   UniverseData,
   UniverseGroup,
   UniverseId,
 } from "../sectorDepthUniverses";
+import { conformingChartKey } from "../sectorDepthRows";
+
+/* Rows increment (wire v1.1 §1/§2/§4) — the REAL carried universe specimens,
+ * committed unchanged under fixtures/. Byte pins (full committed file AND the
+ * COO SHA256SUMS prefix) for all six rows specimens live in
+ * sectorDepthThemeRows.test.ts; these tests consume the same files. */
+const specimen = (name: string): unknown =>
+  JSON.parse(
+    readFileSync(join(__dirname, "fixtures", `${name}.json`), "utf8"),
+  );
+
+/** The readers take the served ENTRY (status/reason/value) — a bare specimen
+ * file is a block VALUE, so specimen-backed reads wrap it as an available
+ * entry exactly as the route would serve it. */
+const carried = (value: unknown): unknown => ({ status: "available", value });
 
 /* Synthetic contract fixture — clearly marked, never a real generation. */
 const fixtureDoc = JSON.parse(
@@ -170,8 +191,8 @@ describe("fixture contract (real owner field names)", () => {
     for (const g of groupsOf("subsectors", sub)) {
       expect(typeof g.key).toBe("string");
       expect(typeof g.class).toBe("string");
-      expect(typeof g.entry.tier).toBe("string");
-      expect(typeof g.regime.label).toBe("string");
+      expect(typeof g.entry?.tier).toBe("string");
+      expect(typeof g.regime?.label).toBe("string");
       expect(["high", "med", "low"]).toContain(g.reliability);
     }
   });
@@ -431,6 +452,41 @@ describe("local sorts never mutate the input array", () => {
     ];
     expect(keys(sortByMembersDesc(groups))).toEqual(["d", "b", "a", "c"]);
   });
+
+  it("N3 — a null n_priced sorts strictly after every measured value, including a measured 0", () => {
+    const base = groupsOf("subsectors", sub)[0];
+    const groups: UniverseGroup[] = [
+      { ...base, key: "null-a", n_priced: null },
+      { ...base, key: "zero", n_priced: 0 },
+      { ...base, key: "null-b", n_priced: null },
+      { ...base, key: "five", n_priced: 5 },
+    ];
+    // Absent is not zero: the measured 0 outranks both nulls, and the two
+    // nulls keep their source order (stable).
+    expect(keys(sortByMembersDesc(groups))).toEqual(["five", "zero", "null-a", "null-b"]);
+  });
+});
+
+describe("conformingChartKey (N9)", () => {
+  it("requires the first character to be a letter or digit", () => {
+    // These pass the navigable-id charset yet compose no real route segment
+    // ("/subsector/.html", "/subsector/-lead.html") — refused.
+    for (const bad of [".", "-", "_x", ".hidden", "-lead", "_under"]) {
+      expect(conformingChartKey(bad)).toBe(false);
+    }
+    // Real carried key shapes still conform.
+    for (const good of [
+      "b-crypto-rails",
+      "sec-basic-materials",
+      "amalg-internet-platforms",
+      "software-application",
+      "a",
+      "0-start",
+    ]) {
+      expect(conformingChartKey(good)).toBe(true);
+    }
+    expect(conformingChartKey("..")).toBe(false); // pre-existing no-.. law
+  });
 });
 
 describe("coverageModel", () => {
@@ -543,6 +599,31 @@ describe("reliability", () => {
     });
   });
 
+  it("N4 — null reliability + null n_priced reads not_stated, never low", () => {
+    const base = groupsOf("subsectors", sub)[0];
+    // Nothing is carried and nothing is measurable: the honest tier is "not
+    // stated" — not a fabricated "low" from a coerced 0.
+    expect(groupReliability({ ...base, reliability: null, n_priced: null })).toEqual({
+      tier: "not_stated",
+      fallback: true,
+    });
+    expect(groupReliability({ ...base, reliability: undefined, n_priced: null })).toEqual({
+      tier: "not_stated",
+      fallback: true,
+    });
+    // Carried reliability is unchanged (the source of truth), and a null
+    // reliability with a MEASURED count keeps today's derivation — including
+    // the honest measured 0 → low.
+    expect(groupReliability({ ...base, reliability: "high", n_priced: null })).toEqual({
+      tier: "high",
+      fallback: false,
+    });
+    expect(groupReliability({ ...base, reliability: null, n_priced: 0 })).toEqual({
+      tier: "low",
+      fallback: true,
+    });
+  });
+
   it("keeps the documented threshold boundaries (12 high, 6 med, 5 low)", () => {
     expect(RELIABLE_MIN).toBe(12);
     expect(RELIABLE_MED).toBe(6);
@@ -554,6 +635,7 @@ describe("reliability", () => {
       high: "siUniverseReliabilityHigh",
       med: "siUniverseReliabilityMed",
       low: "siUniverseReliabilityLow",
+      not_stated: "siUniverseNotStated",
     });
   });
 });
@@ -717,8 +799,8 @@ describe("NEVER-MERGED: identical labels (and keys) stay two rows in two univers
     expect(keys(ndxHit.matches)).toEqual(["software-infra"]);
     // Same key and label — each hit is its OWN universe's object.
     expect(subHit.matches[0]).not.toBe(ndxHit.matches[0]);
-    expect(subHit.matches[0].entry.weight).toBe(0.4);
-    expect(ndxHit.matches[0].entry.weight).toBe(0.88);
+    expect(subHit.matches[0]?.entry?.weight).toBe(0.4);
+    expect(ndxHit.matches[0]?.entry?.weight).toBe(0.88);
   });
 
   it("sorted, view and league models stay inside their own universe", () => {
@@ -750,7 +832,7 @@ describe("NEVER-MERGED: identical labels (and keys) stay two rows in two univers
     // object, never the nasdaq object with the same key.
     const leagues = leagueKeys(sub);
     const spRow = groupsOf("subsectors", sub).find((g) => leagues.forming.has(g.key))!;
-    expect(spRow.entry.weight).toBe(0.55); // aerospace-defense, first SP forming row
+    expect(spRow.entry?.weight).toBe(0.55); // aerospace-defense, first SP forming row
   });
 });
 
@@ -873,5 +955,263 @@ describe("universeStateIsolation", () => {
     const other = toggleExpanded(toggled, "nasdaq", "software-infra");
     expect(other.subsectors.expanded["semis-equip"]).toBe(true);
     expect(other.nasdaq.expanded["software-infra"]).toBe(true);
+  });
+});
+
+describe("rows increment — the four carried universe blocks read the real specimens", () => {
+  it("sp500: 65 subsectors table rows, 11 sectors kept as a separate roll-up, envelope dated by as_of", () => {
+    const read = confluenceSp500FromCarriedBlock(carried(specimen("confluence_universe_sp500")));
+    expect(read.state).toBe("available");
+    if (read.state !== "available") return;
+    expect(read.asOf).toBe("2026-11-06");
+    expect(read.asOfField).toBe("as_of");
+    expect(read.data.universe).toBe("sp500_subsectors");
+    expect(read.data.as_of).toBe("2026-11-06"); // data.as_of verbatim — never the envelope copy
+    expect(read.data.subsectors).toHaveLength(65);
+    expect(read.data.sectors).toHaveLength(11);
+    expect(groupsOf("subsectors", read.data)).toHaveLength(65);
+    expect(sectorRollupOf("subsectors", read.data)).toHaveLength(11);
+    // Tab rows are subsectors ONLY; sector rows appear solely in the roll-up.
+    expect(groupsOf("subsectors", read.data).every((g) => g.kind === "subsector")).toBe(true);
+    expect(sectorRollupOf("subsectors", read.data).every((g) => g.kind === "sector")).toBe(true);
+    const row = groupsOf("subsectors", read.data)[0]!;
+    expect(row.key).toBe("software-application");
+    expect(row.chart_key).toBe("software-application");
+    expect(row.class).toBe("entry_now");
+    expect(row.entry?.tier).toBe("T2");
+    expect(row.entry?.weight).toBe(1);
+    expect(row.regime?.label).toBe("BUY");
+    expect(row.regime?.label_zh).toBe("买入");
+    expect(row.price_level).toBe(10.1515); // real payload number, not a word
+    expect(row.members[0]!.ticker).toBe("APP");
+    expect(row.members[0]!.name_zh).toBeNull(); // null tonight — 0 of 1,020 pairs
+    expect(leagueKeys(read.data).entry_now.size).toBe(3);
+    expect(leagueKeys(read.data).headwind.size).toBe(22);
+    expect(read.data.coverage.n_gateable).toBe(65);
+  });
+
+  it("nasdaq: 0 subsectors (honest empty tab), 6 rows only under the sector roll-up, envelope dated by generated_utc", () => {
+    const read = confluenceNasdaqFromCarriedBlock(carried(specimen("confluence_universe_nasdaq")));
+    expect(read.state).toBe("available");
+    if (read.state !== "available") return;
+    expect(read.asOf).toBe("2026-11-09 09:38 UTC");
+    expect(read.asOfField).toBe("generated_utc");
+    expect(read.data.universe).toBe("nasdaq_subsectors");
+    expect(read.data.as_of).toBeNull(); // session not stated — envelope date never copied in
+    expect(read.data.benchmark).toBe("QQQ");
+    expect(read.data.region).toBe("nasdaq");
+    expect(groupsOf("nasdaq", read.data)).toHaveLength(0);
+    expect(sectorRollupOf("nasdaq", read.data)).toHaveLength(6);
+    expect(universePresence("nasdaq", read.data)).toBe("zero_groups");
+    const rollup = sectorRollupOf("nasdaq", read.data);
+    expect(rollup[0]!.key).toBe("amalg-internet-platforms");
+    expect(rollup[0]!.kind).toBe("sector");
+    expect(rollup[0]!.label_zh).toBe("互联网与平台");
+    expect(rollup[0]!.members[0]!.ticker).toBe("TTWO");
+    expect(rollup[0]!.members[0]!.stock_tier).toBe("T2");
+    expect(rollup[0]!.members[0]!.stock_buyable).toBe(true);
+  });
+
+  it("russell: 0 subsectors and 0 sectors — an honest zero on both, still a valid block", () => {
+    const read = confluenceRussellFromCarriedBlock(carried(specimen("confluence_universe_russell")));
+    expect(read.state).toBe("available");
+    if (read.state !== "available") return;
+    expect(read.asOfField).toBe("generated_utc");
+    expect(read.data.universe).toBe("russell_subsectors");
+    expect(read.data.benchmark).toBe("IWM");
+    expect(groupsOf("russell", read.data)).toHaveLength(0);
+    expect(sectorRollupOf("russell", read.data)).toHaveLength(0);
+    expect(universePresence("russell", read.data)).toBe("zero_groups");
+  });
+
+  it("baskets: 49 rows keyed from the baskets array; chart_key carried verbatim (already b-prefixed)", () => {
+    const read = confluenceBasketsFromCarriedBlock(carried(specimen("confluence_universe_baskets")));
+    expect(read.state).toBe("available");
+    if (read.state !== "available") return;
+    expect(read.asOf).toBe("2026-11-06");
+    expect(read.asOfField).toBe("as_of");
+    expect(read.data.universe).toBe("curated_baskets");
+    expect(read.data.benchmark).toBe("SPY");
+    expect(groupsOf("baskets", read.data)).toHaveLength(49);
+    expect(sectorRollupOf("baskets", read.data)).toHaveLength(0); // baskets tab has no sector roll-up
+    const row = groupsOf("baskets", read.data)[0]!;
+    expect(row.key).toBe("crypto-rails");
+    expect(row.basket_id).toBe("crypto_rails");
+    expect(row.chart_key).toBe("b-crypto-rails"); // no consumer-side prefix may be added
+    expect(row.kind).toBe("basket");
+    expect(row.members).toHaveLength(7);
+  });
+
+  it("the served twelve-entry object reads all four universe blocks available through the same entry contract", () => {
+    const served = specimen("typed_blocks_entitled") as Record<string, unknown>;
+    const reads: Array<[UniverseId, UniverseBlockRead]> = [
+      ["subsectors", confluenceSp500FromCarriedBlock(served.confluence_universe_sp500)],
+      ["nasdaq", confluenceNasdaqFromCarriedBlock(served.confluence_universe_nasdaq)],
+      ["russell", confluenceRussellFromCarriedBlock(served.confluence_universe_russell)],
+      ["baskets", confluenceBasketsFromCarriedBlock(served.confluence_universe_baskets)],
+    ];
+    for (const [id, read] of reads) {
+      expect(read.state).toBe("available");
+      if (read.state !== "available") return;
+      expect(universeWordMatches(id, read.data)).toBe(true);
+    }
+  });
+});
+
+describe("rows increment — unavailable entries classify through the closed reason set", () => {
+  const reader = confluenceSp500FromCarriedBlock;
+  it.each([
+    ["audience_not_entitled"],
+    ["not_produced"],
+    ["invalid_shape"],
+    ["block_too_large"],
+  ])("reason %s reads through verbatim", (reason) => {
+    expect(reader({ status: "unavailable", reason, value: null })).toEqual({
+      state: "unavailable",
+      reason,
+    });
+  });
+
+  it("an unknown reason, a missing reason, or a non-entry reads the generic unknown", () => {
+    expect(reader({ status: "unavailable", reason: "solar_flare" })).toEqual({
+      state: "unavailable",
+      reason: "unknown",
+    });
+    expect(reader({ status: "unavailable" })).toEqual({ state: "unavailable", reason: "unknown" });
+    expect(reader(null)).toEqual({ state: "unavailable", reason: "unknown" });
+    expect(reader("nope")).toEqual({ state: "unavailable", reason: "unknown" });
+  });
+});
+
+describe("rows increment — envelope failures read invalid_shape, never a partial row set", () => {
+  const base = (): Record<string, unknown> =>
+    structuredClone(specimen("confluence_universe_sp500")) as Record<string, unknown>;
+
+  it.each([
+    ["as_of emptied", (d: Record<string, unknown>) => void (d.as_of = "")],
+    ["as_of deleted", (d: Record<string, unknown>) => void delete d.as_of],
+    ["group_arrays out of order", (d: Record<string, unknown>) => void (d.group_arrays = ["sectors", "subsectors"])],
+    ["group_arrays missing the sectors array", (d: Record<string, unknown>) => void (d.group_arrays = ["subsectors"])],
+    ["group_arrays with an extra array", (d: Record<string, unknown>) => void (d.group_arrays = ["subsectors", "sectors", "baskets"])],
+    ["data.universe is another owner's word", (d: Record<string, unknown>) => void ((d.data as Record<string, unknown>).universe = "curated_baskets")],
+    ["a named array is not a list", (d: Record<string, unknown>) => void ((d.data as Record<string, unknown>).sectors = "nope")],
+    ["a row is not a mapping", (d: Record<string, unknown>) => void ((d.data as Record<string, unknown>).subsectors = ["nope"])],
+    ["a row lacks an own non-empty key", (d: Record<string, unknown>) => void (((d.data as { subsectors: Record<string, unknown>[] }).subsectors)[0] = { label: "x" })],
+    ["members is not a list", (d: Record<string, unknown>) => void (((d.data as { subsectors: { members?: unknown }[] }).subsectors)[0]!.members = "nope")],
+    ["a member lacks an own non-empty ticker", (d: Record<string, unknown>) => void (((d.data as { subsectors: { members: unknown[] }[] }).subsectors)[0]!.members[0] = { price: 1 })],
+    ["entry present but not a mapping", (d: Record<string, unknown>) => void (((d.data as { subsectors: { entry?: unknown }[] }).subsectors)[0]!.entry = 5)],
+    ["regime present but not a mapping", (d: Record<string, unknown>) => void (((d.data as { subsectors: { regime?: unknown }[] }).subsectors)[0]!.regime = 5)],
+  ])("%s", (_label, mutate) => {
+    const doc = base();
+    mutate(doc);
+    expect(confluenceSp500FromCarriedBlock(carried(doc))).toEqual({
+      state: "unavailable",
+      reason: "invalid_shape",
+    });
+    // One universe failing never affects another universe's block.
+    const nasdaq = confluenceNasdaqFromCarriedBlock(carried(specimen("confluence_universe_nasdaq")));
+    expect(nasdaq.state).toBe("available");
+  });
+
+  it("one malformed row deep in the array kills the whole block (no partial row set)", () => {
+    const doc = base();
+    const rows = (doc.data as Record<string, Record<string, unknown>[]>).subsectors;
+    rows[40] = { key: "", label: "empty key" };
+    expect(confluenceSp500FromCarriedBlock(carried(doc))).toEqual({
+      state: "unavailable",
+      reason: "invalid_shape",
+    });
+  });
+
+  it("an available entry whose value fails the envelope also reads invalid_shape", () => {
+    expect(confluenceSp500FromCarriedBlock({ status: "available", value: { as_of: "2026-11-06" } })).toEqual({
+      state: "unavailable",
+      reason: "invalid_shape",
+    });
+    expect(confluenceSp500FromCarriedBlock({ status: "available" })).toEqual({
+      state: "unavailable",
+      reason: "invalid_shape",
+    });
+  });
+});
+
+describe("rows increment — hostile rows never throw, soft cells never invalidate", () => {
+  const mutateSp500 = (
+    fn: (data: Record<string, unknown>) => void,
+  ): Record<string, unknown> => {
+    const doc = structuredClone(specimen("confluence_universe_sp500")) as Record<string, unknown>;
+    fn(doc.data as Record<string, unknown>);
+    return doc;
+  };
+
+  it("a row with the own key __proto__ reads (JSON own property), never resolves through the prototype", () => {
+    const doc = mutateSp500((data) => {
+      const rows = data.subsectors as Record<string, unknown>[];
+      rows[0] = JSON.parse('{"__proto__": {"polluted": true}, "key": "__proto__", "label": "Probe"}');
+    });
+    const read = confluenceSp500FromCarriedBlock(carried(doc));
+    expect(read.state).toBe("available");
+    if (read.state !== "available") return;
+    expect(read.data.subsectors![0]!.key).toBe("__proto__"); // carried verbatim; linking gates elsewhere
+    expect(({} as { polluted?: unknown }).polluted).toBeUndefined(); // Object.prototype unpolluted
+  });
+
+  it("a member whose ticker is only inherited (Object.create probe) invalidates the block", () => {
+    const doc = mutateSp500((data) => {
+      const rows = data.subsectors as Record<string, unknown>[];
+      (rows[0]!.members as unknown[])[0] = Object.create({ ticker: "INH" });
+    });
+    expect(confluenceSp500FromCarriedBlock(carried(doc))).toEqual({
+      state: "unavailable",
+      reason: "invalid_shape",
+    });
+  });
+
+  it("non-finite numbers read null per cell; an absent allow-listed key stays absent; a 300-char ticker still reads", () => {
+    const doc = mutateSp500((data) => {
+      const rows = data.subsectors as Record<string, unknown>[];
+      const row = rows[0] as Record<string, unknown>;
+      (row.members as Record<string, unknown>[])[0]!.price = Number.NaN;
+      delete row.n_live; // absent stays absent — never defaulted
+      (row.members as Record<string, unknown>[])[1]!.ticker = "T".repeat(300);
+    });
+    const read = confluenceSp500FromCarriedBlock(carried(doc));
+    expect(read.state).toBe("available");
+    if (read.state !== "available") return;
+    const row = read.data.subsectors![0]!;
+    expect(row.members[0]!.price).toBeNull(); // finite numbers only
+    expect(row.n_live).toBeUndefined(); // not stated
+    expect(row.members[1]!.ticker).toBe("T".repeat(300)); // carried; rendering gates elsewhere
+    expect(read.data.subsectors).toHaveLength(65); // nothing else changed
+  });
+
+  it("S4 — a member arriving with emerging/emergence_href reads WITHOUT them (replaces the R6-09 carried-read test)", () => {
+    const doc = mutateSp500((data) => {
+      const rows = data.subsectors as Record<string, unknown>[];
+      const members = (rows[0] as Record<string, unknown>).members as Record<string, unknown>[];
+      members[0]!.emerging = true;
+      members[0]!.emergence_href = "/company/AMAT.html";
+    });
+    const read = confluenceSp500FromCarriedBlock(carried(doc));
+    expect(read.state).toBe("available");
+    if (read.state !== "available") return;
+    // The frozen wire member allow-list carries neither key and the producer
+    // strips them, so the read drops both even when a stale member still
+    // carries them — no emergence chip or evidence link can render from the
+    // carried path. (The optional type fields stay for the old `universes`
+    // payload path, untouched.)
+    expect(read.data.subsectors![0]!.members[0]!.emerging).toBeUndefined();
+    expect(read.data.subsectors![0]!.members[0]!.emergence_href).toBeUndefined();
+  });
+
+  it("N2 — two rows with the same key in one universe block fail the whole block (invalid_shape)", () => {
+    const doc = mutateSp500((data) => {
+      const rows = data.subsectors as Record<string, unknown>[];
+      (rows[1] as Record<string, unknown>).key = (rows[0] as Record<string, unknown>).key;
+    });
+    const read = confluenceSp500FromCarriedBlock(carried(doc));
+    // A duplicate key is an envelope failure: no partial row set, ever — the
+    // key is the row's identity for hrefs, expansion state and leagues.
+    expect(read).toEqual({ state: "unavailable", reason: "invalid_shape" });
   });
 });
