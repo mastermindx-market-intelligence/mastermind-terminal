@@ -6,7 +6,7 @@ const os = require("node:os");
 const path = require("node:path");
 const { createHash } = require("node:crypto");
 const { EventEmitter } = require("node:events");
-const { run, operationIds, recordCheckout, legacyPackets, superviseLegacy, stopLegacyServer, settleLegacyServer, captureOptions, batch2Plan } = require("./capture_ci_evidence.cjs");
+const { run, operationIds, recordCheckout, legacyPackets, superviseLegacy, stopLegacyServer, settleLegacyServer, captureOptions, batch2Plan, EOD_PACKET, EOD_PRODUCER, EOD_LAYOUT_FILES, EOD_CROPS } = require("./capture_ci_evidence.cjs");
 
 const { LAYOUT_FILES, EXPECTED_FILES, assertCompletePacket, assertCaptureNavigation, cropBox } = require("./capture_pl6_batch2.cjs");
 const batch2Relative = "terminal/docs/pr-crops/b-pl-6-batch-2";
@@ -56,9 +56,22 @@ function fixture(t, change = {}) {
   const checkout = () => ({ actualCheckout: { commit: "a".repeat(40), tree: "b".repeat(40) },
     githubEvent: { sha: "c".repeat(40), pullRequestBase: "d".repeat(40), pullRequestHead: "e".repeat(40) } });
   const spawn = (command, args, options) => {
-    const packet = args[0].includes("batch2") ? "batch2" : calls.length === 0 ? "pl6" : "vi";
+    const packet = args[0].includes("eod_heatmap_flowdesk") ? "eod"
+      : args[0].includes("batch2") ? "batch2" : calls.length === 0 ? "pl6" : "vi";
     calls.push({ command, args, options });
     fs.writeSync(options.stdio[2], "original child diagnostic\n");
+    if (packet === "eod") {
+      if (change.eodThrow) throw new Error("original EOD spawn exception");
+      if (change.eodSourceDuringCapture) fs.appendFileSync(path.join(repoRoot, EOD_LAYOUT_FILES[0]), "racing source\n");
+      const head = change.eodHead || "a".repeat(40);
+      if (!change.eodSkipCapture) writeEod(head, change.eodPartial ? EOD_CROPS.slice(1) : EOD_CROPS);
+      if (change.eodMissingCrop) fs.unlinkSync(path.join(eodDirectory, EOD_CROPS[0]));
+      if (change.eodBadPng) fs.writeFileSync(path.join(eodDirectory, EOD_CROPS[0]), "not a PNG");
+      const line = "wrote 126 crops + EVIDENCE.yml (head " + head + ")\n";
+      if (!change.eodMissingCompletion) fs.writeSync(options.stdio[1], line);
+      if (change.eodDuplicateCompletion) fs.writeSync(options.stdio[1], line);
+      return { status: change.eodStatus ?? 0, signal: change.eodSignal ?? null, error: change.eodError };
+    }
     if (packet === "batch2") {
       if (change.batch2Throws) throw new Error("batch2 spawn threw");
       if (change.batch2Drift) fs.appendFileSync(path.join(repoRoot, LAYOUT_FILES[0]), "\nchanged during capture");
@@ -99,10 +112,10 @@ function fixture(t, change = {}) {
   ].join("\n");
   const optionsDirectory = "terminal/docs/pr-crops/options-level-axis-labels";
   const optionsPath = path.join(repoRoot, optionsDirectory, "manifest.json");
-  const optionsSources = ["components/ChartPanel.tsx", "lib/optionsLevels.ts", "lib/priceTagPlacement.ts"];
+  const optionsSources = ["components/ChartPanel.tsx", "lib/optionsLevels.ts", "lib/pricePaneSvgScope.ts", "lib/priceTagPlacement.ts"];
   const optionsFiles = ["desktop.png", "tablet.png", "mobile.png", "desktop-left-percentage.png", "desktop-compact.png"];
   for (const file of new Set([
-    ...LAYOUT_FILES,
+    ...LAYOUT_FILES, ...EOD_LAYOUT_FILES, EOD_PRODUCER,
     ...packets.flatMap(packet => [...packet.sources, ...packet.controls]),
     ...optionsSources.map(file => "terminal/" + file), "terminal/e2e/tools/capture_pl6_batch1.cjs", optionsDirectory + "/capture.mjs",
   ])) write(file, "synthetic source: " + file);
@@ -117,7 +130,7 @@ function fixture(t, change = {}) {
     historical: change.batch2Legacy ? null : seedHistory }));
   const priorManifest = fs.readFileSync(manifest);
   for (const definition of packets) {
-    write(definition.directory + "/EVIDENCE.yml", packetManifest(definition, Boolean(change.legacyStale)));
+    write(definition.directory + "/EVIDENCE.yml", packetManifest(definition, change.legacyStale === true || change.legacyStale === definition.packet));
     for (const file of definition.files) write(definition.directory + "/" + file, "old synthetic image " + file);
   }
   const writeOptions = (stale, sourceHead = "a".repeat(40)) => {
@@ -129,9 +142,24 @@ function fixture(t, change = {}) {
     write(optionsDirectory + "/manifest.json", JSON.stringify(manifest));
     return captures;
   };
+  if (change.legacyChangedSource) fs.appendFileSync(path.join(repoRoot, change.legacyChangedSource), "changed capture input\n");
   writeOptions(Boolean(change.optionsStale));
   if (change.optionsChanged) fs.appendFileSync(path.join(repoRoot, "terminal/" + optionsSources[0]), "changed source\n");
+  if (change.optionsScopeChanged) fs.appendFileSync(path.join(repoRoot, "terminal/lib/pricePaneSvgScope.ts"), "changed scope\n");
   write(optionsDirectory + "/coverage-audit-summary.json", "unchanged historical audit");
+  const eodDirectory = path.join(repoRoot, EOD_PACKET), eodManifest = path.join(eodDirectory, "EVIDENCE.yml");
+  fs.mkdirSync(eodDirectory, { recursive: true });
+  const writeEod = (head, files = EOD_CROPS) => {
+    const rows = EOD_LAYOUT_FILES.map(file => "  " + file + ': "' +
+      createHash("sha256").update(fs.readFileSync(path.join(repoRoot, file))).digest("hex") + '"');
+    fs.writeFileSync(eodManifest, "# synthetic fixture\n# capturedAtHead: " + head + "\nlayoutFiles:\n" +
+      rows.join("\n") + "\nfiles:\n" + files.map(file => "  - " + file).join("\n") + "\n");
+    for (const file of files) fs.writeFileSync(path.join(eodDirectory, file),
+      Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), Buffer.from("synthetic " + head + file)]));
+  };
+  writeEod("9".repeat(40));
+  const eodPrior = fs.readFileSync(eodManifest);
+  if (change.eodChanged) fs.appendFileSync(path.join(repoRoot, EOD_LAYOUT_FILES[4]), "changed copy\n");
   evidence.imageInfo = bytes => ({ sha256: hash(bytes), width: 10, height: 10 });
   const legacyCalls = [];
   const spawnLegacy = (_command, args, options) => {
@@ -172,7 +200,8 @@ function fixture(t, change = {}) {
   const invoke = () => run({ repoRoot, env, evidence, checkout, spawn: combinedSpawn, spawnLegacy });
   const diagnostic = () => JSON.parse(fs.readFileSync(path.join(diagnostics, `${ids.prefix}.json`)));
   const selected = () => fs.existsSync(env.GITHUB_ENV) ? fs.readFileSync(env.GITHUB_ENV, "utf8") : "";
-  return { repoRoot, env, ids, calls, legacyCalls, packets, inputs, checkout, invoke, diagnostic, selected, diagnostics, optionsPath, batch2Dir, manifest, priorManifest };
+  return { repoRoot, env, ids, calls, legacyCalls, packets, inputs, checkout, invoke, diagnostic, selected, diagnostics, optionsPath, batch2Dir, manifest, priorManifest,
+    eodDirectory, eodManifest, eodPrior };
 }
 
 test("runs complete original captures, retains24PL6, selects20+30 and exact returned hashes", async t => {
@@ -205,6 +234,19 @@ test("changed Options source opts only PL6 into one capture and retains actual c
   assert.equal(r.optionsAxis.receipt.capturedAtHead, r.actualCheckout.commit);
   assert.notEqual(r.optionsAxis.receipt.capturedAtHead, r.githubEvent.pullRequestHead);
   assert.equal(r.optionsAxis.manifestSha256, createHash("sha256").update(fs.readFileSync(f.optionsPath)).digest("hex"));
+  assert.equal(r.composition.selectedCases, 50);
+});
+
+test("helper-only Options source drift requests the existing five-case capture", async t => {
+  const f = fixture(t, { optionsScopeChanged: true });
+  const r = await f.invoke();
+  assert.deepEqual(f.calls.map(c => c.options.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE), ["1", "0"]);
+  const prior = JSON.parse(fs.readFileSync(path.join(r.optionsAxis.prior.path, "manifest.json"), "utf8"));
+  const changed = Object.keys(prior.sourceFiles).filter(file => prior.sourceFiles[file] !== r.optionsAxis.sources[`terminal/${file}`]);
+  assert.deepEqual(changed, ["lib/pricePaneSvgScope.ts"]);
+  assert.equal(r.optionsAxis.images.length, 5);
+  assert.equal(r.optionsAxis.state, "CAPTURED_AWAITING_UNIT_VALIDATION");
+  assert.equal(r.optionsAxis.receipt.capturedAtHead, r.actualCheckout.commit);
   assert.equal(r.composition.selectedCases, 50);
 });
 
@@ -340,9 +382,9 @@ for (const failure of [false, true]) test(`VI outputDir cleanup preserves ${fail
   assert.equal(Boolean(f.selected()), !failure);
 });
 
-test("the stale Pine packet runs all30 cases, retain complete prior bytes and leave validation with native readers", async t => {
+test("stale Pine and batch3 packets run all50 cases and preserve complete prior bytes", async t => {
   const f = fixture(t, { legacyStale: true }), result = await f.invoke();
-  assert.deepEqual(f.legacyCalls, ["pine"]);
+  assert.deepEqual(f.legacyCalls, ["pine", "batch3"]);
   assert.equal(f.calls.length, 2);
   assert.equal(result.composition.selectedCases, 50);
   let cases = 0;
@@ -355,8 +397,25 @@ test("the stale Pine packet runs all30 cases, retain complete prior bytes and le
     assert.equal(fs.readFileSync(path.join(packet.returned.path, image), "utf8"), "fresh synthetic image " + image);
     assert.equal(packet.receipt.captureId, f.ids.prefix + "-" + definition.packet);
   }
-  assert.equal(cases, 30);
+  assert.equal(cases, 50);
 });
+
+test("batch3-only source drift recaptures all20 files while Pine is reused", async t => {
+  const f = fixture(t, { legacyStale: "batch3" }), result = await f.invoke();
+  assert.deepEqual(f.legacyCalls, ["batch3"]);
+  assert.equal(result.legacyPackets.batch3.images.length, 20);
+  assert.equal(result.legacyPackets.pine.state, "EXISTING_PACKET_AWAITING_UNIT_VALIDATION");
+});
+
+for (const source of ["terminal/e2e/tools/capture_pl6_batch3.cjs",
+  "terminal/e2e/fixtures/heatmap-price-only-tile.json"]) {
+  test("batch3 capture input drift requires fresh20: " + source, async t => {
+    const f = fixture(t, { legacyChangedSource: source }), result = await f.invoke();
+    assert.deepEqual(f.legacyCalls, ["batch3"]);
+    assert.equal(result.legacyPackets.batch3.images.length, 20);
+    assert.equal(result.legacyPackets.pine.state, "EXISTING_PACKET_AWAITING_UNIT_VALIDATION");
+  });
+}
 
 test("current packets preserve their old capture identity and do not launch replacement captures", async t => {
   const f = fixture(t), result = await f.invoke();
@@ -366,22 +425,22 @@ test("current packets preserve their old capture identity and do not launch repl
   assert.equal(f.calls[0].options.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE, "0");
 });
 
-for (const [name, change, expected] of [
+for (const packetName of ["pine", "batch3"]) for (const [name, change, expected] of [
   ["nonzero producer", { legacyStatus: 1 }, /CHILD_FAILED_OR_UNSETTLED/],
   ["missing current receipt", { missingLegacyReceipt: true }, /RECEIPT_COUNT/],
   ["partial fresh inventory", { partialLegacy: true }, /RECEIPT_BINDING/],
   ["different attempt", { wrongAttempt: true }, /RECEIPT_BINDING/],
   ["changed image bytes", { imageMismatch: true }, /IMAGE_BINDING/],
   ["source changed during capture", { mutateLegacySource: true }, /SOURCE_CHANGED/],
-]) test(name + " keeps diagnostics and refuses selector export", async t => {
-  const f = fixture(t, { legacyStale: true, ...change });
+]) test(packetName + ": " + name + " keeps diagnostics and refuses selector export", async t => {
+  const f = fixture(t, { legacyStale: packetName, ...change });
   await assert.rejects(f.invoke, expected);
   assert.equal(f.selected(), ""); assert.equal(f.diagnostic().state, "FAILED");
   const packet = f.diagnostic().legacyPackets[f.legacyCalls.at(-1)];
   assert.ok(fs.existsSync(packet.prior.path));
   assert.ok(fs.existsSync(packet.returned.path));
   assert.notEqual(packet.state, "CAPTURED_AWAITING_UNIT_VALIDATION");
-  assert.deepEqual(f.legacyCalls, ["pine"]);
+  assert.deepEqual(f.legacyCalls, [packetName]);
 });
 
 test("Options uses the full PL6 owner, records five fresh images, and preserves its historical audit", async t => {
@@ -391,7 +450,7 @@ test("Options uses the full PL6 owner, records five fresh images, and preserves 
   assert.equal(result.optionsAxis.images.length, 5);
   assert.equal(result.optionsAxis.state, "CAPTURED_AWAITING_UNIT_VALIDATION");
   assert.deepEqual(result.optionsAxis.prior.files["coverage-audit-summary.json"], result.optionsAxis.returned.files["coverage-audit-summary.json"]);
-  assert.equal(Object.keys(result.optionsAxis.sources).length, 3);
+  assert.equal(Object.keys(result.optionsAxis.sources).length, 4);
 });
 
 test("an unsuccessful PL6 or Options child retains the unqualified returned packet and original failure", async t => {
@@ -791,3 +850,78 @@ test("producer observes the clean DOM before its deterministic crop and retains 
   await cropBox(page, { x: 10, y: 10, width: 300, height: 600 }, "unused.png", 8, ".guide { visibility: visible }");
   assert.deepEqual(order, ["observed", "captured"]);
 });
+
+test("changed EOD source captures the full incumbent packet and preserves both composition operations", async t => {
+  const f = fixture(t, { eodChanged: true });
+  Object.assign(f.env, { UPDATE_HEATMAP_EVIDENCE: "1", TERMINAL_CROP_OUTPUT_DIR: "/unrelated",
+    CAPTURE_HEAD: "e".repeat(40), TERMINAL_CROP_PORT: "9999" });
+  const r = await f.invoke(), child = f.calls[2];
+  assert.equal(f.calls.length, 3);
+  assert.deepEqual(child.args, ["e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs"]);
+  assert.equal(child.options.timeout, 1_800_000);
+  for (const key of ["CAPTURE_ONLY", "UPDATE_HEATMAP_EVIDENCE", "TERMINAL_CROP_OUTPUT_DIR", "CAPTURE_HEAD"])
+    assert.equal(child.options.env[key], "");
+  assert.equal(child.options.env.TERMINAL_CROP_PORT, "3566");
+  assert.equal(r.eod.state, "CAPTURED_AWAITING_NATIVE_VALIDATION");
+  assert.equal(r.eod.capturedAtHead, r.actualCheckout.commit);
+  assert.equal(r.eod.actualCases, 126);
+  assert.equal(Object.keys(r.eod.crops).length, 126);
+  assert.deepEqual(r.eod.plan.changed, [EOD_LAYOUT_FILES[4]]);
+  assert.deepEqual(fs.readFileSync(r.eod.priorManifest.retainedPath), f.eodPrior);
+  assert.equal(r.eod.priorManifest.sha256, createHash("sha256").update(f.eodPrior).digest("hex"));
+  assert.equal(r.eod.sha256, createHash("sha256").update(fs.readFileSync(f.eodManifest)).digest("hex"));
+  assert.equal(f.inputs[0].operations.length, 2);
+  assert.equal(r.composition.selectedCases, 50);
+  assert.ok(f.selected());
+});
+
+test("matching EOD layout does not invent a new capture receipt", async t => {
+  const f = fixture(t), r = await f.invoke();
+  assert.equal(f.calls.length, 2);
+  assert.equal(r.eod.plan.required, false);
+  assert.equal(r.eod.state, "EXISTING_PACKET_AWAITING_NATIVE_VALIDATION");
+  assert.equal(r.eod.actualCases, undefined);
+  assert.equal(r.eod.priorManifest.retainedPath, undefined);
+});
+
+for (const [name, change, error] of [
+  ["stale packet with existing images", { eodSkipCapture: true }, /CHECKOUT_BINDING/],
+  ["event-head instead of checkout", { eodHead: "e".repeat(40) }, /COMPLETION/],
+  ["source changes during capture", { eodSourceDuringCapture: true }, /CHECKOUT_BINDING/],
+  ["partial manifest with historical images", { eodPartial: true }, /MANIFEST_CASES/],
+  ["missing produced image", { eodMissingCrop: true }, /ENOENT/],
+  ["invalid PNG bytes", { eodBadPng: true }, /CI_EOD_CROP/],
+  ["no completion receipt", { eodMissingCompletion: true }, /COMPLETION/],
+  ["duplicate completion receipt", { eodDuplicateCompletion: true }, /COMPLETION/],
+  ["nonzero capture despite complete files", { eodStatus: 1 }, /CHILD_FAILED: eod/],
+  ["signalled capture", { eodSignal: "SIGTERM" }, /CHILD_FAILED: eod/],
+  ["timed out capture", { eodError: Object.assign(new Error("original timeout"), { code: "ETIMEDOUT" }) }, /original timeout/],
+  ["spawn exception", { eodThrow: true }, /original EOD spawn exception/],
+]) test("EOD " + name + " fails once before selection", async t => {
+  const f = fixture(t, { eodChanged: true, ...change });
+  await assert.rejects(f.invoke, error);
+  assert.equal(f.calls.length, 3); assert.equal(f.inputs.length, 0); assert.equal(f.selected(), "");
+  assert.equal(f.diagnostic().state, "FAILED");
+  assert.match(fs.readFileSync(path.join(f.diagnostics, f.ids.prefix + "-eod.stderr.log"), "utf8"), /original child diagnostic/);
+});
+
+for (const malformed of ["missing", "duplicate", "unrelated", "missing-source"]) test("EOD malformed " + malformed + " manifest cannot be normalized into capture", async t => {
+  const f = fixture(t, { eodChanged: true });
+  let text = fs.readFileSync(f.eodManifest, "utf8");
+  if (malformed === "missing") text = text.replace("layoutFiles:", "oldLayoutFiles:");
+  if (malformed === "duplicate") text = text.replace("files:\n", text.split("\n").find(row => row.startsWith("  terminal/")) + "\nfiles:\n");
+  if (malformed === "unrelated") text = text.replace(EOD_LAYOUT_FILES[0], "../outside");
+  if (malformed === "missing-source") text = text.split("\n").filter(row => !row.startsWith("  " + EOD_LAYOUT_FILES[0] + ":")).join("\n");
+  fs.writeFileSync(f.eodManifest, text);
+  await assert.rejects(f.invoke, /CI_EOD_MANIFEST/);
+  assert.equal(f.calls.length, 0); assert.equal(f.selected(), "");
+});
+
+test("missing current EOD source fails before capture", async t => {
+  const f = fixture(t);
+  fs.unlinkSync(path.join(f.repoRoot, EOD_LAYOUT_FILES[0]));
+  await assert.rejects(f.invoke, /ENOENT/);
+  assert.equal(f.calls.length, 0); assert.equal(f.selected(), "");
+});
+
+require("./optionsExposureEvidence.cases.cjs");

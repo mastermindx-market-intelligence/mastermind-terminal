@@ -7,6 +7,41 @@ import golden from "../lib/__tests__/fixtures/aapl-event-workspace.json";
 import {normalizeEventWorkspace} from "../lib/eventWorkspace";
 
 test.setTimeout(120_000);
+
+test("mobile Analysis research actions stay in one row and retain both company-scoped routes", async ({page}, testInfo) => {
+ test.skip(testInfo.project.name!=="mobile", "Mobile compact-toolbar contract.");
+ for(const width of [320,390]){
+  await page.setViewportSize({width,height:844});
+  await page.goto("/analysis?symbol=600519.SS");
+  const bar=page.locator(".analysis-context-bar");
+  const summary=bar.locator(".analysis-context-actions > summary");
+  await expect(summary).toBeVisible();
+  await expect(bar.locator(".analysis-context-theses")).toHaveCount(2);
+  await expect(bar.locator(".analysis-context-theses").first()).toBeHidden();
+  await expect(bar.locator(".analysis-context-theses").last()).toBeHidden();
+  const rect=await bar.boundingBox();expect(rect).not.toBeNull();
+  expect(rect!.height).toBeLessThanOrEqual(64);
+  const tap=await summary.boundingBox();expect(tap).not.toBeNull();
+  expect(tap!.width).toBeGreaterThanOrEqual(44);
+  expect(tap!.height).toBeGreaterThanOrEqual(44);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+
+  await summary.focus();
+  await page.keyboard.press("Enter");
+  const menu=page.getByRole("navigation",{name:"Research actions"});
+  await expect(menu.getByRole("link",{name:"Saved research"})).toBeVisible();
+  await expect(menu.getByRole("link",{name:"Your theses on 600519.SS"})).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(menu).toBeHidden();
+
+  await summary.click();
+  const action=width===320
+   ? menu.getByRole("link",{name:"Saved research"})
+   : menu.getByRole("link",{name:"Your theses on 600519.SS"});
+  await action.click();
+  await expect(page).toHaveURL(new RegExp(`view=${width===320?"investigations":"theses"}&symbol=600519\\.SS`));
+ }
+});
 const id="10000000-0000-4000-8000-000000000001";
 const reference={owner:"earnings.workspace_generation",object_type:"event_workspace",object_id:golden.event_id,mode:"pinned",version_ref:golden.generation_id,fingerprint:"a".repeat(64)};
 const fixtureBaseline={ok:true,workspace:normalizeEventWorkspace(golden),reference,receipt:{schema:"earnings.retained_baseline.v1",owner:"earnings.workspace_generation",company_id:golden.issuer.company_id,event_id:golden.event_id,generation_id:golden.generation_id,fingerprint:reference.fingerprint,public_known_at:golden.lifecycle.source_available_at,platform_known_at:golden.lifecycle.observed_at,generation_emitted_at:golden.generated_at,rights:{allowed:true,policy_version:"test.transport_only",checked_at:"2026-10-04T00:00:00Z"}}};
@@ -217,8 +252,27 @@ test("Analysis research entries retain their responsive bilingual source evidenc
    const page=await context.newPage();
    const url=`/analysis?symbol=NVDA&lang=${lang}`;
    await page.goto(`${testInfo.project.use.baseURL}${url}`);
-   await expect(page.getByRole("link",{name:lang==="zh"?"已保存研究":"Saved research",exact:true})).toBeVisible();
-   await expect(page.getByLabel(lang==="zh"?"你的研究论点：NVDA":"Your theses on NVDA")).toBeVisible();
+   const savedLabel=lang==="zh"?"已保存研究":"Saved research";
+   const thesisLabel=lang==="zh"?"你的研究论点：NVDA":"Your theses on NVDA";
+   if(project==="mobile"){
+    const summary=page.locator(".analysis-context-actions > summary");
+    await expect(summary).toBeVisible();
+    const bar=page.locator(".analysis-context-bar");
+    const rect=await bar.boundingBox();expect(rect).not.toBeNull();
+    expect(rect!.height).toBeLessThanOrEqual(64);
+    await expect(bar.locator(".analysis-context-theses")).toHaveCount(2);
+  await expect(bar.locator(".analysis-context-theses").first()).toBeHidden();
+  await expect(bar.locator(".analysis-context-theses").last()).toBeHidden();
+    await summary.click();
+    const actions=page.getByRole("navigation",{name:lang==="zh"?"研究操作":"Research actions"});
+    await expect(actions.getByRole("link",{name:savedLabel,exact:true})).toBeVisible();
+    await expect(actions.getByRole("link",{name:thesisLabel})).toBeVisible();
+    await summary.click();
+    await expect(actions).toBeHidden();
+   }else{
+    await expect(page.getByRole("link",{name:savedLabel,exact:true})).toBeVisible();
+    await expect(page.getByRole("link",{name:thesisLabel})).toBeVisible();
+   }
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
    const file=`analysis-entry-${project}-${lang}.png`;
    await page.screenshot({path:testInfo.outputPath(file)});captures.push({file,url,state:"context-bar-with-theses-control-and-saved-research"});

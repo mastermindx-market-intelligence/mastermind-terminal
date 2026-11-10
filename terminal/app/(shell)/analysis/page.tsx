@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { workspaceMetadata } from "@/lib/shared-shell/metadata";
 import { readShellClaims } from "@/lib/shared-shell/memberIdentity";
 import AnalysisWorkspaceMount from "@/components/mounts/AnalysisWorkspaceMount";
 import ThesisWorkspaceMount from "@/components/mounts/ThesisWorkspaceMount";
@@ -21,7 +22,7 @@ import { parseAnalysisRoute } from "@/lib/analysisRoute";
 // getClaims verifies the JWT locally (the same read the (shell) layout does for
 // chrome) — no Auth round-trip unless a refresh is due.
 
-export const metadata: Metadata = { title: "Analysis · Mastermind Terminal" };
+export const metadata: Metadata = workspaceMetadata("Analysis");
 
 interface AnalysisPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

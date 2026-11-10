@@ -1,3 +1,11 @@
+# Current source proof is the complete Exposure UI-copy integration revision.
+exposureMasterIntegration20261109:
+  revision: "operations/exposure-source-compatibility-20261105/revisions/ui-copy-integration-20261109"
+  descriptorSha256: "ecad16da1beda4bd3a1dbb5354ce92c2181d985b8f1644bb1f5371071d401910"
+  branchHead: "282ea2c40d839fecbe5ae5dc53de9c29a02850f6"
+  protectedMaster: "b387616013f38cce9e467cc7da7b87fd2672718c"
+  integratedDependency: "663983edd16fc64e86003b420e97d557982b1bf2"
+
 # EOD belt, Flow Desk chain heat and Heatmap flow layer failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR

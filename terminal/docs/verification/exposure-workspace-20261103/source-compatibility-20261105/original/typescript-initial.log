@@ -1,0 +1,6 @@
+lib/dataCache.ts(315,58): error TS2554: Expected 3 arguments, but got 4.
+lib/dataCache.ts(459,79): error TS2339: Property 'observedAtMs' does not exist on type 'JsonRecord'.
+lib/dataCache.ts(464,79): error TS2339: Property 'observedAtMs' does not exist on type 'JsonRecord'.
+lib/dataCache.ts(468,80): error TS2339: Property 'observedAtMs' does not exist on type 'JsonRecord'.
+lib/dataCache.ts(538,81): error TS2339: Property 'observedAtMs' does not exist on type 'JsonRecord'.
+lib/dataCache.ts(542,82): error TS2339: Property 'observedAtMs' does not exist on type 'JsonRecord'.

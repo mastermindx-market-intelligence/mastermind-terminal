@@ -1,0 +1,77 @@
+[WebServer] npm warn Unknown user config "allow-scripts". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+Running 27 tests using 1 worker
+
+  ✓   1 [desktop] › e2e/discover-focus-continuity.spec.ts:8:7 › Discover chooser keeps keyboard focus with the selected task (en) (10.2s)
+  ✓   2 [desktop] › e2e/discover-focus-continuity.spec.ts:8:7 › Discover chooser keeps keyboard focus with the selected task (zh) (2.9s)
+  ✓   3 [desktop] › e2e/intl-history-date-intent.spec.ts:19:5 › History accepts real date intent, compares exact reconstruction and returns with supported context (18.2s)
+  ✓   4 [desktop] › e2e/shared-shell-refinement.spec.ts:15:5 › Paper header geometry preserves one mobile owner and a readable company search (1.9s)
+  ✓   5 [desktop] › e2e/shared-shell-refinement.spec.ts:52:5 › light and Chinese presentation stay coherent through the tools directory (1.8s)
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   6 [desktop] › e2e/shared-shell-refinement.spec.ts:74:5 › mobile chrome keeps every target usable at 320px and contract widths (5.3s)
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✘   7 [desktop] › e2e/shared-shell-refinement.spec.ts:155:5 › company search selects one canonical company from desktop, tablet and phone chrome (7.4s)
+  -   8 [desktop] › e2e/shared-shell-refinement.spec.ts:181:5 › phone company search keeps its scope in both languages and dismisses by touch
+  ✓   9 [desktop] › e2e/shared-shell-refinement.spec.ts:204:5 › Tools opens an admitted public page and Back restores query, scope and selection (3.6s)
+  ✓  10 [tablet] › e2e/discover-focus-continuity.spec.ts:8:7 › Discover chooser keeps keyboard focus with the selected task (en) (2.5s)
+  ✓  11 [tablet] › e2e/discover-focus-continuity.spec.ts:8:7 › Discover chooser keeps keyboard focus with the selected task (zh) (2.2s)
+  ✓  12 [tablet] › e2e/intl-history-date-intent.spec.ts:19:5 › History accepts real date intent, compares exact reconstruction and returns with supported context (16.6s)
+  ✓  13 [tablet] › e2e/shared-shell-refinement.spec.ts:15:5 › Paper header geometry preserves one mobile owner and a readable company search (1.5s)
+  ✓  14 [tablet] › e2e/shared-shell-refinement.spec.ts:52:5 › light and Chinese presentation stay coherent through the tools directory (1.7s)
+  -  15 [tablet] › e2e/shared-shell-refinement.spec.ts:74:5 › mobile chrome keeps every target usable at 320px and contract widths
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  16 [tablet] › e2e/shared-shell-refinement.spec.ts:155:5 › company search selects one canonical company from desktop, tablet and phone chrome (2.5s)
+  -  17 [tablet] › e2e/shared-shell-refinement.spec.ts:181:5 › phone company search keeps its scope in both languages and dismisses by touch
+  ✓  18 [tablet] › e2e/shared-shell-refinement.spec.ts:204:5 › Tools opens an admitted public page and Back restores query, scope and selection (2.7s)
+  ✓  19 [mobile] › e2e/discover-focus-continuity.spec.ts:8:7 › Discover chooser keeps keyboard focus with the selected task (en) (2.2s)
+  ✓  20 [mobile] › e2e/discover-focus-continuity.spec.ts:8:7 › Discover chooser keeps keyboard focus with the selected task (zh) (2.1s)
+  ✓  21 [mobile] › e2e/intl-history-date-intent.spec.ts:19:5 › History accepts real date intent, compares exact reconstruction and returns with supported context (16.7s)
+  ✓  22 [mobile] › e2e/shared-shell-refinement.spec.ts:15:5 › Paper header geometry preserves one mobile owner and a readable company search (1.6s)
+  ✓  23 [mobile] › e2e/shared-shell-refinement.spec.ts:52:5 › light and Chinese presentation stay coherent through the tools directory (1.7s)
+  -  24 [mobile] › e2e/shared-shell-refinement.spec.ts:74:5 › mobile chrome keeps every target usable at 320px and contract widths
+  ✓  25 [mobile] › e2e/shared-shell-refinement.spec.ts:155:5 › company search selects one canonical company from desktop, tablet and phone chrome (2.2s)
+  ✓  26 [mobile] › e2e/shared-shell-refinement.spec.ts:181:5 › phone company search keeps its scope in both languages and dismisses by touch (2.3s)
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  27 [mobile] › e2e/shared-shell-refinement.spec.ts:204:5 › Tools opens an admitted public page and Back restores query, scope and selection (7.1s)
+
+
+  1) [desktop] › e2e/shared-shell-refinement.spec.ts:155:5 › company search selects one canonical company from desktop, tablet and phone chrome 
+
+    Error: expect(page).toHaveURL(expected) failed
+
+    Expected pattern: /\/analysis\?symbol=AAPL&company_query=Apple$/
+    Received string:  "http://127.0.0.1:41871/discover"
+    Timeout: 5000ms
+
+    Call log:
+      - Expect "toHaveURL" with timeout 5000ms
+        14 × unexpected value "http://127.0.0.1:41871/discover"
+
+
+      174 |  await expect(dialog.getByRole("button",{name:"Open Analysis",exact:true})).toBeVisible();
+      175 |  await dialog.getByRole("button",{name:"Open Analysis",exact:true}).click();
+    > 176 |  await expect(page).toHaveURL(/\/analysis\?symbol=AAPL&company_query=Apple$/);
+          |                     ^
+      177 |  await expect(page.getByRole("dialog")).toHaveCount(0);
+      178 |  await noOverflow(page);
+      179 | });
+        at /Volumes/STORAGE/mmx-evidence/terminal-ui-20261109-c1/source/terminal/e2e/shared-shell-refinement.spec.ts:176:21
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../../terminal-smooth-20261109-c1/discover-ci-enabled-results/shared-shell-refinement-co-cb4c0-top-tablet-and-phone-chrome-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../../terminal-smooth-20261109-c1/discover-ci-enabled-results/shared-shell-refinement-co-cb4c0-top-tablet-and-phone-chrome-desktop/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../terminal-smooth-20261109-c1/discover-ci-enabled-results/shared-shell-refinement-co-cb4c0-top-tablet-and-phone-chrome-desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../../terminal-smooth-20261109-c1/discover-ci-enabled-results/shared-shell-refinement-co-cb4c0-top-tablet-and-phone-chrome-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [desktop] › e2e/shared-shell-refinement.spec.ts:155:5 › company search selects one canonical company from desktop, tablet and phone chrome 
+  4 skipped
+  22 passed (2.2m)
