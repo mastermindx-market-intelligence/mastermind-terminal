@@ -66,6 +66,49 @@ describe("Options Statistics source admission", () => {
     expect(admitAggPayload(agg, "SPY")).not.toBeNull();
     expect(admitAggPayload({ ...agg, root: "ARM" }, "SPY")).toBeNull();
   });
+
+  it.each([
+    [96, 100, 0.01],
+    [92, 100, 0.916],
+    [20, 30, 0.6666],
+    [0, 100, 0.0001],
+    [100, 100, 0.9999],
+  ])("rejects a published rate of %s/%s contradicted by %s", (hits, n, rate) => {
+    const payload = { ...moves, calibration: { ...moves.calibration!, hits, misses: n - hits, n_sessions: n, contained_rate: rate, ci: [0, 1] } };
+    expect(admitMovesPayload(payload, "SPY")).toBeNull();
+  });
+
+  it.each([
+    [20, 30, 0.6667],
+    [10, 30, 0.3333],
+    // Python's four-decimal rounding of this exact halfway value is 0.0312.
+    [1, 32, 0.0312],
+    [0, 100, 0],
+    [100, 100, 1],
+    [92, 100, 0.92],
+  ])("retains the publisher's rounded %s/%s rate %s unchanged", (hits, n, rate) => {
+    const payload = { ...moves, calibration: { ...moves.calibration!, hits, misses: n - hits, n_sessions: n, contained_rate: rate, ci: [0, 1] } };
+    expect(admitMovesPayload(payload, "SPY")).toBe(payload);
+    expect(payload.calibration.contained_rate).toBe(rate);
+  });
+
+  it.each([{}, { length: 0 }, "history", 0, false])("rejects malformed supplied VOL history %j", (history) => {
+    expect(admitVolPayload({ ...vol, history }, "SPY")).toBeNull();
+  });
+
+  it.each([undefined, null, []])("preserves optional VOL history %j and null metrics", (history) => {
+    const payload = { ...vol, history, atm_iv: null, iv_rank_252: null, coverage_days_all: 0, vrp: -2 };
+    expect(admitVolPayload(payload, "SPY")).toBe(payload);
+  });
+
+  it.each([{}, { toLocaleString: null }, "900", -1, 1.5, Infinity, Number.NaN, Number.MAX_SAFE_INTEGER + 1, false])("rejects malformed supplied VOL coverage count %j", (coverage_days_all) => {
+    expect(admitVolPayload({ ...vol, coverage_days_all }, "SPY")).toBeNull();
+  });
+
+  it.each([undefined, null, 0, 900])("preserves optional valid VOL coverage count %j", (coverage_days_all) => {
+    const payload = { ...vol, coverage_days_all };
+    expect(admitVolPayload(payload, "SPY")).toBe(payload);
+  });
 });
 
 describe("Options Statistics descriptive math", () => {

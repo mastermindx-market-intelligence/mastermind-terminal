@@ -8,7 +8,7 @@ const moves = (root = "SPY") => ({
   atm_iv: root === "MU" ? 54 : 20,
   regime: "slippery",
   expected_move: { band_mult: 1.96, horizon_days: 1, pct: root === "MU" ? 6.7 : 2, lo: root === "MU" ? 1025 : 98, hi: root === "MU" ? 1175 : 102 },
-  calibration: { contained_rate: root === "MU" ? 0.916 : 0.96, n_sessions: 100, hits: root === "MU" ? 92 : 96, misses: root === "MU" ? 8 : 4, band_mult: 1.96, since: "2025-01-01", through: "2026-09-30", ci: root === "MU" ? [0.85, 0.95] : [0.91, 0.98] },
+  calibration: { contained_rate: root === "MU" ? 0.92 : 0.96, n_sessions: 100, hits: root === "MU" ? 92 : 96, misses: root === "MU" ? 8 : 4, band_mult: 1.96, since: "2025-01-01", through: "2026-09-30", ci: root === "MU" ? [0.85, 0.95] : [0.91, 0.98] },
   convention: "descriptive calibration",
 });
 const vol = (root = "SPY") => ({
@@ -66,7 +66,7 @@ test("Statistics uses existing source owners and keeps their clocks separate", a
   await input.press("Enter");
   await expect(input).toHaveValue("MU");
   await expect(view).toContainText("±6.70%");
-  await expect(view).toContainText("91.6%");
+  await expect(view).toContainText("92.0%");
   await expect(view).toContainText("67.0th");
   await expect.poll(() => seen.filter((key) => key.endsWith(":MU")).sort()).toEqual(["agg:MU", "moves:MU", "vol:MU"]);
 

@@ -76,9 +76,11 @@ afterEach(async () => {
 
 async function mount() {
   await act(async () => { root.render(<OptionsStatisticsView />); });
-  for (let i = 0; i < 30 && !host.textContent?.includes("96.0%"); i++) {
+  const loadingText = H.lang === "zh" ? "正在加载统计…" : "Loading statistics…";
+  for (let i = 0; i < 30 && host.textContent?.includes(loadingText); i++) {
     await act(async () => { await new Promise((resolve) => setTimeout(resolve, 0)); });
   }
+  expect(host.textContent).not.toContain(loadingText);
 }
 
 function input(): HTMLInputElement {
@@ -158,5 +160,66 @@ describe("Options Statistics existing-source workspace", () => {
     expect(host.textContent).toContain("预期波动与历史区间覆盖");
     expect(host.textContent).toContain("它不是胜率、概率预测、交易信号或目标价");
     expect(host.textContent).toContain("三个既有来源，三个独立日期");
+  });
+});
+
+describe.each(["en", "zh"] as const)("Statistics malformed-source isolation (%s)", (lang) => {
+  const unavailable = lang === "zh" ? "不可用" : "Unavailable";
+
+  it.each([
+    { history: {} },
+    { history: { length: 10 } },
+    { history: "rows" },
+    { history: 0 },
+    { history: false },
+    { coverage_days_all: { toLocaleString: null } },
+    { coverage_days_all: "900" },
+  ])("keeps MOVES and AGG when a resolved VOL response is malformed: %j", async (malformed) => {
+    H.lang = lang;
+    H.flowGet.mockImplementation(async (key: string) => {
+      if (key === "moves:SPY") return moves();
+      if (key === "vol:SPY") return { ...vol(), ...malformed };
+      if (key === "agg:SPY") return agg();
+      return null;
+    });
+    await mount();
+    expect(host.textContent).toContain(`VOL · ${unavailable}`);
+    expect(host.textContent).toContain("±2.00%");
+    expect(host.textContent).toContain("96.0%");
+    expect(host.textContent).toContain("Gamma");
+    expect(host.textContent).toContain("70.0th");
+    expect(host.textContent).toContain("2026-10-01");
+    expect(host.textContent).toContain("2026-09-30");
+    expect(host.textContent).not.toContain("40.0th");
+  });
+
+  it("keeps VOL and AGG when a resolved MOVES rate contradicts its counts", async () => {
+    H.lang = lang;
+    H.flowGet.mockImplementation(async (key: string) => {
+      if (key === "moves:SPY") return { ...moves(), calibration: { ...moves().calibration, contained_rate: 0.01 } };
+      if (key === "vol:SPY") return vol();
+      if (key === "agg:SPY") return agg();
+      return null;
+    });
+    await mount();
+    expect(host.textContent).toContain(`MOVES · ${unavailable}`);
+    expect(host.textContent).toContain("40.0th");
+    expect(host.textContent).toContain("70.0th");
+    expect(host.textContent).not.toContain("±2.00%");
+  });
+
+  it.each([undefined, null, []])("keeps scalar VOL data when optional history is %j", async (history) => {
+    H.lang = lang;
+    H.flowGet.mockImplementation(async (key: string) => {
+      if (key === "moves:SPY") return moves();
+      if (key === "vol:SPY") return { ...vol(), history, coverage_days_all: 0, vrp: -2 };
+      if (key === "agg:SPY") return agg();
+      return null;
+    });
+    await mount();
+    expect(host.textContent).not.toContain(`VOL · ${unavailable}`);
+    expect(host.textContent).toContain("40.0th");
+    expect(host.textContent).toContain("-2.0 pts");
+    if (history) expect(host.textContent).toContain(lang === "zh" ? "0 条已提供IV历史记录" : "0 supplied IV-history rows");
   });
 });

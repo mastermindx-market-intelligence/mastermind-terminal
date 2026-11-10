@@ -96,6 +96,10 @@ export function admitMovesPayload(value: unknown, root: string): MovesPayload | 
     !isFiniteNumber(calibration.ci[0]) || !isFiniteNumber(calibration.ci[1]) ||
     calibration.ci[0] < 0 || calibration.ci[1] > 1 || calibration.ci[0] > calibration.ci[1]
   ) return null;
+  // The publisher rounds hits / n to four decimal places. Allow that rounding
+  // (including Python's halfway convention), but never substitute our own rate.
+  const containmentRoundingTolerance = 0.00005 + Number.EPSILON;
+  if (Math.abs(calibration.contained_rate - calibration.hits / calibration.n_sessions) > containmentRoundingTolerance) return null;
   if (payload.asof != null && !isIsoDay(payload.asof)) return null;
   if (payload.spot_ref != null && !isPositiveFinite(payload.spot_ref)) return null;
   if (payload.atm_iv != null && (!isFiniteNumber(payload.atm_iv) || payload.atm_iv < 0)) return null;
@@ -110,6 +114,12 @@ export function admitVolPayload(value: unknown, root: string): VolPayload | null
     if (typeof payload.asof !== "string") return null;
     if (!isIsoDay(payload.asof.slice(0, 10))) return null;
   }
+  // These optional structures are consumed without numeric formatting guards.
+  // Missing history and null scalar metrics remain valid partial-source states.
+  if (payload.history != null && !Array.isArray(payload.history)) return null;
+  if (payload.coverage_days_all != null && (
+    !Number.isSafeInteger(payload.coverage_days_all) || payload.coverage_days_all < 0
+  )) return null;
   return payload;
 }
 
