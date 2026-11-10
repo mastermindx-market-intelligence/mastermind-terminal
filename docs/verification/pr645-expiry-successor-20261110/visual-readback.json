@@ -1,0 +1,16 @@
+{
+  "schema": "terminal_pr645_visual_readback.v1",
+  "rootNativeViews": 6,
+  "rootExpiryViews": [
+    "mobile-en-expiry-vanna-drawer.png",
+    "mobile-zh-expiry-charm-bars.png"
+  ],
+  "readOnlyReasoningExpiryViews": [
+    "mobile-en-expiry-vanna-drawer.png",
+    "mobile-zh-expiry-charm-bars.png",
+    "mobile-expiry-vex-chex.png"
+  ],
+  "mobileTracesChecked": 3,
+  "finding": "No concrete visual defect identified in inspected scope. Native summary interaction preserves the original assertions and partial-value disclosures.",
+  "officialGitHubReview": false
+}

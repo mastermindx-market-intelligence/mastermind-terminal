@@ -1,0 +1,200 @@
+[
+  {
+    "file": "desktop-market-partial-zh.png",
+    "sha256": "344ac28fba6c8edcc4093d34933c718ae50a7be1ad7735c3885298c30c2347eb",
+    "git_blob": "6d297bb596332d385fe33b0fee107d0a501b13d7",
+    "bytes": 166902,
+    "dimensions": [
+      1440,
+      900
+    ],
+    "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-054d1-h-at-30-active-observations-desktop/desktop-market-partial-zh.png"
+  },
+  {
+    "file": "mobile-market-partial-zh.png",
+    "sha256": "43fb07de6cbb57668ceda48e68a2958a8461d4a484333ede606cad13930095a5",
+    "git_blob": "b0d827013921fb1e6e9a05eea62c7eee578364f2",
+    "bytes": 84960,
+    "dimensions": [
+      390,
+      844
+    ],
+    "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-054d1-h-at-30-active-observations-mobile/mobile-market-partial-zh.png"
+  },
+  {
+    "file": "tablet-market-partial-zh.png",
+    "sha256": "3c2958f27af2dedd9b14ba41b9d7fb5253275502ac75246c7109c3d6cf9aa28e",
+    "git_blob": "18446b34ed7cdf549fafd3451797e491e15b3417",
+    "bytes": 132666,
+    "dimensions": [
+      820,
+      1180
+    ],
+    "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-054d1-h-at-30-active-observations-tablet/tablet-market-partial-zh.png"
+  },
+  {
+    "file": "desktop-market-full-history-en.png",
+    "sha256": "e17906481810d8ed645daed0243d2380e7e9fb513d46fb32552f7d8d02ddacf3",
+    "git_blob": "855787cd8fa7fc838bc3881f689777839a0895db",
+    "bytes": 200043,
+    "dimensions": [
+      1440,
+      900
+    ],
+    "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-9492e-ad-of-deep-indicator-tables-desktop/desktop-market-full-history-en.png"
+  },
+  {
+    "file": "mobile-market-full-history-en.png",
+    "sha256": "338c33a0d7d298abe1342e859914ceebf46f32f648c0ea8a7357e3131eafe2f4",
+    "git_blob": "8728bb4db88188414c006d4cbaff97047b1d803f",
+    "bytes": 101631,
+    "dimensions": [
+      390,
+      844
+    ],
+    "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-9492e-ad-of-deep-indicator-tables-mobile/mobile-market-full-history-en.png"
+  },
+  {
+    "file": "tablet-market-full-history-en.png",
+    "sha256": "2aec34996be7df3a2e97ce6b4acd3ea2abdedb49a0184b8d0d901a4506be6e3e",
+    "git_blob": "75fffcaa4160cb2d4b36200df371ec2f0dfa71f7",
+    "bytes": 157360,
+    "dimensions": [
+      820,
+      1180
+    ],
+    "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-9492e-ad-of-deep-indicator-tables-tablet/tablet-market-full-history-en.png"
+  },
+  {
+    "file": "desktop-market-partial-en.png",
+    "sha256": "7a5c3804cc715835cd0f92282e3b4855df8ddf5cee45f33cd6699287a6d0d5de",
+    "git_blob": "3fcc41adaa00f1d275546f98893a427c941b98b9",
+    "bytes": 174912,
+    "dimensions": [
+      1440,
+      900
+    ],
+    "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-bdc1c-n-at-30-active-observations-desktop/desktop-market-partial-en.png"
+  },
+  {
+    "file": "mobile-market-partial-en.png",
+    "sha256": "157d310a8c1105c4bde1afd1666045be57cc76c1c671663c38a6e511c5d1402e",
+    "git_blob": "d7a9db76515ac0fdd4c621f4ac8d98e0be26672d",
+    "bytes": 85311,
+    "dimensions": [
+      390,
+      844
+    ],
+    "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-bdc1c-n-at-30-active-observations-mobile/mobile-market-partial-en.png"
+  },
+  {
+    "file": "tablet-market-partial-en.png",
+    "sha256": "35c8dd9fb407fe0a616fc3a4d348bfbeac042cf203a8d11121cd733832907f73",
+    "git_blob": "76e63f691002a4455ba89aea30173df7f61f55cf",
+    "bytes": 138687,
+    "dimensions": [
+      820,
+      1180
+    ],
+    "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-bdc1c-n-at-30-active-observations-tablet/tablet-market-partial-en.png"
+  },
+  {
+    "file": "desktop-market-neutral-zh.png",
+    "sha256": "a762d9584779496f4ec7eed288c8508b58f133fb126c874ac25302ddf73b9314",
+    "git_blob": "ab71241b4c0282b0eb47e39b981e69fd4cb8b59c",
+    "bytes": 174875,
+    "dimensions": [
+      1440,
+      900
+    ],
+    "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-ca49e--at-220-active-observations-desktop/desktop-market-neutral-zh.png"
+  },
+  {
+    "file": "mobile-market-neutral-zh.png",
+    "sha256": "a60c8423166cb735230427048c9e5c888a699850649cd32f5989bc02438dbf2f",
+    "git_blob": "af2b3c35328d68640be08c2064de771ee14fb753",
+    "bytes": 91619,
+    "dimensions": [
+      390,
+      844
+    ],
+    "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-ca49e--at-220-active-observations-mobile/mobile-market-neutral-zh.png"
+  },
+  {
+    "file": "tablet-market-neutral-zh.png",
+    "sha256": "06305c132c3a36ffe50bc0934bf0b8df5d195aaf19d58e7ebc5bdc40f0c7b0fd",
+    "git_blob": "f0b7faa3cefd3443c11de2cda887ef9734e2daee",
+    "bytes": 143061,
+    "dimensions": [
+      820,
+      1180
+    ],
+    "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-ca49e--at-220-active-observations-tablet/tablet-market-neutral-zh.png"
+  },
+  {
+    "file": "desktop-market-neutral-en.png",
+    "sha256": "c58c912f80c664fe4c437f5e255250916aaa9d9de340ce43c7e9f527750d11c8",
+    "git_blob": "5ef5b3862c8e4ceab7b83903f8e51e54f76f64c8",
+    "bytes": 182560,
+    "dimensions": [
+      1440,
+      900
+    ],
+    "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-e83cb--at-220-active-observations-desktop/desktop-market-neutral-en.png"
+  },
+  {
+    "file": "mobile-market-neutral-en.png",
+    "sha256": "c1d3024cb8865117e76874eb27781bad0061d407b685d292b30d455d2e03cdf9",
+    "git_blob": "a9af078c453b504cbb902da9506520e44835d8fd",
+    "bytes": 93602,
+    "dimensions": [
+      390,
+      844
+    ],
+    "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-e83cb--at-220-active-observations-mobile/mobile-market-neutral-en.png"
+  },
+  {
+    "file": "tablet-market-neutral-en.png",
+    "sha256": "2f40a5a81ba16b54493c947f82ab41e8bdf3418822916e9a2bcea243f373fea0",
+    "git_blob": "369463d8205653f8058471795b030bd1f61f92ec",
+    "bytes": 150053,
+    "dimensions": [
+      820,
+      1180
+    ],
+    "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-e83cb--at-220-active-observations-tablet/tablet-market-neutral-en.png"
+  },
+  {
+    "file": "desktop-market-full-history-zh.png",
+    "sha256": "d01739804dab1c3bc57920659f70999d450dfa1cfe53e662ee8900a293909daf",
+    "git_blob": "c6719af18f8bfa4d3c43efcdf620b111f9f22b90",
+    "bytes": 192690,
+    "dimensions": [
+      1440,
+      900
+    ],
+    "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-f72b0-remains-readable-in-Chinese-desktop/desktop-market-full-history-zh.png"
+  },
+  {
+    "file": "mobile-market-full-history-zh.png",
+    "sha256": "94c69704f7acc38709b2d8bc4991c6277c72929b899bf8837b0fdc332b33758b",
+    "git_blob": "040c1bd6fe0787fd6ce84b554b0a7bc630e337e6",
+    "bytes": 99782,
+    "dimensions": [
+      390,
+      844
+    ],
+    "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-f72b0-remains-readable-in-Chinese-mobile/mobile-market-full-history-zh.png"
+  },
+  {
+    "file": "tablet-market-full-history-zh.png",
+    "sha256": "be214875a553c4c488afe48dee76dbdf3eaa85a03c88f71f8569b63f967b0ba3",
+    "git_blob": "a55cd43b7936856c13886a8d858dd346440e353a",
+    "bytes": 150497,
+    "dimensions": [
+      820,
+      1180
+    ],
+    "capture_source": "test-results/pr739-20261110/research-workspace-nav-Mar-f72b0-remains-readable-in-Chinese-tablet/tablet-market-full-history-zh.png"
+  }
+]

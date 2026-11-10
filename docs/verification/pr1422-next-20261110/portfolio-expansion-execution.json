@@ -1,0 +1,105 @@
+{
+  "cases": [
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "desktop|en: an expanded panel stays collapsed when the count comes back"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "desktop|zh: an expanded panel stays collapsed when the count comes back"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "expectedStatus": "skipped",
+      "key": "mobile|en: an expanded panel stays collapsed when the count comes back"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "expectedStatus": "skipped",
+      "key": "mobile|zh: an expanded panel stays collapsed when the count comes back"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "expectedStatus": "skipped",
+      "key": "tablet|en: an expanded panel stays collapsed when the count comes back"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "expectedStatus": "skipped",
+      "key": "tablet|zh: an expanded panel stays collapsed when the count comes back"
+    }
+  ],
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/portfolio-event-refresh.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/portfolio-expansion-artifacts",
+    "--grep",
+    "Portfolio event panel expansion is retired at a count boundary"
+  ],
+  "completedAt": "2026-11-10T11:50:37.740301+00:00",
+  "errors": [],
+  "exit": 0,
+  "lifecycle": {
+    "initialLockPresent": true,
+    "reconciliation": "docs/verification/pr1422-next-20261110/portfolio-expansion-lifecycle.json",
+    "serverAbsenceVerifiedAt": "2026-11-10T11:50:52.126741+00:00",
+    "sha256": "681aee871c6d41b535647fc4defb32e8d3619eabeb8a8d861094f93ccc318e3e"
+  },
+  "logSha256": "04ecd429e4e25261b1aa42ba92faba53affaefea56b39eb71cfe12d10db8598d",
+  "nextLockAbsent": true,
+  "port": 34230,
+  "portClosed": true,
+  "seconds": 52.238,
+  "source": "3f6a75b7d5f82802c010edc0e42b7ffd501c9cf0",
+  "sourceCount": 3532,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T11:49:45.502707+00:00",
+  "stats": {
+    "duration": 48925.794,
+    "expected": 2,
+    "flaky": 0,
+    "skipped": 4,
+    "startTime": "2026-11-10T11:49:46.536Z",
+    "unexpected": 0
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "command": [
+    "node",
+    "node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "--incremental",
+    "false"
+  ],
+  "exit": 0,
+  "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "seconds": 327.904,
+  "source": "18a0cbd8014cd5a064e4107c624de2d75322d9f2"
+}

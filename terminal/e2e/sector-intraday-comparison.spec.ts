@@ -216,7 +216,9 @@ test("an open workspace keeps repeated observations stale as their source clock 
   const now = Date.now(), pulse = intradayPulse(now);
   await page.clock.install({ time: new Date(now) });
   let requests = 0;
-  page.on("request", request => {
+  // A retired mount can start and abort a read. Only finished fixture deliveries
+  // can revalidate the source clock shown by the surviving workspace.
+  page.on("requestfinished", request => {
     const parsed = new URL(request.url());
     if (parsed.pathname === "/api/sector-intelligence" && parsed.searchParams.get("source") === "intraday") requests++;
   });
@@ -224,7 +226,7 @@ test("an open workspace keeps repeated observations stale as their source clock 
   const section = panel(page);
   await expect(section.getByTestId("sector-intraday-basket")).toHaveCount(2);
   const source = await section.getByTestId("sector-intraday-clock").getAttribute("dateTime");
-  expect(requests).toBe(1);
+  await expect.poll(() => requests).toBe(1);
   await page.clock.fastForward("00:46:00");
   // Fast-forward fires the visible-feed revalidation once. Receiving the same
   // owner observation must not make its source clock or comparison current.

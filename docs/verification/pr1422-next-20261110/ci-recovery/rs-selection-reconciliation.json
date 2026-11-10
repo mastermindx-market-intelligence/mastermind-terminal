@@ -1,0 +1,39 @@
+{
+  "acceptedChecksReused": [
+    {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/b_f08_8InvalidationEvidence.test.ts",
+        "--reporter=verbose"
+      ],
+      "exit": 0,
+      "logSha256": "9b1261e977ae5bb7a71010657373ff1db424f2482bedc69484243497563acd18",
+      "name": "bf08-reader",
+      "seconds": 4.997
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "e2e/rs-pivot-study.spec.ts"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "rs-lint",
+      "seconds": 8.662
+    }
+  ],
+  "change": "Remove only the start anchor; retain the exact title suffix, original test code and zero retries.",
+  "originalCaseCount": 0,
+  "originalExit": 1,
+  "originalLifecycle": {
+    "initialLockPresent": true,
+    "reconciliation": "docs/verification/pr1422-next-20261110/ci-recovery/rs-selection-r1-lifecycle.json",
+    "serverAbsenceVerifiedAt": "2026-11-10T13:22:49.154645+00:00",
+    "sha256": "d09c6a98a982894992148ac424505f17e454b11d9ea66eed0fdd9e76d07ad4af"
+  },
+  "originalSourceStable": true,
+  "reason": "The start-anchored grep did not match Playwright's full project/file/test title. No test case executed."
+}
