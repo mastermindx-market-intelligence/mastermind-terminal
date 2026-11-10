@@ -2,6 +2,7 @@
 import { useEffect, useId, useRef } from "react";
 import { CmpCfg, CMP_LINE_STYLES } from "@/lib/compare";
 import { useLang, useT } from "@/lib/i18n";
+import { pick } from "@/lib/finFormat";
 import { activateSettingsDialog, colorInputHex } from "@/lib/chartSettingsUi";
 import { parseCssColor } from "@/lib/chart-engine/canvas/priceAxis";
 import dialogStyles from "./IndicatorSettings.module.css";
@@ -30,9 +31,9 @@ function NumberField({ value, min, max, step = 1, onChange }: { value: number; m
   const clamp = (v: number) => Math.max(min ?? -Infinity, Math.min(max ?? Infinity, Math.round(v)));
   return (
     <span className="is-stepper">
-      <button type="button" disabled={min !== undefined && value <= min} onClick={() => onChange(clamp(value - step))} aria-label={lang === "zh" ? "减小粗细" : "Decrease thickness"}>−</button>
+      <button type="button" disabled={min !== undefined && value <= min} onClick={() => onChange(clamp(value - step))} aria-label={pick(lang === "zh", "Decrease thickness", "减小粗细")}>−</button>
       <input type="number" aria-label={t("cmpThickness")} value={value} step={step} min={min} max={max} onChange={(e) => { const v = parseInt(e.target.value); if (!isNaN(v)) onChange(clamp(v)); }} />
-      <button type="button" disabled={max !== undefined && value >= max} onClick={() => onChange(clamp(value + step))} aria-label={lang === "zh" ? "增大粗细" : "Increase thickness"}>+</button>
+      <button type="button" disabled={max !== undefined && value >= max} onClick={() => onChange(clamp(value + step))} aria-label={pick(lang === "zh", "Increase thickness", "增大粗细")}>+</button>
     </span>
   );
 }
