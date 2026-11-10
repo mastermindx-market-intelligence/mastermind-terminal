@@ -61,6 +61,9 @@ export default function CycleChartFullscreen(props: CycleChartFullscreenProps) {
     wrapRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        // Close only while this dialog holds focus (a dialog opened on top
+        // owns Escape); stopPropagation cannot stop a sibling document listener.
+        if (!wrapRef.current?.contains(document.activeElement)) return;
         e.stopPropagation();
         onClose();
       }

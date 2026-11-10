@@ -21,6 +21,9 @@ function useDialog(open: boolean, onClose: () => void) {
     first?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        // Stacked dialogs: only the one HOLDING focus (the topmost) closes;
+        // stopPropagation alone cannot stop a sibling document listener.
+        if (!ref.current?.contains(document.activeElement)) return;
         e.stopPropagation();
         onClose();
       }

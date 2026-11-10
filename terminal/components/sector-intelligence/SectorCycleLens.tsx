@@ -18,7 +18,6 @@ import {
 } from "@/lib/sectorIntelligence";
 import {
   cycleUniverse,
-  cycleGenerationKey,
   cycleHistoryForGeneration,
   isSectorCycleGeneration,
   type CycleReading,
@@ -198,18 +197,20 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
   const selectedUniverse =
     universe.find((r) => r.id === effectiveSubjectId) ?? null;
 
-  const genKey =
-    gen && effectiveSubjectId
-      ? cycleGenerationKey(gen, { family: effectiveFamily, id: effectiveSubjectId })
-      : "";
-
-  /* Retire everything bound to the previous generation/subject (Round 3 §2.3):
-   * a replaced generation or a new subject never inherits cursors, comparisons
-   * or sheet state. Family, range and scale are user preferences and persist. */
-  const retireRef = useRef(genKey);
+  /* Retire everything bound to the previous PUBLICATION generation (Round 3
+   * §2.3): a replaced generation never inherits cursors, comparisons or sheet
+   * state. Subject/family changes retire synchronously at their interaction
+   * sites (handleSelect / onFamily / the popstate rebind below) exactly like
+   * the donor host, which mounted a fresh dossier per subject — a passive
+   * effect keyed on the subject would otherwise erase a view that applyView
+   * had just restored through the return router. */
+  const pubKey = gen
+    ? `${gen.publicationId}|${gen.asOf}|${gen.region}|${props.accessGeneration ?? ""}`
+    : "";
+  const retireRef = useRef(pubKey);
   useEffect(() => {
-    if (retireRef.current === genKey) return;
-    retireRef.current = genKey;
+    if (retireRef.current === pubKey) return;
+    retireRef.current = pubKey;
     setCursor(null);
     setComparisonId(null);
     setSelectedLegId(null);
@@ -218,7 +219,7 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
     setLegSheetOpen(false);
     setFullscreenOpen(false);
     setSeriesSheetOpen(false);
-  }, [genKey]);
+  }, [pubKey]);
 
   /* ── Record + depths (each independent; C28) */
   const record = deepReady ? cycleRecordFor(payload, effectiveFamily, effectiveSubjectId) : null;
@@ -346,7 +347,9 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
         ticker: r.ticker,
         basis: pillBasis,
         selected: comparisonId === r.id,
-        disabled: rowBasis === null,
+        // A basis clash is a refusal, not a warning: the row is disabled so
+        // the mixed-measure overlay can never render (C08).
+        disabled: rowBasis === null || clash,
         refusal: clash
           ? t("scBasisRefusal", {
               a: selected ? (zh ? selected.nameZh || selected.name : selected.name) : "",
@@ -382,12 +385,24 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
     lastOffset: number;
     chartAvailable: boolean;
   }>({ historyReady: false, lastOffset: 0, chartAvailable: false });
+  const popContextRef = useRef<{
+    roster: CycleRosterEntry[];
+    familiesPresent: CycleFamily[];
+    effectiveFamily: CycleFamily;
+    effectiveSubjectId: string | null;
+  }>({ roster: [], familiesPresent: [], effectiveFamily: "sectors", effectiveSubjectId: null });
   useLayoutEffect(() => {
     captureSourceRef.current = captureSource;
     applyLimitsRef.current = {
       historyReady: oscRows !== null && oscRows.length > 1,
       lastOffset: lastValuesOffset(oscRows?.length ?? 0),
       chartAvailable,
+    };
+    popContextRef.current = {
+      roster,
+      familiesPresent,
+      effectiveFamily,
+      effectiveSubjectId,
     };
   });
 
@@ -429,7 +444,14 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
     [captureNow, applyView],
   );
 
-  /* ── Self-bound return router: ONE popstate listener, removed on unmount. */
+  /* ── Self-bound return router: ONE popstate listener, removed on unmount.
+   * Donor #10707 contract: applyView never changes the subject — the HOST
+   * binds subject identity to history. So the router first rebinds the
+   * subject the captured view names (a full synchronous retire + re-subject,
+   * like the donor host mounting that dossier), and only then hands the view
+   * to the unchanged two-phase codec. A snapshot whose subject no longer
+   * exists, or belongs to another publication, rebinds nothing and the codec
+   * honestly rejects source_changed. */
   const applyViewRef = useRef(applyView);
   useLayoutEffect(() => {
     applyViewRef.current = applyView;
@@ -438,7 +460,43 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
     if (returnBinding !== "self" || typeof window === "undefined") return;
     const onPop = (e: PopStateEvent) => {
       const st = e.state as { sc?: unknown } | null;
-      if (st && typeof st === "object" && "sc" in st) applyViewRef.current(st.sc);
+      if (!st || typeof st !== "object" || !("sc" in st) || st.sc == null) return;
+      const raw = st.sc;
+      const rec =
+        raw && typeof raw === "object" && !Array.isArray(raw)
+          ? (raw as Record<string, unknown>)
+          : null;
+      const viewId = typeof rec?.id === "string" ? rec.id : null;
+      const viewFam = typeof rec?.family === "string" ? rec.family : null;
+      const ctx = popContextRef.current;
+      const knownFamily =
+        viewFam && ctx.familiesPresent.includes(viewFam as CycleFamily)
+          ? (viewFam as CycleFamily)
+          : null;
+      if (
+        viewId &&
+        knownFamily &&
+        (knownFamily !== ctx.effectiveFamily ||
+          (viewId !== ctx.effectiveSubjectId &&
+            ctx.roster.some((r) => r.id === viewId)))
+      ) {
+        if (knownFamily !== ctx.effectiveFamily) setFamily(knownFamily);
+        if (viewId !== ctx.effectiveSubjectId) setSubjectId(viewId);
+        // Full subject retirement, synchronously — the donor host's fresh
+        // mount — so nothing from the previous subject survives into the
+        // restored one. applyView then restores the captured fields.
+        flushSync(() => {
+          setCursor(null);
+          setComparisonId(null);
+          setSelectedLegId(null);
+          setValuesOffset(0);
+          setRangeOverride(null);
+          setLegSheetOpen(false);
+          setFullscreenOpen(false);
+          setSeriesSheetOpen(false);
+        });
+      }
+      applyViewRef.current(raw);
     };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
@@ -447,13 +505,42 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
   const pushSelf = useCallback(() => {
     if (returnBinding !== "self" || typeof window === "undefined") return;
     const snap = captureNow();
-    if (snap) window.history.pushState({ sc: snap }, "");
+    if (!snap) return;
+    // The entry being LEFT keeps the view being left; a fresh entry is pushed
+    // for the view being entered (the layout effect below stamps the new
+    // capture onto it once rendered). Back/forward therefore always finds a
+    // capturable view on the entry it lands on.
+    window.history.replaceState({ sc: snap }, "");
+    window.history.pushState({ sc: null }, "");
   }, [returnBinding, captureNow]);
+
+  /* Stamp the CURRENT entry with the current capture whenever the subject
+   * moves, so forward navigation restores this view too. Value-equal on the
+   * popstate rebind path, so it never fights the router. */
+  const entrySubjectRef = useRef(`${effectiveFamily}|${effectiveSubjectId ?? ""}`);
+  useLayoutEffect(() => {
+    const key = `${effectiveFamily}|${effectiveSubjectId ?? ""}`;
+    const moved = entrySubjectRef.current !== key;
+    entrySubjectRef.current = key;
+    if (!moved || returnBinding !== "self" || typeof window === "undefined") return;
+    window.history.replaceState({ sc: captureCycleView(captureSource) }, "");
+  });
+
+  const retireSubject = () => {
+    setCursor(null);
+    setComparisonId(null);
+    setSelectedLegId(null);
+    setValuesOffset(0);
+    setRangeOverride(null);
+    setLegSheetOpen(false);
+    setFullscreenOpen(false);
+    setSeriesSheetOpen(false);
+  };
 
   const handleSelect = (id: string) => {
     if (id !== effectiveSubjectId) pushSelf();
     setSubjectId(id);
-    setCursor(null);
+    retireSubject();
   };
   const navigate = (kind: "dossier" | "members") => {
     if (!gen || !effectiveSubjectId) return;
@@ -567,8 +654,7 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
           family={effectiveFamily}
           onFamily={(f) => {
             setFamily(f);
-            setCursor(null);
-            setComparisonId(null);
+            retireSubject();
           }}
           roster={roster}
           selectedId={effectiveSubjectId ?? ""}

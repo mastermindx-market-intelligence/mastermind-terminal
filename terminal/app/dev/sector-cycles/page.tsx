@@ -73,6 +73,8 @@ const cyclesPayload = {
     history_mode: "reconstructed_price_history",
     classifier: "cycle_pos_v2",
     live_hazard_parity: { verdict: "PARITY_HOLDS" },
+    benchmark: "SPY",
+    n_baskets: 2,
   },
   evidence: {
     schema: "sector_cycles.evidence.v1",

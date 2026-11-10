@@ -210,20 +210,15 @@ const setInputValue = (input: HTMLInputElement, value: string) => {
 
 /* ── Tests ───────────────────────────────────────────────────────────────── */
 
-let popstateAdds: string[] = [];
-let popstateRemoves: string[] = [];
 let addSpy: ReturnType<typeof vi.spyOn>;
 let removeSpy: ReturnType<typeof vi.spyOn>;
 
+const popstateAdds = () => addSpy.mock.calls.filter((c) => c[0] === "popstate");
+const popstateRemoves = () => removeSpy.mock.calls.filter((c) => c[0] === "popstate");
+
 beforeEach(() => {
-  popstateAdds = [];
-  popstateRemoves = [];
-  addSpy = vi.spyOn(window, "addEventListener").mockImplementation(((type: string) => {
-    if (type === "popstate") popstateAdds.push(type);
-  }) as typeof window.addEventListener);
-  removeSpy = vi.spyOn(window, "removeEventListener").mockImplementation(((type: string) => {
-    if (type === "popstate") popstateRemoves.push(type);
-  }) as typeof window.removeEventListener);
+  addSpy = vi.spyOn(window, "addEventListener");
+  removeSpy = vi.spyOn(window, "removeEventListener");
 });
 afterEach(() => {
   addSpy.mockRestore();
@@ -278,7 +273,10 @@ describe("cycles controller: capture and apply", () => {
       sourcesOpen: true,
       valuesOffset: 50,
     };
-    const outcome = lens.handle.current!.applyView(requested);
+    let outcome: { status: string; reason: string | null } | undefined;
+    act(() => {
+      outcome = lens.handle.current!.applyView(requested);
+    });
     expect(outcome).toEqual({ status: "applied", reason: null });
     const after = lens.handle.current!.captureView()!;
     expect(after.valuesOpen).toBe(true);
@@ -372,10 +370,10 @@ describe("cycles controller: return router lifetime", () => {
       historyFeed: { state: "ready", data: historyPayload() },
       returnBinding: "self",
     });
-    expect(popstateAdds.length).toBe(1);
-    expect(popstateRemoves.length).toBe(0);
+    expect(popstateAdds().length).toBe(1);
+    expect(popstateRemoves().length).toBe(0);
     lens.unmount();
-    expect(popstateRemoves.length).toBe(1);
+    expect(popstateRemoves().length).toBe(1);
     // A late popstate event reaches nobody: no throw, no resurrection.
     expect(() =>
       window.dispatchEvent(new PopStateEvent("popstate", { state: { sc: null } })),
@@ -389,18 +387,53 @@ describe("cycles controller: return router lifetime", () => {
       historyFeed: { state: "ready", data: historyPayload() },
       returnBinding: "self",
     });
-    expect(popstateAdds.length).toBe(1);
+    expect(popstateAdds().length).toBe(1);
     first.unmount();
-    expect(popstateAdds.length).toBe(1);
+    expect(popstateAdds().length).toBe(1);
     const second = mountLens({
       cyclesFeed: { state: "ready", data: deepCycles() },
       historyFeed: { state: "ready", data: historyPayload() },
       returnBinding: "self",
     });
     // Same page, one router: still exactly one live listener.
-    expect(popstateAdds.length - popstateRemoves.length).toBe(1);
+    expect(popstateAdds().length - popstateRemoves().length).toBe(1);
     second.unmount();
-    expect(popstateAdds.length - popstateRemoves.length).toBe(0);
+    expect(popstateAdds().length - popstateRemoves().length).toBe(0);
+  });
+
+  it("back through the self router rebinds the captured subject and applies its view", () => {
+    const lens = mountLens({
+      cyclesFeed: { state: "ready", data: deepCycles() },
+      historyFeed: { state: "ready", data: historyPayload() },
+      returnBinding: "self",
+    });
+    // Set up a cursor + open exact values so the captured view has content.
+    const input = chartInput()!;
+    setInputValue(input, "3");
+    const before = lens.handle.current!.captureView()!;
+    expect(before.id).toBe("xlk");
+    expect(before.valuesOpen).toBe(false);
+    // Leaving the subject pushes the xlk view onto the entry being left.
+    act(() => railButton("XLF")!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    expect(lens.handle.current!.captureView()!.id).toBe("xlf");
+    // Browser back delivers the xlk snapshot: the router rebinds Technology
+    // (donor host contract) and the codec restores the captured fields.
+    act(() => {
+      window.dispatchEvent(new PopStateEvent("popstate", { state: { sc: before } }));
+    });
+    const restored = lens.handle.current!.captureView()!;
+    expect(restored.id).toBe("xlk");
+    expect(restored.valuesOpen).toBe(false);
+    // Cursor retirement on rebind: the observation returns to the last date.
+    expect(chartInput()!.getAttribute("aria-valuetext")).toBe(DATES[7]);
+    // A foreign subject in a snapshot rebinds nothing and is honestly rejected.
+    act(() => {
+      window.dispatchEvent(
+        new PopStateEvent("popstate", { state: { sc: { ...before, id: "ghost" } } }),
+      );
+    });
+    expect(lens.handle.current!.captureView()!.id).toBe("xlk");
+    lens.unmount();
   });
 });
 
