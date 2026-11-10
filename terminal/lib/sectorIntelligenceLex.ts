@@ -609,6 +609,33 @@ export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siSectorDossierCompaniesCopy: ["The native source does not supply constituent membership, so no company rows are shown.", "此来源未提供成分股名单，因此未显示公司行。"],
   siSectorDossierCyclesCopy: ["The cycles lens is not connected yet; the live rotation map remains available.", "周期透镜尚未连接，实时轮动图仍可用。"],
   siSectorDossierOpenRotation: ["Open the rotation map", "打开轮动图"],
+
+  /* Lane 6 — save / watch / note action copy (appended verbatim from
+     returns/lane6.md; the props-only components receive these as copy records). */
+  siActionSave: ["Save", "保存"],
+  siActionSaving: ["Saving…", "保存中…"],
+  siActionUnconfirmed: ["Save unconfirmed", "保存未确认"],
+  siActionRetry: ["Retry", "重试"],
+  siActionSaved: ["Saved revision {r}", "已保存版本 {r}"],
+  siActionRejected: ["Not saved: {reason}", "未保存：{reason}"],
+  siActionSignedOut: ["Sign in to save", "登录后保存"],
+  siActionCheck: ["Check save status", "检查保存状态"],
+  siActionChecking: ["Checking…", "检查中…"],
+  siActionCommitted: ["Committed revision {r}", "已提交版本 {r}"],
+  siActionStillUnconfirmed: ["Still unconfirmed", "仍未确认"],
+  siWatchDirection: ["Direction", "方向"],
+  siWatchThreshold: ["Price threshold", "价格阈值"],
+  siWatchArm: ["Watch", "监测"],
+  siWatchArming: ["Arming…", "创建中…"],
+  siWatchArmed: ["Watching {symbol} · {plain}", "正在监测 {symbol} · {plain}"],
+  siWatchUnavailable: ["Alerts unavailable right now; nothing was armed.", "提醒系统暂不可用；未创建任何监测。"],
+  siNoteTitle: ["Note", "笔记"],
+  siNotePlaceholder: ["Note on this reading", "对这次阅读的笔记"],
+  siNoteSaved: ["Saved", "已保存"],
+  siNoteConflict: ["Changed elsewhere: {text}", "已在别处修改：{text}"],
+  siNoteInvalid: ["Note not accepted", "笔记未被接受"],
+  siNotePending: ["Not synced yet — kept as a draft", "尚未同步——已保留为草稿"],
+  siActionsCard: ["Keep this reading", "保存这次阅读"],
 };
 
 export function useSectorT() {

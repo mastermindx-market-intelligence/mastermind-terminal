@@ -70,8 +70,50 @@ export interface NativeSectorGeneration {
   core: Row;
   sectors: Row[];
   history: SectorRotationHistory;
+  /** Raw history block, for downstream lenses that parse it themselves. */
+  historyWire: Row;
+  /** Owner action-board output, transported as bounded opaque data (lane 7). */
+  actionBoard: Row;
+  /** Carried typed blocks (lane 1 wire §3): an absent key means every block
+   * is unavailable — never an error, never zero. */
+  typedBlocks: SectorTypedBlocks;
   /** Identity for local presentation reset only, never a new generation allocator. */
   key: string;
+}
+
+/** One carried typed block: available with its bounded value, or unavailable
+ * with a closed reason. A withheld block is a state, not a missing number. */
+export interface SectorTypedBlock {
+  status: "available" | "unavailable";
+  reason: string | null;
+  value: unknown;
+}
+export type SectorTypedBlocks = Record<string, SectorTypedBlock>;
+
+const TYPED_BLOCK_KEYS = ["r1_rising_priced_share", "r2_display_order", "r2_hazard_qualification",
+  "etf_flows", "confluence", "bottoming_watch", "theme_table"] as const;
+
+/** Absent `typed_blocks` ⇒ all seven blocks unavailable/not_produced; a present
+ * block keeps its own status/reason verbatim. Nothing is recomputed here —
+ * the generation owner is the producer. */
+export function sectorTypedBlocks(data: Row): SectorTypedBlocks {
+  const source = has(data, "typed_blocks") && data.typed_blocks !== null
+    && typeof data.typed_blocks === "object" && !Array.isArray(data.typed_blocks)
+    ? data.typed_blocks as Row : null;
+  const blocks: SectorTypedBlocks = {};
+  for (const key of TYPED_BLOCK_KEYS) {
+    const block = source ? source[key] : undefined;
+    if (block !== null && typeof block === "object" && !Array.isArray(block)) {
+      const record = block as Row;
+      if (record.status === "available") {
+        blocks[key] = { status: "available", reason: null, value: record.value ?? null };
+      } else {
+        blocks[key] = { status: "unavailable",
+          reason: typeof record.reason === "string" ? record.reason : "not_produced", value: null };
+      }
+    } else blocks[key] = { status: "unavailable", reason: "not_produced", value: null };
+  }
+  return blocks;
 }
 
 export function sectorNativeGeneration(value: unknown): NativeSectorGeneration | null {
@@ -81,7 +123,7 @@ export function sectorNativeGeneration(value: unknown): NativeSectorGeneration |
     || !["accepted", "stale", "degraded"].includes(String(value.qualification))
     || !keys(value.projection, ["data", "receipt"])) return null;
   const data = value.projection.data, receipt = value.projection.receipt;
-  if (!keys(data, ["schema", "audience", "core", "history", "brief", "action_board"])
+  if (!keys(data, ["schema", "audience", "core", "history", "brief", "action_board"], ["typed_blocks"])
     || data.schema !== "sector_native_view.v1" || data.audience !== "preview"
     || !keys(receipt, ["schema", "source", "generation_id", "source_session", "published_at", "qualification",
       "input_version", "baseline_session", "content_sha256"])
@@ -125,6 +167,7 @@ export function sectorNativeGeneration(value: unknown): NativeSectorGeneration |
     if (sectorDossiers(core).state === "invalid" || sectorWindowMeasurements(core).state === "invalid") return null;
   }
   return { receipt: receipt as unknown as NativeSectorReceipt, core, sectors, history,
+    historyWire: data.history, actionBoard: data.action_board as Row, typedBlocks: sectorTypedBlocks(data),
     key: `${receipt.generation_id}|${receipt.content_sha256}` };
 }
 
