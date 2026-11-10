@@ -514,7 +514,16 @@ jobs:
     # values (workers, ports, browser store) are bound by
     # .github/scripts/terminal_e2e_lane.sh from env, never spliced into a run block.
     # tests/test_ci_e2e_selfhosted_lane.py pins this contract with mutation tests.
-    runs-on: ${{ (vars.TERMINAL_E2E_LANE == 'ubuntu0' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","linux","x64","ubuntu0-e2e"]') || 'ubuntu-latest' }}
+    # 2026-11-10: the hosted fallback is `ubuntu-24.04`, not `ubuntu-latest`. The
+    # fleet runners also carry `ubuntu-latest` (intentionally kept), so the old
+    # fallback sent "hosted" shards to a shared fleet host. On 2026-11-10 (00:00-08:20
+    # UTC) 16/26 PR shard jobs failed there (62%) versus 11/273 on GitHub-hosted runners
+    # (4%). Job logs show two causes: the fixed localhost port 3108 was already
+    # used by a neighbouring slot sharing the host, and `npx playwright install
+    # --with-deps` stalled on the shared host's apt state. `ubuntu-24.04` is a
+    # GitHub-hosted image label that no fleet runner carries; the ubuntu0-e2e
+    # branch above is unchanged and still owns all fleet e2e capacity.
+    runs-on: ${{ (vars.TERMINAL_E2E_LANE == 'ubuntu0' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","linux","x64","ubuntu0-e2e"]') || 'ubuntu-24.04' }}
     env:
       TERMINAL_E2E_LANE: ${{ (vars.TERMINAL_E2E_LANE == 'ubuntu0' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && 'ubuntu0' || 'hosted' }}
       TERMINAL_E2E_LANE_WORKERS: ${{ vars.TERMINAL_E2E_WORKERS }}
