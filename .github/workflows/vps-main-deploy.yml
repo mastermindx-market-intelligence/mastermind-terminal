@@ -80,13 +80,40 @@ jobs:
           set -eu
           target_sha="$1"
           test -r /opt/terminal/terminal-build.sh
-          bash /opt/terminal/terminal-build.sh --target production --target-sha "$target_sha"
+          # Bootstrap deadlock break (CI Lightning F2): the installed
+          # /opt/terminal/terminal-build.sh only self-updates at the END of a
+          # successful build, so a first deploy after a builder-side admission
+          # change can never run the current protected logic. Stage the
+          # builder bytes FROM TARGET_SHA out of the host's existing
+          # /opt/terminal/.gitsrc mirror, verify the fetch landed exactly the
+          # protected target and the staged bytes hash to the target's
+          # ops/terminal-build.sh blob, then invoke THE STAGED COPY. The
+          # builder's own self-install step still refreshes the canonical
+          # installed path for subsequent runs. Staged file: root-owned 0700
+          # mktemp path, removed on any exit.
+          git -C /opt/terminal/.gitsrc fetch --no-tags origin master
+          fetched_head="$(git -C /opt/terminal/.gitsrc rev-parse FETCH_HEAD)"
+          test "$fetched_head" = "$target_sha" || {
+            printf 'Refusing deploy: .gitsrc FETCH_HEAD %s is not protected target %s\n' "$fetched_head" "$target_sha" >&2
+            exit 1
+          }
+          staged="$(mktemp)"
+          chmod 0700 "$staged"
+          trap 'rm -f "$staged"' EXIT
+          git -C /opt/terminal/.gitsrc show "${target_sha}:ops/terminal-build.sh" > "$staged"
+          staged_blob="$(git -C /opt/terminal/.gitsrc hash-object "$staged")"
+          target_blob="$(git -C /opt/terminal/.gitsrc rev-parse "${target_sha}:ops/terminal-build.sh")"
+          test "$staged_blob" = "$target_blob" || {
+            printf 'Refusing deploy: staged builder blob %s != protected target blob %s\n' "$staged_blob" "$target_blob" >&2
+            exit 1
+          }
+          bash "$staged" --target production --target-sha "$target_sha"
           installed="$(cat /opt/terminal/terminal/.deployment-id)"
           test "$installed" = "$target_sha"
           printf 'Verified Terminal production marker: %s\n' "$installed"
           if systemctl is-active --quiet terminal-beta.service && systemctl is-enabled --quiet terminal-beta.service; then
             test -L /opt/terminal/beta/.runtime-accepted
-            bash /opt/terminal/terminal-build.sh --target beta --target-sha "$target_sha"
+            bash "$staged" --target beta --target-sha "$target_sha"
             python3 -c 'import json,sys,urllib.request; receipt=json.load(open(sys.argv[1])); status=json.load(urllib.request.urlopen("http://127.0.0.1:3001/api/shared-shell/status",timeout=15)); ok=receipt.get("accepted_sha")==sys.argv[2] and status.get("buildId")==sys.argv[2] and status.get("enabled") is True; print("Verified Terminal beta receipt and origin:" if ok else "Beta receipt/origin did not qualify:",sys.argv[2]); sys.exit(0 if ok else 1)' /opt/terminal/beta/.runtime-accepted "$target_sha"
           else
             printf 'Beta is not both active and enabled; existing stop/start policy preserved.\n'
