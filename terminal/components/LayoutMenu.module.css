@@ -1,0 +1,122 @@
+/* State belongs to this menu, including its standalone workspace fixture. */
+.row.open {
+  background: var(--panel-2);
+  border-radius: var(--r);
+}
+
+.row.stale[data-ws-state] {
+  box-shadow: inset 0 0 0 1px var(--line-3);
+  border-radius: var(--r);
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-right: 5px;
+  min-width: 0;
+}
+
+.heading .openButton {
+  flex: 1;
+  min-width: 0;
+  align-self: stretch;
+  text-align: left;
+}
+
+.heading .openButton:focus-visible,
+.heading .more:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: -2px;
+}
+
+.rowCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.row .name {
+  flex: initial;
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.heading .more {
+  margin-left: auto;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  border-radius: var(--r);
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.heading .more:hover {
+  background: var(--panel-3);
+  color: var(--text);
+}
+
+.row.open .more svg {
+  transform: rotate(90deg);
+}
+
+/* Only Open is disabled; recovery actions retain their ordinary enabled styles. */
+.heading .openButton:disabled,
+.heading .openButton:disabled:hover {
+  opacity: 1;
+  color: var(--text-2);
+  cursor: default;
+}
+
+.heading .openButton:disabled:hover {
+  background: none;
+}
+
+/* Keep the semantic hook without allowing its older global material to win. */
+.recoveryCard:global(.ws-conflict) {
+  margin: 1px 7px 4px;
+  padding: 8px 10px;
+  border: 1px solid var(--line-3);
+  border-radius: var(--r);
+  background: var(--panel-2);
+  white-space: normal;
+}
+
+/* MobileSheet portals this class onto its actual surface. */
+:global(:root:is([data-terminal-appearance="1"], [data-mmx-shared-shell="1"])[data-theme="light"]) .phoneSheet {
+  background: var(--panel);
+  border-color: var(--line);
+  box-shadow: var(--pop-shadow-modal);
+}
+
+@media (pointer: coarse) {
+  .heading .more {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .more svg {
+    transition: none;
+  }
+}

@@ -906,9 +906,8 @@ table.scr2 tbody tr.empty-row:hover,table.scr2 tbody tr.scr2-skel-row:hover,tabl
 .im-state-lock{width:28px;height:28px;margin-left:auto;display:grid;place-items:center;flex:none;border:1px solid var(--line-2);border-radius:50%;background:color-mix(in srgb,var(--panel-3) 64%,transparent);color:var(--muted)}
 .im-state-lock svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
 .imod-actions{display:flex;align-items:center;gap:3px;padding:8px 8px 8px 3px}
-.imod-action{height:30px;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 8px;border:1px solid var(--line-3);border-radius:var(--r);background:var(--panel-2);color:var(--text);font:600 10px/1 var(--font-ui);cursor:pointer;transition:background var(--t-fast),border-color var(--t-fast),color var(--t-fast)}
+.imod-action{height:30px;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 8px;border:1px solid transparent;border-radius:var(--r);color:var(--muted);font:600 10px/1 var(--font-ui);cursor:pointer;transition:background var(--t-fast),border-color var(--t-fast),color var(--t-fast)}
 .imod-action.icon{width:30px;padding:0}
-.imod-action.icon span{display:none}
 .imod-action:hover{background:var(--panel-3);border-color:var(--line);color:var(--text)}
 .imod-action svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .imodal .li{display:flex;align-items:center;gap:10px;width:100%;min-height:50px;padding:8px 10px;border:1px solid var(--line-2);border-radius:var(--r-md);background:color-mix(in srgb,var(--panel-2) 38%,transparent);color:var(--text);font:13px/1.2 var(--font-ui);text-align:left;cursor:pointer;transition:background var(--t-fast),border-color var(--t-fast)}
@@ -1020,34 +1019,6 @@ table.scr2 tbody tr.empty-row:hover,table.scr2 tbody tr.scr2-skel-row:hover,tabl
   .im-state-switch.on .im-state-switch-knob{transform:translateX(17px)}
   .im-section-head small{display:none}
   .li-ic{width:32px;height:32px}
-}
-/* These task surfaces follow the incumbent presentation owner's light palette.
-   Keep the existing dark glass material and all other popover consumers unchanged. */
-:root:is([data-terminal-appearance="1"],[data-mmx-shared-shell="1"])[data-theme="light"] :is(.imodal-library,.phone-workspaces-sheet){
-  background:var(--panel);border-color:var(--line);box-shadow:var(--pop-shadow-modal)
-}
-/* Keep dense desktop browsing, with full-size controls for touch and narrow layouts. */
-@media (max-width:700px),(pointer:coarse){
-  .imodal-library .li-ic{width:44px;height:44px;border:1px solid var(--line-2);background:var(--panel-2);color:var(--text-2)}
-  .imodal-library .li-ic:hover{background:var(--panel-3)}
-  .imodal-library .li-script .li-nm{white-space:normal;overflow-wrap:anywhere;line-height:1.4}
-  .imodal-library .imod-action{min-width:44px;height:44px}
-  .imodal-library .imod-action.icon{width:44px}
-  .imodal-library .im-nav-item{min-height:44px}
-  .imodal-library .li-rename{height:44px;font-size:16px}
-  .imodal-library .im-close{width:44px;height:44px}
-}
-@media (max-width:700px){
-  .imodal-library .li-script{flex-wrap:wrap;gap:6px}
-  .imodal-library .li-script-main,.imodal-library .li-rename{flex-basis:100%}
-  .imodal-library .li-script-main{min-height:44px}
-  .imodal-library .li-acts{gap:4px}
-  .imodal-library .imod-row{grid-template-columns:minmax(0,1fr)}
-  .imodal-library .imod-actions{justify-content:flex-end;gap:6px;padding:0 8px 8px}
-  .imodal-library .imod-action,.imodal-library .imod-action.icon{width:auto;padding:0 12px;font-size:11.5px}
-  .imodal-library .imod-action span{display:inline}
-  .imodal-library .imod-action svg{width:16px;height:16px}
-  .imodal-library .imod-titleline strong{white-space:normal;overflow-wrap:anywhere}
 }
 @media (prefers-reduced-motion:reduce){
   .imodal-library,.imodal-library *{scroll-behavior:auto!important;transition:none!important;animation:none!important}
@@ -1617,16 +1588,11 @@ table.scr2 tbody tr.empty-row:hover,table.scr2 tbody tr.scr2-skel-row:hover,tabl
 .pop:not(.toolbar-overflow-pop) .ws-list{max-height:min(56dvh,420px);overflow-y:auto;overscroll-behavior:contain}
 
 .ws-item{display:flex;flex-direction:column}
-.ws-item.open{background:var(--panel-2);border-radius:var(--r)}
-.ws-item.stale{box-shadow:inset 0 0 0 1px var(--line-3);border-radius:var(--r)}
-.ws-heading{display:flex;align-items:center;gap:2px;padding-right:5px;min-width:0}
-.ws-open{flex:1;min-width:0;align-self:stretch;text-align:left}
-.ws-open:focus-visible{outline:2px solid var(--brand-2);outline-offset:-2px}
-.ws-row-copy{display:flex;flex-direction:column;gap:5px;min-width:0}
-.ws-name{min-width:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;white-space:normal;line-height:1.4}
-.ws-badges{display:flex;flex-wrap:wrap;gap:4px}
+.ws-item.open{background:color-mix(in srgb,var(--brand) 6%,transparent);border-radius:var(--r)}
+.ws-item.stale{box-shadow:inset 3px 0 0 var(--warn);border-radius:var(--r)}
+.ws-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-.ws-more{margin-left:auto;flex:none;width:32px;height:32px;display:grid;place-items:center;border:0;background:transparent;border-radius:var(--r);color:var(--text-dim);cursor:pointer}
+.ws-more{margin-left:auto;flex:none;width:26px;height:26px;display:grid;place-items:center;border-radius:var(--r);color:var(--text-dim);cursor:pointer}
 .ws-more:hover{background:var(--panel-3);color:var(--text)}
 .ws-more:focus-visible{outline:2px solid var(--brand-2);outline-offset:-2px}
 .ws-more svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;transition:transform var(--t-fast) var(--ease-out)}
@@ -1641,12 +1607,12 @@ table.scr2 tbody tr.empty-row:hover,table.scr2 tbody tr.scr2-skel-row:hover,tabl
 /* CJK never wants tracking; uppercase is a no-op there but the letter-spacing is not. */
 [data-lang="zh"] .ws-hd,[data-lang="zh"] .ws-badge{letter-spacing:0}
 
-.ws-heading .ws-open:disabled{opacity:1;color:var(--text-2);cursor:default}
-.ws-heading .ws-open:disabled:hover{background:none;color:var(--text-2)}
+.ws-item.blocked .menu-row{color:var(--text-dim);cursor:default}
+.ws-item.blocked .menu-row:hover{background:none;color:var(--text-dim)}
 .ws-hint{margin:0 7px 5px 26px;font:400 var(--fs-label)/1.4 var(--font-ui);color:var(--muted);white-space:normal}
 
-/* Two valid versions exist. A neutral card keeps the recovery choices clear. */
-.ws-conflict{margin:1px 7px 4px;padding:8px 10px;border:1px solid var(--line-3);border-radius:var(--r);background:var(--panel-2);white-space:normal}
+/* THE FORK. --warn, not --danger: nothing failed and nothing was lost — two valid versions exist. */
+.ws-conflict{margin:1px 7px 4px;padding:8px 10px;border-left:3px solid var(--warn);border-radius:0 var(--r) var(--r) 0;background:rgba(232,163,61,.09);white-space:normal}
 .ws-conflict b{display:block;font:650 var(--fs-ui)/1.35 var(--font-ui);color:var(--text)}
 .ws-conflict p{margin:3px 0 8px;font:400 var(--fs-label)/1.4 var(--font-ui);color:var(--text-2)}
 .ws-fork{display:flex;gap:6px;flex-wrap:wrap}

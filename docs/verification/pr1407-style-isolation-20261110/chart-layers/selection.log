@@ -1,0 +1,11 @@
+Listing tests:
+  [desktop] › chart-object-tree.spec.ts:19:5 › chart layers can be found, hidden, restored and removed without losing keyboard focus
+  [desktop] › chart-object-tree.spec.ts:42:5 › [zh] layer controls remain visible and touch-sized without hiding their meaning
+  [desktop] › chart-object-tree.spec.ts:69:5 › an open study filter survives responsive layout changes in the same panel
+  [tablet] › chart-object-tree.spec.ts:19:5 › chart layers can be found, hidden, restored and removed without losing keyboard focus
+  [tablet] › chart-object-tree.spec.ts:42:5 › [zh] layer controls remain visible and touch-sized without hiding their meaning
+  [tablet] › chart-object-tree.spec.ts:69:5 › an open study filter survives responsive layout changes in the same panel
+  [mobile] › chart-object-tree.spec.ts:19:5 › chart layers can be found, hidden, restored and removed without losing keyboard focus
+  [mobile] › chart-object-tree.spec.ts:42:5 › [zh] layer controls remain visible and touch-sized without hiding their meaning
+  [mobile] › chart-object-tree.spec.ts:69:5 › an open study filter survives responsive layout changes in the same panel
+Total: 9 tests in 1 file

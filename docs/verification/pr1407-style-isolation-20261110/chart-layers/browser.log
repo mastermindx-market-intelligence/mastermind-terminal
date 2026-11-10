@@ -1,0 +1,32 @@
+[warmup] /terminal?symbol=NVDA → 200 in 110ms
+[warmup] /options → 200 in 199ms
+[warmup] /portfolio → 200 in 243ms
+[warmup] /alerts → 200 in 132ms
+[warmup] /analysis → 200 in 466ms
+[warmup] /discover → 200 in 301ms
+[warmup] /admin → 200 in 233ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 154ms
+[warmup] /login → 200 in 228ms
+[warmup] /reset-password → 200 in 231ms
+[warmup] /api/me → 200 in 130ms
+[warmup] /api/watchlist → 200 in 109ms
+[warmup] /api/layouts → 200 in 60ms
+[warmup] /api/watchlist/annotations → 409 in 54ms
+[warmup] 14 routes compiled in 3s
+[fixture-ready] prophet_idx fixture 200 in 296ms
+
+Running 9 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  1 [desktop] › e2e/chart-object-tree.spec.ts:19:5 › chart layers can be found, hidden, restored and removed without losing keyboard focus (16.6s)
+  ✓  2 [desktop] › e2e/chart-object-tree.spec.ts:42:5 › [zh] layer controls remain visible and touch-sized without hiding their meaning (10.1s)
+  ✓  3 [desktop] › e2e/chart-object-tree.spec.ts:69:5 › an open study filter survives responsive layout changes in the same panel (12.4s)
+  ✓  4 [tablet] › e2e/chart-object-tree.spec.ts:19:5 › chart layers can be found, hidden, restored and removed without losing keyboard focus (9.8s)
+  ✓  5 [tablet] › e2e/chart-object-tree.spec.ts:42:5 › [zh] layer controls remain visible and touch-sized without hiding their meaning (9.8s)
+  -  6 [tablet] › e2e/chart-object-tree.spec.ts:69:5 › an open study filter survives responsive layout changes in the same panel
+  ✓  7 [mobile] › e2e/chart-object-tree.spec.ts:19:5 › chart layers can be found, hidden, restored and removed without losing keyboard focus (9.6s)
+  ✓  8 [mobile] › e2e/chart-object-tree.spec.ts:42:5 › [zh] layer controls remain visible and touch-sized without hiding their meaning (7.5s)
+  -  9 [mobile] › e2e/chart-object-tree.spec.ts:69:5 › an open study filter survives responsive layout changes in the same panel
+
+  2 skipped
+  7 passed (1.5m)

@@ -4,6 +4,7 @@ import { useT } from "@/lib/i18n";
 import type { SavedLayout } from "@/lib/layouts";
 import { interpolateTeam } from "@/lib/teamSharedWorkflow";
 import StateSwitch from "@/components/StateSwitch";
+import layoutStyles from "./LayoutMenu.module.css";
 
 // The Saved-Workspaces popover body (W2A_WORKSPACE_UX_SPEC.md), extracted so the toolbar popover
 // and the responsive overflow ("More ▸ Workspaces") menu cannot drift apart. They previously carried
@@ -205,7 +206,7 @@ export default function LayoutMenu({
     const defaultTeamId = shareTeamId || writableTeams[0]?.id || teams[0]?.id || "";
     return (
       <div key={l.id}
-           className={`ws-item${open ? " open" : ""}${blocked ? " blocked" : ""}${staleName === l.name ? " stale" : ""}`}
+           className={`ws-item ${layoutStyles.row}${open ? ` ${layoutStyles.open}` : ""}${staleName === l.name ? ` stale ${layoutStyles.stale}` : ""}`}
            data-layout-row={l.name} data-ws-state={l.rowState} data-ws-sharing={shared ? "team" : "private"}>
 
         {renamingId === l.id ? (
@@ -237,22 +238,22 @@ export default function LayoutMenu({
             </button>
           </div>
         ) : (
-          <div className="ws-heading">
+          <div className={`ws-heading ${layoutStyles.heading}`}>
             <Row type="button" {...(rowAs === "button" ? { role: "menuitem" } : {})}
-                 className="menu-row ws-open" disabled={blocked} data-ws-open={l.name}
+                 className={`menu-row ws-open ${layoutStyles.openButton}`} disabled={blocked} data-ws-open={l.name}
                  aria-label={`${t("wsOpen")}: ${l.name}`}
                  aria-describedby={blocked ? `${menuId}-hint-${l.id}` : undefined}
                  onClick={blocked ? undefined : () => { onLoad(l); onPicked?.(); }}>
-              <span className="ws-row-copy">
-                <span className="ws-name">{l.name}</span>
-                {(shared || blocked) && <span className="ws-badges">
+              <span className={`ws-row-copy ${layoutStyles.rowCopy}`}>
+                <span className={`ws-name ${layoutStyles.name}`}>{l.name}</span>
+                {(shared || blocked) && <span className={`ws-badges ${layoutStyles.badges}`}>
                   {shared && <span className="ws-badge" data-ws-badge="team">{t("wsSharedBadge")}</span>}
                   {l.rowState === "unsupported_floor" && <span className="ws-badge warn">{t("wsBadgeNewer")}</span>}
                   {l.rowState === "unsupported_schema" && <span className="ws-badge">{t("wsBadgeUnreadable")}</span>}
                 </span>}
               </span>
             </Row>
-            <button type="button" className="ws-more" {...(rowAs === "button" ? { role: "menuitem" } : {})}
+            <button type="button" className={`ws-more ${layoutStyles.more}`} {...(rowAs === "button" ? { role: "menuitem" } : {})}
                     ref={(el) => { moreRefs.current[l.id] = el; }}
                     aria-label={`${t("wsRowActions")}: ${l.name}`}
                     aria-expanded={open} aria-controls={`${menuId}-subs-${l.id}`}
@@ -410,7 +411,7 @@ export default function LayoutMenu({
 
       {/* stale_revision — THE SIGNATURE SURFACE. Two peers, no primary, no modal. */}
       {feedback.kind === "stale" && (
-        <div className="ws-conflict" role="group" aria-labelledby="ws-stale-hd" data-ws-stale={feedback.name}>
+        <div className={`ws-conflict ${layoutStyles.recoveryCard}`} role="group" aria-labelledby="ws-stale-hd" data-ws-stale={feedback.name}>
           <b id="ws-stale-hd" role="alert">{t("wsChangedElsewhere")}</b>
           <p>{`${t("wsChangedElsewhereSub")} ${feedback.savedAgo}`}</p>
           <div className="ws-fork">
@@ -435,7 +436,7 @@ export default function LayoutMenu({
       )}
 
       {pendingShare && (
-        <div className="ws-conflict" role="group" data-ws-share-confirm={pendingShare.to}>
+        <div className={`ws-conflict ${layoutStyles.recoveryCard}`} role="group" data-ws-share-confirm={pendingShare.to}>
           <b>{pendingShare.to === "team" ? t("wsShareTitle") : t("wsUnshareTitle")}</b>
           <p>{pendingShare.to === "team" ? interpolateTeam(t("wsShareBody"), pendingShare.teamName) : t("wsUnshareBody")}</p>
           {pendingShare.to === "team" && writableTeams.length > 1 && (
