@@ -1,0 +1,122 @@
+{
+  "admission": "Existing auto-merge retained; required CI and native release controls qualify the resulting exact head.",
+  "changes": [
+    {
+      "afterSha256": "512f46ddf95a17e589d60a495b9a7e0d182998640da6d5ba61ac9b5ec1731cbd",
+      "beforeSha256": "ebc492993abae1b8585e580b16e3067a39110dd4023a72fedc375307b691384d",
+      "mode": "100644",
+      "path": ".github/workflows/ci.yml",
+      "postimageBlob": "338939f16f97ef3706f30e94b2210b979f133127",
+      "preimageBlob": "05d88e88524d3235f0f916e6aec19b17460fdaac"
+    },
+    {
+      "afterSha256": "1fda988e0a4e57045b104da287256273a99777325cace8d773d344d28717c932",
+      "beforeSha256": "457b524e0c4659765018c2850959926d56e50ce897bf8354f06bb71fd0db3c6d",
+      "mode": "100644",
+      "path": "docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md",
+      "postimageBlob": "1b29bc626d3a719d7f6ee60008da8fce031f07db",
+      "preimageBlob": "0c2f77158c8f469c7da0fea2572bb1ab57ebceef"
+    },
+    {
+      "afterSha256": "8cbd831cda8c0943ac9eff2595ff2dc68a4b7a1c04525253f252ce847159e484",
+      "beforeSha256": "b1e163eba48da61943edf179a04d5eddc2d934c76f1b4381b4fc1685befd4337",
+      "mode": "100644",
+      "path": "tests/test_ci_e2e_selfhosted_lane.py",
+      "postimageBlob": "c097fa747c8a362e56b7716a0e8aec9e9f03a031",
+      "preimageBlob": "c422410d74aeb9fd2ec6f91a49719198ce92ab6f"
+    }
+  ],
+  "noUnchangedJobRetry": true,
+  "originalContributionPathsUnchanged": [
+    "docs/pr-crops/terminal-watchlist-display-20261109/desktop-display-en.png",
+    "docs/pr-crops/terminal-watchlist-display-20261109/polish2-watchlist-final-unit.log",
+    "docs/pr-crops/terminal-watchlist-display-20261109/short-coarse-display-en.png",
+    "docs/pr-crops/terminal-watchlist-display-20261109/short-display-zh.png",
+    "docs/pr-crops/terminal-watchlist-display-20261109/verification.md",
+    "docs/pr-crops/terminal-watchlist-display-20261109/watchlist-before-browser.log",
+    "docs/pr-crops/terminal-watchlist-display-20261109/watchlist-final-browser.log",
+    "docs/pr-crops/terminal-watchlist-display-20261109/watchlist-fit-coarse-browser.log",
+    "docs/pr-crops/terminal-watchlist-display-20261109/watchlist-fit-desktop-browser.log",
+    "docs/pr-crops/terminal-watchlist-display-20261109/watchlist-fit-source-receipt.json",
+    "terminal/components/TerminalShell.tsx",
+    "terminal/components/WatchlistDisplaySettings.module.css",
+    "terminal/components/WatchlistDisplaySettings.tsx",
+    "terminal/e2e/watchlist-display-settings.spec.ts",
+    "terminal/lib/__tests__/watchlistDisplaySettings.test.tsx"
+  ],
+  "originalFailure": {
+    "actualCheckout": "98f8112ef617fcc9ea87fa9f5cf09eef0fa36ca3",
+    "attempt": 1,
+    "boundary": "Hosted lane fixed port3108 occupied at09:19:26Z before mobile shard4/5 cases; checkout, dependency installation, typegen and Playwright provisioning passed.",
+    "job": 129724711643,
+    "run": 42782919214,
+    "runner": "ubuntu1-a / fleet-ci"
+  },
+  "originalHead": "8a1266b20dd64e76b55724b1d1882a9128392ca7",
+  "originalTree": "fcd0b9cfab841f251206ee8509bd943566e9a688",
+  "priorProofPolicy": "All15 original watchlist contribution paths and the complete Terminal subtree are unchanged; exhaustive diff is three exact routing postimages and this additive proof directory.",
+  "qualifiedContractExecution": {
+    "applicability": "The actual33-test execution occurred in the owned #1407 composition. All four inputs read by the unchanged contract suite, including executable mode of the lane script, exactly match this #1403 candidate. This is input-qualified evidence reuse, not another local execution.",
+    "copiedArtifacts": [
+      {
+        "gitBlob": "e7e3d8b2168ded838623627ffb1e95c0d1e3f51d",
+        "path": "docs/verification/pr1403-hosted-routing-integration-20261110/qualified-source-contracts.log",
+        "sha256": "3757529055887423a3e469a2a70e6c9fc5e8701a11ab56c19aedfeb4565cad81",
+        "sourceCommit": "b4d10a409a9e585908cb2e23452668e24cdf9697",
+        "sourcePath": "docs/verification/pr1407-hosted-routing-integration-20261110/ci-contract-tests.log"
+      },
+      {
+        "gitBlob": "20f41d162e7b8b9dc34f0ceaee225a50ae92243b",
+        "path": "docs/verification/pr1403-hosted-routing-integration-20261110/qualified-source-contracts.xml",
+        "sha256": "ac53f99ab53facf885171fb790b218d1cfb4c24a709600193bfed6c48abc2e72",
+        "sourceCommit": "b4d10a409a9e585908cb2e23452668e24cdf9697",
+        "sourcePath": "docs/verification/pr1407-hosted-routing-integration-20261110/ci-contract-tests.xml"
+      }
+    ],
+    "executionPublicationCommit": "b4d10a409a9e585908cb2e23452668e24cdf9697",
+    "inputs": {
+      ".github/scripts/terminal_e2e_lane.sh": {
+        "gitBlob": "e29ca206dcbd49388f765e8b799a59f8c3b8df3c",
+        "mode": "100755",
+        "sha256": "624735c4350ff760b6adcaeebe54fc9f71fe6110e9f42774ba785f8c32a40f38"
+      },
+      ".github/workflows/ci.yml": {
+        "gitBlob": "338939f16f97ef3706f30e94b2210b979f133127",
+        "mode": "100644",
+        "sha256": "512f46ddf95a17e589d60a495b9a7e0d182998640da6d5ba61ac9b5ec1731cbd"
+      },
+      "docs/CI_TERMINAL_E2E_SELFHOSTED_LANE.md": {
+        "gitBlob": "1b29bc626d3a719d7f6ee60008da8fce031f07db",
+        "mode": "100644",
+        "sha256": "1fda988e0a4e57045b104da287256273a99777325cace8d773d344d28717c932"
+      },
+      "tests/test_ci_e2e_selfhosted_lane.py": {
+        "gitBlob": "c097fa747c8a362e56b7716a0e8aec9e9f03a031",
+        "mode": "100644",
+        "sha256": "8cbd831cda8c0943ac9eff2595ff2dc68a4b7a1c04525253f252ce847159e484"
+      }
+    },
+    "seconds": 5.88,
+    "sourceReceiptPath": "docs/verification/pr1407-hosted-routing-integration-20261110/receipt.json",
+    "sourceReceiptSha256": "97feb5483a75ff6c06e02e56bbdd23d49cc20d450961e9a9c3f57c490c65d828",
+    "stats": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 33
+    }
+  },
+  "recordedAt": "2026-11-10T10:36:50.253036+00:00",
+  "schema": "terminal_pr1403_published_hosted_routing_integration.v1",
+  "sourceCiOutcome": "success, attempt 1, after all substantive jobs and required aggregate completed; independent protected queue outcome is not assumed",
+  "sourceCiRun": 42783419986,
+  "sourceCustody": {
+    "boundedRead": "Canonical original head/body/comments remained unchanged before continuation; no newer published repair or current competing canonical continuation was present. Historical workspace custody was not inferred from missing metadata. GitHub-native publication leaves all source worktrees untouched.",
+    "settledPublicationComment": 6762697723,
+    "takeoverComment": 6765141715
+  },
+  "sourceHead": "d146758aa3180489e658a4731155c1b57d048bb6",
+  "sourcePr": 1421,
+  "sourceWorktreeModified": false,
+  "terminalSubtreeUnchanged": "fce769bcca3ac32fa93350fd0f40dd67d32e5aa4"
+}
