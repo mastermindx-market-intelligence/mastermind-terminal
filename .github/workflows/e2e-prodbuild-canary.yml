@@ -1,0 +1,376 @@
+# Hosted e2e prod-build CANARY (CI Lightning terminal-e2e prod-build measurement).
+#
+# Purpose: measure Terminal Playwright e2e on a production build (`next start`) versus
+# the existing dev server (`next dev`) on the SAME GitHub-hosted ubuntu-24.04 image,
+# using the same 11-spec / 67-test subset that has no dev-only seam
+# (terminal/e2e/canary/prodbuild-subset.txt). This is a research measurement, not a
+# required check. It does not gate merge, does not write anything the release path
+# consumes, and needs no secret. Local measurement (2026-11-10, loaded 24-core Mac):
+# prod was 3.75x faster than dev at one worker; this canary is the hosted 4-vCPU A/B
+# that confirms or refutes that ratio before any required lane changes.
+#
+# Trigger: workflow_dispatch ONLY. Never pull_request / push / merge_group / schedule.
+# Concurrency: one run at a time per ref; a second dispatch queues instead of stacking.
+# Runner: ubuntu-24.04 on every job (GitHub-hosted; never ubuntu-latest, never self-hosted).
+# Job names: prefixed `canary-` so they cannot collide with any required check name.
+#
+# Safety posture:
+#   * permissions: contents: read — the token reads the checkout and nothing else.
+#   * No `${{ inputs.* }}` is spliced into a shell run block; inputs are bounded by the
+#     validate-inputs job (integer 1..5) and flow to later jobs only through its outputs.
+#   * Build-time env mirrors the existing e2e lane's webServer.env block exactly;
+#     NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY are the same fixture
+#     literals the dev lane uses. No real credential enters this workflow.
+#   * The artifact is built from the dispatched ref and consumed only inside the same
+#     run. No deploy path reads CI artifacts (ops/terminal-build.sh builds on the VPS
+#     from a named SHA).
+name: Hosted e2e prod-build canary
+
+on:
+  workflow_dispatch:
+    inputs:
+      repeats:
+        description: "Repeat each (server x workers) leg this many times, integer 1..5"
+        default: "1"
+        type: string
+      ref:
+        description: "Optional git ref to check out (default: the ref the workflow was dispatched from)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-prodbuild-canary-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate-inputs:
+    name: canary-validate-inputs
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      repeats: ${{ steps.bound.outputs.repeats }}
+      ref: ${{ steps.bound.outputs.ref }}
+      matrix: ${{ steps.bound.outputs.matrix }}
+    steps:
+      - name: Bound repeats to 1..5 and build the leg matrix
+        id: bound
+        shell: bash
+        env:
+          # Inputs enter as env DATA, never spliced into shell source.
+          RAW_REPEATS: ${{ inputs.repeats }}
+          RAW_REF: ${{ inputs.ref || github.ref }}
+        run: |
+          set -euo pipefail
+          if ! [[ "$RAW_REPEATS" =~ ^[1-5]$ ]]; then
+            printf '::error::repeats must be an integer 1..5, got %q\n' "$RAW_REPEATS" >&2
+            exit 2
+          fi
+          # A ref with a newline/control char could forge GITHUB_OUTPUT keys; git ref
+          # names (and SHAs) never need characters outside this set.
+          if ! [[ "$RAW_REF" =~ ^[A-Za-z0-9/_.-]+$ ]]; then
+            printf '::error::ref must look like a git ref name or SHA, got %q\n' "$RAW_REF" >&2
+            exit 2
+          fi
+          matrix=$(python3 -c 'import json,sys; n=int(sys.argv[1]); print(json.dumps({"server":["dev","prod"],"workers":[1,2],"repeat":list(range(1,n+1))}))' "$RAW_REPEATS")
+          printf 'repeats=%s\nref=%s\nmatrix=%s\n' "$RAW_REPEATS" "$RAW_REF" "$matrix" >> "$GITHUB_OUTPUT"
+
+  canary-build:
+    name: canary-build
+    needs: validate-inputs
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: terminal
+    env:
+      # Same build-time env the e2e lane provides via webServer.env. NEXT_PUBLIC_*
+      # keys are inlined by next build, so they must be set here; the rest are read
+      # at server start and stay where they are. Mirrors terminal/playwright.config.ts
+      # webServer.env exactly.
+      ANALYSIS_LOCAL_PREVIEW: "1"
+      ADMIN_DEV: "1"
+      TERMINAL_E2E_FIXTURE: "1"
+      TERMINAL_E2E_EMAIL: "responsive@example.com"
+      TERMINAL_E2E_ENTITLEMENT: "unlimited"
+      RATE_LIMIT_MAX: "100000"
+      HUB_REALTIME_QUOTES: "1"
+      TICKER_NEWS_RAIL: "1"
+      FLOW_FIXTURE: "1"
+      INVESTIGATION_API_ADMISSION: "open"
+      NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321"
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "fixture-anon-key"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate-inputs.outputs.ref }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: terminal/package-lock.json
+      - run: npm ci
+      - run: npx next typegen
+      - name: Production build (timed; npx next build skips the prebuild hook)
+        run: |
+          t0=$(date +%s)
+          npx next build
+          echo "### Build" >> "$GITHUB_STEP_SUMMARY"
+          echo "build_seconds=$(( $(date +%s) - t0 )) nproc=$(nproc)" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Pack .next (exclude cache/dev/traces)
+        run: |
+          tar -czf ../dot-next.tar.gz \
+            --exclude='.next/cache' \
+            --exclude='.next/dev' \
+            --exclude='.next/trace' \
+            --exclude='.next/BUILD_ID.trace' \
+            -C . .next
+          ls -lh ../dot-next.tar.gz | awk '{print "artifact_size=" $5}' | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: canary-dot-next-${{ github.run_id }}-${{ github.run_attempt }}
+          path: dot-next.tar.gz
+          retention-days: 1
+
+  canary-legs:
+    name: canary-leg (${{ matrix.server }} w${{ matrix.workers }} r${{ matrix.repeat }})
+    needs: [validate-inputs, canary-build]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      # One failed leg never cancels its siblings; the report job still sees all of them.
+      fail-fast: false
+      # Matrix computed by validate-inputs from the bounded repeats input — the same
+      # fromJSON pattern ci.yml uses for its e2e matrix.
+      matrix: ${{ fromJSON(needs.validate-inputs.outputs.matrix) }}
+    defaults:
+      run:
+        working-directory: terminal
+    env:
+      CI: "1"
+      CANARY_SERVER: ${{ matrix.server }}
+      CANARY_WORKERS: ${{ matrix.workers }}
+      CANARY_REPEAT: ${{ matrix.repeat }}
+      TERMINAL_E2E_PORT: "3108"
+      # Unique per leg so merged downloads in canary-report never collide.
+      PLAYWRIGHT_JSON_OUTPUT_NAME: canary-report-${{ matrix.server }}-w${{ matrix.workers }}-r${{ matrix.repeat }}.json
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate-inputs.outputs.ref }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: terminal/package-lock.json
+      - run: npm ci
+      - run: npx next typegen
+      # Playwright browser install steps mirror the hosted e2e lane in ci.yml exactly
+      # (same version-pinned cache key, same bounded --with-deps with browser-only
+      # fallback, same cache-hit ensure step).
+      - name: Resolve Playwright version
+        id: pw
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright browsers
+        id: pwcache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      - name: Install Playwright browsers (apt bounded, browser-only fallback)
+        if: steps.pwcache.outputs.cache-hit != 'true'
+        timeout-minutes: 12
+        run: |
+          timeout 480 npx playwright install --with-deps chromium \
+            || { echo "::warning::apt/--with-deps stalled or failed — installing the browser only"; \
+                 npx playwright install chromium; }
+      - name: Ensure browser present on cache hit
+        if: steps.pwcache.outputs.cache-hit == 'true'
+        timeout-minutes: 6
+        run: timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium
+      - name: Download production build artifact
+        if: matrix.server == 'prod'
+        uses: actions/download-artifact@v4
+        with:
+          name: canary-dot-next-${{ github.run_id }}-${{ github.run_attempt }}
+          # download-artifact paths are relative to the repo root, not the job's
+          # working-directory — land the tarball inside terminal/ for the unpack step.
+          path: terminal
+      - name: Unpack production build
+        if: matrix.server == 'prod'
+        run: |
+          rm -rf .next
+          tar -xzf dot-next.tar.gz
+          rm dot-next.tar.gz
+      - name: Cold dev cache
+        if: matrix.server == 'dev'
+        run: rm -rf .next/dev
+      - name: Run Playwright (timed)
+        id: run
+        run: |
+          set -uo pipefail
+          cfg=()
+          [ "$CANARY_SERVER" = "prod" ] && cfg=(-c playwright.prodbuild.config.ts)
+          mapfile -t specs < e2e/canary/prodbuild-subset.txt
+          t0=$(date +%s)
+          rc=0
+          npm run test:e2e:responsive -- "${cfg[@]}" \
+            --project=desktop \
+            --workers="$CANARY_WORKERS" \
+            --reporter=list,json \
+            --output="test-results/canary-$CANARY_SERVER-w$CANARY_WORKERS-r$CANARY_REPEAT" \
+            "${specs[@]}" || rc=$?
+          wall=$(( $(date +%s) - t0 ))
+          printf 'wall_seconds=%s\nrc=%s\n' "$wall" "$rc" >> "$GITHUB_OUTPUT"
+          exit "$rc"
+      - name: Write leg summary
+        if: always()
+        shell: python3 -I {0}
+        env:
+          SERVER: ${{ matrix.server }}
+          WORKERS: ${{ matrix.workers }}
+          REPEAT: ${{ matrix.repeat }}
+          REPORT_FILE: canary-report-${{ matrix.server }}-w${{ matrix.workers }}-r${{ matrix.repeat }}.json
+          WALL_SECONDS: ${{ steps.run.outputs.wall_seconds }}
+          RC: ${{ steps.run.outputs.rc }}
+        run: |
+          import json, os, sys
+          # cwd is terminal/ (job defaults).
+          try:
+              r = json.load(open(os.environ["REPORT_FILE"]))
+              st = r.get("stats", {})
+              dur = []
+              def walk(su):
+                  for sp in su.get("specs", []):
+                      for t in sp.get("tests", []):
+                          dur.append(sum(x.get("duration", 0) for x in t.get("results", [])) / 1000)
+                  for c in su.get("suites", []):
+                      walk(c)
+              for su in r.get("suites", []):
+                  walk(su)
+              passed = st.get("expected", 0)
+              failed = st.get("unexpected", 0)
+              flaky = st.get("flaky", 0)
+              skipped = st.get("skipped", 0)
+              sum_test_s = round(sum(dur), 1)
+          except Exception as exc:
+              print(f"::warning::could not parse Playwright JSON report: {exc}", file=sys.stderr)
+              passed = failed = flaky = skipped = 0
+              sum_test_s = 0.0
+          wall = int(os.environ["WALL_SECONDS"] or 0)
+          summary = {
+              "server": os.environ["SERVER"],
+              "workers": int(os.environ["WORKERS"]),
+              "repeat": int(os.environ["REPEAT"]),
+              "wall_seconds": wall,
+              "passed": passed,
+              "failed": failed,
+              "flaky": flaky,
+              "skipped": skipped,
+              "sum_test_seconds": sum_test_s,
+              "nproc": os.cpu_count(),
+              "rc": int(os.environ["RC"] or 1),
+          }
+          out_dir = f"test-results/canary-{summary['server']}-w{summary['workers']}-r{summary['repeat']}"
+          os.makedirs(out_dir, exist_ok=True)
+          with open(os.path.join(out_dir, "summary.json"), "w") as fh:
+              json.dump(summary, fh, indent=1)
+          gh_summary = os.environ.get("GITHUB_STEP_SUMMARY")
+          if gh_summary:
+              with open(gh_summary, "a") as fh:
+                  fh.write(f"### Leg {summary['server']} w{summary['workers']} r{summary['repeat']}\n")
+                  fh.write(f"- wall: {wall}s · passed: {passed} · failed: {failed} · flaky: {flaky} · skipped: {skipped}\n")
+                  fh.write(f"- sum(test durations): {sum_test_s}s · nproc: {summary['nproc']}\n\n")
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: canary-leg-${{ matrix.server }}-w${{ matrix.workers }}-r${{ matrix.repeat }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            terminal/test-results/canary-${{ matrix.server }}-w${{ matrix.workers }}-r${{ matrix.repeat }}/summary.json
+            terminal/canary-report-${{ matrix.server }}-w${{ matrix.workers }}-r${{ matrix.repeat }}.json
+          if-no-files-found: warn
+          retention-days: 1
+
+  canary-report:
+    name: canary-report
+    needs: [validate-inputs, canary-legs]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      EXPECTED_REPEATS: ${{ needs.validate-inputs.outputs.repeats }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: canary-leg-*-${{ github.run_id }}-${{ github.run_attempt }}
+          path: legs
+          merge-multiple: true
+      - name: Aggregate dev/prod ratio table
+        shell: python3 -I {0}
+        run: |
+          import glob, json, os, statistics, sys
+          raw_repeats = os.environ.get("EXPECTED_REPEATS", "")
+          if not raw_repeats:
+              # validate-inputs failed (bad repeats/ref) or was cancelled; the run is
+              # already red upstream — say so plainly instead of crashing on int("").
+              print("::error::validate-inputs did not produce a repeats bound; see its job log")
+              sys.exit(1)
+          repeats = int(raw_repeats)
+          expected = [(s, w, r) for s in ("dev", "prod") for w in (1, 2) for r in range(1, repeats + 1)]
+          found = {}
+          for p in sorted(glob.glob("legs/**/summary.json", recursive=True)):
+              try:
+                  r = json.load(open(p))
+                  found[(r["server"], r["workers"], r["repeat"])] = r
+              except Exception as exc:
+                  print(f"::warning::skip {p}: {exc}", file=sys.stderr)
+          missing = [k for k in expected if k not in found]
+          if not found:
+              print("::error::no leg summaries found — every leg failed before upload")
+              sys.exit(1)
+          lines = ["## Canary legs (per-leg pass/fail)", "",
+                   "| Server | Workers | Repeat | Wall (s) | Passed | Failed | Flaky | Skipped | Sum-test (s) | nproc | rc |",
+                   "|---|---|---|---|---|---|---|---|---|---|---|"]
+          for key in expected:
+              r = found.get(key)
+              if r is None:
+                  continue
+              lines.append(f"| {r['server']} | {r['workers']} | {r['repeat']} | {r['wall_seconds']} | {r['passed']} | {r['failed']} | {r['flaky']} | {r['skipped']} | {r['sum_test_seconds']} | {r['nproc']} | {r['rc']} |")
+          if missing:
+              lines.append("")
+              lines.append("### Legs with NO summary (failed before upload — setup/checkout/timeout)")
+              for s, w, r in missing:
+                  lines.append(f"- {s} w{w} r{r}")
+              print(f"::warning::{len(missing)} leg(s) produced no summary: {missing}")
+          # Group by (server, workers) for the ratio table.
+          groups = {}
+          for r in found.values():
+              groups.setdefault((r["server"], r["workers"]), []).append(r)
+          lines.extend(["", "## Dev / prod ratio (median across repeats)", "",
+                        "| Workers | Wall ratio dev/prod | Sum-test ratio dev/prod | Prod failures (total) | Prod flaky |",
+                        "|---|---|---|---|---|"])
+          for workers in (1, 2):
+              ds = groups.get(("dev", workers))
+              ps = groups.get(("prod", workers))
+              if ds and ps:
+                  d_wall = statistics.median(r["wall_seconds"] for r in ds)
+                  p_wall = statistics.median(r["wall_seconds"] for r in ps)
+                  d_sum = statistics.median(r["sum_test_seconds"] for r in ds)
+                  p_sum = statistics.median(r["sum_test_seconds"] for r in ps)
+                  p_fail = sum(r["failed"] for r in ps)
+                  p_flaky = sum(r["flaky"] for r in ps)
+                  wr = d_wall / p_wall if p_wall > 0 else float("nan")
+                  sr = d_sum / p_sum if p_sum > 0 else float("nan")
+                  lines.append(f"| {workers} | {wr:.2f}x | {sr:.2f}x | {p_fail} | {p_flaky} |")
+              else:
+                  lines.append(f"| {workers} | n/a (missing {'dev' if not ds else 'prod'} legs) | n/a | n/a | n/a |")
+          body = "\n".join(lines) + "\n"
+          print(body)
+          gh = os.environ.get("GITHUB_STEP_SUMMARY")
+          if gh:
+              with open(gh, "a") as fh:
+                  fh.write(body)
