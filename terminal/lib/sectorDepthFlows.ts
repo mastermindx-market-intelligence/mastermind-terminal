@@ -419,6 +419,20 @@ export const CARRIED_FLOW_LABELS: readonly string[] = Object.keys(
   CARRIED_LABEL_TO_WINDOW,
 );
 
+/** R2-N1/R3-N5: resolve a carried window label by OWNERSHIP. The label set is
+ * closed: a name that is not an OWN key of CARRIED_LABEL_TO_WINDOW —
+ * including prototype names like "constructor"/"toString" and a JSON-parsed
+ * own "__proto__" — is not a window. Exported because this seam is where the
+ * ownership law is directly pinnable: the end-to-end reader refuses such
+ * labels too, but a prototype name that slipped past this lookup would
+ * resolve through Object.prototype, so the unit pin here is the one that
+ * fails when the hasOwn below is reverted. */
+export function carriedWindowOf(label: unknown): FlowWindow | undefined {
+  return Object.hasOwn(CARRIED_LABEL_TO_WINDOW, label as string)
+    ? CARRIED_LABEL_TO_WINDOW[label as string]
+    : undefined;
+}
+
 /** Stated upper bound on the carried fund count (review S3). The committed
  * producer emits the fixed 11-fund sector-SPDR complex; 64 is a generous
  * sanity ceiling (~6× the real set) for an owner that widens coverage. A
@@ -494,9 +508,7 @@ export function flowsFromCarriedBlock(block: unknown): FlowsData | null {
     if (typeof w !== "object" || w === null) return null;
     // Closed label set by OWNERSHIP (R2-N1): an inherited name like
     // "constructor" must resolve to undefined, not to Object.prototype's.
-    const win = Object.hasOwn(CARRIED_LABEL_TO_WINDOW, w.label as string)
-      ? CARRIED_LABEL_TO_WINDOW[w.label as string]
-      : undefined;
+    const win = carriedWindowOf(w.label);
     if (win === undefined) return null; // closed label set
     // S4: the label must match its trading-day count exactly — the contract
     // table is 1/3/5/10/21 integers, and the producer pins the same table.

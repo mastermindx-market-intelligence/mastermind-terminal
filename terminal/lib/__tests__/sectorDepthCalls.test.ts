@@ -891,7 +891,11 @@ describe("S2 — component boundary: malformed payloads render unavailable, neve
     const markup = renderBoard(null);
     expect(markup).toContain("Macro sector generation");
     expect(markup).toContain("the action board");
-    expect(markup).not.toContain("macro_sector_generation");
+    // R3-N1: the raw owner id rides data-owner-id for triage, but the READER
+    // text (tags stripped) never shows the wire id.
+    const readerText = markup.replace(/<[^>]+>/g, " ");
+    expect(readerText).not.toContain("macro_sector_generation");
+    expect(markup).toContain('data-owner-id="macro_sector_generation"');
     const watchMarkup = renderWatch(null);
     expect(watchMarkup).toContain("Macro sector generation");
     expect(watchMarkup).toContain("the bottoming watch");
