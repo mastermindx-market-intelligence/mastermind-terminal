@@ -105,6 +105,17 @@ describe("forecast heads reader (FIXTURE wire: sector_cycles.forecast_heads.v1)"
     ).toBe("invalid");
   });
 
+  it("NEW-1: a block-level key outside the contract refuses the whole block", () => {
+    // The producer emits exactly ten block-level fields. An extra key — an
+    // authority claim the producer never made, or an estimate number — is a
+    // contract violation: nothing outside the published fields is read.
+    for (const extra of [{ may_publish: true }, { may_alert: 1 }, { p_one_sided: 0.018 }]) {
+      const r = forecastHeadsReading({ forecast_heads: { ...wireBlock(), ...extra } });
+      expect(r.state, JSON.stringify(extra)).toBe("invalid");
+      expect(r.heads, JSON.stringify(extra)).toEqual([]);
+    }
+  });
+
   it("S4: every authority flag must be present and exactly false", () => {
     for (const bad of [
       { may_trade: "true" },

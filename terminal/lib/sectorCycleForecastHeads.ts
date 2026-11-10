@@ -19,9 +19,11 @@ import { object, text } from "./sectorIntelligence";
  *
  * This reader never invents a field, never re-dates a value, and never
  * surfaces a number: a head reading carries status/reason/target/horizon
- * text only. The strict key allowlist is the no-number invariant — a head
- * that tries to carry an estimate field outside the published contract is
- * refused per head (withheld, payload_invalid), never partially drawn.
+ * text only. The strict key allowlists — block and head alike — are the
+ * no-number invariant: a head that tries to carry an estimate field outside
+ * the published contract is refused per head (withheld, payload_invalid),
+ * never partially drawn, and a block carrying any key the producer cannot
+ * emit is refused whole (NEW-1, r2 review).
  * ──────────────────────────────────────────────────────────────────────────── */
 
 export const FORECAST_HEADS_SCHEMA = "sector_cycles.forecast_heads.v1";
@@ -56,6 +58,21 @@ const AUTHORITY_FLAGS = [
   "may_trade",
   "may_escalate",
 ] as const;
+
+/** The published block-level fields, exactly — these ten and nothing else
+ * (NEW-1, r2 review). A block carrying any key outside this set — an extra
+ * authority claim like `may_publish`/`may_alert`, or an estimate number like
+ * `p_one_sided` — is a contract violation and refuses the whole block,
+ * mirroring the head-level allowlist: nothing outside the published fields
+ * is ever interpreted. */
+const BLOCK_WIRE_FIELDS = new Set<string>([
+  "schema",
+  "observed_cycles",
+  "protocol",
+  "report_ref",
+  "heads",
+  ...AUTHORITY_FLAGS,
+]);
 
 export interface ForecastHeadEvidence {
   protocol: string | null;
@@ -165,6 +182,14 @@ export function forecastHeadsReading(record: unknown): ForecastHeadsReading {
   // nested inside an `authority` object, all refuse the block.
   if (block.authority !== undefined && block.authority !== null) {
     return { ...ABSENT, state: "invalid", schema: FORECAST_HEADS_SCHEMA };
+  }
+  // NEW-1 (r2 review): the block's own keys are an exact allowlist — the
+  // producer emits exactly the ten published fields. Any other key, even a
+  // harmless-looking one, refuses the block before a single head is read.
+  for (const field of Object.keys(block)) {
+    if (!BLOCK_WIRE_FIELDS.has(field)) {
+      return { ...ABSENT, state: "invalid", schema: FORECAST_HEADS_SCHEMA };
+    }
   }
   for (const flag of AUTHORITY_FLAGS) {
     if (block[flag] !== false) {

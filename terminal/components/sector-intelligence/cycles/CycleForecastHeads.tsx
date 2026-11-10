@@ -29,7 +29,9 @@ const HEAD_NAME_KEY: Record<ForecastHeadKey, string> = {
  * target-before-invalidation head measures where the current leg tends to
  * reach (+1× before −1× trailing volatility) — a leg-direction fact, not a
  * cycle-timing edge. The transition-time head measures when the next turn
- * becomes first-known — a timing quantity, so it carries no such note. */
+ * becomes first-known — a timing quantity, so it carries no such note.
+ * The note describes the head's own TARGET, so a payload_invalid head —
+ * whose target could not be read — never shows it (NEW-2, r2 review). */
 const DIRECTION_HEADS: ReadonlySet<ForecastHeadKey> = new Set([
   "target_before_invalidation",
 ]);
@@ -79,7 +81,7 @@ export default function CycleForecastHeads(props: { reading: ForecastHeadsReadin
                       {t("scHeadHorizon", { n: head.horizonSessions })}
                     </span>
                   )}
-                  {DIRECTION_HEADS.has(head.key) && (
+                  {DIRECTION_HEADS.has(head.key) && head.reasonCode !== "payload_invalid" && (
                     <span className={s.headMeta}>{t("scHeadDirectional")}</span>
                   )}
                   {(head.evidence.protocol !== null || head.evidence.reportRef !== null) && (

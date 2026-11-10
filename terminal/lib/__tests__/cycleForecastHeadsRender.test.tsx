@@ -133,6 +133,17 @@ describe("CycleForecastHeads render (reviewer probes P2/P6/P10/N3 permanent)", (
     expect(rowText("adverse_tail")).not.toContain("Leg-direction fact");
   });
 
+  it("NEW-2: a payload_invalid target head skips the leg-direction note", () => {
+    // The note describes the head's TARGET; a payload_invalid head has no
+    // readable target, so the note never rides a contract-mismatch row.
+    const { rowText } = renderCard(
+      producerBlock({ target_before_invalidation: head({ p_estimate: 0.62 }) }),
+    );
+    expect(rowText("target_before_invalidation")).toContain("did not match its published contract");
+    expect(rowText("target_before_invalidation")).not.toContain("Leg-direction fact");
+    expect(rowText("transition_time")).not.toContain("Leg-direction fact");
+  });
+
   it("N4: a payload_invalid head renders its contract-mismatch line, never an implied qualified forecast", () => {
     const { rowText } = renderCard(
       producerBlock({ transition_time: head({ status: "qualified" }) }),
