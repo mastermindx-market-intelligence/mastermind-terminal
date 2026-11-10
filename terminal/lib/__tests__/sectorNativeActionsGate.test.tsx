@@ -112,6 +112,75 @@ describe("SectorNativeActions admission gate (SF-3)", () => {
   });
 });
 
+describe("SectorNativeActions — item 4 (COO 19:15Z): every mount path of all four action components sits behind the SF-3 gate", () => {
+  // Audit answer this describe pins: SectorNativeActions is the ONLY importer of
+  // the four actions/ components, and both guards (no command/subject/symbol;
+  // !saveAdmitted || !principal) precede every mount. The closed-state proofs
+  // below search the WHOLE host — not just the gated section — so a control
+  // hoisted above the gate cannot escape them.
+  let root: Root, host: HTMLDivElement;
+  beforeEach(() => { host = document.createElement("div"); document.body.append(host); root = createRoot(host); });
+  afterEach(() => { act(() => root.unmount()); host.remove(); });
+
+  const flush = () => act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
+  const mount = async () => {
+    await act(async () => { root.render(<SectorNativeActions context={context} />); });
+    await flush();
+  };
+  const button = (text: string) => [...host.querySelectorAll("button")].find(b => b.textContent === text);
+
+  it("admitted mounts Save, ArmWatch and Note inside the gated section; Check stays closed until a save is in flight", async () => {
+    await mount();
+    expect(host.querySelector('[data-testid="sector-native-actions"]')).not.toBeNull();
+    expect(button("Save")).toBeDefined();                       // SaveInvestigationButton
+    expect(host.querySelector("select")).not.toBeNull();       // ArmWatchControl's direction select
+    expect(host.querySelector('input[type="number"]')).not.toBeNull(); // its threshold field
+    expect(button("Watch")).toBeDefined();                      // its arm button
+    expect(host.querySelector("textarea")).not.toBeNull();     // SymbolNoteField
+    // CheckSaveStatusButton mounts ONLY for pending/uncertain save states.
+    expect(button("Check save status")).toBeUndefined();
+  });
+
+  it("not admitted — none of the four renders anywhere in the host, and nothing posts", async () => {
+    probe = () => new Response("unavailable", { status: 503 });
+    await mount();
+    expect(host.querySelector('[data-testid="sector-native-actions"]')).toBeNull();
+    // Whole-host proof, not section-scoped: no control of any of the four
+    // exists, inside or outside a wrapper.
+    expect(host.querySelector("button, select, input, textarea")).toBeNull();
+    expect(button("Save")).toBeUndefined();
+    expect(button("Watch")).toBeUndefined();
+    expect(button("Check save status")).toBeUndefined();
+    expect(calls.filter(call => call.method === "POST")).toHaveLength(0);
+  });
+
+  it("no generation/subject — the whole surface is absent and no probe even fires", async () => {
+    const bare = { ...context, generation: null, subject: null } as SectorNativeContext;
+    await act(async () => { root.render(<SectorNativeActions context={bare} />); });
+    await flush();
+    expect(host.querySelector('[data-testid="sector-native-actions"]')).toBeNull();
+    expect(host.querySelector("button, select, input, textarea")).toBeNull();
+    expect(calls).toHaveLength(0); // the effect guards on subjectId: zero probes
+  });
+
+  it("Check save status mounts only in the pending/uncertain path, still behind the gate", async () => {
+    // A save whose answer settles to "uncertain" (non-JSON 503) leaves the save
+    // state machine in pending/uncertain — the ONLY world where Check mounts.
+    saveAnswer = () => new Response("unavailable", { status: 503 });
+    await mount();
+    await act(async () => { button("Save")!.click(); });
+    await flush();
+    expect(host.querySelector('[data-testid="sector-native-actions"]')).not.toBeNull();
+    const check = button("Check save status");
+    expect(check).toBeDefined();
+    // It lives INSIDE the gated section, and driving it stays on the read path.
+    expect(host.querySelector('[data-testid="sector-native-actions"]')!.contains(check!)).toBe(true);
+    await act(async () => { check!.click(); });
+    await flush();
+    expect(calls.filter(call => call.method === "POST")).toHaveLength(1); // only the save
+  });
+});
+
 describe("SectorNativeActions save command re-mints for a switched account (N-D)", () => {
   let root: Root, host: HTMLDivElement;
   beforeEach(() => { host = document.createElement("div"); document.body.append(host); root = createRoot(host); });
