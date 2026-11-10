@@ -132,7 +132,15 @@ interface LensProps {
   cyclesFeed?: SectorCycleFeed;
   historyFeed?: SectorCycleFeed;
   returnBinding?: "self" | "host";
-  gen?: typeof generation;
+  gen?: typeof generation | null;
+  /** Lane-3 mount context (TERMINAL_SLOTS.md §2): generation through context. */
+  context?: {
+    generation: unknown;
+    transport?: "ready" | "access" | "unavailable" | "error" | "invalid" | "loading";
+    qualification?: "accepted" | "stale" | "degraded" | null;
+    subject?: { id: string } | null;
+  } | null;
+  subject?: { family: "sectors" | "baskets" | "nasdaq" | "russell"; id: string | null } | null;
 }
 
 function mountLens(initial: LensProps) {
@@ -146,10 +154,11 @@ function mountLens(initial: LensProps) {
       root.render(
         <LangProvider>
           <SectorCycleLens
-            generation={props.gen ?? generation}
-            subject={{ family: "sectors", id: "xlk" }}
+            generation={(props.gen === undefined ? generation : props.gen) ?? null}
+            context={props.context}
+            subject={props.subject === undefined ? { family: "sectors", id: "xlk" } : props.subject}
             region="us"
-            accessGeneration={props.gen?.accessGeneration ?? "ag-1"}
+            accessGeneration={(props.gen ?? generation).accessGeneration}
             returnBinding={props.returnBinding ?? "host"}
             captureRef={handle}
             cyclesFeed={props.cyclesFeed}
@@ -175,10 +184,11 @@ function mountLens(initial: LensProps) {
       root.render(
         <LangProvider>
           <SectorCycleLens
-            generation={props.gen ?? generation}
-            subject={{ family: "sectors", id: "xlk" }}
+            generation={(props.gen === undefined ? generation : props.gen) ?? null}
+            context={props.context}
+            subject={props.subject === undefined ? { family: "sectors", id: "xlk" } : props.subject}
             region="us"
-            accessGeneration={props.gen?.accessGeneration ?? "ag-1"}
+            accessGeneration={(props.gen ?? generation).accessGeneration}
             returnBinding={props.returnBinding ?? "host"}
             captureRef={handle}
             cyclesFeed={props.cyclesFeed}
@@ -450,6 +460,46 @@ describe("cycles controller: legacy core", () => {
       status: "rejected",
       reason: "view_unavailable",
     });
+    lens.unmount();
+  });
+});
+
+describe("cycles controller: lane-3 context mount (TERMINAL_SLOTS.md §2)", () => {
+  it("derives generation, subject and staleness from the context", () => {
+    const lens = mountLens({
+      gen: null,
+      context: { generation, transport: "ready", qualification: "stale", subject: { id: "xlf" } },
+      subject: null,
+      cyclesFeed: { state: "ready", data: deepCycles() },
+      historyFeed: { state: "ready", data: historyPayload() },
+    });
+    expect(lensRoot()).not.toBeNull();
+    // Subject came from the context (xlf), not the default prop (xlk).
+    expect(lens.handle.current!.captureView()).toMatchObject({ id: "xlf" });
+    // qualification: "stale" marks the ready feed as a historical snapshot.
+    expect(lensRoot()?.textContent).toContain("Historical snapshot");
+    lens.unmount();
+  });
+
+  it("context transport 'access' renders the denied screen", () => {
+    const lens = mountLens({
+      gen: null,
+      context: { generation, transport: "access" },
+      cyclesFeed: { state: "ready", data: deepCycles() },
+      historyFeed: { state: "ready", data: historyPayload() },
+    });
+    expect(lensRoot()?.textContent).toContain("Cycle evidence is not available with this access");
+    expect(document.querySelector('[data-testid="cycle-phase-rail"]')).toBeNull();
+    lens.unmount();
+  });
+
+  it("context transport 'unavailable' with no feeds withholds everything", () => {
+    const lens = mountLens({
+      gen: null,
+      context: { generation, transport: "unavailable" },
+    });
+    expect(lensRoot()?.textContent).toContain("Cycle evidence unavailable");
+    expect(document.querySelector('[data-testid="cycle-phase-rail"]')).toBeNull();
     lens.unmount();
   });
 });

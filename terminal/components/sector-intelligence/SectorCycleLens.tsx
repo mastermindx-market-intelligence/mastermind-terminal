@@ -95,9 +95,25 @@ const familyKindKey: Record<CycleFamily, string> = {
   russell: "scKindIndex",
 };
 
+/** Lane-3 mount context (TERMINAL_SLOTS.md §2), accepted STRUCTURALLY: this
+ * mirrors SectorNativeContext's shape so lane 3's type assigns as-is when
+ * SectorNativeSlots.tsx lands; lane 4 never owns or redefines the contract.
+ * The lens still fetches nothing — the mount passes the feeds it consumed. */
+export interface SectorCycleContextInput {
+  /** NativeSectorGeneration | null; null ⇒ source refused/invalid/unloaded. */
+  generation: unknown;
+  transport?: "ready" | "access" | "unavailable" | "error" | "invalid" | "loading";
+  qualification?: "accepted" | "stale" | "degraded" | null;
+  subject?: { id: string; ticker?: string; name?: string; nameZh?: string } | null;
+  language?: "en" | "zh";
+  theme?: "dark" | "light";
+}
+
 export interface SectorCycleLensProps {
   /** The generation this view is bound to; every depth is checked against it. */
   generation: SectorCycleGeneration | null;
+  /** Lane-3 workspace mount context; explicit props win where both exist. */
+  context?: SectorCycleContextInput | null;
   /** Initial subject selection (family + id); the user owns it afterwards. */
   subject?: { family: CycleFamily; id: string | null } | null;
   region: "us";
@@ -126,10 +142,41 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
   const t = useSectorCycleT();
   const zh = useLang().lang === "zh";
 
+  /* ── Input normalization: props win, the lane-3 context fills the gaps ── */
+  const ctx = props.context ?? null;
+  const genInput: SectorCycleGeneration | null = isSectorCycleGeneration(props.generation)
+    ? props.generation
+    : isSectorCycleGeneration(ctx?.generation)
+      ? ctx.generation
+      : null;
+  const subjectInput: { family: CycleFamily; id: string | null } | null =
+    props.subject ??
+    (ctx?.subject?.id ? { family: "sectors", id: ctx.subject.id } : null);
+  const denyAccessInput: "denied" | "unauthenticated" | null =
+    props.denyAccess ?? (ctx?.transport === "access" ? "denied" : null);
+  const ctxStale = ctx?.qualification === "stale";
+  const ctxFeed = (
+    feed: SectorCycleFeed | undefined,
+    stale: boolean,
+  ): SectorCycleFeed | undefined => {
+    if (feed) return stale && feed.state === "ready" ? { ...feed, state: "stale" } : feed;
+    if (ctx?.transport === "loading") return { state: "loading" };
+    if (
+      ctx?.transport === "unavailable" ||
+      ctx?.transport === "error" ||
+      ctx?.transport === "invalid"
+    )
+      return { state: "unavailable" };
+    return undefined;
+  };
+  const cyclesFeed = ctxFeed(props.cyclesFeed, ctxStale);
+  const historyFeed = ctxFeed(props.historyFeed, ctxStale);
+  const eventsFeed = ctxFeed(props.eventsFeed, false);
+
   /* ── User state (family/range/scale survive a generation change; everything
    * bound to one subject's data is retired by the generation-key effect). */
-  const [family, setFamily] = useState<CycleFamily>(props.subject?.family ?? "sectors");
-  const [subjectId, setSubjectId] = useState<string | null>(props.subject?.id ?? null);
+  const [family, setFamily] = useState<CycleFamily>(subjectInput?.family ?? "sectors");
+  const [subjectId, setSubjectId] = useState<string | null>(subjectInput?.id ?? null);
   const [rangeLimit, setRangeLimit] = useState(63);
   const [rangeOverride, setRangeOverride] = useState<[number, number] | null>(null);
   const [scale, setScale] = useState<"linear" | "log">("linear");
@@ -145,21 +192,21 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
 
   /* ── Generation + feeds */
-  const gen = isSectorCycleGeneration(props.generation) ? props.generation : null;
+  const gen = genInput;
   const returnBinding = props.returnBinding ?? "host";
-  const payload = props.cyclesFeed?.data;
+  const payload = cyclesFeed?.data;
   const evidence = object(object(payload).evidence);
   const gate = publicationGate(evidence, {
     publicationId: gen?.publicationId ?? null,
     region: "us",
   });
   const deepReady = gate.state === "ready" && gen !== null;
-  const history = feedUsable(props.historyFeed)
-    ? cycleHistoryForGeneration(sectorRotationHistory(props.historyFeed!.data), gen)
+  const history = feedUsable(historyFeed)
+    ? cycleHistoryForGeneration(sectorRotationHistory(historyFeed!.data), gen)
     : null;
   const universe: CycleReading[] =
-    feedUsable(props.historyFeed) && gen
-      ? cycleUniverse(props.historyFeed!.data, gen.asOf, history)
+    feedUsable(historyFeed) && gen
+      ? cycleUniverse(historyFeed!.data, gen.asOf, history)
       : [];
   const mode: "deep" | "legacy" | null = deepReady
     ? "deep"
@@ -246,7 +293,7 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
   const read = cycleRead(record);
   const story = cycleStory(record, gen);
   const episodes = episodesForGeneration(
-    feedUsable(props.eventsFeed) ? sectorRotationEpisodes(props.eventsFeed!.data) : null,
+    feedUsable(eventsFeed) ? sectorRotationEpisodes(eventsFeed!.data) : null,
     gen,
   );
   const grader = cycleGrader(payload);
@@ -366,7 +413,7 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
     state:
       mode === null
         ? "unavailable"
-        : props.cyclesFeed?.state === "stale"
+        : cyclesFeed?.state === "stale"
           ? "stale"
           : "ready",
     subjectId: effectiveSubjectId,
@@ -560,7 +607,7 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
   const selectedLeg = legs.find((l) => l.id === selectedLegId) ?? null;
 
   /* ── Access / data status screens */
-  if (props.denyAccess === "unauthenticated" || props.denyAccess === "denied") {
+  if (denyAccessInput === "unauthenticated" || denyAccessInput === "denied") {
     return (
       <section className={s.lens} data-testid="sector-cycle-lens">
         <header className={s.top}>
@@ -568,7 +615,7 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
         </header>
         <div className={s.statusScreen} role="status">
           <p className={s.banner}>
-            {t(props.denyAccess === "denied" ? "scDenied" : "scUnauthenticated")}
+            {t(denyAccessInput === "denied" ? "scDenied" : "scUnauthenticated")}
           </p>
         </div>
       </section>
@@ -577,8 +624,8 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
   if (mode === null) {
     const loading =
       gate.state === "loading" ||
-      (props.cyclesFeed?.state === "loading" && props.historyFeed?.state !== "ready") ||
-      (props.historyFeed?.state === "loading" && props.cyclesFeed?.state !== "ready");
+      (cyclesFeed?.state === "loading" && historyFeed?.state !== "ready") ||
+      (historyFeed?.state === "loading" && cyclesFeed?.state !== "ready");
     const headline = loading
       ? "scLoading"
       : gate.state === "incompatible_generation"
@@ -621,7 +668,7 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
           <h2>{t("scTitle")}</h2>
           <p className={s.note}>
             {t("scAsOf")} {gen?.asOf} · {t(familyLabelKey[effectiveFamily])}
-            {props.cyclesFeed?.state === "stale" && (
+            {cyclesFeed?.state === "stale" && (
               <span className={s.chipQuiet}>{t("scStaleChip")}</span>
             )}
           </p>
