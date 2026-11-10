@@ -1,0 +1,421 @@
+{
+  "operation": "terminal-pr-duty-20261110-1232-breadth-current-web4",
+  "sourceHead": "a9024909bbc0aab2fb41c6f11fbb3ff44530f6fd",
+  "sourceTree": "1ddc20b2bcc258a4ce1b5f3ff09f4c395b52efe1",
+  "protectedBase": "ea8630f1b059dea7c57eae1a844db9f8b9201b97",
+  "startedAt": "2026-11-10T16:02:26.126005+00:00",
+  "state": "BROWSER_QUALIFIED",
+  "command": [
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/sector-breadth.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--reporter=line,json",
+    "--output=/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1232-breadth-current-web4/terminal/test-results/pr1232-current-breadth-20261110"
+  ],
+  "port": 47283,
+  "portBindBefore": "EXCLUSIVE_AVAILABLE",
+  "ciMode": false,
+  "retries": 0,
+  "existingServerReuse": false,
+  "inputCount": 6518,
+  "producerPid": 39699,
+  "producerExit": 0,
+  "seconds": 83.551,
+  "producerFinishedAt": "2026-11-10T16:03:49.678340+00:00",
+  "observedPids": [
+    39699,
+    39819,
+    39885,
+    39966,
+    40331,
+    40375,
+    44465,
+    44520,
+    44584,
+    44588,
+    44646,
+    45245,
+    45747,
+    45914,
+    45936,
+    46338,
+    46619,
+    46654,
+    46668,
+    46669,
+    46690,
+    47061,
+    47156,
+    47168,
+    47189,
+    47489,
+    47599,
+    47998,
+    48094,
+    48119,
+    48128,
+    48129,
+    48139,
+    48155,
+    48180,
+    48297,
+    48550,
+    48577,
+    48662,
+    48953,
+    49211
+  ],
+  "observedGroups": [
+    39699,
+    39819,
+    44520,
+    46654,
+    48119
+  ],
+  "remainingGroups": [],
+  "portConnectAfter": 61,
+  "generatedTypeRestoration": [
+    {
+      "path": "terminal/next-env.d.ts",
+      "generatedSha256": "7ad303e40d4fddf44f156129e397511953a71481c5cfd86b1862649aaaf240cc",
+      "restoredSha256": "7b550dda9686c16f36a17bf9051d5dbf31e98555b30d114ac49fc49a1e712651"
+    }
+  ],
+  "changedInputs": [],
+  "inputHashesStable": true,
+  "headAfter": "a9024909bbc0aab2fb41c6f11fbb3ff44530f6fd",
+  "trackedStatusAfter": "",
+  "logSha256": "3cb66311d7c3ac9869fcb87489e8b32a1e9a107542a5315f6b54167ad23ebd69",
+  "stats": {
+    "startTime": "2026-11-10T16:02:27.235Z",
+    "duration": 82234.336,
+    "expected": 12,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "title": "breadth rank, velocity, search and sector drilldown in en",
+      "project": "desktop",
+      "status": "expected",
+      "expectedStatus": "passed",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 5529,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "breadth rank, velocity, search and sector drilldown in zh",
+      "project": "desktop",
+      "status": "expected",
+      "expectedStatus": "passed",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 4630,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "historical producer replay ranks eleven sectors and exposes the six closes",
+      "project": "desktop",
+      "status": "expected",
+      "expectedStatus": "passed",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 3803,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "original monthly snapshot preserves ties and never presents rotation without history",
+      "project": "desktop",
+      "status": "expected",
+      "expectedStatus": "passed",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 1593,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "breadth rank, velocity, search and sector drilldown in en",
+      "project": "tablet",
+      "status": "expected",
+      "expectedStatus": "passed",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 4869,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "breadth rank, velocity, search and sector drilldown in zh",
+      "project": "tablet",
+      "status": "expected",
+      "expectedStatus": "passed",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 5125,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "historical producer replay ranks eleven sectors and exposes the six closes",
+      "project": "tablet",
+      "status": "expected",
+      "expectedStatus": "passed",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 3812,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "original monthly snapshot preserves ties and never presents rotation without history",
+      "project": "tablet",
+      "status": "expected",
+      "expectedStatus": "passed",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 1424,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "breadth rank, velocity, search and sector drilldown in en",
+      "project": "mobile",
+      "status": "expected",
+      "expectedStatus": "passed",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 4306,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "breadth rank, velocity, search and sector drilldown in zh",
+      "project": "mobile",
+      "status": "expected",
+      "expectedStatus": "passed",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 4588,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "historical producer replay ranks eleven sectors and exposes the six closes",
+      "project": "mobile",
+      "status": "expected",
+      "expectedStatus": "passed",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 3301,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "original monthly snapshot preserves ties and never presents rotation without history",
+      "project": "mobile",
+      "status": "expected",
+      "expectedStatus": "passed",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "duration": 1341,
+          "errors": []
+        }
+      ]
+    }
+  ],
+  "reportSha256": "b9009d6f7de2dee197a1a087a99a03bf197d02df1278d283d379ee114be332fa",
+  "pngs": [
+    {
+      "path": "test-results/pr1232-current-breadth-20261110/sector-breadth-breadth-ran-57372--and-sector-drilldown-in-en-desktop/composed-return-en-desktop.png",
+      "name": "composed-return-en-desktop.png",
+      "bytes": 180976,
+      "sha256": "aa1a72237b79069286fc90f226ade69291b27ab2147ca07724f4f6711e6dad50"
+    },
+    {
+      "path": "test-results/pr1232-current-breadth-20261110/sector-breadth-breadth-ran-57372--and-sector-drilldown-in-en-mobile/composed-return-en-mobile.png",
+      "name": "composed-return-en-mobile.png",
+      "bytes": 98718,
+      "sha256": "8a14ae39de81159799d4da95c341a03f1a5d0d302e678d0a35006ffa0b48dcc1"
+    },
+    {
+      "path": "test-results/pr1232-current-breadth-20261110/sector-breadth-breadth-ran-57372--and-sector-drilldown-in-en-tablet/composed-return-en-tablet.png",
+      "name": "composed-return-en-tablet.png",
+      "bytes": 171429,
+      "sha256": "cc814574d63358b554aa17ed60dff504386e817be64bee0c104acaf2dce284a4"
+    },
+    {
+      "path": "test-results/pr1232-current-breadth-20261110/sector-breadth-breadth-ran-93e5f--and-sector-drilldown-in-zh-desktop/composed-return-zh-desktop.png",
+      "name": "composed-return-zh-desktop.png",
+      "bytes": 186161,
+      "sha256": "eeba0cf31a459f010a813af6abf581868f911544cc019faa8348915f23383e78"
+    },
+    {
+      "path": "test-results/pr1232-current-breadth-20261110/sector-breadth-breadth-ran-93e5f--and-sector-drilldown-in-zh-mobile/composed-return-zh-mobile.png",
+      "name": "composed-return-zh-mobile.png",
+      "bytes": 99103,
+      "sha256": "c164c7731b46e2dea74296477890e311ba808593e63f7796878d06ca5161c599"
+    },
+    {
+      "path": "test-results/pr1232-current-breadth-20261110/sector-breadth-breadth-ran-93e5f--and-sector-drilldown-in-zh-tablet/composed-return-zh-tablet.png",
+      "name": "composed-return-zh-tablet.png",
+      "bytes": 182904,
+      "sha256": "b5e35c96fe6f5d72958193a40c2a18c102a8b5f5cc77fd379e117e6079ade7c8"
+    },
+    {
+      "path": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-desktop/attachments/Historical-replay-on-the-Terminal-route-fc04e0145caf803f1193690c58854005a0132cbb.png",
+      "name": "Historical-replay-on-the-Terminal-route-fc04e0145caf803f1193690c58854005a0132cbb.png",
+      "bytes": 187601,
+      "sha256": "d061c1d5de28bf1e285b4ff2c18df5bcf93e527b3a9832227bf7c19f568cdb6c"
+    },
+    {
+      "path": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-desktop/attachments/One-session-replay-in-Chinese-f5ab81ac334e0561025565b605f265eb769d0c80.png",
+      "name": "One-session-replay-in-Chinese-f5ab81ac334e0561025565b605f265eb769d0c80.png",
+      "bytes": 194315,
+      "sha256": "450956254431f04c9ec78cf2d01a32c37772ff514a8486034c6d2595c35c4d7b"
+    },
+    {
+      "path": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-desktop/historical-detail-desktop.png",
+      "name": "historical-detail-desktop.png",
+      "bytes": 66667,
+      "sha256": "de7e9cba879e0769a23327c008f900795d3679ae0c9dbcfeb5cbecf30d3255d5"
+    },
+    {
+      "path": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-desktop/historical-light-zh-desktop.png",
+      "name": "historical-light-zh-desktop.png",
+      "bytes": 194315,
+      "sha256": "450956254431f04c9ec78cf2d01a32c37772ff514a8486034c6d2595c35c4d7b"
+    },
+    {
+      "path": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-desktop/historical-replay-desktop.png",
+      "name": "historical-replay-desktop.png",
+      "bytes": 187601,
+      "sha256": "d061c1d5de28bf1e285b4ff2c18df5bcf93e527b3a9832227bf7c19f568cdb6c"
+    },
+    {
+      "path": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-desktop/rotation-groups-desktop.png",
+      "name": "rotation-groups-desktop.png",
+      "bytes": 61247,
+      "sha256": "393df99874bb829dfac07847c0b52caa31403b35ec95d3402c48159b19e394d1"
+    },
+    {
+      "path": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-mobile/attachments/Historical-replay-on-the-Terminal-route-bc279e7eb4d8a9dc43ec0574825f93c44063f27c.png",
+      "name": "Historical-replay-on-the-Terminal-route-bc279e7eb4d8a9dc43ec0574825f93c44063f27c.png",
+      "bytes": 97805,
+      "sha256": "722d92758cf30392e872fbd973839b88a85347c38b044a42f2b74f2deb3b62c4"
+    },
+    {
+      "path": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-mobile/attachments/One-session-replay-in-Chinese-62d159ba833c73528b7955d221ad8c74593729ab.png",
+      "name": "One-session-replay-in-Chinese-62d159ba833c73528b7955d221ad8c74593729ab.png",
+      "bytes": 100406,
+      "sha256": "ea81f353d236aad54e79fafa1dd3b0f7da51dba8292f230fc83846bde318cc32"
+    },
+    {
+      "path": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-mobile/historical-detail-mobile.png",
+      "name": "historical-detail-mobile.png",
+      "bytes": 61110,
+      "sha256": "17de95c3cb8e96219ea9b476428cdb87d8fa588c709d545001cfe0cf9d4b998c"
+    },
+    {
+      "path": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-mobile/historical-light-zh-mobile.png",
+      "name": "historical-light-zh-mobile.png",
+      "bytes": 100406,
+      "sha256": "ea81f353d236aad54e79fafa1dd3b0f7da51dba8292f230fc83846bde318cc32"
+    },
+    {
+      "path": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-mobile/historical-replay-mobile.png",
+      "name": "historical-replay-mobile.png",
+      "bytes": 97805,
+      "sha256": "722d92758cf30392e872fbd973839b88a85347c38b044a42f2b74f2deb3b62c4"
+    },
+    {
+      "path": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-mobile/rotation-groups-mobile.png",
+      "name": "rotation-groups-mobile.png",
+      "bytes": 60535,
+      "sha256": "7013f3b074a7cdd7abdc23b383d57b16b30363fb845019c71aedbdc57b55bb4c"
+    },
+    {
+      "path": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-tablet/attachments/Historical-replay-on-the-Terminal-route-6cd02b6ecac5fb585786f985229dd5c427e788f1.png",
+      "name": "Historical-replay-on-the-Terminal-route-6cd02b6ecac5fb585786f985229dd5c427e788f1.png",
+      "bytes": 186153,
+      "sha256": "8d813d17aefd4c066488cd30b6127eb463caab23d09a7c2ccda4612d67a90ec0"
+    },
+    {
+      "path": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-tablet/attachments/One-session-replay-in-Chinese-aff75bf7a364c8ae9ac6e17a9c412bbd9628ff10.png",
+      "name": "One-session-replay-in-Chinese-aff75bf7a364c8ae9ac6e17a9c412bbd9628ff10.png",
+      "bytes": 201273,
+      "sha256": "90c64be9daa35707d70ffaaf304cc14383025c04f57c3e6a9c371b3f320c5369"
+    },
+    {
+      "path": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-tablet/historical-detail-tablet.png",
+      "name": "historical-detail-tablet.png",
+      "bytes": 64918,
+      "sha256": "56397d4e39a4f983ece755d1a68aab93bae83b056e7b72a28267fa69246d1c34"
+    },
+    {
+      "path": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-tablet/historical-light-zh-tablet.png",
+      "name": "historical-light-zh-tablet.png",
+      "bytes": 201273,
+      "sha256": "90c64be9daa35707d70ffaaf304cc14383025c04f57c3e6a9c371b3f320c5369"
+    },
+    {
+      "path": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-tablet/historical-replay-tablet.png",
+      "name": "historical-replay-tablet.png",
+      "bytes": 186153,
+      "sha256": "8d813d17aefd4c066488cd30b6127eb463caab23d09a7c2ccda4612d67a90ec0"
+    },
+    {
+      "path": "test-results/pr1232-current-breadth-20261110/sector-breadth-historical--1707f--and-exposes-the-six-closes-tablet/rotation-groups-tablet.png",
+      "name": "rotation-groups-tablet.png",
+      "bytes": 62385,
+      "sha256": "17e3cc426af7d831c886a2639aa8336afdb5172b1e1e1cbe4c46e0d07feb0e24"
+    }
+  ],
+  "uniquePngCount": 18,
+  "finishedAt": "2026-11-10T16:03:52.140785+00:00"
+}
