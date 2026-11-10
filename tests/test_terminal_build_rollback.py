@@ -492,16 +492,28 @@ def test_identity_gate_rejects_missing_marker(tmp_path):
 # mutation kills — proof the logic above is load-bearing, not decorative
 # --------------------------------------------------------------------------
 
-def _mutate(tmp_path: Path, anchor: str, replacement: str) -> Path:
+def _mutate(tmp_path: Path, anchor: str, replacement: str, *more: tuple) -> Path:
+    """Write a mutant of the deploy script. `more` is further (anchor, replacement)
+    pairs, applied in order; every anchor must still be present exactly as given."""
     text = SCRIPT.read_text()
-    assert anchor in text, (
-        f"mutation anchor vanished from ops/terminal-build.sh:\n{anchor!r}\n"
-        "The mutation test cannot silently pass — update the anchor with the code."
-    )
+    for old, new in ((anchor, replacement), *more):
+        assert old in text, (
+            f"mutation anchor vanished from ops/terminal-build.sh:\n{old!r}\n"
+            "The mutation test cannot silently pass — update the anchor with the code."
+        )
+        text = text.replace(old, new, 1)
     mutant = tmp_path / "mutant-terminal-build.sh"
-    mutant.write_text(text.replace(anchor, replacement, 1))
+    mutant.write_text(text)
     mutant.chmod(0o755)
     return mutant
+
+
+# The exit path's own route into the single abort (cleanup_deploy_attempt): an
+# open, uncommitted production generation is rolled back there too. A mutant
+# that removes a guard in the deploy body must remove this as well before the
+# original abort-without-rollback defect can come back.
+EXIT_PATH_ABORT = 'if [ "$TARGET" = production ] && [ "${DEPLOY_GENERATION_OPEN:-0}" = 1 ] \\\n'
+NO_EXIT_PATH_ABORT = (EXIT_PATH_ABORT, 'if false \\\n')
 
 
 def test_mutant_without_marker_restoration_is_caught(tmp_path):
@@ -615,7 +627,16 @@ SHIMS = {
         '[ "$1" = stop ] && [ -n "${FAIL_STOP:-}" ] && { echo "systemctl: simulated stop failure" >&2; exit 1; }\n'
         'exit 0\n'
     ),
-    "curl": '#!/bin/sh\n[ -n "${FAIL_HEALTH:-}" ] && exit 22\nexit 0\n',
+    "curl": (
+        '#!/bin/sh\n'
+        # HOLD_HEALTH parks the post-restart health request, so a test can signal
+        # the deploy (or close its output) inside the health-check window.
+        'if [ -n "${HOLD_HEALTH:-}" ]; then\n'
+        '  : > "$HOLD_HEALTH.started"\n'
+        '  while [ ! -e "$HOLD_HEALTH.release" ]; do /bin/sleep 0.05; done\n'
+        'fi\n'
+        '[ -n "${FAIL_HEALTH:-}" ] && exit 22\nexit 0\n'
+    ),
     "sleep": "#!/bin/sh\nexit 0\n",
     "install": (
         '#!/bin/sh\n'
@@ -1226,6 +1247,7 @@ def test_mutant_unguarded_swap_move_is_caught(tmp_path):
         tmp_path,
         'if ! mv "$STAGE/.next" "$APP/.next"; then',
         'mv "$STAGE/.next" "$APP/.next"  # MUTANT: unguarded, set -e aborts\nif false; then',
+        NO_EXIT_PATH_ABORT,
     )
     proc, app = run_deploy(tmp_path, script=mutant, FAIL_MV_MATCH=".stage.")
     assert proc.returncode != 0
@@ -1234,12 +1256,28 @@ def test_mutant_unguarded_swap_move_is_caught(tmp_path):
     )
 
 
+def test_unguarded_swap_move_is_still_rolled_back_on_the_exit_path(tmp_path):
+    """The guard alone removed: `set -e` aborts, and the exit path finds the open
+    generation and takes it through the same abort."""
+    mutant = _mutate(
+        tmp_path,
+        'if ! mv "$STAGE/.next" "$APP/.next"; then',
+        'mv "$STAGE/.next" "$APP/.next"  # MUTANT: unguarded, set -e aborts\nif false; then',
+    )
+    proc, app = run_deploy(tmp_path, script=mutant, FAIL_MV_MATCH=".stage.")
+    assert proc.returncode != 0
+    assert marker_of(app) == OLD_SHA, proc.stdout + proc.stderr
+    assert live_build_id(app) == OLD_BUILD_ID, proc.stdout + proc.stderr
+    assert _service_actions(tmp_path) == ["systemctl restart terminal"]
+
+
 def test_mutant_unguarded_restart_is_caught(tmp_path):
     """Remove the restart guard -> `set -e` must abort before rollback again."""
     mutant = _mutate(
         tmp_path,
         'if ! systemctl restart terminal; then',
         'systemctl restart terminal  # MUTANT: unguarded, set -e aborts\nif false; then',
+        NO_EXIT_PATH_ABORT,
     )
     proc, app = run_deploy(tmp_path, script=mutant, FAIL_RESTART="1")
     assert proc.returncode != 0
@@ -1417,6 +1455,11 @@ def snapshot_dir(app: Path) -> Path:
     return app.parent / ".deps-rollback"
 
 
+def resolved_snapshot_dir(app: Path) -> Path:
+    """Where a snapshot lives between a completed restore and its reap."""
+    return app.parent / ".deps-rollback.resolved"
+
+
 def test_dependency_snapshot_restores_files_metadata_and_the_same_tree(tmp_path):
     app = make_deps_app(tmp_path)
     before = dependency_inputs(app)
@@ -1428,16 +1471,21 @@ def test_dependency_snapshot_restores_files_metadata_and_the_same_tree(tmp_path)
         {install_target_deps(app)}
         deps_snapshot_restore "{app}"
         echo "RC=$? OPEN=[$DEPS_SNAPSHOT_DIR] RESOLVED=[$DEPS_SNAPSHOT_RESOLVED_DIR]"
-        [ -d "{snapshot_dir(app)}/node_modules.failed" ] && echo "FAILED_TREE_KEPT_UNTIL_REAP"
+        [ -d "{resolved_snapshot_dir(app)}/node_modules.failed" ] && echo "FAILED_TREE_KEPT_UNTIL_REAP"
+        [ ! -e "{snapshot_dir(app)}" ] && echo "UNRESOLVED_NAME_RELEASED"
         deps_snapshot_reap
         echo "REAP_RC=$? RESOLVED=[$DEPS_SNAPSHOT_RESOLVED_DIR]"
+        [ ! -e "{resolved_snapshot_dir(app)}" ] && echo "REAPED"
     ''')
 
-    # The restore only puts things back and marks the snapshot resolved. Deleting
-    # it (the failed tree included) is a separate, later step: deps_snapshot_reap.
-    assert f"RC=0 OPEN=[] RESOLVED=[{snapshot_dir(app)}]" in r.stdout, r.stdout + r.stderr
+    # The restore only puts things back and marks the snapshot resolved, on disk
+    # as well as in memory: it takes the resolved name. Deleting it (the failed
+    # tree included) is a separate, later step: deps_snapshot_reap.
+    assert f"RC=0 OPEN=[] RESOLVED=[{resolved_snapshot_dir(app)}]" in r.stdout, r.stdout + r.stderr
     assert "FAILED_TREE_KEPT_UNTIL_REAP" in r.stdout, r.stdout + r.stderr
+    assert "UNRESOLVED_NAME_RELEASED" in r.stdout, r.stdout + r.stderr
     assert "REAP_RC=0 RESOLVED=[]" in r.stdout, r.stdout + r.stderr
+    assert "REAPED" in r.stdout, r.stdout + r.stderr
     assert dependency_inputs(app) == before
     assert (app / "node_modules" / "next" / "version").read_text() == "16.2.9\n"
     assert not snapshot_dir(app).exists(), "a reaped snapshot must not be left behind"
@@ -1516,6 +1564,56 @@ def test_stale_dependency_snapshot_is_discarded_loudly(tmp_path):
     assert "RC=0" in r.stdout, r.stdout + r.stderr
     assert dependency_inputs(app) == before
     assert not (app / "node_modules" / "ancient").exists()
+
+
+def test_resolved_snapshot_from_a_killed_attempt_is_purged_and_an_open_one_is_not(tmp_path):
+    """A snapshot whose restore completed holds only a failed attempt's tree. It
+    carries its own name, and only that name is ever purged at the start of a run:
+    an unresolved snapshot beside it is not this function's to touch."""
+    app = make_deps_app(tmp_path)
+    resolved, unresolved = resolved_snapshot_dir(app), snapshot_dir(app)
+    (resolved / "node_modules.failed" / "next").mkdir(parents=True)
+    (unresolved / "node_modules" / "next").mkdir(parents=True)
+    (unresolved / "package-lock.json").write_text("still owed to the live app\n")
+    before = dependency_inputs(app)
+
+    r = run_gen(SCRIPT, f'''
+        deps_snapshot_purge_resolved "{app}"
+        echo "RC=$?"
+    ''')
+
+    assert "RC=0" in r.stdout, r.stdout + r.stderr
+    assert "discarding a resolved dependency rollback snapshot left by an interrupted " \
+        f"earlier attempt: {resolved}" in r.stdout
+    assert not resolved.exists()
+    assert (unresolved / "package-lock.json").read_text() == "still owed to the live app\n"
+    assert (unresolved / "node_modules" / "next").is_dir()
+    assert dependency_inputs(app) == before
+
+    quiet = run_gen(SCRIPT, f'deps_snapshot_purge_resolved "{app}"; echo "RC=$?"')
+    assert quiet.stdout.strip() == "RC=0", quiet.stdout + quiet.stderr
+
+
+def test_restore_keeps_the_open_name_when_the_resolved_name_is_taken(tmp_path):
+    """The rename to the resolved name is a label, not a restoration leg: when the
+    name is occupied the restore still succeeds and the reap still deletes what
+    this attempt resolved, and nothing else."""
+    app = make_deps_app(tmp_path)
+    (resolved_snapshot_dir(app) / "someone-elses").mkdir(parents=True)
+    before = dependency_inputs(app)
+
+    r = run_gen(SCRIPT, f'''
+        deps_snapshot_begin "{app}" || exit 90
+        {install_target_deps(app)}
+        deps_snapshot_restore "{app}"
+        echo "RC=$? OPEN=[$DEPS_SNAPSHOT_DIR] RESOLVED=[$DEPS_SNAPSHOT_RESOLVED_DIR]"
+        deps_snapshot_reap
+    ''')
+
+    assert f"RC=0 OPEN=[] RESOLVED=[{snapshot_dir(app)}]" in r.stdout, r.stdout + r.stderr
+    assert dependency_inputs(app) == before
+    assert not snapshot_dir(app).exists()
+    assert (resolved_snapshot_dir(app) / "someone-elses").is_dir()
 
 
 def test_dependency_snapshot_refuses_a_non_regular_manifest(tmp_path):
@@ -1648,7 +1746,9 @@ def test_restore_is_rename_only_by_construction():
     )
     for writer in ("cp ", "cmp ", "install ", "mktemp", "rsync", "tar ", "rm -rf", " > "):
         assert writer not in code, f"the restore uses {writer!r}"
-    assert code.count("mv ") == 2, "tree back, then each saved file back: renames only"
+    assert code.count("mv ") == 3, (
+        "tree back, each saved file back, then the snapshot to its resolved name: renames only"
+    )
     assert "deps_file_sha256" in code
 
 
@@ -1729,10 +1829,13 @@ def make_dependency_incident_fixture(tmp_path: Path):
 def killed_build_exit(repo: Path, live: Path, marker: Path, old_sha: str, *,
                       snapshot: bool = True, status: str = "false",
                       armed: int = 1) -> str:
-    """Bash for: deps installed into the live app, then the attempt ends pre-swap."""
+    """Bash for: deps installed into the live app, then the attempt ends pre-swap.
+    Service effects are recorded, never executed (see exit_path_service_calls)."""
     return f'''
         SRC="{repo}"
         APP="{live}"
+        SERVICE_NAME=terminal
+        systemctl() {{ printf '%s\\n' "$*" >> "{live.parent}/service-calls"; }}
         DEPLOYMENT_MARKER="{marker}"
         CANONICAL_RECOVERY_SHA="{old_sha}"
         CANONICAL_RECOVERY_ARMED={armed}
@@ -1742,6 +1845,11 @@ def killed_build_exit(repo: Path, live: Path, marker: Path, old_sha: str, *,
         {status}
         cleanup_deploy_attempt
     '''
+
+
+def exit_path_service_calls(live: Path) -> list[str]:
+    calls = live.parent / "service-calls"
+    return calls.read_text().splitlines() if calls.exists() else []
 
 
 def release_preflight(repo: Path, receipts: Path, policy: Path) -> subprocess.CompletedProcess:
@@ -1768,8 +1876,9 @@ def test_killed_build_after_install_leaves_the_next_preflight_clean(tmp_path):
     )
     assert dependency_inputs(live) == before
     assert (live / "node_modules" / "next" / "version").read_text() == "16.2.9\n"
-    assert not snapshot_dir(live).exists()
+    assert not snapshot_dir(live).exists() and not resolved_snapshot_dir(live).exists()
     assert _git(repo, "rev-parse", "HEAD") == old_sha
+    assert exit_path_service_calls(live) == [], "a clean pre-swap recovery touched the service"
 
     # The consequence that bricked production: the NEXT deploy's preflight.
     nxt = release_preflight(repo, receipts, policy)
@@ -1829,20 +1938,27 @@ def test_dependency_restore_does_not_depend_on_the_canonical_recovery_leg(tmp_pa
     assert dependency_inputs(live) == before
 
 
-def test_failed_dependency_restore_is_fatal_and_retains_the_snapshot(tmp_path):
-    repo, live, marker, receipts, policy, old_sha, _ = make_dependency_incident_fixture(tmp_path)
-    body = killed_build_exit(repo, live, marker, old_sha).replace(
+def failed_pre_swap_restore_exit(repo: Path, live: Path, marker: Path, old_sha: str) -> str:
+    return killed_build_exit(repo, live, marker, old_sha).replace(
         "cleanup_deploy_attempt",
         'mv() { case "$*" in *"node_modules.failed"*) return 1 ;; esac; command mv "$@"; }\n'
         "false\ncleanup_deploy_attempt",
     )
 
-    r = run_gen(SCRIPT, body)
+
+def test_failed_dependency_restore_is_fatal_and_retains_the_snapshot(tmp_path):
+    repo, live, marker, receipts, policy, old_sha, _ = make_dependency_incident_fixture(tmp_path)
+
+    r = run_gen(SCRIPT, failed_pre_swap_restore_exit(repo, live, marker, old_sha))
 
     assert r.returncode == 74, r.stdout + r.stderr
     assert "FATAL: pre-swap dependency recovery failed; the saved inputs are retained at " \
         f"{snapshot_dir(live)}" in r.stdout
     assert "pre-swap dependency recovery OK" not in r.stdout
+    # The accepted build is still running, beside a dependency tree that is not the
+    # accepted one: the selected unit is stopped, as for any unresolved leg.
+    assert exit_path_service_calls(live) == ["stop terminal"], r.stdout + r.stderr
+    assert "containment: terminal was stopped" in r.stdout, r.stdout + r.stderr
     # The live app is left as this attempt wrote it, not half-restored: accepted
     # package files beside the attempt's tree would look clean and be wrong.
     assert_failed_tree_swap_left_the_attempt_in_place(live)
@@ -1855,6 +1971,43 @@ def test_failed_dependency_restore_is_fatal_and_retains_the_snapshot(tmp_path):
         + nxt.stdout + nxt.stderr
     )
     assert "source preflight CLEAN" not in nxt.stdout
+
+
+def test_mutant_without_pre_swap_containment_leaves_the_unit_running(tmp_path):
+    """Remove the stop -> exit 74 with the accepted process still serving from a
+    dependency tree nobody proved."""
+    repo, live, marker, _, _, old_sha, _ = make_dependency_incident_fixture(tmp_path)
+    mutant = _mutate(
+        tmp_path,
+        "        deploy_generation_contain\n      fi\n    else\n",
+        "        :  # MUTANT: a failed pre-swap restore stops nothing\n      fi\n    else\n",
+    )
+
+    r = run_gen(mutant, failed_pre_swap_restore_exit(repo, live, marker, old_sha))
+
+    assert r.returncode == 74, r.stdout + r.stderr
+    assert "FATAL: pre-swap dependency recovery failed" in r.stdout, r.stdout + r.stderr
+    assert exit_path_service_calls(live) == [], (
+        "mutation was inert — the stop does not come from the pre-swap failure branch"
+    )
+
+
+def test_deploy_whose_pre_swap_dependency_restore_fails_stops_the_unit(tmp_path):
+    """The same branch through the executed deploy: the build is killed, the tree
+    will not go back, and the exit is 74 with the selected unit stopped."""
+    before: dict = {}
+    proc, app = run_deploy(
+        tmp_path, prepare=lockfile_changed(before), FAIL_BUILD="1",
+        FAIL_MV_MATCH="node_modules.failed",
+    )
+    out = proc.stdout + proc.stderr
+
+    assert proc.returncode == 74, out
+    assert "FATAL: pre-swap dependency recovery failed" in proc.stdout, out
+    assert _service_actions(tmp_path) == ["systemctl stop terminal"], out
+    assert "containment: terminal was stopped" in proc.stdout, out
+    assert snapshot_dir(app).is_dir(), "the unresolved snapshot must be retained"
+    assert marker_of(app) == OLD_SHA and live_build_id(app) == OLD_BUILD_ID
 
 
 def test_snapshot_left_open_after_identity_moved_is_never_guessed_at(tmp_path):
@@ -1942,6 +2095,47 @@ def test_deploy_with_unchanged_deps_takes_no_snapshot(tmp_path):
     assert "npm ci" not in _effect_lines(tmp_path)
     assert dependency_inputs(app) == before
     assert not snapshot_dir(app).exists()
+
+
+def test_every_production_deploy_purges_a_resolved_snapshot_and_only_that(tmp_path):
+    """Not only on a lockfile change: a deploy that installs nothing still deletes
+    a resolved snapshot left by a killed attempt, at its start. An unresolved one
+    keeps its existing rule (discarded, loudly, by the next dependency install)."""
+    before: dict = {}
+
+    def prepare(app: Path, tsrc: Path) -> None:
+        (resolved_snapshot_dir(app) / "node_modules.failed" / "next").mkdir(parents=True)
+        (snapshot_dir(app) / "node_modules").mkdir(parents=True)
+        (snapshot_dir(app) / "package-lock.json").write_text("unresolved\n")
+        before.update(dependency_inputs(app))
+
+    proc, app = run_deploy(tmp_path, prepare=prepare, FAIL_BUILD="1")
+    out = proc.stdout + proc.stderr
+
+    assert proc.returncode != 0, out
+    assert "deps unchanged — skipping npm ci" in proc.stdout, out
+    assert "discarding a resolved dependency rollback snapshot" in proc.stdout, out
+    assert proc.stdout.index("discarding a resolved dependency rollback snapshot") \
+        < proc.stdout.index("GIT-GATED: deploying accepted target"), out
+    assert not resolved_snapshot_dir(app).exists()
+    assert (snapshot_dir(app) / "package-lock.json").read_text() == "unresolved\n"
+    assert dependency_inputs(app) == before
+
+
+def test_mutant_without_the_start_of_run_purge_keeps_the_resolved_snapshot(tmp_path):
+    mutant = _mutate(
+        tmp_path,
+        'if [ "$TARGET" = production ]; then deps_snapshot_purge_resolved "$APP"; fi\n',
+        ':  # MUTANT: a resolved snapshot waits for the next lockfile change\n',
+    )
+    proc, app = run_deploy(
+        tmp_path, script=mutant, FAIL_BUILD="1",
+        prepare=lambda app, tsrc: (resolved_snapshot_dir(app) / "node_modules.failed").mkdir(parents=True),
+    )
+    assert proc.returncode != 0
+    assert resolved_snapshot_dir(app).is_dir(), (
+        "mutation was inert — the start-of-run purge is not what removes the snapshot"
+    )
 
 
 def test_accepted_deploy_discards_the_snapshot_and_keeps_the_new_deps(tmp_path):
@@ -2074,9 +2268,9 @@ def test_mutant_without_the_signal_traps_recovers_under_a_running_install(tmp_pa
     while `npm ci` is still running against it. That is the race the traps close."""
     mutant = _mutate(
         tmp_path,
-        "    DEPLOY_SIGNALS_TRAPPED=1\n    trap 'exit 129' HUP\n    trap 'exit 130' INT\n"
-        "    trap 'exit 143' TERM\n",
-        "    :  # MUTANT: production keeps default signal dispositions\n",
+        '    deploy_take_signal_traps\n    deps_snapshot_begin "$APP" || exit $?\n',
+        "    :  # MUTANT: production keeps default signal dispositions here\n"
+        '    deps_snapshot_begin "$APP" || exit $?\n',
     )
     popen, release, log, _ = _interrupt_held_install(tmp_path, mutant, {})
     try:
@@ -2464,13 +2658,27 @@ def test_pre_swap_recovery_with_a_stale_build_backup_touches_no_service(tmp_path
     assert not snapshot_dir(app).exists()
 
 
-def _interrupt_held_rollback(tmp_path: Path, script: Path, before: dict):
+def deps_unchanged(record: dict):
+    """Fixture adjustment for the default path: identical lockfiles, so the deploy
+    skips its install and opens no snapshot. Records the inputs before the run."""
+    def prepare(app: Path, tsrc: Path) -> None:
+        record.update(dependency_inputs(app))
+    return prepare
+
+
+DEPS_PATHS = pytest.mark.parametrize(
+    "deps", [lockfile_changed, deps_unchanged], ids=["deps-changed", "deps-unchanged"]
+)
+
+
+def _interrupt_held_rollback(tmp_path: Path, script: Path, before: dict,
+                             deps=lockfile_changed):
     """Run a deploy into its post-swap abort, park the rollback's first move, send
     the owner SIGTERM while it is parked, then let the move finish."""
     hold = tmp_path / "rollback-mv-hold"
     started, release = Path(f"{hold}.started"), Path(f"{hold}.release")
     argv, env, app = sandbox_deploy(
-        tmp_path, script, prepare=lockfile_changed(before), FAIL_HEALTH="1",
+        tmp_path, script, prepare=deps(before), FAIL_HEALTH="1",
         HOLD_MV_MATCH=".next.broken", HOLD_MV=hold,
     )
     log = tmp_path / "deploy-output.log"
@@ -2494,33 +2702,42 @@ def _interrupt_held_rollback(tmp_path: Path, script: Path, before: dict):
     return popen, log.read_text(), app
 
 
-def test_sigterm_during_the_abort_still_reaches_the_restart(tmp_path):
+@DEPS_PATHS
+def test_sigterm_during_the_abort_still_reaches_the_restart(tmp_path, deps):
     """A rollback that has begun is finished. A signal taken after the build moved
     back and before the restart would leave the candidate's process serving the
-    restored tree; the abort holds HUP/INT/TERM off until it has decided."""
+    restored tree; the abort holds HUP/INT/TERM off until it has decided — on the
+    default path (dependencies unchanged, no snapshot) exactly as on the other."""
     before: dict = {}
-    popen, out, app = _interrupt_held_rollback(tmp_path, SCRIPT, before)
+    popen, out, app = _interrupt_held_rollback(tmp_path, SCRIPT, before, deps)
 
     assert popen.returncode == 1, out
     assert _service_actions(tmp_path) == ["systemctl restart terminal"] * 2, out
-    assert "rollback dependency recovery OK" in out, out
     assert "rolled back —" in out and "ROLLBACK INCOMPLETE" not in out, out
     assert "dependency rollback snapshot is unresolved" not in out, out
+    if deps is lockfile_changed:
+        assert "rollback dependency recovery OK" in out, out
+    else:
+        assert "dependency rollback snapshot" not in out, out
     assert dependency_inputs(app) == before, out
-    assert not snapshot_dir(app).exists()
+    assert not snapshot_dir(app).exists() and not resolved_snapshot_dir(app).exists()
     assert marker_of(app) == OLD_SHA and live_build_id(app) == OLD_BUILD_ID
+    assert not build_lock_hold(app).exists(), out
 
 
-def test_mutant_without_the_abort_signal_hold_skips_the_restart(tmp_path):
+@DEPS_PATHS
+def test_mutant_without_the_abort_signal_hold_skips_the_restart(tmp_path, deps):
     """Drop the hold -> the trapped signal ends the owner mid-rollback: the build
-    is half moved, the dependencies are not back, and nothing was restarted."""
+    is half moved and nothing was restarted. The exit path does not start the
+    rollback a second time, so nothing behind it repairs this."""
     mutant = _mutate(
         tmp_path,
-        "  if [ \"${DEPLOY_SIGNALS_TRAPPED:-0}\" = 1 ]; then trap '' HUP INT TERM; fi\n"
+        "  trap '' HUP INT TERM PIPE\n  DEPLOY_GENERATION_OPEN=0\n"
         '  log "DEPLOY FAILED: $reason"\n',
+        "  DEPLOY_GENERATION_OPEN=0\n"
         '  log "DEPLOY FAILED: $reason"  # MUTANT: signals are not held in the abort\n',
     )
-    popen, out, _ = _interrupt_held_rollback(tmp_path, mutant, {})
+    popen, out, app = _interrupt_held_rollback(tmp_path, mutant, {}, deps)
 
     assert popen.returncode != 0, out
     assert _service_actions(tmp_path) == ["systemctl restart terminal"], (
@@ -2528,6 +2745,486 @@ def test_mutant_without_the_abort_signal_hold_skips_the_restart(tmp_path):
         f"interrupted rollback to its restart:\n{out}"
     )
     assert "rollback dependency recovery OK" not in out, out
+    assert live_build_id(app) != OLD_BUILD_ID, out
+
+
+# -- an interruption after the generation opened and before its verdict --
+#
+# From deploy_generation_begin to the commit, every production run holds its
+# signal traps and the exit path owns the open generation: an interruption there
+# leaves through the same single abort as a guarded failure. Each window below
+# must end in a proven restart of the prior generation or a stop of the selected
+# unit — or, where the live build never moved, in the running process untouched
+# on its own restored identity. Never a moved tree with no service action.
+
+def build_lock_hold(app: Path) -> Path:
+    """The shared build lock this process holds for the whole attempt."""
+    return app.parent / ".terminal-build-resource.lock" / "hold"
+
+
+class _ParkedDeploy:
+    """A sandboxed deploy started in the background and parked at one shim hold.
+
+    Its output goes to a pipe this object drains, so `close_channel()` can do what
+    a cancelled Actions job does to `ssh … bash -s`: the reader goes away, no
+    signal is delivered, and the deploy's next write raises SIGPIPE."""
+
+    def __init__(self, tmp_path: Path, script: Path, hold_flag: str, *,
+                 prepare=None, **flags):
+        hold = tmp_path / "parked-hold"
+        self.started, self.release = Path(f"{hold}.started"), Path(f"{hold}.release")
+        flags[hold_flag] = hold
+        argv, env, self.app = sandbox_deploy(tmp_path, script, prepare=prepare, **flags)
+        self._read, write = os.pipe()
+        os.set_blocking(self._read, False)
+        self.popen = subprocess.Popen(argv, stdout=write, stderr=write, env=env)
+        os.close(write)
+        self._chunks: list[bytes] = []
+
+    @property
+    def out(self) -> str:
+        return b"".join(self._chunks).decode(errors="replace")
+
+    def _drain(self) -> None:
+        while self._read is not None:
+            try:
+                chunk = os.read(self._read, 65536)
+            except BlockingIOError:
+                return
+            if not chunk:
+                return
+            self._chunks.append(chunk)
+
+    def wait_parked(self) -> None:
+        deadline = time.monotonic() + 120
+        while not self.started.exists():
+            self._drain()
+            assert self.popen.poll() is None, f"deploy ended before parking:\n{self.out}"
+            assert time.monotonic() < deadline, f"deploy never parked:\n{self.out}"
+            time.sleep(0.05)
+        self._drain()
+
+    def close_channel(self) -> None:
+        self._drain()
+        os.close(self._read)
+        self._read = None
+
+    def finish(self) -> int:
+        try:
+            self.release.touch()
+            deadline = time.monotonic() + 120
+            while self.popen.poll() is None:
+                self._drain()
+                assert time.monotonic() < deadline, f"deploy never ended:\n{self.out}"
+                time.sleep(0.05)
+            self._drain()
+        finally:
+            self.release.touch()
+            if self.popen.poll() is None:
+                self.popen.kill()
+            if self._read is not None:
+                os.close(self._read)
+                self._read = None
+        return self.popen.returncode
+
+
+def _interrupted(tmp_path: Path, script: Path, hold_flag: str, *, deps, before: dict,
+                 close: bool = False, **flags):
+    """Park a deploy, interrupt it there (SIGTERM, or its output channel closed),
+    let it go. Returns (returncode, output, app)."""
+    parked = _ParkedDeploy(tmp_path, script, hold_flag, prepare=deps(before), **flags)
+    try:
+        parked.wait_parked()
+        assert build_lock_hold(parked.app).is_dir(), "fixture: the build lock is not where the test looks"
+        if close:
+            parked.close_channel()
+        else:
+            parked.popen.send_signal(signal.SIGTERM)
+            time.sleep(0.5)         # the signal is pending on the owner by now
+            assert parked.popen.poll() is None, (
+                "the owner did not wait for its foreground command:\n" + parked.out
+            )
+    finally:
+        rc = parked.finish()
+    return rc, parked.out, parked.app
+
+
+def assert_prior_generation_whole(app: Path, before: dict, out: str) -> None:
+    assert marker_of(app) == OLD_SHA and live_build_id(app) == OLD_BUILD_ID, out
+    assert dependency_inputs(app) == before, out
+    assert not snapshot_dir(app).exists() and not resolved_snapshot_dir(app).exists(), out
+    assert not (app / ".deployment-id.bak").exists(), out
+    assert not build_lock_hold(app).exists(), "the build lock was never released:\n" + out
+    assert not list(app.parent.glob(".stage.*")), "the interrupted stage was left behind"
+
+
+@DEPS_PATHS
+def test_sigterm_during_the_forward_swap_restarts_the_prior_generation(tmp_path, deps):
+    """The live build has just been moved aside and SWAPPED is still 0. The exit
+    path reads the vacated slot as the swapped state, puts the build back and
+    restarts the prior generation onto it."""
+    before: dict = {}
+    rc, out, app = _interrupted(
+        tmp_path, SCRIPT, "HOLD_MV", HOLD_MV_MATCH=".next.bak", deps=deps, before=before,
+    )
+
+    assert rc != 0, out
+    assert "interrupted before the deploy generation reached its verdict" in out, out
+    assert _service_actions(tmp_path) == ["systemctl restart terminal"], out
+    assert "rolled back —" in out and "ROLLBACK INCOMPLETE" not in out, out
+    assert_prior_generation_whole(app, before, out)
+
+
+@DEPS_PATHS
+def test_sigterm_in_the_health_check_window_restarts_the_prior_generation(tmp_path, deps):
+    """The candidate is running and unverified. Interrupted there, the deploy does
+    not leave it serving an uncommitted generation: it rolls back and restarts."""
+    before: dict = {}
+    rc, out, app = _interrupted(tmp_path, SCRIPT, "HOLD_HEALTH", deps=deps, before=before)
+
+    assert rc == 143, out
+    assert "interrupted before the deploy generation reached its verdict" in out, out
+    assert _service_actions(tmp_path) == ["systemctl restart terminal"] * 2, out
+    assert "rolled back —" in out and "ROLLBACK INCOMPLETE" not in out, out
+    assert_prior_generation_whole(app, before, out)
+
+
+def test_sigterm_in_the_health_check_window_stops_the_unit_when_a_leg_is_unresolved(tmp_path):
+    """The other permitted ending: the interrupted generation cannot be put back
+    whole (the dependency tree will not return), so the selected unit is stopped."""
+    before: dict = {}
+    rc, out, app = _interrupted(
+        tmp_path, SCRIPT, "HOLD_HEALTH", deps=lockfile_changed, before=before,
+        FAIL_MV_MATCH="node_modules.failed",
+    )
+
+    assert rc != 0, out
+    assert _service_actions(tmp_path) == [
+        "systemctl restart terminal", "systemctl stop terminal",
+    ], out
+    assert "ROLLBACK INCOMPLETE" in out, out
+    assert snapshot_dir(app).is_dir(), "the unresolved snapshot must be retained"
+
+
+def test_sigterm_before_the_live_build_moves_touches_no_service(tmp_path):
+    """Interrupted with the generation open and the live build still in place (the
+    move aside failed): the marker goes back, and the running process — which never
+    lost its tree — is neither restarted nor stopped."""
+    before: dict = {}
+    rc, out, app = _interrupted(
+        tmp_path, SCRIPT, "HOLD_MV", HOLD_MV_MATCH=".next.bak", FAIL_MV_MATCH=".next.bak",
+        deps=lockfile_changed, before=before,
+    )
+
+    assert rc != 0, out
+    assert _service_actions(tmp_path) == [], out
+    assert_prior_generation_whole(app, before, out)
+
+
+@pytest.mark.parametrize("hold_flag, flags, actions", [
+    ("HOLD_MV", {"HOLD_MV_MATCH": ".next.bak"}, []),
+    ("HOLD_HEALTH", {}, ["systemctl restart terminal"]),
+], ids=["forward-swap", "health-window"])
+def test_mutant_without_the_exit_path_abort_leaves_the_interruption_uncontained(
+        tmp_path, hold_flag, flags, actions):
+    """Remove the exit path's route into the abort -> the signal ends the deploy
+    where it stands: no build in the live slot (forward swap) or the unverified
+    candidate still serving (health window), the marker on the target, and no
+    restart of the prior generation and no stop."""
+    mutant = _mutate(tmp_path, *NO_EXIT_PATH_ABORT)
+    rc, out, app = _interrupted(
+        tmp_path, mutant, hold_flag, deps=deps_unchanged, before={}, **flags
+    )
+
+    assert rc != 0, out
+    assert _service_actions(tmp_path) == actions, (
+        f"mutation was inert — the exit path is not what contains this window:\n{out}"
+    )
+    assert marker_of(app) == NEW_SHA, out
+    assert live_build_id(app) != OLD_BUILD_ID, out
+
+
+def test_mutant_reading_the_vacated_slot_as_unswapped_restores_no_build(tmp_path):
+    """Take SWAPPED at its word during the forward swap -> the marker goes back
+    over an empty live slot and no service is touched."""
+    mutant = _mutate(
+        tmp_path,
+        '    if [ "$swapped" != 1 ] && [ ! -e "$APP/.next" ]',
+        '    if false && [ ! -e "$APP/.next" ]',
+    )
+    rc, out, app = _interrupted(
+        tmp_path, mutant, "HOLD_MV", HOLD_MV_MATCH=".next.bak", deps=deps_unchanged, before={},
+    )
+
+    assert rc != 0, out
+    assert live_build_id(app) is None, (
+        f"mutation was inert — the vacated-slot check is not what restores the build:\n{out}"
+    )
+    assert _service_actions(tmp_path) == [], out
+
+
+def test_mutant_without_the_generation_traps_recovers_under_a_running_move(tmp_path):
+    """Drop the traps taken at the generation (the default path has no others) ->
+    the owner dies at once, its exit path finds the live build still in place and
+    touches no service, and then the orphaned move takes the live build away."""
+    mutant = _mutate(
+        tmp_path,
+        "  deploy_take_signal_traps\n  DEPLOY_SIGNAL_DEFER=1\n",
+        "  DEPLOY_SIGNAL_DEFER=1  # MUTANT: default signal dispositions at the generation\n",
+    )
+    parked = _ParkedDeploy(
+        tmp_path, mutant, "HOLD_MV", HOLD_MV_MATCH=".next.bak", prepare=deps_unchanged({}),
+    )
+    app = parked.app
+    try:
+        parked.wait_parked()
+        parked.popen.send_signal(signal.SIGTERM)
+        parked.popen.wait(timeout=60)
+        assert not parked.release.exists(), "the move had already been released"
+    finally:
+        parked.finish()
+    deadline = time.monotonic() + 30
+    while not (app / ".next.bak").exists() and time.monotonic() < deadline:
+        time.sleep(0.05)
+
+    assert live_build_id(app) is None, (
+        "mutation was inert — the deferred signal is not what keeps recovery from "
+        f"running under the forward move:\n{parked.out}"
+    )
+    assert _service_actions(tmp_path) == [], parked.out
+
+
+def test_sigterm_while_the_generation_opens_puts_the_marker_back(tmp_path):
+    """The signal lands inside deploy_generation_begin, on the move that advances
+    the marker. It is deferred until the generation is open AND flagged, so the
+    exit path takes it through the abort: marker back, live build never moved."""
+    before: dict = {}
+    rc, out, app = _interrupted(
+        tmp_path, SCRIPT, "HOLD_MV", HOLD_MV_MATCH=".deployment-id.new",
+        deps=deps_unchanged, before=before,
+    )
+
+    assert rc == 143, out
+    assert "interrupted before the deploy generation reached its verdict" in out, out
+    assert _service_actions(tmp_path) == [], out
+    assert_prior_generation_whole(app, before, out)
+
+
+def test_mutant_without_the_begin_deferral_strands_the_advanced_marker(tmp_path):
+    """Let the signal exit inside deploy_generation_begin -> begun but not flagged:
+    the exit path takes the pre-swap route and leaves the target's marker over
+    the prior build."""
+    mutant = _mutate(
+        tmp_path,
+        "  DEPLOY_SIGNAL_DEFER=1\n  deploy_generation_begin",
+        "  DEPLOY_SIGNAL_DEFER=0  # MUTANT: a signal exits mid-begin\n  deploy_generation_begin",
+    )
+    rc, out, app = _interrupted(
+        tmp_path, mutant, "HOLD_MV", HOLD_MV_MATCH=".deployment-id.new",
+        deps=deps_unchanged, before={},
+    )
+
+    assert rc != 0, out
+    assert marker_of(app) == NEW_SHA and live_build_id(app) == OLD_BUILD_ID, (
+        f"mutation was inert — the deferral is not what keeps begin and its flag together:\n{out}"
+    )
+
+
+def test_failure_after_acceptance_never_reopens_the_committed_generation(tmp_path):
+    """The exit path's abort is for an UNCOMMITTED generation. A later step failing
+    after the commit (here: step 8, which the sandbox cannot run) leaves the
+    accepted generation exactly as accepted."""
+    proc, app = run_deploy(tmp_path)
+    out = proc.stdout + proc.stderr
+
+    assert "identity verified" in proc.stdout, out
+    assert proc.returncode != 0, "fixture: the sandbox no longer fails after acceptance"
+    assert "DEPLOY FAILED" not in proc.stdout, out
+    assert _service_actions(tmp_path) == ["systemctl restart terminal"], out
+    assert marker_of(app) == NEW_SHA and live_build_id(app) == NEW_BUILD_ID
+    assert not build_lock_hold(app).exists(), out
+
+
+def test_mutant_ignoring_the_commit_rolls_an_accepted_generation_back(tmp_path):
+    """Drop the on-disk record check -> a failure after acceptance is read as an
+    open generation and the accepted build is taken out of service."""
+    mutant = _mutate(
+        tmp_path,
+        '      && { [ -e "$APP/.deployment-id.bak" ] || [ -e "$APP/.deployment-id.absent" ]; }; then\n',
+        "      && true; then  # MUTANT: the commit is not consulted\n",
+    )
+    proc, app = run_deploy(tmp_path, script=mutant)
+    out = proc.stdout + proc.stderr
+
+    assert "identity verified" in proc.stdout, out
+    assert live_build_id(app) == OLD_BUILD_ID and "DEPLOY FAILED" in proc.stdout, (
+        f"mutation was inert — the rollback records are not what closes the generation:\n{out}"
+    )
+
+
+def test_generation_begin_takes_the_signal_traps_on_every_production_run():
+    """The traps are taken at the generation, not only with a dependency install,
+    and the begin and its flag are one step to a signal."""
+    body = _deploy_body(code_only=True)
+    block = (
+        'elif [ "$TARGET" = production ]; then\n'
+        "  deploy_take_signal_traps\n"
+        "  DEPLOY_SIGNAL_DEFER=1\n"
+        '  deploy_generation_begin "$APP" "$STAGE/.deployment-id"\n'
+        "  DEPLOY_GENERATION_OPEN=1\n"
+        "  CANONICAL_RECOVERY_ARMED=0\n"
+        "  DEPLOY_SIGNAL_DEFER=0\n"
+        '  [ -z "$DEPLOY_SIGNAL_PENDING" ] || exit "$DEPLOY_SIGNAL_PENDING"\n'
+    )
+    assert body.count(block) == 1, "the production generation no longer opens under its traps"
+    assert body.count("deploy_take_signal_traps") == 2      # deps step, generation begin
+    assert body.count("DEPLOY_GENERATION_OPEN=1") == 1
+
+    library = _library()
+    cleanup = library[library.index("cleanup_deploy_attempt(){"):]
+    abort = cleanup.index('deploy_generation_abort "$APP" "${FULL_SHA:-}" "$swapped"')
+    assert cleanup.index("trap '' HUP INT TERM PIPE") < abort
+    assert abort < cleanup.index("beta_bootstrap_archive_cleanup"), (
+        "the exit path's abort is behind a slow recovery step"
+    )
+    assert abort < cleanup.index("deps_snapshot_reap")
+
+
+def test_a_signal_while_the_generation_opens_is_deferred_not_dropped():
+    """Between deploy_generation_begin and its flag a trapped signal is recorded
+    and the deploy exits on it once both are done; outside that step it exits."""
+    r = run_gen(SCRIPT, """
+        deploy_take_signal_traps
+        DEPLOY_SIGNAL_DEFER=1
+        kill -TERM $$
+        echo "RAN_ON PENDING=[$DEPLOY_SIGNAL_PENDING]"
+        DEPLOY_SIGNAL_DEFER=0
+        [ -z "$DEPLOY_SIGNAL_PENDING" ] || exit "$DEPLOY_SIGNAL_PENDING"
+        echo NOT_REACHED
+    """)
+    assert r.returncode == 143, r.stdout + r.stderr
+    assert "RAN_ON PENDING=[143]" in r.stdout and "NOT_REACHED" not in r.stdout
+
+    r = run_gen(SCRIPT, """
+        deploy_take_signal_traps
+        kill -HUP $$
+        echo NOT_REACHED
+    """)
+    assert r.returncode == 129, r.stdout + r.stderr
+    assert "NOT_REACHED" not in r.stdout
+
+
+# -- a closed deploy channel: SIGPIPE, not HUP --
+#
+# vps-main-deploy runs this script as `ssh … bash -s` with no tty. When the job is
+# cancelled the channel closes and no signal arrives; the deploy's next write to
+# its output raises SIGPIPE. Untrapped, that ends bash without its EXIT trap.
+
+@DEPS_PATHS
+def test_closed_output_during_the_abort_still_restarts_and_cleans_up(tmp_path, deps):
+    """The channel closes while the rollback's first move is parked. Every later
+    log line fails to write; the abort still reaches its restart and the exit path
+    still runs to the end (snapshot reaped, stage removed, build lock released)."""
+    before: dict = {}
+    rc, out, app = _interrupted(
+        tmp_path, SCRIPT, "HOLD_MV", HOLD_MV_MATCH=".next.broken", FAIL_HEALTH="1",
+        deps=deps, before=before, close=True,
+    )
+
+    assert rc == 1, out
+    assert _service_actions(tmp_path) == ["systemctl restart terminal"] * 2, out
+    assert not (app / ".next.broken").exists() or live_build_id(app) == OLD_BUILD_ID
+    assert_prior_generation_whole(app, before, out)
+
+
+def test_closed_output_during_the_abort_stops_the_unit_when_a_leg_is_unresolved(tmp_path):
+    before: dict = {}
+    rc, out, app = _interrupted(
+        tmp_path, SCRIPT, "HOLD_MV", HOLD_MV_MATCH=".next.broken", FAIL_HEALTH="1",
+        FAIL_MV_MATCH="node_modules.failed",
+        deps=lockfile_changed, before=before, close=True,
+    )
+
+    assert rc != 0, out
+    assert _service_actions(tmp_path) == [
+        "systemctl restart terminal", "systemctl stop terminal",
+    ], out
+    assert snapshot_dir(app).is_dir(), "the unresolved snapshot must be retained"
+    assert not build_lock_hold(app).exists(), "the build lock was never released"
+
+
+def test_closed_output_in_the_health_window_lets_the_deploy_reach_its_verdict(tmp_path):
+    """PIPE is ignored, not turned into an exit: a deploy whose channel closed goes
+    on to its own verdict. Healthy, it commits and cleans up as it would have."""
+    before: dict = {}
+    rc, out, app = _interrupted(
+        tmp_path, SCRIPT, "HOLD_HEALTH", deps=lockfile_changed, before=before, close=True,
+    )
+
+    # (the sandbox has no ops/terminal-data, so step 8 exits non-zero after acceptance)
+    assert rc >= 0, f"the deploy was killed by signal {-rc}"
+    assert _service_actions(tmp_path) == ["systemctl restart terminal"], out
+    assert marker_of(app) == NEW_SHA and live_build_id(app) == NEW_BUILD_ID
+    assert not (app / ".deployment-id.bak").exists(), "the accepted generation was not committed"
+    assert (app / "package-lock.json").read_text() == TARGET_LOCK
+    assert not snapshot_dir(app).exists() and not resolved_snapshot_dir(app).exists()
+    assert not build_lock_hold(app).exists(), "the build lock was never released"
+
+
+def test_mutant_without_the_pipe_hold_dies_on_the_closed_channel(tmp_path):
+    """Leave PIPE at its default -> the first log line after the close kills the
+    shell without its EXIT trap. With a dependency restore in the rollback that
+    line comes before the restart: no restart, no stop, the snapshot never
+    reaped, and the build lock still held."""
+    mutant = _mutate(
+        tmp_path,
+        "  trap '' PIPE\n}\n", "  :  # MUTANT: PIPE keeps its default disposition\n}\n",
+        ("  trap '' HUP INT TERM PIPE\n  DEPLOY_GENERATION_OPEN=0\n",
+         "  trap '' HUP INT TERM\n  DEPLOY_GENERATION_OPEN=0\n"),
+        ("then trap '' HUP INT TERM PIPE; fi\n", "then trap '' HUP INT TERM; fi\n"),
+    )
+    rc, out, app = _interrupted(
+        tmp_path, mutant, "HOLD_MV", HOLD_MV_MATCH=".next.broken", FAIL_HEALTH="1",
+        deps=lockfile_changed, before={}, close=True,
+    )
+
+    assert rc == -signal.SIGPIPE, (
+        f"mutation was inert — ignoring PIPE is not what survives the closed channel "
+        f"(rc={rc}):\n{out}"
+    )
+    assert _service_actions(tmp_path) == ["systemctl restart terminal"]
+    assert build_lock_hold(app).is_dir()
+    assert resolved_snapshot_dir(app).is_dir(), "the exit path ran after all"
+
+
+def test_log_survives_a_closed_output_channel():
+    """`log` itself: with PIPE ignored, a write to a closed stdout fails quietly and
+    returns 0, so no log line can end a deploy under `set -e`."""
+    read, write = os.pipe()
+    driver = textwrap.dedent(f"""
+        . "{SCRIPT}"
+        set -e
+        trap '' PIPE
+        /bin/sleep 0.3          # the reader is gone by now
+        log one
+        log two
+        echo SURVIVED >&{write}
+    """)
+    try:
+        popen = subprocess.Popen(
+            [_bash(), "-c", driver],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, pass_fds=(write,),
+        )
+        popen.stdout.close()
+        popen.stderr.close()
+        os.close(write)
+        write = None
+        assert popen.wait(timeout=60) == 0
+        assert os.read(read, 64) == b"SURVIVED\n"
+    finally:
+        os.close(read)
+        if write is not None:
+            os.close(write)
 
 
 # -- static structure --
@@ -2543,7 +3240,7 @@ def test_only_production_opens_a_dependency_snapshot():
     assert guard < begin < deps.index("fi", begin)
     assert "fi" not in deps[guard:begin], "the snapshot escaped the production-only block"
     assert begin < deps.index('cp -f "$TSRC/package.json"') < deps.index("npm ci ||")
-    assert deps.index("trap 'exit 143' TERM") < begin, (
+    assert deps.index("deploy_take_signal_traps") < begin, (
         "the snapshot opens before the signals that could interrupt it are held"
     )
 

@@ -142,7 +142,12 @@ BOOTSTRAP_MODE=
 BETA_BOOTSTRAP_SCRATCH=
 BETA_BOOTSTRAP_SCRATCH_IDENTITY=
 RUNTIME_RECORD_PATH=
-log(){ echo "[build] $*"; }
+# A log line must never be what ends a deploy. The automated channel is
+# `ssh … bash -s` with no tty: when the caller is cancelled the channel closes,
+# no HUP arrives, and the next write to stdout fails. With SIGPIPE ignored (see
+# deploy_take_signal_traps and the two recovery holds) that write is a plain
+# error, which is discarded here instead of reaching `set -e`.
+log(){ { echo "[build] $*"; } 2>/dev/null || true; }
 
 # The deploy owner never accepts inherited Git routing or policy. `git -C`
 # does not override GIT_DIR/GIT_WORK_TREE, and replacement/config variables can
@@ -1739,6 +1744,11 @@ deps_snapshot_path(){
   printf '%s/.deps-rollback\n' "$(dirname "$1")"
 }
 
+# The name a snapshot takes once deps_snapshot_restore has put everything back.
+deps_snapshot_resolved_path(){
+  printf '%s.resolved\n' "$(deps_snapshot_path "$1")"
+}
+
 deps_path_identity(){
   python3 -I -c 'import os,sys; s=os.lstat(sys.argv[1]); print(str(s.st_dev)+":"+str(s.st_ino))' "$1"
 }
@@ -1759,6 +1769,22 @@ deps_snapshot_purge_stale(){
   if [ -e "$snap" ] || [ -L "$snap" ]; then
     log "WARN: discarding a dependency rollback snapshot left by an interrupted earlier attempt: $snap"
     rm -rf "$snap" || log "WARN: could not remove the stale dependency rollback snapshot $snap"
+  fi
+  return 0
+}
+
+# A RESOLVED snapshot is different: its restore completed, so it holds only the
+# failed attempt's tree and nothing the live app is owed. It outlives its attempt
+# only when the process was killed between the restore and deps_snapshot_reap,
+# and it would then wait for the next lockfile change. Every production deploy
+# deletes it at its start instead. An unresolved snapshot never has this name
+# and is never touched here; deps_snapshot_purge_stale keeps its own rule.
+deps_snapshot_purge_resolved(){
+  local snap
+  snap=$(deps_snapshot_resolved_path "$1")
+  if [ -e "$snap" ] || [ -L "$snap" ]; then
+    log "discarding a resolved dependency rollback snapshot left by an interrupted earlier attempt: $snap"
+    rm -rf "$snap" || log "WARN: could not remove the resolved dependency rollback snapshot $snap"
   fi
   return 0
 }
@@ -1932,7 +1958,16 @@ deps_snapshot_restore(){
     fi
   done
   [ "$rc" -eq 0 ] || return 1
-  DEPS_SNAPSHOT_RESOLVED_DIR=$snap
+  # Resolved is recorded on disk as well, by one more rename: a process killed
+  # before deps_snapshot_reap then leaves a directory that says it holds nothing
+  # still owed, which deps_snapshot_purge_resolved may delete. When the name
+  # cannot be taken the snapshot keeps its unresolved name and is treated as one.
+  want=$(deps_snapshot_resolved_path "$app")
+  if [ ! -e "$want" ] && [ ! -L "$want" ] && mv "$snap" "$want"; then
+    DEPS_SNAPSHOT_RESOLVED_DIR=$want
+  else
+    DEPS_SNAPSHOT_RESOLVED_DIR=$snap
+  fi
   DEPS_SNAPSHOT_DIR=
   return 0
 }
@@ -1943,7 +1978,7 @@ deps_snapshot_reap(){
   local snap=${DEPS_SNAPSHOT_RESOLVED_DIR:-}
   [ -n "$snap" ] || return 0
   DEPS_SNAPSHOT_RESOLVED_DIR=
-  rm -rf "$snap" || log "WARN: could not remove the restored dependency rollback snapshot $snap; the next dependency install discards it"
+  rm -rf "$snap" || log "WARN: could not remove the restored dependency rollback snapshot $snap; a later deploy discards it"
   return 0
 }
 
@@ -2104,8 +2139,12 @@ deploy_identity_verified(){
 deploy_generation_abort(){
   local app=$1 want_sha=$2 swapped=$3 reason=$4 rc=0
   # A rollback that has begun is finished: a signal taken between the restore and
-  # the restart or stop would leave a process bound to a tree that moved.
-  if [ "${DEPLOY_SIGNALS_TRAPPED:-0}" = 1 ]; then trap '' HUP INT TERM; fi
+  # the restart or stop would leave a process bound to a tree that moved. Held
+  # on every path that reaches here, and PIPE with the rest: a closed deploy
+  # channel arrives as SIGPIPE on the next log line, not as HUP. The exit path
+  # reads the flag so that it never starts this rollback a second time.
+  trap '' HUP INT TERM PIPE
+  DEPLOY_GENERATION_OPEN=0
   log "DEPLOY FAILED: $reason"
   log "rolling back the deploy generation (build + identity)"
   deploy_generation_rollback "$app" "$swapped" || rc=$?
@@ -6231,17 +6270,77 @@ CANONICAL_RECOVERY_SHA=
 DEPLOYMENT_MARKER="$APP/.deployment-id"
 STAGE_ROOT=
 BOOTSTRAP_STATE_RECORD=
-# 1 once a production run has taken the HUP/INT/TERM traps for its dependency
-# install; the exit path then holds those signals off for the whole recovery.
+# 1 once a production run has taken its signal traps (deploy_take_signal_traps);
+# the exit path then holds those signals off for the whole recovery.
 DEPLOY_SIGNALS_TRAPPED=0
+# 1 once a production run's deploy_generation_begin has returned, until
+# deploy_generation_abort takes it. Together with the rollback records on disk
+# (which deploy_generation_commit removes) it tells the exit path that a
+# generation is open, uncommitted and has not been rolled back.
+DEPLOY_GENERATION_OPEN=0
+# deploy_generation_begin and the assignment above must not be separated by a
+# signal: begun-but-unflagged would exit through the pre-swap recovery with the
+# marker already advanced, and flagged-before-begun would roll back from a
+# record that a failed `cp` left half written. While DEPLOY_SIGNAL_DEFER is 1 a
+# trapped signal is only recorded; the deploy body exits on it as soon as the
+# generation is both open and flagged.
+DEPLOY_SIGNAL_DEFER=0
+DEPLOY_SIGNAL_PENDING=
+deploy_signal_exit(){
+  if [ "${DEPLOY_SIGNAL_DEFER:-0}" = 1 ]; then
+    DEPLOY_SIGNAL_PENDING=$1
+    return 0
+  fi
+  exit "$1"
+}
+
+# Production takes these once it has something to put back: before its
+# dependency install, and in every run before its deploy generation opens. From
+# then on an interruption must end as an ordinary recovered failure. A trapped
+# signal is deferred until the foreground command returns and then exits through
+# cleanup_deploy_attempt; untrapped, this shell would be gone with the live
+# generation half moved. HUP/INT/TERM are the three beta holds for its whole run.
+# PIPE is IGNORED rather than trapped: it is raised by this shell's own write to
+# a closed deploy channel, and a trap that exits on it re-enters itself on the
+# next failed write before the exit path can run. Ignored, the write just fails,
+# `log` discards that, and the deploy goes on to its own verdict.
+deploy_take_signal_traps(){
+  DEPLOY_SIGNALS_TRAPPED=1
+  trap 'deploy_signal_exit 129' HUP
+  trap 'deploy_signal_exit 130' INT
+  trap 'deploy_signal_exit 143' TERM
+  trap '' PIPE
+}
+
 cleanup_deploy_attempt(){
   local rc=$? live_marker restored_head dirty archive_cleanup_failed=0
+  local swapped
   trap - EXIT
-  if [ "$TARGET" = beta ] || [ "${DEPLOY_SIGNALS_TRAPPED:-0}" = 1 ]; then trap '' HUP INT TERM; fi
+  if [ "$TARGET" = beta ] || [ "${DEPLOY_SIGNALS_TRAPPED:-0}" = 1 ]; then trap '' HUP INT TERM PIPE; fi
   set +e
   if [ "$rc" -ne 0 ] && [ "$TARGET" = beta ] && \
       { [ "${BETA_TXN_ACTIVE:-0}" = 1 ] || [ "${DEMOTE_ON_FAILURE:-0}" = 1 ]; }; then
     beta_txn_abort "nonzero exit or trapped interruption (status=$rc)" || true
+  fi
+  # A production generation that is open here — begun, not committed (its
+  # rollback records are still on disk) and not already rolled back — was
+  # interrupted between deploy_generation_begin and its verdict: by a signal, or
+  # by a bare failing command under `set -e`. It leaves through the same single
+  # abort as every other failure, first, ahead of every slow step below, so the
+  # cumulative containment applies: the prior generation is restarted with every
+  # leg proven, or the selected unit is stopped. Never neither.
+  if [ "$TARGET" = production ] && [ "${DEPLOY_GENERATION_OPEN:-0}" = 1 ] \
+      && { [ -e "$APP/.deployment-id.bak" ] || [ -e "$APP/.deployment-id.absent" ]; }; then
+    swapped=${SWAPPED:-0}
+    # SWAPPED turns 1 only after the forward move of the live build returns, and
+    # a deferred signal exits before that assignment. A vacated live slot beside
+    # the backup this attempt just made IS the swapped state; read as 0 it would
+    # restore the marker over no build at all and touch no service.
+    if [ "$swapped" != 1 ] && [ ! -e "$APP/.next" ] && [ ! -L "$APP/.next" ] && [ -d "$APP/.next.bak" ]; then
+      swapped=1
+    fi
+    [ "$rc" -ne 0 ] || rc=1
+    deploy_generation_abort "$APP" "${FULL_SHA:-}" "$swapped" "interrupted before the deploy generation reached its verdict (status=$rc)" || true
   fi
   if ! beta_bootstrap_archive_cleanup; then
     archive_cleanup_failed=1
@@ -6270,6 +6369,10 @@ cleanup_deploy_attempt(){
       else
         log "FATAL: pre-swap dependency recovery failed; the saved inputs are retained at $DEPS_SNAPSHOT_DIR"
         rc=74
+        # The live process is still the accepted build, now beside a dependency
+        # tree that is neither the accepted one nor proven: same containment as
+        # an unresolved rollback leg.
+        deploy_generation_contain
       fi
     else
       log "FATAL: dependency rollback snapshot is unresolved after live identity began moving; the saved inputs are retained at $DEPS_SNAPSHOT_DIR"
@@ -6410,6 +6513,10 @@ if [ "$TARGET" = beta ]; then
   ensure_beta_workspace || exit $?
 fi
 assert_deploy_paths_scoped || exit $?
+# A snapshot an earlier attempt RESOLVED and was killed before deleting holds
+# nothing the live app is owed; it goes now, under the lock, in every production
+# run. An unresolved one is not touched here.
+if [ "$TARGET" = production ]; then deps_snapshot_purge_resolved "$APP"; fi
 
 # 0b) canonical checkout, the trusted preflight bundle, the profile's receipt tree.
 if [ ! -d "$SRC/.git" ]; then
@@ -6526,12 +6633,8 @@ if [ ! -d "$APP/node_modules" ] || ! cmp -s "$TSRC/package-lock.json" "$APP/pack
     # interruption must end as an ordinary recovered failure. A trapped signal is
     # deferred until the foreground command returns; untrapped, this shell runs
     # its EXIT recovery at once, while an orphaned `npm ci` is still writing by
-    # path into the very tree being put back. Same three traps beta holds for
-    # its whole run; production takes them only once it has something to restore.
-    DEPLOY_SIGNALS_TRAPPED=1
-    trap 'exit 129' HUP
-    trap 'exit 130' INT
-    trap 'exit 143' TERM
+    # path into the very tree being put back.
+    deploy_take_signal_traps
     deps_snapshot_begin "$APP" || exit $?
   fi
   cp -f "$TSRC/package.json" "$TSRC/package-lock.json" "$APP/" 2>/dev/null || true
@@ -6710,6 +6813,18 @@ if [ "$RECOVERY_REQUESTED" = 1 ]; then
   [ "$(read_live_deployment_marker "$DEPLOYMENT_MARKER")" = "$FULL_SHA" ] || exit 75
 elif [ "$BOOTSTRAP_REQUESTED" = 1 ]; then
   log "beta bootstrap: no deploy generation is opened; a provisioned source marker is never a rollback baseline"
+elif [ "$TARGET" = production ]; then
+  # Every production run takes the signal traps here, whether or not its
+  # dependencies changed: from this step on the live identity and build move,
+  # and an interruption must reach the one abort (cleanup_deploy_attempt). The
+  # begin and its flag are one step to a signal; see DEPLOY_SIGNAL_DEFER.
+  deploy_take_signal_traps
+  DEPLOY_SIGNAL_DEFER=1
+  deploy_generation_begin "$APP" "$STAGE/.deployment-id"
+  DEPLOY_GENERATION_OPEN=1
+  CANONICAL_RECOVERY_ARMED=0
+  DEPLOY_SIGNAL_DEFER=0
+  [ -z "$DEPLOY_SIGNAL_PENDING" ] || exit "$DEPLOY_SIGNAL_PENDING"
 else
   deploy_generation_begin "$APP" "$STAGE/.deployment-id"
 fi

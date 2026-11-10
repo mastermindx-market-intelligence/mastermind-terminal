@@ -396,15 +396,21 @@ def _case_production_generation_library_and_restart_branch_are_unchanged():
  assert generation.count(dependency_restore)==1
  # The abort's control flow carries exactly three more additions, all in
  # deploy_generation_abort and all removed here the same way. (1) Once the
- # rollback has begun, a production run that took the signal traps holds them
- # off, so the restart-or-stop decision is always reached; beta never sets that
- # flag. (2)+(3) Cumulative containment: the reviewed reactivation block keeps
+ # rollback has begun, HUP/INT/TERM and PIPE are held off unconditionally, so the
+ # restart-or-stop decision is always reached, and the exit path is told the
+ # generation is no longer open. Beta never reaches this function: every beta
+ # call site runs `beta_txn_abort … || exit 1` first, and that always returns 1.
+ # (2)+(3) Cumulative containment: the reviewed reactivation block keeps
  # its bytes but runs only when every restoration leg is proven; otherwise the
  # selected unit is stopped. The opening and closing lines bracket that block.
  abort_local='  local app=$1 want_sha=$2 swapped=$3 reason=$4 rc=0\n'
  signal_hold = '''  # A rollback that has begun is finished: a signal taken between the restore and
-  # the restart or stop would leave a process bound to a tree that moved.
-  if [ "${DEPLOY_SIGNALS_TRAPPED:-0}" = 1 ]; then trap '' HUP INT TERM; fi
+  # the restart or stop would leave a process bound to a tree that moved. Held
+  # on every path that reaches here, and PIPE with the rest: a closed deploy
+  # channel arrives as SIGPIPE on the next log line, not as HUP. The exit path
+  # reads the flag so that it never starts this rollback a second time.
+  trap '' HUP INT TERM PIPE
+  DEPLOY_GENERATION_OPEN=0
 '''
  containment_open = '''  # Containment is cumulative. Reactivation is only for a generation whose every
   # restoration leg above (build, marker, dependency inputs) is proven complete.
