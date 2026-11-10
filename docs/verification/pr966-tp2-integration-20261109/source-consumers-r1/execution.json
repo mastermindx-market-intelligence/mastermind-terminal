@@ -1,0 +1,88 @@
+{
+  "acceptedTenBlobsUnchanged": true,
+  "completedAt": "2026-11-09T17:13:16.501797+00:00",
+  "results": {
+    "lint": {
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "lib/tp2PrivateEvidence.ts",
+        "lib/__tests__/tp2PrivateEvidence.test.ts",
+        "components/offexchange/Tp2ResearchReadout.tsx",
+        "lib/__tests__/tp2ResearchReadout.test.ts",
+        "--max-warnings=0"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seconds": 3.02
+    },
+    "offline-browser": {
+      "browser": {
+        "chrome": "149.0.7827.55",
+        "lightMode": "SIMULATED_TOKEN_COMPATIBILITY_ONLY",
+        "productionAccepted": false,
+        "scenarios": 10,
+        "stateCases": [
+          "source_absent",
+          "corrected_stale",
+          "partial_rth",
+          "cross_symbol_r0",
+          "corrected_zh"
+        ],
+        "status": "OFFLINE_TP2_RESPONSIVE_BROWSER_FIXTURE_PASS",
+        "unauthorizedDom": "WITHHELD"
+      },
+      "command": [
+        "node",
+        "scripts/verify-tp2-readout-browser.mjs"
+      ],
+      "exit": 0,
+      "logSha256": "22300a541274fb50f0111cd1c0b9963251df99b24ec683ad80ed06f4ee9036e6",
+      "seconds": 6.75,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "typecheck": {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seconds": 43.13
+    },
+    "units": {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/tp2PrivateEvidence.test.ts",
+        "lib/__tests__/tp2ResearchReadout.test.ts",
+        "lib/__tests__/tp1Nanoseconds.test.ts",
+        "lib/__tests__/tp1PrivateEvidence.test.ts",
+        "--pool=forks",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr966-tp2-integration-20261109/docs/verification/pr966-tp2-integration-20261109/source-consumers-r1/units.json"
+      ],
+      "exit": 0,
+      "logSha256": "add49d8f72448aaa00fa98d156397db9867da414489f8ba4e1b52c3ca78f8734",
+      "report": {
+        "numFailedTests": 0,
+        "numPassedTests": 151,
+        "numPendingTests": 0,
+        "numTotalTests": 151,
+        "success": true
+      },
+      "seconds": 5.25
+    }
+  },
+  "schema": "terminal_pr966_source_consumer_qualification.v1",
+  "sourceEntries": 1945,
+  "sourceStable": true,
+  "startedAt": "2026-11-09T17:12:17.697994+00:00",
+  "state": "QUALIFIED"
+}

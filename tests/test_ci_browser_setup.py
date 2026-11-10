@@ -43,7 +43,8 @@ def test_real_capture_still_follows_install_and_is_not_optional_on_failure():
     capture_index = next(i for i, step in enumerate(steps) if step.get("name") == CAPTURE)
     assert prepare_index < capture_index
     assert steps[capture_index]["run"] == "node e2e/tools/capture_ci_evidence.cjs"
-    assert steps[capture_index]["timeout-minutes"] == 55
+    # Preserve the existing workflow budget for complete native evidence.
+    assert steps[capture_index]["timeout-minutes"] == 85
     assert not steps[prepare_index].get("continue-on-error", False)
     assert not steps[capture_index].get("continue-on-error", False)
     # Preserve any source-qualified merge-group capture condition, not a new skip.

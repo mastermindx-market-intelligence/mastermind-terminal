@@ -1,0 +1,19 @@
+{
+  "branchHead": "883fee550a9628812a4fbcdc77e479ab8cad3b3a",
+  "captureRevision": "master-integration-20261109",
+  "files": {
+    "capture-execution.json": "e17f9bd557fd84e56b2f115697754bc22acd6dae10c19b05d5c007549129c0e1",
+    "capture-sources-after.json": "fee200a47e1b0f37f232a4a25b2c7af5a16bf91eefe80ee9ad9ce7c329bae027",
+    "capture-sources-before.json": "fee200a47e1b0f37f232a4a25b2c7af5a16bf91eefe80ee9ad9ce7c329bae027",
+    "history.json": "d116ad4a4e1ea0fbae3bf399e7a2d192afb15fb1b07f323d63ead69367b3fc7b",
+    "prior-exposure-root-sha256.json": "b0110a00f14c663c504fb49ae25dbe5f24cbc33c82e45e6bf4c0ef204a54df40",
+    "prior-protected-root-sha256.json": "c726ac1938cc85bf005b71ba01e0cec0a00dc57ae4ca168c1724a6200ea275bf",
+    "qualified-root/EVIDENCE.yml": "7534d2c8151bf9a3dce897009f46771deb6f5d79d8a52fd01a5a417e4774d223",
+    "source-contract.json": "598fe70857bc34c4b667fce4247625c1f28a8eecb509e0e6b1989b3a7998a76a"
+  },
+  "kind": "eod",
+  "operation": "exposure-source-compatibility-20261105",
+  "profile": "exposure",
+  "protectedMaster": "f2aa1e0cb27d459149f59d3b24d98cd6e2e8389f",
+  "schema": "options_exposure_master_packet.v1"
+}

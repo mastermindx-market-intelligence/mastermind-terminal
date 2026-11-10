@@ -95,6 +95,9 @@ export default function WatchlistAnnotationSync({ owner, ready, flags, notes, se
   const signalsRef = useRef(signals);
   const [guest, setGuest] = useState<LocalMaps>(() => readGuestMaps());
   const [dialog, setDialog] = useState<"conflict" | "import" | null>(null);
+  // A status refresh or hub relocation is not a new dialog opening. Keep the
+  // existing focus owner's close dependency stable throughout this task.
+  const closeDialog = useCallback(() => setDialog(null), []);
   const hubTarget = useHubEyebrow(hubOpen);
 
   const aliveRef = useRef(true);
@@ -441,11 +444,11 @@ export default function WatchlistAnnotationSync({ owner, ready, flags, notes, se
           remaining={conflictKeys.length}
           onMine={resolveMine}
           onTheirs={resolveTheirs}
-          onClose={() => setDialog(null)}
+          onClose={closeDialog}
         />
       )}
       {dialog === "import" && (
-        <ImportDialog items={offer.items} collisions={offer.collisions} onImport={acceptImport} onLater={declineImport} onClose={() => setDialog(null)} />
+        <ImportDialog items={offer.items} collisions={offer.collisions} onImport={acceptImport} onLater={declineImport} onClose={closeDialog} />
       )}
     </>
   );

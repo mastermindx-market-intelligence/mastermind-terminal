@@ -9,7 +9,7 @@ const evidenceRail = source("../../components/fin/EvidenceRail.tsx");
 const intelligencePage = source("../../components/fin/CompanyIntelligencePage.tsx");
 const intelligenceV2 = source("../../components/fin/CompanyIntelligenceV2Current.tsx");
 const themeCard = source("../../components/fin/CompanyThemeContextCard.tsx");
-const stockAnalysis = source("../../components/StockAnalysis.tsx");
+const stockAnalysis = source("../../components/StockAnalysisImpl.tsx");
 
 function withoutDataAttributes(src: string): string {
   return src

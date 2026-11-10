@@ -1,0 +1,32 @@
+{
+  "schema": "chart_framing_proof_publication.v1",
+  "phase": "APPLIED",
+  "qualification_sha256": "4175c376a016a00cd03dbf2c90c9604739c62b9004362db4a9cb277b752fc891",
+  "roots": {
+    "original": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3",
+    "preview": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree",
+    "exposure": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3"
+  },
+  "changes": [
+    {
+      "profile": "original",
+      "helper_sha256": "c7fab6aef66e4d43769255f0b6522ed7d39091f3987994cd9ba7076464caf896",
+      "tests_sha256": "f12c17aa0c12c0acba00d7e24ecc6f971355e272cd70cdeceb0a90260e84b4da",
+      "proof_files": 124
+    },
+    {
+      "profile": "preview",
+      "helper_sha256": "c7fab6aef66e4d43769255f0b6522ed7d39091f3987994cd9ba7076464caf896",
+      "tests_sha256": "f12c17aa0c12c0acba00d7e24ecc6f971355e272cd70cdeceb0a90260e84b4da",
+      "proof_files": 124
+    },
+    {
+      "profile": "exposure",
+      "helper_sha256": "c7fab6aef66e4d43769255f0b6522ed7d39091f3987994cd9ba7076464caf896",
+      "tests_sha256": "f12c17aa0c12c0acba00d7e24ecc6f971355e272cd70cdeceb0a90260e84b4da",
+      "proof_files": 124
+    }
+  ],
+  "completed_at": "2026-11-05T09:53:41.186393+00:00",
+  "analysis_evidence_files": 11
+}

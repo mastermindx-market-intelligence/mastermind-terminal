@@ -394,6 +394,30 @@ test("ordinary non-chart AppShell uses the same modal and marks its active route
   await page.waitForURL(/\/terminal\?ai=1$/);
 });
 
+test("Dislocations keeps a visible glyph and the current workspace across navigation", async ({ page, baseURL }, testInfo) => {
+  await page.context().addCookies([{ name: "mm_e2e_rs30", value: "1", url: baseURL! }]);
+  await page.addInitScript(() => localStorage.setItem("mm.lang", "en"));
+  await page.goto("/discover");
+  const desktop = testInfo.project.name === "desktop";
+  if (!desktop) await openDrawer(page);
+  const nav = page.locator(desktop ? ".appnav" : "dialog[open] .m-nav");
+  const dislocations = nav.locator('a[href="/dislocations"]');
+  await expect(dislocations).toBeVisible();
+  expect(await dislocations.locator("svg path").evaluateAll(paths => paths.every(path => {
+    const style = getComputedStyle(path);
+    return (path as SVGPathElement).getTotalLength() > 0 && style.stroke !== "none" && Number.parseFloat(style.strokeWidth) > 0;
+  }))).toBe(true);
+  await expect(dislocations.locator("svg path")).toHaveCount(2);
+  await dislocations.click();
+  await expect(page).toHaveURL(/\/dislocations$/);
+  await expect(page.getByTestId("dislo-status")).toBeVisible({ timeout: 30_000 });
+  if (!desktop) await openDrawer(page);
+  await expect(nav.locator('a[aria-current="page"]')).toHaveCount(1);
+  await expect(nav.locator('a[aria-current="page"]')).toHaveAttribute("href", "/dislocations");
+  await expect(dislocations.locator("svg")).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath(`dislocations-nav-${testInfo.project.name}.png`) });
+});
+
 test("from-Macro header remains non-overlapping and actionable at 320px", async ({ page }, testInfo) => {
   phoneOnly(testInfo);
   await page.setViewportSize({ width: 320, height: 844 });

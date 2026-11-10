@@ -1,0 +1,43 @@
+{
+  "authored_exit": 0,
+  "command": [
+    "./node_modules/.bin/eslint",
+    "components/gexdesk/GexDeskView.tsx",
+    "components/researchlab/OptionsResearchLab.tsx",
+    "lib/__tests__/researchReportedGammaMounted.test.tsx",
+    "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+    "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts"
+  ],
+  "protected_imports": [
+    {
+      "file": "lib/dataCache.ts",
+      "identical_protected": true,
+      "sha256": "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a"
+    },
+    {
+      "file": "lib/idbJsonStore.ts",
+      "identical_protected": true,
+      "sha256": "542eb3bc99044161c24f4fe41ea3caff43f260f29f11a50186e0fc21a18584c8"
+    },
+    {
+      "file": "lib/__tests__/dataCachePersist.test.ts",
+      "identical_protected": true,
+      "sha256": "c189a8f374158e3930543a4220ada4ddee87432b37208e61e695c0f9635741fe"
+    }
+  ],
+  "broader_diagnostics_by_file": {
+    "lib/__tests__/dataCachePersist.test.ts": {
+      "errors": 46,
+      "warnings": 10
+    },
+    "lib/dataCache.ts": {
+      "errors": 10,
+      "warnings": 0
+    },
+    "lib/idbJsonStore.ts": {
+      "errors": 5,
+      "warnings": 0
+    }
+  },
+  "scope": "Authored changes have no lint errors; imported dependency files are byte-identical to the qualified protected base. Full diagnostics retained without suppressions."
+}

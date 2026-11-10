@@ -1,0 +1,47 @@
+{
+  "checks": {
+    "lockDescriptors": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-768-owner-merge/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-10T04:30:18.256351+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "recordedPid": {
+      "command": [
+        "ps",
+        "-p",
+        "99184",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-10T04:30:16.271024+00:00",
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "completedAt": "2026-11-10T04:30:20.285516+00:00",
+  "initialLock": {
+    "content": {
+      "appUrl": "http://localhost:47468",
+      "hostname": "localhost",
+      "pid": 99184,
+      "port": 47468,
+      "startedAt": 1794284861681
+    },
+    "dev": 16777247,
+    "ino": 69868031,
+    "mtimeNs": 1794284861682058581,
+    "sha256": "8838ea4ef33c62ad35fe0d035775a0aa244f809f038142324211556c0615de71",
+    "size": 109
+  },
+  "listenerClosed": true,
+  "lockInitiallyPresent": true,
+  "observedAt": "2026-11-10T04:30:16.263220+00:00",
+  "state": "STALE_OWNED_LOCK_RECONCILED",
+  "workspaceCwdHolders": []
+}

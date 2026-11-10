@@ -1,0 +1,21 @@
+{
+  "sourceHead": "0dced0433f66d1c461f518060d30652a1f34deb7",
+  "evidenceUnitPassed": 5,
+  "evidenceUnitExit": 0,
+  "unitLogSha256": "718f61b3054a580a26974bebbf68bb28b80b22f25edbd8ba2d51f042c6a0f549",
+  "freshCaptureCount": 6,
+  "historicalR1HashesRestored": true,
+  "priorProductSourceAndScreenshotsUnchanged": true,
+  "priorQualifiedUnitPassed": 132,
+  "priorQualifiedBrowserPassed": 6,
+  "priorQualificationReusedWithoutRestamping": true,
+  "preservedSeparateBroaderRun": {
+    "passed": 29,
+    "skipped": 4,
+    "originalExit": 0
+  },
+  "visualInspection": "All six fresh B-F11 captures inspected. Context-bar research/thesis entries are visible at desktop/tablet/mobile in EN/ZH without clipping or development overlays. Desktop EN shows the honest pending financial-data state; other captures show resolved fixture-empty data. This packet qualifies the context bar, not market-data availability.",
+  "historicalAppendixPreserved": true,
+  "captureServerStopped": true,
+  "productionProof": false
+}

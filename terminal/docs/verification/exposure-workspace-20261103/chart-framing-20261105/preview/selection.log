@@ -1,0 +1,8 @@
+Listing tests:
+  [desktop] › options-exposure-workspace.spec.ts:439:7 › Connected exposure workspace en: chart, comparison scopes, scanner and return
+  [desktop] › options-exposure-workspace.spec.ts:439:7 › Connected exposure workspace zh: chart, comparison scopes, scanner and return
+  [tablet] › options-exposure-workspace.spec.ts:439:7 › Connected exposure workspace en: chart, comparison scopes, scanner and return
+  [tablet] › options-exposure-workspace.spec.ts:439:7 › Connected exposure workspace zh: chart, comparison scopes, scanner and return
+  [mobile] › options-exposure-workspace.spec.ts:439:7 › Connected exposure workspace en: chart, comparison scopes, scanner and return
+  [mobile] › options-exposure-workspace.spec.ts:439:7 › Connected exposure workspace zh: chart, comparison scopes, scanner and return
+Total: 6 tests in 1 file

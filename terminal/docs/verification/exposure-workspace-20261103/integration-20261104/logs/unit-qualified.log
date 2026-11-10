@@ -1,0 +1,22 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal
+
+ ✓ lib/__tests__/gexDeskPartialData.test.tsx (12 tests) 483ms
+ ✓ lib/__tests__/exposureChartReference.test.tsx (18 tests) 162ms
+ ✓ lib/__tests__/exposureReplay.test.tsx (8 tests) 184ms
+ ✓ lib/__tests__/gexDeskStateRace.test.tsx (12 tests) 346ms
+ ✓ lib/__tests__/indicatorMathFixes.test.ts (17 tests) 12ms
+ ✓ lib/__tests__/sectorExposureDepthReturn.test.ts (10 tests) 42ms
+ ✓ lib/__tests__/exposureChartLink.test.ts (31 tests) 12ms
+ ✓ lib/__tests__/gexStateIdentity.test.ts (22 tests) 5ms
+ ✓ lib/__tests__/gexDeskLoadFailureState.test.tsx (52 tests) 5515ms
+   ✓ GEX desk: an unread matrix is not an unpublished one > the confluence board does not judge alignment on a partial read 309ms
+ ✓ lib/__tests__/volTradingDaysRange.test.ts (82 tests) 1118ms
+   ✓ complete weekday-only expected-move horizons > preserves Gregorian weekday arithmetic 0000-01-01 to 9999-12-31 1101ms
+
+ Test Files  10 passed (10)
+      Tests  264 passed (264)
+   Start at  03:27:20
+   Duration  9.93s (transform 1.78s, setup 0ms, collect 4.85s, tests 7.88s, environment 2.53s, prepare 550ms)
+
