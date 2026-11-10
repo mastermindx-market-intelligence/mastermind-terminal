@@ -416,6 +416,34 @@ describe("sectorPopulationPage — lane 1 point-in-time facts (COO 19:15Z item 5
       } });
   });
 
+  // N-5 (third review): a snapshot dated AFTER the fact's as_of is a look-ahead
+  // the owner never vouched for at capture time — degrade that one entry, not
+  // the fact and not the page.
+  it("N-5: a snapshot_date after the fact's as_of degrades that entry alone — never the fact, never the page", () => {
+    const mutated = clone();
+    const fact = snapshotFact();
+    (fact.groups.housing as Record<string, unknown>).snapshot_date = "2099-12-31";
+    identity(mutated).membership_snapshot = fact;
+    const read = sectorPopulationPage(mutated)!;
+    expect(read).not.toBeNull();
+    expect(read.membershipSnapshot).toEqual({ carried: true, status: "available", asOf: "2026-11-06",
+      groups: {
+        housing: { status: "unavailable" },
+        precious: { status: "unavailable" },
+      } });
+    // The boundary is inclusive: a snapshot dated exactly as_of stays available.
+    const sameDay = clone();
+    const edge = snapshotFact();
+    (edge.groups.housing as Record<string, unknown>).snapshot_date = "2026-11-06";
+    identity(sameDay).membership_snapshot = edge;
+    const edgeRead = sectorPopulationPage(sameDay)!.membershipSnapshot;
+    expect(edgeRead).toEqual({ carried: true, status: "available", asOf: "2026-11-06",
+      groups: {
+        housing: { status: "available", snapshotDate: "2026-11-06", membersSha: "a".repeat(64), memberCount: 18, equalsCurrentRoster: true },
+        precious: { status: "unavailable" },
+      } });
+  });
+
   it("roster_clock rides capture.population without refusing the page; agree reads agree", () => {
     const mutated = clone();
     population(mutated).roster_clock = { status: "agree", roster_as_of: "2026-11-06", capture_effective_as_of: "2026-11-06" };

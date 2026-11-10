@@ -290,6 +290,11 @@ function readMembershipSnapshot(value: unknown): PopulationMembershipSnapshot {
     const ok = record(entry) && entry.status === "available"
       && closed(entry, ["status", "snapshot_date", "members_sha", "member_count", "equals_current_roster"])
       && day(entry.snapshot_date) && int(entry.member_count, 0, 1_000_000)
+      // N-5 (third review): a snapshot dated after the fact's as_of is a
+      // look-ahead the owner never vouched for at capture time — degrade this
+      // entry alone. Both sides are day()-validated YYYY-MM-DD, so string
+      // comparison is calendar comparison; as_of itself is inclusive.
+      && entry.snapshot_date <= value.as_of
       && (entry.equals_current_roster === null || bool(entry.equals_current_roster));
     if (!ok) { groups[groupId] = { status: "unavailable" }; continue; }
     groups[groupId] = { status: "available", snapshotDate: entry.snapshot_date as string,
