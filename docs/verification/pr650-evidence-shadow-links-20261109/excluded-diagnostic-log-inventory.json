@@ -1,0 +1,29 @@
+{
+  "files": {
+    "docs/verification/pr650-evidence-shadow-links-20261109/current-consumers-r1/legacy-boundary.log": {
+      "bytes": 715,
+      "sha256": "767e6afd611017f69060dc82a1957b9d83130a76c4ebc3e6de0325d1d89a325a"
+    },
+    "docs/verification/pr650-evidence-shadow-links-20261109/current-consumers-r1/lint.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/pr650-evidence-shadow-links-20261109/current-consumers-r1/readers.log": {
+      "bytes": 368,
+      "sha256": "c53a8bbe8b552e8855f671cdda3bc40f06217c08587587be85e51eeab4081600"
+    },
+    "docs/verification/pr650-evidence-shadow-links-20261109/current-consumers-r1/typecheck.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/pr650-evidence-shadow-links-20261109/current-consumers-r1/typegen.log": {
+      "bytes": 59,
+      "sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a"
+    },
+    "docs/verification/pr650-evidence-shadow-links-20261109/regression-red-r1/test.log": {
+      "bytes": 360,
+      "sha256": "2cdf15b43147ff5fbcfcf9761fd8c36c096f52df8f4dc0fc9a1f5ef22e3b991b"
+    }
+  },
+  "schema": "terminal_evidence_shadow_excluded_raw_logs.v1"
+}

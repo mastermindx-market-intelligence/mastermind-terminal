@@ -1,0 +1,23 @@
+{
+  "schema": "terminal_pr768_actual_visual_review.v1",
+  "native": {
+    "paths": [
+      "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/revisions/options-integration-20261109/qualified-root/chainheat-retried-390-zh.png",
+      "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/revisions/options-integration-20261109/qualified-root/heatmap-flow-persisted-refresh-refused-390.png",
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/revisions/options-integration-20261109/qualified-root/gex-state-refresh-failed-390.png",
+      "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/revisions/options-integration-20261109/qualified-root/levels-absent-390-zh.png"
+    ],
+    "reviewed": true,
+    "observations": "Four actual 390px EOD/GEX captures inspected: Chinese chain heat data legible; persisted refresh warning, retry control and retained heatmap visible; compact GEX refresh error retained; source-absent levels copy visible without corrupted rendering.",
+    "note": "Fourth image observation must match rendered output of this call."
+  },
+  "browser": {
+    "paths": [
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr768-options-integration-20261109/terminal/docs/verification/exposure-workspace-20261103/options-integration-20261109/browser-artifacts/playwright/exposure-partial-totals--e-a134e-ts-date-only-source-session-mobile/exposure-source-en-partial.png",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr768-options-integration-20261109/terminal/docs/verification/exposure-workspace-20261103/options-integration-20261109/browser-artifacts/playwright/exposure-partial-totals--e-0b13a-ts-date-only-source-session-mobile/exposure-source-en-complete.png",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr768-options-integration-20261109/terminal/docs/verification/exposure-workspace-20261103/options-integration-20261109/browser-artifacts/playwright/exposure-partial-totals--z-67935-ts-date-only-source-session-mobile/exposure-source-zh-partial.png",
+      "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr768-options-integration-20261109/terminal/docs/verification/exposure-workspace-20261103/options-integration-20261109/browser-artifacts/playwright/exposure-partial-totals--z-0e253-ts-date-only-source-session-mobile/exposure-source-zh-complete.png"
+    ],
+    "observations": "EN and ZH phone partial/complete screenshots show unchanged September 25 source-session date, known subtotal and withheld overall total when incomplete, +5.0M when selected grid is complete, and visible source-completeness notice; current legends and controls remain readable."
+  }
+}

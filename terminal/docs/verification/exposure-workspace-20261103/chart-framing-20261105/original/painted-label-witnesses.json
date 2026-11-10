@@ -1,0 +1,698 @@
+[
+  {
+    "project": "desktop",
+    "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return",
+    "name": "exposure-header-clearance-initial",
+    "value": [
+      {
+        "strike": 756,
+        "gap": 24.72802728647423,
+        "paint": 19,
+        "labelTop": 636.4467772864742,
+        "headerBottom": 611.71875
+      },
+      {
+        "strike": 757,
+        "gap": 5.49239793346851,
+        "paint": 20,
+        "labelTop": 617.2111479334685,
+        "headerBottom": 611.71875
+      },
+      {
+        "strike": 755,
+        "gap": 44.06131288947995,
+        "paint": 21,
+        "labelTop": 655.78006288948,
+        "headerBottom": 611.71875
+      },
+      {
+        "strike": 747,
+        "gap": 198.4541602135257,
+        "paint": 22,
+        "labelTop": 810.1729102135257,
+        "headerBottom": 611.71875
+      },
+      {
+        "strike": 746,
+        "gap": 217.57260206653154,
+        "paint": 23,
+        "labelTop": 829.2913520665315,
+        "headerBottom": 611.71875
+      },
+      {
+        "strike": 748,
+        "gap": 179.00368711052,
+        "paint": 24,
+        "labelTop": 790.72243711052,
+        "headerBottom": 611.71875
+      }
+    ]
+  },
+  {
+    "project": "desktop",
+    "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return",
+    "name": "exposure-header-clearance",
+    "value": {
+      "initial": [
+        {
+          "strike": 756,
+          "gap": 24.72802728647423,
+          "paint": 19,
+          "labelTop": 636.4467772864742,
+          "headerBottom": 611.71875
+        },
+        {
+          "strike": 757,
+          "gap": 5.49239793346851,
+          "paint": 20,
+          "labelTop": 617.2111479334685,
+          "headerBottom": 611.71875
+        },
+        {
+          "strike": 755,
+          "gap": 44.06131288947995,
+          "paint": 21,
+          "labelTop": 655.78006288948,
+          "headerBottom": 611.71875
+        },
+        {
+          "strike": 747,
+          "gap": 198.4541602135257,
+          "paint": 22,
+          "labelTop": 810.1729102135257,
+          "headerBottom": 611.71875
+        },
+        {
+          "strike": 746,
+          "gap": 217.57260206653154,
+          "paint": 23,
+          "labelTop": 829.2913520665315,
+          "headerBottom": 611.71875
+        },
+        {
+          "strike": 748,
+          "gap": 179.00368711052,
+          "paint": 24,
+          "labelTop": 790.72243711052,
+          "headerBottom": 611.71875
+        }
+      ],
+      "afterFit": [
+        {
+          "strike": 756,
+          "gap": 24.72802728647423,
+          "paint": 31,
+          "labelTop": 636.4467772864742,
+          "headerBottom": 611.71875
+        },
+        {
+          "strike": 757,
+          "gap": 5.49239793346851,
+          "paint": 32,
+          "labelTop": 617.2111479334685,
+          "headerBottom": 611.71875
+        },
+        {
+          "strike": 755,
+          "gap": 44.06131288947995,
+          "paint": 33,
+          "labelTop": 655.78006288948,
+          "headerBottom": 611.71875
+        },
+        {
+          "strike": 747,
+          "gap": 198.4541602135257,
+          "paint": 34,
+          "labelTop": 810.1729102135257,
+          "headerBottom": 611.71875
+        },
+        {
+          "strike": 746,
+          "gap": 217.57260206653154,
+          "paint": 35,
+          "labelTop": 829.2913520665315,
+          "headerBottom": 611.71875
+        },
+        {
+          "strike": 748,
+          "gap": 179.00368711052,
+          "paint": 36,
+          "labelTop": 790.72243711052,
+          "headerBottom": 611.71875
+        }
+      ]
+    }
+  },
+  {
+    "project": "desktop",
+    "title": "Connected exposure workspace zh: chart, comparison scopes, scanner and return",
+    "name": "exposure-header-clearance-initial",
+    "value": [
+      {
+        "strike": 756,
+        "gap": 24.72802728647423,
+        "paint": 19,
+        "labelTop": 621.2280272864742,
+        "headerBottom": 596.5
+      },
+      {
+        "strike": 757,
+        "gap": 5.49239793346851,
+        "paint": 20,
+        "labelTop": 601.9923979334685,
+        "headerBottom": 596.5
+      },
+      {
+        "strike": 755,
+        "gap": 44.06131288947995,
+        "paint": 21,
+        "labelTop": 640.56131288948,
+        "headerBottom": 596.5
+      },
+      {
+        "strike": 747,
+        "gap": 198.4541602135257,
+        "paint": 22,
+        "labelTop": 794.9541602135257,
+        "headerBottom": 596.5
+      },
+      {
+        "strike": 746,
+        "gap": 217.57260206653154,
+        "paint": 23,
+        "labelTop": 814.0726020665315,
+        "headerBottom": 596.5
+      },
+      {
+        "strike": 748,
+        "gap": 179.00368711052,
+        "paint": 24,
+        "labelTop": 775.50368711052,
+        "headerBottom": 596.5
+      }
+    ]
+  },
+  {
+    "project": "desktop",
+    "title": "Connected exposure workspace zh: chart, comparison scopes, scanner and return",
+    "name": "exposure-header-clearance",
+    "value": {
+      "initial": [
+        {
+          "strike": 756,
+          "gap": 24.72802728647423,
+          "paint": 19,
+          "labelTop": 621.2280272864742,
+          "headerBottom": 596.5
+        },
+        {
+          "strike": 757,
+          "gap": 5.49239793346851,
+          "paint": 20,
+          "labelTop": 601.9923979334685,
+          "headerBottom": 596.5
+        },
+        {
+          "strike": 755,
+          "gap": 44.06131288947995,
+          "paint": 21,
+          "labelTop": 640.56131288948,
+          "headerBottom": 596.5
+        },
+        {
+          "strike": 747,
+          "gap": 198.4541602135257,
+          "paint": 22,
+          "labelTop": 794.9541602135257,
+          "headerBottom": 596.5
+        },
+        {
+          "strike": 746,
+          "gap": 217.57260206653154,
+          "paint": 23,
+          "labelTop": 814.0726020665315,
+          "headerBottom": 596.5
+        },
+        {
+          "strike": 748,
+          "gap": 179.00368711052,
+          "paint": 24,
+          "labelTop": 775.50368711052,
+          "headerBottom": 596.5
+        }
+      ],
+      "afterFit": [
+        {
+          "strike": 756,
+          "gap": 24.72802728647423,
+          "paint": 31,
+          "labelTop": 621.2280272864742,
+          "headerBottom": 596.5
+        },
+        {
+          "strike": 757,
+          "gap": 5.49239793346851,
+          "paint": 32,
+          "labelTop": 601.9923979334685,
+          "headerBottom": 596.5
+        },
+        {
+          "strike": 755,
+          "gap": 44.06131288947995,
+          "paint": 33,
+          "labelTop": 640.56131288948,
+          "headerBottom": 596.5
+        },
+        {
+          "strike": 747,
+          "gap": 198.4541602135257,
+          "paint": 34,
+          "labelTop": 794.9541602135257,
+          "headerBottom": 596.5
+        },
+        {
+          "strike": 746,
+          "gap": 217.57260206653154,
+          "paint": 35,
+          "labelTop": 814.0726020665315,
+          "headerBottom": 596.5
+        },
+        {
+          "strike": 748,
+          "gap": 179.00368711052,
+          "paint": 36,
+          "labelTop": 775.50368711052,
+          "headerBottom": 596.5
+        }
+      ]
+    }
+  },
+  {
+    "project": "tablet",
+    "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return",
+    "name": "exposure-header-clearance-initial",
+    "value": [
+      {
+        "strike": 756,
+        "gap": 24.72802728647423,
+        "paint": 19,
+        "labelTop": 820.7124022864742,
+        "headerBottom": 795.984375
+      },
+      {
+        "strike": 757,
+        "gap": 5.49239793346851,
+        "paint": 20,
+        "labelTop": 801.4767729334685,
+        "headerBottom": 795.984375
+      },
+      {
+        "strike": 755,
+        "gap": 44.06131288947995,
+        "paint": 21,
+        "labelTop": 840.04568788948,
+        "headerBottom": 795.984375
+      },
+      {
+        "strike": 747,
+        "gap": 198.4541602135257,
+        "paint": 22,
+        "labelTop": 994.4385352135257,
+        "headerBottom": 795.984375
+      },
+      {
+        "strike": 746,
+        "gap": 217.57260206653154,
+        "paint": 23,
+        "labelTop": 1013.5569770665315,
+        "headerBottom": 795.984375
+      },
+      {
+        "strike": 748,
+        "gap": 179.00368711052,
+        "paint": 24,
+        "labelTop": 974.98806211052,
+        "headerBottom": 795.984375
+      }
+    ]
+  },
+  {
+    "project": "tablet",
+    "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return",
+    "name": "exposure-header-clearance",
+    "value": {
+      "initial": [
+        {
+          "strike": 756,
+          "gap": 24.72802728647423,
+          "paint": 19,
+          "labelTop": 820.7124022864742,
+          "headerBottom": 795.984375
+        },
+        {
+          "strike": 757,
+          "gap": 5.49239793346851,
+          "paint": 20,
+          "labelTop": 801.4767729334685,
+          "headerBottom": 795.984375
+        },
+        {
+          "strike": 755,
+          "gap": 44.06131288947995,
+          "paint": 21,
+          "labelTop": 840.04568788948,
+          "headerBottom": 795.984375
+        },
+        {
+          "strike": 747,
+          "gap": 198.4541602135257,
+          "paint": 22,
+          "labelTop": 994.4385352135257,
+          "headerBottom": 795.984375
+        },
+        {
+          "strike": 746,
+          "gap": 217.57260206653154,
+          "paint": 23,
+          "labelTop": 1013.5569770665315,
+          "headerBottom": 795.984375
+        },
+        {
+          "strike": 748,
+          "gap": 179.00368711052,
+          "paint": 24,
+          "labelTop": 974.98806211052,
+          "headerBottom": 795.984375
+        }
+      ],
+      "afterFit": [
+        {
+          "strike": 756,
+          "gap": 24.72802728647423,
+          "paint": 31,
+          "labelTop": 820.7124022864742,
+          "headerBottom": 795.984375
+        },
+        {
+          "strike": 757,
+          "gap": 5.49239793346851,
+          "paint": 32,
+          "labelTop": 801.4767729334685,
+          "headerBottom": 795.984375
+        },
+        {
+          "strike": 755,
+          "gap": 44.06131288947995,
+          "paint": 33,
+          "labelTop": 840.04568788948,
+          "headerBottom": 795.984375
+        },
+        {
+          "strike": 747,
+          "gap": 198.4541602135257,
+          "paint": 34,
+          "labelTop": 994.4385352135257,
+          "headerBottom": 795.984375
+        },
+        {
+          "strike": 746,
+          "gap": 217.57260206653154,
+          "paint": 35,
+          "labelTop": 1013.5569770665315,
+          "headerBottom": 795.984375
+        },
+        {
+          "strike": 748,
+          "gap": 179.00368711052,
+          "paint": 36,
+          "labelTop": 974.98806211052,
+          "headerBottom": 795.984375
+        }
+      ]
+    }
+  },
+  {
+    "project": "tablet",
+    "title": "Connected exposure workspace zh: chart, comparison scopes, scanner and return",
+    "name": "exposure-header-clearance-initial",
+    "value": [
+      {
+        "strike": 756,
+        "gap": 24.72802728647423,
+        "paint": 19,
+        "labelTop": 776.7749022864742,
+        "headerBottom": 752.046875
+      },
+      {
+        "strike": 757,
+        "gap": 5.49239793346851,
+        "paint": 20,
+        "labelTop": 757.5392729334685,
+        "headerBottom": 752.046875
+      },
+      {
+        "strike": 755,
+        "gap": 44.06131288947995,
+        "paint": 21,
+        "labelTop": 796.10818788948,
+        "headerBottom": 752.046875
+      },
+      {
+        "strike": 747,
+        "gap": 198.4541602135257,
+        "paint": 22,
+        "labelTop": 950.5010352135257,
+        "headerBottom": 752.046875
+      },
+      {
+        "strike": 746,
+        "gap": 217.57260206653154,
+        "paint": 23,
+        "labelTop": 969.6194770665315,
+        "headerBottom": 752.046875
+      },
+      {
+        "strike": 748,
+        "gap": 179.00368711052,
+        "paint": 24,
+        "labelTop": 931.05056211052,
+        "headerBottom": 752.046875
+      }
+    ]
+  },
+  {
+    "project": "tablet",
+    "title": "Connected exposure workspace zh: chart, comparison scopes, scanner and return",
+    "name": "exposure-header-clearance",
+    "value": {
+      "initial": [
+        {
+          "strike": 756,
+          "gap": 24.72802728647423,
+          "paint": 19,
+          "labelTop": 776.7749022864742,
+          "headerBottom": 752.046875
+        },
+        {
+          "strike": 757,
+          "gap": 5.49239793346851,
+          "paint": 20,
+          "labelTop": 757.5392729334685,
+          "headerBottom": 752.046875
+        },
+        {
+          "strike": 755,
+          "gap": 44.06131288947995,
+          "paint": 21,
+          "labelTop": 796.10818788948,
+          "headerBottom": 752.046875
+        },
+        {
+          "strike": 747,
+          "gap": 198.4541602135257,
+          "paint": 22,
+          "labelTop": 950.5010352135257,
+          "headerBottom": 752.046875
+        },
+        {
+          "strike": 746,
+          "gap": 217.57260206653154,
+          "paint": 23,
+          "labelTop": 969.6194770665315,
+          "headerBottom": 752.046875
+        },
+        {
+          "strike": 748,
+          "gap": 179.00368711052,
+          "paint": 24,
+          "labelTop": 931.05056211052,
+          "headerBottom": 752.046875
+        }
+      ],
+      "afterFit": [
+        {
+          "strike": 756,
+          "gap": 24.72802728647423,
+          "paint": 31,
+          "labelTop": 776.7749022864742,
+          "headerBottom": 752.046875
+        },
+        {
+          "strike": 757,
+          "gap": 5.49239793346851,
+          "paint": 32,
+          "labelTop": 757.5392729334685,
+          "headerBottom": 752.046875
+        },
+        {
+          "strike": 755,
+          "gap": 44.06131288947995,
+          "paint": 33,
+          "labelTop": 796.10818788948,
+          "headerBottom": 752.046875
+        },
+        {
+          "strike": 747,
+          "gap": 198.4541602135257,
+          "paint": 34,
+          "labelTop": 950.5010352135257,
+          "headerBottom": 752.046875
+        },
+        {
+          "strike": 746,
+          "gap": 217.57260206653154,
+          "paint": 35,
+          "labelTop": 969.6194770665315,
+          "headerBottom": 752.046875
+        },
+        {
+          "strike": 748,
+          "gap": 179.00368711052,
+          "paint": 36,
+          "labelTop": 931.05056211052,
+          "headerBottom": 752.046875
+        }
+      ]
+    }
+  },
+  {
+    "project": "mobile",
+    "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return",
+    "name": "exposure-header-clearance-initial",
+    "value": [
+      {
+        "strike": 756,
+        "gap": 25.538491781655694,
+        "paint": 7,
+        "labelTop": 748.6791167816557,
+        "headerBottom": 723.140625
+      },
+      {
+        "strike": 747,
+        "gap": 149.45816000405785,
+        "paint": 8,
+        "labelTop": 872.5987850040578,
+        "headerBottom": 723.140625
+      }
+    ]
+  },
+  {
+    "project": "mobile",
+    "title": "Connected exposure workspace en: chart, comparison scopes, scanner and return",
+    "name": "exposure-header-clearance",
+    "value": {
+      "initial": [
+        {
+          "strike": 756,
+          "gap": 25.538491781655694,
+          "paint": 7,
+          "labelTop": 748.6791167816557,
+          "headerBottom": 723.140625
+        },
+        {
+          "strike": 747,
+          "gap": 149.45816000405785,
+          "paint": 8,
+          "labelTop": 872.5987850040578,
+          "headerBottom": 723.140625
+        }
+      ],
+      "afterFit": [
+        {
+          "strike": 756,
+          "gap": 25.538491781655694,
+          "paint": 11,
+          "labelTop": 748.6791167816557,
+          "headerBottom": 723.140625
+        },
+        {
+          "strike": 747,
+          "gap": 149.45816000405785,
+          "paint": 12,
+          "labelTop": 872.5987850040578,
+          "headerBottom": 723.140625
+        }
+      ]
+    }
+  },
+  {
+    "project": "mobile",
+    "title": "Connected exposure workspace zh: chart, comparison scopes, scanner and return",
+    "name": "exposure-header-clearance-initial",
+    "value": [
+      {
+        "strike": 756,
+        "gap": 25.538491781655694,
+        "paint": 7,
+        "labelTop": 734.1791167816557,
+        "headerBottom": 708.640625
+      },
+      {
+        "strike": 747,
+        "gap": 149.45816000405785,
+        "paint": 8,
+        "labelTop": 858.0987850040578,
+        "headerBottom": 708.640625
+      }
+    ]
+  },
+  {
+    "project": "mobile",
+    "title": "Connected exposure workspace zh: chart, comparison scopes, scanner and return",
+    "name": "exposure-header-clearance",
+    "value": {
+      "initial": [
+        {
+          "strike": 756,
+          "gap": 25.538491781655694,
+          "paint": 7,
+          "labelTop": 734.1791167816557,
+          "headerBottom": 708.640625
+        },
+        {
+          "strike": 747,
+          "gap": 149.45816000405785,
+          "paint": 8,
+          "labelTop": 858.0987850040578,
+          "headerBottom": 708.640625
+        }
+      ],
+      "afterFit": [
+        {
+          "strike": 756,
+          "gap": 25.538491781655694,
+          "paint": 11,
+          "labelTop": 734.1791167816557,
+          "headerBottom": 708.640625
+        },
+        {
+          "strike": 747,
+          "gap": 149.45816000405785,
+          "paint": 12,
+          "labelTop": 858.0987850040578,
+          "headerBottom": 708.640625
+        }
+      ]
+    }
+  }
+]

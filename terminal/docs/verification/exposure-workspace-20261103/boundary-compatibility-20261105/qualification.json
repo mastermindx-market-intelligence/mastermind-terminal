@@ -1,0 +1,89 @@
+{
+  "schema": "options_lab_boundary_compatibility.v1",
+  "status": "BOUNDARY_QUALIFIED_PENDING_TYPED_PUBLICATION",
+  "source_law": "70187bb1660e8a7c3038271bb9f8924b5e525cb0",
+  "protected_terminal": "11531481b0a540ee96bcd86df418fd1e42715363",
+  "capture_commit": "f12ad44115d69b1bcd7cd453d69a689c9d6768a8",
+  "boundary_sources": {
+    "terminal/components/gexdesk/GexDeskView.tsx": "770ddedbe67516359a1f8d29f1ce28a7cc89b63e16dba87071b84609fc04b544",
+    "terminal/components/researchlab/AdmittedOptionsResearchLab.tsx": "b5d53a1a443cd81e7598826181327777fec1d3fd52879b75a23fd6fceeaba6f8",
+    "terminal/components/researchlab/OptionsResearchLab.tsx": "365223a8182effc04fa956a8004062aa86c1426de8fc24eccebf6952e1571820",
+    "terminal/components/options-companion/GexMarketMemory.tsx": "6d166c952ad9ea732c1917b9984eb4d5bd14b12298c247f4524197d6998310cb",
+    "terminal/components/researchlab/ResearchReportedGammaPanel.tsx": "8a4fd4e87d3342845b244a5bc2f7ce4e980851617805770ddfb1f328f5e01e15",
+    "terminal/components/researchlab/researchReportedGamma.ts": "21d9d9f10d810a07bd9ae6acb28696d818dbe47e1b30c346c0bb0f7cdc1319f2",
+    "terminal/lib/dataCache.ts": "ce28db3a3bcb3425320ac7e6845df02be5d21daebfa084756830c631623c7a3a",
+    "terminal/lib/idbJsonStore.ts": "542eb3bc99044161c24f4fe41ea3caff43f260f29f11a50186e0fc21a18584c8",
+    "terminal/lib/flowClientCache.ts": "34e46458e0cbec605d3e85abbc4772bd0481a7076313ff478bd6f34f01c99db5",
+    "terminal/lib/optionsCompanion.ts": "01dbffcf6a832df7efd06502e008efc7932a6999f7c01f1ad8a347d5af146cf8",
+    "terminal/lib/__tests__/researchLabSourceAvailability.test.tsx": "12093c6d15f90b3d3bfe9b37e31308508bd2d9df6305ca8cd802621b6f3792ea",
+    "terminal/lib/__tests__/fixtures/reportedGammaBooks.ts": "0ef56f1813455bd798015dec42947498253ee7fc5116fde94543a883cc87c103",
+    "terminal/lib/__tests__/fixtures/exposure-projection-observed-v2.json": "27d2e7789bef235f70e91dc558f5afb934fcb156c4e840dc4e2b0bb66d028990",
+    "terminal/e2e/options-lab-source-state.spec.ts": "1f95f49d3b701adbfff457ad6b4ce32f218aae9b321f0a15fcf34821d7e609e6"
+  },
+  "browser": {
+    "original": {
+      "passed": 12,
+      "receipt_sha256": "2b9d5f55a1046a8e78efb7996aac2b351a10f3dff1b1102daaaa507fbb7957d3",
+      "source_map_sha256": "9263e790b0b2fcdb4668c6dc5fac0db2dd8ae6e461b835c4b750bc21e3fa0235",
+      "artifacts_sha256": "54235e0beba6e3672d13b2dff8135c2e6aa806f7a110e0f22bdaea88f010427d",
+      "artifact_count": 30
+    },
+    "preview": {
+      "passed": 18,
+      "receipt_sha256": "468a9786f0f0bda1c3807b7a86ef305959a03c94badc3dcfc3ca7ff4a6448870",
+      "source_map_sha256": "1d726df70162de8637b2b8d7daced9dd84d95189c8ed8429d6c844be272f0799",
+      "artifacts_sha256": "45bd151f1c36a2fab811e61d04ea702f5991537806ad3a12c1568bac70a1d189",
+      "artifact_count": 48
+    }
+  },
+  "focused_units_passed": 22,
+  "source_typescript_exit": 0,
+  "authored_lint_exit": 0,
+  "native_captures_reused": [
+    {
+      "packet": "gex-levels-heatmap-load-failure",
+      "operation": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105",
+      "images": 114,
+      "receipt_sha256": "935ba4848b8fe09b1f7d45e39bbe228a2ba304d8fdaeefc47d013c286e7e7503",
+      "recorded_source_count": 18,
+      "exact_source_transition": {
+        "terminal/components/researchlab/OptionsResearchLab.tsx": {
+          "captured": "1b9bfeaa9ae3a9460fcecd812a98dcd8ef6591df0041d5dc4a53bde6dc2daf8b",
+          "current": "365223a8182effc04fa956a8004062aa86c1426de8fc24eccebf6952e1571820"
+        }
+      },
+      "harness_sha256": "f6c52d0666cee5a497d0836ec8e9c8eb05a9ba51fad63ba9f443d623ad99bc28",
+      "coverage": "Native routes open GEX/Levels/Heatmap or GEX/FlowDesk/Heatmap; inspected actions never enter Research Lab. All exercised layout, cache, IDB and harness dependencies are unchanged."
+    },
+    {
+      "packet": "eod-heatmap-flowdesk-load-failure",
+      "operation": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105",
+      "images": 126,
+      "receipt_sha256": "7b74bfcc4c4e11c8505f0e661cdd65a782802a8e07e69d0fa9c6ea6bab252939",
+      "recorded_source_count": 19,
+      "exact_source_transition": {
+        "terminal/components/researchlab/OptionsResearchLab.tsx": {
+          "captured": "1b9bfeaa9ae3a9460fcecd812a98dcd8ef6591df0041d5dc4a53bde6dc2daf8b",
+          "current": "365223a8182effc04fa956a8004062aa86c1426de8fc24eccebf6952e1571820"
+        }
+      },
+      "harness_sha256": "866a1f4f6a823f878476dbb83fa48258deee5bf26eb651b9c2fcc3d5491ad3ba",
+      "coverage": "Native routes open GEX/Levels/Heatmap or GEX/FlowDesk/Heatmap; inspected actions never enter Research Lab. All exercised layout, cache, IDB and harness dependencies are unchanged."
+    }
+  ],
+  "frozen_capture_source_map_sha256": "f1c54ada9ecc0da40ed379c8c622483f602915d9eaf2f7967258e5b9081bc6db",
+  "source_decision": "Restore protected Lab core and its shared mounted test exactly. Qualify snapshot availability in the existing admission wrapper; default false. Preserve non-default 103 Put selection through unavailable/absent withdrawal and recovery.",
+  "effects": {
+    "paper": "Six accepted boards preserved without modification.",
+    "publication": "Original C3 Exposure operation only; no new branch or merge ancestry.",
+    "release_holds": [
+      "no merge",
+      "no enqueue",
+      "no Ready or undraft action",
+      "no labels",
+      "no deployment",
+      "no purchases"
+    ]
+  },
+  "next_action": "Verify evidence guards and immutable committed-tree composition, push the exact qualified head via the original typed publisher, and consume native GitHub checks."
+}
