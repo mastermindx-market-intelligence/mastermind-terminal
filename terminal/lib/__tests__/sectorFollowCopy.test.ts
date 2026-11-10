@@ -71,7 +71,11 @@ describe("followCopyKey — the Follow line's copy decision (COO 19:15Z item 2)"
       expect(en.length).toBeGreaterThan(0);
       expect(zh.length).toBeGreaterThan(0);
       expect(en).not.toMatch(/following/i);
-      expect(en).not.toMatch(/notification was sent(?!)/i); // failed says "no notification was sent"
+      // N-1 (third review): the old (?!) lookahead could never fail. The honest
+      // failed copy says "no notification was sent", so the claim under test is
+      // an UNNEGATED "notification was sent" — the lookbehind excludes the
+      // negated form and bites on any positive claim.
+      expect(en).not.toMatch(/(?<!no )notification was sent/i);
       expect(zh).not.toContain("已关注");
       // The problem is named in both languages, differently for failed vs unknown.
       expect(SECTOR_INTELLIGENCE_LEX.siFollowDeliveryFailed[0])
