@@ -58,6 +58,41 @@ def observe(args):
     return {"command": args, "exit": result.returncode, "stdout": result.stdout, "stderr": result.stderr}
 
 
+def checkout_parents():
+    header = git("cat-file", "-p", "HEAD").split("\n\n", 1)[0]
+    return re.findall(r"^parent ([0-9a-f]{40})$", header, re.M)
+
+
+def qualify_base_ancestry(event_base, actual_base, identity):
+    evidence = {"state": "UNPROVEN", "fetchAttempted": False}
+    try:
+        if event_base == actual_base:
+            evidence["state"] = "EXACT_EVENT_BASE"
+            return evidence
+        command = ["git", "-C", str(REPO), "merge-base", "--is-ancestor", event_base, actual_base]
+        result = subprocess.run(command, text=True, capture_output=True, timeout=60)
+        evidence["initialAncestryExit"] = result.returncode
+        if result.returncode != 0:
+            require(git("rev-parse", "--is-shallow-repository") == "true", "event base ancestry is unproven")
+            # Obtain bounded history for this exact first parent; do not move a
+            # branch, write FETCH_HEAD, or resolve a moving remote branch name.
+            evidence["fetchAttempted"] = True
+            fetched = subprocess.run([
+                "git", "-C", str(REPO), "fetch", "--no-tags", "--no-write-fetch-head",
+                "--no-recurse-submodules", "--no-auto-maintenance", "--refmap=", "--depth=64", "origin", actual_base,
+            ], text=True, capture_output=True, timeout=60)
+            evidence["fetchExit"] = fetched.returncode
+            require(fetched.returncode == 0, "bounded exact-base ancestry fetch failed")
+            result = subprocess.run(command, text=True, capture_output=True, timeout=60)
+        evidence["ancestryExit"] = result.returncode
+        require(result.returncode == 0, "event base is not a proven ancestor of actual merge base")
+        evidence["state"] = "EVENT_BASE_ANCESTOR"
+        return evidence
+    except Exception:
+        print(json.dumps({"state": "CHECKOUT_BASE_ANCESTRY_REJECTED", **identity, "baseRelationship": evidence}), flush=True)
+        raise
+
+
 def checkout_identity():
     require(os.environ.get("GITHUB_ACTIONS") == "true" and os.environ.get("GITHUB_EVENT_NAME") == "pull_request",
             "exporter is restricted to the incumbent pull_request job")
@@ -65,23 +100,31 @@ def checkout_identity():
     event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text())
     pr = event.get("pull_request", {})
     repo_name = "mastermindx-market-intelligence/mastermind-terminal"
+    require(os.environ.get("GITHUB_REPOSITORY") == repo_name, "unexpected workflow repository")
     require(event.get("number") == 646 and pr.get("number") == 646, "not the owned PR646 operation")
     require(pr.get("head", {}).get("repo", {}).get("full_name") == repo_name and
             pr.get("base", {}).get("repo", {}).get("full_name") == repo_name and
             pr.get("base", {}).get("ref") == "master", "unexpected repository or base")
-    head, base = pr["head"]["sha"], pr["base"]["sha"]
-    require(all(re.fullmatch(r"[0-9a-f]{40}", value) for value in [head, base]), "invalid event source identity")
+    head, event_base = pr["head"]["sha"], pr["base"]["sha"]
+    require(all(isinstance(value, str) and re.fullmatch(r"[0-9a-f]{40}", value) for value in [head, event_base]),
+            "invalid event source identity")
     actual = git("rev-parse", "HEAD")
     require(actual == os.environ.get("GITHUB_SHA") and os.environ.get("GITHUB_REF") == "refs/pull/646/merge",
             "checkout differs from the actual workflow source")
-    parents = re.findall(r"^parent ([0-9a-f]{40})$", git("cat-file", "-p", "HEAD"), re.M)
-    require(parents == [base, head], "checkout is not the declared PR merge")
+    parents = checkout_parents()
+    require(len(parents) == 2 and parents[1] == head, "checkout is not the declared PR merge")
+    base, tree = parents[0], git("rev-parse", "HEAD^{tree}")
     require(not git("diff", "--name-only", "--diff-filter=U"), "unresolved checkout")
     run_id, attempt = os.environ["GITHUB_RUN_ID"], os.environ["GITHUB_RUN_ATTEMPT"]
     require(run_id.isdecimal() and attempt.isdecimal() and int(attempt) > 0, "invalid run identity")
+    identity = {"checkoutCommit": actual, "checkoutTree": tree, "checkoutParents": parents,
+                "observedEventBase": event_base, "observedEventHead": head}
+    relationship = qualify_base_ancestry(event_base, base, identity)
+    require(git("rev-parse", "HEAD") == actual and git("rev-parse", "HEAD^{tree}") == tree and
+            checkout_parents() == parents, "checkout changed during ancestry qualification")
     return {
         "branchHead": head, "protectedMaster": base, "integratedDependency": base,
-        "checkoutCommit": actual, "checkoutTree": git("rev-parse", "HEAD^{tree}"), "checkoutParents": parents,
+        **identity, "baseRelationship": relationship,
         "workflowRunId": run_id, "workflowRunAttempt": attempt, "workflowJob": "terminal-e2e", "shard": "serial",
         "workflowUrl": f"https://github.com/{repo_name}/actions/runs/{run_id}",
         "exporter": str(Path(__file__).resolve().relative_to(REPO)), "exporterSha256": sha(Path(__file__)),
