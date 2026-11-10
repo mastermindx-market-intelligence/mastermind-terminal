@@ -20,9 +20,10 @@ import { sectorRotationHistory } from "@/lib/sectorIntelligence";
 import capturedFixture from "@/lib/__tests__/fixtures/sector_generation.captured.preview.v1.json";
 import callsContractFixture from "@/lib/__tests__/fixtures/sectorDepthCallsContract.v1.json";
 import flowsContractFixture from "@/lib/__tests__/fixtures/sectorDepthFlowsContract.v1.json";
+import flowsCarriedFixture from "@/lib/__tests__/fixtures/sectorDepthFlowsCarried.v1.json";
 import universesContractFixture from "@/lib/__tests__/fixtures/sectorDepthUniversesContract.v1.json";
 import type { ActionBoardData, BottomingWatchData } from "@/lib/sectorDepthCalls";
-import type { FlowsData } from "@/lib/sectorDepthFlows";
+import { flowsFromCarriedBlock, type FlowsData } from "@/lib/sectorDepthFlows";
 import type { UniverseData, UniverseId } from "@/lib/sectorDepthUniverses";
 import { useSectorDepthT } from "@/lib/sectorDepthLex";
 import { SectorCallsBoard } from "@/components/sector-intelligence/depth/SectorCallsBoard";
@@ -59,6 +60,17 @@ const capturedHistory = sectorRotationHistory(captured.projection.data.history);
 const flowsContract = flowsContractFixture as unknown as {
   cases: { depth8: FlowsData; depth79: FlowsData };
 };
+
+/** The v1.1 carried etf_flows typed block (wire §3), adapted through the real
+ * parser. realFull holds the committed producer's own run over data/flows
+ * (as-of 2026-11-05, depth 79, 11 funds — the fixture's note is the label of
+ * record); realAccruing14 is that same real series truncated to 14 sessions
+ * to exercise the owner-stated full_window:false path. */
+const flowsCarried = flowsCarriedFixture as unknown as {
+  cases: { realFull: unknown; realAccruing14: unknown };
+};
+const carriedFull = flowsFromCarriedBlock(flowsCarried.cases.realFull);
+const carriedAccruing = flowsFromCarriedBlock(flowsCarried.cases.realAccruing14);
 
 /** Synthetic four-universe fixture: S&P 500 live, Nasdaq-100 as_of-null,
  * Russell-2000 ok:false (no access), baskets zero-groups. */
@@ -182,6 +194,12 @@ function HarnessBody() {
       </HarnessSection>
       <HarnessSection id="flows-contract-capped" title="Flow matrix · CONTRACT fixture, depth 8 (synthetic)" synthetic>
         <SectorFlowMatrix flows={flowsContract.cases.depth8} />
+      </HarnessSection>
+      <HarnessSection id="flows-carried" title="Flow matrix · CARRIED typed block (real producer run, 2026-11-05)">
+        <SectorFlowMatrix flows={carriedFull} />
+      </HarnessSection>
+      <HarnessSection id="flows-carried-accruing" title="Flow matrix · CARRIED typed block, accruing depth 14 (1M partial by owner statement)">
+        <SectorFlowMatrix flows={carriedAccruing} />
       </HarnessSection>
       <HarnessSection id="universes-contract" title="Entry evidence · CONTRACT fixture (synthetic)" synthetic>
         <SectorConfluenceUniverses universes={universesContract.universes} onNavigate={onNavigate} />

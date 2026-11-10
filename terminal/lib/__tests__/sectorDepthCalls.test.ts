@@ -410,14 +410,22 @@ describe("row content law — themes score+perf, sectors the owner stat only", (
 describe("Bottoming Watch model — theme_intel.act_now contract", () => {
   const payload = contract.bottoming_watch_payload;
 
-  it("sorts pos ASC and caps at 8 of 10 entries", () => {
+  it("sorts pos ASC; the cap is a display budget, not a truncation (v1.1)", () => {
     const model = watchModel(payload);
     expect(payload.bottoming_watch).toHaveLength(10);
     expect(model).toHaveLength(8);
     expect(model.map((e) => e.pos)).toEqual([5, 14, 20, 31, 47, 55, 62, 73]);
-    // The two deepest-in-cycle entries past the cap are dropped, not merged in.
+    // The two deepest-in-cycle entries past the budget are HIDDEN behind the
+    // continuation control, not dropped.
     expect(model.map((e) => e.id)).not.toContain("syn_w3"); // pos 88
     expect(model.map((e) => e.id)).not.toContain("syn_w9"); // pos 96
+    // v1.1 full-population continuation: expanded returns the WHOLE population
+    // in the same pos-ASC order — every entry stays reachable.
+    const expandedModel = watchModel(payload, true);
+    expect(expandedModel).toHaveLength(10);
+    expect(expandedModel.map((e) => e.id)).toContain("syn_w3");
+    expect(expandedModel.map((e) => e.id)).toContain("syn_w9");
+    expect(expandedModel.map((e) => e.pos)).toEqual([5, 14, 20, 31, 47, 55, 62, 73, 88, 96]);
   });
 
   it("derives dual-read and recovering chips from the id membership sets", () => {
@@ -473,9 +481,15 @@ describe("Bottoming Watch model — theme_intel.act_now contract", () => {
     assertNoPayloadKeys(model);
   });
 
-  it("flags the recovering disclosure from VISIBLE entries only", () => {
-    // Fixture: recovering on syn_w5 and syn_w8 (both visible) and syn_w3 (capped out).
+  it("flags the recovering disclosure from the FULL population (v1.1)", () => {
+    // Fixture: recovering on syn_w5 and syn_w8 (both visible) and syn_w3 (hidden
+    // behind the continuation budget). Population truth: any recovering entry
+    // flags the disclosure — the entry is reachable via Show all, and the
+    // population-level fact never depends on the current display slice.
     expect(hasRecovering(payload)).toBe(true);
+    // v1.1 full-population continuation: hasRecovering is POPULATION truth —
+    // an entry beyond the collapsed display budget still flags the disclosure,
+    // because Show all makes it reachable without changing what is true.
     const cappedOutOnly: BottomingWatchData = {
       bottoming_watch: [
         ...Array.from({ length: 8 }, (_, i) => ({
@@ -522,7 +536,9 @@ describe("Bottoming Watch model — theme_intel.act_now contract", () => {
       },
     };
     expect(cappedOutOnly.bottoming_watch).toHaveLength(9);
-    expect(hasRecovering(cappedOutOnly)).toBe(false);
+    // v1.1: recovering beyond the collapsed display budget STILL flags the
+    // disclosure — population truth, independent of what is shown.
+    expect(hasRecovering(cappedOutOnly)).toBe(true);
   });
 
   it("renders the authority's null disclosure when present, per language", () => {

@@ -1,9 +1,10 @@
 "use client";
 
-import type { Ref } from "react";
+import { useState, type Ref } from "react";
 import { useLang } from "@/lib/i18n";
 import { useSectorDepthT } from "@/lib/sectorDepthLex";
 import {
+  BOTTOMING_CAP,
   hasRecovering,
   watchDisclosure,
   watchModel,
@@ -36,6 +37,9 @@ export function SectorBottomingWatch({
 }) {
   const t = useSectorDepthT();
   const { lang } = useLang();
+  // v1.1 full-population continuation: the pre-expansion slice is a display
+  // budget, not a cap — every entry stays reachable (R6-09 member coverage).
+  const [expanded, setExpanded] = useState(false);
 
   if (watch === null) {
     return (
@@ -47,7 +51,9 @@ export function SectorBottomingWatch({
     );
   }
 
-  const entries = watchModel(watch);
+  const entries = watchModel(watch, expanded);
+  const total = watch.bottoming_watch.length;
+  const hidden = Math.max(0, total - BOTTOMING_CAP);
   const disclosure = watchDisclosure(watch, lang) ?? t("siWatchDisclosure");
 
   return (
@@ -76,11 +82,25 @@ export function SectorBottomingWatch({
           {t("siWatchEmpty")}
         </p>
       ) : (
-        <ul className={styles.entries}>
-          {entries.map((entry) => (
-            <WatchRow key={entry.id} entry={entry} lang={lang} />
-          ))}
-        </ul>
+        <>
+          <ul className={styles.entries} data-expanded={expanded ? "true" : "false"}>
+            {entries.map((entry) => (
+              <WatchRow key={entry.id} entry={entry} lang={lang} />
+            ))}
+          </ul>
+          {total > BOTTOMING_CAP && (
+            <button
+              type="button"
+              className={styles.more}
+              onClick={() => setExpanded((v) => !v)}
+              aria-expanded={expanded}
+            >
+              {expanded
+                ? t("siWatchShowLess")
+                : t("siWatchShowMore", { n: hidden })}
+            </button>
+          )}
+        </>
       )}
 
       {hasRecovering(watch) && (

@@ -132,6 +132,8 @@ export const SECTOR_DEPTH_LEX: Record<string, [string, string]> = {
     "No group is sitting in a cycle trough right now.",
     "当前没有板块处于周期谷底。",
   ],
+  siWatchShowMore: ["Show all ({n} more)", "显示全部（还有 {n} 个）"],
+  siWatchShowLess: ["Show less", "收起"],
 
   // ── flow matrix ────────────────────────────────────────────────────────────
   siFlowsTitle: ["Where sector-ETF money is flowing", "板块 ETF 资金流向何处"],

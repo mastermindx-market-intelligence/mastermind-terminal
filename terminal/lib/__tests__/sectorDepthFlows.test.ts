@@ -21,9 +21,12 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
+  CARRIED_FLOW_LABELS,
   cellIntensity,
   effectiveWindowDays,
+  FLOW_WINDOW_LABEL,
   FLOW_WINDOWS,
+  flowsFromCarriedBlock,
   fmtMoneyMn,
   heatScale,
   MISSING_GLYPH,
@@ -32,6 +35,7 @@ import {
   phoneModel,
   rowCoverage,
   tableModel,
+  windowHeaderOf,
   WINDOW_DAYS,
   type FlowsData,
   type FlowRow,
@@ -46,6 +50,20 @@ const FIXTURE_PATH = join(
 const fixtureFile = JSON.parse(readFileSync(FIXTURE_PATH, "utf8")) as {
   note: string;
   cases: { depth8: FlowsData; depth79: FlowsData };
+};
+
+/** The v1.1 carried etf_flows typed block (wire §3, macro #10929):
+ * realFull = the committed producer's own run over data/flows; realAccruing14
+ * = the same real series truncated to 14 sessions (owner-stated
+ * full_window:false on 1M). The fixture's own "note" is the label of record. */
+const CARRIED_PATH = join(
+  __dirname,
+  "fixtures",
+  "sectorDepthFlowsCarried.v1.json",
+);
+const carriedFile = JSON.parse(readFileSync(CARRIED_PATH, "utf8")) as {
+  note: string;
+  cases: { realFull: unknown; realAccruing14: unknown };
 };
 const FX8 = fixtureFile.cases.depth8;
 const FX79 = fixtureFile.cases.depth79;
@@ -538,5 +556,178 @@ describe("lane lexicon — every key the component references exists EN+ZH", () 
     expect(SECTOR_DEPTH_LEX.siFlowsReadout[1]).toContain("{etf}");
     expect(SECTOR_DEPTH_LEX.siFlowsDirIn[0]).toMatch(/net creations/);
     expect(SECTOR_DEPTH_LEX.siFlowsDirOut[0]).toMatch(/net redemptions/);
+  });
+});
+
+describe("carried etf_flows block (wire v1.1 §3) — real producer run", () => {
+  const realFull = flowsFromCarriedBlock(carriedFile.cases.realFull);
+  const realAccruing = flowsFromCarriedBlock(carriedFile.cases.realAccruing14);
+
+  it("fixture declares itself and carries the real run's clock", () => {
+    expect(carriedFile.note).toContain("REAL");
+    expect(realFull).not.toBeNull();
+    expect(realFull!.asof).toBe("2026-11-05");
+    expect(realFull!.depth).toBe(79);
+    expect(realFull!.rows).toHaveLength(11);
+    expect(realFull!.source).toBe("collectors.sponsors.sector_flow_periods");
+  });
+
+  it("maps the uppercase window labels onto the five windows with no invention", () => {
+    // XLB's carried 1D reading equals the committed flow_desk etf_tile's own
+    // flow_1d for XLB (−6.928394282532362) — real-bytes corroboration that
+    // the producer run and the legacy tile read the same daily series.
+    const xlb = realFull!.rows[0];
+    expect(xlb.ticker).toBe("XLB");
+    expect(xlb.values["1d"]).toBeCloseTo(-6.928394282532362, 12);
+    expect(xlb.values["3d"]).toBeCloseTo(124.80809690669628, 12);
+    expect(xlb.values["1m"]).toBeCloseTo(-125.29515086265286, 12);
+    // Net maps by label too.
+    expect(realFull!.net["1d"]).toBeCloseTo(833.2875680238036, 12);
+    expect(realFull!.net["1m"]).toBeCloseTo(6786.514158473594, 12);
+  });
+
+  it("carries tickers only — the name line stays absent, never invented", () => {
+    for (const r of realFull!.rows) {
+      expect(r.name).toBeUndefined();
+      expect(r.name_zh).toBeUndefined();
+    }
+    // The phone model falls back to the ticker as the display identity.
+    const pm = phoneModel(realFull!, "XLB")!;
+    expect(pm.selectedName).toBe("XLB");
+    expect(pm.selectedNameZh).toBeUndefined();
+  });
+
+  it("renders every window full at depth 79; the owner's full_window flag is the law", () => {
+    expect(realFull!.windowMeta).toEqual({
+      "1d": { trading_days: 1, full_window: true },
+      "3d": { trading_days: 3, full_window: true },
+      "1w": { trading_days: 5, full_window: true },
+      "2w": { trading_days: 10, full_window: true },
+      "1m": { trading_days: 21, full_window: true },
+    });
+    const model = tableModel(realFull!);
+    for (const row of [...model.rows, model.net]) {
+      for (const cell of row.cells) {
+        expect(cell.capped, `${row === model.net ? "net" : ""} ${cell.window}`).toBe(false);
+        expect(cell.days).toBe(WINDOW_DAYS[cell.window]);
+      }
+    }
+    // Headers agree with cells by construction (same windowHeaderOf law).
+    for (const w of FLOW_WINDOWS) {
+      const h = windowHeaderOf(w, realFull!);
+      expect(h.capped).toBe(false);
+      expect(h.days).toBe(WINDOW_DAYS[w]);
+    }
+  });
+
+  it("marks 1M partial at depth 14 from the owner's own full_window:false", () => {
+    expect(realAccruing).not.toBeNull();
+    expect(realAccruing!.depth).toBe(14);
+    expect(realAccruing!.windowMeta!["1m"]).toEqual({
+      trading_days: 21,
+      full_window: false,
+    });
+    const model = tableModel(realAccruing!);
+    for (const row of [...model.rows, model.net]) {
+      const byWin = new Map(row.cells.map((c) => [c.window, c]));
+      expect(byWin.get("2w")!.capped).toBe(false); // min(10, 14) = 10, full
+      expect(byWin.get("2w")!.days).toBe(10);
+      expect(byWin.get("1m")!.capped).toBe(true); // owner-stated partial
+      expect(byWin.get("1m")!.days).toBe(14); // min(21, 14)
+    }
+    const h = windowHeaderOf("1m", realAccruing!);
+    expect(h.capped).toBe(true);
+    expect(h.days).toBe(14);
+    expect(h.full).toBe(21);
+  });
+
+  it("display labels are exactly the carried block's closed label set", () => {
+    const display = FLOW_WINDOWS.map((w) => FLOW_WINDOW_LABEL[w]);
+    expect(display).toEqual(["1D", "3D", "1W", "2W", "1M"]);
+    expect([...display].sort()).toEqual([...CARRIED_FLOW_LABELS].sort());
+    // Round trip: carried label → window id → display label is the identity.
+    for (const label of CARRIED_FLOW_LABELS) {
+      const w = FLOW_WINDOWS.find((x) => FLOW_WINDOW_LABEL[x] === label);
+      expect(w, label).toBeDefined();
+    }
+  });
+
+  it("rejects every malformed block as unusable — unavailable state, never a partial read", () => {
+    const base = JSON.parse(JSON.stringify(carriedFile.cases.realFull)) as Record<string, unknown>;
+    const variant = (mutate: (b: Record<string, unknown>) => void): unknown => {
+      const b = JSON.parse(JSON.stringify(base)) as Record<string, unknown>;
+      mutate(b);
+      return b;
+    };
+    // Not an object / null.
+    expect(flowsFromCarriedBlock(null)).toBeNull();
+    expect(flowsFromCarriedBlock("etf_flows")).toBeNull();
+    expect(flowsFromCarriedBlock(42)).toBeNull();
+    // Wrong unit — never silently re-united.
+    expect(flowsFromCarriedBlock(variant((b) => { b.unit = "usd_bn"; }))).toBeNull();
+    // Missing envelope fields.
+    expect(flowsFromCarriedBlock(variant((b) => { delete b.source; }))).toBeNull();
+    expect(flowsFromCarriedBlock(variant((b) => { delete b.measure; }))).toBeNull();
+    expect(flowsFromCarriedBlock(variant((b) => { delete b.as_of; }))).toBeNull();
+    expect(flowsFromCarriedBlock(variant((b) => { b.as_of = "2026/11/05"; }))).toBeNull();
+    // Window set violations: unknown label, duplicate, missing one, bad flags.
+    expect(
+      flowsFromCarriedBlock(variant((b) => {
+        (b.windows as { label: string }[])[0].label = "2M";
+      })),
+    ).toBeNull();
+    expect(
+      flowsFromCarriedBlock(variant((b) => {
+        (b.windows as { label: string }[])[1].label = "1D";
+      })),
+    ).toBeNull();
+    expect(
+      flowsFromCarriedBlock(variant((b) => {
+        (b.windows as unknown[]).splice(4, 1);
+      })),
+    ).toBeNull();
+    expect(
+      flowsFromCarriedBlock(variant((b) => {
+        (b.windows as { full_window: boolean }[])[4].full_window = 1 as unknown as boolean;
+      })),
+    ).toBeNull();
+    expect(
+      flowsFromCarriedBlock(variant((b) => {
+        (b.windows as { trading_days: number }[])[2].trading_days = Number.NaN;
+      })),
+    ).toBeNull();
+    // Fund shape violations.
+    expect(
+      flowsFromCarriedBlock(variant((b) => {
+        delete (b.funds as { ticker?: string }[])[2].ticker;
+      })),
+    ).toBeNull();
+    expect(
+      flowsFromCarriedBlock(variant((b) => {
+        (b.funds as { flow_mn: unknown }[])[0].flow_mn = null;
+      })),
+    ).toBeNull();
+    // Net row shape violation.
+    expect(
+      flowsFromCarriedBlock(variant((b) => { delete b.net_flow_mn; })),
+    ).toBeNull();
+  });
+
+  it("treats an absent window key inside flow_mn as NO READING, never zero", () => {
+    const b = JSON.parse(JSON.stringify(carriedFile.cases.realFull)) as {
+      funds: {
+        ticker: string;
+        flow_mn: Record<string, number | null | undefined>;
+      }[];
+    };
+    delete b.funds[0].flow_mn["1W"];
+    const out = flowsFromCarriedBlock(b)!;
+    expect(out.rows[0].values["1w"]).toBeNull();
+    expect(out.rows[0].values["1d"]).toBeCloseTo(-6.928394282532362, 12);
+    expect(out.rows[0].values["1m"]).toBeCloseTo(-125.29515086265286, 12);
+    // An explicitly-null reading is the same no-reading state.
+    b.funds[0].flow_mn["1M"] = null;
+    const out2 = flowsFromCarriedBlock(b)!;
+    expect(out2.rows[0].values["1m"]).toBeNull();
   });
 });
