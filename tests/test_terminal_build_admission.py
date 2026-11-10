@@ -1016,3 +1016,169 @@ def test_build_node_options_is_a_heap_limit_node_actually_applies() -> None:
     assert raised.returncode == 0, raised.stderr
     limit_mb = int(raised.stdout.strip()) / (1024 * 1024)
     assert limit_mb >= 3072, f"NODE_OPTIONS={options!r} left heap_size_limit at {limit_mb:.0f} MB"
+
+
+# --------------------------------------------------------------------------
+# build memory admission: refuse before the first effect, not OOM after it
+# --------------------------------------------------------------------------
+#
+# 2026-11-10: the staged `next build` was killed at 2.7 GB anonymous RSS on a
+# 3.9 GB host whose swap was nearly full, after `npm ci` had already replaced the
+# live dependency tree. The floor is the heap ceiling the owner grants the build
+# plus 1024 MiB. The session default in conftest.py disables the admission for
+# sandboxed deploys, so every test here states its own floor ("" = the default).
+
+DEFAULT_FLOOR = {"BUILD_MIN_AVAILABLE_MB": ""}
+
+
+def _meminfo(tmp_path: Path, *, available_kb: int | None, swap_free_kb: int | None) -> Path:
+    lines = ["MemTotal:        4014824 kB", "MemFree:          112344 kB"]
+    if available_kb is not None:
+        lines.append(f"MemAvailable:   {available_kb:>8} kB")
+    lines += ["Buffers:           20480 kB", "SwapTotal:       8388604 kB"]
+    if swap_free_kb is not None:
+        lines.append(f"SwapFree:       {swap_free_kb:>8} kB")
+    path = tmp_path / "meminfo"
+    path.write_text("\n".join(lines) + "\n", encoding="ascii")
+    return path
+
+
+def test_default_memory_floor_is_the_build_heap_ceiling_plus_headroom() -> None:
+    result = run_gen('echo "$BUILD_NODE_HEAP_MB $BUILD_MIN_AVAILABLE_MB_DEFAULT"')
+    heap, floor = (int(part) for part in result.stdout.split())
+    assert (heap, floor) == (3072, 4096)
+    assert floor == heap + 1024, (
+        "the build that was killed was still below its heap ceiling; a floor that "
+        "does not track the ceiling admits exactly that build"
+    )
+
+
+def test_memory_admission_refuses_the_incident_host_with_measured_numbers(
+    tmp_path: Path,
+) -> None:
+    # ~1 GiB reclaimable RAM and ~100 MiB of swap left: a 2.7 GB build cannot fit.
+    meminfo = _meminfo(tmp_path, available_kb=1048576, swap_free_kb=102400)
+    result = run_gen(f'require_build_memory "{meminfo}"; echo "RC=$?"', env=DEFAULT_FLOOR)
+    assert "RC=75" in result.stdout, result.stdout + result.stderr
+    assert (
+        "[build] FATAL: build memory admission refused: reason=insufficient-build-memory "
+        "available_mb=1124 (MemAvailable_mb=1024 SwapFree_mb=100) required_mb=4096"
+    ) in result.stdout
+    assert "nothing was fetched, installed, built or swapped" in result.stdout
+    assert "admission OK" not in result.stdout
+
+
+def test_memory_admission_passes_a_healthy_host(tmp_path: Path) -> None:
+    # The same 3.9 GB host with its 8 GB swap mostly free.
+    meminfo = _meminfo(tmp_path, available_kb=2097152, swap_free_kb=8283652)
+    result = run_gen(f'require_build_memory "{meminfo}"; echo "RC=$?"', env=DEFAULT_FLOOR)
+    assert "RC=0" in result.stdout, result.stdout + result.stderr
+    assert (
+        "[build] build memory admission OK: available_mb=10137 "
+        "(MemAvailable_mb=2048 SwapFree_mb=8089) required_mb=4096"
+    ) in result.stdout
+    assert "FATAL" not in result.stdout
+
+
+@pytest.mark.parametrize(
+    ("available_kb", "swap_free_kb", "expected_rc"),
+    [
+        (4096 * 1024, 0, 0),            # exactly the floor is admitted
+        (4096 * 1024 - 1024, 0, 75),    # one MiB under is not
+        (0, 4096 * 1024, 0),            # swap counts in full
+        (2048 * 1024, 2047 * 1024, 75),
+    ],
+)
+def test_memory_admission_boundary_is_the_sum_of_available_and_swap(
+    tmp_path: Path, available_kb: int, swap_free_kb: int, expected_rc: int
+) -> None:
+    meminfo = _meminfo(tmp_path, available_kb=available_kb, swap_free_kb=swap_free_kb)
+    result = run_gen(f'require_build_memory "{meminfo}"; echo "RC=$?"', env=DEFAULT_FLOOR)
+    assert f"RC={expected_rc}" in result.stdout, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("floor", "expected_rc", "expected_text"),
+    [
+        ("512", 0, "build memory admission OK: available_mb=1124"),
+        ("1124", 0, "required_mb=1124"),
+        ("1125", 75, "reason=insufficient-build-memory available_mb=1124"),
+        ("0", 0, "WARN: build memory admission DISABLED by BUILD_MIN_AVAILABLE_MB=0"),
+        ("lots", 64, "FATAL: BUILD_MIN_AVAILABLE_MB must be a plain decimal number of MiB"),
+        ("-1", 64, "FATAL: BUILD_MIN_AVAILABLE_MB must be a plain decimal number of MiB"),
+        ("0512", 64, "FATAL: BUILD_MIN_AVAILABLE_MB must be a plain decimal number of MiB"),
+        ("4096 ", 64, "FATAL: BUILD_MIN_AVAILABLE_MB must be a plain decimal number of MiB"),
+    ],
+)
+def test_memory_floor_override_is_one_plain_number(
+    tmp_path: Path, floor: str, expected_rc: int, expected_text: str
+) -> None:
+    meminfo = _meminfo(tmp_path, available_kb=1048576, swap_free_kb=102400)
+    result = run_gen(
+        f'require_build_memory "{meminfo}"; echo "RC=$?"',
+        env={"BUILD_MIN_AVAILABLE_MB": floor},
+    )
+    assert f"RC={expected_rc}" in result.stdout, result.stdout + result.stderr
+    assert expected_text in result.stdout
+
+
+@pytest.mark.parametrize("missing", ["file", "MemAvailable", "SwapFree", "number"])
+def test_unmeasurable_memory_refuses_rather_than_admits(tmp_path: Path, missing: str) -> None:
+    if missing == "file":
+        meminfo = tmp_path / "absent-meminfo"
+    elif missing == "number":
+        meminfo = tmp_path / "meminfo"
+        meminfo.write_text("MemAvailable: plenty kB\nSwapFree: 8388604 kB\n", encoding="ascii")
+    else:
+        meminfo = _meminfo(
+            tmp_path,
+            available_kb=None if missing == "MemAvailable" else 8388608,
+            swap_free_kb=None if missing == "SwapFree" else 8388608,
+        )
+    result = run_gen(f'require_build_memory "{meminfo}"; echo "RC=$?"', env=DEFAULT_FLOOR)
+    assert "RC=75" in result.stdout, result.stdout + result.stderr
+    assert "reason=build-memory-unmeasurable" in result.stdout
+    assert f"source={meminfo}" in result.stdout
+    assert "admission OK" not in result.stdout
+
+
+def test_memory_admission_reads_a_final_line_without_a_newline(tmp_path: Path) -> None:
+    meminfo = tmp_path / "meminfo"
+    meminfo.write_text("MemAvailable: 8388608 kB\nSwapFree: 0 kB", encoding="ascii")
+    result = run_gen(f'require_build_memory "{meminfo}"; echo "RC=$?"', env=DEFAULT_FLOOR)
+    assert "RC=0" in result.stdout, result.stdout + result.stderr
+    assert "available_mb=8192 (MemAvailable_mb=8192 SwapFree_mb=0)" in result.stdout
+
+
+def test_memory_admission_precedes_every_effect_of_either_profile() -> None:
+    body = _deploy_body(code_only=True)
+    call = "require_build_memory /proc/meminfo || exit $?"
+    assert body.count("require_build_memory") == 1
+    assert f"\n{call}\n" in body, (
+        "the memory admission must be an unconditional top-level statement: both "
+        "production and beta build on the same host"
+    )
+    admitted = body.index(call)
+    # under the shared lock and its release trap, so a refusal releases the hold ...
+    assert body.index('deploy_lock_acquire "$SHARED_BUILD_LOCK_DIR" "$TARGET"') < admitted
+    assert body.index("trap cleanup_deploy_attempt EXIT") < admitted
+    # ... and before the first workspace, receipt, Git, dependency, build or service effect.
+    effects = (
+        "ensure_beta_workspace",
+        "select_preflight_artifacts",
+        "prepare_preflight_receipt_dir",
+        "run_release_preflight",
+        "beta_bootstrap_admit",
+        'fetch_accepted_ref "$SRC"',
+        'git -C "$SRC" reset',
+        "beta_txn_begin",
+        "deps_snapshot_begin",
+        "npm ci",
+        "mktemp -d",
+        "npm run build",
+        "deploy_generation_begin",
+        "systemctl restart terminal",
+    )
+    for token in effects:
+        assert token in body, f"ordering anchor vanished: {token}"
+        assert admitted < body.index(token), f"memory admission occurs after {token}"
