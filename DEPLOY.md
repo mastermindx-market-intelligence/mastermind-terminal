@@ -39,7 +39,9 @@ See [`ops/TERMINAL_RELEASE_PREFLIGHT.md`](ops/TERMINAL_RELEASE_PREFLIGHT.md).
 ## What the build script does (`terminal-build.sh`)
 
 `git fetch && reset --hard origin/master` in `/opt/terminal/.gitsrc` (a read-only-deploy-key checkout)
-→ stage master's `terminal/` + overlay the box's gitignored runtime (`node_modules`, `.env*`, `public/data`)
+→ stage master's `terminal/` + overlay the box's gitignored runtime (`node_modules`, `.env*`)
+→ stage `public/data`: production gets only the commit's git-tracked fixtures (`git archive HEAD -- terminal/public/data`,
+#1442), and beta gets its own beta-owned tree; the live production data tree is never in the build
 → `next build` in the stage → verify `BUILD_ID` → **atomic-swap `.next`** (live site stays up throughout;
 auto-rolls-back if health fails) → **runtime-code sync** (cron/systemd scripts, below) → sync
 `/opt/terminal/terminal` source back to `master`.
@@ -112,6 +114,30 @@ staging run performs the ordinary deploy end-to-end: the current-generation pref
 untouched installed copy (CLEAN), the new admission code qualifies the pinned guards, and the
 deploy's own step 8 re-pins `/opt/terminal/terminal-build.sh` in-band. After that single run the
 workflow is self-sustaining again.
+
+Start that staging run detached (`nohup setsid bash <staging copy> --target production --target-sha
+<sha> > <log> 2>&1 < /dev/null &`) so a dropped SSH session cannot signal it mid-deploy, and confirm
+the `identity verified: intended=<sha> marker=<sha>` and `installed ops/terminal-build.sh` log lines
+before you call it done.
+
+How that incident was resolved (2026-11-10). The first staging runs of master's builder got past
+`unsupported-service-launch-hook`, but the production host lacked the prerequisites listed below, so
+each run stopped at the next refusal. Each of those refusals came before mutation, and production kept
+serving its last good generation. Once the prerequisites were in place, `next build` was OOM-killed
+until #1442 removed the live data tree from the build stage. The staging run of master `7f7f3698`
+then deployed at 20:57Z, and its step 8 re-pinned the box copy.
+
+#### Production host prerequisites checked by candidate admission
+
+These are host facts, not source, so a fresh or rebuilt production host must provide them before
+its first deploy. Each refusal names its code in the deploy log.
+
+| Requirement | Refusal when missing |
+|---|---|
+| Every directory on systemd's manager `PATH` exists and is owned `root:root`. Ubuntu's default manager `PATH` includes `/snap/bin`; on a host without snapd, create it as an empty `root:root` `0755` directory. | `safety-hook-manager-path-unreadable` / `safety-hook-manager-path-untrusted` |
+| The production unit declares `INVESTIGATION_API_ADMISSION=closed` exactly once and nowhere else. Use a drop-in such as `/etc/systemd/system/terminal.service.d/investigation-admission.conf` containing `[Service]` and `Environment=INVESTIGATION_API_ADMISSION=closed`, then `systemctl daemon-reload`; no restart is needed. Do not put the key in `.env`/`.env.local` or the manager environment. | `missing-explicit-closed`, `conflicting-admission-declaration`, `dotenv-admission-conflict`, `admission-key-in-manager-environment` |
+| `terminal/.env` and `terminal/.env.local`, where present, are regular files owned by the deploying user (root) and not group- or other-writable. A file copied in by another account keeps that account's owner; `chown root:root` it. Values are never read into the log. | `dotenv-foreign-owner`, `dotenv-group-or-other-writable`, `dotenv-not-regular` |
+| Memory for the build. With tracked-fixture staging (#1442), a Next 16.4 production build peaked at about 2.7 GB of process-tree memory on the host. Before #1442 the same build mapped roughly 9–10 GB and was OOM-killed on a 4 GB host. Keep about 3 GB of RAM plus swap free before a production deploy. | none: the kernel OOM-kills `next build` partway through. Production keeps serving the previous `.next`, but the run can leave `terminal/package.json` and `package-lock.json` at the new revision, and the next preflight refuses them as `TRACKED_MODIFIED`. Restore both files to the accepted generation's blobs before retrying. |
 
 ### Suite-event alerts cron (`ingest/suite_alerts.ts` → `ingest/dist/suite_alerts.mjs`)
 
