@@ -7,7 +7,7 @@ import { sectorRotationRelativeTrend } from "./rotationRelativeTrend";
 import { sectorHoldingsCoverage } from "./sectorHoldingsCoverage";
 import { readIntradaySourceStamp, sectorIntradayEnvelope } from "./sectorIntradayComparison";
 
-export const SECTOR_FEEDS = ["sector", "confluence", "themes", "heatmap", "risk", "history", "events", "relative_trend", "holdings", "intraday"] as const;
+export const SECTOR_FEEDS = ["sector", "generation", "confluence", "themes", "heatmap", "risk", "history", "events", "relative_trend", "holdings", "intraday"] as const;
 export const FINVIZ_FEEDS = ["finviz"] as const;
 export type SectorFeed = typeof SECTOR_FEEDS[number] | typeof FINVIZ_FEEDS[number];
 export type FeedStatus = "loading" | "ready" | "access" | "unavailable" | "invalid" | "error";
@@ -241,6 +241,7 @@ export function sourceDate(data: unknown): string | null {
  */
 export function feedSourceStamp(source: SectorFeed, data: unknown): string | null {
   if (source === "intraday") return readIntradaySourceStamp(data);
+  if (source === "generation") return strictDay(object(data).source_session);
   return sourceDate(data);
 }
 /** Exact read-only owner envelopes, qualified against Macro's published source files.
@@ -248,6 +249,9 @@ export function feedSourceStamp(source: SectorFeed, data: unknown): string | nul
  * This is a consumer boundary, not a dossier/schema producer or authority manifest.
  */
 export function readableOwnerEnvelope(source: SectorFeed, data: unknown): boolean {
+  // The native generation has a separate closed receipt/core/history reader at
+  // the gateway and component boundary; never admit it as a static envelope.
+  if (source === "generation") return false;
   if (source === "finviz") { try { normalizeFinviz(data); return true; } catch { return false; } }
   const root = object(data);
   const bounded = (value: unknown) => Array.isArray(value) && value.length <= 10_000;

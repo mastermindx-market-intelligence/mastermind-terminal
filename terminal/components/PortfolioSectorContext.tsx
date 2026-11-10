@@ -7,6 +7,8 @@ import { useShellIdentity } from "@/components/chrome/AppShell";
 import { identityOwnerKey } from "@/lib/accountIdentity";
 import { object, text, type FeedPayload, type FeedStatus } from "@/lib/sectorIntelligence";
 import SectorLeadershipDossier from "@/components/sector-intelligence/SectorLeadershipDossier";
+import SectorGenerationQualification, { SectorGenerationSource } from "@/components/sector-intelligence/SectorGenerationQualification";
+import { nativeSectorEvidence } from "@/lib/sectorNativeGeneration";
 import {
   sectorEtfHolding, sectorPortfolioCopy, sectorPortfolioReturnHref,
   type SectorPortfolioContext,
@@ -16,8 +18,8 @@ import styles from "./PortfolioSectorContext.module.css";
 
 /** The one owner feed this block reads. The same endpoint the Sector workspace reads,
  * with the same transport receipt — no new parser, producer, route, cache or polling loop. */
-const FEED_SOURCE = "sector" as const;
-const FEED_PATH = "/api/sector-intelligence?source=sector";
+const FEED_SOURCE = "generation" as const;
+const FEED_PATH = "/api/sector-intelligence?source=generation";
 const FEED_STATUSES: readonly FeedStatus[] = ["loading", "ready", "access", "unavailable", "invalid", "error"];
 
 const emptyFeed = (status: FeedStatus): FeedPayload => ({ data: null,
@@ -32,6 +34,8 @@ type Props = {
   unreadable: boolean;
   /** The book's own stale state — a stale book withholds every number. */
   stale: boolean;
+  /** The Portfolio's existing refresh lifetime, including failed book reads. */
+  refreshing?: boolean;
 };
 
 /**
@@ -43,7 +47,7 @@ type Props = {
  * writes, ranks, sizes, forecasts or advises, and no number survives an owner change,
  * a withdrawn access or an unreadable book.
  */
-export default function PortfolioSectorContext({ context, positions, unreadable, stale }: Props) {
+export default function PortfolioSectorContext({ context, positions, unreadable, stale, refreshing = false }: Props) {
   const { lang } = useLang();
   const c = sectorPortfolioCopy(lang);
   const identity = useShellIdentity();
@@ -53,7 +57,7 @@ export default function PortfolioSectorContext({ context, positions, unreadable,
   // Every read belongs to one generation. A selection or owner change retires the
   // previous generation before any new response may render, so A → B → A can never
   // revive an earlier account's evidence.
-  const binding = JSON.stringify([owner, etf]);
+  const binding = JSON.stringify([owner, etf, refreshing]);
   const [scope, setScope] = useState(() => ({ binding, epoch: 0 }));
   if (scope.binding !== binding) setScope({ binding, epoch: scope.epoch + 1 });
   const epoch = scope.binding === binding ? scope.epoch : scope.epoch + 1;
@@ -89,11 +93,15 @@ export default function PortfolioSectorContext({ context, positions, unreadable,
       if (!alive || controller.signal.aborted || mine !== generation.current) return;
       setEvidence({ owner, etf, epoch, feed: payload });
     };
-    void read();
+    // The incumbent Portfolio refresh owns the lifetime. Retire immediately,
+    // then issue one native read after either success or refusal completes.
+    // No second polling loop or request on both boolean edges.
+    if (!refreshing) void read();
     return () => { alive = false; controller.abort(); };
-  }, [owner, etf, epoch]);
+  }, [owner, etf, epoch, refreshing]);
 
   const feed = evidence && evidence.owner === owner && evidence.etf === etf && evidence.epoch === epoch ? evidence.feed : undefined;
+  const nativeEvidence = useMemo(() => nativeSectorEvidence(feed), [feed]);
   const holding = useMemo(() => sectorEtfHolding(positions, etf, { unreadable, stale }), [positions, etf, unreadable, stale]);
   const returnHref = useMemo(() => sectorPortfolioReturnHref(context), [context]);
 
@@ -125,7 +133,9 @@ export default function PortfolioSectorContext({ context, positions, unreadable,
     {/* The owner's own evidence, rendered by the incumbent presentation from the incumbent
         parser. It reads the feed it is handed and never falls back to another sector. */}
     <div className={styles.dossier}>
-      <SectorLeadershipDossier feed={feed} selectedTicker={etf} />
+      <SectorGenerationQualification qualification={nativeEvidence.generation?.receipt.qualification} />
+      <SectorLeadershipDossier feed={nativeEvidence.feed} selectedTicker={etf} />
+      <SectorGenerationSource receipt={nativeEvidence.generation?.receipt} />
     </div>
 
     <div className={styles.holding} data-testid="portfolio-sector-holding">

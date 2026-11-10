@@ -4,22 +4,11 @@ import dossier from "../lib/__tests__/fixtures/sector_dossiers_v1.json";
 import outage from "../lib/__tests__/fixtures/sector_dossiers_unavailable_v1.json";
 import complete from "../lib/__tests__/fixtures/sector_window_measurements.complete.v1.json";
 import unavailable from "../lib/__tests__/fixtures/sector_window_measurements.unavailable.v1.json";
+import { nativeGenerationFixture, syntheticExactParent as nov5Parent } from "../lib/__tests__/fixtures/sectorNativeGeneration";
 
 /** The clearly labelled synthetic November 5 parent. It carries the producer's own exact-session
  * companion and no legacy dossier, so the companion is proved on its own in the browser. It is
  * NOT the October 9 legacy fixture with its dates moved. */
-const nov5Parent = (read: unknown) => ({
-  schema: "leadership_rotation_context.measured_group_read/v1",
-  status: "available",
-  generation: {
-    benchmark: "SPY", cohort_id: "us_sectors_11", history_as_of: "2026-11-05",
-    history_schema: "sector_cycles.rs_history.v1", id: "2026-11-05|SPY|us_sectors_11",
-    price_basis: "total_return", session_end: "2026-11-05",
-  },
-  groups: [],
-  sector_window_measurements: read,
-});
-
 /** The owner's own sector rows. The dossier identifies a sector by its ETF proxy ticker, so the
  * owner row and the cohort row are the same identity here. */
 const sectors = [
@@ -60,18 +49,19 @@ async function prepare(page: Page, options: {
       asof: "2026-10-09", size_basis: "marketcap", n_tiles: tiles.length, tiles },
       receipt: { source, path: "/marketdata/sp500_heatmap.json", status: "ready", asOf: "2026-10-09",
         observedAt: "2026-10-09T21:00:00Z", stale: false, contentHash: null } } });
-    if (source !== "sector") return sectorFixture(route);
-    sectorReads += 1;
-    const withdrawn = options.denied || (options.withdrawAfterFirst && sectorReads > 1);
+    if (source !== "sector" && source !== "generation") return sectorFixture(route);
+    if (source === "generation") sectorReads += 1;
+    const withdrawn = source === "generation" && (options.denied || (options.withdrawAfterFirst && sectorReads > 1));
     if (withdrawn) return route.fulfill({ status: 401, json: { data: null, receipt: {
-      source, path: "/sectordata/sector_central.json", status: "access", asOf: null,
+      source, path: source === "generation" ? "/api/sector-generation?audience=preview" : "/sectordata/sector_central.json", status: "access", asOf: null,
       observedAt: null, stale: false, contentHash: null } } });
     const read = options.companion !== undefined ? nov5Parent(options.companion)
       : options.read === undefined ? dossier : options.read;
-    const data = read === null ? { as_of: "2026-10-09", sectors }
-      : { as_of: "2026-10-09", sectors, measured_read: read };
-    return route.fulfill({ status: 200, json: { data, receipt: {
-      source, path: "/sectordata/sector_central.json", status: "ready", asOf: "2026-10-09",
+    const session = options.companion !== undefined ? "2026-11-05" : "2026-10-09";
+    const data = read === null ? { as_of: session, sectors }
+      : { as_of: session, sectors, measured_read: read };
+    return route.fulfill({ status: 200, json: { data: source === "generation" ? nativeGenerationFixture(data) : data, receipt: {
+      source, path: source === "generation" ? "/api/sector-generation?audience=preview" : "/sectordata/sector_central.json", status: "ready", asOf: session,
       observedAt: "2026-10-09T21:00:00Z", stale: false, contentHash: "sha256:transport" } } });
   });
 }
@@ -220,24 +210,21 @@ test("a withdrawn access clears every figure and leaves the rest of the overview
 });
 
 test("an owner document with no leadership evidence reads as a missing capability", async ({ page }) => {
-  await prepare(page, { read: {} }); await page.goto(detail);
+  await prepare(page, { read: null }); await page.goto(detail);
   await expect(panel(page)).toContainText("Leadership evidence is not available for this sector");
   await expect(metric(page, "21")).toHaveCount(0);
   await expect(root(page)).toHaveAttribute("data-sector-workspace", "detail");
   await noOverflow(page);
 });
 
-test("a valid unavailable dossier retains all eleven null rows and source qualifications", async ({ page }) => {
+test("an unavailable parent without generation clocks cannot revive a legacy dossier", async ({ page }) => {
   await prepare(page, { read: outage }); await page.goto(detail);
-  await expect(panel(page)).toContainText("Leadership evidence is unavailable");
-  await expect(metric(page, "21").locator("strong")).toHaveText("—");
-  await expect(metric(page, "21")).toContainText("The source session date is missing or invalid.");
-  await panel(page).getByTestId("sector-dossier-compare").locator("summary").click();
-  await expect(panel(page).locator("tbody tr")).toHaveCount(11);
-  await expect(panel(page).locator("tbody")).not.toContainText("source_session_missing_or_invalid");
-  await panel(page).getByTestId("sector-dossier-source").locator("summary").click();
-  await expect(panel(page).getByTestId("sector-dossier-source")).toContainText("XLK: source_session_missing_or_invalid");
+  await expect(panel(page)).toHaveAttribute("data-state", "invalid");
+  await expect(panel(page)).toContainText("Leadership evidence could not be verified");
+  await expect(metric(page, "21")).toHaveCount(0);
+  await expect(panel(page).getByTestId("sector-dossier-compare")).toHaveCount(0);
   await expect(panel(page)).not.toContainText("0.00%");
+  await expect(root(page).getByTestId("sector-detail-return")).toBeVisible();
   await noOverflow(page);
 });
 
