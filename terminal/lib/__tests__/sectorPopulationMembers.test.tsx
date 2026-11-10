@@ -299,4 +299,28 @@ describe("SectorPopulationMembers — r2 SF-4/N-B/S1 render gates", () => {
       expect(cell(container, 0, 2)).toBe("耐用消费品");
     });
   });
+
+  it("N-A: a capture rollover never leaves the picker disabled while a group is set", async () => {
+    // First page: capture C1 with group_index (fixture default). After the
+    // reader chooses a basket, the owner's answer comes from a NEW capture
+    // (context_ref changed, no group_index): the captured list is honestly
+    // absent for it, but the picker must stay usable — the group is still
+    // set, and "All groups" is always a lawful next choice.
+    const { container, root } = await mount();
+    const basket = groupOptions(container)[1];
+    expect(basket).not.toBe("");
+    pageMutate = page => { (page as { context_ref: string }).context_ref = "rollover-capture-2"; };
+    await chooseGroup(container, basket);
+    const select = container.querySelector("select") as HTMLSelectElement;
+    expect(select.disabled).toBe(false);
+    // The filter state still holds the chosen basket — proven by the request
+    // the rollover page answered, not by the option list (the new capture
+    // carries none, so the select's live value reads "" in the DOM).
+    expect(new URL(urls[urls.length - 1], "http://x").searchParams.get("group")).toBe(basket);
+    expect(groupOptions(container)).toEqual([""]); // the new capture carried no list
+    await chooseGroup(container, "");
+    expect(new URL(urls[urls.length - 1], "http://x").searchParams.get("group")).toBeNull();
+    expect(table(container)).not.toBeNull();
+    act(() => root.unmount());
+  });
 });

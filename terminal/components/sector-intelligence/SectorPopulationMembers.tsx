@@ -193,7 +193,7 @@ export default function SectorPopulationMembers() {
           if (event.target.value === group) return; // same filter: no request fires, no loading state
           setGroup(event.target.value);
           setPhase("loading");
-        }} disabled={!groupIndex}>
+        }} disabled={!groupIndex && !group}>
         <option value="">{t("siPopulationGroupAll")}</option>
         {groupIndex?.map(entry => <option key={entry.groupId} value={entry.groupId}>
           {entry.refusedByOwner
