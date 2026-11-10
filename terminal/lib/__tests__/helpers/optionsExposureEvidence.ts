@@ -23,3 +23,8 @@ export const optionsIntegrationInputs: typeof runtime.optionsIntegrationInputs =
 export const OPTIONS_INTEGRATION_BROWSER_SPECS: typeof runtime.OPTIONS_INTEGRATION_BROWSER_SPECS = runtime.OPTIONS_INTEGRATION_BROWSER_SPECS;
 export const optionsIntegrationBrowserInputs: typeof runtime.optionsIntegrationBrowserInputs = runtime.optionsIntegrationBrowserInputs;
 export const requireOptionsIntegrationBrowserCases: typeof runtime.requireOptionsIntegrationBrowserCases = runtime.requireOptionsIntegrationBrowserCases;
+
+export const expiryGreeksJourneyInputs: typeof runtime.expiryGreeksJourneyInputs = runtime.expiryGreeksJourneyInputs;
+export const requireExpiryGreeksBrowserCases: typeof runtime.requireExpiryGreeksBrowserCases = runtime.requireExpiryGreeksBrowserCases;
+
+export const requireExpiryGreeksScreenshotSet: typeof runtime.requireExpiryGreeksScreenshotSet = runtime.requireExpiryGreeksScreenshotSet;

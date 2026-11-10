@@ -1,0 +1,15 @@
+{
+  "assembledAt": "2026-11-10T06:24:06.114873+00:00",
+  "browserQualificationSha256": "fee8ee7eb79e7a1a680c51b2121e94f78708fba5b14551c3ea701a42556f8210",
+  "descriptorSha256": "6432faf8713536aaa14319bb310289b26a68cfa5dd923801d2f4a7b7bf1fc453",
+  "expiryQualificationSha256": "436bbf7bdbee1bb9d7e5d8043878a286093a59f8a54690f71b2b7ae1eff39303",
+  "predecessorRootSha256": {
+    "eod": "b7df8447eee8292088f3f6fbe72aed2d24f405eb05e24fc6a7cde8481552d224",
+    "gex": "33484acc89e8d49dd65ac37715a8eb120fb28c67d8336a93abb6a4df58001969"
+  },
+  "readerSha256": "0f1ff49349afc4cfbbc34fea10b9372a314458f08a381ec47bf440dbf73eeab1",
+  "retainedEodCapturedAtHead": "90f275f15b4d174f003fb5b1087823dce6ec865a",
+  "retainedEodDescriptorSha256": "77b3b7f07746290cad33262a3d95c221e947a5acd5e940ae95b9d9458f510a18",
+  "schema": "terminal_pr645_descriptor_assembly.v1",
+  "state": "ASSEMBLED_PENDING_OWNER_TESTS"
+}
