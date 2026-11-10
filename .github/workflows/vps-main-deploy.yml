@@ -31,7 +31,12 @@ concurrency:
 jobs:
   deploy:
     if: github.repository == 'mastermindx-market-intelligence/mastermind-terminal' && github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
+    # The deploy credential is an environment secret, not a repository secret: the
+    # `vps-production` environment admits only the `master` branch, so a workflow on
+    # any other branch cannot read it. `ubuntu-24.04` is a GitHub-hosted image label;
+    # `ubuntu-latest` can also match self-hosted runners, which must never hold it.
+    environment: vps-production
+    runs-on: ubuntu-24.04
     timeout-minutes: 90
     steps:
       - name: Read pinned accepted source and host identity
