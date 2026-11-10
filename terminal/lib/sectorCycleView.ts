@@ -1,5 +1,3 @@
-import type { SectorCycleGeneration } from "./sectorCycleSnapshot";
-
 /* ────────────────────────────────────────────────────────────────────────────
  * Capture/apply view codec (Macro #10707 semantics, natively ported).
  *

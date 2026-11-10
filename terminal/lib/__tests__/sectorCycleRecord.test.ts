@@ -155,7 +155,7 @@ describe("roster and records", () => {
 });
 
 describe("osc exact-values history", () => {
-  const osc = (rows: unknown[]) => rows.map((v) => ({ x: v[0], v: v[1] }));
+  const osc = (rows: [number, number][]) => rows.map(([x, v]) => ({ x, v }));
   it("accepts strictly ascending coordinates with values in 0–100", () => {
     const history = oscHistory({ osc: osc([[2024.5, 12], [2025.1, 44], [2026.2, 71]]) }, "sectors", null);
     expect(history.state).toBe("ready");
@@ -170,7 +170,7 @@ describe("osc exact-values history", () => {
       [[2025.1, 44], ["x", 50]],
     ])
       expect(
-        oscHistory({ osc: osc(rows as unknown[][]) }, "sectors", null).state,
+        oscHistory({ osc: osc(rows as unknown as [number, number][]) }, "sectors", null).state,
       ).toBe("invalid");
     expect(oscHistory({ osc: [{}] }, "sectors", null).state).toBe("unavailable");
   });

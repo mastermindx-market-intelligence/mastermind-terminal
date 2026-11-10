@@ -159,9 +159,11 @@ export function cycleRoster(payload: unknown, family: CycleFamily): CycleRosterE
 }
 
 export function cycleFamiliesPresent(payload: unknown): CycleFamily[] {
-  return CYCLE_FAMILIES.filter(
-    (f) => Array.isArray(object(payload)[f.key]) && object(payload)[f.key].length > 0,
-  ).map((f) => f.key);
+  const root = object(payload);
+  return CYCLE_FAMILIES.filter((f) => {
+    const list = root[f.key];
+    return Array.isArray(list) && list.length > 0;
+  }).map((f) => f.key);
 }
 
 /* ── Exact-values osc history (donor historyOf) ───────────────────────────── */

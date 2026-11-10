@@ -4,7 +4,6 @@ import {
   CYCLE_VIEW_PAGE,
   captureCycleView,
   lastValuesOffset,
-  parseCycleView,
   planCycleViewApply,
   verifyCycleViewApplied,
   type CycleViewSnapshot,
