@@ -14096,6 +14096,72 @@
         ],
         "continuation": {}
       }
+    },
+    {
+      "name": "prophet.research follow_head carrying version_ref and fingerprint refused (pinned-only isolated)",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "prophet.research",
+            "object_types": [
+              "today_selection",
+              "b03_occurrence",
+              "plan_origin",
+              "evaluation"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v3",
+        "intent": {
+          "title": "Question",
+          "question": "  Why \ud83e\udde0?\r\ne\u0301",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "prophet.research",
+            "object_type": "today_selection",
+            "object_id": "obj-1",
+            "mode": "follow_head",
+            "version_ref": "v-1",
+            "fingerprint": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        ],
+        "continuation": {}
+      }
     }
   ]
 }

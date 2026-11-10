@@ -565,3 +565,36 @@ def test_sp15_late_completion_lands_once_for_its_own_account_and_never_for_the_n
     other = apply(pg, late_key, "create", 0, manifest("switched own"), target="22000000-0000-4000-8000-0000000000bb", actor=switched)
     assert other["status"] == "committed" and other["id"] == "22000000-0000-4000-8000-0000000000bb"
     assert json.loads(pg("select read_investigation_operation_v2('" + late_key + "')", A))["manifest"]["intent"]["question"] == "late A"
+
+
+@pytest.fixture(scope="module")
+def pre0052_pg(tmp_path_factory):
+    import test_pinned_research_handoff_postgres as handoff
+
+    run, data, socket_root = handoff._spawn_postgres(tmp_path_factory, "investigation-pre0052-pg", 55497)
+    try:
+        handoff._bootstrap_base_schema(run)
+        for sql_file in handoff.PREVIOUS + (
+            ROOT / "supabase/migrations/0040_investigation_review.sql",
+            handoff.SQL,
+            ROOT / "supabase/migrations/0042_investigation_scenario_reference.sql",
+            ROOT / "supabase/migrations/0047_investigation_options_selection_evidence.sql",
+        ):
+            run(sql_file.read_text())
+        yield run
+    finally:
+        subprocess.run(["pg_ctl", "-D", str(data), "-m", "fast", "-w", "stop"], check=True, capture_output=True)
+        socket_root.cleanup()
+
+
+def test_0053_refuses_a_wrong_preimage_and_changes_nothing(pre0052_pg):
+    """Reviewer N1: no other test applies 0053 to a chain without 0052. The FIRST guard must be what refuses."""
+    md5 = "select pg_catalog.md5(prosrc) from pg_proc where oid='public.valid_investigation_manifest_v2(jsonb)'::regprocedure;"
+    before = pre0052_pg(md5)
+    assert before == "a554c15c1ae58dfbd34d04bcda9b5e48"  # the 0047 body
+    refused = pre0052_pg((ROOT / "supabase/migrations/0053_investigation_v3_prophet_decision_admission.sql").read_text(), check=False)
+    assert refused.returncode != 0
+    assert "requires the exact 0052 valid_investigation_manifest_v2 body" in refused.stderr, refused.stderr
+    assert "observed md5 a554c15c1ae58dfbd34d04bcda9b5e48" in refused.stderr
+    assert pre0052_pg(md5) == before
+    assert pre0052_pg("select to_regprocedure('public.valid_investigation_manifest_v3(jsonb)') is null, to_regprocedure('public.valid_investigation_manifest_core_v2(jsonb)') is null;") == "t|t"
