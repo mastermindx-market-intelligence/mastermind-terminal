@@ -1,0 +1,34 @@
+[warmup] /terminal?symbol=NVDA → 200 in 227ms
+[warmup] /options → 200 in 3596ms
+[warmup] /portfolio → 200 in 1735ms
+[warmup] /alerts → 200 in 1307ms
+[warmup] /analysis → 200 in 2272ms
+[warmup] /discover → 200 in 2579ms
+[warmup] /admin → 200 in 1018ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 749ms
+[warmup] /login → 200 in 205ms
+[warmup] /reset-password → 200 in 863ms
+[warmup] /api/me → 200 in 1121ms
+[warmup] /api/watchlist → 200 in 510ms
+[warmup] /api/layouts → 200 in 449ms
+[warmup] /api/watchlist/annotations → 409 in 336ms
+[warmup] 14 routes compiled in 17s
+[fixture-ready] prophet_idx fixture 200 in 1055ms
+
+Running 12 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   1 [desktop] › e2e/portfolio-event-refresh.spec.ts:188:9 › Portfolio event panel refreshes after a holding edit › en: the committed edit retires the previous facts and re-reads the book (5.9s)
+  ✓   2 [desktop] › e2e/portfolio-event-refresh.spec.ts:188:9 › Portfolio event panel refreshes after a holding edit › zh: the committed edit retires the previous facts and re-reads the book (5.4s)
+  ✓   3 [desktop] › e2e/sector-leadership-dossier.spec.ts:205:5 › a withdrawn access clears every figure and leaves the rest of the overview intact (2.7s)
+  ✓   4 [desktop] › e2e/sector-leadership-dossier.spec.ts:383:5 › a withdrawn access clears the companion and leaves the rest of the overview intact (2.2s)
+  ✓   5 [tablet] › e2e/portfolio-event-refresh.spec.ts:188:9 › Portfolio event panel refreshes after a holding edit › en: the committed edit retires the previous facts and re-reads the book (5.8s)
+  ✓   6 [tablet] › e2e/portfolio-event-refresh.spec.ts:188:9 › Portfolio event panel refreshes after a holding edit › zh: the committed edit retires the previous facts and re-reads the book (5.5s)
+  ✓   7 [tablet] › e2e/sector-leadership-dossier.spec.ts:205:5 › a withdrawn access clears every figure and leaves the rest of the overview intact (2.7s)
+  ✓   8 [tablet] › e2e/sector-leadership-dossier.spec.ts:383:5 › a withdrawn access clears the companion and leaves the rest of the overview intact (2.5s)
+  ✓   9 [mobile] › e2e/portfolio-event-refresh.spec.ts:188:9 › Portfolio event panel refreshes after a holding edit › en: the committed edit retires the previous facts and re-reads the book (5.6s)
+  ✓  10 [mobile] › e2e/portfolio-event-refresh.spec.ts:188:9 › Portfolio event panel refreshes after a holding edit › zh: the committed edit retires the previous facts and re-reads the book (5.6s)
+  ✓  11 [mobile] › e2e/sector-leadership-dossier.spec.ts:205:5 › a withdrawn access clears every figure and leaves the rest of the overview intact (3.1s)
+  ✓  12 [mobile] › e2e/sector-leadership-dossier.spec.ts:383:5 › a withdrawn access clears the companion and leaves the rest of the overview intact (3.0s)
+
+  12 passed (1.6m)
