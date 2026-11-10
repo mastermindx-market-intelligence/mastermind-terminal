@@ -166,9 +166,9 @@ test("unavailable slice over painted bars: stated as unavailable, and no signals
   await expect(chip).toContainText(zh ? "信号暂不可用" : "Signals unavailable", { timeout: 20_000 });
   // Nothing stands in for the engine's stream: with the Oracle study on, the unscored client
   // fallback would draw markers off these bars. A failed read must not.
-  await expect(page.locator("[data-sig-layer] g")).toHaveCount(0, { timeout: 20_000 });
+  await expect(page.locator('[data-sig-layer] [data-price-pane-local="signals"] > g')).toHaveCount(0, { timeout: 20_000 });
   await page.waitForTimeout(1_000);
-  await expect(page.locator("[data-sig-layer] g")).toHaveCount(0, { timeout: 20_000 });
+  await expect(page.locator('[data-sig-layer] [data-price-pane-local="signals"] > g')).toHaveCount(0, { timeout: 20_000 });
   expect((await readyFor(page, "NVDA")).filter((d) => d.state === "data")).toHaveLength(1);
 });
 

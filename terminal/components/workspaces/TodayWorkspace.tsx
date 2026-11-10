@@ -13,6 +13,7 @@ import TodayWatchAttention from "./TodayWatchAttention";
 import TodaySinceLastVisit from "./TodaySinceLastVisit";
 import TodayBreadthReading from "./TodayBreadthReading";
 import TodayDeskDestinations from "./TodayDeskDestinations";
+import TodayIntelligenceEntry from "@/components/intelligence/TodayIntelligenceEntry";
 import { ageLabel, freshnessLabel, readingFreshness } from "@/lib/shared-shell/readingFreshness";
 import { useReadingClock } from "@/lib/shared-shell/useReadingClock";
 
@@ -180,6 +181,7 @@ function TodayWorkspaceSession({ ownerKey }: { ownerKey: string }) {
   <header className={`${styles.heading} ${today.pageHeading}`}>
    <div><h1>{c.title}</h1><p>{c.intro}</p></div>
   </header>
+  <TodayIntelligenceEntry />
   {ended || phase === "auth" ? <div role="status" className={styles.notice}>
    <p>{c.auth}</p><div className={styles.actions}><button onClick={() => onboarding.open("signin")}>{c.signIn}</button>
    <button onClick={retryIdentity}>{lang === "zh" ? "重新验证所选内容" : "Recheck selected context"}</button></div>

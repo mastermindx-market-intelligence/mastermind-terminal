@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { acquireScrollLock } from "@/lib/scrollLock";
 import { useLang } from "@/lib/i18n";
 import { useSharedShellT } from "@/lib/sharedShellCopy";
 import { sharedShellCatalog, sharedShellDirectory } from "@/lib/sharedShellRoutes";
@@ -60,8 +61,7 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
     const shell = element.closest(".shared-shell") ?? document;
     if (!element.open) element.showModal();
     input.current?.focus();
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const releaseScroll = acquireScrollLock();
     return () => {
       if (escapeRequest.current) window.clearTimeout(escapeRequest.current.expiry);
       escapeRequest.current = null;
@@ -71,7 +71,7 @@ export default function ShellDirectory({ open, onClose, onSearchCompanies }: {
       const owned = element.contains(active) || (focusOwned.current && active === document.body);
       const outside = !owned && active instanceof HTMLElement ? active : null;
       if (element.open) element.close();
-      document.body.style.overflow = previous;
+      releaseScroll();
       if (!selected.current && owned) {
         const target = [lastFocus.current,
           ...shell.querySelectorAll<HTMLElement>('.shared-shell-directory-trigger, .mobilebar button[aria-haspopup="dialog"][aria-controls]'),

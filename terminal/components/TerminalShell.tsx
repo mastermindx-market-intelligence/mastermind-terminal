@@ -1486,7 +1486,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // carries a name string, so the op that produced it is tracked here for "Use <suggested>".
   const [pendingConflict, setPendingConflict] = useState<
     | { op: "save"; envelope: WorkspaceEnvelope }
-    | { op: "rename"; oldName: string; revision: number; id?: string }
+    | { op: "rename"; oldName: string; revision: number; id: string }
     | { op: "duplicate"; sourceName: string; sourceId?: string }
     | { op: "import"; envelope: WorkspaceEnvelope }
     | null
@@ -5635,7 +5635,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         setWorkspaceId(rowId);
         setLoadedEnvelope((prev) => (prev ? { ...prev, revision: outcome.revision } : prev));
       }
-      setLayoutFeedback({ kind: "renamed" });
+      setLayoutFeedback({ kind: "renamed", id: rowId, name: newName });
       await refreshLayouts();
       return;
     }
@@ -5774,7 +5774,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           setWorkspaceRevision(outcome.revision);
           if (pending.id) setWorkspaceId(pending.id);
         }
-        setLayoutFeedback({ kind: "renamed" });
+        setLayoutFeedback({ kind: "renamed", id: pending.id, name: suggested });
         await refreshLayouts();
       } else {
         setLayoutFeedback({ kind: "error", message: t("wsRenameFailed") });
@@ -6862,6 +6862,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             else if (action === "alerts") window.location.assign(`/alerts?sym=${encodeURIComponent(active)}`);
             else if (action === "symbolDetails") {
               setFullChart(false);
+              // Leaving News first restores the company card and the watchlists, so the
+              // dossier below is the visible target of the scroll on a phone.
+              if (loggedIn && newsRailEnabled && railTab === "news") setRailTab("watchlists");
               // The dossier is the page's own scroll position on a phone, not a modal.
               window.requestAnimationFrame(() =>
                 document.querySelector(".detail-board")?.scrollIntoView({ behavior: "smooth", block: "start" }));
@@ -6871,6 +6874,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         <MobileSheet
           open={phoneWorkspacesOpen}
           onClose={() => setPhoneWorkspacesOpen(false)}
+          escapeKey="bubble"
           title={t("layouts")}
           className="phone-workspaces-sheet"
           detents={[60, 96]}
@@ -7260,7 +7264,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             )}
           </div>
 
-          <div className="board detail-board">
+          {/* The company card keeps its place in the rail, but the News rail owns the
+              full column while it is the active source: hiding (never unmounting) the
+              card preserves its scroll and price state for when News is left. */}
+          <div className={`board detail-board${loggedIn && newsRailEnabled && railTab === "news" ? " rail-hidden" : ""}`}>
             {/* detail-hd: flex-wrap 2-row — top: icon+name, bottom: big price + status chip */}
             <div className="detail-hd">
               <AssetLogo className="ic" symbol={active} name={nameOf(m)} market={m?.mkt || m?.sec} color={m?.col || "#76b900"} size={26} />

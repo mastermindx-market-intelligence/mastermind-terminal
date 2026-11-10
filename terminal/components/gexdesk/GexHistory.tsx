@@ -46,9 +46,9 @@ const WRAP: React.CSSProperties = {
   background:
     "linear-gradient(180deg, color-mix(in srgb, var(--brand, #2962ff) 4%, var(--panel, #0d0f13)), var(--panel-2, #15171d))",
 };
-const HEADER: React.CSSProperties = { display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 };
+const HEADER: React.CSSProperties = { display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, flexWrap: "wrap" };
 const LABEL: React.CSSProperties = { fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", color: "var(--text-2)", textTransform: "uppercase" };
-const HEADER_RIGHT: React.CSSProperties = { display: "flex", alignItems: "baseline", gap: 8 };
+const HEADER_RIGHT: React.CSSProperties = { display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" };
 const SESSIONS: React.CSSProperties = { fontSize: 10, color: "var(--muted)", fontVariantNumeric: "tabular-nums" };
 const HINT: React.CSSProperties = { fontSize: 10, color: "var(--muted)", opacity: 0.8 };
 const ROW: React.CSSProperties = { display: "flex", alignItems: "stretch", gap: 18 };
@@ -66,7 +66,7 @@ const READOUT_HEAD: React.CSSProperties = {
   display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6, minWidth: 0, marginBottom: 1,
 };
 const RDATE: React.CSSProperties = { fontSize: 12, fontWeight: 700, color: "var(--text)", fontVariantNumeric: "tabular-nums" };
-const NOW_BADGE: React.CSSProperties = {
+const LATEST_BADGE: React.CSSProperties = {
   fontSize: 9, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase",
   color: "var(--brand-2)", border: "1px solid var(--brand-2)", borderRadius: 4, padding: "0 4px", lineHeight: "13px",
 };
@@ -148,7 +148,7 @@ export const GexHistory = memo(function GexHistory({
   // R7: non-finite sessions are dropped BEFORE the extents are taken — one NaN used to drag
   // the whole domain to NaN and blank the strip.
   const rows = (history ?? []).filter((h) => h && h.net_gex_bn != null && Number.isFinite(h.net_gex_bn));
-  // `null` selection resolves to the latest session, so the strip reads "now" at rest and a
+  // `null` selection resolves to the latest session, so the strip reads its newest observation at rest and a
   // pointer-leave (setSel(null)) returns there. Hooks run before the thin-history branch.
   const [sel, setSel] = useState<number | null>(null);
   // The wrapper this ref points at is rendered in BOTH branches — svgChart's observer only
@@ -163,7 +163,7 @@ export const GexHistory = memo(function GexHistory({
   const cur = hasSeries ? rows[selIdx] : null;
   const prev = hasSeries && selIdx > 0 ? rows[selIdx - 1] : null;
   const dNet = cur && prev ? cur.net_gex_bn - prev.net_gex_bn : null;
-  const isNow = selIdx === lastIdx;
+  const isLatest = selIdx === lastIdx;
 
   // R7: padded domain, zero unioned only when the series actually straddles it (net-GEX sign
   // is meaningful, but an all-positive series should not spend half the panel on empty space).
@@ -221,7 +221,7 @@ export const GexHistory = memo(function GexHistory({
   const pickerDates = (sessionDates ?? []).filter((d) => d !== liveDate);
   const showPicker = !!onLoadSession && pickerDates.length > 0;
   // The scrubbed session can be loaded as a full ladder when it isn't the live one.
-  const canLoadCur = !!onLoadSession && !!cur && !isNow && cur.date !== liveDate;
+  const canLoadCur = !!onLoadSession && !!cur && cur.date !== liveDate && (!isLatest || !!liveDate);
   const curIsActive = !!cur && activeSession === cur.date;
 
   return (
@@ -335,7 +335,7 @@ export const GexHistory = memo(function GexHistory({
               <line x1={px(selIdx)} y1={PAD_T - 6} x2={px(selIdx)} y2={H - PAD_B + 6} stroke="var(--brand-2)" strokeWidth="1" strokeOpacity="0.48" />
               <circle cx={px(selIdx)} cy={py(cur.net_gex_bn)} r={4.2} fill="var(--panel)" stroke="var(--brand-2)" strokeWidth="2.2" />
               {/* faint marker on the latest point when the cursor is parked in the past */}
-              {!isNow && <circle cx={px(lastIdx)} cy={py(rows[lastIdx].net_gex_bn)} r={1.8} fill="none" stroke="var(--brand-2)" strokeWidth="0.8" strokeOpacity="0.6" />}
+              {!isLatest && <circle cx={px(lastIdx)} cy={py(rows[lastIdx].net_gex_bn)} r={1.8} fill="none" stroke="var(--brand-2)" strokeWidth="0.8" strokeOpacity="0.6" />}
             </svg>
           )}
         </div>
@@ -344,7 +344,7 @@ export const GexHistory = memo(function GexHistory({
           <div style={READOUT} className="obs-gex-history-readout">
             <div style={READOUT_HEAD}>
               <span style={RDATE}>{cur.date}</span>
-              {isNow && <span style={NOW_BADGE}>{t("gexHistNow")}</span>}
+              {isLatest && !canLoadCur && <span style={LATEST_BADGE}>{t("gexHistLatest")}</span>}
               {/* Keep replay actions in the existing header row. Rendering them as another
                   grid row made the history card grow whenever the scrubber entered the past,
                   shifting every Exposure section below it. */}

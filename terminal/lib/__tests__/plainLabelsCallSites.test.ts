@@ -348,7 +348,7 @@ describe("plain-language call sites — batch 3", () => {
     expect(src).toContain('k="xCreatedWith"');
   });
 
-  it("capture_pl6_batch3.cjs strips the Next indicator before the screenshot", () => {
+  it("capture_pl6_batch3.cjs verifies indicator absence without hiding or trimming the rendered UI", () => {
     const src = readFileSync(join(__dirname, "../../e2e/tools/capture_pl6_batch3.cjs"), "utf8");
     const cropStart = src.indexOf("async function cropBox");
     const cropEnd = src.indexOf("async function cropLocator");
@@ -357,8 +357,9 @@ describe("plain-language call sites — batch 3", () => {
     const cropBox = src.slice(cropStart, cropEnd);
     expect(cropBox).toContain("assertNoNextIndicator");
     expect(cropBox.indexOf("assertNoNextIndicator")).toBeLessThan(cropBox.indexOf("page.screenshot"));
-    expect(cropBox).toContain("AlertDetail-390");
-    expect(cropBox).toContain("trimBottom");
+    expect(src).not.toContain("trimBottom");
+    expect(src).not.toContain("MutationObserver");
+    expect(src).not.toContain("display: none");
     expect(src).toContain("heatmap-price-only-tile.json");
     expect(src).toContain("installHeatmapPriceOnlyFixture");
     const desk = src.slice(src.indexOf("async function captureFlowDesk"), src.indexOf("async function installAlertFixtures"));

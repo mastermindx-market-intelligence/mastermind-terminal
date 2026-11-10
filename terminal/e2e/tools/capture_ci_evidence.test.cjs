@@ -99,7 +99,7 @@ function fixture(t, change = {}) {
   ].join("\n");
   const optionsDirectory = "terminal/docs/pr-crops/options-level-axis-labels";
   const optionsPath = path.join(repoRoot, optionsDirectory, "manifest.json");
-  const optionsSources = ["components/ChartPanel.tsx", "lib/optionsLevels.ts", "lib/priceTagPlacement.ts"];
+  const optionsSources = ["components/ChartPanel.tsx", "lib/optionsLevels.ts", "lib/pricePaneSvgScope.ts", "lib/priceTagPlacement.ts"];
   const optionsFiles = ["desktop.png", "tablet.png", "mobile.png", "desktop-left-percentage.png", "desktop-compact.png"];
   for (const file of new Set([
     ...LAYOUT_FILES,
@@ -117,7 +117,7 @@ function fixture(t, change = {}) {
     historical: change.batch2Legacy ? null : seedHistory }));
   const priorManifest = fs.readFileSync(manifest);
   for (const definition of packets) {
-    write(definition.directory + "/EVIDENCE.yml", packetManifest(definition, Boolean(change.legacyStale)));
+    write(definition.directory + "/EVIDENCE.yml", packetManifest(definition, change.legacyStale === true || change.legacyStale === definition.packet));
     for (const file of definition.files) write(definition.directory + "/" + file, "old synthetic image " + file);
   }
   const writeOptions = (stale, sourceHead = "a".repeat(40)) => {
@@ -129,8 +129,10 @@ function fixture(t, change = {}) {
     write(optionsDirectory + "/manifest.json", JSON.stringify(manifest));
     return captures;
   };
+  if (change.legacyChangedSource) fs.appendFileSync(path.join(repoRoot, change.legacyChangedSource), "changed capture input\n");
   writeOptions(Boolean(change.optionsStale));
   if (change.optionsChanged) fs.appendFileSync(path.join(repoRoot, "terminal/" + optionsSources[0]), "changed source\n");
+  if (change.optionsScopeChanged) fs.appendFileSync(path.join(repoRoot, "terminal/lib/pricePaneSvgScope.ts"), "changed scope\n");
   write(optionsDirectory + "/coverage-audit-summary.json", "unchanged historical audit");
   evidence.imageInfo = bytes => ({ sha256: hash(bytes), width: 10, height: 10 });
   const legacyCalls = [];
@@ -205,6 +207,19 @@ test("changed Options source opts only PL6 into one capture and retains actual c
   assert.equal(r.optionsAxis.receipt.capturedAtHead, r.actualCheckout.commit);
   assert.notEqual(r.optionsAxis.receipt.capturedAtHead, r.githubEvent.pullRequestHead);
   assert.equal(r.optionsAxis.manifestSha256, createHash("sha256").update(fs.readFileSync(f.optionsPath)).digest("hex"));
+  assert.equal(r.composition.selectedCases, 50);
+});
+
+test("helper-only Options source drift requests the existing five-case capture", async t => {
+  const f = fixture(t, { optionsScopeChanged: true });
+  const r = await f.invoke();
+  assert.deepEqual(f.calls.map(c => c.options.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE), ["1", "0"]);
+  const prior = JSON.parse(fs.readFileSync(path.join(r.optionsAxis.prior.path, "manifest.json"), "utf8"));
+  const changed = Object.keys(prior.sourceFiles).filter(file => prior.sourceFiles[file] !== r.optionsAxis.sources[`terminal/${file}`]);
+  assert.deepEqual(changed, ["lib/pricePaneSvgScope.ts"]);
+  assert.equal(r.optionsAxis.images.length, 5);
+  assert.equal(r.optionsAxis.state, "CAPTURED_AWAITING_UNIT_VALIDATION");
+  assert.equal(r.optionsAxis.receipt.capturedAtHead, r.actualCheckout.commit);
   assert.equal(r.composition.selectedCases, 50);
 });
 
@@ -340,9 +355,9 @@ for (const failure of [false, true]) test(`VI outputDir cleanup preserves ${fail
   assert.equal(Boolean(f.selected()), !failure);
 });
 
-test("the stale Pine packet runs all30 cases, retain complete prior bytes and leave validation with native readers", async t => {
+test("stale Pine and batch3 packets run all50 cases and preserve complete prior bytes", async t => {
   const f = fixture(t, { legacyStale: true }), result = await f.invoke();
-  assert.deepEqual(f.legacyCalls, ["pine"]);
+  assert.deepEqual(f.legacyCalls, ["pine", "batch3"]);
   assert.equal(f.calls.length, 2);
   assert.equal(result.composition.selectedCases, 50);
   let cases = 0;
@@ -355,8 +370,25 @@ test("the stale Pine packet runs all30 cases, retain complete prior bytes and le
     assert.equal(fs.readFileSync(path.join(packet.returned.path, image), "utf8"), "fresh synthetic image " + image);
     assert.equal(packet.receipt.captureId, f.ids.prefix + "-" + definition.packet);
   }
-  assert.equal(cases, 30);
+  assert.equal(cases, 50);
 });
+
+test("batch3-only source drift recaptures all20 files while Pine is reused", async t => {
+  const f = fixture(t, { legacyStale: "batch3" }), result = await f.invoke();
+  assert.deepEqual(f.legacyCalls, ["batch3"]);
+  assert.equal(result.legacyPackets.batch3.images.length, 20);
+  assert.equal(result.legacyPackets.pine.state, "EXISTING_PACKET_AWAITING_UNIT_VALIDATION");
+});
+
+for (const source of ["terminal/e2e/tools/capture_pl6_batch3.cjs",
+  "terminal/e2e/fixtures/heatmap-price-only-tile.json"]) {
+  test("batch3 capture input drift requires fresh20: " + source, async t => {
+    const f = fixture(t, { legacyChangedSource: source }), result = await f.invoke();
+    assert.deepEqual(f.legacyCalls, ["batch3"]);
+    assert.equal(result.legacyPackets.batch3.images.length, 20);
+    assert.equal(result.legacyPackets.pine.state, "EXISTING_PACKET_AWAITING_UNIT_VALIDATION");
+  });
+}
 
 test("current packets preserve their old capture identity and do not launch replacement captures", async t => {
   const f = fixture(t), result = await f.invoke();
@@ -366,22 +398,22 @@ test("current packets preserve their old capture identity and do not launch repl
   assert.equal(f.calls[0].options.env.TERMINAL_CI_OPTIONS_AXIS_CAPTURE, "0");
 });
 
-for (const [name, change, expected] of [
+for (const packetName of ["pine", "batch3"]) for (const [name, change, expected] of [
   ["nonzero producer", { legacyStatus: 1 }, /CHILD_FAILED_OR_UNSETTLED/],
   ["missing current receipt", { missingLegacyReceipt: true }, /RECEIPT_COUNT/],
   ["partial fresh inventory", { partialLegacy: true }, /RECEIPT_BINDING/],
   ["different attempt", { wrongAttempt: true }, /RECEIPT_BINDING/],
   ["changed image bytes", { imageMismatch: true }, /IMAGE_BINDING/],
   ["source changed during capture", { mutateLegacySource: true }, /SOURCE_CHANGED/],
-]) test(name + " keeps diagnostics and refuses selector export", async t => {
-  const f = fixture(t, { legacyStale: true, ...change });
+]) test(packetName + ": " + name + " keeps diagnostics and refuses selector export", async t => {
+  const f = fixture(t, { legacyStale: packetName, ...change });
   await assert.rejects(f.invoke, expected);
   assert.equal(f.selected(), ""); assert.equal(f.diagnostic().state, "FAILED");
   const packet = f.diagnostic().legacyPackets[f.legacyCalls.at(-1)];
   assert.ok(fs.existsSync(packet.prior.path));
   assert.ok(fs.existsSync(packet.returned.path));
   assert.notEqual(packet.state, "CAPTURED_AWAITING_UNIT_VALIDATION");
-  assert.deepEqual(f.legacyCalls, ["pine"]);
+  assert.deepEqual(f.legacyCalls, [packetName]);
 });
 
 test("Options uses the full PL6 owner, records five fresh images, and preserves its historical audit", async t => {
@@ -391,7 +423,7 @@ test("Options uses the full PL6 owner, records five fresh images, and preserves 
   assert.equal(result.optionsAxis.images.length, 5);
   assert.equal(result.optionsAxis.state, "CAPTURED_AWAITING_UNIT_VALIDATION");
   assert.deepEqual(result.optionsAxis.prior.files["coverage-audit-summary.json"], result.optionsAxis.returned.files["coverage-audit-summary.json"]);
-  assert.equal(Object.keys(result.optionsAxis.sources).length, 3);
+  assert.equal(Object.keys(result.optionsAxis.sources).length, 4);
 });
 
 test("an unsuccessful PL6 or Options child retains the unqualified returned packet and original failure", async t => {

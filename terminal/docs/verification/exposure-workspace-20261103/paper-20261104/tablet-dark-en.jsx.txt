@@ -1,0 +1,560 @@
+(
+    <div id="1TR5-0" style={{ backgroundColor: '#0F1115', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', fontSize: '12px', fontSynthesis: 'none', lineHeight: '16px', MozOsxFontSmoothing: 'grayscale', overflow: 'clip', overflowWrap: 'anywhere', WebkitFontSmoothing: 'antialiased' }}>
+      <div id="1TR6-0" style={{ backgroundColor: '#0F1115', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', minHeight: '1060px', width: '820px' }}>
+        <div id="1TXW-0" style={{ alignItems: 'center', backgroundColor: '#181B21', borderBottomColor: '#3A4150', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '12px', height: '60px', paddingInline: '24px' }}>
+          <div id="1TY0-0" style={{ alignItems: 'center', backgroundColor: '#8EB8FF', borderRadius: '7px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, height: '28px', justifyContent: 'center', width: '28px' }}>
+            <div id="1TY1-0" style={{ boxSizing: 'border-box', color: '#0F1115', fontFamily: '"Inter-Bold", "Inter", system-ui, sans-serif', fontSize: '17px', fontWeight: 700, lineHeight: '22px' }}>
+              M
+            </div>
+          </div>
+          <div id="1TXZ-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-Bold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 700, letterSpacing: '1.8px', lineHeight: '16px' }}>
+            MASTERMIND
+          </div>
+          <div id="1TXY-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '14px', lineHeight: '18px', marginLeft: '12px' }}>
+            Options
+          </div>
+          <div id="1TXX-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '14px', marginLeft: 'auto' }}>
+            Illustrative fixture · UX completion
+          </div>
+        </div>
+        <div id="1TXH-0" style={{ alignItems: 'center', borderBottomColor: '#3A4150', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', gap: '6px', paddingBlock: '8px', paddingInline: '24px' }}>
+          <div id="1TXU-0" style={{ alignItems: 'center', backgroundColor: '#1E222A', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+            <div id="1TXV-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+              Command
+            </div>
+          </div>
+          <div id="1TXS-0" style={{ alignItems: 'center', backgroundColor: '#1E222A', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+            <div id="1TXT-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+              Flow
+            </div>
+          </div>
+          <div id="1TXQ-0" style={{ alignItems: 'center', backgroundColor: '#D7DCE3', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+            <div id="1TXR-0" style={{ boxSizing: 'border-box', color: '#0F1115', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '16px', width: 'max-content' }}>
+              Exposure
+            </div>
+          </div>
+          <div id="1TXO-0" style={{ alignItems: 'center', backgroundColor: '#1E222A', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+            <div id="1TXP-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+              Structure
+            </div>
+          </div>
+          <div id="1TXM-0" style={{ alignItems: 'center', backgroundColor: '#1E222A', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+            <div id="1TXN-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+              Volatility
+            </div>
+          </div>
+          <div id="1TXK-0" style={{ alignItems: 'center', backgroundColor: '#1E222A', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+            <div id="1TXL-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+              Statistics
+            </div>
+          </div>
+          <div id="1TXI-0" style={{ alignItems: 'center', backgroundColor: '#1E222A', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+            <div id="1TXJ-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+              Prophet
+            </div>
+          </div>
+        </div>
+        <div id="1TWY-0" style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '12px', paddingBottom: '16px', paddingInline: '24px', paddingTop: '22px' }}>
+          <div id="1TX2-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '14px' }}>
+            <div id="1TXG-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-Bold", "Inter", system-ui, sans-serif', fontSize: '28px', fontWeight: 700, lineHeight: '34px' }}>
+              SPY
+            </div>
+            <div id="1TXF-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '23px', fontWeight: 500, lineHeight: '28px' }}>
+              751.71
+            </div>
+            <div id="1TXE-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+              Tickers ▾
+            </div>
+            <div id="1TX3-0" style={{ boxSizing: 'border-box', display: 'flex', gap: '6px', marginLeft: 'auto' }}>
+              <div id="1TXC-0" style={{ alignItems: 'center', backgroundColor: '#D7DCE3', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+                <div id="1TXD-0" style={{ boxSizing: 'border-box', color: '#0F1115', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '16px', width: 'max-content' }}>
+                  GEX
+                </div>
+              </div>
+              <div id="1TXA-0" style={{ alignItems: 'center', backgroundColor: '#1E222A', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+                <div id="1TXB-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+                  DEX
+                </div>
+              </div>
+              <div id="1TX8-0" style={{ alignItems: 'center', backgroundColor: '#1E222A', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+                <div id="1TX9-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+                  VEX
+                </div>
+              </div>
+              <div id="1TX6-0" style={{ alignItems: 'center', backgroundColor: '#1E222A', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+                <div id="1TX7-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+                  CHEX
+                </div>
+              </div>
+              <div id="1TX4-0" style={{ alignItems: 'center', backgroundColor: '#1E222A', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+                <div id="1TX5-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+                  3D Research Lab
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="1TWZ-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '10px' }}>
+            <div id="1TX1-0" style={{ backgroundColor: '#F0C76F', borderRadius: '50%', boxSizing: 'border-box', flexShrink: 0, height: '6px', width: '6px' }} />
+            <div id="1TX0-0" style={{ boxSizing: 'border-box', color: '#F0C76F', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+              Published snapshot · Jul 10, 2026 · 16:15 ET
+            </div>
+          </div>
+        </div>
+        <div id="1TRH-0" style={{ alignItems: 'start', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '16px', paddingInline: '24px' }}>
+          <div id="1TSM-0" style={{ backgroundColor: '#181B21', borderColor: '#3A4150', borderRadius: '12px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', minWidth: '0px', overflow: 'clip', width: '772px' }}>
+            <div id="1TWM-0" style={{ alignItems: 'center', borderBottomColor: '#3A4150', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexWrap: 'wrap', gap: '8px', paddingBlock: '8px', paddingInline: '12px' }}>
+              <div id="1TWW-0" style={{ alignItems: 'center', backgroundColor: '#D7DCE3', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+                <div id="1TWX-0" style={{ boxSizing: 'border-box', color: '#0F1115', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '16px', width: 'max-content' }}>
+                  By strike
+                </div>
+              </div>
+              <div id="1TWU-0" style={{ alignItems: 'center', backgroundColor: '#1E222A', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+                <div id="1TWV-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+                  By expiry
+                </div>
+              </div>
+              <div id="1TWS-0" style={{ alignItems: 'center', backgroundColor: '#1E222A', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+                <div id="1TWT-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+                  Matrix
+                </div>
+              </div>
+              <div id="1TWQ-0" style={{ alignItems: 'center', backgroundColor: '#1E222A', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+                <div id="1TWR-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+                  Price chart
+                </div>
+              </div>
+              <div id="1TWN-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', gap: '14px', marginLeft: 'auto', minHeight: '44px' }}>
+                <div id="1TWP-0" style={{ boxSizing: 'border-box', color: '#8EB8FF', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                  Market State
+                </div>
+                <div id="1TWO-0" style={{ boxSizing: 'border-box', color: '#8EB8FF', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                  History
+                </div>
+              </div>
+            </div>
+            <div id="1TWF-0" style={{ alignItems: 'center', borderBottomColor: '#3A4150', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', gap: '8px', paddingBlock: '10px', paddingInline: '14px' }}>
+              <div id="1TWK-0" style={{ alignItems: 'center', backgroundColor: '#1E222A', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+                <div id="1TWL-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+                  All expirations ▾
+                </div>
+              </div>
+              <div id="1TWI-0" style={{ alignItems: 'center', backgroundColor: '#D7DCE3', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+                <div id="1TWJ-0" style={{ boxSizing: 'border-box', color: '#0F1115', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '16px', width: 'max-content' }}>
+                  Net
+                </div>
+              </div>
+              <div id="1TWG-0" style={{ alignItems: 'center', backgroundColor: '#1E222A', borderRadius: '8px', boxSizing: 'border-box', display: 'flex', justifyContent: 'center', minHeight: '44px', paddingInline: '14px' }}>
+                <div id="1TWH-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: 'max-content' }}>
+                  Call / Put
+                </div>
+              </div>
+            </div>
+            <div id="1TW2-0" style={{ borderBottomColor: '#3A4150', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', gap: '32px', paddingBlock: '18px', paddingInline: '16px' }}>
+              <div id="1TWC-0" style={{ boxSizing: 'border-box' }}>
+                <div id="1TWE-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1.1px', lineHeight: '14px' }}>
+                  NET GEX
+                </div>
+                <div id="1TWD-0" style={{ boxSizing: 'border-box', color: '#63D4B5', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '24px', fontWeight: 600, lineHeight: '30px', marginTop: '4px' }}>
+                  +4.67B
+                </div>
+              </div>
+              <div id="1TW9-0" style={{ boxSizing: 'border-box' }}>
+                <div id="1TWB-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1.1px', lineHeight: '14px' }}>
+                  FLIP
+                </div>
+                <div id="1TWA-0" style={{ boxSizing: 'border-box', color: '#8EB8FF', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '24px', fontWeight: 600, lineHeight: '30px', marginTop: '4px' }}>
+                  748.3
+                </div>
+              </div>
+              <div id="1TW6-0" style={{ boxSizing: 'border-box' }}>
+                <div id="1TW8-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1.1px', lineHeight: '14px' }}>
+                  CALL WALL
+                </div>
+                <div id="1TW7-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '24px', fontWeight: 600, lineHeight: '30px', marginTop: '4px' }}>
+                  760
+                </div>
+              </div>
+              <div id="1TW3-0" style={{ boxSizing: 'border-box' }}>
+                <div id="1TW5-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1.1px', lineHeight: '14px' }}>
+                  PUT SUPPORT
+                </div>
+                <div id="1TW4-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '24px', fontWeight: 600, lineHeight: '30px', marginTop: '4px' }}>
+                  740
+                </div>
+              </div>
+            </div>
+            <div id="1TVU-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between', paddingBlock: '12px', paddingInline: '14px' }}>
+              <div id="1TW1-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1.1px', lineHeight: '14px' }}>
+                STRIKE
+              </div>
+              <div id="1TVW-0" style={{ boxSizing: 'border-box', display: 'flex', gap: '7px' }}>
+                <div id="1TW0-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+                  ±2%
+                </div>
+                <div id="1TVZ-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+                  ±5%
+                </div>
+                <div id="1TVY-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+                  ±10%
+                </div>
+                <div id="1TVX-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', display: 'inline-block', fontFamily: '"Inter-Bold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 700, lineHeight: '14px' }}>
+                  All
+                </div>
+              </div>
+              <div id="1TVV-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1.1px', lineHeight: '14px' }}>
+                NET GEX
+              </div>
+            </div>
+            <div id="1TVM-0" style={{ alignItems: 'center', borderBottomColor: '#272C35', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '12px', height: '34px', paddingInline: '14px' }}>
+              <div id="1TVT-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', flexShrink: 0, fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '78px' }}>
+                760
+              </div>
+              <div id="1TVP-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TVS-0" style={{ alignItems: 'center', borderRightColor: '#596171', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }} />
+                <div id="1TVQ-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }}>
+                  <div id="1TVR-0" style={{ backgroundColor: '#319D81', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(92%, 1px)' }} />
+                </div>
+              </div>
+              <div id="1TVO-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', flexShrink: 0, fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '10px', lineHeight: '12px', width: '70px' }}>
+                CALL WALL
+              </div>
+              <div id="1TVN-0" style={{ boxSizing: 'border-box', color: '#63D4B5', flexShrink: 0, fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '90px' }}>
+                +1.42B
+              </div>
+            </div>
+            <div id="1TVE-0" style={{ alignItems: 'center', borderBottomColor: '#272C35', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '12px', height: '34px', paddingInline: '14px' }}>
+              <div id="1TVL-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', flexShrink: 0, fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '78px' }}>
+                759
+              </div>
+              <div id="1TVH-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TVK-0" style={{ alignItems: 'center', borderRightColor: '#596171', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }} />
+                <div id="1TVI-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }}>
+                  <div id="1TVJ-0" style={{ backgroundColor: '#319D81', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(87.4%, 1px)' }} />
+                </div>
+              </div>
+              <div id="1TVG-0" style={{ boxSizing: 'border-box', flexShrink: 0, width: '70px' }} />
+              <div id="1TVF-0" style={{ boxSizing: 'border-box', color: '#63D4B5', flexShrink: 0, fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '90px' }}>
+                +1.35B
+              </div>
+            </div>
+            <div id="1TV6-0" style={{ alignItems: 'center', borderBottomColor: '#272C35', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '12px', height: '34px', paddingInline: '14px' }}>
+              <div id="1TVD-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', flexShrink: 0, fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '78px' }}>
+                758
+              </div>
+              <div id="1TV9-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TVC-0" style={{ alignItems: 'center', borderRightColor: '#596171', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }} />
+                <div id="1TVA-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }}>
+                  <div id="1TVB-0" style={{ backgroundColor: '#319D81', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(82.8%, 1px)' }} />
+                </div>
+              </div>
+              <div id="1TV8-0" style={{ boxSizing: 'border-box', flexShrink: 0, width: '70px' }} />
+              <div id="1TV7-0" style={{ boxSizing: 'border-box', color: '#63D4B5', flexShrink: 0, fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '90px' }}>
+                +1.28B
+              </div>
+            </div>
+            <div id="1TUY-0" style={{ alignItems: 'center', borderBottomColor: '#272C35', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '12px', height: '34px', paddingInline: '14px' }}>
+              <div id="1TV5-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', flexShrink: 0, fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '78px' }}>
+                757
+              </div>
+              <div id="1TV1-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TV4-0" style={{ alignItems: 'center', borderRightColor: '#596171', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }} />
+                <div id="1TV2-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }}>
+                  <div id="1TV3-0" style={{ backgroundColor: '#319D81', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(73.6%, 1px)' }} />
+                </div>
+              </div>
+              <div id="1TV0-0" style={{ boxSizing: 'border-box', flexShrink: 0, width: '70px' }} />
+              <div id="1TUZ-0" style={{ boxSizing: 'border-box', color: '#63D4B5', flexShrink: 0, fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '90px' }}>
+                +1.13B
+              </div>
+            </div>
+            <div id="1TUQ-0" style={{ alignItems: 'center', borderBottomColor: '#272C35', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '12px', height: '34px', paddingInline: '14px' }}>
+              <div id="1TUX-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', flexShrink: 0, fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '78px' }}>
+                756
+              </div>
+              <div id="1TUT-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TUW-0" style={{ alignItems: 'center', borderRightColor: '#596171', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }} />
+                <div id="1TUU-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }}>
+                  <div id="1TUV-0" style={{ backgroundColor: '#319D81', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(65.32%, 1px)' }} />
+                </div>
+              </div>
+              <div id="1TUS-0" style={{ boxSizing: 'border-box', flexShrink: 0, width: '70px' }} />
+              <div id="1TUR-0" style={{ boxSizing: 'border-box', color: '#63D4B5', flexShrink: 0, fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '90px' }}>
+                +1.01B
+              </div>
+            </div>
+            <div id="1TUI-0" style={{ alignItems: 'center', borderBottomColor: '#272C35', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '12px', height: '34px', paddingInline: '14px' }}>
+              <div id="1TUP-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', flexShrink: 0, fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '78px' }}>
+                755
+              </div>
+              <div id="1TUL-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TUO-0" style={{ alignItems: 'center', borderRightColor: '#596171', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }} />
+                <div id="1TUM-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }}>
+                  <div id="1TUN-0" style={{ backgroundColor: '#319D81', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(57.96%, 1px)' }} />
+                </div>
+              </div>
+              <div id="1TUK-0" style={{ boxSizing: 'border-box', flexShrink: 0, width: '70px' }} />
+              <div id="1TUJ-0" style={{ boxSizing: 'border-box', color: '#63D4B5', flexShrink: 0, fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '90px' }}>
+                +898.8M
+              </div>
+            </div>
+            <div id="1TUA-0" style={{ alignItems: 'center', borderBottomColor: '#272C35', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '12px', height: '34px', paddingInline: '14px' }}>
+              <div id="1TUH-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', flexShrink: 0, fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '78px' }}>
+                754
+              </div>
+              <div id="1TUD-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TUG-0" style={{ alignItems: 'center', borderRightColor: '#596171', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }} />
+                <div id="1TUE-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }}>
+                  <div id="1TUF-0" style={{ backgroundColor: '#319D81', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(53.36%, 1px)' }} />
+                </div>
+              </div>
+              <div id="1TUC-0" style={{ boxSizing: 'border-box', flexShrink: 0, width: '70px' }} />
+              <div id="1TUB-0" style={{ boxSizing: 'border-box', color: '#63D4B5', flexShrink: 0, fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '90px' }}>
+                +823.2M
+              </div>
+            </div>
+            <div id="1TU2-0" style={{ alignItems: 'center', borderBottomColor: '#272C35', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '12px', height: '34px', paddingInline: '14px' }}>
+              <div id="1TU9-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', flexShrink: 0, fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '78px' }}>
+                753
+              </div>
+              <div id="1TU5-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TU8-0" style={{ alignItems: 'center', borderRightColor: '#596171', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }} />
+                <div id="1TU6-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }}>
+                  <div id="1TU7-0" style={{ backgroundColor: '#319D81', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(47.84%, 1px)' }} />
+                </div>
+              </div>
+              <div id="1TU4-0" style={{ boxSizing: 'border-box', flexShrink: 0, width: '70px' }} />
+              <div id="1TU3-0" style={{ boxSizing: 'border-box', color: '#63D4B5', flexShrink: 0, fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '90px' }}>
+                +743.1M
+              </div>
+            </div>
+            <div id="1TTU-0" style={{ alignItems: 'center', backgroundColor: '#302919', borderBottomColor: '#272C35', borderBottomStyle: 'solid', borderBottomWidth: '1px', borderTopColor: '#F0C76F', borderTopStyle: 'solid', borderTopWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '12px', height: '34px', paddingInline: '14px' }}>
+              <div id="1TU1-0" style={{ boxSizing: 'border-box', color: '#F0C76F', flexShrink: 0, fontFamily: '"Inter-Bold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 700, lineHeight: '16px', width: '78px' }}>
+                752 ◂
+              </div>
+              <div id="1TTX-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TU0-0" style={{ alignItems: 'center', borderRightColor: '#596171', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }} />
+                <div id="1TTY-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }}>
+                  <div id="1TTZ-0" style={{ backgroundColor: '#319D81', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(46%, 1px)' }} />
+                </div>
+              </div>
+              <div id="1TTW-0" style={{ boxSizing: 'border-box', flexShrink: 0, width: '70px' }} />
+              <div id="1TTV-0" style={{ boxSizing: 'border-box', color: '#63D4B5', flexShrink: 0, fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '90px' }}>
+                +710.5M
+              </div>
+            </div>
+            <div id="1TTM-0" style={{ alignItems: 'center', borderBottomColor: '#272C35', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '12px', height: '34px', paddingInline: '14px' }}>
+              <div id="1TTT-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', flexShrink: 0, fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '78px' }}>
+                751
+              </div>
+              <div id="1TTP-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TTS-0" style={{ alignItems: 'center', borderRightColor: '#596171', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }} />
+                <div id="1TTQ-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }}>
+                  <div id="1TTR-0" style={{ backgroundColor: '#319D81', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(44.16%, 1px)' }} />
+                </div>
+              </div>
+              <div id="1TTO-0" style={{ boxSizing: 'border-box', flexShrink: 0, width: '70px' }} />
+              <div id="1TTN-0" style={{ boxSizing: 'border-box', color: '#63D4B5', flexShrink: 0, fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '90px' }}>
+                +686.9M
+              </div>
+            </div>
+            <div id="1TTE-0" style={{ alignItems: 'center', borderBottomColor: '#272C35', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '12px', height: '34px', paddingInline: '14px' }}>
+              <div id="1TTL-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', flexShrink: 0, fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '78px' }}>
+                750
+              </div>
+              <div id="1TTH-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TTK-0" style={{ alignItems: 'center', borderRightColor: '#596171', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }} />
+                <div id="1TTI-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }}>
+                  <div id="1TTJ-0" style={{ backgroundColor: '#319D81', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(44.16%, 1px)' }} />
+                </div>
+              </div>
+              <div id="1TTG-0" style={{ boxSizing: 'border-box', flexShrink: 0, width: '70px' }} />
+              <div id="1TTF-0" style={{ boxSizing: 'border-box', color: '#63D4B5', flexShrink: 0, fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '90px' }}>
+                +687.8M
+              </div>
+            </div>
+            <div id="1TT6-0" style={{ alignItems: 'center', borderBottomColor: '#272C35', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '12px', height: '34px', paddingInline: '14px' }}>
+              <div id="1TTD-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', flexShrink: 0, fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '78px' }}>
+                749
+              </div>
+              <div id="1TT9-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TTC-0" style={{ alignItems: 'center', borderRightColor: '#596171', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }} />
+                <div id="1TTA-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }}>
+                  <div id="1TTB-0" style={{ backgroundColor: '#319D81', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(38.64%, 1px)' }} />
+                </div>
+              </div>
+              <div id="1TT8-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', flexShrink: 0, fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '10px', lineHeight: '12px', width: '70px' }}>
+                &nbsp;
+              </div>
+              <div id="1TT7-0" style={{ boxSizing: 'border-box', color: '#63D4B5', flexShrink: 0, fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '90px' }}>
+                +597.4M
+              </div>
+            </div>
+            <div id="1TSY-0" style={{ alignItems: 'center', borderBottomColor: '#272C35', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '12px', height: '34px', paddingInline: '14px' }}>
+              <div id="1TT5-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', flexShrink: 0, fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '78px' }}>
+                748
+              </div>
+              <div id="1TT1-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TT3-0" style={{ alignItems: 'center', borderRightColor: '#596171', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }}>
+                  <div id="1TT4-0" style={{ backgroundColor: '#BD526C', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(43.24%, 1px)' }} />
+                </div>
+                <div id="1TT2-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }} />
+              </div>
+              <div id="1TT0-0" style={{ boxSizing: 'border-box', flexShrink: 0, width: '70px' }} />
+              <div id="1TSZ-0" style={{ boxSizing: 'border-box', color: '#F18A9E', flexShrink: 0, fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '90px' }}>
+                −666.9M
+              </div>
+            </div>
+            <div id="1TSQ-0" style={{ alignItems: 'center', borderBottomColor: '#272C35', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, gap: '12px', height: '34px', paddingInline: '14px' }}>
+              <div id="1TSX-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', flexShrink: 0, fontFamily: '"Inter-Medium", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '13px', fontWeight: 500, lineHeight: '16px', width: '78px' }}>
+                747
+              </div>
+              <div id="1TST-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', flexBasis: '0%', flexGrow: '1', height: '20px' }}>
+                <div id="1TSV-0" style={{ alignItems: 'center', borderRightColor: '#596171', borderRightStyle: 'solid', borderRightWidth: '1px', boxSizing: 'border-box', display: 'flex', height: '20px', justifyContent: 'end', width: 'round(50%, 1px)' }}>
+                  <div id="1TSW-0" style={{ backgroundColor: '#BD526C', borderRadius: '2px', boxSizing: 'border-box', height: '13px', width: 'round(41.4%, 1px)' }} />
+                </div>
+                <div id="1TSU-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', height: '20px', width: 'round(50%, 1px)' }} />
+              </div>
+              <div id="1TSS-0" style={{ boxSizing: 'border-box', flexShrink: 0, width: '70px' }} />
+              <div id="1TSR-0" style={{ boxSizing: 'border-box', color: '#F18A9E', flexShrink: 0, fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontFeatureSettings: '"tnum"', fontSize: '12px', fontWeight: 600, lineHeight: '16px', textAlign: 'right', width: '90px' }}>
+                −637.8M
+              </div>
+            </div>
+            <div id="1TSN-0" style={{ alignItems: 'center', borderTopColor: '#3A4150', borderTopStyle: 'solid', borderTopWidth: '1px', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between', padding: '14px' }}>
+              <div id="1TSP-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                46 strikes · all expirations
+              </div>
+              <div id="1TSO-0" style={{ boxSizing: 'border-box', color: '#8EB8FF', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                Expiry breakdown ▾
+              </div>
+            </div>
+          </div>
+          <div id="1TRI-0" style={{ backgroundColor: '#181B21', borderColor: '#3A4150', borderRadius: '12px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', flexShrink: '0', gap: '20px', padding: '22px', width: '772px' }}>
+            <div id="1TSJ-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+              <div id="1TSL-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1.1px', lineHeight: '14px' }}>
+                MARKET STATE
+              </div>
+              <div id="1TSK-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+                2026-07-10
+              </div>
+            </div>
+            <div id="1TSF-0" style={{ alignItems: 'center', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+              <div id="1TSI-0" style={{ boxSizing: 'border-box', color: '#63D4B5', fontFamily: '"Inter-Bold", "Inter", system-ui, sans-serif', fontSize: '28px', fontWeight: 700, lineHeight: '34px' }}>
+                PIN
+              </div>
+              <div id="1TSG-0" style={{ borderColor: '#319D81', borderRadius: '20px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', paddingBlock: '6px', paddingInline: '9px' }}>
+                <div id="1TSH-0" style={{ boxSizing: 'border-box', color: '#63D4B5', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                  Net γ positive
+                </div>
+              </div>
+            </div>
+            <div id="1TSE-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '160%' }}>
+              Positioning is concentrated near a level.
+            </div>
+            <div id="1TS8-0" style={{ alignItems: 'center', borderBottomColor: '#3A4150', borderBottomStyle: 'solid', borderBottomWidth: '1px', boxSizing: 'border-box', display: 'flex', gap: '18px', paddingBottom: '20px' }}>
+              <div id="1TSC-0" style={{ alignItems: 'center', borderColor: '#319D81', borderRadius: '50%', borderStyle: 'solid', borderWidth: '5px', boxSizing: 'border-box', display: 'flex', flexShrink: 0, height: '64px', justifyContent: 'center', width: '64px' }}>
+                <div id="1TSD-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-Bold", "Inter", system-ui, sans-serif', fontSize: '23px', fontWeight: 700, lineHeight: '28px' }}>
+                  69
+                </div>
+              </div>
+              <div id="1TS9-0" style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '7px' }}>
+                <div id="1TSB-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px' }}>
+                  Stability <span style={{ fontFamily: '"Inter-Bold", "Inter", system-ui, sans-serif', fontWeight: 700 }}>69%</span>
+                </div>
+                <div id="1TSA-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                  0.46% above flip
+                </div>
+              </div>
+            </div>
+            <div id="1TRX-0" style={{ boxSizing: 'border-box' }}>
+              <div id="1TS7-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1.1px', lineHeight: '14px' }}>
+                STRUCTURAL RANGE
+              </div>
+              <div id="1TS4-0" style={{ boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between', marginTop: '13px' }}>
+                <div id="1TS6-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px' }}>
+                  740
+                </div>
+                <div id="1TS5-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px' }}>
+                  760
+                </div>
+              </div>
+              <div id="1TS1-0" style={{ backgroundColor: '#1E222A', borderRadius: '4px', boxSizing: 'border-box', height: '8px', marginBottom: '9px', marginTop: '10px', position: 'relative' }}>
+                <div id="1TS3-0" style={{ backgroundColor: '#8EB8FF', boxSizing: 'border-box', height: '16px', left: '41.5%', position: 'absolute', top: '-4px', width: '3px' }} />
+                <div id="1TS2-0" style={{ backgroundColor: '#F0C76F', boxSizing: 'border-box', height: '16px', left: '58.55%', position: 'absolute', top: '-4px', width: '3px' }} />
+              </div>
+              <div id="1TRY-0" style={{ boxSizing: 'border-box', display: 'flex', gap: '16px' }}>
+                <div id="1TS0-0" style={{ boxSizing: 'border-box', color: '#8EB8FF', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+                  Flip 748.3
+                </div>
+                <div id="1TRZ-0" style={{ boxSizing: 'border-box', color: '#F0C76F', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+                  Spot 751.71
+                </div>
+              </div>
+            </div>
+            <div id="1TRN-0" style={{ borderBottomColor: '#3A4150', borderBottomStyle: 'solid', borderBottomWidth: '1px', borderTopColor: '#3A4150', borderTopStyle: 'solid', borderTopWidth: '1px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '15px', paddingBlock: '14px' }}>
+              <div id="1TRU-0" style={{ boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+                <div id="1TRW-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px' }}>
+                  Gamma dominance
+                </div>
+                <div id="1TRV-0" style={{ boxSizing: 'border-box', color: '#63D4B5', display: 'inline-block', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '16px' }}>
+                  59% long
+                </div>
+              </div>
+              <div id="1TRR-0" style={{ boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+                <div id="1TRT-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px' }}>
+                  Hedge pressure
+                </div>
+                <div id="1TRS-0" style={{ boxSizing: 'border-box', color: '#F0C76F', display: 'inline-block', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '16px' }}>
+                  High
+                </div>
+              </div>
+              <div id="1TRO-0" style={{ boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between' }}>
+                <div id="1TRQ-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px' }}>
+                  Pin target
+                </div>
+                <div id="1TRP-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px' }}>
+                  —
+                </div>
+              </div>
+            </div>
+            <div id="1TRJ-0" style={{ alignItems: 'center', borderTopColor: '#3A4150', borderTopStyle: 'solid', borderTopWidth: '1px', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between', minHeight: '44px' }}>
+              <div id="1TRL-0" style={{ boxSizing: 'border-box', color: '#8EB8FF', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                Details and provenance
+              </div>
+              <div id="1TRK-0" style={{ boxSizing: 'border-box', color: '#8EB8FF', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '16px' }}>
+                ▾
+              </div>
+            </div>
+            <div id="1TRM-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '12px', lineHeight: '160%', whiteSpace: 'pre-wrap' }}>
+              Levels map — dealer-sign assumed; display-only<br />Forward-vol gate: display-only until ~Sept 2026
+            </div>
+          </div>
+        </div>
+        <div id="1TR7-0" style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '12px', paddingBlock: '18px', paddingInline: '24px' }}>
+          <div id="1TRE-0" style={{ alignItems: 'center', backgroundColor: '#181B21', borderColor: '#3A4150', borderRadius: '10px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between', minHeight: '52px', paddingInline: '16px' }}>
+            <div id="1TRG-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', display: 'inline-block', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '13px', fontWeight: 600, lineHeight: '16px' }}>
+              Snapshot levels ▸
+            </div>
+            <div id="1TRF-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', display: 'inline-block', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '14px' }}>
+              Full book
+            </div>
+          </div>
+          <div id="1TR9-0" style={{ alignItems: 'center', backgroundColor: '#181B21', borderColor: '#3A4150', borderRadius: '10px', borderStyle: 'solid', borderWidth: '1px', boxSizing: 'border-box', display: 'flex', justifyContent: 'space-between', minHeight: '64px', paddingInline: '16px' }}>
+            <div id="1TRB-0" style={{ boxSizing: 'border-box' }}>
+              <div id="1TRD-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-SemiBold", "Inter", system-ui, sans-serif', fontSize: '11px', fontWeight: 600, letterSpacing: '1.1px', lineHeight: '14px' }}>
+                HISTORY
+              </div>
+              <div id="1TRC-0" style={{ boxSizing: 'border-box', color: '#D7DCE3', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px', marginTop: '6px' }}>
+                Latest available snapshot
+              </div>
+            </div>
+            <div id="1TRA-0" style={{ boxSizing: 'border-box', color: '#8EB8FF', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '13px', lineHeight: '16px' }}>
+              Choose session ▾
+            </div>
+          </div>
+          <div id="1TR8-0" style={{ boxSizing: 'border-box', color: '#A3ADBB', fontFamily: '"Inter-Regular", "Inter", system-ui, sans-serif', fontSize: '11px', lineHeight: '150%' }}>
+            Illustrative fixture. Historical books retain their own source date. Partial totals and missing values remain explicit.
+          </div>
+        </div>
+      </div>
+    </div>
+  )

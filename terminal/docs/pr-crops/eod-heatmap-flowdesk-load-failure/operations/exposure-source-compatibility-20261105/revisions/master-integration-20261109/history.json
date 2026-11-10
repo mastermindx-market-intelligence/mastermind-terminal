@@ -1,0 +1,18 @@
+{
+  "schema": "exposure_master_integration_history.v1",
+  "branchHead": "883fee550a9628812a4fbcdc77e479ab8cad3b3a",
+  "protectedMaster": "f2aa1e0cb27d459149f59d3b24d98cd6e2e8389f",
+  "packet": "eod-heatmap-flowdesk-load-failure",
+  "roots": {
+    "prior-exposure-root": {
+      "commit": "883fee550a9628812a4fbcdc77e479ab8cad3b3a",
+      "files": 127,
+      "inventorySha256": "b0110a00f14c663c504fb49ae25dbe5f24cbc33c82e45e6bf4c0ef204a54df40"
+    },
+    "prior-protected-root": {
+      "commit": "f2aa1e0cb27d459149f59d3b24d98cd6e2e8389f",
+      "files": 127,
+      "inventorySha256": "c726ac1938cc85bf005b71ba01e0cec0a00dc57ae4ca168c1724a6200ea275bf"
+    }
+  }
+}

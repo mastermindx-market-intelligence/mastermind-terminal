@@ -1,0 +1,36 @@
+{
+  "schema": "exposure_shared_reader_revision.v1",
+  "local_parent": "428fd8a845895f260c4da3f71916455c1fc35b0f",
+  "last_published_parent": "4624a10e48b348b7298074d28cc26510fb1d6353",
+  "shared_reader_sha256": "1a75aa7f5dc2f1ac2ba8c340085a10e53928010a8e84fde52c9bbb2275ebaf13",
+  "new_combined_native_source_count": 319,
+  "revision": "options-navigation-r4",
+  "current_exposure_capture_profile_unchanged": true,
+  "checks": [
+    {
+      "check": "unit",
+      "command": [
+        "./node_modules/.bin/vitest",
+        "run",
+        "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+        "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+        "lib/__tests__/optionsExposureEvidence.test.ts"
+      ],
+      "exit": 0,
+      "log_sha256": "13c4f1ecd719cf71ba721c1e9ebbc2d3bf4e221b8fbe2bda6e2e02e2a04fd503",
+      "passed": 32
+    },
+    {
+      "check": "lint",
+      "command": [
+        "./node_modules/.bin/eslint",
+        "lib/__tests__/helpers/optionsExposureEvidence.ts"
+      ],
+      "exit": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "passed": null
+    }
+  ],
+  "source_stable": true,
+  "completed_at": "2026-11-05T07:02:36.520247+00:00"
+}

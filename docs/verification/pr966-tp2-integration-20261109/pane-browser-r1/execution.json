@@ -1,0 +1,63 @@
+{
+  "artifacts": {
+    ".last-run.json": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+  },
+  "cases": [
+    {
+      "expectedStatus": "passed",
+      "file": "pane-sync-time-axis.spec.ts",
+      "project": "desktop",
+      "results": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "removing a pane leaves no stale registration driving the grid"
+    }
+  ],
+  "command": [
+    "node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/pane-sync-time-axis.spec.ts",
+    "--grep",
+    "removing a pane leaves no stale registration driving the grid",
+    "--project=desktop",
+    "--workers=1",
+    "--retries=0",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr966-tp2-integration-20261109/terminal/test-results/pr966-pane-r1"
+  ],
+  "completedAt": "2026-11-09T17:14:32.071857+00:00",
+  "exit": 0,
+  "head": "46394e371a34ef9cda9ffd09b1ba115e3729c441",
+  "historicalJob": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/38542185205/job/115779400848",
+  "lifecycle": {
+    "initialLockPresent": true,
+    "reconciliation": "docs/verification/pr966-tp2-integration-20261109/pane-browser-r1-lifecycle.json",
+    "serverAbsenceVerifiedAt": "2026-11-09T17:14:31.945140+00:00",
+    "sha256": "e506093c5161b1394add9a195878f6867daffc231ea4d24d56766c9ec2ee476a"
+  },
+  "logSha256": "4e55d7b93fb439935a8b159bf5152d0c2b4f4632de8614fb3c9542000669f1d6",
+  "nextLockAbsent": true,
+  "ownedPortClosed": true,
+  "port": 3894,
+  "protectedMaster": "03af393ce05c12282003a3919cc473c032264922",
+  "reportErrors": [],
+  "schema": "terminal_pr966_historical_failure_reproduction.v1",
+  "seconds": 36.45,
+  "sourceEntries": 1945,
+  "sourceStable": true,
+  "startedAt": "2026-11-09T17:13:49.520270+00:00",
+  "state": "QUALIFIED",
+  "stats": {
+    "duration": 36022.486,
+    "expected": 1,
+    "flaky": 0,
+    "skipped": 0,
+    "startTime": "2026-11-09T17:13:49.934Z",
+    "unexpected": 0
+  }
+}
