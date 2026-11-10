@@ -1,0 +1,18 @@
+{
+  "desktopReadTransport": "first read_file returned internal error; same-path read-only retry returned original PNG",
+  "limits": [
+    "local synthetic fixture",
+    "scoped consumer inspection; not whole-product or production acceptance"
+  ],
+  "observed": [
+    "Light preference retained after reload",
+    "Exposure reference and recovery/navigation actions readable",
+    "Returned tablet selected strike103 visible"
+  ],
+  "observedAt": "2026-11-10T04:40:24.816984+00:00",
+  "scope": [
+    "desktop saved-theme-main-reloaded.png",
+    "mobile saved-theme-main-reloaded.png",
+    "tablet saved-theme-return-reloaded.png"
+  ]
+}

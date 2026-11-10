@@ -166,3 +166,56 @@ test("Exposure All except 0DTE withholds the total when a chain expiration is ou
   await summary.scrollIntoViewIfNeeded();
   await page.screenshot({ path: info.outputPath(`${info.project.name}-exposure-chain-outside.png`), fullPage: false });
 });
+
+// #768's remaining source-session contract, on the current map-first chooser and
+// current T09 population. Existing timestamp/partial/outside-window cases above stay.
+for (const lang of ["en", "zh"] as const) {
+  for (const complete of [false, true]) {
+    test(`[${lang}] Exposure ${complete ? "complete grid" : "known subtotal"} keeps its date-only source session`, async ({ page }, info) => {
+      const zh = lang === "zh";
+      await page.addInitScript(locale => localStorage.setItem("mm.lang", locale), lang);
+      const errors: string[] = [];
+      page.on("pageerror", error => errors.push(error.message));
+      const sourceGex = { ...gex, asof: session };
+      const matrix = {
+        schema: "options_structure.matrix/v1", root: "SPY", spot: 770.5,
+        asof: "2026-09-26T00:05:00Z", _build_meta: { asof_date: session },
+        strikes: [770, 771], expiries: [session, later], cells: [
+          { strike: 770, expiry: session, gex: 8e6 },
+          { strike: 771, expiry: session, gex: complete ? -3e6 : null },
+        ],
+      };
+      await page.route("**/api/flow?*", async route => {
+        const feed = new URL(route.request().url()).searchParams.get("f");
+        if (feed === "matrix:SPY") await route.fulfill({ json: matrix });
+        else if (feed === "gex:SPY") await route.fulfill({ json: sourceGex });
+        else await route.fallback();
+      });
+      await page.route("**/api/flow/stream?*", async route => {
+        if (new URL(route.request().url()).searchParams.get("f") === "gex:SPY") {
+          await route.fulfill({ contentType: "text/event-stream", body: `data: ${JSON.stringify(sourceGex)}\n\n` });
+        } else await route.fallback();
+      });
+      await page.goto("/options?tab=prism");
+      await openStrikeView(page, zh);
+      const zero = page.getByRole("button", { name: zh ? "当日到期" : "0DTE", exact: true });
+      await expect(zero).toHaveAttribute("aria-disabled", "false", { timeout: 20_000 });
+      await zero.click();
+      await expect(zero).toHaveAttribute("aria-pressed", "true", { timeout: 20_000 });
+      const summary = page.locator('[data-tut="gex-summary"]').locator(":scope > *").first();
+      await expect(summary).toContainText(zh ? "源报告 GEX" : "Reported GEX");
+      await expect(summary.locator(":scope > *").last()).toHaveText(complete ? "+5.0M" : "—");
+      const source = page.getByTestId("gex-lens-source");
+      await expect(source).toContainText(session);
+      await expect(source).toContainText(zh ? "源数据完整性未知" : "Source completeness is unknown");
+      expect(await source.evaluate(el => Number.parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(12);
+      if (complete) await expect(page.getByTestId("gex-lens-partial")).toHaveCount(0);
+      else await expect(page.getByTestId("gex-lens-partial")).toContainText("+8.0M");
+      await expect(page.getByText(zh ? /9月25日.*源交易日/ : "Fri, Sep 25 · source session", { exact: false })).toBeVisible();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      expect(errors).toEqual([]);
+      await source.scrollIntoViewIfNeeded();
+      await page.screenshot({ path: info.outputPath(`exposure-source-${lang}-${complete ? "complete" : "partial"}.png`), fullPage: false });
+    });
+  }
+}
