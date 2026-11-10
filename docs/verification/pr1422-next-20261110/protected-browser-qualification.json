@@ -1,0 +1,223 @@
+{
+  "cases": [
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "desktop|a withdrawn access clears every figure and leaves the rest of the overview intact"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "desktop|a withdrawn access clears the companion and leaves the rest of the overview intact"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "desktop|en: an expanded panel stays collapsed when the count comes back"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "desktop|en: the committed edit retires the previous facts and re-reads the book"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "desktop|zh: an expanded panel stays collapsed when the count comes back"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "desktop|zh: the committed edit retires the previous facts and re-reads the book"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "mobile|a withdrawn access clears every figure and leaves the rest of the overview intact"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "mobile|a withdrawn access clears the companion and leaves the rest of the overview intact"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "expectedStatus": "skipped",
+      "key": "mobile|en: an expanded panel stays collapsed when the count comes back"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "mobile|en: the committed edit retires the previous facts and re-reads the book"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "expectedStatus": "skipped",
+      "key": "mobile|zh: an expanded panel stays collapsed when the count comes back"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "mobile|zh: the committed edit retires the previous facts and re-reads the book"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "tablet|a withdrawn access clears every figure and leaves the rest of the overview intact"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "tablet|a withdrawn access clears the companion and leaves the rest of the overview intact"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "expectedStatus": "skipped",
+      "key": "tablet|en: an expanded panel stays collapsed when the count comes back"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "tablet|en: the committed edit retires the previous facts and re-reads the book"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "skipped"
+        }
+      ],
+      "expectedStatus": "skipped",
+      "key": "tablet|zh: an expanded panel stays collapsed when the count comes back"
+    },
+    {
+      "attempts": [
+        {
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "expectedStatus": "passed",
+      "key": "tablet|zh: the committed edit retires the previous facts and re-reads the book"
+    }
+  ],
+  "failed": 0,
+  "flaky": 0,
+  "images": {
+    "desktop-en-expansion-retired.png": "76467ca9c5f5c7b96db150da696c25e561cfe619726110b8d07b5a8abf99f02c",
+    "desktop-en-refreshed.png": "408c99a7e08eabfbc8bf47633f4a7e807739bc1d4fbcb499eda7757ad9cc7c2c",
+    "desktop-zh-expansion-retired.png": "cdfd3bc48f8ba621c7f05fa3454536a9b535b84a57a58d6520aa1707bdea395c",
+    "desktop-zh-refreshed.png": "3dec35a9b70c0eb730d55fc9b827ba46297e5014688b75ebe00614644119a8ea",
+    "mobile-en-refreshed.png": "b210b0425d8f6016645092243683fce0a29f394041af5ea37d5b1d41a0fecc2d",
+    "mobile-zh-refreshed.png": "d0daade479e26bf7a580b762dd5f51b4048efe7ead40e7fc2f9dd0cb6c0e5102",
+    "tablet-en-refreshed.png": "a99d5a634a5a809faed7786ac73da555f8a151fb5138a1104d388a622d23943a",
+    "tablet-zh-refreshed.png": "5743bf21b642e2eb7a653b3e322d183c62bf4e8ab5693ba1c1fd0c98c48f52ee"
+  },
+  "lockAbsent": true,
+  "portsClosed": [
+    34229,
+    34230
+  ],
+  "retries": 0,
+  "runs": [
+    {
+      "observerScopeErrorRetained": true,
+      "passed": 12,
+      "report": "portfolio-protected-report.json",
+      "sha256": "d565cb044e1985bbd41ca0ec84cad9a16a5f5e90f26744a177379eb8758ead1c",
+      "skipped": 0
+    },
+    {
+      "passed": 2,
+      "report": "portfolio-expansion-report.json",
+      "sha256": "a6edb8c59c4cd98f9a4f5082f8bdc5c041adc448466a50bb6188abb351f6453c",
+      "skipped": 4
+    }
+  ],
+  "schema": "terminal_protected_portfolio_dossier_union.v1",
+  "source": "3f6a75b7d5f82802c010edc0e42b7ffd501c9cf0",
+  "sourcesIdenticalAcrossRuns": true,
+  "totalOriginalSkipped": 4,
+  "totalPassed": 14,
+  "tree": "e8de358b7dfd35280337492cefead4d30a2a4a9b"
+}
