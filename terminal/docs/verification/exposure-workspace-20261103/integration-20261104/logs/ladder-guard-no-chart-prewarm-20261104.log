@@ -1,0 +1,23 @@
+[warmup] /terminal?symbol=NVDA → 200 in 536ms
+[warmup] /options → 200 in 245ms
+[warmup] /portfolio → 200 in 2900ms
+[warmup] /alerts → 200 in 3103ms
+[warmup] /analysis → 200 in 4450ms
+[warmup] /discover → 200 in 3391ms
+[warmup] /admin → 200 in 4162ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 2690ms
+[warmup] /login → 200 in 410ms
+[warmup] /reset-password → 200 in 3027ms
+[warmup] /api/me → 200 in 2970ms
+[warmup] /api/watchlist → 200 in 2424ms
+[warmup] /api/layouts → 200 in 2234ms
+[warmup] /api/watchlist/annotations → 409 in 2184ms
+[warmup] 14 routes compiled in 35s
+
+Running 3 tests using 1 worker
+
+  ✓  1 [desktop] › e2e/responsive.spec.ts:1442:5 › Exposure desk replays an archived session's full ladder at every supported width (6.3s)
+  ✓  2 [tablet] › e2e/responsive.spec.ts:1442:5 › Exposure desk replays an archived session's full ladder at every supported width (5.3s)
+  ✓  3 [mobile] › e2e/responsive.spec.ts:1442:5 › Exposure desk replays an archived session's full ladder at every supported width (2.6s)
+
+  3 passed (1.0m)

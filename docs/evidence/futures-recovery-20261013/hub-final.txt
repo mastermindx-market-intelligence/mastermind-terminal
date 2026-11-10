@@ -1,0 +1,871 @@
+2026-10-13T10:42:12.699Z [DEBUG] anchor from daily_file NVDA prevClose=204.12 sessionDate=2026-07-09 (occurrence #1)
+2026-10-13T10:42:12.701Z [INFO] anchor cache pruned 1 stale sessions
+2026-10-13T10:42:12.706Z [INFO] manifest reloaded symbols=1 mtime=2026-10-13T10:42:12.703Z
+2026-10-13T10:42:12.707Z [DEBUG] anchor from daily_file MSFT prevClose=464.72 sessionDate=2026-08-03 (occurrence #1)
+2026-10-13T10:42:12.707Z [INFO] anchor refreshed after daily-file roll MSFT sessionDate=2026-08-03
+2026-10-13T10:42:12.710Z [INFO] manifest reloaded symbols=1 mtime=2026-10-13T10:42:12.710Z
+2026-10-13T10:42:12.712Z [INFO] manifest reloaded symbols=1 mtime=2026-10-13T10:42:12.712Z
+2026-10-13T10:42:12.713Z [INFO] manifest reloaded symbols=1 mtime=2026-10-13T10:42:12.713Z
+2026-10-13T10:42:12.726Z [INFO] manifest reloaded symbols=1 mtime=2026-10-13T10:42:12.726Z
+2026-10-13T10:42:12.727Z [INFO] manifest reloaded symbols=1 mtime=2026-10-13T10:42:12.727Z
+2026-10-13T10:42:12.728Z [INFO] manifest reloaded symbols=1 mtime=2026-10-13T10:42:12.728Z
+▶ etDate
+  ✔ formats a UTC timestamp into ET YYYY-MM-DD (0.528958ms)
+  ✔ handles midnight UTC boundary (00:00 UTC = 20:00 ET previous day) (0.085666ms)
+✔ etDate (16.046917ms)
+▶ isRTH
+  ✔ returns true at 10:00 ET (1.632833ms)
+  ✔ returns false at 17:00 ET (after close) (0.291042ms)
+  ✔ returns false at 09:00 ET (pre-market) (0.159333ms)
+✔ isRTH (2.430125ms)
+▶ AnchorCache session-date rolling
+  ✔ cache miss on fresh key (0.271416ms)
+  ✔ resolves prevClose from daily file (yesterday's close) (1.54475ms)
+  ✔ cache hit on second call (same session) (0.134208ms)
+  ✔ cache MISS on new session date (key rolls) (0.098708ms)
+  ✔ resolves fresh anchor for new session (0.396583ms)
+  ✔ prune removes stale session keys (0.168416ms)
+✔ AnchorCache session-date rolling (4.86725ms)
+▶ AnchorCache daily file rolled for today
+  ✔ prevClose = yesterday's close (second-to-last bar) when today's bar is present (0.165792ms)
+✔ AnchorCache daily file rolled for today (0.929375ms)
+▶ AnchorCache refreshes when the daily file rolls inside one ET session
+  ✔ updates regular and AH baselines without waiting for the next session date (4.954458ms)
+✔ AnchorCache refreshes when the daily file rolls inside one ET session (5.608542ms)
+▶ AnchorCache manifest fallback
+  ✔ falls back to manifest when daily file is absent (0.130417ms)
+✔ AnchorCache manifest fallback (0.45275ms)
+▶ AnchorCache — NVDA bug scenario
+  ✔ serves 204.12 (not ~195.54) as prevClose for NVDA on 2026-07-09 (0.13325ms)
+✔ AnchorCache — NVDA bug scenario (0.668042ms)
+▶ Store.setQuote uses AnchorCache prevClose
+  ✔ chg is computed vs 204.12 (daily file), not vs stale manifest-derived prevClose (0.166792ms)
+✔ Store.setQuote uses AnchorCache prevClose (2.040666ms)
+▶ Store.getQuotes serve-time anchor re-derivation
+  ✔ getQuotes corrects prevClose/chg without a new tape message (0.133625ms)
+  ✔ persists the corrected quote so a second getQuotes call is consistent (0.081ms)
+✔ Store.getQuotes serve-time anchor re-derivation (1.199583ms)
+▶ Store.getQuotes after-hours close/afterHours emission
+  ✔ emits close=last=202.78 with no legacy afterHours field (0.107375ms)
+  ✔ afterHours stays absent for every regular quote value (0.077ms)
+✔ Store.getQuotes after-hours close/afterHours emission (1.307375ms)
+▶ prevSessionChg — three-state RTH / post-close / overnight
+  ✔ STATE A — RTH: chg reflects live price; prevSessionChg is absent (12.666083ms)
+  ✔ STATE B — post-close (file rolled): chg uses official close; prevSessionChg absent (1.016375ms)
+  ✔ STATE C — overnight: prevSessionChg = last completed session move (0.637292ms)
+✔ prevSessionChg — three-state RTH / post-close / overnight (25.076334ms)
+2026-10-13T10:42:12.875Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-13T10:42:12.876Z [INFO] yahoo ext subscription LRU-evicted AAPL
+2026-10-13T10:42:12.877Z [INFO] webull subscription LRU-evicted AAPL
+2026-10-13T10:42:12.877Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-13T10:42:12.877Z [INFO] yahoo ext subscription LRU-evicted X0
+2026-10-13T10:42:12.877Z [INFO] webull subscription LRU-evicted X0
+2026-10-13T10:42:12.888Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-13T10:42:12.888Z [INFO] yahoo ext subscription LRU-evicted QCOM
+2026-10-13T10:42:12.888Z [INFO] webull subscription LRU-evicted QCOM
+2026-10-13T10:42:12.889Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-13T10:42:12.891Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-13T10:42:12.892Z [WARN] EXT_FEED_DISABLE=1 — extended-hours feed off
+2026-10-13T10:42:12.892Z [INFO] ext feed init mode=alpaca
+2026-10-13T10:42:12.892Z [INFO] ext feed init mode=alpaca
+▶ classifySession
+  ✔ 04:00 ET → pre (0.742125ms)
+  ✔ 06:00 ET → pre (0.121958ms)
+  ✔ 09:29 ET → pre (0.089708ms)
+  ✔ 09:30 ET → rth (0.075375ms)
+  ✔ 12:00 ET → rth (0.075292ms)
+  ✔ 15:59 ET → rth (0.066292ms)
+  ✔ 16:00 ET → post (0.059666ms)
+  ✔ 18:00 ET → post (0.077084ms)
+  ✔ 19:59 ET → post (0.081625ms)
+  ✔ 20:00 ET → overnight (0.107125ms)
+  ✔ 23:00 ET → overnight (11.299959ms)
+  ✔ 03:00 ET → overnight (0.327625ms)
+  ✔ 03:59 ET → overnight (0.180916ms)
+✔ classifySession (15.711583ms)
+▶ ExtFeed LRU subscription management
+  ✔ starts with empty yahoo subs map (0.126042ms)
+  ✔ demand adds a symbol to yahoo subs (0.137333ms)
+  ✔ demand for same symbol is idempotent (no growth) (0.056959ms)
+  ✔ evicts LRU symbol when cap (30) is exceeded (0.156583ms)
+  ✔ re-demanding an existing symbol promotes it to MRU (not evicted next) (0.156666ms)
+  ✔ eviction stops refresh but keeps a still-valid last-good Yahoo print servable (12.006625ms)
+  ✔ re-touching an existing entry updates lastReq (idle-sweep regression) (0.432ms)
+✔ ExtFeed LRU subscription management (14.35175ms)
+▶ yahooFetchExtPrice shape contract (stub)
+  ✔ returns null during RTH (classifySession=rth) (1.252333ms)
+  ✔ returns null during overnight (classifySession=overnight) (0.092333ms)
+✔ yahooFetchExtPrice shape contract (stub) (1.4345ms)
+▶ ExtFeed.getExt — field shape and session gating
+  ✔ returns null during RTH even if a cached ext entry exists (0.091166ms)
+  ✔ returns ext fields during pre-market with officialClose=null (closeRef=null) → extChg=null (0.072125ms)
+  ✔ computes extChg when officialClose is absent but prevClose is passed (pre-market normal path) (0.07425ms)
+  ✔ computes extChg correctly when officialClose is provided (0.081334ms)
+  ✔ returns null for unknown symbol even in ext window (0.050125ms)
+  ✔ returns null when ext print is older than 90 minutes (0.070916ms)
+✔ ExtFeed.getExt — field shape and session gating (0.683208ms)
+▶ ExtFeed disabled (EXT_FEED_DISABLE=1)
+  ✔ getExt returns null when feed is disabled (0.301708ms)
+✔ ExtFeed disabled (EXT_FEED_DISABLE=1) (0.405541ms)
+▶ ExtFeed Alpaca authFailed degrades to Yahoo fallback
+  ✔ serves Yahoo cache when alpaca.authFailed=true (0.155167ms)
+  ✔ serves Alpaca _extMap when authFailed=false (primary path) (0.090291ms)
+✔ ExtFeed Alpaca authFailed degrades to Yahoo fallback (0.298875ms)
+▶ Store.getQuotes ext field merge
+  ✔ merges ext fields when extFeed returns a result (0.45475ms)
+  ✔ strips stale ext fields when extFeed returns null (0.094375ms)
+  ✔ does NOT emit ext fields for non-US market (crypto) (0.064084ms)
+  ✔ passes through when extFeed argument is absent (no ext fields) (0.059ms)
+  ✔ store passes prevClose as closeRef to getExt when today's close is absent (pre-market regression) (0.1005ms)
+✔ Store.getQuotes ext field merge (0.869417ms)
+▶ yahooFetchExtPrice live probe (AAPL)
+  ✔ returns null or a correctly-shaped object depending on current ET session (191.00275ms)
+✔ yahooFetchExtPrice live probe (AAPL) (191.168792ms)
+✔ price/time coarsening conserves executed volume and raw-price OHLC (189.308792ms)
+✔ diagonal imbalances compare adjacent selected price buckets, not single ticks (0.154208ms)
+✔ later knowledge remains excluded after coarsening (0.112083ms)
+✔ invalid price step 0 (0.112042ms)
+✔ invalid price step -1 (0.070708ms)
+✔ invalid price step 1.5 (0.06625ms)
+✔ invalid price step 257 (0.059166ms)
+✔ invalid price step Infinity (0.054291ms)
+✔ invalid price step 4 (0.0745ms)
+✔ price cropping never calls the reduced representation full depth (12.3555ms)
+✔ cropped exact window retains identical time-weighted quantities (1.066375ms)
+✔ requesting one missing price outside the retained window is refused, not zero filled (0.111917ms)
+✔ a cropped window cannot be expanded without the original book (0.080166ms)
+✔ a feed gap stays unavailable after window projection (0.081667ms)
+✔ invalid price window 0,100 (0.063667ms)
+✔ invalid price window 102,100 (0.05725ms)
+✔ invalid price window 1,3000 (26.655167ms)
+✔ invalid price window NaN,10 (0.131625ms)
+▶ MBO atomic event and lossless identity
+  ✔ retains adjacent uint64 IDs that collide as JS Numbers and aggregates resting size (1.573542ms)
+  ✔ keeps T, F and C distinct: one buy execution and one residual-size update (0.268959ms)
+  ✔ maps sell and unknown trade sides without counting passive fills (0.549167ms)
+  ✔ moves an order on Modify and fully removes it on Cancel (0.177917ms)
+  ✔ returns an idempotent duplicate with no repeated trades (0.186ms)
+  ✔ refuses a conflicting repeat of the last immutable cursor (0.123542ms)
+  ✔ does not publish a trade or partial book from an invalid later row (0.140166ms)
+  ✔ requires a new complete snapshot after a gap and retains historical gap truth (0.164459ms)
+  ✔ will not create an initial book from isolated increments (0.090375ms)
+  ✔ permits a real Clear to empty the initialized book (0.157583ms)
+  ✔ does not expose a generated snapshot before its capture availability (0.111125ms)
+  ✔ refuses unsupported/corrupt flag 64 (0.085916ms)
+  ✔ refuses unsupported/corrupt flag 16 (0.06725ms)
+  ✔ refuses unsupported/corrupt flag 4 (0.084208ms)
+  ✔ refuses unsupported/corrupt flag 2 (0.072083ms)
+  ✔ refuses unsupported/corrupt flag 8 (0.072ms)
+  ✔ refuses unknown cancel (0.097042ms)
+  ✔ refuses overcancel (2.942458ms)
+  ✔ refuses changed side (0.181333ms)
+  ✔ refuses duplicate order (0.09225ms)
+  ✔ refuses unsafe numeric ID (0.08875ms)
+  ✔ refuses offtick (0.091334ms)
+  ✔ refuses sentinel price (0.071542ms)
+  ✔ refuses zero quantity (0.073583ms)
+  ✔ refuses fractional quantity (0.084584ms)
+  ✔ refuses foreign instrument (0.088125ms)
+  ✔ refuses foreign publisher (0.090709ms)
+  ✔ refuses receive regression (0.071667ms)
+  ✔ refuses unavailable receive (2.49675ms)
+  ✔ refuses unsafe numeric timestamp (0.355209ms)
+  ✔ refuses unknown action (0.111292ms)
+  ✔ refuses unknown side (0.089917ms)
+  ✔ rejects incomplete and internally split source events (0.168291ms)
+  ✔ rejects a snapshot without Clear and mixed snapshot records (5.205333ms)
+  ✔ refuses unverified continuity and wrong batch identities (0.267042ms)
+  ✔ bounds order capacity without partially installing a snapshot (0.15625ms)
+  ✔ does not render a crossed complete book as valid liquidity (0.150708ms)
+✔ MBO atomic event and lossless identity (21.217042ms)
+▶ footprint conservation, interpretation and causal replay
+  ✔ keeps observed volume equal to buy+sell+unknown and refuses complete delta with unknown side (0.637833ms)
+  ✔ derives candles in event order, known CVD across intervals and deterministic lower-price POC ties (0.144833ms)
+  ✔ marks diagonal ratios only with known, nonzero adjacent denominators and minimum numerator size (0.148167ms)
+  ✔ deduplicates identical executions but fails on unadjudicated revisions (2.067ms)
+  ✔ excludes not-yet-available corrections without leaking them through dedupe (0.266459ms)
+  ✔ uses start-inclusive/end-exclusive event windows and availability cutoff (122.173917ms)
+  ✔ never paints partial coverage as complete delta or imbalance (0.180917ms)
+  ✔ does not fill unobserved empty intervals with fabricated zero candles (0.075958ms)
+  ✔ refuses wrong instrument (0.108958ms)
+  ✔ refuses wrong contract (0.057375ms)
+  ✔ refuses wrong session (0.063875ms)
+  ✔ refuses unknown aggressor label (7.479666ms)
+  ✔ refuses negative size (0.116541ms)
+  ✔ refuses inverted capture clock (0.062667ms)
+  ✔ conserves a 10,000-record generated tape exactly through bars and profile (99.188792ms)
+  ✔ does not mutate caller events or options (0.161625ms)
+✔ footprint conservation, interpretation and causal replay (233.394792ms)
+▶ liquidity heat tiles preserve coverage and historical knowability
+  ✔ weights resting liquidity by known duration, not event count (0.528583ms)
+  ✔ renders unknown duration as a gap, not a zero or a forward-filled book (0.120458ms)
+  ✔ distinguishes observed zero at a covered price from unknown depth (2.316083ms)
+  ✔ expires stale book state at the precise receive-clock age boundary (0.232416ms)
+  ✔ does not paint snapshot state before availability or backward-fill the first column (0.107708ms)
+  ✔ does not erase historical gaps when a later complete snapshot arrives (0.090042ms)
+  ✔ will not project a future window or top-ten coverage as full depth (0.100958ms)
+  ✔ bounds malformed, out-of-order and excessive tile requests (0.101958ms)
+✔ liquidity heat tiles preserve coverage and historical knowability (4.01875ms)
+▶ venue-supplement edge cases
+  ✔ finishes a snapshot with the first live F_LAST record without exposing interim state (0.145042ms)
+  ✔ discloses non-trading crossed depth rather than confusing it with executable quotes (0.107917ms)
+  ✔ does not call a future footprint window complete or silently use session-wide CVD (0.065541ms)
+✔ venue-supplement edge cases (0.479875ms)
+✔ default source read is inert and no file or vendor is contacted (1.364166ms)
+✔ reads a publisher-bound payload from one fixed leaf (222.436ms)
+✔ rejects non-pair request ../ES (0.2315ms)
+✔ rejects non-pair request ESZ6 (0.069958ms)
+✔ rejects non-pair request NQ/../ES (0.0715ms)
+✔ rejects non-pair request ES?pair=NQ (0.059625ms)
+✔ rejects non-pair request  (0.045875ms)
+✔ rejects non-pair request null (0.053417ms)
+✔ fails closed for wrong root (42.958ms)
+✔ fails closed for future publication (26.328458ms)
+✔ fails closed for schema (12.165334ms)
+✔ internal-only data cannot pass the publisher distribution boundary (27.806584ms)
+✔ modified bytes, symlinked leaves and missing files never fall back to samples (43.344125ms)
+✔ oversized and invalid-UTF8 publications fail before interpretation (36.379ms)
+✔ HTTP route returns the exact digest-bound bytes and private no-store (13.474083ms)
+✔ a named pipe is refused without waiting for a writer (129.825709ms)
+✔ BBO checks price, quantity and count independently (1.093584ms)
+✔ joins final complete packet states instead of assuming one LAST per packet sequence (45.098292ms)
+✔ multiple BBO changes in the same group use the final source-order BBO (1.593ms)
+✔ wrong quantities do not pass because prices agree (10.004042ms)
+✔ unmatched reference is visible and cannot earn a success result (0.512209ms)
+✔ wrong source identity cannot share a comparator (0.34875ms)
+✔ comparison report never exports raw book levels or execution records (0.341958ms)
+✔ unfinished next event at packet tail does not hide its preceding completed state (0.274625ms)
+✔ top-ten comparison checks every rank, not only the best quotes (0.4985ms)
+✔ full source replay compares deeper displayed liquidity against MBP-10 (0.811708ms)
+▶ lossless normalized source boundary
+  ✔ keeps uint64 IDs and ns clocks as strings (0.755416ms)
+  ✔ rejects invalid order_id:9007199254740992 (0.184334ms)
+  ✔ rejects invalid ts_recv:1791547200000000000 (0.073875ms)
+  ✔ rejects invalid price:7500 (0.067625ms)
+  ✔ rejects invalid price:7500000000001 (0.111709ms)
+  ✔ rejects invalid price:-250000000 (0.059542ms)
+  ✔ rejects invalid size:0 (0.059958ms)
+  ✔ rejects invalid size:1.5 (0.06275ms)
+  ✔ rejects invalid rtype:10 (0.080667ms)
+  ✔ rejects invalid flags:256 (0.114708ms)
+  ✔ rejects invalid channel_id:-1 (0.069292ms)
+  ✔ rejects invalid sequence:4294967296 (0.063833ms)
+  ✔ rejects invalid action:X (0.061375ms)
+  ✔ rejects invalid side:X (0.054083ms)
+  ✔ rejects invalid order_id:18446744073709551615 (0.053083ms)
+  ✔ rejects invalid publisher_id:1.1 (0.049791ms)
+  ✔ allows unset price/size on reset/no-op records only (0.106792ms)
+✔ lossless normalized source boundary (2.949833ms)
+▶ complete instrument event assembly
+  ✔ publishes snapshot only after LAST; duplicate last input is idempotent (1.3225ms)
+  ✔ does not mingle interleaved ES and NQ snapshot records (0.27025ms)
+  ✔ can complete a snapshot using the first live LAST no-op (0.211458ms)
+  ✔ count trades once without subtracting fills from resting orders (0.329375ms)
+  ✔ a missing depth snapshot does not discard actual executed volume (0.48775ms)
+  ✔ ignores unselected instruments but consumes their source ordinals (0.122666ms)
+  ✔ consumes reserved bit without dropping LAST (0.124541ms)
+✔ complete instrument event assembly (3.032125ms)
+▶ gaps, event bounds and validity
+  ✔ venue sequence jumps are allowed; repeats and uint32 wrapping are allowed (1.358125ms)
+  ✔ regression invalidates rather than double applying an old event (0.295084ms)
+  ✔ missing source ordinal is not disguised as continuous source (0.146625ms)
+  ✔ vendor channel gap affects all bound books and recovery preserves gap evidence (0.215208ms)
+  ✔ unsupported/inaccurate flag 64 cannot produce healthy depth (0.127958ms)
+  ✔ unsupported/inaccurate flag 16 cannot produce healthy depth (0.125166ms)
+  ✔ unsupported/inaccurate flag 2 cannot produce healthy depth (0.108042ms)
+  ✔ unsupported/inaccurate flag 8 cannot produce healthy depth (0.09575ms)
+  ✔ bounds pending event memory and refuses partial EOF (0.124917ms)
+  ✔ current depth cannot use a definition published in the future (0.074916ms)
+  ✔ expired contract and future/retrograde availability are rejected (0.195541ms)
+✔ gaps, event bounds and validity (3.096959ms)
+▶ SDK definition binding
+  ✔ derives identity and explicit valid interval from a definition (0.225417ms)
+  ✔ refuses unverified/non-outright definition {"instrument_class":"K"} (0.069542ms)
+  ✔ refuses unverified/non-outright definition {"raw_symbol":"ESZ6-ESH7"} (0.288ms)
+  ✔ refuses unverified/non-outright definition {"raw_symbol":"ES.c.0"} (0.054416ms)
+  ✔ refuses unverified/non-outright definition {"min_price_increment":"10000000"} (0.042125ms)
+  ✔ refuses unverified/non-outright definition {"expiration":"18446744073709551615"} (0.041375ms)
+  ✔ refuses unverified/non-outright definition {"activation":"1791547200000020000"} (0.037917ms)
+✔ SDK definition binding (0.919083ms)
+▶ venue status and chart decision validity
+  ✔ uses the latest AVAILABLE status rather than the event date or local clock (0.248167ms)
+  ✔ does not substitute a different instrument status or invent unknown as open (0.083375ms)
+  ✔ stale or contradictory status records refuse (0.110125ms)
+  ✔ contract validity also applies when viewing an already reconstructed book (1.453ms)
+✔ venue status and chart decision validity (1.99625ms)
+✔ actual source adapter output composes into a bounded internal publication with conserved executions (6.736709ms)
+✔ variant ES/1/1 conserves all trade volume (0.692625ms)
+✔ variant ES/1/4 conserves all trade volume (0.468625ms)
+✔ variant ES/1/8 conserves all trade volume (0.349583ms)
+✔ variant ES/5/1 conserves all trade volume (0.322083ms)
+✔ variant ES/5/4 conserves all trade volume (0.309208ms)
+✔ variant ES/5/8 conserves all trade volume (0.352375ms)
+✔ variant NQ/1/1 conserves all trade volume (0.240875ms)
+✔ variant NQ/1/4 conserves all trade volume (0.243792ms)
+✔ variant NQ/1/8 conserves all trade volume (0.302833ms)
+✔ variant NQ/5/1 conserves all trade volume (0.211834ms)
+✔ variant NQ/5/4 conserves all trade volume (0.212625ms)
+✔ variant NQ/5/8 conserves all trade volume (0.196042ms)
+✔ gamma attachments deduplicate by content without sharing mutable caller objects (1.735375ms)
+✔ distribution is never promoted without the incumbent decision reference (0.329709ms)
+✔ refuses unknown trade coverage (0.19675ms)
+✔ refuses invented live retrospectivity (0.166958ms)
+✔ refuses undefined contract reference (0.644083ms)
+✔ refuses future definition knowledge (0.141584ms)
+✔ refuses expired contract (0.137542ms)
+✔ refuses reversed publication (0.13225ms)
+✔ refuses unbounded freshness (0.127791ms)
+✔ refuses unbounded cutoffs (0.157542ms)
+✔ refuses duplicate cutoff (0.143541ms)
+✔ refuses future cutoff (0.519125ms)
+✔ refuses invalid row grouping (0.125458ms)
+✔ refuses unbounded price range (0.12625ms)
+2026-10-13T10:42:12.871Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.872Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.872Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.872Z [INFO] macro LRU-evicted FIRST=F
+2026-10-13T10:42:12.872Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.872Z [INFO] macro LRU-evicted X0=F
+2026-10-13T10:42:12.872Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.872Z [INFO] macro LRU-evicted FIRST=F
+2026-10-13T10:42:12.872Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.873Z [INFO] macro idle-swept 1 symbols (>30m idle)
+2026-10-13T10:42:12.873Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.873Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.873Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.873Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.873Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.874Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.874Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.874Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.874Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.874Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.874Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.874Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.874Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.874Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.874Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.873Z [WARN] sina poll returned no usable rows codes=1 (occurrence #1)
+2026-10-13T10:42:12.875Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.878Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.878Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.879Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.879Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.879Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.879Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.879Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.879Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.879Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.879Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.880Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.880Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.880Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.880Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+▶ parseSinaPayload — live 2026-07-27 fixture
+  ✔ parses 13 rows (12 hf_* + DINIW); hf_PL is skipped (0.595916ms)
+  ✔ maps every Sina code back to its Yahoo-style symbol (0.135709ms)
+  ✔ PL=F is absent — Sina returns an empty string for platinum (0.076792ms)
+  ✔ CL=F: every field maps to the documented hf_* layout (0.073041ms)
+  ✔ CL=F: chg is computed against the prior settle (1.006292ms)
+  ✔ labels the Sina leg source=sina basis=LIVE live=true market=macro (0.785167ms)
+  ✔ HG=F: COMEX copper is rescaled from US cents/lb to USD/lb (×0.01) (0.128458ms)
+  ✔ HG=F: chg is scale-invariant (identical to the unscaled ratio) (0.086041ms)
+  ✔ no other symbol is rescaled — GC=F keeps its raw magnitude (0.228875ms)
+  ✔ DX-Y.NYB: the DINIW row uses its own field layout (0.55725ms)
+  ✔ index futures carry sane values (ES/NQ/YM) (0.189667ms)
+✔ parseSinaPayload — live 2026-07-27 fixture (5.748333ms)
+▶ parseSinaPayload — skip rules
+  ✔ skips an empty payload on a MAPPED code (0.297291ms)
+  ✔ ignores codes we never mapped (0.297708ms)
+  ✔ skips a row whose last is non-finite (0.100333ms)
+  ✔ skips a row whose last is zero or negative (0.093625ms)
+  ✔ skips a truncated row (0.083042ms)
+  ✔ returns [] for empty / garbage bodies (67.742958ms)
+  ✔ null prevClose yields chg=null rather than a fabricated number (0.110125ms)
+  ✔ zero prevClose yields chg=null (no divide-by-zero) (0.049792ms)
+✔ parseSinaPayload — skip rules (69.07175ms)
+▶ beijingToEpochSec — UTC+8, no DST
+  ✔ 2026-07-27 17:32:43 Beijing → 2026-07-27 09:32:43 UTC (0.236292ms)
+  ✔ an early-morning Beijing time rolls back to the previous UTC day (0.0435ms)
+  ✔ returns null for unparseable date or time (0.756666ms)
+✔ beijingToEpochSec — UTC+8, no DST (1.446209ms)
+▶ isMacroSymbol
+  ✔ accepts futures, caret indices, FX pairs and the dollar index (0.362125ms)
+  ✔ rejects equities, crypto and non-US listings (0.064ms)
+  ✔ rejects empty / non-string input (0.041625ms)
+2026-10-13T10:42:12.878Z [WARN] sina poll failed HTTP 403 consecutive=1 (occurrence #1)
+2026-10-13T10:42:12.879Z [WARN] yahoo spark chunk failed HTTP 429 syms=18 (occurrence #1)
+2026-10-13T10:42:12.879Z [WARN] sina poll failed HTTP 429 consecutive=1 (occurrence #1)
+2026-10-13T10:42:12.880Z [WARN] sina poll failed boom consecutive=2 (occurrence #10)
+2026-10-13T10:42:12.880Z [WARN] MACRO_FEED_DISABLE=1 — macro feed off
+✔ isMacroSymbol (0.55725ms)
+▶ chunkSyms
+  ✔ splits 20 symbols into 18 + 2 (Yahoo 400s above ~20 per call) (0.209917ms)
+  ✔ never emits a chunk above the cap (0.179542ms)
+  ✔ returns [] for an empty list (0.046792ms)
+✔ chunkSyms (0.593042ms)
+▶ parseYahooSpark
+  ✔ parses the spark envelope form (meta-bearing) (0.533292ms)
+  ✔ parses the flat form, falling back to close[] and chartPreviousClose (0.395ms)
+  ✔ labels the Yahoo leg source=yahoo-spark basis=DELAYED_15M live=false (0.168334ms)
+  ✔ skips rows with no usable price (0.112125ms)
+  ✔ returns [] for empty / garbage payloads (0.171ms)
+✔ parseYahooSpark (2.514167ms)
+▶ MacroFeed LRU demand management
+  ✔ demand registers a symbol (0.9175ms)
+  ✔ repeated demand is idempotent (0.095833ms)
+  ✔ evicts the LRU symbol at cap (64) (0.163792ms)
+  ✔ re-demanding promotes to MRU so it survives the next eviction (0.113959ms)
+  ✔ eviction drops the evicted symbol's cached quotes from both legs (0.102791ms)
+  ✔ _sweepIdle drops symbols idle past 30 min, with their caches (0.170834ms)
+✔ MacroFeed LRU demand management (1.769917ms)
+▶ MacroFeed.getQuote — leg preference (state built by the real pollers)
+  ✔ returns null for an unknown symbol (0.147292ms)
+  ✔ REACHABILITY: one poll cycle populates BOTH legs for a Sina-mapped symbol (0.353666ms)
+  ✔ serves the Sina leg when only Sina has the symbol (0.10025ms)
+  ✔ serves the Yahoo leg when only Yahoo has the symbol (0.141834ms)
+  ✔ prefers the fresh LIVE Sina leg over Yahoo when both exist (0.091458ms)
+  ✔ falls to Yahoo when the Sina print is stale (>15 min) and Yahoo is fresher (0.084208ms)
+  ✔ keeps the stale Sina print when the Yahoo entry is even older — but DEMOTED (0.08575ms)
+  ✔ STALE SINA IS NEVER LIVE: a >15-min print is served DELAYED_15M, price and ts intact (0.09725ms)
+  ✔ holds the LIVE label right up to the 15-minute threshold (0.124ms)
+  ✔ the demotion is a serve-time relabel — the cached entry is not mutated (0.069458ms)
+  ✔ a weekend-old print is SERVED (honestly labelled), not suppressed (0.066042ms)
+  ✔ getAll returns present entries only (0.105291ms)
+✔ MacroFeed.getQuote — leg preference (state built by the real pollers) (1.615375ms)
+▶ MacroFeed polling
+  ✔ Sina poll skips the cycle entirely when nothing Sina-mapped is demanded (0.108416ms)
+  ✔ Sina poll batches every demanded code into ONE request (0.137291ms)
+  ✔ a failed Sina poll keeps the cache, counts the error, and never throws (3.610167ms)
+  ✔ a recovered Sina poll resets the error counter (0.162084ms)
+  ✔ Yahoo poll chunks demanded symbols at ≤18 per request (0.1065ms)
+  ✔ Yahoo poll covers EVERY demanded symbol, Sina-mapped ones included (0.072833ms)
+  ✔ Yahoo poll still runs when ONLY Sina symbols are demanded (0.058ms)
+  ✔ Yahoo poll still skips the cycle when NOTHING is demanded (0.041667ms)
+  ✔ one failed Yahoo chunk does not abort the remaining chunks (0.1185ms)
+  ✔ neither poller starts a timer without an explicit start() (0.040417ms)
+✔ MacroFeed polling (4.606042ms)
+▶ MacroFeed poll backoff
+  ✔ Sina: a healthy leg re-arms at the base interval (0.253291ms)
+  ✔ Sina: the delay DOUBLES per consecutive failure and caps at 60 s (0.222708ms)
+  ✔ Sina: one success resets the delay to the base interval (0.162709ms)
+  ✔ Yahoo: the delay DOUBLES per consecutive failure and caps at 300 s (0.186625ms)
+  ✔ Yahoo: one clean cycle resets the delay to the base interval (0.107625ms)
+  ✔ a stopped feed arms nothing at all (0.050292ms)
+✔ MacroFeed poll backoff (1.071958ms)
+▶ MacroFeed.health
+  ✔ reports the documented shape and splits subs by leg (0.093791ms)
+✔ MacroFeed.health (0.119958ms)
+▶ MacroFeed disabled (MACRO_FEED_DISABLE=1)
+  ✔ demand, getQuote, getAll and polling are all no-ops (0.288ms)
+✔ MacroFeed disabled (MACRO_FEED_DISABLE=1) (0.429083ms)
+✔ OKX instrument mapping covers spot and perpetual lanes (1.84125ms)
+✔ OKX spot uses UTC-0 open for the canonical day change (0.221834ms)
+✔ OKX swap is supplemental and preserves its own UTC-0 change (0.109ms)
+✔ OKX subscribes to both lanes for every manifest crypto product (0.128083ms)
+2026-10-13T10:42:12.915Z [WARN] polygon ws closed code=1006 (occurrence #1)
+2026-10-13T10:42:12.917Z [ERROR] polygon real-time denied — demoting to delayed cluster subscription denied
+2026-10-13T10:42:12.917Z [ERROR] polygon auth_failed — US feed unhealthy (manifest EOD fallback) synthetic
+2026-10-13T10:42:12.917Z [ERROR] polygon real-time denied — demoting to delayed cluster subscription denied
+2026-10-13T10:42:12.917Z [ERROR] polygon auth_failed — US feed unhealthy (manifest EOD fallback) synthetic
+2026-10-13T10:42:12.916Z [INFO] polygon auth_success — replaying subs n=1
+2026-10-13T10:42:12.917Z [INFO] polygon auth_success — replaying subs n=1
+2026-10-13T10:42:12.918Z [INFO] polygon auth_success — replaying subs n=0
+2026-10-13T10:42:12.921Z [WARN] polygon ws error synthetic transport fault (occurrence #1)
+▶ Polygon regular and extended quote lanes
+  ✔ never classifies a weekend clock time as RTH (0.510875ms)
+  ✔ routes premarket aggregates only to the extended feed (0.26475ms)
+  ✔ keeps RTH aggregates in the regular quote lane (0.171458ms)
+  ✔ publishes measured one-second OHLC from the live A.* lane (0.29575ms)
+  ✔ subscribes A.* on live and AM.* on delayed without duplicate sockets (0.223666ms)
+✔ Polygon regular and extended quote lanes (2.170083ms)
+▶ FrameCaptureBuffer byte ownership and bounded transport evidence
+  ✔ keeps exact number spellings and the whole mixed frame before JSON conversion (1.166875ms)
+  ✔ isolates the entire backing store of both input and returned buffers (0.195625ms)
+  ✔ owns ArrayBuffer and bounded Buffer-fragment inputs without reserialization (1.332125ms)
+  ✔ refuses non-original or asynchronous shape [object String] (0.261083ms)
+  ✔ refuses non-original or asynchronous shape [object Uint8Array] (0.117041ms)
+  ✔ refuses non-original or asynchronous shape [object Object] (0.071084ms)
+  ✔ refuses non-original or asynchronous shape [object Blob] (0.060042ms)
+  ✔ preflights fragment count and accessors without invoking them or allocating payload (0.381167ms)
+  ✔ enforces exact 2MiB frame and 8MiB retained-payload boundaries without eviction (2.195541ms)
+  ✔ enforces the exact128-frame queue boundary independently of bytes (1.1875ms)
+  ✔ permits only downward positive integer configuration for maxFrameBytes (0.341209ms)
+  ✔ permits only downward positive integer configuration for maxQueueBytes (0.100542ms)
+  ✔ permits only downward positive integer configuration for maxQueueFrames (0.086375ms)
+  ✔ permits only downward positive integer configuration for maxCapturedFrames (0.088667ms)
+  ✔ permits only downward positive integer configuration for maxCapturedBytes (0.085792ms)
+  ✔ checks byte/counter admission before allocating and records allocation failure as a gap (0.107416ms)
+  ✔ exhausts lifetime counters across ACK without reset or unsafe addition {"maxCapturedFrames":2} (0.131208ms)
+  ✔ exhausts lifetime counters across ACK without reset or unsafe addition {"maxCapturedBytes":2} (0.059167ms)
+  ✔ bounds receipt to a real Date instant and keeps monotonic precision separate (0.211667ms)
+  ✔ terminates on invalid clocks null/null (0.058583ms)
+  ✔ terminates on invalid clocks undefined/undefined (0.041667ms)
+  ✔ terminates on invalid clocks NaN/1 (0.046542ms)
+  ✔ terminates on invalid clocks Infinity/1 (0.039042ms)
+  ✔ terminates on invalid clocks -1/1 (0.037958ms)
+  ✔ terminates on invalid clocks 0.1/1 (0.038875ms)
+  ✔ terminates on invalid clocks 1/1 (0.242375ms)
+  ✔ terminates on invalid clocks 8640000000000001/1 (0.148875ms)
+  ✔ terminates on invalid clocks 9007199254740991/1 (0.078084ms)
+  ✔ terminates on invalid clocks 1/1 (0.0555ms)
+  ✔ terminates on invalid clocks 1/-1 (0.085084ms)
+  ✔ terminates on invalid clocks 1/9223372036854775808 (0.047083ms)
+  ✔ makes wall rollback permanent while accepting equal clocks (3.884791ms)
+  ✔ makes monotonic rollback permanent while accepting equal clocks (0.099708ms)
+  ✔ uses FIFO delivered cursors, bounded copies and explicit ACK, with replay before ACK (0.263792ms)
+  ✔ refuses insufficient byte budgets, bad generations, unsafe cursors and unread ACKs without mutation (0.379459ms)
+  ✔ keeps an unread prefix if a defensive read copy fails (0.132625ms)
+  ✔ retains the first gap and finite evidence after ACK drains a terminal queue (0.214708ms)
+  ✔ requires a fresh genuine instance, an immutable generation and no manual append after binding (0.214125ms)
+  ✔ ignores subclass and instance callbacks while keeping private caps and terminal state (0.763416ms)
+✔ FrameCaptureBuffer byte ownership and bounded transport evidence (16.200125ms)
+▶ Polygon raw dispatcher capture and incumbent service parity
+  ✔ does no monotonic/capture work when the fourth argument is absent (0.206959ms)
+  ✔ keeps A/AM, extended lanes, stale rejection and subscription behavior identical on and off (0.369791ms)
+  ✔ preserves actual status handling including broad live entitlement demotion (0.576833ms)
+  ✔ retains malformed JSON, never heals the parse gap, and keeps later AM service alive (0.1485ms)
+  ✔ records unsupported string input as a gap while preserving the old string parser behavior (0.098917ms)
+  ✔ isolates monotonic sampling failure and invalid receipt values from valid AM dispatch (0.176125ms)
+  ✔ marks dispatch loss and rethrows the identical incumbent error (0.091542ms)
+  ✔ terminates on stop/close without automatic recovery on later auth or frames (0.092041ms)
+  ✔ wires the actual websocket callbacks to raw capture and permanent close, using only a fake socket (3.885792ms)
+✔ Polygon raw dispatcher capture and incumbent service parity (5.82ms)
+▶ FrameCaptureBuffer stable fragment inspection bound
+  ✔ uses one validated count even when later length reads would expand the array (0.404916ms)
+  ✔ rejects unsafe or out-of-range reported counts before inspecting fragments (0.205042ms)
+✔ FrameCaptureBuffer stable fragment inspection bound (0.6725ms)
+2026-10-13T10:42:12.887Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.897Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.898Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.898Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.898Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.899Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.900Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.900Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.900Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.901Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.903Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.903Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.903Z [INFO] macro feed init sinaSymbols=13 lruCap=64
+2026-10-13T10:42:12.901Z [WARN] MACRO_FEED_DISABLE=1 — macro feed off
+▶ classify — taxonomy is unchanged by the macro work
+  ✔ keeps the existing market buckets (0.584041ms)
+  ✔ still falls macro symbols through to 'us' — routing MUST check isMacroSymbol first (0.090875ms)
+✔ classify — taxonomy is unchanged by the macro work (1.290583ms)
+▶ buildQuotesResponse — response contract
+  ✔ returns a FLAT { SYM: quote } object for a mixed macro/us/crypto request (10.036541ms)
+  ✔ survives a JSON round-trip unchanged (this is what the HTTP layer sends) (0.336458ms)
+  ✔ carries the macro quote through with its own source/basis labels (0.130333ms)
+  ✔ omits symbols nothing has a quote for (present entries only) (0.145791ms)
+  ✔ never serves cn / hk / ca symbols (0.360709ms)
+  ✔ returns {} for an empty or missing symbol list (0.914292ms)
+✔ buildQuotesResponse — response contract (12.3445ms)
+▶ buildQuotesResponse — routing isolation
+  ✔ macro symbols are NEVER passed to the Store (0.190625ms)
+  ✔ non-macro symbols are NEVER passed to the MacroFeed (0.143167ms)
+  ✔ forwards nowMs and the extFeed to store.getQuotes unchanged (0.124917ms)
+  ✔ skips the Store call entirely when only macro symbols are requested (0.189292ms)
+  ✔ degrades cleanly when the macroFeed is absent (kill-switch / boot order) (0.15175ms)
+  ✔ degrades cleanly when the store is absent (0.8245ms)
+  ✔ a disabled macroFeed simply yields no macro entries (0.403208ms)
+✔ buildQuotesResponse — routing isolation (2.254208ms)
+▶ isDailyOnlySymbol
+  ✔ claims exactly the four FRED series (0.088ms)
+  ✔ claims nothing else — equities, crypto and macro are unaffected (0.049ms)
+  ✔ rejects empty / non-string input (0.040416ms)
+  ✔ classify() still falls them through to 'us' — the routers MUST check this first (0.048208ms)
+✔ isDailyOnlySymbol (0.305708ms)
+▶ applyDemand — a daily-only symbol reaches NO feed
+  ✔ burns no Polygon slot, no ext slot, and no macro subscription for DFII10 (0.188792ms)
+  ✔ still demands every leg for an ordinary US symbol (0.083667ms)
+  ✔ keeps the independent ext leg alive when Polygon is temporarily unhealthy (0.070417ms)
+  ✔ touches extended subscriptions in reverse request order so the first symbol stays MRU (0.063625ms)
+  ✔ keeps the active first symbol resident when one request exceeds the 30-slot ext budget (0.197083ms)
+  ✔ still routes a macro symbol to the MacroFeed alone (0.057542ms)
+  ✔ sorts a mixed request without cross-contamination (0.053958ms)
+  ✔ honours HUB_DISABLE_US and an unhealthy Polygon (0.066833ms)
+  ✔ does not throw when a feed is missing entirely (boot order / kill-switch) (0.039375ms)
+✔ applyDemand — a daily-only symbol reaches NO feed (0.965834ms)
+▶ buildQuotesResponse — a daily-only symbol is absent, never placeholdered
+  ✔ omits DFII10 even when the Store holds a placeholder row for it (0.160542ms)
+  ✔ never passes a daily-only symbol to the Store at all (0.072125ms)
+  ✔ never passes a daily-only symbol to the MacroFeed either (0.05425ms)
+  ✔ skips the Store entirely when the request is daily-only (0.061709ms)
+✔ buildQuotesResponse — a daily-only symbol is absent, never placeholdered (0.441709ms)
+▶ lib/quotes re-exports isMacroSymbol
+  ✔ is the same predicate the macro feed uses (0.072833ms)
+✔ lib/quotes re-exports isMacroSymbol (0.106584ms)
+▶ parseQuoteView — closed endpoint vocabulary
+  ✔ defaults only an absent value to full (0.069875ms)
+  ✔ accepts exactly one full or regular value (0.048208ms)
+  ✔ rejects unknown, blank and repeated values (0.056125ms)
+✔ parseQuoteView — closed endpoint vocabulary (0.230458ms)
+▶ applyDemand — view=regular spends zero ext slots
+  ✔ regular view preserves regular demand and spends zero ext slots (0.121209ms)
+  ✔ default/full view keeps existing ext demand (0.085042ms)
+✔ applyDemand — view=regular spends zero ext slots (0.268917ms)
+▶ buildQuotesResponse — view=regular is closed at the response boundary
+  ✔ regular response passes no ext feed into Store and strips legacy ext keys (0.120708ms)
+  ✔ default full view remains unchanged (0.100167ms)
+✔ buildQuotesResponse — view=regular is closed at the response boundary (0.274292ms)
+▶ handleQuotesRequest — endpoint-level view=full|regular dispatch
+  ✔ ?view=regular produces zero extFeed.demand calls (1.855041ms)
+  ✔ ?view=full produces priority-preserving extFeed.demand calls (0.183209ms)
+  ✔ a missing view still produces priority-preserving ext demand (missing view is exactly full) (0.145ms)
+  ✔ an unknown view returns 400 and demands nothing (0.0895ms)
+  ✔ ?syms=&view=bogus is 400, not an empty 200 — view is validated before the empty-syms return (0.110083ms)
+  ✔ repeated/conflicting view values are 400 (0.108209ms)
+  ✔ an empty syms list with a valid view is an empty 200 (0.081625ms)
+  ✔ truncates to maxSyms, matching hub.js's MAX_SYMS_PER_REQUEST behavior (0.137625ms)
+✔ handleQuotesRequest — endpoint-level view=full|regular dispatch (3.646708ms)
+2026-10-13T10:42:12.920Z [INFO] snapshot feed disabled (HUB_DISABLE_SNAPSHOT)
+▶ parseSnapshot — unit discipline on the two timestamp fields
+  ✔ reads lastTrade.t as NANOseconds and min.t as MILLIseconds (0.702625ms)
+  ✔ falls back to the minute bar, then to `updated`, when there is no trade block (0.166042ms)
+✔ parseSnapshot — unit discipline on the two timestamp fields (1.4815ms)
+▶ verdict — measured, not configured
+  ✔ grades a seconds-old print as real-time DURING a session (0.693375ms)
+  ✔ grades a 15-minute-old print as delayed, from the same measurement (0.143958ms)
+  ✔ ignores a print from a PREVIOUS session when measuring the floor (0.151834ms)
+  ✔ REFUSES to grade on a weekend — an old print proves nothing when nothing is printing (0.079583ms)
+  ✔ is 'off' when the real-time leg was never enabled (0.075709ms)
+  ✔ is 'unknown' before anything has been measured — never optimistic by default (0.079375ms)
+  ✔ measures the FLOOR across symbols, so one quiet ticker cannot demote a live feed (0.102334ms)
+  ✔ expires a stale measurement rather than re-serving it forever (0.110042ms)
+✔ verdict — measured, not configured (1.719042ms)
+▶ store overlay — freshest print wins, but only on a measured real-time feed
+  ✔ a MEASURED real-time snapshot overrides a 15-min-old stream print (7.23625ms)
+  ✔ does NOT override when the feed has not measured itself real-time (0.277959ms)
+  ✔ does not override on a TIE — a quiet symbol must not flap between two legs (0.190667ms)
+  ✔ still rescues a symbol the stream is not carrying at all (the SKY path, unchanged) (0.25125ms)
+✔ store overlay — freshest print wins, but only on a measured real-time feed (8.081959ms)
+▶ per-NAME freshness — the verdict grades the feed, but the badge is per symbol
+  ✔ does NOT adopt a name's hours-old print as real-time, however fresh its siblings are (0.299666ms)
+  ✔ still adopts the SAME name once its own print is fresh — the bound is not a blanket refusal (0.214791ms)
+✔ per-NAME freshness — the verdict grades the feed, but the badge is per symbol (0.574584ms)
+▶ the freshness floor spans the whole flush, not the last chunk
+  ✔ takes the MINIMUM across chunks, so a trailing quiet chunk cannot demote a live feed (1.620958ms)
+✔ the freshness floor spans the whole flush, not the last chunk (1.661125ms)
+▶ snapshot market-clock eligibility through the quote response
+  ✔ keeps an updated-only price without manufacturing feed or per-name freshness (6.941083ms)
+  ✔ does not let a liquid sibling lend a refresh-only name a measured print instant (0.37ms)
+  ✔ refuses a future print clock while preserving a valid sibling and fallback price (0.242834ms)
+  ✔ refuses a NaN print clock while preserving a valid sibling and fallback price (0.192416ms)
+  ✔ refuses a infinity print clock while preserving a valid sibling and fallback price (0.175875ms)
+  ✔ refuses a out of Date range print clock while preserving a valid sibling and fallback price (0.190333ms)
+  ✔ refuses a zero print clock while preserving a valid sibling and fallback price (0.166208ms)
+  ✔ refuses a negative print clock while preserving a valid sibling and fallback price (0.150583ms)
+  ✔ isolates an invalid snapshot date NaN from valid siblings (0.311792ms)
+  ✔ isolates an invalid snapshot date Infinity from valid siblings (0.144417ms)
+  ✔ isolates an invalid snapshot date 1e+100 from valid siblings (0.413208ms)
+  ✔ measures a genuine lastTrade clock at fetch, read and response time (0.335542ms)
+  ✔ measures a genuine min clock at fetch, read and response time (0.170208ms)
+  ✔ falls back from an unrepresentable trade timestamp to a genuine minute clock (0.172959ms)
+  ✔ preserves the feed boundary at age 120000 (0.082875ms)
+  ✔ preserves the feed boundary at age 120001 (0.078375ms)
+  ✔ preserves the feed boundary at age 1200000 (0.065709ms)
+  ✔ preserves the feed boundary at age 1200001 (0.0645ms)
+  ✔ preserves the per-name boundary at age 900000 under a fresh sibling floor (0.172375ms)
+  ✔ preserves the per-name boundary at age 900001 under a fresh sibling floor (0.135959ms)
+  ✔ checks the actual ET print date instead of trusting a forged date label (0.175ms)
+  ✔ uses ET, not the UTC date, across the midnight boundary (0.1865ms)
+  ✔ refuses an invalid decision clock NaN without date conversion failure (0.473042ms)
+  ✔ refuses an invalid decision clock Infinity without date conversion failure (0.062541ms)
+  ✔ refuses an invalid decision clock 1e+100 without date conversion failure (0.070917ms)
+  ✔ refuses an invalid flush clock before any transport or cache observation (0.068083ms)
+  ✔ does not grade a measurement observed after the decision clock (0.070625ms)
+  ✔ revalidates clock origin and lag in Store even when an injected feed overclaims (0.084709ms)
+  ✔ keeps the realtime mode and disabled feed policies intact (1.245584ms)
+  ✔ preserves the closed-session fallback and regular-view extended-feed boundary (0.126958ms)
+  ✔ preserves the explicit zero-day premarket exclusion (0.032375ms)
+  ✔ recovers from refresh-only fallback even when the genuine print precedes its refresh timestamp (0.298167ms)
+  ✔ recovers from a day-price fallback when a newer realtime print becomes available (0.208417ms)
+  ✔ does not turn a timestamp-only heartbeat into market-event precedence (0.175709ms)
+  ✔ preserves a genuine newer stream partial with changed price and inherited source (0.227917ms)
+  ✔ preserves a genuine newer stream partial with unchanged price and inherited source (0.180375ms)
+  ✔ keeps the existing seconds-level stream tie rule after a snapshot-to-stream transition (0.195458ms)
+  ✔ retains the measured fields supplied by a genuine second-aggregate partial (0.210084ms)
+  ✔ keeps internal clock provenance out of serialized quotes and preserves Store recovery after a regular-view copy (0.24275ms)
+  ✔ recovers an off-feed day-price fallback from the same lastTrade observation (0.204375ms)
+  ✔ recovers a delayed-feed day-price fallback when a sibling qualifies the same lastTrade observation (0.235792ms)
+  ✔ keeps a stale-name day-price fallback unmeasured until a fresh lastTrade price is adopted (0.230125ms)
+  ✔ preserves actual adopted lastTrade price precedence and a strictly newer subsecond observation (0.387541ms)
+  ✔ recovers an off-feed day-price fallback from the same min observation (0.205875ms)
+  ✔ recovers a delayed-feed day-price fallback when a sibling qualifies the same min observation (0.208375ms)
+  ✔ keeps a stale-name day-price fallback unmeasured until a fresh min price is adopted (0.201375ms)
+  ✔ preserves actual adopted min price precedence and a strictly newer subsecond observation (0.36075ms)
+  ✔ does not infer day-price clock provenance from equality with an unused print price (0.126375ms)
+  ✔ does not stamp a closed-session day-price fallback with its unused trade clock (0.147875ms)
+  ✔ removes measured snapshot fields from a value replacement without a genuine market clock {"last":105} (0.238042ms)
+  ✔ removes measured snapshot fields from a value replacement without a genuine market clock {"last":105,"ts":"1786111200"} (0.242041ms)
+  ✔ removes measured snapshot fields from a value replacement without a genuine market clock {"last":105,"ts":null} (0.212625ms)
+  ✔ removes measured snapshot fields from a value replacement without a genuine market clock {"last":105,"ts":1786111201} (0.196416ms)
+  ✔ removes measured snapshot fields from a value replacement without a genuine market clock {"last":105,"ts":1786111200,"regularSession":"closed"} (0.209375ms)
+✔ snapshot market-clock eligibility through the quote response (19.314375ms)
+2026-10-13T10:42:12.783Z [INFO] snapshot feed disabled (HUB_DISABLE_SNAPSHOT)
+▶ parseSnapshot
+  ✔ derives today's session and computes chg from prevDay (not todaysChangePerc) (0.754833ms)
+  ✔ rejects a zeroed day block — 0 is MISSING for an equity price, never a $0 print (0.09275ms)
+  ✔ rejects a row with no `updated` stamp (undatable → could be any session) (0.072584ms)
+  ✔ emits chg=null rather than a fabricated 0 when prevDay close is missing (0.093167ms)
+✔ parseSnapshot (1.711667ms)
+▶ SnapshotFeed.get — session gating
+  ✔ serves today's snapshot (0.43275ms)
+  ✔ NEVER serves a previous session's snapshot as the current one (0.121792ms)
+  ✔ exposes a prior-session pair only when an independent completed close corroborates it (0.175458ms)
+  ✔ is inert when disabled — demand and get are both no-ops (0.865125ms)
+✔ SnapshotFeed.get — session gating (1.76225ms)
+▶ store overlay — the SKY regression
+  ✔ post-close: adopts today's close instead of serving the manifest placeholder (0.660916ms)
+  ✔ RTH: adopts today's price but does NOT claim an official close (0.214ms)
+  ✔ never overrides a symbol the live tape IS carrying for today (0.202334ms)
+✔ store overlay — the SKY regression (1.218041ms)
+▶ store snapshot baseline — the SPCX recurrence
+  ✔ keeps snapshot prevDay.c across repeated polls instead of restoring a stale daily anchor (0.308625ms)
+  ✔ corrects a current-day stream baseline without replacing the stream price/source (0.227625ms)
+  ✔ repairs the completed-session baseline after midnight and a hub restart (0.219666ms)
+✔ store snapshot baseline — the SPCX recurrence (0.822208ms)
+▶ store — a placeholder must never publish a fabricated 0.00%
+  ✔ RTH: falls back to prevSessionChg, not 0.00% (0.078375ms)
+  ✔ post-close: falls back to prevSessionChg, not 0.00% (0.037584ms)
+✔ store — a placeholder must never publish a fabricated 0.00% (0.161042ms)
+▶ close-leak regression — two-session boundary
+  ✔ setQuote: q.close is set when anchor.close is present (day N post-close) (0.620333ms)
+  ✔ setQuote: q.close is DELETED when anchor.close is absent (day N+1 RTH) (0.113042ms)
+  ✔ setQuote: afterHours is DELETED when anchor.close is absent (day N+1 RTH) (0.096292ms)
+  ✔ getQuotes: fresh.close is DELETED when anchor.close is absent (day N+1 RTH) (0.861042ms)
+  ✔ getQuotes: stale close is evicted even when no other field changes (flat close, non-daily anchor) (0.387958ms)
+  ✔ getQuotes: fresh.close is set correctly when anchor.close is present (day N AH) (0.333125ms)
+  ✔ getQuotes: regular values stay stable while ext fields use the separate namespace (0.335291ms)
+  ✔ getQuotes: post-market ext change references today's RTH close before the daily file rolls (0.410583ms)
+✔ close-leak regression — two-session boundary (4.215792ms)
+▶ setQuote basic merge
+  ✔ merges partial onto existing quote preserving source/basis (0.268333ms)
+  ✔ stamps ts on first write when absent (0.199ms)
+✔ setQuote basic merge (0.719209ms)
+▶ getQuotes non-US bypass
+  ✔ returns raw quote for non-US symbol even when anchor stub is present (0.202583ms)
+✔ getQuotes non-US bypass (0.302791ms)
+2026-10-13T10:42:12.901Z [INFO] webull overnight price key observed (telemetry only — not served) ovnPrice
+2026-10-13T10:42:12.902Z [INFO] webull overnight price key observed (telemetry only — not served) overnightPrice
+2026-10-13T10:42:12.902Z [INFO] webull overnight price key observed (telemetry only — not served) ovPrice
+2026-10-13T10:42:12.902Z [INFO] webull overnight price key observed (telemetry only — not served) overnightPx
+2026-10-13T10:42:12.917Z [INFO] webull subscription LRU-evicted FIRST
+▶ webull test calendar anchors
+  ✔ classify the sessions the gate tests depend on (0.488791ms)
+✔ webull test calendar anchors (1.055542ms)
+▶ webullExtractPrint — session-window gate
+  ✔ REJECTS a Friday post print when the current session is Sunday overnight (0.345292ms)
+  ✔ ACCEPTS a print whose own session matches the current session (0.178791ms)
+  ✔ REJECTS a pre-market print when the current session is overnight (0.081542ms)
+  ✔ returns null during RTH regardless of the payload (0.070583ms)
+✔ webullExtractPrint — session-window gate (0.860042ms)
+▶ webullExtractPrint — staleness gate
+  ✔ REJECTS a same-session print older than 90 minutes (0.103ms)
+  ✔ accepts at 89 minutes, rejects at 91 minutes (0.782833ms)
+  ✔ REJECTS a future-dated print (clock-skew / parse defect, not data) (0.115041ms)
+✔ webullExtractPrint — staleness gate (1.149416ms)
+▶ webullExtractPrint — field extraction
+  ✔ coerces the live SOFI payload's string fields to numbers (0.16175ms)
+  ✔ NEVER serves a speculative overnight field — pPrice wins even when one is present (0.812375ms)
+  ✔ a speculative field alone is NOT a print — no pPrice means no quote (0.1075ms)
+  ✔ serves pPrice regardless of what the speculative keys contain (0.175459ms)
+  ✔ returns null when there is no usable price (0.119167ms)
+  ✔ returns null when tradeTime is missing or unparseable (0.0725ms)
+  ✔ REJECTS a tradeTime with no explicit UTC offset — the offset IS the difference (0.151625ms)
+  ✔ ACCEPTS both offset forms Webull is known to send (0.126041ms)
+  ✔ returns null for a non-object payload (0.047333ms)
+✔ webullExtractPrint — field extraction (1.960458ms)
+▶ WebullFeed.resolveTickerId
+  ✔ matches on exact disSymbol + regionCode US + template stock (0.286375ms)
+  ✔ rejects near-miss rows (different symbol, region, or template) (0.087708ms)
+  ✔ picks the qualifying row even when it is not first (0.065375ms)
+  ✔ caches a positive result — no second search request (0.081708ms)
+  ✔ caches a miss so an unlisted ticker cannot hammer the search endpoint (0.058458ms)
+  ✔ re-searches once the negative TTL has expired (0.060417ms)
+  ✔ survives a null / malformed search response (0.076167ms)
+✔ WebullFeed.resolveTickerId (0.876375ms)
+▶ bounded last-good ext cache
+  ✔ retains more symbols than the 30-subscription feed while staying capped (0.399167ms)
+✔ bounded last-good ext cache (0.460542ms)
+▶ WebullFeed LRU demand management
+  ✔ evicts the LRU subscription at cap (30) without erasing its last-good print (0.705167ms)
+  ✔ does not start a timer without an explicit start() (0.069875ms)
+✔ WebullFeed LRU demand management (1.085375ms)
+▶ WebullFeed.runPoll
+  ✔ makes no request during RTH (0.606958ms)
+  ✔ caches an accepted print (152.629917ms)
+  ✔ writes NOTHING when the print fails the gate, preserving the prior entry (151.941833ms)
+2026-07-27T09:45:00.000Z [WARN] webull symbol poll failed SOFI ECONNRESET (occurrence #1)
+  ✔ skips a symbol whose tickerId cannot be resolved (0.322125ms)
+2026-07-27T09:45:00.000Z [WARN] webull poll had failures failed=1/1 consecutive=1 (occurrence #1)
+  ✔ never throws when the transport rejects (150.969416ms)
+2026-10-13T10:42:13.527Z [INFO] ext feed init mode=alpaca
+2026-10-13T10:42:13.528Z [INFO] ext feed init mode=alpaca
+2026-10-13T10:42:13.528Z [INFO] ext feed init mode=alpaca
+2026-10-13T10:42:13.528Z [INFO] ext feed init mode=alpaca
+2026-10-13T10:42:13.528Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-13T10:42:13.528Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-13T10:42:13.528Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-13T10:42:13.529Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-13T10:42:13.529Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-13T10:42:13.530Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-13T10:42:13.530Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-13T10:42:13.531Z [INFO] ext feed init mode=yahoo_fallback
+2026-07-27T09:45:00.000Z [INFO] ext feed init mode=yahoo_fallback
+2026-07-27T09:45:00.000Z [INFO] ext relay poll session=pre syms=1 hits=1
+2026-07-27T09:45:00.000Z [INFO] ext feed init mode=yahoo_fallback
+2026-07-27T09:45:00.000Z [INFO] ext relay poll session=pre syms=1 hits=1
+2026-07-27T09:45:00.000Z [INFO] ext feed init mode=yahoo_fallback
+2026-07-27T09:45:00.000Z [INFO] ext relay poll session=pre syms=1 hits=1
+2026-07-27T09:45:00.000Z [INFO] ext feed init mode=yahoo_fallback
+2026-07-27T09:45:00.000Z [INFO] ext relay poll session=pre syms=1 hits=1
+2026-07-27T09:45:00.000Z [INFO] ext feed init mode=yahoo_fallback
+2026-07-27T09:45:00.000Z [INFO] yahoo ext poll (direct) session=pre syms=1
+2026-07-27T09:45:00.000Z [INFO] ext feed init mode=yahoo_fallback
+2026-07-27T09:45:00.000Z [INFO] yahoo ext poll (direct) session=pre syms=1
+2026-07-27T09:45:00.000Z [INFO] ext feed init mode=yahoo_fallback
+2026-07-27T09:45:00.000Z [INFO] ext relay poll session=pre syms=2 hits=0
+2026-10-13T10:42:13.537Z [WARN] WEBULL_DISABLE=1 — webull ext leg off
+2026-10-13T10:42:13.537Z [INFO] ext feed init mode=yahoo_fallback
+2026-10-13T10:42:13.537Z [WARN] EXT_FEED_DISABLE=1 — extended-hours feed off
+  ✔ reports health in the documented shape (150.49575ms)
+✔ WebullFeed.runPoll (608.728166ms)
+▶ ExtFeed serve priority — alpaca → webull → yahoo
+  ✔ serves Alpaca first when it is authed and has the symbol (0.746625ms)
+  ✔ falls to Webull when Alpaca auth failed (0.206667ms)
+  ✔ falls to Webull when Alpaca is healthy but has no print for the symbol (0.128667ms)
+  ✔ falls to Yahoo only when both Alpaca and Webull are empty (0.089916ms)
+  ✔ Webull outranks Yahoo in keyless (no-Alpaca) mode too (0.079875ms)
+  ✔ computes extChg from the passed close reference for a Webull print (0.084459ms)
+  ✔ returns null during RTH even with a fresh Webull print (0.127584ms)
+  ✔ applies the 90-minute serve-time stale guard to Webull entries (0.309417ms)
+  ✔ a retained stale Webull print cannot block a fresh Yahoo fallback (0.574959ms)
+  ✔ ignores a cache entry with no finite price (never serves an empty ext block) (0.480625ms)
+  ✔ demand() mirrors the symbol into the Webull leg (0.630958ms)
+  ✔ health() exposes the webull block (0.175833ms)
+✔ ExtFeed serve priority — alpaca → webull → yahoo (4.11725ms)
+▶ ExtFeed R2 relay — a fresh relay file actually serves
+  ✔ a relay-shaped payload reaches getExt as a servable ext quote (1.245333ms)
+  ✔ writes the cache in the SAME { price, ts, session, source } shape as every other leg (1.170958ms)
+  ✔ falls back to the relay file's asof when an entry carries no extTs (0.414292ms)
+  ✔ consuming a fresh relay skips the direct-Yahoo calls (the whole point of the relay) (0.3975ms)
+  ✔ a STALE relay file is ignored and the direct leg runs instead (0.323041ms)
+  ✔ an unreachable relay falls through to the direct leg (0.253833ms)
+  ✔ skips a relay entry with no finite extPrice rather than caching a hole (0.283459ms)
+✔ ExtFeed R2 relay — a fresh relay file actually serves (4.484083ms)
+▶ WEBULL_DISABLE=1
+  ✔ drops the Webull leg without touching Alpaca or Yahoo (0.294708ms)
+✔ WEBULL_DISABLE=1 (1.170875ms)
+▶ EXT_FEED_DISABLE=1 also disables the webull leg
+  ✔ constructs no webull leg and serves nothing (0.088291ms)
+✔ EXT_FEED_DISABLE=1 also disables the webull leg (0.1795ms)
+ℹ tests 569
+ℹ suites 81
+ℹ pass 569
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1188.227292

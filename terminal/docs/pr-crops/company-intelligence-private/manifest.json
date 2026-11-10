@@ -1,0 +1,58 @@
+{
+  "captured_at": "2026-10-11T15:43:31.739Z",
+  "status": "ISOLATED_SYNTHETIC_COMPONENT_EVIDENCE_ONLY",
+  "base_head": "d5b89d24de2da42ef83b62aa3d1c1786ac42df78",
+  "source_sha256": {
+    "terminal/components/fin/CompanyIntelligencePrivatePanel.tsx": "c7b8e2b60b58edaea3a1ff8fa5729f64e55c3761726cb08e482662e0e3245ac8",
+    "terminal/components/fin/CompanyIntelligencePrivatePanel.module.css": "9f32ef9bc5a11eaa106f62c6d597878aee78df9152078c28b8cfa2775ee18467",
+    "terminal/lib/companyIntelligencePrivateLex.ts": "bb663ca860a403351243c45a65daffd1b2db59e09be2ec9dbb38b95a734b7bd6",
+    "terminal/lib/companyIntelligencePrivateView.ts": "4216b9366a799eb08715edcb7e41cce0f1bf809a6cb733ae323f74b28b4065af",
+    "terminal/components/fin/CompanyIntelligencePrivate.tsx": "33f9c1e1e2576ca670974db3655d92df368619be114998504df2cc0f68add809",
+    "terminal/lib/__tests__/CompanyIntelligencePrivatePanel.test.tsx": "3652eaced96faa6080a795c0cfc292fe17a552170dab2e095d664ea18c1a64d2",
+    "terminal/lib/__tests__/CompanyIntelligencePrivate.test.tsx": "ac47b373b4bcc9b76b4bb76fe185bd5fedeb4ffc7c46aed2a72aafb7319c1bd9"
+  },
+  "images_sha256": {
+    "ready-1440-en-dark.png": "6057dc3c9ec257a191f7e40bb0e64d8cf87513eb72087aca49366309bbd321ac",
+    "ready-1440-en-light.png": "4b6ef3023bf4c5b4499f02b3859e67b602f43cb7a5af21f3e67f3cb295f16b79",
+    "ready-1440-zh-dark.png": "4a895fee4190a9abd9daa04b2fddb87dfbece511c89c26cd2e125499b1bede3b",
+    "ready-1440-zh-light.png": "aa818eced2f7ab18d95844eb5755ab500385ebc075a534b11947ea17cf3c3304",
+    "ready-820-en-dark.png": "ed6f15b4c394cacaaf64e53172b4bb2091d6448e5521ccea288544f5f81b0e25",
+    "ready-820-en-light.png": "f3054bc40fe689d7fd0ac61be22ed3f3532c67dc4672fcf424166abfb58c8615",
+    "ready-820-zh-dark.png": "fa9b38a1532cde7f9ea2f3ec9e157f14dc7de2f67d457756c1633f5c13aa5128",
+    "ready-820-zh-light.png": "05c92435900f598776fdae77dc145a0acf55687a05da52f99da24f6979048320",
+    "ready-390-en-dark.png": "87dfa6047f2089e6985e2c61d3cd65bf32b1eab6625ae8944edaa09345f8e9b9",
+    "ready-390-en-light.png": "9afecdbf8ce9936b016b5f9ff9cf639036e243e37d6180fa887df87992ad9625",
+    "ready-390-zh-dark.png": "aa2cbca1841f4b83122f1e4882bd8e320a2ab5027a9636adc2e39fbbbc1e0437",
+    "ready-390-zh-light.png": "e4383911309f99e70e05d13b12e0523217f22c9fa5fbf1537691b32d79e70157",
+    "pane-300-en-dark.png": "cdfb9f22a14bf37516ca6813af91edc992682db113b38e3bc1f651cdc94982fd",
+    "pane-300-zh-light.png": "6b859b89ae9eb9e450ea8459d9eef03183ea22e4e65022549f319abe8bda0fea",
+    "pane-820-en-dark.png": "7e10fcec53e39d9fcddf30b99da84abec9da0c697cf1a19aca8a1cd7f9f73531",
+    "pane-820-zh-light.png": "4bb707829c8026fab7bc86f20939f126110c8d6bdbc52155797b37374e849b80",
+    "keyboard-focus-300.png": "088ab3d8cb30c03bab710bc8dcc222e2ebeb248e7860d48c9e4976e1eb6ee122"
+  },
+  "limitations": [
+    "No real-host mount or private network/source/account acceptance",
+    "Light uses reference-study aliases, not a production theme signal",
+    "Native fallback font stack; Next font loader absent",
+    "No200percentzoom or fresh-incognito full-product acceptance",
+    "Independent source review is not designated visual approval",
+    "Application root caught-error reporter remains separately qualified"
+  ],
+  "source_validation": {
+    "scope": "Isolated controller, wrapper, presenter and existingroute/decoder integration; browserreceipt remains syntheticpresenteronly",
+    "files": {
+      "terminal/components/fin/CompanyIntelligencePrivate.tsx": "33f9c1e1e2576ca670974db3655d92df368619be114998504df2cc0f68add809",
+      "terminal/components/fin/CompanyIntelligencePrivatePanel.tsx": "c7b8e2b60b58edaea3a1ff8fa5729f64e55c3761726cb08e482662e0e3245ac8",
+      "terminal/components/fin/CompanyIntelligencePrivatePanel.module.css": "9f32ef9bc5a11eaa106f62c6d597878aee78df9152078c28b8cfa2775ee18467",
+      "terminal/lib/companyIntelligencePrivateView.ts": "4216b9366a799eb08715edcb7e41cce0f1bf809a6cb733ae323f74b28b4065af",
+      "terminal/lib/companyIntelligencePrivateLex.ts": "bb663ca860a403351243c45a65daffd1b2db59e09be2ec9dbb38b95a734b7bd6",
+      "terminal/lib/usePrivateCompanyIntelligence.ts": "21ebe8e5174848924870a83a1336d2fc86a58ec960b2728fe622bf40fe324cc9",
+      "terminal/lib/__tests__/CompanyIntelligencePrivate.test.tsx": "ac47b373b4bcc9b76b4bb76fe185bd5fedeb4ffc7c46aed2a72aafb7319c1bd9",
+      "terminal/lib/__tests__/CompanyIntelligencePrivatePanel.test.tsx": "3652eaced96faa6080a795c0cfc292fe17a552170dab2e095d664ea18c1a64d2",
+      "terminal/lib/__tests__/usePrivateCompanyIntelligence.test.tsx": "48aaafcdda775927e2c6e066ec1f64818286cd4dc18f9799a8db2c2e6d3010fc"
+    },
+    "focused_tests": 205,
+    "typescript_exit": 0,
+    "eslint_exit": 0
+  }
+}

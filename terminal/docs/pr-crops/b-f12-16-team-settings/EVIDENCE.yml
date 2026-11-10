@@ -1,15 +1,15 @@
 # B-F12-16 Team settings block — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 1a5d03aff5b67f7d048bf52248439187f485b670
-# capturedAt: 2026-09-25T03:56:23.543Z
+# capturedAtHead: 793dd27a1bc88fe2bcf86fa2de9962034b0769a2
+# capturedAt: 2026-11-09T09:09:51.748Z
 # capturedAtHead is informational. The lock is layoutFiles (hash-only).
 layoutFiles:
-  terminal/components/settings/SectionTeam.tsx: "00f61441215f0cdb8c6b40536e66e243d0ae83ffa54d6f19ae8a67dd99d7a79d"
+  terminal/components/settings/SectionTeam.tsx: "add785974e9872100f912b96f21e28d48819f39eef221b9efe887752ba51e3e6"
   terminal/components/settings/SectionTeam.module.css: "069056ff7ac4274a57ae9a835a0fdda178e9625a591b4374e855b9d41a3fd5bc"
-  terminal/components/settings/SettingsPanel.tsx: "956aeac1636ae4891b1009c8e266840244c19da085ba52e77c78171317c4ffaf"
-  terminal/components/settings/SettingsProvider.tsx: "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910"
-  terminal/app/settings.css: "fbc9797f94e00bb7488af1120f47ba9836393b1d61d11839a7d101248695d587"
+  terminal/components/settings/SettingsPanel.tsx: "35ad74834c9d52ab797d6554c4b68182c268177f1907f775fb07a8a9a3118ccf"
+  terminal/components/settings/SettingsProvider.tsx: "fb717b94d3074bf3e7866cd399088bb0203d8e1fea0b6c18bfff46546972402b"
+  terminal/app/settings.css: "2a15b7704f1c6ec62671ec84723063dcce367c7998bbea56e04b50c9bda2252c"
   terminal/lib/teams.ts: "e518afe4bc58b5f82638539f03b3063dc7ef35905c2807601eca9c71ac55e5b3"
   terminal/components/settings/types.ts: "65e846a39725a4dd6738dd746789e540e2b5433b669757356df4fce1d0a721fb"
   terminal/app/dev/settings/page.tsx: "4b594ce879f00fdf1f096abde9a36113014b17257e6292dc0ca16c83efcd3660"
@@ -20,7 +20,7 @@ viewports:
   - { name: mobile, width: 390, height: 844 }
 harness: /dev/settings?s=team&lang=<en|zh> (owner crops with two controls painted); /dev/settings?s=team&team=member&lang=<en|zh> (member crops with read-only sentence + closed-default chart-theme label)
 capture_flag: TERMINAL_E2E_FIXTURE
-capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
 command: |
   cd terminal
   node e2e/tools/capture_f12_16_team_settings.cjs
@@ -42,3 +42,7 @@ measurements:
   mobile-zh-owner.png: { headingTitle: "团队设置", chartLabel: "红涨绿跌", shareLabel: "新建的图表布局自动与团队共享", shareChecked: true, memberReadOnlyPresent: false, ownerWhatPresent: true }
   mobile-en-member.png: { headingTitle: "Team settings", chartLabel: "Green means up, red means down", shareLabel: "Share new chart layouts with the team automatically", shareChecked: null, memberReadOnlyPresent: true, ownerWhatPresent: true }
   mobile-zh-member.png: { headingTitle: "团队设置", chartLabel: "绿涨红跌", shareLabel: "新建的图表布局自动与团队共享", shareChecked: null, memberReadOnlyPresent: true, ownerWhatPresent: true }
+
+capture_method: Original capture fixture, interactions, assertions and measurements executed against the existing same-workspace Next preview on port 3391. Only startServer ownership was omitted; the incumbent preview was not started or stopped.
+recovery_adapter: ../../verification/profile-settings-recapture-20261109/settings-reuse-capture.cjs
+recovery_adapter_sha256: 44405fd05de74ad62633cc39d2c842e7939e09d5de38d31086855c94cfb8f9f1

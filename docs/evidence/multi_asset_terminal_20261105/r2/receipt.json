@@ -1,0 +1,231 @@
+{
+  "actual_theme_asserted": true,
+  "captured_at": "2026-11-06T07:06:57.218120+00:00",
+  "captures": 24,
+  "cases": 12,
+  "command": "TERMINAL_E2E_PORT=32178 TERMINAL_VISUAL_EVIDENCE_OPERATION=multiasset-terminal-20261105-sol-r2 ./node_modules/.bin/playwright test e2e/multi-asset-risk-context.spec.ts --workers=2 --reporter=line --output=test-results/multiasset-r2",
+  "compiler_exit": 0,
+  "core_state_unchanged": true,
+  "eslint_exit": 0,
+  "matrix": {
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "viewports": [
+      [
+        1440,
+        900
+      ],
+      [
+        820,
+        1180
+      ],
+      [
+        390,
+        844
+      ]
+    ]
+  },
+  "operation": "multiasset-terminal-20261105-sol",
+  "production_authenticated": false,
+  "result": "12 passed",
+  "schema": "mastermind.terminal_multi_asset_browser_receipt/v2",
+  "scope": "synthetic_inputs_through_actual_python_bridge_and_native_terminal_browser",
+  "screenshots": [
+    {
+      "bytes": 144560,
+      "height": 637,
+      "path": "screenshots/cross-asset-desktop-zh-dark.png",
+      "sha256": "f1332ba8efe7202ee468a59d69070248265848b5ef06ef69a4854ad85e9ba15b",
+      "width": 398
+    },
+    {
+      "bytes": 52356,
+      "height": 257,
+      "path": "screenshots/cross-asset-rejected-desktop-zh-dark.png",
+      "sha256": "bba316473b8299322b411b7b7d7d7f853acde94e35c994c163fc61deda8b3de1",
+      "width": 398
+    },
+    {
+      "bytes": 134947,
+      "height": 653,
+      "path": "screenshots/cross-asset-mobile-zh-dark.png",
+      "sha256": "ba3b41af6dd82f14a2574e6c02072050315149da2a393e2c0408358a22eb1405",
+      "width": 356
+    },
+    {
+      "bytes": 51473,
+      "height": 257,
+      "path": "screenshots/cross-asset-rejected-mobile-zh-dark.png",
+      "sha256": "17213497b8aae494e1f248d032a45f1787d995faa7c46deb2d0b3f72355860df",
+      "width": 356
+    },
+    {
+      "bytes": 55388,
+      "height": 208,
+      "path": "screenshots/cross-asset-rejected-tablet-zh-dark.png",
+      "sha256": "c08a7a8fd9013412d84b7db5e816e97bc5f2c12cadfd92b4a03ed589c6e641b7",
+      "width": 778
+    },
+    {
+      "bytes": 159104,
+      "height": 406,
+      "path": "screenshots/cross-asset-tablet-zh-dark.png",
+      "sha256": "e8897cc2fd26d72f04d34e78ff2d6be44dc03a88f5d4d30a8f37a85468b61158",
+      "width": 778
+    },
+    {
+      "bytes": 103445,
+      "height": 736,
+      "path": "screenshots/cross-asset-desktop-en-light.png",
+      "sha256": "d5fde7d894aae854ff06f63bb32ee43f252b7f8b0f10b6e21afe5d1f88bf1a39",
+      "width": 398
+    },
+    {
+      "bytes": 42210,
+      "height": 307,
+      "path": "screenshots/cross-asset-rejected-desktop-en-light.png",
+      "sha256": "46e4cc16b6ccbfce567edd91a8bafc075e8161b9e95e087cfa24bdbc1bd1dfc1",
+      "width": 398
+    },
+    {
+      "bytes": 84956,
+      "height": 802,
+      "path": "screenshots/cross-asset-mobile-en-light.png",
+      "sha256": "732f11f67dd2400391e980b23a6b37e8a1040828cddb566df0378951c236d0d6",
+      "width": 356
+    },
+    {
+      "bytes": 44279,
+      "height": 357,
+      "path": "screenshots/cross-asset-rejected-mobile-en-light.png",
+      "sha256": "f3ce630ef195bd5975cb25784110c9fc9bed8b7868799db6869b90ddf4f1c030",
+      "width": 356
+    },
+    {
+      "bytes": 47282,
+      "height": 241,
+      "path": "screenshots/cross-asset-rejected-tablet-en-light.png",
+      "sha256": "6bd2740c4c048c5e4830b6c28f8c1f1b589eab63bdaf46b19ea8e1095570af8b",
+      "width": 778
+    },
+    {
+      "bytes": 131880,
+      "height": 455,
+      "path": "screenshots/cross-asset-tablet-en-light.png",
+      "sha256": "426d07bf197156b5280afe9fb4cf36c3304bb65df8a37135849a8c5e1703dd83",
+      "width": 778
+    },
+    {
+      "bytes": 103337,
+      "height": 736,
+      "path": "screenshots/cross-asset-desktop-en-dark.png",
+      "sha256": "ae4ce55764344d337bdcc88af97650f76c3e806d68a7603357dbd6dc0b8b4c97",
+      "width": 398
+    },
+    {
+      "bytes": 42210,
+      "height": 307,
+      "path": "screenshots/cross-asset-rejected-desktop-en-dark.png",
+      "sha256": "46e4cc16b6ccbfce567edd91a8bafc075e8161b9e95e087cfa24bdbc1bd1dfc1",
+      "width": 398
+    },
+    {
+      "bytes": 84956,
+      "height": 802,
+      "path": "screenshots/cross-asset-mobile-en-dark.png",
+      "sha256": "732f11f67dd2400391e980b23a6b37e8a1040828cddb566df0378951c236d0d6",
+      "width": 356
+    },
+    {
+      "bytes": 44280,
+      "height": 357,
+      "path": "screenshots/cross-asset-rejected-mobile-en-dark.png",
+      "sha256": "61acff96d824999ad25bd1e4ab94c73c30975f2313d2677f48cdf041a8e08755",
+      "width": 356
+    },
+    {
+      "bytes": 47286,
+      "height": 241,
+      "path": "screenshots/cross-asset-rejected-tablet-en-dark.png",
+      "sha256": "02a007bd53da7adf103c7426174e56a1f14b76e1530317ce410e1474c16400f4",
+      "width": 778
+    },
+    {
+      "bytes": 131880,
+      "height": 455,
+      "path": "screenshots/cross-asset-tablet-en-dark.png",
+      "sha256": "426d07bf197156b5280afe9fb4cf36c3304bb65df8a37135849a8c5e1703dd83",
+      "width": 778
+    },
+    {
+      "bytes": 144567,
+      "height": 637,
+      "path": "screenshots/cross-asset-desktop-zh-light.png",
+      "sha256": "2a2de0ba46dbd629e2ed226ab38d19ce5a7dfbd1f56985bdde5b8e8196a64fa9",
+      "width": 398
+    },
+    {
+      "bytes": 52356,
+      "height": 257,
+      "path": "screenshots/cross-asset-rejected-desktop-zh-light.png",
+      "sha256": "bba316473b8299322b411b7b7d7d7f853acde94e35c994c163fc61deda8b3de1",
+      "width": 398
+    },
+    {
+      "bytes": 134941,
+      "height": 653,
+      "path": "screenshots/cross-asset-mobile-zh-light.png",
+      "sha256": "7cc5869cfb66787e867660d7fa606e87260b43e393e9c72f8f5b016b494bbe16",
+      "width": 356
+    },
+    {
+      "bytes": 51473,
+      "height": 257,
+      "path": "screenshots/cross-asset-rejected-mobile-zh-light.png",
+      "sha256": "17213497b8aae494e1f248d032a45f1787d995faa7c46deb2d0b3f72355860df",
+      "width": 356
+    },
+    {
+      "bytes": 55384,
+      "height": 208,
+      "path": "screenshots/cross-asset-rejected-tablet-zh-light.png",
+      "sha256": "ba66c77de778d45334b7260ac47de596c629a829f2fd77642200b7c78c5677f4",
+      "width": 778
+    },
+    {
+      "bytes": 159103,
+      "height": 406,
+      "path": "screenshots/cross-asset-tablet-zh-light.png",
+      "sha256": "04bae0ee5c9d29e2ac9b2da838e4c16bfd6e2a14c10d62162c3be78eeea160dd",
+      "width": 778
+    }
+  ],
+  "source_parent": "f22720b2733393658ebb10adb51d72bd17d41b0e",
+  "source_sha256": {
+    "ingest/pull_macro_risk.py": "3c2af79e07d84da3b3d7156f3277d0b53c1a68dd6464a9accb5b2815a5dff948",
+    "terminal/e2e/multi-asset-risk-context.spec.ts": "2d542c181a6566082e605733d2f45ac4bffaf22ac6ee25dbfca8423e227f9db5",
+    "terminal/lib/__tests__/fixtures/multiAssetDaily.stale.synthetic.json": "825a5394c76cb176043e7da58290fc8dda1e254c0afc08128b416607d2024420",
+    "terminal/lib/__tests__/fixtures/multiAssetDaily.synthetic.json": "eecd7fbfd766efa5a12658546665d0228e7c1c14bd80f73df5e8bf67e75ca80c",
+    "terminal/lib/__tests__/marketRisk.test.ts": "aa863c24e7c433256400e67ff3a4cfa0c3def8033871e68436782ea0b2d254e7",
+    "terminal/lib/__tests__/multiAssetContext.test.ts": "e64d3c8e454d605ab54835e7b518c88bc5cc5d45c3bdb5ff7fe45a2b1ee5f0d5",
+    "terminal/lib/marketRisk.ts": "6591d95bdb5ae8fb165fd32b1d516c7f1aeeb1272176b38c548c978d77f37824",
+    "terminal/lib/multiAssetContext.ts": "ff83fa06dbbd809eedd8d4c3499e61a9919f407abdc674f11647ec2002dea416",
+    "tests/test_market_risk_bridge.py": "7c4bf11a58b0ace9013a6fc2cd192e4ea9528340b1d3344c1d6db8c762b39ef4"
+  },
+  "states": [
+    "qualified",
+    "stale",
+    "forged_instrument_withheld",
+    "unauthorized_optional_withheld"
+  ],
+  "test_counts": {
+    "python": 73,
+    "vitest": 124
+  }
+}

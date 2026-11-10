@@ -142,6 +142,9 @@ let sync: DeliveryStatus = LOCAL_STATUS;
 /** Backoff timer for re-attempting a FAILED hydrate, so a held intent is not held forever. */
 let hydrateTimer: ReturnType<typeof setTimeout> | null = null;
 let hydrateAttempts = 0;
+/** True from a failed account read until one succeeds — the snapshot reports it as `base:
+ *  "retrying"` so the Sync card says "Signed in", not "Sync is on", while a retry is pending. */
+let hydrateFailed = false;
 const HYDRATE_BACKOFF_MS = [3_000, 8_000, 20_000, 45_000];
 const subs = new Set<() => void>();
 
@@ -163,11 +166,37 @@ export type AccountPrefsSnapshot = {
   /** Delivery state of the account write lane. `saved` means the AUTHORITY acknowledged it —
    *  not that the local change applied. A guest reads `local`. */
   sync: DeliveryStatus;
+  /** Whether this owner's nested-blob merge base is known: `pending` until the account read
+   *  answers, `loaded` once it has, `retrying` after a failed read (a retry is scheduled). A
+   *  guest's base is the local slot, so it reads `loaded`. */
+  base: "pending" | "loaded" | "retrying";
+  /** An edit is being HELD outside the delivery pump until the base loads — intent the authority
+   *  has not been told about. `sync` cannot see it, so `saved` there is not "in sync" here. */
+  held: boolean;
 };
 
-let snapshot: AccountPrefsSnapshot = { prefs: state, terminal, metaPrefs, ready, owner, sync };
+/**
+ * The truth the Sync card reports (F12, macro#6819 C2). `ready` only says the UI may render;
+ * `base` says whether this owner's merge base is actually known, and `held` whether an edit is
+ * waiting OUTSIDE the pump for it. "Sync is on" is honest only when the base is loaded, nothing
+ * is held, and the pump has acknowledged the newest revision — none of which an identity prop
+ * can prove.
+ */
+function hydrationBase(): AccountPrefsSnapshot["base"] {
+  if (baseLoaded) return "loaded";
+  return hydrateFailed ? "retrying" : "pending";
+}
+function buildSnapshot(): AccountPrefsSnapshot {
+  return {
+    prefs: state, terminal, metaPrefs, ready, owner, sync,
+    base: hydrationBase(),
+    held: pendingTerminal !== null || pendingMetaPrefs !== null,
+  };
+}
+
+let snapshot: AccountPrefsSnapshot = buildSnapshot();
 function publish() {
-  snapshot = { prefs: state, terminal, metaPrefs, ready, owner, sync };
+  snapshot = buildSnapshot();
   for (const fn of subs) fn();
 }
 function subscribe(fn: () => void) { subs.add(fn); return () => { subs.delete(fn); }; }
@@ -177,7 +206,7 @@ function getSnapshot() { return snapshot; }
 // disagrees with what the pre-paint script is about to put on the document.
 const SERVER_SNAPSHOT: AccountPrefsSnapshot = {
   prefs: DEFAULT_PREFS, terminal: DEFAULT_TERMINAL_PREFS, metaPrefs: {}, ready: false,
-  owner: GUEST_OWNER, sync: LOCAL_STATUS,
+  owner: GUEST_OWNER, sync: LOCAL_STATUS, base: "pending", held: false,
 };
 function getServerSnapshot() { return SERVER_SNAPSHOT; }
 
@@ -239,6 +268,7 @@ function beginOwner(next: string) {
   pump = null;
   if (hydrateTimer) { clearTimeout(hydrateTimer); hydrateTimer = null; }
   hydrateAttempts = 0;
+  hydrateFailed = false;
   state = DEFAULT_PREFS;
   metaPrefs = {};
   rawTerminal = {};
@@ -308,6 +338,7 @@ function hydrate(next: string) {
 
       const meta = data.user.user_metadata as Record<string, unknown> | undefined;
       hydrateAttempts = 0;
+      hydrateFailed = false;
       // readMarketPrefs migrates the legacy `market_focus`-only shape, so a user who onboarded
       // before `markets` existed gets their signup choice honoured on this very load.
       // A market edit made WHILE this read was in flight is newer than the answer, so the answer
@@ -367,6 +398,7 @@ function hydrate(next: string) {
       // failed — the retry below is what eventually delivers it.
       ready = true;
       baseLoaded = false;
+      hydrateFailed = true;
       publish();
       scheduleHydrateRetry(next, gen);
     });
@@ -410,6 +442,7 @@ function mergeTerminalBlob(patch: Record<string, unknown>) {
   if (!isAccountOwner(owner)) return;
   if (!baseLoaded) {
     pendingTerminal = { ...(pendingTerminal || {}), ...patch };
+    publish();              // the hold is state the UI reports: "pending", never "saved" (F12)
     // The merge base is a prerequisite for this write, so make sure something is still trying
     // to fetch it. Without this a held intent after a failed hydrate waits forever.
     scheduleHydrateRetry(owner, generation);
@@ -496,6 +529,7 @@ export function persistMetaPrefs(patch: MetaPrefs) {
   rawMetaPrefs = { ...rawMetaPrefs, ...legacy };
   if (!baseLoaded) {
     pendingMetaPrefs = { ...(pendingMetaPrefs || {}), ...legacy };
+    publish();              // same: a held legacy-blob edit is reportable intent (F12)
     scheduleHydrateRetry(owner, generation);
     // The atomic half needs no merge base at all — deliver it now even though the nested blob's
     // half must wait for the account read to answer.
@@ -588,7 +622,7 @@ export function useAccountPrefs(identity?: AccountIdentity | null): AccountPrefs
 
   return {
     prefs: snap.prefs, terminal: snap.terminal, metaPrefs: snap.metaPrefs, ready: snap.ready,
-    owner: snap.owner, sync: snap.sync,
+    owner: snap.owner, sync: snap.sync, base: snap.base, held: snap.held,
     toggle, enableAll, setFollowed,
     setStartTf: persistStartTf, setUpDown: persistUpDown, setLangPref: persistLang,
     retrySync: retryPrefSync,
@@ -618,8 +652,9 @@ export function __resetMarketPrefsStore() {
   pump = null;
   if (hydrateTimer) { clearTimeout(hydrateTimer); hydrateTimer = null; }
   hydrateAttempts = 0;
+  hydrateFailed = false;
   sync = LOCAL_STATUS;
-  snapshot = { prefs: state, terminal, metaPrefs, ready, owner, sync };
+  snapshot = buildSnapshot();
 }
 
 /** Test seam — drives the owner transition directly, exactly as the hook's effect would. */

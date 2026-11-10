@@ -1,27 +1,18 @@
-# 2026-09-19 #669 plain-language debt: hash-only restamp of i18n.tsx, plainLabels.ts — copy-only change, crops unchanged
 # B-F08-6 Alert delivery — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: b2f53e45d2a4babaf37f7062d86860b79e7f9770
-# capturedAt: 2026-09-09T14:59:49.815Z
+# capturedAtHead: 80e69c39e00b6c16c5fc32b5ca1e9146d31b264d
+# capturedAt: 2026-11-09T14:14:39.780Z
 # capturedAtHead is informational. The lock is layoutFiles.
-# 2026-09-19 h_t587 r2 evidence stamp at heal 67c1c3b2784712b06f71f654d9472905e0c9155e: SettingsPanel.tsx / SectionAccuracy.tsx / SectionAccuracy.module.css (and teamAccuracyRollupRoute.test.ts where pinned) re-hashed to the heal-head digest. parseTeamsResponse live team-id, no-team sentence, 503 unavailable pair, weLabel tracking drop. No sibling crop recaptured — those surfaces do not render the accuracy rollup. F13-9 recapture NEEDED (see packet lock).
-# 2026-09-19 seat merge of master 1c46b277 into #584 (B-F12-13): hash-only restamp of terminal/app/dev/settings/page.tsx, terminal/lib/i18n.tsx, terminal/lib/plainLabels.ts to the merged-tree bytes; crops NOT recaptured by this merge commit.
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #586 (W9T_F08_13 targets readout): hash-only restamp of terminal/components/settings/SettingsPanel.tsx, terminal/components/settings/icons.tsx, terminal/lib/i18n.tsx, terminal/components/settings/SettingsProvider.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #587 (W9T_F13_9 team rollup): hash-only restamp of terminal/lib/i18n.tsx, terminal/app/dev/settings/page.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master 5a48b845 (13 commits incl. #587 B-F13-9 team rollup, merge commit) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/components/settings/SettingsPanel.tsx, terminal/components/settings/icons.tsx, terminal/lib/i18n.tsx, terminal/components/settings/SettingsProvider.tsx
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #588 (W9T_F12_17 invite link): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #587 (W9T_F13_9 team rollup): hash-only restamp of terminal/lib/i18n.tsx, terminal/app/dev/settings/page.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master 4c7a2eeb6f58 (#587 B-F13-9 team rollup + #659 + #660, merge commit) into #588 (B-F12-17 invite-link honesty): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master dafc016e (#588 B-F12-17 invite-link honesty, #664, #666) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/components/settings/SettingsPanel.tsx, terminal/components/settings/icons.tsx, terminal/lib/i18n.tsx
 layoutFiles:
-  terminal/components/settings/SectionAlertDelivery.tsx: "9c770be9ef78bc2bb9f1fa3c0b21824632ba63bc061f852264e3bc412d719aa0"
-  terminal/components/settings/SettingsPanel.tsx: "956aeac1636ae4891b1009c8e266840244c19da085ba52e77c78171317c4ffaf"
+  terminal/app/globals.css: "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517"
+  terminal/components/settings/SectionAlertDelivery.tsx: "e00be6ea3da63540441608366b08bbedad325f4aa25990e8075e61650d6f1142"
+  terminal/components/settings/SettingsPanel.tsx: "35ad74834c9d52ab797d6554c4b68182c268177f1907f775fb07a8a9a3118ccf"
   terminal/components/settings/icons.tsx: "7f3e17e45cb92545437ade898fe47a92cf6a65d1682cec9b9cea7a5bb8bd4d83"
-  terminal/lib/i18n.tsx: "51276ecc8db6956c6c4e5cc67c55eab029c0b468ccb61e34f8bb92f25e42b9f8"
-  terminal/lib/plainLabels.ts: "711f94db978d842b8051e9a975ef772308dab45ba08b3f1859537b5747d372d1"
-  terminal/app/settings.css: "3189163136d943431cbf52e4b5d241c105b695ba5af94c4c2e29151d537b5ef5"
-  terminal/components/settings/SettingsProvider.tsx: "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910"
+  terminal/lib/i18n.tsx: "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
+  terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
+  terminal/app/settings.css: "2a15b7704f1c6ec62671ec84723063dcce367c7998bbea56e04b50c9bda2252c"
+  terminal/components/settings/SettingsProvider.tsx: "fb717b94d3074bf3e7866cd399088bb0203d8e1fea0b6c18bfff46546972402b"
   terminal/app/dev/settings/page.tsx: "4b594ce879f00fdf1f096abde9a36113014b17257e6292dc0ca16c83efcd3660"
 theme: dark
 languages: [en, zh]
@@ -30,10 +21,27 @@ viewports:
   - { name: mobile, width: 390, height: 844 }
 surfaces: [SectionAlertDelivery]
 capture_flag: TERMINAL_E2E_FIXTURE
-capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
 command: |
   cd terminal
   node e2e/tools/capture_f08_6_alert_prefs.cjs
+captureFiles:
+  SectionAlertDelivery-field-error-1440-zh.png: "3a1daf04e9bc0ed8c7589d12745b3b4b41471dd821ff958fb62e4151964054e4"
+  SectionAlertDelivery-field-error-1440.png: "e9a08c6b0205e077b439236d104ab5a702c60e2cbf66dd4e11503d204ff9c2f0"
+  SectionAlertDelivery-field-error-390-zh.png: "038a2ce49bf04fbf25e05756cadf0bfd9a94bb6b58c8e6beead76ec2c1ee8a08"
+  SectionAlertDelivery-field-error-390.png: "19d76cfbfd66d29b1363c6887044fd52390f1e971354f4e6760b0bc2a0e8e512"
+  SectionAlertDelivery-populated-1440-zh.png: "f419639beba053036e1ef3a84f76df7bf0b746482bb776b986cf7c84c8c7278c"
+  SectionAlertDelivery-populated-1440.png: "9c40e9e5b128d37be84cb346c0810aae23759c90432064edbf274e915055f95c"
+  SectionAlertDelivery-populated-390-zh.png: "d867012efc487dbd71f01e5c69c0dd1a6c7cbeddbf9123683677578964fdc754"
+  SectionAlertDelivery-populated-390.png: "0e43a29cec91e6c4092fb5be214fd91212f352105c22aac2a4b25bda34a5b4f3"
+  SectionAlertDelivery-quiet-hours-1440-zh.png: "3c11a6fab3e2b01ba1d3805f5adc0c8f788f76da31b396a2be69a4e671a80ce9"
+  SectionAlertDelivery-quiet-hours-1440.png: "47f8657135b7249304ecfb793678f6583bd250e80d52b5ed7a053d61d557e245"
+  SectionAlertDelivery-quiet-hours-390-zh.png: "894e215ca3fd5df4775460fb3a7145019ba4d743da269b502868041e9145fcc1"
+  SectionAlertDelivery-quiet-hours-390.png: "8ed39562f67671e18be1bd3636d073c4f8301888fa07d70a523b076aa37b91c1"
+  SectionAlertDelivery-unavailable-1440-zh.png: "d463095e9df41447c9a7696ef8dd8a362e1038f25124752810f76b63e6d798bb"
+  SectionAlertDelivery-unavailable-1440.png: "68ef824357f02176bcb68be199f4699e6da16125c453a84474d11c397db6696d"
+  SectionAlertDelivery-unavailable-390-zh.png: "4f9212e72a92753f48be0343fa700ec496480aaa50bffa0eaa2bd36c6d3285e8"
+  SectionAlertDelivery-unavailable-390.png: "6a1801a97be1c84faf0afeaa7f37b1af8b207399754ac40307ea99beb58636da"
 files:
   - SectionAlertDelivery-field-error-1440-zh.png
   - SectionAlertDelivery-field-error-1440.png

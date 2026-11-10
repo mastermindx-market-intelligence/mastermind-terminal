@@ -81,3 +81,4 @@ describe("the shared income view keeps the source basis", () => {
     expect(incomeView("GAP.SS", set, "annual").income.revenue).toBe(set.income.revenue);
   });
 });
+

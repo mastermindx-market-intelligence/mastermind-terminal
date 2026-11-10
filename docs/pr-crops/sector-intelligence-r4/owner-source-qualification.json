@@ -1,0 +1,66 @@
+{
+  "proofKind": "exact-immutable-owner-file-to-consumer",
+  "authenticatedProductionTransport": false,
+  "canonicalDossier": false,
+  "provenance": {
+    "repo": "mastermindx-market-intelligence/macro",
+    "ref": "79dbe3f2431b9e21cabf23071f02eab5add57eb4",
+    "source": "immutable GitHub owner files; not authenticated production transport",
+    "files": {
+      "sector": {
+        "path": "site/sectordata/sector_central.json",
+        "git_blob": "119611420df3ac314b45996ebf4d3f46b44682bf",
+        "sha256": "572c88506aa6939738fd5aff2edb6c09a17c2a831dd5082fde9d049a08c838ba",
+        "bytes": 167764,
+        "asOf": "2026-09-25"
+      },
+      "confluence": {
+        "path": "site/marketdata/subsector_confluence.json",
+        "git_blob": "fea23e1e8c8611dc3958100f78edfcdeeb44a203",
+        "sha256": "852538462cd4a8d4ccf22c1184183ef2778531a704dd6d9d00d5a523ea3ca8c4",
+        "bytes": 176645,
+        "asOf": "2026-09-25"
+      },
+      "themes": {
+        "path": "site/neuralwebdata/theme_state.json",
+        "git_blob": "8f93007477d530a0186f6b518b9f142be727d931",
+        "sha256": "0b765c9ed9af65d26aebdd07790216963c252ca9dfd55e02f60ea806ef7d1486",
+        "bytes": 40402,
+        "asOf": "2026-09-26"
+      },
+      "heatmap": {
+        "path": "site/marketdata/sp500_heatmap.json",
+        "git_blob": "3756c1b48f4761cf8c2d6d89cf4efaa801dbf5c2",
+        "sha256": "8dfeab760ac7160c75a325ec12a77cf3d91394be093e07443d79cd4d32369024",
+        "bytes": 118742,
+        "asOf": "2026-09-25"
+      }
+    }
+  },
+  "consumerSha256": "ff130db94057ce89b0acdc08a41825184326bf658c219034c0e27deeb24d96c1",
+  "before": {
+    "head": "a4c8e1d56a0bcdfd40f9c2679b8bcc8a12ca2322",
+    "themes": 0,
+    "technologyConcentration": null
+  },
+  "after": {
+    "sectors": 11,
+    "groups": 76,
+    "themes": 18,
+    "semiconductorMembers": 14,
+    "technologyConcentration": {
+      "share": 0.6288935002403907,
+      "count": 79,
+      "names": [
+        "NVDA",
+        "AAPL",
+        "MSFT",
+        "AVGO",
+        "MU"
+      ]
+    },
+    "themeReadinessUnknown": 0,
+    "staleThemeLegs": 6
+  },
+  "passed": true
+}

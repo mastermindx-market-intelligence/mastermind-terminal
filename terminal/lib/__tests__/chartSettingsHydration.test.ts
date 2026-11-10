@@ -38,7 +38,11 @@ vi.mock("@/components/ChartFrameBar", async (importOriginal) => {
     }),
   };
 });
-vi.mock("@/components/ChartSettingsModal", () => ({ default: () => null }));
+vi.mock("@/components/ChartSettingsModal", () => ({
+  default: (props: { open: boolean; tab: string; onClose: () => void }) => React.createElement("button", {
+    "data-settings-open": String(props.open), "data-settings-tab": props.tab, onClick: props.onClose,
+  }),
+}));
 vi.mock("@/components/AssetLogo", () => ({ default: () => null }));
 vi.mock("@/lib/i18n", () => ({ useLang: () => ({ lang: "en" }) }));
 vi.mock("@/lib/markets", () => ({ displayName: () => "NVIDIA" }));
@@ -79,7 +83,7 @@ function paneProps() {
     detectCmd: null as never,
     compare: [] as string[],
     magnet: "off" as const,
-    replayIdx: null,
+    replayCutoff: null,
     onMeta: () => {},
     drawings: [],
     onDrawingsChange: () => {},
@@ -193,5 +197,35 @@ describe("ChartPane persisted chart-settings authority", () => {
 
     await act(async () => toggle!.click());
     expect(panelReceipts.at(-1)).toMatchObject({ dataReady: true, scaleLeft: false });
+  });
+
+  it("opens phone settings only for the exact active pane and symbol, then removes the old listener", async () => {
+    const renderPanes = async (active: number) => act(async () => {
+      root!.render(React.createElement(React.Fragment, null,
+        React.createElement(ChartPane, { ...paneProps(), key: 0, idx: 0, symbol: "MSFT", isActive: active === 0 }),
+        React.createElement(ChartPane, { ...paneProps(), key: 1, idx: 1, symbol: "NVDA", isActive: active === 1 }),
+      ));
+    });
+    const request = async (detail: unknown) => act(async () => {
+      window.dispatchEvent(new CustomEvent("mm:open-chart-settings", { detail }));
+    });
+    const open = () => container.querySelectorAll('[data-settings-open="true"]');
+    await renderPanes(1);
+    await request({ pane: 0, symbol: "MSFT", tab: "symbol" });
+    await request({ pane: 1, symbol: "MSFT", tab: "symbol" });
+    await request({ pane: 1, symbol: "NVDA", tab: "canvas" });
+    await request(undefined);
+    expect(open()).toHaveLength(0);
+    await request({ pane: 1, symbol: "NVDA", tab: "symbol" });
+    expect(open()).toHaveLength(1);
+    expect(open()[0].closest(".pane")?.classList.contains("on")).toBe(true);
+    expect(open()[0].getAttribute("data-settings-tab")).toBe("symbol");
+    await act(async () => (open()[0] as HTMLButtonElement).click());
+    await renderPanes(0);
+    await request({ pane: 1, symbol: "NVDA", tab: "symbol" });
+    expect(open()).toHaveLength(0);
+    await request({ pane: 0, symbol: "MSFT", tab: "symbol" });
+    expect(open()).toHaveLength(1);
+    expect(open()[0].closest(".pane")?.classList.contains("on")).toBe(true);
   });
 });

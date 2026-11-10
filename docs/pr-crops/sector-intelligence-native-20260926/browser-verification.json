@@ -1,0 +1,88 @@
+{
+  "kind": "local-native-UI-fixture-verification",
+  "production_proof": false,
+  "authenticated_upstream_proof": false,
+  "fixture_note": "V3 historical display fields; synthetic transport envelopes and residual heatmap members. Not current owner-payload compatibility proof.",
+  "checks": [
+    {
+      "name": "desktop has no horizontal page overflow",
+      "passed": true,
+      "detail": {
+        "client": 1380,
+        "scroll": 1380,
+        "doc": 1440,
+        "viewport": 1440,
+        "topbar": 0
+      }
+    },
+    {
+      "name": "all 14 source members render",
+      "passed": true,
+      "detail": 14
+    },
+    {
+      "name": "source order is default",
+      "passed": true
+    },
+    {
+      "name": "display return sort starts with INTC",
+      "passed": true
+    },
+    {
+      "name": "high return does not change source availability",
+      "passed": true
+    },
+    {
+      "name": "ticker search filters to one row",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "name": "company deep link uses existing analysis route",
+      "passed": true
+    },
+    {
+      "name": "browser back restores company filter",
+      "passed": true
+    },
+    {
+      "name": "board theme toggle is local",
+      "passed": true
+    },
+    {
+      "name": "keyboard End selects source record",
+      "passed": true
+    },
+    {
+      "name": "tablet has no horizontal page overflow",
+      "passed": true,
+      "detail": {
+        "client": 820,
+        "scroll": 820,
+        "doc": 820,
+        "viewport": 820,
+        "topbar": 0
+      }
+    },
+    {
+      "name": "tablet can scroll back to top",
+      "passed": false,
+      "detail": {
+        "bottom": 0,
+        "top": 0,
+        "header": 0
+      }
+    }
+  ],
+  "screenshots": [
+    "01-intelligence-desktop-light.png",
+    "02-dossier-desktop-light.png",
+    "03-companies-desktop-light.png",
+    "04-source-record-desktop-light.png",
+    "05-intelligence-desktop-dark.png",
+    "06-intelligence-tablet-light.png",
+    "07-dossier-tablet-light.png"
+  ],
+  "errors": [],
+  "failure": "tablet can scroll back to top: {\"bottom\":0,\"top\":0,\"header\":0}"
+}

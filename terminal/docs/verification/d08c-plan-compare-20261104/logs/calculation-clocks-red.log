@@ -1,0 +1,27 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal
+
+ ❯ lib/__tests__/optionsPlanComparePanel.test.tsx (6 tests | 1 failed) 163ms
+   × Plan comparison preserves evidence and native-owner truth > discloses each calculation clock separately from the shared dated reference 26ms
+     → expected null not to be null
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/optionsPlanComparePanel.test.tsx > Plan comparison preserves evidence and native-owner truth > discloses each calculation clock separately from the shared dated reference
+AssertionError: expected null not to be null
+ ❯ lib/__tests__/optionsPlanComparePanel.test.tsx:60:24
+     58|     await render(baseline, candidate);
+     59|     const clocks = host.querySelector('[data-testid="plan-comparison-c…
+     60|     expect(clocks).not.toBeNull();
+       |                        ^
+     61|     expect(clocks!.textContent).toContain("Baseline calculated at");
+     62|     expect(clocks!.textContent).toContain("2026-10-24T12:00:00Z");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 5 passed (6)
+   Start at  21:22:51
+   Duration  1.33s (transform 124ms, setup 0ms, collect 169ms, tests 163ms, environment 603ms, prepare 75ms)
+

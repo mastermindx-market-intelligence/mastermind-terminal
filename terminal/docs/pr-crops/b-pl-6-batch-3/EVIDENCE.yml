@@ -1,33 +1,26 @@
-# 2026-09-19 #669 plain-language debt: hash-only restamp of heatmapStrings.ts, flowdeskStrings.ts, plainLabels.ts, i18n.tsx — copy-only change, crops unchanged
-# 2026-09-19 m_f119_detail: hash-only restamp of AlertDetail.tsx (adds kind prop; gates Symbol/What-changed rows for thesis detail), alerts.module.css (detailClose flows to its own row) — crops unchanged
 # B-PL-6 batch 3 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 62f2782f0c63607e3fdf4acfea4bd65e853e0b62
-# capturedAt: 2026-09-19T23:36:16.989Z
+# capturedAtHead: 06eb7e854942bb9703fcc1c35a5b3486e9f5238f
+# capturedAt: 2026-11-10T09:25:56.409Z
 # capturedAtHead is informational. The lock is layoutFiles.
-# 2026-09-19 seat merge of master 1c46b277 into #584 (B-F12-13): hash-only restamp of terminal/components/heatmap/HeatmapView.tsx, terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit.
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #586 (W9T_F08_13 targets readout): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #587 (W9T_F13_9 team rollup): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master 5a48b845 (13 commits incl. #587 B-F13-9 team rollup, merge commit) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/lib/i18n.tsx
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #588 (W9T_F12_17 invite link): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #587 (W9T_F13_9 team rollup): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master 4c7a2eeb6f58 (#587 B-F13-9 team rollup + #659 + #660, merge commit) into #588 (B-F12-17 invite-link honesty): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master dafc016e (#588 B-F12-17 invite-link honesty, #664, #666) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/lib/i18n.tsx
-# 2026-09-19 seat recapture at master 62f2782f (#670 AlertDetail follow-on merged + live): AlertDetail-1440/390 EN+ZH crops regenerated with CAPTURE_ONLY=AlertDetail; layoutFiles hashes unchanged (already restamped in 05de3537); capturedAtHead informational
 layoutFiles:
-  terminal/components/options/OptionsFlowBoardView.tsx: "96e0d1d0a4e7eaed7f2d2bbec6722725afacc093e205defa280a483bc6e14b8e"
-  terminal/components/flowdesk/FiltersPanel.tsx: "57ac663475b95a569f62d4c08e83a111f6137c920c78f13f1c9dfad1aa61708b"
-  terminal/components/flowdesk/FlowCard.tsx: "155aff67c1f2ec50fd396d2e7c2739d6400bad5ed37387df8a1b1d450f1b118d"
-  terminal/components/alerts/AlertDetail.tsx: "b628caa9aadcab4a9b161b69657cf9485fc4da7d345623b03079847e07e3bdcf"
-  terminal/components/alerts/alerts.module.css: "20fcccdd05b6ff84a48402434176e1e565dff733b7033c3a436462333616be32"
-  terminal/components/heatmap/HeatmapView.tsx: "be15853db764caec8b985323c24e621152fcb533548307bb8e3ee54673d6ac8f"
-  terminal/components/heatmap/Treemap.tsx: "0c5a7f2fd990c41f725d96b9aecb83f5f73eb6a42fbc66c811b43cd722947a0d"
-  terminal/lib/heatmapStrings.ts: "201e49991d2b47daaa3e5b490352c61137e020868855959087d67af82e5f346d"
-  terminal/lib/flowdeskStrings.ts: "18bd244dee82bdc01c865ec8fd3cf5a95fa258d1fd175f2001dbf3dcfb9e9888"
-  terminal/lib/plainLabels.ts: "711f94db978d842b8051e9a975ef772308dab45ba08b3f1859537b5747d372d1"
-  terminal/lib/i18n.tsx: "51276ecc8db6956c6c4e5cc67c55eab029c0b468ccb61e34f8bb92f25e42b9f8"
-  terminal/components/PineEditor.tsx: "e48a009b44f32f9501d2890602cd5096257ad57b83bac59147d691e221a69f63"
+  terminal/components/options/OptionsFlowBoardView.tsx: "129d2b6289f8b2dbffbadc74f28f783c92146b5cb44af1121d7eb0263066ce1b"
+  terminal/components/flowdesk/FiltersPanel.tsx: "35ca28d678ceb9de2c30ac78f6e083dd35e14e4efb59d56688141a302f42c479"
+  terminal/components/flowdesk/FlowCard.tsx: "cef9c25c7e144c82200f89818bb679a2282f217debbf0229cf163cdddac1de37"
+  terminal/components/alerts/AlertDetail.tsx: "006505becd068bead39026e856fd230e246e36ecec53e43bbebba236358e36dd"
+  terminal/components/alerts/alerts.module.css: "24316b370fa4b336251ec638b6397c92cd903785c79554de50481f4a6218ec02"
+  terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
+  terminal/components/heatmap/Treemap.tsx: "51b284e851011198374854f765c6efd6cb9f682450e7e52f62438adfb1bc995b"
+  terminal/lib/heatmapStrings.ts: "d24d5cff73246b1a426fe4034723dae30968cd6779d35cef29a4eaf3b55315b7"
+  terminal/lib/flowdeskStrings.ts: "580399a47bae6ab6aa16368d25ed54c94047799e4a600352385b5a9b7cc25c10"
+  terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
+  terminal/lib/i18n.tsx: "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
+  terminal/components/PineEditor.tsx: "941c5d5951c18e805605baccd820a9aad9c5f8f6046727968cbc3580625c4ef0"
+  terminal/e2e/tools/capture_ci_evidence.cjs: "856da74c32caa80a6bb0d18a243e90db1c3a1c65690c44e5703887a855d834e4"
+  terminal/e2e/tools/capture_pl6_batch3.cjs: "c94f1650277ca0f7137aea08663f031eecd5891a4be45c903d7f66a542d6287c"
+  terminal/next.config.ts: "f6dbf2cd6da2894cc2049b77ac11fb42c0523df5f39f433753d66f8c491279a7"
+  terminal/e2e/fixtures/heatmap-price-only-tile.json: "df837b000afc12af5d522287c83cf483f716c147ae5d170da138c62f539357ca"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -35,7 +28,7 @@ viewports:
   - { name: mobile, width: 390, height: 844 }
 surfaces: [OptionsFlowBoard, FlowDesk, AlertDetail, HeatmapTreemap, PineLibrary]
 capture_flag: TERMINAL_E2E_FIXTURE
-capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
 heatmap_price_only_fixture: terminal/e2e/fixtures/heatmap-price-only-tile.json
 heatmap_crops:
   - HeatmapTreemap-1440.png
@@ -44,7 +37,7 @@ heatmap_crops:
   - HeatmapTreemap-390-zh.png
 command: |
   cd terminal
-  CAPTURE_ONLY=HeatmapTreemap node e2e/tools/capture_pl6_batch3.cjs
+  node e2e/tools/capture_pl6_batch3.cjs
 files:
   - AlertDetail-1440-zh.png
   - AlertDetail-1440.png
@@ -63,4 +56,6 @@ files:
   - OptionsFlowBoard-390-zh.png
   - OptionsFlowBoard-390.png
   - PineLibrary-1440-zh.png
+  - PineLibrary-1440.png
   - PineLibrary-390-zh.png
+  - PineLibrary-390.png

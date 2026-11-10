@@ -1,0 +1,222 @@
+{
+  "recordedAt": "2026-10-21T03:26:39.923467+00:00",
+  "status": "SOURCE_AND_CAPTURE_QUALIFIED_FINAL_ACCEPTANCE_OPEN",
+  "pr": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1044",
+  "root": "WS:MARKET-OS",
+  "trueParent": "WS:MARKET-OS",
+  "sourceHead": "da02d533f17e209abd63f8c23bcc8b68952d49ae",
+  "integratedMaster": "e3ca39a82d9713061e5e27ac0cd3ac1d249af127",
+  "mergeCommit": "59d7b65aa032e5dd0d2e58a9c8322ad2371a0d33",
+  "originalWorktree": "/home/ubuntu3/lanes/wt/pv1044-sol012-20261020",
+  "implementationException": {
+    "reason": [
+      "CRITICAL_PATH_SHORTCUT",
+      "NO_ELIGIBLE_PRE_EFFECT_WORKER"
+    ],
+    "authority": "Existing Portfolio owner continuation; comments 6306909437 and 6307010567",
+    "scope": "Preserve original source, normal merge/push, decode-based evidence guard and actual recapture; does not waive independent review or live acceptance"
+  },
+  "originalReturns": {
+    "012": {
+      "run": "portfolio-terminal-owner-final-repairs-20261020-sol-012",
+      "responseSha256": "4b1d247846ae2851036abfb4642b39cff8eb2fd32f9229c73a0ec9f77b931d9a",
+      "recoveredSource": "9704aa8e358d2cf8440e293a30a09a24be9038b2",
+      "disposition": "Received and source published through normal fast-forward; final client acceptance remains open; STOP original run"
+    },
+    "013": {
+      "run": "portfolio-terminal-server-risk-review-20261020-sol-013",
+      "responseSha256": "2953e9ab4999df58b8e26348e2e38459849aa6131be9911828068c7ff71d3f24",
+      "disposition": "Accepted through fabric_accept as bounded independent server/Risk review only; four reviewed blobs unchanged; STOP original run"
+    }
+  },
+  "blockedFabric": {
+    "runs": [
+      "portfolio-terminal-evidence-integration-20261021-sol-014",
+      "portfolio-terminal-client-acceptance-review-20261021-sol-015"
+    ],
+    "observedStatus": "TERMINAL_FAILURE",
+    "exitCode": 78,
+    "controllerEvidence": "PLAIN_PACKET_RETENTION_REFUSED before_lease=1; duplicate exclusive creation of the retained request.packet by fabric_task.py and remote_sub.sh",
+    "retryAllowed": false,
+    "canonicalExecutionAbsenceProven": false,
+    "scope": "No admitted worker START or review result; original packets and carriers retained, no retry/provider substitution/runtime modification"
+  },
+  "captures": {
+    "visualIntelligence": {
+      "exit": 0,
+      "log": "/tmp/portfolio-terminal-owner-recovery-20261021/visual-intelligence-capture.log",
+      "log_sha256": "29ed5c3a1952883c103afb185b8b7d6edd9c5e5e5c23cab2e99f6699babbc7c4",
+      "stats": {
+        "startTime": "2026-10-21T03:16:07.334Z",
+        "duration": 139313.968,
+        "expected": 30,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "report_sha256": "ba261add90d19e99ba741085c67baf1401f47af2c7b8fcda0646102ab9578387"
+    },
+    "batch1": {
+      "exit": 0,
+      "log": "/tmp/portfolio-terminal-owner-recovery-20261021/bpl6-capture.log",
+      "log_sha256": "7fac8483e08cbde2421bf27dc834d144de6fdd8113cb89e08773e86efc80b24c",
+      "capture_ok_lines": 24
+    },
+    "sourceHead": "da02d533f17e209abd63f8c23bcc8b68952d49ae",
+    "scope": "Synthetic local fixtures; no live-account or production acceptance"
+  },
+  "pngGuard": {
+    "controlsPassed": 7,
+    "forbiddenMutantsRejected": [
+      "former arbitrary 50000-byte floor",
+      "PNG header-only dimensions"
+    ],
+    "completeDecodedPixels": true,
+    "preCaptureRealCropRead": "An initial full reader failed on a stale pre-recapture crop hash; it is not counted as a decoded-pixel failure or passing evidence"
+  },
+  "protectedGitBlobs": {
+    "terminal/lib/portfolio.ts": "cc699dc56b92ca162d32875a894609a42648333d",
+    "terminal/lib/portfolioRisk.ts": "8b8080aba39b9a15d996be972f4d9fc2ba5a66ae",
+    "terminal/app/api/portfolio/route.ts": "9a1db9e11bb771ce50a9a409b4ef0335100ade36",
+    "terminal/app/api/portfolio/targets/route.ts": "39a58fc8ed8f237ec7b508f168752da1276398e9",
+    "supabase/migrations/0036_portfolio_entry_currency.sql": "8b3c3d2dc919fc78131f31837c41283f9301e875",
+    "terminal/docs/verification/portfolio-workspace/0036-production-receipt.json": "f7cc99df05f822420d73de9fad8ce7b7c636db70"
+  },
+  "migration0036": {
+    "appliedAt": "2026-10-19T01:13:16Z",
+    "sqlSha256": "9c09540e7b4e451e55a39d8229b3a73eb93c997578f3dadfdc3f24b47a7f7f4c",
+    "receiptSha256": "511faa4788ca35b8946070bdc8420057fcd0bd62be96fa289c058609e3fe3ff1",
+    "action": "Preserved byte-identical; not reapplied"
+  },
+  "productionObservation": {
+    "observedAtDate": "2026-10-21",
+    "sourceHead": "e3ca39a82d9713061e5e27ac0cd3ac1d249af127",
+    "evidence": [
+      "authorized checkout HEAD",
+      "application .deployment-id",
+      "raw served HTML data-dpl-id"
+    ],
+    "portfolioCandidateDeployed": false,
+    "scope": "Read-only; no real portfolio mutations or private holding data retained"
+  },
+  "remainingGates": [
+    "exact-final-head hosted CI",
+    "independent final client review through an admitted route",
+    "normal merge and exact-SHA deployment",
+    "authenticated real-user acceptance; resolve historical-risk consumer scope"
+  ],
+  "artifacts": {
+    "README.md": "cd784bcc60512705a9c5356303fdfb65237deb0562eaab50b2d0b61077975c45",
+    "bpl6-capture.txt": "7fac8483e08cbde2421bf27dc834d144de6fdd8113cb89e08773e86efc80b24c",
+    "bpl6-command.json": "5323cb5a520cc9483846681954edf70dee3555c88ccce117f8ded4c37e47908f",
+    "bpl6-result.json": "c01e0b07659becb34746bfc35f122e0624f7313b7ef33c0dea3a7844325f6d3c",
+    "header-only-mutant.txt": "9a347fb0d7b39bcb24a0864c87b1f4e740098b639c7038a35fd8b0d255c700e4",
+    "old-byte-proxy-mutant.txt": "8a9d374f611d10ff64b4d11d78b031c0e9c9fee4dcb5860b4ab58833869e4298",
+    "png-controls.txt": "1cfbc40b5ce2a8439aa8a6ab62bc54e4c8876e26365229e3c29bf11c6d4d2004",
+    "png-evidence-falsifiers.json": "b2e088f4e514026d3063daa73a8c155397dd8928fb67a90a0625ffe61adaa7a0",
+    "portfolio-focused-unit.json": "5cbb93507a3a57c2d8cbf482816f701cdc3abe8090e45b15e8238ccb55bc5e01",
+    "portfolio-focused-unit.txt": "9186b4590fa867a320ce1b7b406b258174748b1b7c3750dc17b87c55eb391421",
+    "post-capture-evidence.json": "2d47adac17dd78e5dc63f31a813945a3c7853aa8a47b88b850fb19578bdbf930",
+    "post-capture-evidence.txt": "c378b677cbf13b721e5e05e9a48e6db5865d293f3149d3232c92befbd17c835c",
+    "types-and-evidence-lint.txt": "77a5f9f0221e5e2f5470fd14a147fff94e016a40dae9717898e7bd061295d2d9",
+    "visual-intelligence-capture.txt": "29ed5c3a1952883c103afb185b8b7d6edd9c5e5e5c23cab2e99f6699babbc7c4",
+    "visual-intelligence-command.json": "633ef061011320e6e973ec582d4216d5ea58511f26bac13d4c00136b27a3769e",
+    "visual-intelligence-result.json": "a78999a1f903d66ff127e36d9af66c4c0f9b0008a02d6dd084eddd24da023539"
+  },
+  "postCaptureGates": {
+    "evidenceReaders": {
+      "label": "post-capture-evidence",
+      "sourceHead": "da02d533f17e209abd63f8c23bcc8b68952d49ae",
+      "command": [
+        "npm",
+        "exec",
+        "--",
+        "vitest",
+        "run",
+        "lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+        "lib/__tests__/visualIntelligenceEvidence.test.ts",
+        "lib/__tests__/optionsLevelAxisEvidence.test.ts"
+      ],
+      "startedAt": "2026-10-21T03:27:06.267467+00:00",
+      "finishedAt": "2026-10-21T03:27:06.886916+00:00",
+      "exitCode": 0,
+      "logSha256": "1a7e71b338b8c5221dafed49a9d4a5d3247fd2eab8c16eed1efe8bfccbc7938d",
+      "passed": 17,
+      "testFiles": 3
+    },
+    "portfolioFocusedUnits": {
+      "label": "portfolio-focused-unit",
+      "sourceHead": "da02d533f17e209abd63f8c23bcc8b68952d49ae",
+      "command": [
+        "npm",
+        "exec",
+        "--",
+        "vitest",
+        "run",
+        "components/settings/__tests__/SectionPortfolioTargets.summary.test.tsx",
+        "components/settings/__tests__/SectionPortfolioTargets.test.tsx",
+        "lib/__tests__/accountExport.test.ts",
+        "lib/__tests__/plainLanguageGuard.test.ts",
+        "lib/__tests__/portfolio.test.ts",
+        "lib/__tests__/portfolioBrief.test.ts",
+        "lib/__tests__/portfolioBriefPanelRetry.test.tsx",
+        "lib/__tests__/portfolioBriefProxy.test.ts",
+        "lib/__tests__/portfolioCostUnits.test.ts",
+        "lib/__tests__/portfolioCreateRetry.test.ts",
+        "lib/__tests__/portfolioMonetaryBasis.test.ts",
+        "lib/__tests__/portfolioMutation.test.ts",
+        "lib/__tests__/portfolioPageReadbackOrder.test.tsx",
+        "lib/__tests__/portfolioRailRead.test.tsx",
+        "lib/__tests__/portfolioReadAuthority.test.ts",
+        "lib/__tests__/portfolioRisk.test.ts",
+        "lib/__tests__/portfolioRiskHistory.test.ts",
+        "lib/__tests__/portfolioRiskHistoryRoute.test.ts",
+        "lib/__tests__/portfolioRiskHistoryView.test.tsx",
+        "lib/__tests__/portfolioRoute.test.ts",
+        "lib/__tests__/portfolioRouteRisk.test.ts",
+        "lib/__tests__/portfolioTargets.test.ts",
+        "lib/__tests__/portfolioTargetsLedgerContract.test.ts",
+        "lib/__tests__/portfolioTargetsRoute.test.ts",
+        "lib/__tests__/portfolioTargetsSummary.test.ts",
+        "lib/__tests__/portfolioTargetsView.test.tsx",
+        "lib/__tests__/portfolioViewFailedReread.test.ts",
+        "lib/__tests__/portfolioWorkspaceContract.test.ts",
+        "lib/__tests__/portfolioWorkspaceController.test.tsx",
+        "lib/__tests__/positionModalFailure.test.tsx",
+        "lib/__tests__/positionMutationFailure.test.ts"
+      ],
+      "startedAt": "2026-10-21T03:27:06.894720+00:00",
+      "finishedAt": "2026-10-21T03:27:12.929569+00:00",
+      "exitCode": 0,
+      "logSha256": "7664ba67b26c05d084c408ec474566578478e988b5690097ee7ebdca77cb53e0",
+      "passed": 713,
+      "testFiles": 31
+    }
+  },
+  "earlierHostedUnitObservation": {
+    "head": "da02d533f17e209abd63f8c23bcc8b68952d49ae",
+    "jobUrl": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/actions/runs/39537640099/job/119017867362",
+    "passed": 14765,
+    "failed": 3,
+    "todo": 4,
+    "failedScope": [
+      "BPL TerminalShell source binding",
+      "Visual Intelligence capture harness source binding",
+      "Visual Intelligence pre-recapture mobile PNG binding"
+    ],
+    "disposition": "Fresh actual captures and current manifests pass all17 evidence assertions locally; the new artifact commit still requires its own hosted CI"
+  },
+  "logPresentation": {
+    "transformation": "Text copies remove ANSI display codes and trailing whitespace only. Original command receipts retain raw log hashes; artifacts map hashes the committed presentation copies.",
+    "originalTextCopySha256": {
+      "portfolio-focused-unit.txt": "7664ba67b26c05d084c408ec474566578478e988b5690097ee7ebdca77cb53e0",
+      "png-controls.txt": "772bee5c2bef762132d3cfbabf7b8a51adf8e3b9cbb24d2e3aa370baa0a56ab5",
+      "types-and-evidence-lint.txt": "77a5f9f0221e5e2f5470fd14a147fff94e016a40dae9717898e7bd061295d2d9",
+      "header-only-mutant.txt": "a6a2ec393104b50522598f242686d7f92d20ff3730a32b34c41b449ec2d824f5",
+      "old-byte-proxy-mutant.txt": "b3c0ffc721d38b4c97f06d32d0a2a42ab8edb0b6287e932b3e218c17b04af8ae",
+      "bpl6-capture.txt": "7fac8483e08cbde2421bf27dc834d144de6fdd8113cb89e08773e86efc80b24c",
+      "visual-intelligence-capture.txt": "29ed5c3a1952883c103afb185b8b7d6edd9c5e5e5c23cab2e99f6699babbc7c4",
+      "post-capture-evidence.txt": "1a7e71b338b8c5221dafed49a9d4a5d3247fd2eab8c16eed1efe8bfccbc7938d"
+    }
+  }
+}

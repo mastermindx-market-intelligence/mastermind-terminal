@@ -1,0 +1,63 @@
+{
+  "originalLogicalBase": "terminal/docs/pr-crops/gmi-gate8-cohort-card",
+  "sourceCommit": "ab638b65ad95a940b03ec387ac71e77563a4df55",
+  "files": [
+    {
+      "file": "EVIDENCE.yml",
+      "sha256": "3c5e11fb706cf6a71db3e24c70a4d41aa833db4f2e0d4dad8d05a04b7f3a6b4a"
+    },
+    {
+      "file": "desktop-en-closed-unavailable.png",
+      "sha256": "c5f8cc6ba33c25d7ecb7c55d263da7d8f2e4f2818ea62334094a431988bf6d8b"
+    },
+    {
+      "file": "desktop-en-closed.png",
+      "sha256": "729269665f33bb0056fef100ce03f071c073bb64dc3f855f58cfcf19495e2693"
+    },
+    {
+      "file": "desktop-en-open.png",
+      "sha256": "8dfa77864fffd1a6ecd27f317d75a67d7d7de53466973825d9d6f262a7964416"
+    },
+    {
+      "file": "desktop-en-page-open.png",
+      "sha256": "913db3b4cd90875a2186b00ce57c0c3a770e28de6b4bfea9a0452d02ba2df4be"
+    },
+    {
+      "file": "desktop-zh-closed.png",
+      "sha256": "0a575a10dfaf504ef6a89d491a263023e0fd1d0d5215fef4a33771e72494f4fb"
+    },
+    {
+      "file": "desktop-zh-open.png",
+      "sha256": "5f158538e373c0c85513e31c94e3e10fab2230f7758683bd556c1170ccc9651c"
+    },
+    {
+      "file": "mobile-en-empty.png",
+      "sha256": "b6e278e956cc66462abedb4453a1c230a9b970deffa9d082d65e1649da5423c5"
+    },
+    {
+      "file": "mobile-en-ready.png",
+      "sha256": "d799b9c107f9508548b5a866c530687c70623be8d7345671b15666f0d85e306c"
+    },
+    {
+      "file": "mobile-en-unavailable.png",
+      "sha256": "6c709c30b7fd20cbd6d876fd6356dc6bdd393713cae1bcf03eab1df9167824cd"
+    },
+    {
+      "file": "mobile-zh-empty.png",
+      "sha256": "44bad033e5bdc10ced6a4dcb0c6dc649c753c9a89c5366062635e59863cf7ee0"
+    },
+    {
+      "file": "mobile-zh-ready.png",
+      "sha256": "81a5c7f3bcedbc5472380dd59070e6770ea7e2dd10b34e9e989eb069a06fe4dd"
+    },
+    {
+      "file": "mobile-zh-unavailable.png",
+      "sha256": "f9615c5e55d3267e7fe276e0454780292225ef8039d50bbfc7073a0f05a12933"
+    },
+    {
+      "file": "tablet-en-ready.png",
+      "sha256": "9ade5edfe956bb6205cbb34b28a3324ea372ef67cc7b1d1128096dda24dc04e7"
+    }
+  ],
+  "scope": "Exact original packet, including its recorded clipped-frame finding. Historical references retain this logical base and source commit."
+}

@@ -1,0 +1,124 @@
+{
+  "base": "f528a219cc5d73e94e058575e3df83d689632bf9",
+  "operation": "d08c-plan-compare-20261104-c3",
+  "candidate": [
+    {
+      "path": "terminal/components/options/OptionsPlanPayoffPanel.tsx",
+      "bytes": 14529,
+      "sha256": "d94ace4a25041092d36f1a193f064af24cc85a0a7b62fab2ef7561e2a8f47597",
+      "git_blob_sha1": "0a985a399b6d56bf18d74885d31cf3e2f0100058"
+    },
+    {
+      "path": "terminal/components/options/OptionsPlanPayoffPanel.module.css",
+      "bytes": 6952,
+      "sha256": "3acea9a65d03c9e17544337ac11676a3ebcbe71de48f08bf9f3a16235f17cadd",
+      "git_blob_sha1": "964fa6aa1b80ccba893e29df639de4f00f05d3c2"
+    },
+    {
+      "path": "terminal/components/options/OptionsPlanComparePanel.tsx",
+      "bytes": 12518,
+      "sha256": "ef52a97e6a59ad88a574b27eaac5d869a1ec005b33ecc9843f2dc8e36fce5e52",
+      "git_blob_sha1": "ea9c65fa2608902a59e0c04a3f281e0774db4d3c"
+    },
+    {
+      "path": "terminal/lib/optionsPlanScenarioCompare.ts",
+      "bytes": 5628,
+      "sha256": "3c14e3e115050e310c7f532a7294852a3f3c66ef3b88e1f6b7ea25ee9d43e23f",
+      "git_blob_sha1": "45a783a3298abe184fe7329beed7b32a093266d8"
+    },
+    {
+      "path": "terminal/lib/__tests__/optionsPlanScenarioCompare.test.ts",
+      "bytes": 4947,
+      "sha256": "9e3aa80e4b7a87ba54eecd329f0a29a2587deb1ac80f14615902935e3948007a",
+      "git_blob_sha1": "32e5689abe2d01d8b007a9672f8c5074548aff4a"
+    },
+    {
+      "path": "terminal/lib/__tests__/optionsPlanComparePanel.test.tsx",
+      "bytes": 4657,
+      "sha256": "630986ee640a18a09271437acee5fe8a646a34c1a1bf31119253a9a5aab6eeac",
+      "git_blob_sha1": "8e9cc6650b25a5c9934008c317cf73f80d4f5b18"
+    },
+    {
+      "path": "terminal/lib/__tests__/optionsPlanPayoffPanel.test.tsx",
+      "bytes": 10322,
+      "sha256": "76b533581807821ac61c1ed380147a7b681e8c71d54ff5cc2b009ef722d2672a",
+      "git_blob_sha1": "96a1b834810af451caa5c11aa9cbc135014794a1"
+    },
+    {
+      "path": "terminal/e2e/options-plan-scenario-comparison.spec.ts",
+      "bytes": 4015,
+      "sha256": "3dbf86fee35aa7cf300cd0c007d7fb55419dae25f6b439c6180796bad1efb654",
+      "git_blob_sha1": "ab81fd5eb3d5bf5685b495cd8ebec44e89442894"
+    },
+    {
+      "path": "terminal/e2e/options-plan-compare-mounted.spec.ts",
+      "bytes": 8380,
+      "sha256": "e71db737cb0550c44dead0183ee11cb37d0dea1c5f42664d5d2615f707a2acbd",
+      "git_blob_sha1": "69c05c91a363b3697a4cc11d22d20daddc995b21"
+    },
+    {
+      "path": "terminal/playwright.d08c.config.ts",
+      "bytes": 1469,
+      "sha256": "b80dd3e74bf1ad2b8d9de8798de0347b8ac61d3bf86e42aa7afc9a68bdced827",
+      "git_blob_sha1": "661c27eb53599485efb42c82de507e8ce8019593"
+    }
+  ],
+  "preserved": [
+    {
+      "path": "terminal/lib/optionsPlanDraft.ts",
+      "bytes": 8233,
+      "sha256": "f6b1a182bbf25bc18e2e8db0cf21dff0b7e21299ac6cedddfda4f2e483fc6dc7",
+      "git_blob_sha1": "1b02689501cd26226b61e7a5d3fa8f5868552f7b",
+      "base_blob": "1b02689501cd26226b61e7a5d3fa8f5868552f7b",
+      "unchanged": true
+    },
+    {
+      "path": "terminal/lib/optionsContractShortlist.ts",
+      "bytes": 18045,
+      "sha256": "09407f04ac1c3ccbca439d9a30d9097357fabe367d97c0cdbdbe965ceadae3a4",
+      "git_blob_sha1": "8d42da79f3e5bbda9ea236df93845824feb4900d",
+      "base_blob": "8d42da79f3e5bbda9ea236df93845824feb4900d",
+      "unchanged": true
+    },
+    {
+      "path": "terminal/lib/optionsPlanPayoff.ts",
+      "bytes": 8029,
+      "sha256": "7450dc51f7a4ead5f9445c083ef93f7e4d271277fae21a3b8f35b61e3ff420db",
+      "git_blob_sha1": "cb68f58f3f64e3e586c7b775996209d177ca6a22",
+      "base_blob": "cb68f58f3f64e3e586c7b775996209d177ca6a22",
+      "unchanged": true
+    },
+    {
+      "path": "terminal/components/options/OptionsPlanDraftEditor.tsx",
+      "bytes": 10346,
+      "sha256": "35d6c7748ced7a901a768dd7e25752436c49b5d24d48771561141ae1e6262470",
+      "git_blob_sha1": "e2b76e30ed12c12efa751d589b0820f7ae5c57aa",
+      "base_blob": "e2b76e30ed12c12efa751d589b0820f7ae5c57aa",
+      "unchanged": true
+    },
+    {
+      "path": "terminal/components/options/OptionsShortlistPlan.tsx",
+      "bytes": 3297,
+      "sha256": "0cf976ca594219f7fc29c907f84a82dfabb618a7ea9ac0a6cda09025ba595cdd",
+      "git_blob_sha1": "7c49f908498c7427babcfb3c0e5c619ac53951cb",
+      "base_blob": "7c49f908498c7427babcfb3c0e5c619ac53951cb",
+      "unchanged": true
+    },
+    {
+      "path": "terminal/components/options/ContractShortlist.tsx",
+      "bytes": 17869,
+      "sha256": "5a86f859a7a98920cbb64816f80d097ea4ee834ea8bd0866ab27134dfbe49e84",
+      "git_blob_sha1": "277f2b3b7ec16cd5fbdcfcd295afcf5cbf5d362d",
+      "base_blob": "277f2b3b7ec16cd5fbdcfcd295afcf5cbf5d362d",
+      "unchanged": true
+    },
+    {
+      "path": "terminal/app/api/options/plan/expiry/route.ts",
+      "bytes": 4322,
+      "sha256": "7845e217c983b999071caf550f821847ed22977ba50c6df58bc40372d04f89fd",
+      "git_blob_sha1": "8aa0fb159c70bf5ab5ec4653857ab744ab6000a0",
+      "base_blob": "8aa0fb159c70bf5ab5ec4653857ab744ab6000a0",
+      "unchanged": true
+    }
+  ]
+}

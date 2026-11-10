@@ -1,0 +1,457 @@
+{
+  "startedAt": "2026-11-09T14:20:14.134Z",
+  "port": 3805,
+  "cases": [
+    {
+      "lang": "en",
+      "state": "empty",
+      "width": 390,
+      "observations": [
+        {
+          "stage": "before-click",
+          "at": "2026-11-09T14:20:24.141Z",
+          "href": "http://127.0.0.1:3805/terminal?symbol=NVDA",
+          "readyState": "interactive",
+          "visualReady": false,
+          "visualReadyAt": null,
+          "observedAt": 725,
+          "buttons": [
+            {
+              "outer": "<button class=\"avatar\" title=\"Settings\" aria-label=\"Settings\" aria-haspopup=\"dialog\">U</button>",
+              "ancestry": [
+                {
+                  "tag": "BUTTON",
+                  "class": "avatar",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "SPAN",
+                  "class": "MobileNav-module__lB7WuW__account",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "DIV",
+                  "class": "m-right",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "DIV",
+                  "class": "mobilebar MobileNav-module__lB7WuW__header",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "DIV",
+                  "class": "app2",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "BODY",
+                  "class": "",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "HTML",
+                  "class": "inter_7b064e0d-module__MOT0tq__variable jetbrains_mono_29bcc33-module__Rz8LTW__variable",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                }
+              ]
+            }
+          ],
+          "openCards": 0,
+          "visibleText": "MASTERMIND\nU"
+        },
+        {
+          "stage": "after-click",
+          "at": "2026-11-09T14:20:24.300Z",
+          "href": "http://127.0.0.1:3805/terminal?symbol=NVDA",
+          "readyState": "interactive",
+          "visualReady": false,
+          "visualReadyAt": null,
+          "observedAt": 881.2999999523163,
+          "buttons": [
+            {
+              "outer": "<button class=\"avatar\" title=\"Settings\" aria-label=\"Settings\" aria-haspopup=\"dialog\">R</button>",
+              "ancestry": [
+                {
+                  "tag": "BUTTON",
+                  "class": "avatar",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "SPAN",
+                  "class": "MobileNav-module__lB7WuW__account",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "DIV",
+                  "class": "m-right",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "DIV",
+                  "class": "mobilebar MobileNav-module__lB7WuW__header",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "DIV",
+                  "class": "app",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "BODY",
+                  "class": "",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "HTML",
+                  "class": "inter_7b064e0d-module__MOT0tq__variable jetbrains_mono_29bcc33-module__Rz8LTW__variable",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                }
+              ]
+            }
+          ],
+          "openCards": 0,
+          "visibleText": "MASTERMIND\nR\nN\nNVDA\n—\n—\nPortfolio\nWatchlists\nN\nNVDA\nNVDA\n—\n—\nIntelligence\nOracle\n—\nView details\nResearch\nNo current reading\nView details\nProphet\nChecking early evidence…\nOracle entry unverified · No current data\nWatchlists\nDefault\nImport CSV\nExport CSV\nDeep analysis coming online\nThis name isn't in the research desk yet — the chart, levels and oracle verdict above are live.\nFollow chart\nPin this view\nUnlink\n\nContext is unavailable.\n\nLinking applies to this session only.\n\nOpen full analysis\nAsk Mastermind AI about NVDA →"
+        },
+        {
+          "stage": "final",
+          "at": "2026-11-09T14:20:54.317Z",
+          "href": "http://127.0.0.1:3805/terminal?symbol=NVDA",
+          "readyState": "complete",
+          "visualReady": true,
+          "visualReadyAt": 2832.399999856949,
+          "observedAt": 30899.700000047684,
+          "buttons": [
+            {
+              "outer": "<button class=\"avatar\" title=\"Settings\" aria-label=\"Settings\" aria-haspopup=\"dialog\">R</button>",
+              "ancestry": [
+                {
+                  "tag": "BUTTON",
+                  "class": "avatar",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "SPAN",
+                  "class": "MobileNav-module__lB7WuW__account",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "DIV",
+                  "class": "m-right",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "DIV",
+                  "class": "mobilebar MobileNav-module__lB7WuW__header",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "DIV",
+                  "class": "app",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "BODY",
+                  "class": "",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "HTML",
+                  "class": "inter_7b064e0d-module__MOT0tq__variable jetbrains_mono_29bcc33-module__Rz8LTW__variable",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                }
+              ]
+            }
+          ],
+          "openCards": 0,
+          "visibleText": "MASTERMIND\nR\nN\nNVDA\n192.53\n-1.64%\nN\nNVIDIA Corp · 3D · Equities\nO\n200.12\nH\n201.67\nL\n191.22\nC\n192.53\n-7.51 (-3.75%)\n\t\n\t\n\n\n\n\t\n\t\n\n\n\n\t\n\t\n\n\t\n\t\n5\nNVDA\n192.53\n00:00\nBTC-USD\nETH-USD\nNVDA\nAAPL\nMSFT\nQQQ\n1s\n5s\n15s\n30s\n1m\n5m\n15m\n30m\n1h\n2h\n4h\n12h\nD\n2D\n3D\nW\n2W\n1M\n3M\nPortfolio\nWatchlists\nN\nNVIDIA Corp\nNVDA · Equities\n192.53\n-1.64%\nCLOSED\nIntelligence\nOracle\nUptrend — no entry signal\nResearch\nNo current reading\nView details\nProphet\nSign in to view\nHistorical signal: Structure stop · Signal date unverified\nOracle entry unverified · No current data\nTREND\nUPTREND\nweeks–months\nReview Default\n6 symbols, one at a time, in the current order\nWatchlists\nDefault\nImport CSV\nExport CSV\nDeep analysis coming online\nThis name isn't in the research desk yet — the chart, levels and oracle verdict above are live.\nKEY STATS\nVolume\n179.30 M\nAvg volume (30D)\n170.09 M\nPERFORMANCE\n-8.62%\n1W\n-9.44%\n1M\n+12.43%\n3M\n+1.75%\n6M\n+3.23%\nYTD\n+24.77%\n1Y\nTECHNICALS\n23\nSTRONG SELL\nSell 17\nNeutral 7\nBuy 2\nMore technicals ›\nREALIZED VOLATILITY\nHistorical prices · IV unavailable\n35%\n40%\n45%\n50%\n55%\n10d\n21d\n42d\n63d\n126d\n252d\nCurrent\nMedian\nFollow chart\nPin this view\nUnlink\n\nFollowing chart: NVDA\n\nLinking applies to this session only.\n\nSEASONALITY · AVG MONTHLY RETURN\n10Y\nJ\nF\nM\nA\nM\nJ\nJ\nA\nS\nO\nN\nD\nJan\nFeb\nMar\nApr\nMay\nJun\nJul\nAug\nSep\nOct\nNov\nDec\nNov · +11.9% avg · WR 80% · n=5\nCurrent month highlighted · from NVDA history (display-only context).\nMore seasonals ›\nOpen full analysis\nAsk Mastermind AI about NVDA →"
+        }
+      ],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "opened": false,
+      "error": {
+        "name": "TimeoutError",
+        "message": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.acs-overlay.open .acs-card') to be visible\u001b[22m\n"
+      }
+    },
+    {
+      "lang": "zh",
+      "state": "empty",
+      "width": 390,
+      "observations": [
+        {
+          "stage": "before-click",
+          "at": "2026-11-09T14:20:55.344Z",
+          "href": "http://127.0.0.1:3805/terminal?symbol=NVDA",
+          "readyState": "interactive",
+          "visualReady": false,
+          "visualReadyAt": null,
+          "observedAt": 614.2999999523163,
+          "buttons": [
+            {
+              "outer": "<button class=\"avatar\" title=\"Settings\" aria-label=\"Settings\" aria-haspopup=\"dialog\">R</button>",
+              "ancestry": [
+                {
+                  "tag": "BUTTON",
+                  "class": "avatar",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "SPAN",
+                  "class": "MobileNav-module__lB7WuW__account",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "DIV",
+                  "class": "m-right",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "DIV",
+                  "class": "mobilebar MobileNav-module__lB7WuW__header",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "DIV",
+                  "class": "app",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "BODY",
+                  "class": "",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "HTML",
+                  "class": "inter_7b064e0d-module__MOT0tq__variable jetbrains_mono_29bcc33-module__Rz8LTW__variable",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                }
+              ]
+            }
+          ],
+          "openCards": 0,
+          "visibleText": "MASTERMIND\nR\nN\nNVDA\n—\n—\nPortfolio\nWatchlists\nN\nNVDA\nNVDA\n—\n—\nIntelligence\nOracle\n—\nView details\nResearch\nNo current reading\nView details\nProphet\nChecking early evidence…\nOracle entry unverified · No current data\nWatchlists\nDefault\nImport CSV\nExport CSV\nDeep analysis coming online\nThis name isn't in the research desk yet — the chart, levels and oracle verdict above are live.\nFollow chart\nPin this view\nUnlink\n\nContext is unavailable.\n\nLinking applies to this session only.\n\nOpen full analysis\nAsk Mastermind AI about NVDA →"
+        },
+        {
+          "stage": "after-click",
+          "at": "2026-11-09T14:20:55.528Z",
+          "href": "http://127.0.0.1:3805/terminal?symbol=NVDA",
+          "readyState": "interactive",
+          "visualReady": false,
+          "visualReadyAt": null,
+          "observedAt": 798.7000000476837,
+          "buttons": [
+            {
+              "outer": "<button class=\"avatar\" title=\"Settings\" aria-label=\"Settings\" aria-haspopup=\"dialog\">R</button>",
+              "ancestry": [
+                {
+                  "tag": "BUTTON",
+                  "class": "avatar",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "SPAN",
+                  "class": "MobileNav-module__lB7WuW__account",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "DIV",
+                  "class": "m-right",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "DIV",
+                  "class": "mobilebar MobileNav-module__lB7WuW__header",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "DIV",
+                  "class": "app",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "BODY",
+                  "class": "",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "HTML",
+                  "class": "inter_7b064e0d-module__MOT0tq__variable jetbrains_mono_29bcc33-module__Rz8LTW__variable",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                }
+              ]
+            }
+          ],
+          "openCards": 0,
+          "visibleText": "MASTERMIND\nR\nN\nNVDA\n—\n—\nPortfolio\nWatchlists\nN\nNVDA\nNVDA\n—\n—\nIntelligence\nOracle\n—\nView details\nResearch\nNo current reading\nView details\nProphet\nChecking early evidence…\nOracle entry unverified · No current data\nWatchlists\nDefault\nImport CSV\nExport CSV\nDeep analysis coming online\nThis name isn't in the research desk yet — the chart, levels and oracle verdict above are live.\nFollow chart\nPin this view\nUnlink\n\nContext is unavailable.\n\nLinking applies to this session only.\n\nOpen full analysis\nAsk Mastermind AI about NVDA →"
+        },
+        {
+          "stage": "final",
+          "at": "2026-11-09T14:21:25.542Z",
+          "href": "http://127.0.0.1:3805/terminal?symbol=NVDA",
+          "readyState": "complete",
+          "visualReady": true,
+          "visualReadyAt": 2859,
+          "observedAt": 30813.200000047684,
+          "buttons": [
+            {
+              "outer": "<button class=\"avatar\" title=\"设置\" aria-label=\"设置\" aria-haspopup=\"dialog\">R</button>",
+              "ancestry": [
+                {
+                  "tag": "BUTTON",
+                  "class": "avatar",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "SPAN",
+                  "class": "MobileNav-module__lB7WuW__account",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "DIV",
+                  "class": "m-right",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "DIV",
+                  "class": "mobilebar MobileNav-module__lB7WuW__header",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "DIV",
+                  "class": "app",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "BODY",
+                  "class": "",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                },
+                {
+                  "tag": "HTML",
+                  "class": "inter_7b064e0d-module__MOT0tq__variable jetbrains_mono_29bcc33-module__Rz8LTW__variable",
+                  "testid": null,
+                  "busy": null,
+                  "id": ""
+                }
+              ]
+            }
+          ],
+          "openCards": 0,
+          "visibleText": "MASTERMIND\nR\nN\nNVDA\n192.53\n-1.64%\nN\nNVIDIA Corp · 3D · Equities\nO\n200.12\nH\n201.67\nL\n191.22\nC\n192.53\n-7.51 (-3.75%)\n\t\n\t\n\n\n\n\t\n\t\n\n\n\n\t\n\t\n\n\t\n\t\n5\nNVDA\n192.53\n00:00\nBTC-USD\nETH-USD\nNVDA\nAAPL\nMSFT\nQQQ\n1s\n5s\n15s\n30s\n1m\n5m\n15m\n30m\n1h\n2h\n4h\n12h\nD\n2D\n3D\nW\n2W\n1M\n3M\n投资组合\n自选列表\nN\nNVIDIA Corp\nNVDA · Equities\n192.53\n-1.64%\n休市\n情报\n神谕\n上升趋势 — 无入场信号\n研究\n暂无当前判断\n查看详情\nProphet\n登录后查看\n历史信号: 结构止损 · 信号可知日期未核实\n神谕入场尚未核实 · 缺少当前数据\n趋势\n上升趋势\n数周至数月\n复盘 Default\n共 6 个标的，按当前顺序逐个查看\n自选列表\nDefault\n导入 CSV\n导出 CSV\n深度分析即将上线\n该标的尚未进入研究台——上方的图表、关键价位与神谕判定仍然有效。\n关键数据\n成交量\n179.30 M\n平均成交量(30日)\n170.09 M\n表现\n-8.62%\n1W\n-9.44%\n1M\n+12.43%\n3M\n+1.75%\n6M\n+3.23%\nYTD\n+24.77%\n1Y\n技术评级\n23\n强烈卖出\n卖 17\n中性 7\n买 2\n更多技术面 ›\n已实现波动率\n历史价格 · 暂无隐含波动率\n35%\n40%\n45%\n50%\n55%\n10d\n21d\n42d\n63d\n126d\n252d\n当前\n中位\n跟随图表\n固定此视图\n取消关联\n\n跟随图表：NVDA\n\n关联方式仅用于当前会话。\n\n季节性 · 月均收益\n10Y\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n1月\n2月\n3月\n4月\n5月\n6月\n7月\n8月\n9月\n10月\n11月\n12月\n11月 · +11.9% 均值 · 胜率 80% · n=5\n高亮为当前月份 · 基于 NVDA 历史（仅供参考）。\n更多季节性 ›\n打开完整分析\n向 Mastermind AI 提问 NVDA →"
+        }
+      ],
+      "pageErrors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "opened": false,
+      "error": {
+        "name": "TimeoutError",
+        "message": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.acs-overlay.open .acs-card') to be visible\u001b[22m\n"
+      }
+    }
+  ],
+  "serverSettled": true,
+  "producerSha256": "87a599c415ce3314a282c1fc156e3eff5ec5fbce5a5a1b0bf4e79e243b6bf966",
+  "serverPid": 16761,
+  "completedAt": "2026-11-09T14:21:25.856Z"
+}

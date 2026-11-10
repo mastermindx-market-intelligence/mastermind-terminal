@@ -1,0 +1,597 @@
+import { expect, test, type Locator, type Page, type Route, type TestInfo } from "@playwright/test";
+import { sectorFixture } from "./fixtures/sector-company-v3";
+import dossier from "../lib/__tests__/fixtures/sector_dossiers_v1.json";
+import outage from "../lib/__tests__/fixtures/sector_dossiers_unavailable_v1.json";
+import complete from "../lib/__tests__/fixtures/sector_window_measurements.complete.v1.json";
+import unavailable from "../lib/__tests__/fixtures/sector_window_measurements.unavailable.v1.json";
+import { nativeGenerationFixture, syntheticExactParent as nov5Parent } from "../lib/__tests__/fixtures/sectorNativeGeneration";
+
+/** The clearly labelled synthetic November 5 parent. It carries the producer's own exact-session
+ * companion and no legacy dossier, so the companion is proved on its own in the browser. It is
+ * NOT the October 9 legacy fixture with its dates moved. */
+/** The owner's own sector rows. The dossier identifies a sector by its ETF proxy ticker, so the
+ * owner row and the cohort row are the same identity here. */
+const sectors = [
+  { id: "xlk", name: "Technology", name_zh: "科技", ticker: "XLK",
+    momentum: { rs_21d_rank: 1, rs_rank: 3, above_200d: true, lead: "leading" },
+    heat: { breadth_pct: 58, adv: 46, dec: 33, heat_1M: 7.01 },
+    cycle: { phaseLabel: "Rolling over" }, conviction: { label_en: "Cautious" }, rotation: { state: "TURN SIGNALED" } },
+  { id: "xle", name: "Energy", name_zh: "能源", ticker: "XLE",
+    momentum: { rs_21d_rank: 2, rs_rank: 1, above_200d: true, lead: "leading" },
+    heat: { breadth_pct: 62, adv: 40, dec: 25, heat_1M: 5.5 },
+    cycle: { phaseLabel: "Rolling over" }, conviction: { label_en: "Cautious" }, rotation: { state: "TURN SIGNALED" } },
+];
+
+test.setTimeout(90000);
+const detail = "/discover?tab=sectors&sector=xlk&group=semiconductors";
+
+/** A synthetic heatmap population, so the Discover representations have company rows to open. */
+const tiles = ["AAA", "BBB", "CCC", "DDD", "EEE"].map((ticker, index) => ({ t: ticker,
+  name: `Synthetic ${ticker}`, sector: "Technology", industry: index < 3 ? "Hardware" : "Software",
+  size: (500 - index * 80) * 1e9, perf: { "1D": index, "1M": index + 1 } }));
+
+/** Serve every owner feed from the shared fixture, then carry the owner's own dossier on the
+ * sector feed, so a case can exercise a specific owner state without disturbing the rest of the
+ * overview. The dossier is the owner's own `measured_read` document, delivered exactly as the
+ * producer delivers it — no new gateway and no new route. */
+async function prepare(page: Page, options: {
+  language?: string; read?: unknown; denied?: boolean; withdrawAfterFirst?: boolean;
+  /** Serve the producer's exact-session companion inside a synthetic November 5 parent. */
+  companion?: unknown;
+} = {}) {
+  await page.addInitScript(lang => {
+    localStorage.setItem("mm.lang", lang); document.documentElement?.setAttribute("data-lang", lang);
+  }, options.language || "en");
+  let sectorReads = 0;
+  await page.route("**/api/sector-intelligence?**", async (route: Route) => {
+    const source = new URL(route.request().url()).searchParams.get("source") || "";
+    if (source === "heatmap") return route.fulfill({ status: 200, json: { data: {
+      asof: "2026-10-09", size_basis: "marketcap", n_tiles: tiles.length, tiles },
+      receipt: { source, path: "/marketdata/sp500_heatmap.json", status: "ready", asOf: "2026-10-09",
+        observedAt: "2026-10-09T21:00:00Z", stale: false, contentHash: null } } });
+    if (source !== "sector" && source !== "generation") return sectorFixture(route);
+    if (source === "generation") sectorReads += 1;
+    const withdrawn = source === "generation" && (options.denied || (options.withdrawAfterFirst && sectorReads > 1));
+    if (withdrawn) return route.fulfill({ status: 401, json: { data: null, receipt: {
+      source, path: source === "generation" ? "/api/sector-generation?audience=preview" : "/sectordata/sector_central.json", status: "access", asOf: null,
+      observedAt: null, stale: false, contentHash: null } } });
+    const read = options.companion !== undefined ? nov5Parent(options.companion)
+      : options.read === undefined ? dossier : options.read;
+    const session = options.companion !== undefined ? "2026-11-05" : "2026-10-09";
+    const data = read === null ? { as_of: session, sectors }
+      : { as_of: session, sectors, measured_read: read };
+    return route.fulfill({ status: 200, json: { data: source === "generation" ? nativeGenerationFixture(data) : data, receipt: {
+      source, path: source === "generation" ? "/api/sector-generation?audience=preview" : "/sectordata/sector_central.json", status: "ready", asOf: session,
+      observedAt: "2026-10-09T21:00:00Z", stale: false, contentHash: "sha256:transport" } } });
+  });
+}
+
+const root = (page: Page) => page.getByTestId("sector-intelligence");
+const panel = (page: Page) => page.getByTestId("sector-leadership-dossier");
+const metric = (page: Page, window: string) =>
+  panel(page).locator(`[data-testid="sector-dossier-metric"][data-window="${window}"]`);
+const exact = (page: Page) => page.getByTestId("sector-exact-window-returns");
+const exactWindow = (page: Page, window: string) =>
+  exact(page).locator(`[data-testid="sector-exact-window"][data-window="${window}"]`);
+
+async function noOverflow(page: Page) {
+  const board = root(page);
+  expect(await board.evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth))
+    .toBeLessThanOrEqual(1);
+}
+
+/** Operation-specific screenshot receipt, written outside the source tree so the returned commit
+ * carries source only. The viewport is captured with the named part of the section in view, so
+ * every receipt is readable rather than a clipped element box. */
+async function receipt(page: Page, info: TestInfo, name: string, target?: Locator) {
+  const path = `${process.env.PSL_RECEIPT_DIR || "/tmp/psl-receipts"}/${info.project.name}-${name}.png`;
+  await (target || panel(page)).scrollIntoViewIfNeeded();
+  const png = await page.screenshot({ animations: "disabled" });
+  await page.screenshot({ path, animations: "disabled" });
+  await info.attach(`dossier-${info.project.name}-${name}`, { body: png, contentType: "image/png" });
+  return path;
+}
+
+test("the detail overview renders the owner's measured leadership evidence", async ({ page }) => {
+  await prepare(page); await page.goto(detail);
+  const section = panel(page);
+  await expect(section.getByRole("heading", { name: "Leadership evidence", exact: true })).toBeVisible();
+  await expect(section).toContainText("Technology · XLK");
+  await expect(section).toContainText("Through date");
+  await expect(section.locator("time")).toHaveText("2026-10-09");
+
+  // The two exact windows, against the admitted benchmark.
+  await expect(metric(page, "21")).toContainText("21 sessions");
+  await expect(metric(page, "21")).toContainText("-0.50%");
+  await expect(metric(page, "63")).toContainText("63 sessions");
+  await expect(metric(page, "63")).toContainText("0.00%");
+  // A signed zero carries no direction and no sign.
+  await expect(metric(page, "63").locator("strong")).not.toHaveAttribute("data-sign", /./);
+  await expect(section).toContainText("Relative wealth vs SPY");
+
+  await expect(section).toContainText("Compare the evidence before acting");
+  await expect(section).toContainText("These are observed relative moves. No forecast is available from this source.");
+  await expect(section).toContainText("21 sessions: 5 of 9 measured ETF sectors are positive (11 expected).");
+  await expect(section).toContainText("ETF sector proxies, not constituent breadth.");
+  await expect(section).toContainText("Mechanism and sector-risk context are unavailable from this source.");
+  await noOverflow(page);
+});
+
+test("the comparison disclosure holds all eleven owner-order rows with their own null reasons", async ({ page }) => {
+  await prepare(page); await page.goto(detail);
+  const compare = panel(page).getByTestId("sector-dossier-compare");
+  await compare.locator("summary").click();
+  const rows = compare.locator("tbody tr");
+  await expect(rows).toHaveCount(11);
+  expect(await rows.evaluateAll(list => list.map(row => row.getAttribute("data-sector"))))
+    .toEqual(["XLB", "XLC", "XLE", "XLF", "XLI", "XLK", "XLP", "XLRE", "XLU", "XLV", "XLY"]);
+  await expect(rows.filter({ hasText: "Real Estate" })).toContainText("This sector group was not supplied.");
+  await expect(rows.filter({ hasText: "Utilities" })).toContainText("Not enough history for this window.");
+  await expect(compare).not.toContainText("missing_group");
+  await expect(compare).not.toContainText("thin_history");
+  await noOverflow(page);
+});
+
+test("the source disclosure keeps the owner's qualifications and the exact machine reasons", async ({ page }) => {
+  await prepare(page); await page.goto(detail);
+  const source = panel(page).getByTestId("sector-dossier-source");
+  await source.locator("summary").click();
+  await expect(source).toContainText("Unverified — the owner supplied no freshness receipt.");
+  await expect(source).toContainText("Reconstructed from prices; not naturally observed.");
+  await expect(source).toContainText("The original availability time was not supplied.");
+  await expect(source).toContainText("The native revision selection was not supplied.");
+  await expect(source).toContainText("The immutable generation was not supplied.");
+  await expect(source).toContainText("2026-10-09|SPY|us_sectors_11");
+  await expect(source).toContainText("It is not an immutable generation.");
+  await expect(source).toContainText("Not qualified by the owner; no forecast is available.");
+  await expect(source).toContainText("XLRE: missing_group");
+  await expect(source).toContainText("XLU: thin_history");
+  await expect(source).toContainText("owner_freshness_receipt_not_supplied");
+  await expect(source).toContainText("immutable_generation_not_supplied");
+  await expect(source).toContainText("not_qualified");
+  await expect(source).toContainText("Transport evidence only");
+  await noOverflow(page);
+});
+
+test("the real journey opens research, changes sector, and returns by Back and by reload", async ({ page }) => {
+  await prepare(page); await page.goto("/discover?tab=sectors&sectorDiscoveryMode=table");
+  await expect(root(page)).toHaveAttribute("data-sector-workspace", "discover");
+  await root(page).getByTestId("company-table-selection")
+    .getByRole("button", { name: "Open sector intelligence" }).click();
+  await expect(root(page)).toHaveAttribute("data-sector-workspace", "detail");
+  await expect(panel(page)).toContainText("Technology · XLK");
+  await expect(metric(page, "21")).toContainText("-0.50%");
+
+  // Changing the sector changes the evidence, and never falls back to the previous sector.
+  await root(page).getByRole("combobox", { name: "Sector" }).selectOption("xle");
+  await expect(panel(page)).toContainText("Energy · XLE");
+  await expect(metric(page, "21")).toContainText("+2.40%");
+  await expect(metric(page, "63")).toContainText("+4.10%");
+  await expect(panel(page)).not.toContainText("Technology · XLK");
+
+  await root(page).getByTestId("sector-detail-return").click();
+  await expect(root(page)).toHaveAttribute("data-sector-workspace", "discover");
+
+  // A reload of the research depth brings the same evidence back.
+  await page.goto(detail);
+  await expect(root(page)).toHaveAttribute("data-sector-workspace", "detail");
+  await expect(panel(page)).toContainText("Technology · XLK");
+  await expect(metric(page, "21")).toContainText("-0.50%");
+  await page.reload();
+  await expect(panel(page)).toContainText("Technology · XLK");
+  await expect(metric(page, "21")).toContainText("-0.50%");
+  await page.goBack();
+  await expect(root(page)).toHaveAttribute("data-sector-workspace", "discover");
+  await noOverflow(page);
+});
+
+test("the rotation workspace opens the same research depth", async ({ page }) => {
+  await prepare(page); await page.goto("/discover?tab=sectors&sectorWorkspace=rotation");
+  await expect(root(page)).toHaveAttribute("data-sector-workspace", "rotation");
+  const inspector = root(page).getByTestId("rotation-inspector");
+  await inspector.getByRole("button", { name: "Open sector research" }).click();
+  await expect(root(page)).toHaveAttribute("data-sector-workspace", "detail");
+  await expect(panel(page)).toContainText("Technology · XLK");
+  await expect(metric(page, "21")).toContainText("-0.50%");
+  await noOverflow(page);
+});
+
+test("a withdrawn access clears every figure and leaves the rest of the overview intact", async ({ page }) => {
+  await prepare(page, { withdrawAfterFirst: true }); await page.goto(detail);
+  await expect(metric(page, "21")).toContainText("-0.50%");
+  await root(page).getByRole("button", { name: "Refresh" }).click();
+  await expect(panel(page)).toContainText("Leadership evidence requires access");
+  await expect(metric(page, "21")).toHaveCount(0);
+  await expect(panel(page)).not.toContainText("-0.50%");
+  await expect(panel(page)).not.toContainText("0.00%");
+  await expect(root(page).getByTestId("sector-detail-return")).toBeVisible();
+  await noOverflow(page);
+});
+
+test("an owner document with no leadership evidence reads as a missing capability", async ({ page }) => {
+  await prepare(page, { read: null }); await page.goto(detail);
+  await expect(panel(page)).toContainText("Leadership evidence is not available for this sector");
+  await expect(metric(page, "21")).toHaveCount(0);
+  await expect(root(page)).toHaveAttribute("data-sector-workspace", "detail");
+  await noOverflow(page);
+});
+
+test("an unavailable parent without generation clocks cannot revive a legacy dossier", async ({ page }) => {
+  await prepare(page, { read: outage }); await page.goto(detail);
+  await expect(panel(page)).toHaveAttribute("data-state", "invalid");
+  await expect(panel(page)).toContainText("Leadership evidence could not be verified");
+  await expect(metric(page, "21")).toHaveCount(0);
+  await expect(panel(page).getByTestId("sector-dossier-compare")).toHaveCount(0);
+  await expect(panel(page)).not.toContainText("0.00%");
+  await expect(root(page).getByTestId("sector-detail-return")).toBeVisible();
+  await noOverflow(page);
+});
+
+test("the section localizes fully in Chinese light and never leaks English", async ({ page }) => {
+  await prepare(page, { language: "zh" }); await page.goto(`${detail}&sectorTheme=light`);
+  const section = panel(page);
+  await expect(section.getByRole("heading", { name: "领涨证据", exact: true })).toBeVisible();
+  await expect(section).toContainText("科技 · XLK");
+  await expect(section).toContainText("21个交易日");
+  await expect(section).toContainText("先核对证据，再作判断");
+  await expect(section).toContainText("已测量的9个ETF板块中5个为正（预期11个）");
+  await expect(section).not.toContainText("Leadership evidence");
+  await expect(section).not.toContainText("Compare the evidence before acting");
+  await noOverflow(page);
+});
+
+test("the disclosures open from the keyboard and keep their content reachable", async ({ page }) => {
+  await prepare(page); await page.goto(detail);
+  const compare = panel(page).getByTestId("sector-dossier-compare");
+  const summary = compare.locator("summary");
+  await summary.focus();
+  await expect(summary).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(compare.locator("tbody tr")).toHaveCount(11);
+  await page.keyboard.press("Tab");
+  await expect(panel(page).getByTestId("sector-dossier-source").locator("summary")).toBeFocused();
+  await noOverflow(page);
+});
+
+test("the section fits the narrowest supported width without overflowing the page", async ({ page }) => {
+  await prepare(page);
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.goto(detail);
+  await expect(panel(page)).toBeVisible();
+  await panel(page).getByTestId("sector-dossier-compare").locator("summary").click();
+  await expect(panel(page).locator("tbody tr")).toHaveCount(11);
+  expect(await root(page).evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth))
+    .toBeLessThanOrEqual(1);
+});
+
+for (const [language, theme] of [["en", "dark"], ["zh", "light"]] as const) {
+  test(`the rendered evidence is receipted: ${language} ${theme}`, async ({ page }, info) => {
+    await prepare(page, { language }); await page.goto(`${detail}&sectorTheme=${theme}`);
+    await expect(panel(page)).toBeVisible();
+    const paths: string[] = [];
+    paths.push(await receipt(page, info, `overview-${language}-${theme}`));
+    await panel(page).getByTestId("sector-dossier-compare").locator("summary").click();
+    paths.push(await receipt(page, info, `compare-${language}-${theme}`,
+      panel(page).getByTestId("sector-dossier-compare")));
+    await panel(page).getByTestId("sector-dossier-source").locator("summary").click();
+    paths.push(await receipt(page, info, `source-${language}-${theme}`,
+      panel(page).getByTestId("sector-dossier-source")));
+    await page.setViewportSize({ width: 320, height: 800 });
+    paths.push(await receipt(page, info, `narrow-320-${language}-${theme}`));
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth))
+      .toBeLessThanOrEqual(1);
+    await info.attach(`receipt-paths-${language}-${theme}`, {
+      body: JSON.stringify(paths, null, 1), contentType: "application/json" });
+  });
+}
+
+/* -------------------------------------------------------------------------- *
+ * The exact-session companion.
+ *
+ * The producer's own frozen companion document, served inside a clearly labelled synthetic
+ * November 5 parent. The October 9 legacy dossier is never combined with it.
+ * -------------------------------------------------------------------------- */
+
+test("the exact-session companion renders in the research depth on its own", async ({ page }) => {
+  await prepare(page, { companion: complete }); await page.goto(detail);
+  // The legacy dossier is absent from this owner document, and the companion is still there.
+  await expect(panel(page)).toContainText("Leadership evidence is not available for this sector");
+  const companion = exact(page);
+  await expect(companion).toBeVisible();
+  await expect(companion.getByRole("heading", { name: "Exact session returns", exact: true })).toBeVisible();
+  await expect(companion).toContainText("Technology · XLK");
+  await expect(companion).toContainText("2026-11-05");
+  await expect(companion).toContainText("6, 21 and 64");
+  await expect(companion).toContainText("a wealth ratio");
+  await expect(companion).toContainText("not the legacy 21-session window");
+  await noOverflow(page);
+});
+
+test("the companion shows the three exact windows, the benchmark and all eleven rows", async ({ page }) => {
+  await prepare(page, { companion: complete }); await page.goto(detail);
+  const companion = exact(page);
+  await expect(companion.locator('[data-testid="sector-exact-window"]')).toHaveCount(3);
+  // The owner's own values for Technology over 5, 20 and 63 exact sessions.
+  await expect(exactWindow(page, "5").locator('[data-testid="sector-exact-absolute"]')).toHaveText("-0.70%");
+  await expect(exactWindow(page, "5").locator('[data-testid="sector-exact-relative"]')).toHaveText("-1.78%");
+  await expect(exactWindow(page, "20").locator('[data-testid="sector-exact-absolute"]')).toHaveText("-2.86%");
+  await expect(exactWindow(page, "63").locator('[data-testid="sector-exact-absolute"]')).toHaveText("-8.85%");
+  // The exact session span is the producer's own, and so is the coverage.
+  await expect(exactWindow(page, "63").locator('[data-testid="sector-exact-span"]'))
+    .toContainText("2026-08-07 → 2026-11-05");
+  await expect(exactWindow(page, "63").locator('[data-testid="sector-exact-coverage"]'))
+    .toContainText("64 of 64 observations");
+  // The benchmark is disclosed separately, with its own return and coverage.
+  const benchmark = companion.getByTestId("sector-exact-benchmark");
+  await expect(benchmark).toContainText("Benchmark SPY");
+  await expect(benchmark.locator('[data-testid="sector-exact-benchmark-return"][data-window="63"]'))
+    .toContainText("+14.38%");
+  await expect(benchmark).toContainText("64 of 64 observations");
+  // The comparison keeps all eleven identities in the producer's own order.
+  const compare = companion.getByTestId("sector-exact-compare");
+  await compare.locator("summary").click();
+  const rows = compare.locator("tbody tr");
+  await expect(rows).toHaveCount(11);
+  expect(await rows.evaluateAll(list => list.map(row => row.getAttribute("data-sector"))))
+    .toEqual(["XLB", "XLC", "XLE", "XLF", "XLI", "XLK", "XLP", "XLRE", "XLU", "XLV", "XLY"]);
+  await expect(rows.filter({ hasText: "Technology" })).toHaveAttribute("data-selected", "true");
+  await noOverflow(page);
+});
+
+test("the companion keeps the producer's signed zero an ordinary zero", async ({ page }) => {
+  await prepare(page, { companion: complete }); await page.goto(detail);
+  const compare = exact(page).getByTestId("sector-exact-compare");
+  await compare.locator("summary").click();
+  const xlp = compare.locator('tbody tr[data-sector="XLP"]');
+  // The producer published -0.0 for Consumer Staples over 63 sessions. It reads as a plain zero.
+  await expect(xlp).toContainText("0.00%");
+  await expect(xlp).not.toContainText("-0.00%");
+  await expect(xlp.locator('[data-sign="down"]')).toHaveCount(0);
+  await noOverflow(page);
+});
+
+test("a valid all-null companion block stays visible with its identities and cause", async ({ page }) => {
+  await prepare(page, { companion: unavailable }); await page.goto(detail);
+  const companion = exact(page);
+  await expect(companion).toContainText("Exact-session returns are unavailable");
+  // No prior positive figure survives the refusal.
+  await expect(companion).not.toContainText("-8.85%");
+  await expect(companion).not.toContainText("+14.38%");
+  // The identities, the exact dates and the observed coverage are all kept.
+  const compare = companion.getByTestId("sector-exact-compare");
+  await compare.locator("summary").click();
+  await expect(compare.locator("tbody tr")).toHaveCount(11);
+  await expect(exactWindow(page, "63").locator('[data-testid="sector-exact-span"]'))
+    .toContainText("2026-08-07 → 2026-11-05");
+  await expect(exactWindow(page, "63").locator('[data-testid="sector-exact-coverage"]'))
+    .toContainText("64 of 64 observations");
+  // The cause is readable, and the raw reason stays in the companion's own source details.
+  await expect(companion).toContainText("The source panel holds sessions after the end of the measurement cut.");
+  await companion.getByTestId("sector-exact-source").locator("summary").click();
+  await expect(companion.getByTestId("sector-exact-source")).toContainText("future_tail");
+  await noOverflow(page);
+});
+
+test("a withdrawn access clears the companion and leaves the rest of the overview intact", async ({ page }) => {
+  await prepare(page, { companion: complete, withdrawAfterFirst: true }); await page.goto(detail);
+  await expect(exactWindow(page, "63").locator('[data-testid="sector-exact-absolute"]')).toHaveText("-8.85%");
+  await root(page).getByRole("button", { name: "Refresh" }).click();
+  await expect(panel(page)).toContainText("Leadership evidence requires access");
+  await expect(exact(page)).toHaveCount(0);
+  await expect(root(page).getByTestId("sector-detail-return")).toBeVisible();
+  await noOverflow(page);
+});
+
+test("the companion adds no request of its own and never prefetches private members", async ({ page, context }) => {
+  const sourcesOf = async (target: Page, companion?: unknown) => {
+    const seen: string[] = [];
+    target.on("request", request => {
+      const url = new URL(request.url());
+      if (url.pathname.includes("/api/sector-intelligence")) seen.push(url.searchParams.get("source") || "");
+    });
+    await prepare(target, companion === undefined ? {} : { companion });
+    await target.goto(detail);
+    await expect((companion === undefined ? panel(target) : exact(target))).toBeVisible();
+    return [...new Set(seen)].sort();
+  };
+  const withoutCompanion = await sourcesOf(page);
+  const other = await context.newPage();
+  const withCompanion = await sourcesOf(other, complete);
+  await other.close();
+  // The companion's presence adds no request at all: it is read from the feed it is handed.
+  expect(withCompanion).toEqual(withoutCompanion);
+});
+
+test("the member open and the private identity chain are unchanged by the companion", async ({ page }) => {
+  await prepare(page, { companion: complete }); await page.goto(detail);
+  const evidence = page.getByTestId("sector-constituent-evidence");
+  await expect(evidence).toBeVisible();
+  // The membership record is the source's own, with its own date.
+  await evidence.locator("select").selectOption("NVDA");
+  const membership = evidence.getByTestId("sector-constituent-membership");
+  await expect(membership).toContainText("NVDA");
+  await expect(membership).toContainText("#1");
+  await expect(membership).toContainText("2026-10-15");
+  // Nothing private is shown before the member is explicitly opened.
+  await expect(evidence).not.toHaveAttribute("data-open", "true");
+  await evidence.getByRole("button", { name: "Open company evidence" }).click();
+  await expect(evidence).toHaveAttribute("data-open", "true");
+  await expect(evidence.getByTestId("sector-constituent-evidence-panel")).toBeVisible();
+  await noOverflow(page);
+});
+
+for (const [language, theme] of [["en", "dark"], ["zh", "light"]] as const) {
+  test(`the rendered companion is receipted: ${language} ${theme}`, async ({ page }, info) => {
+    await prepare(page, { language, companion: complete });
+    await page.goto(`${detail}&sectorTheme=${theme}`);
+    await expect(exact(page)).toBeVisible();
+    const paths: string[] = [];
+    paths.push(await receipt(page, info, `exact-overview-${language}-${theme}`, exact(page)));
+    await exact(page).getByTestId("sector-exact-compare").locator("summary").click();
+    paths.push(await receipt(page, info, `exact-compare-${language}-${theme}`,
+      exact(page).getByTestId("sector-exact-compare")));
+    await exact(page).getByTestId("sector-exact-source").locator("summary").click();
+    paths.push(await receipt(page, info, `exact-source-${language}-${theme}`,
+      exact(page).getByTestId("sector-exact-source")));
+    await page.setViewportSize({ width: 320, height: 800 });
+    paths.push(await receipt(page, info, `exact-narrow-320-${language}-${theme}`, exact(page)));
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth))
+      .toBeLessThanOrEqual(1);
+    await info.attach(`exact-receipt-paths-${language}-${theme}`, {
+      body: JSON.stringify(paths, null, 1), contentType: "application/json" });
+  });
+}
+
+/* -------------------------------------------------------------------------- *
+ * The corrected copy, in the browser.
+ *
+ * Each case serves a clearly labelled synthetic companion document derived from the canonical
+ * producer document, and each one changes only the field under test. The documents are synthetic
+ * fixtures: the screenshots are receipts of the rendered copy, not proof of a source admission.
+ * -------------------------------------------------------------------------- */
+
+type CompanionDoc = {
+  status: string;
+  reason: string | null;
+  windows: Record<string, { status: string }>;
+  groups: { group_id: string; windows: Record<string, {
+    absolute_return_pct: number | null; relative_wealth_pct: number | null;
+    null_reasons: { absolute_return_pct: string | null; relative_wealth_pct: string | null };
+    status: string;
+  }> }[];
+  clocks: Record<string, string | null>;
+  limitations: Record<string, { status: string; reason?: string; clock?: string }>;
+  receipt: Record<string, unknown> | null;
+  diagnostics: { complete_cells: number; measured_cells: number; receipt_withheld: boolean };
+};
+
+/** One withheld value inside an otherwise complete packet. Technology is the sixth cohort row. */
+// Exact 43b1cf owner output: absolute-percent overflow, finite relative wealth.
+const partialCompanion = (): CompanionDoc => JSON.parse("{\"schema\":\"leadership_rotation_context.sector_window_measurements/v1\",\"status\":\"partial\",\"reason\":null,\"units\":\"pct\",\"price_basis\":\"total_return\",\"benchmark\":\"SPY\",\"cohort_id\":\"us_sectors_11\",\"population\":\"eleven_sector_etf_proxies\",\"source_session\":\"2026-11-05\",\"end_session\":\"2026-11-05\",\"windows_sessions\":[5,20,63],\"endpoint_definition\":\"Endpoint return: P(T)/P(S_N) - 1, where T is the explicit end session and S_N is the canonical US session exactly N positions before T, so a 5-session return spans 6 session endpoints. Relative wealth is (1+R_group)/(1+R_benchmark) - 1 -- a wealth ratio, never a return difference. Interior gaps never move an endpoint; they are disclosed as observed coverage. Prices are strictly positive, finite, total-return adjusted closes read at the two endpoints only.\",\"clocks\":{\"publication\":null,\"availability\":null,\"correction\":null,\"history\":null},\"source_roots\":[],\"receipt\":null,\"limitations\":{\"availability\":{\"status\":\"unknown\",\"reason\":\"owner_availability_clock_not_supplied\"},\"publication\":{\"status\":\"unknown\",\"reason\":\"owner_publication_clock_not_supplied\"},\"corrections\":{\"status\":\"unavailable\",\"reason\":\"native_revision_selection_not_supplied\"},\"history\":{\"status\":\"unknown\",\"reason\":\"owner_history_clock_not_supplied\"},\"freshness\":{\"status\":\"unverified\",\"reason\":\"owner_freshness_receipt_not_supplied\"},\"point_in_time\":{\"status\":\"not_qualified\",\"reason\":\"point_in_time_admission_not_supplied\"}},\"windows\":{\"5\":{\"window_sessions\":5,\"status\":\"available\",\"start_session\":\"2026-10-29\",\"end_session\":\"2026-11-05\",\"benchmark_return_pct\":-99.408284,\"benchmark_null_reason\":null,\"benchmark_coverage\":{\"observed_n\":6,\"expected_n\":6,\"ratio\":1.0},\"null_reason\":null},\"20\":{\"window_sessions\":20,\"status\":\"available\",\"start_session\":\"2026-10-08\",\"end_session\":\"2026-11-05\",\"benchmark_return_pct\":-99.350649,\"benchmark_null_reason\":null,\"benchmark_coverage\":{\"observed_n\":21,\"expected_n\":21,\"ratio\":1.0},\"null_reason\":null},\"63\":{\"window_sessions\":63,\"status\":\"partial\",\"start_session\":\"2026-08-07\",\"end_session\":\"2026-11-05\",\"benchmark_return_pct\":1e+307,\"benchmark_null_reason\":null,\"benchmark_coverage\":{\"observed_n\":64,\"expected_n\":64,\"ratio\":1.0},\"null_reason\":null}},\"groups\":[{\"group_id\":\"XLB\",\"name_en\":\"Materials\",\"name_zh\":\"\\u539f\\u6750\\u6599\",\"windows\":{\"5\":{\"status\":\"available\",\"absolute_return_pct\":3.164557,\"relative_wealth_pct\":17334.810127,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":6,\"expected_n\":6,\"ratio\":1.0}},\"20\":{\"status\":\"available\",\"absolute_return_pct\":13.986014,\"relative_wealth_pct\":17453.846154,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":21,\"expected_n\":21,\"ratio\":1.0}},\"63\":{\"status\":\"available\",\"absolute_return_pct\":63.0,\"relative_wealth_pct\":-100.0,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":64,\"expected_n\":64,\"ratio\":1.0}}}},{\"group_id\":\"XLC\",\"name_en\":\"Communication Services\",\"name_zh\":\"\\u901a\\u8baf\\u670d\\u52a1\",\"windows\":{\"5\":{\"status\":\"available\",\"absolute_return_pct\":3.144654,\"relative_wealth_pct\":17331.446541,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":6,\"expected_n\":6,\"ratio\":1.0}},\"20\":{\"status\":\"available\",\"absolute_return_pct\":13.888889,\"relative_wealth_pct\":17438.888889,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":21,\"expected_n\":21,\"ratio\":1.0}},\"63\":{\"status\":\"available\",\"absolute_return_pct\":62.376238,\"relative_wealth_pct\":-100.0,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":64,\"expected_n\":64,\"ratio\":1.0}}}},{\"group_id\":\"XLE\",\"name_en\":\"Energy\",\"name_zh\":\"\\u80fd\\u6e90\",\"windows\":{\"5\":{\"status\":\"available\",\"absolute_return_pct\":3.125,\"relative_wealth_pct\":17328.125,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":6,\"expected_n\":6,\"ratio\":1.0}},\"20\":{\"status\":\"available\",\"absolute_return_pct\":13.793103,\"relative_wealth_pct\":17424.137931,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":21,\"expected_n\":21,\"ratio\":1.0}},\"63\":{\"status\":\"available\",\"absolute_return_pct\":61.764706,\"relative_wealth_pct\":-100.0,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":64,\"expected_n\":64,\"ratio\":1.0}}}},{\"group_id\":\"XLF\",\"name_en\":\"Financials\",\"name_zh\":\"\\u91d1\\u878d\",\"windows\":{\"5\":{\"status\":\"available\",\"absolute_return_pct\":3.10559,\"relative_wealth_pct\":17324.84472,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":6,\"expected_n\":6,\"ratio\":1.0}},\"20\":{\"status\":\"available\",\"absolute_return_pct\":13.69863,\"relative_wealth_pct\":17409.589041,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":21,\"expected_n\":21,\"ratio\":1.0}},\"63\":{\"status\":\"available\",\"absolute_return_pct\":61.165049,\"relative_wealth_pct\":-100.0,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":64,\"expected_n\":64,\"ratio\":1.0}}}},{\"group_id\":\"XLI\",\"name_en\":\"Industrials\",\"name_zh\":\"\\u5de5\\u4e1a\",\"windows\":{\"5\":{\"status\":\"available\",\"absolute_return_pct\":3.08642,\"relative_wealth_pct\":17321.604938,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":6,\"expected_n\":6,\"ratio\":1.0}},\"20\":{\"status\":\"available\",\"absolute_return_pct\":13.605442,\"relative_wealth_pct\":17395.238095,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":21,\"expected_n\":21,\"ratio\":1.0}},\"63\":{\"status\":\"available\",\"absolute_return_pct\":60.576923,\"relative_wealth_pct\":-100.0,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":64,\"expected_n\":64,\"ratio\":1.0}}}},{\"group_id\":\"XLK\",\"name_en\":\"Technology\",\"name_zh\":\"\\u79d1\\u6280\",\"windows\":{\"5\":{\"status\":\"available\",\"absolute_return_pct\":-99.386503,\"relative_wealth_pct\":3.680982,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":6,\"expected_n\":6,\"ratio\":1.0}},\"20\":{\"status\":\"available\",\"absolute_return_pct\":-99.324324,\"relative_wealth_pct\":4.054054,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":21,\"expected_n\":21,\"ratio\":1.0}},\"63\":{\"status\":\"partial\",\"absolute_return_pct\":null,\"relative_wealth_pct\":9900.0,\"null_reasons\":{\"absolute_return_pct\":\"non_finite_input\",\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":64,\"expected_n\":64,\"ratio\":1.0}}}},{\"group_id\":\"XLP\",\"name_en\":\"Consumer Staples\",\"name_zh\":\"\\u5fc5\\u9700\\u6d88\\u8d39\",\"windows\":{\"5\":{\"status\":\"available\",\"absolute_return_pct\":3.04878,\"relative_wealth_pct\":17315.243902,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":6,\"expected_n\":6,\"ratio\":1.0}},\"20\":{\"status\":\"available\",\"absolute_return_pct\":13.422819,\"relative_wealth_pct\":17367.114094,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":21,\"expected_n\":21,\"ratio\":1.0}},\"63\":{\"status\":\"available\",\"absolute_return_pct\":59.433962,\"relative_wealth_pct\":-100.0,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":64,\"expected_n\":64,\"ratio\":1.0}}}},{\"group_id\":\"XLRE\",\"name_en\":\"Real Estate\",\"name_zh\":\"\\u623f\\u5730\\u4ea7\",\"windows\":{\"5\":{\"status\":\"available\",\"absolute_return_pct\":3.030303,\"relative_wealth_pct\":17312.121212,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":6,\"expected_n\":6,\"ratio\":1.0}},\"20\":{\"status\":\"available\",\"absolute_return_pct\":13.333333,\"relative_wealth_pct\":17353.333333,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":21,\"expected_n\":21,\"ratio\":1.0}},\"63\":{\"status\":\"available\",\"absolute_return_pct\":58.878505,\"relative_wealth_pct\":-100.0,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":64,\"expected_n\":64,\"ratio\":1.0}}}},{\"group_id\":\"XLU\",\"name_en\":\"Utilities\",\"name_zh\":\"\\u516c\\u7528\\u4e8b\\u4e1a\",\"windows\":{\"5\":{\"status\":\"available\",\"absolute_return_pct\":3.012048,\"relative_wealth_pct\":17309.036145,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":6,\"expected_n\":6,\"ratio\":1.0}},\"20\":{\"status\":\"available\",\"absolute_return_pct\":13.245033,\"relative_wealth_pct\":17339.735099,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":21,\"expected_n\":21,\"ratio\":1.0}},\"63\":{\"status\":\"available\",\"absolute_return_pct\":58.333333,\"relative_wealth_pct\":-100.0,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":64,\"expected_n\":64,\"ratio\":1.0}}}},{\"group_id\":\"XLV\",\"name_en\":\"Health Care\",\"name_zh\":\"\\u533b\\u7597\\u4fdd\\u5065\",\"windows\":{\"5\":{\"status\":\"available\",\"absolute_return_pct\":2.994012,\"relative_wealth_pct\":17305.988024,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":6,\"expected_n\":6,\"ratio\":1.0}},\"20\":{\"status\":\"available\",\"absolute_return_pct\":13.157895,\"relative_wealth_pct\":17326.315789,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":21,\"expected_n\":21,\"ratio\":1.0}},\"63\":{\"status\":\"available\",\"absolute_return_pct\":57.798165,\"relative_wealth_pct\":-100.0,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":64,\"expected_n\":64,\"ratio\":1.0}}}},{\"group_id\":\"XLY\",\"name_en\":\"Consumer Discretionary\",\"name_zh\":\"\\u975e\\u5fc5\\u9700\\u6d88\\u8d39\",\"windows\":{\"5\":{\"status\":\"available\",\"absolute_return_pct\":2.97619,\"relative_wealth_pct\":17302.97619,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":6,\"expected_n\":6,\"ratio\":1.0}},\"20\":{\"status\":\"available\",\"absolute_return_pct\":13.071895,\"relative_wealth_pct\":17313.071895,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":21,\"expected_n\":21,\"ratio\":1.0}},\"63\":{\"status\":\"available\",\"absolute_return_pct\":57.272727,\"relative_wealth_pct\":-100.0,\"null_reasons\":{\"absolute_return_pct\":null,\"relative_wealth_pct\":null},\"coverage\":{\"observed_n\":64,\"expected_n\":64,\"ratio\":1.0}}}}],\"diagnostics\":{\"panel_rows\":64,\"malformed_rows\":0,\"duplicate_sessions\":[],\"ambiguous_columns\":[],\"columns\":[\"SPY\",\"XLB\",\"XLC\",\"XLE\",\"XLF\",\"XLI\",\"XLK\",\"XLP\",\"XLRE\",\"XLU\",\"XLV\",\"XLY\"],\"binding_keys\":[],\"receipt_withheld\":false,\"future_tail_sessions\":[],\"expected_columns\":12,\"qualification_reasons\":[],\"measured_cells\":33,\"complete_cells\":32,\"total_cells\":33,\"coverage_note\":\"observed_n counts usable observations inside the window; an interior gap never moves an endpoint\"},\"authority\":{\"may_rank\":false,\"may_gate\":false,\"may_size\":false,\"may_trade\":false,\"may_escalate\":false}}");
+
+/** The owner's own publication, availability and history clocks, supplied unchanged. */
+const suppliedClockCompanion = () => {
+  const source = structuredClone(complete) as unknown as CompanionDoc;
+  for (const name of ["publication", "availability", "history"]) {
+    source.clocks[name] = "2026-11-05T21:00:00Z";
+    source.limitations[name] = { status: "supplied", clock: "2026-11-05T21:00:00Z" };
+  }
+  return source;
+};
+
+/** A receipt the owner explicitly withheld. */
+const withheldReceiptCompanion = () => {
+  const source = structuredClone(complete) as unknown as CompanionDoc;
+  source.receipt = null;
+  source.diagnostics.receipt_withheld = true;
+  return source;
+};
+
+test("a partial companion says so plainly and keeps every published value", async ({ page }) => {
+  await prepare(page, { companion: partialCompanion() }); await page.goto(detail);
+  const companion = exact(page);
+  await expect(companion).toBeVisible();
+  // A partial packet is not an unavailable one, and nothing is called withheld that is missing.
+  await expect(companion).toContainText("Some exact-session measurements are missing");
+  await expect(companion).not.toContainText("Exact-session returns are unavailable");
+  await expect(companion).not.toContainText("The owner withheld every measurement for this cut.");
+  // The withheld value keeps its own reason and the published one survives beside it.
+  await expect(exactWindow(page, "63").locator('[data-testid="sector-exact-absolute"]')).toHaveText("—");
+  await expect(exactWindow(page, "63").locator('[data-testid="sector-exact-relative"]')).toHaveText("+9,900.00%");
+  await expect(exactWindow(page, "63")).toContainText("The source value is not a finite number.");
+  await expect(exactWindow(page, "5").locator('[data-testid="sector-exact-absolute"]')).toHaveText("-99.39%");
+  await noOverflow(page);
+});
+
+test("a supplied owner clock is shown and is not denied", async ({ page }) => {
+  await prepare(page, { companion: suppliedClockCompanion() }); await page.goto(detail);
+  const companion = exact(page);
+  await expect(companion).toBeVisible();
+  // The summary no longer denies a clock the owner did supply.
+  await expect(companion).not.toContainText("The original availability, publication and history times were not supplied");
+  await expect(companion).toContainText("A supplied clock does not establish verified freshness");
+  // The owner's own clock text is preserved unchanged.
+  await expect(companion).toContainText("2026-11-05T21:00:00Z");
+  // The separate limitations are untouched by a supplied clock.
+  await expect(companion).toContainText("The owner supplied no freshness receipt.");
+  await expect(companion).toContainText("The point-in-time admission was not supplied.");
+  await expect(companion).toContainText("The native revision selection was not supplied.");
+  await noOverflow(page);
+});
+
+test("an unsupplied receipt is not called a withheld receipt", async ({ page }) => {
+  await prepare(page, { companion: complete }); await page.goto(detail);
+  const source = exact(page).getByTestId("sector-exact-source");
+  await source.locator("summary").click();
+  await expect(source).toContainText("The owner supplied no receipt.");
+  await expect(source).not.toContainText("The owner withheld its receipt.");
+  await noOverflow(page);
+});
+
+test("an explicitly withheld receipt is named as withheld", async ({ page }) => {
+  await prepare(page, { companion: withheldReceiptCompanion() }); await page.goto(detail);
+  const source = exact(page).getByTestId("sector-exact-source");
+  await source.locator("summary").click();
+  await expect(source).toContainText("The owner withheld its receipt.");
+  await expect(source).not.toContainText("The owner supplied no receipt.");
+  await noOverflow(page);
+});
+
+for (const language of ["en", "zh"] as const) {
+  test("the companion follows the workspace's real theme control: " + language, async ({ page }) => {
+    await prepare(page, { language, companion: complete });
+    await page.goto(detail);
+    // The initial render is dark/Discover. Wait for URL adoption and admitted
+    // selected-sector evidence before exercising the mounted owner's control.
+    await expect(root(page)).toHaveAttribute("data-sector-workspace", "detail");
+    await expect(root(page)).toHaveAttribute("data-sector-theme", "dark");
+    await expect(exact(page)).toBeVisible();
+    const absolute = exactWindow(page, "63").locator('[data-testid="sector-exact-absolute"]');
+    await expect(absolute).toHaveText("-8.85%");
+
+    for (const theme of ["light", "dark"] as const) {
+      const name = language === "zh"
+        ? (theme === "light" ? "使用浅色视图" : "使用深色视图")
+        : (theme === "light" ? "Use light view" : "Use dark view");
+      const toggle = root(page).getByRole("button", { name, exact: true });
+      await expect(toggle).toHaveCount(1);
+      await expect(toggle).toBeEnabled();
+      await toggle.click();
+      await expect(root(page)).toHaveAttribute("data-sector-theme", theme);
+      await expect(root(page)).toHaveAttribute("data-sector-workspace", "detail");
+      await expect(exact(page)).toBeVisible();
+      await expect(absolute).toHaveText("-8.85%");
+      const url = new URL(page.url());
+      expect(url.pathname).toBe("/discover");
+      expect(url.searchParams.get("tab")).toBe("sectors");
+      expect(url.searchParams.get("sectorWorkspace")).toBe("detail");
+      expect(url.searchParams.get("sector")).toBe("xlk");
+      expect(url.searchParams.get("group")).toBe("semiconductors");
+      expect(url.searchParams.get("sectorTheme")).toBe(theme);
+      await noOverflow(page);
+    }
+  });
+}
+
+for (const [language, theme] of [["en", "light"], ["zh", "dark"]] as const) {
+  test(`the rendered companion is receipted: ${language} ${theme}`, async ({ page }, info) => {
+    await prepare(page, { language, companion: complete });
+    await page.goto(`${detail}&sectorTheme=${theme}`);
+    // The theme owner is the workspace's own, and it says which theme it applied.
+    await expect(root(page)).toHaveAttribute("data-sector-theme", theme);
+    await expect(exact(page)).toBeVisible();
+    const paths: string[] = [];
+    paths.push(await receipt(page, info, `exact-overview-${language}-${theme}`, exact(page)));
+    await exact(page).getByTestId("sector-exact-source").locator("summary").click();
+    paths.push(await receipt(page, info, `exact-source-${language}-${theme}`,
+      exact(page).getByTestId("sector-exact-source")));
+    await page.setViewportSize({ width: 320, height: 800 });
+    paths.push(await receipt(page, info, `exact-narrow-320-${language}-${theme}`, exact(page)));
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth))
+      .toBeLessThanOrEqual(1);
+    await info.attach(`exact-receipt-paths-${language}-${theme}`, {
+      body: JSON.stringify(paths, null, 1), contentType: "application/json" });
+  });
+}

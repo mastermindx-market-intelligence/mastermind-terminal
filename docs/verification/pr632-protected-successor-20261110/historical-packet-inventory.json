@@ -1,0 +1,1102 @@
+{
+  "counts": {
+    "original": 78,
+    "protected": 78
+  },
+  "files": {
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/ChartConductor-1440-zh.png": {
+      "bytes": 88978,
+      "gitBlob": "ce1705a7d355601e5a86766f4b425ff52030c653",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/ChartConductor-1440-zh.png",
+      "sha256": "fda7d66325f7c8957a3dd8497c84f738eabd7f1254ec42e569e790ffc2aaabcf",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/ChartConductor-1440.png": {
+      "bytes": 88174,
+      "gitBlob": "8bb2744c5bcc03d7f31c8ba5b00f702b86045b04",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/ChartConductor-1440.png",
+      "sha256": "fe0b5380d10099c9959706504fba8176754cebfdb8f0a8a58021c26a1c9ddcd3",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/ChartConductor-390-zh.png": {
+      "bytes": 28214,
+      "gitBlob": "0293f325548d57fd55afdeced7f07ac08651fc89",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/ChartConductor-390-zh.png",
+      "sha256": "2a2ef5203c042645671e5ab0974e97175b8fa1f07328f1414bc5ba211300b5ec",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/ChartConductor-390.png": {
+      "bytes": 28168,
+      "gitBlob": "33094959c0fe736f8859f69d1f40d4751f79a980",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/ChartConductor-390.png",
+      "sha256": "a848ac853c889ee6fe3d8232cf25aee38347660bd9af19d0c22ae3b4f183870f",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/ChartConductor-820-zh.png": {
+      "bytes": 77684,
+      "gitBlob": "7166533a04313d5d4b9f791f612006ca2aaeafef",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/ChartConductor-820-zh.png",
+      "sha256": "bc5633cf705d6903690352858fab78ee0249800f38972d6cca99d38257f88588",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/ChartConductor-820.png": {
+      "bytes": 77169,
+      "gitBlob": "6f6508d95705fbc93eea3c57ef78d3a499d6e41e",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/ChartConductor-820.png",
+      "sha256": "335c91baf353a005e024c26a0b76f218396d3574bf32502bda8bc5f816887e59",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/EVIDENCE.yml": {
+      "bytes": 5812,
+      "gitBlob": "1f78a7979ea31b8ef498a9bcf269861cc7edba6a",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/EVIDENCE.yml",
+      "sha256": "f9b8ef60a6cd360d1398141a53ab664de4afd24f9d03fd3196fdeb3dad7bb0fc",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-1440-zh.png": {
+      "bytes": 446681,
+      "gitBlob": "7b1012826ac041dcb072944a3320dc98c14ae424",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-1440-zh.png",
+      "sha256": "7b1ca37ed3d03089e4e9ee70940831d491563daf2b3942e5c500d5404f57d5eb",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-1440.png": {
+      "bytes": 441583,
+      "gitBlob": "0650726b2d8f226979b47ab24f07d1c3c8cec775",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-1440.png",
+      "sha256": "7d138a58591022f50857e301c2a18d230dfad670633fce089fa7436e80f65e99",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-390-zh.png": {
+      "bytes": 201022,
+      "gitBlob": "2255995f5ec2c8916a851d2552a8d422bff2a5b2",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-390-zh.png",
+      "sha256": "f57301a51594b9d2d96578a35c109f70bac65649aba947a483f0d664f59827b9",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-390.png": {
+      "bytes": 191778,
+      "gitBlob": "1e6d0c3b6fe14e185c96b70606cf349b79dbe502",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-390.png",
+      "sha256": "5b22742253e686c8b57cd91c5d953a75319a7f7e855db59eac4bb66825e3af3b",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-820-zh.png": {
+      "bytes": 469286,
+      "gitBlob": "80584c2efee26949de49c960e2845af99f212598",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-820-zh.png",
+      "sha256": "369a0f3e8233d8c141a01529297363dbc55789ff60ee3a69f0ffcbba792aa3f0",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-820.png": {
+      "bytes": 456400,
+      "gitBlob": "ebd9872ef48dec1b3beb8c4699304cae2bd1574d",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-820.png",
+      "sha256": "09502573aab30393c635d448ffb7bc07eabcf809aa86c06c5906ebc1e357d741",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/LevelsLearn-1440-zh.png": {
+      "bytes": 109844,
+      "gitBlob": "6595aaef37efba776631aa774139bf840932176b",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsLearn-1440-zh.png",
+      "sha256": "ff6e9b5fa9b7f9b742746b6b1d48fad592a7608a34022a9fb0357455813ed747",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/LevelsLearn-1440.png": {
+      "bytes": 98981,
+      "gitBlob": "7d3d2b03a3bc1ca4cc5684dadd49366c99534ced",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsLearn-1440.png",
+      "sha256": "8a428602b4f7fbc38d60327036ff33ba4d14321fdaaa2ca03a905065e412bf12",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/LevelsLearn-390-zh.png": {
+      "bytes": 94357,
+      "gitBlob": "982d4e6a5de0fccbc6de5ba5f30785f5a0853264",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsLearn-390-zh.png",
+      "sha256": "6857811b0e1f83c608f5e457fb171a3369a483d0d47c46b25a0d9d9a258924b6",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/LevelsLearn-390.png": {
+      "bytes": 72673,
+      "gitBlob": "56d99bce97d5cbadf79816fa15e91e679fcd2f80",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsLearn-390.png",
+      "sha256": "53cd928e1f1ba98628c3eaa4d68a16b3ce51a97e7968e2db5a4a0a89b02ef4ae",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/LevelsLearn-820-zh.png": {
+      "bytes": 122544,
+      "gitBlob": "918fcc427e527add1e8046e25c4499e73c932611",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsLearn-820-zh.png",
+      "sha256": "f8268941bf60046fc925d2975bba672bc1fa8642f00a648ca88e0eafd9326469",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/LevelsLearn-820.png": {
+      "bytes": 114397,
+      "gitBlob": "a23963b0f175199cd9f00918a58273247ad80245",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsLearn-820.png",
+      "sha256": "f82cc59099e59a8e762b5799a2bc19396f22a7d301c2c763458db1a188b27eab",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-1440-zh.png": {
+      "bytes": 155642,
+      "gitBlob": "0edab58b600b998af30f81a15c0a187750c68362",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-1440-zh.png",
+      "sha256": "8f1b89411ba3bbb4ea1da920bb7c210f6fe366d5af5a6a51057654493041f8e9",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-1440.png": {
+      "bytes": 141080,
+      "gitBlob": "77baa74c40e184712acca9b40b5fe1f13cf9c035",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-1440.png",
+      "sha256": "6c8cef9274ac45d73f0dd2b238144a7054ef0032e14fe28d183bac74db00622b",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-390-zh.png": {
+      "bytes": 59285,
+      "gitBlob": "aaa5a43e73143493e27559417f20827b186f70fb",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-390-zh.png",
+      "sha256": "40139b94ebc77fed6d3116e842609c26bbf15cc7d750815681a27dc338ea43c7",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-390.png": {
+      "bytes": 57692,
+      "gitBlob": "0787fde9bff1b5098bb4517cbd47642c803821b7",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-390.png",
+      "sha256": "b185a8ae10d1a8ba216645f75f1d149dc75b5f8672c4cf71179d3fb6bd776a97",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-820-zh.png": {
+      "bytes": 136556,
+      "gitBlob": "2107f36f869f835ae8d8229826b131f73ac14e84",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-820-zh.png",
+      "sha256": "a7fd97d2c04f73a0a4759c737b7f227c1d81c0d1fa2c14aa6195da742280e07d",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-820.png": {
+      "bytes": 125835,
+      "gitBlob": "066590b8509bff8f8d0741c04e9e4afb5efdf6d0",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-820.png",
+      "sha256": "1a6b4de5b2d6ca9f6598bd01060ea612f5abc64ac643574a7d142359c7847c84",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/history/before-deterministic-6e3007f32f46a0c526e765831550557c95fcef68a49120540b755dc8cbaa2291.yml": {
+      "bytes": 2857,
+      "gitBlob": "c94e081a46b6c4e7cbbde4e3dab8f43f8b1c8f36",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/history/before-deterministic-6e3007f32f46a0c526e765831550557c95fcef68a49120540b755dc8cbaa2291.yml",
+      "sha256": "6e3007f32f46a0c526e765831550557c95fcef68a49120540b755dc8cbaa2291",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/history/before-deterministic-c9d8d3e249a031ed0ce795bc0d09aa2d37800e7dacf7187bd4d12e140618f36f.yml": {
+      "bytes": 5812,
+      "gitBlob": "ea68744b8fb48d2b99c1fb27303ef1c0de3a94c2",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/history/before-deterministic-c9d8d3e249a031ed0ce795bc0d09aa2d37800e7dacf7187bd4d12e140618f36f.yml",
+      "sha256": "c9d8d3e249a031ed0ce795bc0d09aa2d37800e7dacf7187bd4d12e140618f36f",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/history/before-deterministic-de75cc9a6723f05ac4e4494d5d45d52baa248b1a39ecd5bb7c0c45da3a61c6fa.yml": {
+      "bytes": 2695,
+      "gitBlob": "bfcb6cf28066cd5ff0090fcc7700d325b5655620",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/history/before-deterministic-de75cc9a6723f05ac4e4494d5d45d52baa248b1a39ecd5bb7c0c45da3a61c6fa.yml",
+      "sha256": "de75cc9a6723f05ac4e4494d5d45d52baa248b1a39ecd5bb7c0c45da3a61c6fa",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/history/before-document-language-20261024.yml": {
+      "bytes": 1875,
+      "gitBlob": "2de72db3e9f657b2232bca611d6b859da5e7c074",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/history/before-document-language-20261024.yml",
+      "sha256": "ace8ad7f215f359f284e723c275538c222b0528cc6af0e3b20c9802a85980ebb",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/history/before-integration-20261106-master-31cf16be.yml": {
+      "bytes": 4070,
+      "gitBlob": "652daf9b939aa315c8dc3c384719e45a992b4e04",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/history/before-integration-20261106-master-31cf16be.yml",
+      "sha256": "0a73bc7972b407fcf963556ca6f842ae5a6647793c3c88b8e42a73ab35a92b3d",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/history/before-integration-20261106-pr649-952f7d5c.yml": {
+      "bytes": 2736,
+      "gitBlob": "64d20536d30dae09b4c1dbaba6049db8052e2098",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/history/before-integration-20261106-pr649-952f7d5c.yml",
+      "sha256": "c9742958632b5c5f8fcb1b566da8e9edfaad128a772c713795fb81babff1a0ea",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/history/ci-42021650300-1-capture.json": {
+      "bytes": 6175,
+      "gitBlob": "546d0a2e24404c76afba7191e35fa3ffab932568",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/history/ci-42021650300-1-capture.json",
+      "sha256": "6ecb92d3439fb9885c2518351ea5bf43114f35287630283202bbf13983a03578",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/history/ci-42021650300-1-checkout.json": {
+      "bytes": 646,
+      "gitBlob": "202178ed427c5113ab94134701f399da0a732392",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/history/ci-42021650300-1-checkout.json",
+      "sha256": "c116822b266771557662d2162f711965b1d299bfb25f42af7443abd15603b280",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/history/ci-42557108595-1-capture.json": {
+      "bytes": 7338,
+      "gitBlob": "f5a5e70c2390c698eb89c450c92c26463c2cbcce",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/history/ci-42557108595-1-capture.json",
+      "sha256": "35f118739762e55ddb8203e6d79c3a4646802aed1dfad25cd745baab0c3a9747",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/history/ci-42557108595-1-checkout.json": {
+      "bytes": 646,
+      "gitBlob": "ee664181acae6909f35efe5dacd366f14ee5bd15",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/history/ci-42557108595-1-checkout.json",
+      "sha256": "91c13adc250749bc5bc87d3ca8252483ee711c10d9fd106fa67ef409dc35dde2",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/history/master-20261105-before-pr649.yml": {
+      "bytes": 2857,
+      "gitBlob": "c94e081a46b6c4e7cbbde4e3dab8f43f8b1c8f36",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/history/master-20261105-before-pr649.yml",
+      "sha256": "6e3007f32f46a0c526e765831550557c95fcef68a49120540b755dc8cbaa2291",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/b-pl-6-batch-2/history/pr649-20260919-before-integration.yml": {
+      "bytes": 2128,
+      "gitBlob": "402fb89b906212968bea14aa921623660abaaec3",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/history/pr649-20260919-before-integration.yml",
+      "sha256": "f32e54f22ae50996ca15a88d45f9f2eac0370ae4db72e700c7e3cde759a21fde",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/options-level-axis-labels/README.md": {
+      "bytes": 6047,
+      "gitBlob": "df0dedd8ed4c3b9e4aab659beb37dcc1ad4cf576",
+      "originalLogicalPath": "terminal/docs/pr-crops/options-level-axis-labels/README.md",
+      "sha256": "e8e90d28b21b8d08b07e36e5a7a9d4dd5648c0038a5b3c2414b0eec7931fb2a2",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/options-level-axis-labels/capture.mjs": {
+      "bytes": 11209,
+      "gitBlob": "1e7e62f133363679ae39f6cb2a5fead48f395a40",
+      "originalLogicalPath": "terminal/docs/pr-crops/options-level-axis-labels/capture.mjs",
+      "sha256": "91da3a38facfcaca3a1a11405fe7328312793ff67b7e1231be8693b8da9b8cf8",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/options-level-axis-labels/captureRoutes.mjs": {
+      "bytes": 1113,
+      "gitBlob": "74348eedbff9521e63dac17130608a034a7657b9",
+      "originalLogicalPath": "terminal/docs/pr-crops/options-level-axis-labels/captureRoutes.mjs",
+      "sha256": "52a39810d8bb55495c9c1c7908e0ab6de0ab31a440e06a7d1b9208dfcda7061a",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/options-level-axis-labels/coverage-audit-summary.json": {
+      "bytes": 16968,
+      "gitBlob": "4df089eb679e0372d57e3aa3e4c1a4f416ed62d7",
+      "originalLogicalPath": "terminal/docs/pr-crops/options-level-axis-labels/coverage-audit-summary.json",
+      "sha256": "0eb5f2f66a456bf12d6b8e6cfa2f88b3a166142eb3252ed04f626ee29bfa68f2",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/options-level-axis-labels/desktop-compact.png": {
+      "bytes": 109490,
+      "gitBlob": "e76c1b6230d15c6c9ae57750a85e034f5f45e2a8",
+      "originalLogicalPath": "terminal/docs/pr-crops/options-level-axis-labels/desktop-compact.png",
+      "sha256": "fec0ead8f7702635a90360d0003d132d3c053c8f362734fcbd26a4f131b9fe0b",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/options-level-axis-labels/desktop-left-percentage.png": {
+      "bytes": 203779,
+      "gitBlob": "aadb53fa0bf838cbda264b48c575b6cbb31129b2",
+      "originalLogicalPath": "terminal/docs/pr-crops/options-level-axis-labels/desktop-left-percentage.png",
+      "sha256": "635f14ce7360baf492f29fc1a28c89664f858b9745afd2d3394b3847116ebae3",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/options-level-axis-labels/desktop.png": {
+      "bytes": 185998,
+      "gitBlob": "21b198e7c88e1b3a4a777afed131bc32a7a8f75a",
+      "originalLogicalPath": "terminal/docs/pr-crops/options-level-axis-labels/desktop.png",
+      "sha256": "1d0e1442a38a4ef0b044b6815082a2da4bf7bb7f5186257894d330fed10bae44",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/options-level-axis-labels/manifest.json": {
+      "bytes": 15697,
+      "gitBlob": "39d515e898bcdf4c9f345ab4b8c588ccbd7358db",
+      "originalLogicalPath": "terminal/docs/pr-crops/options-level-axis-labels/manifest.json",
+      "sha256": "53dd2d03521fbaaae0caf47c704f793d89e2a2f6ea7f48cdc4e4b6ac70564b31",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/options-level-axis-labels/mobile.png": {
+      "bytes": 77092,
+      "gitBlob": "f6b9d4bd5fb72febc49c6420399aa80d1a7c5b58",
+      "originalLogicalPath": "terminal/docs/pr-crops/options-level-axis-labels/mobile.png",
+      "sha256": "bb9920d5622becd873b43513e968c712f1820681c6ed0cde610b32db80bd1700",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/options-level-axis-labels/tablet.png": {
+      "bytes": 108962,
+      "gitBlob": "7af06cdde2c761cda8a474ac11bb9d69443300cb",
+      "originalLogicalPath": "terminal/docs/pr-crops/options-level-axis-labels/tablet.png",
+      "sha256": "fc809f39562c7773a2ab2c9e1235584859c51cf6d1e4cfcafdf43a0895718e00",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/EVIDENCE.yml": {
+      "bytes": 4787,
+      "gitBlob": "6a3f93183a913b895ffef65515def80f1e69dfa3",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/EVIDENCE.yml",
+      "sha256": "fa13ad94d4f9a41b86ca55a6772dc1e8b7ef419471404610b97e064947d95582",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/editor-checking-1440-zh.png": {
+      "bytes": 3178,
+      "gitBlob": "ad8f983d255a71f265e70123e64f99a3a5c4ffb3",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/editor-checking-1440-zh.png",
+      "sha256": "d6016686593b35dbd085295b9d5c8e4a8dea73e9efe6cc68689f57762f488108",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/editor-checking-1440.png": {
+      "bytes": 2921,
+      "gitBlob": "825fdd9be55672636e0ed74d4c981bc81badd69f",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/editor-checking-1440.png",
+      "sha256": "d3af63a961dea0f8cbb15dd69756b10d2a0a24f223abe6921a133f56cbe7ec66",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/editor-checking-390-zh.png": {
+      "bytes": 2787,
+      "gitBlob": "f030dde7c2b2f1d3ce791a7163a0f1e4b0ab18ce",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/editor-checking-390-zh.png",
+      "sha256": "26aee5825d9216cce361e73bd12aaf4a201cabc090c6463f8923e4546e68f57a",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/editor-checking-390.png": {
+      "bytes": 2520,
+      "gitBlob": "bbe52119c7f09838fac972ab5dde2c70470bdd71",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/editor-checking-390.png",
+      "sha256": "d0e380c199f55d305a520227facf8455bc6771d592846a1a21da79210081bf9a",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/editor-checking-820-zh.png": {
+      "bytes": 3041,
+      "gitBlob": "952203961b15397f78943da90c167ff67cfe6fc5",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/editor-checking-820-zh.png",
+      "sha256": "9ad571efa99e35159ad3f2de11a056937495313aabe3724087a4d72dec511cca",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/editor-checking-820.png": {
+      "bytes": 2763,
+      "gitBlob": "04fbedac504836b96789e2b1620e19ae6fb3e1ee",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/editor-checking-820.png",
+      "sha256": "5d8bc1459850d85b48cd92a5eda6bf853267d504b0abc7ac1997e4dec4b90c7c",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/editor-unavailable-1440-zh.png": {
+      "bytes": 6323,
+      "gitBlob": "737cc54a80eaed13f506b0a67e1cb091bae11eca",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/editor-unavailable-1440-zh.png",
+      "sha256": "e8746f49032587c6ae9cdf6d27f209fdef020266e154d5f682de52bf5171c0d9",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/editor-unavailable-1440.png": {
+      "bytes": 6927,
+      "gitBlob": "8f99334e3fafeb18ead9f522be0bf6ae557f47dd",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/editor-unavailable-1440.png",
+      "sha256": "67646e65cfffc9487c0005565c050999d4eba3f3566b3813e64f526a0726243e",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/editor-unavailable-390-zh.png": {
+      "bytes": 5729,
+      "gitBlob": "93619372481ad10057bc8ae316fdda16c5f5ad00",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/editor-unavailable-390-zh.png",
+      "sha256": "b99687a0ce677446a58072b2ed5a95a8e9ec2f63db3250eebe3e4ce15a763b33",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/editor-unavailable-390.png": {
+      "bytes": 6584,
+      "gitBlob": "9483469097030522126038c6194b8056cbbdc803",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/editor-unavailable-390.png",
+      "sha256": "0843891efe0098c3183fce4625db8d52223281b3cbcc844727fb37194bf034c0",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/editor-unavailable-820-zh.png": {
+      "bytes": 6079,
+      "gitBlob": "1ce0642cd48cb7be56ffa000b4282b20d25b90c0",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/editor-unavailable-820-zh.png",
+      "sha256": "70441efbd0e181ef4a0e0305e4c4fafff7cc9c8834c4f9c09b30b223fe6c4bda",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/editor-unavailable-820.png": {
+      "bytes": 6702,
+      "gitBlob": "d74dc298ba86e6148f84bb52a58d989a30f322cf",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/editor-unavailable-820.png",
+      "sha256": "48e46e7e90bc4fbaadeb22d6f292d78892c643859566d0f2b48cc1615eed10bf",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/legend-failed-1440-zh.png": {
+      "bytes": 16611,
+      "gitBlob": "b2a1674066b0e0d19b63b3e8afc9d8ab3fdcfb27",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-failed-1440-zh.png",
+      "sha256": "ef8216694074de724d3edbaa088db4ecc0fffe1b18c011968b5876104fc966cc",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/legend-failed-1440.png": {
+      "bytes": 19409,
+      "gitBlob": "ee377e5e0fed49abcb43a367bfe89fb2cb0a2e50",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-failed-1440.png",
+      "sha256": "2b5428eac44f655476f4f58ebd68673723e3d4221d904453a3ce38fb666d4fae",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/legend-failed-390-zh.png": {
+      "bytes": 16920,
+      "gitBlob": "2f6e96655a7c5f7fddd72ea7773bf474e0bab881",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-failed-390-zh.png",
+      "sha256": "7b09108061c6f85a46efbda00b856d6261ec5b5fade5ef3f249653b5dc7b9659",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/legend-failed-390.png": {
+      "bytes": 25047,
+      "gitBlob": "e2952692dd1409e4c66036ae01c2dbef0e61ac80",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-failed-390.png",
+      "sha256": "4f9cd647be9a0a0204297f7fe19adc9f4cb597a0cc5dbb3a29ad2c96b60b75c5",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/legend-failed-820-zh.png": {
+      "bytes": 17122,
+      "gitBlob": "a61e61defd0e8d76d0448680eb1507d0b99607c3",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-failed-820-zh.png",
+      "sha256": "3760ff24de626e4e41a95519ee1caeaf0c6bd7005dab5c96b7645ed53f6c18c3",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/legend-failed-820.png": {
+      "bytes": 18627,
+      "gitBlob": "d82e8fbb036e5c5fa4311b1b9f1e0730a94b6544",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-failed-820.png",
+      "sha256": "7ea5f8f7e90d7981c7f3c6318620634bb88f774a57f80c57dde885025e493c22",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/legend-retried-1440-zh.png": {
+      "bytes": 14766,
+      "gitBlob": "96e7126bfd9cceb2801f6ead1acfc6d263ebfb4e",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-retried-1440-zh.png",
+      "sha256": "d8c1da1e256951adf6b6be456a240fd01426f72f2776b8b9a6f152514a7d9dc5",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/legend-retried-1440.png": {
+      "bytes": 13363,
+      "gitBlob": "4e8f234ef4744e2a53a2a84ebf2ee63e5012319b",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-retried-1440.png",
+      "sha256": "e6605cbcba7322f70b46e1c2e2cd9c12a6dfd6c1ba5ffe3bf173ef50026598e8",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/legend-retried-390-zh.png": {
+      "bytes": 11449,
+      "gitBlob": "67d97cac3483fcc3fccea3e4f71e456a58ff92b9",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-retried-390-zh.png",
+      "sha256": "74e7e6872b6f67291cfd10521545a7f4e2a98637895625c54f1c72f96cc89646",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/legend-retried-390.png": {
+      "bytes": 14808,
+      "gitBlob": "0378871a9c0e83d6b6fb3117fe0a49c5f1177a7c",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-retried-390.png",
+      "sha256": "8c07a3ddc5ea37372d955fd062c6dbbe6d28aeedc01d792804a4503d83894c99",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/legend-retried-820-zh.png": {
+      "bytes": 14540,
+      "gitBlob": "ba5f94adcec325971c2872fc4274f25e26d55879",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-retried-820-zh.png",
+      "sha256": "53e4b7bc3b76c54b46d3728028b64c3a361b9252647c57a784b41327762d1874",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/legend-retried-820.png": {
+      "bytes": 14049,
+      "gitBlob": "aee2d6afa8c5b677f8650ad8accbcf3fa98b87bd",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-retried-820.png",
+      "sha256": "cacc32b1bc88630b8aaa88cb50af5ecd5d50a5f32939ace619a6c08e637692ce",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/legend-wait-1440-zh.png": {
+      "bytes": 15322,
+      "gitBlob": "4677d605b22135768a1fd3406069fbad6477696a",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-wait-1440-zh.png",
+      "sha256": "cab361f283777a5443ec2edf6a80d5dbd8dbbcc86e59ac62530370d9b96dd08e",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/legend-wait-1440.png": {
+      "bytes": 18389,
+      "gitBlob": "5a04d30f5b885e226b50b0ab62e6d819eb771e63",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-wait-1440.png",
+      "sha256": "ddae523caa80e9e445444846f0b173160ad693bfe0129e401208aaece1e4c71a",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/legend-wait-390-zh.png": {
+      "bytes": 15443,
+      "gitBlob": "f257b981a56f94d720d108e4e9b415fa83f519c9",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-wait-390-zh.png",
+      "sha256": "e185ec28b3b6190331f15174dbeabc9d118b4b403fca447f9d70c3da5b08d1c1",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/legend-wait-390.png": {
+      "bytes": 23880,
+      "gitBlob": "c06c1cd581d4f2819dc6587dd808bfa3a3799249",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-wait-390.png",
+      "sha256": "aa4ed1a9a731731c1b7d48ee6663e292406a878cffc74b596ff8258a829374b4",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/legend-wait-820-zh.png": {
+      "bytes": 15568,
+      "gitBlob": "03d9eb1271f08e70bc49abb0c9b0bf1c4c86b3d0",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-wait-820-zh.png",
+      "sha256": "996809f79b122398e4ba02c61d8c4662cd0feb13abb0a0796fd89063b2cd0abf",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/original/terminal/docs/pr-crops/pine-boot-pending-state/legend-wait-820.png": {
+      "bytes": 17556,
+      "gitBlob": "bd760787fe6916d8bb08ac56c2503a332cb87673",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-wait-820.png",
+      "sha256": "c1f1d1da707d6c63f49412d09317128caeb808171a57f6d232cb40c49499e254",
+      "sourceCommit": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/ChartConductor-1440-zh.png": {
+      "bytes": 88978,
+      "gitBlob": "ce1705a7d355601e5a86766f4b425ff52030c653",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/ChartConductor-1440-zh.png",
+      "sha256": "fda7d66325f7c8957a3dd8497c84f738eabd7f1254ec42e569e790ffc2aaabcf",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/ChartConductor-1440.png": {
+      "bytes": 88174,
+      "gitBlob": "8bb2744c5bcc03d7f31c8ba5b00f702b86045b04",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/ChartConductor-1440.png",
+      "sha256": "fe0b5380d10099c9959706504fba8176754cebfdb8f0a8a58021c26a1c9ddcd3",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/ChartConductor-390-zh.png": {
+      "bytes": 28214,
+      "gitBlob": "0293f325548d57fd55afdeced7f07ac08651fc89",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/ChartConductor-390-zh.png",
+      "sha256": "2a2ef5203c042645671e5ab0974e97175b8fa1f07328f1414bc5ba211300b5ec",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/ChartConductor-390.png": {
+      "bytes": 28168,
+      "gitBlob": "33094959c0fe736f8859f69d1f40d4751f79a980",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/ChartConductor-390.png",
+      "sha256": "a848ac853c889ee6fe3d8232cf25aee38347660bd9af19d0c22ae3b4f183870f",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/ChartConductor-820-zh.png": {
+      "bytes": 77684,
+      "gitBlob": "7166533a04313d5d4b9f791f612006ca2aaeafef",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/ChartConductor-820-zh.png",
+      "sha256": "bc5633cf705d6903690352858fab78ee0249800f38972d6cca99d38257f88588",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/ChartConductor-820.png": {
+      "bytes": 77169,
+      "gitBlob": "6f6508d95705fbc93eea3c57ef78d3a499d6e41e",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/ChartConductor-820.png",
+      "sha256": "335c91baf353a005e024c26a0b76f218396d3574bf32502bda8bc5f816887e59",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/EVIDENCE.yml": {
+      "bytes": 5812,
+      "gitBlob": "1333b442f780628475d5473ce883c154d8353c76",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/EVIDENCE.yml",
+      "sha256": "da30855b0ba3920ad6da7b1438a25f562278f417b2c9b388c8c8f582ec9f76e0",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-1440-zh.png": {
+      "bytes": 455303,
+      "gitBlob": "3c666862fa3c6e80775cabaa66e06babd439b355",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-1440-zh.png",
+      "sha256": "304f68ec93155e99adaf356c0525837468e01ab9bb51ef1f1ba4d6e94f72a340",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-1440.png": {
+      "bytes": 447472,
+      "gitBlob": "05a57a5a8f14f57850ecd93fdb607e2730391826",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-1440.png",
+      "sha256": "8f2af273e52ee58f84cdf4a8b29d52c0aa48562d85cca09dd8de58c7b5a12e46",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-390-zh.png": {
+      "bytes": 201022,
+      "gitBlob": "2255995f5ec2c8916a851d2552a8d422bff2a5b2",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-390-zh.png",
+      "sha256": "f57301a51594b9d2d96578a35c109f70bac65649aba947a483f0d664f59827b9",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-390.png": {
+      "bytes": 191778,
+      "gitBlob": "1e6d0c3b6fe14e185c96b70606cf349b79dbe502",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-390.png",
+      "sha256": "5b22742253e686c8b57cd91c5d953a75319a7f7e855db59eac4bb66825e3af3b",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-820-zh.png": {
+      "bytes": 471746,
+      "gitBlob": "c27e1943a22c1622af91b8deaaa530dfa58a9b31",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-820-zh.png",
+      "sha256": "1c0968115e046e3551f0c53bb7ec7f386c7af26cc1594ce78ade4e0a725acf22",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-820.png": {
+      "bytes": 458982,
+      "gitBlob": "7087fe08afde2f3fa6cf8fd866a133b2324cae8a",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/GuidePanel-820.png",
+      "sha256": "8f1f547f8eb7deca78a4c9d470d476059b44f079931865a4cc1e2890a22267d6",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/LevelsLearn-1440-zh.png": {
+      "bytes": 109844,
+      "gitBlob": "6595aaef37efba776631aa774139bf840932176b",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsLearn-1440-zh.png",
+      "sha256": "ff6e9b5fa9b7f9b742746b6b1d48fad592a7608a34022a9fb0357455813ed747",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/LevelsLearn-1440.png": {
+      "bytes": 98981,
+      "gitBlob": "7d3d2b03a3bc1ca4cc5684dadd49366c99534ced",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsLearn-1440.png",
+      "sha256": "8a428602b4f7fbc38d60327036ff33ba4d14321fdaaa2ca03a905065e412bf12",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/LevelsLearn-390-zh.png": {
+      "bytes": 94357,
+      "gitBlob": "982d4e6a5de0fccbc6de5ba5f30785f5a0853264",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsLearn-390-zh.png",
+      "sha256": "6857811b0e1f83c608f5e457fb171a3369a483d0d47c46b25a0d9d9a258924b6",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/LevelsLearn-390.png": {
+      "bytes": 72673,
+      "gitBlob": "56d99bce97d5cbadf79816fa15e91e679fcd2f80",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsLearn-390.png",
+      "sha256": "53cd928e1f1ba98628c3eaa4d68a16b3ce51a97e7968e2db5a4a0a89b02ef4ae",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/LevelsLearn-820-zh.png": {
+      "bytes": 122544,
+      "gitBlob": "918fcc427e527add1e8046e25c4499e73c932611",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsLearn-820-zh.png",
+      "sha256": "f8268941bf60046fc925d2975bba672bc1fa8642f00a648ca88e0eafd9326469",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/LevelsLearn-820.png": {
+      "bytes": 114397,
+      "gitBlob": "a23963b0f175199cd9f00918a58273247ad80245",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsLearn-820.png",
+      "sha256": "f82cc59099e59a8e762b5799a2bc19396f22a7d301c2c763458db1a188b27eab",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-1440-zh.png": {
+      "bytes": 155642,
+      "gitBlob": "0edab58b600b998af30f81a15c0a187750c68362",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-1440-zh.png",
+      "sha256": "8f1b89411ba3bbb4ea1da920bb7c210f6fe366d5af5a6a51057654493041f8e9",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-1440.png": {
+      "bytes": 141080,
+      "gitBlob": "77baa74c40e184712acca9b40b5fe1f13cf9c035",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-1440.png",
+      "sha256": "6c8cef9274ac45d73f0dd2b238144a7054ef0032e14fe28d183bac74db00622b",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-390-zh.png": {
+      "bytes": 59285,
+      "gitBlob": "aaa5a43e73143493e27559417f20827b186f70fb",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-390-zh.png",
+      "sha256": "40139b94ebc77fed6d3116e842609c26bbf15cc7d750815681a27dc338ea43c7",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-390.png": {
+      "bytes": 57692,
+      "gitBlob": "0787fde9bff1b5098bb4517cbd47642c803821b7",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-390.png",
+      "sha256": "b185a8ae10d1a8ba216645f75f1d149dc75b5f8672c4cf71179d3fb6bd776a97",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-820-zh.png": {
+      "bytes": 136556,
+      "gitBlob": "2107f36f869f835ae8d8229826b131f73ac14e84",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-820-zh.png",
+      "sha256": "a7fd97d2c04f73a0a4759c737b7f227c1d81c0d1fa2c14aa6195da742280e07d",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-820.png": {
+      "bytes": 125835,
+      "gitBlob": "066590b8509bff8f8d0741c04e9e4afb5efdf6d0",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/LevelsView-820.png",
+      "sha256": "1a6b4de5b2d6ca9f6598bd01060ea612f5abc64ac643574a7d142359c7847c84",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/history/before-deterministic-6e3007f32f46a0c526e765831550557c95fcef68a49120540b755dc8cbaa2291.yml": {
+      "bytes": 2857,
+      "gitBlob": "c94e081a46b6c4e7cbbde4e3dab8f43f8b1c8f36",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/history/before-deterministic-6e3007f32f46a0c526e765831550557c95fcef68a49120540b755dc8cbaa2291.yml",
+      "sha256": "6e3007f32f46a0c526e765831550557c95fcef68a49120540b755dc8cbaa2291",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/history/before-deterministic-c9d8d3e249a031ed0ce795bc0d09aa2d37800e7dacf7187bd4d12e140618f36f.yml": {
+      "bytes": 5812,
+      "gitBlob": "ea68744b8fb48d2b99c1fb27303ef1c0de3a94c2",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/history/before-deterministic-c9d8d3e249a031ed0ce795bc0d09aa2d37800e7dacf7187bd4d12e140618f36f.yml",
+      "sha256": "c9d8d3e249a031ed0ce795bc0d09aa2d37800e7dacf7187bd4d12e140618f36f",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/history/before-deterministic-de75cc9a6723f05ac4e4494d5d45d52baa248b1a39ecd5bb7c0c45da3a61c6fa.yml": {
+      "bytes": 2695,
+      "gitBlob": "bfcb6cf28066cd5ff0090fcc7700d325b5655620",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/history/before-deterministic-de75cc9a6723f05ac4e4494d5d45d52baa248b1a39ecd5bb7c0c45da3a61c6fa.yml",
+      "sha256": "de75cc9a6723f05ac4e4494d5d45d52baa248b1a39ecd5bb7c0c45da3a61c6fa",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/history/before-document-language-20261024.yml": {
+      "bytes": 1875,
+      "gitBlob": "2de72db3e9f657b2232bca611d6b859da5e7c074",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/history/before-document-language-20261024.yml",
+      "sha256": "ace8ad7f215f359f284e723c275538c222b0528cc6af0e3b20c9802a85980ebb",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/history/before-integration-20261106-master-31cf16be.yml": {
+      "bytes": 4070,
+      "gitBlob": "652daf9b939aa315c8dc3c384719e45a992b4e04",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/history/before-integration-20261106-master-31cf16be.yml",
+      "sha256": "0a73bc7972b407fcf963556ca6f842ae5a6647793c3c88b8e42a73ab35a92b3d",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/history/before-integration-20261106-pr649-952f7d5c.yml": {
+      "bytes": 2736,
+      "gitBlob": "64d20536d30dae09b4c1dbaba6049db8052e2098",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/history/before-integration-20261106-pr649-952f7d5c.yml",
+      "sha256": "c9742958632b5c5f8fcb1b566da8e9edfaad128a772c713795fb81babff1a0ea",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/history/ci-42021650300-1-capture.json": {
+      "bytes": 6175,
+      "gitBlob": "546d0a2e24404c76afba7191e35fa3ffab932568",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/history/ci-42021650300-1-capture.json",
+      "sha256": "6ecb92d3439fb9885c2518351ea5bf43114f35287630283202bbf13983a03578",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/history/ci-42021650300-1-checkout.json": {
+      "bytes": 646,
+      "gitBlob": "202178ed427c5113ab94134701f399da0a732392",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/history/ci-42021650300-1-checkout.json",
+      "sha256": "c116822b266771557662d2162f711965b1d299bfb25f42af7443abd15603b280",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/history/ci-42557108595-1-capture.json": {
+      "bytes": 7338,
+      "gitBlob": "f5a5e70c2390c698eb89c450c92c26463c2cbcce",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/history/ci-42557108595-1-capture.json",
+      "sha256": "35f118739762e55ddb8203e6d79c3a4646802aed1dfad25cd745baab0c3a9747",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/history/ci-42557108595-1-checkout.json": {
+      "bytes": 646,
+      "gitBlob": "ee664181acae6909f35efe5dacd366f14ee5bd15",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/history/ci-42557108595-1-checkout.json",
+      "sha256": "91c13adc250749bc5bc87d3ca8252483ee711c10d9fd106fa67ef409dc35dde2",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/history/master-20261105-before-pr649.yml": {
+      "bytes": 2857,
+      "gitBlob": "c94e081a46b6c4e7cbbde4e3dab8f43f8b1c8f36",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/history/master-20261105-before-pr649.yml",
+      "sha256": "6e3007f32f46a0c526e765831550557c95fcef68a49120540b755dc8cbaa2291",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/b-pl-6-batch-2/history/pr649-20260919-before-integration.yml": {
+      "bytes": 2128,
+      "gitBlob": "402fb89b906212968bea14aa921623660abaaec3",
+      "originalLogicalPath": "terminal/docs/pr-crops/b-pl-6-batch-2/history/pr649-20260919-before-integration.yml",
+      "sha256": "f32e54f22ae50996ca15a88d45f9f2eac0370ae4db72e700c7e3cde759a21fde",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/options-level-axis-labels/README.md": {
+      "bytes": 6047,
+      "gitBlob": "df0dedd8ed4c3b9e4aab659beb37dcc1ad4cf576",
+      "originalLogicalPath": "terminal/docs/pr-crops/options-level-axis-labels/README.md",
+      "sha256": "e8e90d28b21b8d08b07e36e5a7a9d4dd5648c0038a5b3c2414b0eec7931fb2a2",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/options-level-axis-labels/capture.mjs": {
+      "bytes": 11239,
+      "gitBlob": "bf6f375bc876bfd5a7ebab957c29541444e0de43",
+      "originalLogicalPath": "terminal/docs/pr-crops/options-level-axis-labels/capture.mjs",
+      "sha256": "677c532c8f5a3dcba299131d2a9201e805a22d1cf5eebd14077b67640b391122",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/options-level-axis-labels/captureRoutes.mjs": {
+      "bytes": 1113,
+      "gitBlob": "74348eedbff9521e63dac17130608a034a7657b9",
+      "originalLogicalPath": "terminal/docs/pr-crops/options-level-axis-labels/captureRoutes.mjs",
+      "sha256": "52a39810d8bb55495c9c1c7908e0ab6de0ab31a440e06a7d1b9208dfcda7061a",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/options-level-axis-labels/coverage-audit-summary.json": {
+      "bytes": 16968,
+      "gitBlob": "4df089eb679e0372d57e3aa3e4c1a4f416ed62d7",
+      "originalLogicalPath": "terminal/docs/pr-crops/options-level-axis-labels/coverage-audit-summary.json",
+      "sha256": "0eb5f2f66a456bf12d6b8e6cfa2f88b3a166142eb3252ed04f626ee29bfa68f2",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/options-level-axis-labels/desktop-compact.png": {
+      "bytes": 109490,
+      "gitBlob": "e76c1b6230d15c6c9ae57750a85e034f5f45e2a8",
+      "originalLogicalPath": "terminal/docs/pr-crops/options-level-axis-labels/desktop-compact.png",
+      "sha256": "fec0ead8f7702635a90360d0003d132d3c053c8f362734fcbd26a4f131b9fe0b",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/options-level-axis-labels/desktop-left-percentage.png": {
+      "bytes": 205223,
+      "gitBlob": "eadd620e05b671c237e294996550ba51a4013223",
+      "originalLogicalPath": "terminal/docs/pr-crops/options-level-axis-labels/desktop-left-percentage.png",
+      "sha256": "3d295c231e80a42858c602b093a36568b9dbad622b7cd52c25a173a1d6d30d7c",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/options-level-axis-labels/desktop.png": {
+      "bytes": 187790,
+      "gitBlob": "246e20ef05909ceaca6097b7c0106619e6330a02",
+      "originalLogicalPath": "terminal/docs/pr-crops/options-level-axis-labels/desktop.png",
+      "sha256": "060a69d86719e466524fa899ff40c39f846948142cf9d47d4d2ae417b206d4bc",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/options-level-axis-labels/manifest.json": {
+      "bytes": 15697,
+      "gitBlob": "6c26de7009154e67cf741fd45b4a675a7db196eb",
+      "originalLogicalPath": "terminal/docs/pr-crops/options-level-axis-labels/manifest.json",
+      "sha256": "d5ce960d786165272b7c3f478043ecf40af40051046cf8fc53276ee9bdb842f1",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/options-level-axis-labels/mobile.png": {
+      "bytes": 77092,
+      "gitBlob": "f6b9d4bd5fb72febc49c6420399aa80d1a7c5b58",
+      "originalLogicalPath": "terminal/docs/pr-crops/options-level-axis-labels/mobile.png",
+      "sha256": "bb9920d5622becd873b43513e968c712f1820681c6ed0cde610b32db80bd1700",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/options-level-axis-labels/tablet.png": {
+      "bytes": 109168,
+      "gitBlob": "a5601e4d3ef00f85fd898f5cebd1cb1faf20d6e8",
+      "originalLogicalPath": "terminal/docs/pr-crops/options-level-axis-labels/tablet.png",
+      "sha256": "442384105a54b37b46f9a88fbd065fb518a851c674381455546361b7c7ea6f15",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/EVIDENCE.yml": {
+      "bytes": 4787,
+      "gitBlob": "02af3b78e5edf6fe4538293586a080ab60906188",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/EVIDENCE.yml",
+      "sha256": "b6cef370a9754c436ebb6a5cc78c941ccfd5072084ca92df1042ce17c95eddef",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/editor-checking-1440-zh.png": {
+      "bytes": 3178,
+      "gitBlob": "ad8f983d255a71f265e70123e64f99a3a5c4ffb3",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/editor-checking-1440-zh.png",
+      "sha256": "d6016686593b35dbd085295b9d5c8e4a8dea73e9efe6cc68689f57762f488108",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/editor-checking-1440.png": {
+      "bytes": 2921,
+      "gitBlob": "825fdd9be55672636e0ed74d4c981bc81badd69f",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/editor-checking-1440.png",
+      "sha256": "d3af63a961dea0f8cbb15dd69756b10d2a0a24f223abe6921a133f56cbe7ec66",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/editor-checking-390-zh.png": {
+      "bytes": 2787,
+      "gitBlob": "f030dde7c2b2f1d3ce791a7163a0f1e4b0ab18ce",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/editor-checking-390-zh.png",
+      "sha256": "26aee5825d9216cce361e73bd12aaf4a201cabc090c6463f8923e4546e68f57a",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/editor-checking-390.png": {
+      "bytes": 2520,
+      "gitBlob": "bbe52119c7f09838fac972ab5dde2c70470bdd71",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/editor-checking-390.png",
+      "sha256": "d0e380c199f55d305a520227facf8455bc6771d592846a1a21da79210081bf9a",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/editor-checking-820-zh.png": {
+      "bytes": 3041,
+      "gitBlob": "952203961b15397f78943da90c167ff67cfe6fc5",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/editor-checking-820-zh.png",
+      "sha256": "9ad571efa99e35159ad3f2de11a056937495313aabe3724087a4d72dec511cca",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/editor-checking-820.png": {
+      "bytes": 2763,
+      "gitBlob": "04fbedac504836b96789e2b1620e19ae6fb3e1ee",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/editor-checking-820.png",
+      "sha256": "5d8bc1459850d85b48cd92a5eda6bf853267d504b0abc7ac1997e4dec4b90c7c",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/editor-unavailable-1440-zh.png": {
+      "bytes": 6323,
+      "gitBlob": "737cc54a80eaed13f506b0a67e1cb091bae11eca",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/editor-unavailable-1440-zh.png",
+      "sha256": "e8746f49032587c6ae9cdf6d27f209fdef020266e154d5f682de52bf5171c0d9",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/editor-unavailable-1440.png": {
+      "bytes": 6927,
+      "gitBlob": "8f99334e3fafeb18ead9f522be0bf6ae557f47dd",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/editor-unavailable-1440.png",
+      "sha256": "67646e65cfffc9487c0005565c050999d4eba3f3566b3813e64f526a0726243e",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/editor-unavailable-390-zh.png": {
+      "bytes": 5729,
+      "gitBlob": "93619372481ad10057bc8ae316fdda16c5f5ad00",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/editor-unavailable-390-zh.png",
+      "sha256": "b99687a0ce677446a58072b2ed5a95a8e9ec2f63db3250eebe3e4ce15a763b33",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/editor-unavailable-390.png": {
+      "bytes": 6584,
+      "gitBlob": "9483469097030522126038c6194b8056cbbdc803",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/editor-unavailable-390.png",
+      "sha256": "0843891efe0098c3183fce4625db8d52223281b3cbcc844727fb37194bf034c0",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/editor-unavailable-820-zh.png": {
+      "bytes": 6079,
+      "gitBlob": "1ce0642cd48cb7be56ffa000b4282b20d25b90c0",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/editor-unavailable-820-zh.png",
+      "sha256": "70441efbd0e181ef4a0e0305e4c4fafff7cc9c8834c4f9c09b30b223fe6c4bda",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/editor-unavailable-820.png": {
+      "bytes": 6702,
+      "gitBlob": "d74dc298ba86e6148f84bb52a58d989a30f322cf",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/editor-unavailable-820.png",
+      "sha256": "48e46e7e90bc4fbaadeb22d6f292d78892c643859566d0f2b48cc1615eed10bf",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/legend-failed-1440-zh.png": {
+      "bytes": 16611,
+      "gitBlob": "b2a1674066b0e0d19b63b3e8afc9d8ab3fdcfb27",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-failed-1440-zh.png",
+      "sha256": "ef8216694074de724d3edbaa088db4ecc0fffe1b18c011968b5876104fc966cc",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/legend-failed-1440.png": {
+      "bytes": 19409,
+      "gitBlob": "ee377e5e0fed49abcb43a367bfe89fb2cb0a2e50",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-failed-1440.png",
+      "sha256": "2b5428eac44f655476f4f58ebd68673723e3d4221d904453a3ce38fb666d4fae",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/legend-failed-390-zh.png": {
+      "bytes": 16920,
+      "gitBlob": "2f6e96655a7c5f7fddd72ea7773bf474e0bab881",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-failed-390-zh.png",
+      "sha256": "7b09108061c6f85a46efbda00b856d6261ec5b5fade5ef3f249653b5dc7b9659",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/legend-failed-390.png": {
+      "bytes": 25047,
+      "gitBlob": "e2952692dd1409e4c66036ae01c2dbef0e61ac80",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-failed-390.png",
+      "sha256": "4f9cd647be9a0a0204297f7fe19adc9f4cb597a0cc5dbb3a29ad2c96b60b75c5",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/legend-failed-820-zh.png": {
+      "bytes": 17122,
+      "gitBlob": "a61e61defd0e8d76d0448680eb1507d0b99607c3",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-failed-820-zh.png",
+      "sha256": "3760ff24de626e4e41a95519ee1caeaf0c6bd7005dab5c96b7645ed53f6c18c3",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/legend-failed-820.png": {
+      "bytes": 18627,
+      "gitBlob": "d82e8fbb036e5c5fa4311b1b9f1e0730a94b6544",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-failed-820.png",
+      "sha256": "7ea5f8f7e90d7981c7f3c6318620634bb88f774a57f80c57dde885025e493c22",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/legend-retried-1440-zh.png": {
+      "bytes": 14766,
+      "gitBlob": "96e7126bfd9cceb2801f6ead1acfc6d263ebfb4e",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-retried-1440-zh.png",
+      "sha256": "d8c1da1e256951adf6b6be456a240fd01426f72f2776b8b9a6f152514a7d9dc5",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/legend-retried-1440.png": {
+      "bytes": 13363,
+      "gitBlob": "4e8f234ef4744e2a53a2a84ebf2ee63e5012319b",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-retried-1440.png",
+      "sha256": "e6605cbcba7322f70b46e1c2e2cd9c12a6dfd6c1ba5ffe3bf173ef50026598e8",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/legend-retried-390-zh.png": {
+      "bytes": 11449,
+      "gitBlob": "67d97cac3483fcc3fccea3e4f71e456a58ff92b9",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-retried-390-zh.png",
+      "sha256": "74e7e6872b6f67291cfd10521545a7f4e2a98637895625c54f1c72f96cc89646",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/legend-retried-390.png": {
+      "bytes": 14808,
+      "gitBlob": "0378871a9c0e83d6b6fb3117fe0a49c5f1177a7c",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-retried-390.png",
+      "sha256": "8c07a3ddc5ea37372d955fd062c6dbbe6d28aeedc01d792804a4503d83894c99",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/legend-retried-820-zh.png": {
+      "bytes": 14540,
+      "gitBlob": "ba5f94adcec325971c2872fc4274f25e26d55879",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-retried-820-zh.png",
+      "sha256": "53e4b7bc3b76c54b46d3728028b64c3a361b9252647c57a784b41327762d1874",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/legend-retried-820.png": {
+      "bytes": 14049,
+      "gitBlob": "aee2d6afa8c5b677f8650ad8accbcf3fa98b87bd",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-retried-820.png",
+      "sha256": "cacc32b1bc88630b8aaa88cb50af5ecd5d50a5f32939ace619a6c08e637692ce",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/legend-wait-1440-zh.png": {
+      "bytes": 15322,
+      "gitBlob": "4677d605b22135768a1fd3406069fbad6477696a",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-wait-1440-zh.png",
+      "sha256": "cab361f283777a5443ec2edf6a80d5dbd8dbbcc86e59ac62530370d9b96dd08e",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/legend-wait-1440.png": {
+      "bytes": 18389,
+      "gitBlob": "5a04d30f5b885e226b50b0ab62e6d819eb771e63",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-wait-1440.png",
+      "sha256": "ddae523caa80e9e445444846f0b173160ad693bfe0129e401208aaece1e4c71a",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/legend-wait-390-zh.png": {
+      "bytes": 15443,
+      "gitBlob": "f257b981a56f94d720d108e4e9b415fa83f519c9",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-wait-390-zh.png",
+      "sha256": "e185ec28b3b6190331f15174dbeabc9d118b4b403fca447f9d70c3da5b08d1c1",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/legend-wait-390.png": {
+      "bytes": 23880,
+      "gitBlob": "c06c1cd581d4f2819dc6587dd808bfa3a3799249",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-wait-390.png",
+      "sha256": "aa4ed1a9a731731c1b7d48ee6663e292406a878cffc74b596ff8258a829374b4",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/legend-wait-820-zh.png": {
+      "bytes": 15568,
+      "gitBlob": "03d9eb1271f08e70bc49abb0c9b0bf1c4c86b3d0",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-wait-820-zh.png",
+      "sha256": "996809f79b122398e4ba02c61d8c4662cd0feb13abb0a0796fd89063b2cd0abf",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    },
+    "historical-packets/protected/terminal/docs/pr-crops/pine-boot-pending-state/legend-wait-820.png": {
+      "bytes": 17556,
+      "gitBlob": "bd760787fe6916d8bb08ac56c2503a332cb87673",
+      "originalLogicalPath": "terminal/docs/pr-crops/pine-boot-pending-state/legend-wait-820.png",
+      "sha256": "c1f1d1da707d6c63f49412d09317128caeb808171a57f6d232cb40c49499e254",
+      "sourceCommit": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+    }
+  },
+  "referencePolicy": "Every complete archived packet retains its original source commit and logical path; no historical reference is reinterpreted as current root evidence.",
+  "schema": "terminal_pr632_historical_packet_archive.v1"
+}

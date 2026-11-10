@@ -1,0 +1,27 @@
+[warmup] /terminal?symbol=NVDA → 200 in 113ms
+[warmup] /options → 200 in 3373ms
+[warmup] /portfolio → 200 in 1330ms
+[warmup] /alerts → 200 in 1312ms
+[warmup] /analysis → 200 in 227ms
+[warmup] /discover → 200 in 2319ms
+[warmup] /admin → 200 in 743ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 558ms
+[warmup] /login → 200 in 122ms
+[warmup] /reset-password → 200 in 828ms
+[warmup] /api/me → 200 in 707ms
+[warmup] /api/watchlist → 200 in 239ms
+[warmup] /api/layouts → 200 in 370ms
+[warmup] /api/watchlist/annotations → 409 in 296ms
+[warmup] 14 routes compiled in 13s
+[fixture-ready] prophet_idx fixture 200 in 794ms
+
+Running 6 tests using 1 worker
+
+  -  1 [desktop] › e2e/analysis-company-read-lifetime.spec.ts:15:5 › company switch keeps published statistics scoped without unused quotes (en)
+  -  2 [desktop] › e2e/analysis-company-read-lifetime.spec.ts:15:5 › company switch keeps published statistics scoped without unused quotes (zh)
+  -  3 [tablet] › e2e/analysis-company-read-lifetime.spec.ts:15:5 › company switch keeps published statistics scoped without unused quotes (en)
+  -  4 [tablet] › e2e/analysis-company-read-lifetime.spec.ts:15:5 › company switch keeps published statistics scoped without unused quotes (zh)
+  -  5 [mobile] › e2e/analysis-company-read-lifetime.spec.ts:15:5 › company switch keeps published statistics scoped without unused quotes (en)
+  -  6 [mobile] › e2e/analysis-company-read-lifetime.spec.ts:15:5 › company switch keeps published statistics scoped without unused quotes (zh)
+
+  6 skipped

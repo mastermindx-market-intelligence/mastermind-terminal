@@ -1,0 +1,8 @@
+{
+  "originalSha256": "8288c26c7bc7443b78107a533e937e1aa9c5c101cc325bc9daddee9430ed59ea",
+  "preparedAt": "2026-11-09T18:29:40.125649+00:00",
+  "regressionSourceSha256": "557e69d48738efac416251e05bc77650bbf8f0929462a108e8f8cf7639c63a5a",
+  "schema": "terminal_evidence_shadow_regression_preparation.v1",
+  "state": "REGRESSION_ADDED_OLD_HELPER_RETAINED",
+  "testTitle": "mirrors dangling entries while preserving source alias semantics"
+}

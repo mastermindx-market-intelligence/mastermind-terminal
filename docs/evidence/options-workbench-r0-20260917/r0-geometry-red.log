@@ -1,0 +1,117 @@
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 <worktree>/terminal
+
+ ❯ lib/__tests__/heatSeriesGeometry.test.ts (6 tests | 5 failed) 9ms
+   × HeatSeries actual raster geometry > places nonuniform bands at their numeric prices rather than equal-height rows 6ms
+     → expected 40 to be 80 // Object.is equality
+   × HeatSeries actual raster geometry > uses the converter on an inverted price axis 1ms
+     → expected 120 to be 80 // Object.is equality
+   × HeatSeries actual raster geometry > uses the actual nonlinear converter for internal boundaries 1ms
+     → expected 40 to be 80 // Object.is equality
+   × HeatSeries actual raster geometry > updates price geometry while reusing an unchanged time raster 0ms
+     → expected 40 to be 80 // Object.is equality
+   × HeatSeries actual raster geometry > does not discard projectable bands when an outer boundary is unavailable 0ms
+     → expected null to be 80 // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/heatSeriesGeometry.test.ts > HeatSeries actual raster geometry > places nonuniform bands at their numeric prices rather than equal-height rows
+AssertionError: expected 40 to be 80 // Object.is equality
+
+- Expected
++ Received
+
+- 80
++ 40
+
+ ❯ lib/__tests__/heatSeriesGeometry.test.ts:76:32
+     74|   it("places nonuniform bands at their numeric prices rather than equa…
+     75|     const out = paint(viewFor(irregular), (price) => (120 - price) * 1…
+     76|     expect(out.redAt(15, 180)).toBe(80); // price 102: the middle band…
+       |                                ^
+     77|     expect(out.redAt(15, 200)).toBe(40); // price 100
+     78|     expect(out.redAt(15, 100)).toBe(120); // price 110
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  lib/__tests__/heatSeriesGeometry.test.ts > HeatSeries actual raster geometry > uses the converter on an inverted price axis
+AssertionError: expected 120 to be 80 // Object.is equality
+
+- Expected
++ Received
+
+- 80
++ 120
+
+ ❯ lib/__tests__/heatSeriesGeometry.test.ts:92:32
+     90|   it("uses the converter on an inverted price axis", () => {
+     91|     const out = paint(viewFor(irregular), (price) => (price - 90) * 10…
+     92|     expect(out.redAt(15, 120)).toBe(80);
+       |                                ^
+     93|     expect(out.redAt(15, 100)).toBe(40);
+     94|     expect(out.redAt(15, 200)).toBe(120);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  lib/__tests__/heatSeriesGeometry.test.ts > HeatSeries actual raster geometry > uses the actual nonlinear converter for internal boundaries
+AssertionError: expected 40 to be 80 // Object.is equality
+
+- Expected
++ Received
+
+- 80
++ 40
+
+ ❯ lib/__tests__/heatSeriesGeometry.test.ts:100:37
+     98|     const toY = (price: number) => 1000 - 100 * Math.log(price);
+     99|     const out = paint(viewFor(irregular), toY);
+    100|     expect(out.redAt(15, toY(102))).toBe(80);
+       |                                     ^
+    101|     expect(out.redAt(15, toY(100))).toBe(40);
+    102|     expect(out.redAt(15, toY(110))).toBe(120);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  lib/__tests__/heatSeriesGeometry.test.ts > HeatSeries actual raster geometry > updates price geometry while reusing an unchanged time raster
+AssertionError: expected 40 to be 80 // Object.is equality
+
+- Expected
++ Received
+
+- 80
++ 40
+
+ ❯ lib/__tests__/heatSeriesGeometry.test.ts:109:32
+    107|     paint(view, (price) => (120 - price) * 10);
+    108|     const out = paint(view, (price) => (115 - price) * 20);
+    109|     expect(out.redAt(15, 260)).toBe(80); // still price 102 after zoom…
+       |                                ^
+    110|   });
+    111|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  lib/__tests__/heatSeriesGeometry.test.ts > HeatSeries actual raster geometry > does not discard projectable bands when an outer boundary is unavailable
+AssertionError: expected null to be 80 // Object.is equality
+
+- Expected:
+80
+
++ Received:
+null
+
+ ❯ lib/__tests__/heatSeriesGeometry.test.ts:114:32
+    112|   it("does not discard projectable bands when an outer boundary is una…
+    113|     const out = paint(viewFor(irregular), (price) => price > 110 ? nul…
+    114|     expect(out.redAt(15, 180)).toBe(80);
+       |                                ^
+    115|     expect(out.redAt(15, 200)).toBe(40);
+    116|     expect(out.redAt(15, 100)).toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 1 passed (6)
+   Start at  14:27:26
+   Duration  287ms (transform 34ms, setup 0ms, collect 47ms, tests 9ms, environment 0ms, prepare 43ms)

@@ -1,0 +1,72 @@
+{
+  "sourceRevision": "79dbe3f2431b9e21cabf23071f02eab5add57eb4",
+  "sourceBodiesChanged": false,
+  "transport": "local interception",
+  "productionProof": false,
+  "independentReviewRequired": false,
+  "themeRightsAdmitted": false,
+  "checks": [
+    {
+      "name": "chromium-1440-en-light: exact Technology population",
+      "passed": true,
+      "details": "Technology\n\nCompany heatmap · Area = market cap · color = performance\n\n2026-09-25 · 79 names · 1D\n\nMARKET READ\n\nSemiconductors holds 41% of market cap; Computer Hardware has the broadest participation (7/7 up).\n\nSector\nTechnology · XLK\nCommunication Services · XLC\nHealth Care · XLV\nEnergy · XLE\nConsumer Discretionary · XLY\nUtilities · XLU\nFinancials · XLF\nConsumer Staples · XLP\nIndustrials · XLI\nReal Estate · XLRE\nMaterials · XLB\nPerformance window\n1D\n1W\nMTD\n1M\n3M\n6M\nYTD\n1Y\nIndustry\nAll industries\nInformation Technology Services\nSoftware - Infrastructure\nSemiconductors\nElectronic Components\nConsumer Electronics\nSemiconductor Equipment & Materials\nSoftware - Application\nCommunication Equipment\nComputer Hardware\nSolar\nScientific & Technical Instruments\nMarket-cap band\nAll market caps\n≥ $200B\n$50–200B\n$10–50B\n< $10B\nReview sources →\nLARGEST COMPANY IN SCOPE\nNVDA\n\nNvidia\n\nIndustry\nSemiconductors\nMarket cap\n$5.42T\n1D Performance\n+0.22%\nOpen company intelligence →\nOpen sector intelligence →\nSemiconductors\n13/14 up\nNVDA\n+0.22%\n$5.42T\nAVGO\n+0.70%\n$1.67T\nMU\n+0.16%\n$1.22T\nAMD\n+0.22%\n$1.03T\nINTC\n-3.45%\n$673B\nTXN\nMRVL\nQCOM\nADI\nSoftware - Infrastructure\n5/15 up\nMSFT\n+3.66%\n$3.70T\nPLTR\nORCL\nPANW\nCRWD\nConsumer Electronics\n1/1 up\nAAPL\n+1.53%\n$4.90T\nSemiconductor Equipment & Materials\n5/5 up\nLRCX\nAMAT\nKLAC\nComputer Hardware\n7/7 up\nDELL\nSNDK\nSTX\nCommunication Equipment\n4/7 up\nCSCO\nANET\nSoftware - Application\n4/11 up\nCRM\nElectronic Components\n6/6 up\nInformation Technology Services\n5/8 up\nScientific & Technical Instruments\n3/4 up\n-6.3%\n+6.3%\n\nExact owner labels only. Filters never rescale color; the smallest industry blocks receive a visibility floor so no source name disappears."
+    },
+    {
+      "name": "chromium-1440-en-light: exact source date",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: distinct Information Technology row excluded",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: full-population fixed domain",
+      "passed": true,
+      "details": {
+        "expected": 6.3,
+        "actual": 6.3
+      }
+    },
+    {
+      "name": "chromium-1440-en-light: answer names the cap owner and breadth leader",
+      "passed": true,
+      "details": "MARKET READ\n\nSemiconductors holds 41% of market cap; Computer Hardware has the broadest participation (7/7 up)."
+    },
+    {
+      "name": "chromium-1440-en-light: default inspector is the largest company",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: exact company selection stays URL-bound",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: industry filter never rescales color",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: cap filter is exact and URL-bound",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: cap filter never rescales color",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: timeframe is durable URL state",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Table remains the same Discover job",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Heatmap restores selected sector, company and timeframe",
+      "passed": false
+    }
+  ],
+  "screenshots": [],
+  "errors": [],
+  "passed": false,
+  "error": "AssertionError [ERR_ASSERTION]: chromium-1440-en-light: Heatmap restores selected sector, company and timeframe\n    at check (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/e2e/tools/qualify_sector_heatmap.cjs:22:90)\n    at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/e2e/tools/qualify_sector_heatmap.cjs:104:3"
+}

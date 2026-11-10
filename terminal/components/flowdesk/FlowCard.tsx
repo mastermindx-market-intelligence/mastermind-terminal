@@ -27,7 +27,7 @@
 import { memo, useEffect, useRef, useState } from "react";
 import type { FlowEvent, EnrichEvent } from "./FeedPane";
 import { fmtNum } from "@/lib/finFormat";
-import { makeFlowT, scoreComponentLabel } from "@/lib/flowdeskStrings";
+import { detectionCopy, makeFlowT, scoreComponentLabel } from "@/lib/flowdeskStrings";
 import { flowSideLabel, statTokenLabel } from "@/lib/plainLabels";
 import { RingGauge } from "../ui/RingGauge";
 
@@ -119,8 +119,10 @@ export const FlowCard = memo(function FlowCard({
   }, [expanded]);
 
   // Score is precomputed server-side and attached to the event (ev.flowScore).
+  // Unknown is not zero: a missing or non-finite score stays null so the ring
+  // renders the no-reading mark instead of a filled 0-ring.
   const fs = ev.flowScore;
-  const score = fs && !isNaN(fs.score) ? fs.score : 0;
+  const score = fs && Number.isFinite(fs.score) ? fs.score : null;
   const components = fs?.components ?? [];
   const badges = deriveBadges(ev);
   const t = makeFlowT(lang);
@@ -138,8 +140,7 @@ export const FlowCard = memo(function FlowCard({
   const flags: MetaFlagSpec[] = [];
   if (hasEnrich) {
     for (const b of v2Badges) {
-      const labels = V2_BADGE_LABELS[b] ?? { en: b, zh: b };
-      flags.push({ key: b, label: zh ? labels.zh : labels.en });
+      flags.push({ key: b, ...detectionCopy(b, lang) });
     }
   } else {
     if (badges.whale)   flags.push({ key: "whale",   label: zh ? "巨单" : "WHALE",   tip: t("badgeWhaleDesc") });
@@ -166,7 +167,7 @@ export const FlowCard = memo(function FlowCard({
 
         {/* Score ring — compact sm size, magnitude tone (never asserted side) */}
         <span className="obs-fc-ring-wrap obs-fc-ring-inline">
-          <RingGauge value={score} size="sm" tone="auto" />
+          <RingGauge value={score} size="sm" tone="auto" naLabel={t("scoreUnavailable")} />
         </span>
 
         <span className="obs-fc-time num">{fmtTime(ev.ts)}</span>
@@ -188,7 +189,7 @@ export const FlowCard = memo(function FlowCard({
         </span>
 
         {/* Lean chip — dashed border, neutral color.
-            direction_discounted=true (spread detected): muted + unreliable-direction label. */}
+            A legacy direction-discount flag does not prove a package. */}
         {directionDiscounted ? (
           <span
             className="obs-fc-lean"
@@ -346,19 +347,6 @@ function MetaFlag({ label, tip }: { label: string; tip?: string }) {
     </span>
   );
 }
-
-// ── V2 detection labels (compact token from enrich artifact) ──────────────────
-
-const V2_BADGE_LABELS: Record<string, { en: string; zh: string }> = {
-  MULTI_LEG:    { en: "MULTI-LEG", zh: "多腿" },
-  LADDER:       { en: "LADDER",    zh: "梯形" },
-  REPEAT_HITTER:{ en: "REPEAT",    zh: "重复" },
-  SIZE_VS_OI:   { en: "SZ>OI",     zh: "量超OI" },
-  WHALE:        { en: "WHALE",     zh: "巨单" },
-  FRESH:        { en: "FRESH",     zh: "新仓" },
-  Z_OUTLIER:    { en: "Z-OUT",     zh: "Z异常" },
-  OI_CONFIRMED: { en: "OI✓",      zh: "OI确认" },
-};
 
 // ── Tooltip styles ────────────────────────────────────────────────────────────
 

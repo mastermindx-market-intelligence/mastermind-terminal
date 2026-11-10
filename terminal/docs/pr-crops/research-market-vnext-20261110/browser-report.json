@@ -1,0 +1,3799 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/node_modules/.bin/playwright",
+      "test",
+      "e2e/research-workspace-nav.spec.ts",
+      "e2e/bottom-pivot-context.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--retries=0",
+      "--reporter=line,json",
+      "--output=test-results/pr739-20261110"
+    ],
+    "configFile": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/test-results/pr739-20261110",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/test-results/pr739-20261110",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/test-results/pr739-20261110",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/test-results/pr739-20261110",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/test-results/pr739-20261110",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/test-results/pr739-20261110",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/test-results/pr739-20261110",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/test-results/pr739-20261110",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "line"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 34739",
+      "url": "http://127.0.0.1:34739/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "bottom-pivot-context.spec.ts",
+      "file": "bottom-pivot-context.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "daily pivot on demand dark en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2748,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:18.253Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5912984bf0c466bb2098-cda51f9b463d02d972ff",
+          "file": "bottom-pivot-context.spec.ts",
+          "line": 65,
+          "column": 9
+        },
+        {
+          "title": "daily pivot on demand dark zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3285,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:21.746Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5912984bf0c466bb2098-8a4e1a740a157a4acc00",
+          "file": "bottom-pivot-context.spec.ts",
+          "line": 65,
+          "column": 9
+        },
+        {
+          "title": "stale original dates are not refreshed by a fresh envelope",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1997,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:25.044Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5912984bf0c466bb2098-8f292b33fdc8437da4ea",
+          "file": "bottom-pivot-context.spec.ts",
+          "line": 93,
+          "column": 5
+        },
+        {
+          "title": "partial and conflicting evidence never becomes an all-clear",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2014,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:27.059Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5912984bf0c466bb2098-3ec7d2f56a3a8483793e",
+          "file": "bottom-pivot-context.spec.ts",
+          "line": 103,
+          "column": 5
+        },
+        {
+          "title": "historical issuance is visibly not current evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2140,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:29.107Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5912984bf0c466bb2098-2fd5690d12472048a05e",
+          "file": "bottom-pivot-context.spec.ts",
+          "line": 114,
+          "column": 5
+        },
+        {
+          "title": "source refusal 401 has no invented evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1891,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:31.270Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5912984bf0c466bb2098-d57b55b0ec5e4683059a",
+          "file": "bottom-pivot-context.spec.ts",
+          "line": 123,
+          "column": 7
+        },
+        {
+          "title": "source refusal 403 has no invented evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1815,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:33.174Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5912984bf0c466bb2098-0d4743cf3d8c6254e1f1",
+          "file": "bottom-pivot-context.spec.ts",
+          "line": 123,
+          "column": 7
+        },
+        {
+          "title": "source refusal 503 has no invented evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1833,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:35.002Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5912984bf0c466bb2098-1fb113aa4c7a02a16279",
+          "file": "bottom-pivot-context.spec.ts",
+          "line": 123,
+          "column": 7
+        },
+        {
+          "title": "daily pivot on demand dark en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2416,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:15.249Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5912984bf0c466bb2098-73a57feba294d7fb5067",
+          "file": "bottom-pivot-context.spec.ts",
+          "line": 65,
+          "column": 9
+        },
+        {
+          "title": "daily pivot on demand dark zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1854,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:18.025Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5912984bf0c466bb2098-3c9e8408d59a0ad18ccb",
+          "file": "bottom-pivot-context.spec.ts",
+          "line": 65,
+          "column": 9
+        },
+        {
+          "title": "stale original dates are not refreshed by a fresh envelope",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1728,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:19.889Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5912984bf0c466bb2098-bf9b91f3228e7644c33e",
+          "file": "bottom-pivot-context.spec.ts",
+          "line": 93,
+          "column": 5
+        },
+        {
+          "title": "partial and conflicting evidence never becomes an all-clear",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1888,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:21.631Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5912984bf0c466bb2098-4b3eef07838e1ff49587",
+          "file": "bottom-pivot-context.spec.ts",
+          "line": 103,
+          "column": 5
+        },
+        {
+          "title": "historical issuance is visibly not current evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1815,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:23.532Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5912984bf0c466bb2098-759a63c23f24bcbc14ec",
+          "file": "bottom-pivot-context.spec.ts",
+          "line": 114,
+          "column": 5
+        },
+        {
+          "title": "source refusal 401 has no invented evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1694,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:25.360Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5912984bf0c466bb2098-f0b8d5dfd6f41e9aef36",
+          "file": "bottom-pivot-context.spec.ts",
+          "line": 123,
+          "column": 7
+        },
+        {
+          "title": "source refusal 403 has no invented evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1684,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:27.066Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5912984bf0c466bb2098-fc31cc4fea507f8ed8b0",
+          "file": "bottom-pivot-context.spec.ts",
+          "line": 123,
+          "column": 7
+        },
+        {
+          "title": "source refusal 503 has no invented evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1597,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:28.761Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5912984bf0c466bb2098-14a183dc8697a192eddf",
+          "file": "bottom-pivot-context.spec.ts",
+          "line": 123,
+          "column": 7
+        },
+        {
+          "title": "daily pivot on demand dark en",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2858,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:13.077Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5912984bf0c466bb2098-58c0e588a40c27fb794c",
+          "file": "bottom-pivot-context.spec.ts",
+          "line": 65,
+          "column": 9
+        },
+        {
+          "title": "daily pivot on demand dark zh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4909,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:16.406Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5912984bf0c466bb2098-34dcd326f1a260a3823d",
+          "file": "bottom-pivot-context.spec.ts",
+          "line": 65,
+          "column": 9
+        },
+        {
+          "title": "stale original dates are not refreshed by a fresh envelope",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3317,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:21.328Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5912984bf0c466bb2098-5f76a72f6e007a48dad2",
+          "file": "bottom-pivot-context.spec.ts",
+          "line": 93,
+          "column": 5
+        },
+        {
+          "title": "partial and conflicting evidence never becomes an all-clear",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1904,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:24.659Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5912984bf0c466bb2098-1330fa6bcbcbe75df0e3",
+          "file": "bottom-pivot-context.spec.ts",
+          "line": 103,
+          "column": 5
+        },
+        {
+          "title": "historical issuance is visibly not current evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1747,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:26.581Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5912984bf0c466bb2098-84895a0c4a6c455cdcf6",
+          "file": "bottom-pivot-context.spec.ts",
+          "line": 114,
+          "column": 5
+        },
+        {
+          "title": "source refusal 401 has no invented evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1772,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:28.340Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5912984bf0c466bb2098-62f1586de194051b43ea",
+          "file": "bottom-pivot-context.spec.ts",
+          "line": 123,
+          "column": 7
+        },
+        {
+          "title": "source refusal 403 has no invented evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1616,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:30.136Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5912984bf0c466bb2098-fe44422ad522ca774a53",
+          "file": "bottom-pivot-context.spec.ts",
+          "line": 123,
+          "column": 7
+        },
+        {
+          "title": "source refusal 503 has no invented evidence",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1358,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:31.764Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5912984bf0c466bb2098-7f3e4f0980f58c5770cf",
+          "file": "bottom-pivot-context.spec.ts",
+          "line": 123,
+          "column": 7
+        }
+      ]
+    },
+    {
+      "title": "research-workspace-nav.spec.ts",
+      "file": "research-workspace-nav.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "company page families preserve exact FinPage deep links",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1448,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:36.863Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-31848da4894cd6a0651f",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 251,
+          "column": 5
+        },
+        {
+          "title": "family selection lands on the existing family default without a second router",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1531,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:38.324Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-6a4ae57a683aeab4e1d6",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 271,
+          "column": 5
+        },
+        {
+          "title": "Overview vNext keeps snapshot, ownership, capital and valuation in one research canvas",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1879,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:39.870Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-410b2112ed1455c60c01",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 297,
+          "column": 5
+        },
+        {
+          "title": "Overview vNext remains bilingual and overflow-safe on mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "one mobile bilingual Overview contract is sufficient",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e/research-workspace-nav.spec.ts",
+                    "line": 326,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 179,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:41.768Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "one mobile bilingual Overview contract is sufficient",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e/research-workspace-nav.spec.ts",
+                        "line": 326,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-fb370946e673e762f8b9",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 325,
+          "column": 5
+        },
+        {
+          "title": "Overview labels an older available annual EPS without inventing current or historical P/E (en)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1920,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:41.964Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-2ba1bb579cdb1d33b5fd",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 351,
+          "column": 7
+        },
+        {
+          "title": "Overview labels an older available annual EPS without inventing current or historical P/E (zh)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "one missing-data contract per locale is sufficient",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e/research-workspace-nav.spec.ts",
+                    "line": 352,
+                    "column": 10
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 173,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:43.898Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "one missing-data contract per locale is sufficient",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e/research-workspace-nav.spec.ts",
+                        "line": 352,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-be46a093bb44b375e98f",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 351,
+          "column": 7
+        },
+        {
+          "title": "Ownership family defaults to Institutional and preserves Insider as its sibling",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1630,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:44.090Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-2fb7777068867e2de3dd",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 384,
+          "column": 5
+        },
+        {
+          "title": "Market vNext projects canonical technicals, pivots and five-year seasonality",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1659,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:45.732Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-e5f42c459171df42d689",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 452,
+          "column": 5
+        },
+        {
+          "title": "Market vNext remains bilingual and overflow-safe on mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "one mobile bilingual Market contract is sufficient",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e/research-workspace-nav.spec.ts",
+                    "line": 495,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 120,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:47.405Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "one mobile bilingual Market contract is sufficient",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e/research-workspace-nav.spec.ts",
+                        "line": 495,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-224da44b77660b038377",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 494,
+          "column": 5
+        },
+        {
+          "title": "Market summary keeps seasonality ahead of deep indicator tables",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1640,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:47.541Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-4143bc65d343af971890",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 516,
+          "column": 5
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral en at 29 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1576,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:49.194Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-64aa7da48ddc870b823b",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral en at 30 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2127,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:50.786Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-b79529533d6ba3dc1c01",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral en at 49 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1614,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:52.935Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-b578a689ed8b3af49e17",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral en at 50 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1477,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:54.562Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-ac1f45e33dcd6deb9b65",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral en at 199 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1511,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:56.051Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-2df83dbb1283eecaaa31",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral en at 200 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1501,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:57.573Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-5316c806d021425c4067",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral en at 220 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1861,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:31:59.085Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-9bf711cdc45f07faf9e2",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral zh at 29 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1770,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:00.959Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-38d6843029431961ede7",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral zh at 30 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2003,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:02.749Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-4a0ec16b2993e7eafec0",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral zh at 49 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1755,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:04.764Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-f0e753feb1b630b04f74",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral zh at 50 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1530,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:06.531Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-5596ded212b6a0e22481",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral zh at 199 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1446,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:08.073Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-eeb75d60808f59c1cf6f",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral zh at 200 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1788,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:09.528Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-90e5ebf46cbb05b1ea23",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral zh at 220 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1723,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:11.327Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-07f169d296c1e7de8eb9",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market full-history hierarchy remains readable in Chinese",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1455,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:13.060Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-1265d34857cc3419c322",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 652,
+          "column": 5
+        },
+        {
+          "title": "company page families preserve exact FinPage deep links",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1339,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:30.386Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-278a8f7af99ef39a7c1b",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 251,
+          "column": 5
+        },
+        {
+          "title": "family selection lands on the existing family default without a second router",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1677,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:31.743Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-bad0058500e89ab1f9d7",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 271,
+          "column": 5
+        },
+        {
+          "title": "Overview vNext keeps snapshot, ownership, capital and valuation in one research canvas",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1653,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:33.435Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-ce4258171c93d5c3fe97",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 297,
+          "column": 5
+        },
+        {
+          "title": "Overview vNext remains bilingual and overflow-safe on mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "one mobile bilingual Overview contract is sufficient",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e/research-workspace-nav.spec.ts",
+                    "line": 326,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 100,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:35.100Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "one mobile bilingual Overview contract is sufficient",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e/research-workspace-nav.spec.ts",
+                        "line": 326,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-d301439c31a36af392e1",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 325,
+          "column": 5
+        },
+        {
+          "title": "Overview labels an older available annual EPS without inventing current or historical P/E (en)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "one missing-data contract per locale is sufficient",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e/research-workspace-nav.spec.ts",
+                    "line": 352,
+                    "column": 10
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 98,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:35.212Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "one missing-data contract per locale is sufficient",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e/research-workspace-nav.spec.ts",
+                        "line": 352,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-b3119a58388350fe8f09",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 351,
+          "column": 7
+        },
+        {
+          "title": "Overview labels an older available annual EPS without inventing current or historical P/E (zh)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "one missing-data contract per locale is sufficient",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e/research-workspace-nav.spec.ts",
+                    "line": 352,
+                    "column": 10
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 98,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:35.321Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "one missing-data contract per locale is sufficient",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e/research-workspace-nav.spec.ts",
+                        "line": 352,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-0fa948f015ccaa9d69d3",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 351,
+          "column": 7
+        },
+        {
+          "title": "Ownership family defaults to Institutional and preserves Insider as its sibling",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1488,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:35.431Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-9ddc4b45a0e292ca3cd9",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 384,
+          "column": 5
+        },
+        {
+          "title": "Market vNext projects canonical technicals, pivots and five-year seasonality",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1546,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:36.927Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-9e1001cb7163d9a9d966",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 452,
+          "column": 5
+        },
+        {
+          "title": "Market vNext remains bilingual and overflow-safe on mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "one mobile bilingual Market contract is sufficient",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e/research-workspace-nav.spec.ts",
+                    "line": 495,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 104,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:38.484Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "one mobile bilingual Market contract is sufficient",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e/research-workspace-nav.spec.ts",
+                        "line": 495,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-8102c909524189475423",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 494,
+          "column": 5
+        },
+        {
+          "title": "Market summary keeps seasonality ahead of deep indicator tables",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1402,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:38.599Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-baf4be6e2ae6e918fa86",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 516,
+          "column": 5
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral en at 29 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1585,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:40.014Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-38009f9a316c74ee8471",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral en at 30 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1937,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:41.615Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-396d98aeae5fceac11a9",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral en at 49 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2037,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:43.568Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-b3afc9fbe9e13d94d5bd",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral en at 50 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2121,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:45.625Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-60f708cc83ab12f9e6c8",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral en at 199 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2444,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:47.774Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-2d6773dbfbaf52e56119",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral en at 200 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1930,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:50.234Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-f82937181f9c67c39004",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral en at 220 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1956,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:52.177Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-f93d57e21811233a3d9b",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral zh at 29 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1972,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:54.154Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-7062d22087a8a08e5ed8",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral zh at 30 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3076,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:56.146Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-cde374675591161a2a5f",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral zh at 49 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2258,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:32:59.241Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-f610fc6897ed7a952cc1",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral zh at 50 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2251,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:01.520Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-c12ec9f62f935786ab63",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral zh at 199 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2449,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:03.796Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-95b820c9bb0c84452771",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral zh at 200 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2071,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:06.261Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-330cafd9a277bc9a0755",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral zh at 220 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2317,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:08.350Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-c2da36446b4b78b02d26",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market full-history hierarchy remains readable in Chinese",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1660,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:10.685Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-a98fcee876a6fab1a409",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 652,
+          "column": 5
+        },
+        {
+          "title": "company page families preserve exact FinPage deep links",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1043,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:33.146Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-2ab75265b04d47bd92be",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 251,
+          "column": 5
+        },
+        {
+          "title": "family selection lands on the existing family default without a second router",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1409,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:34.197Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-1362f6683f714630fe5d",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 271,
+          "column": 5
+        },
+        {
+          "title": "Overview vNext keeps snapshot, ownership, capital and valuation in one research canvas",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1569,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:35.616Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "overview-en-valuation-current-geometry",
+                      "contentType": "application/json",
+                      "body": "ewogICJmcmFtZSI6ICJjdXJyZW50IiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAzOTAsCiAgICAiaGVpZ2h0IjogODQ0CiAgfSwKICAidXNhYmxlIjogewogICAgInRvcCI6IDE1NCwKICAgICJib3R0b20iOiA4NDQsCiAgICAibGVmdCI6IDAsCiAgICAicmlnaHQiOiAzOTAKICB9LAogICJ0YXJnZXQiOiB7CiAgICAidG9wIjogMTYxLjc1LAogICAgImJvdHRvbSI6IDQyMy4xMDkzNzUsCiAgICAibGVmdCI6IDEyLAogICAgInJpZ2h0IjogMzc4CiAgfSwKICAicmVnaW9ucyI6IFsKICAgIHsKICAgICAgInRvcCI6IDE2MS43NSwKICAgICAgImJvdHRvbSI6IDIxMS43NSwKICAgICAgImxlZnQiOiAxMiwKICAgICAgInJpZ2h0IjogMzc4CiAgICB9LAogICAgewogICAgICAidG9wIjogMjIxLjc1LAogICAgICAiYm90dG9tIjogMjM4LjQyMTg3NSwKICAgICAgImxlZnQiOiAxMiwKICAgICAgInJpZ2h0IjogMzc4CiAgICB9LAogICAgewogICAgICAidG9wIjogMjUxLjQyMTg3NSwKICAgICAgImJvdHRvbSI6IDQyMy4xMDkzNzUsCiAgICAgICJsZWZ0IjogMTIsCiAgICAgICJyaWdodCI6IDM3OAogICAgfQogIF0sCiAgInNjcm9sbFRvcCI6IDEwMTIsCiAgIm1vdGlvbiI6IDAsCiAgImNlbnRlcnNVbm9ic2N1cmVkIjogdHJ1ZQp9"
+                    },
+                    {
+                      "name": "overview-en-valuation-pe-history-geometry",
+                      "contentType": "application/json",
+                      "body": "ewogICJmcmFtZSI6ICJwZS1oaXN0b3J5IiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAzOTAsCiAgICAiaGVpZ2h0IjogODQ0CiAgfSwKICAidXNhYmxlIjogewogICAgInRvcCI6IDE1NCwKICAgICJib3R0b20iOiA4NDQsCiAgICAibGVmdCI6IDAsCiAgICAicmlnaHQiOiAzOTAKICB9LAogICJ0YXJnZXQiOiB7CiAgICAidG9wIjogMTYyLjEwOTM3NSwKICAgICJib3R0b20iOiA0MDAuNSwKICAgICJsZWZ0IjogMTIsCiAgICAicmlnaHQiOiAzNzgKICB9LAogICJyZWdpb25zIjogWwogICAgewogICAgICAidG9wIjogMTYyLjEwOTM3NSwKICAgICAgImJvdHRvbSI6IDQwMC41LAogICAgICAibGVmdCI6IDEyLAogICAgICAicmlnaHQiOiAzNzgKICAgIH0KICBdLAogICJzY3JvbGxUb3AiOiAxMjgzLAogICJtb3Rpb24iOiAwLAogICJjZW50ZXJzVW5vYnNjdXJlZCI6IHRydWUKfQ=="
+                    },
+                    {
+                      "name": "overview-en-valuation-ps-context-geometry",
+                      "contentType": "application/json",
+                      "body": "ewogICJmcmFtZSI6ICJwcy1jb250ZXh0IiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAzOTAsCiAgICAiaGVpZ2h0IjogODQ0CiAgfSwKICAidXNhYmxlIjogewogICAgInRvcCI6IDE1NCwKICAgICJib3R0b20iOiA4NDQsCiAgICAibGVmdCI6IDAsCiAgICAicmlnaHQiOiAzOTAKICB9LAogICJ0YXJnZXQiOiB7CiAgICAidG9wIjogMTYxLjUsCiAgICAiYm90dG9tIjogNTA0LjU2MjUsCiAgICAibGVmdCI6IDEyLAogICAgInJpZ2h0IjogMzc4CiAgfSwKICAicmVnaW9ucyI6IFsKICAgIHsKICAgICAgInRvcCI6IDE2MS41LAogICAgICAiYm90dG9tIjogNDc5Ljg3NSwKICAgICAgImxlZnQiOiAxMiwKICAgICAgInJpZ2h0IjogMzc4CiAgICB9LAogICAgewogICAgICAidG9wIjogNDg5Ljg3NSwKICAgICAgImJvdHRvbSI6IDUwNC41NjI1LAogICAgICAibGVmdCI6IDEyLAogICAgICAicmlnaHQiOiAzNzgKICAgIH0KICBdLAogICJzY3JvbGxUb3AiOiAxNTMyLAogICJtb3Rpb24iOiAwLAogICJjZW50ZXJzVW5vYnNjdXJlZCI6IHRydWUKfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-de908d6bb18bf2509621",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 297,
+          "column": 5
+        },
+        {
+          "title": "Overview vNext remains bilingual and overflow-safe on mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1443,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:37.201Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "overview-zh-valuation-current-geometry",
+                      "contentType": "application/json",
+                      "body": "ewogICJmcmFtZSI6ICJjdXJyZW50IiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAzOTAsCiAgICAiaGVpZ2h0IjogODQ0CiAgfSwKICAidXNhYmxlIjogewogICAgInRvcCI6IDE1NCwKICAgICJib3R0b20iOiA4NDQsCiAgICAibGVmdCI6IDAsCiAgICAicmlnaHQiOiAzOTAKICB9LAogICJ0YXJnZXQiOiB7CiAgICAidG9wIjogMTYxLjc1LAogICAgImJvdHRvbSI6IDQyMy4xMDkzNzUsCiAgICAibGVmdCI6IDEyLAogICAgInJpZ2h0IjogMzc4CiAgfSwKICAicmVnaW9ucyI6IFsKICAgIHsKICAgICAgInRvcCI6IDE2MS43NSwKICAgICAgImJvdHRvbSI6IDIxMS43NSwKICAgICAgImxlZnQiOiAxMiwKICAgICAgInJpZ2h0IjogMzc4CiAgICB9LAogICAgewogICAgICAidG9wIjogMjIxLjc1LAogICAgICAiYm90dG9tIjogMjM4LjQyMTg3NSwKICAgICAgImxlZnQiOiAxMiwKICAgICAgInJpZ2h0IjogMzc4CiAgICB9LAogICAgewogICAgICAidG9wIjogMjUxLjQyMTg3NSwKICAgICAgImJvdHRvbSI6IDQyMy4xMDkzNzUsCiAgICAgICJsZWZ0IjogMTIsCiAgICAgICJyaWdodCI6IDM3OAogICAgfQogIF0sCiAgInNjcm9sbFRvcCI6IDEwMTIsCiAgIm1vdGlvbiI6IDAsCiAgImNlbnRlcnNVbm9ic2N1cmVkIjogdHJ1ZQp9"
+                    },
+                    {
+                      "name": "overview-zh-valuation-pe-history-geometry",
+                      "contentType": "application/json",
+                      "body": "ewogICJmcmFtZSI6ICJwZS1oaXN0b3J5IiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAzOTAsCiAgICAiaGVpZ2h0IjogODQ0CiAgfSwKICAidXNhYmxlIjogewogICAgInRvcCI6IDE1NCwKICAgICJib3R0b20iOiA4NDQsCiAgICAibGVmdCI6IDAsCiAgICAicmlnaHQiOiAzOTAKICB9LAogICJ0YXJnZXQiOiB7CiAgICAidG9wIjogMTYyLjEwOTM3NSwKICAgICJib3R0b20iOiA0MDAuNSwKICAgICJsZWZ0IjogMTIsCiAgICAicmlnaHQiOiAzNzgKICB9LAogICJyZWdpb25zIjogWwogICAgewogICAgICAidG9wIjogMTYyLjEwOTM3NSwKICAgICAgImJvdHRvbSI6IDQwMC41LAogICAgICAibGVmdCI6IDEyLAogICAgICAicmlnaHQiOiAzNzgKICAgIH0KICBdLAogICJzY3JvbGxUb3AiOiAxMjgzLAogICJtb3Rpb24iOiAwLAogICJjZW50ZXJzVW5vYnNjdXJlZCI6IHRydWUKfQ=="
+                    },
+                    {
+                      "name": "overview-zh-valuation-ps-context-geometry",
+                      "contentType": "application/json",
+                      "body": "ewogICJmcmFtZSI6ICJwcy1jb250ZXh0IiwKICAidmlld3BvcnQiOiB7CiAgICAid2lkdGgiOiAzOTAsCiAgICAiaGVpZ2h0IjogODQ0CiAgfSwKICAidXNhYmxlIjogewogICAgInRvcCI6IDE1NCwKICAgICJib3R0b20iOiA4NDQsCiAgICAibGVmdCI6IDAsCiAgICAicmlnaHQiOiAzOTAKICB9LAogICJ0YXJnZXQiOiB7CiAgICAidG9wIjogMTYxLjUsCiAgICAiYm90dG9tIjogNDg5Ljg3NSwKICAgICJsZWZ0IjogMTIsCiAgICAicmlnaHQiOiAzNzgKICB9LAogICJyZWdpb25zIjogWwogICAgewogICAgICAidG9wIjogMTYxLjUsCiAgICAgICJib3R0b20iOiA0NjUuMTg3NSwKICAgICAgImxlZnQiOiAxMiwKICAgICAgInJpZ2h0IjogMzc4CiAgICB9LAogICAgewogICAgICAidG9wIjogNDc1LjE4NzUsCiAgICAgICJib3R0b20iOiA0ODkuODc1LAogICAgICAibGVmdCI6IDEyLAogICAgICAicmlnaHQiOiAzNzgKICAgIH0KICBdLAogICJzY3JvbGxUb3AiOiAxNTMyLAogICJtb3Rpb24iOiAwLAogICJjZW50ZXJzVW5vYnNjdXJlZCI6IHRydWUKfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-8f9ea95bb494ab9e8c83",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 325,
+          "column": 5
+        },
+        {
+          "title": "Overview labels an older available annual EPS without inventing current or historical P/E (en)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "one missing-data contract per locale is sufficient",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e/research-workspace-nav.spec.ts",
+                    "line": 352,
+                    "column": 10
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 85,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:38.659Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "one missing-data contract per locale is sufficient",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-739-market-proof-web4/terminal/e2e/research-workspace-nav.spec.ts",
+                        "line": 352,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-b24506ecf26ad8fa7f6a",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 351,
+          "column": 7
+        },
+        {
+          "title": "Overview labels an older available annual EPS without inventing current or historical P/E (zh)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1063,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:38.752Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-0e552b81a0f9e282bab4",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 351,
+          "column": 7
+        },
+        {
+          "title": "Ownership family defaults to Institutional and preserves Insider as its sibling",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1163,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:39.822Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-1bea312f3c512e43d1dc",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 384,
+          "column": 5
+        },
+        {
+          "title": "Market vNext projects canonical technicals, pivots and five-year seasonality",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1214,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:40.996Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-fea12aec167f0eb3d7b1",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 452,
+          "column": 5
+        },
+        {
+          "title": "Market vNext remains bilingual and overflow-safe on mobile",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1099,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:42.218Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-08010e8cd81ef726c88d",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 494,
+          "column": 5
+        },
+        {
+          "title": "Market summary keeps seasonality ahead of deep indicator tables",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1120,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:43.330Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-9e41e5384e3f98976557",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 516,
+          "column": 5
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral en at 29 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1226,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:44.458Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-6d22891bb750656ba1f4",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral en at 30 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1493,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:45.695Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-1e8e33c2b1cc9ba4bd44",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral en at 49 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1264,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:47.199Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-c35a16890e3c3787bd72",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral en at 50 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1205,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:48.471Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-8248c9dcbd4f81910ffe",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral en at 199 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1191,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:49.683Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-1d6ecb1f5968228765fc",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral en at 200 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1187,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:50.881Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-aa686af77613bcb06371",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral en at 220 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1323,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:52.076Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-a04f5a1aa6c9a9279f35",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral zh at 29 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1259,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:53.406Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-87cecf02fea36b804947",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral zh at 30 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1525,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:54.672Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-630b5c36929c16140c9f",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral zh at 49 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1373,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:56.205Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-2ddb88af8e38ef8e1146",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral zh at 50 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1375,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:57.586Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-77187b546da52d3e5a02",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral zh at 199 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1513,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:33:58.968Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-4aad09e017d8c5a2bca6",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral zh at 200 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1349,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:34:00.500Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-6ec5be88805b786587d9",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market numeric availability thresholds and measured Neutral zh at 220 active observations",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1577,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:34:01.858Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-1bab2f6bc2d97eb0ac66",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 564,
+          "column": 9
+        },
+        {
+          "title": "Market full-history hierarchy remains readable in Chinese",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1242,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:34:03.443Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1d31e6a37b85f66f37c8-b44dfd8d1220b5a9df72",
+          "file": "research-workspace-nav.spec.ts",
+          "line": 652,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-10T08:30:43.157Z",
+    "duration": 202023.456,
+    "expected": 91,
+    "skipped": 8,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

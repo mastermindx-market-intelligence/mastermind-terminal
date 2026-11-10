@@ -1,0 +1,74 @@
+{
+  "completedAt": "2026-11-09T18:33:06.540376+00:00",
+  "results": {
+    "legacy-boundary": {
+      "command": [
+        "node",
+        "--test",
+        "e2e/tools/optionsExposureEvidence.cases.cjs"
+      ],
+      "exit": 0,
+      "logSha256": "837436a261208f648554b6fd9288dfa34a9296a0d1baf801dea13b500867c19e",
+      "seconds": 0.33
+    },
+    "lint": {
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+        "--max-warnings=0"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seconds": 2.95
+    },
+    "readers": {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+        "lib/__tests__/optionsExposureEvidence.test.ts",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr768-evidence-shadow-links-20261109/docs/verification/pr768-evidence-shadow-links-20261109/current-consumers-r1/unit-report.json"
+      ],
+      "exit": 0,
+      "logSha256": "95fc42fd272576c899fce2eb10d83f1d43b6239f7d150e9c07fba5dba3fbb53e",
+      "seconds": 8.63
+    },
+    "typecheck": {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seconds": 42.62
+    },
+    "typegen": {
+      "command": [
+        "node",
+        "node_modules/next/dist/bin/next",
+        "typegen"
+      ],
+      "exit": 0,
+      "logSha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a",
+      "seconds": 3.24
+    }
+  },
+  "schema": "terminal_evidence_shadow_current_consumers.v1",
+  "sourceEntries": 1941,
+  "sourceStable": true,
+  "startedAt": "2026-11-09T18:32:08.043806+00:00",
+  "state": "QUALIFIED",
+  "unitStats": {
+    "numFailedTests": 0,
+    "numPassedTests": 72,
+    "numPendingTests": 0,
+    "numTotalTests": 72,
+    "success": true
+  }
+}
