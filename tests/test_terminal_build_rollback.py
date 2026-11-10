@@ -41,8 +41,10 @@ import json
 import os
 import re
 import shutil
+import signal
 import subprocess
 import textwrap
+import time
 from pathlib import Path
 
 import pytest
@@ -554,17 +556,34 @@ SHIMS = {
     "npm": (
         '#!/bin/sh\n'
         'printf "npm %s\\n" "$*" >> "$MMX_EFFECT_LOG"\n'
+        # `npm ci` does what the real one does to the directory it runs in: the
+        # existing tree is deleted and a new one is written from the lockfile there.
+        # HOLD_NPM_CI parks it mid-install so a test can interrupt the deploy.
+        'if [ "$1" = ci ]; then\n'
+        '  rm -rf node_modules && mkdir node_modules || exit 1\n'
+        '  cp package-lock.json node_modules/installed-from-lock || exit 1\n'
+        '  if [ -n "${HOLD_NPM_CI:-}" ]; then\n'
+        '    : > "$HOLD_NPM_CI.started"\n'
+        '    while [ ! -e "$HOLD_NPM_CI.release" ]; do /bin/sleep 0.05; done\n'
+        '  fi\n'
+        'fi\n'
         'if [ "$1" = run ] && [ "$2" = build ]; then\n'
         # Record exactly what public/data the build saw, from inside the stage.
         '  if [ -n "${RECORD_STAGE_DATA:-}" ]; then\n'
         '    { printf "cwd=%s\\n" "$PWD"; (cd public/data && find . -type f | sort); } > "$RECORD_STAGE_DATA"\n'
         '  fi\n'
+        # The 2026-11-10 shape: the kernel kills the build, npm reports 137.
+        '  [ -n "${FAIL_BUILD:-}" ] && { echo Killed >&2; exit 137; }\n'
         '  mkdir -p .next && printf "%s\\n" "$FAKE_BUILD_ID" > .next/BUILD_ID\n'
         'fi\nexit 0\n'
     ),
     "systemctl": (
         '#!/bin/sh\n'
         'printf "systemctl %s\\n" "$*" >> "$MMX_EFFECT_LOG"\n'
+        # What a (re)started service would load: the lockfile beside its node_modules.
+        'if [ "$1" = restart ] && [ -n "${MMX_DEPS_PROBE:-}" ]; then\n'
+        '  printf "restart-saw-lock %s\\n" "$(cat "$MMX_DEPS_PROBE" 2>/dev/null)" >> "$MMX_EFFECT_LOG"\n'
+        'fi\n'
         '[ "$1" = restart ] && [ -n "${FAIL_RESTART:-}" ] && { echo "systemctl: simulated failure" >&2; exit 1; }\n'
         'exit 0\n'
     ),
@@ -604,8 +623,15 @@ SHIMS = {
 }
 
 
-def run_deploy(tmp_path: Path, script: Path = SCRIPT, **flags) -> tuple:
-    """Execute a sandboxed copy of the real deploy script. Returns (proc, app)."""
+def sandbox_deploy(tmp_path: Path, script: Path = SCRIPT, *, prepare=None,
+                   meminfo: Path | None = None, **flags) -> tuple:
+    """Build the sandbox for one deploy run. Returns (argv, env, app).
+
+    `prepare(app, tsrc)` adjusts the fixture before the run (the default fixture has
+    identical lockfiles, so the dependency install is skipped). `meminfo` points the
+    build memory admission at a fixture instead of this machine's /proc/meminfo;
+    without it the session default in conftest.py keeps that admission out of play.
+    """
     # NOT named "opt": the post-rewrite guard below greps for /opt/terminal, and a
     # sandbox ending in /opt would make the rewritten text match it spuriously.
     root = tmp_path / "deployroot"
@@ -724,6 +750,12 @@ print(json.dumps({
     )
     assert "/opt/terminal" not in text, "a real deploy path survived the rewrite"
     assert "/var/lib/mastermind-terminal" not in text, "a real receipt path survived the rewrite"
+    if meminfo is not None:
+        anchor = "require_build_memory /proc/meminfo"
+        assert text.count(anchor) == 1, "build memory admission call vanished — cannot sandbox"
+        text = text.replace(anchor, f'require_build_memory "{meminfo}"')
+    if prepare is not None:
+        prepare(app, tsrc)
     copy = tmp_path / "sandboxed-terminal-build.sh"
     copy.write_text(text)
     copy.chmod(0o755)
@@ -743,13 +775,13 @@ print(json.dumps({
         "MMX_EFFECT_LOG": str(tmp_path / "effects.log"),
     })
     env.update({k: str(v) for k, v in flags.items()})
-    proc = subprocess.run(
-        [_bash(), str(copy), "--target-sha", NEW_SHA],
-        capture_output=True,
-        text=True,
-        timeout=180,
-        env=env,
-    )
+    return [_bash(), str(copy), "--target-sha", NEW_SHA], env, app
+
+
+def run_deploy(tmp_path: Path, script: Path = SCRIPT, **options) -> tuple:
+    """Execute a sandboxed copy of the real deploy script. Returns (proc, app)."""
+    argv, env, app = sandbox_deploy(tmp_path, script, **options)
+    proc = subprocess.run(argv, capture_output=True, text=True, timeout=180, env=env)
     return proc, app
 
 
@@ -1270,3 +1302,815 @@ def test_both_outcomes_report_the_full_identity_triple():
     assert _library().count("deploy_identity_line") >= 2, (
         "both the rolled-back and the unresolved outcome must report the full triple"
     )
+
+
+# --------------------------------------------------------------------------
+# dependency inputs are part of the generation: the 2026-11-10 incident
+# --------------------------------------------------------------------------
+#
+# The production deps step installs into the LIVE app. When the staged build was
+# OOM-killed after it, the pre-swap recovery put the canonical checkout back and
+# nothing else: the accepted .next and the running server were left beside the
+# TARGET's package.json, package-lock.json and node_modules. Every later release
+# preflight then refused on two TRACKED_MODIFIED findings. These tests pin the
+# snapshot that closes it, at three levels: the functions, the exit path against a
+# real repository and the real preflight, and the executed deploy body.
+
+ACCEPTED_PACKAGE = '{"name":"terminal","dependencies":{"next":"16.2.9"}}\n'
+TARGET_PACKAGE = '{"name":"terminal","dependencies":{"next":"16.4.6"}}\n'
+ACCEPTED_LOCK = '{"lockfileVersion":3,"next":"16.2.9"}\n'
+TARGET_LOCK = '{"lockfileVersion":3,"next":"16.4.6"}\n'
+ACCEPTED_MTIME = 1_700_000_000
+
+
+def dependency_inputs(app: Path) -> dict:
+    """Everything the accepted generation's dependency inputs are, by identity.
+
+    A directory's inode number alone can be reused by a delete-and-recreate on
+    ext4, so the tree is always described by its inode AND its contents.
+    """
+    state: dict = {}
+    for name in ("package.json", "package-lock.json"):
+        path = app / name
+        if path.exists():
+            info = path.stat()
+            state[name] = (path.read_bytes(), info.st_mode, int(info.st_mtime))
+        else:
+            state[name] = None
+    tree = app / "node_modules"
+    if tree.exists():
+        state["node_modules"] = (
+            tree.stat().st_ino,
+            sorted(str(p.relative_to(tree)) for p in tree.rglob("*")),
+        )
+    else:
+        state["node_modules"] = None
+    return state
+
+
+def make_deps_app(tmp_path: Path, *, package: bool = True, tree: bool = True) -> Path:
+    app = tmp_path / "host" / "terminal"
+    app.mkdir(parents=True)
+    if package:
+        manifest = app / "package.json"
+        manifest.write_text(ACCEPTED_PACKAGE)
+        manifest.chmod(0o640)
+        os.utime(manifest, (ACCEPTED_MTIME, ACCEPTED_MTIME))
+    lock = app / "package-lock.json"
+    lock.write_text(ACCEPTED_LOCK)
+    os.utime(lock, (ACCEPTED_MTIME, ACCEPTED_MTIME))
+    if tree:
+        (app / "node_modules" / "next").mkdir(parents=True)
+        (app / "node_modules" / "next" / "version").write_text("16.2.9\n")
+    return app
+
+
+def install_target_deps(app: Path) -> str:
+    """Bash for what the deps step does to the live app: target manifests copied
+    over the accepted ones, node_modules deleted and rewritten by `npm ci`."""
+    return (
+        f"printf '%s\\n' '{TARGET_PACKAGE.strip()}' > \"{app}/package.json\"\n"
+        f"printf '%s\\n' '{TARGET_LOCK.strip()}' > \"{app}/package-lock.json\"\n"
+        f'rm -rf "{app}/node_modules"\n'
+        f'mkdir -p "{app}/node_modules/next"\n'
+        f"printf '16.4.6\\n' > \"{app}/node_modules/next/version\"\n"
+    )
+
+
+def snapshot_dir(app: Path) -> Path:
+    return app.parent / ".deps-rollback"
+
+
+def test_dependency_snapshot_restores_files_metadata_and_the_same_tree(tmp_path):
+    app = make_deps_app(tmp_path)
+    before = dependency_inputs(app)
+
+    r = run_gen(SCRIPT, f'''
+        deps_snapshot_begin "{app}" || exit 90
+        [ ! -e "{app}/node_modules" ] || exit 91
+        [ "$DEPS_SNAPSHOT_DIR" = "{snapshot_dir(app)}" ] || exit 92
+        {install_target_deps(app)}
+        deps_snapshot_restore "{app}"
+        echo "RC=$? OPEN=[$DEPS_SNAPSHOT_DIR]"
+    ''')
+
+    assert "RC=0 OPEN=[]" in r.stdout, r.stdout + r.stderr
+    assert dependency_inputs(app) == before
+    assert (app / "node_modules" / "next" / "version").read_text() == "16.2.9\n"
+    assert not snapshot_dir(app).exists(), "a restored snapshot must not be left behind"
+
+
+def test_dependency_snapshot_lives_beside_the_app_never_inside_it(tmp_path):
+    """The source audit maps $APP. A snapshot inside it would itself be drift."""
+    app = make_deps_app(tmp_path)
+    r = run_gen(SCRIPT, f'''
+        deps_snapshot_path "{app}"
+        deps_snapshot_begin "{app}" || exit 90
+        ls -A "{app}"
+    ''')
+    assert r.stdout.splitlines()[0] == str(snapshot_dir(app))
+    assert sorted(p.name for p in app.iterdir()) == ["package-lock.json", "package.json"]
+    assert (snapshot_dir(app) / "node_modules" / "next" / "version").read_text() == "16.2.9\n"
+    assert oct(snapshot_dir(app).stat().st_mode & 0o777) == "0o700"
+
+
+def test_dependency_snapshot_restores_absence(tmp_path):
+    """An accepted generation with no package.json and no tree gets neither back."""
+    app = make_deps_app(tmp_path, package=False, tree=False)
+    before = dependency_inputs(app)
+    assert before["package.json"] is None and before["node_modules"] is None
+
+    r = run_gen(SCRIPT, f'''
+        deps_snapshot_begin "{app}" || exit 90
+        {install_target_deps(app)}
+        deps_snapshot_restore "{app}"
+        echo "RC=$?"
+    ''')
+
+    assert "RC=0" in r.stdout, r.stdout + r.stderr
+    assert "node_modules absent" in r.stdout
+    assert dependency_inputs(app) == before
+    assert not snapshot_dir(app).exists()
+
+
+def test_dependency_snapshot_discard_keeps_the_new_generation(tmp_path):
+    app = make_deps_app(tmp_path)
+    r = run_gen(SCRIPT, f'''
+        deps_snapshot_discard; echo "IDLE_RC=$?"
+        deps_snapshot_begin "{app}" || exit 90
+        {install_target_deps(app)}
+        deps_snapshot_discard
+        echo "RC=$? OPEN=[$DEPS_SNAPSHOT_DIR]"
+    ''')
+    assert "IDLE_RC=0" in r.stdout
+    assert r.stdout.count("dependency rollback snapshot discarded") == 1, (
+        "discarding with no open snapshot must be silent"
+    )
+    assert "RC=0 OPEN=[]" in r.stdout, r.stdout + r.stderr
+    assert not snapshot_dir(app).exists()
+    assert (app / "package-lock.json").read_text() == TARGET_LOCK
+    assert (app / "node_modules" / "next" / "version").read_text() == "16.4.6\n"
+
+
+def test_stale_dependency_snapshot_is_discarded_loudly(tmp_path):
+    """A snapshot that outlived a SIGKILLed attempt must never be restored by a later
+    one: by then the preflight has accepted the live tree as it stands."""
+    app = make_deps_app(tmp_path)
+    stale = snapshot_dir(app)
+    (stale / "node_modules" / "ancient").mkdir(parents=True)
+    (stale / "package-lock.json").write_text("two generations old\n")
+    before = dependency_inputs(app)
+
+    r = run_gen(SCRIPT, f'''
+        deps_snapshot_begin "{app}" || exit 90
+        {install_target_deps(app)}
+        deps_snapshot_restore "{app}"
+        echo "RC=$?"
+    ''')
+
+    assert "WARN: discarding a dependency rollback snapshot left by an interrupted earlier attempt" in r.stdout
+    assert "RC=0" in r.stdout, r.stdout + r.stderr
+    assert dependency_inputs(app) == before
+    assert not (app / "node_modules" / "ancient").exists()
+
+
+def test_dependency_snapshot_refuses_a_non_regular_manifest(tmp_path):
+    app = make_deps_app(tmp_path)
+    (app / "package.json").unlink()
+    (app / "package.json").symlink_to(app / "package-lock.json")
+
+    r = run_gen(SCRIPT, f'deps_snapshot_begin "{app}"; echo "RC=$? OPEN=[$DEPS_SNAPSHOT_DIR]"')
+
+    assert "RC=73 OPEN=[]" in r.stdout, r.stdout + r.stderr
+    assert "is not a regular file" in r.stdout
+    assert (app / "node_modules" / "next" / "version").read_text() == "16.2.9\n"
+    assert not snapshot_dir(app).exists(), "a refused snapshot must not be left half-made"
+
+
+def test_failed_move_aside_leaves_the_accepted_inputs_in_place(tmp_path):
+    """The tree rename is the last step of the snapshot; if it fails nothing in the
+    app has changed, and the restore that follows must agree."""
+    app = make_deps_app(tmp_path)
+    before = dependency_inputs(app)
+
+    r = run_gen(SCRIPT, f'''
+        mv() {{ case "$*" in *".deps-rollback/node_modules"*) return 1 ;; esac; command mv "$@"; }}
+        deps_snapshot_begin "{app}"; echo "BEGIN_RC=$?"
+        deps_snapshot_restore "{app}"; echo "RESTORE_RC=$? OPEN=[$DEPS_SNAPSHOT_DIR]"
+    ''')
+
+    assert "BEGIN_RC=73" in r.stdout, r.stdout + r.stderr
+    assert "RESTORE_RC=0 OPEN=[]" in r.stdout, r.stdout + r.stderr
+    assert dependency_inputs(app) == before
+    assert not snapshot_dir(app).exists()
+
+
+def test_failed_restore_keeps_the_snapshot_for_attended_recovery(tmp_path):
+    app = make_deps_app(tmp_path)
+
+    r = run_gen(SCRIPT, f'''
+        deps_snapshot_begin "{app}" || exit 90
+        {install_target_deps(app)}
+        mv() {{ case "$*" in *"node_modules.failed"*) return 1 ;; esac; command mv "$@"; }}
+        deps_snapshot_restore "{app}"
+        echo "RC=$? OPEN=[$DEPS_SNAPSHOT_DIR]"
+    ''')
+
+    assert f"RC=1 OPEN=[{snapshot_dir(app)}]" in r.stdout, r.stdout + r.stderr
+    # the accepted tree is still intact in the snapshot, not destroyed by the attempt
+    assert (snapshot_dir(app) / "node_modules" / "next" / "version").read_text() == "16.2.9\n"
+
+
+def test_restore_without_a_snapshot_is_a_failure_not_a_silent_success(tmp_path):
+    app = make_deps_app(tmp_path)
+    r = run_gen(SCRIPT, f'deps_snapshot_restore "{app}"; echo "RC=$?"')
+    assert "RC=1" in r.stdout
+    assert "there is no dependency rollback snapshot to restore" in r.stdout
+
+
+# -- the exit path, against a real repository and the real release preflight --
+
+def make_dependency_incident_fixture(tmp_path: Path):
+    """Accepted and target generations that differ in their TRACKED dependency
+    manifests, a live app on the accepted one, and the canonical checkout already
+    reset to the target — the state the deploy is in when its build is killed."""
+    repo = tmp_path / "canonical"
+    live = tmp_path / "host" / "terminal"
+    receipts = tmp_path / "receipts"
+    policy_path = tmp_path / "policy.json"
+    repo.mkdir()
+    live.mkdir(parents=True)
+    receipts.mkdir(mode=0o750)
+    _git(repo, "init", "-q")
+    _git(repo, "config", "user.email", "deploy-test@example.com")
+    _git(repo, "config", "user.name", "Deploy Test")
+    source = repo / "terminal"
+    source.mkdir()
+    (source / "file.txt").write_text("same in both generations\n", encoding="utf-8")
+    (source / "package.json").write_text(ACCEPTED_PACKAGE, encoding="utf-8")
+    (source / "package-lock.json").write_text(ACCEPTED_LOCK, encoding="utf-8")
+    _git(repo, "add", "terminal")
+    _git(repo, "commit", "-q", "-m", "accepted generation")
+    old_sha = _git(repo, "rev-parse", "HEAD")
+
+    (source / "package.json").write_text(TARGET_PACKAGE, encoding="utf-8")
+    (source / "package-lock.json").write_text(TARGET_LOCK, encoding="utf-8")
+    _git(repo, "add", "terminal")
+    _git(repo, "commit", "-q", "-m", "admitted target: dependency bump")
+    new_sha = _git(repo, "rev-parse", "HEAD")
+    _git(repo, "update-ref", "refs/remotes/origin/master", new_sha)
+
+    (live / "file.txt").write_text("same in both generations\n", encoding="utf-8")
+    (live / "package.json").write_text(ACCEPTED_PACKAGE, encoding="utf-8")
+    (live / "package-lock.json").write_text(ACCEPTED_LOCK, encoding="utf-8")
+    (live / "node_modules" / "next").mkdir(parents=True)
+    (live / "node_modules" / "next" / "version").write_text("16.2.9\n")
+    marker = live / ".deployment-id"
+    marker.write_text(old_sha + "\n", encoding="ascii")
+    policy = {
+        "schema": "mastermind.terminal.source_audit_policy.v1",
+        "accepted_ref": "refs/remotes/origin/master",
+        "deployment_id_file": str(marker),
+        "mappings": [
+            {
+                "name": "terminal-app",
+                "repo_path": "terminal",
+                "live_path": str(live),
+                "allowances": [
+                    {
+                        "path": ".deployment-id",
+                        "classification": "deployment_marker",
+                        "expected_live_type": "file",
+                    },
+                    {
+                        "path": "node_modules",
+                        "classification": "generated_dependency_tree",
+                        "expected_live_type": "directory",
+                    },
+                ],
+            }
+        ],
+    }
+    policy_path.write_text(json.dumps(policy), encoding="utf-8")
+    return repo, live, marker, receipts, policy_path, old_sha, new_sha
+
+
+def killed_build_exit(repo: Path, live: Path, marker: Path, old_sha: str, *,
+                      snapshot: bool = True, status: str = "false",
+                      armed: int = 1) -> str:
+    """Bash for: deps installed into the live app, then the attempt ends pre-swap."""
+    return f'''
+        SRC="{repo}"
+        APP="{live}"
+        DEPLOYMENT_MARKER="{marker}"
+        CANONICAL_RECOVERY_SHA="{old_sha}"
+        CANONICAL_RECOVERY_ARMED={armed}
+        STAGE_ROOT=
+        {'deps_snapshot_begin "$APP" || exit 90' if snapshot else ': # the pre-fix deploy saved nothing'}
+        {install_target_deps(live)}
+        {status}
+        cleanup_deploy_attempt
+    '''
+
+
+def release_preflight(repo: Path, receipts: Path, policy: Path) -> subprocess.CompletedProcess:
+    preflight = REPO / "ops" / "terminal_release_preflight.py"
+    return run_gen(SCRIPT, f'''
+        run_release_preflight "{preflight}" "{policy}" "{repo}" "{receipts}" auto
+        rc=$?
+        echo "RC=$rc RECOVERY=$PREFLIGHT_RECOVERY_REQUIRED"
+        exit "$rc"
+    ''')
+
+
+def test_killed_build_after_install_leaves_the_next_preflight_clean(tmp_path):
+    repo, live, marker, receipts, policy, old_sha, _ = make_dependency_incident_fixture(tmp_path)
+    before = dependency_inputs(live)
+
+    r = run_gen(SCRIPT, killed_build_exit(repo, live, marker, old_sha))
+
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "pre-swap dependency recovery OK" in r.stdout
+    assert "pre-swap canonical checkout recovery OK" in r.stdout
+    assert r.stdout.index("pre-swap dependency recovery OK") < r.stdout.index(
+        "pre-swap canonical checkout recovery OK"
+    )
+    assert dependency_inputs(live) == before
+    assert (live / "node_modules" / "next" / "version").read_text() == "16.2.9\n"
+    assert not snapshot_dir(live).exists()
+    assert _git(repo, "rev-parse", "HEAD") == old_sha
+
+    # The consequence that bricked production: the NEXT deploy's preflight.
+    nxt = release_preflight(repo, receipts, policy)
+    assert nxt.returncode == 0, nxt.stdout + nxt.stderr
+    assert "source preflight CLEAN" in nxt.stdout
+    assert "RC=0 RECOVERY=0" in nxt.stdout
+
+
+def test_without_the_snapshot_the_next_preflight_refuses_as_it_did_in_production(tmp_path):
+    """The incident, reproduced with the real preflight: canonical checkout
+    recovered, dependency manifests left on the target, every later deploy refused."""
+    repo, live, marker, receipts, policy, old_sha, _ = make_dependency_incident_fixture(tmp_path)
+
+    r = run_gen(SCRIPT, killed_build_exit(repo, live, marker, old_sha, snapshot=False))
+
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "pre-swap canonical checkout recovery OK" in r.stdout
+    assert (live / "package-lock.json").read_text() == TARGET_LOCK
+    assert (live / "node_modules" / "next" / "version").read_text() == "16.4.6\n"
+
+    nxt = release_preflight(repo, receipts, policy)
+    assert nxt.returncode != 0, (
+        "fixture is inert — the real preflight accepts the incident state, so the "
+        "clean result above proves nothing"
+    )
+    assert "source preflight CLEAN" not in nxt.stdout
+
+
+def test_open_snapshot_is_a_failure_even_when_the_exit_status_is_zero(tmp_path):
+    """An untrapped signal can run the EXIT path with $? of the last finished
+    command. An attempt that changed the live inputs and never reached acceptance is
+    recovered, and reported non-zero, whatever that status says."""
+    repo, live, marker, _, _, old_sha, _ = make_dependency_incident_fixture(tmp_path)
+    before = dependency_inputs(live)
+
+    r = run_gen(SCRIPT, killed_build_exit(repo, live, marker, old_sha, status="true"))
+
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "pre-swap dependency recovery OK" in r.stdout
+    assert "pre-swap canonical checkout recovery OK" in r.stdout
+    assert dependency_inputs(live) == before
+    assert _git(repo, "rev-parse", "HEAD") == old_sha
+
+
+def test_dependency_restore_does_not_depend_on_the_canonical_recovery_leg(tmp_path):
+    """The canonical leg refuses when the live marker moved. The snapshot is this
+    attempt's own record of what it changed; it goes back regardless."""
+    repo, live, marker, _, _, old_sha, new_sha = make_dependency_incident_fixture(tmp_path)
+    before = dependency_inputs(live)
+    marker.write_text(new_sha + "\n", encoding="ascii")
+
+    r = run_gen(SCRIPT, killed_build_exit(repo, live, marker, old_sha))
+
+    assert r.returncode == 74, r.stdout + r.stderr
+    assert "pre-swap recovery refused" in r.stdout
+    assert "pre-swap dependency recovery OK" in r.stdout
+    assert dependency_inputs(live) == before
+
+
+def test_failed_dependency_restore_is_fatal_and_retains_the_snapshot(tmp_path):
+    repo, live, marker, _, _, old_sha, _ = make_dependency_incident_fixture(tmp_path)
+    body = killed_build_exit(repo, live, marker, old_sha).replace(
+        "cleanup_deploy_attempt",
+        'mv() { case "$*" in *"node_modules.failed"*) return 1 ;; esac; command mv "$@"; }\n'
+        "false\ncleanup_deploy_attempt",
+    )
+
+    r = run_gen(SCRIPT, body)
+
+    assert r.returncode == 74, r.stdout + r.stderr
+    assert "FATAL: pre-swap dependency recovery failed; the saved inputs are retained at " \
+        f"{snapshot_dir(live)}" in r.stdout
+    assert "pre-swap dependency recovery OK" not in r.stdout
+    assert (snapshot_dir(live) / "node_modules" / "next" / "version").read_text() == "16.2.9\n"
+
+
+def test_snapshot_left_open_after_identity_moved_is_never_guessed_at(tmp_path):
+    """Past deploy_generation_begin the abort path owns the restore. An exit that
+    bypassed it keeps the snapshot and says so; it does not restore blind."""
+    repo, live, marker, _, _, old_sha, _ = make_dependency_incident_fixture(tmp_path)
+
+    r = run_gen(SCRIPT, killed_build_exit(repo, live, marker, old_sha, armed=0))
+
+    assert r.returncode == 74, r.stdout + r.stderr
+    assert "dependency rollback snapshot is unresolved after live identity began moving" in r.stdout
+    assert "pre-swap dependency recovery OK" not in r.stdout
+    assert (live / "package-lock.json").read_text() == TARGET_LOCK
+    assert (snapshot_dir(live) / "node_modules" / "next" / "version").read_text() == "16.2.9\n"
+
+
+# -- the executed deploy body --
+
+def lockfile_changed(record: dict):
+    """Fixture adjustment: the target's dependency manifests differ from the live
+    app's, so the deploy installs. Records the accepted inputs before the run."""
+    def prepare(app: Path, tsrc: Path) -> None:
+        (app / "package.json").write_text(ACCEPTED_PACKAGE)
+        (app / "package-lock.json").write_text(ACCEPTED_LOCK)
+        (tsrc / "package.json").write_text(TARGET_PACKAGE)
+        (tsrc / "package-lock.json").write_text(TARGET_LOCK)
+        record.update(dependency_inputs(app))
+    return prepare
+
+
+def test_deploy_restores_dependency_inputs_when_the_build_is_killed(tmp_path):
+    before: dict = {}
+    proc, app = run_deploy(tmp_path, prepare=lockfile_changed(before), FAIL_BUILD="1")
+    out = proc.stdout + proc.stderr
+
+    assert proc.returncode != 0, out
+    assert "installing deps (npm ci)" in proc.stdout, out
+    assert "npm ci" in _effect_lines(tmp_path)
+    assert "dependency rollback snapshot taken at" in proc.stdout, out
+    assert "Killed" in proc.stderr
+    assert "pre-swap dependency recovery OK" in proc.stdout, out
+    assert dependency_inputs(app) == before, out
+    assert (app / "node_modules" / "marker").read_text() == "x"
+    assert not (app / "node_modules" / "installed-from-lock").exists()
+    assert not snapshot_dir(app).exists()
+    assert marker_of(app) == OLD_SHA
+    assert live_build_id(app) == OLD_BUILD_ID
+    assert not list(app.parent.glob(".stage.*")), "the failed stage was left behind"
+
+
+def test_mutant_without_the_snapshot_reproduces_the_incident(tmp_path):
+    """Remove the snapshot -> the live app must be left on the target's inputs."""
+    mutant = _mutate(
+        tmp_path,
+        '    deps_snapshot_begin "$APP" || exit $?\n',
+        '    :  # MUTANT: dependency inputs are not saved\n',
+    )
+    before: dict = {}
+    proc, app = run_deploy(
+        tmp_path, script=mutant, prepare=lockfile_changed(before), FAIL_BUILD="1"
+    )
+
+    assert proc.returncode != 0
+    assert marker_of(app) == OLD_SHA and live_build_id(app) == OLD_BUILD_ID
+    assert (app / "package-lock.json").read_text() == TARGET_LOCK, (
+        "mutation was inert — the snapshot is not what returns the accepted lockfile"
+    )
+    assert (app / "package.json").read_text() == TARGET_PACKAGE
+    assert (app / "node_modules" / "installed-from-lock").read_text() == TARGET_LOCK
+    assert not (app / "node_modules" / "marker").exists()
+
+
+def test_deploy_with_unchanged_deps_takes_no_snapshot(tmp_path):
+    before: dict = {}
+    proc, app = run_deploy(
+        tmp_path, prepare=lambda app, tsrc: before.update(dependency_inputs(app)),
+        FAIL_BUILD="1",
+    )
+    out = proc.stdout + proc.stderr
+
+    assert proc.returncode != 0, out
+    assert "deps unchanged — skipping npm ci" in proc.stdout, out
+    assert "dependency rollback snapshot" not in proc.stdout
+    assert "dependency recovery" not in proc.stdout
+    assert "npm ci" not in _effect_lines(tmp_path)
+    assert dependency_inputs(app) == before
+    assert not snapshot_dir(app).exists()
+
+
+def test_accepted_deploy_discards_the_snapshot_and_keeps_the_new_deps(tmp_path):
+    before: dict = {}
+    proc, app = run_deploy(tmp_path, prepare=lockfile_changed(before))
+    out = proc.stdout + proc.stderr
+
+    # (the sandbox has no ops/terminal-data, so step 8 exits non-zero after acceptance)
+    assert "identity verified" in proc.stdout, out
+    assert "dependency rollback snapshot discarded: the new generation is accepted" in proc.stdout
+    assert proc.stdout.index("dependency rollback snapshot discarded") < proc.stdout.index(
+        "identity verified"
+    )
+    assert "dependency recovery" not in proc.stdout, out
+    assert not snapshot_dir(app).exists()
+    assert marker_of(app) == NEW_SHA
+    assert (app / "package.json").read_text() == TARGET_PACKAGE
+    assert (app / "package-lock.json").read_text() == TARGET_LOCK
+    assert (app / "node_modules" / "installed-from-lock").read_text() == TARGET_LOCK
+
+
+def test_post_swap_rollback_restores_dependency_inputs_before_the_restart(tmp_path):
+    """A rolled-back generation is restarted. It must come up on the accepted
+    dependencies, so they go back before the rollback's restart, not after."""
+    before: dict = {}
+    probe = tmp_path / "deployroot" / "terminal" / "package-lock.json"
+    proc, app = run_deploy(
+        tmp_path, prepare=lockfile_changed(before), FAIL_HEALTH="1", MMX_DEPS_PROBE=probe
+    )
+    out = proc.stdout + proc.stderr
+
+    assert proc.returncode != 0, out
+    assert "rolling back" in proc.stdout.lower(), out
+    assert "rollback dependency recovery OK" in proc.stdout, out
+    assert dependency_inputs(app) == before, out
+    assert (app / "node_modules" / "marker").read_text() == "x"
+    assert not snapshot_dir(app).exists()
+    assert marker_of(app) == OLD_SHA
+    assert live_build_id(app) == OLD_BUILD_ID
+    seen = [l for l in _effect_lines(tmp_path) if l.startswith("restart-saw-lock ")]
+    assert seen == [
+        f"restart-saw-lock {TARGET_LOCK.strip()}",    # the candidate's activation
+        f"restart-saw-lock {ACCEPTED_LOCK.strip()}",  # the rollback's reactivation
+    ], seen
+    assert "dependency rollback snapshot is unresolved" not in proc.stdout
+
+
+def test_deploy_that_starts_without_node_modules_recovers_to_none(tmp_path):
+    """No tree is itself a reason to install (lockfile identical). The accepted
+    generation had none, so a killed build leaves none."""
+    before: dict = {}
+
+    def prepare(app: Path, tsrc: Path) -> None:
+        shutil.rmtree(app / "node_modules")
+        before.update(dependency_inputs(app))
+
+    proc, app = run_deploy(tmp_path, prepare=prepare, FAIL_BUILD="1")
+    out = proc.stdout + proc.stderr
+
+    assert before["node_modules"] is None
+    assert "npm ci" in _effect_lines(tmp_path), out
+    assert "pre-swap dependency recovery OK" in proc.stdout, out
+    assert dependency_inputs(app) == before, out
+    assert not snapshot_dir(app).exists()
+
+
+def test_snapshot_failure_refuses_the_install_with_nothing_changed(tmp_path):
+    before: dict = {}
+    proc, app = run_deploy(
+        tmp_path, prepare=lockfile_changed(before),
+        FAIL_MV_MATCH=".deps-rollback/node_modules",
+    )
+    out = proc.stdout + proc.stderr
+
+    assert proc.returncode != 0, out
+    assert "could not move" in proc.stdout and "aside for dependency rollback" in proc.stdout, out
+    assert "npm ci" not in _effect_lines(tmp_path), "installed without a rollback snapshot"
+    assert "npm run build" not in _effect_lines(tmp_path)
+    assert dependency_inputs(app) == before, out
+    assert not snapshot_dir(app).exists()
+
+
+def _interrupt_held_install(tmp_path: Path, script: Path, before: dict):
+    """Start a deploy, park its `npm ci`, send the owner SIGTERM. Returns
+    (popen, release, log, app); the caller decides what must happen next."""
+    hold = tmp_path / "npm-ci-hold"
+    started, release = Path(f"{hold}.started"), Path(f"{hold}.release")
+    argv, env, app = sandbox_deploy(
+        tmp_path, script, prepare=lockfile_changed(before), HOLD_NPM_CI=hold
+    )
+    log = tmp_path / "deploy-output.log"
+    with log.open("w") as sink:
+        popen = subprocess.Popen(argv, stdout=sink, stderr=subprocess.STDOUT, env=env)
+    deadline = time.monotonic() + 120
+    while not started.exists():
+        assert popen.poll() is None, f"deploy ended before installing:\n{log.read_text()}"
+        assert time.monotonic() < deadline, f"install never started:\n{log.read_text()}"
+        time.sleep(0.05)
+    popen.send_signal(signal.SIGTERM)
+    return popen, release, log, app
+
+
+def test_sigterm_during_the_install_waits_for_it_and_then_recovers(tmp_path):
+    """Recovery must not run underneath a still-writing install: the signal is held
+    until `npm ci` returns, then ends the attempt as an ordinary recovered failure."""
+    before: dict = {}
+    popen, release, log, app = _interrupt_held_install(tmp_path, SCRIPT, before)
+    try:
+        with pytest.raises(subprocess.TimeoutExpired):
+            popen.wait(timeout=2)
+        assert "dependency recovery" not in log.read_text()
+        release.touch()
+        popen.wait(timeout=120)
+    finally:
+        release.touch()
+        if popen.poll() is None:
+            popen.kill()
+    out = log.read_text()
+
+    assert popen.returncode != 0, out
+    assert "pre-swap dependency recovery OK" in out, out
+    assert "npm run build" not in _effect_lines(tmp_path), "the interrupted deploy kept going"
+    assert dependency_inputs(app) == before, out
+    assert not snapshot_dir(app).exists()
+    assert marker_of(app) == OLD_SHA and live_build_id(app) == OLD_BUILD_ID
+
+
+def test_mutant_without_the_signal_traps_recovers_under_a_running_install(tmp_path):
+    """Drop the traps -> the owner dies at once and its exit path restores the tree
+    while `npm ci` is still running against it. That is the race the traps close."""
+    mutant = _mutate(
+        tmp_path,
+        "    DEPLOY_SIGNALS_TRAPPED=1\n    trap 'exit 129' HUP\n    trap 'exit 130' INT\n"
+        "    trap 'exit 143' TERM\n",
+        "    :  # MUTANT: production keeps default signal dispositions\n",
+    )
+    popen, release, log, _ = _interrupt_held_install(tmp_path, mutant, {})
+    try:
+        popen.wait(timeout=60)
+        assert not release.exists(), "the install had already been released"
+    finally:
+        release.touch()
+        if popen.poll() is None:
+            popen.kill()
+    assert "pre-swap dependency recovery OK" in log.read_text(), (
+        "mutation was inert — the deferred-signal test is not exercising the traps"
+    )
+
+
+# -- static structure --
+
+def test_only_production_opens_a_dependency_snapshot():
+    """Beta's dependency inputs belong to its own transaction. Exactly one call,
+    inside the production-only block of the deps step, before anything is written."""
+    body = _deploy_body(code_only=True)
+    assert body.count("deps_snapshot_begin") == 1
+    deps = body[body.index("installing deps (npm ci)"):body.index("deps unchanged")]
+    guard = deps.index('if [ "$TARGET" = production ]; then')
+    begin = deps.index('deps_snapshot_begin "$APP" || exit $?')
+    assert guard < begin < deps.index("fi", begin)
+    assert "fi" not in deps[guard:begin], "the snapshot escaped the production-only block"
+    assert begin < deps.index('cp -f "$TSRC/package.json"') < deps.index("npm ci ||")
+    assert deps.index("trap 'exit 143' TERM") < begin, (
+        "the snapshot opens before the signals that could interrupt it are held"
+    )
+
+
+def test_dependency_snapshot_has_exactly_three_exits():
+    body = _deploy_body(code_only=True)
+    library = _library()
+    assert "deps_snapshot_restore" not in body, (
+        "the deploy body restores dependencies itself instead of through the exit "
+        "path or the single abort"
+    )
+    assert library.count('deps_snapshot_restore "$APP"') == 1   # cleanup_deploy_attempt
+    assert library.count('deps_snapshot_restore "$app"') == 1   # deploy_generation_abort
+    assert body.count("deps_snapshot_discard") == 1
+    commit = body.index('deploy_generation_commit "$APP"')
+    assert body[commit:].split("\n")[1].strip() == "deps_snapshot_discard", (
+        "the snapshot must be discarded only at acceptance, immediately after the "
+        "generation is committed"
+    )
+    abort = library[library.index("deploy_generation_abort(){"):]
+    assert abort.index('deps_snapshot_restore "$app"') < abort.index("systemctl restart"), (
+        "a rollback restarts the service before its dependencies are back"
+    )
+
+
+# --------------------------------------------------------------------------
+# build memory admission, end to end: the refusal is the deploy's first answer
+# --------------------------------------------------------------------------
+#
+# The unit and ordering tests live in test_terminal_build_admission.py. These run
+# the real deploy body against a meminfo fixture, with the floor left at its
+# default ("" overrides the session pin in conftest.py).
+
+def _meminfo_fixture(tmp_path: Path, available_kb: int, swap_free_kb: int) -> Path:
+    path = tmp_path / "meminfo"
+    path.write_text(
+        "MemTotal:        4014824 kB\n"
+        f"MemAvailable:   {available_kb:>8} kB\n"
+        "SwapTotal:       8388604 kB\n"
+        f"SwapFree:       {swap_free_kb:>8} kB\n"
+    )
+    return path
+
+
+def test_deploy_refuses_on_insufficient_memory_before_any_mutation(tmp_path):
+    """The incident host: ~1 GiB reclaimable, ~100 MiB swap left, lockfile changed.
+    The deploy must stop before the install that began the damage."""
+    before: dict = {}
+    proc, app = run_deploy(
+        tmp_path,
+        prepare=lockfile_changed(before),
+        meminfo=_meminfo_fixture(tmp_path, 1048576, 102400),
+        BUILD_MIN_AVAILABLE_MB="",
+    )
+    out = proc.stdout + proc.stderr
+
+    assert proc.returncode == 75, out
+    assert (
+        "FATAL: build memory admission refused: reason=insufficient-build-memory "
+        "available_mb=1124 (MemAvailable_mb=1024 SwapFree_mb=100) required_mb=4096"
+    ) in proc.stdout, out
+    # nothing ran: no preflight, no Git, no install, no build, no service action
+    assert _effect_lines(tmp_path) == [], out
+    for later in ("source preflight", "installing deps", "next build", "snapshot"):
+        assert later not in proc.stdout, out
+    receipts = tmp_path / "varlib" / "mastermind-terminal" / "release-preflight"
+    assert not receipts.exists(), "a preflight receipt directory was created"
+    assert dependency_inputs(app) == before
+    assert (app / "node_modules" / "marker").read_text() == "x"
+    assert not snapshot_dir(app).exists()
+    assert marker_of(app) == OLD_SHA
+    assert live_build_id(app) == OLD_BUILD_ID
+    assert artifacts(app) == []
+    assert not list(app.parent.glob(".stage.*"))
+    # The one thing that did happen: the shared build lock was taken, so the
+    # measurement is not of a host another deploy is building on, and released.
+    assert "build lock acquired" in proc.stdout and "build lock released" in proc.stdout, out
+    assert proc.stdout.index("build lock acquired") < proc.stdout.index("admission refused")
+    assert not (app.parent / ".terminal-build-resource.lock" / "hold").exists()
+
+
+def test_deploy_proceeds_when_memory_is_sufficient(tmp_path):
+    proc, app = run_deploy(
+        tmp_path,
+        meminfo=_meminfo_fixture(tmp_path, 2097152, 8283652),
+        BUILD_MIN_AVAILABLE_MB="",
+    )
+    out = proc.stdout + proc.stderr
+
+    assert (
+        "build memory admission OK: available_mb=10137 "
+        "(MemAvailable_mb=2048 SwapFree_mb=8089) required_mb=4096"
+    ) in proc.stdout, out
+    assert "identity verified" in proc.stdout, out
+    assert proc.stdout.index("build memory admission OK") < proc.stdout.index("source preflight")
+    assert marker_of(app) == NEW_SHA
+    assert live_build_id(app) == NEW_BUILD_ID
+
+
+def test_mutant_without_the_memory_admission_runs_into_the_build(tmp_path):
+    """Drop the admission -> the same starved host installs and builds."""
+    mutant = _mutate(
+        tmp_path,
+        "require_build_memory /proc/meminfo || exit $?\n",
+        "require_build_memory /proc/meminfo || true  # MUTANT\n",
+    )
+    before: dict = {}
+    proc, _ = run_deploy(
+        tmp_path,
+        script=mutant,
+        prepare=lockfile_changed(before),
+        meminfo=_meminfo_fixture(tmp_path, 1048576, 102400),
+        BUILD_MIN_AVAILABLE_MB="",
+    )
+
+    assert "reason=insufficient-build-memory" in proc.stdout
+    assert "npm ci" in _effect_lines(tmp_path), (
+        "mutation was inert — the admission is not what stops the install"
+    )
+
+
+def test_beta_deploy_refuses_on_insufficient_memory_before_its_workspace_exists(tmp_path):
+    """Beta builds on the same host, so it is refused by the same admission — and
+    before its own workspace, bootstrap or transaction is touched."""
+    argv, env, app = sandbox_deploy(
+        tmp_path,
+        meminfo=_meminfo_fixture(tmp_path, 1048576, 102400),
+        BUILD_MIN_AVAILABLE_MB="",
+    )
+    proc = subprocess.run(
+        argv[:2] + ["--target", "beta"] + argv[2:],
+        capture_output=True, text=True, timeout=180, env=env,
+    )
+    out = proc.stdout + proc.stderr
+
+    assert proc.returncode == 75, out
+    assert "target profile resolved: target=beta" in proc.stdout, out
+    assert (
+        "reason=insufficient-build-memory available_mb=1124 "
+        "(MemAvailable_mb=1024 SwapFree_mb=100) required_mb=4096"
+    ) in proc.stdout, out
+    assert _effect_lines(tmp_path) == [], out
+    root = app.parent
+    assert not (root / "beta").exists(), "the beta workspace was created before the refusal"
+    assert not (root / ".gitsrc-beta").exists()
+    beta_state = tmp_path / "varlib" / "mastermind-terminal-beta"
+    assert sorted(p.name for p in beta_state.iterdir()) == ["build-lock"], out
+    assert "build lock released" in proc.stdout, out
+    assert not (root / ".terminal-build-resource.lock" / "hold").exists()
+    # production's live generation is not this run's to touch either
+    assert marker_of(app) == OLD_SHA and live_build_id(app) == OLD_BUILD_ID

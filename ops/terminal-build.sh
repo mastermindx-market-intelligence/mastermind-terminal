@@ -870,6 +870,65 @@ build_node_options(){
   esac
 }
 
+# BUILD MEMORY ADMISSION — refuse before the first effect instead of being
+# OOM-killed after it. On 2026-11-10 the staged `next build` was "Killed" at
+# 2.7 GB anonymous RSS on this 3.9 GB host while swap was nearly full: minutes
+# of work, a mutated live dependency tree and a pre-swap recovery, for a build
+# that could not have fitted when it started.
+#
+# The measure is MemAvailable + SwapFree from /proc/meminfo: what the kernel can
+# still hand a new process before the OOM killer has to choose a victim. The
+# floor is the old-space ceiling this owner grants the build (BUILD_NODE_HEAP_MB)
+# plus 1024 MiB for what that ceiling does not bound: V8 new-space and code,
+# native SWC/Turbopack allocations, and the npm and parent `next build`
+# processes around the worker. The killed build was still BELOW its ceiling, so
+# a floor under the ceiling would admit exactly the build that died. A healthy
+# host (3.9 GB RAM + 8 GB swap, ~10 GB available) clears it several times over.
+#
+# It is a floor, not a reservation: swap counts in full, and memory can still be
+# taken by something else after admission. BUILD_MIN_AVAILABLE_MB overrides the
+# floor for one invocation (plain decimal MiB; 0 disables the check, loudly).
+# The meminfo path is an argument so the parser is exercised against fixtures;
+# the deploy body always passes /proc/meminfo. An unreadable or unparseable
+# source refuses: an unmeasured host is not an admitted one.
+BUILD_MIN_AVAILABLE_MB_DEFAULT=$((BUILD_NODE_HEAP_MB + 1024))
+require_build_memory(){
+  local meminfo=${1:-} required=${BUILD_MIN_AVAILABLE_MB:-$BUILD_MIN_AVAILABLE_MB_DEFAULT}
+  local key value rest mem_available_kb= swap_free_kb= mem_available_mb swap_free_mb available_mb
+  if ! [[ "$required" =~ ^(0|[1-9][0-9]{0,6})$ ]]; then
+    log "FATAL: BUILD_MIN_AVAILABLE_MB must be a plain decimal number of MiB"
+    return 64
+  fi
+  if [ "$required" = 0 ]; then
+    log "WARN: build memory admission DISABLED by BUILD_MIN_AVAILABLE_MB=0"
+    return 0
+  fi
+  if [ ! -f "$meminfo" ] || [ ! -r "$meminfo" ]; then
+    log "FATAL: build memory admission refused: reason=build-memory-unmeasurable source=$meminfo required_mb=$required"
+    return 75
+  fi
+  while read -r key value rest || [ -n "$key" ]; do
+    case "$key" in
+      MemAvailable:) mem_available_kb=$value ;;
+      SwapFree:) swap_free_kb=$value ;;
+    esac
+  done < "$meminfo"
+  if ! [[ "$mem_available_kb" =~ ^[0-9]{1,15}$ ]] || ! [[ "$swap_free_kb" =~ ^[0-9]{1,15}$ ]]; then
+    log "FATAL: build memory admission refused: reason=build-memory-unmeasurable source=$meminfo required_mb=$required (MemAvailable or SwapFree missing)"
+    return 75
+  fi
+  mem_available_mb=$((10#$mem_available_kb / 1024))
+  swap_free_mb=$((10#$swap_free_kb / 1024))
+  available_mb=$((mem_available_mb + swap_free_mb))
+  if [ "$available_mb" -lt "$required" ]; then
+    log "FATAL: build memory admission refused: reason=insufficient-build-memory available_mb=$available_mb (MemAvailable_mb=$mem_available_mb SwapFree_mb=$swap_free_mb) required_mb=$required"
+    log "  nothing was fetched, installed, built or swapped; free memory or swap, then run the same deploy again"
+    return 75
+  fi
+  log "build memory admission OK: available_mb=$available_mb (MemAvailable_mb=$mem_available_mb SwapFree_mb=$swap_free_mb) required_mb=$required"
+  return 0
+}
+
 # First adoption executes the exact protected ops/ artifact from a temporary
 # directory. Later releases use the currently deployed canonical checkout. The
 # script and policy always come from one complete, real, non-symlink directory;
@@ -1631,6 +1690,186 @@ admit_target_sha(){
   fi
 }
 
+# ── production dependency rollback snapshot ──────────────────────────────────
+# The production deps step installs into the LIVE app: it copies the target's
+# package.json and package-lock.json over $APP's and lets `npm ci` replace
+# $APP/node_modules. Neither the pre-swap recovery (canonical checkout only) nor
+# deploy_generation_rollback (.next + marker only) ever put those back. On
+# 2026-11-10 an OOM-killed build therefore left the accepted generation's .next
+# and running server beside the TARGET's package files and dependency tree: every
+# later release preflight saw two TRACKED_MODIFIED findings and refused ("recovery
+# requires exactly one source-audit finding") until a human restored the files,
+# and a service restart would have started the old .next on the new dependencies.
+#
+# So the three dependency inputs are part of the generation this owner must be
+# able to return to. Before the install mutates them they are saved to ONE
+# builder-owned directory beside the app (the same parent that already holds
+# .stage.*), never inside it: the source audit maps $APP, not its parent, so a
+# snapshot can never look like source drift. The two files are copied; the tree
+# is moved by a same-filesystem rename, which is O(1) and exactly preserves it.
+#
+# DEPS_SNAPSHOT_DIR is non-empty only while THIS attempt owns a snapshot that has
+# not yet been restored or discarded. Three exits, no fourth:
+#   pre-swap failure    -> cleanup_deploy_attempt restores it
+#   post-swap rollback  -> deploy_generation_abort restores it before any restart
+#   acceptance          -> the deploy body discards it after deploy_generation_commit
+# Production only. Beta's dependency inputs belong to its own transaction
+# (beta_txn_inputs_dirty / beta_txn_abort); no beta path ever opens a snapshot,
+# so every hook below is inert for beta.
+DEPS_SNAPSHOT_DIR=
+DEPS_SNAPSHOT_FILES="package.json package-lock.json"
+
+deps_snapshot_path(){
+  printf '%s/.deps-rollback\n' "$(dirname "$1")"
+}
+
+deps_path_identity(){
+  python3 -I -c 'import os,sys; s=os.lstat(sys.argv[1]); print(str(s.st_dev)+":"+str(s.st_ino))' "$1"
+}
+
+# A snapshot can outlive its attempt only when that attempt was killed without
+# running its EXIT path (SIGKILL, power loss) or ended after live identity began
+# moving. By the time a later deploy reaches its deps step the release preflight
+# has already accepted the live tree as it stands, so the record describes a
+# generation that is no longer the rollback target. Same rule as
+# deploy_generation_reset: purge it, and say so.
+deps_snapshot_purge_stale(){
+  local snap
+  snap=$(deps_snapshot_path "$1")
+  if [ -e "$snap" ] || [ -L "$snap" ]; then
+    log "WARN: discarding a dependency rollback snapshot left by an interrupted earlier attempt: $snap"
+    rm -rf "$snap" || log "WARN: could not remove the stale dependency rollback snapshot $snap"
+  fi
+  return 0
+}
+
+# Save $1's dependency inputs. Nothing in $1 changes until the final rename, so
+# every earlier failure removes the half-made snapshot and leaves the app exactly
+# as it was. Once DEPS_SNAPSHOT_DIR is set the restore owns the cleanup.
+deps_snapshot_begin(){
+  local app=$1 snap name identity= snap_identity=
+  snap=$(deps_snapshot_path "$app")
+  deps_snapshot_purge_stale "$app"
+  if ! mkdir -m 0700 "$snap"; then
+    log "FATAL: could not create the dependency rollback snapshot $snap"
+    return 73
+  fi
+  for name in $DEPS_SNAPSHOT_FILES; do
+    if [ -f "$app/$name" ] && [ ! -L "$app/$name" ]; then
+      if ! cp -p "$app/$name" "$snap/$name" || ! cmp -s "$app/$name" "$snap/$name"; then
+        log "FATAL: could not snapshot $app/$name for dependency rollback"
+        rm -rf "$snap"
+        return 73
+      fi
+    elif [ -e "$app/$name" ] || [ -L "$app/$name" ]; then
+      log "FATAL: $app/$name is not a regular file; refusing to install dependencies over it"
+      rm -rf "$snap"
+      return 73
+    elif ! : > "$snap/$name.absent"; then
+      log "FATAL: could not record the absence of $app/$name for dependency rollback"
+      rm -rf "$snap"
+      return 73
+    fi
+  done
+  if [ -e "$app/node_modules" ] || [ -L "$app/node_modules" ]; then
+    # rename(2) is the whole point: a cross-device `mv` would silently degrade
+    # into a recursive copy of the live tree. Refuse rather than copy.
+    identity=$(deps_path_identity "$app/node_modules") || identity=
+    snap_identity=$(deps_path_identity "$snap") || snap_identity=
+    if [ -z "$identity" ] || [ -z "$snap_identity" ] \
+        || [ "${identity%%:*}" != "${snap_identity%%:*}" ] \
+        || ! printf '%s\n' "$identity" > "$snap/node_modules.identity"; then
+      log "FATAL: $app/node_modules cannot be moved aside by a same-filesystem rename to $snap"
+      rm -rf "$snap"
+      return 73
+    fi
+    DEPS_SNAPSHOT_DIR=$snap
+    if ! mv "$app/node_modules" "$snap/node_modules"; then
+      log "FATAL: could not move $app/node_modules aside for dependency rollback"
+      return 73
+    fi
+  else
+    if ! : > "$snap/node_modules.absent"; then
+      log "FATAL: could not record the absence of $app/node_modules for dependency rollback"
+      rm -rf "$snap"
+      return 73
+    fi
+    DEPS_SNAPSHOT_DIR=$snap
+  fi
+  log "dependency rollback snapshot taken at $snap (package.json, package-lock.json, node_modules ${identity:-absent})"
+  return 0
+}
+
+# Put $1's dependency inputs back exactly as the snapshot recorded them, verify
+# each one, and only then remove the snapshot. The restore is driven by what the
+# snapshot actually holds, so it is correct from every point deps_snapshot_begin
+# could have been interrupted at. Non-zero keeps the snapshot (and
+# DEPS_SNAPSHOT_DIR) for attended recovery: this attempt's tree, when it was
+# moved out of the way, is at <snapshot>/node_modules.failed.
+deps_snapshot_restore(){
+  local app=$1 snap=${DEPS_SNAPSHOT_DIR:-} name want got rc=0
+  if [ -z "$snap" ] || [ ! -d "$snap" ] || [ -L "$snap" ]; then
+    log "FATAL: there is no dependency rollback snapshot to restore"
+    return 1
+  fi
+  if [ -e "$snap/node_modules" ] || [ -L "$snap/node_modules" ]; then
+    if [ -e "$app/node_modules" ] || [ -L "$app/node_modules" ]; then
+      rm -rf "$snap/node_modules.failed" || rc=1
+      [ "$rc" != 0 ] || mv "$app/node_modules" "$snap/node_modules.failed" || rc=1
+    fi
+    [ "$rc" != 0 ] || mv "$snap/node_modules" "$app/node_modules" || rc=1
+    if [ "$rc" -eq 0 ]; then
+      want=$(cat "$snap/node_modules.identity" 2>/dev/null) || want=
+      got=$(deps_path_identity "$app/node_modules" 2>/dev/null) || got=
+      if [ -z "$want" ] || [ "$got" != "$want" ]; then
+        log "FATAL: restored $app/node_modules is not the saved tree (wanted ${want:-<unrecorded>} got ${got:-<unreadable>})"
+        rc=1
+      fi
+    fi
+  elif [ -e "$snap/node_modules.absent" ]; then
+    # The accepted generation had no dependency tree: this attempt's goes.
+    if [ -e "$app/node_modules" ] || [ -L "$app/node_modules" ]; then
+      rm -rf "$snap/node_modules.failed" || rc=1
+      [ "$rc" != 0 ] || mv "$app/node_modules" "$snap/node_modules.failed" || rc=1
+    fi
+  fi
+  # Neither record present: the snapshot was interrupted before the tree moved,
+  # so $app/node_modules is still the accepted one and is left alone.
+  for name in $DEPS_SNAPSHOT_FILES; do
+    if [ -f "$snap/$name" ]; then
+      if ! cp -p "$snap/$name" "$snap/$name.restore" \
+          || ! mv -f "$snap/$name.restore" "$app/$name" \
+          || ! cmp -s "$snap/$name" "$app/$name"; then
+        log "FATAL: could not restore $app/$name from the dependency rollback snapshot"
+        rc=1
+      fi
+    elif [ -e "$snap/$name.absent" ]; then
+      rm -f "$app/$name" || rc=1
+      if [ -e "$app/$name" ] || [ -L "$app/$name" ]; then rc=1; fi
+    else
+      log "FATAL: the dependency rollback snapshot holds no record for $name"
+      rc=1
+    fi
+  done
+  [ "$rc" = 0 ] || return 1
+  DEPS_SNAPSHOT_DIR=
+  rm -rf "$snap" || log "WARN: could not remove the restored dependency rollback snapshot $snap; the next dependency install discards it"
+  return 0
+}
+
+# Acceptance: the new generation's dependency inputs are now the accepted ones.
+deps_snapshot_discard(){
+  local snap=${DEPS_SNAPSHOT_DIR:-}
+  [ -n "$snap" ] || return 0
+  DEPS_SNAPSHOT_DIR=
+  if rm -rf "$snap"; then
+    log "dependency rollback snapshot discarded: the new generation is accepted"
+  else
+    log "WARN: could not remove the dependency rollback snapshot $snap; the next dependency install discards it"
+  fi
+  return 0
+}
+
 # ── deploy generation: the identity and the build it names move together ───────
 # .deployment-id and the .next it describes are ONE generation. Installing the
 # marker before the swap and then rolling back only .next leaves the box serving
@@ -1761,6 +2000,16 @@ deploy_generation_abort(){
   log "DEPLOY FAILED: $reason"
   log "rolling back the deploy generation (build + identity)"
   deploy_generation_rollback "$app" "$swapped" || rc=$?
+  # Dependency inputs are part of the generation being returned to: the accepted
+  # ones go back before any process is restarted against the restored build.
+  if [ -n "${DEPS_SNAPSHOT_DIR:-}" ]; then
+    if deps_snapshot_restore "$app"; then
+      log "rollback dependency recovery OK"
+    else
+      log "FATAL: rollback dependency recovery failed; the saved inputs are retained at $DEPS_SNAPSHOT_DIR"
+      rc=1
+    fi
+  fi
   # A process must never remain pointed at a tree that moved: reactivate a
   # qualified prior generation, or stop the selected unit when prior identity
   # or closed configuration cannot be proved. Restoration itself always runs.
@@ -5863,10 +6112,13 @@ CANONICAL_RECOVERY_SHA=
 DEPLOYMENT_MARKER="$APP/.deployment-id"
 STAGE_ROOT=
 BOOTSTRAP_STATE_RECORD=
+# 1 once a production run has taken the HUP/INT/TERM traps for its dependency
+# install; the exit path then holds those signals off for the whole recovery.
+DEPLOY_SIGNALS_TRAPPED=0
 cleanup_deploy_attempt(){
   local rc=$? live_marker restored_head dirty archive_cleanup_failed=0
   trap - EXIT
-  if [ "$TARGET" = beta ]; then trap '' HUP INT TERM; fi
+  if [ "$TARGET" = beta ] || [ "${DEPLOY_SIGNALS_TRAPPED:-0}" = 1 ]; then trap '' HUP INT TERM; fi
   set +e
   if [ "$rc" -ne 0 ] && [ "$TARGET" = beta ] && \
       { [ "${BETA_TXN_ACTIVE:-0}" = 1 ] || [ "${DEMOTE_ON_FAILURE:-0}" = 1 ]; }; then
@@ -5880,6 +6132,30 @@ cleanup_deploy_attempt(){
   # bytes before Git needs space for the canonical recovery index.
   if [ -n "${STAGE_ROOT:-}" ] && [ -d "$STAGE_ROOT" ]; then
     rm -rf "$STAGE_ROOT" || log "WARN: could not remove staging directory $STAGE_ROOT"
+  fi
+  # An open dependency snapshot at exit means this attempt changed the live app's
+  # dependency inputs and never reached acceptance. That is a failure whatever $?
+  # says, and it is recovered as one. Before live identity began moving, the
+  # inputs this attempt itself saved go straight back: the snapshot is this
+  # process's own record, taken under the build lock, so the restore needs no
+  # second identity proof and must not be skipped when another recovery leg
+  # refuses. After that point deploy_generation_abort owns the restore; a snapshot
+  # still open here was interrupted mid-activation or could not be restored, and
+  # is kept for attended recovery rather than guessed at.
+  if [ -n "${DEPS_SNAPSHOT_DIR:-}" ]; then
+    [ "$rc" -ne 0 ] || rc=1
+    if [ "${CANONICAL_RECOVERY_ARMED:-0}" = 1 ]; then
+      log "pre-swap failure: restoring the live app's dependency inputs from $DEPS_SNAPSHOT_DIR"
+      if deps_snapshot_restore "$APP"; then
+        log "pre-swap dependency recovery OK"
+      else
+        log "FATAL: pre-swap dependency recovery failed; the saved inputs are retained at $DEPS_SNAPSHOT_DIR"
+        rc=74
+      fi
+    else
+      log "FATAL: dependency rollback snapshot is unresolved after live identity began moving; the saved inputs are retained at $DEPS_SNAPSHOT_DIR"
+      rc=74
+    fi
   fi
   if [ "$rc" -ne 0 ] && [ "${CANONICAL_RECOVERY_ARMED:-0}" = 1 ]; then
     if live_marker=$(read_live_deployment_marker "$DEPLOYMENT_MARKER") \
@@ -6002,6 +6278,10 @@ if [ "$TARGET" = beta ]; then
   trap 'exit 130' INT
   trap 'exit 143' TERM
 fi
+# 0a') build memory admission — under the shared lock (so no other owner-run build
+# is distorting the reading) and before the first workspace, receipt, Git, source
+# or build effect of either profile. A refusal here leaves nothing to recover.
+require_build_memory /proc/meminfo || exit $?
 if [ "$TARGET" = beta ]; then
   ensure_beta_workspace || exit $?
 fi
@@ -6117,6 +6397,19 @@ log "GIT-GATED: deploying accepted target $FULL_SHA from origin/$BRANCH for targ
 if [ ! -d "$APP/node_modules" ] || ! cmp -s "$TSRC/package-lock.json" "$APP/package-lock.json" 2>/dev/null; then
   log "installing deps (npm ci) — lockfile changed"
   if [ "$TARGET" = beta ]; then beta_txn_inputs_dirty || exit $?; fi
+  if [ "$TARGET" = production ]; then
+    # From here the live app's dependency inputs are about to change, so an
+    # interruption must end as an ordinary recovered failure. A trapped signal is
+    # deferred until the foreground command returns; untrapped, this shell runs
+    # its EXIT recovery at once, while an orphaned `npm ci` is still writing by
+    # path into the very tree being put back. Same three traps beta holds for
+    # its whole run; production takes them only once it has something to restore.
+    DEPLOY_SIGNALS_TRAPPED=1
+    trap 'exit 129' HUP
+    trap 'exit 130' INT
+    trap 'exit 143' TERM
+    deps_snapshot_begin "$APP" || exit $?
+  fi
   cp -f "$TSRC/package.json" "$TSRC/package-lock.json" "$APP/" 2>/dev/null || true
   ( cd "$APP" && npm ci || npm install )
 else
@@ -6413,6 +6706,7 @@ if [ "$DEPLOY_OK" = 1 ] && [ "$PRODUCTION_SHARED_SHELL_ENABLED" = 1 ]; then
 fi
 if [ "$DEPLOY_OK" = 1 ]; then
   deploy_generation_commit "$APP"
+  deps_snapshot_discard
   log "identity verified: $(deploy_identity_line "$APP" "$FULL_SHA")"
 else
   deploy_generation_abort "$APP" "$FULL_SHA" "$SWAPPED" \

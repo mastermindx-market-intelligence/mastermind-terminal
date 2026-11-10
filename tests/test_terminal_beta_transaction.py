@@ -376,7 +376,26 @@ def _case_complete_orphan_provision_record_is_reusable_without_overwriting_it(bo
 def _case_production_generation_library_and_restart_branch_are_unchanged():
  source=CANDIDATE.read_text()
  def span(s,a,b): return s[s.index(a):s.index(b,s.index(a))]
- assert hashlib.sha256(span(source,'deploy_generation_reset(){','# ── beta lifecycle state:').encode()).hexdigest()==GENERATION_SHA256
+ generation=span(source,'deploy_generation_reset(){','# ── beta lifecycle state:')
+ # The production dependency rollback adds exactly this restore to the single
+ # abort, between build/marker restoration and reactivation. It is inert unless a
+ # production deps install opened a snapshot (beta never does). Remove only this
+ # exact addition and keep the original generation byte lock, rather than
+ # blessing a new hash.
+ dependency_restore = '''  # Dependency inputs are part of the generation being returned to: the accepted
+  # ones go back before any process is restarted against the restored build.
+  if [ -n "${DEPS_SNAPSHOT_DIR:-}" ]; then
+    if deps_snapshot_restore "$app"; then
+      log "rollback dependency recovery OK"
+    else
+      log "FATAL: rollback dependency recovery failed; the saved inputs are retained at $DEPS_SNAPSHOT_DIR"
+      rc=1
+    fi
+  fi
+'''
+ assert generation.count(dependency_restore)==1
+ assert generation.index('deploy_generation_rollback "$app" "$swapped" || rc=$?')<generation.index(dependency_restore)<generation.index('if [ "$DEPLOY_ROLLBACK_MOVED_BUILD" = 1 ]; then')
+ assert hashlib.sha256(generation.replace(dependency_restore,'',1).encode()).hexdigest()==GENERATION_SHA256
  assert hashlib.sha256(span(source,'run_release_preflight(){','# Read the live deployment marker').encode()).hexdigest()==PREFLIGHT_SHA256
  start=source.index('if ! systemctl restart terminal; then',source.index('# 6) atomic swap'))
  # The reviewed production opt-in adds exactly this status gate. Keep the
@@ -401,7 +420,13 @@ fi
 
 '''
  assert branch.count(investigation_addition)==1
- baseline_branch=branch.replace(addition,'',1).replace(investigation_addition,'',1)
+ # Acceptance also closes the production dependency rollback snapshot: exactly
+ # this one line, directly after the generation is committed. Same rule.
+ commit_line='  deploy_generation_commit "$APP"\n'
+ snapshot_discard='  deps_snapshot_discard\n'
+ assert branch.count(snapshot_discard)==1
+ assert branch.count(commit_line+snapshot_discard)==1
+ baseline_branch=branch.replace(addition,'',1).replace(investigation_addition,'',1).replace(snapshot_discard,'',1)
  assert hashlib.sha256(baseline_branch[:PRODUCTION_BRANCH_CHARS].encode()).hexdigest()==PRODUCTION_BRANCH_SHA256
  # These source gates must remain in the ordinary main branch, in order.
  main=source[source.index('# 0c) two entrances, one source contract.'):]
