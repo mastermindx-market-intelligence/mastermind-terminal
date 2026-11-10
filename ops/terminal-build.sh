@@ -870,11 +870,16 @@ build_node_options(){
   esac
 }
 
-# BUILD MEMORY ADMISSION — refuse before the first effect instead of being
-# OOM-killed after it. On 2026-11-10 the staged `next build` was "Killed" at
-# 2.7 GB anonymous RSS on this 3.9 GB host while swap was nearly full: minutes
-# of work, a mutated live dependency tree and a pre-swap recovery, for a build
-# that could not have fitted when it started.
+# BUILD MEMORY ADMISSION — refuse before the first effect on a host that is
+# plainly too short of memory, instead of being OOM-killed after it. On
+# 2026-11-10 the staged `next build` was "Killed" at 2.7 GB anonymous RSS on this
+# 3.9 GB host with swap exhausted: minutes of work, a mutated live dependency
+# tree and a pre-swap recovery.
+#
+# Honest scope: that build started with roughly 8.8 GB MemAvailable+SwapFree and
+# still died, so this floor would NOT have refused it. It is a cheap early
+# refusal for a badly loaded host, not a fix for the build's own footprint,
+# which is tracked separately.
 #
 # The measure is MemAvailable + SwapFree from /proc/meminfo: what the kernel can
 # still hand a new process before the OOM killer has to choose a victim. The
@@ -882,8 +887,7 @@ build_node_options(){
 # plus 1024 MiB for what that ceiling does not bound: V8 new-space and code,
 # native SWC/Turbopack allocations, and the npm and parent `next build`
 # processes around the worker. The killed build was still BELOW its ceiling, so
-# a floor under the ceiling would admit exactly the build that died. A healthy
-# host (3.9 GB RAM + 8 GB swap, ~10 GB available) clears it several times over.
+# a floor under the ceiling would admit even a build that cannot reach it.
 #
 # It is a floor, not a reservation: swap counts in full, and memory can still be
 # taken by something else after admission. BUILD_MIN_AVAILABLE_MB overrides the
