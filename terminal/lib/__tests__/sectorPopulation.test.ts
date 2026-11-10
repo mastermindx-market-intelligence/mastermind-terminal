@@ -305,25 +305,24 @@ describe("sectorPopulationPage — group_index name_zh admission (COO 19:15Z ite
     expect(read.groupIndex![0].nameZh).toBe("住房产业链");
   });
 
-  it("an empty string refuses the page", () => {
-    const mutated = clone();
-    gi(mutated)[0].name_zh = "";
-    expect(sectorPopulationPage(mutated)).toBeNull();
-  });
-
-  it("a 161-character string refuses the page (160 is the bound)", () => {
+  // N-6 (third review): an invalid name_zh is a display-label fault, not a
+  // data fault — it degrades THAT entry's zh name to null (the picker falls
+  // back exactly as before), never the page.
+  it("N-6: an invalid name_zh reads null for that one entry — the page survives", () => {
+    for (const bad of [123, "", "宅".repeat(161), {}, ["a"], true]) {
+      const mutated = clone();
+      gi(mutated)[0].name_zh = bad;
+      const read = sectorPopulationPage(mutated);
+      expect(read, `name_zh ${JSON.stringify(bad)}`).not.toBeNull();
+      expect(read!.groupIndex![0].nameZh).toBeNull();
+      // The entry itself is intact — counts and the en name still read.
+      expect(read!.groupIndex![0].groupId).toBe(gi(clone())[0].group_id);
+      expect(read!.groupIndex![0].membersListed).toBe(gi(clone())[0].n_members_listed);
+    }
+    // 160 is still the bound: a lawful maximal string carries.
     const mutated = clone();
     gi(mutated)[0].name_zh = "宅".repeat(160);
-    expect(sectorPopulationPage(mutated)).not.toBeNull();
-    const over = clone();
-    gi(over)[0].name_zh = "宅".repeat(161);
-    expect(sectorPopulationPage(over)).toBeNull();
-  });
-
-  it("a non-string zh value refuses the page", () => {
-    const mutated = clone();
-    gi(mutated)[0].name_zh = 42;
-    expect(sectorPopulationPage(mutated)).toBeNull();
+    expect(sectorPopulationPage(mutated)!.groupIndex![0].nameZh).toBe("宅".repeat(160));
   });
 
   it("prototype-named extra keys on a group_index entry are still refused", () => {

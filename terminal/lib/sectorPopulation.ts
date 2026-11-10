@@ -496,10 +496,12 @@ export function sectorPopulationPage(value: unknown): PopulationPage | null {
       if (!closed(entry, ["group_id", "name", "n_members_listed", "n_configured_current", "n_unserved"], ["refused_by_owner", "name_zh"])
         || typeof entry.group_id !== "string" || !POPULATION_GROUP_ID.test(entry.group_id)
         || !strOrNull(entry.name, 200)
-        // item 6 (COO 19:15Z): name_zh is the ONE new optional key — null or a
-        // 1..160 string; empty, over-long or non-string refuses the page, and no
-        // other new key is admitted (closed rule above).
-        || (entry.name_zh !== undefined && !strOrNull(entry.name_zh, 160))
+        // item 6 (COO 19:15Z): name_zh is the ONE new optional key; no other
+        // new key is admitted (closed rule above). N-6 (third review): an
+        // invalid name_zh (non-string, empty, over-long) is a display-label
+        // fault, not a data fault — it degrades to null at the push below,
+        // never a page refusal. The __proto__/constructor unknown-key refusal
+        // above stays whole-page.
         || !int(entry.n_members_listed, 0, 1_000_000)
         || !(entry.n_configured_current === null || int(entry.n_configured_current, 0, 1_000_000))
         || !int(entry.n_unserved, 0, 1_000_000)
@@ -514,7 +516,9 @@ export function sectorPopulationPage(value: unknown): PopulationPage | null {
       });
       groupIndex.push({ groupId: entry.group_id, name: entry.name, membersListed: entry.n_members_listed,
         configuredCurrent: entry.n_configured_current, unserved: entry.n_unserved,
-        nameZh: entry.name_zh ?? null,
+        // N-6: null, absent, or a valid 1..160 string reads itself; anything
+        // else reads null for this entry — the picker falls back, the page lives.
+        nameZh: strOrNull(entry.name_zh, 160) ? entry.name_zh : null,
         refusedByOwner, refusedExplicit: explicit });
     }
   }
