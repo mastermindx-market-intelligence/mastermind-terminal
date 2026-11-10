@@ -21,7 +21,10 @@
  *
  * `none` is a normal outcome — the decision-level analogue of the board
  * firing no callback — and nothing here throws: a malformed, hostile or
- * refused target simply produces no route.
+ * refused target simply produces no route. N-3 (third review): the same
+ * silence covers a throwing INJECTED rule and a target whose property reads
+ * trap (Proxy/getter) — the reader treats any throw mid-decision as "no
+ * callback fired", never a propagated error.
  */
 import type { CallsNavigateTarget } from "./sectorDepthCalls";
 
@@ -51,18 +54,25 @@ const has = (value: unknown, key: string): unknown =>
  * or refused input yields `{ state: "none" }`. Only OWN properties of the
  * target are read (prototype-chain values are not the board's emission),
  * only `kind`/`id`/`ticker` are examined, and the href is never touched.
+ * N-3 (third review): a throwing injected rule or a trapped property read
+ * (Proxy/getter) is caught and read as silence — `{ state: "none" }` —
+ * because the reader cannot distinguish it from a board that fired nothing.
  */
 export function callsNavigateDecision(
   target: CallsNavigateTarget | null | undefined,
   isNavigableId: CallsIdRule | null | undefined,
 ): CallsNavigateDecision {
-  if (typeof target !== "object" || target === null || Array.isArray(target)) return { state: "none" };
-  const kind = has(target, "kind");
-  const id = has(target, "id");
-  const ticker = has(target, "ticker");
-  if (kind !== "theme" && kind !== "sector") return { state: "none" };
-  if (typeof id !== "string" || typeof ticker !== "string") return { state: "none" };
-  if (typeof isNavigableId !== "function") return { state: "none" };
-  if (!isNavigableId(id) || !isNavigableId(ticker)) return { state: "none" };
-  return { state: "select", kind, id, ticker };
+  try {
+    if (typeof target !== "object" || target === null || Array.isArray(target)) return { state: "none" };
+    const kind = has(target, "kind");
+    const id = has(target, "id");
+    const ticker = has(target, "ticker");
+    if (kind !== "theme" && kind !== "sector") return { state: "none" };
+    if (typeof id !== "string" || typeof ticker !== "string") return { state: "none" };
+    if (typeof isNavigableId !== "function") return { state: "none" };
+    if (!isNavigableId(id) || !isNavigableId(ticker)) return { state: "none" };
+    return { state: "select", kind, id, ticker };
+  } catch {
+    return { state: "none" };
+  }
 }

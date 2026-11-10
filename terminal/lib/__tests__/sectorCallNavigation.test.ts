@@ -134,4 +134,24 @@ describe("callsNavigateDecision — the calls board's lane-3 navigation law (COO
     callsNavigateDecision(target() as unknown as Parameters<typeof callsNavigateDecision>[0], rule);
     expect(rule.mock.calls).toEqual([["semiconductors"], ["SMH"]]);
   });
+
+  it("N-3 (third review): a rule that throws, or a target whose property read throws, reads as silence", () => {
+    const throwingRule = () => { throw new Error("rule threw"); };
+    expect(() => callsNavigateDecision(target() as unknown as Parameters<typeof callsNavigateDecision>[0], throwingRule))
+      .not.toThrow();
+    expect(callsNavigateDecision(target() as unknown as Parameters<typeof callsNavigateDecision>[0], throwingRule))
+      .toEqual({ state: "none" });
+    // A Proxy whose own-key checks pass but whose reads trap: the decision is
+    // still silence, never a propagated throw.
+    const trapped = new Proxy({}, {
+      getOwnPropertyDescriptor: (_t: object, key: string) =>
+        key === "kind" || key === "id" || key === "ticker"
+          ? { value: "x", configurable: true, enumerable: true, writable: true } : undefined,
+      get: () => { throw new Error("trap"); },
+    });
+    expect(() => callsNavigateDecision(trapped as unknown as Parameters<typeof callsNavigateDecision>[0], navigable))
+      .not.toThrow();
+    expect(callsNavigateDecision(trapped as unknown as Parameters<typeof callsNavigateDecision>[0], navigable))
+      .toEqual({ state: "none" });
+  });
 });
