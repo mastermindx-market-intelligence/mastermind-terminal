@@ -483,8 +483,8 @@ jobs:
     # tests/test_ci_e2e_selfhosted_lane.py pins this contract with mutation tests.
     # 2026-11-10: the hosted fallback is `ubuntu-24.04`, not `ubuntu-latest`. The
     # fleet runners also carry `ubuntu-latest` (intentionally kept), so the old
-    # fallback sent "hosted" shards to a shared fleet host. In the preceding 48 h
-    # 16/26 shard jobs failed there (62%) versus 11/273 on GitHub-hosted runners
+    # fallback sent "hosted" shards to a shared fleet host. On 2026-11-10 (00:00-08:20
+    # UTC) 16/26 PR shard jobs failed there (62%) versus 11/273 on GitHub-hosted runners
     # (4%). Job logs show two causes: the fixed localhost port 3108 was already
     # used by a neighbouring slot sharing the host, and `npx playwright install
     # --with-deps` stalled on the shared host's apt state. `ubuntu-24.04` is a
