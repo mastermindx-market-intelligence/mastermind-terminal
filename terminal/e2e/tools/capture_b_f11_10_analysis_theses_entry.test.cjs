@@ -341,7 +341,7 @@ function runtimeModuleForTest(hooks) {
   return sandboxModule.exports;
 }
 
-for (const mode of ["pending-fetch", "primary-and-pending-fetch", "primary-http-200", "context-close", "server-stop", "success"]) {
+for (const mode of ["pending-fetch", "primary-and-pending-fetch", "primary-http-200", "context-close", "context-close-undefined", "server-stop", "success"]) {
   test(`actual owned runtime settles browser/server before returning the ${mode} outcome`, async () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), "f11-runtime-cleanup-"));
     const events = []; let rejectFetch; let pending;
@@ -352,6 +352,7 @@ for (const mode of ["pending-fetch", "primary-and-pending-fetch", "primary-http-
       events.push("context-close");
       if (rejectFetch) rejectFetch(new Error("route.fetch: Request context disposed private-header"));
       if (mode === "context-close") throw new Error("close rejected");
+      if (mode === "context-close-undefined") return new Promise((_, reject) => { reject(); });
     };
     const hooks = {
       child: {},
@@ -384,7 +385,7 @@ for (const mode of ["pending-fetch", "primary-and-pending-fetch", "primary-http-
         const code = mode === "primary-and-pending-fetch" ? /F11_THESES_ENTRY_LABEL_MISMATCH/
           : mode === "primary-http-200" ? /F11_ALLOWED_ROUTE_DID_NOT_RETURN_200/
           : mode === "pending-fetch" ? /F11_BOUNDARY_CALLBACK_FAILED/
-          : mode === "context-close" ? /F11_CONTEXT_CLOSE_FAILED/ : /F11_SERVER_GROUP_STILL_PRESENT/;
+          : mode.startsWith("context-close") ? /F11_CONTEXT_CLOSE_FAILED/ : /F11_SERVER_GROUP_STILL_PRESENT/;
         await assert.rejects(operation, code);
         const failure = JSON.parse(fs.readFileSync(path.join(root, "FAILURE.json"), "utf8"));
         assert.equal(failure.status, "FAILURE");

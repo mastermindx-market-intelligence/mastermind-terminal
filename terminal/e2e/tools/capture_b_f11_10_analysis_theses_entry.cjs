@@ -515,7 +515,7 @@ async function captureInOwnedRuntime(shots, out, capturedAtHead, chromium) {
   let primaryFailure;
   let failureDiagnostic;
   const rememberFailure = (error, phase) => {
-    if (error === primaryFailure) return;
+    if (primaryFailure && error === primaryFailure) return;
     const code = /^F11_[A-Z0-9_]{1,96}$/.test(error?.message || "") ? error.message : `F11_${phase.toUpperCase().replaceAll("-", "_")}_FAILED`;
     failureStages.push({ phase, code });
     primaryFailure ||= new Error(code);
