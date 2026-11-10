@@ -38,6 +38,13 @@ export type ForecastHeadKey = (typeof FORECAST_HEAD_KEYS)[number];
 /** The only status the producer emits today (sector_heads.py `_head`). */
 export type ForecastHeadStatus = "withheld";
 
+/** Horizon ceiling (r3 NOTE-3). The producer emits a FIXED
+ * HORIZON_SESSIONS = 20 and its wire contract states no maximum
+ * (macro engine/sector_heads.py:32) — the cap is therefore 2520 sessions
+ * (ten trading years), not a producer-stated bound. A horizon outside
+ * 1..2520, or beyond the safe-integer range, degrades that head. */
+const HORIZON_SESSIONS_CAP = 2520;
+
 /** The published per-head fields, exactly (lane 8 contract). Anything else
  * on a head object is a contract violation — and a numeric one can never
  * become a shown value. */
@@ -141,9 +148,13 @@ function readHead(key: ForecastHeadKey, raw: unknown): ForecastHead {
   // claiming one is a contract violation, not a stale pass and not an
   // implied qualified forecast.
   if (h.status !== "withheld") return invalid;
-  // The horizon is a session count: a positive integer, never a fraction.
+  // The horizon is a session count: a positive SAFE integer within the cap,
+  // never a fraction and never an absurd magnitude (r3 NOTE-3 — the old
+  // integer check accepted 1e308 and 2**53+2).
   const hz = h.horizon_sessions;
-  if (typeof hz !== "number" || !Number.isInteger(hz) || hz <= 0) return invalid;
+  if (typeof hz !== "number" || !Number.isSafeInteger(hz) || hz <= 0 || hz > HORIZON_SESSIONS_CAP) {
+    return invalid;
+  }
   const evidence = object(h.evidence);
   return {
     key,
