@@ -43,7 +43,7 @@ export type UniverseClass =
   | "late"
   | "headwind";
 
-export type ReliabilityTier = "high" | "med" | "low";
+export type ReliabilityTier = "high" | "med" | "low" | "not_stated";
 
 export interface UniverseMember {
   ticker: string;
@@ -226,6 +226,9 @@ export const RELIABILITY_LABEL_KEYS: Record<ReliabilityTier, string> = {
   high: "siUniverseReliabilityHigh",
   med: "siUniverseReliabilityMed",
   low: "siUniverseReliabilityLow",
+  // N4: nothing carried and nothing measurable — the same localized
+  // not-stated word the count cells use.
+  not_stated: "siUniverseNotStated",
 };
 
 /** Coverage ribbon order (B01): the five READING classes, entry first. The
@@ -440,12 +443,20 @@ export function sortByRs60Desc(
 }
 
 /** b) Local column sort: priced-name count descending. Copy. A null count
- * (rows increment: not stated) sorts as 0 — it never poisons the comparator
- * with NaN. */
+ * (not stated) sorts strictly AFTER every measured value — including a
+ * measured 0 (N3): absent is not zero, so it never interleaves with real
+ * counts and never poisons the comparator with NaN. */
 export function sortByMembersDesc(
   groups: readonly UniverseGroup[],
 ): UniverseGroup[] {
-  return stableSorted(groups, (a, b) => (b.n_priced ?? 0) - (a.n_priced ?? 0));
+  return stableSorted(groups, (a, b) => {
+    const av = a.n_priced ?? null;
+    const bv = b.n_priced ?? null;
+    if (av === null && bv === null) return 0;
+    if (av === null) return 1;
+    if (bv === null) return -1;
+    return bv - av;
+  });
 }
 
 export type UniverseSortKey = "tier" | "label" | "rs60" | "n_members";
@@ -534,7 +545,11 @@ export function groupReliability(
   if (r === "high" || r === "med" || r === "low") {
     return { tier: r, fallback: false };
   }
-  const n = group.n_priced ?? 0;
+  // N4: a null reliability with a null n_priced has nothing to derive from —
+  // "not stated", never a fabricated "low" from a coerced 0. A MEASURED count
+  // keeps today's threshold derivation (including the honest 0 → low).
+  const n = group.n_priced ?? null;
+  if (n === null) return { tier: "not_stated", fallback: true };
   return {
     tier: n >= RELIABLE_MIN ? "high" : n >= RELIABLE_MED ? "med" : "low",
     fallback: true,
@@ -890,8 +905,11 @@ function confluenceUniverseFromEntry(entry: unknown, id: UniverseId): UniverseBl
   if (ownOf(data, "universe") !== UNIVERSE_OWNER_WORD[id]) return INVALID_SHAPE;
 
   // Each named array must be a list; every row must read (one bad row kills
-  // the whole block — never a partial row set).
+  // the whole block — never a partial row set). N2: a row key is the row's
+  // identity (hrefs, expansion state, league membership), so two rows with
+  // the same key in one universe block fail the whole block.
   const groups: Record<string, UniverseGroup[]> = {};
+  const seenKeys = new Set<string>();
   for (const name of expected) {
     const arr = ownOf(data, name);
     if (!Array.isArray(arr)) return INVALID_SHAPE;
@@ -899,6 +917,8 @@ function confluenceUniverseFromEntry(entry: unknown, id: UniverseId): UniverseBl
     for (const row of arr) {
       const g = readGroup(row);
       if (g === null) return INVALID_SHAPE;
+      if (seenKeys.has(g.key)) return INVALID_SHAPE;
+      seenKeys.add(g.key);
       rows.push(g);
     }
     groups[name] = rows;

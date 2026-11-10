@@ -179,10 +179,17 @@ export function SectorConfluenceUniverses({
           // carried zero stays visible (0); only an absent payload hides it.
           // R2-S1: a payload whose owner word names another universe is not
           // this tab's data — no count chip either, matching the refused panel.
-          // Rows increment: a tab's available block read overrides the legacy
-          // payload; an unavailable block read keeps the chip hidden.
+          // Rows increment + N5: when a block read is passed for a tab —
+          // available OR unavailable — the chip comes from that read alone; an
+          // unavailable read shows no count and never falls back to the legacy
+          // `universes` payload.
           const block = universeBlocks?.[id];
-          const payload = block?.state === "available" ? block.data : universes?.[id];
+          const payload =
+            block !== undefined
+              ? block.state === "available"
+                ? block.data
+                : undefined
+              : universes?.[id];
           const count =
             payload !== undefined && universeWordMatches(id, payload)
               ? coverageModel(payload.coverage).gateable

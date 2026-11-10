@@ -49,6 +49,7 @@ import type {
   UniverseGroup,
   UniverseId,
 } from "../sectorDepthUniverses";
+import { conformingChartKey } from "../sectorDepthRows";
 
 /* Rows increment (wire v1.1 §1/§2/§4) — the REAL carried universe specimens,
  * committed unchanged under fixtures/. Byte pins (full committed file AND the
@@ -451,6 +452,41 @@ describe("local sorts never mutate the input array", () => {
     ];
     expect(keys(sortByMembersDesc(groups))).toEqual(["d", "b", "a", "c"]);
   });
+
+  it("N3 — a null n_priced sorts strictly after every measured value, including a measured 0", () => {
+    const base = groupsOf("subsectors", sub)[0];
+    const groups: UniverseGroup[] = [
+      { ...base, key: "null-a", n_priced: null },
+      { ...base, key: "zero", n_priced: 0 },
+      { ...base, key: "null-b", n_priced: null },
+      { ...base, key: "five", n_priced: 5 },
+    ];
+    // Absent is not zero: the measured 0 outranks both nulls, and the two
+    // nulls keep their source order (stable).
+    expect(keys(sortByMembersDesc(groups))).toEqual(["five", "zero", "null-a", "null-b"]);
+  });
+});
+
+describe("conformingChartKey (N9)", () => {
+  it("requires the first character to be a letter or digit", () => {
+    // These pass the navigable-id charset yet compose no real route segment
+    // ("/subsector/.html", "/subsector/-lead.html") — refused.
+    for (const bad of [".", "-", "_x", ".hidden", "-lead", "_under"]) {
+      expect(conformingChartKey(bad)).toBe(false);
+    }
+    // Real carried key shapes still conform.
+    for (const good of [
+      "b-crypto-rails",
+      "sec-basic-materials",
+      "amalg-internet-platforms",
+      "software-application",
+      "a",
+      "0-start",
+    ]) {
+      expect(conformingChartKey(good)).toBe(true);
+    }
+    expect(conformingChartKey("..")).toBe(false); // pre-existing no-.. law
+  });
 });
 
 describe("coverageModel", () => {
@@ -563,6 +599,31 @@ describe("reliability", () => {
     });
   });
 
+  it("N4 — null reliability + null n_priced reads not_stated, never low", () => {
+    const base = groupsOf("subsectors", sub)[0];
+    // Nothing is carried and nothing is measurable: the honest tier is "not
+    // stated" — not a fabricated "low" from a coerced 0.
+    expect(groupReliability({ ...base, reliability: null, n_priced: null })).toEqual({
+      tier: "not_stated",
+      fallback: true,
+    });
+    expect(groupReliability({ ...base, reliability: undefined, n_priced: null })).toEqual({
+      tier: "not_stated",
+      fallback: true,
+    });
+    // Carried reliability is unchanged (the source of truth), and a null
+    // reliability with a MEASURED count keeps today's derivation — including
+    // the honest measured 0 → low.
+    expect(groupReliability({ ...base, reliability: "high", n_priced: null })).toEqual({
+      tier: "high",
+      fallback: false,
+    });
+    expect(groupReliability({ ...base, reliability: null, n_priced: 0 })).toEqual({
+      tier: "low",
+      fallback: true,
+    });
+  });
+
   it("keeps the documented threshold boundaries (12 high, 6 med, 5 low)", () => {
     expect(RELIABLE_MIN).toBe(12);
     expect(RELIABLE_MED).toBe(6);
@@ -574,6 +635,7 @@ describe("reliability", () => {
       high: "siUniverseReliabilityHigh",
       med: "siUniverseReliabilityMed",
       low: "siUniverseReliabilityLow",
+      not_stated: "siUniverseNotStated",
     });
   });
 });
@@ -1140,5 +1202,16 @@ describe("rows increment — hostile rows never throw, soft cells never invalida
     // payload path, untouched.)
     expect(read.data.subsectors![0]!.members[0]!.emerging).toBeUndefined();
     expect(read.data.subsectors![0]!.members[0]!.emergence_href).toBeUndefined();
+  });
+
+  it("N2 — two rows with the same key in one universe block fail the whole block (invalid_shape)", () => {
+    const doc = mutateSp500((data) => {
+      const rows = data.subsectors as Record<string, unknown>[];
+      (rows[1] as Record<string, unknown>).key = (rows[0] as Record<string, unknown>).key;
+    });
+    const read = confluenceSp500FromCarriedBlock(carried(doc));
+    // A duplicate key is an envelope failure: no partial row set, ever — the
+    // key is the row's identity for hrefs, expansion state and leagues.
+    expect(read).toEqual({ state: "unavailable", reason: "invalid_shape" });
   });
 });

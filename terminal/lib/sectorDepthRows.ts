@@ -109,7 +109,14 @@ export function classifyEntry(entry: unknown): ClassifiedEntry {
 /** A chart key may compose a same-site detail link only when it satisfies the
  * existing navigable-id law (`isNavigableId`, single-sourced from the calls
  * reader) AND carries no `..` run — a key like `..` passes the id grammar but
- * must never become a path segment. */
+ * must never become a path segment. N9: the FIRST character must also be a
+ * letter or digit — ".", "-" and "_x" pass the id grammar yet compose no real
+ * route segment ("/subsector/.html"). */
 export function conformingChartKey(key: unknown): key is string {
-  return typeof key === "string" && isNavigableId(key) && !key.includes("..");
+  return (
+    typeof key === "string" &&
+    isNavigableId(key) &&
+    !key.includes("..") &&
+    /^[A-Za-z0-9]/.test(key)
+  );
 }

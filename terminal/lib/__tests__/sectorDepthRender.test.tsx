@@ -788,6 +788,26 @@ describe("rows increment — universes board from carried blocks (interactive)",
     expect(host.textContent).toContain("此版本未报告交易日");
     G.__SD_LANG = "en";
   });
+
+  it("N5 — a tab with a block read takes its chip from the read only; an unavailable read shows no count, never the legacy payload", async () => {
+    await mount(
+      <SectorConfluenceUniverses
+        universeBlocks={{ subsectors: { state: "unavailable", reason: "not_produced" } }}
+        universes={universesContract.universes}
+      />,
+    );
+    const tab = host.querySelector<HTMLButtonElement>('[data-universe="subsectors"]');
+    expect(tab).not.toBeNull();
+    // The legacy prop carries the contract S&P payload with a gateable count —
+    // the unavailable read must NOT borrow it (identity precedes access, and a
+    // refused block is not silently replaced by older data).
+    expect(tab!.querySelector("[data-count]")).toBeNull();
+    expect(host.querySelector('[data-block-state="unavailable"]')).not.toBeNull();
+    expect(host.querySelector("table")).toBeNull();
+    // A tab WITHOUT a block read still reads the legacy payload (baskets: 0).
+    const bt = host.querySelector<HTMLButtonElement>('[data-universe="baskets"]');
+    expect(bt!.querySelector("[data-count]")).not.toBeNull();
+  });
 });
 
 describe("rows increment — the carried theme table from the real specimen", () => {
