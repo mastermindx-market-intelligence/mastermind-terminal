@@ -1,0 +1,3652 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/drawing-save-concurrency.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--retries=0",
+      "--reporter=list,json",
+      "--output=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/docs/verification/pr654-drawing-assertion-20261109/qualification-r1/browser-artifacts"
+    ],
+    "configFile": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/docs/verification/pr654-drawing-assertion-20261109/qualification-r1/browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/docs/verification/pr654-drawing-assertion-20261109/qualification-r1/browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/docs/verification/pr654-drawing-assertion-20261109/qualification-r1/browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/docs/verification/pr654-drawing-assertion-20261109/qualification-r1/browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/docs/verification/pr654-drawing-assertion-20261109/qualification-r1/browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/docs/verification/pr654-drawing-assertion-20261109/qualification-r1/browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/docs/verification/pr654-drawing-assertion-20261109/qualification-r1/browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/docs/verification/pr654-drawing-assertion-20261109/qualification-r1/browser-artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 3561",
+      "url": "http://127.0.0.1:3561/terminal?symbol=NVDA",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "INVESTIGATION_API_ADMISSION": "open",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "drawing-save-concurrency.spec.ts",
+      "file": "drawing-save-concurrency.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "drawing reads and saves carry the auth-UUID owner, never the email, and never in a URL",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3014,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:49:13.763Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-b905301ba17e41deb477",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 25,
+          "column": 5
+        },
+        {
+          "title": "lost response retries the exact operation after reload before sending newer edits",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11268,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:49:22.855Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-feba8e4849a31cc0a256",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 49,
+          "column": 5
+        },
+        {
+          "title": "site-data loss before a retry keeps the unsaved drawing and its exact operation for an explicit choice",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10018,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:49:34.131Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-45053bb1924a2ffde676",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 71,
+          "column": 5
+        },
+        {
+          "title": "a failed drawings read is shown and keeps drawing disabled",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3387,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:49:44.159Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-2116f014020564644806",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 107,
+          "column": 5
+        },
+        {
+          "title": "two devices conflict and cloud survives until an explicit recovery choice",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7469,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:49:47.554Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-2abd4e20739181d2328d",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 127,
+          "column": 5
+        },
+        {
+          "title": "superseded replay parks queued edits and use-cloud clears the recovered symbol",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7458,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:49:55.031Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-6693f6080ff0c76d1c87",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 161,
+          "column": 5
+        },
+        {
+          "title": "a load that settles while the exact replay waits for the journal defers to its receipt",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6673,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:50:02.497Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-cce6039d6d1100035f04",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 210,
+          "column": 5
+        },
+        {
+          "title": "a load that deferred to a save another tab acknowledged loads the symbol again once that save settles",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6921,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:50:09.179Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-3b4786c9ad2d03d83529",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 229,
+          "column": 5
+        },
+        {
+          "title": "old local clear-all is not silently replayed against a fresh cloud read",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4650,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:50:16.108Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-230f3bc4655bbfa1f05f",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 258,
+          "column": 5
+        },
+        {
+          "title": "competing local copies require explicit selection and are discarded individually",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8429,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:50:20.766Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-e01889ea8302e1fe84e1",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 273,
+          "column": 5
+        },
+        {
+          "title": "selecting another copy then using cloud discards that copy without an intervening save",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5122,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:50:29.203Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-ff0dfeca948249a23796",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 292,
+          "column": 5
+        },
+        {
+          "title": "owner_conflict keeps the local copy and does not offer replace",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5572,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:50:34.335Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-6d3d666527eedd43eb23",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 310,
+          "column": 5
+        },
+        {
+          "title": "unavailable durable serialization warns to keep the tab open and never starts a save",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3657,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:50:39.915Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-61eb3bd8affc8fa2803e",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 330,
+          "column": 5
+        },
+        {
+          "title": "a stale overlapping drawings GET cannot overwrite a newer load before the next save",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11883,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:50:43.582Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-0bf74844b32ab1911166",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 356,
+          "column": 5
+        },
+        {
+          "title": "drawing before the pane GET settles merges cloud ids and does not claim the cloud changed",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6270,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:50:55.475Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-cb8b50600856eafa8deb",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 424,
+          "column": 5
+        },
+        {
+          "title": "a stroke made while a lost preload-merge save re-reads the cloud stays and asks for a choice",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9234,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:51:01.753Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-94e7175647e8acdf5d6d",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 478,
+          "column": 5
+        },
+        {
+          "title": "a copy another tab leaves while a lost preload-merge save re-reads the cloud stays for review",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6310,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:51:10.995Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-cca935b96273520baeb4",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 589,
+          "column": 5
+        },
+        {
+          "title": "a copy another tab leaves while a save waits for its receipt stays for review",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6581,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:51:17.313Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-14d668b8563dd4d49691",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 657,
+          "column": 5
+        },
+        {
+          "title": "a copy another tab leaves while a save waits for an owner conflict stays for review",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6545,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:51:23.903Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-3f16a2d6fd0cdb7f4fe8",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 657,
+          "column": 5
+        },
+        {
+          "title": "a copy another tab leaves while a save waits for a request that fails stays for review",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5061,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:51:30.455Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-916484fd13c8b3e2c55b",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 657,
+          "column": 5
+        },
+        {
+          "title": "a pre-GET drawing survives reload while the GET is still held and then saves against the GET revision",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11798,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:51:35.524Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-4ae7e69bf321df682510",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 711,
+          "column": 5
+        },
+        {
+          "title": "a pre-GET drawing survives pagehide, leave/return, and reload while the GET is held",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 17367,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:51:47.330Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-85229f6cab2fb63501de",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 771,
+          "column": 5
+        },
+        {
+          "title": "pagehide flushes a revision-bearing PUT before the 600ms debounce can fire",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 24859,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:52:04.707Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-bfa8882b16d42316d1f0",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 847,
+          "column": 5
+        },
+        {
+          "title": "a leftover preload row already on the cloud acknowledges without a prompt or PUT",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3475,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:52:29.583Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-9949312e7b60d1723d96",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 950,
+          "column": 5
+        },
+        {
+          "title": "keep-mine of a differing preload overlap PUTs every cloud-only id",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4896,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:52:33.065Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-697dba482b9f440de882",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 973,
+          "column": 5
+        },
+        {
+          "title": "another account claiming the legacy copy during the first locked write drops the alternative, clears the prompt and saves the own copy once",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6366,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:52:37.968Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-c426e1c7969d24ca111d",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 1008,
+          "column": 5
+        },
+        {
+          "title": "without another account's claim the legacy alternative survives and the prompt offers another local copy",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5327,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:52:44.342Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-4faade971d8b4560faf5",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 1087,
+          "column": 5
+        },
+        {
+          "title": "keep-local with two local copies PUTs the copy the user chose",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8236,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:52:49.676Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-e26b7eeb1b68eac83980",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 1135,
+          "column": 5
+        },
+        {
+          "title": "a 5xx PUT keeps 'Retry save' visible across the next stroke and clears only on a successful retry",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9366,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:52:57.920Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-4caa94f75c098703a78e",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 1187,
+          "column": 5
+        },
+        {
+          "title": "too_many parks with exactly one button, never offers replace or a PUT, and the journal row clears on use-cloud",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10475,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:53:07.294Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-7d0168987f75df52e421",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 1370,
+          "column": 5
+        },
+        {
+          "title": "drawing reads and saves carry the auth-UUID owner, never the email, and never in a URL",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6180,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:53:18.819Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-44043c153172de17253d",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 25,
+          "column": 5
+        },
+        {
+          "title": "lost response retries the exact operation after reload before sending newer edits",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 12800,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:53:25.189Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-feda522dac280a1e9a6f",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 49,
+          "column": 5
+        },
+        {
+          "title": "site-data loss before a retry keeps the unsaved drawing and its exact operation for an explicit choice",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 12089,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:53:37.998Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-2b73c4fb2e607b401b21",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 71,
+          "column": 5
+        },
+        {
+          "title": "a failed drawings read is shown and keeps drawing disabled",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5508,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:53:50.095Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-b959152695379f6f3994",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 107,
+          "column": 5
+        },
+        {
+          "title": "two devices conflict and cloud survives until an explicit recovery choice",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10951,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:53:55.610Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-4e0889b3dce9514d2855",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 127,
+          "column": 5
+        },
+        {
+          "title": "superseded replay parks queued edits and use-cloud clears the recovered symbol",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7553,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:54:06.569Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-d650ba3ebe5698ee71c7",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 161,
+          "column": 5
+        },
+        {
+          "title": "a load that settles while the exact replay waits for the journal defers to its receipt",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5994,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:54:14.131Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-970b5d41fe0cebe00d4a",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 210,
+          "column": 5
+        },
+        {
+          "title": "a load that deferred to a save another tab acknowledged loads the symbol again once that save settles",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7144,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:54:20.134Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-c22a6a9e4545b18581d4",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 229,
+          "column": 5
+        },
+        {
+          "title": "old local clear-all is not silently replayed against a fresh cloud read",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4387,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:54:27.286Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-1db804919d662fd55e54",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 258,
+          "column": 5
+        },
+        {
+          "title": "competing local copies require explicit selection and are discarded individually",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9677,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:54:31.681Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-abb669915c1cb97fa915",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 273,
+          "column": 5
+        },
+        {
+          "title": "selecting another copy then using cloud discards that copy without an intervening save",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9086,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:54:41.364Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-2ddc848c4847d484b421",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 292,
+          "column": 5
+        },
+        {
+          "title": "owner_conflict keeps the local copy and does not offer replace",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5923,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:54:50.458Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-19995390d3cfe04a4091",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 310,
+          "column": 5
+        },
+        {
+          "title": "unavailable durable serialization warns to keep the tab open and never starts a save",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5157,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:54:56.389Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-1c6dddd7fe05321d7e0d",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 330,
+          "column": 5
+        },
+        {
+          "title": "a stale overlapping drawings GET cannot overwrite a newer load before the next save",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Symbol switch plus a pointer edit is exercised on the desktop chart.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                    "line": 357,
+                    "column": 7
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 67,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:55:01.553Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Symbol switch plus a pointer edit is exercised on the desktop chart.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                        "line": 357,
+                        "column": 7
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-21b8a2230c5744cad2ba",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 356,
+          "column": 5
+        },
+        {
+          "title": "drawing before the pane GET settles merges cloud ids and does not claim the cloud changed",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Pointer edit plus a held GET is exercised on the desktop chart.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                    "line": 425,
+                    "column": 7
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 65,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:55:01.626Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Pointer edit plus a held GET is exercised on the desktop chart.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                        "line": 425,
+                        "column": 7
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-8ae6ac0a1fbf8f11da75",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 424,
+          "column": 5
+        },
+        {
+          "title": "a stroke made while a lost preload-merge save re-reads the cloud stays and asks for a choice",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Pointer edit plus a held GET is exercised on the desktop chart.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                    "line": 479,
+                    "column": 7
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 62,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:55:01.698Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Pointer edit plus a held GET is exercised on the desktop chart.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                        "line": 479,
+                        "column": 7
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-9f306addd8291d37cb0d",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 478,
+          "column": 5
+        },
+        {
+          "title": "a copy another tab leaves while a lost preload-merge save re-reads the cloud stays for review",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6687,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:55:01.768Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-33bde8f1dbcf243ba6a1",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 589,
+          "column": 5
+        },
+        {
+          "title": "a copy another tab leaves while a save waits for its receipt stays for review",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7876,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:55:08.462Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-12dd7e797b7762b14441",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 657,
+          "column": 5
+        },
+        {
+          "title": "a copy another tab leaves while a save waits for an owner conflict stays for review",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7895,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:55:16.344Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-ad6e2146c7f4c2b81c20",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 657,
+          "column": 5
+        },
+        {
+          "title": "a copy another tab leaves while a save waits for a request that fails stays for review",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7818,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:55:24.245Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-9b14a730a9959b939e36",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 657,
+          "column": 5
+        },
+        {
+          "title": "a pre-GET drawing survives reload while the GET is still held and then saves against the GET revision",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Pointer edit plus a held GET is exercised on the desktop chart.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                    "line": 712,
+                    "column": 7
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 78,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:55:32.069Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Pointer edit plus a held GET is exercised on the desktop chart.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                        "line": 712,
+                        "column": 7
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-62e184934cfc6a59637a",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 711,
+          "column": 5
+        },
+        {
+          "title": "a pre-GET drawing survives pagehide, leave/return, and reload while the GET is held",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Pointer edit plus a held GET is exercised on the desktop chart.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                    "line": 772,
+                    "column": 7
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 64,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:55:32.153Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Pointer edit plus a held GET is exercised on the desktop chart.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                        "line": 772,
+                        "column": 7
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-29137a32653b6632631e",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 771,
+          "column": 5
+        },
+        {
+          "title": "pagehide flushes a revision-bearing PUT before the 600ms debounce can fire",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Page-clock flush is exercised on the desktop chart.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                    "line": 848,
+                    "column": 7
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 63,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:55:32.223Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Page-clock flush is exercised on the desktop chart.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                        "line": 848,
+                        "column": 7
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-65f069824e44d47a53b9",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 847,
+          "column": 5
+        },
+        {
+          "title": "a leftover preload row already on the cloud acknowledges without a prompt or PUT",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Preload journal hydrate vs GET is exercised on the desktop chart.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                    "line": 951,
+                    "column": 7
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 63,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:55:32.293Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Preload journal hydrate vs GET is exercised on the desktop chart.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                        "line": 951,
+                        "column": 7
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-0ea262b7874e33704243",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 950,
+          "column": 5
+        },
+        {
+          "title": "keep-mine of a differing preload overlap PUTs every cloud-only id",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Preload keep-mine PUT body is exercised on the desktop chart.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                    "line": 974,
+                    "column": 7
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 65,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:55:32.363Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Preload keep-mine PUT body is exercised on the desktop chart.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                        "line": 974,
+                        "column": 7
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-8386a699ec467a4769b6",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 973,
+          "column": 5
+        },
+        {
+          "title": "another account claiming the legacy copy during the first locked write drops the alternative, clears the prompt and saves the own copy once",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7206,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:55:32.433Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-d030c4a69e3804576fd0",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 1008,
+          "column": 5
+        },
+        {
+          "title": "without another account's claim the legacy alternative survives and the prompt offers another local copy",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6174,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:55:39.646Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-807f785128b6e1524051",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 1087,
+          "column": 5
+        },
+        {
+          "title": "keep-local with two local copies PUTs the copy the user chose",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9475,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:55:45.827Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-a9ca8fe6f1f0a12fa867",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 1135,
+          "column": 5
+        },
+        {
+          "title": "a 5xx PUT keeps 'Retry save' visible across the next stroke and clears only on a successful retry",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "The drawing sidebar is desktop-only (rendered via ds-dock at >860px); the journal and retry chrome are checked on the desktop chart.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                    "line": 1188,
+                    "column": 7
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 72,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:55:55.309Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "The drawing sidebar is desktop-only (rendered via ds-dock at >860px); the journal and retry chrome are checked on the desktop chart.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                        "line": 1188,
+                        "column": 7
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-c38ccadf9bacf5b117e2",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 1187,
+          "column": 5
+        },
+        {
+          "title": "too_many parks with exactly one button, never offers replace or a PUT, and the journal row clears on use-cloud",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11630,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:55:55.386Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-78274becb3d1f97c1244",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 1370,
+          "column": 5
+        },
+        {
+          "title": "drawing reads and saves carry the auth-UUID owner, never the email, and never in a URL",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6242,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:56:07.457Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-34583fda32d02c93fe24",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 25,
+          "column": 5
+        },
+        {
+          "title": "lost response retries the exact operation after reload before sending newer edits",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11019,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:56:13.910Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-e588ad9e5a0f34170ed9",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 49,
+          "column": 5
+        },
+        {
+          "title": "site-data loss before a retry keeps the unsaved drawing and its exact operation for an explicit choice",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11422,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:56:24.943Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-a8b1be518fef060b015d",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 71,
+          "column": 5
+        },
+        {
+          "title": "a failed drawings read is shown and keeps drawing disabled",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5273,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:56:36.373Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-d0cc5e1caac441db8cd1",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 107,
+          "column": 5
+        },
+        {
+          "title": "two devices conflict and cloud survives until an explicit recovery choice",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10958,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:56:41.652Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-7a9127400c4f54f289d9",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 127,
+          "column": 5
+        },
+        {
+          "title": "superseded replay parks queued edits and use-cloud clears the recovered symbol",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5623,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:56:52.619Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-a86dfa7bd230b0c892ec",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 161,
+          "column": 5
+        },
+        {
+          "title": "a load that settles while the exact replay waits for the journal defers to its receipt",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3642,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:56:58.250Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-76e295141c38c3513bb4",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 210,
+          "column": 5
+        },
+        {
+          "title": "a load that deferred to a save another tab acknowledged loads the symbol again once that save settles",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7167,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:57:01.898Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-40e9e051b57d7305c24f",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 229,
+          "column": 5
+        },
+        {
+          "title": "old local clear-all is not silently replayed against a fresh cloud read",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4014,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:57:09.074Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-8dfeb8e89c88737d5483",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 258,
+          "column": 5
+        },
+        {
+          "title": "competing local copies require explicit selection and are discarded individually",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7669,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:57:13.095Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-cc38eb78d0d92dbf33db",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 273,
+          "column": 5
+        },
+        {
+          "title": "selecting another copy then using cloud discards that copy without an intervening save",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9416,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:57:20.770Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-e8f86cb5250e66750508",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 292,
+          "column": 5
+        },
+        {
+          "title": "owner_conflict keeps the local copy and does not offer replace",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6457,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:57:30.193Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-9c7c9d5197a4eafe7ce3",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 310,
+          "column": 5
+        },
+        {
+          "title": "unavailable durable serialization warns to keep the tab open and never starts a save",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3706,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:57:36.657Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-f1b28a17cde6025bdb8b",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 330,
+          "column": 5
+        },
+        {
+          "title": "a stale overlapping drawings GET cannot overwrite a newer load before the next save",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Symbol switch plus a pointer edit is exercised on the desktop chart.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                    "line": 357,
+                    "column": 7
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 62,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:57:40.374Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Symbol switch plus a pointer edit is exercised on the desktop chart.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                        "line": 357,
+                        "column": 7
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-23e482bc1ff214bca47c",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 356,
+          "column": 5
+        },
+        {
+          "title": "drawing before the pane GET settles merges cloud ids and does not claim the cloud changed",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Pointer edit plus a held GET is exercised on the desktop chart.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                    "line": 425,
+                    "column": 7
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 63,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:57:40.444Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Pointer edit plus a held GET is exercised on the desktop chart.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                        "line": 425,
+                        "column": 7
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-db6063d2f8ec2fa2c769",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 424,
+          "column": 5
+        },
+        {
+          "title": "a stroke made while a lost preload-merge save re-reads the cloud stays and asks for a choice",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Pointer edit plus a held GET is exercised on the desktop chart.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                    "line": 479,
+                    "column": 7
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 62,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:57:40.514Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Pointer edit plus a held GET is exercised on the desktop chart.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                        "line": 479,
+                        "column": 7
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-32df485885440beaf463",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 478,
+          "column": 5
+        },
+        {
+          "title": "a copy another tab leaves while a lost preload-merge save re-reads the cloud stays for review",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5959,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:57:40.583Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-e5b82d4002f4e29e0696",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 589,
+          "column": 5
+        },
+        {
+          "title": "a copy another tab leaves while a save waits for its receipt stays for review",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7752,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:57:46.549Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-4edc0047fae061fab82e",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 657,
+          "column": 5
+        },
+        {
+          "title": "a copy another tab leaves while a save waits for an owner conflict stays for review",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7807,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:57:54.307Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-0e223416c7e1f0331f1d",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 657,
+          "column": 5
+        },
+        {
+          "title": "a copy another tab leaves while a save waits for a request that fails stays for review",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7744,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:58:02.121Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-7fe887d9298318ecf21e",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 657,
+          "column": 5
+        },
+        {
+          "title": "a pre-GET drawing survives reload while the GET is still held and then saves against the GET revision",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Pointer edit plus a held GET is exercised on the desktop chart.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                    "line": 712,
+                    "column": 7
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 73,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:58:09.871Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Pointer edit plus a held GET is exercised on the desktop chart.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                        "line": 712,
+                        "column": 7
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-6487fd51be947aa8aed0",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 711,
+          "column": 5
+        },
+        {
+          "title": "a pre-GET drawing survives pagehide, leave/return, and reload while the GET is held",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Pointer edit plus a held GET is exercised on the desktop chart.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                    "line": 772,
+                    "column": 7
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 54,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:58:09.950Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Pointer edit plus a held GET is exercised on the desktop chart.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                        "line": 772,
+                        "column": 7
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-c833679b6a94848f75a0",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 771,
+          "column": 5
+        },
+        {
+          "title": "pagehide flushes a revision-bearing PUT before the 600ms debounce can fire",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Page-clock flush is exercised on the desktop chart.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                    "line": 848,
+                    "column": 7
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 63,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:58:10.010Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Page-clock flush is exercised on the desktop chart.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                        "line": 848,
+                        "column": 7
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-663ee26dbb114bba8cd1",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 847,
+          "column": 5
+        },
+        {
+          "title": "a leftover preload row already on the cloud acknowledges without a prompt or PUT",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Preload journal hydrate vs GET is exercised on the desktop chart.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                    "line": 951,
+                    "column": 7
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 64,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:58:10.079Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Preload journal hydrate vs GET is exercised on the desktop chart.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                        "line": 951,
+                        "column": 7
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-c6c6883a33661593eb6d",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 950,
+          "column": 5
+        },
+        {
+          "title": "keep-mine of a differing preload overlap PUTs every cloud-only id",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "Preload keep-mine PUT body is exercised on the desktop chart.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                    "line": 974,
+                    "column": 7
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 64,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:58:10.149Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Preload keep-mine PUT body is exercised on the desktop chart.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                        "line": 974,
+                        "column": 7
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-73545a0f35cee5e729a2",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 973,
+          "column": 5
+        },
+        {
+          "title": "another account claiming the legacy copy during the first locked write drops the alternative, clears the prompt and saves the own copy once",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5930,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:58:10.222Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-efb8cde4d13c995407bb",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 1008,
+          "column": 5
+        },
+        {
+          "title": "without another account's claim the legacy alternative survives and the prompt offers another local copy",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3704,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:58:16.162Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-d1b18ea33c75d65f9ef7",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 1087,
+          "column": 5
+        },
+        {
+          "title": "keep-local with two local copies PUTs the copy the user chose",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9109,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:58:19.880Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-3834a7d29d029cadcb4f",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 1135,
+          "column": 5
+        },
+        {
+          "title": "a 5xx PUT keeps 'Retry save' visible across the next stroke and clears only on a successful retry",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "skip",
+                  "description": "The drawing sidebar is desktop-only (rendered via ds-dock at >860px); the journal and retry chrome are checked on the desktop chart.",
+                  "location": {
+                    "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                    "line": 1188,
+                    "column": 7
+                  }
+                }
+              ],
+              "expectedStatus": "skipped",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "skipped",
+                  "duration": 70,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:58:28.996Z",
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "The drawing sidebar is desktop-only (rendered via ds-dock at >860px); the journal and retry chrome are checked on the desktop chart.",
+                      "location": {
+                        "file": "/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr654-drawing-assertion-20261109/terminal/e2e/drawing-save-concurrency.spec.ts",
+                        "line": 1188,
+                        "column": 7
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-af7acd297b52503a8ab6",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 1187,
+          "column": 5
+        },
+        {
+          "title": "too_many parks with exactly one button, never offers replace or a PUT, and the journal row clears on use-cloud",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11858,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-09T15:58:29.072Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "808378a6d1da42cd4991-ebeacc530af10146c478",
+          "file": "drawing-save-concurrency.spec.ts",
+          "line": 1370,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-09T15:48:53.311Z",
+    "duration": 587965.105,
+    "expected": 72,
+    "skipped": 18,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

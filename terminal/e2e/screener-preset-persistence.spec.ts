@@ -41,10 +41,14 @@ const editor = (page: Page) => page.locator(".scr2-preset-name");
 // Next.js has a permanent page-level role=alert route announcer. Only this feature's
 // inline error is dismissed by Cancel/Escape; the app announcer must remain intact.
 const presetError = (page: Page) => page.locator(".screener-main").getByRole("alert");
-async function saveB(page: Page) {
+async function saveB(page: Page, visibleAction = false) {
   await page.locator(".scr2-presets-tail button").click();
   await editor(page).fill("B");
-  await editor(page).press("Enter");
+  if (visibleAction) {
+    await editor(page).press("Tab");
+    await page.keyboard.press("Enter");
+    await expect(editor(page)).toBeFocused();
+  } else await editor(page).press("Enter");
 }
 
 for (const lang of ["en", "zh"] as const) {
@@ -53,7 +57,7 @@ for (const lang of ["en", "zh"] as const) {
     await page.goto("/discover?tab=screener");
     await expect(saved(page)).toHaveText(["A"], { timeout: 45_000 });
     const original = await page.evaluate(() => window.__presetFixture.raw());
-    await saveB(page);
+    await saveB(page, true);
     await expect(saved(page)).toHaveText(["A"]);
     await expect(editor(page)).toHaveValue("B");
     const error = presetError(page).filter({ hasText: lang === "zh" ? "未保存" : "not saved" });

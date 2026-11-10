@@ -12,6 +12,7 @@ export function boatsLatestTradeLabel(lang: Lang): string {
 /** Chart-only copy shares the feature module without changing unrelated settings copy. */
 export function boatsChartCopy(lang: Lang) {
   return {
+    lastTrade: pick(lang, "BOATS last trade · not NBBO", "BOATS最新成交 · 非NBBO"),
     label: pick(lang, "24-hour US", "美股24小时"),
     coverageShort: pick(lang, "BOATS overnight · Observed live trades only; history and volume unavailable", "BOATS夜盘 · 仅当前观察的实时成交；历史及成交量暂不可用"),
     coverage: pick(lang, "Include BOATS overnight trades and available historical bars. BOATS volume covers this venue only; live trade observations have no volume. Gaps stay empty. Available on intraday intervals up to 12 hours.", "显示BOATS夜盘成交及可用的历史K线。历史成交量仅涵盖该场所，实时观察成交无成交量数据。缺口保持空白。仅适用于不超过12小时的日内周期。"),

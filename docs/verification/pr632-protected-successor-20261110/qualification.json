@@ -1,0 +1,61 @@
+{
+  "actualGitMergeHead": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39",
+  "completeOwner": {
+    "batch3Images": 20,
+    "capturedPL6Cases": 24,
+    "capturedVICases": 30,
+    "composition": {
+      "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261110091213632-1-current.composition.json",
+      "selectedCases": 50,
+      "sha256": "04174f0c329f74ca3315cd2bf501f206d5ac4d8a8750d08affbb28b18e8a7b0a"
+    },
+    "executionSha256": "9e97a78546306f601ddcb4533feb83772998fddfedd4169ffcae5c693d6b07a0",
+    "localDiagnosticRunId": "20261110091213632",
+    "nextLockAbsent": true,
+    "notGitHubRun": true,
+    "optionsAxisScenarios": 5,
+    "ownedPortsClosed": true,
+    "ownerReceiptSha256": "5483743a45f45d0ed536e2c071feb6686cd679ec4b77272df8f3a9c0dfa2830c",
+    "seconds": 889.39
+  },
+  "dependencyPolicy": "Exact published f6ff postimages are consumed and source-linked; no additional Git merge parent is invented. The separate uncertain publication is excluded.",
+  "drawingRegression": {
+    "executionSha256": "fa813545fba5cb2eb007302b48f78658c29e00a082a66eac82ec19e2b53a89af",
+    "existingProjectSkips": 94,
+    "failures": 0,
+    "flaky": 0,
+    "passed": 89,
+    "retries": 0,
+    "seconds": 1166.52
+  },
+  "evidenceConsumers": {
+    "passed": 45,
+    "receiptSha256": "90df4899215eb8b0ea7f95217df05806776ace89a1b66872b6021714a6fd68ae"
+  },
+  "focusedTestsPassed": 30,
+  "historicalConflictFilesArchived": 156,
+  "historicalInventorySha256": "b300b428fdc3cee254d3c51114e163ef01c240ea90bb3c6ff8ab646eff60138a",
+  "historicalProofFilesUnchanged": 144,
+  "intendedParents": [
+    "06eb7e854942bb9703fcc1c35a5b3486e9f5238f",
+    "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39"
+  ],
+  "originalHead": "06eb7e854942bb9703fcc1c35a5b3486e9f5238f",
+  "physicalGuard": {
+    "executionSha256": "3f8327b2693379075901fe9eb8774054b415d463b529653d1951e1e44a1e4a7f",
+    "failures": 0,
+    "passed": 1,
+    "successfulTraceOrScreenshot": false,
+    "trustedFreshEditing": "Two trusted pointerdowns and one trusted native double-click open settings on the same completed Path; the no-preview and exactly-two-committed-Path assertions remain intact."
+  },
+  "protectedParent": "04989d7a9b4e235b9a4c056c9f2f60c5d5008d39",
+  "publishedDependency": "f6ff4bb4bbde8a162557cd4e15115cb085e7f77d",
+  "recordedAt": "2026-11-10T09:42:11.942166+00:00",
+  "schema": "terminal_pr632_protected_successor_qualification.v1",
+  "sourceEntries": 2006,
+  "sourceMapSha256": "a267f9bc32a2e5f8e93fbdff43c3d86b99d1b1fb557b7e9e8fc1dcc8c288efe9",
+  "sourceStable": true,
+  "state": "QUALIFIED_FOR_ORIGINAL_BRANCH_PUBLICATION",
+  "typecheck": "PASSED",
+  "visualInspectionSha256": "daf7f0ea8760259850f212904f46b4d72e6714e24278a7cbbdca6228e40963a5"
+}

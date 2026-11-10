@@ -37,7 +37,7 @@ export default function ChartBoatsStatus({ lang, symbol, timeframe, history, quo
       </span>
       <span className={styles.detail} title={boatsChartCopy(lang).coverage}>{view.detail}</span>
       {tradeText && <span className={styles.trade} data-testid="chart-boats-last-trade">
-        <span className={styles.tradeIdentity}>{lang === "zh" ? "BOATS最新成交 · 非NBBO" : "BOATS last trade · not NBBO"}</span>
+        <span className={styles.tradeIdentity}>{boatsChartCopy(lang).lastTrade}</span>
         <strong className={styles.tradePrice}>{"$" + tradeText}</strong>
       </span>}
     </div>

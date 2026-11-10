@@ -114,15 +114,8 @@ async function waitForServer(timeoutMs) {
   throw new Error(`dev server on ${PORT} never answered (${last})`);
 }
 
-async function stripDevOverlay(page) {
-  await page.evaluate(() => {
-    document.querySelectorAll("nextjs-portal").forEach((el) => el.remove());
-  });
-}
-
 async function assertNoNextIndicator(page, file) {
   await page.waitForTimeout(400);
-  await stripDevOverlay(page);
   const n = await page.locator("[data-nextjs-dev-tools-button]").count();
   if (n > 0) {
     throw new Error(`${file}: Next.js N overlay still mounted (${n}); TERMINAL_E2E_FIXTURE gate failed`);
@@ -153,7 +146,6 @@ async function openAnalysis(page, lang, viewport) {
     ? page.locator(".analysis-context-actions > summary")
     : page.locator(".analysis-context-bar > .analysis-context-theses[aria-label]");
   await entry.waitFor({ state: "visible", timeout: 45_000 });
-  await stripDevOverlay(page);
 }
 
 async function shoot(page, file) {

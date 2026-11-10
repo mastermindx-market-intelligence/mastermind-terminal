@@ -1,0 +1,158 @@
+{
+  "changedSourceFiles": {
+    "terminal/e2e/tools/capture_ci_evidence.cjs": "adb4c05fc456320256add7e1d4ec9164962c589d755d01b6847916e283630bcf",
+    "terminal/e2e/tools/capture_ci_evidence.test.cjs": "a91c35bfc86343c7ca4c137820de5921a1cc38c3f56cfbf5592795ea9cf5ce69",
+    "terminal/e2e/tools/capture_pl6_batch3.cjs": "c94f1650277ca0f7137aea08663f031eecd5891a4be45c903d7f66a542d6287c",
+    "terminal/lib/__tests__/b_pl_6Batch3Evidence.test.ts": "8958de7cd52045f3d0302cad4619a4e32dfdde1cda8003243661deee70e15a4c",
+    "terminal/lib/__tests__/plainLabelsCallSites.test.ts": "915509ac7c10592a499e3ea5867d0a74bc75bf9ccbed91d5eba575138be71994",
+    "terminal/scripts/ci/plan-evidence-capture.cjs": "1abad5abd6a1e3fb9e627b04baa6f1e5c91669a3ca816ba3361ae6d76cd1170a",
+    "terminal/scripts/ci/plan-evidence-capture.test.cjs": "4ee60b8375404053ce5d08b409221db93795e180b50f73c2f51cd7fb911ce329"
+  },
+  "checks": [
+    {
+      "command": [
+        "node",
+        "--test",
+        "e2e/tools/capture_ci_evidence.test.cjs",
+        "scripts/ci/plan-evidence-capture.test.cjs"
+      ],
+      "exit": 0,
+      "logSha256": "5c99c9f1c83989b2155d51d9348c0274fd63d0dab36073fc097102dc555b48d0",
+      "name": "owner-and-planner",
+      "seconds": 7.66,
+      "sourceHashes": {
+        "terminal/e2e/tools/capture_ci_evidence.cjs": "adb4c05fc456320256add7e1d4ec9164962c589d755d01b6847916e283630bcf",
+        "terminal/e2e/tools/capture_ci_evidence.test.cjs": "a91c35bfc86343c7ca4c137820de5921a1cc38c3f56cfbf5592795ea9cf5ce69",
+        "terminal/e2e/tools/capture_pl6_batch3.cjs": "c94f1650277ca0f7137aea08663f031eecd5891a4be45c903d7f66a542d6287c",
+        "terminal/lib/__tests__/b_pl_6Batch3Evidence.test.ts": "8958de7cd52045f3d0302cad4619a4e32dfdde1cda8003243661deee70e15a4c",
+        "terminal/scripts/ci/plan-evidence-capture.cjs": "1abad5abd6a1e3fb9e627b04baa6f1e5c91669a3ca816ba3361ae6d76cd1170a",
+        "terminal/scripts/ci/plan-evidence-capture.test.cjs": "4ee60b8375404053ce5d08b409221db93795e180b50f73c2f51cd7fb911ce329"
+      }
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/b_pl_6Batch3Evidence.test.ts",
+        "lib/__tests__/plainLabelsCallSites.test.ts",
+        "--reporter=default",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr898-native-validation-20261109/terminal/test-results/pr898-recovery-20261109/final-owned-artifact-report.json"
+      ],
+      "exit": 0,
+      "logSha256": "b97c42ca88cf2f1ba76bb7df32d441c1d0e1c1596a4a57d865b5c4bed69016f5",
+      "name": "final-owned-artifact-and-call-sites",
+      "seconds": 0.9
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "typecheck",
+      "seconds": 50.72
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "lib/__tests__/b_pl_6Batch3Evidence.test.ts",
+        "lib/__tests__/plainLabelsCallSites.test.ts"
+      ],
+      "exit": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "typescript-eslint",
+      "seconds": 2.93
+    }
+  ],
+  "currentContractSources": {
+    "terminal/components/PineEditor.tsx": "941c5d5951c18e805605baccd820a9aad9c5f8f6046727968cbc3580625c4ef0",
+    "terminal/components/alerts/AlertDetail.tsx": "a5121ed88b6eb4e639292de53e402ee41ef3599a7bacaa24c278d2298c8ddce0",
+    "terminal/components/alerts/alerts.module.css": "24316b370fa4b336251ec638b6397c92cd903785c79554de50481f4a6218ec02",
+    "terminal/components/flowdesk/FiltersPanel.tsx": "35ca28d678ceb9de2c30ac78f6e083dd35e14e4efb59d56688141a302f42c479",
+    "terminal/components/flowdesk/FlowCard.tsx": "cef9c25c7e144c82200f89818bb679a2282f217debbf0229cf163cdddac1de37",
+    "terminal/components/heatmap/HeatmapView.tsx": "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb",
+    "terminal/components/heatmap/Treemap.tsx": "51b284e851011198374854f765c6efd6cb9f682450e7e52f62438adfb1bc995b",
+    "terminal/components/options/OptionsFlowBoardView.tsx": "129d2b6289f8b2dbffbadc74f28f783c92146b5cb44af1121d7eb0263066ce1b",
+    "terminal/e2e/fixtures/heatmap-price-only-tile.json": "df837b000afc12af5d522287c83cf483f716c147ae5d170da138c62f539357ca",
+    "terminal/e2e/tools/capture_ci_evidence.cjs": "adb4c05fc456320256add7e1d4ec9164962c589d755d01b6847916e283630bcf",
+    "terminal/e2e/tools/capture_pl6_batch3.cjs": "c94f1650277ca0f7137aea08663f031eecd5891a4be45c903d7f66a542d6287c",
+    "terminal/lib/flowdeskStrings.ts": "580399a47bae6ab6aa16368d25ed54c94047799e4a600352385b5a9b7cc25c10",
+    "terminal/lib/heatmapStrings.ts": "d24d5cff73246b1a426fe4034723dae30968cd6779d35cef29a4eaf3b55315b7",
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+    "terminal/lib/plainLabels.ts": "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a",
+    "terminal/next.config.ts": "f6dbf2cd6da2894cc2049b77ac11fb42c0523df5f39f433753d66f8c491279a7"
+  },
+  "diagnostics": {
+    "initialRawAdjacentTests": [
+      {
+        "command": [
+          "node",
+          "node_modules/vitest/vitest.mjs",
+          "run",
+          "lib/__tests__/b_pl_6Batch3Evidence.test.ts",
+          "lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+          "lib/__tests__/b_pl_6Batch2Evidence.test.ts",
+          "lib/__tests__/plainLabelsCallSites.test.ts",
+          "--reporter=default",
+          "--reporter=json",
+          "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr898-native-validation-20261109/terminal/test-results/pr898-recovery-20261109/artifact-report.json"
+        ],
+        "exit": 1,
+        "logSha256": "fa19e5186d760fe6bff83abb93752aefec429a8c107a8f67b4c7fc0cf6640599",
+        "name": "artifact-and-adjacent-tests",
+        "seconds": 3.74
+      }
+    ],
+    "interpretation": [
+      "Initial raw adjacent tests passed72/75. The obsolete batch3 trim assertion was corrected; the final owned64/64 tests passed.",
+      "Inherited batch1 and batch2 root locks are stale at protected master. Normal CI supplies existing batch1 validated operation records and the conditional complete24-case batch2 capture before unit tests. No old hash was restamped.",
+      "Optional ESLint across all7 paths reports34 no-require-imports errors in CommonJS tools/tests. Protected CI has no ESLint invocation; the2 changed TypeScript files pass separately. CommonJS APIs remain intact."
+    ],
+    "optionalAllFilesESLint": {
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "e2e/tools/capture_pl6_batch3.cjs",
+        "e2e/tools/capture_ci_evidence.cjs",
+        "e2e/tools/capture_ci_evidence.test.cjs",
+        "scripts/ci/plan-evidence-capture.cjs",
+        "scripts/ci/plan-evidence-capture.test.cjs",
+        "lib/__tests__/b_pl_6Batch3Evidence.test.ts",
+        "lib/__tests__/plainLabelsCallSites.test.ts"
+      ],
+      "exit": 1,
+      "logSha256": "28d231a07b7af7a4bbf3c6a87feb4ad47224968920ef655b4f0ef90ba181f5e6",
+      "name": "eslint",
+      "seconds": 3.73
+    }
+  },
+  "nativeCaptureSha256": "ce5305aa933b7214681b14ce608aa333db75933d34f057c62f71db7d3daf57ad",
+  "originalHead": "d5dcb1452778d4fd289ec9d6d056d9f28809177d",
+  "policyPin": "494d095813dad415938800fa0e4d2719497738fa",
+  "protectedSnapshot": "f34b0deb0bb2a0b2f57ba82256b9e87886ad76e0",
+  "publicationCarrier": "GitHub native original branch claude/b-pl-6-batch-3-evidence",
+  "recordedAt": "2026-11-09T12:26:29.632065+00:00",
+  "schema": "pl6_batch3_final_checks.v1",
+  "sourceDiffCheck": {
+    "comparedAgainst": "f34b0deb0bb2a0b2f57ba82256b9e87886ad76e0",
+    "exit": 0
+  },
+  "testCounts": {
+    "artifactAndPlainCallSites": 64,
+    "ownerAndPlanner": 117
+  },
+  "validationOperation": "terminal-pr898-native-validation-20261109",
+  "visualInspection": {
+    "AlertDetail-390.png": "b3a2038558648d451664364daa3022cd44dd29ed6e546ef220bb9df673919aed",
+    "HeatmapTreemap-390-zh.png": "dda8151e0a5a9ee7ecab7e5a4f7ff7c5ab77e6093136531579ac11e861114c12",
+    "OptionsFlowBoard-390-zh.png": "3777ff9e25f2189bddd704a78c637137fb7f32ceea7296341099d891e3cac7ab",
+    "PineLibrary-1440.png": "47bc3d728e639f9255c5b4f052fea88d85a65e7787b5392c06d709ba7ea0bf6b"
+  }
+}

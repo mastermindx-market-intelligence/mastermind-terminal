@@ -1,0 +1,11 @@
+{
+  "browserQualificationSha256": "cdee804f8bd131e850fb045bf328fb2e5939b6ab11dddc2e72357d8707782279",
+  "classification": "Only two proof-digest constants and the canonical root declaration changed after the observed source maps were frozen. The observed source maps remain unchanged. The reader is not a rendered input in either the 30-file EOD or 68-file browser current-source closure.",
+  "createdAt": "2026-11-09T14:46:23.045587+00:00",
+  "declarationAfterSha256": "df03e27c95b9d376c8bfbb0e667910fab2ae284cba14dc586ce3f29560eee07a",
+  "declarationBeforeSha256": "839f4efe34614f2235277f64dbcdd9bf769d609b31be4218fcd54e47cabd5c8d",
+  "packetSha256": "ecad16da1beda4bd3a1dbb5354ce92c2181d985b8f1644bb1f5371071d401910",
+  "schema": "pr650_post_capture_proof_binding.v1",
+  "sharedReaderAfterSha256": "e52acc126fbe42e496250ba339cb302a7b7ed1ec124a8faf426027a5028b08db",
+  "sharedReaderBeforeSha256": "df34fd13a6efdcc91aaa211027e21be627975d07e675769a27618a015af7e837"
+}

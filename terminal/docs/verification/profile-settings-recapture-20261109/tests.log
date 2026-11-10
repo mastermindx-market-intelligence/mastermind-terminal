@@ -1,0 +1,18 @@
+
+> terminal@0.1.0 test
+> vitest run lib/__tests__/b_f12_b5_3AccountCompletenessEvidence.test.ts lib/__tests__/f12_16TeamSettingsEvidence.test.ts lib/__tests__/settingsPanelBoundary.test.tsx lib/__tests__/optionsNavigationRecovery.test.ts
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-beta-profile-settings-crash-20261108/terminal
+
+ ✓ lib/__tests__/optionsNavigationRecovery.test.ts (14 tests) 4ms
+ ✓ lib/__tests__/f12_16TeamSettingsEvidence.test.ts (7 tests) 26ms
+ ✓ lib/__tests__/b_f12_b5_3AccountCompletenessEvidence.test.ts (5 tests) 14ms
+ ✓ lib/__tests__/settingsPanelBoundary.test.tsx (2 tests) 63ms
+
+ Test Files  4 passed (4)
+      Tests  28 passed (28)
+   Start at  01:11:40
+   Duration  2.45s (transform 344ms, setup 0ms, collect 931ms, tests 107ms, environment 982ms, prepare 863ms)
+
