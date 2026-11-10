@@ -12,7 +12,9 @@
  * Field shapes mirror the REAL captured generation
  * (lib/__tests__/fixtures/sector_generation.captured.preview.v1.json) exactly —
  * including the nullable `signal_grade`/`book_wt` the capture carries, and the
- * optional `days` field the incumbent puts on buy_soon rows only.
+ * optional `days` field the incumbent puts on buy_soon rows only. The watch
+ * contract mirrors theme_intel.act_now's bottoming_watch payload (ids +
+ * membership sets, display-tier authority, payload-only machine fields).
  */
 
 /** One qualified row of the owner's action board. Kind distinguishes the
@@ -53,6 +55,10 @@ export interface CallRow {
   href: string;
   /** Days-to-trigger, carried by buy_soon rows only. Null/absent sorts last. */
   days?: number | null;
+  /** Owner-written stat sentence for SECTOR rows (the sector face — sectors
+   * never show a score). Absent/null on rows whose owner wrote no stat. */
+  stat_en?: string | null;
+  stat_zh?: string | null;
 }
 
 /** The six source lanes of the owner board. */
@@ -129,11 +135,14 @@ function daysSortKey(row: CallRow): number {
 }
 
 /**
- * Reader order for one board lane: themes before sectors, stable within each
- * kind (theme rows keep source order, then sector rows keep source order).
- * Additionally, for the buy_soon lane only, rows sort by `days` ascending
- * (null/absent last) within each kind — the incumbent's "almost ready"
- * ordering by time-to-trigger.
+ * Reader order for one board lane's VISIBLE rows: themes before sectors,
+ * stable within each kind (theme rows keep source order, then sector rows
+ * keep source order). Additionally, for the buy_soon lane only, rows sort by
+ * `days` ascending (null/absent last) within each kind — the incumbent's
+ * "almost ready" ordering by time-to-trigger.
+ *
+ * This is a DISPLAY sort only — preview budgets are spent on SOURCE order
+ * (see columnPreview), never on the re-sorted list.
  */
 export function laneRowsSorted(laneKey: BoardLaneKey, rows: CallRow[]): CallRow[] {
   if (laneKey === "buy_soon") {
@@ -147,27 +156,68 @@ export function laneRowsSorted(laneKey: BoardLaneKey, rows: CallRow[]): CallRow[
   ];
 }
 
-/** Preview rows shown per lane before the Show more control. */
+/** Preview rows shown per rendered column before the Show more control. */
 export const PREVIEW_ROWS = 3;
 
 export interface PreviewSlice {
-  /** Rows the reader can see. */
+  /** Rows the reader can see, in display order (themes first). */
   shown: CallRow[];
   /** Rows concealed behind the Show more control. */
   hidden: number;
 }
 
 /**
- * Collapsed lanes show the first `limit` rows (PREVIEW_ROWS by default);
- * expanded lanes show everything. `hidden` drives the "Show more ({n})" copy.
+ * One preview budget per rendered column, spent on SOURCE order exactly as the
+ * incumbent template slices it (scripts/build_sector_central.py::split_actnow):
+ * the budget applies to the rows as the fold merged them, THEN what shipped is
+ * sorted for display. Because the folded stand_aside list is hold rows followed
+ * by avoid rows, a plain head-slice IS the incumbent arithmetic — hold spends
+ * the budget first and avoid takes the remainder (preview - hold_shown).
+ *
+ * An at/under-cap column ships whole: hidden is 0 and no Show more appears.
+ * Expanded shows everything.
  */
+export function columnPreview(
+  laneKey: BoardLaneKey,
+  rows: CallRow[],
+  expanded: boolean,
+  limit: number = PREVIEW_ROWS,
+): PreviewSlice {
+  const { shown: shipped, hidden } = previewSlice(rows, expanded, limit);
+  return { shown: laneRowsSorted(laneKey, shipped), hidden };
+}
+
+/** Collapsed-lane preview slice over a plain list (kept for direct callers;
+ * the board renders through columnPreview). */
 export function previewSlice(
   rows: CallRow[],
   expanded: boolean,
   limit: number = PREVIEW_ROWS,
 ): PreviewSlice {
-  const shown = expanded ? rows : rows.slice(0, limit);
+  const shown = expanded ? rows : rows.slice(0, Math.max(0, limit));
   return { shown, hidden: rows.length - shown.length };
+}
+
+/**
+ * A lane is a MEASURED EMPTY only when its full qualified total is zero.
+ * A lane with total > 0 and nothing visible (every row withheld upstream) is
+ * NOT empty — it renders the withheld line, never the empty-state copy.
+ */
+export function laneMeasuredEmpty(lane: LaneData): boolean {
+  return lane.total === 0;
+}
+
+/**
+ * Row-face content law (R5 builder note): theme rows show score + 20d
+ * performance; sector rows show the owner's stat sentence only — never a
+ * score, and never a synthesized one. Returns the localized stat line for a
+ * sector row, or null when the row is a theme or the owner wrote no stat.
+ */
+export function sectorStat(row: CallRow, lang: string): string | null {
+  if (row.kind !== "sector") return null;
+  const stat = lang === "zh" ? row.stat_zh : row.stat_en;
+  if (stat) return stat;
+  return row.stat_en ?? row.stat_zh ?? null;
 }
 
 export interface BoardColumnTotals {
@@ -242,85 +292,129 @@ export function traceModel(row: CallRow): CallTrace {
 
 // ── Bottoming Watch (display-only) ──────────────────────────────────────────
 
-/** One Bottoming Watch entry as the generation carries it. `signal` and
- * `timing_state` are PAYLOAD-ONLY: they ride the type for forward
- * compatibility but are never surfaced in any model output the UI renders. */
+/** One Bottoming Watch entry exactly as theme_intel.act_now carries it.
+ * `signal`, `cycle_signal`, `timing_state` and `osc_slope` are PAYLOAD-ONLY:
+ * they ride the type for forward compatibility but are never surfaced in any
+ * model output the UI renders. `href` is carried but never actionable — the
+ * strip renders names as plain text. */
 export interface WatchEntry {
-  ticker: string;
+  id: string;
+  cid: string;
+  kind: "BASKET" | "SECTOR";
   name: string;
   name_zh: string;
   /** Cycle position, 0–100 (0 = cycle trough). */
   pos: number;
-  above_200d: boolean;
-  /** The name also appears on the reduce lane — both reads are shown. */
-  dual_read: boolean;
-  /** Cycle read turning up off a low while the longer trend still says reduce. */
-  recovering: boolean;
-  /** Payload-only; never rendered. */
-  signal?: string;
-  /** Payload-only; never rendered. */
-  timing_state?: string;
+  osc_slope: number;
+  signal: string | null;
+  timing_state: string;
+  above200d: boolean;
+  cycle_signal: string | null;
+  /** Cycle turned but price is below its 200-day — renders the gate-conflict chip. */
+  gate_conflict: boolean;
+  /** Carried verbatim, never rendered as a link. */
+  href: string;
+}
+
+/** The watch authority block. Tier is display-only and every may_* stays
+ * false; the owner's null disclosure is rendered in place of the standard
+ * watch disclosure when present. */
+export interface WatchAuthority {
+  tier: "display";
+  may_rank: false;
+  may_gate: false;
+  may_size: false;
+  may_escalate: false;
+  null_disclosure_en?: string | null;
+  null_disclosure_zh?: string | null;
+}
+
+/** The bottoming-watch payload as the generation carries it: entries plus the
+ * two membership sets (ids, not per-row booleans) and the authority block. */
+export interface BottomingWatchData {
+  bottoming_watch: WatchEntry[];
+  dual_read_ids: string[];
+  recovering_ids: string[];
+  bottoming_authority: WatchAuthority;
 }
 
 /** Entries shown in the watch strip — hard cap. */
 export const BOTTOMING_CAP = 8;
 
 /** The chip set the watch renders per entry: the cycle-turn base chip every
- * entry carries, then the disagreement/recovery chips when their flags are
- * set, then the 200-day read (above or below — always exactly one). */
+ * entry carries, then the disagreement chips when their conditions hold
+ * (dual-read and recovering are id-membership reads; gate conflict is carried
+ * on the row), then the 200-day read (above or below — always exactly one). */
 export type WatchChipKind =
   | "cycle_turn"
   | "dual_read"
   | "recovering"
+  | "gate_conflict"
   | "above_200d"
   | "below_200d";
 
 /** The rendered model of one watch entry. Deliberately carries NO trace of
- * the payload-only `signal`/`timing_state` fields. */
+ * the payload-only fields (signal, cycle_signal, timing_state, osc_slope) and
+ * no href/cid/kind raw enums — only what the strip actually renders. */
 export interface WatchModelEntry {
-  ticker: string;
+  /** Stable id; used as the React key, never rendered as customer text. */
+  id: string;
   name: string;
   name_zh: string;
   pos: number;
   above200d: boolean;
   dualRead: boolean;
   recovering: boolean;
+  gateConflict: boolean;
   chips: WatchChipKind[];
 }
 
-function watchChips(entry: WatchEntry): WatchChipKind[] {
+function watchChips(entry: WatchEntry, data: BottomingWatchData): WatchChipKind[] {
   const chips: WatchChipKind[] = ["cycle_turn"];
-  if (entry.dual_read) chips.push("dual_read");
-  if (entry.recovering) chips.push("recovering");
-  chips.push(entry.above_200d ? "above_200d" : "below_200d");
+  if (data.dual_read_ids.includes(entry.id)) chips.push("dual_read");
+  if (data.recovering_ids.includes(entry.id)) chips.push("recovering");
+  if (entry.gate_conflict) chips.push("gate_conflict");
+  chips.push(entry.above200d ? "above_200d" : "below_200d");
   return chips;
 }
 
 /**
  * The watch strip's display model: entries sort by cycle position ASC (deepest
- * trough first) and cap at BOTTOMING_CAP. Only display fields survive the
- * fold — the payload-only fields are dropped here, not hidden in CSS.
+ * trough first) and cap at BOTTOMING_CAP; chip flags read the membership sets.
+ * Only display fields survive the fold — payload-only fields are dropped here,
+ * not hidden in CSS.
  */
-export function watchModel(entries: WatchEntry[]): WatchModelEntry[] {
-  return [...entries]
+export function watchModel(data: BottomingWatchData): WatchModelEntry[] {
+  return [...data.bottoming_watch]
     .sort((a, b) => a.pos - b.pos)
     .slice(0, BOTTOMING_CAP)
     .map((entry) => ({
-      ticker: entry.ticker,
+      id: entry.id,
       name: entry.name,
       name_zh: entry.name_zh,
       pos: entry.pos,
-      above200d: entry.above_200d,
-      dualRead: entry.dual_read,
-      recovering: entry.recovering,
-      chips: watchChips(entry),
+      above200d: entry.above200d,
+      dualRead: data.dual_read_ids.includes(entry.id),
+      recovering: data.recovering_ids.includes(entry.id),
+      gateConflict: entry.gate_conflict,
+      chips: watchChips(entry, data),
     }));
 }
 
 /** True when any VISIBLE (post-cap) entry is recovering from its cycle low —
  * the condition for the strip's single recovering disclosure line. */
-export function hasRecovering(entries: WatchEntry[]): boolean {
-  return watchModel(entries).some((entry) => entry.recovering);
+export function hasRecovering(data: BottomingWatchData): boolean {
+  return watchModel(data).some((entry) => entry.recovering);
+}
+
+/**
+ * The owner's null disclosure for the watch, localized, when the authority
+ * carries one — rendered in place of the standard siWatchDisclosure copy.
+ * Returns null when absent, so the caller falls back to the lexicon.
+ */
+export function watchDisclosure(data: BottomingWatchData, lang: string): string | null {
+  const text = lang === "zh" ? data.bottoming_authority.null_disclosure_zh : data.bottoming_authority.null_disclosure_en;
+  return text ?? data.bottoming_authority.null_disclosure_en ?? data.bottoming_authority.null_disclosure_zh ?? null;
 }
 
 // ── typed availability guards ───────────────────────────────────────────────
@@ -335,7 +429,7 @@ export function isCallsBoardUnavailable(
 }
 
 export function isBottomingWatchUnavailable(
-  watch: WatchEntry[] | null | undefined,
+  watch: BottomingWatchData | null | undefined,
 ): boolean {
   return watch === null || watch === undefined;
 }

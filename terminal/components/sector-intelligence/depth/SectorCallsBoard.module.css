@@ -171,6 +171,19 @@
   font: 650 11px var(--font-num);
 }
 
+/* Theme face: signed 20d performance (colored via data-sign); sector face:
+   the owner's stat sentence — sectors never show a score. */
+.perf {
+  font: 650 11px var(--font-num);
+}
+
+.stat {
+  color: var(--text-2);
+  font-size: 11px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
 .name {
   margin: 0;
   font-size: 14px;

@@ -7,9 +7,10 @@ import {
   BOARD_LANE_ORDER,
   PREVIEW_ROWS,
   boardTotals,
+  columnPreview,
   foldSixToFive,
-  laneRowsSorted,
-  previewSlice,
+  laneMeasuredEmpty,
+  sectorStat,
   traceModel,
   type ActionBoardData,
   type BoardLaneKey,
@@ -36,7 +37,13 @@ const fmtSignedPct = (v: number): string =>
 const signOf = (v: number): "up" | "down" | undefined =>
   v > 0 ? "up" : v < 0 ? "down" : undefined;
 
+const fmtPctOfOne = (v: number): string => `${Math.round(v * 100)}%`;
+
+const fmtPctile = (v: number): string => `${Math.round(v * 100)}`;
+
 const fmt1 = (v: number): string => String(Number(v.toFixed(1)));
+
+const fmt2 = (v: number): string => v.toFixed(2);
 
 /**
  * The native calls board: tonight's qualified action board folded from six
@@ -44,7 +51,8 @@ const fmt1 = (v: number): string => String(Number(v.toFixed(1)));
  * Props-only mount — no fetching, no routing, no URL state. Navigation out
  * goes through `onNavigate`; when it is absent the same control renders as an
  * exact `<a href>` using the generation's href verbatim. A null board is the
- * ONLY unavailable path: a zero-total lane is a measured empty state.
+ * ONLY unavailable path: a zero-total lane is a measured empty state, and a
+ * lane whose rows are all withheld shows its withheld line, never empty copy.
  */
 export function SectorCallsBoard({
   board,
@@ -81,7 +89,7 @@ export function SectorCallsBoard({
         <p className={styles.sub}>{t("siCallsSub")}</p>
         <p className={styles.meta}>
           <span>{t("siCallsBoardTotal", { total: totals.total })}</span>
-          <span>{t("siCallsLockedCount", { n: totals.locked })}</span>
+          {totals.locked > 0 && <span>{t("siCallsLockedCount", { n: totals.locked })}</span>}
           <span>{t("siDepthAsOf", { date: board.as_of })}</span>
         </p>
         <p className={styles.note}>{t("siCallsThemesBeforeSectorsNote")}</p>
@@ -97,8 +105,10 @@ export function SectorCallsBoard({
 }
 
 /** One of the five board columns: heading with the lane's full qualified
- * count, lane sub copy, measured empty state, preview rows with Show
- * more/less, and the withheld line when locked rows exist. */
+ * count, lane sub copy, measured-empty copy only when the FULL total is zero,
+ * preview rows with Show more/less, and the withheld line when locked rows
+ * exist. A lane with total > 0 and nothing visible renders the withheld line,
+ * never the empty-state copy — the qualified rows exist, they are locked. */
 function BoardColumn({
   laneKey,
   lane,
@@ -111,15 +121,15 @@ function BoardColumn({
   const t = useSectorDepthT();
   const [expanded, setExpanded] = useState(false);
   const copy = COLUMN_COPY[laneKey];
-  const rows = useMemo(() => laneRowsSorted(laneKey, lane.rows), [laneKey, lane]);
-  const { shown, hidden } = previewSlice(rows, expanded);
+  const { shown, hidden } = columnPreview(laneKey, lane.rows, expanded);
+  const measuredEmpty = laneMeasuredEmpty(lane);
 
   return (
     <section
       className={styles.column}
       aria-label={t(copy.title)}
       data-lane={laneKey}
-      data-empty={rows.length === 0 ? "true" : undefined}
+      data-empty={measuredEmpty ? "true" : undefined}
     >
       <header className={styles.colHead}>
         <h4 className={styles.colTitle}>{t(copy.title)}</h4>
@@ -127,22 +137,22 @@ function BoardColumn({
       </header>
       <p className={styles.colSub}>{t(copy.sub)}</p>
 
-      {rows.length === 0 ? (
+      {measuredEmpty ? (
         <p className={styles.empty}>{t(copy.empty)}</p>
-      ) : (
+      ) : shown.length > 0 ? (
         <ul className={styles.cards}>
           {shown.map((row) => (
             <CallRowCard key={`${row.kind}:${row.ticker}`} row={row} onNavigate={onNavigate} />
           ))}
         </ul>
-      )}
+      ) : null}
 
       {hidden > 0 && (
         <button type="button" className={styles.toggle} onClick={() => setExpanded(true)}>
           {t("siCallsShowMore", { n: hidden })}
         </button>
       )}
-      {expanded && rows.length > PREVIEW_ROWS && (
+      {expanded && lane.rows.length > PREVIEW_ROWS && (
         <button type="button" className={styles.toggle} onClick={() => setExpanded(false)}>
           {t("siCallsShowLess")}
         </button>
@@ -155,9 +165,11 @@ function BoardColumn({
   );
 }
 
-/** One qualified row: kind, localized name and recommendation word, score
- * chip, the owner's why-line, the per-row Trace disclosure and the detail
- * destination (exact href, used verbatim). */
+/** One qualified row. Row-content law (R5): THEME rows show score + 20d
+ * performance; SECTOR rows show the owner's stat sentence only — never a
+ * score, and never a synthesized one. Both kinds carry the why-line, the
+ * per-row Trace disclosure and the detail destination (exact href, used
+ * verbatim). */
 function CallRowCard({
   row,
   onNavigate,
@@ -173,6 +185,7 @@ function CallRowCard({
   const name = lang === "zh" && row.name_zh ? row.name_zh : row.name;
   const reco = lang === "zh" && row.label_zh ? row.label_zh : row.label;
   const why = lang === "zh" && row.reco_why_zh ? row.reco_why_zh : row.reco_why_en;
+  const stat = sectorStat(row, lang);
   const trace: CallTrace = useMemo(() => traceModel(row), [row]);
   const band = lang === "zh" ? trace.rolloverBandZh : trace.rolloverBand;
   const perfSign = signOf(trace.perf20dRel);
@@ -184,7 +197,20 @@ function CallRowCard({
           {t(row.kind === "theme" ? "siCallsThemeKind" : "siCallsSectorKind")}
         </span>
         <span className={styles.reco}>{reco}</span>
-        <span className={styles.score}>{t("siCallsScoreLabel", { score: row.score })}</span>
+        {row.kind === "theme" ? (
+          <>
+            <span className={styles.score}>{t("siCallsScoreLabel", { score: row.score })}</span>
+            <span
+              className={styles.perf}
+              data-sign={perfSign}
+              title={t("siCalls20dVsMarket")}
+            >
+              {fmtSignedPct(trace.perf20dRel)}
+            </span>
+          </>
+        ) : (
+          stat && <span className={styles.stat}>{stat}</span>
+        )}
       </div>
       <p className={styles.name}>{name}</p>
       <p className={styles.why}>
@@ -213,6 +239,11 @@ function CallRowCard({
       </div>
       {traceOpen && (
         <div id={traceId} className={styles.trace}>
+          {row.kind === "theme" && (
+            <div className={styles.traceCell}>
+              <span className={styles.traceLabel}>{t("siCallsScoreLabel", { score: trace.score })}</span>
+            </div>
+          )}
           <div className={styles.traceCell}>
             <span className={styles.traceLabel}>{t("siCalls20dVsMarket")}</span>
             <span className={styles.traceValue} data-sign={perfSign}>
@@ -228,6 +259,28 @@ function CallRowCard({
           <div className={styles.traceCell}>
             <span className={styles.traceLabel}>{t("siCallsSignalGrade")}</span>
             <span className={styles.traceValue}>{trace.signalGrade}</span>
+          </div>
+          <div className={styles.traceCell}>
+            <span className={styles.traceLabel}>{t("siCallsBreadth")}</span>
+            <span className={styles.traceValue}>{fmtPctOfOne(trace.breadthPct50)}</span>
+          </div>
+          <div className={styles.traceCell}>
+            <span className={styles.traceLabel}>{t("siCallsRsPctile")}</span>
+            <span className={styles.traceValue}>{fmtPctile(trace.rsPctile)}</span>
+          </div>
+          <div className={styles.traceCell}>
+            <span className={styles.traceLabel}>{t("siCallsAllocRank")}</span>
+            <span className={styles.traceValue}>{trace.allocRank}</span>
+          </div>
+          <div className={styles.traceCell}>
+            <span className={styles.traceLabel}>{t("siCallsBookWt")}</span>
+            <span className={styles.traceValue}>
+              {trace.bookWt === null ? "—" : fmtPctOfOne(trace.bookWt)}
+            </span>
+          </div>
+          <div className={styles.traceCell}>
+            <span className={styles.traceLabel}>{t("siCallsDurability")}</span>
+            <span className={styles.traceValue}>{fmt2(trace.durability)}</span>
           </div>
           <div className={`${styles.traceCell} ${styles.traceCellWide}`}>
             <span className={styles.traceLabel}>{t("siCallsMembers")}</span>

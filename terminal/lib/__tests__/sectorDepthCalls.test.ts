@@ -9,9 +9,10 @@
  *    hrefs carried verbatim.
  *  - `sectorDepthCallsContract.v1.json` is clearly SYNTHETIC (its top-level
  *    `note` says so): it exercises the paths the capture does not carry —
- *    buy_soon `days` ordering, preview slicing past three rows, the watch
- *    strip's pos-ASC cap-at-8, and the payload-only fields that must never
- *    reach a rendered model output.
+ *    buy_soon `days` ordering, the preview budget's hold-first/avoid-remainder
+ *    arithmetic (split_actnow), the at-cap ships-whole case, sector stat
+ *    rows, the watch payload's id-membership sets, and the payload-only
+ *    fields that must never reach a rendered model output.
  *
  * Pure Node vitest — no DOM, no React: everything here is the props-in/model
  * seam the components render.
@@ -26,16 +27,23 @@ import {
   NO_GRADE,
   PREVIEW_ROWS,
   boardTotals,
+  columnPreview,
   foldSixToFive,
   hasRecovering,
   isBottomingWatchUnavailable,
   isCallsBoardUnavailable,
+  laneMeasuredEmpty,
   laneRowsSorted,
   previewSlice,
+  sectorStat,
   traceModel,
+  watchDisclosure,
   watchModel,
   type ActionBoardData,
-  type WatchEntry,
+  type BottomingWatchData,
+  type CallRow,
+  type LaneData,
+  type SourceLaneKey,
 } from "../sectorDepthCalls";
 
 const fixturesDir = fileURLToPath(new URL("./fixtures/", import.meta.url));
@@ -50,8 +58,43 @@ const contract = JSON.parse(
 ) as {
   note: string;
   action_board: ActionBoardData;
-  bottoming_watch: WatchEntry[];
+  bottoming_watch_payload: BottomingWatchData;
 };
+
+/** Minimal synthetic row factory for inline arithmetic cases. */
+const row = (over: Partial<CallRow>): CallRow => ({
+  kind: "theme",
+  ticker: "R",
+  slug: "r",
+  name: "Row",
+  name_zh: "行",
+  reco: "hold",
+  label: "HOLD",
+  label_zh: "持有",
+  score: 50,
+  alloc_rank: 1,
+  above_trend: true,
+  eligible: true,
+  durability: 1.0,
+  book_wt: null,
+  validated: false,
+  signal_grade: null,
+  clean_entry: false,
+  clean_quality: 0.5,
+  perf_20d_rel: 0.01,
+  breadth_pct50: 1.0,
+  top_members: ["M1"],
+  rollover_band: "low",
+  rollover_band_zh: "低",
+  reco_why_en: "why",
+  reco_why_zh: "理由",
+  rs_pctile: 0.5,
+  flip_distance: 1.0,
+  href: "basket/r.html",
+  ...over,
+});
+
+const lane = (rows: CallRow[], total: number, locked = 0): LaneData => ({ rows, total, locked });
 
 describe("captured generation — the real action_board", () => {
   it("carries the real qualified totals: 4 rows, 1 locked, as of 2026-11-03", () => {
@@ -65,19 +108,19 @@ describe("captured generation — the real action_board", () => {
     expect(hold.rows).toHaveLength(3);
     expect(hold.total).toBe(4);
     expect(hold.locked).toBe(1);
-    expect(hold.rows.every((row) => row.kind === "theme")).toBe(true);
+    expect(hold.rows.every((r) => r.kind === "theme")).toBe(true);
   });
 
   it("preserves the captured hrefs verbatim through the fold and the sort", () => {
     const folded = foldSixToFive(capturedBoard.lanes);
-    const sourceHrefs = capturedBoard.lanes.hold.rows.map((row) => row.href);
+    const sourceHrefs = capturedBoard.lanes.hold.rows.map((r) => r.href);
     // The exact strings the owner generation carries — no rewriting, no prefixing.
     expect(sourceHrefs).toEqual([
       "basket/test_theme.html",
       "basket/theme_1.html",
       "basket/theme_2.html",
     ]);
-    expect(laneRowsSorted("stand_aside", folded.stand_aside.rows).map((row) => row.href)).toEqual(
+    expect(laneRowsSorted("stand_aside", folded.stand_aside.rows).map((r) => r.href)).toEqual(
       sourceHrefs,
     );
   });
@@ -110,6 +153,7 @@ describe("captured generation — the real action_board", () => {
     expect(folded.buy_now.total).toBe(0);
     expect(folded.buy_now.rows).toHaveLength(0);
     expect(laneRowsSorted("buy_now", folded.buy_now.rows)).toEqual([]);
+    expect(laneMeasuredEmpty(folded.buy_now)).toBe(true);
   });
 
   it("carries heading totals from the board and FULL lane totals per column", () => {
@@ -136,6 +180,16 @@ describe("captured generation — the real action_board", () => {
     // The second captured row carries no book weight — null stays null.
     expect(traceModel(capturedBoard.lanes.hold.rows[1]!).bookWt).toBeNull();
   });
+
+  it("ships the captured board's visible rows whole: every lane is at or under the cap", () => {
+    // 3 visible hold rows, 0 everywhere else — nothing hides behind Show more,
+    // and the only withheld line input is the upstream locked count (1).
+    const folded = foldSixToFive(capturedBoard.lanes);
+    for (const key of BOARD_LANE_ORDER) {
+      const col = columnPreview(key, folded[key].rows, false);
+      expect(col.hidden).toBe(0);
+    }
+  });
 });
 
 describe("synthetic contract fixture — buy_soon days ordering", () => {
@@ -150,28 +204,28 @@ describe("synthetic contract fixture — buy_soon days ordering", () => {
     // Source order was: theme(5), theme(2), sector(1), theme(9), theme(null).
     // Themes first (days 2, 5, 9, null→99 last), then the sector — even though
     // the sector's days (1) would win a global days sort, themes lead the lane.
-    expect(sorted.map((row) => row.ticker)).toEqual([
+    expect(sorted.map((r) => r.ticker)).toEqual([
       "SYN_SOON_A",
       "SYN_SOON_B",
       "SYN_SOON_C",
       "SYN_SOON_N",
       "SYN_SOON_S",
     ]);
-    expect(sorted.map((row) => row.days ?? null)).toEqual([2, 5, 9, null, 1]);
+    expect(sorted.map((r) => r.days ?? null)).toEqual([2, 5, 9, null, 1]);
   });
 });
 
 describe("synthetic contract fixture — themes before sectors, stable", () => {
   it("promotes a theme above a sector that preceded it in source order", () => {
-    const lane = contract.action_board.lanes.buy_now;
-    expect(lane.rows.map((row) => row.kind)).toEqual(["sector", "theme"]);
-    const sorted = laneRowsSorted("buy_now", lane.rows);
-    expect(sorted.map((row) => row.ticker)).toEqual(["SYN_T1", "SYN_S1"]);
+    const l = contract.action_board.lanes.buy_now;
+    expect(l.rows.map((r) => r.kind)).toEqual(["sector", "theme"]);
+    const sorted = laneRowsSorted("buy_now", l.rows);
+    expect(sorted.map((r) => r.ticker)).toEqual(["SYN_T1", "SYN_S1"]);
   });
 
   it("keeps source order stable within each kind", () => {
     const sorted = laneRowsSorted("take_profits", contract.action_board.lanes.take_profits.rows);
-    expect(sorted.map((row) => row.ticker)).toEqual([
+    expect(sorted.map((r) => r.ticker)).toEqual([
       "SYN_TP_T1",
       "SYN_TP_T2",
       "SYN_TP_T3",
@@ -182,76 +236,226 @@ describe("synthetic contract fixture — themes before sectors, stable", () => {
 
   it("appends avoid rows after hold rows in the folded stand_aside column", () => {
     const folded = foldSixToFive(contract.action_board.lanes);
-    expect(folded.stand_aside.rows.map((row) => row.ticker)).toEqual([
+    expect(folded.stand_aside.rows.map((r) => r.ticker)).toEqual([
       "SYN_HOLD_T1",
+      "SYN_HOLD_T2",
+      "SYN_HOLD_T3",
       "SYN_AVOID_S1",
+      "SYN_AVOID_S2",
     ]);
-    expect(folded.stand_aside.total).toBe(2);
+    expect(folded.stand_aside.total).toBe(5);
   });
 });
 
-describe("preview slice and withheld counts", () => {
+describe("preview budget — split_actnow arithmetic (fold first, one budget per column)", () => {
+  it("spends the stand-aside budget on hold first; avoid takes the remainder", () => {
+    const folded = foldSixToFive(contract.action_board.lanes);
+    // Fixture: hold 3 rows, avoid 2 rows → hold spends all 3, avoid gets 3-3=0.
+    const collapsed = columnPreview("stand_aside", folded.stand_aside.rows, false);
+    expect(collapsed.shown.map((r) => r.ticker)).toEqual([
+      "SYN_HOLD_T1",
+      "SYN_HOLD_T2",
+      "SYN_HOLD_T3",
+    ]);
+    expect(collapsed.hidden).toBe(2); // both avoid rows
+    const expanded = columnPreview("stand_aside", folded.stand_aside.rows, true);
+    expect(expanded.shown).toHaveLength(5);
+    expect(expanded.hidden).toBe(0);
+  });
+
+  it("gives avoid the remainder when hold under-spends the budget", () => {
+    // hold 1 row + avoid 3 rows: hold shows 1, avoid takes 3-1=2, one hides.
+    const hold = lane([row({ ticker: "H1", kind: "sector" })], 1);
+    const avoid = lane(
+      [
+        row({ ticker: "A1", kind: "theme" }),
+        row({ ticker: "A2", kind: "theme" }),
+        row({ ticker: "A3", kind: "theme" }),
+      ],
+      3,
+    );
+    const folded = foldSixToFive(makeLanes({ hold, avoid }));
+    const collapsed = columnPreview("stand_aside", folded.stand_aside.rows, false);
+    // Budget ships hold's sector plus the first two avoid themes (source
+    // order); the display sort then leads with the themes that shipped. A
+    // sort-then-slice would have shipped A1/A2/A3 and dropped the hold sector.
+    expect(collapsed.shown.map((r) => r.ticker)).toEqual(["A1", "A2", "H1"]);
+    expect(collapsed.hidden).toBe(1);
+  });
+
+  it("sorts only what shipped — a hold sector ships even when avoid themes would win the sort", () => {
+    const hold = lane([row({ ticker: "H_SEC", kind: "sector" })], 1);
+    const avoid = lane(
+      [row({ ticker: "A_T1", kind: "theme" }), row({ ticker: "A_T2", kind: "theme" })],
+      2,
+    );
+    const folded = foldSixToFive(makeLanes({ hold, avoid }));
+    const collapsed = columnPreview("stand_aside", folded.stand_aside.rows, false);
+    // Budget: hold 1 + avoid remainder 2 → all 3 ship, sorted themes-first.
+    expect(collapsed.shown.map((r) => r.ticker)).toEqual(["A_T1", "A_T2", "H_SEC"]);
+    expect(collapsed.hidden).toBe(0);
+  });
+
+  it("ships a board at or under the cap whole — no hidden rows in any column", () => {
+    const atCap: Record<SourceLaneKey, LaneData> = makeLanes({
+      buy_now: lane([row({ ticker: "B1" }), row({ ticker: "B2" })], 2),
+      buy_soon: lane([row({ ticker: "S1", days: 2 }), row({ ticker: "S2", days: 4 }), row({ ticker: "S3", days: 6 })], 3),
+      hold: lane([row({ ticker: "H1" })], 1),
+    });
+    const folded = foldSixToFive(atCap);
+    for (const key of BOARD_LANE_ORDER) {
+      const col = columnPreview(key, folded[key].rows, false);
+      expect(col.hidden).toBe(0);
+      expect(col.shown).toHaveLength(folded[key].rows.length);
+    }
+    // And nothing is withheld upstream anywhere: no withheld line input.
+    expect(Object.values(folded).every((l) => l.locked === 0)).toBe(true);
+  });
+
   it("exposes PREVIEW_ROWS = 3 and BOTTOMING_CAP = 8", () => {
     expect(PREVIEW_ROWS).toBe(3);
     expect(BOTTOMING_CAP).toBe(8);
   });
 
-  it("shows the first 3 rows collapsed with the hidden count, all rows expanded", () => {
-    const rows = laneRowsSorted("take_profits", contract.action_board.lanes.take_profits.rows);
-    expect(rows).toHaveLength(5);
+  it("keeps the plain previewSlice primitive for direct callers", () => {
+    const rows = [row({ ticker: "R1" }), row({ ticker: "R2" }), row({ ticker: "R3" }), row({ ticker: "R4" })];
     const collapsed = previewSlice(rows, false);
     expect(collapsed.shown).toHaveLength(3);
-    expect(collapsed.shown.map((row) => row.ticker)).toEqual([
+    expect(collapsed.hidden).toBe(1);
+    const expanded = previewSlice(rows, true);
+    expect(expanded.shown).toHaveLength(4);
+    expect(expanded.hidden).toBe(0);
+  });
+});
+
+describe("lane headings read FULL totals — withheld, never empty copy", () => {
+  it("treats a lane with total > 0 and nothing visible as withheld, not empty", () => {
+    const allLocked = lane([], 2, 2); // 2 qualified rows, both withheld upstream
+    expect(laneMeasuredEmpty(allLocked)).toBe(false);
+    expect(allLocked.locked).toBe(2); // the withheld line's count
+    const folded = foldSixToFive(makeLanes({ hold: allLocked }));
+    expect(folded.stand_aside.total).toBe(2);
+    expect(folded.stand_aside.rows).toHaveLength(0);
+    expect(laneMeasuredEmpty(folded.stand_aside)).toBe(false);
+  });
+
+  it("reserves measured-empty for a FULL total of zero", () => {
+    expect(laneMeasuredEmpty(lane([], 0, 0))).toBe(true);
+    expect(laneMeasuredEmpty(contract.action_board.lanes.on_the_run)).toBe(true);
+  });
+
+  it("drives the withheld line from the lane's locked count, not rows.length", () => {
+    const l = contract.action_board.lanes.take_profits;
+    expect(l.locked).toBe(2);
+    expect(l.total).toBe(7);
+    expect(l.rows).toHaveLength(5); // 7 qualified − 2 locked = 5 visible
+    expect(l.total - l.rows.length).toBe(l.locked);
+  });
+
+  it("previews take_profits at 3 rows with the sector display-sorted last", () => {
+    const rows = contract.action_board.lanes.take_profits.rows;
+    const collapsed = columnPreview("take_profits", rows, false);
+    expect(collapsed.shown.map((r) => r.ticker)).toEqual([
       "SYN_TP_T1",
       "SYN_TP_T2",
       "SYN_TP_T3",
     ]);
     expect(collapsed.hidden).toBe(2); // "Show more (2)"
-    const expanded = previewSlice(rows, true);
-    expect(expanded.shown).toHaveLength(5);
+    const expanded = columnPreview("take_profits", rows, true);
+    expect(expanded.shown.map((r) => r.ticker)).toEqual([
+      "SYN_TP_T1",
+      "SYN_TP_T2",
+      "SYN_TP_T3",
+      "SYN_TP_T4",
+      "SYN_TP_S1",
+    ]);
     expect(expanded.hidden).toBe(0); // "Show less"
-  });
-
-  it("drives the withheld line from the lane's locked count, not rows.length", () => {
-    const lane = contract.action_board.lanes.take_profits;
-    expect(lane.locked).toBe(2);
-    expect(lane.total).toBe(7);
-    expect(lane.rows).toHaveLength(5); // 7 qualified − 2 locked = 5 visible
-    expect(lane.total - lane.rows.length).toBe(lane.locked);
   });
 });
 
-describe("Bottoming Watch model (display-only)", () => {
-  it("sorts pos ASC and caps at 8 of 10 entries", () => {
-    const model = watchModel(contract.bottoming_watch);
-    expect(contract.bottoming_watch).toHaveLength(10);
-    expect(model).toHaveLength(8);
-    expect(model.map((entry) => entry.pos)).toEqual([5, 14, 20, 31, 47, 55, 62, 73]);
-    // The two deepest-in-cycle entries past the cap are dropped, not merged in.
-    expect(model.map((entry) => entry.ticker)).not.toContain("SYN_W3"); // pos 88
-    expect(model.map((entry) => entry.ticker)).not.toContain("SYN_W9"); // pos 96
+describe("row content law — themes score+perf, sectors the owner stat only", () => {
+  it("returns the localized stat sentence for a sector row that carries one", () => {
+    const sectorWithStat = contract.action_board.lanes.buy_now.rows.find(
+      (r) => r.ticker === "SYN_S1",
+    )!;
+    expect(sectorWithStat.kind).toBe("sector");
+    expect(sectorStat(sectorWithStat, "en")).toBe(
+      "Synthetic sector stat — breadth improving three sessions running.",
+    );
+    expect(sectorStat(sectorWithStat, "zh")).toBe(
+      "合成板块统计——广度连续三个交易日改善。",
+    );
   });
 
-  it("builds the chip set: cycle-turn base, dual-read, recovering, 200-day", () => {
-    const model = watchModel(contract.bottoming_watch);
+  it("returns null for a sector row without stats — no stat line, no score", () => {
+    const sectorNoStat = contract.action_board.lanes.take_profits.rows.find(
+      (r) => r.ticker === "SYN_TP_S1",
+    )!;
+    expect(sectorNoStat.kind).toBe("sector");
+    expect(sectorNoStat.stat_en).toBeUndefined();
+    expect(sectorStat(sectorNoStat, "en")).toBeNull();
+    expect(sectorStat(sectorNoStat, "zh")).toBeNull();
+  });
+
+  it("never offers a stat face to a theme row", () => {
+    const theme = contract.action_board.lanes.buy_now.rows.find((r) => r.ticker === "SYN_T1")!;
+    expect(theme.kind).toBe("theme");
+    expect(sectorStat(theme, "en")).toBeNull();
+    expect(sectorStat(theme, "zh")).toBeNull();
+  });
+});
+
+describe("Bottoming Watch model — theme_intel.act_now contract", () => {
+  const payload = contract.bottoming_watch_payload;
+
+  it("sorts pos ASC and caps at 8 of 10 entries", () => {
+    const model = watchModel(payload);
+    expect(payload.bottoming_watch).toHaveLength(10);
+    expect(model).toHaveLength(8);
+    expect(model.map((e) => e.pos)).toEqual([5, 14, 20, 31, 47, 55, 62, 73]);
+    // The two deepest-in-cycle entries past the cap are dropped, not merged in.
+    expect(model.map((e) => e.id)).not.toContain("syn_w3"); // pos 88
+    expect(model.map((e) => e.id)).not.toContain("syn_w9"); // pos 96
+  });
+
+  it("derives dual-read and recovering chips from the id membership sets", () => {
+    const model = watchModel(payload);
     for (const entry of model) {
       expect(entry.chips[0]).toBe("cycle_turn");
       const day200 = entry.chips.filter((c) => c === "above_200d" || c === "below_200d");
       expect(day200).toHaveLength(1);
+      expect(entry.dualRead).toBe(payload.dual_read_ids.includes(entry.id));
+      expect(entry.recovering).toBe(payload.recovering_ids.includes(entry.id));
     }
-    const deepest = model[0]!; // SYN_W5: pos 5, dual read, recovering, below 200d
-    expect(deepest.ticker).toBe("SYN_W5");
-    expect(deepest.chips).toEqual(["cycle_turn", "dual_read", "recovering", "below_200d"]);
-    const second = model[1]!; // SYN_W2: pos 14, above 200d, no extras
-    expect(second.ticker).toBe("SYN_W2");
+    const deepest = model[0]!; // syn_w5: pos 5 — dual, recovering, conflict, below 200d
+    expect(deepest.id).toBe("syn_w5");
+    expect(deepest.chips).toEqual([
+      "cycle_turn",
+      "dual_read",
+      "recovering",
+      "gate_conflict",
+      "below_200d",
+    ]);
+    const second = model[1]!; // syn_w2: pos 14 — in neither set, above 200d
+    expect(second.id).toBe("syn_w2");
     expect(second.chips).toEqual(["cycle_turn", "above_200d"]);
   });
 
-  it("never surfaces the payload-only signal/timing_state fields", () => {
-    const model = watchModel(contract.bottoming_watch);
+  it("renders the gate-conflict chip when the row carries the flag", () => {
+    const model = watchModel(payload);
+    const conflict = model.find((e) => e.id === "syn_w4")!; // pos 31, gate_conflict
+    expect(conflict.chips).toContain("gate_conflict");
+    const noConflict = model.find((e) => e.id === "syn_w6")!; // pos 47
+    expect(noConflict.chips).not.toContain("gate_conflict");
+  });
+
+  it("never surfaces the payload-only fields, hrefs, or raw identity enums", () => {
+    const model = watchModel(payload);
     const json = JSON.stringify(model);
     expect(json).not.toContain("PAYLOAD-SIGNAL");
     expect(json).not.toContain("PAYLOAD-TIMING");
+    expect(json).not.toContain("PAYLOAD-CYCLE");
+    expect(json).not.toContain(".html"); // href carried, never actionable
     const assertNoPayloadKeys = (node: unknown): void => {
       if (Array.isArray(node)) {
         for (const child of node) assertNoPayloadKeys(child);
@@ -259,8 +463,7 @@ describe("Bottoming Watch model (display-only)", () => {
       }
       if (node && typeof node === "object") {
         for (const [key, value] of Object.entries(node)) {
-          expect(key).not.toBe("signal");
-          expect(key).not.toBe("timing_state");
+          expect(["signal", "cycle_signal", "timing_state", "osc_slope", "href", "cid", "kind"]).not.toContain(key);
           assertNoPayloadKeys(value);
         }
       }
@@ -269,37 +472,108 @@ describe("Bottoming Watch model (display-only)", () => {
   });
 
   it("flags the recovering disclosure from VISIBLE entries only", () => {
-    // Synthetic fixture: recovering on pos 5 and 20 (both visible) and pos 88 (capped out).
-    expect(hasRecovering(contract.bottoming_watch)).toBe(true);
-    const cappedOutOnly = [
-      ...Array.from({ length: 8 }, (_, i) => ({
-        ticker: `F${i}`,
-        name: `Full ${i}`,
-        name_zh: `满 ${i}`,
-        pos: i + 1,
-        above_200d: true,
-        dual_read: false,
-        recovering: false,
-      })),
-      { ticker: "F9", name: "Full 9", name_zh: "满 9", pos: 90, above_200d: true, dual_read: false, recovering: true },
-    ];
-    expect(cappedOutOnly).toHaveLength(9);
+    // Fixture: recovering on syn_w5 and syn_w8 (both visible) and syn_w3 (capped out).
+    expect(hasRecovering(payload)).toBe(true);
+    const cappedOutOnly: BottomingWatchData = {
+      bottoming_watch: [
+        ...Array.from({ length: 8 }, (_, i) => ({
+          id: `full_${i}`,
+          cid: `c${i}`,
+          kind: "BASKET" as const,
+          name: `Full ${i}`,
+          name_zh: `满 ${i}`,
+          pos: i + 1,
+          osc_slope: 0,
+          signal: null,
+          timing_state: "steady",
+          above200d: true,
+          cycle_signal: null,
+          gate_conflict: false,
+          href: "basket/full.html",
+        })),
+        {
+          id: "capped_out",
+          cid: "c9",
+          kind: "SECTOR",
+          name: "Capped out",
+          name_zh: "被截断",
+          pos: 90,
+          osc_slope: 0,
+          signal: null,
+          timing_state: "steady",
+          above200d: true,
+          cycle_signal: null,
+          gate_conflict: false,
+          href: "sector/capped.html",
+        },
+      ],
+      dual_read_ids: [],
+      recovering_ids: ["capped_out"], // recovering only beyond the cap
+      bottoming_authority: {
+        tier: "display",
+        may_rank: false,
+        may_gate: false,
+        may_size: false,
+        may_escalate: false,
+        null_disclosure_en: null,
+        null_disclosure_zh: null,
+      },
+    };
+    expect(cappedOutOnly.bottoming_watch).toHaveLength(9);
     expect(hasRecovering(cappedOutOnly)).toBe(false);
+  });
+
+  it("renders the authority's null disclosure when present, per language", () => {
+    expect(watchDisclosure(payload, "en")).toBe(
+      "Synthetic authority null disclosure — nothing here ranks or gates anything.",
+    );
+    expect(watchDisclosure(payload, "zh")).toBe(
+      "合成权威空披露——此处内容不参与任何排序或门槛。",
+    );
+    // Absent disclosures fall back to the lexicon copy (null return).
+    const bare: BottomingWatchData = {
+      bottoming_watch: [],
+      dual_read_ids: [],
+      recovering_ids: [],
+      bottoming_authority: {
+        tier: "display",
+        may_rank: false,
+        may_gate: false,
+        may_size: false,
+        may_escalate: false,
+        null_disclosure_en: null,
+        null_disclosure_zh: null,
+      },
+    };
+    expect(watchDisclosure(bare, "en")).toBeNull();
+    expect(watchDisclosure(bare, "zh")).toBeNull();
+    // The authority tier is display-only and every may_* stays false.
+    expect(payload.bottoming_authority.tier).toBe("display");
+    expect(payload.bottoming_authority.may_rank).toBe(false);
+    expect(payload.bottoming_authority.may_gate).toBe(false);
+    expect(payload.bottoming_authority.may_size).toBe(false);
+    expect(payload.bottoming_authority.may_escalate).toBe(false);
   });
 });
 
 describe("zero is measured, missing is missing", () => {
   it("treats a zero-total lane as a measured empty, never as unavailable", () => {
-    const lane = contract.action_board.lanes.on_the_run;
-    expect(lane.total).toBe(0);
-    expect(lane.rows).toHaveLength(0);
-    expect(laneRowsSorted("on_the_run", lane.rows)).toEqual([]);
+    const onTheRun = contract.action_board.lanes.on_the_run;
+    expect(onTheRun.total).toBe(0);
+    expect(onTheRun.rows).toHaveLength(0);
+    expect(laneRowsSorted("on_the_run", onTheRun.rows)).toEqual([]);
     expect(isCallsBoardUnavailable(contract.action_board)).toBe(false);
   });
 
-  it("treats an empty watch array as a measured empty", () => {
-    expect(watchModel([])).toEqual([]);
-    expect(isBottomingWatchUnavailable([])).toBe(false);
+  it("treats an empty watch entry list as a measured empty", () => {
+    const emptyPayload: BottomingWatchData = {
+      bottoming_watch: [],
+      dual_read_ids: [],
+      recovering_ids: [],
+      bottoming_authority: contract.bottoming_watch_payload.bottoming_authority,
+    };
+    expect(watchModel(emptyPayload)).toEqual([]);
+    expect(isBottomingWatchUnavailable(emptyPayload)).toBe(false);
   });
 
   it("reserves the unavailable path for null input only", () => {
@@ -309,3 +583,17 @@ describe("zero is measured, missing is missing", () => {
     expect(isBottomingWatchUnavailable(undefined)).toBe(true);
   });
 });
+
+/** Build a full six-lane record for inline cases; unspecified lanes are
+ * measured-empty. */
+function makeLanes(over: Partial<Record<SourceLaneKey, LaneData>>): Record<SourceLaneKey, LaneData> {
+  const empty = lane([], 0);
+  return {
+    buy_now: over.buy_now ?? empty,
+    buy_soon: over.buy_soon ?? empty,
+    on_the_run: over.on_the_run ?? empty,
+    take_profits: over.take_profits ?? empty,
+    hold: over.hold ?? empty,
+    avoid: over.avoid ?? empty,
+  };
+}
