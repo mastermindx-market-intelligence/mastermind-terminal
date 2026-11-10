@@ -1,0 +1,18 @@
+{
+  "schema": "terminal_pr910_dependencies.v1",
+  "state": "EXACT_DEPENDENCIES_AND_OWNED_BROWSER_CACHE_READY",
+  "startedAt": "2026-11-09T17:23:01.605150+00:00",
+  "source": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr650-ci-contract-20261109/terminal",
+  "target": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal",
+  "hashes": {
+    "package.json": "49a5d19c384aa136867ae093093c303aa49c8f5078ac6e59b8a5a3ea88e3f59e",
+    "package-lock.json": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9"
+  },
+  "completedAt": "2026-11-09T17:23:08.542045+00:00",
+  "browserCache": "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr910-ticker-news-integration-20261109/terminal/node_modules/.cache/pr910-playwright",
+  "versions": {
+    "next": "16.2.9",
+    "@playwright/test": "1.61.1",
+    "typescript": "5.9.3"
+  }
+}

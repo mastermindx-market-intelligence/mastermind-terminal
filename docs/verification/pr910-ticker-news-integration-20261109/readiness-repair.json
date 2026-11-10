@@ -1,0 +1,32 @@
+{
+  "cause": "The route skeleton header remained visible while the real TerminalShell and News tab were attached inside hidden streaming container S:0. The previous attached-only prerequisite allowed an immediate strict two-header failure. Visible News tab is the existing real route readiness witness.",
+  "changedLineAfter": "await expect(page.locator(\"#rail-tab-news\")).toBeVisible({ timeout: 60_000 });",
+  "changedLineBefore": "await expect(page.locator(\"#rail-tab-news\")).toBeAttached({ timeout: 60_000 });",
+  "completedAt": "2026-11-09T17:35:37.521953+00:00",
+  "priorFailureReportSha256": "aec2666f5ed66b273d1f32cf9b56e2df407ad03ac22700abdddf9c9aa1b88f4a",
+  "priorReturnedPacket": {
+    "EVIDENCE.yml": "81688a2f45660c5e7c8882cc7cf202fbb2a338ba6ce6e7fd6cbfb008d4881faf",
+    "desktop-en-dark.png": "db8c91c90b39e402bdc7cd13864d049934a298e4f0ed4fa72a13573ea298cec0",
+    "desktop-zh-dark.png": "018a4ff726db666b57355e8aeac131f215c876dcb977da64522415b04ae96c4d",
+    "mobile-en-dark.png": "d2736dc755e6001a6266262dfe720bbebee217874a08b6639a8c10b72ff0a32f",
+    "mobile-zh-dark.png": "a85085be4ade1c91c8dafdfa1ec959746a0acd15d6b06703eea5e655256b369a",
+    "tablet-en-dark.png": "88209e72c78ebfa549aa44924a25c47da2da0bea7cbc886b5cb7ba74ec18a73f",
+    "tablet-zh-dark.png": "0eae66a899732bd63988f26eca5b9998a62ae29431c71360398cb8331064cd68",
+    "unavailable-desktop-en-dark.png": "dd10b1aba263b1e321b81d8412a411e55a9bd7f225d0f38f49992228929d5002",
+    "unavailable-desktop-zh-dark.png": "05e6fd90e60c8c2fc90706cf8ec09bea84e4e65c25812dc66b10a9986995bf26",
+    "unavailable-mobile-en-dark.png": "771648561ad3e95496c44e305a6eec9e834f4b20f7316fb76ccf5060fc9cf7f0",
+    "unavailable-mobile-zh-dark.png": "2ab064368a438c7e4d15b4a58af96ffe8aaf0b54a2c05a48e7fdaa20af18f0b1"
+  },
+  "productCodeChanged": false,
+  "retriesAdded": false,
+  "schema": "terminal_pr910_streamed_route_readiness_repair.v1",
+  "selectorBlockUnchanged": true,
+  "sharedPresentationHelperUnchangedSha256": "33b474622b631b69058524621603c879c520f00e004c7950831681904bee9f34",
+  "sourceAfterSha256": "528b7cbfa533c55ec68ee676a2d9b94ed5622cfdd94928367c9db781f5d71e4a",
+  "sourceBeforeSha256": "a52e854a34f2841278e5ca539e4988671330e003fbec8c497cc7331d164689f1",
+  "state": "VISIBLE_REAL_NEWS_TAB_REQUIRED_BEFORE_APPEARANCE_ACTION",
+  "testAssertionsRetained": 72,
+  "testSkipsUnchanged": true,
+  "timeoutUnchangedMs": 60000,
+  "traceSha256": "3868d1572797e6635d9a14d094b385d37b17c741a7475002056b4bed7393ce3e"
+}
