@@ -11,7 +11,10 @@ const ROOT = process.cwd();
 // Reuse the incumbent historical sector fixture, never a second sample dataset.
 const ts = require('typescript');
 require.extensions['.ts'] = (module, filename) => {
-  if (!path.resolve(filename).startsWith(path.join(ROOT,'e2e/fixtures')+path.sep)) throw Error('fixture loader scope');
+  const resolved = path.resolve(filename);
+  // sector-company-v3 reuses this one shared synthetic fixture dependency.
+  const generationFixture = path.join(ROOT,'lib/__tests__/fixtures/sectorNativeGeneration.ts');
+  if (!resolved.startsWith(path.join(ROOT,'e2e/fixtures')+path.sep) && resolved !== generationFixture) throw Error('fixture loader scope');
   const code=ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText;
   module._compile(code,filename);
 };
