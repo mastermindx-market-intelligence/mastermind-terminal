@@ -1,5 +1,5 @@
 /**
- * 0049 sector intelligence investigation admission — SAVE ADMISSION contract
+ * 0052 sector intelligence investigation admission — SAVE ADMISSION contract
  * (packet SI-P16-LANE6-INVESTIGATION-ADMISSION, Lane 6).
  *
  * The migration composes over the exact 0047 body (never the installed 0040 body or the
@@ -23,7 +23,7 @@ import { INVESTIGATION_ADMISSION } from "../investigations";
 import { SECTOR_INVESTIGATION_COHORT, validateInvestigationManifest } from "../investigationContracts";
 import { ledgerHeaderLineFromRow, ledgerRowHeaderLine, migrationExists, readMigration, reservationRow } from "./helpers/reservations";
 
-const FILE = "0049_sector_intelligence_investigation_admission.sql";
+const FILE = "0052_sector_intelligence_investigation_admission.sql";
 const FILE47 = "0047_investigation_options_selection_evidence.sql";
 const FILE42 = "0042_investigation_scenario_reference.sql";
 const FILE40 = "0040_investigation_review.sql";
@@ -43,7 +43,7 @@ function downRaw(text: string): string {
   const at = text.indexOf("-- down:");
   const end = text.indexOf("-- readback:");
   const from = at === -1 ? -1 : text.indexOf("\n", at);
-  if (at === -1 || end === -1 || from === -1 || from > end) throw new Error("0049 down block not found");
+  if (at === -1 || end === -1 || from === -1 || from > end) throw new Error("0052 down block not found");
   return text.slice(from + 1, end);
 }
 /** What the operator applies: exactly one leading "-- " off each line; a bare "--" line becomes empty. */
@@ -149,7 +149,7 @@ const QN = "begin; set local role anon; select public.investigation_evidence_adm
 const QM = "select pg_catalog.md5(p.prosrc) from pg_catalog.pg_proc p where p.oid = 'public.valid_investigation_manifest_v2(jsonb)'::pg_catalog.regprocedure;";
 const QL = "select pg_catalog.pg_get_userbyid(p.proowner), p.prosecdef, pg_catalog.array_to_string(p.proconfig, ';'), pg_catalog.has_function_privilege('anon', p.oid, 'EXECUTE'), pg_catalog.has_function_privilege('authenticated', p.oid, 'EXECUTE'), pg_catalog.has_function_privilege('service_role', p.oid, 'EXECUTE') from pg_catalog.pg_proc p where p.oid in ('public.investigation_evidence_admitted_v2(text,text)'::pg_catalog.regprocedure, 'public.investigation_subject_admitted_v2(text,text)'::pg_catalog.regprocedure);";
 
-describe("0049 sector intelligence investigation admission contract", () => {
+describe("0052 sector intelligence investigation admission contract", () => {
   it("ships the migration with the ledger-row and rollback header lines", () => {
     expect(migrationExists(FILE)).toBe(true);
     const head = sql.split("\n").slice(0, 40).join("\n");
@@ -159,7 +159,7 @@ describe("0049 sector intelligence investigation admission contract", () => {
     // Derived from the ledger row, so the header tracks every later flip (pr backfill,
     // merge, apply) instead of pinning one sentence; the pr integer itself is enforced
     // by the supabase migration namespace guard on the same ledger.
-    expect(ledgerRowHeaderLine(sql)).toBe(ledgerHeaderLineFromRow(reservationRow("0049")));
+    expect(ledgerRowHeaderLine(sql)).toBe(ledgerHeaderLineFromRow(reservationRow("0052")));
   });
 
   it("replaces exactly three functions: the widened validator and both admission probes", () => {
@@ -244,7 +244,7 @@ describe("0049 sector intelligence investigation admission contract", () => {
   it("differs from the 0047 validator by the three packet-3.2 widenings only", () => {
     // Whitespace-collapsed identity against the 0047 FILE (merged, not the installed 0040
     // body): everything outside the three insertions must stay byte-equal after collapse,
-    // so any other drift fails. The inserted bytes are sliced from the 0049 body between
+    // so any other drift fails. The inserted bytes are sliced from the 0052 body between
     // unique anchors — the assertions are the anchors, occurrence counts and equality.
     const collapse = (s: string) => s.replace(/\s+/g, " ").trim();
     const c47 = collapse(validatorBody(sql47));
@@ -258,7 +258,7 @@ describe("0049 sector intelligence investigation admission contract", () => {
     };
     // (1) subject allow-list: four owner/kind disjuncts on their owner-resolved id grammars.
     // The outer `not ((` group closes after the LAST disjunct — after `issuer` in 0047,
-    // after the company grammar in 0049 — so the insert carries that closing paren and
+    // after the company grammar in 0052 — so the insert carries that closing paren and
     // the 0047 anchor spans through the old closer.
     const subjAnchor = "in ('security','issuer'))";
     const subjTail = "or (r ? 'version_ref'";
@@ -285,7 +285,7 @@ describe("0049 sector intelligence investigation admission contract", () => {
     expect(ruleInsert).toContain("if r->>'owner'='theme_graph.curation_assertion' and r->>'object_type'='curation_assertion' then");
     expect(ruleInsert).toContain("(r->>'object_id') !~ '^ev:[0-9a-f]{16}$'");
     expect(ruleInsert).toContain("(r->>'version_ref') !~ '^gmirca_[0-9a-f]{32}$'");
-    // Rebuild: 0047 plus exactly the three insertions must equal 0049 after collapse.
+    // Rebuild: 0047 plus exactly the three insertions must equal 0052 after collapse.
     // Function replacements throughout: the inserted SQL is full of $ characters, and a
     // string replacement would interpret $' / $& as match references.
     const rebuilt = c47
@@ -402,7 +402,7 @@ describe("0049 sector intelligence investigation admission contract", () => {
   });
 
   it("records the reservation while keeping the migration unapplied", () => {
-    const row = reservationRow("0049");
+    const row = reservationRow("0052");
     expect(row.state).toBe("taken");
     expect(row.file).toBe(FILE);
     expect(row.packet).toBe("SI-P16-LANE6-INVESTIGATION-ADMISSION");

@@ -229,7 +229,7 @@ Forex R26 claim (2026-10-21): draft **PR #1100**, opened at 12:17:40Z and read b
 | `0042` | `investigation_scenario_reference` | B-F12-SAVED-SCENARIO-CAPTURE; [PR #1144](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1144), opened 2026-10-23 15:23:54Z after complete current claim census | open source claim; **UNAPPLIED**, no production binding enabled |
 | `0047` | `investigation_options_selection_evidence` | OPT006-V3-SAVE-ADMISSION (Options Research Lab save admission, seat ruling D111, Lane 1a), branch `claude/oi-opt006l1-20261102`, [PR #1222](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1222) (merged as `3cc8da8432d8d2d4e4cb597f49c4eaa95f1980c9` on 2026-11-03, packet OPT006-V3-SAVE-ADMISSION) | merged; **UNAPPLIED**, application is a separate user-only step; requires 0042 applied first and 0043 (#804) NOT applied (guarded) |
 | `0048` | `brief_delivery_team_sharing` | MMOS-AT20-BRIEF-TEAM-ACCESS, [PR #1279](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1279); exact delivered brief → one existing team, view only | Source only; **UNAPPLIED**; no live share/grant or native identity mapping |
-| `0049` | `sector_intelligence_investigation_admission` | SI-P16-LANE6-INVESTIGATION-ADMISSION (Sector Intelligence durable investigations, Lane 6), [PR #1410](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1410); investigation v2 subject/evidence admission widened by the packet-3.2 owner/kind and owner/type pairs, pinned-only per-type rules, per-type probe examples + subject probe | Source only; **UNAPPLIED**; composes over the exact 0047 body (md5 guard refuses the installed 0040 and the 0042 shape); operator sequence 0042 → 0047 → 0049, each explicitly |
+| `0052` | `sector_intelligence_investigation_admission` | SI-P16-LANE6-INVESTIGATION-ADMISSION (Sector Intelligence durable investigations, Lane 6), [PR #1410](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1410); investigation v2 subject/evidence admission widened by the packet-3.2 owner/kind and owner/type pairs, pinned-only per-type rules, per-type probe examples + subject probe | Source only; **UNAPPLIED**; composes over the exact 0047 body (md5 guard refuses the installed 0040 and the 0042 shape); operator sequence 0042 → 0047 → 0052, each explicitly |
 
 `0001`–`0007` and `0010` are **historical**: they predate this ledger, their creating pull
 requests were never recorded in-repo, and so their `pr` and `pr_state` fields in
@@ -482,12 +482,12 @@ Adds access metadata to the existing `brief_deliveries` object. The existing pro
 
 The file is one atomic `DO` statement, compatible with the existing statement-at-a-time source applier. It is UNAPPLIED. Apply only through the established qualified source/application owner after focused security/exactly-once review; no SQL application or sharing effect is authorized merely by this documentation or source publication. The file's readback queries verify function ACLs, pinned search paths and preservation of private table write denial. Existing subscriptions and source-target access remain private; teams grant no paid entitlement. No automatic destructive down operation is supplied.
 
-### 0049 — Sector Intelligence investigation admission (source only, UNAPPLIED)
+### 0052 — Sector Intelligence investigation admission (source only, UNAPPLIED)
 
 Packet `SI-P16-LANE6-INVESTIGATION-ADMISSION` (Sector Intelligence durable investigations,
-Lane 6) claims **0049**, `0049_sector_intelligence_investigation_admission.sql`, on branch
-`claude/ssd-si-lane6-348496b978466f6e` from Terminal `2fe2f02f0`. The 2026-11-09 census
-found prefixes through `0048` taken and no open PR claiming `0049`+.
+Lane 6) claims **0052**, `0052_sector_intelligence_investigation_admission.sql`, on branch
+`claude/ssd-si-lane6-348496b978466f6e` from Terminal `2fe2f02f0`. The first claim was **0049**, but PR #1290 (opened 2026-11-04) already held it, so under rule (b) this later PR
+renumbered. The 2026-11-10 census: master ends at `0048`; open claims 0049 #1290, 0050 #1048, 0051 #1312; max+1 = **0052**.
 
 **Composes over the exact 0047 body only** (md5-pinned guard; it refuses the installed
 0040 body, the 0042 body and any unknown shape). It widens exactly three things in
@@ -512,7 +512,7 @@ then this file, each explicitly** — never the entire migration directory. Appl
 request in the Supabase SQL editor (the file carries its own `begin;`/`commit;`; do not
 split on semicolons or use the statement-at-a-time applier; no `ON_ERROR_ROLLBACK`; if
 psql, `psql -X -v ON_ERROR_STOP=1 -f <file>`). Before applying, readback (v) must show
-`a554c15c1ae58dfbd34d04bcda9b5e48` (the 0047 body; after a down it shows the 0049 body
+`a554c15c1ae58dfbd34d04bcda9b5e48` (the 0047 body; after a down it shows the 0052 file's body
 `75f2b7feba6b3c9f177f4cda6c3605e9` because the down restores 0047 and a re-apply passes
 its idempotence pin). The readback receipt to post on the owning pull request: (i) the
 three `position(...) > 0` widening markers, (ii) the functional validator on the packet

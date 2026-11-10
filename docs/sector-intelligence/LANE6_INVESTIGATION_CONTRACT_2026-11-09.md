@@ -3,7 +3,7 @@
 Branch `claude/ssd-si-lane6-348496b978466f6e` (packet SI-P16-LANE6-INVESTIGATION-ADMISSION).
 What this note freezes: the wire contract a Sector Intelligence reading uses to become a
 durable Investigation v2, the actor fence that governs it, the distinct outcomes every
-client must distinguish, migration `0049` (source only — **no migration has been applied
+client must distinguish, migration `0052` (renumbered from 0049, which PR #1290 holds) (source only — **no migration has been applied
 by this lane**), and the exact operator step still required.
 
 The store is the EXISTING Investigation v2 stack — manifest, command/RPC/receipt tables,
@@ -145,10 +145,10 @@ Wire reuse (no new owners):
   `x-mm-annotation-owner`; conflict shows the other text, transport failure keeps the
   draft pending.
 
-## 5. Migration `0049` — source only, UNAPPLIED
+## 5. Migration `0052` — source only, UNAPPLIED
 
-File `supabase/migrations/0049_sector_intelligence_investigation_admission.sql`;
-reservation `0049` / packet `SI-P16-LANE6-INVESTIGATION-ADMISSION` in
+File `supabase/migrations/0052_sector_intelligence_investigation_admission.sql`;
+reservation `0052` / packet `SI-P16-LANE6-INVESTIGATION-ADMISSION` in
 `supabase/migrations/RESERVATIONS.json` (state `taken`, `pr_state open`, PR number
 backfilled at PR creation; `applied` false — **no application has occurred, so the applied
 date is not recorded**).
@@ -172,22 +172,22 @@ Preimage md5 pins (prosrc, whitespace-collapsed recompute — pinned in
 |---|---|
 | 0042 shape (refused) | `1e130e4c930163ecc4d3e6c17b5c8395` |
 | 0047 body (required preimage) | `a554c15c1ae58dfbd34d04bcda9b5e48` |
-| 0049 widened body (this migration) | `75f2b7feba6b3c9f177f4cda6c3605e9` |
+| 0052 widened body (this migration) | `75f2b7feba6b3c9f177f4cda6c3605e9` |
 
 The guard refuses the installed production 0040 body and the 0042 shape; recomposition
 over any other preimage requires a new prefix.
 
 **Exact operator step still required (no migration has been applied by this lane):** on
 the installed production ledger (0040 applied; 0042 and 0047 merged but UNAPPLIED), the
-operator applies **0042, then 0047, then 0049 — each explicitly, one request per file**.
+operator applies **0042, then 0047, then 0052 — each explicitly, one request per file**.
 Never apply the entire migration directory, never edit or reapply 0028, and never two
-files in one request. Readback receipt after applying 0049 (queries are embedded as
+files in one request. Readback receipt after applying 0052 (queries are embedded as
 comments in the file): the three function replacements, `stable security definer
 search_path=''` on both probes, authenticated-only ACLs, both md5 readbacks, and the two
 refusal probes (`sector:financials` object_id, `selection` on a pinned-only type) still
 rejecting. Emergency rollback is the file's guarded down block, in one transaction.
 
-Until 0049 is applied, both probes honestly report unavailable —
+Until 0052 is applied, both probes honestly report unavailable —
 `GET /api/investigations?admission=macro.sector:sector_observation` returns 503
 `unavailable`, and the new `GET /api/investigations?subject_admission=macro.sector:sector`
 likewise 503. UI save availability must key on these readbacks, not on assumption.

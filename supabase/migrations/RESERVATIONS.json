@@ -516,14 +516,44 @@
     },
     "0049": {
       "state": "taken",
-      "file": "0049_sector_intelligence_investigation_admission.sql",
+      "file": "0049_brief_sharing_requests.sql",
+      "packet": "MMOS-AT04-EXPLICIT-BRIEF-SHARING-REQUEST",
+      "pr": 1290,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "Application date not recorded because this source-only migration remains unapplied. PR #1290 claims 0049 after the complete 2026-11-04 protected-source and 197-open-PR census, including fully paginated capped file lists; maximum existing claim was 0048 in original PR #1279. Requires that unchanged 0048 source and the same migration owner. No live DDL, grant, authentication or sharing effect is authorized by source publication."
+    },
+    "0050": {
+      "state": "taken",
+      "file": "0050_chart_ai_drawing_workspace.sql",
+      "packet": "chart-ai-drawing-workspace-20261018-c4-001",
+      "pr": 1048,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "Original Terminal PR #1048 authored this forward extension after reserving 0050 in commit 1d026f58fb0de4cd6ff1a0bf7a38edc7ddf46a34. The existing 0031 security-invoker validator/read RPCs gain atomic strict mixed human/AI validation and the literal installed capability; the replace/CAS/replay RPC, table grants, RLS and authenticated owner remain unchanged. Application date not recorded because this source-only migration remains unapplied. The canonical 0049 claim from #1290 is unchanged and its unmerged SQL is absent. Source publication authorizes no production DDL, credential, grant, runtime installation or paired Macro/Terminal release effect."
+    },
+    "0051": {
+      "state": "taken",
+      "file": "0051_investigation_native_capture_participant.sql",
+      "packet": "P12.T11.S17-NATIVE-CAPTURE-PARTICIPANT",
+      "pr": 1312,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "Source reservation before authoring. Current protected 691bb74c plus all189 open PR fully paginated filenames qualify max0050 on original PR1048; original0049/1290 and0050/1048 rows retained exactly. Extends existing Investigation operation authority for private capture participants; source only, no SQL application, issuer provisioning, runtime activation or old-effect reconciliation. Application date is not recorded because this source remains unapplied."
+    },
+    "0052": {
+      "state": "taken",
+      "file": "0052_sector_intelligence_investigation_admission.sql",
       "packet": "SI-P16-LANE6-INVESTIGATION-ADMISSION",
       "pr": 1410,
       "pr_state": "open",
       "merged_sha": null,
       "applied_in_production": false,
       "applied_date": null,
-      "note": "Claimed on branch claude/ssd-si-lane6-348496b978466f6e for Sector Intelligence Lane 6 (durable Sector/GMI Investigation admission) after the prefix census on 2026-11-09: prefixes through 0048 taken in this ledger, no open PR claims 0049+ (gh pr list over open PRs, no 0049+ migration path). Composes over the exact 0047 valid_investigation_manifest_v2 body (guard md5 pin plus markers valid_investigation_scenario_reference_v1 and options_matrix_selection): subject allow-list widened by macro.sector/sector on the captured 11-sector native cohort and theme_graph.identity theme/basket/company owner-resolved grammars; evidence allow-list widened by macro.sector sector_observation/basket_observation and theme_graph.curation_assertion curation_assertion, all pinned-only with required version_ref+fingerprint and no selection; evidence probe rebuilt with a valid minimal example per new type plus one narrow investigation_subject_admitted_v2(text,text) probe, both granted to authenticated only. Source only, UNAPPLIED: no application has occurred, so the applied date is not recorded, and application is a separate user-only step and the operator sequence on the installed ledger (0040 applied; 0042/0047 merged but unapplied) is 0042 then 0047 then this file, each explicitly."
+      "note": "Renumbered from 0049 by the COO-ruled allocator collision resolution: PR #1290 (opened 2026-11-04) holds 0049 as the earlier open claim, so this later PR renumbers before merging (README rule (b)). Allocator census 2026-11-10 at renumber time: master ends at 0048; open claims are 0049 #1290, 0050 #1048, 0051 #1312, so max+1 = 0052. 0049 is released by this PR without a row here (it is #1290's number). File name and ledger header are the only SQL bytes that changed; the function bodies, md5 pins (0047 body a554c15c1ae58dfbd34d04bcda9b5e48 / own body 75f2b7feba6b3c9f177f4cda6c3605e9), guards, grants and rollback block are byte-identical, so the in-file '0049' text is the original packet label, not the prefix. Original claim text: Claimed on branch claude/ssd-si-lane6-348496b978466f6e for Sector Intelligence Lane 6 (durable Sector/GMI Investigation admission) after the prefix census on 2026-11-09: prefixes through 0048 taken in this ledger, no open PR claims 0049+ (gh pr list over open PRs, no 0049+ migration path). Composes over the exact 0047 valid_investigation_manifest_v2 body (guard md5 pin plus markers valid_investigation_scenario_reference_v1 and options_matrix_selection): subject allow-list widened by macro.sector/sector on the captured 11-sector native cohort and theme_graph.identity theme/basket/company owner-resolved grammars; evidence allow-list widened by macro.sector sector_observation/basket_observation and theme_graph.curation_assertion curation_assertion, all pinned-only with required version_ref+fingerprint and no selection; evidence probe rebuilt with a valid minimal example per new type plus one narrow investigation_subject_admitted_v2(text,text) probe, both granted to authenticated only. Source only, UNAPPLIED: no application has occurred, so the applied date is not recorded, and application is a separate user-only step and the operator sequence on the installed ledger (0040 applied; 0042/0047 merged but unapplied) is 0042 then 0047 then this file, each explicitly."
     }
   }
 }

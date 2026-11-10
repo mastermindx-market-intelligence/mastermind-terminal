@@ -1,9 +1,9 @@
 /**
  * Sector Intelligence admission (packet SI-P16-LANE6) — the Terminal-side registry half of
- * migration 0049: a Sector/GMI reading must save through the SAME Investigation v2 manifest
+ * migration 0052: a Sector/GMI reading must save through the SAME Investigation v2 manifest
  * and admission adapters, never a second store. These tests pin the caller-supplied
  * admission surface under INVESTIGATION_ADMISSION (the SQL allow-list equality is pinned
- * by the 0049 migration contract test), the fence owner classification, and the pure fence
+ * by the 0052 migration contract test), the fence owner classification, and the pure fence
  * decision table from packet §3.3.
  */
 import { describe, expect, it } from "vitest";

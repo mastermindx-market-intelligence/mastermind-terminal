@@ -49,7 +49,7 @@ export async function GET(request: Request) {
     if (keys.includes("subject_admission")) {
       // Narrow subject-admission probe through the same owner: the UI save
       // availability readback needs schema AND subject admission, and the RPC is
-      // absent (honest 503) until migration 0049 is applied by the operator.
+      // absent (honest 503) until migration 0052 (sector admission) is applied by the operator.
       const parts = (params.get("subject_admission") ?? "").split(":");
       const owner = parts.slice(0, parts.length - 1).join(":");
       const kind = parts[parts.length - 1] ?? "";

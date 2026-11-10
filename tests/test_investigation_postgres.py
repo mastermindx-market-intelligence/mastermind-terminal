@@ -189,7 +189,7 @@ def sector_pg(tmp_path_factory):
             handoff.SQL,
             ROOT / "supabase/migrations/0042_investigation_scenario_reference.sql",
             ROOT / "supabase/migrations/0047_investigation_options_selection_evidence.sql",
-            ROOT / "supabase/migrations/0049_sector_intelligence_investigation_admission.sql",
+            ROOT / "supabase/migrations/0052_sector_intelligence_investigation_admission.sql",
         )
         for sql_file in migrations:
             assert sql_file.exists(), f"{sql_file.name} is not implemented"

@@ -1,4 +1,4 @@
--- Ledger row: 0049_sector_intelligence_investigation_admission / PR #1410 (open, packet SI-P16-LANE6-INVESTIGATION-ADMISSION); not applied
+-- Ledger row: 0052_sector_intelligence_investigation_admission / PR #1410 (open, packet SI-P16-LANE6-INVESTIGATION-ADMISSION); not applied
 -- Rollback: restore only valid_investigation_manifest_v2(jsonb) to the exact 0047 body (markers valid_investigation_scenario_reference_v1 + options_matrix_selection, md5 pin), restore investigation_evidence_admitted_v2(text,text) to the 0047 probe body (Options-shaped minimal example), and drop public.investigation_subject_admitted_v2(text,text)
 -- Requires the exact 0047 body installed (md5 pin below); it refuses the installed 0040 body, the 0042 body and any 0043/unknown shape -- recompose over a different preimage only in a new prefix. On the installed production ledger (0040 applied; 0042 and 0047 merged but UNAPPLIED) the operator sequence is: apply 0042, then 0047, then this file, each explicitly.
 -- Apply this file explicitly, never the entire migration directory. No installed database state was read in this planning round.

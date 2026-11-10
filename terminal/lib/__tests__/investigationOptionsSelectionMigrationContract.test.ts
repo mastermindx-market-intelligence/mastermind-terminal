@@ -167,9 +167,9 @@ describe("0047 investigation options selection evidence admission contract", () 
   });
 
   it("keeps every SQL-admitted pair admitted by the Terminal registry (0047 pairs never regress)", () => {
-    // 0047 pinned strict SQL≡registry equality; migration 0049 (Sector Intelligence,
+    // 0047 pinned strict SQL≡registry equality; migration 0052 (Sector Intelligence,
     // investigationSectorAdmissionMigrationContract.test.ts) later widened BOTH sides, so
-    // strict equality is now owned by the 0049 contract. The 0047-era invariant that must
+    // strict equality is now owned by the 0052 contract. The 0047-era invariant that must
     // hold forever is the subset direction: nothing the 0047 SQL admits may vanish from
     // the Terminal registry.
     const fromSql = allowList(liveBody(sql));
