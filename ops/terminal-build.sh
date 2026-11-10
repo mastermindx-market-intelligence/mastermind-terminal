@@ -6139,7 +6139,8 @@ if [ "$TARGET" = beta ]; then
   fi
 fi
 
-# 2) stage: canonical terminal/ source + $APP runtime (node_modules/.env*/public/data — all gitignored)
+# 2) stage: canonical terminal/ source + $APP runtime (node_modules/.env* — gitignored);
+#    production public/data is the git-tracked fixtures only (see below), beta keeps its own
 # The stage is NESTED: $STAGE_ROOT/terminal is the app, and the gated commit's sibling
 # source dirs (ingest/ hub/ signal_layer/ config/ contracts/) sit beside it, so every
 # `../<dir>` the build follows — Next's type-check walks a terminal/ import into
@@ -6207,7 +6208,31 @@ if [ "$TARGET" = beta ]; then
 fi
 printf '%s\n' "$FULL_SHA" > "$STAGE/.deployment-id"
 mkdir -p "$STAGE/public"
-cp -al "$APP/public/data" "$STAGE/public/data" 2>/dev/null || rsync -a "$APP/public/data/" "$STAGE/public/data/" 2>/dev/null || true
+if [ "$TARGET" = beta ]; then
+  cp -al "$APP/public/data" "$STAGE/public/data" 2>/dev/null || rsync -a "$APP/public/data/" "$STAGE/public/data/" 2>/dev/null || true
+else
+  # Production stages ONLY the git-tracked public/data fixtures (the same tree CI
+  # builds with), never the live runtime market data. The Turbopack build walks the
+  # whole project, public/ included, and its memory grows with public/data: on hosted
+  # CI (2 CPUs, this heap ceiling) a same-shape 3.7 GB / 48,713-file tree took the
+  # Next 16.4.6 build from ~2.9 GB to ~8.2 GB peak RSS, and hardlinking the ~6.6 GB
+  # live tree here got the VPS build OOM-killed on 2026-11-10. Neither a tracing
+  # exclude nor turbopackIgnore removed that growth. The build needs none of it: no
+  # route pre-renders from runtime data, the prebuild coverage script writes the live
+  # tree through the scripts/ link above, and step 9 never syncs the stage's
+  # public/data back. The live tree stays in $APP, where the server reads it.
+  # Archived to a file first for the same empty-stream reason as the gated dirs.
+  mkdir -p "$STAGE/public/data"
+  DATA_TAR="$STAGE_ROOT/.public-data.tar"
+  if git -C "$SRC" cat-file -e "HEAD:terminal/public/data" 2>/dev/null; then
+    git -C "$SRC" archive HEAD -- terminal/public/data > "$DATA_TAR"
+  fi
+  if [ -s "$DATA_TAR" ]; then
+    tar -x -f "$DATA_TAR" -C "$STAGE_ROOT/"
+  fi
+  rm -f "$DATA_TAR"
+  log "production stage runtime data: $(find "$STAGE/public/data" -type f | wc -l | tr -d ' ') git-tracked public/data fixture file(s) from origin/$BRANCH; live $APP/public/data is not staged"
+fi
 
 # 3) build into the staging tree — the slow part; live site stays up throughout.
 log "next build (staging) ..."
