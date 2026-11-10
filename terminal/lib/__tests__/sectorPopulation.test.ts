@@ -2,8 +2,10 @@
  * sectorPopulation.test.ts — contract tests for the population member-list
  * decoder (Sector Intelligence, lane 3; COO order 2, 2026-11-10).
  *
- * The fixture is the pinned lane-1 wire sample (byte-identical capture,
- * sha256 dbb09959…, committed as sector_population.captured.v11_page1.json):
+ * The fixture is the pinned lane-1 wire sample, committed as
+ * sector_population.captured.v11_page1.json (sha256 2f03e6e0… after the
+ * N7 token fabrication — the cursor/context_ref tokens are MADE-UP values of
+ * the captured sample's own shape and length class, never real signatures):
  * every admission assertion runs against the REAL owner shape, and mutations
  * of it prove the closed contract refuses everything outside it.
  *
@@ -269,6 +271,43 @@ describe("sectorPopulationPage — wire v1.1 follow-up (COO 14:10Z, LANE1_WIRE_V
   });
 });
 
+describe("sectorPopulationPage — internal consistency (review S2)", () => {
+  const page = (value: Record<string, unknown>) => value.page as Record<string, unknown>;
+  const pop = (value: Record<string, unknown>) =>
+    (page(value).capture as Record<string, unknown>).population as Record<string, unknown>;
+
+  it("page.complete true ⇔ next_cursor null — both broken directions refused", () => {
+    const endWithCursor = clone();
+    page(endWithCursor).complete = true; // cursor still present
+    expect(sectorPopulationPage(endWithCursor)).toBeNull();
+    const cursorlessMiddle = clone();
+    page(cursorlessMiddle).next_cursor = null; // page claims more to come
+    expect(sectorPopulationPage(cursorlessMiddle)).toBeNull();
+    // The real sample is the legal pairing: complete false WITH a cursor.
+    expect(sectorPopulationPage(clone())).not.toBeNull();
+  });
+
+  it("served may never exceed a stated configured roster", () => {
+    const mutated = clone();
+    pop(mutated).served = 5000; // configured stays 1020
+    expect(sectorPopulationPage(mutated)).toBeNull();
+    // The real sample's own pairing (1015 served of 1020) stays admissible.
+    expect(sectorPopulationPage(clone())).not.toBeNull();
+  });
+
+  it("population.complete true forbids unaccounted members", () => {
+    const mutated = clone();
+    pop(mutated).unaccounted = 3; // complete stays true in the sample
+    expect(sectorPopulationPage(mutated)).toBeNull();
+  });
+
+  it("a page never shows more rows than the filter's own total_matching", () => {
+    const mutated = clone();
+    page(mutated).total_matching = 0; // two rows are on the page
+    expect(sectorPopulationPage(mutated)).toBeNull();
+  });
+});
+
 describe("fetchSectorPopulation — client transport", () => {
   afterEach(() => { vi.unstubAllGlobals(); });
   it("never sends audience; forwards the closed set only", async () => {
@@ -281,6 +320,9 @@ describe("fetchSectorPopulation — client transport", () => {
     expect(called).toContain("group=housing");
     expect(called).toContain("limit=50");
     expect(called).not.toContain("audience");
+    // N2: the base URL already carries source — never a duplicate parameter.
+    const parsed = new URL(called, "https://terminal.test");
+    expect(parsed.searchParams.getAll("source")).toEqual(["population"]);
   });
   it("a 503 owner refusal reads as retry, never sign-in", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response(

@@ -57,16 +57,18 @@ export default function SectorNativeActions({ context }: { context: SectorNative
   const t = useSectorT(), { lang } = useLang();
   const identity = useShellIdentity();
   const principal = identity.kind === "account" && identity.userId ? identity.userId : null;
-  const [saveAdmitted, setSaveAdmitted] = useState<boolean | null>(null);
+  const [admission, setAdmission] = useState<{ principal: string; subjectId: string; admitted: boolean } | null>(null);
   const [saveState, setSaveState] = useState<InvestigationSaveState | null>(null);
   const command = useMemo(() => sectorReadingCommand(context), [context]);
   const subjectId = context.subject?.id ?? null;
   const symbol = context.subject?.ticker ?? "";
 
   // Honest save-admission gate: render the controls only when BOTH readback
-  // probes admit. 503/other answers stay null — offer nothing.
+  // probes admit. The answer is stored WITH the identity it was measured for
+  // and derived per render — a changed principal or subject reads as
+  // unadmitted with no synchronous state reset inside the effect (review N5).
   useEffect(() => {
-    if (!principal || !subjectId) { setSaveAdmitted(null); return; }
+    if (!principal || !subjectId) return;
     const controller = new AbortController();
     (async () => {
       try {
@@ -78,11 +80,13 @@ export default function SectorNativeActions({ context }: { context: SectorNative
             { headers, credentials: "same-origin", cache: "no-store", signal: controller.signal }),
         ]);
         const [ab, bb] = await Promise.all([a.json().catch(() => null), b.json().catch(() => null)]);
-        setSaveAdmitted(a.ok && b.ok && ab?.admitted === true && bb?.admitted === true);
-      } catch { setSaveAdmitted(null); }
+        setAdmission({ principal, subjectId, admitted: a.ok && b.ok && ab?.admitted === true && bb?.admitted === true });
+      } catch { setAdmission(null); }
     })();
     return () => controller.abort();
   }, [principal, subjectId]);
+  const saveAdmitted = admission !== null && admission.principal === principal && admission.subjectId === subjectId
+    ? admission.admitted : null;
 
   if (!command || !subjectId || !symbol) return null;
   if (!saveAdmitted || !principal) return null;

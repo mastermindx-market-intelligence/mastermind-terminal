@@ -667,6 +667,7 @@ export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siPopulationMemberSinceCurrent: ["Current", "当前"],
   siPopulationShown: ["Showing {shown} of {total} matching.", "显示 {shown} / {total} 个匹配项。"],
   siPopulationLoadMore: ["Load more", "加载更多"],
+  siPopulationPageFailed: ["Could not load more members.", "无法加载更多成员。"],
   siPopulationUnservedTitle: ["Accounted but unmeasured ({n})", "已计入但未测量（{n}）"],
   siPopulationUnservedNote: ["These members belong to a basket but have no measured reading; they are never hidden from the counts.", "这些成员属于某个篮子但没有测量读数；计数中从不隐藏他们。"],
   siPopulationUnservedMatchingNote: ["Unserved members matching this search.", "匹配此搜索的未测量成员。"],

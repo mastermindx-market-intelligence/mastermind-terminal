@@ -17,7 +17,7 @@ import SectorNativeActions from "./SectorNativeActions";
 import SectorCycleLens from "./SectorCycleLens";
 import type { SectorCycleFeed } from "./cycles/cycleProps";
 import { flowsFromCarriedBlock } from "@/lib/sectorDepthFlows";
-import { admitActionBoard, admitBottomingWatch } from "@/lib/sectorDepthAdmission";
+import { actionBoardFromCarried, bottomingWatchFromCarried } from "@/lib/sectorDepthCalls";
 import { followState } from "@/lib/investigationFollow";
 import { SectorCallsBoard } from "./depth/SectorCallsBoard";
 import { SectorFlowMatrix } from "./depth/SectorFlowMatrix";
@@ -278,8 +278,11 @@ function DossierDepth({ context }: { context: SectorNativeContext }) {
   const flows = blocks && blocks.etf_flows.status === "available"
     ? flowsFromCarriedBlock(blocks.etf_flows.value) : null;
   const watch = blocks && blocks.bottoming_watch.status === "available"
-    ? admitBottomingWatch(blocks.bottoming_watch.value) : null;
-  const board = admitActionBoard(generation?.actionBoard ?? null);
+    ? bottomingWatchFromCarried(blocks.bottoming_watch.value) : null;
+  // Lane 7's closed-shape carried reader (their review S2) is the mount's ONLY
+  // boundary — null means unavailable and it never throws; this side keeps no
+  // second structural admission and no casts (COO 14:45Z).
+  const board = actionBoardFromCarried(generation?.actionBoard ?? null);
   const labels = useMemo(() => {
     const out: Record<string, string> = {};
     for (const row of generation?.sectors ?? []) {

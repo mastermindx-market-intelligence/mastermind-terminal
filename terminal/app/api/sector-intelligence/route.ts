@@ -301,11 +301,14 @@ async function readIncumbent(req: Request): Promise<Response> {
  *     grammar refusal, never forwarded. The parameter set is closed.
  *   - `?x=<context_ref>` — the retained-capture reopen form (lane 6 SP14): the
  *     token is forwarded as the page cursor and the owner's identity answer is
- *     relayed verbatim so the reopen classifier reads lane 1's table unchanged.
+ *     relayed with its status + code so the reopen classifier reads lane 1's
+ *     table unchanged.
  *   - bare (no parameters) — open the CURRENT capture's page one.
- * Owner refusals are relayed status+body verbatim: 409 CURSOR_RESET and 404
- * ORIGINAL_UNAVAILABLE must reach the client as the owner wrote them. Only the
- * gateway's own failures (grammar, session, transport) speak this route's codes.
+ * Owner refusals are relayed as the owner's STATUS plus a trimmed body
+ * (`populationRelayBody`): 409 CURSOR_RESET and 404 ORIGINAL_UNAVAILABLE reach
+ * the client with the owner's own code and bounded reason; nothing else the
+ * owner wrote is forwarded. Only the gateway's own failures (grammar, session,
+ * transport) speak this route's codes.
  */
 const POPULATION_HEADERS = { ...HEADERS, "X-Content-Type-Options": "nosniff", "X-Robots-Tag": "noindex, noarchive" };
 const POPULATION_PATH = "/api/sector-generation/population";
@@ -318,6 +321,27 @@ type PopulationQuery =
 function populationRefuse(status: number, code: string, extra?: Record<string, string>): Response {
   return NextResponse.json({ error: "population_refused", code },
     { status, headers: { ...POPULATION_HEADERS, "X-Sector-Failure": code, ...(extra ?? {}) } });
+}
+
+/** S3 (review): the ONLY body this gateway ever relays for an upstream refusal.
+ * The client's refusal table reads the owner's own status + code — so the code
+ * rides a closed set, the reason is a bounded string, and EVERYTHING else the
+ * owner wrote (hostnames, file paths, stack frames, tokens, field names) is
+ * collapsed to the generic unavailable code before it can reach the browser. */
+const POPULATION_RELAY_SCHEMA = "sector_generation.error/v1";
+const POPULATION_RELAY_CODES = new Set([
+  "AUTHENTICATION_REQUIRED", "FORBIDDEN", "REQUEST_INVALID",
+  "CURSOR_RESET", "ORIGINAL_UNAVAILABLE", "SERVICE_UNAVAILABLE",
+]);
+function populationRelayBody(body: unknown): { schema: string; code: string; reason?: string } {
+  const source = typeof body === "object" && body !== null ? body as Record<string, unknown> : null;
+  const code = source !== null && typeof source.code === "string" ? source.code : null;
+  if (code !== null && POPULATION_RELAY_CODES.has(code)) {
+    const reason = source !== null && typeof source.reason === "string"
+      && source.reason.length > 0 && source.reason.length <= 160 ? source.reason : undefined;
+    return { schema: POPULATION_RELAY_SCHEMA, code, ...(reason !== undefined ? { reason } : {}) };
+  }
+  return { schema: POPULATION_RELAY_SCHEMA, code: "UPSTREAM_UNAVAILABLE" };
 }
 
 /** Closed grammar for the three population forms. null = not a population request. */
@@ -401,14 +425,14 @@ async function readPopulation(req: Request, query: PopulationQuery): Promise<Res
       headers: { Cookie: authCookie, Accept: "application/json" },
     });
     if (!response.ok) {
-      // Relay the owner's refusal status and body VERBATIM: the client's refusal
-      // table (409 CURSOR_RESET, 404 ORIGINAL_UNAVAILABLE, 503 retry) reads the
-      // owner's own codes, not this gateway's paraphrase of them.
+      // Relay the owner's refusal STATUS and the trimmed body: the client's
+      // refusal table (409 CURSOR_RESET, 404 ORIGINAL_UNAVAILABLE, 503 retry)
+      // reads the owner's own codes, but nothing else the owner wrote — hosts,
+      // paths, stacks, tokens — ever reaches the browser (S3).
       let body: unknown = null;
       try { body = (await readJson(response)).data; } catch { body = null; }
       const retryAfter = response.headers.get("retry-after");
-      return NextResponse.json(
-        body ?? { error: "population_refused", code: "UPSTREAM_UNAVAILABLE" },
+      return NextResponse.json(populationRelayBody(body),
         { status: response.status, headers: { ...POPULATION_HEADERS, ...(retryAfter ? { "Retry-After": retryAfter } : {}) } });
     }
     let parsed: { data: unknown; hash: string };

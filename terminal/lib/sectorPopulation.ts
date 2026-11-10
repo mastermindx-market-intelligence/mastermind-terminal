@@ -377,6 +377,18 @@ export function sectorPopulationPage(value: unknown): PopulationPage | null {
     unservedMatching = (page.unserved_matching as unknown[]).map(entry => unservedEntry(entry)!);
   }
 
+  // Internal consistency (review S2): the wire's own invariants. A page that
+  // breaks them is refused whole — the surface reads unavailable, never a
+  // partial table that renders impossible counts or follows an end-of-list
+  // cursor. §1: page.complete is true ⇔ next_cursor is null; §2: complete:true
+  // means served+accounted == configured (nothing unaccounted) and served can
+  // never exceed a stated configured roster; a page never shows more rows
+  // than the filter's own total_matching.
+  if ((page.complete === true) !== (page.next_cursor === null)) return null;
+  if (population.configured_current !== null && population.served > population.configured_current) return null;
+  if (population.complete === true && population.unaccounted > 0) return null;
+  if (rows.length > page.total_matching) return null;
+
   return {
     sourceSession: value.source_session, publishedAt: value.published_at,
     qualification: value.qualification as PopulationPage["qualification"],
@@ -442,15 +454,16 @@ export type PopulationFetch = { group?: string; q?: string; limit?: number; curs
  * a caller abort propagates as a throw so React state stays owned by the caller.
  */
 export async function fetchSectorPopulation(query: PopulationFetch = {}): Promise<PopulationRead> {
+  // `source=population` already rides the base URL — never a second copy (review N2).
   const params = new URLSearchParams();
-  params.set("source", "population");
   if (query.group !== undefined) params.set("group", query.group);
   if (query.q !== undefined) params.set("q", query.q);
   if (query.limit !== undefined) params.set("limit", String(query.limit));
   if (query.cursor !== undefined) params.set("cursor", query.cursor);
   let response: Response;
+  const url = [...params].length ? `${SECTOR_POPULATION_URL}&${params.toString()}` : SECTOR_POPULATION_URL;
   try {
-    response = await fetch(`${SECTOR_POPULATION_URL}&${params.toString()}`,
+    response = await fetch(url,
       { credentials: "same-origin", cache: "no-store", signal: query.signal });
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") throw error;

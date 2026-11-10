@@ -23,7 +23,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import { useSectorT } from "@/lib/sectorIntelligenceLex";
 import { fetchSectorPopulation, POPULATION_QUERY,
-  type PopulationPage, type PopulationRead, type PopulationUnservedReason } from "@/lib/sectorPopulation";
+  type PopulationGroupIndexEntry, type PopulationPage, type PopulationRead, type PopulationUnservedReason } from "@/lib/sectorPopulation";
 import { nativeFill } from "./SectorNativeJobShell";
 import styles from "./SectorNative.module.css";
 import shell from "./SectorIntelligenceWorkspace.module.css";
@@ -51,6 +51,15 @@ export default function SectorPopulationMembers() {
   const [query, setQuery] = useState("");
   const [applied, setApplied] = useState<string | null>(null);
   const [cursorNote, setCursorNote] = useState<string | null>(null);
+  // B1 (review): the wire carries `group_index` ONLY on the unfiltered first
+  // page. The list is captured once per capture — `contextRef` identifies the
+  // capture — and lives for the capture's life: filtered reads and cursor
+  // continuations never drop it, a NEW capture re-learns its own list (or
+  // honestly disables when none was received for that capture).
+  const [groupCapture, setGroupCapture] = useState<{ ref: string; entries: PopulationGroupIndexEntry[] | null } | null>(null);
+  // N4 (review): a failed continuation keeps every loaded page; this flag swaps
+  // the Load-more affordance for a per-page failure line with its own retry.
+  const [pageFailure, setPageFailure] = useState(false);
   const seq = useRef(0);
   const abort = useRef<AbortController | null>(null);
   // Language must not re-trigger the fetch cycle; copy is read at paint time.
@@ -71,9 +80,18 @@ export default function SectorPopulationMembers() {
       cursor: opts.cursor, signal: controller.signal,
     }).catch(() => null as PopulationRead | null);
     if (mine !== seq.current) return;
-    if (read === null) { setPhase("retry"); return; }
+    if (read === null) {
+      // N4: a continuation that died in transport keeps the loaded pages; a
+      // page-one read keeps the plain retry state.
+      if (opts.cursor) { setPageFailure(true); return; }
+      setPhase("retry"); return;
+    }
     if (read.status === "ok") {
       setPages(previous => opts.cursor ? [...previous, read.page] : [read.page]);
+      setGroupCapture(previous => previous?.ref === read.page.contextRef
+        ? previous
+        : { ref: read.page.contextRef, entries: read.page.groupIndex });
+      setPageFailure(false);
       setPhase("ready");
       setCursorNote(opts.restartNote ?? null);
       return;
@@ -83,6 +101,7 @@ export default function SectorPopulationMembers() {
       // recognised): restart page one with the SAME filter; never drop the
       // reader into a half-old, half-new list.
       setPages([]);
+      setPageFailure(false);
       setPhase("loading");
       const fresh = await fetchSectorPopulation({
         group: group || undefined, q: applied ?? undefined, signal: controller.signal,
@@ -92,6 +111,13 @@ export default function SectorPopulationMembers() {
       else if (fresh.status === "ok") { setPages([fresh.page]); setPhase("ready"); }
       else setPhase(fresh.status);
       setCursorNote(tRef.current("siPopulationCursorReset"));
+      return;
+    }
+    if (opts.cursor) {
+      // N4: the continuation was refused or failed — keep every loaded page and
+      // surface the failure at the list tail with its own retry; a denied or
+      // retriable continuation is not a reason to forget what was already read.
+      setPageFailure(true);
       return;
     }
     setPages([]);
@@ -107,7 +133,9 @@ export default function SectorPopulationMembers() {
   const counts = head?.counts ?? null;
   const rows = pages.flatMap(page => page.rows);
   const nextCursor = pages.length ? pages[pages.length - 1].nextCursor : null;
-  const groupIndex = head?.groupIndex ?? null;
+  // The picker reads the CAPTURE's list (B1), not the current page's — a
+  // filtered page never carries group_index, and that must not dead-end it.
+  const groupIndex = groupCapture?.entries ?? null;
   const visibleGroup = group ? (head?.groups.find(entry => entry.groupId === group) ?? null) : null;
   const refusedSelected = group ? (visibleGroup?.refusedByOwner
     || groupIndex?.find(entry => entry.groupId === group)?.refusedByOwner || false) : false;
@@ -120,7 +148,11 @@ export default function SectorPopulationMembers() {
     event.preventDefault();
     const next = query.trim();
     if (next !== "" && !POPULATION_QUERY.test(next)) return; // inline guard below renders the reason
-    setApplied(next === "" ? null : next);
+    const nextApplied = next === "" ? null : next;
+    // B2: `run` is keyed on [group, applied] — an unchanged query fires no
+    // request, so it must also never enter a "loading" nothing-will-leave state.
+    if (nextApplied === applied) return;
+    setApplied(nextApplied);
     setPhase("loading");
   };
 
@@ -145,7 +177,11 @@ export default function SectorPopulationMembers() {
     <div className={styles.populationControls}>
       <label className={styles.populationLabel} htmlFor="sector-population-group">{t("siPopulationGroupLabel")}</label>
       <select id="sector-population-group" className={shell.button} value={group}
-        onChange={event => { setGroup(event.target.value); setPhase("loading"); }} disabled={!groupIndex}>
+        onChange={event => {
+          if (event.target.value === group) return; // same filter: no request fires, no loading state
+          setGroup(event.target.value);
+          setPhase("loading");
+        }} disabled={!groupIndex}>
         <option value="">{t("siPopulationGroupAll")}</option>
         {groupIndex?.map(entry => <option key={entry.groupId} value={entry.groupId}>
           {entry.refusedByOwner
@@ -202,10 +238,15 @@ export default function SectorPopulationMembers() {
         </table>
         <p className={styles.chartNote}>
           {nativeFill(t("siPopulationShown"), { shown: String(rows.length), total: String(head.totalMatching) })}
-          {nextCursor !== null ? <button type="button" className={shell.button}
+          {nextCursor !== null && !pageFailure ? <button type="button" className={shell.button}
             data-testid="sector-population-load-more"
             onClick={() => void run({ cursor: nextCursor })}>{t("siPopulationLoadMore")}</button> : null}
         </p>
+        {pageFailure && nextCursor !== null ? <p className={styles.stateCopy} role="alert" data-testid="sector-population-page-failure">
+          {t("siPopulationPageFailed")}{" "}
+          <button type="button" className={shell.button} data-testid="sector-population-page-retry"
+            onClick={() => { setPageFailure(false); void run({ cursor: nextCursor }); }}>{t("siPopulationRetryAction")}</button>
+        </p> : null}
       </div>
       : null}
 
