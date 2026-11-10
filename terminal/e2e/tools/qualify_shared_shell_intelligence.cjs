@@ -56,6 +56,44 @@ let theme='dark',locale='en', browser, child, childClosed, fixture;
 report.authReads=0;
 report.outputOutsideProject=true;
 report.overviewNavigations=[];
+report.reloadDiagnostics={counts:{},events:[]};
+function diagnostic(kind,value){
+ const key=kind+':'+String(value.type||value.event||value.reason||'observed').slice(0,80);
+ report.reloadDiagnostics.counts[key]=(report.reloadDiagnostics.counts[key]||0)+1;
+ if(report.reloadDiagnostics.events.length<128)report.reloadDiagnostics.events.push({at:Date.now(),kind,...value});
+}
+async function observeReloads(ctx,page){
+ page.on('console',message=>{
+  const text=message.text();
+  if(['warning','error'].includes(message.type())||/HMR|Fast Refresh|Turbopack|full reload/i.test(text))
+   diagnostic('console',{type:message.type(),text:text.slice(0,2048)});
+ });
+ page.on('websocket',socket=>{
+  const pathname=new URL(socket.url()).pathname;
+  if(!['/_next/hmr','/_next/webpack-hmr'].includes(pathname))return;
+  for(const direction of ['framesent','framereceived'])socket.on(direction,frame=>{
+   const payload=frame.payload,bytes=Buffer.byteLength(payload);
+   if(typeof payload!=='string'||bytes>1024*1024){diagnostic(direction,{path:pathname,bytes,binary:typeof payload!=='string'});return;}
+   try{
+    const value=JSON.parse(payload);
+    diagnostic(direction,{path:pathname,bytes,type:value.type,event:value.event,action:value.action,
+     hmrVersion:value.hmrVersion,dataHmrVersion:value.data?.hmrVersion,sessionId:value.data?.sessionId,
+     resource:value.resource,dataType:value.data?.type,hadRuntimeError:value.hadRuntimeError,
+     reason:typeof value.reason==='string'?value.reason.slice(0,2048):undefined,
+     stackTrace:typeof value.stackTrace==='string'?value.stackTrace.slice(0,4096):undefined,
+     dependencyChain:Array.isArray(value.dependencyChain)?value.dependencyChain.slice(0,8):undefined});
+   }catch{diagnostic(direction,{path:pathname,bytes,nonJson:true});}
+  });
+ });
+ const protocol=await ctx.newCDPSession(page);
+ await protocol.send('Page.enable');await protocol.send('Network.enable');
+ protocol.on('Page.frameRequestedNavigation',event=>diagnostic('navigation',{reason:event.reason,path:new URL(event.url).pathname,frameId:event.frameId}));
+ protocol.on('Network.requestWillBeSent',event=>{
+  if(event.type!=='Document')return;
+  diagnostic('document',{path:new URL(event.request.url).pathname,redirectStatus:event.redirectResponse?.status,
+   initiator:event.initiator?.type,stack:event.initiator?.stack?.callFrames?.slice(0,8).map(frame=>({functionName:frame.functionName,url:frame.url,lineNumber:frame.lineNumber,columnNumber:frame.columnNumber}))});
+ });
+}
 const now = Math.floor(Date.now()/1000);
 const enc = v=>Buffer.from(JSON.stringify(v)).toString('base64url');
 const head=enc({alg:'HS256',typ:'JWT'}),body=enc({sub:OWNER,email:'research-fixture@example.test',aud:'authenticated',role:'authenticated',iat:now,exp:now+3600});
@@ -122,6 +160,7 @@ async function overflow(page){return page.evaluate(()=>({document:document.docum
   }
   for(const [w,h] of [[1440,900],[820,1180],[390,844]])for(const mode of [['dark','en'],['light','zh']]){
    [theme,locale]=mode;const ctx=await context();const page=await ctx.newPage();await page.setViewportSize({width:w,height:h});
+   await observeReloads(ctx,page);
    page.on('pageerror',e=>report.errors.push({cell:`${w}-${theme}-${locale}`,error:e.message}));
    const documentNavigations=[];
    report.overviewNavigations.push({cell:`${w}-${theme}-${locale}`,documents:documentNavigations});
