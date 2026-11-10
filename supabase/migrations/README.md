@@ -230,6 +230,7 @@ Forex R26 claim (2026-10-21): draft **PR #1100**, opened at 12:17:40Z and read b
 | `0047` | `investigation_options_selection_evidence` | OPT006-V3-SAVE-ADMISSION (Options Research Lab save admission, seat ruling D111, Lane 1a), branch `claude/oi-opt006l1-20261102`, [PR #1222](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1222) (merged as `3cc8da8432d8d2d4e4cb597f49c4eaa95f1980c9` on 2026-11-03, packet OPT006-V3-SAVE-ADMISSION) | merged; **UNAPPLIED**, application is a separate user-only step; requires 0042 applied first and 0043 (#804) NOT applied (guarded) |
 | `0048` | `brief_delivery_team_sharing` | MMOS-AT20-BRIEF-TEAM-ACCESS, [PR #1279](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1279); exact delivered brief → one existing team, view only | Source only; **UNAPPLIED**; no live share/grant or native identity mapping |
 | `0052` | `sector_intelligence_investigation_admission` | SI-P16-LANE6-INVESTIGATION-ADMISSION (Sector Intelligence durable investigations, Lane 6), [PR #1410](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1410); investigation v2 subject/evidence admission widened by the packet-3.2 owner/kind and owner/type pairs, pinned-only per-type rules, per-type probe examples + subject probe | Source only; **UNAPPLIED**; composes over the exact 0047 body (md5 guard refuses the installed 0040 and the 0042 shape); operator sequence 0042 → 0047 → 0052, each explicitly |
+| `0053` | `investigation_v3_prophet_decision_admission` | SI-P16-LANE6-V3-INVESTIGATION-ADMISSION (Prophet D05 investigation v3, Lane 6), [PR #1425](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/1425); STACKED on 0052 / #1410; v3 validator (`user_decision` + milestones, `prophet.research` evidence, Sector `context_ref`/`member_sha256`) behind a dispatcher, exact core copy of the 0052 validator, probe example | Source only; **UNAPPLIED**; composes over the exact 0052 body (md5 guard); operator sequence 0042 → 0047 → 0052 → 0053, each explicitly, only after lane 9's retention/current-rights qualification |
 
 `0001`–`0007` and `0010` are **historical**: they predate this ledger, their creating pull
 requests were never recorded in-repo, and so their `pr` and `pr_state` fields in
@@ -522,3 +523,23 @@ and f for a stranger, (iv) the anon denials, (v) the md5, (vi) the ACL rows. Dow
 (emergency only): strip one leading `-- ` per line below `-- down:` and apply as ONE
 request — one guarded transaction restoring the exact 0047 validator and probe bytes and
 dropping the subject probe.
+
+### 0053 — Prophet D05 investigation v3 admission (source only, UNAPPLIED, stacked on 0052)
+
+Packet `SI-P16-LANE6-V3-INVESTIGATION-ADMISSION` (Lane 6) claims **0053**,
+`0053_investigation_v3_prophet_decision_admission.sql`, on branch
+`claude/ssd-si-lane6-v3-reader-carrier-20261110`, PR #1425, **stacked on #1410 (0052) and not to merge before it**.
+Allocator census 2026-11-10 (after `git fetch`, 99 open PRs, migration files and `RESERVATIONS.json` rows ≥0049):
+master ends at `0048`; open claims 0049 #1290, 0050 #1048, 0051 #1312, 0052 #1410; max+1 = **0053**.
+
+**Composes over the exact 0052 body only** (md5 `75f2b7feba6b3c9f177f4cda6c3605e9`; refuses 0040/0042/0047 shapes). It copies that
+body verbatim to `valid_investigation_manifest_core_v2` (made from the installed definition, so it cannot drift), adds
+`valid_investigation_manifest_v3` (the v2 fields plus the closed optional `user_decision`, the closed `prophet.research` evidence
+namespace, and the v3-only Sector keys `context_ref` hint / `member_sha256` durable capture identity; every other rule is delegated to
+the core copy) and turns `valid_investigation_manifest_v2` into a dispatcher so `apply_investigation_revision_v2` and all other callers
+keep their RPC names. It does **not** replace `apply_investigation_revision_v2`: the installed body (md5
+`a14a4abf290ca9dc99f89b19617c7e9c`, read from the production catalog 2026-11-10) already carries the transactional same-owner exact
+Thesis-version join, so this file neither contends with #1312 (0051) over that function nor needs its own pin of it. The down block
+refuses while any `investigation_manifest.v3` revision exists (created records are never stranded) and otherwise restores the exact 0052
+validator and probe. Operator order on the installed ledger: 0042 → 0047 → 0052 → 0053, each explicitly, one request per file, 0053
+only after lane 9's retention/current-rights qualification.

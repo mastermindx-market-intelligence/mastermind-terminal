@@ -31,7 +31,7 @@ export const INVESTIGATION_MAX_MILESTONE_EVIDENCE_INDEXES = 16;
 export const PROPHET_RESEARCH_EVIDENCE_TYPES: readonly string[] = ["today_selection", "b03_occurrence", "plan_origin", "evaluation"];
 /** One RFC 3339 profile shared byte-for-byte with Python and the SQL validator: calendar date,
  *  `T`, hh:mm:ss, optional 1-9 fractional digits, and `Z` or a numeric offset. */
-const RFC3339 = /^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]{1,9})?(Z|[+-]([01][0-9]|2[0-3]):[0-5][0-9])$/;
+const RFC3339 = /^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]{1,9})?(Z|[+-](0[0-9]|1[0-4]):[0-5][0-9])$/;
 /** Persisted advisory resolver hint for a retained Sector capture (lane 1 `page.context_ref`, ≤1024). */
 const CONTEXT_REF = /^[A-Za-z0-9_.-]{1,1024}$/;
 /** Lane 1 compatibility tuple `capture.owner_ref.member_sha256` keys (source member paths), ≤8 entries. */

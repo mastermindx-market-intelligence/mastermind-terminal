@@ -18,7 +18,7 @@ UUID = re.compile(r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\Z")
 DIGEST = re.compile(r"[0-9a-f]{64}\Z")
 # Prophet D05 investigation_manifest.v3 (READ extension of v2; v3 writes stay closed in the TS command
 # parser and the shared admission registry). RFC 3339 profile is byte-identical to TS and SQL.
-RFC3339 = re.compile(r"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]{1,9})?(Z|[+-]([01][0-9]|2[0-3]):[0-5][0-9])\Z")
+RFC3339 = re.compile(r"[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]{1,9})?(Z|[+-](0[0-9]|1[0-4]):[0-5][0-9])\Z")
 CONTEXT_REF = re.compile(r"[A-Za-z0-9_.-]{1,1024}\Z")
 MEMBER_PATH = re.compile(r"[A-Za-z0-9][A-Za-z0-9_./-]{0,127}\Z")
 MAX_MEMBER_SHA256 = 8

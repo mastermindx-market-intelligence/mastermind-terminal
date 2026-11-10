@@ -554,6 +554,17 @@
       "applied_in_production": false,
       "applied_date": null,
       "note": "Renumbered from 0049 by the COO-ruled allocator collision resolution: PR #1290 (opened 2026-11-04) holds 0049 as the earlier open claim, so this later PR renumbers before merging (README rule (b)). Allocator census 2026-11-10 at renumber time: master ends at 0048; open claims are 0049 #1290, 0050 #1048, 0051 #1312, so max+1 = 0052. 0049 is released by this PR without a row here (it is #1290's number). File name and ledger header are the only SQL bytes that changed; the function bodies, md5 pins (0047 body a554c15c1ae58dfbd34d04bcda9b5e48 / own body 75f2b7feba6b3c9f177f4cda6c3605e9), guards, grants and rollback block are byte-identical, so the in-file '0049' text is the original packet label, not the prefix. Original claim text: Claimed on branch claude/ssd-si-lane6-348496b978466f6e for Sector Intelligence Lane 6 (durable Sector/GMI Investigation admission) after the prefix census on 2026-11-09: prefixes through 0048 taken in this ledger, no open PR claims 0049+ (gh pr list over open PRs, no 0049+ migration path). Composes over the exact 0047 valid_investigation_manifest_v2 body (guard md5 pin plus markers valid_investigation_scenario_reference_v1 and options_matrix_selection): subject allow-list widened by macro.sector/sector on the captured 11-sector native cohort and theme_graph.identity theme/basket/company owner-resolved grammars; evidence allow-list widened by macro.sector sector_observation/basket_observation and theme_graph.curation_assertion curation_assertion, all pinned-only with required version_ref+fingerprint and no selection; evidence probe rebuilt with a valid minimal example per new type plus one narrow investigation_subject_admitted_v2(text,text) probe, both granted to authenticated only. Source only, UNAPPLIED: no application has occurred, so the applied date is not recorded, and application is a separate user-only step and the operator sequence on the installed ledger (0040 applied; 0042/0047 merged but unapplied) is 0042 then 0047 then this file, each explicitly."
+    },
+    "0053": {
+      "state": "taken",
+      "file": "0053_investigation_v3_prophet_decision_admission.sql",
+      "packet": "SI-P16-LANE6-V3-INVESTIGATION-ADMISSION",
+      "pr": 1425,
+      "pr_state": "open",
+      "merged_sha": null,
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "Application date not recorded because this source-only migration remains unapplied. Source only, UNAPPLIED, stacked on 0052 (PR #1410) and must not merge before it. Allocator census 2026-11-10 at authoring time (after git fetch; 99 open PRs; migration files AND RESERVATIONS.json rows >=0049 across all of them): master ends at 0048; open claims 0049 #1290, 0050 #1048, 0051 #1312, 0052 #1410; max+1 = 0053. Composes over the exact 0052 valid_investigation_manifest_v2 body (md5 75f2b7feba6b3c9f177f4cda6c3605e9): installs an exact core copy of that body, a v3 validator (Prophet D05 user_decision/milestones, prophet.research evidence, macro.sector context_ref hint and member_sha256 identity) and a dispatcher under the existing validator name, plus a probe example. Does NOT replace apply_investigation_revision_v2 (installed body md5 a14a4abf290ca9dc99f89b19617c7e9c already carries the same-owner exact Thesis-version join), so it does not contend with #1312 (0051) over that function. No table, policy, row, retention, entitlement or source read; v3 app writes stay closed."
     }
   }
 }
