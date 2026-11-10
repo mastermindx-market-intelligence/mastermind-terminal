@@ -24,6 +24,27 @@ const SUBJECT_KINDS = new Set([
   "security", "issuer", "industry", "subtheme", "theme", "regime", "economy",
   "event", "portfolio", "option_underlying", "option_contract", "policy_question",
 ]);
+/** Sector Intelligence (packet §3.2): sector/basket/company are admitted ONLY by v2
+ *  validation. The shared v1 kind set above stays byte-identical. */
+const SUBJECT_KINDS_V2 = new Set([...SUBJECT_KINDS, "sector", "basket", "company"]);
+
+/** The exact macro.sector owner-qualified native subject cohort (captured 11-sector wire).
+ *  Admission is this explicit list — never ticker/name guessing or region inference. */
+export const SECTOR_INVESTIGATION_COHORT: readonly string[] = [
+  "xlb", "xlk", "xlc", "xly", "xlf", "xli", "xle", "xlv", "xlp", "xlu", "xlre",
+];
+/** macro.sector native generation/input token grammar (sector_native_view.receipt.v1). */
+const NATIVE_SECTOR_TOKEN = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/;
+/** theme_graph.identity owner-resolved ids (Macro engine/theme_graph/identity.py). */
+const THEME_ID = /^theme:[a-z0-9][a-z0-9_]{1,62}$/;
+const BASKET_SUITES = ["baskets", "baskets_china", "baskets_china_ths", "baskets_hk", "baskets_canada", "baskets_intl"] as const;
+const BASKET_ID = new RegExp(`^basket:(?:${BASKET_SUITES.join("|")}):[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$`);
+const COMPANY_ID = /^co:(?:us|cn|hk|ca|intl):[A-Za-z0-9.\-]+(?:#[0-9]+)?$/;
+/** macro.sector published basket projection row id (wire grammar). */
+const WIRE_BASKET_ID = /^b-[a-zA-Z0-9_-]{1,100}$/;
+/** theme_graph.curation_assertion native evidence/revision identities. */
+const CURATION_EVIDENCE_ID = /^ev:[0-9a-f]{16}$/;
+const CURATION_REVISION = /^gmirca_[0-9a-f]{32}$/;
 
 export type InvestigationSubject = {
   kind: string;
@@ -97,6 +118,7 @@ class Validator {
   readonly errors: InvestigationValidationError[] = [];
   private nodes = 0;
   private stringUnits = 0;
+  private v2 = false;
   private readonly ancestors = new WeakSet<object>();
   constructor(private readonly admission: InvestigationAdmission) {}
   add(path: string, code: string): void {
@@ -215,9 +237,27 @@ class Validator {
     this.namespace(ref.owner, `${path}.owner`);
     this.text(ref.object_id, `${path}.object_id`, 256, true);
     if (Object.hasOwn(ref, "version_ref")) this.text(ref.version_ref, `${path}.version_ref`, 256, true);
-    if (typeof ref.kind !== "string" || !SUBJECT_KINDS.has(ref.kind) ||
+    if (typeof ref.kind !== "string" || !(this.v2 ? SUBJECT_KINDS_V2 : SUBJECT_KINDS).has(ref.kind) ||
         !(this.admission.subjects ?? []).some(adapter => adapter.owner === ref.owner && adapter.kinds.includes(ref.kind as string))) {
       this.add(path, "unsupported_owner_kind");
+    }
+    // Exact owner-resolved identity for the Sector Intelligence pairs (packet §3.2): a
+    // sector subject is the admitted native cohort id, never a ticker/name guess; a
+    // theme_graph.identity subject carries its owner grammar and is never reinterpreted
+    // as a security/issuer (sector:financials and native xlf stay distinct owners).
+    if (this.v2 && typeof ref.object_id === "string") {
+      if (ref.owner === "macro.sector" && ref.kind === "sector" && !SECTOR_INVESTIGATION_COHORT.includes(ref.object_id)) {
+        this.add(`${path}.object_id`, "invalid_subject_id");
+      }
+      if (ref.owner === "theme_graph.identity" && ref.kind === "theme" && !THEME_ID.test(ref.object_id)) {
+        this.add(`${path}.object_id`, "invalid_subject_id");
+      }
+      if (ref.owner === "theme_graph.identity" && ref.kind === "basket" && !BASKET_ID.test(ref.object_id)) {
+        this.add(`${path}.object_id`, "invalid_subject_id");
+      }
+      if (ref.owner === "theme_graph.identity" && ref.kind === "company" && !COMPANY_ID.test(ref.object_id)) {
+        this.add(`${path}.object_id`, "invalid_subject_id");
+      }
     }
     return JSON.stringify([ref.owner, ref.kind, ref.object_id, ref.version_ref]);
   }
@@ -256,6 +296,31 @@ class Validator {
       field = selection?.field;
       if (selection && (typeof field !== "string" || !FIELD.test(field))) this.add(`${path}.selection.field`, "unsupported_selection");
     }
+    // New Sector Intelligence evidence is pinned-only (packet §3.2): version_ref AND
+    // fingerprint are required, selection stays omitted until a closed per-type selector
+    // vocabulary exists, and each type pins its owner-resolved identity grammar. No JSON
+    // state is ever hidden in object_id, selection.field, title or horizon.
+    if (this.v2) {
+      if (ref.owner === "macro.sector" && (ref.object_type === "sector_observation" || ref.object_type === "basket_observation")) {
+        if (ref.mode !== "pinned") this.add(`${path}.mode`, "pinned_only");
+        if (ref.object_type === "sector_observation" && !(typeof ref.object_id === "string" && SECTOR_INVESTIGATION_COHORT.includes(ref.object_id))) {
+          this.add(`${path}.object_id`, "invalid_object_id");
+        }
+        if (ref.object_type === "basket_observation" && !(typeof ref.object_id === "string" && WIRE_BASKET_ID.test(ref.object_id))) {
+          this.add(`${path}.object_id`, "invalid_object_id");
+        }
+        if (typeof ref.version_ref === "string" && !NATIVE_SECTOR_TOKEN.test(ref.version_ref)) this.add(`${path}.version_ref`, "invalid_version_ref");
+        if (!Object.hasOwn(ref, "fingerprint")) this.add(path, "fingerprint_required");
+        if (Object.hasOwn(ref, "selection")) this.add(`${path}.selection`, "unsupported_selection");
+      }
+      if (ref.owner === "theme_graph.curation_assertion" && ref.object_type === "curation_assertion") {
+        if (ref.mode !== "pinned") this.add(`${path}.mode`, "pinned_only");
+        if (!(typeof ref.object_id === "string" && CURATION_EVIDENCE_ID.test(ref.object_id))) this.add(`${path}.object_id`, "invalid_object_id");
+        if (!(typeof ref.version_ref === "string" && CURATION_REVISION.test(ref.version_ref))) this.add(`${path}.version_ref`, "invalid_version_ref");
+        if (!Object.hasOwn(ref, "fingerprint")) this.add(path, "fingerprint_required");
+        if (Object.hasOwn(ref, "selection")) this.add(`${path}.selection`, "unsupported_selection");
+      }
+    }
     return JSON.stringify([ref.owner, ref.object_type, ref.object_id, ref.mode, ref.version_ref, field]);
   }
   manifest(raw: unknown): void {
@@ -264,6 +329,7 @@ class Validator {
     const manifest = this.object(raw, "$", ["schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation"], ["review_baseline_ref", "review", "scenario_capture"]);
     if (!manifest) return;
     const v2 = manifest.schema === INVESTIGATION_MANIFEST_SCHEMA_V2;
+    this.v2 = v2;
     const questionLimit = v2 ? 4000 : 2000;
     if (!v2 && manifest.schema !== INVESTIGATION_MANIFEST_SCHEMA) this.add("$.schema", "unsupported_schema");
     if (v2 && [manifest.layout_refs, manifest.thesis_refs, manifest.evidence_refs].reduce<number>((n, refs) => n + (Array.isArray(refs) ? refs.length : 0), 0) > 128) {

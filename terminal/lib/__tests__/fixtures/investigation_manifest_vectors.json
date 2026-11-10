@@ -6594,6 +6594,2809 @@
         ],
         "continuation": {}
       }
+    },
+    {
+      "name": "si sector subject admitted",
+      "valid": true,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": [
+            {
+              "kind": "sector",
+              "owner": "macro.sector",
+              "object_id": "xlf"
+            }
+          ]
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si sector subject label id refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": [
+            {
+              "kind": "sector",
+              "owner": "macro.sector",
+              "object_id": "sector:financials"
+            }
+          ]
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si theme subject admitted",
+      "valid": true,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": [
+            {
+              "kind": "theme",
+              "owner": "theme_graph.identity",
+              "object_id": "theme:ai_supply_chain"
+            }
+          ]
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si theme subject bad slug refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": [
+            {
+              "kind": "theme",
+              "owner": "theme_graph.identity",
+              "object_id": "theme:AI Supply"
+            }
+          ]
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si basket subject admitted",
+      "valid": true,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": [
+            {
+              "kind": "basket",
+              "owner": "theme_graph.identity",
+              "object_id": "basket:baskets:nuclear_power"
+            }
+          ]
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si basket subject finviz refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": [
+            {
+              "kind": "basket",
+              "owner": "theme_graph.identity",
+              "object_id": "basket:finviz_themes:ai"
+            }
+          ]
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si company subject admitted",
+      "valid": true,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": [
+            {
+              "kind": "company",
+              "owner": "theme_graph.identity",
+              "object_id": "co:us:AAPL"
+            }
+          ]
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si company subject epoch admitted",
+      "valid": true,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": [
+            {
+              "kind": "company",
+              "owner": "theme_graph.identity",
+              "object_id": "co:us:AAPL#2"
+            }
+          ]
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si company subject market refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": [
+            {
+              "kind": "company",
+              "owner": "theme_graph.identity",
+              "object_id": "co:gb:BP"
+            }
+          ]
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si company never a security",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": [
+            {
+              "kind": "security",
+              "owner": "theme_graph.identity",
+              "object_id": "co:us:AAPL"
+            }
+          ]
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si sector kind under theme_graph owner refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": [
+            {
+              "kind": "sector",
+              "owner": "theme_graph.identity",
+              "object_id": "xlf"
+            }
+          ]
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "v1 rejects si sector kind",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v1",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": [
+            {
+              "kind": "sector",
+              "owner": "macro.sector",
+              "object_id": "xlf"
+            }
+          ]
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "v1 rejects si basket kind",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v1",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": [
+            {
+              "kind": "basket",
+              "owner": "theme_graph.identity",
+              "object_id": "basket:baskets:nuclear_power"
+            }
+          ]
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "v1 rejects si company kind",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v1",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": [
+            {
+              "kind": "company",
+              "owner": "theme_graph.identity",
+              "object_id": "co:us:AAPL"
+            }
+          ]
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si sector observation pinned admitted",
+      "valid": true,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "macro.sector",
+            "object_type": "sector_observation",
+            "object_id": "xlf",
+            "mode": "pinned",
+            "version_ref": "captured-sector-1",
+            "fingerprint": "a3573d7cefe87da155ef7575feb2071b4c32c9f562f42d5724b3ec54332d9eab"
+          }
+        ],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si sector observation follow head refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "macro.sector",
+            "object_type": "sector_observation",
+            "object_id": "xlf",
+            "mode": "follow_head"
+          }
+        ],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si sector observation fingerprint required",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "macro.sector",
+            "object_type": "sector_observation",
+            "object_id": "xlf",
+            "mode": "pinned",
+            "version_ref": "captured-sector-1"
+          }
+        ],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si sector observation fingerprint digest refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "macro.sector",
+            "object_type": "sector_observation",
+            "object_id": "xlf",
+            "mode": "pinned",
+            "version_ref": "captured-sector-1",
+            "fingerprint": "not-a-sha256"
+          }
+        ],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si sector observation version token refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "macro.sector",
+            "object_type": "sector_observation",
+            "object_id": "xlf",
+            "mode": "pinned",
+            "version_ref": "gen/id:bad",
+            "fingerprint": "a3573d7cefe87da155ef7575feb2071b4c32c9f562f42d5724b3ec54332d9eab"
+          }
+        ],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si sector observation selection refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "macro.sector",
+            "object_type": "sector_observation",
+            "object_id": "xlf",
+            "mode": "pinned",
+            "version_ref": "captured-sector-1",
+            "fingerprint": "a3573d7cefe87da155ef7575feb2071b4c32c9f562f42d5724b3ec54332d9eab",
+            "selection": {
+              "field": "close"
+            }
+          }
+        ],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si sector observation label id refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "macro.sector",
+            "object_type": "sector_observation",
+            "object_id": "sector:financials",
+            "mode": "pinned",
+            "version_ref": "captured-sector-1",
+            "fingerprint": "a3573d7cefe87da155ef7575feb2071b4c32c9f562f42d5724b3ec54332d9eab"
+          }
+        ],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si basket observation admitted",
+      "valid": true,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "macro.sector",
+            "object_type": "basket_observation",
+            "object_id": "b-us_defensives",
+            "mode": "pinned",
+            "version_ref": "captured-sector-1",
+            "fingerprint": "a3573d7cefe87da155ef7575feb2071b4c32c9f562f42d5724b3ec54332d9eab"
+          }
+        ],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si basket observation label substitute refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "macro.sector",
+            "object_type": "basket_observation",
+            "object_id": "Defensives",
+            "mode": "pinned",
+            "version_ref": "captured-sector-1",
+            "fingerprint": "a3573d7cefe87da155ef7575feb2071b4c32c9f562f42d5724b3ec54332d9eab"
+          }
+        ],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si basket observation fingerprint required",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "macro.sector",
+            "object_type": "basket_observation",
+            "object_id": "b-us_defensives",
+            "mode": "pinned",
+            "version_ref": "captured-sector-1"
+          }
+        ],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si curation assertion admitted",
+      "valid": true,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_type": "curation_assertion",
+            "object_id": "ev:0123456789abcdef",
+            "mode": "pinned",
+            "version_ref": "gmirca_0123456789abcdef0123456789abcdef",
+            "fingerprint": "a3573d7cefe87da155ef7575feb2071b4c32c9f562f42d5724b3ec54332d9eab"
+          }
+        ],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si curation assertion follow head refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_type": "curation_assertion",
+            "object_id": "ev:0123456789abcdef",
+            "mode": "follow_head"
+          }
+        ],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si curation assertion revision refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_type": "curation_assertion",
+            "object_id": "ev:0123456789abcdef",
+            "mode": "pinned",
+            "version_ref": "gmirca_short",
+            "fingerprint": "a3573d7cefe87da155ef7575feb2071b4c32c9f562f42d5724b3ec54332d9eab"
+          }
+        ],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si curation assertion evidence id refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_type": "curation_assertion",
+            "object_id": "ev:0123456789abc",
+            "mode": "pinned",
+            "version_ref": "gmirca_0123456789abcdef0123456789abcdef",
+            "fingerprint": "a3573d7cefe87da155ef7575feb2071b4c32c9f562f42d5724b3ec54332d9eab"
+          }
+        ],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si curation assertion fingerprint required",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_type": "curation_assertion",
+            "object_id": "ev:0123456789abcdef",
+            "mode": "pinned",
+            "version_ref": "gmirca_0123456789abcdef0123456789abcdef"
+          }
+        ],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si curation owner type refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_type": "sector_observation",
+            "object_id": "xlf",
+            "mode": "pinned",
+            "version_ref": "captured-sector-1",
+            "fingerprint": "a3573d7cefe87da155ef7575feb2071b4c32c9f562f42d5724b3ec54332d9eab"
+          }
+        ],
+        "continuation": {}
+      }
+    },
+    {
+      "name": "si sector observation review baseline admitted",
+      "valid": true,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {},
+        "review_baseline_ref": {
+          "owner": "macro.sector",
+          "object_type": "sector_observation",
+          "object_id": "xlf",
+          "mode": "pinned",
+          "version_ref": "captured-sector-1",
+          "fingerprint": "a3573d7cefe87da155ef7575feb2071b4c32c9f562f42d5724b3ec54332d9eab"
+        }
+      }
+    },
+    {
+      "name": "si command template shape admitted",
+      "valid": true,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": [
+            {
+              "kind": "sector",
+              "owner": "macro.sector",
+              "object_id": "xlf"
+            }
+          ],
+          "horizon": "63 sessions",
+          "research_as_of": "2026-11-06"
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [
+          {
+            "owner": "macro.sector",
+            "object_type": "sector_observation",
+            "object_id": "xlf",
+            "mode": "pinned",
+            "version_ref": "captured-sector-1",
+            "fingerprint": "a3573d7cefe87da155ef7575feb2071b4c32c9f562f42d5724b3ec54332d9eab"
+          }
+        ],
+        "continuation": {
+          "next_observation": "Review participation and concentration on the next qualified observation"
+        }
+      }
+    },
+    {
+      "name": "si distinct sector subjects admitted",
+      "valid": true,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "kinds": [
+              "sector"
+            ]
+          },
+          {
+            "owner": "theme_graph.identity",
+            "kinds": [
+              "theme",
+              "basket",
+              "company"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          },
+          {
+            "owner": "terminal.options_exposure",
+            "object_types": [
+              "exposure_chart_request",
+              "sector_origin",
+              "rotation_measurement",
+              "options_matrix_selection"
+            ]
+          },
+          {
+            "owner": "macro.sector",
+            "object_types": [
+              "sector_observation",
+              "basket_observation"
+            ]
+          },
+          {
+            "owner": "theme_graph.curation_assertion",
+            "object_types": [
+              "curation_assertion"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Financials leadership",
+          "question": "Is the 63-session leadership supported by participation?",
+          "subjects": [
+            {
+              "kind": "sector",
+              "owner": "macro.sector",
+              "object_id": "xlf"
+            },
+            {
+              "kind": "sector",
+              "owner": "macro.sector",
+              "object_id": "xlk"
+            }
+          ]
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {}
+      }
     }
   ]
 }

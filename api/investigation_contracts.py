@@ -19,6 +19,24 @@ DIGEST = re.compile(r"[0-9a-f]{64}\Z")
 NAMESPACE = re.compile(r"[a-z][a-z0-9_.-]{0,63}\Z")
 FIELD = re.compile(r"[A-Za-z0-9_][A-Za-z0-9_.:-]{0,127}\Z")
 KINDS = frozenset(("security", "issuer", "industry", "subtheme", "theme", "regime", "economy", "event", "portfolio", "option_underlying", "option_contract", "policy_question"))
+# Sector Intelligence (packet 3.2): sector/basket/company are admitted ONLY by v2
+# validation; the shared v1 kind set above stays byte-identical.
+KINDS_V2 = KINDS | frozenset(("sector", "basket", "company"))
+
+# The exact macro.sector owner-qualified native subject cohort (captured 11-sector wire).
+SECTOR_INVESTIGATION_COHORT = ("xlb", "xlk", "xlc", "xly", "xlf", "xli", "xle", "xlv", "xlp", "xlu", "xlre")
+# macro.sector native generation/input token grammar (sector_native_view.receipt.v1).
+NATIVE_SECTOR_TOKEN = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}\Z")
+# theme_graph.identity owner-resolved ids (Macro engine/theme_graph/identity.py).
+THEME_ID = re.compile(r"theme:[a-z0-9][a-z0-9_]{1,62}\Z")
+BASKET_SUITES = ("baskets", "baskets_china", "baskets_china_ths", "baskets_hk", "baskets_canada", "baskets_intl")
+BASKET_ID = re.compile(r"basket:(baskets|baskets_china|baskets_china_ths|baskets_hk|baskets_canada|baskets_intl):[A-Za-z0-9][A-Za-z0-9_.-]{0,127}\Z")
+COMPANY_ID = re.compile(r"co:(us|cn|hk|ca|intl):[A-Za-z0-9.\-]+(#[0-9]+)?\Z")
+# macro.sector published basket projection row id (wire grammar).
+WIRE_BASKET_ID = re.compile(r"b-[a-zA-Z0-9_-]{1,100}\Z")
+# theme_graph.curation_assertion native evidence/revision identities.
+CURATION_EVIDENCE_ID = re.compile(r"ev:[0-9a-f]{16}\Z")
+CURATION_REVISION = re.compile(r"gmirca_[0-9a-f]{32}\Z")
 
 
 class Invalid(ValueError):
@@ -99,7 +117,21 @@ def validate_investigation_manifest(raw, admission=None):
             text(r["object_id"], p + ".object_id", 256, True)
             if "version_ref" in r:
                 text(r["version_ref"], p + ".version_ref", 256, True)
-            require(type(r["kind"]) is str and r["kind"] in KINDS and any(a["owner"] == r["owner"] and r["kind"] in a["kinds"] for a in admission.get("subjects", [])), p, "unsupported_owner_kind")
+            require(type(r["kind"]) is str and r["kind"] in (KINDS_V2 if v2 else KINDS) and any(a["owner"] == r["owner"] and r["kind"] in a["kinds"] for a in admission.get("subjects", [])), p, "unsupported_owner_kind")
+            # Exact owner-resolved identity for the Sector Intelligence pairs (packet 3.2):
+            # a sector subject is the admitted native cohort id, never a ticker/name guess;
+            # a theme_graph.identity subject keeps its owner grammar and is never
+            # reinterpreted as a security/issuer (sector:financials and native xlf stay
+            # distinct owners, joined only by an explicit versioned owner crosswalk).
+            if v2:
+                if r["owner"] == "macro.sector" and r["kind"] == "sector":
+                    require(r["object_id"] in SECTOR_INVESTIGATION_COHORT, p + ".object_id", "invalid_subject_id")
+                if r["owner"] == "theme_graph.identity" and r["kind"] == "theme":
+                    pattern(r["object_id"], p + ".object_id", THEME_ID, "invalid_subject_id")
+                if r["owner"] == "theme_graph.identity" and r["kind"] == "basket":
+                    pattern(r["object_id"], p + ".object_id", BASKET_ID, "invalid_subject_id")
+                if r["owner"] == "theme_graph.identity" and r["kind"] == "company":
+                    pattern(r["object_id"], p + ".object_id", COMPANY_ID, "invalid_subject_id")
             return [r["owner"], r["kind"], r["object_id"], r.get("version_ref")]
 
         def layout(v, p):
@@ -134,6 +166,29 @@ def validate_investigation_manifest(raw, admission=None):
             if "selection" in r:
                 field = obj(r["selection"], p + ".selection", ("field",))["field"]
                 pattern(field, p + ".selection.field", FIELD, "unsupported_selection")
+            # New Sector Intelligence evidence is pinned-only (packet 3.2): version_ref AND
+            # fingerprint are required, selection stays omitted until a closed per-type
+            # selector vocabulary exists, and each type pins its owner-resolved identity
+            # grammar. No JSON state is ever hidden in object_id, selection.field, title
+            # or horizon.
+            if v2:
+                if r["owner"] == "macro.sector" and r["object_type"] in ("sector_observation", "basket_observation"):
+                    require(r["mode"] == "pinned", p + ".mode", "pinned_only")
+                    if r["object_type"] == "sector_observation":
+                        require(r["object_id"] in SECTOR_INVESTIGATION_COHORT, p + ".object_id", "invalid_object_id")
+                    else:
+                        pattern(r["object_id"], p + ".object_id", WIRE_BASKET_ID, "invalid_object_id")
+                    if "version_ref" in r:
+                        pattern(r["version_ref"], p + ".version_ref", NATIVE_SECTOR_TOKEN, "invalid_version_ref")
+                    require("fingerprint" in r, p, "fingerprint_required")
+                    require("selection" not in r, p + ".selection", "unsupported_selection")
+                if r["owner"] == "theme_graph.curation_assertion" and r["object_type"] == "curation_assertion":
+                    require(r["mode"] == "pinned", p + ".mode", "pinned_only")
+                    pattern(r["object_id"], p + ".object_id", CURATION_EVIDENCE_ID, "invalid_object_id")
+                    if "version_ref" in r:
+                        pattern(r["version_ref"], p + ".version_ref", CURATION_REVISION, "invalid_version_ref")
+                    require("fingerprint" in r, p, "fingerprint_required")
+                    require("selection" not in r, p + ".selection", "unsupported_selection")
             return [r["owner"], r["object_type"], r["object_id"], r["mode"], r.get("version_ref"), field]
 
         def refs(values, p, maximum, check):
