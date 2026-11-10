@@ -33,6 +33,8 @@ export interface CycleChartFullscreenProps {
   cursor: string | null;
   onCursor: (date: string | null) => void;
   benchmark: string;
+  /** Event date → first-known (confirmed-at) date, SP11. Distinct facts. */
+  firstKnown?: Record<string, string>;
 }
 
 export default function CycleChartFullscreen(props: CycleChartFullscreenProps) {
@@ -273,7 +275,7 @@ export default function CycleChartFullscreen(props: CycleChartFullscreenProps) {
                       : `M${cx - 4} ${padT + 8} L${cx} ${padT + 2} L${cx + 4} ${padT + 8} Z`
                   }
                 >
-                  <title>{`${turn.date} · ${turn.kind}${turn.provisional ? " · " + t("scProvisional") : ""}`}</title>
+                  <title>{`${turn.date} · ${turn.kind}${turn.provisional ? " · " + t("scProvisional") : ""}${props.firstKnown?.[turn.date] ? " · " + t("scTurnKnownSince", { date: props.firstKnown[turn.date] }) : ""}`}</title>
                 </path>
               );
             })}

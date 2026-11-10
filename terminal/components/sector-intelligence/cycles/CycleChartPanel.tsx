@@ -52,6 +52,8 @@ export interface CycleChartPanelProps {
   valuesOffset: number;
   onValuesOffset: (offset: number) => void;
   benchmark: string;
+  /** Event date → first-known (confirmed-at) date, SP11. Distinct facts. */
+  firstKnown?: Record<string, string>;
 }
 
 const DAY_MS = 86_400_000;
@@ -161,9 +163,9 @@ export default function CycleChartPanel(props: CycleChartPanelProps) {
             value={props.rangeLimit}
             onChange={(e) => props.onRangeLimit(Number(e.target.value))}
           >
-            <option value={21}>{t("scRange1m")}</option>
-            <option value={63}>{t("scRange3m")}</option>
-            <option value={252}>{t("scRange1y")}</option>
+            <option value={21}>{t("scRange21")}</option>
+            <option value={63}>{t("scRange63")}</option>
+            <option value={252}>{t("scRange252")}</option>
             <option value={0}>{t("scRangeAll")}</option>
           </select>
         </label>
@@ -393,8 +395,9 @@ export default function CycleChartPanel(props: CycleChartPanelProps) {
         </>
       )}
 
-      <div className={s.turns}>
+      <div className={s.turns} data-testid="cycle-turns">
         <h4>{t("scTurns")}</h4>
+        <p className={s.note}>{t("scTurnDateNote")}</p>
         {(() => {
           const list = props.turns
             .filter((v) => {
@@ -408,6 +411,9 @@ export default function CycleChartPanel(props: CycleChartPanelProps) {
               <div key={v.date + v.kind}>
                 <time>{v.date}</time> <b>{t(v.kind === "peak" ? "scPeak" : "scTrough")}</b>{" "}
                 {v.provisional ? <em>{t("scProvisional")}</em> : <em>{t("scConfirmed")}</em>}
+                {props.firstKnown?.[v.date] && (
+                  <em> · {t("scTurnKnownSince", { date: props.firstKnown[v.date] })}</em>
+                )}
               </div>
             ))
           ) : (

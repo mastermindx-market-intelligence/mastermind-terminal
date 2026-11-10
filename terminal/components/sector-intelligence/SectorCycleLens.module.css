@@ -107,6 +107,51 @@
   margin: 8px 0;
 }
 
+/* ── Per-head forecast capabilities (v1.1): four independent rows, never a
+   shared verdict — one withdrawn or withheld head hides nothing else. ──── */
+.headList {
+  list-style: none;
+  display: grid;
+  gap: 12px;
+  margin: 8px 0 0;
+  padding: 0;
+}
+/* Flex-wrap, never max-content grid columns: the withdrawn-with-date and
+   reason sentences must wrap at narrow widths instead of sizing the row to
+   their full single-line width (146px overflow at 390px otherwise). */
+.headRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px 8px;
+}
+.headName {
+  font-size: 12.5px;
+  font-weight: 620;
+}
+.headWithdrawn {
+  flex: 1 1 100%;
+  color: var(--text-2);
+  font-size: 11.5px;
+}
+.headReason,
+.headMeta {
+  flex: 1 1 100%;
+  margin: 0;
+  color: var(--text-2);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+.headEvidence {
+  flex: 1 1 100%;
+  font-size: 11px;
+  color: var(--text-2);
+}
+.headEvidence p {
+  margin: 2px 0 0;
+  word-break: break-all;
+}
+
 /* ── Hero ──────────────────────────────────────────────────────────────── */
 .hero {
   display: flex;
@@ -332,6 +377,7 @@
 .plotCard,
 .timing,
 .hazardCard,
+.headsCard,
 .legWrap,
 .readRecord,
 .methods,
@@ -345,6 +391,7 @@
 .plotCard h3,
 .timing h3,
 .hazardCard h3,
+.headsCard h3,
 .legWrap h3,
 .readRecord h3,
 .methods h3 {

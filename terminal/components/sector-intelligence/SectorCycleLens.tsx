@@ -51,6 +51,8 @@ import { phaseAge } from "@/lib/sectorCyclePhaseAge";
 import { rhythmReading } from "@/lib/sectorCycleRhythm";
 import { CYCLE_PHASE_LABELS, clockDisagreements } from "@/lib/sectorCycleHazard";
 import { useSectorCycleT } from "@/lib/sectorCycleLex";
+import { forecastHeadsReading } from "@/lib/sectorCycleForecastHeads";
+import { turnFirstKnown } from "@/lib/sectorCycleTurnKnowledge";
 import CyclePhaseRail from "./cycles/CyclePhaseRail";
 import CycleChartPanel, { type CycleSeriesData } from "./cycles/CycleChartPanel";
 import CycleLegTimeline, { LegStoryBlock, legsFromTurns } from "./cycles/CycleLegTimeline";
@@ -60,6 +62,7 @@ import CycleReadRecord from "./cycles/CycleReadRecord";
 import CycleMethodsGrader from "./cycles/CycleMethodsGrader";
 import { CycleLegSheet, CycleSeriesSheet, type PickerSeries } from "./cycles/CycleSheets";
 import CycleChartFullscreen from "./cycles/CycleChartFullscreen";
+import CycleForecastHeads from "./cycles/CycleForecastHeads";
 import SectorBasketCompare from "./SectorBasketCompare";
 import type {
   SectorCycleCaptureHandle,
@@ -313,6 +316,13 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
     gen,
   );
   const grader = cycleGrader(payload);
+  /* v1.1: per-head forecast capabilities — each head judged ALONE on the
+   * record's own forecast_heads block (lane 8 wire contract). A withdrawn or
+   * withheld head never hides its siblings or the observed facts above. */
+  const headsReading = record !== null ? forecastHeadsReading(record) : null;
+  /* v1.1 SP11: event dates vs first-known dates are distinct facts; the map
+   * is read from the raw feed, never inferred from the event dates. */
+  const firstKnown = feedUsable(historyFeed) ? turnFirstKnown(historyFeed!.data) : {};
   const baskets =
     mode === "deep" && gen && effectiveFamily === "baskets"
       ? cycleBaskets(payload, gen.asOf)
@@ -856,6 +866,7 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
             valuesOffset={valuesOffset}
             onValuesOffset={setValuesOffset}
             benchmark={benchmark}
+            firstKnown={firstKnown}
           />
 
           <CycleLegTimeline
@@ -900,6 +911,10 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
               />
             )}
           </div>
+
+          {/* v1.1: the per-head capability disclosure sits after the observed
+           * depths — observed Cycles stay visible whatever a head says. */}
+          <CycleForecastHeads reading={headsReading} />
 
           {baskets && baskets.length > 0 && (
             <SectorBasketCompare rows={baskets} asOf={gen?.asOf ?? ""} />
@@ -953,6 +968,7 @@ export default function SectorCycleLens(props: SectorCycleLensProps) {
         cursor={cursor}
         onCursor={setCursor}
         benchmark={benchmark}
+        firstKnown={firstKnown}
       />
     </section>
   );
