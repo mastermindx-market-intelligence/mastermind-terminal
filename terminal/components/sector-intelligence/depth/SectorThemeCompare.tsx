@@ -22,6 +22,11 @@
  *    21/63-session RS series stay on the history surface — the table carries
  *    no per-theme series, and none is invented here.
  *
+ *  • Each block carries its OWN date (review r1 B2): the history block prints
+ *    its as-of beside its chart, the theme table prints its as-of beside the
+ *    table, and `perf_as_of` shows only when it differs from the table's own
+ *    date. The section header states no date that applies to only one block.
+ *
  * Props-only: no routing, no fetching, no URL state. Pure helpers are exported
  * for unit tests (window slicing, rebasing, default selection, turn-window
  * filtering, x-label thinning).
@@ -329,13 +334,6 @@ export function SectorThemeCompare({
           <h3 className={styles.title}>{t("siThemeTitle")}</h3>
           <p className={styles.sub}>{t("siThemeSub")}</p>
         </div>
-        <span className={styles.asof}>
-          {history
-            ? t("siDepthAsOf", { date: history.asOf })
-            : themeRows?.state === "available"
-              ? t("siDepthAsOf", { date: themeRows.asOf })
-              : null}
-        </span>
       </header>
 
       {history ? (
@@ -465,6 +463,9 @@ export function SectorThemeCompare({
             </svg>
           </div>
 
+          <p className={styles.note} data-history-asof={history.asOf}>
+            {t("siDepthAsOf", { date: history.asOf })}
+          </p>
           <p className={styles.note}>
             {basisNote}
             {history.naturallyObserved ? ` · ${t("siThemeNaturallyObserved")}` : ` · ${t("siThemeReconstructed")}`}
@@ -516,6 +517,9 @@ export function SectorThemeCompare({
       {themeRows?.state === "available" ? (
         <div className={styles.rowsBlock}>
           <h4 className={styles.rowsHead}>{t("siThemeTableTitle")}</h4>
+          <p className={styles.perfAsOf} data-rows-asof={themeRows.asOf}>
+            {t("siDepthAsOf", { date: themeRows.asOf })}
+          </p>
           {themeRows.perfAsOf !== null && themeRows.perfAsOf !== themeRows.asOf && (
             <p className={styles.perfAsOf}>{t("siThemePerfAsOf", { date: themeRows.perfAsOf })}</p>
           )}

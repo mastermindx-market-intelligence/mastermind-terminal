@@ -860,3 +860,60 @@ describe("B1 — the theme table says WHY it is unavailable (per-reason, EN+ZH)"
     expect(withHistory).not.toContain('data-theme-rows');
   });
 });
+
+/* ── B2 (review r1): each block carries its own date. The section header states
+ * NO date that applies to only one block — the history block prints its own
+ * as-of beside its chart, the theme table prints its own as-of beside the
+ * table, and perf_as_of keeps its rule (only when it differs from the table's
+ * own date). Real fixtures: history 2026-11-03, theme rows 2026-11-06. */
+
+describe("B2 — the theme table carries its own date, not the history's", () => {
+  const realThemeRows = () => themeRowsFromCarriedBlock(servedRows.theme_rows);
+
+  it("EN: header states no date; the history block owns 2026-11-03, the table block owns 2026-11-06", () => {
+    expect(capturedHistory?.asOf).toBe("2026-11-03");
+    const read = realThemeRows();
+    expect(read.state).toBe("available");
+    if (read.state !== "available") throw new Error("unreachable");
+    expect(read.asOf).toBe("2026-11-06");
+    const markup = html(<SectorThemeCompare history={capturedHistory} labels={{}} themeRows={read} />);
+    // The section header names the capability, never a single block's date.
+    const head = markup.split("</header>")[0] ?? "";
+    expect(head).not.toContain("2026-11-");
+    // Each block prints its own date line.
+    expect(markup).toContain('data-history-asof="2026-11-03"');
+    expect(markup).toContain('data-rows-asof="2026-11-06"');
+    // The table's date appears only in the table's own block…
+    expect(markup.split("data-rows-asof")[0]).not.toContain("2026-11-06");
+    // …and the history's date appears only in the history block, never inside
+    // the theme table's own block (from its date line to the end).
+    const fromRowsDate = markup.split("data-rows-asof")[1] ?? "";
+    expect(fromRowsDate).not.toContain("2026-11-03");
+    // perf_as_of equals the table's own date tonight → the perf line stays hidden.
+    expect(text(markup)).not.toContain("Performance as of");
+  });
+
+  it("ZH: the same mount prints 截至 2026-11-06 in the table block and 截至 2026-11-03 in the history block", () => {
+    G.__SD_LANG = "zh";
+    try {
+      const markup = html(<SectorThemeCompare history={capturedHistory} labels={{}} themeRows={realThemeRows()} />);
+      const head = markup.split("</header>")[0] ?? "";
+      expect(head).not.toContain("2026-11-");
+      const zh = text(markup);
+      expect(zh).toContain("截至 2026-11-06");
+      expect(zh).toContain("截至 2026-11-03");
+      const fromRowsDate = markup.split("data-rows-asof")[1] ?? "";
+      expect(fromRowsDate).not.toContain("2026-11-03");
+      expect(markup.split("data-rows-asof")[0]).not.toContain("2026-11-06");
+    } finally {
+      G.__SD_LANG = "en";
+    }
+  });
+
+  it("history null + carried table: the section's only date is the table's own", () => {
+    const markup = html(<SectorThemeCompare history={null} labels={{}} themeRows={realThemeRows()} />);
+    expect(markup).toContain('data-rows-asof="2026-11-06"');
+    expect(markup).not.toContain("data-history-asof");
+    expect(markup.split("</header>")[0] ?? "").not.toContain("2026-11-");
+  });
+});
