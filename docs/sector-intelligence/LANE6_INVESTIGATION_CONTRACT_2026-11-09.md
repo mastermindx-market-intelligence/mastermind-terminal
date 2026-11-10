@@ -205,6 +205,8 @@ v1 rejects all v2-only kinds in both suites. Suites: `investigationManifestParit
 `tests/test_investigation_manifest.py` / `tests/test_supabase_migration_namespace.py`
 (Python).
 
-Known divergence (pre-existing, not introduced here): the Python top-level optional-keys
-list lacks `review`, which the TS validator admits — recorded as a residual, not ported in
-this lane.
+Former divergence CLOSED (v1.1 delta): `api/investigation_contracts.py` now admits the optional
+top-level `review` object with the TS/SQL rules (closed assessment `confirmed|contradicted|inconclusive`,
+optional 64-lowercase-hex `fire_event_id`, optional single-purpose `note` up to 2000, no other keys)
+and the shared corpus gained nine `review` vectors (admit, v1-shape reader, and six refusals) that both
+suites execute. `review` stays distinct from Prophet's `user_decision` (Pass is never `review`).

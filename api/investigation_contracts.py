@@ -106,7 +106,7 @@ def validate_investigation_manifest(raw, admission=None):
     admission = admission if admission is not None else {}
     try:
         data_only(raw)
-        m = obj(raw, "$", ("schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation"), ("review_baseline_ref", "scenario_capture"))
+        m = obj(raw, "$", ("schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation"), ("review_baseline_ref", "review", "scenario_capture"))
         choice(m["schema"], "$.schema", ("investigation_manifest.v1", "investigation_manifest.v2"))
         v2 = m["schema"] == "investigation_manifest.v2"
         limit = 4000 if v2 else 2000
@@ -222,6 +222,15 @@ def validate_investigation_manifest(raw, admission=None):
             text(value, "$.continuation." + key, limit)
         if "review_baseline_ref" in m:
             evidence(m["review_baseline_ref"], "$.review_baseline_ref", True)
+        if "review" in m:
+            # Mirrors terminal/lib/investigationContracts.ts and the installed SQL validator (0042+):
+            # a closed assessment verdict, an optional 64-hex fire event id and an optional note.
+            review = obj(m["review"], "$.review", ("assessment",), ("fire_event_id", "note"))
+            choice(review["assessment"], "$.review.assessment", ("confirmed", "contradicted", "inconclusive"))
+            if "fire_event_id" in review:
+                pattern(review["fire_event_id"], "$.review.fire_event_id", DIGEST, "invalid_fire_event_id")
+            if "note" in review:
+                text(review["note"], "$.review.note", 2000)
         if "scenario_capture" in m:
             # v2 only, and only a value the pure leaf validator accepts; nothing is coerced. A
             # reference is unresolved input metadata: no basis/result values are admitted and

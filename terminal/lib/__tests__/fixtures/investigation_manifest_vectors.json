@@ -9397,6 +9397,405 @@
         "evidence_refs": [],
         "continuation": {}
       }
+    },
+    {
+      "name": "review full verdict admitted",
+      "valid": true,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Question",
+          "question": "  Why \ud83e\udde0?\r\ne\u0301",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {},
+        "review": {
+          "assessment": "confirmed",
+          "fire_event_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "note": "Held through the window."
+        }
+      }
+    },
+    {
+      "name": "review assessment only admitted",
+      "valid": true,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Question",
+          "question": "  Why \ud83e\udde0?\r\ne\u0301",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {},
+        "review": {
+          "assessment": "inconclusive"
+        }
+      }
+    },
+    {
+      "name": "review admitted on v1 shape",
+      "valid": true,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v1",
+        "intent": {
+          "title": "Question",
+          "question": "  Why \ud83e\udde0?\r\ne\u0301",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {},
+        "review": {
+          "assessment": "contradicted"
+        }
+      }
+    },
+    {
+      "name": "review assessment outside closed set refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Question",
+          "question": "  Why \ud83e\udde0?\r\ne\u0301",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {},
+        "review": {
+          "assessment": "pass"
+        }
+      }
+    },
+    {
+      "name": "review fire event id not 64 hex refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Question",
+          "question": "  Why \ud83e\udde0?\r\ne\u0301",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {},
+        "review": {
+          "assessment": "confirmed",
+          "fire_event_id": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        }
+      }
+    },
+    {
+      "name": "review unknown key refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Question",
+          "question": "  Why \ud83e\udde0?\r\ne\u0301",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {},
+        "review": {
+          "assessment": "confirmed",
+          "verdict": "x"
+        }
+      }
+    },
+    {
+      "name": "review not an object refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Question",
+          "question": "  Why \ud83e\udde0?\r\ne\u0301",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {},
+        "review": "confirmed"
+      }
+    },
+    {
+      "name": "review missing assessment refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Question",
+          "question": "  Why \ud83e\udde0?\r\ne\u0301",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {},
+        "review": {
+          "note": "n"
+        }
+      }
+    },
+    {
+      "name": "review empty note refused",
+      "valid": false,
+      "admission": {
+        "subjects": [
+          {
+            "owner": "terminal.analysis_symbol",
+            "kinds": [
+              "security"
+            ]
+          },
+          {
+            "owner": "data_os.security_master",
+            "kinds": [
+              "security",
+              "issuer"
+            ]
+          }
+        ],
+        "evidence": [
+          {
+            "owner": "earnings.workspace_generation",
+            "object_types": [
+              "event_workspace"
+            ]
+          }
+        ]
+      },
+      "manifest": {
+        "schema": "investigation_manifest.v2",
+        "intent": {
+          "title": "Question",
+          "question": "  Why \ud83e\udde0?\r\ne\u0301",
+          "subjects": []
+        },
+        "layout_refs": [],
+        "thesis_refs": [],
+        "evidence_refs": [],
+        "continuation": {},
+        "review": {
+          "assessment": "confirmed",
+          "note": "   "
+        }
+      }
     }
   ]
 }
