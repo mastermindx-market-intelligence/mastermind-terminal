@@ -23,6 +23,7 @@ import SectorConstituentEvidence from "./SectorConstituentEvidence";
 import SectorNativeJobShell from "./SectorNativeJobShell";
 import SectorNativeDossier from "./SectorNativeDossier";
 import { sectorNativeContext } from "./sectorNativeSlots";
+import type { SectorCycleFeed } from "./cycles/cycleProps";
 import { sectorOriginFromState, withExposureOrigin } from "@/lib/exposureOrigin";
 import { sectorRotationRelativeTrend } from "@/lib/rotationRelativeTrend";
 import { holdingsCoverageFor, sectorHoldingsCoverage } from "@/lib/sectorHoldingsCoverage";
@@ -60,6 +61,18 @@ const STATE_KEYS: Record<string, string> = {
 };
 const emptyFeed = (source: SectorFeed, status: FeedStatus): FeedPayload => ({ data: null,
   receipt: { source, status, path: "", asOf: null, observedAt: null, contentHash: null, stale: false } });
+/** FeedPayload → the Cycles lens feed shape. The legacy rs-history and
+ * rotation-events feeds pass their real payloads through; the lens's own deep
+ * cycles publication feed does not exist yet and is never borrowed from these. */
+const cycleFeed = (feed: FeedPayload | undefined): SectorCycleFeed | undefined => {
+  if (!feed) return undefined;
+  const status = feed.receipt.status;
+  const state = status === "ready" ? (feed.receipt.stale ? "stale" : "ready")
+    : status === "access" ? "unauthenticated"
+    : status === "loading" ? "loading"
+    : "unavailable";
+  return { state, data: feed.data };
+};
 const count = (v: unknown): number | null => {
   const n = number(v); return n !== null && n >= 0 && Number.isInteger(n) ? n : null;
 };
@@ -445,14 +458,16 @@ export default function SectorIntelligenceWorkspace() {
       </>}
       {nativeJobActive ? <SectorNativeJobShell context={nativeContext} job={state.sectorJob as SectorJob}
         onJob={setJob} onSelect={sector => change({ sector }, true)}
-        onOpenDossier={openNativeDossier} onOpenRotation={() => openOuterWorkspace("rotation")}
+        onOpenDossier={openNativeDossier}
         onTheme={() => change({ theme: state.theme === "dark" ? "light" : "dark" })}
         onRefresh={() => setRevision(n => n + 1)} onSources={() => openSources()} />
       : nativeDossierActive ? <SectorNativeDossier context={nativeContext} view={state.view}
         onView={view => go(view)} onBack={returnToOuterWorkspace} onJob={setJob}
         onOpenRotation={() => openOuterWorkspace("rotation")}
         onTheme={() => change({ theme: state.theme === "dark" ? "light" : "dark" })}
-        onRefresh={() => setRevision(n => n + 1)} onSources={() => openSources()} />
+        onRefresh={() => setRevision(n => n + 1)} onSources={() => openSources()}
+        onSelect={sectorId => change({ sector: sectorId }, true)}
+        historyFeed={cycleFeed(feeds.history)} eventsFeed={cycleFeed(feeds.events)} />
       : state.workspace === "discover" && state.sourceFamily === "finviz" ? <FinvizDiscovery feed={feeds.finviz} state={state} onChange={patch => change(patch, !Object.hasOwn(patch, "discoveryQuery"))} /> : state.workspace === "rotation" ? <SectorRotationMap
         rows={state.rotationMethod === "relative_trend_ema" ? sectors : nativeGeneration?.sectors || []}
         status={state.rotationMethod === "relative_trend_ema" ? status : nativeStatus} risk={feeds.risk}
