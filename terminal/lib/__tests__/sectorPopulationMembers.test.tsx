@@ -408,6 +408,24 @@ describe("SectorPopulationMembers — item 5 (COO 19:15Z): lane 1 point-in-time 
     act(() => root.unmount());
   });
 
+  it("r4 N-3: a non-agreeing clock with an INTEGER unaccounted > 0 prints no unaccounted segment (en)", async () => {
+    // The decoder admits this page — an integer unaccounted beside a carried
+    // clock is never a refusal — but countsStated is false, and the producer
+    // never emits the shape (unaccounted is null unless the clock agrees,
+    // sector_population.py:613). The render layer's countsStated gate is the
+    // only thing keeping the number off the counts line; this test pins it.
+    pageMutate = page => {
+      producerNonAgree({ status: "mismatch", reason: "roster_as_of_mismatch",
+        roster_as_of: "2026-11-07", capture_effective_as_of: "2026-11-06" })(page);
+      populationOf(page).unaccounted = 5;
+    };
+    const { container, root } = await mount();
+    expect(countsLine(container)).toContain("configured roster not stated by the owner");
+    expect(countsLine(container)).not.toMatch(/unaccounted/i); // the segment prints nothing
+    expect(clockNote(container)).toContain("roster clock does not agree with the capture session");
+    act(() => root.unmount());
+  });
+
   it("B-1: the producer's non-agree roster_block_absent page renders the same honest states (zh)", async () => {
     pageMutate = producerNonAgree({ status: "unavailable", reason: "roster_block_absent", roster_as_of: "2026-11-06" });
     await withZh(async ({ container }) => {
