@@ -394,8 +394,41 @@ def _case_production_generation_library_and_restart_branch_are_unchanged():
   fi
 '''
  assert generation.count(dependency_restore)==1
- assert generation.index('deploy_generation_rollback "$app" "$swapped" || rc=$?')<generation.index(dependency_restore)<generation.index('if [ "$DEPLOY_ROLLBACK_MOVED_BUILD" = 1 ]; then')
- assert hashlib.sha256(generation.replace(dependency_restore,'',1).encode()).hexdigest()==GENERATION_SHA256
+ # The abort's control flow carries exactly three more additions, all in
+ # deploy_generation_abort and all removed here the same way. (1) Once the
+ # rollback has begun, a production run that took the signal traps holds them
+ # off, so the restart-or-stop decision is always reached; beta never sets that
+ # flag. (2)+(3) Cumulative containment: the reviewed reactivation block keeps
+ # its bytes but runs only when every restoration leg is proven; otherwise the
+ # selected unit is stopped. The opening and closing lines bracket that block.
+ abort_local='  local app=$1 want_sha=$2 swapped=$3 reason=$4 rc=0\n'
+ signal_hold = '''  # A rollback that has begun is finished: a signal taken between the restore and
+  # the restart or stop would leave a process bound to a tree that moved.
+  if [ "${DEPLOY_SIGNALS_TRAPPED:-0}" = 1 ]; then trap '' HUP INT TERM; fi
+'''
+ containment_open = '''  # Containment is cumulative. Reactivation is only for a generation whose every
+  # restoration leg above (build, marker, dependency inputs) is proven complete.
+  # When any leg failed the selected unit is stopped instead, whether or not the
+  # build moved: with no backup to return to the moved flag stays 0 while a
+  # failed candidate may still be serving. The reviewed reactivation block below
+  # keeps its bytes, and so its indentation, inside this else.
+  if [ "$rc" -ne 0 ]; then
+    deploy_generation_contain
+  else
+'''
+ containment_close='  fi  # cumulative containment: every leg proven, or the selected unit stopped\n'
+ reactivation='  # A process must never remain pointed at a tree that moved: reactivate a\n'
+ resolved='  if [ "$rc" = 0 ]; then\n    log "rolled back — '
+ for added in (signal_hold,containment_open,containment_close):
+  assert generation.count(added)==1
+ assert generation.count(abort_local+signal_hold)==1
+ assert generation.count(dependency_restore+containment_open+reactivation)==1
+ assert generation.count(containment_close+resolved)==1
+ assert generation.index('deploy_generation_rollback "$app" "$swapped" || rc=$?')<generation.index(dependency_restore)<generation.index('if [ "$DEPLOY_ROLLBACK_MOVED_BUILD" = 1 ]; then')<generation.index(containment_close)
+ baseline_generation=generation
+ for added in (signal_hold,dependency_restore,containment_open,containment_close):
+  baseline_generation=baseline_generation.replace(added,'',1)
+ assert hashlib.sha256(baseline_generation.encode()).hexdigest()==GENERATION_SHA256
  assert hashlib.sha256(span(source,'run_release_preflight(){','# Read the live deployment marker').encode()).hexdigest()==PREFLIGHT_SHA256
  start=source.index('if ! systemctl restart terminal; then',source.index('# 6) atomic swap'))
  # The reviewed production opt-in adds exactly this status gate. Keep the

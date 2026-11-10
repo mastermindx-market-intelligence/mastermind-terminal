@@ -1709,18 +1709,30 @@ admit_target_sha(){
 # able to return to. Before the install mutates them they are saved to ONE
 # builder-owned directory beside the app (the same parent that already holds
 # .stage.*), never inside it: the source audit maps $APP, not its parent, so a
-# snapshot can never look like source drift. The two files are copied; the tree
-# is moved by a same-filesystem rename, which is O(1) and exactly preserves it.
+# snapshot can never look like source drift. The two files are copied and their
+# sha256 digests recorded; the tree is moved by a same-filesystem rename, which
+# is O(1) and exactly preserves it.
+#
+# Saving costs two small files. Restoring costs NOTHING: the old tree and the new
+# install coexist on the volume, so a failed `npm ci` can be the very thing that
+# filled it, and a restore that had to allocate a single block could then not
+# run. Every restore step is therefore a rename within the one filesystem.
 #
 # DEPS_SNAPSHOT_DIR is non-empty only while THIS attempt owns a snapshot that has
 # not yet been restored or discarded. Three exits, no fourth:
 #   pre-swap failure    -> cleanup_deploy_attempt restores it
 #   post-swap rollback  -> deploy_generation_abort restores it before any restart
 #   acceptance          -> the deploy body discards it after deploy_generation_commit
+# A restore only puts things back. The directory it emptied still holds this
+# attempt's failed tree, and deleting a full node_modules is the slowest step of
+# a recovery, so it never stands ahead of something that matters: a restored
+# snapshot becomes DEPS_SNAPSHOT_RESOLVED_DIR, and deps_snapshot_reap deletes it
+# on the exit path (cleanup_deploy_attempt), after any rollback restart or stop.
 # Production only. Beta's dependency inputs belong to its own transaction
 # (beta_txn_inputs_dirty / beta_txn_abort); no beta path ever opens a snapshot,
 # so every hook below is inert for beta.
 DEPS_SNAPSHOT_DIR=
+DEPS_SNAPSHOT_RESOLVED_DIR=
 DEPS_SNAPSHOT_FILES="package.json package-lock.json"
 
 deps_snapshot_path(){
@@ -1729,6 +1741,10 @@ deps_snapshot_path(){
 
 deps_path_identity(){
   python3 -I -c 'import os,sys; s=os.lstat(sys.argv[1]); print(str(s.st_dev)+":"+str(s.st_ino))' "$1"
+}
+
+deps_file_sha256(){
+  python3 -I -c 'import hashlib,sys; print(hashlib.sha256(open(sys.argv[1],"rb").read()).hexdigest())' "$1"
 }
 
 # A snapshot can outlive its attempt only when that attempt was killed without
@@ -1751,16 +1767,31 @@ deps_snapshot_purge_stale(){
 # every earlier failure removes the half-made snapshot and leaves the app exactly
 # as it was. Once DEPS_SNAPSHOT_DIR is set the restore owns the cleanup.
 deps_snapshot_begin(){
-  local app=$1 snap name identity= snap_identity=
+  local app=$1 snap name digest identity= app_identity= snap_identity=
   snap=$(deps_snapshot_path "$app")
   deps_snapshot_purge_stale "$app"
   if ! mkdir -m 0700 "$snap"; then
     log "FATAL: could not create the dependency rollback snapshot $snap"
     return 73
   fi
+  # The restore is rename-only, so the snapshot must share the app's filesystem:
+  # across devices `mv` silently degrades into a copy that needs free blocks.
+  app_identity=$(deps_path_identity "$app") || app_identity=
+  snap_identity=$(deps_path_identity "$snap") || snap_identity=
+  if [ -z "$app_identity" ] || [ -z "$snap_identity" ] \
+      || [ "${app_identity%%:*}" != "${snap_identity%%:*}" ]; then
+    log "FATAL: the dependency rollback snapshot $snap is not on the same filesystem as $app"
+    rm -rf "$snap"
+    return 73
+  fi
   for name in $DEPS_SNAPSHOT_FILES; do
     if [ -f "$app/$name" ] && [ ! -L "$app/$name" ]; then
-      if ! cp -p "$app/$name" "$snap/$name" || ! cmp -s "$app/$name" "$snap/$name"; then
+      # The digest is what the restore proves the returned file against; a copy
+      # to compare with would need blocks the restore must not depend on.
+      digest=$(deps_file_sha256 "$app/$name") || digest=
+      if [ -z "$digest" ] || ! cp -p "$app/$name" "$snap/$name" \
+          || [ "$(deps_file_sha256 "$snap/$name" 2>/dev/null)" != "$digest" ] \
+          || ! printf '%s\n' "$digest" > "$snap/$name.sha256"; then
         log "FATAL: could not snapshot $app/$name for dependency rollback"
         rm -rf "$snap"
         return 73
@@ -1779,8 +1810,7 @@ deps_snapshot_begin(){
     # rename(2) is the whole point: a cross-device `mv` would silently degrade
     # into a recursive copy of the live tree. Refuse rather than copy.
     identity=$(deps_path_identity "$app/node_modules") || identity=
-    snap_identity=$(deps_path_identity "$snap") || snap_identity=
-    if [ -z "$identity" ] || [ -z "$snap_identity" ] \
+    if [ -z "$identity" ] \
         || [ "${identity%%:*}" != "${snap_identity%%:*}" ] \
         || ! printf '%s\n' "$identity" > "$snap/node_modules.identity"; then
       log "FATAL: $app/node_modules cannot be moved aside by a same-filesystem rename to $snap"
@@ -1804,24 +1834,64 @@ deps_snapshot_begin(){
   return 0
 }
 
-# Put $1's dependency inputs back exactly as the snapshot recorded them, verify
-# each one, and only then remove the snapshot. The restore is driven by what the
-# snapshot actually holds, so it is correct from every point deps_snapshot_begin
-# could have been interrupted at. Non-zero keeps the snapshot (and
-# DEPS_SNAPSHOT_DIR) for attended recovery: this attempt's tree, when it was
-# moved out of the way, is at <snapshot>/node_modules.failed.
+# Move $1/node_modules out of the way, to <snapshot>/node_modules.failed. Rename
+# only; an occupied aside name is a refusal, never a delete.
+deps_snapshot_set_tree_aside(){
+  local app=$1 snap=$2
+  if [ ! -e "$app/node_modules" ] && [ ! -L "$app/node_modules" ]; then return 0; fi
+  if [ -e "$snap/node_modules.failed" ] || [ -L "$snap/node_modules.failed" ] \
+      || ! mv "$app/node_modules" "$snap/node_modules.failed"; then
+    log "FATAL: could not move this attempt's $app/node_modules aside to $snap/node_modules.failed"
+    return 1
+  fi
+  return 0
+}
+
+# Put $1's dependency inputs back exactly as the snapshot recorded them. It only
+# puts things back: by same-filesystem rename, so it needs no free block on a
+# volume the failed install may have filled, and without deleting anything, so
+# nothing slow stands between it and the rollback's restart. It is driven by what
+# the snapshot actually holds, so it is correct from every point
+# deps_snapshot_begin could have been interrupted at.
+#
+# Order is the contract. The saved package files are proven against the digests
+# recorded when they were taken BEFORE anything moves. Then the tree. The package
+# files go back only once the tree is proven to be the saved one: accepted
+# package files beside this attempt's tree would let the next release preflight
+# read CLEAN (node_modules is a generated tree to the audit) and let the next
+# deploy skip the install on an equal lockfile and build on the wrong
+# dependencies. Left on the target's bytes they are TRACKED_MODIFIED findings,
+# and every later deploy refuses until a human has looked.
+#
+# Zero marks the snapshot resolved (DEPS_SNAPSHOT_RESOLVED_DIR, for
+# deps_snapshot_reap). Non-zero keeps the snapshot and DEPS_SNAPSHOT_DIR for
+# attended recovery: whatever was not put back is still in it, and this attempt's
+# tree, when it was moved out of the way, is at <snapshot>/node_modules.failed.
 deps_snapshot_restore(){
   local app=$1 snap=${DEPS_SNAPSHOT_DIR:-} name want got rc=0
   if [ -z "$snap" ] || [ ! -d "$snap" ] || [ -L "$snap" ]; then
     log "FATAL: there is no dependency rollback snapshot to restore"
     return 1
   fi
-  if [ -e "$snap/node_modules" ] || [ -L "$snap/node_modules" ]; then
-    if [ -e "$app/node_modules" ] || [ -L "$app/node_modules" ]; then
-      rm -rf "$snap/node_modules.failed" || rc=1
-      [ "$rc" != 0 ] || mv "$app/node_modules" "$snap/node_modules.failed" || rc=1
+  for name in $DEPS_SNAPSHOT_FILES; do
+    if [ -f "$snap/$name" ] && [ ! -L "$snap/$name" ]; then
+      want=$(cat "$snap/$name.sha256" 2>/dev/null) || want=
+      got=$(deps_file_sha256 "$snap/$name" 2>/dev/null) || got=
+      if [ -z "$want" ] || [ "$got" != "$want" ]; then
+        log "FATAL: the saved $name is not the file that was snapshotted (recorded sha256 ${want:-<unrecorded>} read ${got:-<unreadable>}); nothing was restored"
+        return 1
+      fi
+    elif [ ! -e "$snap/$name.absent" ]; then
+      log "FATAL: the dependency rollback snapshot holds no record for $name; nothing was restored"
+      return 1
     fi
-    [ "$rc" != 0 ] || mv "$snap/node_modules" "$app/node_modules" || rc=1
+  done
+  if [ -e "$snap/node_modules" ] || [ -L "$snap/node_modules" ]; then
+    deps_snapshot_set_tree_aside "$app" "$snap" || rc=1
+    if [ "$rc" -eq 0 ] && ! mv "$snap/node_modules" "$app/node_modules"; then
+      log "FATAL: could not move the saved dependency tree back to $app/node_modules"
+      rc=1
+    fi
     if [ "$rc" -eq 0 ]; then
       want=$(cat "$snap/node_modules.identity" 2>/dev/null) || want=
       got=$(deps_path_identity "$app/node_modules" 2>/dev/null) || got=
@@ -1832,31 +1902,47 @@ deps_snapshot_restore(){
     fi
   elif [ -e "$snap/node_modules.absent" ]; then
     # The accepted generation had no dependency tree: this attempt's goes.
-    if [ -e "$app/node_modules" ] || [ -L "$app/node_modules" ]; then
-      rm -rf "$snap/node_modules.failed" || rc=1
-      [ "$rc" != 0 ] || mv "$app/node_modules" "$snap/node_modules.failed" || rc=1
-    fi
+    deps_snapshot_set_tree_aside "$app" "$snap" || rc=1
   fi
   # Neither record present: the snapshot was interrupted before the tree moved,
   # so $app/node_modules is still the accepted one and is left alone.
+  if [ "$rc" -ne 0 ]; then
+    log "FATAL: the dependency tree was not restored; $app's package files are left exactly as this attempt wrote them so the next release preflight refuses"
+    return 1
+  fi
   for name in $DEPS_SNAPSHOT_FILES; do
     if [ -f "$snap/$name" ]; then
-      if ! cp -p "$snap/$name" "$snap/$name.restore" \
-          || ! mv -f "$snap/$name.restore" "$app/$name" \
-          || ! cmp -s "$snap/$name" "$app/$name"; then
-        log "FATAL: could not restore $app/$name from the dependency rollback snapshot"
+      want=$(cat "$snap/$name.sha256" 2>/dev/null) || want=
+      if ! mv -f "$snap/$name" "$app/$name"; then
+        log "FATAL: could not move the saved $name back to $app/$name"
+        rc=1
+        continue
+      fi
+      got=$(deps_file_sha256 "$app/$name" 2>/dev/null) || got=
+      if [ -z "$want" ] || [ "$got" != "$want" ]; then
+        log "FATAL: restored $app/$name is not the file that was snapshotted (recorded sha256 ${want:-<unrecorded>} read ${got:-<unreadable>})"
         rc=1
       fi
-    elif [ -e "$snap/$name.absent" ]; then
-      rm -f "$app/$name" || rc=1
-      if [ -e "$app/$name" ] || [ -L "$app/$name" ]; then rc=1; fi
     else
-      log "FATAL: the dependency rollback snapshot holds no record for $name"
-      rc=1
+      rm -f "$app/$name" || rc=1
+      if [ -e "$app/$name" ] || [ -L "$app/$name" ]; then
+        log "FATAL: could not remove $app/$name, which the accepted generation did not have"
+        rc=1
+      fi
     fi
   done
-  [ "$rc" = 0 ] || return 1
+  [ "$rc" -eq 0 ] || return 1
+  DEPS_SNAPSHOT_RESOLVED_DIR=$snap
   DEPS_SNAPSHOT_DIR=
+  return 0
+}
+
+# Delete a snapshot the restore has resolved, with this attempt's failed tree in
+# it. Deliberately separate from the restore and deliberately last; see above.
+deps_snapshot_reap(){
+  local snap=${DEPS_SNAPSHOT_RESOLVED_DIR:-}
+  [ -n "$snap" ] || return 0
+  DEPS_SNAPSHOT_RESOLVED_DIR=
   rm -rf "$snap" || log "WARN: could not remove the restored dependency rollback snapshot $snap; the next dependency install discards it"
   return 0
 }
@@ -1870,6 +1956,22 @@ deps_snapshot_discard(){
     log "dependency rollback snapshot discarded: the new generation is accepted"
   else
     log "WARN: could not remove the dependency rollback snapshot $snap; the next dependency install discards it"
+  fi
+  return 0
+}
+
+# Containment for a rollback that could not prove every restoration leg (build,
+# marker, dependency inputs). Nothing may keep serving then: not the prior
+# generation restarted onto a half-restored tree, and not a failed candidate left
+# running because the rollback found no build to return to. It names the
+# SELECTED profile's unit and nothing else, exactly as the reactivation does. A
+# stop that fails is reported as that; it is never read as "nothing is running".
+deploy_generation_contain(){
+  log "rollback activation withheld: a restoration leg (build, marker or dependency inputs) is unresolved"
+  if systemctl stop "$SERVICE_NAME"; then
+    log "containment: $SERVICE_NAME was stopped and stays down until this generation is reconciled by hand"
+  else
+    log "FATAL: containment stop of $SERVICE_NAME FAILED; a process may still be serving an unresolved generation"
   fi
   return 0
 }
@@ -2001,6 +2103,9 @@ deploy_identity_verified(){
 # able to cause: the beta profile's rollback is the beta service's business alone.
 deploy_generation_abort(){
   local app=$1 want_sha=$2 swapped=$3 reason=$4 rc=0
+  # A rollback that has begun is finished: a signal taken between the restore and
+  # the restart or stop would leave a process bound to a tree that moved.
+  if [ "${DEPLOY_SIGNALS_TRAPPED:-0}" = 1 ]; then trap '' HUP INT TERM; fi
   log "DEPLOY FAILED: $reason"
   log "rolling back the deploy generation (build + identity)"
   deploy_generation_rollback "$app" "$swapped" || rc=$?
@@ -2014,6 +2119,15 @@ deploy_generation_abort(){
       rc=1
     fi
   fi
+  # Containment is cumulative. Reactivation is only for a generation whose every
+  # restoration leg above (build, marker, dependency inputs) is proven complete.
+  # When any leg failed the selected unit is stopped instead, whether or not the
+  # build moved: with no backup to return to the moved flag stays 0 while a
+  # failed candidate may still be serving. The reviewed reactivation block below
+  # keeps its bytes, and so its indentation, inside this else.
+  if [ "$rc" -ne 0 ]; then
+    deploy_generation_contain
+  else
   # A process must never remain pointed at a tree that moved: reactivate a
   # qualified prior generation, or stop the selected unit when prior identity
   # or closed configuration cannot be proved. Restoration itself always runs.
@@ -2042,6 +2156,7 @@ deploy_generation_abort(){
       rc=1
     fi
   fi
+  fi  # cumulative containment: every leg proven, or the selected unit stopped
   if [ "$rc" = 0 ]; then
     log "rolled back — $(deploy_identity_line "$app" "$want_sha")"
   else
@@ -6161,6 +6276,11 @@ cleanup_deploy_attempt(){
       rc=74
     fi
   fi
+  # Only now delete a snapshot that a restore resolved (here, or in
+  # deploy_generation_abort), this attempt's failed tree included. It is the slow
+  # step, so every rollback restart or stop is already behind it; it still runs
+  # under the build lock, and before Git needs the space it frees.
+  deps_snapshot_reap
   if [ "$rc" -ne 0 ] && [ "${CANONICAL_RECOVERY_ARMED:-0}" = 1 ]; then
     if live_marker=$(read_live_deployment_marker "$DEPLOYMENT_MARKER") \
       && [ -n "${CANONICAL_RECOVERY_SHA:-}" ] \
