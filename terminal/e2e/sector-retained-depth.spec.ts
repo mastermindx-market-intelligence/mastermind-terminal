@@ -157,8 +157,13 @@ test("bottoming watch never carries an outbound action", async ({ page }) => {
 /* ── flow matrix: chart ↔ table equivalence on the contract fixture ──────── */
 
 test("flow matrix: heat view and exact-value table agree on every cell", async ({ page }) => {
+  // The matrix (and its view toggle) exists above 760px; on the phone the
+  // picker surface IS the exact-value view, proven by its own test below.
+  test.skip(mobile(page), "heat/table equivalence is the matrix (>=760px) case");
   const flows = page.locator('[data-h-section="flows-contract"]');
   await expect(flows).toBeVisible();
+  // F03 standing hint doubles as the tint disclosure.
+  await expect(flows).toContainText(/tint is relative within each window|各时间窗内部相对计算/);
   // Capture the heat view's formatted cell values.
   const heatCells = await flows
     .locator("table td")
@@ -179,16 +184,41 @@ test("flow matrix: heat view and exact-value table agree on every cell", async (
   if (desktop(page)) await shot(page, "flows-table");
 });
 
+test("flow matrix: arrow keys move the selected cell and the readout names it (F03)", async ({ page }) => {
+  test.skip(!desktop(page), "cell roving focus is the desktop grid case");
+  const flows = page.locator('[data-h-section="flows-contract"]');
+  await expect(flows).toBeVisible();
+  // Enter the grid by keyboard: first data cell is the tab stop.
+  const firstCell = flows.locator("td[data-cell-ticker]").first();
+  await firstCell.focus();
+  await page.keyboard.press("ArrowRight");
+  const sel = flows.locator("td[data-sel]");
+  await expect(sel).toHaveCount(1);
+  // The readout names the selected fund, window and signed value.
+  const readout = flows.locator("[data-readout]");
+  await expect(readout).toBeVisible();
+  await expect(readout).toContainText(/Selected:|已选：/);
+  await expect(readout).toContainText(/net (creations|redemptions)|净(申购|赎回)/);
+  // ArrowDown moves down one row within the same window.
+  const selTicker = await sel.getAttribute("data-cell-ticker");
+  await page.keyboard.press("ArrowDown");
+  const nextTicker = await flows.locator("td[data-sel]").getAttribute("data-cell-ticker");
+  expect(nextTicker).toBeTruthy();
+  expect(nextTicker).not.toBe(selTicker);
+  if (desktop(page)) await shot(page, "flows-readout");
+});
+
 test("flow matrix: phone surface shows all five windows with units and the source clock", async ({ page }) => {
   test.skip(!mobile(page), "phone surface is the <=430px layout");
   const flows = page.locator('[data-h-section="flows-contract"]');
   await expect(flows).toBeVisible();
   // Source clock is visible on the phone too.
   await expect(flows).toContainText(/source as of|数据截至/);
-  // Five windows of exact values for the selected ETF, with units.
-  await expect(flows.locator("select, [role='combobox'], button")).toBeVisible();
-  const values = flows.locator("[data-window-value]");
-  await expect(values).toHaveCount(5);
+  // The matrix gives way to ETF picker chips; a real tap switches the fund.
+  const chips = flows.locator("button[aria-pressed]:visible");
+  expect(await chips.count()).toBeGreaterThanOrEqual(11);
+  await flows.getByRole("button", { name: "XLE", exact: true }).tap();
+  await expect(flows.locator("[data-window-value]")).toHaveCount(5);
   await expect(flows).toContainText(/US\$ mn|百万美元/);
   await shot(page, "flows-phone");
 });
@@ -200,17 +230,26 @@ test("universes: tabs switch payloads and rows never cross universes", async ({ 
   await expect(uni).toBeVisible();
   // S&P tab is first; its source identity line names its own id + benchmark.
   await expect(uni).toContainText(/S&P 500|标普500/);
-  await expect(uni).toContainText(/benchmark SPY|基准 SPY/);
+  await expect(uni).toContainText(/\(SPY\)|（SPY）/);
+  // E03/E04: every tab chip carries its universe's own gateable count.
+  const counts = uni.locator('[role="tab"] [data-count]');
+  expect(await counts.count()).toBe(4);
+  // B01: the coverage ribbon lists the five reading classes with counts.
+  const ribbonItems = uni.locator("[data-ribbon] li");
+  await expect(ribbonItems).toHaveCount(5);
+  await expect(uni.locator("[data-ribbon]")).toContainText(/Entry now|现可入场/);
   const spRows = await uni.locator("table tr, [data-group]").count();
-  // Switch to Nasdaq-100 — identity and rows change.
-  await uni.getByRole("button", { name: /Nasdaq-100|纳斯达克100/ }).click();
-  await expect(uni).toContainText(/benchmark QQQ|基准 QQQ/);
+  // Switch to Nasdaq-100 — identity and rows change; its fixture carries
+  // as_of null, stated as prose in the identity line (E02), never a fake date.
+  await uni.getByRole("tab", { name: /Nasdaq-100|纳斯达克100/ }).click();
+  await expect(uni).toContainText(/\(QQQ\)|（QQQ）/);
+  await expect(uni).toContainText(/did not report a session date|未报告交易日/);
   const ndRows = await uni.locator("table tr, [data-group]").count();
   expect(spRows).toBeGreaterThan(0);
   expect(ndRows).toBeGreaterThan(0);
   // Back to S&P: per-universe state survives the round trip (identity line again).
-  await uni.getByRole("button", { name: /S&P 500|标普500/ }).click();
-  await expect(uni).toContainText(/benchmark SPY|基准 SPY/);
+  await uni.getByRole("tab", { name: /S&P 500|标普500/ }).click();
+  await expect(uni).toContainText(/\(SPY\)|（SPY）/);
   if (desktop(page)) await shot(page, "universes");
 });
 
@@ -218,11 +257,13 @@ test("universes: filter narrows live, zero matches is a state not a failure, no-
   const uni = page.locator('[data-h-section="universes-contract"]');
   const filter = uni.getByPlaceholder(/Filter subsector|筛选子行业/);
   await filter.fill("zzz-no-such-group");
-  await expect(uni).toContainText(/No matches|无匹配结果/);
+  // E01: the zero-matches state echoes the reader's own query.
+  await expect(uni).toContainText(/No matches for|没有匹配/);
+  await expect(uni).toContainText(/zzz-no-such-group/);
   await uni.getByRole("button", { name: /Clear filter|清除筛选/ }).click();
   // The contract fixture carries one no-access universe: switching to it shows
   // the access state, distinct from zero groups.
-  const noAccessTab = uni.getByRole("button", { name: /Russell-2000|罗素2000/ });
+  const noAccessTab = uni.getByRole("tab", { name: /Russell-2000|罗素2000/ });
   await noAccessTab.click();
   await expect(uni).toContainText(/requires access|不具备的权限/);
 });
@@ -277,6 +318,12 @@ test("no horizontal page overflow at any harness viewport", async ({ page }) => 
 test("mobile: calls board stacks with usable touch targets", async ({ page }) => {
   test.skip(!mobile(page), "touch/stack layout is the <=430px case");
   const calls = page.locator('[data-h-section="calls-contract"]');
+  // Columns render open on first paint and collapse once the phone media
+  // query hydrates — settle before measuring targets, or the button list
+  // changes under the loop.
+  await expect(
+    calls.locator('[data-lane="stand_aside"][data-open="false"]'),
+  ).toBeVisible();
   const buttons = calls.locator("button");
   const n = Math.min(await buttons.count(), 12);
   for (let i = 0; i < n; i++) {

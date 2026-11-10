@@ -154,11 +154,21 @@ export const SECTOR_DEPTH_LEX: Record<string, [string, string]> = {
   ],
   siFlowsCellMissing: ["no reading", "无读数"],
   siFlowsCellZero: ["measured 0", "实测为 0"],
+  siFlowsColCoverage: ["Coverage", "覆盖"],
+  siFlowsMatrixHint: [
+    "Arrow keys move between cells · tint is relative within each window",
+    "方向键在单元格间移动 · 色深按各时间窗内部相对计算",
+  ],
+  siFlowsReadout: [
+    "Selected: {etf} · {window} ({days} trading days to {asof}) — {value} {dir}",
+    "已选：{etf} · {window}（截至 {asof} 的 {days} 个交易日）— {value} {dir}",
+  ],
+  siFlowsDirIn: ["net creations", "净申购"],
+  siFlowsDirOut: ["net redemptions", "净赎回"],
   siFlowsRowCoverage: [
     "{measured} of {windows} windows measured",
     "{windows} 个窗口中 {measured} 个有实测",
   ],
-  siFlowsPhonePick: ["Pick a window", "选择时间窗"],
   siFlowsSelectedEtf: ["{ticker} · {name}", "{ticker} · {name}"],
   siFlowsParticipation: [
     "flow equals {pct}% of the complex's {window} net move",
@@ -206,8 +216,8 @@ export const SECTOR_DEPTH_LEX: Record<string, [string, string]> = {
   siUniverseFilterPlaceholderBk: ["Filter basket or category…", "筛选篮子或类别…"],
   siUniverseFilterCount: ["{shown} / {total}", "{shown} / {total}"],
   siUniverseNoMatches: [
-    "No matches. This is a successful search with zero results — not a source failure.",
-    "无匹配结果。这是成功的空结果搜索——并非来源故障。",
+    "No matches for “{q}”. This is a successful search with zero results — not a source failure.",
+    "没有匹配“{q}”的结果。这是成功的空结果搜索——并非来源故障。",
   ],
   siUniverseClearFilter: ["Clear filter", "清除筛选"],
   siUniverseZeroGroups: [
@@ -239,6 +249,14 @@ export const SECTOR_DEPTH_LEX: Record<string, [string, string]> = {
   siUniverseSourceIdentity: [
     "universe {id} · benchmark {benchmark} · equal weight",
     "样本域 {id} · 基准 {benchmark} · 等权",
+  ],
+  siUniverseNoDate: [
+    "this run did not report a session date",
+    "此版本未报告交易日",
+  ],
+  siUniverseMemberUnits: [
+    "member weight in % · vs basket in %",
+    "成分权重为 % · 相对篮子为 %",
   ],
   siUniverseNeverMixed: [
     "Rows never cross between universes.",

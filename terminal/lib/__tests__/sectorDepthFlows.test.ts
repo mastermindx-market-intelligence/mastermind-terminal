@@ -1,0 +1,542 @@
+/**
+ * sectorDepthFlows.test.ts — contract tests for the sector-ETF fund-flow
+ * matrix readers (Sector Intelligence depth, lane 7).
+ *
+ * The flow payload the Macro generation publishes is NOT yet carried by the
+ * captured generation fixture, so these tests run against the clearly
+ * synthetic contract fixture (sectorDepthFlowsContract.v1.json, top-level
+ * "note" marks it as not a real generation) in two shapes:
+ * - depth 8: history still accruing — 2w/1m cap at 8 trading days and the
+ *   wider windows coincide where measured (incumbent siFlowsNote law);
+ * - depth 79: the live incumbent's full-history shape (as-of 2026-11-05),
+ *   where 2w and 1m are distinct again.
+ *
+ * Incumbent semantics pinned here: ΔShares × NAV in US$ millions, positive =
+ * money in; null is NO READING and 0 is a measured number, never conflated;
+ * per-window heat scale over the 11 ETF rows ONLY (net excluded); windows
+ * 1d/3d/1w/2w/1m = 1/3/5/10/21 trading days in that fixed order; "−" is
+ * U+2212 MINUS SIGN, never a hyphen.
+ */
+import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import {
+  cellIntensity,
+  effectiveWindowDays,
+  FLOW_WINDOWS,
+  fmtMoneyMn,
+  heatScale,
+  MISSING_GLYPH,
+  MINUS_SIGN,
+  participation,
+  phoneModel,
+  rowCoverage,
+  tableModel,
+  WINDOW_DAYS,
+  type FlowsData,
+  type FlowRow,
+} from "../sectorDepthFlows";
+import { SECTOR_DEPTH_LEX } from "../sectorDepthLex";
+
+const FIXTURE_PATH = join(
+  __dirname,
+  "fixtures",
+  "sectorDepthFlowsContract.v1.json",
+);
+const fixtureFile = JSON.parse(readFileSync(FIXTURE_PATH, "utf8")) as {
+  note: string;
+  cases: { depth8: FlowsData; depth79: FlowsData };
+};
+const FX8 = fixtureFile.cases.depth8;
+const FX79 = fixtureFile.cases.depth79;
+const CASES: [string, FlowsData][] = [
+  ["depth8", FX8],
+  ["depth79", FX79],
+];
+
+/** The 11 sector SPDRs in the fixture's (and the source's) fixed order. */
+const SPDR_ORDER = [
+  "XLB",
+  "XLE",
+  "XLF",
+  "XLI",
+  "XLK",
+  "XLV",
+  "XLU",
+  "XLY",
+  "XLP",
+  "XLC",
+  "XLRE",
+];
+
+const ALL_NULL_ROW: FlowRow = {
+  ticker: "XXX",
+  name: "All Null",
+  values: { "1d": null, "3d": null, "1w": null, "2w": null, "1m": null },
+};
+
+describe("fmtMoneyMn — incumbent money formatting", () => {
+  it("formats the boundary table exactly", () => {
+    expect(fmtMoneyMn(null)).toBe("—");
+    expect(fmtMoneyMn(0)).toBe("+$0M");
+    expect(fmtMoneyMn(1)).toBe("+$1M");
+    expect(fmtMoneyMn(412.6)).toBe("+$413M"); // M branch rounds to 0 decimals
+    expect(fmtMoneyMn(999)).toBe("+$999M");
+    // 999.5 stays in the M branch (|v| < 1000 is tested BEFORE rounding), and
+    // rounds up to a grouped 1,000 — the rule-consistent reading of the spec.
+    expect(fmtMoneyMn(999.5)).toBe("+$1,000M");
+    expect(fmtMoneyMn(1000)).toBe("+$1.0B");
+    expect(fmtMoneyMn(2500)).toBe("+$2.5B");
+    expect(fmtMoneyMn(-286.3)).toBe("−$286M");
+    expect(fmtMoneyMn(-1538)).toBe("−$1.5B");
+    expect(fmtMoneyMn(-1150.7)).toBe("−$1.2B");
+    // A sub-half negative still rounds to a measured-looking −$0M: the sign
+    // carries the direction, and the magnitude is honestly ~0.
+    expect(fmtMoneyMn(-0.4)).toBe("−$0M");
+    expect(fmtMoneyMn(0.4)).toBe("+$0M");
+  });
+
+  it("uses U+2212 MINUS SIGN — assert the codepoint, not a lookalike", () => {
+    const out = fmtMoneyMn(-1538);
+    expect(out).toBe("−$1.5B");
+    expect(out.charCodeAt(0)).toBe(0x2212);
+    expect(MINUS_SIGN.charCodeAt(0)).toBe(0x2212);
+    expect(out.includes("-")).toBe(false); // never an ASCII hyphen
+    // The missing glyph is U+2014 EM DASH.
+    expect(fmtMoneyMn(null).charCodeAt(0)).toBe(0x2014);
+    expect(MISSING_GLYPH.charCodeAt(0)).toBe(0x2014);
+  });
+
+  it("treats non-finite input as a missing reading, never an invented number", () => {
+    expect(fmtMoneyMn(Number.NaN)).toBe("—");
+    expect(fmtMoneyMn(Number.POSITIVE_INFINITY)).toBe("—");
+  });
+});
+
+describe("effectiveWindowDays — windows cap at collected history", () => {
+  it("full history (depth 21+) leaves every window at full length", () => {
+    for (const w of FLOW_WINDOWS) {
+      expect(effectiveWindowDays(w, 21)).toBe(WINDOW_DAYS[w]);
+      expect(effectiveWindowDays(w, 79)).toBe(WINDOW_DAYS[w]);
+    }
+  });
+
+  it("depth 4 caps 1w/2w/1m at 4 while 1d and 3d stay full", () => {
+    expect(effectiveWindowDays("1d", 4)).toBe(1);
+    expect(effectiveWindowDays("3d", 4)).toBe(3);
+    expect(effectiveWindowDays("1w", 4)).toBe(4);
+    expect(effectiveWindowDays("2w", 4)).toBe(4);
+    expect(effectiveWindowDays("1m", 4)).toBe(4);
+  });
+
+  it("depth 8 caps only 2w and 1m (the fixture's accruing case)", () => {
+    expect(effectiveWindowDays("1d", 8)).toBe(1);
+    expect(effectiveWindowDays("3d", 8)).toBe(3);
+    expect(effectiveWindowDays("1w", 8)).toBe(5);
+    expect(effectiveWindowDays("2w", 8)).toBe(8);
+    expect(effectiveWindowDays("1m", 8)).toBe(8);
+  });
+
+  it("never returns a negative window", () => {
+    for (const w of FLOW_WINDOWS) expect(effectiveWindowDays(w, 0)).toBe(0);
+  });
+});
+
+describe("heatScale — per-window scale over the ETF rows ONLY", () => {
+  it("excludes the net row even when its magnitude dwarfs every row", () => {
+    const flows: FlowsData = {
+      asof: "2026-01-02",
+      depth: 21,
+      rows: [
+        {
+          ticker: "A",
+          name: "A",
+          values: { "1d": 120, "3d": null, "1w": 0, "2w": 0, "1m": 0 },
+        },
+        {
+          ticker: "B",
+          name: "B",
+          values: { "1d": -80, "3d": 0, "1w": 0, "2w": 0, "1m": 0 },
+        },
+      ],
+      net: { "1d": -99999, "3d": null, "1w": 0, "2w": 0, "1m": 0 },
+    };
+    const scale = heatScale(flows);
+    expect(scale["1d"]).toBe(120); // max |row|, not the net's 99999
+    expect(scale["3d"]).toBe(0); // all-null window scales to 0
+    expect(scale["1w"]).toBe(0); // all-zero window also scales to 0
+  });
+
+  it("on both fixture cases equals the max |row| per window, net excluded", () => {
+    for (const [name, fx] of CASES) {
+      const scale = heatScale(fx);
+      for (const w of FLOW_WINDOWS) {
+        const expected = fx.rows.reduce(
+          (m, r) => {
+            const v = r.values[w];
+            return typeof v === "number" && Math.abs(v) > m ? Math.abs(v) : m;
+          },
+          0,
+        );
+        expect(scale[w], `${name} ${w}`).toBe(expected);
+      }
+    }
+    // Direct incumbent-law witness on the depth8 case: the 2w net (3147.2) and
+    // 1m net (4297.9) far exceed their scales — the scale stays the max ROW value.
+    expect(FX8.net["2w"]).toBeGreaterThan(FX8.rows[4].values["2w"]!);
+    expect(heatScale(FX8)["2w"]).toBe(FX8.rows[4].values["2w"]);
+    expect(FX8.net["1m"]).toBeGreaterThan(FX8.rows[4].values["1m"]!);
+    expect(heatScale(FX8)["1m"]).toBe(FX8.rows[4].values["1m"]);
+  });
+});
+
+describe("cellIntensity — tint in [0,1], never tinting nothing into something", () => {
+  it("returns 0 for missing readings, non-finite values and 0-scale windows", () => {
+    expect(cellIntensity(null, 100)).toBe(0);
+    expect(cellIntensity(Number.NaN, 100)).toBe(0);
+    expect(cellIntensity(50, 0)).toBe(0);
+    expect(cellIntensity(0, 100)).toBe(0); // measured 0: no tint
+  });
+
+  it("maps |v|/scale and clamps to 1", () => {
+    expect(cellIntensity(50, 100)).toBe(0.5);
+    expect(cellIntensity(-50, 100)).toBe(0.5);
+    expect(cellIntensity(100, 100)).toBe(1);
+    expect(cellIntensity(250, 100)).toBe(1);
+  });
+});
+
+describe("participation — row share of the complex net, guarded", () => {
+  it("is undefined for net 0, net null, row null or non-finite inputs", () => {
+    expect(participation(50, 0)).toBeUndefined(); // never Infinity
+    expect(participation(50, null)).toBeUndefined();
+    expect(participation(null, 50)).toBeUndefined();
+    expect(participation(Number.NaN, 50)).toBeUndefined();
+    expect(participation(50, Number.NaN)).toBeUndefined();
+    expect(participation(0, 0)).toBeUndefined();
+  });
+
+  it("rounds to 1 decimal and keeps sign (money out is a negative share)", () => {
+    expect(participation(30, 120)).toBe(25);
+    expect(participation(1, 3)).toBe(33.3);
+    expect(participation(-100, 200)).toBe(-50);
+    expect(participation(0, 200)).toBe(0); // measured zero share IS defined
+    expect(participation(412.6, 369.2)).toBe(111.8); // can exceed 100%
+  });
+});
+
+describe("rowCoverage — measured windows out of five", () => {
+  it("scores an all-null row 0 of 5 (the row still renders, elsewhere)", () => {
+    expect(rowCoverage(ALL_NULL_ROW)).toBe(0);
+    const model = tableModel({
+      asof: "2026-01-02",
+      depth: 21,
+      rows: [ALL_NULL_ROW],
+      net: { "1d": 5, "3d": null, "1w": null, "2w": null, "1m": null },
+    });
+    expect(model.rows).toHaveLength(1); // not dropped
+    expect(model.rows[0].coverage).toBe(0);
+    expect(model.rows[0].cells.every((c) => c.missing && c.value === null)).toBe(
+      true,
+    );
+  });
+
+  it("counts a mixed row and ignores non-finite entries", () => {
+    const row: FlowRow = {
+      ticker: "M",
+      name: "Mixed",
+      values: { "1d": 1, "3d": null, "1w": 0, "2w": -2, "1m": Number.NaN },
+    };
+    expect(rowCoverage(row)).toBe(3);
+    expect(rowCoverage(FX8.rows[1])).toBe(4); // XLE: 1m withheld
+    expect(rowCoverage(FX8.rows[10])).toBe(3); // XLRE: 3d/1w withheld
+  });
+});
+
+describe("synthetic contract fixture — shape and representative content", () => {
+  it("declares itself synthetic and carries well-formed reading dates", () => {
+    expect(fixtureFile.note).toBe(
+      "synthetic contract-shape fixture for tests; not a real generation",
+    );
+    expect(FX8.asof).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(FX79.asof).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(FX79.asof).toBe("2026-11-05");
+  });
+
+  it("carries the 11 SPDRs in fixed order with all five windows each", () => {
+    for (const [, fx] of CASES) {
+      expect(fx.rows.map((r) => r.ticker)).toEqual(SPDR_ORDER);
+      expect(fx.rows).toHaveLength(11);
+      for (const r of fx.rows) {
+        for (const w of FLOW_WINDOWS) expect(r.values).toHaveProperty(w);
+      }
+      for (const w of FLOW_WINDOWS) expect(fx.net).toHaveProperty(w);
+    }
+  });
+
+  it("depth 8 caps 2w/1m; depth 79 is the full-history incumbent shape", () => {
+    expect(FX8.depth).toBe(8);
+    expect(FX79.depth).toBe(79);
+    // Under the cap, a fully measured row's 2w and 1m coincide (same 8 days).
+    expect(FX8.rows[0].values["2w"]).toBe(FX8.rows[0].values["1m"]);
+    // At full depth they are distinct again.
+    expect(FX79.rows[4].values["2w"]).not.toBe(FX79.rows[4].values["1m"]);
+  });
+
+  it("contains at least one null, one exact 0, one ≥1000 and one negative", () => {
+    for (const [, fx] of CASES) {
+      const vals: (number | null)[] = [];
+      for (const r of fx.rows) for (const w of FLOW_WINDOWS) vals.push(r.values[w]);
+      expect(vals.some((v) => v === null)).toBe(true);
+      expect(vals.some((v) => v === 0)).toBe(true);
+      expect(vals.some((v) => typeof v === "number" && v >= 1000)).toBe(true);
+      expect(vals.some((v) => typeof v === "number" && v < 0)).toBe(true);
+    }
+    expect(FX8.net["1w"]).toBeNull(); // withheld net → participation undefined
+  });
+});
+
+describe("tableModel — heat ↔ exact-value table equivalence", () => {
+  it("fixes the window order 1d,3d,1w,2w,1m everywhere and keeps source row order", () => {
+    expect([...FLOW_WINDOWS]).toEqual(["1d", "3d", "1w", "2w", "1m"]);
+    expect(WINDOW_DAYS).toEqual({
+      "1d": 1,
+      "3d": 3,
+      "1w": 5,
+      "2w": 10,
+      "1m": 21,
+    });
+    for (const [name, fx] of CASES) {
+      const model = tableModel(fx);
+      expect(model.windows).toEqual([...FLOW_WINDOWS]);
+      expect(model.rows.map((r) => r.ticker)).toEqual(fx.rows.map((r) => r.ticker));
+      for (const row of model.rows) {
+        expect(row.cells.map((c) => c.window)).toEqual([...FLOW_WINDOWS]);
+      }
+      expect(model.net.cells.map((c) => c.window)).toEqual([...FLOW_WINDOWS]);
+      expect(model.asof, name).toBe(fx.asof);
+    }
+  });
+
+  it("carries every heat value as the identical formatted string, and every null as missing", () => {
+    for (const [name, fx] of CASES) {
+      const model = tableModel(fx);
+      fx.rows.forEach((src, i) => {
+        const row = model.rows[i];
+        expect(row.ticker).toBe(src.ticker);
+        for (const w of FLOW_WINDOWS) {
+          const cell = row.cells[FLOW_WINDOWS.indexOf(w)];
+          const raw = src.values[w];
+          if (raw === null) {
+            // null → siFlowsCellMissing territory: flagged missing in BOTH views
+            expect(cell.missing, `${name} ${src.ticker} ${w}`).toBe(true);
+            expect(cell.value).toBeNull();
+            expect(cell.text).toBe("—");
+            expect(cell.sign).toBeNull();
+          } else {
+            expect(cell.missing, `${name} ${src.ticker} ${w}`).toBe(false);
+            expect(cell.value).toBe(raw); // exact number, no coercion
+            expect(cell.text).toBe(fmtMoneyMn(raw));
+            expect(cell.zero).toBe(raw === 0);
+            expect(cell.sign).toBe(raw >= 0 ? "up" : "down");
+          }
+        }
+        expect(row.coverage).toBe(rowCoverage(src));
+      });
+      // The net row follows the same law.
+      for (const w of FLOW_WINDOWS) {
+        const cell = model.net.cells[FLOW_WINDOWS.indexOf(w)];
+        const raw = fx.net[w];
+        if (raw === null) {
+          expect(cell.missing).toBe(true);
+          expect(cell.text).toBe("—");
+        } else {
+          expect(cell.text).toBe(fmtMoneyMn(raw));
+          expect(cell.value).toBe(raw);
+        }
+      }
+      expect(model.net.coverage).toBe(
+        FLOW_WINDOWS.filter((w) => typeof fx.net[w] === "number").length,
+      );
+    }
+  });
+
+  it("marks capped windows and their effective day counts", () => {
+    const m8 = tableModel(FX8);
+    for (const row of [...m8.rows, m8.net]) {
+      const byWin = new Map(row.cells.map((c) => [c.window, c]));
+      expect(byWin.get("1d")!.capped).toBe(false);
+      expect(byWin.get("1d")!.days).toBe(1);
+      expect(byWin.get("3d")!.capped).toBe(false);
+      expect(byWin.get("1w")!.capped).toBe(false);
+      expect(byWin.get("1w")!.days).toBe(5);
+      expect(byWin.get("2w")!.capped).toBe(true); // capped at depth 8
+      expect(byWin.get("2w")!.days).toBe(8);
+      expect(byWin.get("1m")!.capped).toBe(true);
+      expect(byWin.get("1m")!.days).toBe(8);
+    }
+    const m79 = tableModel(FX79);
+    for (const cell of m79.rows[0].cells) {
+      expect(cell.capped).toBe(false);
+      expect(cell.days).toBe(WINDOW_DAYS[cell.window]);
+    }
+  });
+
+  it("exposes the ETF-only heat scale alongside the cells", () => {
+    for (const [, fx] of CASES) {
+      expect(tableModel(fx).scale).toEqual(heatScale(fx));
+    }
+  });
+});
+
+describe("phoneModel — selected ETF with all five exact windows", () => {
+  it("defaults to the first ETF and falls back to it for an unknown ticker", () => {
+    const def = phoneModel(FX8);
+    expect(def?.selectedTicker).toBe("XLB");
+    expect(def?.selectedName).toBe("Materials");
+    expect(phoneModel(FX8, "ZZZ")?.selectedTicker).toBe("XLB");
+    expect(phoneModel(FX8, "XLK")?.selectedTicker).toBe("XLK");
+    expect(phoneModel(FX79, "XLRE")?.selectedTicker).toBe("XLRE");
+  });
+
+  it("shows all five windows as exact values with units, in fixed order", () => {
+    const pm = phoneModel(FX8, "XLK")!;
+    expect(pm.windows.map((w) => w.window)).toEqual([...FLOW_WINDOWS]);
+    const src = FX8.rows.find((r) => r.ticker === "XLK")!;
+    for (const w of FLOW_WINDOWS) {
+      const entry = pm.windows[FLOW_WINDOWS.indexOf(w)];
+      expect(entry.text).toBe(fmtMoneyMn(src.values[w]));
+      expect(entry.value).toBe(src.values[w]);
+      expect(entry.unitsKey).toBe("siFlowsUnitsMn");
+    }
+    expect(pm.coverage).toBe(5);
+    expect(pm.asof).toBe(FX8.asof);
+    expect(pm.depth).toBe(FX8.depth); // source clock parts
+    expect(pm.pickers.map((p) => p.ticker)).toEqual(SPDR_ORDER);
+  });
+
+  it("derives participation only where the net is measured and non-zero", () => {
+    const xlk = phoneModel(FX8, "XLK")!.windows;
+    const byWin = new Map(xlk.map((w) => [w.window, w]));
+    expect(byWin.get("1d")!.participationPct).toBe(111.8); // 412.6 / 369.2
+    expect(byWin.get("1w")!.participationPct).toBeUndefined(); // net 1w null
+    expect(byWin.get("2w")!.participationPct).toBeCloseTo(
+      (2210.5 / 3147.2) * 100,
+      0,
+    );
+    // XLU's measured-0 1d flow over a live net is a defined 0.0%.
+    const xlu = phoneModel(FX8, "XLU")!.windows;
+    expect(xlu[0].zero).toBe(true);
+    expect(xlu[0].participationPct).toBe(0);
+    // XLC's missing 1d flow has no participation line at all.
+    const xlc = phoneModel(FX8, "XLC")!.windows;
+    expect(xlc[0].missing).toBe(true);
+    expect(xlc[0].participationPct).toBeUndefined();
+    // At full depth every net window is measured.
+    const full = phoneModel(FX79, "XLB")!.windows;
+    expect(full.every((w) => w.participationPct !== undefined)).toBe(true);
+  });
+
+  it("keeps capped-window days visible and returns null for an empty payload", () => {
+    const pm = phoneModel(FX8, "XLB")!;
+    const byWin = new Map(pm.windows.map((w) => [w.window, w]));
+    expect(byWin.get("1w")!.capped).toBe(false);
+    expect(byWin.get("1m")!.capped).toBe(true);
+    expect(byWin.get("1m")!.days).toBe(8);
+    expect(phoneModel({ ...FX8, rows: [] })).toBeNull();
+  });
+});
+
+describe("lane lexicon — every key the component references exists EN+ZH", () => {
+  const USED_KEYS = [
+    "siDepthDisplayOnly",
+    "siFlowsTitle",
+    "siFlowsSub",
+    "siFlowsNetRow",
+    "siFlowsChart",
+    "siFlowsTable",
+    "siFlowsNote",
+    "siFlowsUnitsMn",
+    "siFlowsWindowDays",
+    "siFlowsSourceClock",
+    "siFlowsCellMissing",
+    "siFlowsCellZero",
+    "siFlowsRowCoverage",
+    "siFlowsSelectedEtf",
+    "siFlowsParticipation",
+    "siFlowsColCoverage",
+    "siFlowsMatrixHint",
+    "siFlowsReadout",
+    "siFlowsDirIn",
+    "siFlowsDirOut",
+  ];
+
+  it("each referenced key is a non-empty [en, zh] pair", () => {
+    for (const key of USED_KEYS) {
+      const pair = SECTOR_DEPTH_LEX[key];
+      expect(pair, key).toBeDefined();
+      expect(Array.isArray(pair)).toBe(true);
+      expect(pair).toHaveLength(2);
+      expect(pair[0].trim().length, `${key} en`).toBeGreaterThan(0);
+      expect(pair[1].trim().length, `${key} zh`).toBeGreaterThan(0);
+      // A pure interpolation template (e.g. "{ticker} · {name}") may be
+      // identical across locales; anything with real words must differ.
+      const words = (s: string) =>
+        s
+          .replace(/\{[^}]+\}/g, "")
+          .replace(/[^\p{L}\p{N}]/gu, "");
+      if (words(pair[0]).length > 0 && words(pair[1]).length > 0) {
+        expect(pair[0], key).not.toBe(pair[1]);
+      }
+    }
+  });
+
+  it("interpolated keys carry the placeholders the component passes", () => {
+    const en = (k: string) => SECTOR_DEPTH_LEX[k][0];
+    expect(en("siFlowsWindowDays")).toContain("{n}");
+    expect(en("siFlowsSourceClock")).toContain("{asof}");
+    expect(en("siFlowsSourceClock")).toContain("{depth}");
+    expect(en("siFlowsNote")).toContain("{depth}");
+    expect(en("siFlowsRowCoverage")).toContain("{measured}");
+    expect(en("siFlowsRowCoverage")).toContain("{windows}");
+    expect(en("siFlowsSelectedEtf")).toContain("{ticker}");
+    expect(en("siFlowsSelectedEtf")).toContain("{name}");
+    expect(en("siFlowsParticipation")).toContain("{pct}");
+    expect(en("siFlowsParticipation")).toContain("{window}");
+    for (const k of [
+      "siFlowsWindowDays",
+      "siFlowsSourceClock",
+      "siFlowsNote",
+      "siFlowsRowCoverage",
+      "siFlowsSelectedEtf",
+      "siFlowsParticipation",
+    ]) {
+      expect(SECTOR_DEPTH_LEX[k][1], `${k} zh`).toContain("{");
+    }
+  });
+
+  it("keeps the missing reading and the measured zero distinct in both locales", () => {
+    expect(SECTOR_DEPTH_LEX.siFlowsCellMissing[0]).not.toBe(
+      SECTOR_DEPTH_LEX.siFlowsCellZero[0],
+    );
+    expect(SECTOR_DEPTH_LEX.siFlowsCellMissing[1]).not.toBe(
+      SECTOR_DEPTH_LEX.siFlowsCellZero[1],
+    );
+    // The coverage column header key landed at integration (was a documented
+    // gap while the lexicon was a concurrently-edited shared file).
+    expect(SECTOR_DEPTH_LEX.siFlowsColCoverage[0]).toBe("Coverage");
+  });
+
+  it("carries the integration readout keys with their placeholders (F03)", () => {
+    const en = (k: string) => SECTOR_DEPTH_LEX[k][0];
+    expect(en("siFlowsReadout")).toContain("{etf}");
+    expect(en("siFlowsReadout")).toContain("{window}");
+    expect(en("siFlowsReadout")).toContain("{days}");
+    expect(en("siFlowsReadout")).toContain("{asof}");
+    expect(en("siFlowsReadout")).toContain("{value}");
+    expect(en("siFlowsReadout")).toContain("{dir}");
+    expect(SECTOR_DEPTH_LEX.siFlowsReadout[1]).toContain("{etf}");
+    expect(SECTOR_DEPTH_LEX.siFlowsDirIn[0]).toMatch(/net creations/);
+    expect(SECTOR_DEPTH_LEX.siFlowsDirOut[0]).toMatch(/net redemptions/);
+  });
+});

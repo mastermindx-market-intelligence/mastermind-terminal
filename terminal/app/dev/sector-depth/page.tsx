@@ -19,10 +19,16 @@ import { LangProvider, useLang } from "@/lib/i18n";
 import { sectorRotationHistory } from "@/lib/sectorIntelligence";
 import capturedFixture from "@/lib/__tests__/fixtures/sector_generation.captured.preview.v1.json";
 import callsContractFixture from "@/lib/__tests__/fixtures/sectorDepthCallsContract.v1.json";
+import flowsContractFixture from "@/lib/__tests__/fixtures/sectorDepthFlowsContract.v1.json";
+import universesContractFixture from "@/lib/__tests__/fixtures/sectorDepthUniversesContract.v1.json";
 import type { ActionBoardData, BottomingWatchData } from "@/lib/sectorDepthCalls";
+import type { FlowsData } from "@/lib/sectorDepthFlows";
+import type { UniverseData, UniverseId } from "@/lib/sectorDepthUniverses";
 import { useSectorDepthT } from "@/lib/sectorDepthLex";
 import { SectorCallsBoard } from "@/components/sector-intelligence/depth/SectorCallsBoard";
 import { SectorBottomingWatch } from "@/components/sector-intelligence/depth/SectorBottomingWatch";
+import { SectorFlowMatrix } from "@/components/sector-intelligence/depth/SectorFlowMatrix";
+import { SectorConfluenceUniverses } from "@/components/sector-intelligence/depth/SectorConfluenceUniverses";
 import { SectorThemeCompare } from "@/components/sector-intelligence/depth/SectorThemeCompare";
 import { DepthUnavailable } from "@/components/sector-intelligence/depth/DepthUnavailable";
 import styles from "./page.module.css";
@@ -47,6 +53,18 @@ const callsContract = callsContractFixture as unknown as {
 
 /** The captured generation's real parsed rotation history (11 × 252). */
 const capturedHistory = sectorRotationHistory(captured.projection.data.history);
+
+/** Synthetic flow fixtures: full-history (depth 79, as-of 2026-11-05) and the
+ * early-collection case (depth 8) where 2w/1m cap and coincide. */
+const flowsContract = flowsContractFixture as unknown as {
+  cases: { depth8: FlowsData; depth79: FlowsData };
+};
+
+/** Synthetic four-universe fixture: S&P 500 live, Nasdaq-100 as_of-null,
+ * Russell-2000 ok:false (no access), baskets zero-groups. */
+const universesContract = universesContractFixture as unknown as {
+  universes: Partial<Record<UniverseId, UniverseData>>;
+};
 
 /** id → localized display name from the captured core sectors. */
 const CAPTURED_LABELS: Record<string, Record<string, string>> = (() => {
@@ -160,10 +178,13 @@ function HarnessBody() {
         <SectorBottomingWatch watch={callsContract.bottoming_watch_payload} />
       </HarnessSection>
       <HarnessSection id="flows-contract" title="Flow matrix · CONTRACT fixture (synthetic)" synthetic>
-        {null}
+        <SectorFlowMatrix flows={flowsContract.cases.depth79} />
+      </HarnessSection>
+      <HarnessSection id="flows-contract-capped" title="Flow matrix · CONTRACT fixture, depth 8 (synthetic)" synthetic>
+        <SectorFlowMatrix flows={flowsContract.cases.depth8} />
       </HarnessSection>
       <HarnessSection id="universes-contract" title="Entry evidence · CONTRACT fixture (synthetic)" synthetic>
-        {null}
+        <SectorConfluenceUniverses universes={universesContract.universes} onNavigate={onNavigate} />
       </HarnessSection>
     </main>
   );
