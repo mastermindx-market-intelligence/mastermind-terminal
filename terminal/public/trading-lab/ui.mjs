@@ -118,7 +118,14 @@ $('reconcile').onclick=async()=>{try{const r=await client.reconcile();if(r.recor
 $('retry').onclick=async()=>{try{const p=client.retryUnrecorded();renderStatus();const r=await p;savedUnread=r.thesisId;fill(await client.read(r.thesisId));notice(`Saved version ${r.version} using the original request identity.`);}catch(e){handleError(e);}finally{renderStatus();}};
 $('compare').onclick=async()=>{if(!current)return;try{latestConflict=await client.read(current.id);$('remote-conflict').textContent=formatContent(latestConflict.current.content);$('adopt').hidden=JSON.stringify(current.subject)!==JSON.stringify(latestConflict.subject);if($('adopt').hidden)notice('The plan subject changed. Export your draft and open the latest plan; it will not be silently reassigned.');}catch(e){handleError(e);}};
 $('adopt').onclick=()=>{if(!latestConflict)return;current=latestConflict;latestConflict=null;$('conflict').hidden=true;$('adopt').hidden=true;client.state='ready';dirty=true;notice(`Your draft is unchanged. Its next revision will explicitly target version ${current.currentVersion}. Review every field before saving.`);renderStatus();};
-$('reload-saved').onclick=async()=>{try{fill(await client.read(savedUnread));notice('Saved plan reloaded. You may revise it now.');}catch(e){handleError(e);}};
+$('reload-saved').onclick=async()=>{
+  const g=++readGeneration;
+  try {
+    const thesis=await client.read(savedUnread);
+    if(g!==readGeneration)return;
+    fill(thesis);notice('Saved plan reloaded. You may revise it now.');
+  }catch(e){handleError(e);}
+};
 $('refresh').onclick=()=>{if(client.userId)loadList();else show('today');};
 $('export').onclick=()=>{const text=JSON.stringify({notice:'Unsaved draft, not a saved thesis or order.',...form()},null,2);const url=URL.createObjectURL(new Blob([text],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='mastermind-plan-draft.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
 $('theme').onclick=()=>{const light=document.documentElement.dataset.theme!=='light';document.documentElement.dataset.theme=light?'light':'dark';$('theme').textContent=light?'Dark mode':'Light mode';};
