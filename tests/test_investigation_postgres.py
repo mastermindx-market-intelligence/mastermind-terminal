@@ -559,6 +559,9 @@ def test_sp15_late_completion_lands_once_for_its_own_account_and_never_for_the_n
     assert apply(pg, late_key, "create", 0, manifest("late A"), target=late_id, actor=A) == first
     assert pg("select count(*) from investigation_revisions where investigation_id='" + late_id + "'", A) == "1"
     # The same key under the other account is its own namespace and cannot collide with or reveal A's receipt.
-    other = apply(pg, late_key, "create", 0, manifest("B own"), target="22000000-0000-4000-8000-0000000000bb", actor=B)
+    # (A fresh account: B's per-principal record limit is filled by an earlier capacity test in this module.)
+    switched = "10000000-0000-4000-8000-0000000000d1"
+    pg("insert into auth.users values (" + quote(switched) + ") on conflict do nothing;")
+    other = apply(pg, late_key, "create", 0, manifest("switched own"), target="22000000-0000-4000-8000-0000000000bb", actor=switched)
     assert other["status"] == "committed" and other["id"] == "22000000-0000-4000-8000-0000000000bb"
     assert json.loads(pg("select read_investigation_operation_v2('" + late_key + "')", A))["manifest"]["intent"]["question"] == "late A"
