@@ -4,6 +4,14 @@ No candidate executable, cache, artifact, environment file or event-shaped proof
 is consumed. workflow_run is a NEW origin: it does not attest the old event base.
 Only a freshly authenticated native queue supplies that base and membership.
 The installation token stays in this process; HTTP mutations are never retried.
+
+`execute_recovery` is the manually invoked recovery entry of this SAME
+publisher: a separate workflow_dispatch workflow executes exactly the
+dispatch-time default-branch revision (github.sha, asserted by the workflow's
+rev-parse check) and refuses as a stale run unless those bytes still carry the
+current master validator/issuer-law identity. No caller-selected revision
+exists. It records authenticated dispatch provenance, reconciles the original
+operation before any write, and never forges workflow_run identity.
 """
 from __future__ import annotations
 
@@ -26,11 +34,36 @@ REPO = "mastermindx-market-intelligence/mastermind-terminal"
 WORKFLOW = ".github/workflows/ci.yml"
 ISSUER_WORKFLOW = ".github/workflows/trusted-migration-ownership.yml"
 ISSUER_NAME = "Protected migration ownership issuer"
+# The recovery entry is a SEPARATE manually dispatched workflow, so a broken
+# default-branch ISSUER_WORKFLOW cannot disable it. It executes exactly the
+# dispatch-time master tip (github.sha); no caller-selected revision exists.
+RECOVERY_ISSUER_WORKFLOW = ".github/workflows/trusted-migration-ownership-recovery.yml"
+RECOVERY_ISSUER_NAME = "Protected migration ownership recovery"
+# Staleness identity covers the validator law AND this issuer module itself:
+# a recovery dispatch may execute only bytes whose content-addressed identity
+# still equals current master's, so older/weaker law can never be selected.
+VALIDATOR_PATHS = ("scripts/check_supabase_migration_namespace.py",
+                   "scripts/migration_merge_group.py",
+                   "scripts/trusted_migration_ownership.py")
+# Every Actions run status that is not "completed": a live scan must see each
+# of them separately, because the list endpoint has no not-completed filter.
+_LIVE_ISSUER_STATUSES = ("queued", "requested", "pending", "waiting",
+                         "in_progress", "action_required")
+# The recovery workflow's final publication step; a prior recovery dispatch
+# whose jobs show this step executed has already taken its one write turn.
+RECOVERY_PUBLISH_STEP = "Recover namespace ownership publication"
+RECOVERY_WRITE_PERMISSIONS = frozenset({"admin", "maintain", "write"})
 CONTEXT = "Migration namespace / protected owner"
 API = "https://api.github.com"
 MAX_RESPONSE = 8 * 1024 * 1024
 MAX_BLOB = 1024 * 1024
 MAX_FILES = 512
+# Hard page cap for every paginated Actions listing scan. Reaching it with the
+# set still incomplete is an incomplete scan: the caller must refuse, never
+# publish over records it did not see.
+MAX_SCAN_PAGES = 10
+_COMPLETED_CONCLUSIONS = frozenset({"success", "failure", "neutral", "cancelled", "skipped",
+                                    "timed_out", "action_required", "stale", "startup_failure"})
 require = group.require
 
 
@@ -244,9 +277,8 @@ def _qualify_run(event: dict, env: dict, api) -> _VerifiedRun:
     # release, and the transition verifier separately requires successful CI.
     require((current.get("status") == "in_progress" and "conclusion" in current
              and current["conclusion"] is None)
-            or (current.get("status") == "completed" and current.get("conclusion") in {
-                "success", "failure", "neutral", "cancelled", "skipped", "timed_out",
-                "action_required", "stale", "startup_failure"}),
+            or (current.get("status") == "completed"
+                and current.get("conclusion") in _COMPLETED_CONCLUSIONS),
             "source lifecycle is inconsistent or not started")
     workflow = api.request("GET", f"/repos/{REPO}/actions/workflows/{workflow_id}")
     require(positive(workflow.get("id")) == workflow_id and workflow.get("path") == WORKFLOW
@@ -279,9 +311,15 @@ def _queue(origin: _VerifiedRun, api):
     else:
         number, source, verified_base = group._validate_serial_queue(snapshot, REPO, origin.head, base)
         owners = {number: source}
-        prefix = [next(entry for entry in repository["mergeQueue"]["entries"]["nodes"]
-                       if isinstance(entry, dict)
-                       and (entry.get("headCommit") or {}).get("oid") == origin.head)]
+        candidate = next(entry for entry in repository["mergeQueue"]["entries"]["nodes"]
+                         if isinstance(entry, dict)
+                         and (entry.get("headCommit") or {}).get("oid") == origin.head)
+        prefix = [candidate]
+    # The integrated candidate tree is the queue entry's head commit ROOT
+    # tree: the head-commit read below must land on exactly that root tree,
+    # never a same-named other one. (Commit.tree is the root tree, not the
+    # supabase/migrations subtree the material read returns.)
+    integrated_tree = group.oid(((candidate.get("headCommit") or {}).get("tree") or {}).get("oid"))
     # Validate the response before trimming. Only the proven prefix contributes
     # to this candidate; unrelated suffix churn is not drift.
     queue = repository["mergeQueue"]
@@ -290,7 +328,7 @@ def _queue(origin: _VerifiedRun, api):
         "defaultBranchRef": repository["defaultBranchRef"],
         "mergeQueue": {"configuration": queue["configuration"],
                        "entries": {"nodes": prefix}}}}
-    return projection, owners, verified_base
+    return projection, owners, verified_base, integrated_tree
 
 
 PR_QUERY = """
@@ -332,9 +370,11 @@ def _pr(origin: _VerifiedRun, api):
 
 
 CONTENTS_QUERY = """
-query($owner: String!, $name: String!, $path: String!) {
+query($owner: String!, $name: String!, $path: String!, $head: GitObjectID!) {
  repository(owner: $owner, name: $name) {
-  nameWithOwner object(expression: $path) { __typename ... on Tree {
+  nameWithOwner
+  head: object(oid: $head) { __typename ... on Commit { oid tree { oid } } }
+  object(expression: $path) { __typename ... on Tree {
    oid entries { name type mode object { __typename ... on Blob { oid byteSize isBinary isTruncated text } } }
   } }
  }
@@ -342,10 +382,22 @@ query($owner: String!, $name: String!, $path: String!) {
 """
 
 
-def _candidate_data(origin: _VerifiedRun, api):
-    data = api.graphql(CONTENTS_QUERY, _variables() | {"path": origin.head + ":supabase/migrations"})
+def _candidate_data(origin: _VerifiedRun, api, integrated_tree=None):
+    data = api.graphql(CONTENTS_QUERY, _variables() | {"path": origin.head + ":supabase/migrations",
+                                                       "head": origin.head})
     repo = data.get("repository") or {}
     require(repo.get("nameWithOwner") == REPO, "foreign candidate repository")
+    # The head commit's ROOT tree is the integrated tree the queue snapshot
+    # reported; the migration material is then read from inside that same
+    # immutable commit. A root tree and the supabase/migrations subtree are
+    # different git objects, so only root-tree-to-root-tree equality binds.
+    commit = repo.get("head") or {}
+    require(commit.get("__typename") == "Commit" and commit.get("oid") == origin.head,
+            "candidate head commit unavailable")
+    root_tree = group.oid((commit.get("tree") or {}).get("oid"))
+    if integrated_tree is not None:
+        require(root_tree == integrated_tree,
+                "candidate head tree differs from the integrated queue tree")
     tree = repo.get("object") or {}
     require(tree.get("__typename") == "Tree", "candidate migration tree unavailable")
     group.oid(tree.get("oid"))
@@ -378,9 +430,9 @@ def _candidate_data(origin: _VerifiedRun, api):
 
 
 def _qualify_contents(origin: _VerifiedRun, api):
-    doc, sql, markdown, material_digest = _candidate_data(origin, api)
     if origin.event == "merge_group":
-        snapshot, owners, base = _queue(origin, api)
+        snapshot, owners, base, integrated_tree = _queue(origin, api)
+        doc, sql, markdown, material_digest = _candidate_data(origin, api, integrated_tree)
         open_files = {n: b for n, b in sql.items()
                       if (doc.get("prefixes", {}).get(namespace.parse_prefix(n)) or {}).get("pr_state") == "open"}
         if open_files:
@@ -392,6 +444,7 @@ def _qualify_contents(origin: _VerifiedRun, api):
                                        markdown, verified_group_prs=verified)
     else:
         snapshot, number = _pr(origin, api)
+        doc, sql, markdown, material_digest = _candidate_data(origin, api)
         findings = namespace.check_all(sorted(sql), {n: b.decode() for n, b in sql.items()}, doc,
                                        markdown, pr_number=number)
     require(not findings, "migration namespace refused")
@@ -484,6 +537,396 @@ def execute(event: dict, env: dict, api, app_id: int):
     return {"state": "PUBLISHED", "head": origin.head}
 
 
+VALIDATOR_QUERY = """
+query($owner: String!, $name: String!, $p0: String!, $p1: String!, $p2: String!) {
+ repository(owner: $owner, name: $name) {
+  nameWithOwner
+  p0: object(expression: $p0) { __typename ... on Blob { oid } }
+  p1: object(expression: $p1) { __typename ... on Blob { oid } }
+  p2: object(expression: $p2) { __typename ... on Blob { oid } }
+ }
+}
+"""
+
+
+@dataclass(frozen=True)
+class _VerifiedRecovery:
+    run_id: int
+    attempt: int
+    workflow_id: int
+
+    @property
+    def original_details_url(self):
+        return f"https://github.com/{REPO}/actions/runs/{self.run_id}/attempts/1"
+
+
+def _recovery_title(origin: _VerifiedRun):
+    return f"Migration owner recovery {origin.run_id} {origin.protected_code}"
+
+
+def _recovery_context(event: dict, env: dict):
+    """A manual default-branch dispatch is a new origin; nothing is inherited.
+
+    The dispatch-time default-branch commit (GITHUB_SHA on refs/heads/master)
+    is the only revision this run may execute: caller-selected issuer
+    revisions are structurally impossible, and the checkout must land on
+    exactly that anchor."""
+    require(env.get("GITHUB_ACTIONS") == "true" and env.get("GITHUB_EVENT_NAME") == "workflow_dispatch"
+            and env.get("GITHUB_REPOSITORY") == REPO and env.get("GITHUB_REF") == "refs/heads/master",
+            "recovery is not a default-branch manual dispatch")
+    anchor = group.oid(env.get("GITHUB_SHA"))
+    raw = env.get("RECOVERY_TARGET_RUN")
+    require(isinstance(raw, str) and re.fullmatch(r"[1-9][0-9]{0,18}", raw), "invalid recovery target")
+    require(env.get("TRUSTED_CHECKOUT_SHA") == anchor,
+            "recovery checkout is not the dispatch-time master revision")
+    repository = event.get("repository") or {}
+    require(repository.get("full_name") == REPO and repository.get("default_branch") == "master",
+            "wrong dispatch repository")
+    return anchor, positive(int(raw))
+
+
+def _validator_identity(api, ref: str):
+    """Content-addressed identity of the three executed modules at one revision.
+
+    `ref` is the dispatch-time anchor SHA or the moving default branch; comparing
+    the two refuses a dispatch whose executing bytes are no longer current
+    protected law (any of the three modules differing makes the run stale).
+    A moving ref must be the fully qualified `refs/heads/master`: a bare
+    `master` is a revision expression that a same-named tag could shadow."""
+    require(re.fullmatch(r"[0-9a-f]{40}", ref) or ref == "refs/heads/master",
+            "validator comparison ref must be a full OID or refs/heads/master")
+    data = api.graphql(VALIDATOR_QUERY, _variables()
+                       | {f"p{i}": f"{ref}:{path}" for i, path in enumerate(VALIDATOR_PATHS)})
+    repo = data.get("repository") or {}
+    require(repo.get("nameWithOwner") == REPO, "foreign validator repository")
+    identities = []
+    for i in range(len(VALIDATOR_PATHS)):
+        value = repo.get(f"p{i}") or {}
+        require(value.get("__typename") == "Blob", "protected validator module unavailable")
+        identities.append(group.oid(value.get("oid")))
+    return tuple(identities)
+
+
+_CREATED_AT = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z")
+
+
+def _recovery_origin(target_id: int, anchor: str, api):
+    value = api.request("GET", f"/repos/{REPO}/actions/runs/{target_id}")
+    identity = _run_identity(value)
+    run_id, attempt, workflow_id, head, branch, event, repo_id = identity
+    workflow = api.request("GET", f"/repos/{REPO}/actions/workflows/{workflow_id}")
+    require(positive(workflow.get("id")) == workflow_id and workflow.get("path") == WORKFLOW
+            and workflow.get("name") == "CI" and workflow.get("state") == "active",
+            "source workflow identity changed")
+    # Only a completed target may be recovered: the original issuer fires on
+    # CI start, so an absent check for a finished run proves that issuer attempt
+    # will never mint. A still-running target keeps its original issuer's turn.
+    require(value.get("status") == "completed" and value.get("conclusion") in _COMPLETED_CONCLUSIONS,
+            "recovery target has not completed; the original issuer may still publish")
+    # The target's immutable creation time bounds the prior-recovery scan.
+    # A recovery dispatch can name a target before that run exists, so
+    # _recovery_record refuses to publish from any recovery run created
+    # earlier than its target: every run that can publish is inside the scan.
+    created = value.get("created_at")
+    require(isinstance(created, str) and _CREATED_AT.fullmatch(created) is not None,
+            "recovery target creation time unavailable")
+    return _VerifiedRun(run_id, attempt, workflow_id, head, branch, event, anchor, repo_id), created
+
+
+def _recovery_record(value, origin: _VerifiedRun, anchor: str, issuer_id: int, attempt: int,
+                     target_created: str):
+    require(isinstance(value, dict) and positive(value.get("id")) == issuer_id
+            and positive(value.get("run_attempt")) == attempt, "recovery attempt identity changed")
+    for key in ("repository", "head_repository"):
+        repo = value.get(key) or {}
+        require(repo.get("full_name") == REPO and positive(repo.get("id")) == origin.repository_id,
+                "foreign recovery repository")
+    require(value.get("event") == "workflow_dispatch" and value.get("path") == RECOVERY_ISSUER_WORKFLOW
+            and value.get("name") == RECOVERY_ISSUER_NAME and value.get("head_branch") == "master"
+            and value.get("head_sha") == anchor and value.get("display_title") == _recovery_title(origin)
+            and value.get("status") == "in_progress",
+            "recovery run target or dispatch revision differs")
+    created = value.get("created_at")
+    # Fixed-format UTC timestamps order lexicographically.
+    require(isinstance(created, str) and _CREATED_AT.fullmatch(created) is not None
+            and created >= target_created,
+            "recovery dispatch predates its target run; it is outside the prior-recovery scan")
+    return _VerifiedRecovery(issuer_id, attempt, positive(value.get("workflow_id")))
+
+
+def _qualify_recovery(origin: _VerifiedRun, anchor: str, env: dict, api, target_created: str):
+    values = []
+    for name in ("GITHUB_RUN_ID", "GITHUB_RUN_ATTEMPT"):
+        raw = env.get(name)
+        require(isinstance(raw, str) and re.fullmatch(r"[1-9][0-9]{0,18}", raw),
+                "recovery identity unavailable")
+        values.append(positive(int(raw)))
+    issuer_id, attempt = values
+    current = api.request("GET", f"/repos/{REPO}/actions/runs/{issuer_id}")
+    recovery = _recovery_record(current, origin, anchor, issuer_id, attempt, target_created)
+    workflow = api.request("GET", f"/repos/{REPO}/actions/workflows/{recovery.workflow_id}")
+    require(positive(workflow.get("id")) == recovery.workflow_id
+            and workflow.get("path") == RECOVERY_ISSUER_WORKFLOW
+            and workflow.get("name") == RECOVERY_ISSUER_NAME and workflow.get("state") == "active",
+            "recovery workflow identity differs")
+    return recovery, current
+
+
+def _actor(event: dict, record: dict, api):
+    """Authenticated dispatch provenance; never a forged workflow_run identity."""
+    sender = event.get("sender") or {}
+    login = sender.get("login")
+    require(isinstance(login, str) and re.fullmatch(r"[A-Za-z0-9-]{1,39}", login)
+            and sender.get("type") == "User", "dispatching actor is not an authenticated user")
+    require((record.get("triggering_actor") or {}).get("login") == login,
+            "dispatching actor differs from the authenticated trigger")
+    permission = api.request("GET", f"/repos/{REPO}/collaborators/{login}/permission")
+    require((permission.get("user") or {}).get("login") == login,
+            "permission read returned another principal")
+    level = permission.get("permission")
+    require(level in RECOVERY_WRITE_PERMISSIONS, "dispatching actor lacks repository write authority")
+    return login, level
+
+
+def _prior_operation(checks, origin: _VerifiedRun, app_id: int):
+    operation_prefix = origin.external_id.rsplit(":", 1)[0] + ":"
+    matches = [c for c in checks if c.get("name") == CONTEXT
+               and (c.get("app") or {}).get("id") == app_id
+               and isinstance(c.get("external_id"), str)
+               and c["external_id"].startswith(operation_prefix)]
+    require(len(matches) <= 1, "duplicate owner operation")
+    return matches[0] if matches else None
+
+
+def _prior_issuer(check: dict, origin: _VerifiedRun, api):
+    """Authenticate the prior check's claimed issuer run against real metadata."""
+    match = re.fullmatch(re.escape(f"https://github.com/{REPO}/actions/runs/")
+                         + r"([1-9][0-9]{0,18})/attempts/1", check.get("details_url", ""))
+    require(match is not None, "prior check issuer selection missing")
+    issuer_id = positive(int(match[1]))
+    code = group.oid(check["external_id"].rsplit(":", 1)[1])
+    current = api.request("GET", f"/repos/{REPO}/actions/runs/{issuer_id}")
+    require(isinstance(current, dict) and positive(current.get("id")) == issuer_id
+            and positive(current.get("run_attempt")) == 1, "prior issuer attempt differs")
+    for key in ("repository", "head_repository"):
+        repo = current.get(key) or {}
+        require(repo.get("full_name") == REPO and positive(repo.get("id")) == origin.repository_id,
+                "foreign prior issuer repository")
+    if current.get("path") == ISSUER_WORKFLOW:
+        require(current.get("name") == ISSUER_NAME and current.get("event") == "workflow_run"
+                and current.get("head_sha") == code
+                and current.get("display_title") == _issuer_title(origin),
+                "prior original issuer is not bound to this operation")
+    elif current.get("path") == RECOVERY_ISSUER_WORKFLOW:
+        require(current.get("name") == RECOVERY_ISSUER_NAME
+                and current.get("event") == "workflow_dispatch"
+                and current.get("head_branch") == "master"
+                and current.get("display_title") == f"Migration owner recovery {origin.run_id} {code}",
+                "prior recovery issuer is not bound to this operation")
+    else:
+        require(False, "prior check issuer is not a qualified ownership publisher")
+
+
+def _paged_listing(api, base: str, key: str, label: str) -> list:
+    """Bounded fail-closed pagination for one Actions listing query.
+
+    Every page carries the whole filtered set's total_count; the collected
+    items must equal it within MAX_SCAN_PAGES pages. A page-cap hit, a
+    shortened page before the set is complete, or any count mismatch is an
+    incomplete scan: the caller refuses instead of acting on records it did
+    not fully see."""
+    items = []
+    total = None
+    for page in range(1, MAX_SCAN_PAGES + 1):
+        value = api.request("GET", f"{base}&page={page}")
+        listed = value.get(key)
+        require(isinstance(listed, list) and len(listed) <= 100
+                and type(value.get("total_count")) is int
+                and value["total_count"] >= 0, f"incomplete {label} scan")
+        require(total is None or total == value["total_count"], f"inconsistent {label} scan")
+        total = value["total_count"]
+        items.extend(listed)
+        if len(listed) < 100:
+            break
+    require(type(total) is int and len(items) == total, f"incomplete {label} scan")
+    return items
+
+
+def _no_live_issuer(origin: _VerifiedRun, api):
+    """Any not-yet-completed automatic issuer run for this operation owns it.
+
+    The list endpoint has no not-completed filter, so every non-completed
+    status is scanned separately: a queued, waiting, pending, requested,
+    action-required or in-progress issuer attempt still gets its turn, and
+    recovery must not publish over it. The listing is scoped to the issuer
+    workflow itself and paginated fail-closed, so unrelated workflow_run
+    volume can neither wedge nor silently truncate the scan."""
+    title = _issuer_title(origin)
+    for status in _LIVE_ISSUER_STATUSES:
+        runs = _paged_listing(api, f"/repos/{REPO}/actions/workflows/{Path(ISSUER_WORKFLOW).name}"
+                              f"/runs?event=workflow_run&status={status}&per_page=100",
+                              "workflow_runs", "live issuer")
+        require(not any(isinstance(run, dict) and run.get("path") == ISSUER_WORKFLOW
+                        and run.get("display_title") == title for run in runs),
+                "a pending or live issuer owns this operation")
+
+
+def _prior_recovery_completed(origin: _VerifiedRun, recovery: _VerifiedRecovery,
+                              target_created: str, api):
+    """Duplicate-publication guard: an earlier recovery dispatch for the same
+    target (matched by run title) must be settled and must not have reached
+    the publication step, unless its check was already reconciled above.
+
+    The scan is scoped to THIS recovery workflow's master workflow_dispatch
+    runs created no earlier than the target CI run (the earliest dispatch that
+    could matter), paginated with a hard page cap, and fail-closed on any
+    count mismatch. Runs whose event, branch or repository identity do not
+    match this operation are ignored: a hostile-branch copy of the workflow
+    must not be able to block recovery. Prior-recovery jobs are read with
+    filter=all across every attempt, so a re-run whose latest attempt skipped
+    the publish step cannot hide attempt 1's publication."""
+    query = ("event=workflow_dispatch&branch=master&per_page=100&created="
+             + urllib.parse.quote(">=" + target_created, safe=""))
+    runs = _paged_listing(api, f"/repos/{REPO}/actions/workflows/"
+                          f"{Path(RECOVERY_ISSUER_WORKFLOW).name}/runs?{query}",
+                          "workflow_runs", "prior recovery")
+    prefix = f"Migration owner recovery {origin.run_id} "
+    for run in runs:
+        if not isinstance(run, dict):
+            continue
+        repo = run.get("repository") or {}
+        if not (run.get("path") == RECOVERY_ISSUER_WORKFLOW
+                and run.get("event") == "workflow_dispatch"
+                and run.get("head_branch") == "master"
+                and isinstance(run.get("display_title"), str)
+                and run.get("display_title").startswith(prefix)
+                and repo.get("full_name") == REPO
+                and type(repo.get("id")) is int and 0 < repo["id"] == origin.repository_id):
+            continue
+        prior_id = positive(run.get("id"))
+        if prior_id == recovery.run_id:
+            continue
+        require(run.get("status") == "completed", "an earlier recovery for this target is not settled")
+        jobs = _paged_listing(api, f"/repos/{REPO}/actions/runs/{prior_id}/jobs"
+                              f"?filter=all&per_page=100", "jobs", "prior recovery job")
+        reached = any(isinstance(job, dict) and isinstance(job.get("steps"), list)
+                      and any(isinstance(step, dict) and step.get("name") == RECOVERY_PUBLISH_STEP
+                              and step.get("conclusion") not in (None, "skipped")
+                              for step in job["steps"]) for job in jobs)
+        require(not reached, "an earlier recovery reached publication for this target")
+
+
+def _recovery_check_identity(check: dict, origin: _VerifiedRun, recovery: _VerifiedRecovery, app_id: int):
+    require(isinstance(check, dict) and positive(check.get("id"))
+            and check.get("name") == CONTEXT and check.get("head_sha") == origin.head
+            and type((check.get("app") or {}).get("id")) is int
+            and (check.get("app") or {}).get("id") == app_id
+            and check.get("external_id") == origin.external_id
+            and check.get("details_url") == recovery.original_details_url,
+            "wrong check producer or selection")
+
+
+def execute_recovery(event: dict, env: dict, api, app_id: int):
+    """Manual recovery entry of the same ownership publisher.
+
+    The dispatch-time default-branch revision supplies the executed bytes, and
+    the run is refused as stale once current master carries different protected
+    module bytes. No candidate code, SQL, cache or artifact is ever executed
+    here: candidate material is fetched as bounded, hash-checked data.
+    """
+    positive(app_id)
+    require(app_id != 15368, "independent check App required")
+    anchor, target_id = _recovery_context(event, env)
+    # ANTI-ROLLBACK/STALENESS: the executing bytes must still be exactly the
+    # current protected law on master; older or divergent law cannot be selected.
+    # The moving side resolves refs/heads/master explicitly, so a same-named
+    # tag can never shadow the branch comparison.
+    require(_validator_identity(api, anchor) == _validator_identity(api, "refs/heads/master"),
+            "dispatch-time protected law differs from current master")
+    origin, target_created = _recovery_origin(target_id, anchor, api)
+    require(env.get("GITHUB_REPOSITORY_ID") == str(origin.repository_id), "repository identity changed")
+    recovery, record = _qualify_recovery(origin, anchor, env, api, target_created)
+    actor, level = _actor(event, record, api)
+    prior_response = api.request("GET", f"/repos/{REPO}/commits/{origin.head}/check-runs?filter=all&per_page=100")
+    checks = prior_response.get("check_runs")
+    require(isinstance(checks, list) and type(prior_response.get("total_count")) is int
+            and prior_response["total_count"] == len(checks) < 100, "incomplete prior checks")
+    prior = _prior_operation(checks, origin, app_id)
+    if prior is not None:
+        # Original-operation reconciliation: a settled operation is only read
+        # back; an unsettled one can never be replayed over.
+        _prior_issuer(prior, origin, api)
+        require(prior.get("status") == "completed", "original check outcome unsettled; no replay")
+        return {"state": "RECONCILED", "conclusion": prior.get("conclusion")}
+    _no_live_issuer(origin, api)
+    _prior_recovery_completed(origin, recovery, target_created, api)
+    require(recovery.attempt == 1, "original recovery outcome unknown; later attempts are reconcile-only")
+    evidence = _qualify_contents(origin, api)
+    require(_recovery_origin(target_id, anchor, api) == (origin, target_created),
+            "target changed before check creation")
+    require(_qualify_recovery(origin, anchor, env, api, target_created)[0] == recovery,
+            "recovery attempt changed before check creation")
+    # M1: the live-issuer scan repeats immediately before the write, so an
+    # issuer attempt that appeared during the material read still keeps the turn.
+    _no_live_issuer(origin, api)
+    # mi3: a check created by a concurrent publisher between the first read and
+    # this boundary keeps its turn. The write order is scan -> re-read checks
+    # -> POST; a fresh owner operation for this target never gets a second one.
+    final_response = api.request("GET",
+                                 f"/repos/{REPO}/commits/{origin.head}/check-runs?filter=all&per_page=100")
+    final_checks = final_response.get("check_runs")
+    require(isinstance(final_checks, list) and type(final_response.get("total_count")) is int
+            and final_response["total_count"] == len(final_checks) < 100, "incomplete final prior checks")
+    require(_prior_operation(final_checks, origin, app_id) is None,
+            "an owner operation appeared after the first scan; reconcile instead")
+    check = api.request("POST", f"/repos/{REPO}/check-runs", {
+        "name": CONTEXT, "head_sha": origin.head, "external_id": origin.external_id,
+        "details_url": recovery.original_details_url,
+        "status": "in_progress",
+        "output": {"title": "Migration ownership (recovery)", "summary":
+                   f"Manual recovery by {actor} ({level}); protected law {anchor}; "
+                   f"target run {origin.run_id}; qualification in progress."}})
+    _recovery_check_identity(check, origin, recovery, app_id)
+    require(check.get("status") == "in_progress" and "conclusion" in check
+            and check["conclusion"] is None, "created check state unconfirmed; no retry")
+    try:
+        require(_recovery_origin(target_id, anchor, api) == (origin, target_created),
+                "target superseded; no settlement")
+        require(_qualify_recovery(origin, anchor, env, api, target_created)[0] == recovery,
+                "recovery superseded; no settlement")
+        require(_qualify_contents(origin, api) == evidence, "source or queue changed before publication")
+    except CapabilityUnavailable:
+        # A missing read is not a proved qualification failure.
+        raise
+    except group.OwnershipUnqualified:
+        # Only a known, acknowledged check can be failed, and only while both
+        # principals still qualify; otherwise the outcome stays unsettled.
+        require(_recovery_origin(target_id, anchor, api) == (origin, target_created),
+                "target superseded; no settlement")
+        require(_qualify_recovery(origin, anchor, env, api, target_created)[0] == recovery,
+                "recovery superseded; no settlement")
+        result = api.request("PATCH", f"/repos/{REPO}/check-runs/{check['id']}", {
+            "status": "completed", "conclusion": "failure",
+            "output": {"title": "Migration ownership changed", "summary":
+                       "Current namespace or ownership qualification changed before recovery "
+                       "publication. No successful ownership proof was issued."}})
+        _recovery_check_identity(result, origin, recovery, app_id)
+        require(result.get("id") == check["id"] and result.get("status") == "completed"
+                and result.get("conclusion") == "failure", "failure settlement unconfirmed; no retry")
+        raise
+    result = api.request("PATCH", f"/repos/{REPO}/check-runs/{check['id']}", {
+        "status": "completed", "conclusion": "success",
+        "output": {"title": "Migration ownership qualified (recovery)", "summary":
+                   f"Recovery run {recovery.run_id}, attempt {recovery.attempt}; actor {actor} "
+                   f"({level}); protected law {origin.protected_code}; target run {origin.run_id}, "
+                   f"attempt {origin.attempt}; namespace material {evidence[1]}."}})
+    _recovery_check_identity(result, origin, recovery, app_id)
+    require(result.get("id") == check["id"] and result.get("status") == "completed"
+            and result.get("conclusion") == "success",
+            "check publication unconfirmed; no retry")
+    return {"state": "PUBLISHED", "head": origin.head, "by": actor, "protected_code": origin.protected_code}
+
+
 def main():
     try:
         event = decode(Path(os.environ["GITHUB_EVENT_PATH"]).read_bytes())
@@ -496,6 +939,30 @@ def main():
             # The configured workflow refuses reruns BEFORE key/mint access.
             require(issuer.attempt == 1, "issuer rerun retained; no mint or mutation")
             print("migration-owner: protected run origin qualified")
+            return 0
+        if sys.argv[1:] == ["--recover-preflight"]:
+            app_id = int(os.environ["OWNERSHIP_APP_ID"])
+            require(0 < app_id != 15368 and positive(int(os.environ["EXPECTED_INSTALLATION"])),
+                    "recovery requires an enrolled independent installation")
+            api = Api(os.environ.get("OWNERSHIP_RUN_TOKEN", ""))
+            anchor, target_id = _recovery_context(event, dict(os.environ))
+            require(_validator_identity(api, anchor) == _validator_identity(api, "refs/heads/master"),
+                    "dispatch-time protected law differs from current master")
+            origin, target_created = _recovery_origin(target_id, anchor, api)
+            recovery, record = _qualify_recovery(origin, anchor, dict(os.environ), api,
+                                                 target_created)
+            # m3: dispatcher provenance must qualify here too, BEFORE the key
+            # mint step that runs only after this preflight succeeds.
+            _actor(event, record, api)
+            # Recovery reruns reconcile only; they never reach the key/mint step.
+            require(recovery.attempt == 1, "recovery rerun retained; no mint or mutation")
+            print("migration-owner: recovery origin qualified")
+            return 0
+        if sys.argv[1:] == ["--recover"]:
+            app_id = int(os.environ["OWNERSHIP_APP_ID"])
+            execute_recovery(event, dict(os.environ), IssuerApi(os.environ.get("OWNERSHIP_TOKEN", ""),
+                                                               os.environ.get("OWNERSHIP_RUN_TOKEN", "")), app_id)
+            print("migration-owner: recovery complete")
             return 0
         require(not sys.argv[1:], "unsupported issuer command")
         app_id = int(os.environ["OWNERSHIP_APP_ID"])

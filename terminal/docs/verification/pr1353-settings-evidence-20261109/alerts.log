@@ -1,0 +1,22 @@
+unpromoted capture directory /tmp/mmx-b-f08-6-alert-prefs-pf9zmA
+[dev] - Local:         http://127.0.0.1:3803
+- Network:       http://127.0.0.1:3803
+✓ Ready in 1160ms
+capture SectionAlertDelivery-populated-1440.png … ok
+capture SectionAlertDelivery-populated-1440-zh.png … ok
+capture SectionAlertDelivery-populated-390.png … ok
+capture SectionAlertDelivery-populated-390-zh.png … ok
+capture SectionAlertDelivery-quiet-hours-1440.png … ok
+capture SectionAlertDelivery-quiet-hours-1440-zh.png … ok
+capture SectionAlertDelivery-quiet-hours-390.png … ok
+capture SectionAlertDelivery-quiet-hours-390-zh.png … ok
+capture SectionAlertDelivery-field-error-1440.png … ok
+capture SectionAlertDelivery-field-error-1440-zh.png … ok
+capture SectionAlertDelivery-field-error-390.png … ok
+capture SectionAlertDelivery-field-error-390-zh.png … ok
+capture SectionAlertDelivery-unavailable-1440.png … ok
+capture SectionAlertDelivery-unavailable-1440-zh.png … ok
+capture SectionAlertDelivery-unavailable-390.png … ok
+capture SectionAlertDelivery-unavailable-390-zh.png … ok
+capturedAtHead 80e69c39e00b6c16c5fc32b5ca1e9146d31b264d
+wrote 16 crops + EVIDENCE.yml to /Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1353-settings-evidence-20261109/terminal/docs/pr-crops/b-f08-6-alert-prefs

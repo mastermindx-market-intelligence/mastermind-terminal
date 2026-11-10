@@ -1,0 +1,56 @@
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin: 10px 0;
+  scroll-margin-block-start: 8px;
+}
+.range.range {
+  margin: 0;
+  text-align: start;
+  font-size: 12px;
+}
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: inherit;
+  font: 500 12px/1.2 var(--font-ui);
+  cursor: pointer;
+}
+.button[aria-disabled="true"] {
+  color: var(--muted);
+  cursor: default;
+}
+.button[aria-disabled="false"]:hover {
+  background: var(--panel-2);
+  border-color: var(--brand-2);
+}
+.button:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 2px;
+}
+
+@media (max-width: 860px) {
+  .button {
+    /* Match the finance pane's existing bottom-tab clearance during native focus/scroll. */
+    scroll-margin-block: 8px calc(96px + env(safe-area-inset-bottom));
+  }
+}
+@media (max-width: 480px) {
+  .pager { flex-direction: column; align-items: stretch; }
+  .actions { justify-content: flex-end; }
+}

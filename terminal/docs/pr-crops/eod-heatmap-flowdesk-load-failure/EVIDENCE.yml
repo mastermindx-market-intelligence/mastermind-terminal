@@ -1,3 +1,24 @@
+# Current source proof retains the original EOD capture and qualifies fresh expiry-aware GEX and browser journeys.
+exposureExpiryGreeksIntegration20261110:
+  selectedFamily: "eod"
+  selectedCaptureRevision: "options-integration-20261109"
+  freshGexRevision: "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-source-compatibility-20261105/revisions/expiry-greeks-integration-20261110"
+  freshGexDescriptorSha256: "6432faf8713536aaa14319bb310289b26a68cfa5dd923801d2f4a7b7bf1fc453"
+  retainedEodDescriptorSha256: "77b3b7f07746290cad33262a3d95c221e947a5acd5e940ae95b9d9458f510a18"
+  branchHead: "a985bf7f37b9a5a9fc490f8b3eb72be04869bfe4"
+  protectedMaster: "dad33e10089c9d51d931a1fe72e7fa1acb37abe1"
+  integratedDependency: "9ef372c8086ceaac8bcb153bd2d2d71b5b63d62c"
+  browserQualificationSha256: "fee8ee7eb79e7a1a680c51b2121e94f78708fba5b14551c3ea701a42556f8210"
+  expiryQualificationSha256: "436bbf7bdbee1bb9d7e5d8043878a286093a59f8a54690f71b2b7ae1eff39303"
+
+# Current source proof is the complete Options integration revision.
+exposureMasterIntegration20261109:
+  revision: "operations/exposure-source-compatibility-20261105/revisions/options-integration-20261109"
+  descriptorSha256: "77b3b7f07746290cad33262a3d95c221e947a5acd5e940ae95b9d9458f510a18"
+  branchHead: "90f275f15b4d174f003fb5b1087823dce6ec865a"
+  protectedMaster: "03af393ce05c12282003a3919cc473c032264922"
+  integratedDependency: "d3bd6b2d98c6c23398be0bed6c7450caa47bd665"
+
 # EOD belt, Flow Desk chain heat and Heatmap flow layer failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR

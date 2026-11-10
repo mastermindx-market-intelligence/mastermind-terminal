@@ -1,0 +1,16 @@
+{
+  "sourceHead": "80e69c39e00b6c16c5fc32b5ca1e9146d31b264d",
+  "protectedMaster": "1c0bf028cf72539a4d3fcb17fa137ee474d764f9",
+  "indexTreeAtStart": "079533891f2de11113949a4542ddb901be71633e",
+  "port": 3804,
+  "pid": 35077,
+  "startedAt": "2026-11-09T14:23:31.355Z",
+  "serverSettled": true,
+  "readyAt": "2026-11-09T14:23:37.538Z",
+  "producerPid": 35748,
+  "producerExit": {
+    "code": 0,
+    "signal": null
+  },
+  "settledAt": "2026-11-09T14:24:52.993Z"
+}

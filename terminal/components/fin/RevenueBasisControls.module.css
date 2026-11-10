@@ -1,0 +1,14 @@
+.basis.basis button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 12px;
+}
+.basis button:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: -2px;
+}
+@media (max-width: 860px) {
+  .basis button {
+    scroll-margin-block: 8px calc(96px + env(safe-area-inset-bottom));
+  }
+}
