@@ -37,10 +37,18 @@ export interface SaveInvestigationButtonProps {
 }
 
 export function SaveInvestigationButton({ principal, command, previous, lang, copy, onStateChange }: SaveInvestigationButtonProps) {
-  const [state, setState] = useState<InvestigationSaveState>(() => partitionInvestigationSave(previous ?? { phase: "idle" }, principal));
+  // R4 residue (third review, item 4): the JOURNAL is the caller-owned
+  // recovery record (seeded from `previous`, reported raw to the caller so it
+  // survives this component unmounting — the admission gate's principal-change
+  // beat unmounts it); the VIEW is partitioned per render, so a journal owned
+  // by a switched-out principal reads idle here — its Check/Retry/labels never
+  // surface under the next account, and the actor's own scope returns with
+  // them (partitionInvestigationSave, the module's own law).
+  const [journal, setJournal] = useState<InvestigationSaveState>(previous ?? { phase: "idle" });
+  const state = partitionInvestigationSave(journal, principal);
   const [inFlight, setInFlight] = useState(false);
   const text = copy[lang];
-  useEffect(() => { onStateChange?.(state); }, [state, onStateChange]);
+  useEffect(() => { onStateChange?.(journal); }, [journal, onStateChange]);
 
   const send = async (toSend: InvestigationCommand) => {
     setInFlight(true);
@@ -54,13 +62,13 @@ export function SaveInvestigationButton({ principal, command, previous, lang, co
       response = await res.json().catch(() => null);
     } catch { response = null; }
     setInFlight(false);
-    if (principal) setState(current => settleInvestigationSave(current, principal, response));
+    if (principal) setJournal(current => settleInvestigationSave(current, principal, response));
   };
 
   const onSave = () => {
     if (!principal) return;
     const next = beginInvestigationSave(principal, command, state);
-    setState(next);
+    setJournal(next);
     const toSend = retryInvestigationSave(next, principal);
     if (toSend) void send(toSend);
   };

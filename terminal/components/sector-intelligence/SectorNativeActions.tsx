@@ -15,7 +15,7 @@ import { useLang } from "@/lib/i18n";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { SECTOR_INTELLIGENCE_LEX, useSectorT } from "@/lib/sectorIntelligenceLex";
 import type { InvestigationCommand } from "@/lib/investigations";
-import type { InvestigationSaveState } from "@/lib/investigationSave";
+import { partitionInvestigationSave, type InvestigationSaveState } from "@/lib/investigationSave";
 import { SaveInvestigationButton, type SaveInvestigationCopy } from "./actions/SaveInvestigationButton";
 import { CheckSaveStatusButton, type CheckSaveStatusCopy } from "./actions/CheckSaveStatusButton";
 import { ArmWatchControl, type ArmWatchCopy } from "./actions/ArmWatchControl";
@@ -157,13 +157,18 @@ export default function SectorNativeActions({ context }: { context: SectorNative
     } as Record<"en" | "zh", SymbolNoteCopy>,
   };
 
-  const revision = saveState && saveState.phase === "committed" ? saveState.result.revision : 1;
+  // R4 residue (third review, item 4): the save journal is held here and
+  // partitioned per render — a pending/uncertain save owned by a switched-out
+  // account reads idle for the next account (no Check, no unconfirmed line
+  // under B's command), and the original actor's scope returns with them.
+  const visibleSaveState = partitionInvestigationSave(saveState ?? { phase: "idle" }, principal);
+  const revision = visibleSaveState.phase === "committed" ? visibleSaveState.result.revision : 1;
   return <section className={`${styles.card} ${styles.stateCard}`} data-testid="sector-native-actions">
     <h2 className={styles.stateTitle}>{t("siActionsCard")}</h2>
     <SaveInvestigationButton principal={principal} command={command} lang={lang}
-      copy={copy.save} onStateChange={setSaveState} />
-    {saveState && (saveState.phase === "pending" || saveState.phase === "uncertain")
-      ? <CheckSaveStatusButton principal={principal} command={command} state={saveState}
+      copy={copy.save} previous={saveState ?? undefined} onStateChange={setSaveState} />
+    {visibleSaveState.phase === "pending" || visibleSaveState.phase === "uncertain"
+      ? <CheckSaveStatusButton principal={principal} command={command} state={visibleSaveState}
         lang={lang} copy={copy.check} onStateChange={setSaveState} />
       : null}
     <ArmWatchControl principal={principal} link={{ investigation_id: command.id, revision }}

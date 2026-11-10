@@ -215,3 +215,42 @@ describe("SectorNativeActions save command re-mints for a switched account (N-D)
     expect(posts[1].body!.operation_id).not.toBe(posts[0].body!.operation_id);
   });
 });
+
+describe("SectorNativeActions — R4 residue (third review, item 4): a pending save never shows under the next account", () => {
+  let root: Root, host: HTMLDivElement;
+  beforeEach(() => { host = document.createElement("div"); document.body.append(host); root = createRoot(host); });
+  afterEach(() => { act(() => root.unmount()); host.remove(); });
+
+  const flush = () => act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
+  const mount = async () => {
+    await act(async () => { root.render(<SectorNativeActions context={context} />); });
+    await flush();
+  };
+  const button = (text: string) => [...host.querySelectorAll("button")].find(b => b.textContent === text);
+
+  it("A's uncertain save shows Check under A only — after a switch to B no Check and no unconfirmed line, and A's Check returns with A", async () => {
+    // The lost-reply world: the save POST answers non-JSON 503, so the state
+    // machine stays uncertain — the only world where Check mounts.
+    saveAnswer = () => new Response("unavailable", { status: 503 });
+    await mount();
+    await act(async () => { button("Save")!.click(); });
+    await flush();
+    expect(host.querySelector('[data-testid="sector-native-actions"]')).not.toBeNull();
+    expect(button("Check save status")).toBeDefined();
+    expect(host.textContent).toMatch(/Save unconfirmed/);
+    // The account switches on the same mounted surface; the probes re-admit B.
+    session.identity = { kind: "account", userId: B, email: "b@example.test" };
+    await act(async () => { root.render(<SectorNativeActions context={context} />); });
+    await flush();
+    expect(host.querySelector('[data-testid="sector-native-actions"]')).not.toBeNull();
+    // B never sees A's save journey: no Check under B's new command…
+    expect(button("Check save status")).toBeUndefined();
+    // …and no unconfirmed line anywhere in the surface.
+    expect(host.textContent).not.toMatch(/Save unconfirmed/);
+    // A's scope is retired, not destroyed: when A returns, Check is back.
+    session.identity = { kind: "account", userId: A, email: "a@example.test" };
+    await act(async () => { root.render(<SectorNativeActions context={context} />); });
+    await flush();
+    expect(button("Check save status")).toBeDefined();
+  });
+});
