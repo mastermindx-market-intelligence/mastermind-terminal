@@ -1,6 +1,7 @@
 "use client";
 import { useCallback } from "react";
 import { useLang, useT } from "./i18n";
+import type { FollowState } from "./investigationFollow";
 /** Feature-local EN/ZH tuples. Language state remains the shared LangProvider.
  * Keeping feature copy out of global LEX avoids loading this workspace on every
  * route and preserves unrelated screen evidence. No mutable registration/store.
@@ -697,6 +698,8 @@ export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siFollowPreferenceOnly: ["Follow saves a preference only — no event producer exists yet, so no notification is claimed.", "关注仅保存偏好——尚无事件生产者，不承诺任何通知。"],
   siFollowUnavailable: ["Follow is configured but its delivery path is unavailable; no notification is claimed.", "关注已配置但投递路径不可用；不承诺任何通知。"],
   siFollowActive: ["Following — delivery rides the existing alert path.", "已关注——投递走既有提醒通道。"],
+  siFollowDeliveryFailed: ["Follow has a delivery problem — the last transport failed; no notification was sent.", "关注出现投递问题——最近一次投递失败；未发送任何通知。"],
+  siFollowDeliveryUnknown: ["Follow has a delivery problem — the transport outcome is unknown; no notification is claimed as sent.", "关注出现投递问题——投递结果未知；不声称已发送任何通知。"],
 };
 
 export function useSectorT() {
@@ -706,4 +709,18 @@ export function useSectorT() {
     const pair = SECTOR_INTELLIGENCE_LEX[key];
     return pair ? pair[lang === "zh" ? 1 : 0] : sharedT(key, fallback);
   }, [lang, sharedT]);
+}
+
+/** The Follow line's copy decision (COO 19:15Z item 2): the machine's own state
+ * names the reader-facing line. A delivery problem gets its own named line —
+ * failed and unknown are distinguished — and is NEVER the "following" line;
+ * lane 6's followState owns the rule, this only maps its output. */
+export function followCopyKey(follow: FollowState): string {
+  if (follow.state === "delivery_problem") {
+    return follow.reason === "transport_failed" ? "siFollowDeliveryFailed" : "siFollowDeliveryUnknown";
+  }
+  if (follow.state === "closed") return "siFollowClosed";
+  if (follow.state === "saved_preference_only") return "siFollowPreferenceOnly";
+  if (follow.state === "configured_unavailable") return "siFollowUnavailable";
+  return "siFollowActive";
 }

@@ -19,6 +19,7 @@ import type { SectorCycleFeed } from "./cycles/cycleProps";
 import { flowsFromCarriedBlock } from "@/lib/sectorDepthFlows";
 import { actionBoardFromCarried, bottomingWatchFromCarried } from "@/lib/sectorDepthCalls";
 import { followState } from "@/lib/investigationFollow";
+import { followCopyKey } from "@/lib/sectorIntelligenceLex";
 import { SectorCallsBoard } from "./depth/SectorCallsBoard";
 import { SectorFlowMatrix } from "./depth/SectorFlowMatrix";
 import { SectorBottomingWatch } from "./depth/SectorBottomingWatch";
@@ -250,14 +251,11 @@ function DossierOverview({ context, exact, exactGroup, benchmark, onJob }: {
 /** Follow is mounted as the producer census reads today (lane 6, SP17): the
  * pure state machine with no admitted producer. Every branch claims no
  * notification; the copy follows the machine's actual state, never an
- * aspiration. If the v3 writes flag flips, the copy flips with it. */
+ * aspiration. If the v3 writes flag flips, the copy flips with it — and a
+ * delivery problem reads as its own named line, never "following". */
 function FollowLine() {
   const t = useSectorT();
-  const follow = followState();
-  const copy = follow.state === "closed" ? t("siFollowClosed")
-    : follow.state === "saved_preference_only" ? t("siFollowPreferenceOnly")
-    : follow.state === "configured_unavailable" ? t("siFollowUnavailable")
-    : t("siFollowActive");
+  const copy = t(followCopyKey(followState()));
   return <section className={styles.card} data-testid="sector-native-dossier-follow">
     <h2 className={styles.cardTitle}>{t("siFollowLabel")}</h2>
     <p className={styles.stateCopy}>{copy}</p>
