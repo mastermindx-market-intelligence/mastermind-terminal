@@ -26,7 +26,7 @@ const readUrl = (docId: string) => `/api/shared-shell/research/read/${docId}?seg
 
 const EN = {
   eyebrow: "Research attention",
-  heading: "Today's research briefing",
+  heading: "Research briefing",
   resumeEyebrow: "Saved position",
   continuation: "Pick up where you left off",
   noPosition: "Choose a report from the Research library to start reading.",
@@ -59,7 +59,7 @@ const EN = {
 };
 const ZH: typeof EN = {
   eyebrow: "研究关注",
-  heading: "今日研究简报",
+  heading: "研究简报",
   resumeEyebrow: "已保存位置",
   continuation: "接续上次阅读",
   noPosition: "从研究资料库选择报告，开始阅读。",
