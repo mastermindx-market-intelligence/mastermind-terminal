@@ -866,6 +866,53 @@ describe("rows increment — the carried theme table from the real specimen", ()
     }
   });
 
+  it("N6 — perf cells name their two numbers; breadth prints as a percent of the 0-1 wire share (both locales)", () => {
+    const doc = structuredClone(themeRowsValueFx) as { rows: Record<string, unknown>[] };
+    const rid = doc.rows[0]!.id as string;
+    const breadth = (doc.rows[0]!.state as Record<string, unknown>).breadth as number;
+    // Single-sided 1d: keep ret, drop rel — a lone number must name its side.
+    (doc.rows[0]!.perf as Record<string, unknown>)["1d"] = { ret: 0.01511 };
+    const read = themeRowsFromCarriedBlock({ status: "available", value: doc });
+    const markup = html(<SectorThemeCompare history={capturedHistory} labels={{}} themeRows={read} />);
+    // The legend above the table names the pair's order once.
+    expect(text(markup)).toContain("return · vs benchmark");
+    const rowChunk = markup.split(`data-r-id="${rid}"`)[1]?.split("</tr>")[0] ?? "";
+    expect(text(rowChunk)).toContain("return +1.5%"); // a lone ret carries its side word
+    // Breadth is a 0-1 share of members above their own 50-day MA on the wire
+    // (engine/narrative_rotation.py:358-361); it renders as a percent, unsigned.
+    const breadthCell = rowChunk.split('data-k="breadth"')[1] ?? "";
+    expect(breadthCell).toContain(`>${(breadth * 100).toFixed(1)}%<`);
+    G.__SD_LANG = "zh";
+    try {
+      const zh = html(<SectorThemeCompare history={capturedHistory} labels={{}} themeRows={read} />);
+      expect(text(zh)).toContain("收益 · 相对基准");
+      const zhChunk = zh.split(`data-r-id="${rid}"`)[1]?.split("</tr>")[0] ?? "";
+      expect(text(zhChunk)).toContain("收益 +1.5%");
+      const zhCell = zhChunk.split('data-k="breadth"')[1] ?? "";
+      expect(zhCell).toContain(`>${(breadth * 100).toFixed(1)}%<`);
+    } finally {
+      G.__SD_LANG = "en";
+    }
+  });
+
+  it("N6 — a lone relative number names its side (vs benchmark) in both locales", () => {
+    const doc = structuredClone(themeRowsValueFx) as { rows: Record<string, unknown>[] };
+    const rid = doc.rows[0]!.id as string;
+    (doc.rows[0]!.perf as Record<string, unknown>)["1d"] = { rel: 0.01199 };
+    const read = themeRowsFromCarriedBlock({ status: "available", value: doc });
+    const markup = html(<SectorThemeCompare history={capturedHistory} labels={{}} themeRows={read} />);
+    const rowChunk = markup.split(`data-r-id="${rid}"`)[1]?.split("</tr>")[0] ?? "";
+    expect(text(rowChunk)).toContain("vs benchmark +1.2%");
+    G.__SD_LANG = "zh";
+    try {
+      const zh = html(<SectorThemeCompare history={capturedHistory} labels={{}} themeRows={read} />);
+      const zhChunk = zh.split(`data-r-id="${rid}"`)[1]?.split("</tr>")[0] ?? "";
+      expect(text(zhChunk)).toContain("相对基准 +1.2%");
+    } finally {
+      G.__SD_LANG = "en";
+    }
+  });
+
   it("an unavailable theme_rows read renders its OWN per-reason copy beside the history (never a partial table)", () => {
     const markup = html(
       <SectorThemeCompare history={capturedHistory} labels={{}} themeRows={{ state: "unavailable", reason: "not_produced" }} />,

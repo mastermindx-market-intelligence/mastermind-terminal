@@ -147,6 +147,17 @@ export function fmtThemePct(v: number): string {
   return (p < 0 ? "−" : "+") + s + "%";
 }
 
+/** Breadth is a 0–1 fraction on the wire — the share of a theme's members
+ * above their OWN 50-day MA (producer: engine/narrative_rotation.py:358-361,
+ * `float(b.mean())`; the 0.25/0.55 band thresholds at engine/theme_context.py:72,81
+ * confirm the 0–1 scale). The table shows it as a percent, one decimal,
+ * UNSIGNED — it is a share, not a delta, so it never takes fmtThemePct's sign
+ * (N6: unit established from the producer source, then formatted to match). */
+export function fmtThemeBreadth(v: number): string {
+  const p = v * 100;
+  return (p >= 100 ? p.toFixed(0) : p.toFixed(1)) + "%";
+}
+
 /* ── theme_rows vocabulary (producer words → authored lexicon) ─────────────
  * EN shows the producer's vocabulary word verbatim (the lexicon's EN tuple
  * mirrors it); ZH reads the authored word. A word outside tonight's closed
@@ -191,19 +202,31 @@ function themeWord(
   return { text: t(key), val: null };
 }
 
-/** One perf window cell: `ret · rel` when both, the single side when one,
- * not stated when the window (or the whole perf key) is absent. */
+/** One perf window cell (N6: both numbers are labelled). Both sides present:
+ * `ret · rel` in that order — the legend above the table names the pair
+ * ("return · vs benchmark"). ONE side present: the cell names its own side,
+ * so a lone number is never an unlabelled half-pair. Not stated when the
+ * window (or the whole perf key) is absent. `ret` is the raw fractional
+ * return and `rel` the return relative to the benchmark — SPY
+ * (producer: engine/baskets.py:126-158, "raw + (vs-SPY) relative return"). */
 function themePerfCell(
+  t: DepthT,
   reading: ThemePerfReading | undefined,
 ): { text: string; sign: "up" | "down" | null } | null {
   if (reading === undefined) return null;
   const { ret, rel } = reading;
   if (ret === null && rel === null) return null;
   const lead = ret ?? rel;
-  const parts: string[] = [];
-  if (ret !== null) parts.push(fmtThemePct(ret));
-  if (rel !== null) parts.push(fmtThemePct(rel));
-  return { text: parts.join(" · "), sign: lead !== null && lead < 0 ? "down" : "up" };
+  let cellText: string;
+  if (ret !== null && rel !== null) {
+    cellText = `${fmtThemePct(ret)} · ${fmtThemePct(rel)}`;
+  } else if (ret !== null) {
+    cellText = `${t("siThemePerfRetWord")} ${fmtThemePct(ret)}`;
+  } else {
+    // Both-null returned above, so a cell reaching here has rel set.
+    cellText = `${t("siThemePerfRelWord")} ${fmtThemePct(rel!)}`;
+  }
+  return { text: cellText, sign: lead !== null && lead < 0 ? "down" : "up" };
 }
 
 const PERF_WINDOW_KEYS: Record<ThemePerfWindow, string> = {
@@ -523,6 +546,7 @@ export function SectorThemeCompare({
           {themeRows.perfAsOf !== null && themeRows.perfAsOf !== themeRows.asOf && (
             <p className={styles.perfAsOf}>{t("siThemePerfAsOf", { date: themeRows.perfAsOf })}</p>
           )}
+          <p className={styles.perfAsOf} data-perf-legend="true">{t("siThemePerfLegend")}</p>
           <div className={styles.tableWrap} role="region" aria-label={t("siThemeTableTitle")} tabIndex={0}>
             <table className={styles.table} data-theme-rows="true">
               <thead>
@@ -574,7 +598,9 @@ export function SectorThemeCompare({
                       <td className={styles.td} data-k="alloc_rank">{numCell(row.state.alloc_rank)}</td>
                       <td className={styles.td} data-val={health.val ?? undefined}>{health.text}</td>
                       <td className={styles.td} data-val={val.val ?? undefined}>{val.text}</td>
-                      <td className={styles.td} data-k="breadth">{numCell(row.state.breadth)}</td>
+                      <td className={styles.td} data-k="breadth">
+                        {row.state.breadth === null ? notStated : fmtThemeBreadth(row.state.breadth)}
+                      </td>
                       <td
                         className={styles.td}
                         data-k="r10"
@@ -591,7 +617,7 @@ export function SectorThemeCompare({
                         {row.state.score_delta_5d === null ? notStated : fmtThemeDelta(row.state.score_delta_5d)}
                       </td>
                       {PERF_WINDOW_ORDER.map((w) => {
-                        const cell = themePerfCell(row.perf === null ? undefined : row.perf[w]);
+                        const cell = themePerfCell(t, row.perf === null ? undefined : row.perf[w]);
                         return (
                           <td key={w} className={styles.td} data-w={w} data-sign={cell?.sign ?? undefined}>
                             {cell === null ? notStated : cell.text}

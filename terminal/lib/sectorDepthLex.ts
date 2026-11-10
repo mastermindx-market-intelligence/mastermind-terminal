@@ -391,6 +391,12 @@ export const SECTOR_DEPTH_LEX: Record<string, [string, string]> = {
   siThemePerfAsOf: ["Performance as of {date}", "表现截至 {date}"],
   siThemePerfNotStated: ["not stated", "未载明"],
   siThemeStateUnknown: ["unclassified", "未分类"],
+  // N6: every perf window carries TWO numbers — the raw return and the
+  // return relative to the benchmark (SPY). The legend names the pair's
+  // order once above the table; a lone number names its own side in the cell.
+  siThemePerfLegend: ["Perf windows: return · vs benchmark (SPY).", "表现窗口：收益 · 相对基准（SPY）。"],
+  siThemePerfRetWord: ["return", "收益"],
+  siThemePerfRelWord: ["vs benchmark", "相对基准"],
   siThemeColTheme: ["Theme", "主题"],
   siThemeColState: ["State", "状态"],
   siThemeColReco: ["Recommendation", "建议"],
