@@ -153,7 +153,12 @@ SPLIT_PROJECTS = ("desktop", "tablet", "mobile")
 # Desktop1/5 reached its fixed cap again in #801 run42550254306/job128946320810.
 # The annotation proves the one-hour cancellation; no late-progress claim is made.
 # Six full shards reduce allocation while preserving every case and the same cap.
-MIN_SHARDS = {"desktop": 6, "tablet": 4, "mobile": 3}
+# Mobile's minimum is now five, not three: #1411 run 42753497499 on 2026-11-10 had
+# mobile-1 at 54 min and mobile-3 at 58 min, while mobile-2 was cancelled at the
+# 60-minute cap twice with ZERO test failures — attempt 2 completed 492 of 560
+# tests on the single CI worker before the host cancelled it. Fifths shrink each
+# mobile allocation under the same cap while keeping every case.
+MIN_SHARDS = {"desktop": 6, "tablet": 4, "mobile": 5}
 
 
 @pytest.mark.parametrize("project", SPLIT_PROJECTS)
@@ -169,6 +174,18 @@ def test_each_large_project_is_split_so_no_single_job_carries_it_whole(project):
         any(SHARD_FLAG.match(token) for token in str(item["projects"]).split())
         for item in entries
     ), f"every {project} entry must carry a --shard=i/N flag"
+
+
+def test_mobile_runs_in_exactly_five_shards():
+    # #1411: mobile thirds hit the unchanged 60-minute cap with zero failures
+    # (run 42753497499; mobile-2 cancelled twice, 492/560 done at 60m). Fifths
+    # shrink each allocation without raising the cap or dropping a case.
+    entries = [
+        item for item in e2e_matrix(ci_workflow())
+        if "--project=mobile" in str(item["projects"]).split()
+    ]
+    assert [item["shard"] for item in entries] == [f"mobile-{i}" for i in range(1, 6)]
+    assert [shard_coordinates(item) for item in entries] == [(i, 5) for i in range(1, 6)]
 
 
 def test_the_required_aggregate_still_gates_every_e2e_shard():
