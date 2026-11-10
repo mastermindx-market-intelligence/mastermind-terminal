@@ -1,0 +1,45 @@
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 /workspace/scratch/a2c76c60e583/terminal-ui/terminal
+
+ ✓ lib/__tests__/mobileSheetKeepMounted.test.tsx (8 tests) 202ms
+ ✓ lib/__tests__/sharedSearchWorkspace.test.tsx (7 tests) 1081ms
+   ✓ keeps keyboard Tools selection visible in its own 340-pixel list without moving focus or opening 408ms
+   ✓ keeps keyboard Tools selection visible in its own 220-pixel list without moving focus or opening 319ms
+ ✓ lib/__tests__/searchSelectionContinuity.test.tsx (13 tests) 1199ms
+   ✓ selection stays with the user > repairs an out-of-range selection when the settled universe shrinks, then recovers from empty 456ms
+   ✓ selection stays with the user > reveals keyboard movement locally and resets a deep list for a new query 352ms
+ ✓ lib/__tests__/searchReturnFocus.test.tsx (16 tests) 1263ms
+   ✓ Search logical-session return focus > restores the same opener after a responsive roundtrip (phone start: false) 326ms
+ ✓ lib/__tests__/sharedOverlayScrollLock.test.tsx (19 tests) 596ms
+ ✓ lib/__tests__/searchModalKeyboardRecovery.test.tsx (16 tests) 1551ms
+   ✓ SearchModal keyboard recovery (en) > selects the first arriving match after empty ArrowDown in pick mode 305ms
+ ✓ lib/__tests__/dialogFocusNestedOwnership.test.tsx (6 tests) 139ms
+ ✓ lib/__tests__/chartQuickSettings.test.tsx (5 tests) 201ms
+ ✓ lib/__tests__/searchModalComposition.test.tsx (120 tests) 3358ms
+
+ Test Files  9 passed (9)
+      Tests  210 passed (210)
+   Start at  06:23:48
+   Duration  6.37s (transform 4.87s, setup 0ms, collect 11.13s, tests 9.59s, environment 7.08s, prepare 1.24s)
+
+
+
+Annotation suites:
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 /workspace/scratch/a2c76c60e583/terminal-ui/terminal
+
+ ✓ lib/__tests__/watchlistAnnotationSync.test.ts (35 tests) 28ms
+ ✓ lib/__tests__/annotationDialogFocus.test.tsx (1 test) 79ms
+
+ Test Files  2 passed (2)
+      Tests  36 passed (36)
+   Start at  06:36:56
+   Duration  1.48s (transform 508ms, setup 0ms, collect 636ms, tests 107ms, environment 466ms, prepare 183ms)
+
+
+
+Targeted lint: original six files 0 errors/0 warnings; annotation component, added test and final browser file 0 errors/0 warnings.
+Final full TypeScript: exit 0; stdout:
+
