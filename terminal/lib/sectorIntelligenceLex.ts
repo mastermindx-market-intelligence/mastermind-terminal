@@ -648,6 +648,8 @@ export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siPopulationGroupAll: ["All groups", "全部分组"],
   siPopulationGroupOption: ["{name} · {n} listed", "{name} · 已列 {n} 名"],
   siPopulationRefusedGroupOption: ["{name} · refused by owner", "{name} · 所有者已拒绝"],
+  // N-B (r2): a group the owner did not name reads as unnamed — never its raw id.
+  siPopulationGroupNameUnnamed: ["Unnamed group", "未命名分组"],
   siPopulationSearchLabel: ["Search symbol or name", "搜索代码或名称"],
   siPopulationSearchSubmit: ["Search", "搜索"],
   siPopulationSearchClear: ["Clear", "清除"],
@@ -663,7 +665,13 @@ export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siPopulationColumnAlsoIn: ["Also in", "同时属于"],
   siPopulationColumnReason: ["Reason", "原因"],
   siPopulationTaxonomyNotClassified: ["Not in current classification", "不在当前分类中"],
-  siPopulationTaxonomyUnavailable: ["Unavailable ({reason})", "不可用（{reason}）"],
+  siPopulationTaxonomyNotProduced: ["Not produced for this reading", "本次读取未产出"],
+  // SF-4 (r2): an unavailable taxonomy value never shows the owner's raw
+  // reason code. The wire's row-level reasons are exactly
+  // not_in_current_classification and not_produced (LANE1_WIRE_V11 §2); both
+  // map to their own copy, and anything else reads this generic pair — the
+  // reason code is not a reader-facing word on either surface.
+  siPopulationTaxonomyUnavailable: ["Unavailable", "不可用"],
   siPopulationMemberSinceCurrent: ["Current", "当前"],
   siPopulationShown: ["Showing {shown} of {total} matching.", "显示 {shown} / {total} 个匹配项。"],
   siPopulationLoadMore: ["Load more", "加载更多"],

@@ -66,6 +66,16 @@ describe("sectorPopulationPage — the pinned wire sample admits", () => {
     expect(row.alsoInGroups).toBe(0);
   });
 
+  it("carries the industry label's zh twin when the wire has it (r2 N-B)", () => {
+    const mutated = clone();
+    const rows = (mutated.page as Record<string, unknown>).rows as Array<Record<string, unknown>>;
+    (rows[0].industry as Record<string, unknown>).label_zh = "耐用消费品";
+    const read = sectorPopulationPage(mutated)!;
+    expect(read.rows[0].industry).toEqual({ status: "available", label: "Household Durables", labelZh: "耐用消费品" });
+    // An absent twin stays absent — the decoder never invents one.
+    expect(read.rows[1].industry.status === "available" ? read.rows[1].industry.labelZh : "n/a").toBeUndefined();
+  });
+
   it("derives group_index refusal by the three-part test, with the explicit flag winning", () => {
     const page = sectorPopulationPage(fixture)!;
     // The real sample: no refused entries — every index row admits as not refused.

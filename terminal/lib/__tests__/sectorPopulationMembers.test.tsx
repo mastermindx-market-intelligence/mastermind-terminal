@@ -49,17 +49,20 @@ const pageFor = (url: string, mutate?: (page: Record<string, unknown>) => void):
 };
 
 let cursorResponse: (() => Response) | null = null;
+/** r2 SF-4/N-B/S1 tests: per-test mutation of the served first page. */
+let pageMutate: ((page: Record<string, unknown>) => void) | null = null;
 
 beforeEach(() => {
   urls.length = 0;
   cursorResponse = null;
+  pageMutate = null;
   vi.stubGlobal("fetch", vi.fn(async (input: unknown, init?: RequestInit) => {
     urls.push(String(input));
     await new Promise(resolve => setTimeout(resolve, 5));
     if (init?.signal?.aborted) throw new DOMException("aborted", "AbortError");
     const u = new URL(String(input), "http://x");
     if (u.searchParams.get("cursor") !== null && cursorResponse !== null) return cursorResponse();
-    return new Response(pageFor(String(input)), { status: 200, headers: { "content-type": "application/json" } });
+    return new Response(pageFor(String(input), pageMutate ?? undefined), { status: 200, headers: { "content-type": "application/json" } });
   }));
 });
 afterEach(() => {
@@ -201,5 +204,99 @@ describe("SectorPopulationMembers — review gates", () => {
     const lastUrl = new URL(urls[urls.length - 1], "http://x");
     expect(lastUrl.searchParams.get("cursor")).not.toBeNull();
     act(() => root.unmount());
+  });
+});
+
+describe("SectorPopulationMembers — r2 SF-4/N-B/S1 render gates", () => {
+  const cell = (c: HTMLElement, row: number, column: number): string =>
+    (c.querySelectorAll('[data-testid="sector-population-table"] tbody tr')[row]?.children[column] as HTMLElement | undefined)?.textContent ?? "";
+  const optionText = (c: HTMLElement, value: string): string => {
+    const option = [...c.querySelectorAll("select option")].find(o => (o as HTMLOptionElement).value === value) as HTMLOptionElement | undefined;
+    return option?.textContent ?? "";
+  };
+  const withZh = async (run: (mounted: { container: HTMLElement; root: Root }) => Promise<void>): Promise<void> => {
+    document.documentElement.setAttribute("data-lang", "zh");
+    const mounted = await mount();
+    try { await run(mounted); } finally {
+      act(() => mounted.root.unmount());
+      document.documentElement.removeAttribute("data-lang");
+    }
+  };
+
+  it("S1: a null configured roster renders 'not stated', never zero", async () => {
+    pageMutate = page => {
+      const population = ((page as { capture: { population: Record<string, unknown> } }).capture).population;
+      population.configured_current = null;
+      population.complete = null;
+    };
+    const { container, root } = await mount();
+    const counts = container.querySelector('[data-testid="sector-population-counts"]')?.textContent ?? "";
+    expect(counts).toContain("configured roster not stated by the owner");
+    expect(counts).not.toMatch(/of 0/);
+    expect(counts).not.toContain("1020"); // the dropped roster, not the stale number
+    act(() => root.unmount());
+  });
+
+  it("SF-4: taxonomy reasons render copy, never the raw owner code (en)", async () => {
+    pageMutate = page => {
+      const rows = (page as { rows: Array<Record<string, unknown>> }).rows;
+      rows[0].industry = { status: "unavailable", reason: "gics_feed_not_produced" };
+      rows[1].industry = { status: "unavailable", reason: "not_produced" };
+    };
+    const { container, root } = await mount();
+    expect(cell(container, 0, 2)).toBe("Unavailable");            // unlisted reason → generic
+    expect(cell(container, 1, 2)).toBe("Not produced for this reading"); // wire-listed reason
+    expect(cell(container, 0, 3)).toBe("Not in current classification");  // fixture's sub-industry reason
+    expect(container.textContent).not.toContain("gics_feed_not_produced");
+    act(() => root.unmount());
+  });
+
+  it("SF-4: the zh surface renders the same mapped copy, never the raw code (zh)", async () => {
+    pageMutate = page => {
+      const rows = (page as { rows: Array<Record<string, unknown>> }).rows;
+      rows[0].industry = { status: "unavailable", reason: "gics_feed_not_produced" };
+      rows[1].industry = { status: "unavailable", reason: "not_produced" };
+    };
+    await withZh(async ({ container }) => {
+      expect(cell(container, 0, 2)).toBe("不可用");
+      expect(cell(container, 1, 2)).toBe("本次读取未产出");
+      expect(cell(container, 0, 3)).toBe("不在当前分类中");
+      expect(container.textContent).not.toContain("gics_feed_not_produced");
+    });
+  });
+
+  it("N-B: an unnamed group reads 'Unnamed group' — the raw id is never reader-facing (en)", async () => {
+    pageMutate = page => {
+      (page as { group_index: Array<Record<string, unknown>> }).group_index.push(
+        { group_id: "unnamed_probe", name: null, n_members_listed: 3, n_configured_current: 3, n_unserved: 0 });
+    };
+    const { container, root } = await mount();
+    const text = optionText(container, "unnamed_probe");
+    expect(text).toContain("Unnamed group");
+    expect(text).not.toContain("unnamed_probe");
+    act(() => root.unmount());
+  });
+
+  it("N-B: the zh picker uses the page's zh group name and the generic unnamed label (zh)", async () => {
+    pageMutate = page => {
+      (page as { group_index: Array<Record<string, unknown>> }).group_index.push(
+        { group_id: "unnamed_probe", name: null, n_members_listed: 3, n_configured_current: 3, n_unserved: 0 });
+    };
+    await withZh(async ({ container }) => {
+      // The descriptor on the served page carries name_zh for housing.
+      expect(optionText(container, "housing")).toContain("住房产业链");
+      expect(optionText(container, "unnamed_probe")).toContain("未命名分组");
+      expect(optionText(container, "unnamed_probe")).not.toContain("unnamed_probe");
+    });
+  });
+
+  it("N-B: the industry label localizes to its zh twin when the wire carries it (zh)", async () => {
+    pageMutate = page => {
+      (page as { rows: Array<Record<string, unknown>> }).rows[0].industry =
+        { status: "available", label: "Household Durables", label_zh: "耐用消费品" };
+    };
+    await withZh(async ({ container }) => {
+      expect(cell(container, 0, 2)).toBe("耐用消费品");
+    });
   });
 });

@@ -148,6 +148,10 @@ function taxonomy(value: unknown, withKeys: boolean): PopulationTaxonomy | null 
     if (withKeys) {
       if (!str(value.key, 200) || !str(value.label_zh ?? "", 200) || !str(value.sector ?? "", 200)) return null;
       out.key = value.key; out.labelZh = value.label_zh as string; out.sector = value.sector as string;
+    } else if (str(value.label_zh, 200)) {
+      // N-B (r2): the industry form's zh twin rides the row when the wire
+      // carries it — it was admitted here and then dropped before.
+      out.labelZh = value.label_zh;
     }
     return out;
   }

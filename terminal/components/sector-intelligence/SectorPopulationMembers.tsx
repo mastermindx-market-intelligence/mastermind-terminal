@@ -36,10 +36,16 @@ const REASON_KEYS: Record<PopulationUnservedReason, string> = {
   group_refused_by_owner_observation: "siPopulationReasonOwnerRefused",
   unaccounted_by_owner: "siPopulationReasonUnaccounted",
 };
+// SF-4 (r2): an unavailable taxonomy value renders COPY, never the owner's
+// raw reason code. The wire's row-level reasons are exactly these two
+// (LANE1_WIRE_V11 §2); anything else reads the generic unavailable pair.
+const TAXONOMY_UNAVAILABLE_KEYS: Record<string, string> = {
+  not_in_current_classification: "siPopulationTaxonomyNotClassified",
+  not_produced: "siPopulationTaxonomyNotProduced",
+};
 const taxonomyLabel = (t: ReturnType<typeof useSectorT>, status: string, reason: string | undefined, label: string | undefined): string => {
   if (status === "available") return label ?? "—";
-  if (reason === "not_in_current_classification") return t("siPopulationTaxonomyNotClassified");
-  return nativeFill(t("siPopulationTaxonomyUnavailable"), { reason: reason ?? "unknown" });
+  return t((reason !== undefined ? TAXONOMY_UNAVAILABLE_KEYS[reason] : undefined) ?? "siPopulationTaxonomyUnavailable");
 };
 
 export default function SectorPopulationMembers() {
@@ -159,6 +165,12 @@ export default function SectorPopulationMembers() {
   const searchInvalid = query.trim() !== "" && !POPULATION_QUERY.test(query.trim());
   const localize = (value: string | null | undefined, zh: string | null | undefined): string =>
     lang === "zh" ? zh || value || "—" : value || "—";
+  // N-B (r2): a picker option is named by the owner — the zh descriptor name
+  // any loaded page's group descriptor carries, else the index name, else the
+  // generic "Unnamed group"; the raw group id is never reader-facing.
+  const groupNamesZh = new Map(pages.flatMap(page => page.groups.map(entry => [entry.groupId, entry.nameZh])));
+  const groupOptionName = (entry: PopulationGroupIndexEntry): string =>
+    (lang === "zh" ? (groupNamesZh.get(entry.groupId) || entry.name) : entry.name) ?? t("siPopulationGroupNameUnnamed");
 
   return <section className={styles.card} data-testid="sector-population-members">
     <h2 className={styles.cardTitle}>{t("siPopulationTitle")}</h2>
@@ -185,8 +197,8 @@ export default function SectorPopulationMembers() {
         <option value="">{t("siPopulationGroupAll")}</option>
         {groupIndex?.map(entry => <option key={entry.groupId} value={entry.groupId}>
           {entry.refusedByOwner
-            ? nativeFill(t("siPopulationRefusedGroupOption"), { name: entry.name ?? entry.groupId })
-            : nativeFill(t("siPopulationGroupOption"), { name: entry.name ?? entry.groupId, n: String(entry.membersListed) })}
+            ? nativeFill(t("siPopulationRefusedGroupOption"), { name: groupOptionName(entry) })
+            : nativeFill(t("siPopulationGroupOption"), { name: groupOptionName(entry), n: String(entry.membersListed) })}
         </option>)}
       </select>
       <form className={styles.populationSearch} onSubmit={submitSearch} role="search">
@@ -228,7 +240,7 @@ export default function SectorPopulationMembers() {
               <td>{row.symbol}</td>
               <td>{row.name}</td>
               <td>{taxonomyLabel(t, row.industry.status, row.industry.status === "unavailable" ? row.industry.reason : undefined,
-                row.industry.status === "available" ? row.industry.label : undefined)}</td>
+                row.industry.status === "available" ? localize(row.industry.label, row.industry.labelZh) : undefined)}</td>
               <td>{taxonomyLabel(t, row.subIndustry.status, row.subIndustry.status === "unavailable" ? row.subIndustry.reason : undefined,
                 row.subIndustry.status === "available" ? localize(row.subIndustry.label, row.subIndustry.labelZh) : undefined)}</td>
               <td>{row.membership.effectiveOn ?? t("siPopulationMemberSinceCurrent")}</td>
