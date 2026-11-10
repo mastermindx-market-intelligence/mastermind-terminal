@@ -32,7 +32,7 @@ function clock(value: unknown): value is string {
     && (!match[4] || +match[4] < 60) && Number.isFinite(Date.parse(value));
 }
 /** Bound ordinary JSON before inspecting companions, including client-injected values. */
-function bounded(value: unknown): boolean {
+export function bounded(value: unknown): boolean {
   const pending: { value: unknown; depth: number }[] = [{ value, depth: 0 }];
   const seen = new Set<object>(); let count = 0;
   while (pending.length) {

@@ -22,6 +22,9 @@ import InvestigationWatchPanel, { type WatchLoadState } from "./InvestigationWat
 import InvestigationReviewPanel from "./InvestigationReviewPanel";
 import styles from "./InvestigationWorkspace.module.css";
 import InvestigationEvidenceReview from "./InvestigationEvidenceReview";
+import { reopenCurrent, reopenOriginal, savedSectorCaptures,
+  type SectorPopulationRead, type SectorReopenState, type SectorReopenTransport, type TransportAnswer } from "@/lib/sectorInvestigationReopen";
+import { sectorPopulationPage } from "@/lib/sectorPopulation";
 
 type Props = { ownerKey:string; initialSymbol?:string; initialInvestigationId?:string; initialRevision?:number };
 type Detail = { id:string; revision:number; current_revision:number; lifecycle:"active"|"removed"; manifest:InvestigationManifest; committed_at:string; layouts:Array<{id:string;layout_id:string;digest:string;config:unknown}> };
@@ -50,11 +53,41 @@ const SCENARIO_COPY={
  en:{saved:"Saved scenario",boundary:"Reference and inputs recorded with this exact revision — no market values and no current claim.",legacy:"A previously retained scenario save stores protected values this platform no longer accepts. Nothing was sent, checked or changed — start a new research or resolve the retained draft."},
  zh:{saved:"已保存方案",boundary:"随此确切修订版本记录的引用与输入——无市场数值，非当前读数。",legacy:"先前保留的方案保存请求含有本平台不再接受的受保护数值。未发送、未检查、未更改——请开始新研究或处理保留的草稿。"},
 } as const;
+// Sector reopen copy (SP14): the ORIGINAL retained capture is what the record
+// names; it never falls back to the latest, and the current read is a separate
+// labelled action. All words here claim no more than the state machine proves.
+const SECTOR_CONTEXT_COPY={
+ en:{title:"Sector context",original:"Original sector context",unavailable:"Original sector context unavailable",durable:"The saved reference reopens this exact capture after a restart.",processOnly:"The saved reference opens this capture only while its generation process is retained; after a restart it is unavailable.",counts:"Measured {served} of {configured} configured members · {unserved} owner-explained unserved",currentLabel:"Current",openCurrent:"Open current sector context",openOriginal:"Back to the original sector context",reopening:"Reopening the saved sector context…",signedOut:"Sign in to reopen the saved sector context.",retry:"The saved sector context could not be reopened. Try again.",retryAction:"Retry",generation:"Generation {id}"},
+ zh:{title:"行业上下文",original:"原始行业上下文",unavailable:"原始行业上下文不可用",durable:"保存的引用可在重启后重新打开此确切捕获。",processOnly:"保存的引用仅在其生成进程仍保留期间可打开此捕获；重启后不可用。",counts:"已测量 {served} / {configured} 名配置成员 · {unserved} 名未测量（所有者已说明）",currentLabel:"当前",openCurrent:"打开当前行业上下文",openOriginal:"返回原始行业上下文",reopening:"正在重新打开已保存的行业上下文…",signedOut:"登录后重新打开已保存的行业上下文。",retry:"暂时无法重新打开已保存的行业上下文，请重试。",retryAction:"重试",generation:"生成 {id}"},
+} as const;
+const fillCopy=(text:string,values:Record<string,string>)=>text.replace(/\{(\w+)\}/g,(_,key:string)=>values[key]??`{${key}}`);
 function contextLabel(value:string,lang:"en"|"zh") {
  const pair=CONTEXT_LABELS[value]??["Not classified","未分类"];
  return pair[lang==="zh"?1:0];
 }
 const optionsTypeLabel=(type:string,c:(typeof COPY)[keyof typeof COPY])=>type==="exposure_chart_request"?c.typeExposure:type==="sector_origin"?c.typeOrigin:type==="rotation_measurement"?c.typeRotation:c.options;
+
+/** Lane 6 SP14 transport seam, mounted on the sector-intelligence BFF: the
+ * `?x=` form opens the retained capture the token names; the bare form opens
+ * the CURRENT capture. `openByIdentity` is deliberately unset — no
+ * open-by-identity path exists. Refusals classify by lane 1's table so the
+ * decision module (sectorInvestigationReopen) reads owner semantics. */
+async function classifyReopenAnswer(response:Response):Promise<TransportAnswer> {
+ let body:unknown=null;
+ try{body=await response.json()}catch{body=null}
+ const code=record(body)&&typeof body.code==="string"?body.code:null;
+ if(response.ok&&record(body))return {kind:"ok",body:body as SectorPopulationRead};
+ if(response.status===401)return {kind:"signed_out"};
+ if(response.status===404&&code==="ORIGINAL_UNAVAILABLE")return {kind:"original_unavailable"};
+ if(response.status===409&&code==="CURSOR_RESET")return {kind:"cursor_reset"};
+ if(response.status===400&&code==="REQUEST_INVALID")return {kind:"original_unavailable"}; // malformed hint
+ if(response.status===403||response.status===404)return {kind:"denied"};
+ return {kind:"error"};
+}
+const SECTOR_REOPEN_TRANSPORT: SectorReopenTransport = {
+ openByContextRef: async contextRef => classifyReopenAnswer(await fetch(`/api/sector-intelligence?x=${encodeURIComponent(contextRef)}`,{cache:"no-store"})),
+ openCurrent: async () => classifyReopenAnswer(await fetch("/api/sector-intelligence",{cache:"no-store"})),
+};
 
 export default function InvestigationWorkspace({ownerKey,initialSymbol,initialInvestigationId,initialRevision}:Props) {
  const {lang}=useLang(), c=COPY[lang], sc=SCENARIO_COPY[lang];
@@ -66,6 +99,8 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  const [saveState,setSaveState]=useState<InvestigationSaveState>({phase:"idle"}),[message,setMessage]=useState("");
  const [storageBlocked,setStorageBlockedState]=useState(false),[authEnded,setAuthEnded]=useState(false),[filter,setFilter]=useState<"active"|"removed">("active");
  const [optionsRefs,setOptionsRefs]=useState<InvestigationEvidenceRef[]>([]),[optionsStatus,setOptionsStatus]=useState<OptionsEvidenceStatus[]|null>(null),[optionsChecking,setOptionsChecking]=useState(false);
+ const [sectorReopen,setSectorReopen]=useState<SectorReopenState|"none"|"loading">("none");
+ const sectorSeq=useRef(0);
  const [alertRows,setAlertRows]=useState<OwnerAlertRow[]|null>(null),[alertLoad,setAlertLoad]=useState<WatchLoadState>("loading"),[outbox,setOutbox]=useState<readonly unknown[]|null>(null);
  // A typed reference recovered from the pending buffer rides the next draft-built manifest; a
  // fresh start and an owner change both drop it, so it can never leak into new research.
@@ -162,13 +197,32 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
    if(ticket!==detailSeq.current)return;
    if(record(value)&&value.status==="unauthenticated"){++optionsSeq.current;setOptionsStatus(null);setAuthEnded(true);return;}
    if(!record(value)||value.status!=="found"||value.id!==id||(revision!==undefined&&value.revision!==revision)||!Array.isArray(value.layouts)||!validateInvestigationManifest(value.manifest,INVESTIGATION_ADMISSION).ok)throw Error("unavailable");
-   const found=value as unknown as Detail;setDetail(found);setEditing(false);setMessage("");setLegacyScenario(false);retainedBaseline(found.manifest);void evaluateOptions(found.manifest.evidence_refs);void loadAlerts();
+   const found=value as unknown as Detail;setDetail(found);setEditing(false);setMessage("");setLegacyScenario(false);retainedBaseline(found.manifest);void evaluateOptions(found.manifest.evidence_refs);void loadAlerts();void openSectorContext(found);
    window.history.replaceState({},"",`/analysis?view=investigations&investigation=${id}&revision=${found.revision}`);
   } catch {if(ticket===detailSeq.current&&!scope.current?.signal.aborted){setMessage(afterSave?c.readbackFailed:c.invalidLink);if(!afterSave)setDetail(null);}}
   finally {if(ticket===detailSeq.current)setDetailLoading(false);}
  }
- async function settle(response:unknown) {
-  const previous=stateRef.current;
+ // SP14 reopen: the saved sector observation reopens through its retained
+ // reference only; identity is verified by the decision module on every answer.
+ // The ticket drops a reply that lands after another open (or an account
+ // change, which aborts scope), so a stale reopen can never paint this record.
+ async function openSectorContext(opened:Detail) {
+  const ticket=++sectorSeq.current;
+  const saved=savedSectorCaptures(opened.manifest);
+  if(!saved.length) { if(ticket===sectorSeq.current)setSectorReopen("none"); return; }
+  if(ticket===sectorSeq.current)setSectorReopen("loading");
+  const outcome=await reopenOriginal(saved[0].identity,saved[0].contextRef,SECTOR_REOPEN_TRANSPORT);
+  if(ticket!==sectorSeq.current||scope.current?.signal.aborted)return;
+  setSectorReopen(outcome);
+ }
+ async function openCurrentSectorContext() {
+  const ticket=++sectorSeq.current;
+  if(ticket===sectorSeq.current)setSectorReopen("loading");
+  const outcome=await reopenCurrent(SECTOR_REOPEN_TRANSPORT);
+  if(ticket!==sectorSeq.current||scope.current?.signal.aborted)return;
+  setSectorReopen(outcome);
+ }
+ async function settle(response:unknown) {  const previous=stateRef.current;
   const next=settleInvestigationSave(previous,ownerKey,response);setSave(next);
   if(next.phase==="committed") {
    try{if(previous.phase==="pending"||previous.phase==="uncertain")clearCommittedInvestigationJournal(sessionStorage,ownerKey,previous.command);}catch{setStorageBlocked(true);}
@@ -324,6 +378,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
      <p className={styles.eyebrow}>{c.saved} · {c.revision} {detail.revision}{detail.lifecycle==="removed"?` · ${c.removed}`:""}</p><h2 ref={detailTitle} tabIndex={-1}>{detail.manifest.intent.title}</h2><p className={styles.question}>{detail.manifest.intent.question}</p>
      <dl className={styles.context}>{detail.manifest.intent.subjects.map((s,i)=><div key={i}><dt>{contextLabel(s.kind,lang)}</dt><dd>{s.object_id}</dd></div>)}{detail.manifest.intent.horizon&&<div><dt>{c.horizon}</dt><dd>{detail.manifest.intent.horizon}</dd></div>}{detail.manifest.intent.research_as_of&&<div><dt>{c.asOf}</dt><dd>{detail.manifest.intent.research_as_of}</dd></div>}</dl>
      {detail.manifest.scenario_capture!==undefined&&<section className={styles.card} data-testid="saved-scenario"><h3>{sc.saved}</h3><p className={styles.eyebrow}>{sc.boundary}</p><SavedScenarioRead capture={detail.manifest.scenario_capture} lang={lang} revision={{id:detail.id,revision:detail.revision,grantId:null}} identity={accountIdentity(investigationSubject(ownerKey))}/></section>}
+     {sectorReopen!=="none"&&<SectorContextCard state={sectorReopen} copy={SECTOR_CONTEXT_COPY[lang]} onRetry={()=>void openSectorContext(detail)} onOpenCurrent={()=>void openCurrentSectorContext()}/>}
      <div className={styles.actions}><button disabled={frozen||detail.lifecycle==="removed"} onClick={()=>beginEdit()}>{c.edit}</button>{detail.revision!==detail.current_revision&&<button disabled={locked} onClick={()=>void openRecord(detail.id)}>{c.viewLatest}</button>}{detail.revision>1&&<button disabled={locked} onClick={()=>void openRecord(detail.id,detail.revision-1)}>{c.previous}</button>}{detail.revision<detail.current_revision&&<button disabled={locked} onClick={()=>void openRecord(detail.id,detail.revision+1)}>{c.nextRevision}</button>}</div>
      {detail.lifecycle==="active"&&<InvestigationWatchPanel link={{investigation_id:detail.id,revision:detail.revision}} symbol={symbol} rows={alertRows} current={null} lang={lang} disabled={frozen} loadState={alertLoad} onArm={armWatch} onRearm={rearmWatch} onRetry={()=>void loadAlerts()}/>}
      <section className={styles.card}><h3>{c.retained}</h3>{detail.manifest.layout_refs.length?detail.manifest.layout_refs.map(ref=><p key={ref.layout_revision_id}><Link href={`/terminal?investigation=${detail.id}&revision=${detail.revision}&layout_revision=${ref.layout_revision_id}`}>{c.openLayout} →</Link></p>):<p>{c.noLayout}</p>}{symbol&&<Link href={`/analysis?symbol=${encodeURIComponent(symbol)}`}>{c.continue} →</Link>}</section>
@@ -341,4 +396,33 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
    </aside>
   </div>
  </main>;
+}
+
+/** The retained sector-capture card (SP14). The ORIGINAL is what the record
+ * names — it never falls back to the latest; the current read is a separate,
+ * explicitly labelled action. Counts are counts only: nothing here claims the
+ * population complete, and an unavailable original stays unavailable. */
+function SectorContextCard({state,copy,onRetry,onOpenCurrent}:{state:SectorReopenState|"loading";copy:(typeof SECTOR_CONTEXT_COPY)[keyof typeof SECTOR_CONTEXT_COPY];onRetry:()=>void;onOpenCurrent:()=>void}) {
+ if(state==="loading")return <section className={styles.card} data-testid="sector-context-card"><h3>{copy.title}</h3><p role="status">{copy.reopening}</p></section>;
+ if(state.state==="original") {
+  const page=sectorPopulationPage(state.body);
+  return <section className={styles.card} data-testid="sector-context-card" data-sector-reopen="original">
+   <h3>{copy.original}</h3>
+   <p className={styles.eyebrow}>{fillCopy(copy.generation,{id:state.identity.generation_id})}</p>
+   <p>{state.contextRefDurable?copy.durable:copy.processOnly}</p>
+   {page&&<p className={styles.eyebrow}>{fillCopy(copy.counts,{served:String(page.counts.served),configured:String(page.counts.configuredCurrent),unserved:String(page.counts.accountedUnserved)})}</p>}
+   <div className={styles.actions}><button type="button" onClick={onOpenCurrent}>{copy.openCurrent}</button></div>
+  </section>;
+ }
+ if(state.state==="current") {
+  const page=sectorPopulationPage(state.body);
+  return <section className={styles.card} data-testid="sector-context-card" data-sector-reopen="current">
+   <h3>{copy.currentLabel}</h3>
+   {page&&<p className={styles.eyebrow}>{fillCopy(copy.counts,{served:String(page.counts.served),configured:String(page.counts.configuredCurrent),unserved:String(page.counts.accountedUnserved)})}</p>}
+   <div className={styles.actions}><button type="button" onClick={onRetry}>{copy.openOriginal}</button></div>
+  </section>;
+ }
+ if(state.state==="signed_out")return <section className={styles.card} data-testid="sector-context-card"><h3>{copy.title}</h3><p>{copy.signedOut}</p></section>;
+ if(state.state==="retry")return <section className={styles.card} data-testid="sector-context-card"><h3>{copy.title}</h3><p>{copy.retry}</p><div className={styles.actions}><button type="button" onClick={onRetry}>{copy.retryAction}</button></div></section>;
+ return <section className={styles.card} data-testid="sector-context-card" data-sector-reopen="original_unavailable"><h3>{copy.unavailable}</h3></section>;
 }

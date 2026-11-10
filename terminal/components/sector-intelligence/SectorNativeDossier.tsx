@@ -12,6 +12,18 @@ import { formatValue, SECTOR_VIEWS, type SectorJob, type SectorView } from "@/li
 import { sectorNativeRankedRows, type SectorNativeContext } from "./sectorNativeSlots";
 import { nativeFill, nativeSessionLabel, NativeUnavailable } from "./SectorNativeJobShell";
 import SectorGenerationQualification from "./SectorGenerationQualification";
+import SectorPopulationMembers from "./SectorPopulationMembers";
+import SectorNativeActions from "./SectorNativeActions";
+import SectorCycleLens from "./SectorCycleLens";
+import type { SectorCycleFeed } from "./cycles/cycleProps";
+import { flowsFromCarriedBlock } from "@/lib/sectorDepthFlows";
+import { admitActionBoard, admitBottomingWatch } from "@/lib/sectorDepthAdmission";
+import { followState } from "@/lib/investigationFollow";
+import { SectorCallsBoard } from "./depth/SectorCallsBoard";
+import { SectorFlowMatrix } from "./depth/SectorFlowMatrix";
+import { SectorBottomingWatch } from "./depth/SectorBottomingWatch";
+import { SectorConfluenceUniverses } from "./depth/SectorConfluenceUniverses";
+import { SectorThemeCompare } from "./depth/SectorThemeCompare";
 import styles from "./SectorNative.module.css";
 import shell from "./SectorIntelligenceWorkspace.module.css";
 
@@ -22,7 +34,7 @@ const TAB_KEYS: Record<SectorView, string> = {
 };
 
 export default function SectorNativeDossier({ context, view, onView, onBack, onJob,
-  onOpenRotation, onTheme, onRefresh, onSources }: {
+  onOpenRotation, onTheme, onRefresh, onSources, historyFeed, eventsFeed }: {
   context: SectorNativeContext;
   view: SectorView;
   onView: (view: SectorView) => void;
@@ -32,6 +44,11 @@ export default function SectorNativeDossier({ context, view, onView, onBack, onJ
   onTheme: () => void;
   onRefresh: () => void;
   onSources: () => void;
+  /** Legacy rs-history and rotation-events feeds, passed through to the Cycles
+   * lens; the deep cycles publication feed does not exist yet and is passed as
+   * an explicit unavailable state — never a borrowed substitute. */
+  historyFeed?: SectorCycleFeed;
+  eventsFeed?: SectorCycleFeed;
 }) {
   const t = useSectorT(), { lang } = useLang();
   const tabs = useRef<HTMLDivElement>(null);
@@ -76,7 +93,7 @@ export default function SectorNativeDossier({ context, view, onView, onBack, onJ
         <button type="button" className={shell.button} onClick={onSources}>{t("siNativeSources")}</button>
       </div>
     </div>
-    <p className={styles.chartNote}>{t("siNativeSavePending")} · {t("siNativeComparePending")}</p>
+    <p className={styles.chartNote}>{t("siNativeComparePending")}</p>
     <div className={styles.subTabs} ref={tabs} role="tablist" aria-label={t("siSectorDossierTabs")}
       onKeyDown={event => {
         const index = SECTOR_VIEWS.indexOf(view);
@@ -95,20 +112,35 @@ export default function SectorNativeDossier({ context, view, onView, onBack, onJ
     <div id="sn-dossier-panel" role="tabpanel" aria-labelledby={`sn-dossier-tab-${view}`} tabIndex={0}>
       <SectorGenerationQualification qualification={context.qualification ?? undefined} />
       {view === "intelligence" ? <DossierOverview context={context} exact={exact.state === "ok" ? exact.measurements : null}
-        exactGroup={exactGroup} benchmark={benchmark} onJob={onJob} /> : view === "companies" ? <section className={`${styles.card} ${styles.stateCard}`}>
-        <h2 className={styles.stateTitle}>{t("siCompaniesTab")}</h2>
-        <p className={styles.stateCopy}>{t("siSectorDossierCompaniesCopy")}</p>
-      </section> : view === "drivers" ? <section className={`${styles.card} ${styles.stateCard}`}>
-        <h2 className={styles.stateTitle}>{t("siDrivers")}</h2>
-        <p className={styles.stateCopy}>{t("siBusinessCopy")}</p>
-      </section> : view === "signals" ? <section className={`${styles.card} ${styles.stateCard}`} data-testid="sector-native-dossier-cycles">
-        <h2 className={styles.stateTitle}>{t("siNativeCycles")}</h2>
-        <p className={styles.stateCopy}>{t("siSectorDossierCyclesCopy")}</p>
+        exactGroup={exactGroup} benchmark={benchmark} onJob={onJob} /> : view === "companies" ? <SectorPopulationMembers />
+      : view === "drivers" ? <DossierDepth context={context} />
+      : view === "signals" ? <div data-testid="sector-native-dossier-cycles">
+        <SectorCycleLens
+          region="us"
+          generation={context.generation ? {
+            accessGeneration: context.binding.ownerRevision,
+            region: "us",
+            asOf: context.generation.receipt.source_session,
+            // The deep cycles publication feed does not exist yet: ungated
+            // legacy binding, stated — never an invented publication id.
+            publicationId: null,
+          } : null}
+          subject={{ family: "sectors", id: subject.id }}
+          context={{
+            generation: context.generation, transport: context.transport,
+            qualification: context.qualification,
+            subject: { id: subject.id, ticker: subject.ticker, name: subject.name, nameZh: subject.nameZh },
+            language: context.language, theme: context.theme,
+          }}
+          cyclesFeed={{ state: "unavailable" }}
+          historyFeed={historyFeed}
+          eventsFeed={eventsFeed}
+          returnBinding="host" />
         <div className={styles.heroActions}>
           <button type="button" className={styles.secondaryButton} onClick={onOpenRotation}>
             {t("siSectorDossierOpenRotation")}</button>
         </div>
-      </section> : <section className={`${styles.card} ${styles.stateCard}`}>
+      </div> : <section className={`${styles.card} ${styles.stateCard}`}>
         <h2 className={styles.stateTitle}>{t("siHistoryEmpty")}</h2>
         <p className={styles.stateCopy}>{t("siReplayCopy")}</p>
         <p className={styles.chartNote}>{t("siHistoryContext")}</p>
@@ -209,6 +241,58 @@ function DossierOverview({ context, exact, exactGroup, benchmark, onJob }: {
             onClick={() => onJob("research")}>{t("siBriefInvestigateResearchAction")}</button>
         </div>
       </section>
+      <SectorNativeActions context={context} />
+      <FollowLine />
     </div>
+  </div>;
+}
+
+/** Follow is mounted as the producer census reads today (lane 6, SP17): the
+ * pure state machine with no admitted producer. Every branch claims no
+ * notification; the copy follows the machine's actual state, never an
+ * aspiration. If the v3 writes flag flips, the copy flips with it. */
+function FollowLine() {
+  const t = useSectorT();
+  const follow = followState();
+  const copy = follow.state === "closed" ? t("siFollowClosed")
+    : follow.state === "saved_preference_only" ? t("siFollowPreferenceOnly")
+    : follow.state === "configured_unavailable" ? t("siFollowUnavailable")
+    : t("siFollowActive");
+  return <section className={styles.card} data-testid="sector-native-dossier-follow">
+    <h2 className={styles.cardTitle}>{t("siFollowLabel")}</h2>
+    <p className={styles.stateCopy}>{copy}</p>
+  </section>;
+}
+
+/** Drivers tab: lane 7's depth groups consuming the generation's own typed
+ * blocks. Each mount gates on the block's `status === "available"`; an absent
+ * or unavailable block is that surface's unavailable state — never zero, never
+ * an error, never a borrowed substitute (lane 7 v1.1 return, COO 12:55Z).
+ * `confluence` and `theme_table` stay typed-unavailable: the carried id-lists
+ * and state dict are not the payloads these tables need (queued lane 1
+ * increment); the theme rotation chart runs on real captured history. */
+function DossierDepth({ context }: { context: SectorNativeContext }) {
+  const { lang } = useLang();
+  const generation = context.generation;
+  const blocks = generation?.typedBlocks;
+  const flows = blocks && blocks.etf_flows.status === "available"
+    ? flowsFromCarriedBlock(blocks.etf_flows.value) : null;
+  const watch = blocks && blocks.bottoming_watch.status === "available"
+    ? admitBottomingWatch(blocks.bottoming_watch.value) : null;
+  const board = admitActionBoard(generation?.actionBoard ?? null);
+  const labels = useMemo(() => {
+    const out: Record<string, string> = {};
+    for (const row of generation?.sectors ?? []) {
+      const id = String(row.id), name = String(row.name), zh = String(row.name_zh ?? "");
+      out[id] = lang === "zh" ? zh || name : name;
+    }
+    return out;
+  }, [generation, lang]);
+  return <div data-testid="sector-native-dossier-depth">
+    <SectorCallsBoard board={board} />
+    <SectorFlowMatrix flows={flows} />
+    <SectorBottomingWatch watch={watch} />
+    <SectorConfluenceUniverses universes={null} />
+    <SectorThemeCompare history={generation?.history ?? null} labels={labels} />
   </div>;
 }

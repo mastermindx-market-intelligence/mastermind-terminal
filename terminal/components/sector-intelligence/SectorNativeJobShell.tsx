@@ -7,7 +7,7 @@
 import Link from "next/link";
 import { useMemo, useRef, type ReactNode } from "react";
 import { useSectorT } from "@/lib/sectorIntelligenceLex";
-import { SECTOR_JOBS, type SectorJob } from "@/lib/sectorIntelligence";
+import { SECTOR_JOBS, type SectorJob, type SectorView } from "@/lib/sectorIntelligence";
 import { sectorNativeRankedRows, type SectorNativeContext } from "./sectorNativeSlots";
 import SectorNativeBrief from "./SectorNativeBrief";
 import SectorNativeExplore from "./SectorNativeExplore";
@@ -66,13 +66,12 @@ export function NativeUnavailable({ context, onRetry, onSources }: {
 }
 
 export default function SectorNativeJobShell({ context, job, onJob, onSelect, onOpenDossier,
-  onOpenRotation, onTheme, onRefresh, onSources }: {
+  onTheme, onRefresh, onSources }: {
   context: SectorNativeContext;
   job: SectorJob;
   onJob: (job: SectorJob) => void;
   onSelect: (sectorId: string) => void;
-  onOpenDossier: (sectorId: string) => void;
-  onOpenRotation: () => void;
+  onOpenDossier: (sectorId: string, view?: SectorView) => void;
   onTheme: () => void;
   onRefresh: () => void;
   onSources: () => void;
@@ -96,7 +95,7 @@ export default function SectorNativeJobShell({ context, job, onJob, onSelect, on
       ? <NativeUnavailable context={context} onRetry={onRefresh} onSources={onSources} />
       : job === "brief"
         ? <SectorNativeBrief context={context} rows={rows} onJob={onJob}
-            onOpenDossier={onOpenDossier} onOpenRotation={onOpenRotation} onSources={onSources} />
+            onOpenDossier={onOpenDossier} onSources={onSources} />
         : <SectorNativeExplore context={context} rows={rows} onSelect={onSelect}
             onOpenDossier={onOpenDossier} onSources={onSources} />;
   return <div className={styles.root} data-sector-theme={context.theme} data-sector-language={context.language}>

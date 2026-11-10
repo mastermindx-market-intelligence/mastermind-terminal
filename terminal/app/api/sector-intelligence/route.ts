@@ -11,6 +11,7 @@ import { NW_BASE } from "@/lib/upstreams";
 import { qualifyRiskEnvelope } from "@/lib/marketRisk";
 import { object, number, feedSourceStamp, readableOwnerEnvelope, type FeedReceipt, type SectorFeed } from "@/lib/sectorIntelligence";
 import { SECTOR_GENERATION_PATH, sectorNativeGeneration } from "@/lib/sectorNativeGeneration";
+import { POPULATION_TOKEN, POPULATION_GROUP_ID, POPULATION_QUERY, POPULATION_MAX_LIMIT, POPULATION_MIN_LIMIT, sectorPopulationPage } from "@/lib/sectorPopulation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -292,10 +293,150 @@ async function readIncumbent(req: Request): Promise<Response> {
   finally { clearTimeout(timer); req.signal.removeEventListener("abort", abort); }
 }
 
+/** Lane 1 population member list (COO order 2, 2026-11-10).
+ *
+ * Three request forms share this branch:
+ *   - `?source=population[&group&q&limit&cursor]` — the member-list browse form.
+ *     `audience` is FORCED to `entitled` here; a caller-supplied `audience` is a
+ *     grammar refusal, never forwarded. The parameter set is closed.
+ *   - `?x=<context_ref>` — the retained-capture reopen form (lane 6 SP14): the
+ *     token is forwarded as the page cursor and the owner's identity answer is
+ *     relayed verbatim so the reopen classifier reads lane 1's table unchanged.
+ *   - bare (no parameters) — open the CURRENT capture's page one.
+ * Owner refusals are relayed status+body verbatim: 409 CURSOR_RESET and 404
+ * ORIGINAL_UNAVAILABLE must reach the client as the owner wrote them. Only the
+ * gateway's own failures (grammar, session, transport) speak this route's codes.
+ */
+const POPULATION_HEADERS = { ...HEADERS, "X-Content-Type-Options": "nosniff", "X-Robots-Tag": "noindex, noarchive" };
+const POPULATION_PATH = "/api/sector-generation/population";
+
+type PopulationQuery =
+  | { form: "browse"; group: string | null; q: string | null; limit: number | null; cursor: string | null }
+  | { form: "context"; cursor: string }
+  | { form: "current" };
+
+function populationRefuse(status: number, code: string, extra?: Record<string, string>): Response {
+  return NextResponse.json({ error: "population_refused", code },
+    { status, headers: { ...POPULATION_HEADERS, "X-Sector-Failure": code, ...(extra ?? {}) } });
+}
+
+/** Closed grammar for the three population forms. null = not a population request. */
+function populationRequest(params: URLSearchParams): PopulationQuery | "REQUEST_INVALID" | null {
+  const source = params.get("source");
+  if (source === null) {
+    if (params.has("x")) {
+      const token = params.get("x");
+      if ([...params.keys()].some(key => key !== "x") || token === null || !POPULATION_TOKEN.test(token)) {
+        return "REQUEST_INVALID";
+      }
+      return { form: "context", cursor: token };
+    }
+    return [...params.keys()].length === 0 ? { form: "current" } : null;
+  }
+  if (source !== "population") return null;
+  // audience is a BFF decision, never a caller parameter.
+  if (params.has("audience")) return "REQUEST_INVALID";
+  const allowed = ["source", "group", "q", "limit", "cursor"];
+  const names = [...params.keys()];
+  if (names.some(key => !allowed.includes(key))) return "REQUEST_INVALID";
+  if (["group", "q", "limit", "cursor"].some(key => params.getAll(key).length > 1)) return "REQUEST_INVALID";
+  const group = params.get("group"), q = params.get("q");
+  const limitRaw = params.get("limit"), cursor = params.get("cursor");
+  if (group !== null && !POPULATION_GROUP_ID.test(group)) return "REQUEST_INVALID";
+  if (q !== null && !POPULATION_QUERY.test(q)) return "REQUEST_INVALID";
+  if (cursor !== null && !POPULATION_TOKEN.test(cursor)) return "REQUEST_INVALID";
+  let limit: number | null = null;
+  if (limitRaw !== null) {
+    if (!/^[1-9][0-9]{0,2}$/.test(limitRaw)) return "REQUEST_INVALID";
+    limit = Number(limitRaw);
+    if (limit < POPULATION_MIN_LIMIT || limit > POPULATION_MAX_LIMIT) return "REQUEST_INVALID";
+  }
+  return { form: "browse", group, q, limit, cursor };
+}
+
+async function readPopulation(req: Request, query: PopulationQuery): Promise<Response> {
+  const rl = rateLimit(req, { name: "sector-intelligence", max: 60 });
+  if (!rl.ok) return populationRefuse(429, "RATE_LIMITED", { "Retry-After": String(rl.retryAfterSec) });
+  if (!filteredSupabaseCookieHeader(req)) return populationRefuse(401, "AUTHENTICATION_REQUIRED");
+  let authCookie: string | null = null;
+  try {
+    const client = await createClient();
+    const { data: { user }, error } = await client.auth.getUser();
+    if (error || !user) return populationRefuse(401, "AUTHENTICATION_REQUIRED");
+    const { data: { session } } = await client.auth.getSession();
+    if (!session?.access_token || session.user.id !== user.id) return populationRefuse(401, "AUTHENTICATION_REQUIRED");
+    authCookie = await currentSupabaseCookieHeader();
+  } catch { return populationRefuse(401, "AUTHENTICATION_REQUIRED"); }
+  if (!authCookie) return populationRefuse(401, "AUTHENTICATION_REQUIRED");
+
+  // Same established Neural Web origin discipline as the incumbent reader: never
+  // send the shared cookie to an arbitrary host, userinfo, port or a redirect.
+  let url: URL;
+  try {
+    const base = new URL(NW_BASE);
+    if (base.protocol !== "https:" || !["mastermind-x.com", "www.mastermind-x.com"].includes(base.hostname)
+      || base.username || base.password || base.port) return populationRefuse(503, "UPSTREAM_UNAVAILABLE");
+    const ownerOrigin = base.hostname === "mastermind-x.com" ? "https://www.mastermind-x.com" : base.origin;
+    url = new URL(POPULATION_PATH, ownerOrigin);
+  } catch { return populationRefuse(503, "UPSTREAM_UNAVAILABLE"); }
+  url.searchParams.set("audience", "entitled"); // forced here; never caller-supplied
+  if (query.form === "browse") {
+    if (query.group !== null) url.searchParams.set("group", query.group);
+    if (query.q !== null) url.searchParams.set("q", query.q);
+    if (query.limit !== null) url.searchParams.set("limit", String(query.limit));
+    if (query.cursor !== null) url.searchParams.set("cursor", query.cursor);
+  } else if (query.form === "context") {
+    url.searchParams.set("cursor", query.cursor);
+  }
+
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  req.signal.addEventListener("abort", abort, { once: true });
+  if (req.signal.aborted) controller.abort();
+  let timedOut = false;
+  const timer = setTimeout(() => { timedOut = true; abort(); }, 6000);
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal, redirect: "manual", cache: "no-store",
+      headers: { Cookie: authCookie, Accept: "application/json" },
+    });
+    if (!response.ok) {
+      // Relay the owner's refusal status and body VERBATIM: the client's refusal
+      // table (409 CURSOR_RESET, 404 ORIGINAL_UNAVAILABLE, 503 retry) reads the
+      // owner's own codes, not this gateway's paraphrase of them.
+      let body: unknown = null;
+      try { body = (await readJson(response)).data; } catch { body = null; }
+      const retryAfter = response.headers.get("retry-after");
+      return NextResponse.json(
+        body ?? { error: "population_refused", code: "UPSTREAM_UNAVAILABLE" },
+        { status: response.status, headers: { ...POPULATION_HEADERS, ...(retryAfter ? { "Retry-After": retryAfter } : {}) } });
+    }
+    let parsed: { data: unknown; hash: string };
+    try { parsed = await readJson(response); }
+    catch (error) {
+      if (error instanceof InterruptedOwnerBody) throw error;
+      return populationRefuse(502, "PAYLOAD_INVALID");
+    }
+    if (!sectorPopulationPage(parsed.data)) return populationRefuse(502, "PAYLOAD_INVALID");
+    return NextResponse.json(parsed.data, { headers: POPULATION_HEADERS });
+  } catch {
+    if (timedOut) return populationRefuse(504, "UPSTREAM_TIMEOUT");
+    if (req.signal.aborted) return populationRefuse(499, "REQUEST_ABORTED");
+    return populationRefuse(502, "UPSTREAM_TRANSPORT");
+  }
+  finally { clearTimeout(timer); req.signal.removeEventListener("abort", abort); }
+}
+
 /** Compact display view over the same authenticated reader; ordinary responses are unchanged. */
 export async function GET(req: Request): Promise<Response> {
-  const response = await readIncumbent(req);
   const params = new URL(req.url).searchParams;
+  const population = populationRequest(params);
+  if (population !== null) {
+    return population === "REQUEST_INVALID"
+      ? populationRefuse(400, "REQUEST_INVALID")
+      : readPopulation(req, population);
+  }
+  const response = await readIncumbent(req);
   return params.get("view") === "intelligence" && params.get("source") === "history"
     ? intelligenceResponse(response, "cycles") : response;
 }
