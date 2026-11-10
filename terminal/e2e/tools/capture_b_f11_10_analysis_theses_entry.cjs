@@ -102,7 +102,7 @@ function consoleErrorKind(message) {
 }
 
 function writeFailureArtifact(out, capturedAtHead, diagnostic, error) {
-  const code = typeof error?.message === "string" && /^F11_[A-Z_]+$/.test(error.message) ? error.message : "F11_CAPTURE_FAILED";
+  const code = typeof error?.message === "string" && /^F11_[A-Z0-9_]{1,96}$/.test(error.message) ? error.message : "F11_CAPTURE_FAILED";
   writeFileSync(join(out, "FAILURE.json"), JSON.stringify({
     schema: "terminal.f11-source-component-failure.v1", status: "FAILURE",
     capturedAtHead, failedAt: new Date().toISOString(), errorCode: code, ...diagnostic,
@@ -516,7 +516,7 @@ async function captureInOwnedRuntime(shots, out, capturedAtHead, chromium) {
   let failureDiagnostic;
   const rememberFailure = (error, phase) => {
     if (error === primaryFailure) return;
-    const code = /^F11_[A-Z_]+$/.test(error?.message || "") ? error.message : `F11_${phase.toUpperCase().replaceAll("-", "_")}_FAILED`;
+    const code = /^F11_[A-Z0-9_]{1,96}$/.test(error?.message || "") ? error.message : `F11_${phase.toUpperCase().replaceAll("-", "_")}_FAILED`;
     failureStages.push({ phase, code });
     primaryFailure ||= new Error(code);
   };

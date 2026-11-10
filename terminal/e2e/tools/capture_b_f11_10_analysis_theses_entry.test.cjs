@@ -341,7 +341,7 @@ function runtimeModuleForTest(hooks) {
   return sandboxModule.exports;
 }
 
-for (const mode of ["pending-fetch", "primary-and-pending-fetch", "context-close", "server-stop", "success"]) {
+for (const mode of ["pending-fetch", "primary-and-pending-fetch", "primary-http-200", "context-close", "server-stop", "success"]) {
   test(`actual owned runtime settles browser/server before returning the ${mode} outcome`, async () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), "f11-runtime-cleanup-"));
     const events = []; let rejectFetch; let pending;
@@ -368,6 +368,7 @@ for (const mode of ["pending-fetch", "primary-and-pending-fetch", "context-close
         }
         await context.registered.request(requestDouble("http://127.0.0.1:3565/data/NVDA.fund.json", "fetch"));
         if (mode === "primary-and-pending-fetch") throw new Error("F11_THESES_ENTRY_LABEL_MISMATCH");
+        if (mode === "primary-http-200") throw new Error("F11_ALLOWED_ROUTE_DID_NOT_RETURN_200");
         return { lang: "en", symbol: "NVDA" };
       },
     };
@@ -381,11 +382,13 @@ for (const mode of ["pending-fetch", "primary-and-pending-fetch", "context-close
         assert.equal(fs.existsSync(path.join(root, "FAILURE.json")), false);
       } else {
         const code = mode === "primary-and-pending-fetch" ? /F11_THESES_ENTRY_LABEL_MISMATCH/
+          : mode === "primary-http-200" ? /F11_ALLOWED_ROUTE_DID_NOT_RETURN_200/
           : mode === "pending-fetch" ? /F11_BOUNDARY_CALLBACK_FAILED/
           : mode === "context-close" ? /F11_CONTEXT_CLOSE_FAILED/ : /F11_SERVER_GROUP_STILL_PRESENT/;
         await assert.rejects(operation, code);
         const failure = JSON.parse(fs.readFileSync(path.join(root, "FAILURE.json"), "utf8"));
         assert.equal(failure.status, "FAILURE");
+        assert.match(failure.errorCode, code);
         assert.equal(JSON.stringify(failure).includes("private-header"), false);
         if (mode.includes("pending-fetch")) assert.equal(failure.settledBoundaries[0].callbackFailureCount, 1);
       }
