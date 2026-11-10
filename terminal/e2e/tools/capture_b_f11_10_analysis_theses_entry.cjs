@@ -255,7 +255,38 @@ async function assertNoNextIndicator(page, file) {
 
 async function installCaptureBoundary(context, base = BASE, { scriptMetadata: recordScripts = false } = {}) {
   const { classifyRequest, typedUnavailablePayload } = require("./f11_provider_closed_policy.cjs");
-  const counts = { forwarded: 0, unavailable: 0, businessUnavailable: 0, componentFundUnavailable: 0, aborted: 0, webSocketsBlocked: 0, redirectOrBadStatus: 0, failedAllowedResponses: [] };
+  const counts = { forwarded: 0, unavailable: 0, businessUnavailable: 0, componentFundUnavailable: 0, aborted: 0, webSocketsBlocked: 0, redirectOrBadStatus: 0, failedAllowedResponses: [], callbackFailureCount: 0, callbackFailures: [] };
+  const pendingCallbacks = new Set();
+  const assertCallbacksHealthy = () => {
+    if (counts.callbackFailureCount) throw new Error("F11_BOUNDARY_CALLBACK_FAILED");
+  };
+  const trackCallback = (kind, operation) => {
+    let stage = "classify";
+    // Attach rejection ownership before invoking any asynchronous browser API.
+    // A handled callback failure still disqualifies the capture after cleanup.
+    const pending = Promise.resolve().then(() => operation(value => { stage = value; })).catch(error => {
+      counts.callbackFailureCount++;
+      if (counts.callbackFailures.length < 8) counts.callbackFailures.push({ kind, stage,
+        code: /target.*closed|context.*disposed/i.test(String(error?.message || "")) ? "CONTEXT_CLOSED" : "CALLBACK_REJECTED" });
+    });
+    pendingCallbacks.add(pending);
+    void pending.then(() => { pendingCallbacks.delete(pending); });
+    return pending;
+  };
+  Object.defineProperties(counts, {
+    assertCallbacksHealthy: { value: assertCallbacksHealthy },
+    drainCallbacks: { value: async (timeoutMs = 10_000) => {
+      let timer;
+      try {
+        await Promise.race([(async () => {
+          while (pendingCallbacks.size) await Promise.all([...pendingCallbacks]);
+        })(), new Promise((_, reject) => {
+          timer = setTimeout(() => reject(new Error("F11_BOUNDARY_CALLBACK_DRAIN_TIMEOUT")), timeoutMs);
+        })]);
+        assertCallbacksHealthy();
+      } finally { clearTimeout(timer); }
+    } },
+  });
   let signalBusinessRequest;
   const observedBusinessRequest = new Promise(resolve => { signalBusinessRequest = resolve; });
   Object.defineProperty(counts, "waitForBusinessRequest", { value: async (timeoutMs = 10_000) => {
@@ -291,12 +322,17 @@ async function installCaptureBoundary(context, base = BASE, { scriptMetadata: re
   }
   if (typeof context.routeWebSocket !== "function") throw new Error("F11_WEBSOCKET_BOUNDARY_UNSUPPORTED");
   // The crop needs no live stream, including dev HMR. Block before a socket connects.
-  await context.routeWebSocket("**/*", (socket) => { counts.webSocketsBlocked++; socket.close(); });
-  await context.route("**/*", async (route) => {
+  await context.routeWebSocket("**/*", socket => trackCallback("websocket", async stage => {
+    counts.webSocketsBlocked++;
+    stage("websocket-close");
+    await socket.close();
+  }));
+  await context.route("**/*", route => trackCallback("request", async stage => {
     const request = route.request();
     const decision = classifyRequest({ url: request.url(), method: request.method(), resourceType: request.resourceType() }, base);
     if (decision.decision === "fulfill") {
       counts.unavailable++;
+      stage("unavailable-fulfill");
       await route.fulfill({ status: 503, contentType: "application/json", headers: { "Cache-Control": "no-store" }, body: JSON.stringify(typedUnavailablePayload()) });
       // Observe only the component's normal business reads, never issue a probe.
       const intercepted = new URL(request.url());
@@ -313,6 +349,7 @@ async function installCaptureBoundary(context, base = BASE, { scriptMetadata: re
       // Only policy-qualified loopback documents/assets reach this call. Do not
       // allow a redirect from an otherwise allowed URL to escape the boundary.
       const requestedAt = performance.now();
+      stage("allowed-fetch");
       const response = await route.fetch({ maxRedirects: 0 });
       const fetchedAt = performance.now();
       const status = response.status();
@@ -326,6 +363,7 @@ async function installCaptureBoundary(context, base = BASE, { scriptMetadata: re
           const scriptPath = staticScriptPath(request.url(), resourceType);
           counts.failedAllowedResponses.push({ family: families[resourceType] || "unknown", resourceType: Object.hasOwn(families, resourceType) ? resourceType : "unknown", status, ...(scriptPath ? { scriptPath } : {}) });
         }
+        stage("bad-status-abort");
         return route.abort("blockedbyclient");
       }
       counts.forwarded++;
@@ -333,6 +371,7 @@ async function installCaptureBoundary(context, base = BASE, { scriptMetadata: re
       if (recordScripts && request.resourceType() === "script") {
         if (counts.publicScripts.length >= 32) throw new Error("F11_SCRIPT_METADATA_BOUND");
         const bodyStart = performance.now();
+        stage("script-body");
         const bytes = await response.body();
         metadata = scriptMetadata({ pathname: new URL(request.url()).pathname,
           contentType: response.headers()["content-type"], body: bytes,
@@ -343,14 +382,25 @@ async function installCaptureBoundary(context, base = BASE, { scriptMetadata: re
         counts.publicScripts.push(metadata);
       }
       const fulfilledAt = performance.now();
+      stage("allowed-fulfill");
       await route.fulfill({ response });
       if (metadata) metadata.fulfillMs = performance.now() - fulfilledAt;
       return;
     }
     counts.aborted++;
+    stage("blocked-abort");
     return route.abort("blockedbyclient");
-  });
+  }));
   return counts;
+}
+
+async function waitForLocalizedControl(page, selector, label, failureCode) {
+  try {
+    await page.locator(`${selector}[aria-label=${JSON.stringify(label)}]`).waitFor({ state: "visible", timeout: 45_000 });
+  } catch (error) {
+    if (error?.name === "TimeoutError") throw new Error(failureCode);
+    throw error;
+  }
 }
 
 async function openAnalysis(page, lang, viewport) {
@@ -376,15 +426,18 @@ async function openAnalysis(page, lang, viewport) {
   const compact = viewport.width <= 640;
   const label = lang === "zh" ? "你的研究论点：NVDA" : "Your theses on NVDA";
   const disclosure = page.locator(".analysis-context-actions");
-  const trigger = page.locator(".analysis-context-actions > summary");
-  const entry = page.locator(compact
+  const triggerSelector = ".analysis-context-actions > summary";
+  const trigger = page.locator(triggerSelector);
+  const entrySelector = compact
     ? ".analysis-context-actions-menu > a[aria-label]"
-    : ".analysis-context-bar > .analysis-context-theses[aria-label]");
+    : ".analysis-context-bar > .analysis-context-theses[aria-label]";
+  const entry = page.locator(entrySelector);
+  const triggerLabel = lang === "zh" ? "研究操作" : "Research actions";
   let disclosureBounds;
   if (compact) {
-    await trigger.waitFor({ state: "visible", timeout: 45_000 });
+    await waitForLocalizedControl(page, triggerSelector, triggerLabel, "F11_RESEARCH_DISCLOSURE_MISMATCH");
     if (await trigger.count() !== 1
-        || await trigger.getAttribute("aria-label") !== (lang === "zh" ? "研究操作" : "Research actions")
+        || await trigger.getAttribute("aria-label") !== triggerLabel
         || await disclosure.getAttribute("open") !== null) {
       throw new Error("F11_RESEARCH_DISCLOSURE_MISMATCH");
     }
@@ -394,7 +447,7 @@ async function openAnalysis(page, lang, viewport) {
     }
     await trigger.click();
   }
-  await entry.waitFor({ state: "visible", timeout: 45_000 });
+  await waitForLocalizedControl(page, entrySelector, label, "F11_THESES_ENTRY_LABEL_MISMATCH");
   if (await entry.count() !== 1) throw new Error("F11_THESES_ENTRY_NOT_UNIQUE");
   if (await entry.getAttribute("aria-label") !== label) throw new Error("F11_THESES_ENTRY_LABEL_MISMATCH");
   const href = new URL(await entry.getAttribute("href"), BASE);
@@ -457,6 +510,16 @@ async function captureInOwnedRuntime(shots, out, capturedAtHead, chromium) {
   const owner = trackOwnedServer(child);
   const files = [];
   const entryObservations = [];
+  const boundaries = [];
+  const failureStages = [];
+  let primaryFailure;
+  let failureDiagnostic;
+  const rememberFailure = (error, phase) => {
+    if (error === primaryFailure) return;
+    const code = /^F11_[A-Z_]+$/.test(error?.message || "") ? error.message : `F11_${phase.toUpperCase().replaceAll("-", "_")}_FAILED`;
+    failureStages.push({ phase, code });
+    primaryFailure ||= new Error(code);
+  };
   let captureProfile;
 
   try {
@@ -482,6 +545,7 @@ async function captureInOwnedRuntime(shots, out, capturedAtHead, chromium) {
           serviceWorkers: "block",
         });
         const boundaryCounts = await installCaptureBoundary(context, BASE, { scriptMetadata: true });
+        boundaries.push(boundaryCounts);
         await context.addCookies([{ name: "mm_e2e_rs30", value: "1", url: BASE }]);
         const page = await context.newPage();
         page.setDefaultTimeout(45_000);
@@ -496,36 +560,61 @@ async function captureInOwnedRuntime(shots, out, capturedAtHead, chromium) {
         });
         try {
           const entry = await openAnalysis(page, shot.lang, VIEWPORTS[shot.viewport]);
+          boundaryCounts.assertCallbacksHealthy();
           await boundaryCounts.waitForBusinessRequest();
           if (pageErrorNames.length) throw new Error("F11_PAGE_SCRIPT_ERROR");
           const image = await shoot(page, shot.file, out);
+          boundaryCounts.assertCallbacksHealthy();
           if (boundaryCounts.componentFundUnavailable < 1) throw new Error("F11_BUSINESS_REQUEST_BOUNDARY_NOT_EXERCISED");
           if (boundaryCounts.redirectOrBadStatus !== 0) throw new Error("F11_ALLOWED_ROUTE_DID_NOT_RETURN_200");
           files.push(shot.file);
           entryObservations.push({ bootstrapState: await observeBootstrap(page), file: shot.file, viewport: VIEWPORTS[shot.viewport], ...entry, requestBoundary: { ...boundaryCounts }, pageErrorNames, image: { bytes: image.length, sha256: createHash("sha256").update(image).digest("hex") } });
           console.log("ok");
         } catch (err) {
-          console.log(`FAIL ${err && err.message ? err.message : err}`);
+          rememberFailure(err, "capture");
+          console.log(`FAIL ${primaryFailure.message}`);
           const bootstrapState = await observeBootstrap(page);
           const diagnostic = { captureProfile, file: shot.file, requestBoundary: { ...boundaryCounts }, pageErrorNames, consoleErrorKinds, bootstrapState };
-          writeFailureArtifact(out, capturedAtHead, diagnostic, err);
+          failureDiagnostic = diagnostic;
           console.error("F11_CAPTURE_DIAGNOSTICS " + JSON.stringify(diagnostic));
           try {
             await page.screenshot({ path: join(out, `FAIL-${shot.file}`), fullPage: false });
           } catch { /* ignore */ }
-          throw err;
+          throw primaryFailure;
         } finally {
-          await context.close();
+          try { await context.close(); }
+          catch (error) { rememberFailure(error, "context-close"); }
         }
+        if (primaryFailure) throw primaryFailure;
       }
+    } catch (error) {
+      rememberFailure(error, "capture");
     } finally {
-      await browser.close();
+      // Keep the provider boundary installed through context and browser close.
+      // Browser closure must run even when context closure rejects; only then
+      // drain handled callbacks, so draining cannot delay that cleanup fallback.
+      try { await browser.close(); }
+      catch (error) { rememberFailure(error, "browser-close"); }
+      for (const boundary of boundaries) {
+        try { await boundary.drainCallbacks(); }
+        catch (error) { rememberFailure(error, "boundary-drain"); }
+      }
     }
+  } catch (error) {
+    rememberFailure(error, "startup");
   } finally {
-    await stopServer(owner);
-    namespace.restoreGeneratedTypeFile();
+    try {
+      await stopServer(owner);
+      // Restoration remains conditional on positive owned-process settlement.
+      namespace.restoreGeneratedTypeFile();
+    } catch (error) { rememberFailure(error, "server-or-types"); }
   }
 
+  if (primaryFailure) {
+    writeFailureArtifact(out, capturedAtHead, { captureProfile, file: shots[0]?.file,
+      ...failureDiagnostic, failureStages, settledBoundaries: boundaries.map(boundary => ({ ...boundary })) }, primaryFailure);
+    throw primaryFailure;
+  }
   return { files, entryObservations, captureProfile, serverSettlement: owner.settlement(), generatedTypes: namespace.summary() };
 }
 

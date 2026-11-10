@@ -20,12 +20,15 @@ function presentationModuleForTest() {
 function analysisPresentationDouble(width, lang, overrides = {}) {
   const compact = width <= 640;
   const calls = [];
+  const localizedWaits = [];
+  let entryLanguage = overrides.initialEnglish ? "en" : lang;
+  let triggerLanguage = overrides.initialEnglish ? "en" : lang;
   let open = overrides.initiallyOpen ?? false;
   const box = { x: 12, y: 90, width: 180, height: 32 };
   const trigger = {
     async waitFor({ state }) { assert.equal(state, "visible"); assert.equal(compact, true); },
     async count() { return overrides.triggerCount ?? 1; },
-    async getAttribute(name) { assert.equal(name, "aria-label"); return overrides.triggerLabel ?? (lang === "zh" ? "研究操作" : "Research actions"); },
+    async getAttribute(name) { assert.equal(name, "aria-label"); return overrides.triggerLabel ?? (triggerLanguage === "zh" ? "研究操作" : "Research actions"); },
     async boundingBox() { return box; },
     async click() { open = !open; calls.push(open ? "open" : "close"); },
   };
@@ -36,7 +39,7 @@ function analysisPresentationDouble(width, lang, overrides = {}) {
     },
     async count() { return overrides.entryCount ?? 1; },
     async getAttribute(name) {
-      if (name === "aria-label") return overrides.entryLabel ?? (lang === "zh" ? "你的研究论点：NVDA" : "Your theses on NVDA");
+      if (name === "aria-label") return overrides.entryLabel ?? (entryLanguage === "zh" ? "你的研究论点：NVDA" : "Your theses on NVDA");
       assert.equal(name, "href"); return overrides.href ?? "/analysis?symbol=NVDA&view=theses";
     },
     async boundingBox() { return box; },
@@ -49,11 +52,28 @@ function analysisPresentationDouble(width, lang, overrides = {}) {
     locator(selector) {
       if (selector === ".analysis-context-actions") return { async getAttribute(name) { assert.equal(name, "open"); return open ? "" : null; } };
       if (selector === ".analysis-context-actions > summary") return trigger;
-      assert.equal(selector, compact ? ".analysis-context-actions-menu > a[aria-label]" : ".analysis-context-bar > .analysis-context-theses[aria-label]");
-      return entry;
+      const entrySelector = compact ? ".analysis-context-actions-menu > a[aria-label]" : ".analysis-context-bar > .analysis-context-theses[aria-label]";
+      if (selector === entrySelector) return entry;
+      const isTrigger = selector.startsWith(".analysis-context-actions > summary[aria-label=");
+      const scope = isTrigger ? ".analysis-context-actions > summary" : entrySelector;
+      const expectedLabel = isTrigger ? (lang === "zh" ? "研究操作" : "Research actions") : (lang === "zh" ? "你的研究论点：NVDA" : "Your theses on NVDA");
+      assert.equal(selector, `${scope}[aria-label=${JSON.stringify(expectedLabel)}]`);
+      return { async waitFor({ state, timeout }) {
+        assert.equal(state, "visible"); assert.equal(timeout, 45_000);
+        localizedWaits.push({ scope, timeout });
+        if (overrides.initialEnglish && !overrides.neverHydrates) {
+          if (isTrigger) triggerLanguage = lang;
+          else entryLanguage = lang;
+        }
+        const control = isTrigger ? trigger : entry;
+        if (await control.getAttribute("aria-label") !== expectedLabel) {
+          const error = new Error("localized control did not become visible"); error.name = "TimeoutError"; throw error;
+        }
+        await control.waitFor({ state });
+      } };
     },
   };
-  return { page, calls, isOpen: () => open };
+  return { page, calls, localizedWaits, isOpen: () => open };
 }
 
 for (const width of [1440, 820, 390]) for (const lang of ["en", "zh"]) {
@@ -81,6 +101,22 @@ test("thesis entry refuses a different destination, symbol, view or localized id
     const double = analysisPresentationDouble(820, "en", overrides);
     await assert.rejects(api.openForTest(double.page, "en", { width: 820 }), error);
   }
+});
+
+for (const width of [1440, 390]) test(`visible English SSR at ${width}px waits for Chinese hydration in the original budget`, async () => {
+  const double = analysisPresentationDouble(width, "zh", { initialEnglish: true });
+  const result = await presentationModuleForTest().openForTest(double.page, "zh", { width, height: 900 });
+  assert.equal(result.lang, "zh");
+  assert.equal(double.localizedWaits.length, width <= 640 ? 2 : 1);
+  assert.ok(double.localizedWaits.every(wait => wait.timeout === 45_000));
+  assert.equal(double.isOpen(), false);
+});
+
+test("a visible SSR entry without localized hydration remains ineligible", async () => {
+  const double = analysisPresentationDouble(1440, "zh", { initialEnglish: true, neverHydrates: true });
+  await assert.rejects(presentationModuleForTest().openForTest(double.page, "zh", { width: 1440 }), /F11_THESES_ENTRY_LABEL_MISMATCH/);
+  assert.equal(double.localizedWaits.length, 1);
+  assert.deepEqual(double.calls, []);
 });
 
 test("compact thesis capture refuses an already open or ambiguous research disclosure", async () => {
@@ -236,9 +272,130 @@ test("foreign routes and optimizer URLs abort without fetching, and sockets clos
     assert.deepEqual(route.calls.map(c => c[0]), ["abort"]);
   }
   let closed = false;
-  context.registered.socket({ close: () => { closed = true; }, connectToServer: () => { throw new Error("must not connect"); } });
+  await context.registered.socket({ close: () => { closed = true; }, connectToServer: () => { throw new Error("must not connect"); } });
   assert.equal(closed, true);
 });
+
+for (const stage of ["allowed-fetch", "script-body", "allowed-fulfill", "unavailable-fulfill", "bad-status-abort", "blocked-abort", "websocket-close"]) {
+  test(`boundary owns and rejects the ${stage} callback failure without retaining raw error text`, async () => {
+    const context = contextDouble();
+    const counts = await installCaptureBoundary(context, "http://127.0.0.1:3565", { scriptMetadata: true });
+    const fail = async () => { throw new Error("Request context disposed https://private.invalid/?secret=never-retain"); };
+    if (stage === "websocket-close") await context.registered.socket({ close: fail });
+    else {
+      const url = stage === "unavailable-fulfill" ? "http://127.0.0.1:3565/data/NVDA.fund.json"
+        : stage === "blocked-abort" ? "https://foreign.invalid/app.js" : "http://127.0.0.1:3565/_next/static/app.js";
+      const route = requestDouble(url, "script", stage === "bad-status-abort" ? 302 : 200);
+      if (stage === "allowed-fetch") route.fetch = fail;
+      if (stage === "script-body" || stage === "allowed-fulfill") route.fetch = async () => ({
+        status: () => 200, headers: () => ({ "content-type": "application/javascript" }),
+        body: stage === "script-body" ? fail : async () => Buffer.from("window.fixture = true;"),
+      });
+      if (stage.endsWith("fulfill")) route.fulfill = fail;
+      if (stage.endsWith("abort")) route.abort = fail;
+      await context.registered.request(route);
+    }
+    await assert.rejects(counts.drainCallbacks(), /F11_BOUNDARY_CALLBACK_FAILED/);
+    assert.throws(counts.assertCallbacksHealthy, /F11_BOUNDARY_CALLBACK_FAILED/);
+    assert.equal(counts.callbackFailureCount, 1);
+    assert.deepEqual(counts.callbackFailures, [{ kind: stage === "websocket-close" ? "websocket" : "request", stage, code: "CONTEXT_CLOSED" }]);
+    assert.equal(JSON.stringify(counts).includes("never-retain"), false);
+    assert.equal(Object.hasOwn({ ...counts }, "drainCallbacks"), false);
+  });
+}
+
+test("boundary drain has a bounded failure while preserving ownership of a late callback", async () => {
+  const context = contextDouble(); const counts = await installCaptureBoundary(context);
+  let finish;
+  const route = requestDouble("https://foreign.invalid/app.js", "script");
+  route.abort = () => new Promise(resolve => { finish = resolve; });
+  const handled = context.registered.request(route);
+  await assert.rejects(counts.drainCallbacks(1), /F11_BOUNDARY_CALLBACK_DRAIN_TIMEOUT/);
+  finish(); await handled;
+  await counts.drainCallbacks();
+});
+
+function runtimeModuleForTest(hooks) {
+  const source = fs.readFileSync(path.join(__dirname, "capture_b_f11_10_analysis_theses_entry.cjs"), "utf8");
+  const sandboxModule = { exports: {} };
+  const browsersPath = path.join(os.tmpdir(), "f11-runtime-test", "browsers.json");
+  const fixtureRequire = id => {
+    if (id === "./f11_owned_server.cjs") return { trackOwnedServer: () => hooks.owner, prepareNamespace: () => hooks.namespace };
+    if (id === "node:fs") return { ...fs, readFileSync: (file, ...args) => file === browsersPath
+      ? JSON.stringify({ browsers: [{ name: "chromium-headless-shell", revision: "test" }] }) : fs.readFileSync(file, ...args) };
+    if (id === "next/package.json" || id === "@playwright/test/package.json") return { version: "test" };
+    return require(id);
+  };
+  fixtureRequire.resolve = id => id === "playwright-core/package.json" ? path.join(path.dirname(browsersPath), "package.json") : require.resolve(id);
+  require("node:vm").runInNewContext(source + `
+    assertNoCaptureDotenv = () => {};
+    startServer = () => hooks.child;
+    waitForServer = async () => {};
+    openAnalysis = hooks.openAnalysis;
+    shoot = async () => Buffer.from("fixture pixels");
+    observeBootstrap = async () => ({ fixture: true });
+    module.exports.captureForTest = captureInOwnedRuntime;
+  `, { module: sandboxModule, exports: sandboxModule.exports, require: fixtureRequire, __dirname,
+    hooks, process: { env: {}, version: "test", stdout: { write() {} } },
+    console: { log() {}, error() {} }, Buffer, URL, setTimeout, clearTimeout, performance });
+  return sandboxModule.exports;
+}
+
+for (const mode of ["pending-fetch", "primary-and-pending-fetch", "context-close", "server-stop", "success"]) {
+  test(`actual owned runtime settles browser/server before returning the ${mode} outcome`, async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "f11-runtime-cleanup-"));
+    const events = []; let rejectFetch; let pending;
+    const context = contextDouble();
+    context.addCookies = async () => {};
+    context.newPage = async () => ({ setDefaultTimeout() {}, on() {}, async screenshot() {} });
+    context.close = async () => {
+      events.push("context-close");
+      if (rejectFetch) rejectFetch(new Error("route.fetch: Request context disposed private-header"));
+      if (mode === "context-close") throw new Error("close rejected");
+    };
+    const hooks = {
+      child: {},
+      owner: {
+        async stop() { events.push("server-stop"); if (mode === "server-stop") throw new Error("F11_SERVER_GROUP_STILL_PRESENT"); },
+        settlement() { return { closeObserved: true, processGroupAbsent: true }; },
+      },
+      namespace: { restoreGeneratedTypeFile() { events.push("restore-types"); }, summary() { return { nextEnvRestored: true }; } },
+      async openAnalysis() {
+        if (mode.includes("pending-fetch")) {
+          const route = requestDouble("http://127.0.0.1:3565/_next/static/app.js", "script");
+          route.fetch = () => new Promise((_, reject) => { rejectFetch = reject; });
+          pending = context.registered.request(route);
+        }
+        await context.registered.request(requestDouble("http://127.0.0.1:3565/data/NVDA.fund.json", "fetch"));
+        if (mode === "primary-and-pending-fetch") throw new Error("F11_THESES_ENTRY_LABEL_MISMATCH");
+        return { lang: "en", symbol: "NVDA" };
+      },
+    };
+    const browser = { version: () => "test", newContext: async () => context, async close() { events.push("browser-close"); } };
+    try {
+      const operation = runtimeModuleForTest(hooks).captureForTest([{ file: "desktop-en.png", lang: "en", viewport: "desktop" }], root, "fixture-head", { launch: async () => browser });
+      if (mode === "success") {
+        const result = await operation;
+        assert.equal(result.files[0], "desktop-en.png");
+        assert.equal(result.generatedTypes.nextEnvRestored, true);
+        assert.equal(fs.existsSync(path.join(root, "FAILURE.json")), false);
+      } else {
+        const code = mode === "primary-and-pending-fetch" ? /F11_THESES_ENTRY_LABEL_MISMATCH/
+          : mode === "pending-fetch" ? /F11_BOUNDARY_CALLBACK_FAILED/
+          : mode === "context-close" ? /F11_CONTEXT_CLOSE_FAILED/ : /F11_SERVER_GROUP_STILL_PRESENT/;
+        await assert.rejects(operation, code);
+        const failure = JSON.parse(fs.readFileSync(path.join(root, "FAILURE.json"), "utf8"));
+        assert.equal(failure.status, "FAILURE");
+        assert.equal(JSON.stringify(failure).includes("private-header"), false);
+        if (mode.includes("pending-fetch")) assert.equal(failure.settledBoundaries[0].callbackFailureCount, 1);
+      }
+      if (pending) await pending;
+      assert.deepEqual(events, mode === "server-stop" ? ["context-close", "browser-close", "server-stop"]
+        : ["context-close", "browser-close", "server-stop", "restore-types"]);
+      assert.equal(fs.existsSync(path.join(root, "FIXTURE.json")), false);
+    } finally { fs.rmSync(root, { recursive: true, force: true }); }
+  });
+}
 
 test("startup waits for the normal component interception event, without issuing a request", async () => {
   const context = contextDouble(); const counts = await installCaptureBoundary(context);
