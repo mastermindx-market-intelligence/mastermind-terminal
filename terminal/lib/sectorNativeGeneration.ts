@@ -37,11 +37,19 @@ function clock(value: unknown): value is string {
     && (!match[4] || +match[4] < 60) && Number.isFinite(Date.parse(value));
 }
 /** Bound ordinary JSON before inspecting companions, including client-injected values.
- * The walk budget (600k nodes) sits above the largest legal single typed block:
- * a 516 KiB array value needs at most 264,192 minimal two-byte elements, and the
- * 4 MiB whole-document bound plus the ingress content-length guard remain the
- * outer limits. Per-container caps: ≤10,000 keys on an object; arrays follow
- * the node budget so a legal 516 KiB array value is never refused. */
+ * The 600k-node walk budget is MEASURED against the real twelve-block specimen
+ * served tonight (/tmp/si_plan/v11/rows_specimens/typed_blocks_entitled.json,
+ * 482,104 bytes): 26,428 JSON nodes ≈ 18 bytes per node — largest block the
+ * curated baskets universe at 14,194 nodes, longest string 284 chars, widest
+ * object 49 keys, longest array 83 items. At that density a lawful 4 MiB
+ * document holds ≈233,000 nodes, which the previous 200,000 budget would have
+ * refused; 600,000 leaves room down to ≈7 bytes per node. The 4 MiB
+ * whole-document byte bound plus the ingress content-length guard remain the
+ * governing limits, and the budget still sits above a maximal legal single
+ * typed block (a 516 KiB array value needs at most 264,192 minimal two-byte
+ * elements). Per-container caps: ≤10,000 keys on an object; N-7 (third
+ * review): an array whose own length exceeds the remaining budget is refused
+ * BEFORE its children are enumerated, so a monster array is never walked. */
 export function bounded(value: unknown): boolean {
   const pending: { value: unknown; depth: number }[] = [{ value, depth: 0 }];
   const seen = new Set<object>(); let count = 0;
@@ -54,6 +62,11 @@ export function bounded(value: unknown): boolean {
     if (typeof item !== "object" || seen.has(item)) return false;
     seen.add(item);
     if (!Array.isArray(item) && Object.getPrototypeOf(item) !== Object.prototype) return false;
+    // N-7: refuse a monster array before enumerating — this node is already
+    // charged (count), every queued sibling will charge one (pending), and the
+    // children would each charge one (item.length). Outcome-preserving: the
+    // walk would refuse the same input after enumeration; this skips the walk.
+    if (Array.isArray(item) && count + pending.length + item.length > 600000) return false;
     const entries = Object.entries(item);
     if (!Array.isArray(item) && entries.length > 10000) return false;
     for (const [key, entry] of entries) {

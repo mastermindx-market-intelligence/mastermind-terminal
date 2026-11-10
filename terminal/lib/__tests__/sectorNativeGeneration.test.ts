@@ -219,4 +219,19 @@ describe("sectorTypedBlocks — item 7 (COO 19:56Z): twelve typed-block names, u
     expect(read).not.toBeNull();
     expect((read!.typedBlocks.confluence_universe_russell.value as number[]).length).toBe(264_192);
   });
+
+  // N-7 (third review): the array path must refuse a monster array BEFORE
+  // enumerating its children. The boolean outcome (refused) is the same either
+  // way, so the law is observed through an ownKeys spy: the pre-check reads
+  // only .length and must never let Object.entries touch the array's keys.
+  it("N-7: an array over the remaining node budget is refused BEFORE its children are enumerated", () => {
+    let enumerated = false;
+    const monster = new Proxy(new Array(600_005).fill(null), {
+      ownKeys: (target: null[]) => { enumerated = true; return Reflect.ownKeys(target); },
+    });
+    const blocks = twelveBlocks();
+    blocks.theme_rows = { status: "available", reason: null, value: monster as unknown as object[] };
+    expect(sectorNativeGeneration(withBlocks(blocks))).toBeNull();
+    expect(enumerated).toBe(false);
+  });
 });
