@@ -1,9 +1,10 @@
-# Current source proof is the complete Exposure indicator-guard revision.
+# Current source proof is the complete Options integration revision.
 exposureMasterIntegration20261109:
-  revision: "operations/exposure-source-compatibility-20261105/revisions/indicator-guard-20261109"
-  descriptorSha256: "c0d9dc8fff216b73afc8dbc3490ca9bd84fbeecde6fe14eeac1452af5e0c0f1b"
-  branchHead: "483554457f302a90305f03c360636ca97ed75fb3"
-  protectedMaster: "f2aa1e0cb27d459149f59d3b24d98cd6e2e8389f"
+  revision: "operations/exposure-source-compatibility-20261105/revisions/options-integration-20261109"
+  descriptorSha256: "fd7c4364bcfb3f8b44773792c4f5d16fbc654eb47cf58a142eb169b3bac24ad7"
+  branchHead: "90f275f15b4d174f003fb5b1087823dce6ec865a"
+  protectedMaster: "03af393ce05c12282003a3919cc473c032264922"
+  integratedDependency: "d3bd6b2d98c6c23398be0bed6c7450caa47bd665"
 
 # GEX desk, Levels and Heatmap failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06

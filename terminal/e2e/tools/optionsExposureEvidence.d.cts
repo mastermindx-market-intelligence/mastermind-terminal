@@ -42,6 +42,9 @@ export declare const MASTER_BROWSER_SPECS: string[];
 export declare const masterIntegrationBrowserInputs: () => string[];
 export declare const uiCopyIntegrationInputs: (kind: EvidenceKind) => string[];
 export declare const uiCopyIntegrationBrowserInputs: () => string[];
+export declare const optionsIntegrationInputs: (kind: EvidenceKind) => string[];
+export declare const OPTIONS_INTEGRATION_BROWSER_SPECS: string[];
+export declare const optionsIntegrationBrowserInputs: () => string[];
 export type IntegrationExecution = {
     schema: string;
     operation: string;
@@ -56,6 +59,13 @@ export type IntegrationExecution = {
     expected: number;
     successfulFiles: number;
     sourceStable: boolean;
+    captureId?: string;
+    ownedServerStopped?: boolean;
+    nativeSupervisor?: { closed: boolean; status: number | null; signal: string | null; timedOut: boolean;
+        serverPid: number | null; serverReportedStopped: boolean; serverSettled: boolean;
+        serverRefused: string | null; error: string | null };
+    nativeReceipt?: { family: EvidenceKind; captureId: string; capturedAtHead: string;
+        manifestSha256: string; files: { file: string; sha256: string }[]; history: unknown };
     portClosed?: boolean;
     nextLockAbsent?: boolean;
     producerPins?: SourceMap;
@@ -75,7 +85,8 @@ export type IntegrationExecution = {
     }>;
 };
 /** A failed full GEX run may still emit a manifest; its actual result is decisive. */
-export declare function requireIntegrationExecution(value: IntegrationExecution, kind: EvidenceKind, crops: string[], identity?: "indicator-guard" | "master-integration" | "ui-copy-integration"): void;
+export declare function requireIntegrationExecution(value: IntegrationExecution, kind: EvidenceKind, crops: string[], identity?: "indicator-guard" | "master-integration" | "ui-copy-integration" | "options-integration"): void;
 /** Legacy is eligible only when neither a declaration nor any qualified operation history exists. */
 export declare function optionalQualifiedOptionsExposurePacket(repo: string, kind: EvidenceKind, crops: string[]): SelectedPacket | null;
+export declare function requireOptionsIntegrationBrowserCases(current: { expectedPassed: string[]; expectedSkipped: string[] }, historical: { expectedPassed: string[]; expectedSkipped: string[] }): void;
 export {};

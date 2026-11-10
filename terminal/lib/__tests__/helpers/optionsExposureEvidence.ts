@@ -18,3 +18,8 @@ export const uiCopyIntegrationInputs: typeof runtime.uiCopyIntegrationInputs = r
 export const uiCopyIntegrationBrowserInputs: typeof runtime.uiCopyIntegrationBrowserInputs = runtime.uiCopyIntegrationBrowserInputs;
 export const requireIntegrationExecution: typeof runtime.requireIntegrationExecution = runtime.requireIntegrationExecution;
 export const optionalQualifiedOptionsExposurePacket: typeof runtime.optionalQualifiedOptionsExposurePacket = runtime.optionalQualifiedOptionsExposurePacket;
+
+export const optionsIntegrationInputs: typeof runtime.optionsIntegrationInputs = runtime.optionsIntegrationInputs;
+export const OPTIONS_INTEGRATION_BROWSER_SPECS: typeof runtime.OPTIONS_INTEGRATION_BROWSER_SPECS = runtime.OPTIONS_INTEGRATION_BROWSER_SPECS;
+export const optionsIntegrationBrowserInputs: typeof runtime.optionsIntegrationBrowserInputs = runtime.optionsIntegrationBrowserInputs;
+export const requireOptionsIntegrationBrowserCases: typeof runtime.requireOptionsIntegrationBrowserCases = runtime.requireOptionsIntegrationBrowserCases;
