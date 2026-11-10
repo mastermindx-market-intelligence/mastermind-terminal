@@ -89,6 +89,11 @@ export const isInvestigationId = (v: unknown): v is string => typeof v === "stri
 const record = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);
 const exact = (v: Record<string, unknown>, keys: string[]) => Object.keys(v).every(k => keys.includes(k));
 
+/** investigation_manifest.v3 WRITES stay closed until retention and current-rights are qualified
+ *  (lane 9's integrated proof). `parseInvestigationCommand` below accepts schema v2 only; this constant
+ *  is the single named gate other seams (Follow, reopen UI) read so they cannot open it by themselves. */
+export const INVESTIGATION_V3_WRITES_OPEN = false as const;
+
 export function parseInvestigationCommand(raw: unknown): InvestigationCommand | null {
   if (!record(raw) || !exact(raw, ["id", "operation_id", "expected_revision", "action", "manifest", "layout_capture"])
       || !isInvestigationId(raw.id) || !isInvestigationId(raw.operation_id)

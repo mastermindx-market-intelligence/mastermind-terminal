@@ -204,6 +204,37 @@ def sector_pg(tmp_path_factory):
         socket_root.cleanup()
 
 
+@pytest.fixture(scope="module")
+def v3_pg(tmp_path_factory):
+    import test_pinned_research_handoff_postgres as handoff
+
+    run, data, socket_root = handoff._spawn_postgres(
+        tmp_path_factory, "investigation-v3-pg", 55493
+    )
+    try:
+        handoff._bootstrap_base_schema(run)
+        # Full chain, then the source-only v3 carrier. 0053 is stacked on 0052 (PR #1410).
+        migrations = handoff.PREVIOUS + (
+            ROOT / "supabase/migrations/0040_investigation_review.sql",
+            handoff.SQL,
+            ROOT / "supabase/migrations/0042_investigation_scenario_reference.sql",
+            ROOT / "supabase/migrations/0047_investigation_options_selection_evidence.sql",
+            ROOT / "supabase/migrations/0052_sector_intelligence_investigation_admission.sql",
+            ROOT / "supabase/migrations/0053_investigation_v3_prophet_decision_admission.sql",
+        )
+        for sql_file in migrations:
+            assert sql_file.exists(), f"{sql_file.name} is not implemented"
+            run(sql_file.read_text())
+        yield run
+    finally:
+        subprocess.run(
+            ["pg_ctl", "-D", str(data), "-m", "fast", "-w", "stop"],
+            check=True,
+            capture_output=True,
+        )
+        socket_root.cleanup()
+
+
 def _assert_paired_manifest_corpus(pg, *, g1_only):
     bundle = json.loads((ROOT / "terminal/lib/__tests__/fixtures/investigation_manifest_vectors.json").read_text())
     for vector in bundle["vectors"]:
@@ -253,6 +284,53 @@ def test_full_paired_manifest_corpus_at_the_sql_admission_boundary(pg):
 
 def test_full_paired_manifest_corpus_after_sector_admission(sector_pg):
     _assert_paired_manifest_corpus(sector_pg, g1_only=False)
+
+
+# The language corpus also exercises a caller-supplied adapter registry; SQL admission is fixed.
+_REGISTRY_ONLY_VECTORS = {"owner not implicitly admitted", "prophet.research not admitted by registry refused"}
+
+
+def test_full_paired_manifest_corpus_after_v3_admission(v3_pg):
+    bundle = json.loads((ROOT / "terminal/lib/__tests__/fixtures/investigation_manifest_vectors.json").read_text())
+    for vector in bundle["vectors"]:
+        content = vector["manifest"]
+        expected = (vector["valid"] or vector["name"] in _REGISTRY_ONLY_VECTORS) and content.get("schema") in (
+            "investigation_manifest.v2", "investigation_manifest.v3")
+        body = json.dumps(content, ensure_ascii=True)
+        response = v3_pg("select public.valid_investigation_manifest_v2(" + quote(body) + "::jsonb);", check=False)
+        if response.returncode:
+            assert not expected, (vector["name"], response.stderr)
+            assert "nicode" in response.stderr, response.stderr
+        else:
+            assert (response.stdout.strip() == "t") is bool(expected), vector["name"]
+
+
+def test_v3_dispatch_keeps_v2_core_and_is_idempotent(v3_pg):
+    core = v3_pg("select pg_catalog.md5(prosrc) from pg_proc where oid='public.valid_investigation_manifest_core_v2(jsonb)'::regprocedure;")
+    assert core == "75f2b7feba6b3c9f177f4cda6c3605e9"
+    v3_pg((ROOT / "supabase/migrations/0053_investigation_v3_prophet_decision_admission.sql").read_text())  # real rerun
+    assert v3_pg("select pg_catalog.md5(prosrc) from pg_proc where oid='public.valid_investigation_manifest_core_v2(jsonb)'::regprocedure;") == core
+    assert v3_pg("select has_function_privilege('anon','public.valid_investigation_manifest_v3(jsonb)','EXECUTE'), has_function_privilege('authenticated','public.valid_investigation_manifest_core_v2(jsonb)','EXECUTE');") == "f|f"
+
+
+@pytest.mark.parametrize(
+    ("owner", "object_type", "expected"),
+    [
+        ("prophet.research", "today_selection", "t"),
+        ("prophet.research", "b03_occurrence", "t"),
+        ("prophet.research", "plan_origin", "t"),
+        ("prophet.research", "evaluation", "t"),
+        ("prophet.research", "order_ticket", "f"),
+        ("macro.sector", "sector_observation", "t"),
+        ("terminal.options_exposure", "options_matrix_selection", "t"),
+        ("earnings.workspace_generation", "event_workspace", "t"),
+    ],
+)
+def test_v3_evidence_probe_executes(v3_pg, owner, object_type, expected):
+    assert v3_pg(
+        "select public.investigation_evidence_admitted_v2(" + quote(owner) + "," + quote(object_type) + ");",
+        role="authenticated",
+    ) == expected
 
 
 @pytest.mark.parametrize(
@@ -394,3 +472,96 @@ def test_review_migration_applier_qualifies_behavior_and_catalog(pg, tmp_path):
         assert noop["post"][1]["rows"][0]["body_md5"] != catalog[0]["body_md5"]
     finally:
         pg(f"drop database {database};")
+
+
+def test_v3_down_block_restores_exact_0052_and_refuses_with_v3_records(v3_pg):
+    text = (ROOT / "supabase/migrations/0053_investigation_v3_prophet_decision_admission.sql").read_text()
+    block = text[text.index("-- down:"):text.index("-- readback:")]
+    down = "\n".join(line[3:] if line.startswith("-- ") else line[2:] for line in block.splitlines()[2:])
+    v2_md5 = "select pg_catalog.md5(prosrc) from pg_proc where oid='public.valid_investigation_manifest_v2(jsonb)'::regprocedure;"
+    v3_manifest = {**manifest(), "schema": "investigation_manifest.v3"}
+    uid = "10000000-0000-4000-8000-0000000000aa"
+    v3_pg("insert into auth.users values (" + quote(uid) + ") on conflict do nothing;")
+    # A stored v3 revision makes the down refuse; the installed dispatcher stays.
+    v3_pg("insert into investigations values ('21000000-0000-4000-8000-000000000001'," + quote(uid) + ",1,'active',now(),now());"
+          "insert into investigation_revisions values ('21000000-0000-4000-8000-000000000001'," + quote(uid) + ",1,'create','active'," + quote(json.dumps(v3_manifest)) + "::jsonb,now());")
+    refused = v3_pg(down, check=False)
+    assert refused.returncode != 0 and "v3 records exist" in refused.stderr, refused.stderr
+    dispatcher = v3_pg(v2_md5)
+    assert dispatcher != "75f2b7feba6b3c9f177f4cda6c3605e9"
+    v3_pg("delete from investigation_revisions where investigation_id='21000000-0000-4000-8000-000000000001'; delete from investigations where id='21000000-0000-4000-8000-000000000001';")
+    v3_pg(down)
+    assert v3_pg(v2_md5) == "75f2b7feba6b3c9f177f4cda6c3605e9"
+    assert v3_pg("select to_regprocedure('public.valid_investigation_manifest_v3(jsonb)') is null, to_regprocedure('public.valid_investigation_manifest_core_v2(jsonb)') is null;") == "t|t"
+    assert v3_pg("select public.investigation_evidence_admitted_v2('prophet.research','today_selection');", role="authenticated") == "f"
+    # Re-apply the carrier: the guard accepts the restored 0052 body and the dispatcher returns.
+    v3_pg(text)
+    assert v3_pg(v2_md5) == dispatcher
+
+
+# --- SP15: account switch during save, late completion, lost response (real PostgreSQL 17) -------------
+# The authenticated actor is auth.uid(); the receipt key is (user_id, operation_id). These tests execute the
+# properties the client journey relies on: another account never reads or mutates the first account's
+# operation or record, a not_found read is inconclusive (never proof of failure), a late commit still lands
+# once, and recovery after a lost response is a READ of the original operation - the replay is never needed.
+
+SP15_ID = "22000000-0000-4000-8000-000000000015"
+SP15_KEY = "42000000-0000-4000-8000-000000000015"
+
+
+def _sp15_counts(pg, actor):
+    return (
+        pg("select count(*) from investigations where id='" + SP15_ID + "'", actor),
+        pg("select count(*) from investigation_revisions where investigation_id='" + SP15_ID + "'", actor),
+        pg("select count(*) from investigation_mutation_receipts where operation_id='" + SP15_KEY + "'", actor),
+    )
+
+
+def test_sp15_lost_response_recovers_by_reading_the_original_operation_without_replay(pg):
+    # Before the commit lands the original operation is not found: inconclusive, NOT proof of failure.
+    assert json.loads(pg("select read_investigation_operation_v2('" + SP15_KEY + "')", A)) == {"status": "not_found"}
+    # The save commits, but its HTTP response is lost (nothing here reads the apply return value).
+    pg("select public.apply_investigation_revision_v2('" + SP15_ID + "'::uuid,0,'create','" + SP15_KEY + "'::uuid,"
+       + quote(json.dumps(manifest("lost response"))) + "::jsonb,null);", A)
+    # Recovery is a read of the exact operation, not a second write.
+    recovered = json.loads(pg("select read_investigation_operation_v2('" + SP15_KEY + "')", A))
+    assert recovered["status"] == "committed" and recovered["id"] == SP15_ID and recovered["revision"] == 1
+    assert recovered["manifest"]["intent"]["question"] == "lost response"
+    assert _sp15_counts(pg, A) == ("1", "1", "1")  # one record, one revision, one receipt: nothing replayed
+
+
+def test_sp15_account_switch_cannot_read_or_mutate_the_first_accounts_operation(pg):
+    before = _sp15_counts(pg, A)
+    # The session switched to account B while A's save was in flight / just committed.
+    assert json.loads(pg("select read_investigation_operation_v2('" + SP15_KEY + "')", B)) == {"status": "not_found"}
+    assert json.loads(pg("select read_investigation_v2('" + SP15_ID + "',1)", B))["status"] == "not_found"
+    listing = json.loads(pg("select list_investigations_v2()", B))
+    assert SP15_ID not in [item["id"] for item in listing["items"]]
+    # B cannot mutate A's record by id, with or without A's expected revision or operation key.
+    for key, expected in ((SP15_KEY, 1), ("42000000-0000-4000-8000-0000000000b1", 1), ("42000000-0000-4000-8000-0000000000b2", 0)):
+        result = apply(pg, key, "revise" if expected else "create", expected, manifest("hijack"), target=SP15_ID, actor=B)
+        assert result["status"] in ("not_found", "version_conflict", "idempotency_conflict", "invalid_transition"), result
+        assert "hijack" not in json.dumps(result)
+    assert _sp15_counts(pg, A) == before
+    assert json.loads(pg("select read_investigation_v2('" + SP15_ID + "',1)", A))["manifest"]["intent"]["question"] == "lost response"
+
+
+def test_sp15_late_completion_lands_once_for_its_own_account_and_never_for_the_new_one(pg):
+    late_id, late_key = "22000000-0000-4000-8000-000000000016", "42000000-0000-4000-8000-000000000016"
+    # B is the active account; A's slow request completes late. It commits for A, only once.
+    assert json.loads(pg("select read_investigation_operation_v2('" + late_key + "')", B)) == {"status": "not_found"}
+    first = apply(pg, late_key, "create", 0, manifest("late A"), target=late_id, actor=A)
+    assert first["status"] == "committed" and first["revision"] == 1
+    # The late completion is invisible to B: B's own state is unchanged and B cannot see A's operation.
+    assert json.loads(pg("select read_investigation_operation_v2('" + late_key + "')", B)) == {"status": "not_found"}
+    assert late_id not in [item["id"] for item in json.loads(pg("select list_investigations_v2()", B))["items"]]
+    # A re-delivered copy of the same late request returns the original outcome without a second revision.
+    assert apply(pg, late_key, "create", 0, manifest("late A"), target=late_id, actor=A) == first
+    assert pg("select count(*) from investigation_revisions where investigation_id='" + late_id + "'", A) == "1"
+    # The same key under the other account is its own namespace and cannot collide with or reveal A's receipt.
+    # (A fresh account: B's per-principal record limit is filled by an earlier capacity test in this module.)
+    switched = "10000000-0000-4000-8000-0000000000d1"
+    pg("insert into auth.users values (" + quote(switched) + ") on conflict do nothing;")
+    other = apply(pg, late_key, "create", 0, manifest("switched own"), target="22000000-0000-4000-8000-0000000000bb", actor=switched)
+    assert other["status"] == "committed" and other["id"] == "22000000-0000-4000-8000-0000000000bb"
+    assert json.loads(pg("select read_investigation_operation_v2('" + late_key + "')", A))["manifest"]["intent"]["question"] == "late A"
