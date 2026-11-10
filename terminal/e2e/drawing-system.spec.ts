@@ -640,6 +640,9 @@ test("phone drawing chrome keeps one collision-free editing surface", async ({ p
     body.style.setProperty("--drawing-safe-right", "27px");
   });
   await expectNoDocumentOverflow(page);
+  // Measure the details panel after both lazy sections have rendered their content.
+  await expect(details.locator(".sa")).toBeVisible();
+  await expect(details.getByTestId("seasonality-card")).toBeVisible();
   const initialLayout = await Promise.all([
     chartBody.boundingBox(),
     details.boundingBox(),
