@@ -36,7 +36,8 @@ export type FollowState =
   | { state: "closed"; reason: "v3_writes_closed"; notificationClaimed: false }
   | { state: "saved_preference_only"; reason: "no_producer" | "preference_unconfirmed" | "membership_unconfirmed"; notificationClaimed: false; missingStep: string }
   | { state: "configured_unavailable"; reason: "transport_unavailable"; notificationClaimed: false; missingStep: string }
-  | { state: "following"; notificationClaimed: true; transport: Exclude<FollowTransport, "unavailable"> };
+  | { state: "delivery_problem"; reason: "transport_failed" | "transport_unknown"; notificationClaimed: false; transport: "failed" | "unknown"; missingStep: string }
+  | { state: "following"; notificationClaimed: true; transport: "queued" | "sent" };
 
 /** What exists today, in readback form. Producer admission is the single missing owner. */
 export const FOLLOW_PRODUCER_ADMISSION: FollowInputs = {
@@ -65,6 +66,12 @@ export function followState(inputs: FollowInputs = FOLLOW_PRODUCER_ADMISSION, v3
   if (inputs.transport === "unavailable") {
     return { state: "configured_unavailable", reason: "transport_unavailable", notificationClaimed: false,
       missingStep: "The delivery path reports no actual transport status." };
+  }
+  // A notification is claimed only for an ACTUAL queued or sent transport. failed / unknown names the
+  // delivery problem and claims nothing ("queued" is not delivered; "sent" is not read).
+  if (inputs.transport === "failed" || inputs.transport === "unknown") {
+    return { state: "delivery_problem", reason: inputs.transport === "failed" ? "transport_failed" : "transport_unknown", notificationClaimed: false,
+      transport: inputs.transport, missingStep: inputs.transport === "failed" ? "The delivery path reports a failed transport." : "The delivery path reports no usable transport outcome." };
   }
   return { state: "following", notificationClaimed: true, transport: inputs.transport };
 }

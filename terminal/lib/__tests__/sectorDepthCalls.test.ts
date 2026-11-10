@@ -755,6 +755,28 @@ describe("S2 — actionBoardFromCarried (closed-shape reader)", () => {
       ),
     ).not.toBeNull();
   });
+
+  it("R2-N5 — a lane whose stated total is SMALLER than its own row count is refused", () => {
+    // Rows are the owner's carried SUBSET of the lane's population: the
+    // contract's take_profits carries total 7 with 5 rows, the captured hold
+    // total 4 with 3. A lane claiming fewer names than it ships is
+    // inconsistent — refuse rather than render contradicting counts.
+    const clone = (): Record<string, unknown> =>
+      JSON.parse(JSON.stringify(contract.action_board)) as Record<string, unknown>;
+    const hold = (b: Record<string, unknown>) =>
+      (b.lanes as Record<string, unknown>).hold as { total?: unknown };
+    const holdRows = ((contract.action_board.lanes as Record<string, { rows: unknown[] }>).hold)
+      .rows.length;
+    expect(holdRows).toBeGreaterThanOrEqual(3);
+    const shrunk = clone();
+    hold(shrunk).total = holdRows - 1;
+    expect(actionBoardFromCarried(shrunk)).toBeNull();
+    // total == rows.length stays legal (every contract lane except
+    // take_profits is exactly at its row count).
+    const exact = clone();
+    hold(exact).total = holdRows;
+    expect(actionBoardFromCarried(exact)).not.toBeNull();
+  });
 });
 
 describe("S2 — bottomingWatchFromCarried (closed-shape reader)", () => {

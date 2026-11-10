@@ -167,7 +167,7 @@ export function SectorThemeCompare({
     return (
       <DepthUnavailable
         field="rs_history"
-        owner="Macro sector generation"
+        owner="macro_sector_generation"
         title={t("siThemeTitle")}
       />
     );
@@ -386,7 +386,7 @@ export function SectorThemeCompare({
           output does not carry. Typed unavailable — never a substitute panel. */}
       <DepthUnavailable
         field="theme_table"
-        owner="Macro sector generation"
+        owner="macro_sector_generation"
         title={t("siThemeTableTitle")}
       />
     </section>

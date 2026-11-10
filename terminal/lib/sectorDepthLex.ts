@@ -33,6 +33,8 @@ export const SECTOR_DEPTH_LEX: Record<string, [string, string]> = {
   siDepthFieldActionBoard: ["the action board", "行动看板"],
   siDepthFieldBottomingWatch: ["the bottoming watch", "底部观察"],
   siDepthFieldEtfFlows: ["ETF fund flows", "ETF 资金流"],
+  // S5 (r2): the Themes & compare capability's rs_history series field.
+  siDepthFieldRsHistory: ["relative-strength history", "相对强弱历史"],
   siDepthFieldConfluence: ["the entry-evidence universes", "入场证据样本域"],
 
   // ── calls board ────────────────────────────────────────────────────────────

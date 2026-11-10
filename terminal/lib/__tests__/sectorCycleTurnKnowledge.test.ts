@@ -21,8 +21,8 @@ describe("turn first-known dates (SP11, FIXTURE feeds)", () => {
       meta: { asOf: "2026-10-30" },
       sectors: [
         row([
-          { date: "2026-06-01", k: "trough", confirmed_at: "2026-06-04" },
-          { date: "2026-08-10", k: "peak", confirmed_at: "2026-08-12" },
+          { date: "2026-06-01", k: "trough", provisional: false, confirmed_at: "2026-06-04" },
+          { date: "2026-08-10", k: "peak", provisional: false, confirmed_at: "2026-08-12" },
         ]),
       ],
     });
@@ -64,7 +64,7 @@ describe("turn first-known dates (SP11, FIXTURE feeds)", () => {
       sectors: [
         row([
           { date: "2026-07-01", k: "trough", provisional: true, confirmed_at: "2026-07-03" },
-          { date: "2026-07-05", k: "peak", confirmed_at: "2026-07-08" },
+          { date: "2026-07-05", k: "peak", provisional: false, confirmed_at: "2026-07-08" },
         ]),
       ],
     });
@@ -86,10 +86,10 @@ describe("turn first-known dates (SP11, FIXTURE feeds)", () => {
       meta: { asOf: "2026-10-30" },
       sectors: [
         row([
-          { date: "2026-06-01", k: "trough", confirmed_at: "2026-06-01" }, // same day — refused
-          { date: "2026-08-10", k: "peak", confirmed_at: "2026-05-01" }, // before the pivot — refused
-          { date: "2026-09-01", k: "trough", confirmed_at: "2026-10-30" }, // asOf day — kept
-          { date: "2026-09-20", k: "peak", confirmed_at: "2026-10-31" }, // after the feed — refused
+          { date: "2026-06-01", k: "trough", provisional: false, confirmed_at: "2026-06-01" }, // same day — refused
+          { date: "2026-08-10", k: "peak", provisional: false, confirmed_at: "2026-05-01" }, // before the pivot — refused
+          { date: "2026-09-01", k: "trough", provisional: false, confirmed_at: "2026-10-30" }, // asOf day — kept
+          { date: "2026-09-20", k: "peak", provisional: false, confirmed_at: "2026-10-31" }, // after the feed — refused
         ]),
       ],
     });
@@ -101,9 +101,9 @@ describe("turn first-known dates (SP11, FIXTURE feeds)", () => {
       meta: { asOf: "2026-10-30" },
       sectors: [
         row([
-          { date: "2026-06-01", k: "trough" }, // no confirmed_at
-          { date: "not-a-date", k: "peak", confirmed_at: "2026-07-01" },
-          { date: "2026-08-01", k: "peak", confirmed_at: "yesterday" },
+          { date: "2026-06-01", k: "trough", provisional: false }, // no confirmed_at
+          { date: "not-a-date", k: "peak", provisional: false, confirmed_at: "2026-07-01" },
+          { date: "2026-08-01", k: "peak", provisional: false, confirmed_at: "yesterday" },
         ]),
       ],
     });
@@ -115,17 +115,17 @@ describe("turn first-known dates (SP11, FIXTURE feeds)", () => {
       meta: { asOf: "2026-10-30" },
       sectors: [
         // Two rows for the same series (same id) disagree on 06-01; agree later.
-        row([{ date: "2026-06-01", k: "trough", confirmed_at: "2026-06-04" }], "xlk"),
+        row([{ date: "2026-06-01", k: "trough", provisional: false, confirmed_at: "2026-06-04" }], "xlk"),
         row(
           [
-            { date: "2026-06-01", k: "trough", confirmed_at: "2026-06-05" }, // conflict — dropped
-            { date: "2026-06-01", k: "peak", confirmed_at: "2026-06-03" }, // same date, other kind — kept
-            { date: "2026-08-01", k: "peak", confirmed_at: "2026-08-03" },
+            { date: "2026-06-01", k: "trough", provisional: false, confirmed_at: "2026-06-05" }, // conflict — dropped
+            { date: "2026-06-01", k: "peak", provisional: false, confirmed_at: "2026-06-03" }, // same date, other kind — kept
+            { date: "2026-08-01", k: "peak", provisional: false, confirmed_at: "2026-08-03" },
           ],
           "xlk",
         ),
         // A different series' identical turn is unaffected by xlk's conflict.
-        row([{ date: "2026-06-01", k: "trough", confirmed_at: "2026-06-04" }], "xlf"),
+        row([{ date: "2026-06-01", k: "trough", provisional: false, confirmed_at: "2026-06-04" }], "xlf"),
       ],
     });
     expect(seriesFirstKnown(index, "xlk")).toEqual({
@@ -135,11 +135,89 @@ describe("turn first-known dates (SP11, FIXTURE feeds)", () => {
     expect(seriesFirstKnown(index, "xlf")).toEqual({ "2026-06-01#trough": "2026-06-04" });
   });
 
-  it("a feed without a valid asOf still keeps the strictly-after rule", () => {
+  it("NEW-3: a feed without a valid asOf keeps no date at all", () => {
+    // The feed's own asOf vouches that every confirmation has happened; an
+    // undated feed can vouch for nothing — not even a past-looking date.
+    for (const meta of [undefined, {}, { asOf: "not-a-day" }, { asOf: 42 }]) {
+      const index = turnFirstKnownIndex({
+        meta,
+        sectors: [row([{ date: "2026-06-01", k: "trough", provisional: false, confirmed_at: "2026-06-02" }])],
+      });
+      expect(seriesFirstKnown(index, "xlk"), JSON.stringify(meta)).toEqual({});
+    }
+  });
+
+  it("NEW-3: only an explicit provisional:false counts as confirmed", () => {
     const index = turnFirstKnownIndex({
-      sectors: [row([{ date: "2026-06-01", k: "trough", confirmed_at: "2026-06-02" }])],
+      meta: { asOf: "2026-10-30" },
+      sectors: [
+        row([
+          { date: "2026-06-01", k: "trough", provisional: "true", confirmed_at: "2026-06-04" },
+          { date: "2026-06-05", k: "peak", provisional: 1, confirmed_at: "2026-06-08" },
+          { date: "2026-07-01", k: "trough", confirmed_at: "2026-07-04" }, // flag missing
+          { date: "2026-07-05", k: "peak", provisional: false, confirmed_at: "2026-07-08" },
+        ]),
+      ],
     });
-    expect(seriesFirstKnown(index, "xlk")).toEqual({ "2026-06-01#trough": "2026-06-02" });
+    expect(seriesFirstKnown(index, "xlk")).toEqual({ "2026-07-05#peak": "2026-07-08" });
+  });
+
+  it("invalid calendar dates are discarded, never thrown (PR #1431 duty finding)", () => {
+    // The duty counterexample: an ISO-shaped impossible calendar value in
+    // confirmed_at (or date, or meta.asOf) must be DROPPED — `toISOString()`
+    // on the invalid Date must never throw out of the reader.
+    for (const bad of [
+      "2026-13-01", "2026-00-10", "2026-02-30", "2026-11-31",
+      "0000-00-00", "9999-99-99", "", 42, null, {},
+    ]) {
+      // The exact duty shape: valid asOf + valid event date + bad confirmed_at.
+      const index = turnFirstKnownIndex({
+        meta: { asOf: "2026-11-05" },
+        sectors: [
+          row([{ date: "2026-10-23", k: "trough", provisional: false, confirmed_at: bad }]),
+        ],
+      });
+      expect(seriesFirstKnown(index, "xlk"), String(bad)).toEqual({});
+      // The same bad value as the event date and as the feed's asOf.
+      const badDate = turnFirstKnownIndex({
+        meta: { asOf: "2026-11-05" },
+        sectors: [row([{ date: bad, k: "trough", provisional: false, confirmed_at: "2026-10-25" }])],
+      });
+      expect(seriesFirstKnown(badDate, "xlk"), String(bad)).toEqual({});
+      const badAsOf = turnFirstKnownIndex({
+        meta: { asOf: bad },
+        sectors: [row([{ date: "2026-10-23", k: "trough", provisional: false, confirmed_at: "2026-10-25" }])],
+      });
+      expect(seriesFirstKnown(badAsOf, "xlk"), String(bad)).toEqual({});
+    }
+    // A valid sibling turn in the same feed still dates normally.
+    const index = turnFirstKnownIndex({
+      meta: { asOf: "2026-11-05" },
+      sectors: [
+        row([
+          { date: "2026-10-23", k: "trough", provisional: false, confirmed_at: "2026-13-01" },
+          { date: "2026-10-24", k: "peak", provisional: false, confirmed_at: "2026-10-27" },
+        ]),
+      ],
+    });
+    expect(seriesFirstKnown(index, "xlk")).toEqual({ "2026-10-24#peak": "2026-10-27" });
+  });
+
+  it("NEW-3: a `__proto__` series id is an ordinary series on the null-prototype index", () => {
+    const index = turnFirstKnownIndex({
+      meta: { asOf: "2026-10-30" },
+      sectors: [
+        row([{ date: "2026-06-01", k: "trough", provisional: false, confirmed_at: "2026-06-04" }], "__proto__"),
+        row([{ date: "2026-06-01", k: "trough", provisional: false, confirmed_at: "2026-06-05" }], "xlk"),
+      ],
+    });
+    // The index has no prototype at all, and "__proto__" is a plain own key —
+    // the id can neither mutate the index nor vanish through the setter.
+    expect(Object.getPrototypeOf(index)).toBeNull();
+    expect(Object.hasOwn(index, "__proto__")).toBe(true);
+    expect(firstKnownAt(seriesFirstKnown(index, "__proto__"), "2026-06-01", "trough")).toBe("2026-06-04");
+    // A normal series alongside is unaffected.
+    expect(firstKnownAt(seriesFirstKnown(index, "xlk"), "2026-06-01", "trough")).toBe("2026-06-05");
   });
 
   it("own-property lookups only: inherited keys never answer", () => {

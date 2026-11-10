@@ -27,6 +27,7 @@ import {
   sortGroups,
   toggleExpanded,
   universePresence,
+  universeWordMatches,
 } from "@/lib/sectorDepthUniverses";
 import type {
   UniverseClass,
@@ -136,11 +137,13 @@ export function SectorConfluenceUniverses({
           const selected = id === active;
           // E03/E04: each chip carries its universe's own gateable count. A
           // carried zero stays visible (0); only an absent payload hides it.
+          // R2-S1: a payload whose owner word names another universe is not
+          // this tab's data — no count chip either, matching the refused panel.
           const payload = universes[id];
           const count =
-            payload === undefined
-              ? null
-              : coverageModel(payload.coverage).gateable;
+            payload !== undefined && universeWordMatches(id, payload)
+              ? coverageModel(payload.coverage).gateable
+              : null;
           return (
             <button
               key={id}

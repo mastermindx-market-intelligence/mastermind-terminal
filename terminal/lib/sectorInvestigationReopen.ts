@@ -69,6 +69,8 @@ export type SectorReopenState =
 
 const record = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);
 const DIGEST = /^[0-9a-f]{64}$/;
+/** Same grammar the saved reference is validated with (investigationContracts MEMBER_PATH). */
+const MEMBER_PATH = /^[A-Za-z0-9][A-Za-z0-9_./-]{0,127}$/;
 
 /** `durable` only on the owner's explicit statement; anything else (absent, `process_lifetime_only`) is not. */
 export function contextRefIsDurable(ownerRef: SectorOwnerRef | undefined | null): boolean {
@@ -80,9 +82,16 @@ export function captureIdentityOf(body: SectorPopulationRead | undefined): Secto
   const owner = body?.page?.capture?.owner_ref;
   if (!owner || typeof owner.generation_id !== "string" || typeof owner.content_id !== "string" || !DIGEST.test(owner.content_id)) return null;
   const identity: SectorCaptureIdentity = { generation_id: owner.generation_id, content_id: owner.content_id };
-  if (record(owner.member_sha256)) {
-    const members: Record<string, string> = {};
-    for (const [key, value] of Object.entries(owner.member_sha256)) if (typeof value === "string") members[key] = value;
+  if (owner.member_sha256 !== undefined) {
+    // A member set that is not a plain object, or holds ANY entry that is not (grammar key -> sha256 string),
+    // is malformed: the whole answer carries no identity. Nothing is silently dropped, so a capture with a
+    // different member set can never compare equal to the saved one.
+    if (!record(owner.member_sha256)) return null;
+    const members: Record<string, string> = Object.create(null);
+    for (const [key, value] of Object.entries(owner.member_sha256)) {
+      if (!MEMBER_PATH.test(key) || typeof value !== "string" || !DIGEST.test(value)) return null;
+      members[key] = value;
+    }
     identity.member_sha256 = members;
   }
   return identity;
@@ -155,23 +164,30 @@ function classify(answer: TransportAnswer, saved: SectorCaptureIdentity, via: "c
  */
 export async function reopenOriginal(saved: SectorCaptureIdentity | null, contextRef: string | null, transport: SectorReopenTransport): Promise<SectorReopenState> {
   if (!saved) return { state: "original_unavailable", reason: "no_saved_reference" };
-  let sawNotRecognised = false;
-  if (contextRef) {
-    const outcome = classify(await transport.openByContextRef(contextRef), saved, "context_ref");
-    if (outcome !== "next") return outcome;
-    sawNotRecognised = true;
+  try {
+    let sawNotRecognised = false;
+    if (contextRef) {
+      const outcome = classify(await transport.openByContextRef(contextRef), saved, "context_ref");
+      if (outcome !== "next") return outcome;
+      sawNotRecognised = true;
+    }
+    if (transport.openByIdentity) {
+      const outcome = classify(await transport.openByIdentity(saved), saved, "identity");
+      if (outcome !== "next") return outcome;
+      return { state: "original_unavailable", reason: "bytes_not_retained" };
+    }
+    return { state: "original_unavailable", reason: sawNotRecognised ? "reference_not_recognised" : "no_resolver_path" };
+  } catch {
+    // A rejected transport promise (network failure, a 2xx whose body does not parse) is inconclusive:
+    // retryable, never proof the original is gone and never a fallback to the latest.
+    return { state: "retry", reason: "transport_error" };
   }
-  if (transport.openByIdentity) {
-    const outcome = classify(await transport.openByIdentity(saved), saved, "identity");
-    if (outcome !== "next") return outcome;
-    return { state: "original_unavailable", reason: "bytes_not_retained" };
-  }
-  return { state: "original_unavailable", reason: sawNotRecognised ? "reference_not_recognised" : "no_resolver_path" };
 }
 
 /** Open the current capture separately. Always labelled `current`; it never stands in for an original. */
 export async function reopenCurrent(transport: SectorReopenTransport): Promise<SectorReopenState> {
-  const answer = await transport.openCurrent();
+  let answer: TransportAnswer;
+  try { answer = await transport.openCurrent(); } catch { return { state: "retry", reason: "transport_error" }; }
   switch (answer.kind) {
     case "ok": {
       const identity = captureIdentityOf(answer.body);

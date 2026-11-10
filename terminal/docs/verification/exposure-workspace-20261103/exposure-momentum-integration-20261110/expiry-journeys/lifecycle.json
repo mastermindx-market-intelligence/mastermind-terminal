@@ -1,0 +1,40 @@
+{
+  "at": "2026-11-10T15:49:24.251849+00:00",
+  "checks": {
+    "lock": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1427-exposure-browser-successor/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    },
+    "pid": {
+      "command": [
+        "ps",
+        "-p",
+        "75426",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "completedAt": "2026-11-10T15:49:31.976177+00:00",
+  "listenerClosed": true,
+  "lock": {
+    "appUrl": "http://localhost:47727",
+    "hostname": "localhost",
+    "pid": 75426,
+    "port": 47727,
+    "startedAt": 1794325701211
+  },
+  "lockPresent": true,
+  "lockSha256": "a13650b7bea2b1ecb0114f5bb2e56c4d348b767a41281cc09018470acd8ff549",
+  "port": 47727,
+  "state": "OWNED_SERVER_STOPPED",
+  "workspaceCwdHolders": []
+}

@@ -1,0 +1,29 @@
+{
+  "source": "4a23dd75f90886f8f064de3c5fb96d6acc8e4adc",
+  "command": [
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "e2e/portfolio-event-refresh.spec.ts",
+    "--project=desktop",
+    "--project=tablet",
+    "--project=mobile",
+    "--workers=1",
+    "--retries=0",
+    "--reporter=list,json",
+    "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/.pr1422-qualification/portfolio-browser-artifacts"
+  ],
+  "exit": 0,
+  "seconds": 107.482,
+  "port": 34222,
+  "portClosed": true,
+  "nextLockAbsent": true,
+  "sourceStable": true,
+  "sourceCount": 3516,
+  "logSha256": "5c7e9994b1ea3e9c95ba0c5ca48cefb31189b92dc21522e47a4782870c68cfe4",
+  "initialNextLockAbsent": false,
+  "lifecycle": {
+    "path": "docs/verification/pr1422-next-20261110/portfolio-lifecycle.json",
+    "sha256": "0710a7af763e82a6ecc81f1ff78cad42c996c77cacd8dee50cd71220ac967d58"
+  }
+}

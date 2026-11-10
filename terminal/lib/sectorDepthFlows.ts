@@ -427,8 +427,32 @@ export const CARRIED_FLOW_LABELS: readonly string[] = Object.keys(
  * state. */
 export const FLOW_FUND_MAX = 64;
 
+/** R2-N5: the wire's as_of must be a REAL calendar date, not ten digits with
+ * dashes — `2026-13-45` passes the shape test but is not a date any session
+ * closed on. Month 1–12 and day 1–last-of-month (leap years included). */
+function isCalendarDate(s: string): boolean {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if (!m) return false;
+  const year = Number(m[1]);
+  const month = Number(m[2]);
+  const day = Number(m[3]);
+  if (month < 1 || month > 12) return false;
+  const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  return day >= 1 && day <= lastDay;
+}
+
+/** N7: build the matrix cell's focus selector with the ticker escaped for a
+ * quoted attribute value — `"` and `\` must not break out of the quotes, or
+ * document.querySelector throws inside the focus rAF. The window id is a
+ * closed enum and needs no escape. */
+export function cellFocusSelector(ticker: string, window: string): string {
+  const esc = ticker.replace(/["\\]/g, "\\$&");
+  return `td[data-cell-ticker="${esc}"][data-cell-window="${window}"]`;
+}
+
 /** Adapt the carried etf_flows block into FlowsData. Strict closed-shape read:
- * unit must be "usd_mn" (never silently re-unit), all five windows must be
+ * unit must be "usd_mn" (never silently re-unit), as_of must be a real
+ * calendar date (R2-N5), all five windows must be
  * present under their known uppercase labels with EXACTLY their contract
  * trading-day counts (1D/3D/1W/2W/1M = 1/3/5/10/21, integers — a mismatch is
  * malformed, review S4) and a boolean full_window; funds/net_flow_mn must be
@@ -437,7 +461,9 @@ export const FLOW_FUND_MAX = 64;
  * its unavailable state instead of an invented or partial number (review S3).
  * A window key ABSENT (or null) inside flow_mn is NO READING (null), never
  * zero; a key PRESENT with a wrong-typed value (string, array, object…) makes
- * the whole block null. Duplicate tickers and more than FLOW_FUND_MAX funds
+ * the whole block null. Prototype-named keys (`constructor`, `toString`, a
+ * JSON-parsed own `__proto__`) are NOT labels — refused by ownership, not by
+ * value lookup (R2-N1). Duplicate tickers and more than FLOW_FUND_MAX funds
  * are malformed. `funds: []` is ALSO malformed: the producer always carries
  * the full collected fund set, so an empty array means collection failed —
  * unavailable, not a measured-empty matrix. The block carries no fund names:
@@ -446,7 +472,7 @@ export const FLOW_FUND_MAX = 64;
 export function flowsFromCarriedBlock(block: unknown): FlowsData | null {
   if (typeof block !== "object" || block === null || Array.isArray(block)) return null;
   const b = block as Partial<CarriedEtfFlowsBlock>;
-  if (typeof b.as_of !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(b.as_of)) {
+  if (typeof b.as_of !== "string" || !isCalendarDate(b.as_of)) {
     return null;
   }
   if (typeof b.depth !== "number" || !Number.isFinite(b.depth) || b.depth < 0) {
@@ -466,7 +492,11 @@ export function flowsFromCarriedBlock(block: unknown): FlowsData | null {
   const labelToWindow: Record<string, FlowWindow> = {};
   for (const w of b.windows) {
     if (typeof w !== "object" || w === null) return null;
-    const win = CARRIED_LABEL_TO_WINDOW[w.label as string];
+    // Closed label set by OWNERSHIP (R2-N1): an inherited name like
+    // "constructor" must resolve to undefined, not to Object.prototype's.
+    const win = Object.hasOwn(CARRIED_LABEL_TO_WINDOW, w.label as string)
+      ? CARRIED_LABEL_TO_WINDOW[w.label as string]
+      : undefined;
     if (win === undefined) return null; // closed label set
     // S4: the label must match its trading-day count exactly — the contract
     // table is 1/3/5/10/21 integers, and the producer pins the same table.
@@ -484,12 +514,14 @@ export function flowsFromCarriedBlock(block: unknown): FlowsData | null {
 
   /** S3: every key must be a known label; a present value must be a finite
    * number or null. Absent keys stay absent (no reading) — that part is the
-   * wire's absent-key rule and is unchanged. */
+   * wire's absent-key rule and is unchanged. R2-N1: label resolution is by
+   * OWNERSHIP — inherited names ("constructor", "toString", a JSON-parsed own
+   * "__proto__") are not labels, so the unknown-key check refuses them. */
   const valuesOf = (src: Record<string, unknown>): Record<FlowWindow, number | null> | null => {
     const out = {} as Record<FlowWindow, number | null>;
     for (const w of FLOW_WINDOWS) out[w] = null;
     for (const [label, v] of Object.entries(src)) {
-      const win = labelToWindow[label];
+      const win = Object.hasOwn(labelToWindow, label) ? labelToWindow[label] : undefined;
       if (win === undefined) return null; // unknown key ⇒ malformed block
       if (v === null) continue; // carried no-reading
       if (typeof v !== "number" || !Number.isFinite(v)) return null; // wrong type

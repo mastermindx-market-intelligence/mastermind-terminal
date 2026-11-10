@@ -1,0 +1,96 @@
+{
+  "schema": "pr1422.owned_lock_reconciliation.v1",
+  "initialLock": {
+    "dev": 16777247,
+    "ino": 71250214,
+    "size": 108,
+    "mtimeNs": 1794305539035217494,
+    "sha256": "acf42fbe00141eed2580b6c736bc56933cd0e021e9032438d86a74d07108a5fe",
+    "content": {
+      "pid": 1915,
+      "port": 34222,
+      "hostname": "127.0.0.1",
+      "appUrl": "http://127.0.0.1:34222",
+      "startedAt": 1794305539034
+    }
+  },
+  "before": {
+    "listener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:34222",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": ""
+    },
+    "recordedProcess": {
+      "command": [
+        "ps",
+        "-p",
+        "1915",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": ""
+    },
+    "lockDescriptors": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": ""
+    },
+    "workspaceCwds": {
+      "matching": [],
+      "exit": 0
+    }
+  },
+  "state": "STALE_OWNED_LOCK_REMOVED",
+  "immediatelyBeforeUnlink": {
+    "listener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:34222",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": ""
+    },
+    "recordedProcess": {
+      "command": [
+        "ps",
+        "-p",
+        "1915",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": ""
+    },
+    "lockDescriptors": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": ""
+    },
+    "workspaceCwds": {
+      "matching": [],
+      "exit": 0
+    }
+  },
+  "nextLockAbsent": true,
+  "completedAt": 1794305791.487474
+}

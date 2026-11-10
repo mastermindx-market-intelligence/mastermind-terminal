@@ -10,6 +10,15 @@ test.setTimeout(120_000);
 
 const OUT = join(process.cwd(), "docs", "pr-crops", "ticker-news-editorial-views");
 const CROPS = process.env.TERMINAL_CROPS === "1";
+const CAPTURE_PACKET = process.env.TERMINAL_TICKER_NEWS_CAPTURE_PACKET ?? "";
+if (CAPTURE_PACKET !== "" && CAPTURE_PACKET !== "ticker-news") {
+  throw new Error("Unsupported TERMINAL_TICKER_NEWS_CAPTURE_PACKET");
+}
+const LEGACY_PACKET = CAPTURE_PACKET === "ticker-news";
+const DEFAULT_CROPS = CROPS && !LEGACY_PACKET;
+const LEGACY_CROPS = CROPS && LEGACY_PACKET;
+const LEGACY_OUT = join(process.cwd(), "docs", "pr-crops", "ticker-news");
+const UNAVAILABLE_OUT = LEGACY_PACKET ? LEGACY_OUT : OUT;
 const LIGHT_SPECIMEN_CSS = readFileSync(join(process.cwd(), "docs/specimens/news-flow.light.css"), "utf8");
 
 const MANIFEST = {
@@ -324,7 +333,7 @@ async function setPresentation(
     // Preserve later document resets: they clear specimen CSS and rail state.
     await page.reload();
   }
-  await expect(page.locator("#rail-tab-news")).toBeAttached({ timeout: 60_000 });
+  await expect(page.locator("#rail-tab-news")).toBeVisible({ timeout: 60_000 });
   await expect(page.locator("html")).toHaveAttribute("data-lang", lang);
   await selectAppearance(page, lang, theme);
 }
@@ -366,7 +375,7 @@ test("ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix", a
     { width: 390, height: 844, size: "mobile" },
   ] as const;
   const languages = ["en", "zh"] as const;
-  if (CROPS) {
+  if (DEFAULT_CROPS) {
     mkdirSync(OUT, { recursive: true });
     for (const name of readdirSync(OUT)) {
       if (name.endsWith(".png")) rmSync(join(OUT, name));
@@ -431,7 +440,12 @@ test("ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix", a
             expect((await viewControl.boundingBox())?.height).toBeGreaterThanOrEqual(44);
           }
           expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
-          if (CROPS) {
+          if (LEGACY_CROPS && theme === "dark" && mode === "news") {
+            await panel.screenshot({
+              path: join(LEGACY_OUT, [viewport.size, lang, "dark.png"].join("-")),
+            });
+          }
+          if (DEFAULT_CROPS) {
             await panel.screenshot({
               path: join(OUT, `${viewport.size}-${lang}-${theme === "light" ? "light-specimen" : "dark"}-${mode}.png`),
             });
@@ -458,7 +472,7 @@ test("unavailable snapshot renders without rail overflow", async ({ page, baseUR
   const size = testInfo.project.name === "mobile" ? "mobile" : "desktop";
   await page.setViewportSize(size === "mobile" ? { width: 390, height: 844 } : { width: 1440, height: 900 });
 
-  if (CROPS) mkdirSync(OUT, { recursive: true });
+  if (DEFAULT_CROPS) mkdirSync(OUT, { recursive: true });
 
   for (const lang of languages) {
     await setPresentation(page, lang);
@@ -469,7 +483,7 @@ test("unavailable snapshot renders without rail overflow", async ({ page, baseUR
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
     if (CROPS) {
-      await panel.screenshot({ path: join(OUT, `unavailable-${size}-${lang}-dark.png`) });
+      await panel.screenshot({ path: join(UNAVAILABLE_OUT, `unavailable-${size}-${lang}-dark.png`) });
     }
   }
 });
@@ -478,7 +492,7 @@ test("unavailable snapshot retries inside the rail across EN/ZH and theme specim
   test.skip(!["desktop", "tablet", "mobile"].includes(testInfo.project.name), "Contract viewports only.");
   await prepare(page, testInfo, baseURL);
   const retryOut = join(process.cwd(), "docs", "pr-crops", "ticker-news-recovery");
-  if (CROPS) mkdirSync(retryOut, { recursive: true });
+  if (DEFAULT_CROPS) mkdirSync(retryOut, { recursive: true });
   let allowRecovery = false;
   let releaseRecovery!: () => void;
   let recoveryGate = Promise.resolve();
@@ -517,7 +531,7 @@ test("unavailable snapshot retries inside the rail across EN/ZH and theme specim
       await expect(retry).toBeFocused();
       expect(await retry.evaluate((node) => parseFloat(getComputedStyle(node).outlineWidth))).toBeGreaterThanOrEqual(2);
       const cell = [testInfo.project.name, lang, theme === "light" ? "light-specimen" : "dark"].join("-");
-      if (CROPS) await panel.screenshot({ path: join(retryOut, cell + "-unavailable.png") });
+      if (DEFAULT_CROPS) await panel.screenshot({ path: join(retryOut, cell + "-unavailable.png") });
 
       const beforeRetry = snapshotReads;
       const beforeDocuments = documentReads;
@@ -528,7 +542,7 @@ test("unavailable snapshot retries inside the rail across EN/ZH and theme specim
         await expect(retry).toHaveCount(0);
         await expect(panel.locator("[data-news-headline], [data-news-mark-one]")).toHaveCount(0);
         await expect.poll(() => snapshotReads).toBe(beforeRetry + 1);
-        if (CROPS) await panel.screenshot({ path: join(retryOut, cell + "-loading.png") });
+        if (DEFAULT_CROPS) await panel.screenshot({ path: join(retryOut, cell + "-loading.png") });
       } finally {
         releaseRecovery();
       }
@@ -539,7 +553,7 @@ test("unavailable snapshot retries inside the rail across EN/ZH and theme specim
       expect(snapshotReads).toBe(beforeRetry + 1);
       expect(documentReads).toBe(beforeDocuments);
       expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
-      if (CROPS) await panel.screenshot({ path: join(retryOut, cell + "-recovered.png") });
+      if (DEFAULT_CROPS) await panel.screenshot({ path: join(retryOut, cell + "-recovered.png") });
     }
   }
 });
@@ -682,7 +696,7 @@ test("Chinese and Hong Kong tickers preserve original Chinese headlines", async 
   }
   await prepare(page, testInfo, baseURL, manifest);
   const out = join(process.cwd(), "docs", "pr-crops", "ticker-news-cn-hk");
-  if (CROPS) mkdirSync(out, { recursive: true });
+  if (DEFAULT_CROPS) mkdirSync(out, { recursive: true });
   // Synthetic contract fixtures prove rendering only, not publisher coverage or licensing.
   for (const example of examples) {
     for (const lang of ["en", "zh"] as const) {
@@ -708,7 +722,7 @@ test("Chinese and Hong Kong tickers preserve original Chinese headlines", async 
         const streamUrl = await page.evaluate(() =>
           (window as unknown as { __mmTickerNewsStream?: string }).__mmTickerNewsStream ?? "");
         expect(new URL(streamUrl, "http://fixture.local").searchParams.get("symbol")).toBe(example.ticker);
-        if (CROPS) {
+        if (DEFAULT_CROPS) {
           await panel.screenshot({ path: join(out,
             `${testInfo.project.name}-${example.ticker}-${lang}-${theme === "light" ? "light-specimen" : "dark"}.png`) });
         }

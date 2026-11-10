@@ -1,0 +1,175 @@
+{
+  "after": {
+    "listener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:34234",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-10T13:46:26.500312+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "lockDescriptors": {
+      "observedAt": "2026-11-10T13:46:26.557631+00:00",
+      "state": "fileAbsent"
+    },
+    "ownedWorkspaceCwds": {
+      "command": [
+        "lsof",
+        "-a",
+        "-u",
+        "chriswong",
+        "-d",
+        "cwd",
+        "-F",
+        "pcn"
+      ],
+      "exit": 0,
+      "observedAt": "2026-11-10T13:46:30.085158+00:00",
+      "records": [],
+      "stderr": ""
+    },
+    "recordedProcesses": {
+      "command": [
+        "ps",
+        "-p",
+        "79668",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-10T13:46:26.555332+00:00",
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "before": {
+    "listener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:34234",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-10T13:46:15.917538+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "lockDescriptors": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-10T13:46:18.577786+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "ownedWorkspaceCwds": {
+      "command": [
+        "lsof",
+        "-a",
+        "-u",
+        "chriswong",
+        "-d",
+        "cwd",
+        "-F",
+        "pcn"
+      ],
+      "exit": 0,
+      "observedAt": "2026-11-10T13:46:20.907074+00:00",
+      "records": [],
+      "stderr": ""
+    },
+    "recordedProcesses": {
+      "command": [
+        "ps",
+        "-p",
+        "79668",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-10T13:46:15.928419+00:00",
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "completedAt": "2026-11-10T13:46:30.088341+00:00",
+  "immediatelyBeforeUnlink": {
+    "listener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:34234",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-10T13:46:21.251036+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "lockDescriptors": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-10T13:46:23.415050+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "ownedWorkspaceCwds": {
+      "command": [
+        "lsof",
+        "-a",
+        "-u",
+        "chriswong",
+        "-d",
+        "cwd",
+        "-F",
+        "pcn"
+      ],
+      "exit": 0,
+      "observedAt": "2026-11-10T13:46:25.991231+00:00",
+      "records": [],
+      "stderr": ""
+    },
+    "recordedProcesses": {
+      "command": [
+        "ps",
+        "-p",
+        "79668",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-10T13:46:21.268331+00:00",
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "initialLock": {
+    "content": {
+      "appUrl": "http://127.0.0.1:34234",
+      "hostname": "127.0.0.1",
+      "pid": 79668,
+      "port": 34234,
+      "startedAt": 1794317788910
+    },
+    "dev": 16777247,
+    "ino": 72517212,
+    "mtimeNs": 1794317788911538019,
+    "sha256": "cd3f3296a643ffd07a521d95779f3d7fd0166f378cdc03a7faadcb682fbcf49a",
+    "size": 109
+  },
+  "initialLockPresent": true,
+  "label": "watchlist-repro",
+  "schema": "terminal_pr1422_browser_lifecycle_reconciliation.v1",
+  "startedAt": "2026-11-10T13:46:15.291683+00:00",
+  "state": "STALE_OWNED_LOCK_REMOVED_SERVER_ABSENCE_VERIFIED"
+}

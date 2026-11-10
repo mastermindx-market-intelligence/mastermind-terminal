@@ -297,6 +297,28 @@ export const UNIVERSES: Record<UniverseId, UniverseMeta> = {
   },
 };
 
+/** The owner vocabulary word each tab's payload must carry (review R2-S1).
+ * The tab and the word are 1:1 — a payload whose `universe` string names
+ * another universe is NOT this tab's data (a mis-keyed mount), and both the
+ * tabling and the presence classification refuse it: the panel shows its
+ * honest unavailable state instead of the other universe's rows. */
+const UNIVERSE_OWNER_WORD: Record<UniverseId, string> = {
+  subsectors: "sp500_subsectors",
+  nasdaq: "nasdaq_subsectors",
+  russell: "russell_subsectors",
+  baskets: "curated_baskets",
+};
+
+/** True when the payload's own `universe` owner word is the one this tab's
+ * contract carries (review R2-S1). An unknown word is a mismatch: only the
+ * four words above exist on the wire. */
+export function universeWordMatches(
+  id: UniverseId,
+  data: UniverseData | null | undefined,
+): boolean {
+  return !!data && data.universe === UNIVERSE_OWNER_WORD[id];
+}
+
 /** The universe's scored/gateable rows — the ONLY rows ever tabled.
  *
  * The array is chosen from the TAB id the parent passes (the UniverseId this
@@ -305,12 +327,14 @@ export const UNIVERSES: Record<UniverseId, UniverseMeta> = {
  * `russell_subsectors` / `curated_baskets` — owner vocabulary that is not the
  * tab id set, so keying on it silently fell back to `subsectors` and rendered
  * the 49-group baskets file as "no groups" (review S1). The payload string is
- * informational only; the parent's tab decides which array is tabled. */
+ * informational for CHOOSING the array, but binding for IDENTITY (R2-S1): a
+ * payload whose word disagrees with the tab is refused — zero rows tabled. */
 export function groupsOf(
   id: UniverseId,
   data: UniverseData | null | undefined,
 ): UniverseGroup[] {
   if (!data) return [];
+  if (data.universe !== UNIVERSE_OWNER_WORD[id]) return [];
   const key = UNIVERSES[id]?.groupsKey ?? "subsectors";
   const groups = (data as Partial<Record<"subsectors" | "baskets", UniverseGroup[]>>)[key];
   return Array.isArray(groups) ? groups : [];
@@ -580,7 +604,9 @@ export function rotationRead(groups: readonly UniverseGroup[]): UniverseGroup[] 
 /** Per-universe presence classification. The three "nothing to show" states
  * are distinct: a universe can be absent from the payload (not carried),
  * present but access-gated (source requires access the reading lacks), or
- * live with zero scored groups tonight. */
+ * live with zero scored groups tonight. A payload whose owner word names a
+ * DIFFERENT universe (R2-S1, mis-keyed mount) classifies as absent — the
+ * honest unavailable state, never the other universe's rows. */
 export type UniversePresence = "absent" | "no_access" | "zero_groups" | "live";
 
 export function universePresence(
@@ -588,6 +614,7 @@ export function universePresence(
   data: UniverseData | null | undefined,
 ): UniversePresence {
   if (!data) return "absent";
+  if (data.universe !== UNIVERSE_OWNER_WORD[id]) return "absent";
   if (data.ok === false) return "no_access";
   const groups = groupsOf(id, data);
   if (groups.length === 0) return "zero_groups";

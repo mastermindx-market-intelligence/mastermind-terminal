@@ -18,6 +18,7 @@ import {
   type BoardLaneKey,
   type CallRow,
   type CallTrace,
+  type CallsNavigateHandler,
   type LaneData,
   type SourceLaneKey,
 } from "@/lib/sectorDepthCalls";
@@ -72,7 +73,9 @@ export function SectorCallsBoard({
   methodologyHref,
 }: {
   board: ActionBoardData | null;
-  onNavigate?: (href: string) => void;
+  /** Row navigation out (lane-3 consumer delta): each call carries the
+   * entity's kind/id/ticker beside the owner href — see CallsNavigateTarget. */
+  onNavigate?: CallsNavigateHandler;
   captureRef?: Ref<HTMLElement>;
   /** Real href for the access/entitlements explainer; absent → no link. */
   accessHref?: string;
@@ -214,7 +217,7 @@ function BoardColumn({
 }: {
   laneKey: BoardLaneKey;
   lane: LaneData;
-  onNavigate?: (href: string) => void;
+  onNavigate?: CallsNavigateHandler;
   /** The board's own as-of date, used verbatim in the dated empty copy. */
   asOf: string;
 }) {
@@ -300,7 +303,7 @@ function StandAsideColumn({
   lane: LaneData;
   lanes: Record<SourceLaneKey, LaneData>;
   asOf: string;
-  onNavigate?: (href: string) => void;
+  onNavigate?: CallsNavigateHandler;
 }) {
   const t = useSectorDepthT();
   const isPhone = useIsPhone();
@@ -391,7 +394,7 @@ function LaneGroup({
   expanded: boolean;
   onExpand: () => void;
   onCollapse: () => void;
-  onNavigate?: (href: string) => void;
+  onNavigate?: CallsNavigateHandler;
 }) {
   const t = useSectorDepthT();
   const label = t(groupKey);
@@ -442,7 +445,7 @@ function CallRowCard({
   of,
 }: {
   row: CallRow;
-  onNavigate?: (href: string) => void;
+  onNavigate?: CallsNavigateHandler;
   /** 1-based publish order within the lane's visible slice. */
   order: number;
   /** The lane's full qualified total (publish-order denominator). */
@@ -491,7 +494,11 @@ function CallRowCard({
       <EmergenceMark
         emerging={row.emerging}
         href={row.emergence_href}
-        onNavigate={onNavigate}
+        onNavigate={
+          onNavigate
+            ? (href) => onNavigate({ href, kind: row.kind, id: row.slug, ticker: row.ticker })
+            : undefined
+        }
       />
       <div className={styles.cardActions}>
         <button
@@ -506,13 +513,22 @@ function CallRowCard({
         {/* N4 href law: the row's carried href is actionable only as a
             same-site relative path beginning with one "/". A non-conforming
             href renders NO detail control (never a rewritten or invented
-            destination) and the navigation callback is never called with it. */}
+            destination) and the navigation callback is never called with it.
+            When it IS conforming, the callback carries the entity identity
+            beside the href (CallsNavigateTarget, lane-3 consumer delta). */}
         {sameSiteHref(row.href) !== null &&
           (onNavigate ? (
             <button
               type="button"
               className={styles.detailBtn}
-              onClick={() => onNavigate(sameSiteHref(row.href) as string)}
+              onClick={() =>
+                onNavigate({
+                  href: sameSiteHref(row.href) as string,
+                  kind: row.kind,
+                  id: row.slug,
+                  ticker: row.ticker,
+                })
+              }
             >
               {t("siCallsDetail")}
             </button>

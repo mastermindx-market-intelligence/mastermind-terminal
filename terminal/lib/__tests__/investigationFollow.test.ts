@@ -28,6 +28,11 @@ describe("Follow claims no notification unless every separate readback and an ad
     expect(followState({ ...all, membership: "unavailable" }, true)).toMatchObject({ reason: "membership_unconfirmed", notificationClaimed: false });
     expect(followState({ ...all, transport: "unavailable" }, true)).toMatchObject({ state: "configured_unavailable", notificationClaimed: false });
   });
+  it("S4: failed / unknown transport is a non-claiming delivery problem, never following", () => {
+    expect(followState({ ...all, transport: "failed" }, true)).toEqual({ state: "delivery_problem", reason: "transport_failed", notificationClaimed: false, transport: "failed", missingStep: expect.stringContaining("failed transport") });
+    expect(followState({ ...all, transport: "unknown" }, true)).toMatchObject({ state: "delivery_problem", reason: "transport_unknown", notificationClaimed: false });
+    for (const transport of ["queued", "sent"] as const) expect(followState({ ...all, transport }, true)).toMatchObject({ state: "following", notificationClaimed: true, transport });
+  });
   it("only a fully confirmed, admitted path reads as following, and queued stays queued", () => {
     expect(followState(all, true)).toEqual({ state: "following", notificationClaimed: true, transport: "queued" });
     expect(followState({ ...all, transport: "sent" }, true)).toMatchObject({ transport: "sent" });
