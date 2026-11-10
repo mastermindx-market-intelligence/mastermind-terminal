@@ -1,0 +1,40 @@
+{
+  "at": "2026-11-10T06:16:35.024838+00:00",
+  "checks": {
+    "lock": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr645-expiry-integration-20261109-c4/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    },
+    "pid": {
+      "command": [
+        "ps",
+        "-p",
+        "38021",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "completedAt": "2026-11-10T06:16:39.243530+00:00",
+  "listenerClosed": true,
+  "lock": {
+    "appUrl": "http://localhost:47465",
+    "hostname": "localhost",
+    "pid": 38021,
+    "port": 47465,
+    "startedAt": 1794291349623
+  },
+  "lockPresent": true,
+  "lockSha256": "cf072547308859b1ed30b9fbcdb6ce443f780703221cf1472b53adea17a48eb0",
+  "port": 47465,
+  "state": "OWNED_SERVER_STOPPED",
+  "workspaceCwdHolders": []
+}

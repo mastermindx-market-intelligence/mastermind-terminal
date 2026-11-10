@@ -1,0 +1,39 @@
+{
+  "completedAt": "2026-11-09T17:26:04.368605+00:00",
+  "composition": {
+    "path": "terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261109171268-1-current.composition.json",
+    "selectedCases": 50,
+    "sha256": "4307c34a4403a2cb0ad25d59e3e7dc2427ae37963ad2b917da370a0c598e687d"
+  },
+  "results": {
+    "selected-consumers": {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+        "lib/__tests__/visualIntelligenceEvidence.test.ts",
+        "lib/__tests__/optionsLevelAxisEvidence.test.ts",
+        "lib/__tests__/b_pl_6Batch2Evidence.test.ts",
+        "lib/__tests__/pineBootPendingEvidence.test.ts",
+        "--pool=forks",
+        "--maxWorkers=1",
+        "--minWorkers=1",
+        "--reporter=json",
+        "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/web/tiingo24h-terminal-ux-20261103-sol/docs/verification/pr1268-source-integration-20261109/final-consumers-r1/selected-consumers.json"
+      ],
+      "exit": 0,
+      "logSha256": "2d6a0fadb8e74205821379675101334b8e7cd0702010dda7f4c963a78a7f8fb2",
+      "report": {
+        "numFailedTests": 0,
+        "numPassedTests": 18,
+        "numPendingTests": 0,
+        "numTotalTests": 18,
+        "success": true
+      },
+      "seconds": 23.96
+    }
+  },
+  "schema": "terminal_pr1268_final_consumer_validation.v1",
+  "state": "QUALIFIED"
+}
