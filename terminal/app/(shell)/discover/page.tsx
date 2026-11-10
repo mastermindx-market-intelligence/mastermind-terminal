@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { workspaceMetadata } from "@/lib/shared-shell/metadata";
 import { createClient } from "@/lib/supabase/server";
 import DiscoverWorkspaceMount from "@/components/mounts/DiscoverWorkspaceMount";
 import SignupGate from "@/components/gates/SignupGate";
@@ -14,7 +15,7 @@ import SignupGate from "@/components/gates/SignupGate";
 // server work is the signed-out gate: the chart (/terminal) is open to guests,
 // Discover is a member surface.
 
-export const metadata: Metadata = { title: "Discover · Mastermind Terminal" };
+export const metadata: Metadata = workspaceMetadata("Discover");
 
 export default async function DiscoverPage() {
   if (process.env.TERMINAL_E2E_FIXTURE === "1") return <DiscoverWorkspaceMount />;

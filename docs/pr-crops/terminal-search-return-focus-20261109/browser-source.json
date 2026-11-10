@@ -1,0 +1,150 @@
+{
+  "product_head": "ac2cb419feab42f14b245ecfeb81708d5ac55976",
+  "base": "f2aa1e0cb27d459149f59d3b24d98cd6e2e8389f",
+  "verified_files": [
+    {
+      "path": "terminal/components/ChartFrameBar.tsx",
+      "sha": "3725bc31066830a582d761efe9ae36e8e9ee6eb5"
+    },
+    {
+      "path": "terminal/components/ChartQuickSettings.module.css",
+      "sha": "9b27f3d9e3561a24811c4037faa694089bccde5b"
+    },
+    {
+      "path": "terminal/components/OptionsAccess.module.css",
+      "sha": "d49462449fe8506da16940f2999f9d7061643e12"
+    },
+    {
+      "path": "terminal/components/OptionsPaywall.tsx",
+      "sha": "0cfcd878bd259b999f261df278d3dc14e3213888"
+    },
+    {
+      "path": "terminal/components/OptionsServiceUnavailable.tsx",
+      "sha": "c2e9ffb28a7bf236b4b744e3ae391ee4871b5032"
+    },
+    {
+      "path": "terminal/e2e/chart-settings-ux.spec.ts",
+      "sha": "68b12d695396415a4a6cb09358cd9eb5e31d0a61"
+    },
+    {
+      "path": "terminal/e2e/options-access.spec.ts",
+      "sha": "0adf32e09bdff6551f4b64bc5a9fdeb83e9d222d"
+    },
+    {
+      "path": "terminal/lib/__tests__/chartQuickSettings.test.tsx",
+      "sha": "04a8c37666ce0fe164d8cf5617405c6a114ddfaf"
+    },
+    {
+      "path": "terminal/playwright.options-access.config.ts",
+      "sha": "ddf3bd002ebbf8bc10d1c05bdc8ad68118924f15"
+    },
+    {
+      "path": "terminal/components/ChartOverlays.module.css",
+      "sha": "6b9099cd487a555ce0c455a55bb6d573107c9eb2"
+    },
+    {
+      "path": "terminal/components/ChartOverlays.tsx",
+      "sha": "32ee593fa22b67989b2c59f300089ef8cf9668c4"
+    },
+    {
+      "path": "terminal/components/GuidePanel.tsx",
+      "sha": "7c05ddf2c0403ed6624f28921daf0f0beeb4de79"
+    },
+    {
+      "path": "terminal/components/IndicatorSettings.module.css",
+      "sha": "27e0ddc7c654cf27ec701a201a8ab278ccb118a5"
+    },
+    {
+      "path": "terminal/components/IndicatorSettings.tsx",
+      "sha": "6f2a78e900a68bfbe0b6756d333fa82216100924"
+    },
+    {
+      "path": "terminal/components/MobileNavModal.tsx",
+      "sha": "610cc74ec384d36d418fe13eb2dc048d740628a5"
+    },
+    {
+      "path": "terminal/components/chrome/shared-shell/ShellDirectory.tsx",
+      "sha": "e50634bcfc1968ddac1d331a85f6f3c244c8a43a"
+    },
+    {
+      "path": "terminal/components/events/WatchlistEventPlanner.tsx",
+      "sha": "6b0975a717dc4e51c8c56cd62b5980679066397b"
+    },
+    {
+      "path": "terminal/components/mobile/AnalysisHubSheet.tsx",
+      "sha": "ade366bda3ee6b3eb207121441e0c3fca76e92f4"
+    },
+    {
+      "path": "terminal/components/ui/MobileSheet.tsx",
+      "sha": "c6a31228b2893f688e99c82a9f5521de83db193f"
+    },
+    {
+      "path": "terminal/e2e/indicator-settings-modal.spec.ts",
+      "sha": "ef441ec6a1378a1bdb82a80967b1342f265097da"
+    },
+    {
+      "path": "terminal/e2e/shared-shell-directory-hardening.spec.ts",
+      "sha": "66092600bbe2126aab1e71491fef50f3119025a3"
+    },
+    {
+      "path": "terminal/e2e/shared-shell-scroll-lock.spec.ts",
+      "sha": "9ddd3a4f5fb13ba621a8dc63b08a2c23e21b9b2c"
+    },
+    {
+      "path": "terminal/lib/__tests__/indicatorSettingsAccessibility.test.tsx",
+      "sha": "87486ecb920d3ecc9e16e6ab35a6f83cf0491335"
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedOverlayScrollLock.test.tsx",
+      "sha": "93187f056b7d28885df2c27d9143571e691d9902"
+    },
+    {
+      "path": "terminal/lib/chartSettingsUi.ts",
+      "sha": "9ee1751b9eb783c28584bbba402e704d6318dd68"
+    },
+    {
+      "path": "terminal/components/workspaces/DiscoverWorkspace.tsx",
+      "sha": "78a54f0a14a1851fbe5f3eb962c71d9eb6a8883f"
+    },
+    {
+      "path": "terminal/components/workspaces/DiscoverLanding.tsx",
+      "sha": "3ec6ca655bc23945d7d330acef89b169bd056998"
+    },
+    {
+      "path": "terminal/components/workspaces/DiscoverLanding.module.css",
+      "sha": "5558510ebd5c7a9076414287d4d8fcc02a1963c8"
+    },
+    {
+      "path": "terminal/components/SearchModal.tsx",
+      "sha": "056e2849b21a8d4adb8a4a0d84fce5062a6d7935"
+    },
+    {
+      "path": "terminal/components/studyTemplates/useDialogFocus.ts",
+      "sha": "bfa11ce0d198e94f3e139569c0fa14101513ed38"
+    },
+    {
+      "path": "terminal/lib/dialogFocusReturn.ts",
+      "sha": "0a2356a6a62f2dff85a161548c99474cb7a75781"
+    },
+    {
+      "path": "terminal/lib/__tests__/searchReturnFocus.test.tsx",
+      "sha": "70805f050a6534ddc4c7dbae4f9d1043b9e26d84"
+    },
+    {
+      "path": "terminal/e2e/search-return-focus.spec.ts",
+      "sha": "1642701769e284dff08e816fc4c7dd01f435d36a"
+    },
+    {
+      "path": "docs/terminal-search-return-focus-20261109.md",
+      "sha": "3daba72101d0e58643b512b23c7f5db0e2ab1c5d"
+    },
+    {
+      "path": "terminal/components/watchlist/WatchlistAnnotationSync.tsx",
+      "sha": "963a13eb678cf2e3c8a577d1be430b3f074d87db"
+    },
+    {
+      "path": "terminal/lib/__tests__/annotationDialogFocus.test.tsx",
+      "sha": "f8bb6f387281361e6dcd95f1981480c200e9eb6d"
+    }
+  ]
+}

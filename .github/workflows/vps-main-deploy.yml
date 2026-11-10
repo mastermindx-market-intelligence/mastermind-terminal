@@ -2,6 +2,7 @@ name: vps-main-deploy
 # Fast wake after a protected Terminal master update. No PR-head execution,
 # direct worktree sync or parallel publisher: the existing exact-source
 # terminal-build.sh owns preflight, build lock, atomic swap and rollback.
+# An already active/enabled beta follows through that SAME owner; stopped beta is untouched.
 on:
   push:
     branches: [master]
@@ -15,6 +16,7 @@ on:
       - "hub/**"
       - "ops/terminal-build.sh"
       - "ops/terminal-data"
+      - ".github/workflows/vps-main-deploy.yml"
   workflow_dispatch: {}
 
 permissions:
@@ -38,7 +40,7 @@ jobs:
           sparse-checkout: ops/vps_origin_known_hosts
           sparse-checkout-cone-mode: false
           fetch-depth: 1
-      - name: Invoke existing exact-commit Terminal production builder
+      - name: Invoke existing exact-commit builder and refresh an active beta
         shell: bash
         env:
           VPS_DEPLOY_KEY: ${{ secrets.VPS_DEPLOY_KEY }}
@@ -74,9 +76,19 @@ jobs:
             -o ConnectTimeout=15 \
             -o ServerAliveInterval=20 -o ServerAliveCountMax=15 \
             root@146.190.142.17 \
-            "set -eu;
-             test -r /opt/terminal/terminal-build.sh;
-             bash /opt/terminal/terminal-build.sh --target production --target-sha '$TARGET_SHA';
-             installed=\$(cat /opt/terminal/terminal/.deployment-id);
-             test \"\$installed\" = '$TARGET_SHA';
-             printf 'Verified Terminal production marker: %s\\n' \"\$installed\""
+            bash -s -- "$TARGET_SHA" <<'MMX_RELEASE_SCRIPT'
+          set -eu
+          target_sha="$1"
+          test -r /opt/terminal/terminal-build.sh
+          bash /opt/terminal/terminal-build.sh --target production --target-sha "$target_sha"
+          installed="$(cat /opt/terminal/terminal/.deployment-id)"
+          test "$installed" = "$target_sha"
+          printf 'Verified Terminal production marker: %s\n' "$installed"
+          if systemctl is-active --quiet terminal-beta.service && systemctl is-enabled --quiet terminal-beta.service; then
+            test -L /opt/terminal/beta/.runtime-accepted
+            bash /opt/terminal/terminal-build.sh --target beta --target-sha "$target_sha"
+            python3 -c 'import json,sys,urllib.request; receipt=json.load(open(sys.argv[1])); status=json.load(urllib.request.urlopen("http://127.0.0.1:3001/api/shared-shell/status",timeout=15)); ok=receipt.get("accepted_sha")==sys.argv[2] and status.get("buildId")==sys.argv[2] and status.get("enabled") is True; print("Verified Terminal beta receipt and origin:" if ok else "Beta receipt/origin did not qualify:",sys.argv[2]); sys.exit(0 if ok else 1)' /opt/terminal/beta/.runtime-accepted "$target_sha"
+          else
+            printf 'Beta is not both active and enabled; existing stop/start policy preserved.\n'
+          fi
+          MMX_RELEASE_SCRIPT

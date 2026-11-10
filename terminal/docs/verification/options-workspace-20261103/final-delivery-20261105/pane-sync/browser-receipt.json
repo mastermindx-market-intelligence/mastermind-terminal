@@ -1,0 +1,33 @@
+{
+  "schema": "options_chart_compatibility_browser.v1",
+  "completed_at": "2026-11-05T09:26:20.718479+00:00",
+  "tree": "a162a7809ffe6eb75c461c551a5146e61d2e7b03",
+  "protected_base": "5d7b76376a8b3f5a8001f02d7f0ded29f5743798",
+  "runtime_change": "upstream pane-sync bracket-hint optimization",
+  "command": [
+    "./node_modules/.bin/playwright",
+    "test",
+    "e2e/pane-sync-time-axis.spec.ts",
+    "--grep",
+    "wheel zoom and a programmatic view reset both travel by calendar$",
+    "--project=desktop",
+    "--workers=1",
+    "--retries=0",
+    "--trace=on",
+    "--output=.next/options-pane-sync-integrated-a162-r4",
+    "--reporter=list,json"
+  ],
+  "exit": 0,
+  "passed": 1,
+  "failed": 0,
+  "skipped": 0,
+  "flaky": 0,
+  "retries": 0,
+  "source_stable": true,
+  "source_count": 3128,
+  "source_map_sha256": "83b6963dbc3e1b3a02f20d98d310222dfaa018b73aa8e048293452e15d1e32ed",
+  "browser_report_sha256": "d11fa3c2b294d16490e992a4074de513567ff00581d603b224eaf40784b969a0",
+  "artifact_index_sha256": "c7616fc9a01733302170e10b16be90bd1cbb4f9bf2f76d13b2476fcdc27f7c79",
+  "playwright_output": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/terminal/.next/options-pane-sync-integrated-a162-r4",
+  "owned_server_stopped": true
+}

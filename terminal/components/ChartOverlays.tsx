@@ -239,7 +239,10 @@ export default function ChartOverlays(props: {
                     <div
                       key={e.key}
                       ref={isArmed ? armedRowRef : undefined}
-                      className={`lg-row${e.hidden ? " is-hidden" : ""}${e.isCompare ? " is-cmp" : ""}${isArmed ? " is-armed" : ""}${e.pineState ? ` ${styles.stateRow}` : ""}`}
+                      className={`lg-row ${styles.focusRow}${e.hidden ? " is-hidden" : ""}${e.isCompare ? " is-cmp" : ""}${isArmed ? " is-armed" : ""}${e.pineState ? ` ${styles.stateRow}` : ""}`}
+                      role="group"
+                      aria-label={e.label}
+                      tabIndex={coarse ? -1 : 0}
                       style={visible
                         ? { background: rowBackground }
                         : { display: "none" }}

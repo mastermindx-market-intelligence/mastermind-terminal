@@ -36,6 +36,15 @@
 .retry:hover { background: color-mix(in srgb, var(--warn) 16%, rgba(6, 9, 14, .8)); }
 .retry:focus-visible { outline: 2px solid var(--warn); outline-offset: 1px; }
 
+.focusRow:focus-visible,
+.focusRow :global(.lg-ic):focus-visible { outline: 2px solid var(--brand-2); outline-offset: 2px; }
+
+/* Keyboard entry reveals the same desktop controls as pointer hover. A row is
+   also a stable focus bridge when its settings button is briefly hidden. */
+@media (hover: hover) {
+  .focusRow:focus-within :global(.lg-ic) { display: inline-flex; }
+}
+
 /* Phone: the chart spans the viewport, and a row carrying a state + Retry is the only legend row
    long enough to reach the 46ch row cap, which on a 390px screen runs under the price scale. End it
    before the scale; the state text ellipsizes first (Retry is flex:none). An armed row keeps its own
