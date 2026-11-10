@@ -54,14 +54,22 @@ report.sourceFiles=Object.fromEntries([
 report.trackedWorkingChanges=execFileSync('git',['diff','--name-only'],{encoding:'utf8'}).trim().split('\n').filter(Boolean);
 let theme='dark',locale='en', browser, child, childClosed, fixture;
 report.authReads=0;
+report.authStatuses={200:0,401:0};
 report.outputOutsideProject=true;
 report.overviewNavigations=[];
-report.reloadDiagnostics={counts:{},events:[]};
+report.reloadDiagnostics={counts:{},events:{},dropped:{}};
 function diagnostic(kind,value){
- const key=kind+':'+String(value.type||value.event||value.reason||'observed').slice(0,80);
- report.reloadDiagnostics.counts[key]=(report.reloadDiagnostics.counts[key]||0)+1;
- if(report.reloadDiagnostics.events.length<128)report.reloadDiagnostics.events.push({at:Date.now(),kind,...value});
+ const key=kind+':'+String(value.event||value.type||value.reason||'observed').slice(0,80);
+ const data=report.reloadDiagnostics;
+ if(!Object.hasOwn(data.counts,key)&&Object.keys(data.counts).length>=48)return;
+ data.counts[key]=(data.counts[key]||0)+1;
+ const events=data.events[key]??=[];
+ const limit=/reload/i.test(key)?20:kind==='console'?24:12;
+ if(events.length<limit)events.push({at:Date.now(),theme,locale,...value});
+ else data.dropped[key]=(data.dropped[key]||0)+1;
 }
+const diagnosticText=(value,limit=512)=>typeof value==='string'?value.slice(0,limit):undefined;
+const diagnosticPath=value=>{try{return new URL(value).pathname;}catch{return diagnosticText(value);}};
 async function observeReloads(ctx,page){
  page.on('console',message=>{
   const text=message.text();
@@ -71,27 +79,31 @@ async function observeReloads(ctx,page){
  page.on('websocket',socket=>{
   const pathname=new URL(socket.url()).pathname;
   if(!['/_next/hmr','/_next/webpack-hmr'].includes(pathname))return;
+  diagnostic('socket',{type:'opened',path:pathname});
+  socket.on('close',()=>diagnostic('socket',{type:'closed',path:pathname}));
+  socket.on('socketerror',error=>diagnostic('socket',{type:'error',path:pathname,error:diagnosticText(String(error),2048)}));
   for(const direction of ['framesent','framereceived'])socket.on(direction,frame=>{
    const payload=frame.payload,bytes=Buffer.byteLength(payload);
    if(typeof payload!=='string'||bytes>1024*1024){diagnostic(direction,{path:pathname,bytes,binary:typeof payload!=='string'});return;}
    try{
     const value=JSON.parse(payload);
-    diagnostic(direction,{path:pathname,bytes,type:value.type,event:value.event,action:value.action,
+    diagnostic(direction,{path:pathname,bytes,type:diagnosticText(value.type),event:diagnosticText(value.event),action:diagnosticText(value.action),
      hmrVersion:value.hmrVersion,dataHmrVersion:value.data?.hmrVersion,sessionId:value.data?.sessionId,
-     resource:value.resource,dataType:value.data?.type,hadRuntimeError:value.hadRuntimeError,
+     resource:diagnosticText(value.resource)||diagnosticText(value.resource?.path),resourcePath:diagnosticText(value.path),
+     dataType:diagnosticText(value.data?.type),hadRuntimeError:value.hadRuntimeError,
      reason:typeof value.reason==='string'?value.reason.slice(0,2048):undefined,
      stackTrace:typeof value.stackTrace==='string'?value.stackTrace.slice(0,4096):undefined,
-     dependencyChain:Array.isArray(value.dependencyChain)?value.dependencyChain.slice(0,8):undefined});
+     dependencyChain:Array.isArray(value.dependencyChain)?value.dependencyChain.slice(0,8).map(item=>diagnosticText(item)):undefined});
    }catch{diagnostic(direction,{path:pathname,bytes,nonJson:true});}
   });
  });
  const protocol=await ctx.newCDPSession(page);
  await protocol.send('Page.enable');await protocol.send('Network.enable');
- protocol.on('Page.frameRequestedNavigation',event=>diagnostic('navigation',{reason:event.reason,path:new URL(event.url).pathname,frameId:event.frameId}));
+ protocol.on('Page.frameRequestedNavigation',event=>diagnostic('navigation',{reason:event.reason,path:diagnosticPath(event.url),frameId:event.frameId}));
  protocol.on('Network.requestWillBeSent',event=>{
   if(event.type!=='Document')return;
-  diagnostic('document',{path:new URL(event.request.url).pathname,redirectStatus:event.redirectResponse?.status,
-   initiator:event.initiator?.type,stack:event.initiator?.stack?.callFrames?.slice(0,8).map(frame=>({functionName:frame.functionName,url:frame.url,lineNumber:frame.lineNumber,columnNumber:frame.columnNumber}))});
+  diagnostic('document',{path:diagnosticPath(event.request.url),redirectStatus:event.redirectResponse?.status,
+   initiator:event.initiator?.type,stack:event.initiator?.stack?.callFrames?.slice(0,8).map(frame=>({functionName:diagnosticText(frame.functionName),path:diagnosticPath(frame.url),lineNumber:frame.lineNumber,columnNumber:frame.columnNumber}))});
  });
 }
 const now = Math.floor(Date.now()/1000);
@@ -113,7 +125,7 @@ async function startFixture(){
   if(req.method==='OPTIONS'){res.writeHead(204).end();return;}
   if(req.method!=='GET'){report.fixtureWrites.push({method:req.method,path:req.url});res.writeHead(405).end('{}');return;}
   const u=new URL(req.url,'http://localhost');
-  if(u.pathname==='/auth/v1/user'){report.authReads++;if(req.headers.authorization!==`Bearer ${token}`){res.writeHead(401).end('{"message":"invalid fixture session"}');return;}res.end(JSON.stringify(user()));return;}
+  if(u.pathname==='/auth/v1/user'){report.authReads++;if(req.headers.authorization!==`Bearer ${token}`){report.authStatuses[401]++;res.writeHead(401).end('{"message":"invalid fixture session"}');return;}report.authStatuses[200]++;res.end(JSON.stringify(user()));return;}
   if(u.pathname==='/api/me'){res.end(JSON.stringify({tier:'pro',features:['terminal_live_options'],status:'active'}));return;}
   if(u.pathname.startsWith('/rest/')){res.end('[]');return;}
   res.writeHead(404).end('{"error":"fixture route absent"}');
