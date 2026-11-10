@@ -1,0 +1,26 @@
+{
+  "schema": "options_isolated_build_copy.v1",
+  "source_root": "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree",
+  "copied_root": "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-final-r4/tree",
+  "source_count": 3128,
+  "source_sha256": "0977c028b60121a51fe62d70ab6feee7e95f17e8b88715c13c082088b94a9fd4",
+  "source_copy_exact": true,
+  "source_profile": "a162 combined5d-based preview with final chart framing, login and evidence repairs",
+  "git_worktree": false,
+  "publisher_target": false,
+  "copy_command": [
+    "/usr/bin/rsync",
+    "-a",
+    "--exclude=.git",
+    "--exclude=.next",
+    "--exclude=node_modules",
+    "--exclude=.env*",
+    "--exclude=test-results",
+    "--exclude=playwright-report",
+    "--exclude=*.tsbuildinfo",
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal/.next/options-completion-preview-0vgroh6i/tree/",
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/production-turbopack-final-r4/tree/"
+  ],
+  "dependencies_within_turbopack_root": true,
+  "created_at": "2026-11-05T10:03:47.130767+00:00"
+}

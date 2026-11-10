@@ -1,0 +1,78 @@
+{
+  "at": "2026-11-10T04:19:54.451858+00:00",
+  "conflicts": [
+    {
+      "file": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml",
+      "resolution": "preserve complete paired Options successor",
+      "selectedBlob": "38d5d854e56d5eaa7703a552ca7921ff6b46d55f"
+    },
+    {
+      "file": "terminal/e2e/tools/capture_ci_evidence.cjs",
+      "resolution": "preserve complete paired Options successor",
+      "selectedBlob": "51956187614f10d745c5a65f62621845d96cac25"
+    },
+    {
+      "file": "terminal/e2e/tools/capture_ci_evidence.test.cjs",
+      "resolution": "preserve complete paired Options successor",
+      "selectedBlob": "cf17c3000659c7395eaa6f32ed704b954d171101"
+    },
+    {
+      "file": "terminal/e2e/tools/optionsExposureEvidence.cjs",
+      "resolution": "preserve complete paired Options successor",
+      "selectedBlob": "4ac52f4d5d310fa5bef6969a4a16b61cd83c7c8f"
+    },
+    {
+      "file": "terminal/e2e/tools/optionsExposureEvidence.d.cts",
+      "resolution": "preserve complete paired Options successor",
+      "selectedBlob": "a7763511d038df738ae8470532a14a056ded9210"
+    },
+    {
+      "file": "terminal/lib/__tests__/helpers/optionsExposureEvidence.ts",
+      "resolution": "preserve complete paired Options successor",
+      "selectedBlob": "5019d116da909447c39e379bd04db531ce2afeec"
+    },
+    {
+      "file": "terminal/lib/__tests__/optionsExposureEvidenceOwner.test.ts",
+      "resolution": "preserve complete paired Options successor",
+      "selectedBlob": "5b588df41230392e1d6954ce36edb2e09358ad04"
+    },
+    {
+      "file": "terminal/scripts/ci/plan-evidence-capture.cjs",
+      "resolution": "preserve complete paired Options successor",
+      "selectedBlob": "0a7847e00f515057b870fa597121953e8e8d0920"
+    },
+    {
+      "file": "terminal/scripts/ci/plan-evidence-capture.test.cjs",
+      "resolution": "preserve complete paired Options successor",
+      "selectedBlob": "3650cdde57d6c4e44ad2ffaf11b8cec63580d2e1"
+    }
+  ],
+  "diffCheckScope": {
+    "historicalLogWhitespacePreserved": [
+      "protected docs/pr-crops/terminal-chart-keyboard-20261109 logs",
+      "prior docs/verification/pr768-options-integration-20261109/product-unit-r1.log"
+    ],
+    "resolvedFiles": ""
+  },
+  "nativeOrBrowserRestamping": false,
+  "obsoleteAutoMergedDeltaRemoved": {
+    "terminal/e2e/tools/capture_ci_evidence.cjs": [
+      "older synchronous EOD timeout/receipt branch referring to removed eodBefore",
+      "duplicate older record.eod capture/qualification following paired native owner"
+    ],
+    "terminal/e2e/tools/capture_ci_evidence.test.cjs": [
+      "older synchronous EOD fake referring to removed writeEod"
+    ]
+  },
+  "prHead": "20c16787dac0655dc874990e7823e5cba2cef9e6",
+  "preservedInputCounts": {
+    "browser": 71,
+    "eod": 32,
+    "gex": 29
+  },
+  "protectedMaster": "33f9224f2b1e68512e38fab33d32c64a0bef6096",
+  "runtimeInputChanges": [],
+  "schema": "terminal_pr768_protected_owner_integration.v1",
+  "sourceTreeBeforeProof": "4a1f3c9161596f8fb520b4acad626315b204d64a",
+  "workflowBlob": "e1d79d2211acb2a29fc1e79dd9a195df96da280d"
+}

@@ -1,0 +1,309 @@
+{
+  "scope": "Disposable local PostgreSQL only; no production proof. Control receipts intentionally expose the generic applier limits.",
+  "receipts": {
+    "first-apply": {
+      "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-upgrade-20261022/supabase/migrations/0040_investigation_review.sql",
+      "sha256": "aaebea44dd4c3ee795f984b9701bb7acafa1a5408513a9ae5ee410314ac564d4",
+      "pre": [
+        {
+          "statement": "with sample as (\n  select jsonb_build_object('schema','investigation_manifest.v2',\n    'intent',jsonb_build_object('title','NVDA \u00b7 230 wall','question','Did NVDA reach the 230 wall before the rotation faded?','subjects','[]'::jsonb),\n    'layout_refs','[]'::jsonb,'thesis_refs','[]'::jsonb,'evidence_refs','[]'::jsonb,'continuation','{}'::jsonb,\n    'review',jsonb_build_object('assessment','inconclusive','fire_event_id',repeat('a',64),'note','the wall held through the session')) as m)\nselect public.valid_investigation_manifest_v2(m) as admits_valid_review,\n       public.valid_investigation_manifest_v2(jsonb_set(m,'{review,assessment}','\"maybe\"',true)) as rejects_invalid_assessment,\n       public.valid_investigation_manifest_v2(jsonb_set(m,'{review,fire_event_id}',to_jsonb(repeat('g',64)),true)) as rejects_malformed_fire_event_id\nfrom sample",
+          "rows": [
+            {
+              "admits_valid_review": false,
+              "rejects_invalid_assessment": false,
+              "rejects_malformed_fire_event_id": false
+            }
+          ]
+        },
+        {
+          "statement": "select p.proname as name, 'function'::text as object_kind,\n       n.nspname as object_schema,\n       pg_get_function_identity_arguments(p.oid) as identity_arguments,\n       pg_get_function_result(p.oid) as result_type,\n       l.lanname as language_name, pg_get_userbyid(p.proowner) as owner_name,\n       p.provolatile as volatility, p.prosecdef as security_definer,\n       p.proconfig as configuration, p.proacl::text as acl,\n       md5(p.prosrc) as body_md5\nfrom pg_proc p\njoin pg_namespace n on n.oid=p.pronamespace\njoin pg_language l on l.oid=p.prolang\nwhere p.oid=to_regprocedure('public.valid_investigation_manifest_v2(jsonb)')",
+          "rows": [
+            {
+              "name": "valid_investigation_manifest_v2",
+              "object_kind": "function",
+              "object_schema": "public",
+              "identity_arguments": "m jsonb",
+              "result_type": "boolean",
+              "language_name": "plpgsql",
+              "owner_name": "postgres",
+              "volatility": "i",
+              "security_definer": false,
+              "configuration": [
+                "search_path=pg_catalog, public"
+              ],
+              "acl": "{postgres=X/postgres,service_role=X/postgres}",
+              "body_md5": "a05be457296d6841844d6981bdff7360"
+            }
+          ]
+        }
+      ],
+      "post": [
+        {
+          "statement": "with sample as (\n  select jsonb_build_object('schema','investigation_manifest.v2',\n    'intent',jsonb_build_object('title','NVDA \u00b7 230 wall','question','Did NVDA reach the 230 wall before the rotation faded?','subjects','[]'::jsonb),\n    'layout_refs','[]'::jsonb,'thesis_refs','[]'::jsonb,'evidence_refs','[]'::jsonb,'continuation','{}'::jsonb,\n    'review',jsonb_build_object('assessment','inconclusive','fire_event_id',repeat('a',64),'note','the wall held through the session')) as m)\nselect public.valid_investigation_manifest_v2(m) as admits_valid_review,\n       public.valid_investigation_manifest_v2(jsonb_set(m,'{review,assessment}','\"maybe\"',true)) as rejects_invalid_assessment,\n       public.valid_investigation_manifest_v2(jsonb_set(m,'{review,fire_event_id}',to_jsonb(repeat('g',64)),true)) as rejects_malformed_fire_event_id\nfrom sample",
+          "rows": [
+            {
+              "admits_valid_review": true,
+              "rejects_invalid_assessment": false,
+              "rejects_malformed_fire_event_id": false
+            }
+          ]
+        },
+        {
+          "statement": "select p.proname as name, 'function'::text as object_kind,\n       n.nspname as object_schema,\n       pg_get_function_identity_arguments(p.oid) as identity_arguments,\n       pg_get_function_result(p.oid) as result_type,\n       l.lanname as language_name, pg_get_userbyid(p.proowner) as owner_name,\n       p.provolatile as volatility, p.prosecdef as security_definer,\n       p.proconfig as configuration, p.proacl::text as acl,\n       md5(p.prosrc) as body_md5\nfrom pg_proc p\njoin pg_namespace n on n.oid=p.pronamespace\njoin pg_language l on l.oid=p.prolang\nwhere p.oid=to_regprocedure('public.valid_investigation_manifest_v2(jsonb)')",
+          "rows": [
+            {
+              "name": "valid_investigation_manifest_v2",
+              "object_kind": "function",
+              "object_schema": "public",
+              "identity_arguments": "m jsonb",
+              "result_type": "boolean",
+              "language_name": "plpgsql",
+              "owner_name": "postgres",
+              "volatility": "i",
+              "security_definer": false,
+              "configuration": [
+                "search_path=pg_catalog, public"
+              ],
+              "acl": "{postgres=X/postgres,service_role=X/postgres}",
+              "body_md5": "16f7838c8e797663d64783cff92fb6ef"
+            }
+          ]
+        }
+      ],
+      "applied_at": "2026-10-22T10:30:03Z",
+      "statements_n": 1,
+      "status": "applied",
+      "project_ref": "isolated-local-fixture",
+      "apply_mode": "statement-at-a-time",
+      "expected_objects": [
+        {
+          "kind": "function",
+          "name": "valid_investigation_manifest_v2"
+        }
+      ],
+      "missing_after": [],
+      "failed_statement_index": null,
+      "error": null,
+      "tool_version": "supabase_apply/1",
+      "readback_excluded": []
+    },
+    "replay": {
+      "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-upgrade-20261022/supabase/migrations/0040_investigation_review.sql",
+      "sha256": "aaebea44dd4c3ee795f984b9701bb7acafa1a5408513a9ae5ee410314ac564d4",
+      "pre": [
+        {
+          "statement": "with sample as (\n  select jsonb_build_object('schema','investigation_manifest.v2',\n    'intent',jsonb_build_object('title','NVDA \u00b7 230 wall','question','Did NVDA reach the 230 wall before the rotation faded?','subjects','[]'::jsonb),\n    'layout_refs','[]'::jsonb,'thesis_refs','[]'::jsonb,'evidence_refs','[]'::jsonb,'continuation','{}'::jsonb,\n    'review',jsonb_build_object('assessment','inconclusive','fire_event_id',repeat('a',64),'note','the wall held through the session')) as m)\nselect public.valid_investigation_manifest_v2(m) as admits_valid_review,\n       public.valid_investigation_manifest_v2(jsonb_set(m,'{review,assessment}','\"maybe\"',true)) as rejects_invalid_assessment,\n       public.valid_investigation_manifest_v2(jsonb_set(m,'{review,fire_event_id}',to_jsonb(repeat('g',64)),true)) as rejects_malformed_fire_event_id\nfrom sample",
+          "rows": [
+            {
+              "admits_valid_review": true,
+              "rejects_invalid_assessment": false,
+              "rejects_malformed_fire_event_id": false
+            }
+          ]
+        },
+        {
+          "statement": "select p.proname as name, 'function'::text as object_kind,\n       n.nspname as object_schema,\n       pg_get_function_identity_arguments(p.oid) as identity_arguments,\n       pg_get_function_result(p.oid) as result_type,\n       l.lanname as language_name, pg_get_userbyid(p.proowner) as owner_name,\n       p.provolatile as volatility, p.prosecdef as security_definer,\n       p.proconfig as configuration, p.proacl::text as acl,\n       md5(p.prosrc) as body_md5\nfrom pg_proc p\njoin pg_namespace n on n.oid=p.pronamespace\njoin pg_language l on l.oid=p.prolang\nwhere p.oid=to_regprocedure('public.valid_investigation_manifest_v2(jsonb)')",
+          "rows": [
+            {
+              "name": "valid_investigation_manifest_v2",
+              "object_kind": "function",
+              "object_schema": "public",
+              "identity_arguments": "m jsonb",
+              "result_type": "boolean",
+              "language_name": "plpgsql",
+              "owner_name": "postgres",
+              "volatility": "i",
+              "security_definer": false,
+              "configuration": [
+                "search_path=pg_catalog, public"
+              ],
+              "acl": "{postgres=X/postgres,service_role=X/postgres}",
+              "body_md5": "16f7838c8e797663d64783cff92fb6ef"
+            }
+          ]
+        }
+      ],
+      "post": [
+        {
+          "statement": "with sample as (\n  select jsonb_build_object('schema','investigation_manifest.v2',\n    'intent',jsonb_build_object('title','NVDA \u00b7 230 wall','question','Did NVDA reach the 230 wall before the rotation faded?','subjects','[]'::jsonb),\n    'layout_refs','[]'::jsonb,'thesis_refs','[]'::jsonb,'evidence_refs','[]'::jsonb,'continuation','{}'::jsonb,\n    'review',jsonb_build_object('assessment','inconclusive','fire_event_id',repeat('a',64),'note','the wall held through the session')) as m)\nselect public.valid_investigation_manifest_v2(m) as admits_valid_review,\n       public.valid_investigation_manifest_v2(jsonb_set(m,'{review,assessment}','\"maybe\"',true)) as rejects_invalid_assessment,\n       public.valid_investigation_manifest_v2(jsonb_set(m,'{review,fire_event_id}',to_jsonb(repeat('g',64)),true)) as rejects_malformed_fire_event_id\nfrom sample",
+          "rows": [
+            {
+              "admits_valid_review": true,
+              "rejects_invalid_assessment": false,
+              "rejects_malformed_fire_event_id": false
+            }
+          ]
+        },
+        {
+          "statement": "select p.proname as name, 'function'::text as object_kind,\n       n.nspname as object_schema,\n       pg_get_function_identity_arguments(p.oid) as identity_arguments,\n       pg_get_function_result(p.oid) as result_type,\n       l.lanname as language_name, pg_get_userbyid(p.proowner) as owner_name,\n       p.provolatile as volatility, p.prosecdef as security_definer,\n       p.proconfig as configuration, p.proacl::text as acl,\n       md5(p.prosrc) as body_md5\nfrom pg_proc p\njoin pg_namespace n on n.oid=p.pronamespace\njoin pg_language l on l.oid=p.prolang\nwhere p.oid=to_regprocedure('public.valid_investigation_manifest_v2(jsonb)')",
+          "rows": [
+            {
+              "name": "valid_investigation_manifest_v2",
+              "object_kind": "function",
+              "object_schema": "public",
+              "identity_arguments": "m jsonb",
+              "result_type": "boolean",
+              "language_name": "plpgsql",
+              "owner_name": "postgres",
+              "volatility": "i",
+              "security_definer": false,
+              "configuration": [
+                "search_path=pg_catalog, public"
+              ],
+              "acl": "{postgres=X/postgres,service_role=X/postgres}",
+              "body_md5": "16f7838c8e797663d64783cff92fb6ef"
+            }
+          ]
+        }
+      ],
+      "applied_at": "2026-10-22T10:30:03Z",
+      "statements_n": 1,
+      "status": "applied",
+      "project_ref": "isolated-local-fixture",
+      "apply_mode": "statement-at-a-time",
+      "expected_objects": [
+        {
+          "kind": "function",
+          "name": "valid_investigation_manifest_v2"
+        }
+      ],
+      "missing_after": [],
+      "failed_statement_index": null,
+      "error": null,
+      "tool_version": "supabase_apply/1",
+      "readback_excluded": []
+    },
+    "missing-catalog-control": {
+      "file": "/private/tmp/pytest-of-chriswong/pytest-3981/test_review_migration_applier_0/0040_investigation_review.sql",
+      "sha256": "9353ef58cf500b91b1f9b029f0249b09151975bc697e267f7182cd8147146287",
+      "pre": [
+        {
+          "statement": "with sample as (\n  select jsonb_build_object('schema','investigation_manifest.v2',\n    'intent',jsonb_build_object('title','NVDA \u00b7 230 wall','question','Did NVDA reach the 230 wall before the rotation faded?','subjects','[]'::jsonb),\n    'layout_refs','[]'::jsonb,'thesis_refs','[]'::jsonb,'evidence_refs','[]'::jsonb,'continuation','{}'::jsonb,\n    'review',jsonb_build_object('assessment','inconclusive','fire_event_id',repeat('a',64),'note','the wall held through the session')) as m)\nselect public.valid_investigation_manifest_v2(m) as admits_valid_review,\n       public.valid_investigation_manifest_v2(jsonb_set(m,'{review,assessment}','\"maybe\"',true)) as rejects_invalid_assessment,\n       public.valid_investigation_manifest_v2(jsonb_set(m,'{review,fire_event_id}',to_jsonb(repeat('g',64)),true)) as rejects_malformed_fire_event_id\nfrom sample",
+          "rows": [
+            {
+              "admits_valid_review": true,
+              "rejects_invalid_assessment": false,
+              "rejects_malformed_fire_event_id": false
+            }
+          ]
+        }
+      ],
+      "post": [
+        {
+          "statement": "with sample as (\n  select jsonb_build_object('schema','investigation_manifest.v2',\n    'intent',jsonb_build_object('title','NVDA \u00b7 230 wall','question','Did NVDA reach the 230 wall before the rotation faded?','subjects','[]'::jsonb),\n    'layout_refs','[]'::jsonb,'thesis_refs','[]'::jsonb,'evidence_refs','[]'::jsonb,'continuation','{}'::jsonb,\n    'review',jsonb_build_object('assessment','inconclusive','fire_event_id',repeat('a',64),'note','the wall held through the session')) as m)\nselect public.valid_investigation_manifest_v2(m) as admits_valid_review,\n       public.valid_investigation_manifest_v2(jsonb_set(m,'{review,assessment}','\"maybe\"',true)) as rejects_invalid_assessment,\n       public.valid_investigation_manifest_v2(jsonb_set(m,'{review,fire_event_id}',to_jsonb(repeat('g',64)),true)) as rejects_malformed_fire_event_id\nfrom sample",
+          "rows": [
+            {
+              "admits_valid_review": true,
+              "rejects_invalid_assessment": false,
+              "rejects_malformed_fire_event_id": false
+            }
+          ]
+        }
+      ],
+      "applied_at": "2026-10-22T10:30:03Z",
+      "statements_n": 1,
+      "status": "failed_readback",
+      "project_ref": "isolated-local-fixture",
+      "apply_mode": "statement-at-a-time",
+      "expected_objects": [
+        {
+          "kind": "function",
+          "name": "valid_investigation_manifest_v2"
+        }
+      ],
+      "missing_after": [
+        "function valid_investigation_manifest_v2"
+      ],
+      "failed_statement_index": null,
+      "error": null,
+      "tool_version": "supabase_apply/1",
+      "readback_excluded": []
+    },
+    "no-op-control": {
+      "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-experience-upgrade-20261022/supabase/migrations/0040_investigation_review.sql",
+      "sha256": "aaebea44dd4c3ee795f984b9701bb7acafa1a5408513a9ae5ee410314ac564d4",
+      "pre": [
+        {
+          "statement": "with sample as (\n  select jsonb_build_object('schema','investigation_manifest.v2',\n    'intent',jsonb_build_object('title','NVDA \u00b7 230 wall','question','Did NVDA reach the 230 wall before the rotation faded?','subjects','[]'::jsonb),\n    'layout_refs','[]'::jsonb,'thesis_refs','[]'::jsonb,'evidence_refs','[]'::jsonb,'continuation','{}'::jsonb,\n    'review',jsonb_build_object('assessment','inconclusive','fire_event_id',repeat('a',64),'note','the wall held through the session')) as m)\nselect public.valid_investigation_manifest_v2(m) as admits_valid_review,\n       public.valid_investigation_manifest_v2(jsonb_set(m,'{review,assessment}','\"maybe\"',true)) as rejects_invalid_assessment,\n       public.valid_investigation_manifest_v2(jsonb_set(m,'{review,fire_event_id}',to_jsonb(repeat('g',64)),true)) as rejects_malformed_fire_event_id\nfrom sample",
+          "rows": [
+            {
+              "admits_valid_review": false,
+              "rejects_invalid_assessment": false,
+              "rejects_malformed_fire_event_id": false
+            }
+          ]
+        },
+        {
+          "statement": "select p.proname as name, 'function'::text as object_kind,\n       n.nspname as object_schema,\n       pg_get_function_identity_arguments(p.oid) as identity_arguments,\n       pg_get_function_result(p.oid) as result_type,\n       l.lanname as language_name, pg_get_userbyid(p.proowner) as owner_name,\n       p.provolatile as volatility, p.prosecdef as security_definer,\n       p.proconfig as configuration, p.proacl::text as acl,\n       md5(p.prosrc) as body_md5\nfrom pg_proc p\njoin pg_namespace n on n.oid=p.pronamespace\njoin pg_language l on l.oid=p.prolang\nwhere p.oid=to_regprocedure('public.valid_investigation_manifest_v2(jsonb)')",
+          "rows": [
+            {
+              "name": "valid_investigation_manifest_v2",
+              "object_kind": "function",
+              "object_schema": "public",
+              "identity_arguments": "m jsonb",
+              "result_type": "boolean",
+              "language_name": "plpgsql",
+              "owner_name": "postgres",
+              "volatility": "i",
+              "security_definer": false,
+              "configuration": [
+                "search_path=pg_catalog, public"
+              ],
+              "acl": "{postgres=X/postgres,service_role=X/postgres}",
+              "body_md5": "a05be457296d6841844d6981bdff7360"
+            }
+          ]
+        }
+      ],
+      "post": [
+        {
+          "statement": "with sample as (\n  select jsonb_build_object('schema','investigation_manifest.v2',\n    'intent',jsonb_build_object('title','NVDA \u00b7 230 wall','question','Did NVDA reach the 230 wall before the rotation faded?','subjects','[]'::jsonb),\n    'layout_refs','[]'::jsonb,'thesis_refs','[]'::jsonb,'evidence_refs','[]'::jsonb,'continuation','{}'::jsonb,\n    'review',jsonb_build_object('assessment','inconclusive','fire_event_id',repeat('a',64),'note','the wall held through the session')) as m)\nselect public.valid_investigation_manifest_v2(m) as admits_valid_review,\n       public.valid_investigation_manifest_v2(jsonb_set(m,'{review,assessment}','\"maybe\"',true)) as rejects_invalid_assessment,\n       public.valid_investigation_manifest_v2(jsonb_set(m,'{review,fire_event_id}',to_jsonb(repeat('g',64)),true)) as rejects_malformed_fire_event_id\nfrom sample",
+          "rows": [
+            {
+              "admits_valid_review": false,
+              "rejects_invalid_assessment": false,
+              "rejects_malformed_fire_event_id": false
+            }
+          ]
+        },
+        {
+          "statement": "select p.proname as name, 'function'::text as object_kind,\n       n.nspname as object_schema,\n       pg_get_function_identity_arguments(p.oid) as identity_arguments,\n       pg_get_function_result(p.oid) as result_type,\n       l.lanname as language_name, pg_get_userbyid(p.proowner) as owner_name,\n       p.provolatile as volatility, p.prosecdef as security_definer,\n       p.proconfig as configuration, p.proacl::text as acl,\n       md5(p.prosrc) as body_md5\nfrom pg_proc p\njoin pg_namespace n on n.oid=p.pronamespace\njoin pg_language l on l.oid=p.prolang\nwhere p.oid=to_regprocedure('public.valid_investigation_manifest_v2(jsonb)')",
+          "rows": [
+            {
+              "name": "valid_investigation_manifest_v2",
+              "object_kind": "function",
+              "object_schema": "public",
+              "identity_arguments": "m jsonb",
+              "result_type": "boolean",
+              "language_name": "plpgsql",
+              "owner_name": "postgres",
+              "volatility": "i",
+              "security_definer": false,
+              "configuration": [
+                "search_path=pg_catalog, public"
+              ],
+              "acl": "{postgres=X/postgres,service_role=X/postgres}",
+              "body_md5": "a05be457296d6841844d6981bdff7360"
+            }
+          ]
+        }
+      ],
+      "applied_at": "2026-10-22T10:30:03Z",
+      "statements_n": 1,
+      "status": "applied",
+      "project_ref": "isolated-local-fixture",
+      "apply_mode": "statement-at-a-time",
+      "expected_objects": [
+        {
+          "kind": "function",
+          "name": "valid_investigation_manifest_v2"
+        }
+      ],
+      "missing_after": [],
+      "failed_statement_index": null,
+      "error": null,
+      "tool_version": "supabase_apply/1",
+      "readback_excluded": []
+    }
+  }
+}

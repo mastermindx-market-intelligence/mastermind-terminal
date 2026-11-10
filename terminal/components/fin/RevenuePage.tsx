@@ -13,6 +13,7 @@
  * Props: {fund, zh}
  */
 import { useState } from "react"
+import styles from "./RevenueBasisControls.module.css"
 import type { Fund, SegmentSeries } from "../../lib/fund"
 import { fmtNum, fmtPct, fmtDate, pick, statementCurrencyLabel } from "../../lib/finFormat"
 import { historySpan, revenueCoverage, revenueHistory } from "../../lib/finStatements"
@@ -221,8 +222,14 @@ function RevenueHistory({ fund, zh }: { fund: Fund; zh?: boolean }) {
       </div>
 
       <div className="fin-stmt-ctrl">
-        <div className="fin-toggle fin-aq">
+        <div
+          className={`fin-toggle fin-aq ${styles.basis}`}
+          role="group"
+          aria-label={pick(!!zh, "Revenue history basis", "营收历史口径")}
+        >
           <button
+            type="button"
+            aria-pressed={aq === "annual"}
             className={aq === "annual" ? "on" : ""}
             onClick={() => setAQ("annual")}
             disabled={!annualAvailable}
@@ -230,6 +237,8 @@ function RevenueHistory({ fund, zh }: { fund: Fund; zh?: boolean }) {
             {pick(!!zh, "Annual", "年度")}
           </button>
           <button
+            type="button"
+            aria-pressed={aq === "quarterly"}
             className={aq === "quarterly" ? "on" : ""}
             onClick={() => setAQ("quarterly")}
             disabled={!interimAvailable}

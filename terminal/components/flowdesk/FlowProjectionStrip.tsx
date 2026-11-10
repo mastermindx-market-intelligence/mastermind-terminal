@@ -30,6 +30,7 @@ export function FlowProjectionStrip({ projection, selectedKey, interval, lang, o
             key={minutes}
             type="button"
             className={`obs-chip${interval === minutes ? " on" : ""}`}
+            aria-pressed={interval === minutes}
             onClick={() => onInterval(minutes)}
           >
             {minutes}m
@@ -39,6 +40,11 @@ export function FlowProjectionStrip({ projection, selectedKey, interval, lang, o
           {projection.validEventCount.toLocaleString("en-US")}
           {pick(zh, " events", " 事件")}
         </span>
+        {projection.invalidIdentityCount > 0 && (
+          <span className="obs-lbl">
+            {projection.invalidIdentityCount} {pick(zh, "invalid event ID", "事件标识无效")}
+          </span>
+        )}
         {projection.invalidTimestampCount > 0 && (
           <span className="obs-lbl">
             {projection.invalidTimestampCount} {pick(zh, "invalid time", "时间无效")}

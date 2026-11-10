@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
+import { workspaceMetadata } from "@/lib/shared-shell/metadata";
 import { createClient } from "@/lib/supabase/server";
+import { isSharedShellDevOpen, SHARED_SHELL_DEV_EMAIL } from "@/lib/shared-shell/devOpen";
 import AlertsCockpitMount from "@/components/alerts/AlertsCockpitMount";
 import AlertsViewMount from "@/components/mounts/AlertsViewMount";
+import AlertBulkManagerMount from "@/components/mounts/AlertBulkManagerMount";
 import SignupGate from "@/components/gates/SignupGate";
 
 // Alerts (Wave-3 IA) — split back out of the former Automate page into its own
@@ -24,12 +27,14 @@ import SignupGate from "@/components/gates/SignupGate";
 // second page-level <main>/`.pg` — this is one page composition, not two mounts
 // stitched together at the page level.
 
-export const metadata: Metadata = { title: "Alerts · Mastermind Terminal" };
+export const metadata: Metadata = workspaceMetadata("Alerts");
 
 function AlertsSurfaces({ email }: { email: string }) {
   return (
     <AlertsCockpitMount email={email}>
       <AlertsViewMount email={email} listOnly />
+      {/* E18: filter, select and pause/resume several alerts, each with its own result. */}
+      <AlertBulkManagerMount email={email} />
     </AlertsCockpitMount>
   );
 }
@@ -38,6 +43,9 @@ export default async function AlertsPage() {
   if (process.env.TERMINAL_E2E_FIXTURE === "1") {
     return <AlertsSurfaces email={process.env.TERMINAL_E2E_EMAIL || "responsive@example.com"} />;
   }
+  // Beta development mode (lib/shared-shell/devOpen.ts): the synthetic dev
+  // identity stands in for the member email, before any auth read.
+  if (isSharedShellDevOpen()) return <AlertsSurfaces email={SHARED_SHELL_DEV_EMAIL} />;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return <SignupGate surface="alerts" />;

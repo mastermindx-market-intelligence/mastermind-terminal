@@ -2,6 +2,7 @@
  * R8 flow projection — deterministic projection over canonical, already-filtered flow events.
  * It creates no second event identity and no scoring authority.
  */
+import { measuredInstant } from "@/components/prophet/optionsAlphaMeasuredEvidence";
 
 export type FlowProjectionIntervalMinutes = 5 | 15 | 30 | 60;
 
@@ -27,9 +28,11 @@ export interface FlowProjectionBucket {
   grossPremium: number;
   callPremium: number;
   putPremium: number;
+  unknownRightPremium: number;
   softBuyPremium: number;
   softSellPremium: number;
   mixedPremium: number;
+  unknownSidePremium: number;
   roots: string[];
 }
 
@@ -37,6 +40,7 @@ export interface FlowProjection {
   intervalMinutes: FlowProjectionIntervalMinutes;
   inputEventCount: number;
   validEventCount: number;
+  invalidIdentityCount: number;
   invalidTimestampCount: number;
   invalidValueCount: number;
   buckets: FlowProjectionBucket[];
@@ -44,8 +48,47 @@ export interface FlowProjection {
 
 function validMagnitude(event: FlowProjectionSource): boolean {
   return Number.isFinite(event.premium) && event.premium >= 0
-    && Number.isFinite(event.size) && event.size >= 0
-    && Number.isFinite(event.n_prints) && event.n_prints >= 0;
+    && Number.isInteger(event.size) && event.size >= 0
+    && Number.isInteger(event.n_prints) && event.n_prints >= 0;
+}
+
+function normalizedIdentity(id: unknown): id is string {
+  return typeof id === "string" && id.length > 0 && id === id.trim();
+}
+
+/** One admission policy for metrics and drill-down; the unselected Tape stays intact. */
+function admittedMembers<T extends FlowProjectionSource>(events: readonly T[]) {
+  const occurrences = new Map<string, number>();
+  for (const event of events) {
+    if (normalizedIdentity(event.id)) {
+      occurrences.set(event.id, (occurrences.get(event.id) ?? 0) + 1);
+    }
+  }
+  const members: { event: T; tsMs: number }[] = [];
+  let invalidIdentityCount = 0;
+  let invalidTimestampCount = 0;
+  let invalidValueCount = 0;
+  for (const event of events) {
+    // Exclusive row counts: identity first, then clock, then magnitude. Count
+    // duplicates before other admission so a malformed copy cannot choose a winner.
+    if (!normalizedIdentity(event.id) || occurrences.get(event.id) !== 1) {
+      invalidIdentityCount += 1;
+      continue;
+    }
+    const instant = typeof event.ts === "string" ? measuredInstant(event.ts) : null;
+    if (!instant) {
+      invalidTimestampCount += 1;
+      continue;
+    }
+    if (!validMagnitude(event)) {
+      invalidValueCount += 1;
+      continue;
+    }
+    // Minute boundaries do not need to discard or round the original wire clock.
+    // The shared parser's whole second assigns its interval; the event stays exact.
+    members.push({ event, tsMs: instant.secondMs });
+  }
+  return { members, invalidIdentityCount, invalidTimestampCount, invalidValueCount };
 }
 
 export function flowProjectionBucketKey(
@@ -60,20 +103,9 @@ export function buildFlowProjection<T extends FlowProjectionSource>(
   events: readonly T[],
   intervalMinutes: FlowProjectionIntervalMinutes,
 ): FlowProjection {
+  const admitted = admittedMembers(events);
   const byStart = new Map<number, T[]>();
-  let invalidTimestampCount = 0;
-  let invalidValueCount = 0;
-
-  for (const event of events) {
-    const tsMs = Date.parse(event.ts);
-    if (!Number.isFinite(tsMs)) {
-      invalidTimestampCount += 1;
-      continue;
-    }
-    if (!validMagnitude(event)) {
-      invalidValueCount += 1;
-      continue;
-    }
+  for (const { event, tsMs } of admitted.members) {
     const startMs = flowProjectionBucketKey(tsMs, intervalMinutes);
     const bucket = byStart.get(startMs);
     if (bucket) bucket.push(event);
@@ -94,9 +126,11 @@ export function buildFlowProjection<T extends FlowProjectionSource>(
       let grossPremium = 0;
       let callPremium = 0;
       let putPremium = 0;
+      let unknownRightPremium = 0;
       let softBuyPremium = 0;
       let softSellPremium = 0;
       let mixedPremium = 0;
+      let unknownSidePremium = 0;
 
       for (const event of ordered) {
         roots.add(event.root);
@@ -104,10 +138,12 @@ export function buildFlowProjection<T extends FlowProjectionSource>(
         contractCount += event.size;
         grossPremium += event.premium;
         if (event.right === "C") callPremium += event.premium;
-        else putPremium += event.premium;
+        else if (event.right === "P") putPremium += event.premium;
+        else unknownRightPremium += event.premium;
         if (event.side === "~buy") softBuyPremium += event.premium;
         else if (event.side === "~sell") softSellPremium += event.premium;
-        else mixedPremium += event.premium;
+        else if (event.side === "mixed") mixedPremium += event.premium;
+        else unknownSidePremium += event.premium;
       }
 
       return {
@@ -121,9 +157,11 @@ export function buildFlowProjection<T extends FlowProjectionSource>(
         grossPremium,
         callPremium,
         putPremium,
+        unknownRightPremium,
         softBuyPremium,
         softSellPremium,
         mixedPremium,
+        unknownSidePremium,
         roots: [...roots].sort(),
       };
     });
@@ -131,9 +169,10 @@ export function buildFlowProjection<T extends FlowProjectionSource>(
   return {
     intervalMinutes,
     inputEventCount: events.length,
-    validEventCount: events.length - invalidTimestampCount - invalidValueCount,
-    invalidTimestampCount,
-    invalidValueCount,
+    validEventCount: admitted.members.length,
+    invalidIdentityCount: admitted.invalidIdentityCount,
+    invalidTimestampCount: admitted.invalidTimestampCount,
+    invalidValueCount: admitted.invalidValueCount,
     buckets,
   };
 }
@@ -143,6 +182,11 @@ export function selectFlowProjectionBucket<T extends FlowProjectionSource>(
   bucket: FlowProjectionBucket | null,
 ): T[] {
   if (!bucket) return [...events];
+  const startMs = Date.parse(bucket.start);
+  const endMs = Date.parse(bucket.end);
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) return [];
   const ids = new Set(bucket.eventIds);
-  return events.filter((event) => ids.has(event.id));
+  return admittedMembers(events).members
+    .filter(({ event, tsMs }) => ids.has(event.id) && tsMs >= startMs && tsMs < endMs)
+    .map(({ event }) => event);
 }

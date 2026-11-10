@@ -1,0 +1,48 @@
+[dev] ✓ Ready in 322ms
+[warmup] /terminal?symbol=NVDA → 200 in 71ms
+[warmup] /options → 200 in 126ms
+[warmup] /portfolio → 200 in 133ms
+[warmup] /alerts → 200 in 69ms
+[warmup] /analysis → 200 in 126ms
+[warmup] /discover → 200 in 84ms
+[warmup] /admin → 200 in 43ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 36ms
+[warmup] /login → 200 in 53ms
+[warmup] /reset-password → 200 in 64ms
+[warmup] /api/me → 200 in 55ms
+[warmup] /api/watchlist → 200 in 29ms
+[warmup] /api/layouts → 200 in 24ms
+[warmup] /api/watchlist/annotations → 409 in 23ms
+[warmup] 14 routes compiled in 1s
+[fixture-ready] prophet_idx fixture 200 in 114ms
+capture DiscoverLeaders-1440.png … ok
+capture OptionsHubView-1440.png … ok
+capture SearchModal-1440.png … ok
+capture StockAnalysis-1440.png … ok
+capture AnalysisWorkspace-1440.png … ok
+capture ChartChrome-1440.png … ok
+capture DiscoverLeaders-1440-zh.png … ok
+capture OptionsHubView-1440-zh.png … ok
+capture SearchModal-1440-zh.png … ok
+capture StockAnalysis-1440-zh.png … ok
+capture AnalysisWorkspace-1440-zh.png … ok
+capture ChartChrome-1440-zh.png … ok
+capture DiscoverLeaders-390.png … ok
+capture OptionsHubView-390.png … ok
+capture SearchModal-390.png … ok
+capture StockAnalysis-390.png … ok
+capture AnalysisWorkspace-390.png … ok
+capture ChartChrome-390.png … ok
+capture DiscoverLeaders-390-zh.png … ok
+capture OptionsHubView-390-zh.png … ok
+capture SearchModal-390-zh.png … ok
+capture StockAnalysis-390-zh.png … ok
+capture AnalysisWorkspace-390-zh.png … ok
+capture ChartChrome-390-zh.png … ok
+{
+  "sourceHead": "9aa40ffb0b640afeac794d6fa2ca0aaf61d4d3e4",
+  "captures": 5,
+  "allPass": true
+}
+{"optionsEvidence":{"captureId":"ci-20261109190632-1-options","capturedAtHead":"9aa40ffb0b640afeac794d6fa2ca0aaf61d4d3e4","manifestSha256":"53dd2d03521fbaaae0caf47c704f793d89e2a2f6ea7f48cdc4e4b6ac70564b31","files":[{"file":"desktop.png","sha256":"1d0e1442a38a4ef0b044b6815082a2da4bf7bb7f5186257894d330fed10bae44"},{"file":"tablet.png","sha256":"fc809f39562c7773a2ab2c9e1235584859c51cf6d1e4cfcafdf43a0895718e00"},{"file":"mobile.png","sha256":"bb9920d5622becd873b43513e968c712f1820681c6ed0cde610b32db80bd1700"},{"file":"desktop-left-percentage.png","sha256":"635f14ce7360baf492f29fc1a28c89664f858b9745afd2d3394b3847116ebae3"},{"file":"desktop-compact.png","sha256":"fec0ead8f7702635a90360d0003d132d3c053c8f362734fcbd26a4f131b9fe0b"}]}}
+{"visualEvidence":"terminal/docs/pr-crops/b-pl-6-batch-1/ci-20261109190632-1-pl6--operation.json","sha256":"aa59f30246adb12bd2aecf066fe71aceb610f6b888ce8fc941637e6f9476c6ec","actualCases":24}

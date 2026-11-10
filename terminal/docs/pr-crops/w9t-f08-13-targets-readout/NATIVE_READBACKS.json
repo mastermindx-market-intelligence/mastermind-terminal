@@ -1,0 +1,269 @@
+{
+  "capturedAtHead": "80e69c39e00b6c16c5fc32b5ca1e9146d31b264d",
+  "readbacks": [
+    {
+      "file": "PortfolioTargetsSettings-empty-390-en.png",
+      "positions": {
+        "positions": [],
+        "bookKey": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": null,
+          "costGap": null,
+          "targetsSumPct": null,
+          "targetsSumOffBy100": null,
+          "drifts": [],
+          "untargeted": [],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "file": "PortfolioTargetsSettings-empty-390-zh.png",
+      "positions": {
+        "positions": [],
+        "bookKey": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": null,
+          "costGap": null,
+          "targetsSumPct": null,
+          "targetsSumOffBy100": null,
+          "drifts": [],
+          "untargeted": [],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "file": "PortfolioTargetsSettings-empty-1440-en.png",
+      "positions": {
+        "positions": [],
+        "bookKey": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": null,
+          "costGap": null,
+          "targetsSumPct": null,
+          "targetsSumOffBy100": null,
+          "drifts": [],
+          "untargeted": [],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "file": "PortfolioTargetsSettings-empty-1440-zh.png",
+      "positions": {
+        "positions": [],
+        "bookKey": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": null,
+          "costGap": null,
+          "targetsSumPct": null,
+          "targetsSumOffBy100": null,
+          "drifts": [],
+          "untargeted": [],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "file": "PortfolioTargetsSettings-populated-390-en.png",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-09T14:24:16.153Z"
+          }
+        ],
+        "bookKey": "d798e5e2f86ba66a18d8090c17ceb73195e4e712796209c9783d1e92dd0c58b2"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": 60,
+          "targetsSumOffBy100": -40,
+          "drifts": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "currentWeightPct": 100,
+              "targetWeightPct": 60,
+              "bandPct": 10,
+              "driftPct": 40,
+              "status": "outside_band"
+            }
+          ],
+          "untargeted": [],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "d798e5e2f86ba66a18d8090c17ceb73195e4e712796209c9783d1e92dd0c58b2"
+      }
+    },
+    {
+      "file": "PortfolioTargetsSettings-populated-390-zh.png",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-09T14:24:25.717Z"
+          }
+        ],
+        "bookKey": "d0f192ac00973d618dd33ea22940098d86c77953d07a845083bb14cf7df2cc7c"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": 60,
+          "targetsSumOffBy100": -40,
+          "drifts": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "currentWeightPct": 100,
+              "targetWeightPct": 60,
+              "bandPct": 10,
+              "driftPct": 40,
+              "status": "outside_band"
+            }
+          ],
+          "untargeted": [],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "d0f192ac00973d618dd33ea22940098d86c77953d07a845083bb14cf7df2cc7c"
+      }
+    },
+    {
+      "file": "PortfolioTargetsSettings-populated-1440-en.png",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-09T14:24:33.540Z"
+          }
+        ],
+        "bookKey": "7ecd9bcb948b9f197060185b21a2a59fd7368f11366e6c563df0d581689b0920"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": 60,
+          "targetsSumOffBy100": -40,
+          "drifts": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "currentWeightPct": 100,
+              "targetWeightPct": 60,
+              "bandPct": 10,
+              "driftPct": 40,
+              "status": "outside_band"
+            }
+          ],
+          "untargeted": [],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "7ecd9bcb948b9f197060185b21a2a59fd7368f11366e6c563df0d581689b0920"
+      }
+    },
+    {
+      "file": "PortfolioTargetsSettings-populated-1440-zh.png",
+      "positions": {
+        "positions": [
+          {
+            "id": "portfolio_positions-1",
+            "ticker": "NVDA",
+            "shares": 100,
+            "entryPrice": 200,
+            "entryCurrency": "USD",
+            "entryDate": null,
+            "notes": null,
+            "status": "open",
+            "createdAt": "2026-11-09T14:24:44.123Z"
+          }
+        ],
+        "bookKey": "bcf59ab361a6c06c848c93d8928c25a3b1a663fe0234fc438b2c8f9bcd5820a1"
+      },
+      "targetRead": {
+        "summary": {
+          "schema": "portfolio_targets.v1",
+          "weightBasis": "cost",
+          "costCurrency": "USD",
+          "costGap": null,
+          "targetsSumPct": 60,
+          "targetsSumOffBy100": -40,
+          "drifts": [
+            {
+              "ticker": "NVDA",
+              "roleLabel": null,
+              "currentWeightPct": 100,
+              "targetWeightPct": 60,
+              "bandPct": 10,
+              "driftPct": 40,
+              "status": "outside_band"
+            }
+          ],
+          "untargeted": [],
+          "orphaned": [],
+          "roleLabelsAvailable": true
+        },
+        "bookKey": "bcf59ab361a6c06c848c93d8928c25a3b1a663fe0234fc438b2c8f9bcd5820a1"
+      }
+    }
+  ]
+}

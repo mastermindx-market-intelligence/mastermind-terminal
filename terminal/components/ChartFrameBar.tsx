@@ -1,15 +1,25 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import { type IChartApi, PriceScaleMode } from "lightweight-charts";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import type { ChartEngine } from "@/lib/chart-engine/api";
+import { EnginePriceScaleMode } from "@/lib/chart-engine";
 import { DEFAULT_CHART_RIGHT_OFFSET, withChartFutureOffset } from "@/lib/chart-engine/viewReset";
+import { isOvernightTimeframe } from "@/lib/liveCandle";
 import { isIntradayTf } from "@/lib/intradaySources";
 import { VISUAL_INTELLIGENCE_DEFAULTS, type VisualIntelligenceSettings } from "@/lib/visualIntelligence";
-import { useT } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
+import { boatsChartCopy } from "@/lib/extQuoteCopy";
+import { pick } from "@/lib/finFormat";
+import { hasOpenModal, isTextEntryElement } from "@/lib/commandPalette/catalog";
+import overnightStyles from "./ChartOvernight.module.css";
+import quickSettingsStyles from "./ChartQuickSettings.module.css";
+import gotoStyles from "./ChartGotoDate.module.css";
+import DataOriginChip from "@/components/DataOriginChip";
+import type { DataOrigin } from "@/lib/dataOrigin";
 
 // Chart scale/display settings persisted alongside user prefs (key: mm.chartSettings).
 export type ChartSettings = {
   // Scales and lines
-  mode: PriceScaleMode;        // Normal=0, Log=1, Percent=2, IndexedTo100=3
+  mode: EnginePriceScaleMode;        // Normal=0, Log=1, Percent=2, IndexedTo100=3
   invertScale: boolean;
   scaleLeft: boolean;          // move price scale to left
   autoScale: boolean;
@@ -61,6 +71,7 @@ export type ChartSettings = {
   paneButtons: "always" | "hover" | "never";
   // Extended hours (intraday only)
   extHours: boolean;
+  overnightHours: boolean;
   extendedLineVisible: boolean;
   preMarketColor: string;
   postMarketColor: string;
@@ -68,7 +79,7 @@ export type ChartSettings = {
 } & VisualIntelligenceSettings;
 export const DEFAULT_CHART_SETTINGS: ChartSettings = {
   ...VISUAL_INTELLIGENCE_DEFAULTS,
-  mode: PriceScaleMode.Normal,
+  mode: EnginePriceScaleMode.Normal,
   invertScale: false,
   scaleLeft: false,
   autoScale: true,
@@ -119,6 +130,7 @@ export const DEFAULT_CHART_SETTINGS: ChartSettings = {
   watermarkColor: "",
   paneButtons: "hover",
   extHours: false,
+  overnightHours: false,
   extendedLineVisible: true,
   preMarketColor: "#ff9800",
   postMarketColor: "#2962ff",
@@ -141,7 +153,7 @@ function addYears(base: Date, n: number): Date { const d = new Date(base); d.set
 // newest candle pinned it to the right edge with nothing to draw into.
 function applyRange(
   key: RangeKey,
-  chartApi: IChartApi,
+  chartApi: ChartEngine,
   isIntraday: boolean,
   rightOffsetBars = DEFAULT_CHART_RIGHT_OFFSET,
 ): void {
@@ -160,7 +172,7 @@ function applyRange(
       // Re-anchor at the newest bar even when the user had panned away, then let
       // the configured rightOffset supply the future-time gutter.
       ts.applyOptions({ rightOffset: gutter });
-      ts.scrollToRealTime();
+      ts.scrollToRealtime();
       const logRange = ts.getVisibleLogicalRange();
       const to = (logRange?.to ?? 0) as number;
       const barCount = key === "1D" ? barsPerDay : key === "5D" ? barsPerDay * 5 : barsPerDay * 20;
@@ -206,32 +218,56 @@ function fmtHHMMSS(d: Date): string {
 type SubMenu = "labels" | "lines" | null;
 
 export default function ChartFrameBar({
+  isActive = true,
   timeframe,
   chartApi,
   settings,
   onSettings,
   onOpenSettingsModal,
   extendedEligible = false,
+  openGotoRequest = 0,
+  symbol,
+  dataOrigin,
+  tradingCurrency,
 }: {
+  /** Global keys belong to the selected pane; direct controls remain pane-local. */
+  isActive?: boolean;
   timeframe: string;
-  chartApi: IChartApi | null;
+  chartApi: ChartEngine | null;
   settings: ChartSettings;
   onSettings: (patch: Partial<ChartSettings>) => void;
   onOpenSettingsModal?: (tab?: string) => void;
   extendedEligible?: boolean;
+  /** Bumped by the chart pane when the command palette asks for this chart's go-to-date box:
+   *  each new value opens the same popover the calendar button opens. */
+  openGotoRequest?: number;
+  /** Data OS U02: the mounted chart's symbol + its derived origin readout (drives the origin chip). */
+  symbol?: string;
+  dataOrigin?: DataOrigin | null;
+  /** B1: this listing's trading currency from the fund document (exact ticker + explicit
+   *  3-letter quote_currency), or null while unknown — the chip then says so explicitly
+   *  instead of guessing from the ticker suffix or the statement currency. */
+  tradingCurrency?: string | null;
 }) {
   const t = useT();
+  const { lang } = useLang();
   // Client-only clock: render nothing until mounted to avoid SSR/hydration mismatch.
   // The server renders at server-local time; the client's timezone may differ completely.
   const [mounted, setMounted] = useState(false);
-  const [clock, setClock] = useState("");
-  const [tzLabel, setTzLabel] = useState("");
+  const clockRef = useRef<HTMLSpanElement>(null);
+  const tzRef = useRef<HTMLSpanElement>(null);
   const [gearOpen, setGearOpen] = useState(false);
   const [subMenu, setSubMenu] = useState<SubMenu>(null);
   const [gotoOpen, setGotoOpen] = useState(false);
   const [gotoDate, setGotoDate] = useState("");
   const gearRef = useRef<HTMLDivElement>(null);
+  const gearButtonRef = useRef<HTMLButtonElement>(null);
+  const gearMenuRef = useRef<HTMLDivElement>(null);
+  const quickSettingsId = useId();
   const gotoRef = useRef<HTMLInputElement>(null);
+  const gotoHostRef = useRef<HTMLDivElement>(null);
+  const gotoButtonRef = useRef<HTMLButtonElement>(null);
+  const gotoId = useId();
   // C8/CHART-08b — the native shell swaps the settings glyph for TV's hexagon nut. Read after mount
   // (the marker is stamped pre-paint on <html>, but this component is SSR'd) so the server output —
   // and therefore the whole browser web render — stays byte-identical under L2.
@@ -239,19 +275,28 @@ export default function ChartFrameBar({
 
   const isIntraday = isIntradayTf(timeframe);
 
-  // Client-only mount gate: set initial clock + tz label, then tick every second.
-  // Nothing is rendered until mounted=true, preventing SSR time from leaking in.
+  // Client-only mount gate: nothing is rendered until mounted=true, preventing SSR time from
+  // leaking in.
   useEffect(() => {
-    setClock(fmtHHMMSS(new Date()));
-    setTzLabel(utcOffsetLabel());
     setMounted(true);
     setShellMode(document.documentElement.getAttribute("data-shell") === "app");
-    const id = setInterval(() => {
-      setClock(fmtHHMMSS(new Date()));
-      setTzLabel(utcOffsetLabel());
-    }, 1000);
-    return () => clearInterval(id);
   }, []);
+  // The once-a-second tick writes the clock text straight into its spans instead of React state.
+  // A 1 Hz setState re-renders at Default priority, and in an English boot the /terminal route
+  // boundary hydrates at Offscreen priority, so its mount effects queue Idle-lane updates that a
+  // ~1 s TerminalShell render must finish to clear. Every tick interrupted that render and React
+  // restarted it, which kept the main thread busy with one long task per second indefinitely.
+  // Layout effect: the first paint after mount already shows the time.
+  useLayoutEffect(() => {
+    if (!mounted) return;
+    const paint = () => {
+      if (clockRef.current) clockRef.current.textContent = fmtHHMMSS(new Date());
+      if (tzRef.current) tzRef.current.textContent = utcOffsetLabel();
+    };
+    paint();
+    const id = setInterval(paint, 1000);
+    return () => clearInterval(id);
+  }, [mounted]);
 
   // Close gear popup when clicking outside
   useEffect(() => {
@@ -266,11 +311,16 @@ export default function ChartFrameBar({
     return () => window.removeEventListener("mousedown", h);
   }, [gearOpen]);
 
+  useEffect(() => {
+    if (gearOpen) gearMenuRef.current?.querySelector<HTMLButtonElement>("button:not(:disabled)")?.focus();
+  }, [gearOpen]);
+
   // Keyboard shortcuts:
   //   ⌥I invert, ⌥P percent, ⌥L log (existing, unchanged),
   //   ←/→ pan (Shift = larger step), +/- zoom (TradingView-standard chart nav).
   // All guarded against typing contexts.
   useEffect(() => {
+    if (!isActive) return;
     // Pan/zoom the visible logical range. `frac` is signed for pan (fraction of visible
     // width to shift; +right/-left), and a magnitude for zoom around the range center.
     const panBy = (frac: number) => {
@@ -297,11 +347,12 @@ export default function ChartFrameBar({
     };
 
     const h = (e: KeyboardEvent) => {
-      const tgt = e.target as HTMLElement | null;
-      const tag = tgt?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return;
-      if (e.isComposing) return;
-      if (tgt?.isContentEditable) return;
+      if (e.defaultPrevented || e.isComposing || e.keyCode === 229 || e.ctrlKey || e.metaKey) return;
+      const target = e.target instanceof Element ? e.target : null;
+      const active = document.activeElement;
+      if (isTextEntryElement(target) || isTextEntryElement(active) || hasOpenModal(document)) return;
+      const controls = 'button, a, dialog, [role="button"], [role="link"], [role="tab"], [role="dialog"], [role="menu"], [role="listbox"], [role="slider"], [role="spinbutton"]';
+      if (target?.closest(controls) || active?.closest(controls)) return;
 
       // Existing ⌥-bindings (invert / percent / log) — unchanged.
       if (e.altKey) {
@@ -310,31 +361,12 @@ export default function ChartFrameBar({
           onSettings({ invertScale: !settings.invertScale });
         } else if (e.key === "p" || e.key === "P") {
           e.preventDefault();
-          onSettings({ mode: settings.mode === PriceScaleMode.Percentage ? PriceScaleMode.Normal : PriceScaleMode.Percentage });
+          onSettings({ mode: settings.mode === EnginePriceScaleMode.Percentage ? EnginePriceScaleMode.Normal : EnginePriceScaleMode.Percentage });
         } else if (e.key === "l" || e.key === "L") {
           e.preventDefault();
-          onSettings({ mode: settings.mode === PriceScaleMode.Logarithmic ? PriceScaleMode.Normal : PriceScaleMode.Logarithmic });
+          onSettings({ mode: settings.mode === EnginePriceScaleMode.Logarithmic ? EnginePriceScaleMode.Normal : EnginePriceScaleMode.Logarithmic });
         }
         return;
-      }
-
-      // Chart-nav keys: reject ctrl/meta/alt combos so ⌥-bindings + browser shortcuts stay
-      // untouched (Shift is the only permitted modifier, and only for the arrows).
-      if (e.ctrlKey || e.metaKey) return;
-
-      // Yield to focused controls / open modals so this window-level (bubble) listener does
-      // not double-fire with element-scoped arrow handlers. WorkspaceTabs' roving-tab arrows
-      // (its focused <button> is document.activeElement) and the tutorial coach dialog
-      // (aria-modal) are the two real bubble collisions; both are covered here.
-      const active = document.activeElement as HTMLElement | null;
-      if (active && active !== document.body) {
-        const atag = active.tagName;
-        if (
-          atag === "INPUT" || atag === "TEXTAREA" || atag === "SELECT" ||
-          atag === "BUTTON" || atag === "A" ||
-          active.isContentEditable ||
-          active.closest('[aria-modal="true"], [role="tab"], [role="dialog"]')
-        ) return;
       }
 
       switch (e.key) {
@@ -363,12 +395,36 @@ export default function ChartFrameBar({
     };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
-  }, [settings, onSettings, chartApi]);
+  }, [isActive, settings, onSettings, chartApi]);
 
-  // Go-to-date: focus the input when it opens
+  // Only a NEW request opens the box: the value present at mount (a remount after an earlier
+  // request) is not one.
+  const handledGotoRequest = useRef(openGotoRequest);
   useEffect(() => {
-    if (gotoOpen) setTimeout(() => gotoRef.current?.focus(), 50);
+    if (openGotoRequest === handledGotoRequest.current) return;
+    handledGotoRequest.current = openGotoRequest;
+    setGotoOpen(true);
+  }, [openGotoRequest]);
+
+  // The input is mounted before layout effects run. Focus immediately, without an
+  // uncancelled delayed callback that could reclaim a newer interaction.
+  useLayoutEffect(() => {
+    if (gotoOpen) gotoRef.current?.focus({ preventScroll: true });
   }, [gotoOpen]);
+
+  useEffect(() => {
+    if (!gotoOpen) return;
+    const outside = (event: PointerEvent) => {
+      if (event.target instanceof Node && !gotoHostRef.current?.contains(event.target)) setGotoOpen(false);
+    };
+    document.addEventListener("pointerdown", outside);
+    return () => document.removeEventListener("pointerdown", outside);
+  }, [gotoOpen]);
+
+  function closeGoto() {
+    setGotoOpen(false);
+    gotoButtonRef.current?.focus({ preventScroll: true });
+  }
 
   function applyGotoDate() {
     if (!chartApi || !gotoDate) return;
@@ -387,13 +443,13 @@ export default function ChartFrameBar({
         ts.setVisibleRange({ from: from as any, to: to as any });
       }
     } catch {}
-    setGotoOpen(false);
+    closeGoto();
   }
 
   const s = settings;
 
   return (
-    <div className="chart-frame-bar">
+    <div className={`chart-frame-bar ${overnightStyles.frameBar} ${gotoStyles.frame}`}>
       {/* LEFT: range buttons + go-to-date */}
       <div className="cfb-left">
         {RANGE_KEYS.map((rk) => (
@@ -403,24 +459,38 @@ export default function ChartFrameBar({
             onClick={() => chartApi && applyRange(rk, chartApi, isIntraday, s.rightOffsetBars)}
           >{rk}</button>
         ))}
-        <div style={{ position: "relative" }}>
-          <button className="cfb-cal" title={t("gotoDate")} onClick={(e) => { e.stopPropagation(); setGotoOpen((o) => !o); }}>
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4">
+        <div ref={gotoHostRef} style={{ position: "relative" }}
+          onBlur={(e) => { if (e.relatedTarget instanceof Node && !e.currentTarget.contains(e.relatedTarget)) setGotoOpen(false); }}
+          onKeyDown={(e) => {
+            if (gotoOpen && e.key === "Escape" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
+              e.preventDefault(); e.stopPropagation(); closeGoto();
+            }
+          }}>
+          <button ref={gotoButtonRef} type="button" className={`cfb-cal ${gotoStyles.trigger}`} title={t("gotoDate")} aria-label={t("gotoDate")}
+            aria-expanded={gotoOpen} aria-controls={gotoOpen ? gotoId : undefined} aria-haspopup="dialog"
+            onClick={(e) => { e.stopPropagation(); if (gotoOpen) closeGoto(); else setGotoOpen(true); }}>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
               <rect x="1.5" y="2.5" width="13" height="12" rx="1.5" />
               <path d="M1.5 6h13M5 1.5v2M11 1.5v2" />
             </svg>
           </button>
           {gotoOpen && (
-            <div className="cfb-goto-pop" onClick={(e) => e.stopPropagation()}>
+            <div id={gotoId} className={`cfb-goto-pop ${gotoStyles.popup}`} role="dialog" aria-label={t("gotoDate")}
+              onClick={(e) => e.stopPropagation()}>
               <input
                 ref={gotoRef}
                 type="date"
                 className="cfb-date-input"
+                aria-label={t("gotoDate")}
                 value={gotoDate}
                 onChange={(e) => setGotoDate(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") applyGotoDate(); if (e.key === "Escape") setGotoOpen(false); }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
+                    e.preventDefault(); applyGotoDate();
+                  }
+                }}
               />
-              <button className="cfb-goto-go" onClick={applyGotoDate}>{t("go")}</button>
+              <button type="button" className="cfb-goto-go" disabled={!chartApi || !gotoDate} onClick={applyGotoDate}>{t("go")}</button>
             </div>
           )}
         </div>
@@ -430,24 +500,59 @@ export default function ChartFrameBar({
       <div className="cfb-right">
         {mounted && (
           <span className="cfb-clock num">
-            {clock} <span className="cfb-tz">{tzLabel}</span>
+            <span ref={clockRef} /> <span ref={tzRef} className="cfb-tz" />
           </span>
         )}
         {/* ETH chip — active when on; muted+non-interactive on daily TFs (no tooltip per spec) */}
         <button
-          className={`cfb-chip${s.extHours && extendedEligible ? " on" : ""}${!isIntraday || !extendedEligible ? " dis" : ""}`}
+          className={`cfb-chip${s.extHours && extendedEligible && isIntraday ? " on" : ""}${!isIntraday || !extendedEligible ? " dis" : ""}`}
           disabled={!isIntraday || !extendedEligible}
-          onClick={() => isIntraday && extendedEligible && onSettings({ extHours: !s.extHours })}
+          onClick={() => isIntraday && extendedEligible && onSettings({ extHours: !s.extHours, overnightHours: false })}
           title={isIntraday && extendedEligible ? (s.extHours ? t("ethOff") : t("ethOn")) : undefined}
           aria-label={t("cfbExtendedHours")}
+          aria-pressed={!!(s.extHours && extendedEligible && isIntraday)}
         >ETH</button>
-        {/* ADJ chip — always passive (display-only; we only serve adjusted data) */}
-        <span className="cfb-chip cfb-chip-adj" title={t("adjTip")}>ADJ</span>
+        {extendedEligible && isOvernightTimeframe(timeframe) && <button className={`cfb-chip${s.overnightHours ? " on" : ""}`}
+          onClick={() => onSettings({ overnightHours: !s.overnightHours, ...(!s.overnightHours ? { extHours: true } : {}) })}
+          aria-label={boatsChartCopy(lang).label} aria-pressed={!!s.overnightHours} title={boatsChartCopy(lang).coverage}>24H</button>}
+        {/* Data OS U02 — the origin chip replaces the static ADJ span: label and explanation are
+            derived from the OHLC file's view contract, never a hardcoded claim. */}
+        <DataOriginChip symbol={symbol} origin={dataOrigin ?? null} />
+        {/* B1 — the trading-currency chip sits beside origin: the fund document's quote_currency
+            for THIS exact listing, or an explicit "CCY?" while unknown. A neutral cfb-chip span
+            reuses the frame bar's existing styling — no new CSS, colors or design system. */}
+        <span
+          className="cfb-chip"
+          data-testid="cfb-currency"
+          aria-label={tradingCurrency
+            ? pick(lang === "zh", `Trading currency: ${tradingCurrency}`, `交易币种：${tradingCurrency}`)
+            : pick(lang === "zh", "Trading currency unavailable", "交易币种不可用")}
+        >{tradingCurrency ?? pick(lang === "zh", "CCY?", "币种?")}</span>
         {/* Gear: quick settings */}
-        <div className="cfb-gear-host" ref={gearRef}>
+        <div className="cfb-gear-host" ref={gearRef}
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+              setGearOpen(false);
+              setSubMenu(null);
+            }
+          }}
+          onKeyDown={(event) => {
+            if (event.key !== "Escape" || !gearOpen) return;
+            event.preventDefault();
+            event.stopPropagation();
+            setGearOpen(false);
+            setSubMenu(null);
+            gearButtonRef.current?.focus();
+          }}>
           <button
+            ref={gearButtonRef}
+            type="button"
             className={`cfb-gear${gearOpen ? " on" : ""}`}
             title={t("quickSettings")}
+            aria-label={t("quickSettings")}
+            aria-haspopup="dialog"
+            aria-expanded={gearOpen}
+            aria-controls={gearOpen ? quickSettingsId : undefined}
             onClick={(e) => { e.stopPropagation(); setGearOpen((o) => !o); if (gearOpen) setSubMenu(null); }}
           >
             {/* C8b — at the shell's 26×26 / 15px svg the eight straight radial strokes read as a
@@ -467,82 +572,91 @@ export default function ChartFrameBar({
           </button>
 
           {gearOpen && (
-            <div className="qsg-menu" onClick={(e) => e.stopPropagation()}>
+            <div ref={gearMenuRef} id={quickSettingsId} role="dialog" aria-label={t("quickSettings")}
+              className={`qsg-menu ${quickSettingsStyles.menu}`} onClick={(e) => e.stopPropagation()}>
               {/* Auto-scale: fits price data to the visible bar range.
                   lightweight-charts only exposes a boolean toggle — no ratio-lock API exists.
                   We expose a single honest "Auto-scale" checkbox; when unchecked the axis
                   keeps its last manual zoom (the only alternative the library supports). */}
-              <div className={`qsg-item${s.autoScale ? " checked" : ""}`} onClick={() => {
+              <button type="button" aria-pressed={s.autoScale} className={`qsg-item${s.autoScale ? " checked" : ""}`} onClick={() => {
                 const next = !s.autoScale;
                 onSettings({ autoScale: next });
                 try { if (chartApi) chartApi.priceScale(s.scaleLeft ? "left" : "right").setAutoScale(next); } catch {}
               }}>
-                <span className="qsg-check">{s.autoScale ? "✓" : ""}</span>
+                <span className="qsg-check" aria-hidden="true">{s.autoScale ? "✓" : ""}</span>
                 <span className="qsg-lbl">{t("qsgAuto")}</span>
-              </div>
+              </button>
 
-              <div className="qsg-item qsg-disabled">
-                <span className="qsg-check" />
+              <button type="button" disabled className="qsg-item qsg-disabled">
+                <span className="qsg-check" aria-hidden="true" />
                 <span className="qsg-lbl">{t("qsgScaleChartOnly")}</span>
-              </div>
+              </button>
 
               {/* Invert scale ⌥I */}
-              <div className={`qsg-item${s.invertScale ? " checked" : ""}`} onClick={() => onSettings({ invertScale: !s.invertScale })}>
-                <span className="qsg-check">{s.invertScale ? "✓" : ""}</span>
+              <button type="button" aria-pressed={s.invertScale} aria-keyshortcuts="Alt+I" className={`qsg-item${s.invertScale ? " checked" : ""}`} onClick={() => onSettings({ invertScale: !s.invertScale })}>
+                <span className="qsg-check" aria-hidden="true">{s.invertScale ? "✓" : ""}</span>
                 <span className="qsg-lbl">{t("qsgInvert")}</span>
-                <kbd className="qsg-kbd">⌥I</kbd>
-              </div>
+                <kbd className="qsg-kbd" aria-hidden="true">⌥I</kbd>
+              </button>
 
               <div className="qsg-sep" />
 
               {/* Scale mode radio group */}
               {([
-                [PriceScaleMode.Normal, t("qsgRegular"), ""],
-                [PriceScaleMode.Percentage, t("qsgPercent"), "⌥P"],
-                [PriceScaleMode.IndexedTo100, t("qsgIndexed"), ""],
-                [PriceScaleMode.Logarithmic, t("qsgLog"), "⌥L"],
-              ] as [PriceScaleMode, string, string][]).map(([m, label, kbd]) => (
-                <div key={m} className={`qsg-item qsg-radio${s.mode === m ? " checked" : ""}`} onClick={() => onSettings({ mode: m })}>
-                  <span className="qsg-radio-dot">{s.mode === m ? "●" : "○"}</span>
+                [EnginePriceScaleMode.Normal, t("qsgRegular"), ""],
+                [EnginePriceScaleMode.Percentage, t("qsgPercent"), "⌥P"],
+                [EnginePriceScaleMode.IndexedTo100, t("qsgIndexed"), ""],
+                [EnginePriceScaleMode.Logarithmic, t("qsgLog"), "⌥L"],
+              ] as [EnginePriceScaleMode, string, string][]).map(([m, label, kbd]) => (
+                <button key={m} type="button" aria-pressed={s.mode === m} className={`qsg-item qsg-radio${s.mode === m ? " checked" : ""}`} onClick={() => onSettings({ mode: m })}>
+                  <span className="qsg-radio-dot" aria-hidden="true">{s.mode === m ? "●" : "○"}</span>
                   <span className="qsg-lbl">{label}</span>
-                  {kbd && <kbd className="qsg-kbd">{kbd}</kbd>}
-                </div>
+                  {kbd && <kbd className="qsg-kbd" aria-hidden="true">{kbd}</kbd>}
+                </button>
               ))}
 
               <div className="qsg-sep" />
 
               {/* Move scale to left */}
-              <div className={`qsg-item${s.scaleLeft ? " checked" : ""}`} onClick={() => onSettings({ scaleLeft: !s.scaleLeft })}>
-                <span className="qsg-check">{s.scaleLeft ? "✓" : ""}</span>
+              <button type="button" aria-pressed={s.scaleLeft} className={`qsg-item${s.scaleLeft ? " checked" : ""}`} onClick={() => onSettings({ scaleLeft: !s.scaleLeft })}>
+                <span className="qsg-check" aria-hidden="true">{s.scaleLeft ? "✓" : ""}</span>
                 <span className="qsg-lbl">{t("qsgScaleLeft")}</span>
-              </div>
+              </button>
 
               <div className="qsg-sep" />
 
               {/* Labels submenu */}
-              <div className="qsg-item qsg-has-sub" onClick={(e) => { e.stopPropagation(); setSubMenu(subMenu === "labels" ? null : "labels"); }}>
-                <span className="qsg-check" />
-                <span className="qsg-sub-trigger"><span className="qsg-lbl">{t("qsgLabels")}</span><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M3 2l4 3-4 3" /></svg></span>
+              <div>
+                <button type="button" className="qsg-item" aria-expanded={subMenu === "labels"}
+                  aria-controls={subMenu === "labels" ? `${quickSettingsId}-labels` : undefined}
+                  onClick={() => setSubMenu(subMenu === "labels" ? null : "labels")}>
+                  <span className="qsg-check" aria-hidden="true" />
+                  <span className="qsg-sub-trigger"><span className="qsg-lbl">{t("qsgLabels")}</span><svg aria-hidden="true" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M3 2l4 3-4 3" /></svg></span>
+                </button>
                 {subMenu === "labels" && (
-                  <div className="qsg-submenu" onClick={(e) => e.stopPropagation()}>
-                    <div className={`qsg-item${s.lastValueVisible ? " checked" : ""}`} onClick={() => onSettings({ lastValueVisible: !s.lastValueVisible })}>
-                      <span className="qsg-check">{s.lastValueVisible ? "✓" : ""}</span>
+                  <div id={`${quickSettingsId}-labels`} className={`qsg-submenu ${quickSettingsStyles.submenu}`}>
+                    <button type="button" aria-pressed={s.lastValueVisible} className={`qsg-item${s.lastValueVisible ? " checked" : ""}`} onClick={() => onSettings({ lastValueVisible: !s.lastValueVisible })}>
+                      <span className="qsg-check" aria-hidden="true">{s.lastValueVisible ? "✓" : ""}</span>
                       <span className="qsg-lbl">{t("qsgLastValueLabel")}</span>
-                    </div>
+                    </button>
                   </div>
                 )}
               </div>
 
               {/* Lines submenu */}
-              <div className="qsg-item qsg-has-sub" onClick={(e) => { e.stopPropagation(); setSubMenu(subMenu === "lines" ? null : "lines"); }}>
-                <span className="qsg-check" />
-                <span className="qsg-sub-trigger"><span className="qsg-lbl">{t("qsgLines")}</span><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M3 2l4 3-4 3" /></svg></span>
+              <div>
+                <button type="button" className="qsg-item" aria-expanded={subMenu === "lines"}
+                  aria-controls={subMenu === "lines" ? `${quickSettingsId}-lines` : undefined}
+                  onClick={() => setSubMenu(subMenu === "lines" ? null : "lines")}>
+                  <span className="qsg-check" aria-hidden="true" />
+                  <span className="qsg-sub-trigger"><span className="qsg-lbl">{t("qsgLines")}</span><svg aria-hidden="true" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M3 2l4 3-4 3" /></svg></span>
+                </button>
                 {subMenu === "lines" && (
-                  <div className="qsg-submenu" onClick={(e) => e.stopPropagation()}>
-                    <div className={`qsg-item${s.priceLineVisible ? " checked" : ""}`} onClick={() => onSettings({ priceLineVisible: !s.priceLineVisible })}>
-                      <span className="qsg-check">{s.priceLineVisible ? "✓" : ""}</span>
+                  <div id={`${quickSettingsId}-lines`} className={`qsg-submenu ${quickSettingsStyles.submenu}`}>
+                    <button type="button" aria-pressed={s.priceLineVisible} className={`qsg-item${s.priceLineVisible ? " checked" : ""}`} onClick={() => onSettings({ priceLineVisible: !s.priceLineVisible })}>
+                      <span className="qsg-check" aria-hidden="true">{s.priceLineVisible ? "✓" : ""}</span>
                       <span className="qsg-lbl">{t("qsgPriceLine")}</span>
-                    </div>
+                    </button>
                   </div>
                 )}
               </div>
@@ -550,10 +664,15 @@ export default function ChartFrameBar({
               <div className="qsg-sep" />
 
               {/* More settings — opens the full settings modal on the Scales and lines tab */}
-              <div className="qsg-item" onClick={() => { setGearOpen(false); onOpenSettingsModal?.("scales"); }}>
-                <span className="qsg-check" />
+              <button type="button" className="qsg-item" disabled={!onOpenSettingsModal} onClick={() => {
+                gearButtonRef.current?.focus();
+                setGearOpen(false);
+                setSubMenu(null);
+                onOpenSettingsModal?.("scales");
+              }}>
+                <span className="qsg-check" aria-hidden="true" />
                 <span className="qsg-lbl">{t("qsgMoreSettings")}</span>
-              </div>
+              </button>
             </div>
           )}
         </div>

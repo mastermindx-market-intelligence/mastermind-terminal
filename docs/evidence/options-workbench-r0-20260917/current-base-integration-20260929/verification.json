@@ -1,0 +1,53 @@
+{
+  "pass": "current-base integration of the stalled #608 replay/geometry carrier",
+  "date": "2026-09-29",
+  "lane": "TERMINAL-03",
+  "carrier": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/608",
+  "source": {
+    "prior_carrier_head": "14f9a8d83dc7651eff26032ad3b084357e8ec1a3",
+    "prior_head_last_touched": "2026-09-19",
+    "base_at_carrier_creation": "75c22083249e7a1529be3d6baf819b9ad5ea509f",
+    "integrated_base": "b9828842d2c2129d1dbefa8213296001a3139eef",
+    "base_movement_commits": 227,
+    "integrated_head": "91f8acc1842769be067de68bde5dd181e71458e6",
+    "relationship": "fast-forward append; prior head remains an ancestor; no history rewritten"
+  },
+  "ownership": {
+    "decision": "adopt existing carrier, no competing implementation",
+    "basis": "carrier untouched 10 days; originating worktree dormant since 2026-09-17 with no uncommitted source",
+    "stall_cause": "self-imposed MastermindX1 re-review requested 2026-09-19, never returned",
+    "branch_protection_required_approving_review_count": 0,
+    "repair_present_in_master_before_this_pass": false
+  },
+  "merge_reconciliation": {
+    "only_real_overlap": "terminal/lib/flowClientCache.ts",
+    "master_side": "flowGetFresh() added by #634",
+    "carrier_side": "{ refresh } option added to flowGet()",
+    "resolution": "both route through the same store/doFetch owner; ONE cache owner retained, no second cache plane"
+  },
+  "proof_on_integrated_tree": {
+    "note": "re-earned on the current base; historical green from the 2026-09-17 base is NOT reused as proof",
+    "focused_four": { "command": "npx vitest run lib/__tests__/flowClientCacheRefresh.test.ts lib/__tests__/heatSeriesGeometry.test.ts lib/__tests__/replayIndexIdentity.test.ts lib/__tests__/surfaceReplayMounted.test.tsx", "exit": 0, "files": 4, "tests_passed": 40 },
+    "surface_family": { "exit": 0, "files": 6, "tests_passed": 233 },
+    "typecheck": { "command": "npx tsc --noEmit", "exit": 0, "diagnostics": 0 },
+    "browser_matrix": { "command": "CI=1 TERMINAL_E2E_PORT=3178 npx playwright test e2e/options-surface-alignment.spec.ts e2e/options-surface-geometry.spec.ts e2e/options-surface-replay.spec.ts --workers=1 --retries=0", "exit": 0, "tests_passed": 30, "cold_server": true, "retries": 0, "workers": 1 }
+  },
+  "discriminating_red": {
+    "method": "revert ONLY components/surface/SurfacePane.tsx to pre-repair 1f94c551f (master never touched this file, so the isolation is clean)",
+    "result": "2 failed | 23 passed of 25",
+    "failures": [
+      "retains the admitted current frame when only its same-stamp refresh fails — AssertionError: expected null not to be null (.obs-surf-data-strip erased)",
+      "reports an initial frame transport failure as unavailable, not accrual — expected 'Surface unavailable', received 'No surface data yet — accruing.'"
+    ],
+    "meaning": "the original CHANGES_REQUESTED defect reproduces on the CURRENT base and is closed by the repair; the other 23 cases stay green, so the discrimination is specific and not environmental"
+  },
+  "pre_existing_unrelated": {
+    "vercel_checks": "Vercel – mastermind-terminal and Vercel – macro-eiz4 fail identically on current master (b9828842d) and on the pre-integration carrier head (14f9a8d8). Pre-existing, not required contexts, not a regression from this pass."
+  },
+  "non_claims": [
+    "production freshness",
+    "observed dealer inventory",
+    "predictive edge",
+    "#603 / Quanted parity completion"
+  ]
+}
