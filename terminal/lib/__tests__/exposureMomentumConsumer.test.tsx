@@ -38,8 +38,8 @@ beforeEach(() => {
   host = document.createElement("div"); document.body.append(host); view = createRoot(host);
 });
 afterEach(() => { act(() => view.unmount()); host.remove(); vi.unstubAllGlobals(); vi.useRealTimers(); });
-async function mount(root = "QQQ", archivedSession?: string) {
-  await act(async () => view.render(<ExposureMap root={root} source={fixture} matrix={null} archivedSession={archivedSession} />));
+async function mount(root = "QQQ", archivedSession?: string, source = fixture, stale = false) {
+  await act(async () => view.render(<ExposureMap root={root} source={source} matrix={null} archivedSession={archivedSession} stale={stale} />));
 }
 const panel = () => host.querySelector('[data-testid="exposure-divergence"]')!;
 const button = (text: string) => [...host.querySelectorAll("button")].find(b => b.textContent === text)!;
@@ -74,6 +74,41 @@ it("withdraws the pre-close snapshot in both consumers until a fresh post-close 
   await act(async () => button("Refresh price snapshot").click());
   expect(row().textContent).toContain("16:00 ET");
   expect(cell().textContent).toMatch(/bars since confirmation/);
+});
+
+it("explains a confirmed short-term divergence that opposes the leading net Gamma level", async () => {
+  const conflict = "Confirmed bullish divergence conflicts with the leading net Gamma level below the snapshot spot.";
+  const source = {
+    ...fixture,
+    exposure_projection: {
+      ...fixture.exposure_projection,
+      underlying_reference: { ...fixture.exposure_projection.underlying_reference, value: 160 },
+    },
+  };
+  await mount();
+  await act(async () => button("Include hidden divergence").click());
+  expect(cell().textContent).toContain("Hidden bullish");
+  expect(panel().textContent).not.toContain(conflict);
+
+  await mount("QQQ", undefined, source);
+  expect(panel().textContent).toContain(conflict);
+  expect(inspector().textContent).toContain(conflict);
+
+  await act(async () => (panel().querySelector('[data-timeframe="D"]') as HTMLButtonElement).click());
+  expect(panel().textContent).not.toContain(conflict);
+  await act(async () => (cell() as HTMLButtonElement).click());
+  expect(panel().textContent).toContain(conflict);
+
+  await mount("QQQ", undefined, source, true);
+  expect(panel().textContent).not.toContain(conflict);
+  await mount("QQQ", undefined, source);
+  expect(panel().textContent).toContain(conflict);
+
+  await act(async () => vi.advanceTimersByTime(30_000));
+  expect(cell().textContent).toContain("Stale bars");
+  expect(panel().textContent).not.toContain(conflict);
+  expect(inspector().textContent).not.toContain(conflict);
+  expect(fetchBars).toHaveBeenCalledTimes(1);
 });
 
 it("keeps underlying momentum across expiry selection, withdraws it in archive and rejects a late old-root response", async () => {
