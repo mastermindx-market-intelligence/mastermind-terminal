@@ -26,6 +26,10 @@ const nativeTitle = (entry: DirectoryEntry): { k?: string; label: string; copy?:
     label: futuresTextFor("en").navTitle,
     copy: { en: futuresTextFor("en").navTitle, zh: futuresTextFor("zh").navTitle },
   };
+  if (entry.href === "/options/equity-replay") return {
+    label: futuresTextFor("en").equityReplay,
+    copy: { en: futuresTextFor("en").equityReplay, zh: futuresTextFor("zh").equityReplay },
+  };
   const k = entry.href === "/terminal" ? "setTerminal"
     : entry.href === "/learn" ? "shellSection_learn"
     : entry.href === "/alerts" ? "alerts"
