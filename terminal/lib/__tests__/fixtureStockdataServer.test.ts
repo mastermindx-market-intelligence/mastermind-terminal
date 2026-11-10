@@ -108,3 +108,55 @@ describe("fixture stockdata server", () => {
     expect(us3m.status).toBe(404);
   });
 });
+
+describe("explicit public synthetic OHLC fixture", () => {
+  let publicUrl: string;
+  let closePublic: () => Promise<void>;
+
+  beforeAll(async () => {
+    const server = await startFixtureStockdataServer(0, { ohlcMode: "public-fixture" });
+    publicUrl = server.url;
+    closePublic = server.close;
+  });
+
+  afterAll(async () => { await closePublic(); });
+
+  it.each([
+    ["ZZTA", 140, 1], ["ZZTB", 140, 0], ["THIN", 20, 1], ["SPY", 140, 1],
+  ] as const)("serves only the declared synthetic %s price series without credentials", async (ticker, count, shape) => {
+    const response = await fetch(`${publicUrl}/ohlc/${ticker}.json`);
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.o).toBe(shape);
+    expect(body.bars).toHaveLength(count);
+    expect(body.bars[0]).toHaveLength(shape === 0 ? 3 : 6);
+  });
+
+  it.each([
+    "/stockdata/ZZTA.json", "/ohlc/DGS3MO.json", "/ohlc/us3m.json",
+    "/ohlc/MISSING.json", "/ohlc/UNDECLARED.json",
+  ])("retains the credential gate for %s in public-price mode", async (path) => {
+    const response = await fetch(publicUrl + path);
+    expect(response.status).toBe(401);
+    expect(response.headers.get("x-regwall")).toBe("deny");
+    expect(await response.json()).toEqual({ locked: true, reason: "authentication_required" });
+  });
+
+  it.each(["ZZTA", "ZZTB", "THIN", "SPY"])("keeps default anonymous %s prices gated", async (ticker) => {
+    const response = await fetch(`${baseUrl}/ohlc/${ticker}.json`);
+    expect(response.status).toBe(401);
+    expect(response.headers.get("x-regwall")).toBe("deny");
+    expect((await response.json()).locked).toBe(true);
+  });
+
+  it("does not extend the public-price exception to non-GET requests", async () => {
+    const response = await fetch(publicUrl + "/ohlc/ZZTA.json", { method: "POST" });
+    expect(response.status).toBe(401);
+    expect(response.headers.get("x-regwall")).toBe("deny");
+  });
+
+  it("keeps the public-price setting local to its own server instance", async () => {
+    expect((await fetch(publicUrl + "/ohlc/SPY.json")).status).toBe(200);
+    expect((await fetch(baseUrl + "/ohlc/SPY.json")).status).toBe(401);
+  });
+});

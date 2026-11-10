@@ -1,0 +1,37 @@
+{
+  "sourceHead": "6c9cde3550d2ab6281c2ea309c56f714f58b2ae1",
+  "implementationSourceHead": "6c9cde3550d2ab6281c2ea309c56f714f58b2ae1",
+  "recordedAt": "2026-10-22T09:13:28.980691+00:00",
+  "command": "env -u MMX_SHARED_SHELL -u MMX_INVESTOR_SHELL_PREVIEW TERMINAL_CROP_PORT=3123 node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs",
+  "environment": {
+    "node": "v20.20.2",
+    "MMX_SHARED_SHELL": "unset",
+    "MMX_INVESTOR_SHELL_PREVIEW": "unset",
+    "TERMINAL_E2E_FIXTURE": "1 via harness"
+  },
+  "actualCaptures": 6,
+  "sourceChanges": {
+    "terminal/app/company-intelligence.css": {
+      "before": "2bd8643832428198d38e8a5140cb7029687466781b2366976cb3ca5ddad9892b",
+      "after": "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34"
+    }
+  },
+  "sourceHashes": {
+    "terminal/app/company-intelligence.css": "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34",
+    "terminal/components/chrome/shared-shell/shared-shell.css": "aa6555ac18306f31fb317d8941bd1dd530ab7c61c18e67d2a73a439329950339"
+  },
+  "outputs": {
+    "desktop-en.png": "7c48b7b24b6999d5971706094670b4b67584bf4b3208cb7931bd1014d3ea7b0f",
+    "desktop-zh.png": "878bcdbe83556da0aaf30a4a6ae62c5b7810da7e73e7ad717e8cd73ca0749157",
+    "tablet-en.png": "388a71b49ae4ed2aaa9c6fe88d328c05ca4dc4cc8628c819fb6062bad3a54b8d",
+    "tablet-zh.png": "f77e535a8810955f33f9be869bcf13312a99f01f1793ca83221221129f9c0e9f",
+    "mobile-en.png": "3a8303deb157100c617ba94cea7b17afbf4db14d2eefdc9bbfd67ad08f07e23b",
+    "mobile-zh.png": "b05c6ff4a4451c87cc9bab61c98d814609dd904b55d9e85b7abca23c1a8c6ba9"
+  },
+  "captureLog": {
+    "path": "shared-shell-company-recapture.log",
+    "sha256": "11969d40369d816a119555154785d7e197b3da3a310266714706823ead41e374"
+  },
+  "qualification": "Actual scoped local incumbent-profile captures. Existing full reports and older acceptance history remain historical; no live account, current-data or deployment claim. The new light shadow token is Shared Shell opt-in only.",
+  "preservedHistoricalManifestSha256": "794cb8e417ea91278e5bd44f6b25293131cd19797b07fc29cf5501c0c265275a"
+}

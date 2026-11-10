@@ -1,8 +1,8 @@
 # Pine engine boot states — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 90f275f15b4d174f003fb5b1087823dce6ec865a
-# capturedAt: 2026-11-09T16:44:56.027Z
+# capturedAtHead: 6cd355cfb9ea39de310bf32f63432c33ddac865b
+# capturedAt: 2026-11-09T13:47:42.872Z
 # capturedAtHead is informational. The lock is layoutFiles.
 # ChartPanel.tsx is not locked: it picks the row's state, which e2e/pine-engine-boot-pending.spec.ts
 # gates; the files below draw the crops and choose their words.

@@ -8,6 +8,7 @@ import { CMP_PALETTE, CmpMode, CmpCfg } from "@/lib/compare";
 import { parseComposite, compositeExpr, validateLegs } from "@/lib/composite";
 import { getRecentlyViewed, RECENTLY_VIEWED_LIMIT } from "@/lib/recentlyViewed";
 import { trackSearch } from "@/lib/searchTrack";
+import { revealListOption } from "@/lib/revealListOption";
 import { verdictIsStale } from "@/lib/signalVerdict";
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 import {
@@ -144,6 +145,13 @@ export default function SearchModal({
   const onboarding = useOnboarding();
   const [q, setQ] = useState("");
   const [sel, setSel] = useState(0);
+  const [revealSelection, setRevealSelection] = useState<{ index: number } | null>(null);
+  const revealedSelection = useRef<typeof revealSelection>(null);
+  const resultListRef = useRef<HTMLDivElement | null>(null);
+  const selectResult = useCallback((index: number, reveal = true) => {
+    setSel(index);
+    setRevealSelection(reveal ? { index } : null);
+  }, []);
   const [companyPreview, setCompanyPreview] = useState<string | null>(null);
   const [choosing, setChoosing] = useState<string | null>(null);
   const [recentlyViewed, setRecentlyViewed] = useState<string[]>([]);
@@ -195,7 +203,7 @@ export default function SearchModal({
       // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronize a newly opened dialog with its external seed.
       setQ(seed || "");
       setCompanyPreview(initialSelection ?? null);
-      setSel(0);
+      selectResult(0);
       setChoosing(null);
       setCat("All");
       setRecentlyViewed(getRecentlyViewed());
@@ -208,7 +216,7 @@ export default function SearchModal({
       // The mounted dialog/sheet owns initial focus. A delayed second focus could steal it
       // back from a new task (Portfolio/sign-in) or from the control the user already reached.
     }
-  }, [open, seed, mode, companyScope, initialSelection]);
+  }, [open, seed, mode, companyScope, initialSelection, selectResult]);
 
   useEffect(() => {
     if (choosing) compareChoiceRef.current?.focus({ preventScroll: true });
@@ -250,6 +258,7 @@ export default function SearchModal({
   useEffect(() => () => { if (addedTimer.current) clearTimeout(addedTimer.current); }, []);
 
   const deferredQ = useDeferredValue(q);
+  const resultsCurrent = q.trim().toLowerCase() === deferredQ.trim().toLowerCase();
 
   // Only "go" mode has a watchlist home. Focusing the field or using the mobile Recent action
   // moves to search explicitly; it stays there until navigation completes or Watchlist is chosen.
@@ -260,7 +269,7 @@ export default function SearchModal({
     closePicker();
     setQ("");
     setCat("All");
-    setSel(0);
+    selectResult(0);
     setView("search");
   };
 
@@ -268,7 +277,7 @@ export default function SearchModal({
     closePicker();
     setQ("");
     setCat("All");
-    setSel(0);
+    selectResult(0);
     setView("home");
     inputRef.current?.blur();
   };
@@ -370,6 +379,8 @@ export default function SearchModal({
     [showRecentRows, recentResults, browseResults, results],
   );
   const catLabelKey = CATS.find((c) => c.id === cat)?.key;
+  const showCompositeRow = !cmp && !isAdd && !isPick && compositeLegs !== null && compositeLegs.valid;
+  const totalRows = (showCompositeRow ? 1 : 0) + displayRows.length;
 
   // Active list's symbols joined against the manifest (HOME body). Symbols missing from the
   // manifest still render (neutral placeholder) — never silently dropped.
@@ -390,8 +401,34 @@ export default function SearchModal({
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- the external active symbol initializes keyboard selection when opened.
-    if (open) setSel(defaultSel);
-  }, [open, defaultSel, showRecentRows]);
+    if (open) selectResult(defaultSel);
+  }, [open, defaultSel, showRecentRows, selectResult]);
+
+  useEffect(() => {
+    const bounded = Math.max(0, Math.min(sel, totalRows - 1));
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- external universe/preferences can remove the selected result.
+    if (open && !isHome && resultsCurrent && sel !== bounded) selectResult(bounded);
+  }, [open, isHome, resultsCurrent, sel, totalRows, selectResult]);
+
+  // MobileSheet attaches its portal after the parent commit. Reveal at actual
+  // list attachment as well as result/request changes, not on a parent-only tick.
+  const captureResultList = useCallback((list: HTMLDivElement | null) => {
+    if (list && list !== resultListRef.current) {
+      resultListRef.current = list;
+      revealedSelection.current = null;
+    }
+    if (!list || !open || isHome || sharedSearch || !resultsCurrent || !revealSelection || revealedSelection.current === revealSelection) return;
+    if (revealSelection.index >= displayRows.length + (showCompositeRow ? 1 : 0)) return;
+    // The phone sheet deliberately owns one column scroller for its detent
+    // gestures. Respect that owner and its sticky-input scroll padding.
+    const scrollOwner = phoneDrawer ? list.closest<HTMLElement>(".msheet-body") : list;
+    const option = list.ownerDocument.getElementById(`${uid}-opt-${revealSelection.index}`);
+    // The accessible option excludes sibling actions and visual row padding.
+    // Keep the complete visible row inside the viewport.
+    if (revealListOption(list, option?.closest<HTMLElement>(".r") ?? option, scrollOwner)) {
+      revealedSelection.current = revealSelection;
+    }
+  }, [open, isHome, sharedSearch, resultsCurrent, revealSelection, displayRows, showCompositeRow, phoneDrawer, uid]);
 
   useEffect(() => {
     if (picker && (isHome || !displayRows.some(([symbol]) => symbol === picker))) {
@@ -405,7 +442,6 @@ export default function SearchModal({
   const added = compare.filter((c) => c !== active);
 
   // Composite first-row candidate (F2): valid composite → synthetic row shown first.
-  const showCompositeRow = !cmp && !isAdd && !isPick && compositeLegs !== null && compositeLegs.valid;
   const compositeExprStr = compositeLegs ? compositeExpr(compositeLegs.legs) : null;
 
   const track = (sym: string) => trackSearch(
@@ -432,6 +468,7 @@ export default function SearchModal({
   // A user with no `onAddToPortfolio` wired (nothing in the product today, but the prop is
   // optional) keeps the old single-list shortcut, so the picker never opens with one row in it.
   function handleAdd(sym: string, rowEl?: HTMLElement | null) {
+    if (!resultsCurrent) return;
     track(sym);
     if (lists.length <= 1 && !onAddToPortfolio) {
       onAdd?.(sym);
@@ -466,9 +503,10 @@ export default function SearchModal({
   }
 
   function choose(sym: string, shiftKey = false) {
+    if (!isHome && !resultsCurrent) return;
     if (companyScope && !isCompanySearchRow(sym, manifest[sym])) return;
     if (companyScope && isPick) {
-      setSel(displayRows.findIndex(([s]) => s === sym));
+      selectResult(displayRows.findIndex(([s]) => s === sym), false);
       setCompanyPreview(sym);
       return;
     }
@@ -499,15 +537,12 @@ export default function SearchModal({
   }
 
   function openCompany() {
-    if (!companyPreview || !isCompanySearchRow(companyPreview, manifest[companyPreview])) return;
+    if (!resultsCurrent || !companyPreview || !isCompanySearchRow(companyPreview, manifest[companyPreview])) return;
     track(companyPreview);
     if (onCompanyPick) onCompanyPick(companyPreview, q.trim());
     else onPick(companyPreview);
     onClose();
   }
-
-  // Total selectable row count (composite row + display rows).
-  const totalRows = (showCompositeRow ? 1 : 0) + displayRows.length;
 
   function dismissSearch() {
     if (picker) closePicker();
@@ -518,12 +553,16 @@ export default function SearchModal({
 
   function key(e: React.KeyboardEvent) {
     if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) return;
+    if (!resultsCurrent && ["ArrowDown", "ArrowUp", "Enter"].includes(e.key)) {
+      e.preventDefault();
+      return;
+    }
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault();
       const next = e.key === "ArrowDown"
         ? (totalRows > 0 ? Math.min(sel + 1, totalRows - 1) : sel)
         : Math.max(sel - 1, 0);
-      setSel(next);
+      selectResult(next);
       setCompanyPreview(companyScope && isPick ? displayRows[next]?.[0] ?? null : null);
     }
     else if (e.key === "Enter") {
@@ -536,7 +575,7 @@ export default function SearchModal({
         const row = displayRows[idx];
         if (row && companyScope && isPick && companyPreview === row[0]) openCompany();
         else if (row) choose(row[0], shift);
-        else if (isAdd && !inWatchlist.has(active)) {
+        else if (isAdd && !q.trim() && active && !inWatchlist.has(active)) {
           track(active);
           onAdd?.(active);
           if (shift) onClose();
@@ -590,7 +629,7 @@ export default function SearchModal({
       <div
         key={s}
         className={`r${rowSel === sel ? " sel" : ""}`}
-        onMouseEnter={() => setSel(rowSel)}
+        onMouseEnter={() => { if (isHome || resultsCurrent) selectResult(rowSel, false); }}
         onClick={(e) => choose(s, e.shiftKey)}
       >
         <div className="r-opt" {...optionProps(optionId, rowSel)}>
@@ -752,7 +791,7 @@ export default function SearchModal({
             value={q}
             maxLength={companyScope ? 160 : undefined}
             placeholder={cmp ? t("comparePlaceholder") : t(placeholderKey)}
-            onChange={(e) => { closePicker(); setCompanyPreview(null); setChoosing(null); setQ(e.target.value); setSel(0); }}
+            onChange={(e) => { closePicker(); setCompanyPreview(null); setChoosing(null); setQ(e.target.value); selectResult(0); }}
             onFocus={() => { closePicker(); setView("search"); }}
             onKeyDown={key}
             role="combobox"
@@ -840,7 +879,7 @@ export default function SearchModal({
                     role="tab" aria-selected={id === cat}
                     style={enabled ? undefined : { opacity: 0.35, cursor: "default" }}
                     onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => { if (enabled) { closePicker(); setCat(id); setSel(0); inputRef.current?.focus({ preventScroll: true }); } }}>{t(key)}</button>
+                    onClick={() => { if (enabled) { closePicker(); setCat(id); selectResult(0); inputRef.current?.focus({ preventScroll: true }); } }}>{t(key)}</button>
                 );
               })}
             </div>
@@ -879,12 +918,13 @@ export default function SearchModal({
           /* SEARCH / compare / add body — the combobox's popup (D6). The informational chrome
              interleaved with the options (composite warning, section headers, empty states, the
              market-filter disclosure) is marked presentational so it does not read as a result. */
-          <div className={`sres${companyScope && isPick ? ` ${styles.companyResults}` : ""}`} id={listboxId} role="listbox" aria-label={t(titleKey)}>
+          <div ref={captureResultList} className={`sres${companyScope && isPick ? ` ${styles.companyResults}` : ""}`} id={listboxId} role="listbox" aria-label={t(titleKey)} aria-busy={!resultsCurrent}
+            onClickCapture={event => { if (!resultsCurrent) { event.preventDefault(); event.stopPropagation(); } }}>
             {/* Composite first row (F2) */}
             {showCompositeRow && compositeExprStr && (
               <div
                 className={`r r-composite${sel === 0 ? " sel" : ""}`}
-                onMouseEnter={() => setSel(0)}
+                onMouseEnter={() => { if (resultsCurrent) selectResult(0, false); }}
                 onClick={(e) => choose(compositeExprStr, e.shiftKey)}
               >
                 <div className="r-opt" {...optionProps(optionDomId(0), 0)}>
@@ -943,12 +983,12 @@ export default function SearchModal({
             {/* Recent is navigation history, so an empty list says that plainly. Category browse
                 content replaces this state whenever a category tab has rows. */}
             {universeState === "ready" && !cmp && !isAdd && showRecentRows && displayRows.length === 0 && (
-              <div className="s-type-hint" role="presentation">{t("searchRecentEmpty")}</div>
+              <div className="s-type-hint" role="presentation" aria-hidden={!resultsCurrent} style={resultsCurrent ? undefined : { visibility: "hidden" }}>{t("searchRecentEmpty")}</div>
             )}
 
             {/* Empty state */}
             {universeState === "ready" && !showCompositeRow && displayRows.length === 0 && !showRecentRows && (
-              <div className="empty" role="presentation">{t("noSymbolMatch")} &quot;{q}&quot;.</div>
+              <div className="empty" role="presentation" aria-hidden={!resultsCurrent} style={resultsCurrent ? undefined : { visibility: "hidden" }}>{t("noSymbolMatch")} &quot;{q}&quot;.</div>
             )}
 
             {/* Market-filter disclosure. A user who cannot find 0700.HK must be told it is their
@@ -992,7 +1032,7 @@ export default function SearchModal({
                 {seamHd}
                 <div
                   className={`r${rowSel === sel ? " sel" : ""}${inCmp ? " r-on" : ""}`}
-                  onMouseEnter={() => setSel(rowSel)}
+                  onMouseEnter={() => { if (resultsCurrent) selectResult(rowSel, false); }}
                   onClick={(e) => choose(s, e.shiftKey)}
                 >
                   <div className="r-opt" {...optionProps(optionDomId(rowSel), rowSel)}>
@@ -1078,12 +1118,13 @@ export default function SearchModal({
         name={!sharedSearch && manifest[companyPreview] ? displayName(manifest[companyPreview], lang) : undefined}
         venue={manifest[companyPreview]?.mkt} query={q.trim()} preview onOpen={openCompany} /> : null;
   const presentedBody = sharedSearch ? <SharedSearchWorkspace key={sharedSearch.scope ?? "companies"} query={q} onClose={onClose}
-    onQueryChange={next => { closePicker(); setCompanyPreview(null); setChoosing(null); setQ(next); setSel(0); }}
+    onQueryChange={next => { closePicker(); setCompanyPreview(null); setChoosing(null); setQ(next); selectResult(0); }}
     companies={displayRows.map(([symbol, row]) => ({ symbol, name: displayName(row, lang), venue: row.mkt }))}
     companyState={universeState} onRetryCompanies={onRetryUniverse} selectedCompany={companyPreview}
     marketDescription={pick(lang === "zh", "Company markets: ", "公司市场：") + (prefsReady ? marketPrefs.enabled.filter(m => m !== "crypto").map(m => t(MARKET_TKEY[m])).join(" · ") : pick(lang === "zh", "All supported markets", "所有支持的市场"))}
     marketDisclosure={hiddenByMarket ? <div className="s-mkt-hidden"><span>{t("mktHiddenLead")} {hiddenByMarket.n} {t("mktHiddenMore")} {hiddenByMarket.from.map(m => t(MARKET_TKEY[m])).join(" · ")}</span>{onShowAllMarkets && <button type="button" className="s-mkt-show" onClick={onShowAllMarkets}>{t("mktShowAll")}</button>}</div> : undefined}
-    activeCompanyIndex={sel} onSelectCompany={choose} onCompanyKey={key} listingDetail={listingDetail} options={sharedSearch} /> : body;
+    activeCompanyIndex={sel} revealCompanySelection={revealSelection} companyResultsCurrent={resultsCurrent}
+    onSelectCompany={choose} onCompanyKey={key} listingDetail={listingDetail} options={sharedSearch} /> : body;
 
   const title = sharedSearch ? pick(lang === "zh", "Search companies and tools", "搜索公司和工具") : companyScope ? pick(lang === "zh", "Search companies", "搜索公司") : t(cmp ? "compareTitle" : titleKey);
   // R2c — on the phone the ticker picker is a DRAWER, the idiom the Drawings sheet established:

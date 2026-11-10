@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import dynamic from "next/dynamic";
 import type { ChartContextDock } from "./ChartContextDock";
 import type { ChartReadoutMeta } from "@/lib/visualIntelligence";
 import type { ChartPriceWindowSource } from "@/lib/chartPriceWindow";
@@ -8,7 +9,7 @@ import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import type { OptionsPinViewport } from "@/lib/optionsChartPin";
 import ChartPanel, { type DetectCmd, type LiveQuote, type PineScript } from "@/components/ChartPanel";
 import ChartFrameBar, { DEFAULT_CHART_SETTINGS, type ChartSettings } from "@/components/ChartFrameBar";
-import ChartSettingsModal, { type ChartSettingsTab } from "@/components/ChartSettingsModal";
+import type { ChartSettingsTab } from "@/components/ChartSettingsModal";
 import { type Drawing, type DrawKind } from "@/lib/drawings";
 import { drawingPanelInstanceKey } from "@/lib/drawingOwnership";
 import { useElementStableList } from "@/lib/elementStableList";
@@ -30,6 +31,8 @@ import type { DataOrigin } from "@/lib/dataOrigin";
 import { useChartTradingCurrency } from "@/lib/useChartTradingCurrency";
 
 const f = (n: number | null | undefined, d = 2) => (n == null || !isFinite(n) ? "—" : n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }));
+
+const ChartSettingsModal = dynamic(() => import("@/components/ChartSettingsModal"), { ssr: false });
 
 const SETTINGS_KEY = "mm.chartSettings";
 const load = (d: ChartSettings): ChartSettings => { try { const v = localStorage.getItem(SETTINGS_KEY); return v ? { ...d, ...JSON.parse(v) } : d; } catch { return d; } };
@@ -328,17 +331,19 @@ export default function ChartPane({ idx, symbol, contextDock, optionsLevel = nul
         dataOrigin={dataOrigin}
         tradingCurrency={tradingCurrency}
       />
-      <ChartSettingsModal
-        open={settingsModalOpen}
-        tab={settingsModalTab}
-        settings={chartSettings}
-        onSettings={patchSettings}
-        onClose={() => setSettingsModalOpen(false)}
-        chartApi={chartApi}
-        extendedEligible={extendedEligible}
-        intraday={isIntradayTf(tf)}
-        overnightEligible={isOvernightTimeframe(tf)}
-      />
+      {settingsModalOpen && (
+        <ChartSettingsModal
+          open
+          tab={settingsModalTab}
+          settings={chartSettings}
+          onSettings={patchSettings}
+          onClose={() => setSettingsModalOpen(false)}
+          chartApi={chartApi}
+          extendedEligible={extendedEligible}
+          intraday={isIntradayTf(tf)}
+          overnightEligible={isOvernightTimeframe(tf)}
+        />
+      )}
     </div>
   );
 }

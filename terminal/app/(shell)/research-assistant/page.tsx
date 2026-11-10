@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import { workspaceMetadata } from "@/lib/shared-shell/metadata";
 import { createClient } from "@/lib/supabase/server";
 import SignupGate from "@/components/gates/SignupGate";
 import EvidenceToThesisWorkspace from "@/components/workspaces/EvidenceToThesisWorkspace";
 
-export const metadata: Metadata = { title: "Research assistant · Mastermind Terminal" };
+export const metadata: Metadata = workspaceMetadata("Research assistant");
 
 export default async function ResearchAssistantPage() {
   const supabase = await createClient();

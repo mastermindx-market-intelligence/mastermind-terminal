@@ -1,0 +1,46 @@
+{
+  "product_head": "e7273cfda2242dedadb8f490769e1f0e976f2a03",
+  "base": "ed7a603f1a3b49b5658e70c2071e4ef8c9f14574",
+  "verified_files": [
+    {
+      "path": "terminal/components/SearchModal.tsx",
+      "sha": "bab717fb91f29b3c168a3ebbdfa1572eea9b3c8a"
+    },
+    {
+      "path": "terminal/components/studyTemplates/useDialogFocus.ts",
+      "sha": "cf3776396401f3b600d41aae7bdfcc641b2e4a31"
+    },
+    {
+      "path": "terminal/components/ui/MobileSheet.tsx",
+      "sha": "fe55bf38c576a4a41c695b0ac8d6c6f4b33cd956"
+    },
+    {
+      "path": "terminal/components/watchlist/WatchlistAnnotationSync.tsx",
+      "sha": "a3951e36429f5e07c8b814f5b12606b6799c9036"
+    },
+    {
+      "path": "terminal/e2e/terminalToolbar.ts",
+      "sha": "57eb0416e3e82e2cd120c1f104de1d1c8480d2ed"
+    },
+    {
+      "path": "terminal/components/TerminalShell.tsx",
+      "sha": "61faf65c58ce1f1c8fd5d6639ea415a5a62e1428"
+    },
+    {
+      "path": "terminal/components/LayoutMenu.tsx",
+      "sha": "c7d07999ac3da42d3a66ba909828605a202a3057"
+    },
+    {
+      "path": "terminal/lib/__tests__/layoutRenameFocus.test.tsx",
+      "sha": "0b78346b7fbe30a7a4b8aa48eabc6ddee0098780"
+    },
+    {
+      "path": "terminal/e2e/workspace-rename-focus.spec.ts",
+      "sha": "9da20b1d793c61ba1ba555be6fac5ef7c46bf942"
+    },
+    {
+      "path": "docs/terminal-workspace-rename-polish-20261109.md",
+      "sha": "20cf9611038a964908362edc34f02f3a1b341c67"
+    }
+  ]
+}

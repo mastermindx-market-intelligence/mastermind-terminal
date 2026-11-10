@@ -11,6 +11,11 @@ async function readBook(page: Page) {
   return await response.json() as { positions: Position[]; bookKey: string };
 }
 
+test.afterEach(async ({ page }) => {
+  // Complete fixture reads before the request context is torn down.
+  await page.unrouteAll({ behavior: "wait" });
+});
+
 // A positive cost and readable security data do not establish entry currency.
 // Light checks Portfolio's existing Paper tokens, not a global theme switch.
 for (const lang of ["en", "zh"]) for (const theme of ["dark", "light"]) {

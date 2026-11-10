@@ -1,0 +1,52 @@
+{
+  "sourceHead": "a89cb179c0012d0b08b5e8a654de1706f14ba6fe",
+  "tests": [
+    {
+      "name": "evidence-unit",
+      "exit": 0,
+      "seconds": 1.26,
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts",
+        "lib/__tests__/b_mi_g10_b4tThemeEmptyEvidence.test.ts"
+      ],
+      "logSha256": "93dddb9d6591a705cbab88abcc0e378b05d387ffa09b386238e552b3eee22e4f"
+    },
+    {
+      "name": "typecheck",
+      "exit": 0,
+      "seconds": 72.61,
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "responsive-browser",
+      "exit": 0,
+      "seconds": 50.61,
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "e2e/investigation-workspace.spec.ts",
+        "e2e/thesis-workspace.spec.ts",
+        "e2e/market-ontology-context.spec.ts",
+        "--grep",
+        "mobile Analysis research actions|Analysis research entries retain|the context-bar theses link|J1 saves A",
+        "--project=desktop",
+        "--project=tablet",
+        "--project=mobile",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=list",
+        "--output=/Volumes/Mastermind 2/agent-workspaces/terminal/web/analysis-mobile-actions-20261105/terminal/test-results/pr1316-recovery-20261109/browser"
+      ],
+      "logSha256": "36b3c1671ca3fcf9da76ee3e5b39ec5c6276fca9284ec43f72755c6adc6151e8"
+    }
+  ]
+}

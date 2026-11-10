@@ -1,8 +1,8 @@
 # B-PL-6 batch 2 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 90f275f15b4d174f003fb5b1087823dce6ec865a
-# capturedAt: 2026-11-09T16:41:08.028Z
+# capturedAtHead: 6cd355cfb9ea39de310bf32f63432c33ddac865b
+# capturedAt: 2026-11-09T13:39:18.828Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/GuidePanel.tsx: "502cdfde51e973b35c8895682feafaedb062ac1acbd9202186ec80b0fc991146"
@@ -65,12 +65,12 @@ captureFiles:
   ChartConductor-390.png: "a848ac853c889ee6fe3d8232cf25aee38347660bd9af19d0c22ae3b4f183870f"
   ChartConductor-820-zh.png: "bc5633cf705d6903690352858fab78ee0249800f38972d6cca99d38257f88588"
   ChartConductor-820.png: "335c91baf353a005e024c26a0b76f218396d3574bf32502bda8bc5f816887e59"
-  GuidePanel-1440-zh.png: "7b1ca37ed3d03089e4e9ee70940831d491563daf2b3942e5c500d5404f57d5eb"
-  GuidePanel-1440.png: "7d138a58591022f50857e301c2a18d230dfad670633fce089fa7436e80f65e99"
+  GuidePanel-1440-zh.png: "304f68ec93155e99adaf356c0525837468e01ab9bb51ef1f1ba4d6e94f72a340"
+  GuidePanel-1440.png: "8f2af273e52ee58f84cdf4a8b29d52c0aa48562d85cca09dd8de58c7b5a12e46"
   GuidePanel-390-zh.png: "f57301a51594b9d2d96578a35c109f70bac65649aba947a483f0d664f59827b9"
   GuidePanel-390.png: "5b22742253e686c8b57cd91c5d953a75319a7f7e855db59eac4bb66825e3af3b"
-  GuidePanel-820-zh.png: "369a0f3e8233d8c141a01529297363dbc55789ff60ee3a69f0ffcbba792aa3f0"
-  GuidePanel-820.png: "09502573aab30393c635d448ffb7bc07eabcf809aa86c06c5906ebc1e357d741"
+  GuidePanel-820-zh.png: "1c0968115e046e3551f0c53bb7ec7f386c7af26cc1594ce78ade4e0a725acf22"
+  GuidePanel-820.png: "8f1f547f8eb7deca78a4c9d470d476059b44f079931865a4cc1e2890a22267d6"
   LevelsLearn-1440-zh.png: "ff6e9b5fa9b7f9b742746b6b1d48fad592a7608a34022a9fb0357455813ed747"
   LevelsLearn-1440.png: "8a428602b4f7fbc38d60327036ff33ba4d14321fdaaa2ca03a905065e412bf12"
   LevelsLearn-390-zh.png: "6857811b0e1f83c608f5e457fb171a3369a483d0d47c46b25a0d9d9a258924b6"

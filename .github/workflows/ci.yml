@@ -604,6 +604,24 @@ jobs:
           name: responsive-qa-${{ github.run_id }}-serial-safe-summary-${{ github.run_attempt }}
           path: ${{ steps.safe_shared_shell_summary.outputs.safe_shared_shell_summary_path }}
           if-no-files-found: warn
+      # This opt-in route family is not exercised by the generic shell test above.
+      # Run the existing loopback-only browser journey on the checked-out source;
+      # its fixture authorization is not authenticated beta/production acceptance.
+      - name: Qualify Intelligence native beta routes (fixture browser)
+        if: matrix.shard == 'serial'
+        timeout-minutes: 20
+        env:
+          CI: '1'
+          INTELLIGENCE_TEST_PORT: '31993'
+          INTELLIGENCE_TEST_VARIANT: ci-intelligence-${{ github.run_id }}-${{ github.run_attempt }}
+        run: node e2e/tools/qualify_shared_shell_intelligence.cjs
+      - name: Upload Intelligence fixture-browser evidence
+        if: always() && matrix.shard == 'serial'
+        uses: actions/upload-artifact@v4
+        with:
+          name: intelligence-beta-qa-${{ github.run_id }}-${{ github.run_attempt }}
+          path: terminal/docs/pr-crops/shared-shell-intelligence-20261103/ci-intelligence-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: warn
       - name: Upload responsive QA screenshots
         if: always()
         uses: actions/upload-artifact@v4
