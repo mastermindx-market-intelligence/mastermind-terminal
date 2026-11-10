@@ -231,9 +231,10 @@ export function classCounts(
   return out;
 }
 
-/** Baskets carry no equity benchmark; the source-identity line names this
- * complex instead. Raw identity text for the secondary line only. */
-export const BASKET_BENCHMARK_LABEL = "equal-weight basket complex";
+/** Baskets carry no equity benchmark; the source-identity line names the
+ * equal-weight basket complex instead, through the lexicon key
+ * siUniverseBasketBenchmark (review S5 — never a raw English literal in the
+ * ZH surface). */
 
 export interface UniverseMeta {
   id: UniverseId;
@@ -296,10 +297,21 @@ export const UNIVERSES: Record<UniverseId, UniverseMeta> = {
   },
 };
 
-/** The universe's scored/gateable rows — the ONLY rows ever tabled. */
-export function groupsOf(data: UniverseData | null | undefined): UniverseGroup[] {
+/** The universe's scored/gateable rows — the ONLY rows ever tabled.
+ *
+ * The array is chosen from the TAB id the parent passes (the UniverseId this
+ * panel was mounted for), NEVER from the payload's own `data.universe` string:
+ * the real owner files carry `sp500_subsectors` / `nasdaq_subsectors` /
+ * `russell_subsectors` / `curated_baskets` — owner vocabulary that is not the
+ * tab id set, so keying on it silently fell back to `subsectors` and rendered
+ * the 49-group baskets file as "no groups" (review S1). The payload string is
+ * informational only; the parent's tab decides which array is tabled. */
+export function groupsOf(
+  id: UniverseId,
+  data: UniverseData | null | undefined,
+): UniverseGroup[] {
   if (!data) return [];
-  const key = UNIVERSES[(data.universe as UniverseId) ?? "subsectors"]?.groupsKey ?? "subsectors";
+  const key = UNIVERSES[id]?.groupsKey ?? "subsectors";
   const groups = (data as Partial<Record<"subsectors" | "baskets", UniverseGroup[]>>)[key];
   return Array.isArray(groups) ? groups : [];
 }
@@ -401,26 +413,37 @@ export function sortGroups(
 
 /** c) Coverage read: total = n_subsectors ?? n_baskets ?? n_listed, plus the
  * gateable / thin (counted, not timed) / below-minimum (min 3) / unscored
- * figures, the priced count and the universe reliability counts. */
+ * figures, the priced count and the universe reliability counts.
+ *
+ * ABSENT-IS-NOT-ZERO (review N1): an absent count stays null — "not stated" —
+ * and never renders as 0. A carried 0 is a measured zero and renders as 0;
+ * the two are kept structurally distinct exactly like a null flow reading. */
 export interface CoverageModel {
   total: number | null;
   basis: "n_subsectors" | "n_baskets" | "n_listed" | null;
-  gateable: number;
-  thin: number;
-  belowMin: number;
-  unscored: number;
-  scored: number;
+  gateable: number | null;
+  thin: number | null;
+  belowMin: number | null;
+  unscored: number | null;
+  /** Alias of gateable (same field, same null law). */
+  scored: number | null;
   minMembers: number;
-  high: number;
-  med: number;
-  lowConf: number;
+  high: number | null;
+  med: number | null;
+  lowConf: number | null;
+}
+
+function countOrNull(v: unknown): number | null {
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
 }
 
 export function coverageModel(
-  coverage: UniverseCoverage | null | undefined,
+  coverage: Partial<UniverseCoverage> | null | undefined,
 ): CoverageModel {
   const c: Partial<UniverseCoverage> = coverage ?? {};
-  const total = c.n_subsectors ?? c.n_baskets ?? c.n_listed ?? null;
+  // N1: the denominator obeys the same law as every other count — absent OR
+  // non-numeric means not stated (null), never a coerced or invented number.
+  const total = countOrNull(c.n_subsectors ?? c.n_baskets ?? c.n_listed ?? null);
   const basis =
     c.n_subsectors != null
       ? "n_subsectors"
@@ -429,18 +452,19 @@ export function coverageModel(
         : c.n_listed != null
           ? "n_listed"
           : null;
+  const gateable = countOrNull(c.n_gateable);
   return {
     total,
     basis,
-    gateable: c.n_gateable ?? 0,
-    thin: c.n_thin ?? 0,
-    belowMin: c.n_below_min_members ?? 0,
-    unscored: c.n_unscored ?? 0,
-    scored: c.n_gateable ?? 0,
+    gateable,
+    thin: countOrNull(c.n_thin),
+    belowMin: countOrNull(c.n_below_min_members),
+    unscored: countOrNull(c.n_unscored),
+    scored: gateable,
     minMembers: MIN_MEMBERS,
-    high: c.n_high ?? 0,
-    med: c.n_med ?? 0,
-    lowConf: c.n_low_conf ?? 0,
+    high: countOrNull(c.n_high),
+    med: countOrNull(c.n_med),
+    lowConf: countOrNull(c.n_low_conf),
   };
 }
 
@@ -560,11 +584,12 @@ export function rotationRead(groups: readonly UniverseGroup[]): UniverseGroup[] 
 export type UniversePresence = "absent" | "no_access" | "zero_groups" | "live";
 
 export function universePresence(
+  id: UniverseId,
   data: UniverseData | null | undefined,
 ): UniversePresence {
   if (!data) return "absent";
   if (data.ok === false) return "no_access";
-  const groups = groupsOf(data);
+  const groups = groupsOf(id, data);
   if (groups.length === 0) return "zero_groups";
   return "live";
 }

@@ -25,6 +25,15 @@ export const SECTOR_DEPTH_LEX: Record<string, [string, string]> = {
   siDepthAsOf: ["as of {date}", "截至 {date}"],
   siDepthDisplayOnly: ["Display-only", "仅供展示"],
   siDepthLearnAccess: ["Learn about access →", "了解访问权限 →"],
+  // Review S5: the owner name and the carried field names named in the
+  // unavailable state are reader-facing copy in BOTH locales — never a raw
+  // English literal or an internal wire id in the ZH surface. The wire id
+  // still rides the data attributes for tests; the reader sees these words.
+  siDepthOwnerMacroGen: ["Macro sector generation", "Macro 板块生成引擎"],
+  siDepthFieldActionBoard: ["the action board", "行动看板"],
+  siDepthFieldBottomingWatch: ["the bottoming watch", "底部观察"],
+  siDepthFieldEtfFlows: ["ETF fund flows", "ETF 资金流"],
+  siDepthFieldConfluence: ["the entry-evidence universes", "入场证据样本域"],
 
   // ── calls board ────────────────────────────────────────────────────────────
   siCallsTitle: ["What to act on now", "当下行动指南"],
@@ -214,6 +223,11 @@ export const SECTOR_DEPTH_LEX: Record<string, [string, string]> = {
     "{gateable} of {total} {noun} have enough data to time",
     "{gateable}/{total} 个{noun}有足够数据可计时",
   ],
+  // N1: an absent gateable count is stated as not stated — never rendered 0.
+  siUniverseCoverageNotStated: [
+    "{total} {noun} in this universe; the count with enough data to time is not stated in this payload.",
+    "此样本域共 {total} 个{noun}；有足够数据可计时的数量未在本数据中载明。",
+  ],
   siUniverseCoverageThin: [
     "{n} thin — counted, not timed",
     "{n} 个数据稀疏——计入统计，不计时",
@@ -261,10 +275,14 @@ export const SECTOR_DEPTH_LEX: Record<string, [string, string]> = {
   siUniverseFreshAboutTo: ["about to fire", "即将触发"],
   siUniverseFreshNone: ["—", "—"],
   siUniverseNames: ["names", "只"],
+  // S5: the identity line carries the tab's LOCALIZED display name (never the
+  // raw tab id), and the baskets universe names its complex through
+  // siUniverseBasketBenchmark instead of a raw English literal.
   siUniverseSourceIdentity: [
-    "universe {id} · benchmark {benchmark} · equal weight",
-    "样本域 {id} · 基准 {benchmark} · 等权",
+    "{name} universe · benchmark {benchmark} · equal weight",
+    "{name} 样本域 · 基准 {benchmark} · 等权",
   ],
+  siUniverseBasketBenchmark: ["equal-weight basket complex", "等权主题篮子组合"],
   siUniverseNoDate: [
     "this run did not report a session date",
     "此版本未报告交易日",

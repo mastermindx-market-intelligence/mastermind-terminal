@@ -51,7 +51,9 @@ export interface CallRow {
   reco_why_zh: string;
   rs_pctile: number;
   flip_distance: number;
-  /** Detail destination, used EXACTLY as carried (e.g. "basket/test_theme.html"). */
+  /** Detail destination, carried verbatim; the board renders it as a link only
+   * when it is a same-site relative path beginning with one "/" (review N4 —
+   * see lib/sectorDepthHref.ts). */
   href: string;
   /** Days-to-trigger, carried by buy_soon rows only. Null/absent sorts last. */
   days?: number | null;
@@ -506,4 +508,161 @@ export function isBottomingWatchUnavailable(
   watch: BottomingWatchData | null | undefined,
 ): boolean {
   return watch === null || watch === undefined;
+}
+
+// ── closed-shape carried readers (review S2) ─────────────────────────────────
+// Same pattern as flowsFromCarriedBlock: a malformed or incomplete payload
+// returns null, the component renders the shared DepthUnavailable state, and
+// NO input ever throws. An absent `total` is malformed (null) — it can never
+// reach the reader as the text "undefined". These readers are the boundary
+// lane 3's mount calls instead of a cast: hand them the raw projection value
+// and branch on null.
+
+const DATE_SHAPE = /^\d{4}-\d{2}-\d{2}$/;
+
+function isPlainObject(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null && !Array.isArray(v);
+}
+
+function isCount(v: unknown): v is number {
+  return typeof v === "number" && Number.isInteger(v) && v >= 0;
+}
+
+function isFiniteNumber(v: unknown): v is number {
+  return typeof v === "number" && Number.isFinite(v);
+}
+
+/** One accepted CallRow: the closed field set every renderer reads, with the
+ * owner's nullable/optional fields validated only when present. */
+function validCallRow(v: unknown): boolean {
+  if (!isPlainObject(v)) return false;
+  if (v.kind !== "theme" && v.kind !== "sector") return false;
+  for (const key of [
+    "ticker",
+    "slug",
+    "name",
+    "name_zh",
+    "reco",
+    "label",
+    "label_zh",
+    "rollover_band",
+    "rollover_band_zh",
+    "reco_why_en",
+    "reco_why_zh",
+    "href",
+  ] as const) {
+    if (typeof v[key] !== "string") return false;
+  }
+  for (const key of [
+    "score",
+    "alloc_rank",
+    "durability",
+    "perf_20d_rel",
+    "breadth_pct50",
+    "clean_quality",
+    "rs_pctile",
+    "flip_distance",
+  ] as const) {
+    if (!isFiniteNumber(v[key])) return false;
+  }
+  for (const key of ["above_trend", "eligible", "validated", "clean_entry"] as const) {
+    if (typeof v[key] !== "boolean") return false;
+  }
+  if (v.book_wt !== null && !isFiniteNumber(v.book_wt)) return false;
+  if (v.signal_grade !== null && typeof v.signal_grade !== "string") return false;
+  if (!Array.isArray(v.top_members) || !v.top_members.every((m) => typeof m === "string")) {
+    return false;
+  }
+  // Optional fields, validated only when the key rides the payload.
+  if (v.days !== undefined && v.days !== null && !isFiniteNumber(v.days)) return false;
+  for (const key of ["stat_en", "stat_zh"] as const) {
+    if (v[key] !== undefined && v[key] !== null && typeof v[key] !== "string") return false;
+  }
+  if (v.emerging !== undefined && v.emerging !== null && typeof v.emerging !== "boolean") {
+    return false;
+  }
+  if (
+    v.emergence_href !== undefined &&
+    v.emergence_href !== null &&
+    typeof v.emergence_href !== "string"
+  ) {
+    return false;
+  }
+  return true;
+}
+
+/** Closed-shape reader for the owner's action_board (review S2). Validates the
+ * whole board — date, board total/locked, all six lanes with their own
+ * total/locked and every row's closed field set — and returns the SAME object
+ * typed as ActionBoardData, or null for anything malformed or incomplete.
+ * Lane 3's mount calls this instead of casting; the calls board component
+ * also runs it on its own prop, so a malformed board can never crash render. */
+export function actionBoardFromCarried(payload: unknown): ActionBoardData | null {
+  if (!isPlainObject(payload)) return null;
+  if (typeof payload.as_of !== "string" || !DATE_SHAPE.test(payload.as_of)) return null;
+  if (!isCount(payload.total)) return null;
+  if (!isCount(payload.locked)) return null;
+  if (!isPlainObject(payload.lanes)) return null;
+  const lanes = payload.lanes as Record<string, unknown>;
+  for (const key of [
+    "buy_now",
+    "buy_soon",
+    "on_the_run",
+    "take_profits",
+    "hold",
+    "avoid",
+  ] as const) {
+    const lane = lanes[key];
+    if (!isPlainObject(lane)) return null;
+    if (!Array.isArray(lane.rows) || !lane.rows.every(validCallRow)) return null;
+    if (!isCount(lane.total)) return null;
+    if (!isCount(lane.locked)) return null;
+  }
+  // Every field has been individually validated above; this is a sound cast.
+  return payload as unknown as ActionBoardData;
+}
+
+/** Closed-shape reader for the owner's bottoming_watch payload (review S2):
+ * the entries array, both id-membership sets and the display-tier authority
+ * block, with every payload-only field still type-checked (they ride the wire
+ * even though the strip never renders them). Returns the same object typed as
+ * BottomingWatchData, or null for anything malformed or incomplete. */
+export function bottomingWatchFromCarried(payload: unknown): BottomingWatchData | null {
+  if (!isPlainObject(payload)) return null;
+  if (!Array.isArray(payload.bottoming_watch)) return null;
+  for (const e of payload.bottoming_watch) {
+    if (!isPlainObject(e)) return null;
+    if (e.kind !== "BASKET" && e.kind !== "SECTOR") return null;
+    for (const key of ["id", "cid", "name", "name_zh", "timing_state", "href"] as const) {
+      if (typeof e[key] !== "string") return null;
+    }
+    for (const key of ["pos", "osc_slope"] as const) {
+      if (!isFiniteNumber(e[key])) return null;
+    }
+    for (const key of ["above200d", "gate_conflict"] as const) {
+      if (typeof e[key] !== "boolean") return null;
+    }
+    for (const key of ["signal", "cycle_signal"] as const) {
+      if (e[key] !== null && typeof e[key] !== "string") return null;
+    }
+  }
+  for (const key of ["dual_read_ids", "recovering_ids"] as const) {
+    if (!Array.isArray(payload[key]) || !payload[key].every((x) => typeof x === "string")) {
+      return null;
+    }
+  }
+  const auth = payload.bottoming_authority;
+  if (!isPlainObject(auth)) return null;
+  if (auth.tier !== "display") return null;
+  // may_* are display-tier false by contract; a true value is not this contract.
+  for (const key of ["may_rank", "may_gate", "may_size", "may_escalate"] as const) {
+    if (auth[key] !== undefined && auth[key] !== false) return null;
+  }
+  for (const key of ["null_disclosure_en", "null_disclosure_zh"] as const) {
+    if (auth[key] !== undefined && auth[key] !== null && typeof auth[key] !== "string") {
+      return null;
+    }
+  }
+  // Every field has been individually validated above; this is a sound cast.
+  return payload as unknown as BottomingWatchData;
 }

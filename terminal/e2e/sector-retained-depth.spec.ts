@@ -121,25 +121,29 @@ test("calls contract board: keyboard show-more and trace disclosure", async ({ p
 });
 
 test("navigation out flows through the onNavigate callback with the exact href", async ({ page }) => {
-  const section = page.locator('[data-h-section="calls"]');
+  // N4 href law, live: the captured generation's rows carry owner hrefs
+  // WITHOUT a leading slash (sector/…, basket/…) — non-conforming, so the
+  // captured board renders NO detail control at all, in either form.
+  const captured = page.locator('[data-h-section="calls"]');
+  await expect(captured.getByRole("button", { name: /Open detail|打开详情/ })).toHaveCount(0);
+  await expect(captured.locator("a[href]")).toHaveCount(0);
+  // The wired instance with conforming hrefs is the contract-derived
+  // emergence board (its rows carry /sector/…, /basket/…, /company/… paths).
+  const section = page.locator('[data-h-section="calls-emergence"]');
   // The log box is visible; the empty <ol> inside it has no height yet, so
   // assert on the container and drive the count through the list itself.
   const logBox = page.locator('[aria-label="navigation log"]');
   await expect(logBox).toBeVisible();
   const log = page.locator('[data-harness="navlog"]');
   const before = await log.locator("li").count();
-  // The captured section mounts WITH onNavigate: its detail control is a
-  // button that must call back with the row href verbatim. (The captured
-  // board populates only Stand aside, which starts collapsed on the phone.)
+  // Buy-now is the primary lane and stays open on every viewport, so its
+  // detail control is the first reachable one without opening an accordion.
   const detail = section.getByRole("button", { name: /Open detail|打开详情/ }).first();
-  if (!(await detail.isVisible())) {
-    await section
-      .locator('[data-lane="stand_aside"]')
-      .getByRole("button", { name: /Stand aside|观望/i })
-      .click();
-  }
+  await expect(detail).toBeVisible();
   await detail.click();
   await expect(log.locator("li")).toHaveCount(before + 1);
+  // The logged href is the row's carried path, verbatim and leading-slash.
+  await expect(log.locator("li").last()).toContainText(/^\/(sector|basket|company)\//);
 });
 
 /* ── owner-carried emergence mark (v1.1 R6-09) ────────────────────────────── */
@@ -168,10 +172,11 @@ test("emergence mark: owner-carried flag renders the R6-09 chip, copy and eviden
   for (const b of await blocks.all()) {
     expect((await b.innerText()).replace("→", "")).not.toMatch(/\d/);
   }
-  // Exactly one evidence link, carrying the owner's href verbatim.
+  // Exactly one evidence link, carrying the owner's href verbatim (N4: the
+  // same-site path is passed through untouched, leading slash included).
   const link = section.locator("[data-emergence-link]");
   await expect(link).toHaveCount(1);
-  await expect(link).toHaveAttribute("data-emergence-link", "company/SYN_S1.html");
+  await expect(link).toHaveAttribute("data-emergence-link", "/company/SYN_S1.html");
   // Routed through onNavigate, landing in the harness nav log verbatim.
   const log = page.locator('[data-harness="navlog"]');
   const before = await log.locator("li").count();
@@ -195,8 +200,9 @@ test("emergence chip: the member-line marker opens company evidence when carried
   }
   await expect(chips).toHaveCount(1);
   await expect(chips.first()).toContainText(/Independent emergence|独立走强/);
-  // The chip becomes the evidence link itself when a destination is carried.
-  await expect(chips.first()).toHaveAttribute("data-emergence-link", "company/AMAT.html");
+  // The chip becomes the evidence link itself when a destination is carried
+  // (N4: same-site path, verbatim).
+  await expect(chips.first()).toHaveAttribute("data-emergence-link", "/company/AMAT.html");
   const log = page.locator('[data-harness="navlog"]');
   const before = await log.locator("li").count();
   await chips.first().click();

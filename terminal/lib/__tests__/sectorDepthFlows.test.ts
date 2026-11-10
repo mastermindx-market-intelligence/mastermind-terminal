@@ -24,6 +24,7 @@ import {
   CARRIED_FLOW_LABELS,
   cellIntensity,
   effectiveWindowDays,
+  FLOW_FUND_MAX,
   FLOW_WINDOW_LABEL,
   FLOW_WINDOWS,
   flowsFromCarriedBlock,
@@ -54,8 +55,9 @@ const fixtureFile = JSON.parse(readFileSync(FIXTURE_PATH, "utf8")) as {
 
 /** The v1.1 carried etf_flows typed block (wire §3, macro #10929):
  * realFull = the committed producer's own run over data/flows; realAccruing14
- * = the same real series truncated to 14 sessions (owner-stated
- * full_window:false on 1M). The fixture's own "note" is the label of record. */
+ * = a LANE-AUTHORED TEST INPUT (review N5) — the same real series truncated
+ * to 14 sessions by lane 7, with the full_window:false flag authored by the
+ * lane. The fixture's own "note" is the label of record. */
 const CARRIED_PATH = join(
   __dirname,
   "fixtures",
@@ -729,5 +731,160 @@ describe("carried etf_flows block (wire v1.1 §3) — real producer run", () => 
     b.funds[0].flow_mn["1M"] = null;
     const out2 = flowsFromCarriedBlock(b)!;
     expect(out2.rows[0].values["1m"]).toBeNull();
+  });
+});
+
+describe("S3/S4 — carried-block strictness (reviewer probe, made permanent)", () => {
+  const base = JSON.parse(JSON.stringify(carriedFile.cases.realFull)) as Record<string, unknown>;
+  const variant = (mutate: (b: Record<string, unknown>) => void): unknown => {
+    const b = JSON.parse(JSON.stringify(base)) as Record<string, unknown>;
+    mutate(b);
+    return b;
+  };
+  const fund = (b: Record<string, unknown>, i: number) =>
+    (b.funds as { ticker: string; flow_mn: Record<string, unknown> }[])[i]!;
+
+  it("S3 — a PRESENT wrong-typed value in flow_mn makes the whole block null", () => {
+    expect(
+      flowsFromCarriedBlock(variant((b) => { fund(b, 0).flow_mn["1D"] = "81"; })),
+    ).toBeNull();
+    expect(
+      flowsFromCarriedBlock(variant((b) => { fund(b, 0).flow_mn["1D"] = [81]; })),
+    ).toBeNull();
+    expect(
+      flowsFromCarriedBlock(variant((b) => { fund(b, 0).flow_mn["1D"] = { v: 81 }; })),
+    ).toBeNull();
+    expect(
+      flowsFromCarriedBlock(variant((b) => { fund(b, 0).flow_mn["1D"] = true; })),
+    ).toBeNull();
+    expect(
+      flowsFromCarriedBlock(variant((b) => { fund(b, 3).flow_mn["1W"] = Number.NaN; })),
+    ).toBeNull();
+    expect(
+      flowsFromCarriedBlock(variant((b) => { fund(b, 3).flow_mn["1W"] = "null"; })),
+    ).toBeNull();
+  });
+
+  it("S3 — a non-object flow_mn (array/scalar) or non-object net_flow_mn is malformed", () => {
+    expect(
+      flowsFromCarriedBlock(
+        variant((b) => {
+          fund(b, 1).flow_mn = [["1D", 5]] as unknown as Record<string, unknown>;
+        }),
+      ),
+    ).toBeNull();
+    expect(
+      flowsFromCarriedBlock(
+        variant((b) => {
+          fund(b, 1).flow_mn = "1D=5" as unknown as Record<string, unknown>;
+        }),
+      ),
+    ).toBeNull();
+    expect(
+      flowsFromCarriedBlock(variant((b) => { b.net_flow_mn = [["1D", 5]] as unknown; })),
+    ).toBeNull();
+    expect(
+      flowsFromCarriedBlock(variant((b) => { b.net_flow_mn = "1D=5" as unknown; })),
+    ).toBeNull();
+    expect(
+      flowsFromCarriedBlock(variant((b) => { b.net_flow_mn = null; })),
+    ).toBeNull();
+  });
+
+  it("S3 — a row whose flow_mn carries ONLY unknown window keys is malformed, not empty", () => {
+    expect(
+      flowsFromCarriedBlock(
+        variant((b) => { fund(b, 2).flow_mn = { "2M": 5, "6M": 6 }; }),
+      ),
+    ).toBeNull();
+    // A known label plus an unknown one is equally malformed.
+    expect(
+      flowsFromCarriedBlock(
+        variant((b) => { fund(b, 2).flow_mn = { "1D": 5, "2M": 6 }; }),
+      ),
+    ).toBeNull();
+  });
+
+  it("S3 — duplicate tickers make the block null (identity must be unique)", () => {
+    expect(
+      flowsFromCarriedBlock(variant((b) => { fund(b, 5).ticker = fund(b, 0).ticker; })),
+    ).toBeNull();
+  });
+
+  it("S3 — funds: [] is a collection failure (null), not a measured-empty matrix", () => {
+    // The producer always carries the full collected fund set; an empty array
+    // means collection failed — the surface renders unavailable, never an
+    // empty matrix that would read as "measured zero everywhere".
+    expect(
+      flowsFromCarriedBlock(variant((b) => { b.funds = []; })),
+    ).toBeNull();
+  });
+
+  it("S3 — more than FLOW_FUND_MAX (64) funds is malformed; the bound is stated, never a truncation", () => {
+    expect(FLOW_FUND_MAX).toBe(64);
+    const many = variant((b) => {
+      const first = fund(b, 0);
+      b.funds = Array.from({ length: FLOW_FUND_MAX + 1 }, (_, i) => ({
+        ticker: `F${i}`,
+        flow_mn: { ...first.flow_mn },
+      }));
+    });
+    expect(flowsFromCarriedBlock(many)).toBeNull();
+    // Exactly at the bound is fine (11 real funds, far below it).
+    const atBound = variant((b) => {
+      const first = fund(b, 0);
+      b.funds = Array.from({ length: FLOW_FUND_MAX }, (_, i) => ({
+        ticker: `F${i}`,
+        flow_mn: { ...first.flow_mn },
+      }));
+    });
+    expect(flowsFromCarriedBlock(atBound)).not.toBeNull();
+    expect(flowsFromCarriedBlock(atBound)!.rows).toHaveLength(FLOW_FUND_MAX);
+  });
+
+  it("S4 — the label must match the trading-day count exactly (1/3/5/10/21)", () => {
+    // 1M labelled with 5 days — mismatch, malformed.
+    expect(
+      flowsFromCarriedBlock(
+        variant((b) => { (b.windows as { label: string; trading_days: number }[])[4].trading_days = 5; }),
+      ),
+    ).toBeNull();
+    // 1D labelled with 2 days — off-by-one, malformed.
+    expect(
+      flowsFromCarriedBlock(
+        variant((b) => { (b.windows as { label: string; trading_days: number }[])[0].trading_days = 2; }),
+      ),
+    ).toBeNull();
+    // Non-integer counts are malformed even when the integer part matches.
+    expect(
+      flowsFromCarriedBlock(
+        variant((b) => { (b.windows as { label: string; trading_days: number }[])[4].trading_days = 21.5; }),
+      ),
+    ).toBeNull();
+    expect(
+      flowsFromCarriedBlock(
+        variant((b) => { (b.windows as { label: string; trading_days: number }[])[2].trading_days = 2.5; }),
+      ),
+    ).toBeNull();
+    // A string count is malformed.
+    expect(
+      flowsFromCarriedBlock(
+        variant((b) => { (b.windows as { label: string; trading_days: unknown }[])[3].trading_days = "10"; }),
+      ),
+    ).toBeNull();
+    // Labels are the closed UPPERCASE set — lowercase is unknown.
+    expect(
+      flowsFromCarriedBlock(
+        variant((b) => { (b.windows as { label: string }[])[0].label = "1d"; }),
+      ),
+    ).toBeNull();
+    // The unmutated contract table itself is exact (guard the guard).
+    const windowsOf =
+      (carriedFile.cases.realFull as { windows?: { label: string; trading_days: number }[] })
+        .windows ?? [];
+    expect(windowsOf).toHaveLength(5);
+    for (const w of windowsOf) {
+      expect(Number.isInteger(w.trading_days)).toBe(true);
+    }
   });
 });

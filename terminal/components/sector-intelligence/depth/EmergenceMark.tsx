@@ -1,6 +1,7 @@
 "use client";
 
 import { useSectorDepthT } from "@/lib/sectorDepthLex";
+import { sameSiteHref } from "@/lib/sectorDepthHref";
 import styles from "./EmergenceMark.module.css";
 
 /** Independent-emergence mark (v1.1, R6-09 "Company strength is early").
@@ -8,8 +9,12 @@ import styles from "./EmergenceMark.module.css";
  * Rendering law — the flag is OWNER-CARRIED, never derived:
  * - renders ONLY when the owner engine set `emerging === true`; absent, null
  *   and false all render nothing;
- * - `emergence_href` is used exactly as carried — no href ⇒ the chip and copy
- *   still render, the evidence link does not (nothing is invented);
+ * - `emergence_href` is actionable ONLY as a same-site relative path beginning
+ *   with exactly one "/" (review N4): no scheme, no protocol-relative "//", no
+ *   backslash, no whitespace/control characters. A non-conforming href is NOT
+ *   rewritten — the copy still renders, the evidence link does not, and the
+ *   navigation callback is never called with it. No href at all behaves the
+ *   same way;
  * - the mark never changes entry qualification, lane placement, counts or any
  *   may_* flag — it is additive context on a row that is already placed;
  * - copy is number-free in both locales: the boolean carries no percentage,
@@ -19,7 +24,7 @@ import styles from "./EmergenceMark.module.css";
  * `variant="block"` is the R6-09 card anatomy at row scale (kicker → headline
  * → body → evidence link); `variant="chip"` is the compact marker for dense
  * member lines — the chip itself becomes the evidence link when the owner
- * carries a destination, with the headline as its tooltip.
+ * carries a conforming destination, with the headline as its tooltip.
  */
 export function EmergenceMark({
   emerging,
@@ -34,7 +39,7 @@ export function EmergenceMark({
 }) {
   const t = useSectorDepthT();
   if (emerging !== true) return null;
-  const evidence = href || null;
+  const evidence = sameSiteHref(href);
 
   if (variant === "chip") {
     const text = t("siEmergKicker");

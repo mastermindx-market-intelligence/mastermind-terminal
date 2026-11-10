@@ -64,8 +64,10 @@ const flowsContract = flowsContractFixture as unknown as {
 /** The v1.1 carried etf_flows typed block (wire §3), adapted through the real
  * parser. realFull holds the committed producer's own run over data/flows
  * (as-of 2026-11-05, depth 79, 11 funds — the fixture's note is the label of
- * record); realAccruing14 is that same real series truncated to 14 sessions
- * to exercise the owner-stated full_window:false path. */
+ * record); realAccruing14 is a LANE-AUTHORED TEST INPUT (review N5): the same
+ * real series truncated to 14 sessions by lane 7, with the full_window:false
+ * flag authored by the lane to exercise that rendering path — no owner
+ * statement is claimed for it. */
 const flowsCarried = flowsCarriedFixture as unknown as {
   cases: { realFull: unknown; realAccruing14: unknown };
 };
@@ -87,7 +89,7 @@ const emergenceBoard: ActionBoardData = (() => {
   const clone = structuredClone(callsContract.action_board) as ActionBoardData;
   const buyNow = clone.lanes.buy_now.rows;
   if (buyNow[0]) {
-    buyNow[0] = { ...buyNow[0], emerging: true, emergence_href: "company/SYN_S1.html" };
+    buyNow[0] = { ...buyNow[0], emerging: true, emergence_href: "/company/SYN_S1.html" };
   }
   const hold = clone.lanes.hold.rows;
   if (hold[0]) {
@@ -107,7 +109,7 @@ const emergenceUniverses: Partial<Record<UniverseId, UniverseData>> = (() => {
   const member = group?.members?.[0];
   if (member) {
     member.emerging = true;
-    member.emergence_href = "company/AMAT.html";
+    member.emergence_href = "/company/AMAT.html";
   }
   return clone;
 })();
@@ -174,8 +176,10 @@ function HarnessBody() {
       <header className={styles.bar}>
         <h1 className={styles.h1}>DEV HARNESS · sector retained depth (lane 7)</h1>
         <p className={styles.barNote}>
-          Not a product surface. Real captured generation below; sections marked
-          “contract” mount synthetic contract fixtures.
+          Not a product surface. The captured generation below is a CONTROLLED
+          TEST CAPTURE (population, labels and authentication were controlled
+          test inputs, not production data); sections marked “contract” mount
+          synthetic contract fixtures.
         </p>
         <div className={styles.ctls}>
           <button type="button" className={styles.btn} data-harness-ctl="lang" onClick={toggleLang}>
@@ -199,15 +203,15 @@ function HarnessBody() {
       </HarnessSection>
 
       <HarnessSection id="watch" title="Bottoming Watch · captured generation">
-        <DepthUnavailable field="bottoming_watch" owner="Macro sector generation" title={t("siWatchTitle")} />
+        <DepthUnavailable field="bottoming_watch" owner="macro_sector_generation" title={t("siWatchTitle")} />
       </HarnessSection>
 
       <HarnessSection id="flows" title="Flow matrix · captured generation">
-        <DepthUnavailable field="etf_flows" owner="Macro sector generation" title={t("siFlowsTitle")} />
+        <DepthUnavailable field="etf_flows" owner="macro_sector_generation" title={t("siFlowsTitle")} />
       </HarnessSection>
 
       <HarnessSection id="universes" title="Entry evidence · captured generation">
-        <DepthUnavailable field="confluence" owner="Macro sector generation" title={t("siUniverseTitle")} />
+        <DepthUnavailable field="confluence" owner="macro_sector_generation" title={t("siUniverseTitle")} />
       </HarnessSection>
 
       <HarnessSection id="theme" title="Theme / compare / history · captured generation">
@@ -232,7 +236,11 @@ function HarnessBody() {
       <HarnessSection id="flows-carried" title="Flow matrix · CARRIED typed block (real producer run, 2026-11-05)">
         <SectorFlowMatrix flows={carriedFull} />
       </HarnessSection>
-      <HarnessSection id="flows-carried-accruing" title="Flow matrix · CARRIED typed block, accruing depth 14 (1M partial by owner statement)">
+      <HarnessSection
+        id="flows-carried-accruing"
+        title="Flow matrix · LANE-AUTHORED TEST INPUT — the real producer run truncated to depth 14 by lane 7; the full_window:false flag is lane-authored, not an owner statement"
+        synthetic
+      >
         <SectorFlowMatrix flows={carriedAccruing} />
       </HarnessSection>
       <HarnessSection id="universes-contract" title="Entry evidence · CONTRACT fixture (synthetic)" synthetic>
