@@ -1,0 +1,86 @@
+{
+  "schema": "options.volatility.design_fixture.v1",
+  "classification": "SYNTHETIC_DESIGN_AND_TEST_ONLY",
+  "root": "SPY",
+  "source_session": "2026-09-25",
+  "term": [
+    {
+      "exp": "2026-10-02",
+      "dte": 7,
+      "atm_iv": 12.8
+    },
+    {
+      "exp": "2026-10-09",
+      "dte": 14,
+      "atm_iv": 13.3
+    },
+    {
+      "exp": "2026-10-16",
+      "dte": 21,
+      "atm_iv": null
+    },
+    {
+      "exp": "2026-10-23",
+      "dte": 28,
+      "atm_iv": 14.6
+    },
+    {
+      "exp": "2026-11-20",
+      "dte": 56,
+      "atm_iv": 16.1
+    },
+    {
+      "exp": "2026-12-18",
+      "dte": 84,
+      "atm_iv": 16.9
+    }
+  ],
+  "smile": [
+    {
+      "exp": "2026-10-23",
+      "points": [
+        {
+          "strike": 730,
+          "call_iv": 23.2,
+          "put_iv": 24
+        },
+        {
+          "strike": 750,
+          "call_iv": 19.1,
+          "put_iv": 20
+        },
+        {
+          "strike": 770,
+          "call_iv": 15,
+          "put_iv": 14.8
+        },
+        {
+          "strike": 790,
+          "call_iv": null,
+          "put_iv": 16.4
+        },
+        {
+          "strike": 810,
+          "call_iv": 17.6,
+          "put_iv": 18.2
+        }
+      ]
+    }
+  ],
+  "selected_expiry": "2026-10-23",
+  "selected_strike": 770,
+  "headline_context": {
+    "atm_iv": 12.5,
+    "atm_tenor": null,
+    "rv20": 12.7,
+    "reported_iv_minus_rv20": -0.2
+  },
+  "unsupplied": [
+    "underlying_price",
+    "build_timestamp",
+    "quote_age",
+    "bid",
+    "ask",
+    "calculation_settings"
+  ]
+}

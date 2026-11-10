@@ -1,0 +1,69 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/d08c-plan-compare-20261104-c3/terminal
+
+ ✓ lib/__tests__/sharedShellPublicPresentation.test.tsx (17 tests) 1241ms
+   ✓ explicit Settings presentation intent after a public override > does not reapply a saved theme on a real Settings trade edit 542ms
+ ✓ lib/__tests__/readingWorkspaces.test.tsx (25 tests) 293ms
+ ✓ lib/__tests__/todayAttentionIntegration.test.tsx (18 tests) 282ms
+ ✓ lib/__tests__/todayResearchAttention.test.tsx (27 tests) 144ms
+stderr | lib/__tests__/frozenNodeEntryView.test.tsx > source availability and publication remain distinct in the actual map > unknown publication does not borrow the availability clock (en)
+An update to ExposureDistance inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | lib/__tests__/frozenNodeEntryView.test.tsx > source availability and publication remain distinct in the actual map > unknown publication does not borrow the availability clock (zh)
+An update to ExposureDistance inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | lib/__tests__/frozenNodeEntryView.test.tsx > source availability and publication remain distinct in the actual map > known publication shows its own clock alongside availability (en)
+An update to ExposureDistance inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | lib/__tests__/frozenNodeEntryView.test.tsx > source availability and publication remain distinct in the actual map > known publication shows its own clock alongside availability (zh)
+An update to ExposureDistance inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ lib/__tests__/frozenNodeEntryView.test.tsx (11 tests) 642ms
+ ✓ lib/__tests__/optionsPlanPayoffPanel.test.tsx (10 tests) 261ms
+ ✓ lib/__tests__/onboardingOAuthContext.test.ts (3 tests) 13ms
+ ✓ lib/__tests__/optionsPlanComparePanel.test.tsx (5 tests) 112ms
+ ✓ lib/__tests__/documentLanguageSync.test.tsx (5 tests) 40ms
+ ✓ lib/__tests__/optionsPlanScenarioCompare.test.ts (10 tests) 35ms
+
+ Test Files  10 passed (10)
+      Tests  131 passed (131)
+   Start at  21:13:14
+   Duration  8.51s (transform 1.06s, setup 0ms, collect 1.71s, tests 3.06s, environment 1.98s, prepare 426ms)
+

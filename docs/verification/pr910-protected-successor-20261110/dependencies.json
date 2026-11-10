@@ -1,0 +1,16 @@
+{
+  "schema": "terminal.pr910.runtime.v1",
+  "state": "MATCHING_DEPENDENCIES_AND_EXISTING_BROWSER_CACHE_READY",
+  "node": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-910-protected-successor/.pr910-runtime/node-v22.23.4-darwin-arm64/bin/node",
+  "nodeSha256": "2cc28a1880d0774616959f2210ee739bffa6ac695c887e8988a496a21271f6c0",
+  "dependencyDonor": "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1426-ss12-successor/terminal",
+  "copyMode": "same-volume APFS clones; donor untouched",
+  "lockSha256": "ecb0e5d1f6119efbbbf84ad2058dab315ad1c1326537aff6de7597e4ad5358a9",
+  "browserStore": "/Users/chriswong/Library/Caches/ms-playwright",
+  "versions": {
+    "node": "v22.23.4",
+    "next": "16.2.9",
+    "playwright": "1.61.1",
+    "chromium": "/Users/chriswong/Library/Caches/ms-playwright/chromium-1228/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+  }
+}

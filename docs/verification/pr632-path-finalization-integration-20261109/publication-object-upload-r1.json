@@ -1,0 +1,139 @@
+{
+  "blobs": [
+    {
+      "bytes": 717470,
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/ChartPanel.before-selection-continuity-r3.tsx",
+      "sha": "acc4a42cc158446fe7f6d3e1223df6d18a1ca5b0"
+    },
+    {
+      "bytes": 4345,
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/README.md",
+      "sha": "da9e12aa70558a9cfdb51eb830f795ce44f7e810"
+    },
+    {
+      "bytes": 152049,
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/before-guard-r2/drawing-system.spec.ts",
+      "sha": "321b303193c6499b82e8c01d045f0886e6747e8d"
+    },
+    {
+      "bytes": 2609,
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/ci-owner-r1/execution-final.json",
+      "sha": "0f39dc88c51a16cbb80727e77edb092fa2360a54"
+    },
+    {
+      "bytes": 1446,
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/ci-owner-r1/execution.json",
+      "sha": "9ab0f1378b73167b52cea213499d1dff3979ff63"
+    },
+    {
+      "bytes": 1450,
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109190632-1-options.returned.json",
+      "sha": "620327da2b672d0b8d804b7aba8f5eeffca016ac"
+    },
+    {
+      "bytes": 203779,
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109190632-1-options.returned/desktop-left-percentage.png",
+      "sha": "aadb53fa0bf838cbda264b48c575b6cbb31129b2"
+    },
+    {
+      "bytes": 185998,
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109190632-1-options.returned/desktop.png",
+      "sha": "21b198e7c88e1b3a4a777afed131bc32a7a8f75a"
+    },
+    {
+      "bytes": 15697,
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109190632-1-options.returned/manifest.json",
+      "sha": "39d515e898bcdf4c9f345ab4b8c588ccbd7358db"
+    },
+    {
+      "bytes": 108962,
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109190632-1-options.returned/tablet.png",
+      "sha": "7af06cdde2c761cda8a474ac11bb9d69443300cb"
+    },
+    {
+      "bytes": 103,
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109190632-1-pl6.stderr.log",
+      "sha": "1455e8420de64553cf280ea876d91b2b7f1b2b3b"
+    },
+    {
+      "bytes": 2623,
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109190632-1-pl6.stdout.log",
+      "sha": "6ba8aecf7603ea424accd0a92473bd29bea60f72"
+    },
+    {
+      "bytes": 829,
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109190632-1-vi.stdout.log",
+      "sha": "2a1aeb58a36e78bcbebe357272ae80a4fa6e48fe"
+    },
+    {
+      "bytes": 14614,
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/ci-owner-r1/runner-temp/terminal-ci-evidence/ci-20261109190632-1.json",
+      "sha": "e9f4b54b56b4ffdc7d98427eef54c5a522748ef9"
+    },
+    {
+      "bytes": 144,
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/ci-owner-r1/selected-env",
+      "sha": "170bb9c564925bb9a21d65965ffc7fb289b74c17"
+    },
+    {
+      "bytes": 3920,
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/ci-owner-r1/selected-owner-vi-lifecycle.json",
+      "sha": "8adaa07c60d9446f7177ba06db2d1e4c60bf8780"
+    },
+    {
+      "bytes": 224596,
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/ci-owner-r1/source-after.json",
+      "sha": "51bc247c94648011bbf8c08335bad9f243be63c5"
+    },
+    {
+      "bytes": 10216,
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/continue-drawing-regression.py",
+      "sha": "cbed770a1915c415c6ab15e849f8707ae55edcd2"
+    },
+    {
+      "bytes": 884,
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/dependencies.json",
+      "sha": "5f5c6d1ced37a2cd21c0818f423e541d7ef508bd"
+    },
+    {
+      "bytes": 178190,
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/diff-check.json",
+      "sha": "62911170749ab2381cd9b31a9464c96bd928b71a"
+    },
+    {
+      "bytes": 3919,
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/drawing-guard-r2-lifecycle.json",
+      "sha": "72f92f1b38d7e520df7b2a1332c7503e62edf6b4"
+    },
+    {
+      "bytes": 96,
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/drawing-guard-r2/artifacts/.last-run.json",
+      "sha": "2432a55606c4c4597a4af38ae9d7f6dee47f450b"
+    },
+    {
+      "bytes": 41480,
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/drawing-guard-r2/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/error-context.md",
+      "sha": "7bd87a0e350debdae33c5ed5dd07cb7d3096b900"
+    },
+    {
+      "bytes": 293133,
+      "path": "docs/verification/pr632-path-finalization-integration-20261109/drawing-guard-r2/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/test-failed-1.png",
+      "sha": "5db47255577e8116d5b4353d516e852bc279504a"
+    }
+  ],
+  "completedAt": "2026-11-09T19:24:21.003662+00:00",
+  "error": "{\"exit\": 1, \"stdout\": \"{\\\"message\\\":\\\"Sorry, your input was too large to process. Consider creating the blob in a local clone of the repository and then pushing it to GitHub.\\\",\\\"documentation_url\\\":\\\"https://docs.github.com/rest/git/blobs#create-a-blob\\\",\\\"status\\\":\\\"422\\\"}\", \"stderr\": \"gh: Sorry, your input was too large to process. Consider creating the blob in a local clone of the repository and then pushing it to GitHub. (HTTP 422)\\n\"}",
+  "expectedHead": "9aa40ffb0b640afeac794d6fa2ca0aaf61d4d3e4",
+  "inFlight": {
+    "kind": "blob",
+    "path": "docs/verification/pr632-path-finalization-integration-20261109/drawing-guard-r2/artifacts/drawing-system-a-desktop-P-4656b-lick-has-no-native-dblclick-desktop/trace.zip",
+    "sha": "83ad8bea0924f37dc1d09dd7dde2a1cd0cb59b93",
+    "startedAt": "2026-11-09T19:24:05.360797+00:00"
+  },
+  "repository": "mastermindx-market-intelligence/mastermind-terminal",
+  "schema": "github_immutable_candidate_objects.v1",
+  "startedAt": "2026-11-09T19:23:35.481810+00:00",
+  "state": "FAILED_RECONCILE_IN_FLIGHT_BEFORE_ANY_RESUME",
+  "treeExpected": "1692f5884664dbf87db0494f49fc00b1432241d7",
+  "trees": []
+}

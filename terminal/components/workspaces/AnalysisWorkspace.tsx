@@ -3,17 +3,30 @@
 // intelligence surface). It used to load from app/layout.tsx on every route; it is imported
 // here and in components/fin/CompanyIntelligencePage so only the two surfaces that use it pay
 // for it. See the note in that file.
+import { pick } from "@/lib/finFormat";
 import "../../app/company-intelligence.css";
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import MegaPane, { FIN_PAGES as FIN_PAGE_LIST, type FinPage } from "@/components/fin/MegaPane";
 import { getFund, getBars, type Fund, type Bar } from "@/lib/fund";
 import { getJSON } from "@/lib/dataCache";
 import { useLang, useT } from "@/lib/i18n";
+import {
+  hasMarketOntologyContext,
+  parseMarketOntologyContext,
+  serializeMarketOntologyContext,
+  stripMarketOntologyParams,
+} from "@/lib/marketOntologyContext";
 import { ANALYSIS_DEFAULT_SYMBOL, normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
 import { announceShellBrainSymbol } from "@/lib/shellBrainSymbol";
 import { readActiveSymbol, writeActiveSymbol } from "@/lib/activeSymbol";
 import SymbolPicker from "@/components/SymbolPicker";
+import CompanyListingIdentity from "@/components/CompanyListingIdentity";
+import { normalizeCompanySearchQuery, readCompanySearchQuery } from "@/lib/companySearchContext";
+import MarketOntologyContextStrip from "./MarketOntologyContextStrip";
+import { sharedShellTerminalHref } from "@/lib/sharedShellNavigation";
+import { useOptionalSharedShellPresentation } from "@/components/chrome/shared-shell/SharedShellPresentation";
 
 /**
  * Analysis workspace composer (Wave-2 IA) — the `/analysis` body.
@@ -23,7 +36,7 @@ import SymbolPicker from "@/components/SymbolPicker";
  * (no scrim, no scroll-lock, positioned by .fin-pane--workspace CSS which is a
  * flex:1 child of a flex-column parent — see app/fin.css:947). This composer
  * supplies the two things TerminalShell supplies around it: (1) a per-symbol data
- * load (intel/fund/bars/quote) and (2) symbol + sub-page context.
+ * load (intel/fund/bars) and (2) symbol + sub-page context.
  *
  * ── URL state (seeded by the server page, then kept shallow with
  *    window.history.replaceState to avoid a useSearchParams CSR bailout) ──
@@ -36,13 +49,13 @@ import SymbolPicker from "@/components/SymbolPicker";
  *                     (lib/navSymbol) so the usual path never reaches the adoption below.
  *   ?page=<FinPage>   the active sub-page (default overview). Validated against
  *                     FIN_PAGES on mount; MegaPane's onPage updates it.
- *   NB: MegaPane ALSO writes ?pane=<page> internally (its own legacy deep-link,
- *   unchanged here). It carries the same value as our ?page= — harmless mirror.
+ *   Standalone research uses ?page=; MegaPane retains ?pane= only for the
+ *   chart-hosted overlay, and removes that legacy mirror in workspace mode.
  *
  * ── Data load ── replicates TerminalShell's per-symbol loader (TerminalShell.tsx
- *    ~576-605): on symbol change, reset (intel/fund/bars/quote → null/[], fundLoading
- *    → true) then fetch. Race-guarded by an `alive` flag captured per effect run so a
- *    fast symbol switch can't apply stale data. Deviation: TerminalShell defers the
+ *    ~576-605): on symbol change, reset (intel/fund/bars → null/[], fundLoading
+ *    → true) then fetch. The snapshot is symbol-bound before render, with an
+ *    `alive` flag per effect run so a fast switch cannot adopt stale responses. Deviation: TerminalShell defers the
  *    below-the-fold intel/fund/opts behind requestIdleCallback so they don't compete
  *    with the chart's cold-load OHLC fetch in the network queue. There is no chart
  *    fetch on this standalone route, so we fetch immediately — simpler, same result.
@@ -62,9 +75,16 @@ const DEFAULT_PAGE: FinPage = "overview";
  * rejects separators, repeated delimiters, and any other shape that could be
  * mistaken for a route or silently normalised into another company.
  */
-// Light live-quote refresh; matches the /api/quote snapshot cadence (TTL 5s). We
-// poll a touch slower to avoid needless load on a single-symbol page.
-const QUOTE_REFRESH_MS = 15_000;
+// The research panels consume published company snapshots. Statistics renders
+// fund.ratios.current, not quote.last; no separate live quote poll is needed.
+const EMPTY_BARS: Bar[] = [];
+interface CompanyRead {
+  symbol: string;
+  intel: unknown | null;
+  fund: Fund | null;
+  bars: Bar[];
+  fundLoading: boolean;
+}
 
 export interface AnalysisWorkspaceProps {
   initialSymbol?: string;
@@ -75,6 +95,8 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   const { lang } = useLang();
   const t = useT();
   const router = useRouter();
+  const sharedPresentation = useOptionalSharedShellPresentation();
+  const searchParams = useSearchParams();
 
   const requestedSymbol = initialSymbol?.trim().toUpperCase() || "";
   const normalizedInitialSymbol = normalizeAnalysisSymbol(initialSymbol);
@@ -89,26 +111,62 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   );
   const [page, setPage] = useState<FinPage>(seededPage);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const routeQuery = searchParams.toString();
+  // A picker action invalidates the rendered origin immediately, including a
+  // same-company pick while the router still exposes its previous query.
+  const [clearedOntologyQuery, setClearedOntologyQuery] = useState<string | null>(null);
+  if (clearedOntologyQuery !== null && clearedOntologyQuery !== routeQuery) {
+    // The query changed; a later arrival at the original URL is valid again.
+    setClearedOntologyQuery(null);
+  }
+  const companySearchQuery = readCompanySearchQuery(new URLSearchParams(routeQuery));
+  useLayoutEffect(() => {
+    // Router navigation and Back/Forward reuse this mounted workspace. Reconcile
+    // URL identity before paint; a useState seed alone would leave the old company.
+    const params = new URLSearchParams(routeQuery);
+    const raw = params.get("symbol");
+    if (raw) {
+      const next = normalizeAnalysisSymbol(raw);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronize the external URL owner before painting reused route content.
+      setInvalidSymbol(next ? null : raw);
+      if (next) setSym(next);
+    } else {
+      setInvalidSymbol(null);
+      setSym(normalizeAnalysisSymbol(readActiveSymbol() ?? undefined) ?? DEFAULT_SYMBOL);
+    }
+    const nextPage = params.get("page") ?? params.get("pane");
+    setPage(nextPage && FIN_PAGES.has(nextPage as FinPage) ? nextPage as FinPage : DEFAULT_PAGE);
+  }, [routeQuery]);
 
-  const [intel, setIntel] = useState<any | null>(null);
-  const [fund, setFund] = useState<Fund | null>(null);
-  const [fundLoading, setFundLoading] = useState(true);
-  const [bars, setBars] = useState<Bar[]>([]);
-  const [last, setLast] = useState<number | null>(null);
+  const [companyRead, setCompanyRead] = useState<CompanyRead | null>(null);
+  // A URL update renders before passive-effect cleanup. Bind every projection to
+  // its company now, not after a frame has borrowed the previous company's values.
+  const selectedRead = companyRead?.symbol === sym ? companyRead : null;
+  const intel = selectedRead?.intel ?? null;
+  const fund = selectedRead?.fund ?? null;
+  const fundLoading = selectedRead?.fundLoading ?? true;
+  const bars = selectedRead?.bars ?? EMPTY_BARS;
 
   // ── adopt the cross-route cursor when the URL named no company ───────────────────────────
   //
   // Gate, not a race. `localStorage` cannot be read during render without a hydration mismatch
   // (the server already emitted DEFAULT_SYMBOL into the context bar), and setting the symbol
   // from a passive effect would let this commit's data effects fire a full NVDA load first —
-  // four wasted requests on a phone, for a company nobody asked for. So the loaders below wait
+  // three wasted requests on a phone, for a company nobody asked for. So the loaders below wait
   // on `symbolSettled`, and a LAYOUT effect resolves the cursor before the browser paints: the
   // user never sees the fallback, and the network never fetches it. Ordering, never a timer —
   // see the mount-effect starvation note in TerminalShell.
   const [symbolSettled, setSymbolSettled] = useState(() => !!normalizedInitialSymbol || !!requestedSymbol);
   useLayoutEffect(() => {
     if (symbolSettled) return;
+    const params = new URLSearchParams(window.location.search);
+    if (hasMarketOntologyContext(params) && !normalizedInitialSymbol) {
+      const url = new URL(window.location.href);
+      url.search = stripMarketOntologyParams(params).toString();
+      window.history.replaceState(null, "", url.toString());
+    }
     const cursor = normalizeAnalysisSymbol(readActiveSymbol() ?? undefined);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resolve the external cursor before paint and before company-data effects.
     if (cursor && cursor !== sym) setSym(cursor);
     setSymbolSettled(true);
     // Mount-only: once settled, the picker owns the symbol and re-running would undo a pick.
@@ -132,6 +190,15 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
     window.history.replaceState(null, "", u.toString());
   }, []);
 
+  const marketOntologyContext = useMemo(() => {
+    const params = new URLSearchParams(routeQuery);
+    const routeSymbol = normalizeAnalysisSymbol(params.get("symbol") ?? undefined);
+    // The first actionable link must already carry its validated origin. Never
+    // attach an unscoped arrival to the cursor/default or another selected company.
+    if (invalidSymbol || !routeSymbol || routeSymbol !== sym || clearedOntologyQuery === routeQuery) return null;
+    return parseMarketOntologyContext(params);
+  }, [clearedOntologyQuery, invalidSymbol, routeQuery, sym]);
+
   // ── symbol change → rewrite ?symbol= shallowly, and tell AppShell's Brain host ──
   // `writeParam` uses `history.replaceState`, which fires no Next.js navigation and no
   // native DOM event, so AppShell's shell-level resolver would otherwise never learn the
@@ -153,34 +220,18 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   useEffect(() => {
     if (invalidSymbol || !symbolSettled) return;
     let alive = true;
-    setIntel(null); setFund(null); setBars([]); setLast(null); setFundLoading(true);
-    getJSON(`/data/${sym}.intel.json`).then((d) => { if (alive) setIntel(d); }).catch(() => {});
-    getBars(sym).then((b) => { if (alive) setBars(b); }).catch(() => {});
-    getFund(sym)
-      .then((d) => { if (alive) setFund(d); })
-      .catch(() => {})
-      .finally(() => { if (alive) setFundLoading(false); });
-    return () => { alive = false; };
-  }, [invalidSymbol, sym, symbolSettled]);
-
-  // ── live quote (single symbol): initial fetch + light refresh, race-guarded ──
-  // MegaPane consumes only quote.last (Statistics "Current" column, forecast spot),
-  // so we extract quotes[sym].last from /api/quote?syms=<SYM> and pass { last }.
-  useEffect(() => {
-    if (invalidSymbol || !symbolSettled) return;
-    let alive = true;
-    const load = async () => {
-      try {
-        const r = await fetch(`/api/quote?view=regular&syms=${encodeURIComponent(sym)}`, { cache: "no-store" });
-        if (!r.ok) return;
-        const j = await r.json();
-        const px = j?.quotes?.[sym]?.last;
-        if (alive) setLast(typeof px === "number" ? px : null);
-      } catch { /* transient — keep last good */ }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initialize this selected company's read lifetime.
+    setCompanyRead({ symbol: sym, intel: null, fund: null, bars: [], fundLoading: true });
+    const publish = (patch: Partial<Omit<CompanyRead, "symbol">>) => {
+      if (alive) setCompanyRead(current => current?.symbol === sym ? { ...current, ...patch } : current);
     };
-    load();
-    const id = window.setInterval(load, QUOTE_REFRESH_MS);
-    return () => { alive = false; window.clearInterval(id); };
+    getJSON(`/data/${sym}.intel.json`).then(d => publish({ intel: d })).catch(() => {});
+    getBars(sym).then(b => publish({ bars: b })).catch(() => {});
+    getFund(sym)
+      .then(d => publish({ fund: d }))
+      .catch(() => {})
+      .finally(() => publish({ fundLoading: false }));
+    return () => { alive = false; };
   }, [invalidSymbol, sym, symbolSettled]);
 
   // ── symbol switch ────────────────────────────────────────────────────────────────────
@@ -189,20 +240,45 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
   // can be found by English or Chinese name, browsed by asset class, or taken straight from
   // Recently viewed. Every commit also moves the cross-route cursor via the effect above, which
   // is what makes this "change the ticker globally", not just on this desk.
-  const openSymbol = useCallback((next: string) => {
+  const openSymbol = useCallback((next: string, query?: string) => {
     const valid = normalizeAnalysisSymbol(next);
     if (!valid) return;   // the picker only ever yields manifest symbols; belt and braces
+    const params = new URLSearchParams(window.location.search);
+    params.delete("company_query");
+    const selectedQuery = normalizeCompanySearchQuery(query);
+    if (selectedQuery !== null) params.set("company_query", selectedQuery);
+    for (const key of ["ci_event", "ci_generation", "ci_company", "ci_fingerprint", "ci_lens", "ci_evidence"]) params.delete(key);
+    const investigationUrl = new URL(window.location.href);
+    investigationUrl.search = params.toString();
+    window.history.replaceState(window.history.state, "", investigationUrl.toString());
+    if (hasMarketOntologyContext(params)) {
+      const url = new URL(window.location.href);
+      url.search = stripMarketOntologyParams(params).toString();
+      window.history.replaceState(null, "", url.toString());
+    }
+    setClearedOntologyQuery(routeQuery);
     setInvalidSymbol(null);
     setSym(valid);
-  }, []);
+  }, [routeQuery, setClearedOntologyQuery]);
 
   // ── onClose (workspace) → jump to the chart for this symbol ──
   const onClose = useCallback(() => {
-    router.push(`/terminal?symbol=${encodeURIComponent(sym)}`);
-  }, [router, sym]);
+    const href = sharedPresentation
+      ? sharedShellTerminalHref(window.location.href, sym)
+      : `/terminal?symbol=${encodeURIComponent(sym)}`;
+    router.push(href);
+  }, [router, sharedPresentation, sym]);
 
   const zh = lang === "zh";
   const contextSymbol = invalidSymbol ?? sym;
+  const thesesHref = useMemo(() => {
+    if (!marketOntologyContext) return `/analysis?view=theses&symbol=${encodeURIComponent(sym)}`;
+    const params = serializeMarketOntologyContext(
+      marketOntologyContext,
+      new URLSearchParams({ view: "theses", symbol: sym }),
+    );
+    return `/analysis?${params.toString()}`;
+  }, [marketOntologyContext, sym]);
 
   return (
     // Root IS the (shell) .app2 grid cell (like DiscoverWorkspace). Flex-column so
@@ -210,25 +286,28 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
     // bar. `.analysis-shell` also keeps that in-flow behaviour at ≤860px, where the pane would
     // otherwise fall back to a fixed full-screen overlay and bury this bar and the app's mobile
     // nav underneath itself — see the scoped block in app/fin.css.
-    <div className="main2 ws-shell analysis-shell">
+    <div className="main2 ws-shell analysis-shell" role="main" id="shared-shell-content" tabIndex={-1}>
+      {marketOntologyContext && <MarketOntologyContextStrip context={marketOntologyContext} />}
       <div className="analysis-context-bar">
-        <button type="button" className="analysis-context-back" onClick={onClose}>
+        {!invalidSymbol && <button type="button" className="analysis-context-back" onClick={onClose}>
           <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden>
             <path d="M15 18l-6-6 6-6" />
           </svg>
           {t("backToChart")}
-        </button>
+        </button>}
         {/* The identity block IS the switcher. Two controls that both name the current company —
             a read-only chip beside a "switch to" field — is one more than the bar needs, and the
             chart already established that tapping the ticker is how you change it. */}
         <SymbolPicker
+          scope={sharedPresentation ? "companies" : "symbols"}
           symbol={contextSymbol}
           mark={invalidSymbol ? "!" : undefined}
-          eyebrow={zh ? "研究工作区" : "RESEARCH WORKSPACE"}
-          label={zh ? "切换标的" : "Change symbol"}
+          eyebrow={pick(zh, "RESEARCH WORKSPACE", "研究工作区")}
+          label={pick(zh, "Change symbol", "切换标的")}
           open={pickerOpen}
           onOpenChange={setPickerOpen}
           onPick={openSymbol}
+          onCompanyPick={openSymbol}
           trackSource="analysis-search"
           className={invalidSymbol ? "sym-pick--invalid" : undefined}
         />
@@ -236,8 +315,67 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
           <i />
           <span>{t("wsCompanyResearch")}</span>
         </div>
+        {!invalidSymbol && sharedPresentation && <button type="button" className="analysis-context-chart" onClick={onClose}>
+          {pick(zh, "Open current chart", "打开当前图表")} <span aria-hidden="true">↗</span>
+        </button>}
+        {!invalidSymbol && <Link className="analysis-context-theses" href={`/analysis?view=investigations&symbol=${encodeURIComponent(sym)}`}>{pick(zh, "Saved research", "已保存研究")}</Link>}
+        {!invalidSymbol && (
+          <Link
+            href={thesesHref}
+            className="analysis-context-theses"
+            aria-label={t("wsOpenThesesFor", "Your theses on {sym}").replace("{sym}", sym)}
+          >
+            <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
+              <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z" />
+            </svg>
+            {t("wsOpenTheses")}
+          </Link>
+        )}
+        {/* On phones, keep both company-scoped destinations without consuming another toolbar row.
+            Native details supplies a keyboard-operable disclosure without a parallel navigation owner. */}
+        {!invalidSymbol && (
+          <details
+            className="analysis-context-actions"
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                event.currentTarget.open = false;
+                event.currentTarget.querySelector("summary")?.focus();
+                event.stopPropagation();
+              }
+            }}
+          >
+            <summary aria-label={pick(zh, "Research actions", "研究操作")} title={pick(zh, "Research actions", "研究操作")}>
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <circle cx="5" cy="12" r="1.8" />
+                <circle cx="12" cy="12" r="1.8" />
+                <circle cx="19" cy="12" r="1.8" />
+              </svg>
+            </summary>
+            <nav className="analysis-context-actions-menu" aria-label={pick(zh, "Research actions", "研究操作")}>
+              <Link href={`/analysis?view=investigations&symbol=${encodeURIComponent(sym)}`} onClick={(event) => { const disclosure = event.currentTarget.closest("details"); if (disclosure) disclosure.open = false; }}>
+                {pick(zh, "Saved research", "已保存研究")}
+              </Link>
+              <Link
+                href={thesesHref}
+                aria-label={t("wsOpenThesesFor", "Your theses on {sym}").replace("{sym}", sym)}
+                onClick={(event) => { const disclosure = event.currentTarget.closest("details"); if (disclosure) disclosure.open = false; }}
+              >
+                {t("wsOpenTheses")}
+              </Link>
+              {sharedPresentation && (
+                <button type="button" onClick={onClose}>{pick(zh, "Open current chart", "打开当前图表")}</button>
+              )}
+            </nav>
+          </details>
+        )}
       </div>
 
+      {!invalidSymbol && companySearchQuery !== null && (
+        <CompanyListingIdentity key={sym} symbol={sym} query={companySearchQuery} fund={fund} loading={fundLoading} />
+      )}
       {invalidSymbol ? (
         <section className="analysis-invalid-state" role="status" aria-live="polite">
           <span className="analysis-invalid-mark" aria-hidden>!</span>
@@ -257,7 +395,6 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
           sym={sym}
           fund={fund}
           fundLoading={fundLoading}
-          quote={{ last }}
           bars={bars}
           page={page}
           onPage={onPage}

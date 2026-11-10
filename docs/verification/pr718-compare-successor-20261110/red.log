@@ -1,0 +1,194 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/terminal[39m
+
+ [32m✓[39m lib/__tests__/chartSettingsUi.test.ts [2m([22m[2m45 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+ [32m✓[39m lib/__tests__/compareSettingsAccessibility.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[90m 125[2mms[22m[39m
+ [31m❯[39m lib/__tests__/compareSettingsUx.test.tsx [2m([22m[2m12 tests[22m[2m | [22m[31m6 failed[39m[2m)[22m[90m 137[2mms[22m[39m
+[31m   [31m×[31m comparison settings preserve color and interaction ownership[2m > [22mallows clearing thickness without mutating the chart, then restores an empty commit[90m 11[2mms[22m[31m[39m
+[31m     → expected '2' to be '' // Object.is equality[39m
+[31m   [31m×[31m comparison settings preserve color and interaction ownership[2m > [22mwithholds out-of-range widths during typing and bounds the committed value[90m 8[2mms[22m[31m[39m
+[31m     → expected "spy" to not be called at all, but actually been called 1 times[90m
+
+Received: 
+
+[1m  1st spy call:
+
+[22m    Array [
+      Object {
+        "lineWidth": 4,
+      },
+    ]
+[31m[90m
+
+Number of calls: [1m1[22m
+[31m[39m
+[31m   [31m×[31m comparison settings preserve color and interaction ownership[2m > [22mpreviews a valid integer once and preserves unrelated comparison terms[90m 8[2mms[22m[31m[39m
+[31m     → Invalid Chai property: toHaveBeenCalledExactlyOnceWith[39m
+[31m   [31m×[31m comparison settings preserve color and interaction ownership[2m > [22mwithholds fractional widths until the existing bounded integer commit[90m 8[2mms[22m[31m[39m
+[31m     → expected '2' to be '2.5' // Object.is equality[39m
+[31m   [31m×[31m comparison settings preserve color and interaction ownership[2m > [22mwithholds negative drafts and applies the minimum only on commit[90m 9[2mms[22m[31m[39m
+[31m     → expected "spy" to not be called at all, but actually been called 1 times[90m
+
+Received: 
+
+[1m  1st spy call:
+
+[22m    Array [
+      Object {
+        "lineWidth": 1,
+      },
+    ]
+[31m[90m
+
+Number of calls: [1m1[22m
+[31m[39m
+[31m   [31m×[31m comparison settings preserve color and interaction ownership[2m > [22mdoes not carry an uncommitted draft into a different comparison[90m 6[2mms[22m[31m[39m
+[31m     → expected "spy" to not be called at all, but actually been called 1 times[90m
+
+Received: 
+
+[1m  1st spy call:
+
+[22m    Array [
+      Object {
+        "lineWidth": 4,
+      },
+    ]
+[31m[90m
+
+Number of calls: [1m1[22m
+[31m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 6 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/compareSettingsUx.test.tsx[2m > [22mcomparison settings preserve color and interaction ownership[2m > [22mallows clearing thickness without mutating the chart, then restores an empty commit
+[31m[1mAssertionError[22m: expected '2' to be '' // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[31m+ 2[39m
+
+[36m [2m❯[22m lib/__tests__/compareSettingsUx.test.tsx:[2m84:35[22m[39m
+    [90m 82| [39m  [34mit[39m([32m"allows clearing thickness without mutating the chart, then resto[39m…
+    [90m 83| [39m    [35mawait[39m [34mrender[39m()[33m;[39m [35mawait[39m [34mfill[39m([32m"number"[39m[33m,[39m [32m""[39m)[33m;[39m
+    [90m 84| [39m    [34mexpect[39m([34minput[39m([32m"number"[39m)[33m.[39mvalue)[33m.[39m[34mtoBe[39m([32m""[39m)[33m;[39m [34mexpect[39m(change)[33m.[39mnot[33m.[39m[34mtoHaveB[39m…
+    [90m   | [39m                                  [31m^[39m
+    [90m 85| [39m    [35mawait[39m [34mcommit[39m()[33m;[39m
+    [90m 86| [39m    [34mexpect[39m([34minput[39m([32m"number"[39m)[33m.[39mvalue)[33m.[39m[34mtoBe[39m([32m"2"[39m)[33m;[39m [34mexpect[39m(change)[33m.[39mnot[33m.[39m[34mtoHave[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/compareSettingsUx.test.tsx[2m > [22mcomparison settings preserve color and interaction ownership[2m > [22mwithholds out-of-range widths during typing and bounds the committed value
+[31m[1mAssertionError[22m: expected "spy" to not be called at all, but actually been called 1 times[90m
+
+Received: 
+
+[1m  1st spy call:
+
+[22m    Array [
+      Object {
+        "lineWidth": 4,
+      },
+    ]
+[31m[90m
+
+Number of calls: [1m1[22m
+[31m[39m
+[36m [2m❯[22m lib/__tests__/compareSettingsUx.test.tsx:[2m89:67[22m[39m
+    [90m 87| [39m  })[33m;[39m
+    [90m 88| [39m  [34mit[39m([32m"withholds out-of-range widths during typing and bounds the commi[39m…
+    [90m 89| [39m    [35mawait[39m [34mrender[39m()[33m;[39m [35mawait[39m [34mfill[39m([32m"number"[39m[33m,[39m [32m"9"[39m)[33m;[39m [34mexpect[39m(change)[33m.[39mnot[33m.[39m[34mtoHa[39m…
+    [90m   | [39m                                                                  [31m^[39m
+    [90m 90| [39m    [34mexpect[39m([34minput[39m([32m"number"[39m)[33m.[39mvalue)[33m.[39m[34mtoBe[39m([32m"9"[39m)[33m;[39m
+    [90m 91| [39m    [35mawait[39m [34mcommit[39m()[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/compareSettingsUx.test.tsx[2m > [22mcomparison settings preserve color and interaction ownership[2m > [22mpreviews a valid integer once and preserves unrelated comparison terms
+[31m[1mError[22m: Invalid Chai property: toHaveBeenCalledExactlyOnceWith[39m
+[36m [2m❯[22m lib/__tests__/compareSettingsUx.test.tsx:[2m98:18[22m[39m
+    [90m 96| [39m  [34mit[39m([32m"previews a valid integer once and preserves unrelated comparison[39m…
+    [90m 97| [39m    [35mawait[39m [34mrender[39m()[33m;[39m [35mawait[39m [34mfill[39m([32m"number"[39m[33m,[39m [32m"3"[39m)[33m;[39m
+    [90m 98| [39m    [34mexpect[39m(change)[33m.[39m[34mtoHaveBeenCalledExactlyOnceWith[39m({ lineWidth[33m:[39m [34m3[39m })[33m;[39m
+    [90m   | [39m                 [31m^[39m
+    [90m 99| [39m    [34mexpect[39m([34minput[39m([32m"number"[39m)[33m.[39mvalue)[33m.[39m[34mtoBe[39m([32m"3"[39m)[33m;[39m
+    [90m100| [39m    [35mawait[39m [34mcommit[39m()[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/compareSettingsUx.test.tsx[2m > [22mcomparison settings preserve color and interaction ownership[2m > [22mwithholds fractional widths until the existing bounded integer commit
+[31m[1mAssertionError[22m: expected '2' to be '2.5' // Object.is equality[39m
+
+Expected: [32m"2[7m.5[27m"[39m
+Received: [31m"2"[39m
+
+[36m [2m❯[22m lib/__tests__/compareSettingsUx.test.tsx:[2m106:35[22m[39m
+    [90m104| [39m  [34mit[39m([32m"withholds fractional widths until the existing bounded integer c[39m…
+    [90m105| [39m    [35mawait[39m [34mrender[39m()[33m;[39m [35mawait[39m [34mfill[39m([32m"number"[39m[33m,[39m [32m"2.5"[39m)[33m;[39m
+    [90m106| [39m    [34mexpect[39m([34minput[39m([32m"number"[39m)[33m.[39mvalue)[33m.[39m[34mtoBe[39m([32m"2.5"[39m)[33m;[39m [34mexpect[39m(change)[33m.[39mnot[33m.[39m[34mtoHa[39m…
+    [90m   | [39m                                  [31m^[39m
+    [90m107| [39m    [35mawait[39m [34mcommit[39m()[33m;[39m
+    [90m108| [39m    [34mexpect[39m(change)[33m.[39m[34mtoHaveBeenCalledExactlyOnceWith[39m({ lineWidth[33m:[39m [34m3[39m })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/compareSettingsUx.test.tsx[2m > [22mcomparison settings preserve color and interaction ownership[2m > [22mwithholds negative drafts and applies the minimum only on commit
+[31m[1mAssertionError[22m: expected "spy" to not be called at all, but actually been called 1 times[90m
+
+Received: 
+
+[1m  1st spy call:
+
+[22m    Array [
+      Object {
+        "lineWidth": 1,
+      },
+    ]
+[31m[90m
+
+Number of calls: [1m1[22m
+[31m[39m
+[36m [2m❯[22m lib/__tests__/compareSettingsUx.test.tsx:[2m112:68[22m[39m
+    [90m110| [39m  })[33m;[39m
+    [90m111| [39m  [34mit[39m([32m"withholds negative drafts and applies the minimum only on commit[39m…
+    [90m112| [39m    [35mawait[39m [34mrender[39m()[33m;[39m [35mawait[39m [34mfill[39m([32m"number"[39m[33m,[39m [32m"-2"[39m)[33m;[39m [34mexpect[39m(change)[33m.[39mnot[33m.[39m[34mtoH[39m…
+    [90m   | [39m                                                                   [31m^[39m
+    [90m113| [39m    [35mawait[39m [34mcommit[39m()[33m;[39m
+    [90m114| [39m    [34mexpect[39m(change)[33m.[39m[34mtoHaveBeenCalledExactlyOnceWith[39m({ lineWidth[33m:[39m [34m1[39m })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/compareSettingsUx.test.tsx[2m > [22mcomparison settings preserve color and interaction ownership[2m > [22mdoes not carry an uncommitted draft into a different comparison
+[31m[1mAssertionError[22m: expected "spy" to not be called at all, but actually been called 1 times[90m
+
+Received: 
+
+[1m  1st spy call:
+
+[22m    Array [
+      Object {
+        "lineWidth": 4,
+      },
+    ]
+[31m[90m
+
+Number of calls: [1m1[22m
+[31m[39m
+[36m [2m❯[22m lib/__tests__/compareSettingsUx.test.tsx:[2m118:67[22m[39m
+    [90m116| [39m  })[33m;[39m
+    [90m117| [39m  [34mit[39m([32m"does not carry an uncommitted draft into a different comparison"[39m…
+    [90m118| [39m    [35mawait[39m [34mrender[39m()[33m;[39m [35mawait[39m [34mfill[39m([32m"number"[39m[33m,[39m [32m"9"[39m)[33m;[39m [34mexpect[39m(change)[33m.[39mnot[33m.[39m[34mtoHa[39m…
+    [90m   | [39m                                                                  [31m^[39m
+    [90m119| [39m    [35mawait[39m [34mrender[39m(seed[33m,[39m [32m"MSFT"[39m)[33m;[39m
+    [90m120| [39m    [34mexpect[39m([34minput[39m([32m"number"[39m)[33m.[39mvalue)[33m.[39m[34mtoBe[39m([32m"2"[39m)[33m;[39m [34mexpect[39m(change)[33m.[39mnot[33m.[39m[34mtoHave[39m…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (3)[39m
+[2m      Tests [22m [1m[31m6 failed[39m[22m[2m | [22m[1m[32m56 passed[39m[22m[90m (62)[39m
+[2m   Start at [22m 09:37:03
+[2m   Duration [22m 2.00s[2m (transform 216ms, setup 0ms, collect 502ms, tests 267ms, environment 819ms, prepare 166ms)[22m
+
+JSON report written to /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/docs/verification/pr718-compare-successor-20261110/red-report.json

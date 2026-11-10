@@ -1,0 +1,76 @@
+[WebServer] ⚠ Slow filesystem detected. The benchmark took 208ms. If /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/terminal/.next/dev is a network drive, consider moving it to a local folder.
+[WebServer] See more: https://nextjs.org/docs/app/guides/local-development
+[warmup] /terminal?symbol=NVDA → 200 in 97ms
+[warmup] /options → 200 in 1536ms
+[warmup] /portfolio → 200 in 574ms
+[warmup] /alerts → 200 in 481ms
+[warmup] /analysis → 200 in 884ms
+[warmup] /discover → 200 in 923ms
+[warmup] /admin → 200 in 299ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 223ms
+[warmup] /login → 200 in 94ms
+[warmup] /reset-password → 200 in 273ms
+[warmup] /api/me → 200 in 337ms
+[warmup] /api/watchlist → 200 in 158ms
+[warmup] /api/layouts → 200 in 160ms
+[warmup] /api/watchlist/annotations → 409 in 119ms
+[warmup] 14 routes compiled in 6s
+[fixture-ready] prophet_idx fixture 200 in 360ms
+
+Running 6 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[WebServer] [searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  1 [desktop] › e2e/compare-settings-ux.spec.ts:87:7 › [en] comparison settings edit the real overlay without losing modal or saved state (17.0s)
+  ✓  2 [desktop] › e2e/compare-settings-ux.spec.ts:87:7 › [zh] comparison settings edit the real overlay without losing modal or saved state (16.4s)
+  ✘  3 [tablet] › e2e/compare-settings-ux.spec.ts:87:7 › [en] comparison settings edit the real overlay without losing modal or saved state (21.6s)
+Testing stopped early after 1 maximum allowed failures.
+
+
+  1) [tablet] › e2e/compare-settings-ux.spec.ts:87:7 › [en] comparison settings edit the real overlay without losing modal or saved state 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      78 |       const value = await state();
+      79 |       return value.connected && value.visible && value.relevant;
+    > 80 |     }).toBe(true);
+         |        ^
+      81 |   } finally {
+      82 |     await info.attach(label, { body: JSON.stringify(await state(), null, 2), contentType: "application/json" });
+      83 |   }
+        at returnFocus (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/terminal/e2e/compare-settings-ux.spec.ts:80:8)
+        at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/terminal/e2e/compare-settings-ux.spec.ts:129:11
+
+    attachment #1: compare-entry (image/png) ───────────────────────────────────────────────────────
+    ../docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/attachments/compare-entry-548593195f5700105424c3cbff48e5e490e58d79.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: comparison-settings (image/png) ─────────────────────────────────────────────────
+    ../docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/attachments/comparison-settings-8cebca0e878f2f89450388d7ba40b6152874c3bf.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/error-context.md
+
+    attachment #6: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/trace.zip
+    Usage:
+
+        npx playwright show-trace ../docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [tablet] › e2e/compare-settings-ux.spec.ts:87:7 › [en] comparison settings edit the real overlay without losing modal or saved state 
+  3 did not run
+  2 passed (1.2m)
+  1 error was not a part of any test, see above for details

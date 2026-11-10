@@ -1,20 +1,19 @@
-# recapture: NEEDED — crops depict the pre-heal LONG sentence; SectionPortfolioTargets.tsx changed
-# at the h_t586 heal (shapeReadoutVisible=false); recapture before PROVEN_LIVE.
-# 2026-09-19 h_t586 round 2: hash-only restamp; crops NOT recaptured.
-# 2026-09-19 h_t586 round 3: capturedAtHead was the invented SHA
-# 2c8d4a7c02aefb2af0ef4cb3e82e60bcd8f04e3d (git cat-file -t → not an object).
-# Real heal commit is 2c8d4a7cbe4325aa188dbae03d8adec16fb919cd, but its
-# SettingsPanel/SettingsProvider/icons/i18n blobs do not equal the pins.
-# Pins equal the 068a8358eef235063164d4a846fb8291ae03a173 tree (and HEAD).
 {
-  "capturedAtHead": "1cc3a5216defcbb2e56df53c67d7883488e77c3f",
-  "capturedAt": "2026-09-13T23:14:52.434Z",
+  "capturedAtHead": "80e69c39e00b6c16c5fc32b5ca1e9146d31b264d",
+  "capturedAt": "2026-11-09T14:24:52.800Z",
   "layoutFiles": {
-    "terminal/components/settings/SectionPortfolioTargets.tsx": "42efc4318fe724c0315b065b2833862ff241f9bc612aae976d32518ba523371b",
-    "terminal/components/settings/SettingsPanel.tsx": "a7cad95d493b6e714fa8ea7af55c255d90a190b97413338caafb8228e09395bc",
-    "terminal/components/settings/SettingsProvider.tsx": "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910",
+    "terminal/components/PortfolioView.tsx": "b64d934a2cd1a05dedfac6213bcabb15683b22967e86476dc970ad9994018aec",
+    "terminal/components/PortfolioTargets.module.css": "7a6cf0f47abdb773a3f56c11452ece374221c2a9140e87831023ecfd5120129a",
+    "terminal/lib/portfolioTargets.ts": "23ad61bfe11303b10dae33a5a8933e570080c52b9678fe70685f1a27ea3c1635",
+    "terminal/lib/portfolioMoney.ts": "24e6fdaa6766ede2554b2d2d07be81e8f0b202028ecd03301ccbb1549652c7b1",
+    "terminal/lib/portfolioWorkspace.ts": "e9e272210920bf26b42e40ffaeb76d880049a241680ffc22b1eff61c0f7e2d0f",
+    "terminal/app/settings.css": "2a15b7704f1c6ec62671ec84723063dcce367c7998bbea56e04b50c9bda2252c",
+    "terminal/app/globals.css": "b08b6a214d214b55610500490d7ccb869ed25866e0c4c113105e942927af7517",
+    "terminal/components/settings/SectionPortfolioTargets.tsx": "e5b24bd5c0ba54c4f5bd1e2d43bf52ac86d766840534f99577d9081363d765e9",
+    "terminal/components/settings/SettingsPanel.tsx": "35ad74834c9d52ab797d6554c4b68182c268177f1907f775fb07a8a9a3118ccf",
+    "terminal/components/settings/SettingsProvider.tsx": "fb717b94d3074bf3e7866cd399088bb0203d8e1fea0b6c18bfff46546972402b",
     "terminal/components/settings/icons.tsx": "7f3e17e45cb92545437ade898fe47a92cf6a65d1682cec9b9cea7a5bb8bd4d83",
-    "terminal/lib/i18n.tsx": "ac2c0b03aa16f40539b248a788af960e17f30bbd92f35d46732e8ca7cee63b7c"
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435"
   },
   "theme": "dark",
   "languages": [
@@ -33,19 +32,32 @@
       "height": 844
     }
   ],
+  "deviceScaleFactor": 2,
   "surfaces": [
     "SectionPortfolioTargets"
   ],
   "capture_flag": "TERMINAL_E2E_FIXTURE",
-  "capture_flag_law": "next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
+  "capture_flag_law": "next.config.ts sets devIndicators to false for TERMINAL_E2E_FIXTURE; this producer uses the caller-owned fixture server from the same checkout.",
+  "serverOwnership": "Caller records fresh startup and settled cleanup separately; this producer owns its browser contexts only.",
+  "command": "From terminal/, with the caller-owned fixture server ready: node e2e/tools/capture_w9t_f08_13_targets.cjs",
   "files": [
-    "PortfolioTargetsSettings-empty-390-en.png",
-    "PortfolioTargetsSettings-empty-390-zh.png",
     "PortfolioTargetsSettings-empty-1440-en.png",
     "PortfolioTargetsSettings-empty-1440-zh.png",
-    "PortfolioTargetsSettings-populated-390-en.png",
-    "PortfolioTargetsSettings-populated-390-zh.png",
+    "PortfolioTargetsSettings-empty-390-en.png",
+    "PortfolioTargetsSettings-empty-390-zh.png",
     "PortfolioTargetsSettings-populated-1440-en.png",
-    "PortfolioTargetsSettings-populated-1440-zh.png"
-  ]
+    "PortfolioTargetsSettings-populated-1440-zh.png",
+    "PortfolioTargetsSettings-populated-390-en.png",
+    "PortfolioTargetsSettings-populated-390-zh.png"
+  ],
+  "captureFiles": {
+    "PortfolioTargetsSettings-empty-1440-en.png": "0d10e629c046238ed3db2e53e834ae86d817e41ac6083e2eb75d2f3c27dc35bb",
+    "PortfolioTargetsSettings-empty-1440-zh.png": "a5a62f4a69d533e49517bca56d7d9feaa447cf0d69d41e812b08a1e94628429c",
+    "PortfolioTargetsSettings-empty-390-en.png": "0f3d15f28df8e3af6d8eac6198cd8464ec01ea162631efc0953558f3f32b2f8e",
+    "PortfolioTargetsSettings-empty-390-zh.png": "d771df38d5c57cf738039754439badd7a406bbd62adbab18af23bf52b0bca45e",
+    "PortfolioTargetsSettings-populated-1440-en.png": "b16675ffc282fd346bc5b2729bb283941878b74fb424eba4510ec33de90525fa",
+    "PortfolioTargetsSettings-populated-1440-zh.png": "aa0e070feb5c08bd96c232f0e260b75a87b7e0b941c6c19e31bcb656b4a854bb",
+    "PortfolioTargetsSettings-populated-390-en.png": "9a7391b97773e832b9db2a94c1961447b85486bbcd2fbfc68d399a44f0eea8cc",
+    "PortfolioTargetsSettings-populated-390-zh.png": "bbc144f3b9266050b003e1e36c351b38df476c782614613c7e4e57d4d0819f39"
+  }
 }

@@ -49,6 +49,11 @@
           "expected_live_type": "directory"
         },
         {
+          "path": ".next.broken",
+          "classification": "rollback_build_artifact",
+          "expected_live_type": "directory"
+        },
+        {
           "path": "node_modules",
           "classification": "generated_dependency_tree",
           "expected_live_type": "directory"
@@ -57,7 +62,17 @@
           "path": "public/data",
           "classification": "host_owned_runtime_market_data",
           "allow_tracked_runtime_subtree": true,
-          "canonical_git_tree": "b427e879f0e47c2fa9a78909ecbf6717893b16af"
+          "canonical_git_tree": "7563b3ef09f94d854b9a7b38a67a141313446e54"
+        },
+        {
+          "path": "scripts/dist/score_personal_accuracy.mjs",
+          "classification": "generated_sidecar_bundle",
+          "expected_live_type": "file"
+        },
+        {
+          "path": "scripts/dist/gen_fundamental_scan.mjs",
+          "classification": "generated_sidecar_bundle",
+          "expected_live_type": "file"
         }
       ]
     },

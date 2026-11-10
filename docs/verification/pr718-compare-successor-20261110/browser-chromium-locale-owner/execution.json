@@ -1,0 +1,236 @@
+{
+  "argv": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/@playwright/test/cli.js",
+    "test",
+    "--config",
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/docs/verification/pr718-compare-successor-20261110/playwright-successor.config.cjs",
+    "--workers=1",
+    "--retries=0",
+    "--max-failures=1"
+  ],
+  "browser": "chromium",
+  "cases": [
+    {
+      "project": "desktop",
+      "results": [
+        {
+          "attachments": [
+            {
+              "contentType": "image/png",
+              "name": "comparison-settings",
+              "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/attachments/comparison-settings-2726b4a4b73fc870319bbfc9af0b4965bfcf0cbf.png"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiB0cnVlLAogICJ0YWciOiAiQlVUVE9OIiwKICAiY2xhc3NOYW1lIjogImxnLWljIiwKICAibGFiZWwiOiAiU2V0dGluZ3MiCn0=",
+              "contentType": "application/json",
+              "name": "escape-return-focus"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiB0cnVlLAogICJ0YWciOiAiQlVUVE9OIiwKICAiY2xhc3NOYW1lIjogImxnLWljIiwKICAibGFiZWwiOiAiU2V0dGluZ3MiCn0=",
+              "contentType": "application/json",
+              "name": "done-return-focus"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiB0cnVlLAogICJ0YWciOiAiQlVUVE9OIiwKICAiY2xhc3NOYW1lIjogImxnLWljIiwKICAibGFiZWwiOiAiU2V0dGluZ3MiCn0=",
+              "contentType": "application/json",
+              "name": "close-return-focus"
+            }
+          ],
+          "duration": 17041,
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "[en] comparison settings edit the real overlay without losing modal or saved state"
+    },
+    {
+      "project": "desktop",
+      "results": [
+        {
+          "attachments": [
+            {
+              "contentType": "image/png",
+              "name": "comparison-settings",
+              "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-desktop/attachments/comparison-settings-23965fca44e4e3c3a2a2373a777faa7d65e27c2c.png"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiB0cnVlLAogICJ0YWciOiAiQlVUVE9OIiwKICAiY2xhc3NOYW1lIjogImxnLWljIiwKICAibGFiZWwiOiAi6K6+572uIgp9",
+              "contentType": "application/json",
+              "name": "escape-return-focus"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiB0cnVlLAogICJ0YWciOiAiQlVUVE9OIiwKICAiY2xhc3NOYW1lIjogImxnLWljIiwKICAibGFiZWwiOiAi6K6+572uIgp9",
+              "contentType": "application/json",
+              "name": "done-return-focus"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiB0cnVlLAogICJ0YWciOiAiQlVUVE9OIiwKICAiY2xhc3NOYW1lIjogImxnLWljIiwKICAibGFiZWwiOiAi6K6+572uIgp9",
+              "contentType": "application/json",
+              "name": "close-return-focus"
+            }
+          ],
+          "duration": 16439,
+          "error": null,
+          "retry": 0,
+          "status": "passed"
+        }
+      ],
+      "status": "expected",
+      "title": "[zh] comparison settings edit the real overlay without losing modal or saved state"
+    },
+    {
+      "project": "tablet",
+      "results": [
+        {
+          "attachments": [
+            {
+              "contentType": "image/png",
+              "name": "compare-entry",
+              "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/attachments/compare-entry-548593195f5700105424c3cbff48e5e490e58d79.png"
+            },
+            {
+              "contentType": "image/png",
+              "name": "comparison-settings",
+              "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/attachments/comparison-settings-8cebca0e878f2f89450388d7ba40b6152874c3bf.png"
+            },
+            {
+              "body": "ewogICJjb25uZWN0ZWQiOiB0cnVlLAogICJ2aXNpYmxlIjogdHJ1ZSwKICAicmVsZXZhbnQiOiBmYWxzZSwKICAidGFnIjogIkJPRFkiLAogICJjbGFzc05hbWUiOiAiIiwKICAibGFiZWwiOiBudWxsCn0=",
+              "contentType": "application/json",
+              "name": "escape-return-focus"
+            },
+            {
+              "contentType": "image/png",
+              "name": "screenshot",
+              "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/test-failed-1.png"
+            },
+            {
+              "contentType": "text/markdown",
+              "name": "error-context",
+              "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/error-context.md"
+            },
+            {
+              "contentType": "application/zip",
+              "name": "trace",
+              "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/trace.zip"
+            }
+          ],
+          "duration": 21617,
+          "error": {
+            "location": {
+              "column": 8,
+              "file": "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/terminal/e2e/compare-settings-ux.spec.ts",
+              "line": 80
+            },
+            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+            "snippet": "\u001b[0m \u001b[90m 78 |\u001b[39m       \u001b[36mconst\u001b[39m value \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m state()\u001b[33m;\u001b[39m\n \u001b[90m 79 |\u001b[39m       \u001b[36mreturn\u001b[39m value\u001b[33m.\u001b[39mconnected \u001b[33m&&\u001b[39m value\u001b[33m.\u001b[39mvisible \u001b[33m&&\u001b[39m value\u001b[33m.\u001b[39mrelevant\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 80 |\u001b[39m     })\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 81 |\u001b[39m   } \u001b[36mfinally\u001b[39m {\n \u001b[90m 82 |\u001b[39m     \u001b[36mawait\u001b[39m info\u001b[33m.\u001b[39mattach(label\u001b[33m,\u001b[39m { body\u001b[33m:\u001b[39m \u001b[33mJSON\u001b[39m\u001b[33m.\u001b[39mstringify(\u001b[36mawait\u001b[39m state()\u001b[33m,\u001b[39m \u001b[36mnull\u001b[39m\u001b[33m,\u001b[39m \u001b[35m2\u001b[39m)\u001b[33m,\u001b[39m contentType\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m 83 |\u001b[39m   }\u001b[0m",
+            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate\n    at returnFocus (/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/terminal/e2e/compare-settings-ux.spec.ts:80:8)\n    at /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/terminal/e2e/compare-settings-ux.spec.ts:129:11"
+          },
+          "retry": 0,
+          "status": "failed"
+        }
+      ],
+      "status": "unexpected",
+      "title": "[en] comparison settings edit the real overlay without losing modal or saved state"
+    },
+    {
+      "project": "tablet",
+      "results": [],
+      "status": "skipped",
+      "title": "[zh] comparison settings edit the real overlay without losing modal or saved state"
+    },
+    {
+      "project": "mobile",
+      "results": [],
+      "status": "skipped",
+      "title": "[en] comparison settings edit the real overlay without losing modal or saved state"
+    },
+    {
+      "project": "mobile",
+      "results": [],
+      "status": "skipped",
+      "title": "[zh] comparison settings edit the real overlay without losing modal or saved state"
+    }
+  ],
+  "exitCode": 1,
+  "finishedAt": "2026-11-10T16:52:56.969104+00:00",
+  "fixtureContract": "Imports unchanged protected playwright.config.ts webServer environment, native /terminal?symbol=NVDA route and existing global warmup; no layout/comparison seed.",
+  "generatedTypesPreimagePresent": false,
+  "generatedTypesRestored": true,
+  "historicalFileCount": 11,
+  "historicalPacketUnchanged": true,
+  "images": [
+    {
+      "bytes": 260078,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/attachments/comparison-settings-2726b4a4b73fc870319bbfc9af0b4965bfcf0cbf.png",
+      "sha256": "8be5971daccdf3dc20522445493d1dc1db3fd525bb368ff4344a442735071478"
+    },
+    {
+      "bytes": 260078,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/comparison-settings.png",
+      "sha256": "8be5971daccdf3dc20522445493d1dc1db3fd525bb368ff4344a442735071478"
+    },
+    {
+      "bytes": 163177,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/attachments/compare-entry-548593195f5700105424c3cbff48e5e490e58d79.png",
+      "sha256": "fab9f8bb815785ad9f117f95d1aec8f2f38b93ea1f928575b8fefa0b3790bc39"
+    },
+    {
+      "bytes": 73382,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/attachments/comparison-settings-8cebca0e878f2f89450388d7ba40b6152874c3bf.png",
+      "sha256": "ba4167f56c224ed4363a2386de1300e0bc1dcbb6aa01718f951615e7c619fcb1"
+    },
+    {
+      "bytes": 163177,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/compare-entry.png",
+      "sha256": "fab9f8bb815785ad9f117f95d1aec8f2f38b93ea1f928575b8fefa0b3790bc39"
+    },
+    {
+      "bytes": 73382,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/comparison-settings.png",
+      "sha256": "ba4167f56c224ed4363a2386de1300e0bc1dcbb6aa01718f951615e7c619fcb1"
+    },
+    {
+      "bytes": 184976,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/test-failed-1.png",
+      "sha256": "21b309c33b5d94c453936d357c749f28828a23cbfc5e060706da67cebf0cc669"
+    },
+    {
+      "bytes": 259359,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-desktop/attachments/comparison-settings-23965fca44e4e3c3a2a2373a777faa7d65e27c2c.png",
+      "sha256": "f1a75246fc88741ec7c210cf6524d8913552b815c66adc52545e9b66d17394f6"
+    },
+    {
+      "bytes": 259359,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium-locale-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-desktop/comparison-settings.png",
+      "sha256": "f1a75246fc88741ec7c210cf6524d8913552b815c66adc52545e9b66d17394f6"
+    }
+  ],
+  "logSha256": "187e65ad52e0d331c334330be6d98616a31c7602c07ee13eeedd5a8e2a34df6a",
+  "ownedPortClosed": true,
+  "pid": 36165,
+  "port": 47187,
+  "reportSha256": "6fac70b08208f3ce92b1beb315d02fafc8e9643f2dfa3d69a54402804bdf6daf",
+  "retries": 0,
+  "schema": "terminal_pr718_browser_execution.v1",
+  "seconds": 75.505,
+  "sourceFileCount": 3429,
+  "sourceStable": true,
+  "startedAt": "2026-11-10T16:51:41.463907+00:00",
+  "state": "BROWSER_EXECUTION_REQUIRES_CLASSIFICATION",
+  "stats": {
+    "duration": 74998.328,
+    "expected": 2,
+    "flaky": 0,
+    "skipped": 3,
+    "startTime": "2026-11-10T16:51:41.939Z",
+    "unexpected": 1
+  },
+  "topLevelErrors": [
+    {
+      "message": "Testing stopped early after 1 maximum allowed failures."
+    }
+  ]
+}

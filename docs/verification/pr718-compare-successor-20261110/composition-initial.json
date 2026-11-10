@@ -1,0 +1,33 @@
+{
+  "at": "2026-11-10T16:32:42.812313+00:00",
+  "mergeBase": "d4c71912ac9fc2168df9fe1da3f566327c8cc22d",
+  "mergeExitCode": 1,
+  "mergeHead": "b5afc7eca5c37b3e2eee25871b764807203957a6",
+  "originalHead": "eac52855170a66e86e347278b3474570d05580c9",
+  "originalPaths": [
+    "docs/TERMINAL_COMPARE_SETTINGS_DEFECTS_2026-09-22.md",
+    "terminal/components/CompareSettings.module.css",
+    "terminal/components/CompareSettings.tsx",
+    "terminal/components/TerminalShell.tsx",
+    "terminal/docs/pr-crops/compare-settings-ux-20260922/EVIDENCE.json",
+    "terminal/docs/pr-crops/compare-settings-ux-20260922/desktop-before.png",
+    "terminal/docs/pr-crops/compare-settings-ux-20260922/desktop-en.png",
+    "terminal/docs/pr-crops/compare-settings-ux-20260922/desktop-zh.png",
+    "terminal/docs/pr-crops/compare-settings-ux-20260922/mobile-en.png",
+    "terminal/docs/pr-crops/compare-settings-ux-20260922/mobile-zh.png",
+    "terminal/docs/pr-crops/compare-settings-ux-20260922/tablet-en-entry.png",
+    "terminal/docs/pr-crops/compare-settings-ux-20260922/tablet-en.png",
+    "terminal/docs/pr-crops/compare-settings-ux-20260922/tablet-zh-entry.png",
+    "terminal/docs/pr-crops/compare-settings-ux-20260922/tablet-zh.png",
+    "terminal/e2e/compare-settings-ux.spec.ts",
+    "terminal/e2e/pane-sync-time-axis.spec.ts",
+    "terminal/lib/__tests__/compareSettingsUx.test.tsx"
+  ],
+  "protectedBase": "b5afc7eca5c37b3e2eee25871b764807203957a6",
+  "state": "COMPOSED_WITH_CONFLICTS",
+  "unmergedPaths": [
+    "terminal/components/CompareSettings.module.css",
+    "terminal/components/CompareSettings.tsx",
+    "terminal/e2e/pane-sync-time-axis.spec.ts"
+  ]
+}

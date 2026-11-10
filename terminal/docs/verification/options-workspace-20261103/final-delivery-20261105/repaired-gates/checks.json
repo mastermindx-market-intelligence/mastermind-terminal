@@ -1,0 +1,149 @@
+[
+  {
+    "profile": "original",
+    "check": "focused-unit",
+    "exit": 0,
+    "seconds": 4.208,
+    "command": [
+      "./node_modules/.bin/vitest",
+      "run",
+      "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+      "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+      "lib/__tests__/optionsExposureEvidence.test.ts",
+      "lib/__tests__/visualIntelligenceEvidence.test.ts",
+      "lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+      "lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts",
+      "lib/__tests__/exposureMapPrimitive.test.ts",
+      "lib/__tests__/exposureMap.test.ts",
+      "lib/__tests__/exposureWorkspace.test.ts",
+      "lib/__tests__/sharedShellLoginDefault.test.tsx",
+      "lib/__tests__/frozenNodeEntryView.test.tsx",
+      "lib/__tests__/researchLabSourceAvailability.test.tsx",
+      "lib/__tests__/researchLabAdmission.test.tsx",
+      "--maxWorkers=4",
+      "--minWorkers=2",
+      "--reporter=default",
+      "--reporter=json",
+      "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/final-repaired-gates-r4/original/unit-report.json"
+    ],
+    "log_sha256": "95d95669ff7cd4bb7a150ac748148356cd401587134b9cd0473827b77a5192f6",
+    "summary": {
+      "success": true,
+      "numTotalTests": 112,
+      "numPassedTests": 112,
+      "numFailedTests": 0,
+      "numPendingTests": 0,
+      "numTodoTests": 0
+    }
+  },
+  {
+    "profile": "original",
+    "check": "typecheck",
+    "exit": 0,
+    "seconds": 49.395,
+    "command": [
+      "./node_modules/.bin/tsc",
+      "--noEmit",
+      "--incremental",
+      "false"
+    ],
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "profile": "preview",
+    "check": "focused-unit",
+    "exit": 0,
+    "seconds": 4.826,
+    "command": [
+      "./node_modules/.bin/vitest",
+      "run",
+      "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+      "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+      "lib/__tests__/optionsExposureEvidence.test.ts",
+      "lib/__tests__/visualIntelligenceEvidence.test.ts",
+      "lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+      "lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts",
+      "lib/__tests__/exposureMapPrimitive.test.ts",
+      "lib/__tests__/exposureMap.test.ts",
+      "lib/__tests__/exposureWorkspace.test.ts",
+      "lib/__tests__/sharedShellLoginDefault.test.tsx",
+      "lib/__tests__/frozenNodeEntryView.test.tsx",
+      "lib/__tests__/researchLabSourceAvailability.test.tsx",
+      "lib/__tests__/researchLabAdmission.test.tsx",
+      "--maxWorkers=4",
+      "--minWorkers=2",
+      "--reporter=default",
+      "--reporter=json",
+      "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/final-repaired-gates-r4/preview/unit-report.json"
+    ],
+    "log_sha256": "37349e840e91bb74a4bf3c12c237dcfa9da62e3256eac2bc631c863d78e58c45",
+    "summary": {
+      "success": true,
+      "numTotalTests": 122,
+      "numPassedTests": 122,
+      "numFailedTests": 0,
+      "numPendingTests": 0,
+      "numTodoTests": 0
+    }
+  },
+  {
+    "profile": "preview",
+    "check": "typecheck",
+    "exit": 0,
+    "seconds": 50.71,
+    "command": [
+      "./node_modules/.bin/tsc",
+      "--noEmit",
+      "--incremental",
+      "false"
+    ],
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "profile": "exposure",
+    "check": "focused-unit",
+    "exit": 0,
+    "seconds": 4.07,
+    "command": [
+      "./node_modules/.bin/vitest",
+      "run",
+      "lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+      "lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+      "lib/__tests__/optionsExposureEvidence.test.ts",
+      "lib/__tests__/exposureMapPrimitive.test.ts",
+      "lib/__tests__/exposureMap.test.ts",
+      "lib/__tests__/exposureWorkspace.test.ts",
+      "lib/__tests__/sharedShellLoginDefault.test.tsx",
+      "lib/__tests__/frozenNodeEntryView.test.tsx",
+      "lib/__tests__/researchLabSourceAvailability.test.tsx",
+      "lib/__tests__/researchLabAdmission.test.tsx",
+      "--maxWorkers=4",
+      "--minWorkers=2",
+      "--reporter=default",
+      "--reporter=json",
+      "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/web/options-workspace-surface-flow-ux-20261103-c3/terminal/.next/options-source-reconcile-20261105/final-repaired-gates-r4/exposure/unit-report.json"
+    ],
+    "log_sha256": "1b10a60a214518f4a5cbb1418880c5f3eaef5c87f56d5cd3d2a638f18fecaa1c",
+    "summary": {
+      "success": true,
+      "numTotalTests": 104,
+      "numPassedTests": 104,
+      "numFailedTests": 0,
+      "numPendingTests": 0,
+      "numTodoTests": 0
+    }
+  },
+  {
+    "profile": "exposure",
+    "check": "typecheck",
+    "exit": 0,
+    "seconds": 49.51,
+    "command": [
+      "./node_modules/.bin/tsc",
+      "--noEmit",
+      "--incremental",
+      "false"
+    ],
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

@@ -1,0 +1,29 @@
+{
+  "findings": [
+    "Current Chromium EN desktop, ZH tablet and EN phone: color, line and scale groups are readable; selection/focus rings and Done remain visible; no modal control clipping was observed.",
+    "Current WebKit ZH desktop, EN tablet and ZH phone: same controls are readable and reachable in the native dialog. Shared 93%-opaque dark surface exposes more background chart detail than Chromium; the source owner is unchanged.",
+    "Tablet uses shared full-width coarse-pointer geometry and phone uses the shared bottom-sheet/safe-area owner. All current matrices separately passed automated viewport/hit-target assertions."
+  ],
+  "imageHashes": {
+    "browser-chromium-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/comparison-settings.png": "a967648a71f72e5206fa1f593bfc6162bcd0a1403f620f16f1e0b60c5da34528",
+    "browser-chromium-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-mobile/comparison-settings.png": "c87819ac9285b7ebcd819ce64248b4dfbf79987d3c69741270f24f0f57bda251",
+    "browser-chromium-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-tablet/comparison-settings.png": "1c73de86976e992055657dd3d27637c2f4a71e06d3af827a82dffa6cbe33555e",
+    "browser-webkit-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/comparison-settings.png": "3ca094efa6df22e6560f2aa3681e0780ba1d7adeb6a6d4b69f347150d68a0f38",
+    "browser-webkit-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-desktop/comparison-settings.png": "825b7db42fc6c6945449dfec34fc1b7d6cafe25d2548263ab6092747dd9c5760",
+    "browser-webkit-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-mobile/comparison-settings.png": "8cfa1f67b5f4c9a84b2f6ce12c8394d97665ae20fa8bd3ce973568fc5ffacf03"
+  },
+  "images": [
+    "browser-chromium-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/comparison-settings.png",
+    "browser-chromium-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-tablet/comparison-settings.png",
+    "browser-chromium-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-mobile/comparison-settings.png",
+    "browser-webkit-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-desktop/comparison-settings.png",
+    "browser-webkit-focus-owner/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-tablet/comparison-settings.png",
+    "browser-webkit-focus-owner/artifacts/compare-settings-ux--zh-co-e8410-losing-modal-or-saved-state-mobile/comparison-settings.png"
+  ],
+  "inspectedCount": 6,
+  "recordedAt": "2026-11-10T17:08:34.012066+00:00",
+  "reviewer": "assigned principal",
+  "schema": "terminal_pr718_visual_review.v1",
+  "scope": "Six representative current modal PNGs actually inspected; twelve browser cases and duplicate attachment images are not relabelled as twelve manual image reviews.",
+  "theme": "Actual existing dark Terminal theme; WebKit OS light preference is not a product light-mode claim."
+}

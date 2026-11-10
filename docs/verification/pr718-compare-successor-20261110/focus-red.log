@@ -1,0 +1,93 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/terminal[39m
+
+ [31m❯[39m lib/__tests__/compareSettingsUx.test.tsx [2m([22m[2m14 tests[22m[2m | [22m[31m1 failed[39m[2m | [22m[33m12 skipped[39m[2m)[22m[90m 68[2mms[22m[39m
+[31m   [31m×[31m comparison settings preserve color and interaction ownership[2m > [22mreturns focus to the matching visible comparison when its touch opener vanished before mount[90m 57[2mms[22m[31m[39m
+[31m     → expected <body style><div></div>
+…(1)</body> to be <div class="lg-row is-cmp" …(4)></div> // Object.is equality[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m lib/__tests__/compareSettingsUx.test.tsx[2m > [22mcomparison settings preserve color and interaction ownership[2m > [22mreturns focus to the matching visible comparison when its touch opener vanished before mount
+[31m[1mAssertionError[22m: expected <body style><div></div>
+…(1)</body> to be <div class="lg-row is-cmp" …(4)></div> // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[31m+ <body[39m
+[31m+   style=""[39m
+[31m+ >[39m
+[31m+   <div />[39m
+[31m+   <div>[39m
+[31m+     [39m
+[31m+       [39m
+[31m+     <div[39m
+[31m+       class="pane"[39m
+[31m+     >[39m
+[31m+       <div[39m
+[31m+         aria-label="AAPL"[39m
+[31m+         class="lg-row is-cmp"[39m
+[31m+         role="group"[39m
+[31m+         tabindex="-1"[39m
+[31m+       />[39m
+[31m+     </div>[39m
+[31m+     [39m
+[31m+       [39m
+[31m+     <div[39m
+[31m+       class="pane on"[39m
+[31m+     >[39m
+[31m+       [39m
+[31m+         [39m
+[2m        <div[22m
+[31m+         aria-label="MSFT"[39m
+[31m+         class="lg-row is-cmp"[39m
+[31m+         role="group"[39m
+[31m+         tabindex="-1"[39m
+[31m+       />[39m
+[31m+       [39m
+[31m+         [39m
+[31m+       <div[39m
+[31m+         aria-label="AAPL"[39m
+[31m+         class="lg-row is-cmp"[39m
+[31m+         hidden=""[39m
+[31m+         role="group"[39m
+[31m+         tabindex="-1"[39m
+[31m+       />[39m
+[31m+       [39m
+[31m+         [39m
+[31m+       <div[39m
+[2m          aria-label="AAPL"[22m
+[2m          class="lg-row is-cmp"[22m
+[2m          data-return-row=""[22m
+[2m          role="group"[22m
+[2m          tabindex="-1"[22m
+[2m        >[22m
+[2m          [22m
+[2m            [22m
+[2m          [22m
+[2m          [22m
+[31m+       </div>[39m
+[31m+       [39m
+[31m+       [39m
+[31m+     </div>[39m
+[2m    </div>[22m
+[31m+ </body>[39m
+
+[36m [2m❯[22m lib/__tests__/compareSettingsUx.test.tsx:[2m176:36[22m[39m
+    [90m174| [39m    [35mawait[39m [34mact[39m([35masync[39m () [33m=>[39m dialog[33m.[39m[34mdispatchEvent[39m([35mnew[39m [33mEvent[39m([32m"cancel"[39m[33m,[39m { c…
+    [90m175| [39m    [34mexpect[39m(host[33m.[39m[34mquerySelector[39m([32m"dialog"[39m))[33m.[39m[34mtoBeNull[39m()[33m;[39m
+    [90m176| [39m    [34mexpect[39m(document[33m.[39mactiveElement)[33m.[39m[34mtoBe[39m(row)[33m;[39m
+    [90m   | [39m                                   [31m^[39m
+    [90m177| [39m    [34mexpect[39m(document[33m.[39mbody[33m.[39mstyle[33m.[39moverflow)[33m.[39m[34mtoBe[39m(oldOverflow)[33m;[39m
+    [90m178| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[2m | [22m[33m12 skipped[39m[90m (14)[39m
+[2m   Start at [22m 09:55:04
+[2m   Duration [22m 1.45s[2m (transform 236ms, setup 0ms, collect 304ms, tests 68ms, environment 562ms, prepare 84ms)[22m
+
+JSON report written to /Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/docs/verification/pr718-compare-successor-20261110/focus-red-report.json

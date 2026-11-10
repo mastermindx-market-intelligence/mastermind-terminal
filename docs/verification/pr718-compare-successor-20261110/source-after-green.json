@@ -1,0 +1,14 @@
+{
+  "terminal/components/CompareSettings.module.css": "75984ea5a6f5b4ddaf123524841bcbd7a108529706ab977aa9d082f8b5979e70",
+  "terminal/components/CompareSettings.tsx": "bb5be55f5990f3d17fa6026e95c8733c018da6d9866b7bd38c9bbfbbe4a6f9d1",
+  "terminal/components/IndicatorSettings.module.css": "e6ca03573c405d183b9ccf330698f187f17ffe9cea65607a8f91c1ee53e10582",
+  "terminal/components/TerminalShell.tsx": "b6479bc5ff547ac96708a108d52bbf4ce5dd1dc33bb70ef10822f97f05dda4ca",
+  "terminal/lib/__tests__/chartSettingsUi.test.ts": "76dd777bbc09fa112898bf80703bf66641e107a03bc1266fadc638bdb3a967e2",
+  "terminal/lib/__tests__/compareSettingsAccessibility.test.tsx": "b21f025bfaaeda254dd98c2da368822c275b70b6e568ce940bf6a3f242e1ae7c",
+  "terminal/lib/__tests__/compareSettingsUx.test.tsx": "170e0ead476066d4c1468ad044285574e4d61c0110dbc40ac3dcb13348112d37",
+  "terminal/lib/chart-engine/canvas/priceAxis.ts": "87cd2deeebacbab40db3a03863f85ad90051a7d015872ccbbb25add24a05e94a",
+  "terminal/lib/chartSettingsUi.ts": "07f847801c701b11a240df3351e61fdb9bb791b6041e897ec0bef387d28d01c5",
+  "terminal/package-lock.json": "ba5effb6ceb68fd277281ccb7cd8e15dd94fccdc317285f68eb49f4e59388cd4",
+  "terminal/package.json": "fb90e0a4948732f326dc197b57495c949f585407c83934b0a554d0fcc5e514cf",
+  "terminal/vitest.config.ts": "053949bb45e222617aa7018ded4e66a94e660790d252c3c051639f9c24bdea64"
+}

@@ -1,0 +1,175 @@
+{
+  "after": {
+    "listener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:47632",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-10T09:08:42.410559+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "lockDescriptors": {
+      "observedAt": "2026-11-10T09:08:42.426473+00:00",
+      "state": "fileAbsent"
+    },
+    "ownedWorkspaceCwds": {
+      "command": [
+        "lsof",
+        "-a",
+        "-u",
+        "chriswong",
+        "-d",
+        "cwd",
+        "-F",
+        "pcn"
+      ],
+      "exit": 0,
+      "observedAt": "2026-11-10T09:08:44.810410+00:00",
+      "records": [],
+      "stderr": ""
+    },
+    "recordedProcesses": {
+      "command": [
+        "ps",
+        "-p",
+        "40798",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-10T09:08:42.426184+00:00",
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "before": {
+    "listener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:47632",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-10T09:08:31.240882+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "lockDescriptors": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-10T09:08:33.511351+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "ownedWorkspaceCwds": {
+      "command": [
+        "lsof",
+        "-a",
+        "-u",
+        "chriswong",
+        "-d",
+        "cwd",
+        "-F",
+        "pcn"
+      ],
+      "exit": 0,
+      "observedAt": "2026-11-10T09:08:35.472349+00:00",
+      "records": [],
+      "stderr": ""
+    },
+    "recordedProcesses": {
+      "command": [
+        "ps",
+        "-p",
+        "40798",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-10T09:08:31.248186+00:00",
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "completedAt": "2026-11-10T09:08:44.816129+00:00",
+  "immediatelyBeforeUnlink": {
+    "listener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:47632",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-10T09:08:35.821207+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "lockDescriptors": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-632-protected-successor/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-10T09:08:37.703233+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "ownedWorkspaceCwds": {
+      "command": [
+        "lsof",
+        "-a",
+        "-u",
+        "chriswong",
+        "-d",
+        "cwd",
+        "-F",
+        "pcn"
+      ],
+      "exit": 0,
+      "observedAt": "2026-11-10T09:08:42.079245+00:00",
+      "records": [],
+      "stderr": ""
+    },
+    "recordedProcesses": {
+      "command": [
+        "ps",
+        "-p",
+        "40798",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-10T09:08:35.833735+00:00",
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "initialLock": {
+    "content": {
+      "appUrl": "http://localhost:47632",
+      "hostname": "localhost",
+      "pid": 40798,
+      "port": 47632,
+      "startedAt": 1794300545988
+    },
+    "dev": 16777247,
+    "ino": 70879650,
+    "mtimeNs": 1794300545988642748,
+    "sha256": "ad3a916450081542bbdc9a29dc193fb4ee2153620cf0e7643c334437999563d9",
+    "size": 109
+  },
+  "initialLockPresent": true,
+  "label": "drawing-regression-current",
+  "schema": "terminal_pr632_drawing_browser_lifecycle_reconciliation.v1",
+  "startedAt": "2026-11-10T09:08:31.006022+00:00",
+  "state": "STALE_OWNED_LOCK_REMOVED_SERVER_ABSENCE_VERIFIED"
+}

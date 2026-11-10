@@ -1,0 +1,75 @@
+{
+  "createdAt": "2026-11-10T17:17:55.749538+00:00",
+  "originalBytes": 48998182,
+  "originalGitBlob": "8ffd2465c70c45bf8b31876cb31ececa153031fd",
+  "originalPath": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip",
+  "originalSha256": "d1c236369b4ba1112a43a7b21ee68fb538e48b556004ca53643525bd9c3a42b8",
+  "partBytesLimit": 4194304,
+  "partCount": 12,
+  "parts": [
+    {
+      "bytes": 4194304,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip.parts/part-000.bin",
+      "sha256": "c057581a75aa62063d7343045b75863c1237ed9ad799cf7fe070b094a8fd2bd5"
+    },
+    {
+      "bytes": 4194304,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip.parts/part-001.bin",
+      "sha256": "2f4e5b2ea5046746576f1caa49a84e4f1964f01815fb7f1ee459047cd394853a"
+    },
+    {
+      "bytes": 4194304,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip.parts/part-002.bin",
+      "sha256": "0cbbc246e630ff39ddf7d84652224d23b972221b85420aed993c2ae9874b5bfb"
+    },
+    {
+      "bytes": 4194304,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip.parts/part-003.bin",
+      "sha256": "3c0cebae6733bcc11af0a8cd02b901960a5143798c8888574cc716c84ee9631d"
+    },
+    {
+      "bytes": 4194304,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip.parts/part-004.bin",
+      "sha256": "7d57c018c0f24d82420a72cfec3b4ff01e029d2d6df2d1b657a83c96519cdf53"
+    },
+    {
+      "bytes": 4194304,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip.parts/part-005.bin",
+      "sha256": "ec26a9d6392c438d8197ca3f38a0d7efcc2f28142c559da1ee65238a604ea840"
+    },
+    {
+      "bytes": 4194304,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip.parts/part-006.bin",
+      "sha256": "e09ca96f211259d939e32f03fd85fa931137832b67e685b9aa4f41bc64cbbaf3"
+    },
+    {
+      "bytes": 4194304,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip.parts/part-007.bin",
+      "sha256": "b40ee02f19da38dbb323ab9fe08b6bf3b32f9da633f5fb81ed93190a9e3abaa8"
+    },
+    {
+      "bytes": 4194304,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip.parts/part-008.bin",
+      "sha256": "40a469f5ef79480e5e9dc50200c366f6d588bc1c750673df6dffc4f67d4ceb9a"
+    },
+    {
+      "bytes": 4194304,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip.parts/part-009.bin",
+      "sha256": "8f7184db2bbb4abdb425b1afe4ebda58b3007ffb017185ebf4e87cd98e498947"
+    },
+    {
+      "bytes": 4194304,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip.parts/part-010.bin",
+      "sha256": "f302bd579c373e4147dc3b365a46f82a2e66a73ffbcc47973bd3f834aacd8a4e"
+    },
+    {
+      "bytes": 2860838,
+      "path": "docs/verification/pr718-compare-successor-20261110/browser-chromium/artifacts/compare-settings-ux--en-co-dbb6d-losing-modal-or-saved-state-desktop/trace.zip.parts/part-011.bin",
+      "sha256": "6e5a7b37dc27274080d11c0fd07c5bc917a02a14abd3c8a0c9035996025645fe"
+    }
+  ],
+  "rawOriginalRetainedLocally": true,
+  "reason": "GitHub create-blob returned explicit422 for this49MB trace; preserve exact failed-operation bytes in ordered smaller blobs on the original carrier.",
+  "schema": "terminal_pr718_segmented_trace.v1",
+  "wholeByteReconstructionVerified": true
+}

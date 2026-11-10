@@ -1,0 +1,35 @@
+{
+  "identity": {
+    "at": "2026-11-10T17:10:59.183949+00:00",
+    "authority": "Mastermind@5257967eb23d10418dc2326bb7a7b31f7e6a5915:docs/SOL_CEO_ACCOUNT_INSTRUCTIONS.md saved-credential authority",
+    "classification": "READ_ONLY_IDENTITY_GUARD_NO_MUTATION_NO_DENIAL",
+    "exitCode": 1,
+    "expectedActor": "mastermindxryan",
+    "observedActor": "chriswong6031-creator",
+    "originalCaller": 38719,
+    "recovery": "Scope original mastermindxryan saved keyring credential only to the owned native gh subprocess; preserve shared global active login.",
+    "requestId": "ABAA:3FFEAE:2D0A8:4ED24:6AF34FA8",
+    "savedOriginalActorVerified": true
+  },
+  "originalUnpublishedInventory": "INVENTORY.before-segmentation.json",
+  "payloadSize": {
+    "acknowledgedBlobs": 54,
+    "classification": "EXPLICIT_GITHUB_PAYLOAD_SIZE_422_NOT_PERMISSION_DENIAL",
+    "failedRequest": "new-blob-054",
+    "failedRequestId": "E654:2043D8:361BA:5A3EA:6AF35063",
+    "githubMessage": "Sorry, your input was too large to process. Consider creating the blob in a local clone of the repository and then pushing it to GitHub.",
+    "nextAction": "Retain original complete trace bytes locally and publish ordered <=4MiB byte parts plus exact reconstruction manifests through this same original GitHub-object carrier. Reuse acknowledged blob objects; do not replay the rejected oversized request.",
+    "originalActor": "mastermindxryan",
+    "originalCaller": 51410,
+    "originalCallerExit": 1,
+    "originalCandidateTree": "2bba8b51eda892745880807e70b208ba37b36246",
+    "originalInventorySha256": "31565d990a6aef3b6a938fce551d0ab82cf8ed6c51cbcce5e138b34ab62909a4",
+    "originalRefAndPrUnchanged": "eac52855170a66e86e347278b3474570d05580c9",
+    "reconciledAt": "2026-11-10T17:15:30.547578+00:00",
+    "responseSha256": "1a98dcdd493c753cc7b308131ebeb859f38c3231ff4124ff4060bcac10c3521a",
+    "schema": "terminal_pr718_payload_size_reconciliation.v1",
+    "sourceReadRequestId": "9A9A:1736FD:37043:5CC47:6AF35132",
+    "treeCommitRefAttempted": false
+  },
+  "segmentedTraceManifest": "segmented-trace-manifest.json"
+}

@@ -1,0 +1,31 @@
+{
+  "argv": [
+    "/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-conflict-successor/.pr1275-conflict-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/compareSettingsUx.test.tsx",
+    "--reporter=default",
+    "--reporter=json",
+    "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/web/terminal-pr-duty-20261110-718-compare-successor/docs/verification/pr718-compare-successor-20261110/focus-red-report.json",
+    "--testNamePattern",
+    "returns focus to the matching visible comparison|preserves a surviving Settings opener"
+  ],
+  "counts": {
+    "numFailedTests": 1,
+    "numPassedTests": 1,
+    "numPendingTests": 12,
+    "numTotalTests": 14
+  },
+  "exitCode": 1,
+  "failedTests": [
+    "comparison settings preserve color and interaction ownership returns focus to the matching visible comparison when its touch opener vanished before mount"
+  ],
+  "logSha256": "f9ca81fb4ae651dbfeecf3cd698e081e8aea358c4d589c759e9b1bd37199b795",
+  "mode": "focus-red",
+  "pid": 55488,
+  "seconds": 2.04,
+  "selectionNote": "Two targeted cases executed; twelve other cases in the file were unselected, not claimed as executed.",
+  "sourceStable": true,
+  "startedAt": "2026-11-10T16:55:04.243082+00:00",
+  "state": "MISSING_OPENER_COUNTEREXAMPLE_REPRODUCED"
+}

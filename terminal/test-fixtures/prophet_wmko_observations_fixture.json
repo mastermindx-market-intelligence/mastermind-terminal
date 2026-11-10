@@ -1,0 +1,210 @@
+{
+  "provenance": {
+    "source_commit": "e19053d7e5c7cca07646ef9b3328ad029e2619fa",
+    "source_path": "data/us_prophet_rank/episode_inputs/turn_watch/2026-10-16.json",
+    "public_path": "site/turn_watch/turn_watch.json",
+    "mode": "committed-source fixture replay; not live or authenticated production evidence"
+  },
+  "responses": {
+    "KO": {
+      "schema": "prophet.early_observations/v1",
+      "status": "CURRENT_SESSION",
+      "reason": null,
+      "source_receipt": "sha256:509cf2289d436c1e7d7b37bed9c3de09cf1814b8a288478a49314178d47a0c47",
+      "snapshot_id": "early:9aa474f3c811185e5a0e4fd91f4d48498c0f4b3691aafab0fc8e8b132d766db4",
+      "clocks": {
+        "source_session": "2026-10-16",
+        "logical_known_at": "2026-10-16T20:00:00Z",
+        "first_available_at": null,
+        "source_available_at": null,
+        "observed_at": null,
+        "published_at": null,
+        "actual_clock_state": "NOT_RECORDED"
+      },
+      "authority": {
+        "buy": false,
+        "alert": false,
+        "entry_open": false,
+        "rank": false,
+        "size": false,
+        "episode_write": false
+      },
+      "coverage": {
+        "state": "VERIFIED_SOURCE_PARTITION",
+        "reason": null,
+        "total": 378,
+        "featured": 40,
+        "beyond_cap": 338,
+        "source_artifact_receipt": "sha256:3ea8356b170e41fdb2e2c158eb4cfd4af021e9707b0b5bda027702d5cf44823e"
+      },
+      "universe_coverage": {
+        "state": "VERIFIED_SOURCE_PARTITION",
+        "reason": null,
+        "selection_era": "anticipation-v1-2026-08-08",
+        "tickers_sha256": "9f9daa60db10bce3edc65a8d4b8e02e79ee327c962bec46d2973d32791752282",
+        "published_proof_sha256": "3ea8356b170e41fdb2e2c158eb4cfd4af021e9707b0b5bda027702d5cf44823e",
+        "source_session": "2026-10-16"
+      },
+      "market": "US",
+      "reference_session": "2026-10-16",
+      "subject_coverage": {
+        "ticker": "KO",
+        "state": "VERIFIED_SOURCE_PARTITION",
+        "reason": null
+      },
+      "rows": [
+        {
+          "source_event_id": "turn_watch:9339ed184a0560b79f267958bca578764efdad1ca369d71f381c53a16fd0e11e",
+          "source_receipt": "sha256:509cf2289d436c1e7d7b37bed9c3de09cf1814b8a288478a49314178d47a0c47",
+          "ticker": "KO",
+          "security_id": "SEC:US-XNYS-KO",
+          "identity_basis": "CURRENT_REFERENCE_ONLY",
+          "source_session": "2026-10-16",
+          "triggers_fired": [
+            "pre_confluence_2d"
+          ],
+          "source_visibility": "BEYOND_CAP",
+          "source_evidence": {
+            "triggers": {
+              "basket_turn": {
+                "days_in_state": 0,
+                "days_since": null,
+                "evaluated": true,
+                "fired": false,
+                "last_date": null,
+                "state": "NONE"
+              },
+              "dot_1d": {
+                "days_since": 18,
+                "evaluated": true,
+                "fired": false,
+                "last_date": "2026-09-22"
+              },
+              "leader_reset_turn": {
+                "days_since": 4707,
+                "evaluated": true,
+                "fired": false,
+                "last_date": "2008-01-31"
+              },
+              "pre_confluence_2d": {
+                "days_since": 1,
+                "evaluated": true,
+                "fired": true,
+                "last_date": "2026-10-15"
+              }
+            },
+            "counterevidence": [],
+            "counterevidence_state": "RECORDED"
+          },
+          "source_timing": {
+            "asof": "2026-10-16",
+            "close": 93.9,
+            "reset_low": 85.65,
+            "reset_low_date": "2026-10-02",
+            "off_reset_low_pct": 9.63,
+            "slow_tier_eligible": true,
+            "slow_tier_tier": "T2",
+            "slow_tier_bars_to_cross_3d": null,
+            "slow_tier_blocking": [],
+            "slow_tier_evaluated": true,
+            "slow_tier_above_200dma": true
+          },
+          "lineage": {
+            "state": "CURRENT_RECEIPT_ONLY",
+            "current_receipt": "sha256:509cf2289d436c1e7d7b37bed9c3de09cf1814b8a288478a49314178d47a0c47",
+            "source_event_id": "turn_watch:9339ed184a0560b79f267958bca578764efdad1ca369d71f381c53a16fd0e11e",
+            "source_artifact_receipt": "sha256:3ea8356b170e41fdb2e2c158eb4cfd4af021e9707b0b5bda027702d5cf44823e",
+            "selection_era": "anticipation-v1-2026-08-08",
+            "anchor_era": "abs-session-2026-08-06",
+            "prior_receipt": null,
+            "correction_available_at": null
+          },
+          "episode_relation": {
+            "state": "EPISODE_JOIN_UNAVAILABLE",
+            "reason": "B1_SNAPSHOT_UNAVAILABLE",
+            "episode_id": null,
+            "generation_id": null
+          },
+          "authority": {
+            "buy": false,
+            "alert": false,
+            "entry_open": false,
+            "rank": false,
+            "size": false,
+            "episode_write": false
+          },
+          "source_coverage_state": "VERIFIED_SOURCE_PARTITION",
+          "source_coverage_reason": null
+        }
+      ],
+      "counts": {
+        "source": 378,
+        "matched": 1,
+        "returned": 1
+      },
+      "page": {
+        "offset": 0,
+        "limit": 50,
+        "next_offset": null
+      }
+    },
+    "WM": {
+      "schema": "prophet.early_observations/v1",
+      "status": "CURRENT_SESSION",
+      "reason": null,
+      "source_receipt": "sha256:509cf2289d436c1e7d7b37bed9c3de09cf1814b8a288478a49314178d47a0c47",
+      "snapshot_id": "early:9aa474f3c811185e5a0e4fd91f4d48498c0f4b3691aafab0fc8e8b132d766db4",
+      "clocks": {
+        "source_session": "2026-10-16",
+        "logical_known_at": "2026-10-16T20:00:00Z",
+        "first_available_at": null,
+        "source_available_at": null,
+        "observed_at": null,
+        "published_at": null,
+        "actual_clock_state": "NOT_RECORDED"
+      },
+      "authority": {
+        "buy": false,
+        "alert": false,
+        "entry_open": false,
+        "rank": false,
+        "size": false,
+        "episode_write": false
+      },
+      "coverage": {
+        "state": "VERIFIED_SOURCE_PARTITION",
+        "reason": null,
+        "total": 378,
+        "featured": 40,
+        "beyond_cap": 338,
+        "source_artifact_receipt": "sha256:3ea8356b170e41fdb2e2c158eb4cfd4af021e9707b0b5bda027702d5cf44823e"
+      },
+      "universe_coverage": {
+        "state": "VERIFIED_SOURCE_PARTITION",
+        "reason": null,
+        "selection_era": "anticipation-v1-2026-08-08",
+        "tickers_sha256": "9f9daa60db10bce3edc65a8d4b8e02e79ee327c962bec46d2973d32791752282",
+        "published_proof_sha256": "3ea8356b170e41fdb2e2c158eb4cfd4af021e9707b0b5bda027702d5cf44823e",
+        "source_session": "2026-10-16"
+      },
+      "market": "US",
+      "reference_session": "2026-10-16",
+      "subject_coverage": {
+        "ticker": "WM",
+        "state": "NOT_IN_UNIVERSE",
+        "reason": null
+      },
+      "rows": [],
+      "counts": {
+        "source": 378,
+        "matched": 0,
+        "returned": 0
+      },
+      "page": {
+        "offset": 0,
+        "limit": 50,
+        "next_offset": null
+      }
+    }
+  }
+}

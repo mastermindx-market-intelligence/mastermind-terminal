@@ -1,0 +1,18 @@
+{
+  "state": "PROTECTED_OWNERS_RETAINED_FOR_MEANINGFUL_COUNTEREXAMPLES",
+  "base": "b5afc7eca5c37b3e2eee25871b764807203957a6",
+  "files": {
+    "terminal/components/CompareSettings.tsx": {
+      "blob": "2473026814624d15ee866402377f4b7609c4a057",
+      "sha256": "6403abbc5c413b50ad6ff123e3d38e170170392c6adcf68926b415c90e56f160"
+    },
+    "terminal/components/CompareSettings.module.css": {
+      "blob": "6b5127851b05f5c47f619392fc2a931cbaea2d7c",
+      "sha256": "d3fff454825290bf405e49da5ce646a4db3e8d295f6559ff8c31a56b17e46283"
+    },
+    "terminal/e2e/pane-sync-time-axis.spec.ts": {
+      "blob": "94d933cac2ed96eac61c3c45f45ec3349e8aaee3",
+      "sha256": "0737c69d3ecb9339800e351a6f136c868f4461e62ed973a8e2ec57fa94b8faae"
+    }
+  }
+}

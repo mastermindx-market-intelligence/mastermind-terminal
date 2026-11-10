@@ -1,0 +1,28 @@
+{
+  "schema": "mastermind.large_trades.mm_snapshot_probe.v1",
+  "sourceCommit": "a0b8c735062cb6ff8ebe13f9e3aef19e845450b8",
+  "scope": "Real browser canvas pixels from accepted MM engine; deterministic synthetic coordinate data; no Terminal or production proof",
+  "xBefore": 331.57894736842104,
+  "xAfter": 78.94736842105263,
+  "geometryChanged": true,
+  "immediateEqualsOldRaster": true,
+  "immediateEqualsSettledRaster": false,
+  "settledDiffersFromOld": true,
+  "files": {
+    "before": {
+      "file": "mm-pending-snapshot-before.png",
+      "bytes": 28784,
+      "sha256": "704c81ce092483f1a647520be44cefac2f900da055289cc771253433fb9dbad6"
+    },
+    "immediate": {
+      "file": "mm-pending-snapshot-immediate.png",
+      "bytes": 28784,
+      "sha256": "704c81ce092483f1a647520be44cefac2f900da055289cc771253433fb9dbad6"
+    },
+    "settled": {
+      "file": "mm-pending-snapshot-settled.png",
+      "bytes": 29419,
+      "sha256": "223c631007b0586011b4e319001b329e2318af34f7ac529763b3a0f1075d71bd"
+    }
+  }
+}

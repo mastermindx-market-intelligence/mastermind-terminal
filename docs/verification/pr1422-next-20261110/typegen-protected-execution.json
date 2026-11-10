@@ -1,0 +1,10 @@
+{
+  "command": [
+    "node",
+    "node_modules/next/dist/bin/next",
+    "typegen"
+  ],
+  "exit": 0,
+  "logSha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a",
+  "source": "3f6a75b7d5f82802c010edc0e42b7ffd501c9cf0"
+}

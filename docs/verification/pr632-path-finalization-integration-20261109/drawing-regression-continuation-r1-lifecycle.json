@@ -1,0 +1,175 @@
+{
+  "after": {
+    "listener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:3902",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T19:00:35.056873+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "lockDescriptors": {
+      "observedAt": "2026-11-09T19:00:35.062154+00:00",
+      "state": "fileAbsent"
+    },
+    "ownedWorkspaceCwds": {
+      "command": [
+        "lsof",
+        "-a",
+        "-u",
+        "chriswong",
+        "-d",
+        "cwd",
+        "-F",
+        "pcn"
+      ],
+      "exit": 0,
+      "observedAt": "2026-11-09T19:00:36.083219+00:00",
+      "records": [],
+      "stderr": ""
+    },
+    "recordedProcesses": {
+      "command": [
+        "ps",
+        "-p",
+        "68791",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T19:00:35.062049+00:00",
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "before": {
+    "listener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:3902",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T19:00:30.546593+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "lockDescriptors": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T19:00:31.773152+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "ownedWorkspaceCwds": {
+      "command": [
+        "lsof",
+        "-a",
+        "-u",
+        "chriswong",
+        "-d",
+        "cwd",
+        "-F",
+        "pcn"
+      ],
+      "exit": 0,
+      "observedAt": "2026-11-09T19:00:32.799145+00:00",
+      "records": [],
+      "stderr": ""
+    },
+    "recordedProcesses": {
+      "command": [
+        "ps",
+        "-p",
+        "68791",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T19:00:30.550889+00:00",
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "completedAt": "2026-11-09T19:00:36.084642+00:00",
+  "immediatelyBeforeUnlink": {
+    "listener": {
+      "command": [
+        "lsof",
+        "-nP",
+        "-iTCP:3902",
+        "-sTCP:LISTEN"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T19:00:32.922730+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "lockDescriptors": {
+      "command": [
+        "lsof",
+        "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr632-path-finalization-integration-20261109/terminal/.next/dev/lock"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T19:00:33.911631+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    "ownedWorkspaceCwds": {
+      "command": [
+        "lsof",
+        "-a",
+        "-u",
+        "chriswong",
+        "-d",
+        "cwd",
+        "-F",
+        "pcn"
+      ],
+      "exit": 0,
+      "observedAt": "2026-11-09T19:00:34.929423+00:00",
+      "records": [],
+      "stderr": ""
+    },
+    "recordedProcesses": {
+      "command": [
+        "ps",
+        "-p",
+        "68791",
+        "-o",
+        "pid=,ppid=,comm="
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-09T19:00:32.927369+00:00",
+      "stderr": "",
+      "stdout": ""
+    }
+  },
+  "initialLock": {
+    "content": {
+      "appUrl": "http://localhost:3902",
+      "hostname": "localhost",
+      "pid": 68791,
+      "port": 3902,
+      "startedAt": 1794250196616
+    },
+    "dev": 16777247,
+    "ino": 68162343,
+    "mtimeNs": 1794250196617156483,
+    "sha256": "3ef5da21d3a9e64758c1ded52eaa441fe7082f37d33b7f3abc61f7138c8ba626",
+    "size": 107
+  },
+  "initialLockPresent": true,
+  "label": "drawing-regression-continuation-r1",
+  "schema": "terminal_pr632_drawing_browser_lifecycle_reconciliation.v1",
+  "startedAt": "2026-11-09T19:00:30.423051+00:00",
+  "state": "STALE_OWNED_LOCK_REMOVED_SERVER_ABSENCE_VERIFIED"
+}

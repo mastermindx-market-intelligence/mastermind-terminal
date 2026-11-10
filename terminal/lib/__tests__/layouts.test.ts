@@ -19,6 +19,8 @@ function scriptedDb(results: LayoutDbResult[]): LayoutDb & { calls: Call[] } {
     const q = {
       select: (...args: unknown[]) => { calls.push({ op: "select", args }); return q; },
       eq: (...args: unknown[]) => { calls.push({ op: "eq", args }); return q; },
+      neq: (...args: unknown[]) => { calls.push({ op: "neq", args }); return q; },
+      is: (...args: unknown[]) => { calls.push({ op: "is", args }); return q; },
       order: (...args: unknown[]) => { calls.push({ op: "order", args }); return q; },
       in: (...args: unknown[]) => { calls.push({ op: "in", args }); return q; },
       limit: (...args: unknown[]) => { calls.push({ op: "limit", args }); return q; },
@@ -35,7 +37,6 @@ function scriptedDb(results: LayoutDbResult[]): LayoutDb & { calls: Call[] } {
 }
 
 const OUTAGE: LayoutDbResult = { error: { code: "XX000", message: "connection reset" } };
-const NO_CONFLICT_TARGET: LayoutDbResult = { error: { code: "42P10", message: "no unique or exclusion constraint matching the ON CONFLICT specification" } };
 const UNIQUE_VIOLATION: LayoutDbResult = { error: { code: "23505", message: "duplicate key value" } };
 
 describe("nextLayoutName — C3: a counter is not a name", () => {
@@ -113,34 +114,53 @@ describe("listLayouts — C2: unavailable is not empty", () => {
 });
 
 describe("saveLayout — C2/C4: only an authoritative write is success", () => {
-  it("overwrite uses one atomic upsert on (user_id, name)", async () => {
+  it("overwrite uses a schema-null conditional UPDATE, never a blind upsert", async () => {
     const db = scriptedDb([{ data: [{ id: "L1" }] }]);
     const result = await saveLayout(db, USER, { name: "Swing", config: { a: 1 } });
     expect(result).toEqual({ ok: true, id: "L1", created: false });
-    const upsert = db.calls.find((c) => c.op === "upsert");
-    expect(upsert?.args[1]).toEqual({ onConflict: "user_id,name" });
+    expect(db.calls.some((c) => c.op === "upsert")).toBe(false);
+    expect(db.calls.some((c) => c.op === "update")).toBe(true);
+    expect(db.calls).toContainEqual({ op: "is", args: ["config->>schema", null] });
+    expect(db.calls).toContainEqual({ op: "eq", args: ["user_id", USER] });
+    expect(db.calls).toContainEqual({ op: "eq", args: ["name", "Swing"] });
   });
 
-  it("falls back to select-then-write when the unique index is not applied yet (42P10)", async () => {
-    const db = scriptedDb([NO_CONFLICT_TARGET, { data: [{ id: "L9" }] }, { data: [{ id: "L9" }] }]);
+  it("a free name after a zero-row fenced UPDATE is insert-only create", async () => {
+    const db = scriptedDb([{ data: [] }, { data: [] }, { data: [{ id: "L9" }] }]);
     expect(await saveLayout(db, USER, { name: "Swing", config: {} })).toEqual({ ok: true, id: "L9", created: false });
     expect(db.calls.some((c) => c.op === "update")).toBe(true);
+    expect(db.calls.some((c) => c.op === "insert")).toBe(true);
+    expect(db.calls.some((c) => c.op === "upsert")).toBe(false);
   });
 
-  it("a failed upsert is NOT reported as saved", async () => {
+  it("a failed UPDATE is NOT reported as saved", async () => {
     expect(await saveLayout(scriptedDb([OUTAGE]), USER, { name: "Swing", config: {} }))
       .toEqual({ ok: false, reason: "unavailable" });
   });
 
-  it("a failed UPDATE in the fallback path is NOT reported as saved", async () => {
-    // The exact shape of the old bug: `.update(...)` errored and the route returned {ok:true}.
-    const db = scriptedDb([NO_CONFLICT_TARGET, { data: [{ id: "L9" }] }, OUTAGE]);
+  it("a failed INSERT after a zero-row fenced UPDATE is NOT reported as saved", async () => {
+    const db = scriptedDb([{ data: [] }, { data: [] }, OUTAGE]);
     expect(await saveLayout(db, USER, { name: "Swing", config: {} })).toEqual({ ok: false, reason: "unavailable" });
   });
 
-  it("an UPDATE that matched no row is not success either", async () => {
-    const db = scriptedDb([NO_CONFLICT_TARGET, { data: [{ id: "L9" }] }, { data: [] }]);
+  it("a unique-create race retries one fenced UPDATE and never upserts", async () => {
+    const db = scriptedDb([{ data: [] }, { data: [] }, UNIQUE_VIOLATION, { data: [{ id: "L9" }] }]);
+    expect(await saveLayout(db, USER, { name: "Swing", config: {} })).toEqual({ ok: true, id: "L9", created: false });
+    expect(db.calls.filter((c) => c.op === "update")).toHaveLength(2);
+    expect(db.calls.filter((c) => c.op === "insert")).toHaveLength(1);
+    expect(db.calls.some((c) => c.op === "upsert")).toBe(false);
+  });
+
+  it("a unique-create race against a versioned occupant is refused", async () => {
+    const db = scriptedDb([{ data: [] }, { data: [] }, UNIQUE_VIOLATION, { data: [] }]);
     expect(await saveLayout(db, USER, { name: "Swing", config: {} })).toEqual({ ok: false, reason: "unavailable" });
+  });
+
+  it("does not insert over a known versioned occupant while the unique index is unapplied", async () => {
+    const db = scriptedDb([{ data: [] }, { data: [{ id: "future" }] }, { data: [] }]);
+    expect(await saveLayout(db, USER, { name: "Future", config: {} }))
+      .toEqual({ ok: false, reason: "unavailable" });
+    expect(db.calls.some((c) => c.op === "insert" || c.op === "upsert")).toBe(false);
   });
 
   it("create mode refuses a taken name instead of overwriting it", async () => {

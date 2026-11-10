@@ -1,0 +1,141 @@
+"use client";
+import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
+import { type CmpCfg, CMP_LINE_STYLES } from "@/lib/compare";
+import { useLang, useT } from "@/lib/i18n";
+import { pick } from "@/lib/finFormat";
+import { activateSettingsDialog, colorInputHex, commitNumber, previewNumber } from "@/lib/chartSettingsUi";
+import { parseCssColor } from "@/lib/chart-engine/canvas/priceAxis";
+import dialogStyles from "./IndicatorSettings.module.css";
+import styles from "./CompareSettings.module.css";
+
+const SWATCHES = ["#4d82ff", "#26c281", "#f0566b", "#e8b339", "#e8a33d", "#9d86ff", "#19c2c2", "#d6dae3", "#868d9c", "#ff8a3d"];
+const hexToRgba = (hex: string, a: number) => { let h = hex.replace("#", ""); if (h.length === 3) h = h.split("").map((x) => x + x).join(""); const n = parseInt(h, 16); const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255; return a >= 1 ? `#${h}` : `rgba(${r}, ${g}, ${b}, ${a})`; };
+
+function ColorField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const t = useT();
+  const hex = colorInputHex(value);
+  const apply = (next: string) => onChange(hexToRgba(next, parseCssColor(value)?.[3] ?? 1));
+  return (
+    <div className={styles.colors}>
+      <div className={styles.palette} role="group" aria-label={t("cmpColor")}>
+        {SWATCHES.map((swatch) => (
+          <button key={swatch} type="button" className={styles.swatch}
+            style={{ "--swatch": swatch } as CSSProperties} title={swatch}
+            aria-label={`${t("cmpColor")}: ${swatch}`} aria-pressed={hex === swatch}
+            onClick={() => apply(swatch)} />
+        ))}
+      </div>
+      <label className={styles.custom}>
+        <span>{t("customColor")}</span><code>{hex.toUpperCase()}</code>
+        <input type="color" value={hex} onChange={(e) => apply(e.target.value)} aria-label={t("customColor")} />
+      </label>
+    </div>
+  );
+}
+
+function NumberField({ value, min = 1, max = 4, step = 1, onChange }: {
+  value: number; min?: number; max?: number; step?: number; onChange: (v: number) => void;
+}) {
+  const t = useT();
+  const { lang } = useLang();
+  const [draft, setDraft] = useState<string | null>(null);
+  const clamp = (v: number) => Math.max(min, Math.min(max, Math.round(v)));
+  const apply = (next: number) => { setDraft(null); if (next !== value) onChange(next); };
+  const commit = () => apply(Math.round(commitNumber(draft ?? String(value), value, min, max)));
+  return (
+    <div className={styles.stepper}>
+      <button type="button" disabled={value <= min} onClick={() => apply(clamp(value - step))}
+        aria-label={pick(lang === "zh", "Decrease thickness", "减小粗细")}>−</button>
+      <input type="number" aria-label={t("cmpThickness")} value={draft ?? value} step={step} min={min} max={max}
+        onChange={(e) => {
+          const raw = e.target.value; setDraft(raw);
+          const next = previewNumber(raw, min, max);
+          if (next !== null && Number.isInteger(next) && next !== value) onChange(next);
+        }}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); }
+        }} />
+      <button type="button" disabled={value >= max} onClick={() => apply(clamp(value + step))}
+        aria-label={pick(lang === "zh", "Increase thickness", "增大粗细")}>+</button>
+    </div>
+  );
+}
+
+export default function CompareSettings({ sym, cfg, onChange, onClose }: {
+  sym: string; cfg: CmpCfg; onChange: (patch: Partial<CmpCfg>) => void; onClose: () => void;
+}) {
+  const t = useT();
+  const { lang } = useLang();
+  const titleId = useId();
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const restore = activateSettingsDialog(dialog, opener);
+    dialog.focus({ preventScroll: true });
+    return () => {
+      restore();
+      if (!document.querySelector("dialog[open]") && opener?.isConnected && !opener.getClientRects().length) {
+        opener.closest<HTMLElement>(".lg-row[tabindex]")?.focus({ preventScroll: true });
+        opener.focus({ preventScroll: true });
+      }
+    };
+  }, []);
+
+  return (
+    <dialog ref={dialogRef} className={`ind-set ${dialogStyles.dialog} ${styles.dialog}`}
+      aria-modal="true" aria-labelledby={titleId} tabIndex={-1}
+      onCancel={(e) => { e.preventDefault(); onClose(); }} onKeyDown={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        if (e.target !== e.currentTarget) return;
+        const bounds = e.currentTarget.getBoundingClientRect();
+        if (e.clientX < bounds.left || e.clientX > bounds.right || e.clientY < bounds.top || e.clientY > bounds.bottom) onClose();
+      }}>
+      <header className={`is-head ${styles.header}`}>
+        <div><span className={styles.eyebrow}>{t("compareTitle")}</span><h2 id={titleId}>{sym}</h2></div>
+        <span className={styles.linePreview} aria-hidden="true" style={{
+          color: cfg.color, borderTopWidth: cfg.lineWidth,
+          borderTopStyle: cfg.lineStyle === 2 ? "dashed" : cfg.lineStyle === 1 ? "dotted" : "solid",
+        }} />
+        <button type="button" className={`x ${styles.close}`} onClick={onClose}
+          aria-label={lang === "zh" ? "关闭" : "Close"}>✕</button>
+      </header>
+      <div className={`is-body ${styles.body}`}>
+        <section className={styles.section} aria-labelledby={`${titleId}-color`}>
+          <h3 id={`${titleId}-color`}>{t("cmpColor")}</h3>
+          <ColorField value={cfg.color} onChange={(color) => onChange({ color })} />
+        </section>
+        <section className={styles.section} aria-labelledby={`${titleId}-line`}>
+          <h3 id={`${titleId}-line`}>{t("cmpLineStyle")}</h3>
+          <div className={styles.segment} role="group" aria-label={t("cmpLineStyle")}>
+            {CMP_LINE_STYLES.map(({ v, label }) => (
+              <button key={v} type="button" aria-pressed={cfg.lineStyle === v} onClick={() => onChange({ lineStyle: v })}>
+                <span aria-hidden="true" className={styles.styleLine}
+                  style={{ borderTopStyle: v === 2 ? "dashed" : v === 1 ? "dotted" : "solid" }} />
+                {lang === "zh" ? (v === 0 ? "实线" : v === 2 ? "虚线" : "点线") : label}
+              </button>
+            ))}
+          </div>
+          <div className={styles.widthRow}>
+            <span>{t("cmpThickness")}</span>
+            <NumberField key={sym} value={cfg.lineWidth} min={1} max={4} step={1}
+              onChange={(lineWidth) => onChange({ lineWidth })} />
+          </div>
+        </section>
+        <section className={styles.section} aria-labelledby={`${titleId}-scale`}>
+          <h3 id={`${titleId}-scale`}>{t("cmpScaleMode")}</h3>
+          <div className={styles.segment} role="group" aria-label={t("cmpScaleMode")}>
+            <button type="button" aria-pressed={cfg.mode === "price"} onClick={() => onChange({ mode: "price" })}>{t("cmpModePrice")}</button>
+            <button type="button" aria-pressed={cfg.mode === "percent"} onClick={() => onChange({ mode: "percent" })}>{t("cmpModePercent")}</button>
+          </div>
+        </section>
+      </div>
+      <footer className={`is-foot ${styles.footer}`}>
+        <button type="button" className={`ai ${styles.done}`} onClick={onClose}>{lang === "zh" ? "完成" : "Done"}</button>
+      </footer>
+    </dialog>
+  );
+}

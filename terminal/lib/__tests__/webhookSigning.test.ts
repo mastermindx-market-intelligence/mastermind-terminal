@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { signWebhookPayload } from "@/lib/webhookSigning";
+import { buildWebhookHeaders, signWebhookPayload } from "@/lib/webhookSigning";
 
 // Hand-computed with Node's crypto.createHmac("sha256", secret).update(`${ts}.${rawBody}`).digest("hex")
 // once, then pinned. The function under test is not used to produce the expected digest.
@@ -46,6 +46,10 @@ describe("the receiver-facing verification contract is documented", () => {
     expect(deploy).toContain("Mastermind-Webhook-Id");
     expect(deploy).toContain("Mastermind-Webhook-Timestamp");
     expect(deploy).toContain("Mastermind-Webhook-Signature");
+    expect(deploy).toContain("Mastermind-Webhook-Key-Version");
+    expect(deploy).toContain("Mastermind-Webhook-Event-Id");
+    expect(deploy).toContain("Mastermind-Webhook-Event-Type");
+    expect(deploy).toContain("Mastermind-Webhook-Signature-Previous");
     expect(deploy).toContain("v1=<hex>");
     expect(deploy).toContain('HMAC-SHA256(secret, "<timestamp>.<raw request body>")');
   });
@@ -54,5 +58,101 @@ describe("the receiver-facing verification contract is documented", () => {
     expect(deploy).toContain("timing-safe");
     expect(deploy).toContain("timingSafeEqual");
     expect(deploy).toContain("shown once and cannot be shown again");
+  });
+});
+
+const PREV = "whsec_previous_secret_vector_001";
+const EXPIRES = "2026-09-10T12:00:00.000Z";
+const NOW_INSIDE = Date.parse("2026-09-10T11:00:00.000Z");
+const NOW_AT = Date.parse("2026-09-10T12:00:00.000Z");
+const NOW_AFTER = Date.parse("2026-09-10T12:00:01.000Z");
+
+function headerInput(overrides: Partial<Parameters<typeof buildWebhookHeaders>[0]> = {}) {
+  return {
+    secret: SECRET,
+    secretPrevious: null as string | null,
+    secretPreviousExpiresAt: null as string | null,
+    secretVersion: 2,
+    deliveryId: "del-1",
+    eventId: "fire-1",
+    eventType: "alert.fired",
+    timestamp: TIMESTAMP,
+    rawBody: RAW_BODY,
+    nowMs: NOW_INSIDE,
+    ...overrides,
+  };
+}
+
+describe("buildWebhookHeaders", () => {
+  it("current-only: signature, key version, event headers; no previous header", () => {
+    const headers = buildWebhookHeaders(headerInput());
+    expect(headers["Content-Type"]).toBe("application/json");
+    expect(headers["Mastermind-Webhook-Id"]).toBe("del-1");
+    expect(headers["Mastermind-Webhook-Timestamp"]).toBe(String(TIMESTAMP));
+    expect(headers["Mastermind-Webhook-Signature"]).toBe(`v1=${VECTOR_HEX}`);
+    expect(headers["Mastermind-Webhook-Key-Version"]).toBe("2");
+    expect(headers["Mastermind-Webhook-Event-Id"]).toBe("fire-1");
+    expect(headers["Mastermind-Webhook-Event-Type"]).toBe("alert.fired");
+    expect(headers["Mastermind-Webhook-Signature-Previous"]).toBeUndefined();
+  });
+
+  it("current+previous inside the window", () => {
+    const headers = buildWebhookHeaders(
+      headerInput({
+        secretPrevious: PREV,
+        secretPreviousExpiresAt: EXPIRES,
+        nowMs: NOW_INSIDE,
+      }),
+    );
+    expect(headers["Mastermind-Webhook-Signature"]).toBe(`v1=${VECTOR_HEX}`);
+    expect(headers["Mastermind-Webhook-Signature-Previous"]).toBe(
+      `v1=${signWebhookPayload(PREV, TIMESTAMP, RAW_BODY)}`,
+    );
+    expect(headers["Mastermind-Webhook-Signature-Previous"]).not.toBe(
+      headers["Mastermind-Webhook-Signature"],
+    );
+  });
+
+  it("previous dropped at expiry", () => {
+    const headers = buildWebhookHeaders(
+      headerInput({
+        secretPrevious: PREV,
+        secretPreviousExpiresAt: EXPIRES,
+        nowMs: NOW_AT,
+      }),
+    );
+    expect(headers["Mastermind-Webhook-Signature-Previous"]).toBeUndefined();
+  });
+
+  it("previous dropped after expiry", () => {
+    const headers = buildWebhookHeaders(
+      headerInput({
+        secretPrevious: PREV,
+        secretPreviousExpiresAt: EXPIRES,
+        nowMs: NOW_AFTER,
+      }),
+    );
+    expect(headers["Mastermind-Webhook-Signature-Previous"]).toBeUndefined();
+  });
+
+  it("key version present and event headers present", () => {
+    const headers = buildWebhookHeaders(headerInput({ secretVersion: 3, eventId: "evt-9", eventType: "webhook.test" }));
+    expect(headers["Mastermind-Webhook-Key-Version"]).toBe("3");
+    expect(headers["Mastermind-Webhook-Event-Id"]).toBe("evt-9");
+    expect(headers["Mastermind-Webhook-Event-Type"]).toBe("webhook.test");
+  });
+
+  it("no secret in any header value", () => {
+    const headers = buildWebhookHeaders(
+      headerInput({
+        secretPrevious: PREV,
+        secretPreviousExpiresAt: EXPIRES,
+        nowMs: NOW_INSIDE,
+      }),
+    );
+    for (const [name, value] of Object.entries(headers)) {
+      expect(value, name).not.toContain(SECRET);
+      expect(value, name).not.toContain(PREV);
+    }
   });
 });
