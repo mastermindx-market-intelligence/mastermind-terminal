@@ -1,0 +1,312 @@
+/* Calls board — five folded lanes of tonight's qualified action board.
+   Semantic tokens only; light+dark inherit from the shared token root.
+   No coloured left-edge/accent stripe on any container (design law). */
+
+.root {
+  min-width: 0;
+  padding: 22px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--panel);
+  color: var(--text);
+  font-family: var(--font-ui);
+}
+
+.root :focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 3px;
+}
+
+.root [data-sign="up"] { color: var(--up); }
+.root [data-sign="down"] { color: var(--down); }
+
+/* ── board heading ─────────────────────────────────────────────────────────── */
+
+.head {
+  margin: 0 0 18px;
+}
+
+.title {
+  margin: 0 0 6px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.sub {
+  margin: 0;
+  max-width: 84ch;
+  color: var(--text-2);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 10px 0 0;
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+.note {
+  margin: 6px 0 0;
+  color: var(--text-2);
+  font-size: 11.5px;
+}
+
+/* ── five lane columns ─────────────────────────────────────────────────────── */
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+
+.column {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--panel-2);
+}
+
+.colHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.colTitle {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.count {
+  flex-shrink: 0;
+  min-width: 30px;
+  padding: 1px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  background: var(--panel);
+  color: var(--text-2);
+  font: 650 12px var(--font-num);
+  text-align: center;
+}
+
+.colSub {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.empty {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px dashed var(--line);
+  border-radius: var(--r-ctl);
+  color: var(--text-2);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ── row cards ─────────────────────────────────────────────────────────────── */
+
+.cards {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  background: var(--panel);
+}
+
+.cardTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.kind {
+  color: var(--text-2);
+  font-size: 9.5px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.reco {
+  padding: 2px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  background: var(--panel-2);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.score {
+  color: var(--text-2);
+  font: 650 11px var(--font-num);
+}
+
+.name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.why {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.whyLabel {
+  margin-right: 6px;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+/* ── controls (real buttons/links, 44px touch targets, keyboard operable) ──── */
+
+.cardActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.traceBtn,
+.detailBtn,
+.toggle {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  background: var(--panel-2);
+  color: var(--text);
+  font: 600 12px var(--font-ui);
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+a.detailBtn {
+  text-decoration: none;
+  color: var(--link);
+}
+
+.traceBtn:hover,
+.detailBtn:hover,
+.toggle:hover {
+  border-color: var(--brand-2);
+}
+
+.toggle {
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+/* ── per-row trace disclosure ──────────────────────────────────────────────── */
+
+.trace {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.traceCell {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.traceCellWide {
+  grid-column: 1 / -1;
+}
+
+.traceLabel {
+  color: var(--text-2);
+  font-size: 11px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.traceValue {
+  color: var(--text);
+  font: 650 12.5px var(--font-num);
+  overflow-wrap: anywhere;
+}
+
+/* ── withheld rows line ────────────────────────────────────────────────────── */
+
+.withheld {
+  margin: 6px 0 0;
+  color: var(--warning, var(--text-2));
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* ── responsive: tablet narrows to two lanes, phone stacks; wide trace grids
+     wrap inside their cells so 200% zoom never clips ──────────────────────── */
+
+@media (max-width: 1180px) {
+  .columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .root {
+    padding: 16px 15px;
+  }
+
+  .title {
+    font-size: 16px;
+  }
+
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root *,
+  .root *::before,
+  .root *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
