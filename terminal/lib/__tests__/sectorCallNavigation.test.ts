@@ -37,31 +37,31 @@ const target = (over: Record<string, unknown> = {}): Record<string, unknown> => 
 
 describe("callsNavigateDecision — the calls board's lane-3 navigation law (COO 19:15Z item 3)", () => {
   it("routes a lawful target by kind+id, with the ticker riding along for symbol-keyed consumers", () => {
-    const sector = callsNavigateDecision(target() as Parameters<typeof callsNavigateDecision>[0], navigable);
+    const sector = callsNavigateDecision(target() as unknown as Parameters<typeof callsNavigateDecision>[0], navigable);
     expect(sector).toEqual({ state: "select", kind: "sector", id: "semiconductors", ticker: "SMH" });
     const theme = callsNavigateDecision(
-      target({ kind: "theme", id: "ai-infrastructure", ticker: "AI-INFRA" }) as Parameters<typeof callsNavigateDecision>[0],
+      target({ kind: "theme", id: "ai-infrastructure", ticker: "AI-INFRA" }) as unknown as Parameters<typeof callsNavigateDecision>[0],
       navigable);
     expect(theme).toEqual({ state: "select", kind: "theme", id: "ai-infrastructure", ticker: "AI-INFRA" });
   });
 
   it("the identifier rule is the single gate — a refused id or ticker produces no route, normally", () => {
     const refused = callsNavigateDecision(
-      target({ id: "has space" }) as Parameters<typeof callsNavigateDecision>[0], navigable);
+      target({ id: "has space" }) as unknown as Parameters<typeof callsNavigateDecision>[0], navigable);
     expect(refused).toEqual({ state: "none" });
     const refusedTicker = callsNavigateDecision(
-      target({ ticker: "javascript:alert(1)" }) as Parameters<typeof callsNavigateDecision>[0], navigable);
+      target({ ticker: "javascript:alert(1)" }) as unknown as Parameters<typeof callsNavigateDecision>[0], navigable);
     expect(refusedTicker).toEqual({ state: "none" });
     // A missing or non-function rule is the mount's bug, not the reader's
     // problem: fail closed exactly like board silence.
-    expect(callsNavigateDecision(target() as Parameters<typeof callsNavigateDecision>[0], undefined))
+    expect(callsNavigateDecision(target() as unknown as Parameters<typeof callsNavigateDecision>[0], undefined))
       .toEqual({ state: "none" });
-    expect(callsNavigateDecision(target() as Parameters<typeof callsNavigateDecision>[0], null))
+    expect(callsNavigateDecision(target() as unknown as Parameters<typeof callsNavigateDecision>[0], null))
       .toEqual({ state: "none" });
   });
 
   it("href is never a route: hostile, absent and non-string hrefs cannot change the decision", () => {
-    const baseline = callsNavigateDecision(target() as Parameters<typeof callsNavigateDecision>[0], navigable);
+    const baseline = callsNavigateDecision(target() as unknown as Parameters<typeof callsNavigateDecision>[0], navigable);
     const hostile: unknown[] = [
       "javascript:alert(1)", "data:text/html,<script>x</script>", "https://evil.example/sectors",
       "//evil.example", "/sectors/semis?next=javascript:alert(1)", "/sectors/semis#frag",
@@ -69,7 +69,7 @@ describe("callsNavigateDecision — the calls board's lane-3 navigation law (COO
     ];
     for (const href of hostile) {
       const decision = callsNavigateDecision(
-        target({ href }) as Parameters<typeof callsNavigateDecision>[0], navigable);
+        target({ href }) as unknown as Parameters<typeof callsNavigateDecision>[0], navigable);
       expect(decision).toEqual(baseline);
     }
     // The decision cannot even carry an href — no downstream consumer can
@@ -81,7 +81,7 @@ describe("callsNavigateDecision — the calls board's lane-3 navigation law (COO
   it("no route is ever built from any text other than id or ticker", () => {
     const decision = callsNavigateDecision(
       target({ name: "Semiconductors", label: "Own it", reco_why_en: "wide moat",
-        query: "?symbol=SMH&next=/admin", "constructor": "not-a-route" }) as Parameters<typeof callsNavigateDecision>[0],
+        query: "?symbol=SMH&next=/admin", "constructor": "not-a-route" }) as unknown as Parameters<typeof callsNavigateDecision>[0],
       navigable);
     expect(decision).toEqual({ state: "select", kind: "sector", id: "semiconductors", ticker: "SMH" });
     const serialized = JSON.stringify(decision);
@@ -93,18 +93,18 @@ describe("callsNavigateDecision — the calls board's lane-3 navigation law (COO
   it("wrong types fail closed and never throw", () => {
     const bad: unknown[] = [null, undefined, "sector", 42, true, [], () => {}, Symbol("x")];
     for (const value of bad) {
-      expect(() => callsNavigateDecision(value as Parameters<typeof callsNavigateDecision>[0], navigable))
+      expect(() => callsNavigateDecision(value as unknown as Parameters<typeof callsNavigateDecision>[0], navigable))
         .not.toThrow();
-      expect(callsNavigateDecision(value as Parameters<typeof callsNavigateDecision>[0], navigable))
+      expect(callsNavigateDecision(value as unknown as Parameters<typeof callsNavigateDecision>[0], navigable))
         .toEqual({ state: "none" });
     }
     for (const kind of [42, null, undefined, {}, [], "company", "Sector", ""]) {
-      expect(callsNavigateDecision(target({ kind }) as Parameters<typeof callsNavigateDecision>[0], navigable))
+      expect(callsNavigateDecision(target({ kind }) as unknown as Parameters<typeof callsNavigateDecision>[0], navigable))
         .toEqual({ state: "none" });
     }
     for (const key of ["id", "ticker"] as const) {
       for (const value of [42, null, undefined, {}, [], true]) {
-        expect(callsNavigateDecision(target({ [key]: value }) as Parameters<typeof callsNavigateDecision>[0], navigable))
+        expect(callsNavigateDecision(target({ [key]: value }) as unknown as Parameters<typeof callsNavigateDecision>[0], navigable))
           .toEqual({ state: "none" });
       }
     }
@@ -114,24 +114,24 @@ describe("callsNavigateDecision — the calls board's lane-3 navigation law (COO
     // Extra OWN keys named like prototype members are inert text on a valid target.
     const withOwnPrototypeKeys = JSON.parse(
       JSON.stringify(target()).replace(/^\{/, '{"__proto__":"x","toString":"y","constructor":"z",')) as Record<string, unknown>;
-    expect(callsNavigateDecision(withOwnPrototypeKeys as Parameters<typeof callsNavigateDecision>[0], navigable))
+    expect(callsNavigateDecision(withOwnPrototypeKeys as unknown as Parameters<typeof callsNavigateDecision>[0], navigable))
       .toEqual({ state: "select", kind: "sector", id: "semiconductors", ticker: "SMH" });
 
     // Values that live ONLY on the prototype chain are not the board's emission.
     const chained = Object.create({ kind: "sector", id: "stolen-id", ticker: "STLN" }) as Record<string, unknown>;
     chained.href = "/sectors/anything";
-    expect(callsNavigateDecision(chained as Parameters<typeof callsNavigateDecision>[0], navigable))
+    expect(callsNavigateDecision(chained as unknown as Parameters<typeof callsNavigateDecision>[0], navigable))
       .toEqual({ state: "none" });
 
     // JSON's __proto__ is an own key, not a prototype setter: the own fields rule.
     const jsonOwn = JSON.parse('{"kind":"sector","id":"own-id","ticker":"OKT","__proto__":{"id":"chain-id"}}');
-    expect(callsNavigateDecision(jsonOwn as Parameters<typeof callsNavigateDecision>[0], navigable))
+    expect(callsNavigateDecision(jsonOwn as unknown as Parameters<typeof callsNavigateDecision>[0], navigable))
       .toEqual({ state: "select", kind: "sector", id: "own-id", ticker: "OKT" });
   });
 
   it("the rule receives only the two validated strings — never the target, never the href", () => {
     const rule = vi.fn(() => true);
-    callsNavigateDecision(target() as Parameters<typeof callsNavigateDecision>[0], rule);
+    callsNavigateDecision(target() as unknown as Parameters<typeof callsNavigateDecision>[0], rule);
     expect(rule.mock.calls).toEqual([["semiconductors"], ["SMH"]]);
   });
 });

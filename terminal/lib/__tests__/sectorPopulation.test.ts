@@ -334,7 +334,7 @@ describe("sectorPopulationPage — group_index name_zh admission (COO 19:15Z ite
       JSON.stringify({ ...gi(proto)[0], }).replace(/^\{/, '{"__proto__":1,'),) as Record<string, unknown>;
     expect(sectorPopulationPage(proto)).toBeNull();
     const ctor = clone();
-    gi(ctor)[0].constructor = "no";
+    (gi(ctor)[0] as Record<string, unknown>)["constructor"] = "no";
     expect(sectorPopulationPage(ctor)).toBeNull();
   });
 });
@@ -478,7 +478,7 @@ describe("sectorPopulationPage — lane 1 point-in-time facts (COO 19:15Z item 5
     }
     const notAnObject = clone();
     const fact = snapshotFact();
-    fact.groups.housing = 42;
+    (fact.groups as Record<string, unknown>).housing = 42;
     identity(notAnObject).membership_snapshot = fact;
     expect(sectorPopulationPage(notAnObject)!.membershipSnapshot).toEqual({ carried: true, status: "available",
       asOf: "2026-11-06", groups: { housing: { status: "unavailable" }, precious: { status: "unavailable" } } });
@@ -601,8 +601,8 @@ describe("sectorPopulationPage — lane 1 point-in-time facts (COO 19:15Z item 5
     ident.membership_snapshot = snapshotFact();
     ident.membership_first_known = firstKnownFact();
     const read = sectorPopulationPage(mutated)!;
-    expect(read.membershipSnapshot.status).toBe("available");
-    expect(read.firstKnown.status).toBe("available");
+    expect(read.membershipSnapshot).toMatchObject({ status: "available" });
+    expect(read.firstKnown).toMatchObject({ status: "available" });
     // bounded()'s prototype-pollution law: a literal "__proto__" key anywhere in
     // the document refuses the page — the wire can never legitimately carry one.
     const poisoned = clone();

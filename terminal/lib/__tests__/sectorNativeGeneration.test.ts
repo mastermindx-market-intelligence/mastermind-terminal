@@ -134,9 +134,10 @@ describe("sectorTypedBlocks — item 7 (COO 19:56Z): twelve typed-block names, u
     Object.assign(w.projection.data, { typed_blocks: blocks });
     return w;
   };
+  type PlantedBlock = { status: string; reason: string | null; value: unknown };
   /** All twelve present with legal mixed states — the incumbent seven keep
    * their today shapes; each new name is available with a small value. */
-  const twelveBlocks = (): Record<string, unknown> => ({
+  const twelveBlocks = (): Record<string, PlantedBlock> => ({
     r1_rising_priced_share: { status: "unavailable", reason: "not_produced", value: null },
     r2_display_order: { status: "available", reason: null, value: ["xlk", "xlf"] },
     r2_hazard_qualification: { status: "unavailable", reason: "not_produced", value: null },

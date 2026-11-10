@@ -287,7 +287,7 @@ function readMembershipSnapshot(value: unknown): PopulationMembershipSnapshot {
       && day(entry.snapshot_date) && int(entry.member_count, 0, 1_000_000)
       && (entry.equals_current_roster === null || bool(entry.equals_current_roster));
     if (!ok) { groups[groupId] = { status: "unavailable" }; continue; }
-    groups[groupId] = { status: "available", snapshotDate: entry.snapshot_date,
+    groups[groupId] = { status: "available", snapshotDate: entry.snapshot_date as string,
       membersSha: entry.members_sha as string | null, memberCount: entry.member_count as number,
       equalsCurrentRoster: entry.equals_current_roster as boolean | null };
   }
