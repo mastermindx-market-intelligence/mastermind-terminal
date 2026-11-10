@@ -102,13 +102,13 @@ def test_shard_table_mirrors_hosted_e2e_matrix() -> None:
         entry["shard"]: " ".join(str(entry["projects"]).split())
         for entry in FULL_MATRIX
     }
-    assert len(hosted) == len(FULL_MATRIX) == 14
+    assert len(hosted) == len(FULL_MATRIX) == 16
     assert all(entry["specs"] == "" for entry in FULL_MATRIX)
     table = dict(TABLE_LINE.findall(VALIDATOR.read_text(encoding="utf-8")))
     assert table == hosted
 
 
-@pytest.mark.parametrize("shard", ["desktop-1", "desktop-6", "tablet-3", "tablet-4", "serial"])
+@pytest.mark.parametrize("shard", ["desktop-1", "desktop-6", "tablet-3", "tablet-4", "mobile-5", "serial"])
 def test_valid_inputs_emit_fixed_selector(shard: str, tmp_path: Path) -> None:
     rc, written = run_validator(shard, "4", tmp_path)
     assert rc == 0

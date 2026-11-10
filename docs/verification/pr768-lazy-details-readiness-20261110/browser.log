@@ -1,0 +1,23 @@
+[warmup] /terminal?symbol=NVDA → 200 in 93ms
+[warmup] /options → 200 in 2421ms
+[warmup] /portfolio → 200 in 775ms
+[warmup] /alerts → 200 in 632ms
+[warmup] /analysis → 200 in 1150ms
+[warmup] /discover → 200 in 1252ms
+[warmup] /admin → 200 in 394ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 280ms
+[warmup] /login → 200 in 58ms
+[warmup] /reset-password → 200 in 335ms
+[warmup] /api/me → 200 in 497ms
+[warmup] /api/watchlist → 200 in 163ms
+[warmup] /api/layouts → 200 in 160ms
+[warmup] /api/watchlist/annotations → 409 in 114ms
+[warmup] 14 routes compiled in 8s
+[fixture-ready] prophet_idx fixture 200 in 322ms
+
+Running 1 test using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  1 [mobile] › e2e/drawing-system.spec.ts:620:5 › phone drawing chrome keeps one collision-free editing surface (10.0s)
+
+  1 passed (32.2s)
