@@ -254,6 +254,53 @@
   outline-offset: 2px;
 }
 
+/* ── carried theme rows table (wire v1.1) ─────────────────────────────────
+ * Reuses .tableWrap/.table/.th/.td/.thRow above; only the block chrome,
+ * the perf-date line and the in-cell detail link are new. Semantic tokens
+ * only — no accent stripe on the container. */
+
+.rowsBlock {
+  margin-top: 14px;
+  min-width: 0;
+}
+
+.rowsHead {
+  margin: 0 0 6px;
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.perfAsOf {
+  margin: 0 0 8px;
+  color: var(--text-2);
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+}
+
+/* The theme name links to its subsector detail page when a conforming
+ * chart_key exists — rendered as an <a> (href) or a button (onNavigate). */
+.themeLink {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--link);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--link) 45%, transparent);
+  text-underline-offset: 2px;
+}
+
+.themeLink:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 2px;
+}
+
 @media (max-width: 760px) {
   .root { padding: 16px 15px; }
   .head { flex-direction: column; gap: 4px; }

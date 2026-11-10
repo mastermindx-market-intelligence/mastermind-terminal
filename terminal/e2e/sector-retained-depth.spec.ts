@@ -358,7 +358,7 @@ test("flow matrix: an owner-stated partial window is visibly partial (full_windo
 /* ── four universes: separate identities, switching, filter, zero states ─── */
 
 test("universes: tabs switch payloads and rows never cross universes", async ({ page }) => {
-  const uni = page.locator('[data-h-section="universes-contract"]');
+  const uni = page.locator('[data-h-section="universes-carried"]');
   await expect(uni).toBeVisible();
   // S&P tab is first; its source identity line names its own id + benchmark.
   await expect(uni).toContainText(/S&P 500|标普500/);
@@ -370,34 +370,39 @@ test("universes: tabs switch payloads and rows never cross universes", async ({ 
   const ribbonItems = uni.locator("[data-ribbon] li");
   await expect(ribbonItems).toHaveCount(5);
   await expect(uni.locator("[data-ribbon]")).toContainText(/Entry now|现可入场/);
-  const spRows = await uni.locator("table tr, [data-group]").count();
-  // Switch to Nasdaq-100 — identity and rows change; its fixture carries
-  // as_of null, stated as prose in the identity line (E02), never a fake date.
+  const spRows = await uni.locator("table tr, article").count();
+  expect(spRows).toBeGreaterThan(0);
+  // Switch to Nasdaq-100: tonight's real read carries 0 subsectors plus 6
+  // sector rows — the honest zero state, with sectors ONLY under the labelled
+  // roll-up, and the envelope dated as a BUILD time (as_of_field), never a session.
   await uni.getByRole("tab", { name: /Nasdaq-100|纳斯达克100/ }).click();
   await expect(uni).toContainText(/\(QQQ\)|（QQQ）/);
-  await expect(uni).toContainText(/did not report a session date|未报告交易日/);
-  const ndRows = await uni.locator("table tr, [data-group]").count();
-  expect(spRows).toBeGreaterThan(0);
-  expect(ndRows).toBeGreaterThan(0);
+  await expect(uni).toContainText(/No subsector crossed the scoring gate|没有子板块通过评分门槛/);
+  await expect(uni.locator('[data-rollup="sectors"] article')).toHaveCount(6);
+  await expect(uni).toContainText(/Built .+ not a market session|构建于.+非交易日/);
   // Back to S&P: per-universe state survives the round trip (identity line again).
   await uni.getByRole("tab", { name: /S&P 500|标普500/ }).click();
   await expect(uni).toContainText(/\(SPY\)|（SPY）/);
   if (desktop(page)) await shot(page, "universes");
 });
 
-test("universes: filter narrows live, zero matches is a state not a failure, no-access is distinct", async ({ page }) => {
-  const uni = page.locator('[data-h-section="universes-contract"]');
-  const filter = uni.getByPlaceholder(/Filter subsector|筛选子行业/);
+test("universes: filter narrows live, zero matches is a state not a failure, russell is an honest zero", async ({ page }) => {
+  const uni = page.locator('[data-h-section="universes-carried"]');
+  const filter = uni.getByPlaceholder(/Filter subsector or sector|筛选子行业或板块/);
   await filter.fill("zzz-no-such-group");
   // E01: the zero-matches state echoes the reader's own query.
   await expect(uni).toContainText(/No matches for|没有匹配/);
-  await expect(uni).toContainText(/zzz-no-such-group/);
+  await expect(uni).toContainText("zzz-no-such-group");
   await uni.getByRole("button", { name: /Clear filter|清除筛选/ }).click();
-  // The contract fixture carries one no-access universe: switching to it shows
-  // the access state, distinct from zero groups.
-  const noAccessTab = uni.getByRole("tab", { name: /Russell-2000|罗素2000/ });
-  await noAccessTab.click();
-  await expect(uni).toContainText(/requires access|不具备的权限/);
+  // The real Russell-2000 read carries zero groups tonight: an honest zero on
+  // both surfaces — distinct from an access failure, with nothing invented.
+  await uni.getByRole("tab", { name: /Russell-2000|罗素2000/ }).click();
+  await expect(uni).toContainText(/carries no groups tonight|今晚此样本域没有分组/);
+  await expect(uni.locator('[data-empty="subsectors"]')).toBeVisible();
+  await expect(uni.locator('[data-rollup="sectors"]')).toHaveCount(0);
+  // The baskets tab lists the real 49-basket universe.
+  await uni.getByRole("tab", { name: /Basket|篮子/ }).click();
+  await expect(uni.locator("table tr, article").first()).toBeVisible();
 });
 
 /* ── theme/compare/history controls ──────────────────────────────────────── */

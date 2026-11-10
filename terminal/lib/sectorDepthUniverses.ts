@@ -21,6 +21,17 @@
  * scored array are neither fabricated nor inferred from the league key lists.
  */
 
+import {
+  classifyEntry,
+  isMapping,
+  ownBool,
+  ownFinite,
+  ownNonEmptyString,
+  ownOf,
+  ownString,
+  type RowBlockReason,
+} from "./sectorDepthRows";
+
 export type UniverseId = "subsectors" | "nasdaq" | "russell" | "baskets";
 
 /** Real engine class values (entry.class). */
@@ -37,15 +48,17 @@ export type ReliabilityTier = "high" | "med" | "low";
 export interface UniverseMember {
   ticker: string;
   name_zh?: string | null;
-  price: number;
-  ret_20d: number;
-  vs_basket: number;
+  /** Rows increment: the carried payloads may omit or null a soft number —
+   * absent stays absent, a non-finite reads null, never an invented value. */
+  price?: number | null;
+  ret_20d?: number | null;
+  vs_basket?: number | null;
   stock_tier?: string | null;
-  stock_weight: number;
+  stock_weight?: number | null;
   stock_ticks?: number | null;
   stock_bars_to_cross?: number | null;
-  stock_buyable: boolean;
-  stock_state: string;
+  stock_buyable?: boolean | null;
+  stock_state?: string | null;
   /** Independent-emergence marker (v1.1, R6-09 "Company strength is early"):
    * true ONLY when the owner engine flags this member — strength that stands
    * apart from the universe's own timing read; components never derive it
@@ -59,24 +72,26 @@ export interface UniverseMember {
 }
 
 export interface UniverseEntry {
-  tier: string;
-  weight: number;
+  /** Rows increment: a tier may be null (an un-tiered/headwind row) — the
+   * freshness logic and renderers read it as not stated. */
+  tier: string | null;
+  weight: number | null;
   tier_sub?: string | null;
   /** Non-null once the tier has fired; 0 = just fired. */
   ticks: number | null;
   bars_to_cross?: number | null;
   fresh_bars?: number | null;
-  eligible: boolean;
-  buyable: boolean;
-  above200: boolean;
+  eligible?: boolean | null;
+  buyable?: boolean | null;
+  above200?: boolean | null;
   reason?: string | null;
 }
 
 export interface UniverseRegime {
-  state: string;
+  state?: string | null;
   /** "buy" | "sell" | …; colours (if any) key off this, never language. */
-  side: string;
-  label: string;
+  side?: string | null;
+  label?: string | null;
   label_zh?: string | null;
   action?: string | null;
   action_zh?: string | null;
@@ -94,27 +109,34 @@ export function rs60Of(group: UniverseGroup): number | null {
 export interface UniverseGroup {
   key: string;
   kind?: string;
-  label: string;
+  label?: string | null;
   /** NULLABLE — EN fallback when absent. */
   label_zh?: string | null;
-  sector: string;
+  sector?: string | null;
   sector_zh?: string | null;
-  n_members: number;
-  n_priced: number;
-  /** Per-group source of truth; never recomputed from thresholds. */
-  reliability: ReliabilityTier;
+  /** Rows increment: an absent or non-finite count renders not stated (null),
+   * never a coerced 0. */
+  n_members?: number | null;
+  n_priced?: number | null;
+  /** Per-group source of truth; never recomputed from thresholds. An unknown
+   * word falls to the threshold fallback in groupReliability. */
+  reliability?: ReliabilityTier | string | null;
   coverage_pct?: number | null;
   n_live?: number | null;
   start?: string | null;
   as_of?: string | null;
-  price_level?: string | null;
-  class: UniverseClass;
-  entry: UniverseEntry;
-  regime: UniverseRegime;
+  /** Real payloads carry a number; the synthetic contract fixture carries the
+   * owner's legacy word. Both render through the payload value only. */
+  price_level?: string | number | null;
+  /** An owner engine class word; an unknown/absent word sorts last (9) and
+   * renders the localized unclassified badge — never an invented tier. */
+  class: UniverseClass | string | null;
+  entry?: UniverseEntry;
+  regime?: UniverseRegime;
   members: UniverseMember[];
   basket_id?: string | null;
   chart_key?: string | null;
-  has_signals?: boolean;
+  has_signals?: boolean | null;
 }
 
 export interface UniverseCoverage {
@@ -134,14 +156,17 @@ export interface UniverseCoverage {
 }
 
 export interface UniverseData {
-  ok: boolean;
+  /** Rows increment: an absent `ok` reads null — only a carried `false` is
+   * the access-gated state. */
+  ok: boolean | null;
   universe: string;
-  weighting: string;
+  weighting: string | null;
   benchmark?: string | null;
   region?: string | null;
-  /** NULLABLE — nasdaq carries null; render without a date. */
+  /** NULLABLE — nasdaq carries null; render without a date. The envelope
+   * date is never copied into it. */
   as_of: string | null;
-  coverage: UniverseCoverage;
+  coverage: Partial<UniverseCoverage>;
   /** Group-KEY arrays (leagues), not group objects. */
   entry_now?: string[];
   forming?: string[];
@@ -149,6 +174,10 @@ export interface UniverseData {
   /** SP/Russell carry `subsectors`; the baskets universe carries `baskets`. */
   subsectors?: UniverseGroup[];
   baskets?: UniverseGroup[];
+  /** Rows increment (wire v1.1 §1): the index universes also carry a
+   * `sectors` array, shown ONLY as a separately labelled roll-up — never
+   * mixed into or substituted for the subsector table. */
+  sectors?: UniverseGroup[];
   double_gated?: string[];
   notes?: string[];
   generated_utc?: string | null;
@@ -224,7 +253,7 @@ export function classCounts(
     headwind: 0,
   };
   for (const g of groups) {
-    if (Object.prototype.hasOwnProperty.call(out, g.class)) {
+    if (g.class !== null && Object.prototype.hasOwnProperty.call(out, g.class)) {
       out[g.class as UniverseClass] += 1;
     }
   }
@@ -386,11 +415,12 @@ export function defaultSort(groups: readonly UniverseGroup[]): UniverseGroup[] {
   return stableSorted(groups, (a, b) => classRank(a.class) - classRank(b.class));
 }
 
-/** b) Local column sort: label, case-insensitive alphabetical. Copy. */
+/** b) Local column sort: label, case-insensitive alphabetical. Copy. A null
+ * label (rows increment: not stated) sorts as the empty string. */
 export function sortByLabel(groups: readonly UniverseGroup[]): UniverseGroup[] {
   return stableSorted(groups, (a, b) => {
-    const an = a.label.toLowerCase();
-    const bn = b.label.toLowerCase();
+    const an = (a.label ?? "").toLowerCase();
+    const bn = (b.label ?? "").toLowerCase();
     return an < bn ? -1 : an > bn ? 1 : 0;
   });
 }
@@ -409,11 +439,13 @@ export function sortByRs60Desc(
   });
 }
 
-/** b) Local column sort: priced-name count descending. Copy. */
+/** b) Local column sort: priced-name count descending. Copy. A null count
+ * (rows increment: not stated) sorts as 0 — it never poisons the comparator
+ * with NaN. */
 export function sortByMembersDesc(
   groups: readonly UniverseGroup[],
 ): UniverseGroup[] {
-  return stableSorted(groups, (a, b) => b.n_priced - a.n_priced);
+  return stableSorted(groups, (a, b) => (b.n_priced ?? 0) - (a.n_priced ?? 0));
 }
 
 export type UniverseSortKey = "tier" | "label" | "rs60" | "n_members";
@@ -661,4 +693,275 @@ export function toggleExpanded(
     ...states,
     [id]: { ...states[id], expanded: { ...current, [groupKey]: !current[groupKey] } },
   };
+}
+
+/* ── rows increment (wire v1.1 §1/§2/§4) — the four carried universe blocks ──
+ *
+ * The served typed surface carries `confluence_universe_sp500` /
+ * `_nasdaq` / `_russell` / `_baskets` as ENTRIES (`{status, reason?, value}`).
+ * Each reader takes that entry and returns either the tab's UniverseData plus
+ * the envelope dates (the carried `as_of` and which field it came from —
+ * `as_of` or `generated_utc`), or a classified unavailable reason. One
+ * universe failing never affects another universe's read. */
+
+/** The read a tab's carried block yields. */
+export type UniverseBlockRead =
+  | {
+      state: "available";
+      data: UniverseData;
+      /** The envelope's carried date (wire dating rule). */
+      asOf: string;
+      /** Which envelope field the date came from — "as_of" (a session date)
+       * or "generated_utc" (a build time; the renderer labels it as such). */
+      asOfField: string;
+    }
+  | { state: "unavailable"; reason: RowBlockReason };
+
+/** Group arrays each universe's wire carries, in order (wire v1.1 §1). */
+const INDEX_GROUP_ARRAYS: readonly string[] = ["subsectors", "sectors"];
+const BASKETS_GROUP_ARRAYS: readonly string[] = ["baskets"];
+
+const INVALID_SHAPE: UniverseBlockRead = { state: "unavailable", reason: "invalid_shape" };
+
+/** Allow-listed coverage counts (finite numbers only; absent stays absent). */
+const COVERAGE_KEYS: readonly string[] = [
+  "n_subsectors",
+  "n_baskets",
+  "n_listed",
+  "n_gateable",
+  "n_thin",
+  "n_below_min_members",
+  "n_unscored",
+  "n_sectors",
+  "n_high",
+  "n_med",
+  "n_low_conf",
+  "thin_share",
+];
+
+function readCoverage(v: unknown): Partial<UniverseCoverage> {
+  if (!isMapping(v)) return {};
+  const out: Partial<UniverseCoverage> = {};
+  for (const key of COVERAGE_KEYS) {
+    const n = ownFinite(v, key);
+    if (n !== undefined) {
+      (out as Record<string, number | null>)[key] = n;
+    }
+  }
+  return out;
+}
+
+/** A league key list: `undefined` absent, `null` present but invalid (not a
+ * list of strings — carry rule 3 makes the block invalid). */
+function readLeague(v: unknown): string[] | null | undefined {
+  if (v === undefined) return undefined;
+  if (!Array.isArray(v)) return null;
+  return v.every((k) => typeof k === "string") ? (v as string[]) : null;
+}
+
+function readMember(m: unknown): UniverseMember {
+  const src = isMapping(m) ? m : {};
+  return {
+    ticker: ownNonEmptyString(src, "ticker") ?? "",
+    name_zh: ownString(src, "name_zh"),
+    price: ownFinite(src, "price") ?? null,
+    ret_20d: ownFinite(src, "ret_20d") ?? null,
+    vs_basket: ownFinite(src, "vs_basket") ?? null,
+    stock_tier: ownString(src, "stock_tier"),
+    stock_weight: ownFinite(src, "stock_weight") ?? null,
+    stock_ticks: ownFinite(src, "stock_ticks") ?? null,
+    stock_bars_to_cross: ownFinite(src, "stock_bars_to_cross") ?? null,
+    stock_buyable: ownBool(src, "stock_buyable") ?? null,
+    stock_state: ownString(src, "stock_state"),
+    // R6-09 emergence marker: owner-flagged only. Tonight's wire carries no
+    // `emerging` key (absent stays absent) but the contract field must survive
+    // the read — a member the owner flags keeps its chip and evidence link.
+    emerging: ownBool(src, "emerging") ?? null,
+    emergence_href: ownString(src, "emergence_href"),
+  };
+}
+
+/** An entry/regime mapping: `undefined` absent, `null` present but not a
+ * mapping (invalid row — whole block fails). */
+function readEntry(v: unknown): UniverseEntry | null | undefined {
+  if (v === undefined) return undefined;
+  if (!isMapping(v)) return null;
+  return {
+    tier: ownString(v, "tier"),
+    weight: ownFinite(v, "weight") ?? null,
+    tier_sub: ownString(v, "tier_sub"),
+    ticks: ownFinite(v, "ticks") ?? null,
+    bars_to_cross: ownFinite(v, "bars_to_cross") ?? null,
+    fresh_bars: ownFinite(v, "fresh_bars") ?? null,
+    eligible: ownBool(v, "eligible") ?? null,
+    buyable: ownBool(v, "buyable") ?? null,
+    above200: ownBool(v, "above200") ?? null,
+    reason: ownString(v, "reason"),
+  };
+}
+
+function readRegime(v: unknown): UniverseRegime | null | undefined {
+  if (v === undefined) return undefined;
+  if (!isMapping(v)) return null;
+  return {
+    state: ownString(v, "state"),
+    side: ownString(v, "side"),
+    label: ownString(v, "label"),
+    label_zh: ownString(v, "label_zh"),
+    action: ownString(v, "action"),
+    action_zh: ownString(v, "action_zh"),
+    rs_60d: ownFinite(v, "rs_60d") ?? null,
+  };
+}
+
+/** One group row. `null` (not undefined) marks a row that invalidates the
+ * WHOLE block — wire carry rule 5: no partial row set. */
+function readGroup(row: unknown): UniverseGroup | null {
+  if (!isMapping(row)) return null;
+  const key = ownNonEmptyString(row, "key");
+  if (key === null) return null;
+  const membersRaw = ownOf(row, "members");
+  if (membersRaw !== undefined) {
+    if (!Array.isArray(membersRaw)) return null;
+    for (const m of membersRaw) {
+      if (!isMapping(m) || ownNonEmptyString(m, "ticker") === null) return null;
+    }
+  }
+  const entry = readEntry(ownOf(row, "entry"));
+  if (entry === null) return null;
+  const regime = readRegime(ownOf(row, "regime"));
+  if (regime === null) return null;
+  const priceLevelRaw = ownOf(row, "price_level");
+  const priceLevel =
+    typeof priceLevelRaw === "string"
+      ? priceLevelRaw
+      : typeof priceLevelRaw === "number" && Number.isFinite(priceLevelRaw)
+        ? priceLevelRaw
+        : null;
+  return {
+    key,
+    kind: ownString(row, "kind") ?? undefined,
+    label: ownString(row, "label"),
+    label_zh: ownString(row, "label_zh"),
+    sector: ownString(row, "sector"),
+    sector_zh: ownString(row, "sector_zh"),
+    n_members: ownFinite(row, "n_members") ?? null,
+    n_priced: ownFinite(row, "n_priced") ?? null,
+    reliability: ownString(row, "reliability"),
+    coverage_pct: ownFinite(row, "coverage_pct") ?? null,
+    n_live: ownFinite(row, "n_live"),
+    start: ownString(row, "start"),
+    as_of: ownString(row, "as_of"),
+    price_level: priceLevel,
+    class: ownString(row, "class"),
+    entry,
+    regime,
+    members: Array.isArray(membersRaw) ? (membersRaw as unknown[]).map(readMember) : [],
+    basket_id: ownString(row, "basket_id"),
+    chart_key: ownString(row, "chart_key"),
+    has_signals: ownBool(row, "has_signals") ?? null,
+  };
+}
+
+function confluenceUniverseFromEntry(entry: unknown, id: UniverseId): UniverseBlockRead {
+  const cls = classifyEntry(entry);
+  if (!cls.ok) return { state: "unavailable", reason: cls.reason };
+  const value = cls.value;
+
+  // Envelope (wire §2): the dating rule's own fields.
+  const asOf = ownNonEmptyString(value, "as_of");
+  if (asOf === null) return INVALID_SHAPE;
+  const asOfField = ownNonEmptyString(value, "as_of_field");
+  if (asOfField === null) return INVALID_SHAPE;
+
+  // group_arrays must equal the wire's list for this universe, in order.
+  const expected = id === "baskets" ? BASKETS_GROUP_ARRAYS : INDEX_GROUP_ARRAYS;
+  const groupArrays = ownOf(value, "group_arrays");
+  if (
+    !Array.isArray(groupArrays) ||
+    groupArrays.length !== expected.length ||
+    !expected.every((name, i) => groupArrays[i] === name)
+  ) {
+    return INVALID_SHAPE;
+  }
+
+  const data = ownOf(value, "data");
+  if (!isMapping(data)) return INVALID_SHAPE;
+  if (ownOf(data, "universe") !== UNIVERSE_OWNER_WORD[id]) return INVALID_SHAPE;
+
+  // Each named array must be a list; every row must read (one bad row kills
+  // the whole block — never a partial row set).
+  const groups: Record<string, UniverseGroup[]> = {};
+  for (const name of expected) {
+    const arr = ownOf(data, name);
+    if (!Array.isArray(arr)) return INVALID_SHAPE;
+    const rows: UniverseGroup[] = [];
+    for (const row of arr) {
+      const g = readGroup(row);
+      if (g === null) return INVALID_SHAPE;
+      rows.push(g);
+    }
+    groups[name] = rows;
+  }
+
+  // Leagues (carry rule 3): present but not a list of strings is invalid.
+  const entryNow = readLeague(ownOf(data, "entry_now"));
+  const forming = readLeague(ownOf(data, "forming"));
+  const headwind = readLeague(ownOf(data, "headwind"));
+  if (entryNow === null || forming === null || headwind === null) return INVALID_SHAPE;
+
+  const out: UniverseData = {
+    ok: ownBool(data, "ok") ?? null,
+    universe: UNIVERSE_OWNER_WORD[id],
+    weighting: ownString(data, "weighting"),
+    benchmark: ownString(data, "benchmark") ?? undefined,
+    region: ownString(data, "region") ?? undefined,
+    // data.as_of verbatim — null stays null, the envelope date never copies in.
+    as_of: ownString(data, "as_of"),
+    coverage: readCoverage(ownOf(data, "coverage")),
+    entry_now: entryNow,
+    forming,
+    headwind,
+    subsectors: groups["subsectors"],
+    sectors: groups["sectors"],
+    baskets: groups["baskets"],
+    generated_utc: ownString(data, "generated_utc") ?? undefined,
+  };
+  return { state: "available", data: out, asOf, asOfField };
+}
+
+/** S&P 500 subsectors tab — reads the served `confluence_universe_sp500`
+ * typed-block ENTRY (status/reason/value). */
+export function confluenceSp500FromCarriedBlock(entry: unknown): UniverseBlockRead {
+  return confluenceUniverseFromEntry(entry, "subsectors");
+}
+
+/** Nasdaq-100 groups tab — reads `confluence_universe_nasdaq`. */
+export function confluenceNasdaqFromCarriedBlock(entry: unknown): UniverseBlockRead {
+  return confluenceUniverseFromEntry(entry, "nasdaq");
+}
+
+/** Russell-2000 groups tab — reads `confluence_universe_russell`. */
+export function confluenceRussellFromCarriedBlock(entry: unknown): UniverseBlockRead {
+  return confluenceUniverseFromEntry(entry, "russell");
+}
+
+/** Thematic baskets tab — reads `confluence_universe_baskets`. */
+export function confluenceBasketsFromCarriedBlock(entry: unknown): UniverseBlockRead {
+  return confluenceUniverseFromEntry(entry, "baskets");
+}
+
+/** The separately labelled sector roll-up for an index tab (wire v1.1 §1:
+ * `sectors` is carried beside `subsectors`). Sector rows NEVER mix into the
+ * subsector table and never substitute for it; the baskets tab has no roll-up.
+ * Owner-word gated exactly like groupsOf. */
+export function sectorRollupOf(
+  id: UniverseId,
+  data: UniverseData | null | undefined,
+): UniverseGroup[] {
+  if (!data) return [];
+  if (id === "baskets") return [];
+  if (data.universe !== UNIVERSE_OWNER_WORD[id]) return [];
+  const sectors = data.sectors;
+  return Array.isArray(sectors) ? sectors : [];
 }

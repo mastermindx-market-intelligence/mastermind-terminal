@@ -30,11 +30,22 @@ import { DepthUnavailable } from "@/components/sector-intelligence/depth/DepthUn
 import { sectorRotationHistory } from "@/lib/sectorIntelligence";
 import { cellFocusSelector, flowsFromCarriedBlock, type FlowsData } from "@/lib/sectorDepthFlows";
 import type { ActionBoardData, CallsNavigateTarget } from "@/lib/sectorDepthCalls";
-import type { UniverseData, UniverseId } from "@/lib/sectorDepthUniverses";
+import {
+  confluenceBasketsFromCarriedBlock,
+  confluenceNasdaqFromCarriedBlock,
+  confluenceRussellFromCarriedBlock,
+  confluenceSp500FromCarriedBlock,
+} from "@/lib/sectorDepthUniverses";
+import type { UniverseBlockRead, UniverseData, UniverseId } from "@/lib/sectorDepthUniverses";
+import type { RowBlockReason } from "@/lib/sectorDepthRows";
+import { themeRowsFromCarriedBlock } from "@/lib/sectorDepthThemeRows";
 import callsFx from "./fixtures/sectorDepthCallsContract.v1.json";
 import flowsFx from "./fixtures/sectorDepthFlowsCarried.v1.json";
 import universesFx from "./fixtures/sectorDepthUniversesContract.v1.json";
 import capturedFx from "./fixtures/sector_generation.captured.preview.v1.json";
+import servedRowsFx from "./fixtures/typed_blocks_entitled.json";
+import sp500ValueFx from "./fixtures/confluence_universe_sp500.json";
+import themeRowsValueFx from "./fixtures/theme_rows.json";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -47,7 +58,16 @@ const capturedHistory = sectorRotationHistory(captured.projection.data.history);
 const capturedBoard = captured.projection.data.action_board as unknown as ActionBoardData;
 
 const html = (el: React.ReactElement): string => renderToStaticMarkup(el);
-const text = (h: string): string => h.replace(/<[^>]+>/g, " ");
+// Strip tags AND decode the basic entities, so an assertion on visible text
+// ("Memory, HBM & Storage") matches its escaped markup form (&amp;).
+const text = (h: string): string =>
+  h
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;/g, "'");
 
 afterAll(() => {
   G.__SD_LANG = "en";
@@ -439,5 +459,293 @@ describe("r3 follow-up — navigate target law (R3-N2 + R3-N3)", () => {
       );
       expect(card2!.querySelectorAll("a[href]")).toHaveLength(0);
     }
+  });
+});
+
+/* ── rows increment (wire v1.1): the confluence universes board and the theme
+ * table reading the REAL carried typed-block entries. The specimens are the
+ * committed producer bytes (pinned by hash in sectorDepthThemeRows.test.ts);
+ * hostile cases mutate in-test copies only. */
+
+const servedRows = servedRowsFx as unknown as Record<string, unknown>;
+
+const realUniverseBlocks = (): Partial<Record<UniverseId, UniverseBlockRead>> => ({
+  subsectors: confluenceSp500FromCarriedBlock(servedRows.confluence_universe_sp500),
+  nasdaq: confluenceNasdaqFromCarriedBlock(servedRows.confluence_universe_nasdaq),
+  russell: confluenceRussellFromCarriedBlock(servedRows.confluence_universe_russell),
+  baskets: confluenceBasketsFromCarriedBlock(servedRows.confluence_universe_baskets),
+});
+
+describe("rows increment — universes board from carried blocks (static renders)", () => {
+  it("the default tab tables the 65 real subsectors, keeps 11 sectors only under the labelled roll-up, and dates the envelope by as_of", () => {
+    const markup = html(<SectorConfluenceUniverses universeBlocks={realUniverseBlocks()} />);
+    expect(markup).toContain('data-envelope="as_of"');
+    expect(text(markup)).toContain("Software - Application");
+    expect(markup).toContain('data-rollup="sectors"');
+    expect(text(markup)).toContain("Sector roll-up");
+    expect(text(markup)).toContain("Basic Materials"); // a real sector row's label
+    // Roll-up rows are sector-kind cards, never mixed into the subsector table.
+    const rollup = markup.split('data-rollup="sectors"')[1] ?? "";
+    expect(rollup).toContain("<article");
+    expect(markup.split("<tbody>")[1]?.split('data-rollup="sectors"')[0]).not.toContain("sec-basic-materials");
+    // The carried date is shown as the envelope's own line.
+    expect(text(markup)).toContain("2026-11-06");
+  });
+
+  it("ZH: the real board localizes identity, roll-up and envelope; no raw English state leaks", () => {
+    G.__SD_LANG = "zh";
+    try {
+      const markup = html(<SectorConfluenceUniverses universeBlocks={realUniverseBlocks()} />);
+      const zh = text(markup);
+      expect(zh).toContain("板块汇总"); // siUniverseSectorRollup[1]
+      expect(zh).toContain("标普500 样本域"); // identity line stays localized
+      expect(zh).toContain("买入"); // regime label_zh from the real payload
+      expect(zh).toContain("截至 2026-11-06"); // carried-date envelope line, ZH
+    } finally {
+      G.__SD_LANG = "en";
+    }
+  });
+
+  it.each([
+    ["audience_not_entitled", "current subscription", "当前订阅"],
+    ["not_produced", "did not produce this reading", "未生成此读数"],
+    ["invalid_shape", "cannot present", "格式无法呈现"],
+    ["block_too_large", "too large to deliver", "过大"],
+  ])(
+    "an unavailable block with reason %s renders honest EN+ZH copy and the raw reason word appears nowhere in the DOM",
+    (reason, enNeedle, zhNeedle) => {
+      const blocks: Partial<Record<UniverseId, UniverseBlockRead>> = {
+        subsectors: { state: "unavailable", reason: reason as RowBlockReason },
+      };
+      const en = html(<SectorConfluenceUniverses universeBlocks={blocks} />);
+      expect(text(en)).toContain(enNeedle);
+      expect(en).toContain('data-block-state="unavailable"');
+      expect(en).not.toContain(reason); // raw reason word never in the DOM
+      G.__SD_LANG = "zh";
+      try {
+        const zh = html(<SectorConfluenceUniverses universeBlocks={blocks} />);
+        expect(text(zh)).toContain(zhNeedle);
+        expect(zh).not.toContain(reason);
+      } finally {
+        G.__SD_LANG = "en";
+      }
+    },
+  );
+
+  it("an unknown reason renders the generic unavailable copy in both locales, raw word absent", () => {
+    // A hostile out-of-set reason word reaching the component as a prop: the
+    // surface must still resolve to the generic copy (never an undefined key).
+    const blocks: Partial<Record<UniverseId, UniverseBlockRead>> = {
+      subsectors: { state: "unavailable", reason: "solar_flare" as unknown as RowBlockReason },
+    };
+    const en = html(<SectorConfluenceUniverses universeBlocks={blocks} />);
+    expect(text(en)).toContain("unavailable right now");
+    expect(en).not.toContain("solar_flare");
+    G.__SD_LANG = "zh";
+    try {
+      const zh = html(<SectorConfluenceUniverses universeBlocks={blocks} />);
+      expect(text(zh)).toContain("暂不可用");
+      expect(zh).not.toContain("solar_flare");
+    } finally {
+      G.__SD_LANG = "en";
+    }
+  });
+
+  it("hostile chart_keys never compose an href; conforming keys still link", () => {
+    const doc = structuredClone(sp500ValueFx) as { data: { subsectors: Record<string, unknown>[] } };
+    doc.data.subsectors[0]!.chart_key = "javascript:alert(1)";
+    doc.data.subsectors[1]!.chart_key = "..";
+    doc.data.subsectors[2]!.chart_key = null;
+    const blocks: Partial<Record<UniverseId, UniverseBlockRead>> = {
+      subsectors: confluenceSp500FromCarriedBlock({ status: "available", value: doc }),
+    };
+    const markup = html(<SectorConfluenceUniverses universeBlocks={blocks} />);
+    expect(markup).not.toContain("javascript:");
+    expect(markup).not.toContain("/..html");
+    expect(markup).not.toContain("undefined.html");
+    expect(markup).toContain('href="/subsector/'); // conforming rows still link
+  });
+});
+
+describe("rows increment — universes board from carried blocks (interactive)", () => {
+  const mql = {
+    matches: false,
+    media: "",
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  };
+
+  let host: HTMLDivElement;
+  let root: Root;
+
+  const mount = async (el: React.ReactElement) =>
+    act(async () => {
+      root.render(el);
+    });
+
+  beforeEach(() => {
+    vi.stubGlobal("matchMedia", () => mql);
+    host = document.createElement("div");
+    document.body.append(host);
+    root = createRoot(host);
+  });
+  afterEach(async () => {
+    await act(async () => {
+      root.unmount();
+    });
+    host.remove();
+    vi.unstubAllGlobals();
+  });
+
+  it("nasdaq tonight: honest empty subsector tab + six rows only under the sector roll-up + the build-time date label", async () => {
+    await mount(<SectorConfluenceUniverses universeBlocks={realUniverseBlocks()} />);
+    const tab = host.querySelector<HTMLButtonElement>('[data-universe="nasdaq"]');
+    expect(tab).not.toBeNull();
+    // Carried zero stays visible on the chip: 0 gateable subsectors.
+    expect(tab!.querySelector("[data-count]")?.textContent).toContain("0");
+    await act(async () => {
+      tab!.click();
+    });
+    // The subsector table is honestly empty…
+    expect(host.querySelector('[data-empty="subsectors"]')).not.toBeNull();
+    expect(host.querySelector("table tbody tr")).toBeNull();
+    // …and the six sector rows appear ONLY under the separately labelled roll-up.
+    const rollup = host.querySelector('[data-rollup="sectors"]');
+    expect(rollup).not.toBeNull();
+    expect(rollup!.querySelectorAll("article").length).toBe(6);
+    expect(rollup!.textContent).toContain("Internet & Platforms");
+    expect(rollup!.textContent).toContain("TTWO");
+    // Envelope dated by generated_utc → build-time label, never a session date.
+    const envelope = host.querySelector('[data-envelope="generated_utc"]');
+    expect(envelope).not.toBeNull();
+    expect(envelope!.textContent).toContain("Built 2026-11-09 09:38 UTC");
+    expect(envelope!.textContent).toContain("not a market session");
+    expect(host.textContent).not.toContain("as of 2026-11-09");
+  });
+
+  it("ZH nasdaq: the roll-up label and the build-time caveat are Chinese; no raw English leaks", async () => {
+    G.__SD_LANG = "zh";
+    try {
+      await mount(<SectorConfluenceUniverses universeBlocks={realUniverseBlocks()} />);
+      const tab = host.querySelector<HTMLButtonElement>('[data-universe="nasdaq"]');
+      await act(async () => {
+        tab!.click();
+      });
+      const rollup = host.querySelector('[data-rollup="sectors"]');
+      expect(rollup).not.toBeNull();
+      const h4 = rollup!.querySelector("h4");
+      expect(h4?.textContent).toContain("板块汇总");
+      expect(host.querySelector('[data-empty="subsectors"]')?.textContent).toContain(
+        "今晚没有子板块通过评分门槛",
+      );
+      const envelope = host.querySelector('[data-envelope="generated_utc"]');
+      expect(envelope?.textContent).toContain("构建时间，非交易日");
+      // The real sector label_zh rides the payload (ZH reader sees Chinese).
+      expect(rollup!.textContent).toContain("互联网与平台");
+    } finally {
+      G.__SD_LANG = "en";
+    }
+  });
+
+  it("russell tonight: an honest zero on both the tab and the roll-up, no invented rows", async () => {
+    await mount(<SectorConfluenceUniverses universeBlocks={realUniverseBlocks()} />);
+    const tab = host.querySelector<HTMLButtonElement>('[data-universe="russell"]');
+    await act(async () => {
+      tab!.click();
+    });
+    expect(host.querySelector('[data-empty="subsectors"]')).not.toBeNull();
+    // No sector rows exist tonight either, so the roll-up section itself is
+    // absent — an honest zero, not an empty labelled container.
+    expect(host.querySelector('[data-rollup="sectors"]')).toBeNull();
+    expect(host.textContent).toContain("This universe carries no groups tonight.");
+  });
+});
+
+describe("rows increment — the carried theme table from the real specimen", () => {
+  const realThemeRows = () => themeRowsFromCarriedBlock(servedRows.theme_rows);
+
+  it("EN: all 49 rows render with state, numbers and perf windows; the exact first row is checkable", () => {
+    const markup = html(<SectorThemeCompare history={capturedHistory} labels={{}} themeRows={realThemeRows()} />);
+    expect(markup).toContain('data-theme-rows="true"');
+    // 49 theme rows carry their row id hook (the chart's exact-value table is
+    // collapsed by default).
+    expect(markup.match(/data-r-id="[^"]+"/g)?.length).toBe(49);
+    const page = text(markup);
+    expect(page).toContain("Memory, HBM & Storage");
+    expect(page).toContain("deteriorating"); // localized EN state word
+    expect(page).toContain("avoid");
+    expect(markup).toContain('data-k="score"');
+    expect(page).toContain("+1.5%"); // perf 1d ret (0.01511…)
+    expect(page).toContain("+1.2%"); // perf 1d rel (0.01199…)
+    // perf_as_of equals as_of tonight → the perf date line is NOT shown.
+    expect(page).not.toContain("Performance as of");
+  });
+
+  it("ZH: names, state words and the not-stated law are Chinese; no raw English state word survives", () => {
+    const doc = structuredClone(themeRowsValueFx) as { rows: Record<string, unknown>[] };
+    delete doc.rows[0]!.perf; // one row without perf → its perf cells read not stated
+    const read = themeRowsFromCarriedBlock({ status: "available", value: doc });
+    G.__SD_LANG = "zh";
+    try {
+      const markup = html(<SectorThemeCompare history={capturedHistory} labels={{}} themeRows={read} />);
+      const zh = text(markup);
+      expect(zh).toContain("内存、HBM 与存储"); // name_zh from the payload
+      expect(zh).toContain("走弱"); // label deteriorating
+      expect(zh).toContain("回避"); // reco avoid
+      expect(zh).toContain("已破坏"); // health broken
+      expect(zh).toContain("未载明"); // not stated (deleted perf)
+      expect(markup).not.toContain("deteriorating");
+      expect(markup).not.toContain(">avoid<");
+      expect(markup).not.toContain("not stated");
+    } finally {
+      G.__SD_LANG = "en";
+    }
+  });
+
+  it("perf_as_of renders only when it differs from as_of", () => {
+    const doc = structuredClone(themeRowsValueFx) as { perf_as_of?: string };
+    doc.perf_as_of = "2026-11-07";
+    const read = themeRowsFromCarriedBlock({ status: "available", value: doc });
+    const markup = html(<SectorThemeCompare history={capturedHistory} labels={{}} themeRows={read} />);
+    expect(text(markup)).toContain("Performance as of 2026-11-07");
+    G.__SD_LANG = "zh";
+    try {
+      const zh = html(<SectorThemeCompare history={capturedHistory} labels={{}} themeRows={read} />);
+      expect(text(zh)).toContain("表现截至 2026-11-07");
+    } finally {
+      G.__SD_LANG = "en";
+    }
+  });
+
+  it("an unavailable theme_rows read keeps the honest unavailable state (never a partial table)", () => {
+    const markup = html(
+      <SectorThemeCompare history={capturedHistory} labels={{}} themeRows={{ state: "unavailable", reason: "not_produced" }} />,
+    );
+    expect(markup).toContain('data-depth-unavailable="theme_table"');
+    expect(markup).not.toContain('data-theme-rows');
+    expect(markup).not.toContain("not_produced");
+  });
+
+  it("history null + carried table available: the chart shows its own unavailable state INSIDE the section, the table still renders", () => {
+    const markup = html(<SectorThemeCompare history={null} labels={{}} themeRows={realThemeRows()} />);
+    expect(markup).toContain('data-depth-unavailable="rs_history"');
+    expect(markup).toContain('data-theme-rows="true"');
+    expect(text(markup)).toContain("Memory, HBM & Storage");
+  });
+
+  it("hostile chart_keys never link; null chart_key never links; conforming keys compose the same-site detail path", () => {
+    const doc = structuredClone(themeRowsValueFx) as { rows: Record<string, unknown>[] };
+    doc.rows[0]!.chart_key = "javascript:alert(1)";
+    doc.rows[1]!.chart_key = "..";
+    doc.rows[2]!.chart_key = null;
+    const read = themeRowsFromCarriedBlock({ status: "available", value: doc });
+    const markup = html(<SectorThemeCompare history={capturedHistory} labels={{}} themeRows={read} />);
+    expect(markup).not.toContain("javascript:");
+    expect(markup).not.toContain('href="/subsector/.."');
+    expect(markup).toContain('href="/subsector/b-defensives.html"'); // row 3 (defensives) still links
   });
 });

@@ -21,14 +21,23 @@ import capturedFixture from "@/lib/__tests__/fixtures/sector_generation.captured
 import callsContractFixture from "@/lib/__tests__/fixtures/sectorDepthCallsContract.v1.json";
 import flowsContractFixture from "@/lib/__tests__/fixtures/sectorDepthFlowsContract.v1.json";
 import flowsCarriedFixture from "@/lib/__tests__/fixtures/sectorDepthFlowsCarried.v1.json";
-import universesContractFixture from "@/lib/__tests__/fixtures/sectorDepthUniversesContract.v1.json";
+import servedTypedBlocksFixture from "@/lib/__tests__/fixtures/typed_blocks_entitled.json";
 import type {
   ActionBoardData,
   BottomingWatchData,
   CallsNavigateTarget,
 } from "@/lib/sectorDepthCalls";
 import { flowsFromCarriedBlock, type FlowsData } from "@/lib/sectorDepthFlows";
-import type { UniverseData, UniverseId } from "@/lib/sectorDepthUniverses";
+import {
+  confluenceBasketsFromCarriedBlock,
+  confluenceNasdaqFromCarriedBlock,
+  confluenceRussellFromCarriedBlock,
+  confluenceSp500FromCarriedBlock,
+  type UniverseBlockRead,
+  type UniverseData,
+  type UniverseId,
+} from "@/lib/sectorDepthUniverses";
+import { themeRowsFromCarriedBlock } from "@/lib/sectorDepthThemeRows";
 import { useSectorDepthT } from "@/lib/sectorDepthLex";
 import { SectorCallsBoard } from "@/components/sector-intelligence/depth/SectorCallsBoard";
 import { SectorBottomingWatch } from "@/components/sector-intelligence/depth/SectorBottomingWatch";
@@ -78,16 +87,22 @@ const flowsCarried = flowsCarriedFixture as unknown as {
 const carriedFull = flowsFromCarriedBlock(flowsCarried.cases.realFull);
 const carriedAccruing = flowsFromCarriedBlock(flowsCarried.cases.realAccruing14);
 
-/** Synthetic four-universe fixture: S&P 500 live, Nasdaq-100 as_of-null,
- * Russell-2000 ok:false (no access), baskets zero-groups. */
-const universesContract = universesContractFixture as unknown as {
-  universes: Partial<Record<UniverseId, UniverseData>>;
+/** The v1.1 served typed-block surface (REAL producer specimens, 2026-11-06):
+ * the four confluence universes and theme_rows exactly as the integration
+ * lane will receive them — each read through its own entry-contract reader. */
+const servedTypedBlocks = servedTypedBlocksFixture as unknown as Record<string, unknown>;
+const carriedUniverseBlocks: Partial<Record<UniverseId, UniverseBlockRead>> = {
+  subsectors: confluenceSp500FromCarriedBlock(servedTypedBlocks.confluence_universe_sp500),
+  nasdaq: confluenceNasdaqFromCarriedBlock(servedTypedBlocks.confluence_universe_nasdaq),
+  russell: confluenceRussellFromCarriedBlock(servedTypedBlocks.confluence_universe_russell),
+  baskets: confluenceBasketsFromCarriedBlock(servedTypedBlocks.confluence_universe_baskets),
 };
+const carriedThemeRows = themeRowsFromCarriedBlock(servedTypedBlocks.theme_rows);
 
 /** Owner-carried emergence demonstration (v1.1 R6-09): the CONTRACT board and
- * the CONTRACT S&P universe with the flag SIMULATED on a few rows — no owner
- * emits `emerging` today. This mount exists only to exercise the rendering
- * law: the mark is driven exclusively by the carried `emerging` boolean and
+ * the REAL S&P read with the flag SIMULATED on a few rows — no owner emits
+ * `emerging` today. This mount exists only to exercise the rendering law: the
+ * mark is driven exclusively by the carried `emerging` boolean and
  * `emergence_href` string, never derived, never changing qualification. */
 const emergenceBoard: ActionBoardData = (() => {
   const clone = structuredClone(callsContract.action_board) as ActionBoardData;
@@ -104,16 +119,16 @@ const emergenceBoard: ActionBoardData = (() => {
 })();
 
 const emergenceUniverses: Partial<Record<UniverseId, UniverseData>> = (() => {
-  const clone = structuredClone(universesContract.universes) as Partial<
-    Record<UniverseId, UniverseData>
-  >;
-  // Flag the default sort's FIRST group (tier sort puts entry_now first), so
-  // the compact member chip is reachable by expanding the top row.
-  const group = clone.subsectors?.subsectors?.find((g) => g.key === "semis-equip");
+  const sp = carriedUniverseBlocks.subsectors;
+  if (sp?.state !== "available") return {};
+  // Flag the REAL semiconductors row's first member so the compact member
+  // chip is reachable by expanding that row on the real specimen base.
+  const clone = { subsectors: structuredClone(sp.data) } as Partial<Record<UniverseId, UniverseData>>;
+  const group = clone.subsectors?.subsectors?.find((g) => g.key === "semiconductors");
   const member = group?.members?.[0];
   if (member) {
     member.emerging = true;
-    member.emergence_href = "/company/AMAT.html";
+    member.emergence_href = "/company/NXPI.html";
   }
   return clone;
 })();
@@ -233,6 +248,10 @@ function HarnessBody() {
         <SectorThemeCompare history={capturedHistory} labels={labels} />
       </HarnessSection>
 
+      <HarnessSection id="theme-carried" title="Theme table · CARRIED typed block, no rs_history (real producer specimen, 2026-11-06)">
+        <SectorThemeCompare history={null} labels={{}} themeRows={carriedThemeRows} />
+      </HarnessSection>
+
       {/* ── synthetic contract fixtures (clearly labelled) ────────────────── */}
       <HarnessSection id="calls-contract" title="Calls board · CONTRACT fixture (synthetic)" synthetic>
         {/* No onNavigate here on purpose: this instance proves the exact-anchor
@@ -258,8 +277,8 @@ function HarnessBody() {
       >
         <SectorFlowMatrix flows={carriedAccruing} />
       </HarnessSection>
-      <HarnessSection id="universes-contract" title="Entry evidence · CONTRACT fixture (synthetic)" synthetic>
-        <SectorConfluenceUniverses universes={universesContract.universes} onNavigate={onNavigate} />
+      <HarnessSection id="universes-carried" title="Entry evidence · CARRIED typed blocks (real producer specimens, 2026-11-06)">
+        <SectorConfluenceUniverses universeBlocks={carriedUniverseBlocks} onNavigate={onNavigate} />
       </HarnessSection>
       <HarnessSection
         id="calls-emergence"
@@ -270,7 +289,7 @@ function HarnessBody() {
       </HarnessSection>
       <HarnessSection
         id="universes-emergence"
-        title="Entry evidence · member emergence chips (CONTRACT fixture — flag simulated)"
+        title="Entry evidence · member emergence chips (REAL specimen base — flag simulated; no owner emits it today)"
         synthetic
       >
         <SectorConfluenceUniverses universes={emergenceUniverses} onNavigate={onNavigate} />
