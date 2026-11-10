@@ -5,7 +5,7 @@ import { test, expect } from "@playwright/test";
  *
  * Charter gate 4: keyboard and touch through family/phase/range/scale/leg
  * selection, chart↔table equivalence, capture→navigate→apply return, at
- * 1440×900 (desktop project) and 390×844 (mobile project), light+dark, EN+ZH.
+ * 1440×900, 820×1180 and 390×844 (desktop/tablet/mobile), light+dark, EN+ZH.
  * The self-bound return router is exercised for real: leaving a subject
  * pushes its captured view onto the history entry being left; the browser
  * back button rebinds that subject (donor #10707 host contract) and the
@@ -62,8 +62,61 @@ for (const [lang, theme] of cases) {
 
     const rail = page.getByTestId("cycle-phase-rail");
     const panel = page.getByTestId("cycle-chart-panel");
-    const xlk = rail.getByRole("button", { name: /XLK/ });
-    await expect(xlk).toHaveAttribute("aria-pressed", "true");
+    // R5-Y04 replaces the rail with the real picker only in the tablet band.
+    const width = page.viewportSize()!.width;
+    const usesPicker = width >= 641 && width <= 980;
+    const heroTicker = page.getByTestId("cycle-hero").locator("h3 > b");
+    const openPicker = async () => {
+      await expect(rail).toBeHidden();
+      await lens.getByRole("button", { name: L.changeSeries, exact: true }).click();
+      const sheet = page.getByRole("dialog");
+      await expect(sheet).toBeVisible();
+      return sheet;
+    };
+    const expectSelected = async (ticker: "XLK" | "XLE" | "XLF") => {
+      await expect(heroTicker).toHaveText(ticker);
+      if (usesPicker) {
+        const sheet = await openPicker();
+        await expect(sheet.getByRole("button", { name: new RegExp(ticker) }))
+          .toHaveAttribute("aria-pressed", "true");
+        // An unchanged Apply closes the picker without adding a history entry.
+        await sheet.getByRole("button", { name: L.apply, exact: true }).click();
+        await expect(sheet).toBeHidden();
+      } else {
+        await expect(rail.getByRole("button", { name: new RegExp(ticker) }))
+          .toHaveAttribute("aria-pressed", "true");
+      }
+    };
+    const selectSubject = async (ticker: "XLK" | "XLE" | "XLF", keyboard = false) => {
+      const previousTicker = await heroTicker.textContent();
+      const picker = usesPicker ? await openPicker() : rail;
+      const subject = picker.getByRole("button", { name: new RegExp(ticker) });
+      if (keyboard) {
+        await subject.focus();
+        await page.keyboard.press("Enter");
+      } else {
+        await subject.click();
+      }
+      await expect(subject).toHaveAttribute("aria-pressed", "true");
+      if (usesPicker) {
+        // Subject choice is a draft until the visible Apply control commits it.
+        await expect(heroTicker).toHaveText(previousTicker!);
+        await picker.getByRole("button", { name: L.apply, exact: true }).click();
+        await expect(picker).toBeHidden();
+      }
+      await expectSelected(ticker);
+    };
+    const selectFamily = async (label: string) => {
+      if (usesPicker) {
+        const sheet = await openPicker();
+        await sheet.getByRole("button", { name: label, exact: true }).click();
+        // Family selection commits immediately and retires the open picker.
+        await expect(sheet).toBeHidden();
+      } else {
+        await rail.getByRole("tab", { name: label }).click();
+      }
+    };
+    await expectSelected("XLK");
 
     /* ── Keyboard: observation cursor to the first date of the window ── */
     const obs = page.getByTestId("cycle-observation");
@@ -111,19 +164,16 @@ for (const [lang, theme] of cases) {
     await panel.getByRole("button", { name: L.chart, exact: true }).click();
     await expect(panel.locator("svg")).toBeVisible();
 
-    /* ── Keyboard phase selection through the rail ── */
-    const xle = rail.getByRole("button", { name: /XLE/ });
-    await xle.focus();
-    await page.keyboard.press("Enter");
-    await expect(xle).toHaveAttribute("aria-pressed", "true");
+    /* ── Keyboard phase selection through the visible control ── */
+    await selectSubject("XLE", true);
     await expect(page.getByTestId("cycle-hero")).toContainText(L.trough);
 
     /* ── Family: baskets universe, then back to sectors ── */
-    await rail.getByRole("tab", { name: L.baskets }).click();
+    await selectFamily(L.baskets);
     await expect(page.getByTestId("cycle-basket-compare")).toBeVisible();
     await expect(page.getByTestId("cycle-basket-compare")).toContainText(L.aiInfra);
-    await rail.getByRole("tab", { name: L.sectorsTab }).click();
-    await expect(rail.getByRole("button", { name: /XLE/ })).toHaveAttribute("aria-pressed", "true");
+    await selectFamily(L.sectorsTab);
+    await expectSelected("XLE");
 
     /* ── Leg selection: the provisional leg keeps its label ── */
     const legs = page.getByTestId("cycle-leg-timeline");
@@ -135,17 +185,14 @@ for (const [lang, theme] of cases) {
     await expect(legDetail.getByRole("button", { name: L.legDetails })).toBeVisible();
 
     /* ── Capture → navigate → apply return (self-bound router) ── */
-    await xlk.click();
-    await expect(xlk).toHaveAttribute("aria-pressed", "true");
+    await selectSubject("XLK");
     const values = panel.locator(`details:has(summary:text-is("${L.exact}"))`);
     await values.locator("summary").click();
     await expect(values).toHaveAttribute("open", "");
-    const xlf = rail.getByRole("button", { name: /XLF/ });
-    await xlf.click();
-    await expect(xlf).toHaveAttribute("aria-pressed", "true");
+    await selectSubject("XLF");
     await expect(page.getByTestId("cycle-hero")).toContainText(L.recovery);
     await page.goBack();
-    await expect(xlk).toHaveAttribute("aria-pressed", "true");
+    await expectSelected("XLK");
     await expect(page.getByTestId("cycle-hero")).not.toContainText(L.recovery);
     await expect(values).toHaveAttribute("open", ""); // captured field restored
 
