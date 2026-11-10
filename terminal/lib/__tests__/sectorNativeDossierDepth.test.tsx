@@ -130,3 +130,137 @@ describe("DossierDepth — the lane 7 mounts pinned on real fixtures (r2 N-E)", 
     expect(mounted.querySelector('[data-depth-unavailable="bottoming_watch"]')).toBeNull();
   });
 });
+
+describe("DossierDepth calls-board navigation mount — third review rules (a)–(g), #1445 merged", () => {
+  let root: Root, host: HTMLDivElement;
+  beforeEach(() => { host = document.createElement("div"); document.body.append(host); root = createRoot(host); });
+  afterEach(() => { act(() => root.unmount()); host.remove(); });
+
+  const flush = () => act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
+
+  /** A board whose hold lane carries one real theme row plus six crafted
+   * sector rows: the lawful target, the review's hostile ids (both pass the
+   * board's own isNavigableId), a missing id, and two evil-href rows — one on
+   * a foreign id, one on a REAL generation id. Every row is a deep clone of a
+   * real captured row with only the routing-relevant fields overridden, so
+   * the board's closed-shape admission still passes. */
+  const hostileBoardWire = (): Record<string, unknown> => {
+    const wire = JSON.parse(JSON.stringify(capturedDoc)) as typeof capturedDoc;
+    const hold = (wire.projection.data.action_board.lanes as Record<string, { rows: unknown[]; total: number }>).hold;
+    const seed = JSON.parse(JSON.stringify(hold.rows[0])) as Record<string, unknown>;
+    const row = (over: Record<string, unknown>) => ({ ...JSON.parse(JSON.stringify(seed)), ...over });
+    hold.rows = [
+      seed, // the real theme row — rule (e): a theme row must do NOTHING
+      row({ kind: "sector", slug: "xlk", ticker: "XLK", name: "Lawful tech row", href: "basket/tech.html" }),
+      row({ kind: "sector", slug: "..", ticker: "TT1", name: "Dotdot hostile row" }),
+      row({ kind: "sector", slug: "__proto__", ticker: "TT2", name: "Proto hostile row" }),
+      row({ kind: "sector", slug: "syn_sector_99", ticker: "TT3", name: "Missing id row" }),
+      row({ kind: "sector", slug: "syn_sector_98", ticker: "TT4", name: "Evil href foreign row", href: "https://evil.example/x" }),
+      row({ kind: "sector", slug: "xlf", ticker: "XLF", name: "Real id evil href row", href: "https://evil.example/sectors/xlf" }),
+    ];
+    hold.total = hold.rows.length; // lane.total ≥ rows.length (R2-N5)
+    return wire as unknown as Record<string, unknown>;
+  };
+
+  const mountDepthWithSelect = async (wire: Record<string, unknown>, onSelect: (id: string) => void) => {
+    const generation = sectorNativeGeneration(wire);
+    expect(generation, "fixture must admit as a native generation").not.toBeNull();
+    const context: SectorNativeContext = {
+      generation, transport: "ready", qualification: "accepted",
+      subject: { id: sector0.id, ticker: sector0.ticker, name: sector0.name, nameZh: sector0.name_zh ?? sector0.name },
+      ranked63: [sector0.id], lead21: sector0.id, language: "en", theme: "dark",
+      binding: { ownerRevision: "r1", generationKey: "g1", subjectId: sector0.id, universe: "us",
+        metric: "relative_wealth_pct", windows: [63], basis: "total_return" },
+    };
+    await act(async () => {
+      root.render(<SectorNativeDossier context={context} view="drivers" {...handlers} onSelect={onSelect} />);
+    });
+    await flush();
+    return host;
+  };
+
+  /** The row card carrying the given name, and its Open detail button. */
+  const detailButton = (mounted: HTMLElement, name: string): HTMLButtonElement => {
+    const card = [...mounted.querySelectorAll("li")].find(li => li.textContent?.includes(name));
+    expect(card, `row card ${name} must render`).toBeDefined();
+    const button = [...card!.querySelectorAll("button")].find(b => b.textContent === "Open detail");
+    expect(button, `row ${name} must carry an Open detail control`).toBeDefined();
+    return button!;
+  };
+
+  /** Expand the hold group the way a reader does — through its own Show-all
+   * control. The board spends its preview budget (PREVIEW_ROWS = 3) on SOURCE
+   * order, so only the first three crafted rows render collapsed; the rows
+   * beyond them (including the "__proto__" and missing-id rows) are reachable
+   * only after this expansion, exactly as in production. */
+  const expandHoldLane = async (mounted: HTMLElement) => {
+    const showAll = [...mounted.querySelectorAll<HTMLButtonElement>("[data-depth-calls-board] button")]
+      .find(b => /^Show all \d+ in Hold$/.test(b.textContent ?? ""));
+    expect(showAll, "hold group must offer its Show-all control").toBeDefined();
+    await act(async () => { showAll!.click(); });
+  };
+
+  it("rule (g): hostile rows change no workspace state; one lawful row selects exactly its id; href never navigates", async () => {
+    const onSelect = vi.fn();
+    const mounted = await mountDepthWithSelect(hostileBoardWire(), onSelect);
+    expect(mounted.querySelector("[data-depth-calls-board]")).not.toBeNull();
+    await expandHoldLane(mounted);
+    const locationBefore = window.location.href;
+    // No anchor exists anywhere in the board: with the mount's callback
+    // present, rows render buttons — owner text is never an <a href>.
+    expect(mounted.querySelectorAll("[data-depth-calls-board] a")).toHaveLength(0);
+    // Hostile rows: "..", "__proto__" (both pass the board's isNavigableId),
+    // an id the generation does not carry, and an evil href on a foreign id.
+    for (const name of ["Dotdot hostile row", "Proto hostile row", "Missing id row", "Evil href foreign row"]) {
+      await act(async () => { detailButton(mounted, name).click(); });
+    }
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(window.location.href).toBe(locationBefore);
+    // Rule (e): the real theme row carries a control (its identity is
+    // navigable-clean) but has no destination here — it must do nothing and
+    // never feed the sector slot.
+    await act(async () => { detailButton(mounted, "Test theme").click(); });
+    expect(onSelect).not.toHaveBeenCalled();
+    // A REAL id with a hostile href selects exactly its id: routing is by
+    // identity, the href is never read, and the location never moves.
+    await act(async () => { detailButton(mounted, "Real id evil href row").click(); });
+    expect(onSelect).toHaveBeenCalledTimes(1);
+    expect(onSelect).toHaveBeenCalledWith("xlf");
+    expect(window.location.href).toBe(locationBefore);
+    // The one lawful row selects exactly its id.
+    await act(async () => { detailButton(mounted, "Lawful tech row").click(); });
+    expect(onSelect).toHaveBeenCalledTimes(2);
+    expect(onSelect).toHaveBeenLastCalledWith("xlk");
+    expect(window.location.href).toBe(locationBefore);
+    // Still no anchor from owner text after every interaction.
+    expect(mounted.querySelectorAll("[data-depth-calls-board] a")).toHaveLength(0);
+  });
+
+  it("without a selection exit every row control is a pure no-op — nothing selects, nothing throws", async () => {
+    // onSelect absent (the workspace always passes it; this pins the optional
+    // boundary): the mount still decides every target, but with no exit the
+    // lawful row's control is as inert as the hostile ones.
+    const wire = hostileBoardWire();
+    const generation = sectorNativeGeneration(wire)!;
+    expect(generation, "fixture must admit as a native generation").not.toBeNull();
+    const context: SectorNativeContext = {
+      generation, transport: "ready", qualification: "accepted",
+      subject: { id: sector0.id, ticker: sector0.ticker, name: sector0.name, nameZh: sector0.name_zh ?? sector0.name },
+      ranked63: [sector0.id], lead21: sector0.id, language: "en", theme: "dark",
+      binding: { ownerRevision: "r1", generationKey: "g1", subjectId: sector0.id, universe: "us",
+        metric: "relative_wealth_pct", windows: [63], basis: "total_return" },
+    };
+    const locationBefore = window.location.href;
+    await act(async () => {
+      root.render(<SectorNativeDossier context={context} view="drivers" {...handlers} />);
+    });
+    await flush();
+    expect(host.querySelector("[data-depth-calls-board]")).not.toBeNull();
+    await expandHoldLane(host);
+    await act(async () => { detailButton(host, "Lawful tech row").click(); });
+    await act(async () => { detailButton(host, "Proto hostile row").click(); });
+    expect(window.location.href).toBe(locationBefore);
+    // No anchor from owner text on this mount either.
+    expect(host.querySelectorAll("[data-depth-calls-board] a")).toHaveLength(0);
+  });
+});

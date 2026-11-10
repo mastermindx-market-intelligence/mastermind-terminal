@@ -466,6 +466,7 @@ export default function SectorIntelligenceWorkspace() {
         onOpenRotation={() => openOuterWorkspace("rotation")}
         onTheme={() => change({ theme: state.theme === "dark" ? "light" : "dark" })}
         onRefresh={() => setRevision(n => n + 1)} onSources={() => openSources()}
+        onSelect={sectorId => change({ sector: sectorId }, true)}
         historyFeed={cycleFeed(feeds.history)} eventsFeed={cycleFeed(feeds.events)} />
       : state.workspace === "discover" && state.sourceFamily === "finviz" ? <FinvizDiscovery feed={feeds.finviz} state={state} onChange={patch => change(patch, !Object.hasOwn(patch, "discoveryQuery"))} /> : state.workspace === "rotation" ? <SectorRotationMap
         rows={state.rotationMethod === "relative_trend_ema" ? sectors : nativeGeneration?.sectors || []}

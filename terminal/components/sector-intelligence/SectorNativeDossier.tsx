@@ -3,7 +3,7 @@
  * leadership verdict, exact-session returns, and honest unavailability for the
  * panels the native source does not supply. Non-Overview tabs state what is not
  * connected rather than borrowing another source's rows. */
-import { useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { useLang } from "@/lib/i18n";
 import { useSectorT } from "@/lib/sectorIntelligenceLex";
 import { EXACT_WINDOW_KEYS, sectorWindowMeasurements,
@@ -17,7 +17,9 @@ import SectorNativeActions from "./SectorNativeActions";
 import SectorCycleLens from "./SectorCycleLens";
 import type { SectorCycleFeed } from "./cycles/cycleProps";
 import { flowsFromCarriedBlock } from "@/lib/sectorDepthFlows";
-import { actionBoardFromCarried, bottomingWatchFromCarried } from "@/lib/sectorDepthCalls";
+import { actionBoardFromCarried, bottomingWatchFromCarried,
+  isNavigableId, type CallsNavigateTarget } from "@/lib/sectorDepthCalls";
+import { callsNavigateDecision } from "@/lib/sectorCallNavigation";
 import { followState } from "@/lib/investigationFollow";
 import { followCopyKey } from "@/lib/sectorIntelligenceLex";
 import { SectorCallsBoard } from "./depth/SectorCallsBoard";
@@ -35,7 +37,7 @@ const TAB_KEYS: Record<SectorView, string> = {
 };
 
 export default function SectorNativeDossier({ context, view, onView, onBack, onJob,
-  onOpenRotation, onTheme, onRefresh, onSources, historyFeed, eventsFeed }: {
+  onOpenRotation, onTheme, onRefresh, onSources, onSelect, historyFeed, eventsFeed }: {
   context: SectorNativeContext;
   view: SectorView;
   onView: (view: SectorView) => void;
@@ -45,6 +47,9 @@ export default function SectorNativeDossier({ context, view, onView, onBack, onJ
   onTheme: () => void;
   onRefresh: () => void;
   onSources: () => void;
+  /** Typed workspace selection (`change({ sector: id })`) — the calls board's
+   * only permitted navigation exit. Absent ⇒ rows render without controls. */
+  onSelect?: (sectorId: string) => void;
   /** Legacy rs-history and rotation-events feeds, passed through to the Cycles
    * lens; the deep cycles publication feed does not exist yet and is passed as
    * an explicit unavailable state — never a borrowed substitute. */
@@ -114,7 +119,7 @@ export default function SectorNativeDossier({ context, view, onView, onBack, onJ
       <SectorGenerationQualification qualification={context.qualification ?? undefined} />
       {view === "intelligence" ? <DossierOverview context={context} exact={exact.state === "ok" ? exact.measurements : null}
         exactGroup={exactGroup} benchmark={benchmark} onJob={onJob} /> : view === "companies" ? <SectorPopulationMembers />
-      : view === "drivers" ? <DossierDepth context={context} />
+      : view === "drivers" ? <DossierDepth context={context} onSelect={onSelect} />
       : view === "signals" ? <div data-testid="sector-native-dossier-cycles">
         <SectorCycleLens
           region="us"
@@ -269,7 +274,7 @@ function FollowLine() {
  * `confluence` and `theme_table` stay typed-unavailable: the carried id-lists
  * and state dict are not the payloads these tables need (queued lane 1
  * increment); the theme rotation chart runs on real captured history. */
-function DossierDepth({ context }: { context: SectorNativeContext }) {
+function DossierDepth({ context, onSelect }: { context: SectorNativeContext; onSelect?: (sectorId: string) => void }) {
   const { lang } = useLang();
   const generation = context.generation;
   const blocks = generation?.typedBlocks;
@@ -289,8 +294,28 @@ function DossierDepth({ context }: { context: SectorNativeContext }) {
     }
     return out;
   }, [generation, lang]);
+  // Calls-board navigation mount (third review rules a–g; #1445 merged):
+  //   (a) isNavigableId is lane 7's own rule, injected as-is — no copy here.
+  //   (b) the decision type has no href slot; this handler never reads href.
+  //   (c) act only on state "select", and only when the id is one the CURRENT
+  //       generation itself carries — Set membership, never object indexing,
+  //       so ".." and "__proto__" (both pass isNavigableId) are refused here.
+  //   (d) the selection leaves only through the typed workspace state below.
+  //   (e) a theme row has no destination in this workspace: it does nothing
+  //       and never feeds a theme id into the sector slot.
+  //   (f) this mount adds no fetch and no second reader of action_board.
+  const sectorIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const row of generation?.sectors ?? []) ids.add(String(row.id));
+    return ids;
+  }, [generation]);
+  const onCallsNavigate = useCallback((target: CallsNavigateTarget) => {
+    const decision = callsNavigateDecision(target, isNavigableId);
+    if (decision.state !== "select" || decision.kind !== "sector" || !sectorIds.has(decision.id)) return;
+    onSelect?.(decision.id);
+  }, [sectorIds, onSelect]);
   return <div data-testid="sector-native-dossier-depth">
-    <SectorCallsBoard board={board} />
+    <SectorCallsBoard board={board} onNavigate={onCallsNavigate} />
     <SectorFlowMatrix flows={flows} />
     <SectorBottomingWatch watch={watch} />
     <SectorConfluenceUniverses universes={null} />
