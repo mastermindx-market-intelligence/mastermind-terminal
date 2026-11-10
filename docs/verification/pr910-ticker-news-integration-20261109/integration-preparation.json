@@ -1,0 +1,20 @@
+{
+  "exit": 1,
+  "head": "ed396f371a86c029ccfd26b67dc9fc981d49f35d",
+  "originalPreservationSha256": "d4033fd4f41072b276f52e37d0065615280d12c3526f0e91c20c9b144f6a52e1",
+  "protectedMaster": "03af393ce05c12282003a3919cc473c032264922",
+  "schema": "terminal_pr910_real_protected_merge.v1",
+  "state": "NEEDS_SCOPED_RESOLUTION",
+  "stderr": "",
+  "stdout": "Auto-merging terminal/docs/pr-crops/ticker-news/EVIDENCE.yml\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/ticker-news/EVIDENCE.yml\nwarning: Cannot merge binary files: terminal/docs/pr-crops/ticker-news/desktop-en-dark.png (HEAD vs. 03af393ce05c12282003a3919cc473c032264922)\nAuto-merging terminal/docs/pr-crops/ticker-news/desktop-en-dark.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/ticker-news/desktop-en-dark.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/ticker-news/desktop-zh-dark.png (HEAD vs. 03af393ce05c12282003a3919cc473c032264922)\nAuto-merging terminal/docs/pr-crops/ticker-news/desktop-zh-dark.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/ticker-news/desktop-zh-dark.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/ticker-news/mobile-en-dark.png (HEAD vs. 03af393ce05c12282003a3919cc473c032264922)\nAuto-merging terminal/docs/pr-crops/ticker-news/mobile-en-dark.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/ticker-news/mobile-en-dark.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/ticker-news/mobile-zh-dark.png (HEAD vs. 03af393ce05c12282003a3919cc473c032264922)\nAuto-merging terminal/docs/pr-crops/ticker-news/mobile-zh-dark.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/ticker-news/mobile-zh-dark.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/ticker-news/tablet-en-dark.png (HEAD vs. 03af393ce05c12282003a3919cc473c032264922)\nAuto-merging terminal/docs/pr-crops/ticker-news/tablet-en-dark.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/ticker-news/tablet-en-dark.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/ticker-news/tablet-zh-dark.png (HEAD vs. 03af393ce05c12282003a3919cc473c032264922)\nAuto-merging terminal/docs/pr-crops/ticker-news/tablet-zh-dark.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/ticker-news/tablet-zh-dark.png\nwarning: Cannot merge binary files: terminal/docs/pr-crops/ticker-news/unavailable-desktop-en-dark.png (HEAD vs. 03af393ce05c12282003a3919cc473c032264922)\nAuto-merging terminal/docs/pr-crops/ticker-news/unavailable-desktop-en-dark.png\nCONFLICT (content): Merge conflict in terminal/docs/pr-crops/ticker-news/unavailable-desktop-en-dark.png\nAutomatic merge failed; fix conflicts and then commit the result.\n",
+  "unmerged": [
+    "terminal/docs/pr-crops/ticker-news/EVIDENCE.yml",
+    "terminal/docs/pr-crops/ticker-news/desktop-en-dark.png",
+    "terminal/docs/pr-crops/ticker-news/desktop-zh-dark.png",
+    "terminal/docs/pr-crops/ticker-news/mobile-en-dark.png",
+    "terminal/docs/pr-crops/ticker-news/mobile-zh-dark.png",
+    "terminal/docs/pr-crops/ticker-news/tablet-en-dark.png",
+    "terminal/docs/pr-crops/ticker-news/tablet-zh-dark.png",
+    "terminal/docs/pr-crops/ticker-news/unavailable-desktop-en-dark.png"
+  ]
+}

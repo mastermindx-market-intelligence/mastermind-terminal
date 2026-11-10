@@ -1,0 +1,14 @@
+
+/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1422-next-proof-web4/terminal/e2e/tools/qualify_shared_shell_intelligence.cjs
+   4:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   5:14  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   6:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   7:14  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   8:16  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   9:30  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  10:27  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  13:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  19:25  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+✖ 9 problems (9 errors, 0 warnings)
+
