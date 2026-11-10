@@ -18,6 +18,22 @@ export const INVESTIGATION_MANIFEST_SCHEMA = "investigation_manifest.v1" as cons
 export const INVESTIGATION_MANIFEST_MAX_BYTES = 64 * 1024;
 export const INVESTIGATION_MANIFEST_SCHEMA_V2 = "investigation_manifest.v2" as const;
 export const INVESTIGATION_MANIFEST_V2_MAX_BYTES = 128 * 1024;
+/** Prophet D05 (masterplan §15.2.1): a backward-compatible READ extension of v2 adding the closed
+ *  optional `user_decision`. v1/v2 readers and writers are unchanged. New v3 WRITES stay closed:
+ *  `parseInvestigationCommand` still accepts schema v2 only and the shared admission registry
+ *  does not list `prophet.research` until retention and current-rights are qualified. */
+export const INVESTIGATION_MANIFEST_SCHEMA_V3 = "investigation_manifest.v3" as const;
+export const INVESTIGATION_USER_DECISION_DISPOSITIONS = ["investigate", "watch", "pass"] as const;
+export const INVESTIGATION_MILESTONE_STATES = ["open", "met", "missed", "withdrawn"] as const;
+export const INVESTIGATION_MAX_MILESTONES = 20;
+export const INVESTIGATION_MAX_MILESTONE_EVIDENCE_INDEXES = 16;
+/** Closed Prophet evidence adapter namespace (reference adapters to existing native owners). */
+export const PROPHET_RESEARCH_EVIDENCE_TYPES: readonly string[] = ["today_selection", "b03_occurrence", "plan_origin", "evaluation"];
+/** One RFC 3339 profile shared byte-for-byte with Python and the SQL validator: calendar date,
+ *  `T`, hh:mm:ss, optional 1-9 fractional digits, and `Z` or a numeric offset. */
+const RFC3339 = /^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]{1,9})?(Z|[+-]([01][0-9]|2[0-3]):[0-5][0-9])$/;
+/** Persisted advisory resolver hint for a retained Sector capture (lane 1 `page.context_ref`, ≤1024). */
+const CONTEXT_REF = /^[A-Za-z0-9_.-]{1,1024}$/;
 const MAX_ERRORS = 32;
 const MAX_NODES = 4096;
 const SUBJECT_KINDS = new Set([
@@ -71,9 +87,27 @@ export type InvestigationEvidenceRef = {
   version_ref?: string;
   fingerprint?: string;
   selection?: { field: string };
+  /** v3 only, macro.sector observations only: lane 1's signed `page.context_ref` for the retained
+   *  capture. The durable identity stays `version_ref` (= capture generation_id) + `fingerprint`
+   *  (= capture content_id); this token is a resolver hint and never a substitute for them. */
+  context_ref?: string;
+};
+export type InvestigationMilestone = {
+  id: string;
+  criterion: string;
+  due_on: string | null;
+  state: (typeof INVESTIGATION_MILESTONE_STATES)[number];
+  user_observed_at: string | null;
+  supporting_evidence_indexes: number[];
+};
+export type InvestigationUserDecision = {
+  disposition: (typeof INVESTIGATION_USER_DECISION_DISPOSITIONS)[number];
+  reason: string;
+  decided_at: string;
+  milestones: InvestigationMilestone[];
 };
 export type InvestigationManifest = {
-  schema: typeof INVESTIGATION_MANIFEST_SCHEMA | typeof INVESTIGATION_MANIFEST_SCHEMA_V2;
+  schema: typeof INVESTIGATION_MANIFEST_SCHEMA | typeof INVESTIGATION_MANIFEST_SCHEMA_V2 | typeof INVESTIGATION_MANIFEST_SCHEMA_V3;
   intent: {
     title: string;
     question: string;
@@ -96,6 +130,9 @@ export type InvestigationManifest = {
    *  no basis or result values and is never a retention, entitlement or source-availability
    *  claim. */
   scenario_capture?: ScenarioCapture;
+  /** v3 only: the user's declared research disposition and self-marked milestones. User-declared
+   *  clocks are never evidence that source facts were available then. */
+  user_decision?: InvestigationUserDecision;
 };
 /** Supplied by existing admitted adapters. This module owns no adapter registry. */
 export type InvestigationAdmission = {
@@ -119,6 +156,7 @@ class Validator {
   private nodes = 0;
   private stringUnits = 0;
   private v2 = false;
+  private v3 = false;
   private readonly ancestors = new WeakSet<object>();
   constructor(private readonly admission: InvestigationAdmission) {}
   add(path: string, code: string): void {
@@ -218,6 +256,11 @@ class Validator {
     const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     if (year < 1 || month < 1 || month > 12 || day < 1 || day > days[month - 1]) this.add(path, "invalid_date");
   }
+  /** RFC 3339 profile (see RFC3339) plus real calendar-day validity of the date part. */
+  timestamp(value: unknown, path: string): void {
+    if (typeof value !== "string" || !RFC3339.test(value)) { this.add(path, "invalid_timestamp"); return; }
+    this.date(value.slice(0, 10), path);
+  }
   list(value: unknown, path: string, max: number, item: (value: unknown, path: string) => string | null): void {
     if (!Array.isArray(value)) { this.add(path, "invalid_type"); return; }
     if (value.length > max) { this.add(path, "too_many_items"); return; }
@@ -276,7 +319,7 @@ class Validator {
     return JSON.stringify([ref.thesis_id, ref.version_id]);
   }
   evidence(value: unknown, path: string, baseline = false): string | null {
-    const ref = this.object(value, path, ["owner", "object_type", "object_id", "mode"], ["version_ref", "fingerprint", "selection"]);
+    const ref = this.object(value, path, ["owner", "object_type", "object_id", "mode"], this.v3 ? ["version_ref", "fingerprint", "selection", "context_ref"] : ["version_ref", "fingerprint", "selection"]);
     if (!ref) return null;
     this.namespace(ref.owner, `${path}.owner`); this.namespace(ref.object_type, `${path}.object_type`);
     this.text(ref.object_id, `${path}.object_id`, 256, true);
@@ -296,6 +339,8 @@ class Validator {
       field = selection?.field;
       if (selection && (typeof field !== "string" || !FIELD.test(field))) this.add(`${path}.selection.field`, "unsupported_selection");
     }
+    // `prophet.research` exists only on v3, whatever an adapter registry lists.
+    if (ref.owner === "prophet.research" && !this.v3) this.add(path, "unsupported_owner_kind");
     // New Sector Intelligence evidence is pinned-only (packet §3.2): version_ref AND
     // fingerprint are required, selection stays omitted until a closed per-type selector
     // vocabulary exists, and each type pins its owner-resolved identity grammar. No JSON
@@ -313,6 +358,21 @@ class Validator {
         if (!Object.hasOwn(ref, "fingerprint")) this.add(path, "fingerprint_required");
         if (Object.hasOwn(ref, "selection")) this.add(`${path}.selection`, "unsupported_selection");
       }
+      if (ref.owner === "macro.sector" && Object.hasOwn(ref, "context_ref")) {
+        if (!(ref.object_type === "sector_observation" || ref.object_type === "basket_observation")
+            || typeof ref.context_ref !== "string" || !CONTEXT_REF.test(ref.context_ref)) this.add(`${path}.context_ref`, "invalid_context_ref");
+      } else if (Object.hasOwn(ref, "context_ref")) {
+        this.add(`${path}.context_ref`, "unsupported_context_ref");
+      }
+      if (ref.owner === "prophet.research" && this.v3) {
+        // Closed adapter namespace. Pinned-only: native readers issue object_id/version_ref and the
+        // owner binds the complete listing/occurrence/generation/receipt tuple; no ticker-derived id
+        // and no session filename stands in for a retained version.
+        if (!PROPHET_RESEARCH_EVIDENCE_TYPES.includes(ref.object_type as string)) this.add(`${path}.object_type`, "unsupported_owner_kind");
+        if (ref.mode !== "pinned") this.add(`${path}.mode`, "pinned_only");
+        if (!Object.hasOwn(ref, "fingerprint")) this.add(path, "fingerprint_required");
+        if (Object.hasOwn(ref, "selection")) this.add(`${path}.selection`, "unsupported_selection");
+      }
       if (ref.owner === "theme_graph.curation_assertion" && ref.object_type === "curation_assertion") {
         if (ref.mode !== "pinned") this.add(`${path}.mode`, "pinned_only");
         if (!(typeof ref.object_id === "string" && CURATION_EVIDENCE_ID.test(ref.object_id))) this.add(`${path}.object_id`, "invalid_object_id");
@@ -323,15 +383,60 @@ class Validator {
     }
     return JSON.stringify([ref.owner, ref.object_type, ref.object_id, ref.mode, ref.version_ref, field]);
   }
+  /** Prophet D05 `user_decision` (masterplan §15.2.1). Closed object; no scheduler, monitor or outcome
+   *  is implied by a milestone. `reason` is required non-empty for Pass; `decided_at` and
+   *  `user_observed_at` are user-declared clocks, never source-availability evidence. */
+  userDecision(value: unknown, evidenceRefs: unknown): void {
+    const decision = this.object(value, "$.user_decision", ["disposition", "reason", "decided_at", "milestones"]);
+    if (!decision) return;
+    this.enumeration(decision.disposition, "$.user_decision.disposition", INVESTIGATION_USER_DECISION_DISPOSITIONS);
+    if (typeof decision.reason !== "string") this.add("$.user_decision.reason", "invalid_type");
+    else if (decision.reason.trim().length === 0) {
+      if (decision.disposition === "pass") this.add("$.user_decision.reason", "empty_text");
+      else if (decision.reason !== "") this.add("$.user_decision.reason", "empty_text");
+    } else this.text(decision.reason, "$.user_decision.reason", 2000);
+    this.timestamp(decision.decided_at, "$.user_decision.decided_at");
+    const evidenceCount = Array.isArray(evidenceRefs) ? evidenceRefs.length : 0;
+    if (!Array.isArray(decision.milestones)) { this.add("$.user_decision.milestones", "invalid_type"); return; }
+    if (decision.milestones.length > INVESTIGATION_MAX_MILESTONES) { this.add("$.user_decision.milestones", "too_many_items"); return; }
+    const ids = new Set<string>();
+    decision.milestones.forEach((entry, index) => {
+      const path = `$.user_decision.milestones[${index}]`;
+      const m = this.object(entry, path, ["id", "criterion", "due_on", "state", "user_observed_at", "supporting_evidence_indexes"]);
+      if (!m) return;
+      this.uuid(m.id, `${path}.id`);
+      if (typeof m.id === "string") { if (ids.has(m.id)) this.add(`${path}.id`, "duplicate_reference"); ids.add(m.id); }
+      this.text(m.criterion, `${path}.criterion`, 500);
+      if (m.due_on !== null) this.date(m.due_on, `${path}.due_on`);
+      this.enumeration(m.state, `${path}.state`, INVESTIGATION_MILESTONE_STATES);
+      if (m.user_observed_at !== null) this.timestamp(m.user_observed_at, `${path}.user_observed_at`);
+      if ((m.state === "met" || m.state === "missed") && m.user_observed_at === null) this.add(`${path}.user_observed_at`, "observation_required");
+      const idx = m.supporting_evidence_indexes;
+      if (!Array.isArray(idx)) { this.add(`${path}.supporting_evidence_indexes`, "invalid_type"); return; }
+      if (idx.length > INVESTIGATION_MAX_MILESTONE_EVIDENCE_INDEXES) { this.add(`${path}.supporting_evidence_indexes`, "too_many_items"); return; }
+      const seen = new Set<number>();
+      idx.forEach((n, k) => {
+        const p = `${path}.supporting_evidence_indexes[${k}]`;
+        const target = Number.isSafeInteger(n) && (n as number) >= 0 && (n as number) < evidenceCount ? (evidenceRefs as unknown[])[n as number] : undefined;
+        if (!target || typeof target !== "object" || (target as Obj).mode !== "pinned") { this.add(p, "invalid_evidence_index"); return; }
+        if (seen.has(n as number)) this.add(p, "duplicate_reference");
+        seen.add(n as number);
+      });
+    });
+  }
   manifest(raw: unknown): void {
     // `scenario_capture` MUST ride this closed optional-key array: without it every capture
     // bearing manifest is refused as an unknown top-level field before the typed check below.
-    const manifest = this.object(raw, "$", ["schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation"], ["review_baseline_ref", "review", "scenario_capture"]);
+    const manifest = this.object(raw, "$", ["schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation"], ["review_baseline_ref", "review", "scenario_capture", "user_decision"]);
     if (!manifest) return;
-    const v2 = manifest.schema === INVESTIGATION_MANIFEST_SCHEMA_V2;
-    this.v2 = v2;
+    // v3 is a strict superset of v2 for every shared field; only `user_decision` and the v3-only
+    // evidence keys differ, so every v2 rule below applies unchanged to a v3 manifest.
+    const v3 = manifest.schema === INVESTIGATION_MANIFEST_SCHEMA_V3;
+    const v2 = manifest.schema === INVESTIGATION_MANIFEST_SCHEMA_V2 || v3;
+    this.v2 = v2; this.v3 = v3;
     const questionLimit = v2 ? 4000 : 2000;
     if (!v2 && manifest.schema !== INVESTIGATION_MANIFEST_SCHEMA) this.add("$.schema", "unsupported_schema");
+    if (Object.hasOwn(manifest, "user_decision") && !v3) this.add("$.user_decision", "unsupported_schema");
     if (v2 && [manifest.layout_refs, manifest.thesis_refs, manifest.evidence_refs].reduce<number>((n, refs) => n + (Array.isArray(refs) ? refs.length : 0), 0) > 128) {
       this.add("$", "too_many_references");
     }
@@ -364,6 +469,7 @@ class Validator {
         if (Object.hasOwn(review, "note")) this.text(review.note, "$.review.note", 2000);
       }
     }
+    if (v3 && Object.hasOwn(manifest, "user_decision")) this.userDecision(manifest.user_decision, manifest.evidence_refs);
     if (Object.hasOwn(manifest, "scenario_capture")) {
       // Only a v2 manifest may carry the typed scenario reference, and only when the pure leaf
       // module accepts it: unknown, malformed, forged and superseded full-value payloads are
@@ -383,7 +489,7 @@ export function validateInvestigationManifest(raw: unknown, admission: Investiga
   try {
     if (!validator.dataOnly(raw)) return { ok: false, errors: validator.errors };
     const serialized = JSON.stringify(raw);
-    const maxBytes = raw !== null && typeof raw === "object" && (raw as Obj).schema === INVESTIGATION_MANIFEST_SCHEMA_V2
+    const maxBytes = raw !== null && typeof raw === "object" && ((raw as Obj).schema === INVESTIGATION_MANIFEST_SCHEMA_V2 || (raw as Obj).schema === INVESTIGATION_MANIFEST_SCHEMA_V3)
       ? INVESTIGATION_MANIFEST_V2_MAX_BYTES : INVESTIGATION_MANIFEST_MAX_BYTES;
     if (new TextEncoder().encode(serialized).byteLength > maxBytes) {
       return { ok: false, errors: [{ path: "$", code: "manifest_too_large" }] };
