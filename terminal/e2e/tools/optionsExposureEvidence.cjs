@@ -657,6 +657,45 @@ function exposurePrefix(dir) {
             qualifiedPacket: folder + "/native-packet.json", qualifiedPacketSha256: sha(join(dir, "native-packet.json")),
         }) + "\n";
 }
+/** Shared report checks for immutable readers and the bounded capture exporter. */
+function requireIntegrationBrowserReport(report, proof) {
+    check(!report.errors?.length && report.stats.expected === proof.expectedPassed.length && report.stats.unexpected === 0 &&
+        report.stats.skipped === proof.expectedSkipped.length && report.stats.flaky === 0, "INTEGRATION_BROWSER_REPORT");
+    const passed = [], skipped = [], chartCases = [];
+    function visit(suite) {
+        for (const spec of suite.specs ?? [])
+            for (const test of spec.tests) {
+                const key = test.projectName + "|" + spec.title;
+                check(test.results.length === 1 && test.results[0].retry === 0, "INTEGRATION_BROWSER_ATTEMPT");
+                const result = test.results[0];
+                check(result.status === "passed" || result.status === "skipped", "INTEGRATION_BROWSER_CASE");
+                (result.status === "passed" ? passed : skipped).push(key);
+                if (spec.title.startsWith("Connected exposure workspace ")) {
+                    check(result.status === "passed", "INTEGRATION_CHART_REQUIRED");
+                    chartCases.push(key);
+                    const attachments = result.attachments?.filter(item => item.name === "exposure-header-clearance") ?? [];
+                    check(attachments.length === 1 && attachments[0].contentType === "application/json" &&
+                        typeof attachments[0].body === "string" && attachments[0].path === undefined, "INTEGRATION_CHART_ATTACHMENT");
+                    const witness = JSON.parse(Buffer.from(attachments[0].body, "base64").toString("utf8"));
+                    for (const glyphs of [witness.initial, witness.afterFit]) {
+                        check(Array.isArray(glyphs) && glyphs.length > 0 && glyphs.length <= 6 &&
+                            glyphs.filter(row => row.strike === 756).length === 1 && new Set(glyphs.map(row => row.strike)).size === glyphs.length, "INTEGRATION_CHART_GLYPHS");
+                        for (const row of glyphs)
+                            check([756, 757, 755, 747, 746, 748].includes(row.strike) &&
+                                [row.gap, row.paint, row.labelTop, row.headerBottom].every(Number.isFinite) && row.gap >= 4 &&
+                                Number.isInteger(row.paint) && row.paint > 0 && Math.abs(row.gap - (row.labelTop - row.headerBottom)) < .000001, "INTEGRATION_CHART_CLEARANCE");
+                    }
+                    check(witness.afterFit.find(row => row.strike === 756).paint > witness.initial.find(row => row.strike === 756).paint, "INTEGRATION_CHART_FRESH_PAINT");
+                }
+            }
+        for (const child of suite.suites ?? [])
+            visit(child);
+    }
+    visit(report);
+    check(sameKeys(passed, proof.expectedPassed) && new Set(passed).size === passed.length &&
+        sameKeys(skipped, proof.expectedSkipped), "INTEGRATION_BROWSER_CASE_SET");
+    check(sameKeys(chartCases, ["desktop", "tablet", "mobile"].flatMap(project => ["en", "zh"].map(lang => project + "|Connected exposure workspace " + lang + ": chart, comparison scopes, scanner and return"))), "INTEGRATION_CHART_CASE_SET");
+}
 function verifyIntegrationBrowserRecord(repo, revision, requireCurrent = true) {
     check(["master", "ui-copy", "options-integration", "expiry-greeks"].includes(revision), "INTEGRATION_BROWSER_REVISION");
     const successor = revision === "ui-copy", expiry = revision === "expiry-greeks", options = revision === "options-integration" || expiry;
@@ -703,42 +742,7 @@ function verifyIntegrationBrowserRecord(repo, revision, requireCurrent = true) {
         check(path.startsWith("browser-artifacts/") && !path.split("/").includes("..") &&
             /^[0-9a-f]{64}$/.test(digest) && sha(join(dir, path)) === digest, "INTEGRATION_BROWSER_ARTIFACT:" + path);
     const report = json(join(dir, "browser-report.json"));
-    check(!report.errors?.length && report.stats.expected === execution.passed && report.stats.unexpected === 0 &&
-        report.stats.skipped === execution.skipped && report.stats.flaky === 0, "INTEGRATION_BROWSER_REPORT");
-    const passed = [], skipped = [], chartCases = [];
-    function visit(suite) {
-        for (const spec of suite.specs ?? [])
-            for (const test of spec.tests) {
-                const key = test.projectName + "|" + spec.title;
-                check(test.results.length === 1 && test.results[0].retry === 0, "INTEGRATION_BROWSER_ATTEMPT");
-                const result = test.results[0];
-                check(result.status === "passed" || result.status === "skipped", "INTEGRATION_BROWSER_CASE");
-                (result.status === "passed" ? passed : skipped).push(key);
-                if (spec.title.startsWith("Connected exposure workspace ")) {
-                    check(result.status === "passed", "INTEGRATION_CHART_REQUIRED");
-                    chartCases.push(key);
-                    const attachments = result.attachments?.filter(item => item.name === "exposure-header-clearance") ?? [];
-                    check(attachments.length === 1 && attachments[0].contentType === "application/json" &&
-                        typeof attachments[0].body === "string" && attachments[0].path === undefined, "INTEGRATION_CHART_ATTACHMENT");
-                    const witness = JSON.parse(Buffer.from(attachments[0].body, "base64").toString("utf8"));
-                    for (const glyphs of [witness.initial, witness.afterFit]) {
-                        check(Array.isArray(glyphs) && glyphs.length > 0 && glyphs.length <= 6 &&
-                            glyphs.filter(row => row.strike === 756).length === 1 && new Set(glyphs.map(row => row.strike)).size === glyphs.length, "INTEGRATION_CHART_GLYPHS");
-                        for (const row of glyphs)
-                            check([756, 757, 755, 747, 746, 748].includes(row.strike) &&
-                                [row.gap, row.paint, row.labelTop, row.headerBottom].every(Number.isFinite) && row.gap >= 4 &&
-                                Number.isInteger(row.paint) && row.paint > 0 && Math.abs(row.gap - (row.labelTop - row.headerBottom)) < .000001, "INTEGRATION_CHART_CLEARANCE");
-                    }
-                    check(witness.afterFit.find(row => row.strike === 756).paint > witness.initial.find(row => row.strike === 756).paint, "INTEGRATION_CHART_FRESH_PAINT");
-                }
-            }
-        for (const child of suite.suites ?? [])
-            visit(child);
-    }
-    visit(report);
-    check(sameKeys(passed, proof.expectedPassed) && new Set(passed).size === passed.length &&
-        sameKeys(skipped, proof.expectedSkipped), "INTEGRATION_BROWSER_CASE_SET");
-    check(sameKeys(chartCases, ["desktop", "tablet", "mobile"].flatMap(project => ["en", "zh"].map(lang => project + "|Connected exposure workspace " + lang + ": chart, comparison scopes, scanner and return"))), "INTEGRATION_CHART_CASE_SET");
+    requireIntegrationBrowserReport(report, proof);
     return proof;
 }
 function verifyIntegrationBrowser(repo, requireCurrent = true) {
@@ -1101,7 +1105,7 @@ function verifyExpiryGreeksJourneys(repo, joint) {
     check(sameKeys(passed, proof.expectedPassed), "EXPIRY_INTEGRATION_JOURNEY_REPORT_CASES");
     return proof;
 }
-function readExpiryIntegration(repo, kind, crops, text) {
+function readExpiryIntegrationNative(repo, kind, crops, text) {
     const packet = readExpiryIntegrationDescriptor(repo);
     const roots = Object.fromEntries(["gex", "eod"].map(family => [family, packet.history.predecessors[family].rootText]));
     const historical = readOptionsIntegrationPair(repo, kind, crops, roots, false);
@@ -1116,6 +1120,22 @@ function readExpiryIntegration(repo, kind, crops, text) {
     const freshGex = readIntegrationNativePayload(repo, packet.dir, "gex",
         kind === "gex" ? crops : require("./" + harness("gex").split("/").at(-1)).expectedFiles(),
         packet.descriptor, "expiry-greeks-integration", true);
+    return { historical, retainedEod, freshGex };
+}
+/** Validate native/history prerequisites only; this never qualifies current browser proof. */
+function verifyExpiryIntegrationNativePrerequisites(repo) {
+    const kind = "gex", crops = require("./" + harness(kind).split("/").at(-1)).expectedFiles();
+    const text = readFileSync(join(repo, "terminal/docs/pr-crops", PACKETS[kind], "EVIDENCE.yml"), "utf8");
+    readExpiryIntegrationNative(repo, kind, crops, text);
+    return {
+        state: "NATIVE_ONLY_VALIDATED",
+        currentBrowserQualified: false,
+        gex: { revision: EXPIRY_INTEGRATION_REVISION, descriptorSha256: EXPIRY_INTEGRATION_PACKET },
+        eod: { revision: OPTIONS_INTEGRATION_REVISION, descriptorSha256: OPTIONS_INTEGRATION_PACKET.eod },
+    };
+}
+function readExpiryIntegration(repo, kind, crops, text) {
+    const { historical, retainedEod, freshGex } = readExpiryIntegrationNative(repo, kind, crops, text);
     const browser = verifyIntegrationBrowserRecord(repo, "expiry-greeks");
     requireOptionsIntegrationBrowserCases(browser, verifyIntegrationBrowser(repo, false));
     verifyExpiryGreeksJourneys(repo, browser);
@@ -1133,4 +1153,4 @@ function optionalQualifiedOptionsExposurePacket(repo, kind, crops) {
     return declared || history ? qualifiedOptionsExposurePacket(repo, kind, crops) : null;
 }
 
-module.exports = { requireSourceKeys, selectWholeFingerprint, projectR4CaptureHarness, projectIndicatorGuardBrowserSources, layoutSources, requireR4ChartIdentity, qualifiedOptionsExposurePacket, masterIntegrationInputs, MASTER_BROWSER_SPECS, masterIntegrationBrowserInputs, uiCopyIntegrationInputs, uiCopyIntegrationBrowserInputs, requireIntegrationExecution, optionalQualifiedOptionsExposurePacket, optionsIntegrationInputs, OPTIONS_INTEGRATION_BROWSER_SPECS, optionsIntegrationBrowserInputs, requireOptionsIntegrationBrowserCases, expiryGreeksJourneyInputs, EXPIRY_JOURNEY_SPECS, requireExpiryGreeksBrowserCases, requireExpiryGreeksScreenshotSet };
+module.exports = { verifyExpiryIntegrationNativePrerequisites, requireIntegrationBrowserReport, requireSourceKeys, selectWholeFingerprint, projectR4CaptureHarness, projectIndicatorGuardBrowserSources, layoutSources, requireR4ChartIdentity, qualifiedOptionsExposurePacket, masterIntegrationInputs, MASTER_BROWSER_SPECS, masterIntegrationBrowserInputs, uiCopyIntegrationInputs, uiCopyIntegrationBrowserInputs, requireIntegrationExecution, optionalQualifiedOptionsExposurePacket, optionsIntegrationInputs, OPTIONS_INTEGRATION_BROWSER_SPECS, optionsIntegrationBrowserInputs, requireOptionsIntegrationBrowserCases, expiryGreeksJourneyInputs, EXPIRY_JOURNEY_SPECS, requireExpiryGreeksBrowserCases, requireExpiryGreeksScreenshotSet };

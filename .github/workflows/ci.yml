@@ -657,6 +657,29 @@ jobs:
           name: intelligence-beta-qa-${{ github.run_id }}-${{ github.run_attempt }}
           path: terminal/docs/pr-crops/shared-shell-intelligence-20261103/ci-intelligence-${{ github.run_id }}-${{ github.run_attempt }}
           if-no-files-found: warn
+      # Temporary original-carrier proof export; remove after the real R5 successor is imported.
+      - name: Earn R5 joint and expiry browser evidence
+        if: >-
+          ${{ !cancelled() && matrix.shard == 'serial' &&
+          github.event_name == 'pull_request' && github.event.pull_request.number == 646 }}
+        timeout-minutes: 25
+        env:
+          CI: '1'
+          TERMINAL_E2E_PORT: ${{ steps.lane.outputs.port }}
+        run: |
+          node node_modules/vitest/vitest.mjs run lib/__tests__/optionsExposureBrowserReport.test.ts --maxWorkers=1 --minWorkers=1
+          python3 e2e/tools/qualify_r5_alignment_browser.py
+      - name: Retain R5 browser successor evidence
+        if: >-
+          ${{ always() && matrix.shard == 'serial' &&
+          github.event_name == 'pull_request' && github.event.pull_request.number == 646 }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: r5-browser-successor-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            docs/verification/pr646-r5-browser-ci-20261110
+            terminal/docs/verification/exposure-workspace-20261103/r5-alignment-20261110
+          if-no-files-found: warn
       - name: Upload responsive QA screenshots
         if: always()
         uses: actions/upload-artifact@v4

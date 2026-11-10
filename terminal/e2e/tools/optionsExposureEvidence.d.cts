@@ -94,3 +94,12 @@ export declare const EXPIRY_JOURNEY_SPECS: string[];
 export declare function requireExpiryGreeksBrowserCases(proof: { expectedPassed: string[]; expectedSkipped: string[] }): void;
 export declare function requireExpiryGreeksScreenshotSet(artifactFiles: SourceMap): void;
 export {};
+
+/** Native/history validation only; current browser proof remains unqualified. */
+export function verifyExpiryIntegrationNativePrerequisites(repo: string): {
+  state: "NATIVE_ONLY_VALIDATED";
+  currentBrowserQualified: false;
+  gex: { revision: string; descriptorSha256: string };
+  eod: { revision: string; descriptorSha256: string };
+};
+export function requireIntegrationBrowserReport(report: unknown, proof: { expectedPassed: string[]; expectedSkipped: string[] }): void;
