@@ -36,6 +36,11 @@ export const SECTOR_DEPTH_LEX: Record<string, [string, string]> = {
   // S5 (r2): the Themes & compare capability's rs_history series field.
   siDepthFieldRsHistory: ["relative-strength history", "相对强弱历史"],
   siDepthFieldConfluence: ["the entry-evidence universes", "入场证据样本域"],
+  // R3-N1: an owner or field id with no lex entry renders this generic —
+  // never the raw key, "undefined", or a prototype function's source. The
+  // raw id still rides the section's data attributes for triage.
+  siDepthFieldGeneric: ["this data", "此数据"],
+  siDepthOwnerGeneric: ["its owner", "其所有者"],
 
   // ── calls board ────────────────────────────────────────────────────────────
   siCallsTitle: ["What to act on now", "当下行动指南"],
@@ -221,6 +226,10 @@ export const SECTOR_DEPTH_LEX: Record<string, [string, string]> = {
   siUniverseClassNeutral: ["Neutral", "中性"],
   siUniverseClassLate: ["Late", "偏晚"],
   siUniverseClassHeadwind: ["Headwind", "逆风"],
+  // R3-N4: a class word the engine added between sessions — never an
+  // invented tier label and never the raw English word on the ZH page; the
+  // raw value rides data-cls.
+  siUniverseClassUnknown: ["unclassified", "未分类"],
   siUniverseCoverage: [
     "{gateable} of {total} {noun} have enough data to time",
     "{gateable}/{total} 个{noun}有足够数据可计时",

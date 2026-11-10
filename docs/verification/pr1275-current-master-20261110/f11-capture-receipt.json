@@ -1,0 +1,20 @@
+{
+  "schema": "mastermind.terminal.pr1275.capture.v1",
+  "head": "e7185790537fc5179c8aaaedce0312dcc8fce313",
+  "tree": "3fa0f34e22b2c30f9e3bfa4eb195e4d8ad5a18db",
+  "operation": "terminal-pr-duty-20261110-1275-f11-proof-web4",
+  "command": [
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-f11-proof-web4/.pr1275-qualification/runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs"
+  ],
+  "started_at": "2026-11-10T09:00:42.433086+00:00",
+  "finished_at": "2026-11-10T09:01:58.816108+00:00",
+  "exit_code": 1,
+  "seconds": 76.39,
+  "log_sha256": "f61edaaa000995bd8595dbd0239efd5eb4c48c2f39cf36d17b3f0d9efeaae262",
+  "runtime": "v22.23.4",
+  "source_fingerprints_unchanged": true,
+  "port_listener_after": "COMMAND   PID      USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME\nnode    94010 chriswong   13u  IPv4 0x4ac497e1187c1327      0t0  TCP 127.0.0.1:3565 (LISTEN)",
+  "port_observation_exit": 0,
+  "tracked_status": " D terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/FIXTURE.json\n M terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/desktop-en.png\n"
+}

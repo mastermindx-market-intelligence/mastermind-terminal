@@ -543,6 +543,11 @@ SHIMS = {
         '  *"cat-file -t "*) case "$*" in *'
         + OLD_SHA + '|*' + NEW_SHA + ') echo commit ;; *) exit 1 ;; esac ;;\n'
         '  *rev-parse*) echo "$FAKE_SHA" ;;\n'
+        # Optional tracked public/data tree for the production staging tests.
+        # Without FAKE_TRACKED_ROOT the commit has NO tracked public/data.
+        '  *"cat-file -e HEAD:terminal/public/data") [ -n "${FAKE_TRACKED_ROOT:-}" ] || exit 128 ;;\n'
+        '  *"archive HEAD -- terminal/public/data") [ -n "${FAKE_TRACKED_ROOT:-}" ] && '
+        'exec tar -c -f - -C "$FAKE_TRACKED_ROOT" terminal/public/data ;;\n'
         'esac\n'
         'exit 0\n'
     ),
@@ -550,6 +555,10 @@ SHIMS = {
         '#!/bin/sh\n'
         'printf "npm %s\\n" "$*" >> "$MMX_EFFECT_LOG"\n'
         'if [ "$1" = run ] && [ "$2" = build ]; then\n'
+        # Record exactly what public/data the build saw, from inside the stage.
+        '  if [ -n "${RECORD_STAGE_DATA:-}" ]; then\n'
+        '    { printf "cwd=%s\\n" "$PWD"; (cd public/data && find . -type f | sort); } > "$RECORD_STAGE_DATA"\n'
+        '  fi\n'
         '  mkdir -p .next && printf "%s\\n" "$FAKE_BUILD_ID" > .next/BUILD_ID\n'
         'fi\nexit 0\n'
     ),
@@ -1015,6 +1024,76 @@ def test_empty_gated_archive_stages_the_app_alone(tmp_path):
     assert "staging the app alone" in proc.stdout, f"empty archive was not tolerated:\n{proc.stdout}\n{proc.stderr}"
     assert "new build OK" in proc.stdout, f"staging never reached the build:\n{proc.stdout}\n{proc.stderr}"
     assert marker_of(app) == NEW_SHA
+
+
+def _seed_live_and_tracked_data(tmp_path: Path) -> tuple[Path, Path]:
+    live = tmp_path / "deployroot" / "terminal" / "public" / "data"
+    (live / "intraday").mkdir(parents=True)
+    (live / "intraday" / "LIVE.json").write_text('{"live":true}\n')
+    tracked = tmp_path / "tracked"
+    (tracked / "terminal" / "public" / "data").mkdir(parents=True)
+    (tracked / "terminal" / "public" / "data" / "AAPL.json").write_text('{"fixture":true}\n')
+    return live, tracked
+
+
+def test_production_build_sees_tracked_fixtures_not_live_runtime_data(tmp_path):
+    """The Turbopack build's memory grows with public/data; the live tree got the VPS
+    build OOM-killed on 2026-11-10. The production stage must hold only the commit's
+    tracked fixtures, and the live tree must be left exactly as it was."""
+    live, tracked = _seed_live_and_tracked_data(tmp_path)
+    record = tmp_path / "stage-data.txt"
+
+    proc, app = run_deploy(
+        tmp_path, FAKE_TRACKED_ROOT=tracked, RECORD_STAGE_DATA=record
+    )
+
+    out = proc.stdout + proc.stderr
+    assert "new build OK" in proc.stdout, out
+    seen = record.read_text().splitlines()
+    assert "/.stage." in seen[0], seen
+    assert seen[1:] == ["./AAPL.json"], seen
+    assert "production stage runtime data: 1 git-tracked public/data fixture file(s)" in proc.stdout, out
+    assert (live / "intraday" / "LIVE.json").read_text() == '{"live":true}\n'
+    assert not (app / "public" / "data" / "AAPL.json").exists(), "stage data leaked into the live tree"
+    assert marker_of(app) == NEW_SHA
+
+
+def test_production_stage_without_tracked_fixtures_builds_with_empty_data(tmp_path):
+    """A commit with no tracked public/data (`git cat-file -e` fails) still builds,
+    from an empty public/data, never asks git for the archive, and still never stages
+    the live tree."""
+    _seed_live_and_tracked_data(tmp_path)
+    record = tmp_path / "stage-data.txt"
+
+    proc, _ = run_deploy(tmp_path, RECORD_STAGE_DATA=record)
+
+    assert "new build OK" in proc.stdout, proc.stdout + proc.stderr
+    effects = _effect_lines(tmp_path)
+    assert any("cat-file -e HEAD:terminal/public/data" in line for line in effects), effects
+    assert not any("archive HEAD -- terminal/public/data" in line for line in effects), effects
+    assert record.read_text().splitlines()[1:] == []
+    assert "production stage runtime data: 0 git-tracked" in proc.stdout
+
+
+def test_mutant_hardlinking_live_data_into_the_stage_is_caught(tmp_path):
+    _, tracked = _seed_live_and_tracked_data(tmp_path)
+    record = tmp_path / "stage-data.txt"
+    anchor = '  mkdir -p "$STAGE/public/data"\n  DATA_TAR="$STAGE_ROOT/.public-data.tar"\n'
+    mutant = _mutate(
+        tmp_path,
+        anchor,
+        '  cp -al "$APP/public/data" "$STAGE/public/data"  # MUTANT: incumbent staging\n'
+        + anchor,
+    )
+
+    proc, _ = run_deploy(
+        tmp_path, script=mutant, FAKE_TRACKED_ROOT=tracked, RECORD_STAGE_DATA=record
+    )
+
+    assert "new build OK" in proc.stdout, proc.stdout + proc.stderr
+    assert "./intraday/LIVE.json" in record.read_text().splitlines(), (
+        "mutation was inert: the incumbent hardlink staging did not reach the build"
+    )
 
 
 def test_swap_move_failure_enters_rollback(tmp_path):

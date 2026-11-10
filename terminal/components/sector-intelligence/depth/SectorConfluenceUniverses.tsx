@@ -6,7 +6,6 @@ import { useLang } from "@/lib/i18n";
 import { useSectorDepthT } from "@/lib/sectorDepthLex";
 import {
   CLASS_LABEL_KEYS,
-  CLASS_ORDER,
   MEMBERS_PREVIEW,
   RELIABILITY_LABEL_KEYS,
   RIBBON_ORDER,
@@ -477,12 +476,18 @@ function SortHead({
 }
 
 /** Six class badges; an unknown class (engine reclassified between sessions)
- * shows the payload's raw class word — never an invented tier label. */
+ * renders the localized "unclassified" word (R3-N4) — never an invented tier
+ * label and never the raw English word on the ZH page. The raw engine value
+ * rides data-cls so the reclassification is triageable. */
 function TierBadge({ cls }: { cls: UniverseClass | string }) {
   const t = useSectorDepthT();
-  const known = (CLASS_ORDER as readonly string[]).includes(cls);
+  const known = Object.hasOwn(CLASS_LABEL_KEYS, cls);
   if (!known) {
-    return <span className={styles.tier} data-cls="none">{cls}</span>;
+    return (
+      <span className={styles.tier} data-cls={cls}>
+        {t("siUniverseClassUnknown")}
+      </span>
+    );
   }
   return (
     <span className={styles.tier} data-cls={cls}>

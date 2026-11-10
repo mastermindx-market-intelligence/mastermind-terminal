@@ -380,9 +380,9 @@ def test_the_coverage_index_targets_the_live_data_dir_the_app_serves():
 def test_the_coverage_writer_is_atomic_and_stamps_a_generation(tmp_path):
     """The PRODUCER half, executed.
 
-    Atomicity is not decoration here: the deploy stages public/data as a hardlink farm
-    (`cp -al` in ops/terminal-build.sh), so an in-place truncating write from the staged build
-    would write THROUGH the shared inode into the live index.
+    Atomicity is not decoration here: the beta deploy stages public/data as a hardlink farm
+    (`cp -al` in ops/terminal-build.sh), so an in-place truncating write from that staged build
+    would write THROUGH the shared inode into the other tree's index.
     """
     import importlib.util
 

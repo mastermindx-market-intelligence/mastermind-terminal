@@ -42,7 +42,7 @@ def test_full_browser_matrix_only_skips_for_qualified_event() -> None:
     )
     assert e2e["strategy"]["fail-fast"] is False
     from scripts.ci_e2e_scope import FULL_MATRIX
-    assert len(FULL_MATRIX) == 16
+    assert len(FULL_MATRIX) == 17
     assert e2e["strategy"]["matrix"] == (
         chr(36) + "{{ fromJSON(needs.e2e-scope.outputs.matrix) }}"
     )
@@ -61,18 +61,30 @@ def test_full_browser_matrix_only_skips_for_qualified_event() -> None:
     )
 
 
-def test_only_original_browser_capture_steps_skip_on_merge_group() -> None:
+def test_pl6_vi_capture_is_selective_while_f11_keeps_its_browser_prerequisite() -> None:
     steps = jobs()["terminal-unit"]["steps"]
     by_name = {s["name"]: s for s in steps if "name" in s}
     condition = "github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'"
-    assert by_name["Prepare Chromium for original mock captures"]["if"] == condition
+    assert "if" not in by_name["Prepare Chromium for original mock captures"]
+    assert not by_name["Prepare Chromium for original mock captures"].get("continue-on-error", False)
+    f11 = by_name["Capture provider-closed F11 theses entry on this checkout"]
+    assert "if" not in f11
+    assert f11["run"] == "node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs"
+    assert f11["timeout-minutes"] == 8
+    assert not f11.get("continue-on-error", False)
     assert by_name["Capture and validate evidence on this checkout"]["if"] == condition
     assert by_name["Plan current-source evidence capture"]["id"] == "evidence_plan"
     assert by_name["Plan current-source evidence capture"]["run"] == (
         "node scripts/ci/plan-evidence-capture.cjs"
     )
     synthetic = by_name["Check immutable evidence orchestration (synthetic)"]["run"]
-    assert "scripts/ci/plan-evidence-capture.test.cjs" in synthetic
+    for name in (
+        "scripts/ci/plan-evidence-capture.test.cjs",
+        "e2e/tools/sharedShellSafeReporter.test.cjs",
+        "e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs",
+        "e2e/tools/f11_provider_closed_policy.test.cjs",
+    ):
+        assert name in synthetic
     for step in steps:
         command = str(step.get("run", ""))
         if "npx tsc --noEmit" in command or command.strip() == "npm test":

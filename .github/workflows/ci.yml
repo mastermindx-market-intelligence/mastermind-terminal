@@ -206,6 +206,32 @@ jobs:
                           with output.open("a", encoding="utf-8") as target:
                               target.write("matrix=" + json.dumps(matrix, separators=(",", ":")) + "\n")
                           print(f"e2e-scope: split protected full {project} {before} into {after}; all cases retained")
+                  # Split only the exact old protected serial row. The source
+                  # selector still owns scope; preserve custom/filtered topology.
+                  projects = (
+                      "company-intelligence-desktop", "company-intelligence-tablet",
+                      "company-intelligence-mobile", "terminal-chrome-intermediate",
+                      "w2a-workspaces",
+                  )
+                  tokens = tuple(f"--project={project}" for project in projects)
+                  legacy_serial = {"shard": "serial", "projects": " ".join(tokens), "specs": ""}
+                  rows = matrix["include"]
+                  if isinstance(rows, list) and all(isinstance(row, dict) for row in rows):
+                      related = [
+                          row for row in rows
+                          if row.get("shard") in ("serial", "serial-standalone")
+                          or any(token in str(row.get("projects", "")).split() for token in tokens)
+                      ]
+                      if related == [legacy_serial]:
+                          first = rows.index(legacy_serial)
+                          replacements = [
+                              {"shard": "serial", "projects": " ".join(tokens[:3]), "specs": ""},
+                              {"shard": "serial-standalone", "projects": " ".join(tokens[3:]), "specs": ""},
+                          ]
+                          matrix["include"] = rows[:first] + replacements + rows[first + 1:]
+                          with output.open("a", encoding="utf-8") as target:
+                              target.write("matrix=" + json.dumps(matrix, separators=(",", ":")) + "\n")
+                          print("e2e-scope: split protected full serial row; dependency chain and all cases retained")
           PY
           else
             python3 - <<'PY'
@@ -219,15 +245,18 @@ jobs:
               for name, total in (("desktop", 6), ("tablet", 4), ("mobile", 5))
               for i in range(1, total + 1)
           ]
-          matrix.append({
-              "shard": "serial",
-              "projects": " ".join(f"--project={project}" for project in (
-                  "company-intelligence-desktop", "company-intelligence-tablet",
-                  "company-intelligence-mobile", "terminal-chrome-intermediate",
-                  "w2a-workspaces",
-              )),
-              "specs": "",
-          })
+          # The Company dependency chain stays atomic. Independent projects run
+          # once in a separate whole-project row under the unchanged hang cap.
+          for label, projects in (
+              ("serial", ("company-intelligence-desktop", "company-intelligence-tablet",
+                          "company-intelligence-mobile")),
+              ("serial-standalone", ("terminal-chrome-intermediate", "w2a-workspaces")),
+          ):
+              matrix.append({
+                  "shard": label,
+                  "projects": " ".join(f"--project={project}" for project in projects),
+                  "specs": "",
+              })
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
               output.write("mode=full\n")
               output.write("matrix=" + json.dumps({"include": matrix}, separators=(",", ":")) + "\n")
@@ -282,7 +311,7 @@ jobs:
       - run: npx tsc --noEmit
       - name: Check immutable evidence orchestration (synthetic)
         timeout-minutes: 1
-        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs
+        run: node --test e2e/tools/capture_ci_evidence.test.cjs e2e/tools/capture_visual_evidence.test.cjs scripts/ci/plan-evidence-capture.test.cjs e2e/tools/sharedShellSafeReporter.test.cjs e2e/tools/capture_b_f11_10_analysis_theses_entry.test.cjs e2e/tools/f11_provider_closed_policy.test.cjs
       - name: Record PR-touched paths for the evidence drift gate
         # The planner below fails a pull request whose OWN diff drifted an
         # evidence-locked source without a recaptured, committed lock — the
@@ -306,10 +335,8 @@ jobs:
         id: evidence_plan
         run: node scripts/ci/plan-evidence-capture.cjs
       - name: Prepare Chromium for original mock captures
-        # PRs always capture. Merge groups recapture only when the actual
-        # integrated source no longer matches BOTH checked-in evidence locks.
-        # Missing/malformed source evidence fails closed to capture=true.
-        if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
+        # F11 always qualifies this admitted checkout and needs Chromium even
+        # when the PL6/VI planner can reuse both current-source evidence locks.
         timeout-minutes: 10
         run: |
           timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium \
@@ -318,6 +345,11 @@ jobs:
         if: github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'
         timeout-minutes: 85
         run: node e2e/tools/capture_ci_evidence.cjs
+      # F11 is a separate real-component contract, not an extra case in PL6/VI50.
+      # Business inputs are intercepted as unavailable before reaching API/provider code.
+      - name: Capture provider-closed F11 theses entry on this checkout
+        timeout-minutes: 8
+        run: node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs
       - run: npm test
         timeout-minutes: 20
       # Quarantined journeys are disclosed on EVERY run: a green matrix must never be read as
@@ -457,6 +489,7 @@ jobs:
           path: |
             ${{ runner.temp }}/terminal-ci-evidence/
             terminal/test-results/
+            terminal/docs/pr-crops/b-f11-10-analysis-theses-entry/
             terminal/docs/pr-crops/b-pl-6-batch-1/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/terminal-visual-intelligence/ci-${{ github.run_id }}-${{ github.run_attempt }}-*
             terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml

@@ -17,12 +17,12 @@ MERGE_REF = "refs/pull/123/merge"
 
 
 def test_full_and_focused_shard_contracts():
-    assert len(scope.FULL_MATRIX) == 16
+    assert len(scope.FULL_MATRIX) == 17
     assert {x["shard"] for x in scope.FULL_MATRIX} == {
         *(f"desktop-{i}" for i in range(1, 7)),
         *(f"tablet-{i}" for i in range(1, 5)),
         *(f"mobile-{i}" for i in range(1, 6)),
-        "serial",
+        "serial", "serial-standalone",
     }
     assert all(item["specs"] == "" for item in scope.FULL_MATRIX)
     assert [x["shard"] for x in scope.FOCUSED_MATRIX] == [
@@ -166,13 +166,15 @@ def test_required_check_never_launders_skipped_or_failed_scope():
     )
     assert jobs["e2e-scope"]["steps"][0]["with"]["fetch-depth"] == 2
     assert "ci_e2e_scope.py" in jobs["e2e-scope"]["steps"][-1]["run"]
-    for step in jobs["terminal-unit"]["steps"]:
-        if step.get("name") in ("Prepare Chromium for original mock captures",
-                                "Capture and validate evidence on this checkout"):
-            assert step["if"] == (
-                "github.event_name != 'merge_group' || "
-                "steps.evidence_plan.outputs.capture == 'true'"
-            )
+    by_name = {step["name"]: step for step in jobs["terminal-unit"]["steps"] if "name" in step}
+    condition = (
+        "github.event_name != 'merge_group' || steps.evidence_plan.outputs.capture == 'true'"
+    )
+    assert by_name["Capture and validate evidence on this checkout"]["if"] == condition
+    for name in ("Prepare Chromium for original mock captures",
+                 "Capture provider-closed F11 theses entry on this checkout"):
+        assert "if" not in by_name[name]
+        assert not by_name[name].get("continue-on-error", False)
     command = next(step["run"] for step in jobs["terminal-e2e"]["steps"]
                    if "test:e2e:responsive" in step.get("run", ""))
     assert "${{ matrix.projects }}" in command
@@ -318,6 +320,66 @@ def test_real_workflow_rejects_candidate_selector_tampering(tmp_path):
     assert matrix == scope.FULL_MATRIX
     assert "unknown_or_elevated_path" in stdout
 
+
+
+def _legacy_full_serial_matrix():
+    rows = [dict(row) for row in scope.FULL_MATRIX
+            if row["shard"] not in ("serial", "serial-standalone")]
+    rows.append({
+        "shard": "serial",
+        "projects": " ".join(f"--project={project}" for project in (
+            "company-intelligence-desktop", "company-intelligence-tablet",
+            "company-intelligence-mobile", "terminal-chrome-intermediate",
+            "w2a-workspaces",
+        )),
+        "specs": "",
+    })
+    return rows
+
+
+def test_real_workflow_splits_old_protected_serial_output_without_running_candidate(tmp_path):
+    old = _legacy_full_serial_matrix()
+    extra = {"shard": "future-owner", "projects": "--project=future-owner",
+             "specs": "", "owner_metadata": {"preserve": True}}
+    old.append(extra)
+    mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, tamper_with_selector=True,
+        base_selector_source=_protected_matrix_source("full", old),
+    )
+    assert mode == "full"
+    assert matrix == scope.FULL_MATRIX + [extra]
+    assert "split protected full serial row" in stdout
+
+
+@pytest.mark.parametrize("variant", [
+    "focused", "already-split", "filtered", "metadata", "duplicate",
+    "extra-serial", "overlapping-project", "custom-projects",
+])
+def test_real_workflow_preserves_other_protected_serial_topologies(tmp_path, variant):
+    old = _legacy_full_serial_matrix()
+    mode = "focused" if variant == "focused" else "full"
+    serial = next(row for row in old if row["shard"] == "serial")
+    if variant == "already-split":
+        old = [dict(row) for row in scope.FULL_MATRIX]
+    elif variant == "filtered":
+        serial["specs"] = "e2e/future.spec.ts"
+    elif variant == "metadata":
+        serial["owner_metadata"] = "preserve"
+    elif variant == "duplicate":
+        old.append(dict(serial))
+    elif variant == "extra-serial":
+        old.append({"shard": "serial-standalone", "projects": "--project=future-owner", "specs": ""})
+    elif variant == "overlapping-project":
+        old.append({"shard": "future-company", "projects": "--project=company-intelligence-desktop", "specs": ""})
+    elif variant == "custom-projects":
+        serial["projects"] += " --project=future-owner"
+    actual_mode, matrix, stdout = _run_workflow_selector_in_git_checkout(
+        tmp_path, install_base_selector=True, tamper_with_selector=True,
+        base_selector_source=_protected_matrix_source(mode, old),
+    )
+    assert actual_mode == mode
+    assert matrix == old
+    assert "split protected full serial row" not in stdout
 
 def _legacy_full_tablet_matrix():
     # Model the immutable protected selector that the first repaired PR run
