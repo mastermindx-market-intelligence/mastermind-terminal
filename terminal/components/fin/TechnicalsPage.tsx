@@ -24,7 +24,8 @@ import { buildYears, monthlyStats, MONTHS_EN, MONTHS_ZH } from "../../lib/season
 import { arcStateLabel } from "../../lib/plainLabels";
 import { intradayCapable } from "../ChartPanel";
 import { classify, isIntradayTf } from "../../lib/intradaySources";
-import { Disclaimer, readingToArc } from "./ForecastPage";
+import { Disclaimer } from "./ForecastPage";
+import { readingToArc } from "../../lib/analystRating";
 
 interface TechnicalsPageProps {
   sym: string;

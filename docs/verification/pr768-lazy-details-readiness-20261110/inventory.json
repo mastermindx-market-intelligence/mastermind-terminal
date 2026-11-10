@@ -1,0 +1,76 @@
+{
+  "files": {
+    "README.md": {
+      "bytes": 3118,
+      "gitBlob": "8ae5b4473befc26906f481597cffbdc9d77e6688",
+      "sha256": "f352ec30fcebac8e4ddc95212418550e3b0423ce24a2b2c2e357b1ddce094ac3"
+    },
+    "artifacts/.last-run.json": {
+      "bytes": 45,
+      "gitBlob": "cbcc1fbac11a74b608b2b3edc3a2ffd6ab639cb2",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    "artifacts/drawing-system-phone-drawi-55433-lision-free-editing-surface-mobile/trace.zip": {
+      "bytes": 6335792,
+      "gitBlob": "bee73289c89ff7a8774cd4105ef933b7dc855037",
+      "sha256": "ce81146c8390e85d9dae542f8bd3da809367e661cfa69b6aed87a379979fc2aa"
+    },
+    "browser-report.json": {
+      "bytes": 9955,
+      "gitBlob": "66a8b7a14723d0fdf6a5a2da753a61a0a0ee9e41",
+      "sha256": "d8a5e93fc5ae40a92d250df6036b37d873aac2cebf18b5b168f70feca54e7342"
+    },
+    "browser.log": {
+      "bytes": 922,
+      "gitBlob": "35614583ffe1574188e4d08084af9646e1807a4d",
+      "sha256": "3a7d105a58a14b741a0debaf1ff04c707ed25cdad9115b4e90ea9225a37032c8"
+    },
+    "config.json": {
+      "bytes": 527,
+      "gitBlob": "98058d8a1cefd5ca0c0ede3200cf5dbf6d15a6d3",
+      "sha256": "f0048546d12d3da0dd3ee3cc5ea0f985517b939a2bcad4a3090b4e106970f2c7"
+    },
+    "execution.json": {
+      "bytes": 2169,
+      "gitBlob": "83d3be40bf45db47f64ff96ac00a630d4f8bd84c",
+      "sha256": "be0ba7c5476746814e556359bb8ab5ae6d7421299a748196e69127369e426e47"
+    },
+    "lifecycle.json": {
+      "bytes": 928,
+      "gitBlob": "cf3ab044bd13e4e82eaba8098cc7b65fcf1b2b59",
+      "sha256": "fb5f9fc551392e40c9c7584ef7750bbb41917d45b716db419f8713958cca4e33"
+    },
+    "preparation.json": {
+      "bytes": 811,
+      "gitBlob": "5b46131ea5cdefb6c6350c104fe85238f7fbda8c",
+      "sha256": "6214bbb6e79d385de950bc7aa5da9ed36d7ccaabc208ffec5d0bdbbb20fb9f75"
+    },
+    "run-browser.py": {
+      "bytes": 6839,
+      "gitBlob": "62c247581a99b0835dd0e908a7202714be1552f2",
+      "sha256": "11d33b1e38523e768dbf0e697e46829312b01f8c9f62c004e3c36699001b5dd9"
+    },
+    "selection.log": {
+      "bytes": 149,
+      "gitBlob": "452619be5d8bd959bd6564dc4016ebb80fc05c87",
+      "sha256": "ea8601b62f84bc41a8bfa7f508cd5a449ceb5c0cb0878374e3ae1a921b620cd0"
+    },
+    "source-after.json": {
+      "bytes": 232030,
+      "gitBlob": "40a77ab49d0cb6773a0f9a49f509527a94b16a37",
+      "sha256": "a7dd4c0e8c986fe122a50d6cfa9cabe154ba7273daa7b2f3288ca38b7f212c5b"
+    },
+    "source-before.json": {
+      "bytes": 232030,
+      "gitBlob": "40a77ab49d0cb6773a0f9a49f509527a94b16a37",
+      "sha256": "a7dd4c0e8c986fe122a50d6cfa9cabe154ba7273daa7b2f3288ca38b7f212c5b"
+    },
+    "source.diff": {
+      "bytes": 733,
+      "gitBlob": "7380c9ff41d8137dcaf20a2b9c9483137eb9a41a",
+      "sha256": "0af9e1d5f0877cd36a1d95163826d022bed4316b4419e185bd9e7ad0d65da19e"
+    }
+  },
+  "pr": 768,
+  "schema": "terminal_pr_test_readiness_inventory.v1"
+}

@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 /**
  * Is Hong Kong actually a cumulative-year-to-date market?
  *
@@ -28,9 +29,10 @@
  *
  * The second suite pins the source-grounded semiannual contract and no-double-difference gate.
  */
-import { createElement } from "react";
+import { act, createElement } from "react";
+import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   CUMULATIVE_YTD_MARKETS,
   filesCumulativeQuarters,
@@ -333,4 +335,143 @@ describe("EarningsPage basis and signed-surprise states", () => {
     expect(html.match(/−10\.00%/g)).toHaveLength(2);
     expect(html).not.toContain(">10.00%</span>");
   });
+});
+
+function earningsSection(html: string, marker: string): HTMLElement {
+  const host = document.createElement("div");
+  host.innerHTML = html;
+  const section = host.querySelector<HTMLElement>(`[${marker}]`);
+  expect(section).not.toBeNull();
+  return section!;
+}
+
+describe.each([false, true])("Earnings Pulse follows the reported basis, zh=%s", (zh) => {
+  it("shows annual-only actuals in Pulse and Coverage instead of false absence", () => {
+    const fund = mkEarningsFund({
+      fy: [{ period: "2025", eps_a: 1.25, eps_e: null, rev_a: 123_000_000, rev_e: null, surp_pct: null }],
+    });
+    const before = JSON.stringify(fund);
+    const html = renderToStaticMarkup(createElement(EarningsPage, { fund, sym: "2720.HK", zh }));
+    const pulse = earningsSection(html, "data-earnings-vnext-pulse");
+    const coverage = earningsSection(html, "data-earnings-vnext-coverage");
+    expect(pulse.textContent).toContain("1.25");
+    expect(pulse.textContent).toContain("123.00M");
+    expect(pulse.querySelector("article:nth-child(2)")!.textContent).not.toContain(zh ? "不可用" : "Not available");
+    expect(pulse.querySelector("article:nth-child(3)")!.textContent).not.toContain(zh ? "未发布" : "Not published");
+    for (const section of [pulse, coverage]) {
+      expect(section.textContent).toContain("2025");
+      expect(section.textContent).toContain(zh ? "年度" : "Annual");
+      expect(section.textContent).toContain(zh ? "仅有已报告实际值" : "Reported actual only");
+      expect(section.textContent).not.toContain(zh ? "实际值与预期口径匹配" : "Matched actual and estimate");
+    }
+    expect(JSON.stringify(fund)).toBe(before);
+  });
+
+  it("keeps different semiannual EPS/revenue periods separate from a future quarter", () => {
+    const series = { periods: ["Q3 '26"], avg: [999], high: [999], low: [999], n: [1] };
+    const fund = mkEarningsFund({
+      quarterly: mkCanonicalSemiannual(),
+      estimates: {
+        eps_q: series,
+        eps_fy: { ...series, periods: [], avg: [] },
+        rev_fy: { ...series, periods: [], avg: [] },
+        growth: { rev_yoy: null, eps_yoy: null },
+      } as FundEstimates,
+    });
+    const before = JSON.stringify(fund);
+    const html = renderToStaticMarkup(createElement(EarningsPage, { fund, sym: "0001.HK", zh }));
+    const pulse = earningsSection(html, "data-earnings-vnext-pulse");
+    const coverage = earningsSection(html, "data-earnings-vnext-coverage");
+    const eps = pulse.querySelector(".fin-earn-vnext-pulse-grid article:nth-child(2)")!;
+    const revenue = pulse.querySelector(".fin-earn-vnext-pulse-grid article:nth-child(3)")!;
+    expect(eps).not.toBeNull();
+    expect(revenue).not.toBeNull();
+    expect(eps.textContent).toContain("4.17");
+    expect(eps.textContent).toContain("H1 2025");
+    expect(revenue.textContent).toContain("H2 2025");
+    expect(eps.textContent).toContain(zh ? "半年度" : "Semiannual");
+    expect(revenue.textContent).toContain(zh ? "半年度" : "Semiannual");
+    expect(coverage.textContent).toContain("H1 2025");
+    expect(coverage.textContent).toContain("H2 2025");
+    expect(pulse.textContent).toContain(zh ? "报告期不同" : "Different periods");
+    expect(pulse.textContent).not.toContain("999");
+    expect(pulse.textContent).not.toContain("Q3");
+    expect(pulse.textContent).not.toContain(zh ? "季度" : "Quarterly");
+    const host = document.createElement("div");
+    host.innerHTML = html;
+    const periodHeaders = Array.from(host.querySelectorAll(".fin-earn-module:last-child thead th"))
+      .slice(1).map((cell) => cell.textContent);
+    expect(periodHeaders).toEqual(CKH_PERIODS);
+    expect(JSON.stringify(fund)).toBe(before);
+  });
+
+  it("does not combine a contract-only revenue estimate with statement actuals", () => {
+    const fund = mkEarningsFund({
+      quarterly: mkCanonicalSemiannual(),
+      q: [{
+        period: "Q1 2026", end: "2026-03-31", report_date: "2026-04-30",
+        eps_a: 1, eps_e: 1, rev_a: null, rev_e: 999, surp_pct: 0, tx: null,
+      }],
+    });
+    const html = renderToStaticMarkup(createElement(EarningsPage, { fund, sym: "TEST.HK", zh }));
+    const pulse = earningsSection(html, "data-earnings-vnext-pulse");
+    const revenue = pulse.querySelector(".fin-earn-vnext-pulse-grid article:nth-child(3)")!;
+    expect(revenue).not.toBeNull();
+    expect(revenue.querySelector("strong")!.textContent).toBe("—");
+    expect(revenue.textContent).not.toContain(zh ? "财务报表支持" : "Statement-backed");
+    const coverage = earningsSection(html, "data-earnings-vnext-coverage");
+    expect(coverage.textContent).toContain(zh ? "未与已报告口径匹配" : "Not matched to reported basis");
+  });
+
+  it("retains zero actuals without pairing them to a later forward estimate", () => {
+    const series = { periods: ["2026"], avg: [999], high: [999], low: [999], n: [1] };
+    const fund = mkEarningsFund({
+      fy: [{ period: "2025", eps_a: 0, eps_e: null, rev_a: 0, rev_e: null, surp_pct: null }],
+      estimates: {
+        eps_q: { ...series, periods: [], avg: [] }, eps_fy: series, rev_fy: series,
+        growth: { rev_yoy: null, eps_yoy: null },
+      } as FundEstimates,
+    });
+    const html = renderToStaticMarkup(createElement(EarningsPage, { fund, sym: "ZERO.HK", zh }));
+    const pulse = earningsSection(html, "data-earnings-vnext-pulse");
+    expect(pulse.querySelector(".fin-earn-vnext-pulse-grid article:nth-child(2) strong")!.textContent).toBe("0.00");
+    expect(pulse.querySelector(".fin-earn-vnext-pulse-grid article:nth-child(3) strong")!.textContent).toBe("0.00");
+    expect(pulse.textContent).toContain("2025");
+    expect(pulse.textContent).not.toContain("999");
+    expect(pulse.textContent).toContain(zh ? "仅有已报告实际值" : "Reported actual only");
+    expect(pulse.textContent).not.toContain(zh ? "实际值与预期口径匹配" : "Matched actual and estimate");
+  });
+});
+
+it("preserves the EPS choice while the Revenue child resets across a missing fund", async () => {
+  vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
+  vi.stubGlobal("ResizeObserver", class { observe() {} disconnect() {} });
+  vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(1280);
+  const host = document.createElement("div");
+  document.body.append(host);
+  const root = createRoot(host);
+  const fund = mkEarningsFund({
+    q: [{
+      period: "Q1 2026", end: "2026-03-31", report_date: "2026-04-30",
+      eps_a: 1.5, eps_e: 1, rev_a: 90, rev_e: 100, surp_pct: 50, tx: null,
+    }],
+    fy: [{ period: "2025", eps_a: 1.25, eps_e: null, rev_a: 123_000_000, rev_e: null, surp_pct: null }],
+  });
+  try {
+    await act(async () => root.render(createElement(EarningsPage, { fund, sym: "TEST.HK" })));
+    const epsAnnual = host.querySelector<HTMLButtonElement>("[data-earnings-vnext-pulse] .fin-toggle button")!;
+    const revenueAnnual = host.querySelector<HTMLButtonElement>(".fin-earn-module:last-child .fin-toggle button")!;
+    await act(async () => { epsAnnual.click(); revenueAnnual.click(); });
+    await act(async () => root.render(createElement(EarningsPage, { fund: null, sym: "TEST.HK" })));
+    await act(async () => root.render(createElement(EarningsPage, { fund, sym: "TEST.HK" })));
+    expect(host.querySelector("[data-earnings-vnext-pulse] .fin-toggle .on")!.textContent).toBe("Annual");
+    expect(host.querySelector(".fin-earn-module:last-child .fin-toggle .on")!.textContent).toBe("Quarterly");
+    expect(host.querySelector(".fin-earn-vnext-pulse-grid article:nth-child(2) strong")!.textContent).toBe("1.25");
+    expect(host.querySelector(".fin-earn-vnext-pulse-grid article:nth-child(3) strong")!.textContent).toBe("90.00");
+  } finally {
+    await act(async () => root.unmount());
+    host.remove();
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  }
 });

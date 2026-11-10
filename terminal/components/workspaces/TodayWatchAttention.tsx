@@ -70,8 +70,8 @@ function parseWatchlistPayload(payload: unknown): ServerWatchlist[] | null {
 const COPY = {
   en: {
     eyebrow: "Saved attention",
-    title: "Needs your attention",
-    hint: "Choose a saved symbol to inspect its retained event sources.",
+    title: "Your watchlists",
+    hint: "Saved-list order, not ranked alerts. Check a name for event evidence.",
     loading: "Reading your saved watchlists…",
     refreshing: "Refreshing saved watchlists…",
     check: "Check event evidence",
@@ -86,8 +86,8 @@ const COPY = {
   },
   zh: {
     eyebrow: "已保存关注",
-    title: "关注事项",
-    hint: "选择已保存代码，查看其已保留事件来源。",
+    title: "你的关注列表",
+    hint: "按关注列表顺序展示，并非预警排名。选择标的查看事件证据。",
     loading: "正在读取已保存关注列表…",
     refreshing: "正在刷新已保存关注列表…",
     check: "核对事件证据",
@@ -187,7 +187,7 @@ function TodayWatchAttentionSession({ ownerKey, scope, onUnauthenticated }: Prop
       {rows.length === 0 ? <p className={styles.notice}>{lists !== null && lists.length === 0 ? c.emptyLists : c.emptyMembers}</p> : <>
         <ul className={today.watchList}>
           {rows.map(row => <li key={`${row.listId}|${row.symbol}`} className={today.watchRow}>
-            <div className={today.watchIdentity}><strong>{row.symbol}</strong><p>{row.listName}</p></div>
+            <div className={today.watchIdentity}><Link href={`/analysis?symbol=${encodeURIComponent(row.symbol)}`} aria-label={lang === "zh" ? `分析 ${row.symbol}` : `Analyze ${row.symbol}`}>{row.symbol}</Link><p>{row.listName}</p></div>
             <button className={today.quietAction} type="button" onClick={() => setSelection({ listId: row.listId, symbol: row.symbol })}>{c.check}<span aria-hidden="true">→</span></button>
           </li>)}
         </ul>

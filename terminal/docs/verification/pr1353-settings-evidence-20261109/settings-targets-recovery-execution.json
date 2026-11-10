@@ -1,0 +1,94 @@
+{
+  "acceptedAlertReuse": {
+    "cases": 16,
+    "currentSourceDelta": [
+      "terminal/e2e/tools/capture_w9t_f08_13_targets.cjs"
+    ],
+    "manifestSha256": "e5b0474fa2047c4cbdd12f8e077c79217bda5e392d459d876634f97639dbb7bb",
+    "reason": "The sole change is the separate Settings-targets producer; Alert producer, shared server owner, all rendered sources and original images remain byte-identical."
+  },
+  "actualFiles": [
+    "PortfolioTargetsSettings-empty-390-en.png",
+    "PortfolioTargetsSettings-empty-390-zh.png",
+    "PortfolioTargetsSettings-empty-1440-en.png",
+    "PortfolioTargetsSettings-empty-1440-zh.png",
+    "PortfolioTargetsSettings-populated-390-en.png",
+    "PortfolioTargetsSettings-populated-390-zh.png",
+    "PortfolioTargetsSettings-populated-1440-en.png",
+    "PortfolioTargetsSettings-populated-1440-zh.png"
+  ],
+  "branchHead": "80e69c39e00b6c16c5fc32b5ca1e9146d31b264d",
+  "command": [
+    "node",
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/review/terminal-pr1353-settings-evidence-20261109/terminal/docs/verification/pr1353-settings-evidence-20261109/settings-capture-owner-recovery.cjs"
+  ],
+  "completedAt": "2026-11-09T14:24:55.168389+00:00",
+  "exit": 0,
+  "expected": 8,
+  "images": {
+    "PortfolioTargetsSettings-empty-1440-en.png": {
+      "bytes": 237171,
+      "height": 1544,
+      "sha256": "0d10e629c046238ed3db2e53e834ae86d817e41ac6083e2eb75d2f3c27dc35bb",
+      "width": 2280
+    },
+    "PortfolioTargetsSettings-empty-1440-zh.png": {
+      "bytes": 238801,
+      "height": 1544,
+      "sha256": "a5a62f4a69d533e49517bca56d7d9feaa447cf0d69d41e812b08a1e94628429c",
+      "width": 2280
+    },
+    "PortfolioTargetsSettings-empty-390-en.png": {
+      "bytes": 144793,
+      "height": 1688,
+      "sha256": "0f3d15f28df8e3af6d8eac6198cd8464ec01ea162631efc0953558f3f32b2f8e",
+      "width": 780
+    },
+    "PortfolioTargetsSettings-empty-390-zh.png": {
+      "bytes": 144635,
+      "height": 1688,
+      "sha256": "d771df38d5c57cf738039754439badd7a406bbd62adbab18af23bf52b0bca45e",
+      "width": 780
+    },
+    "PortfolioTargetsSettings-populated-1440-en.png": {
+      "bytes": 255177,
+      "height": 1544,
+      "sha256": "b16675ffc282fd346bc5b2729bb283941878b74fb424eba4510ec33de90525fa",
+      "width": 2280
+    },
+    "PortfolioTargetsSettings-populated-1440-zh.png": {
+      "bytes": 261435,
+      "height": 1544,
+      "sha256": "aa0e070feb5c08bd96c232f0e260b75a87b7e0b941c6c19e31bcb656b4a854bb",
+      "width": 2280
+    },
+    "PortfolioTargetsSettings-populated-390-en.png": {
+      "bytes": 154516,
+      "height": 1688,
+      "sha256": "9a7391b97773e832b9db2a94c1961447b85486bbcd2fbfc68d399a44f0eea8cc",
+      "width": 780
+    },
+    "PortfolioTargetsSettings-populated-390-zh.png": {
+      "bytes": 162040,
+      "height": 1688,
+      "sha256": "bbc144f3b9266050b003e1e36c351b38df476c782614613c7e4e57d4d0819f39",
+      "width": 780
+    }
+  },
+  "indexTreeAtStart": "079533891f2de11113949a4542ddb901be71633e",
+  "logSha256": "327983b42a093650c7cd39bfa84875e610e2603aebb70e1208358cb4eb1c1bc8",
+  "manifestSha256": "0e77dbd4df55595ab455aaf688846d62522e8fc6a521e879e7c256897117d610",
+  "nativeReadbacksSha256": "865a10ebc6f03f8a902bef718d8e97ee23e088cb8b596821054808cf0a872737",
+  "nextLockAbsent": true,
+  "port": 3804,
+  "portClosed": true,
+  "protectedMaster": "1c0bf028cf72539a4d3fcb17fa137ee474d764f9",
+  "schema": "terminal_pr1353_settings_recovery.v1",
+  "seconds": 83.92,
+  "serverOwnerSha256": "6287187c267b685b38719c90743047fdce9fef72803d38a83d37dda54ab2563b",
+  "sourceAfterSha256": "dedd0645cc1251ed22b36012c62816b9127a672ff510842b1b525dfc637e737f",
+  "sourceBeforeSha256": "dedd0645cc1251ed22b36012c62816b9127a672ff510842b1b525dfc637e737f",
+  "sourceFiles": 3388,
+  "sourceStable": true,
+  "startedAt": "2026-11-09T14:23:31.248595+00:00"
+}

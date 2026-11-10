@@ -1,0 +1,541 @@
+{
+  "schema": "terminal.protected_preview_delta.v1",
+  "beforeProtected": "cd2a335f8f8fcf4fa947aa8a47f7dbf5748b2fdc",
+  "afterProtected": "4df7aad16ea775ad8112858a5095210c076efe08",
+  "status": "APPLIED_PREVIEW_ONLY_AWAITING_QUALIFICATION",
+  "files": [
+    {
+      "path": "ingest/build_macro_symbols.py",
+      "beforeSha256": "e0bfcd0e993cb4c57098f4243c6e633d0a3a24acea90f00c63263b9d9eb6fb6a",
+      "afterSha256": "2152bc73eec1975caeb2ef9eade11d3f26f67a1df886685189096bf4e0efac30",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "supabase/migrations/0048_brief_delivery_team_sharing.sql",
+      "beforeSha256": null,
+      "afterSha256": "f3d6e3a760eea7b8103efaa3b4ed3c4eed68852722bdc4ee3692ca0b46ebdefd",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "supabase/migrations/README.md",
+      "beforeSha256": "815738c5d53359a3d4370feae543b97450c216f3a0e0db278f6269d460fd3a84",
+      "afterSha256": "20011891f4c0d0fd8835a7a2d579a7dd6fc2951fa5f79573af75bcda6b6745fc",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "supabase/migrations/RESERVATIONS.json",
+      "beforeSha256": "3f1a06ca69607674423049d535c469096cef09c2830ecb8018e94a6e75c6cb0d",
+      "afterSha256": "b8346843d4400e753bd563e2b107a8b88b0474e1805b86bda538b2f594299baa",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/app/(shell)/briefs/[deliveryId]/sharing/page.tsx",
+      "beforeSha256": null,
+      "afterSha256": "2a651d883c172fe980a3da529c2b030f898d2fb74bc91793915401d431537201",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/app/(shell)/briefs/loading.tsx",
+      "beforeSha256": null,
+      "afterSha256": "18006fc4b583196be170ba539a5a5df65e5c4d483560fb11a412836e0124dbc6",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/app/(shell)/briefs/shared/[deliveryId]/page.tsx",
+      "beforeSha256": null,
+      "afterSha256": "d20706c2620903fa2ef2806b1deba975ebfd052e7e860440409e1010ad71d33a",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/app/api/briefs/deliveries/[deliveryId]/sharing/route.ts",
+      "beforeSha256": null,
+      "afterSha256": "5009e40530aa3cc1f75e06166cbfaa94862a2020614f15e154ffe9e67d74a761",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/app/api/briefs/shared/[deliveryId]/route.ts",
+      "beforeSha256": null,
+      "afterSha256": "6fa0286517e6907d9a2685fa75824fe3381d3ed25b871fb232e6a5af46f100e8",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/components/briefs/BriefSharingReview.tsx",
+      "beforeSha256": null,
+      "afterSha256": "e0fe15b81e6db55ee39a7fb6a78568b0a963950c8114a4f95a6e88ad2e5c1c56",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/components/briefs/BriefsInbox.tsx",
+      "beforeSha256": "7ab9a0c9ffcad73e430593e7fd7eec72de56cab22d65344c0346875b4b66cde5",
+      "afterSha256": "54af0c9368fe9f5748cd246f2480a46afac5d14b34688f9cd3c808f575b5daeb",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/components/briefs/SharedBrief.tsx",
+      "beforeSha256": null,
+      "afterSha256": "730362c9e5ad03694884defa118a2508ba1ab025234168a0b8bf6d46d5c10c3f",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/components/briefs/brief-sharing.module.css",
+      "beforeSha256": null,
+      "afterSha256": "406e6411f07e81c8e2de115df70eccbde041bf52ef0057acbb8bfe90f887d381",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/components/briefs/briefs.module.css",
+      "beforeSha256": "bdec4855420f396e8ad30565741c70904d55090310298e396f75e3e44c41b573",
+      "afterSha256": "bb6f2189bf88e48677535af2267224a0fe1fea163524347135ddd4267becc6b6",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/components/gexdesk/GexDeskView.tsx",
+      "beforeSha256": "09b47b889c7d2f463a6fdca8572f92bd1c77218bc4800b93ffbd45aec1f0b509",
+      "afterSha256": "d03a5c9baf6be1641dcd0049e517ae20fc34c2516b4464e42e467e7b552929b1",
+      "rule": "three-way-text-composition"
+    },
+    {
+      "path": "terminal/components/options-companion/GexMarketMemory.tsx",
+      "beforeSha256": "912b4570620d9bc9675e851ae58e8cad8bd6bf700e4ad2bb1d33ac835287aa71",
+      "afterSha256": "6d166c952ad9ea732c1917b9984eb4d5bd14b12298c247f4524197d6998310cb",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/components/researchlab/OptionsResearchLab.tsx",
+      "beforeSha256": "7f1a0b3f630410273fbf3f58db716a61f80a78de8859541fc9cb44889717c078",
+      "afterSha256": "365223a8182effc04fa956a8004062aa86c1426de8fc24eccebf6952e1571820",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/components/researchlab/ResearchReportedGammaPanel.tsx",
+      "beforeSha256": null,
+      "afterSha256": "8a4fd4e87d3342845b244a5bc2f7ce4e980851617805770ddfb1f328f5e01e15",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/components/researchlab/researchReportedGamma.ts",
+      "beforeSha256": null,
+      "afterSha256": "21d9d9f10d810a07bd9ae6acb28696d818dbe47e1b30c346c0bb0f7cdc1319f2",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/components/workspaces/ThesisWorkspace.tsx",
+      "beforeSha256": "f8aa79a228b85a0c10050b06d24665a95fc149ea56a00e8610472cc7a2a7849c",
+      "afterSha256": "75e21483cc320c002b4e0b81213404985e486e33b7908d70288190cfb723ca6f",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-4-research-views/EVIDENCE.yml",
+      "beforeSha256": "30f100646eb16e9123417bc322719e5da93229889bf0b63fb0b53f50ca37f54d",
+      "afterSha256": "a2ab38f1425edbb1874893c71690f3fc87e5676e0c83778c2524fc93e9ab521e",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-4-research-views/empty-390-zh.png",
+      "beforeSha256": "062558138aef3ae2b66af586307e4667bb2e6f0746f54fc237392223482babe2",
+      "afterSha256": "41c2a83e71367abe57becc23e668548fef46a6f17c81b31cdd96c60b0cf8f42b",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-4-research-views/save-flow-1440-zh.png",
+      "beforeSha256": "1cef4c1688bbfe21ae62c384956fe4148957585790e585f21de1c8b676bacaac",
+      "afterSha256": "fda0c1f761ebc0964b32112f1e51d0558e90d84b601561ebf514eb98e477301d",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-4-research-views/view-subject-empty-1440-zh.png",
+      "beforeSha256": "9817e7dfa4eaeb3860b6ccd219e19c874dcffdfc99573a5eb251900744a70870",
+      "afterSha256": "cdf2f045cf61c946f0cae7f491742dffcab520a32f17c8c42e768a1afd8a5afb",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-4-research-views/window-closed-390-zh.png",
+      "beforeSha256": "9663209e3abed4b341e817fb8de98e298592f9723b1fa93071fef2798e4834fa",
+      "afterSha256": "e3b3c332c5fb00ee8a20223c2e9ada0631047ac704dad1c069b9134c0bbaabd2",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-5-thesis-proposals/EVIDENCE.yml",
+      "beforeSha256": "74dea903982b4b9b99090cea4d7baed81aee566738e303c36a6cf8b73cfde2d9",
+      "afterSha256": "e14709da398bda9adb7ac499bc74313cb95fd6214c1b8c3806a396180129ac24",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-5-thesis-proposals/desktop-en-empty.png",
+      "beforeSha256": "13c754da16bfacfa99ef422354a8a012cde64057579f8bbfa5b3e823033c8588",
+      "afterSha256": "aa85ce44c3b431d21378887bf6fda8f7560e064014d8cad36535ef656d5fb3a3",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-5-thesis-proposals/desktop-en-populated.png",
+      "beforeSha256": "108213fb7e74b06c00d78ecfc505c6c6984479ea954921b7392b8f0a73da5146",
+      "afterSha256": "612dc6924cded60ad29341c7da1cd55b7fbed2e22af8c67cd79dfe57bb83695e",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-5-thesis-proposals/desktop-zh-empty.png",
+      "beforeSha256": "7b4ec9b655ec6952befe83ea2b61b5c219f27f914e07200b6db94cbe956cb08b",
+      "afterSha256": "fd2477ff32b9b86e17223c6a42b6121aa27501b321f25a15addd92c2fb19f602",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-5-thesis-proposals/desktop-zh-populated.png",
+      "beforeSha256": "856e71edaed4c5b1a3273749273ec6279c271bbeb04776766946e6751b44aa6c",
+      "afterSha256": "ec8f5409c5431cd8cacafdda9a758e1b9ec675e909038ff1165d4e5fcd33bef5",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-5-thesis-proposals/mobile-en-empty.png",
+      "beforeSha256": "5e3b51225f3d58003146842c44d3e5262d336b1a74fc47639ee6f088cf3aaf93",
+      "afterSha256": "5d0e7fe6359c43a0600d1b09f1a4f91760ba13a859311adcb4fcecf0ffa1cb9b",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-5-thesis-proposals/mobile-en-populated.png",
+      "beforeSha256": "7a9c211f562b169707a00c0ed2787aa1d2ce0d39d342a912a81c8d5aa4f97190",
+      "afterSha256": "c9821a8d427354f4b982ae1f03dfdead9c5b9a8a661671c20ddbeebce22babbc",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-5-thesis-proposals/mobile-zh-empty.png",
+      "beforeSha256": "6429ddaec140674f5d3bf47bb6af3aa741e355b8ef40d514812fc47d1aa67897",
+      "afterSha256": "89aca912bdc900755d94d90e3de5b0f03b0a195a9589ceda71d155272bc6e98f",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-5-thesis-proposals/mobile-zh-populated.png",
+      "beforeSha256": "518e5f60dc989ca9227bb326c4f2bd81b2f694e10e8312612f157b201c86e268",
+      "afterSha256": "cff511413b83947a1bbd89d18be15725710edda9e14433fabeb2246681188de4",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/EVIDENCE.yml",
+      "beforeSha256": "8d7869448ab81deb5dcf8b1ede601dba35acf77102a6d3d1c8f735a10a84391d",
+      "afterSha256": "763412350de378e1d371909b1d7ec7a8e19a0c199f315ffb84011da6801b22c9",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/empty-1440-zh.png",
+      "beforeSha256": "220f25aa891404929143d152977f72ac6667daca389c187c8349cc9c0df1a1e2",
+      "afterSha256": "7bc2fe284488afdff77bbd7e923a68bd2e66812285a649ff7b8e22cbf313e87d",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/empty-390-zh.png",
+      "beforeSha256": "9a5edb98ae3c812b85a4340d0eb8dd8b87d6ae9fbbfa9149ba3f1dd11f00ec50",
+      "afterSha256": "ce3071980d2b043c83948e6f123c8c287a94363200dc961ba1d3cd98bfa96ef7",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/list-1440-zh.png",
+      "beforeSha256": "9260dd3af487dec101a614df59e9848b8821feb586031b63ef94e1db823adea2",
+      "afterSha256": "ad18a92d785f353d1ffa7e268d34d42c684706e991d5fba8673b1267d4b46340",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/list-1440.png",
+      "beforeSha256": "514fa9b7c5e716b14c71a217b098c51d690f35f2f36de3673abe0df9d2a96047",
+      "afterSha256": "922fb39845d183d1e807a7597fc75775c9e2e02ab1c4ba7507db30df85fe287c",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/list-390-zh.png",
+      "beforeSha256": "756926f46593d74285e0f85037f6b8ac9844bbae7eed5e4ec9c4a0e533254e13",
+      "afterSha256": "b6d29a5215c981c1784019804336ee023770235cc212eef212c940b3d81f0584",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f11-7-recurring-briefs/list-390.png",
+      "beforeSha256": "c87b218cf7ddf9897a148119b423f94f2c821d7af04e47b35d4addc267cade2a",
+      "afterSha256": "17a7b332ec48689e19ec002b7e4a66c6775d4db9365034f4599d2ae0051de490",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f13-6-claim-form/EVIDENCE.yml",
+      "beforeSha256": "ff488ab2bca10fe135228974589f45a08788cf4c4a656c657ef70940704735bf",
+      "afterSha256": "e29088ec353f2bb48166d241e8f42da74d49b3a6456790e068005f030593a611",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f13-6-claim-form/desktop-en-filled.png",
+      "beforeSha256": "d01ff84135f4bffcfcd4a6d54adad250e707d68dab29173d06e82afa56b85617",
+      "afterSha256": "44d1e97cd2aa6a13ff9bf3639b7902aac7ec109980b6843456ec39bbc2266955",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f13-6-claim-form/desktop-zh-empty.png",
+      "beforeSha256": "77245449e2c53c5f842719e5c100f0a04cf9c625864cd2134264ae7a23591993",
+      "afterSha256": "297dbdd36310ba19307e078f418128c269d9c800264672e9fbc4ab41d3f9cb54",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f13-6-claim-form/desktop-zh-entry.png",
+      "beforeSha256": "bd77a8989fb91fc62a838ae543e9000d92308bbd0aba11f38f0a879ace7243bc",
+      "afterSha256": "22a9460e997ebffedb778bc01abf69340da96fe6d8f6d5256b08fcf933703ec8",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f13-6-claim-form/desktop-zh-filled.png",
+      "beforeSha256": "254da77e5af92538349945b93c4d37e32ba1b15d88e5066aeb16245feadf90b5",
+      "afterSha256": "94dd69eda268ec3568787daf87dcd05b36bda5f62ac05774c1108dd028516fcc",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f13-6-claim-form/mobile-en-filled.png",
+      "beforeSha256": "9956a3e2a3fb50a8ca0e65688fb2ec9ae2b4d3a27d0e86190e43cc65a881fa22",
+      "afterSha256": "152f0374246544d32bf8d643e052b45ee9a68e1da803de4cca8d68ad90fff131",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f13-6-claim-form/mobile-zh-empty.png",
+      "beforeSha256": "c95d27c27201ef73c0e392123a09a1428d968dfe970ede793cb2723d518bcbc7",
+      "afterSha256": "220d79b9c501ca6f7daf844f11e08f8b7eb992f5ebd02e6a8289a528d8b8e09d",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f13-6-claim-form/mobile-zh-entry.png",
+      "beforeSha256": "d0caedae5938b1603b3665fa048b2b8cb147741a455b8e629578a2d68841509b",
+      "afterSha256": "0e57bc3599b758566b89fef817889ccd6b1d06a156533f15ed2e105d65f2f429",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-f13-6-claim-form/mobile-zh-filled.png",
+      "beforeSha256": "cccd32238b960afc2b6069f811819a4b89ba8ca4d1e0ff86f870baddc2a61e05",
+      "afterSha256": "aa8ad635fa808bf6b0fa72cf8b952231182abf300794e77ef4eec0bd0cb857f2",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-j1-reopen-20261104/README.md",
+      "beforeSha256": null,
+      "afterSha256": "c9f251bdd4b69314ce766fc1064513e7b2e6590081b3a4ed9cd6d82c775ba8f1",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-j1-reopen-20261104/desktop-reopened-a.png",
+      "beforeSha256": null,
+      "afterSha256": "e24b667c9c80d30e65dbbf9a4e481929f95b99f14c724e43eb0468bfafec7d55",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-j1-reopen-20261104/mobile-reopened-a.png",
+      "beforeSha256": null,
+      "afterSha256": "ba1e05403587d6f0df0cc281dcad384660370e660ca05a651fae2b0b93a0abe4",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/b-j1-reopen-20261104/tablet-reopened-a.png",
+      "beforeSha256": null,
+      "afterSha256": "e26bc6796b95366042c9e2235de48939a5ca9a8e57f1ac1428d4ec38259d8c2e",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml",
+      "beforeSha256": "82cc6f4b522b5628fa492cadfcee5b2978f5fd143b08845a2e8a4abfad05dc29",
+      "afterSha256": "b91933ced6e1c284ba7523c6c707f45cb05a4ae2142c7e4e0743cd2c31295faa",
+      "rule": "append-protected-history-defer-active-source-lock"
+    },
+    {
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml",
+      "beforeSha256": "cb2154df1ec84d899115cd59a12d004c6d62d97b436cc1dafa5bdbd4c7fbc6d7",
+      "afterSha256": "a19e2fdfd07401f39e002f5014371a1ebbe1895b75ef727f006978b20c2c03bf",
+      "rule": "append-protected-history-defer-active-source-lock"
+    },
+    {
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/lab-gamma-recapture-20261104.json",
+      "beforeSha256": null,
+      "afterSha256": "58ffdbfc7821e7a59baff21c0afb99b582c9aa0f505bc18539f85fcebcb37955",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/docs/verification/brief-team-sharing/inbox-recapture.json",
+      "beforeSha256": null,
+      "afterSha256": "8ba384d9f5adfa97d9ed6ecd0334ebc3178c9a0bf6a783b36321950c5ac836cd",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/e2e/market-ontology-context.spec.ts",
+      "beforeSha256": "aa25bbce7bfde624c2facb548c937a08ea83b344c7512fe3a069628305d1bce3",
+      "afterSha256": "24d3d250026370a5bd220f3fe1d0766307c10130fe6b2b62d9483473f007086a",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/e2e/options-lab-reported-gamma.spec.ts",
+      "beforeSha256": null,
+      "afterSha256": "46ee6b1a961944f154851af8a33275b7de861f4463e0e1f2f26f3b85ef34f73a",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/e2e/thesis-workspace.spec.ts",
+      "beforeSha256": "f457a2c8838d054191c9649e9ef560631cca5446b5c81a14dcf7c393012bd44b",
+      "afterSha256": "1374f4f6ca336bef0f6303fa91a38f1eeedb3d2141b3497b913527f146ccea1d",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/e2e/tools/capture_b_f11_7_recurring_briefs.cjs",
+      "beforeSha256": "97f9ec9056d8a3c437bffa9eb5f2d32f403e6e8de6ebba95cfd3667df9e8069d",
+      "afterSha256": "a8d7c60b210af531c9fb44c8bef1181eb0ea7788c9831b76ce862fc26612a748",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/lib/__tests__/BriefSharingReview.test.tsx",
+      "beforeSha256": null,
+      "afterSha256": "34e1b9d8dcb7d0aa908cefb5e1d6e04d5a54e2543c3c901a2d5e13cc42a2ed94",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/lib/__tests__/BriefsInbox.test.tsx",
+      "beforeSha256": "9f328f3b978a8be5c57cd9ef6a1ab059464025a920e3164353682febd87ceea2",
+      "afterSha256": "02290a2eef4058bdbaca872c3a3d1fe63934e420ef264b0f720e8f90a8af2b91",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/lib/__tests__/SharedBrief.test.tsx",
+      "beforeSha256": null,
+      "afterSha256": "ee1ecc124f3f7068c1d63bc813c3526852c9b184fa01c277720fb9f48559addc",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/lib/__tests__/briefDeliverySharing.fixture.ts",
+      "beforeSha256": null,
+      "afterSha256": "9b2551bfa0908616036d4a82e3bdc0257ce6c5f63b82f241d114cd00e513c4d8",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/lib/__tests__/briefDeliverySharing.postgres.integration.test.ts",
+      "beforeSha256": null,
+      "afterSha256": "53aed7953a142752cd7cc7994a9724bbab40c140377c58a8be12d954e0bccaef",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/lib/__tests__/briefDeliverySharing.test.ts",
+      "beforeSha256": null,
+      "afterSha256": "9ee25c4df1f481e219e64e1098bcce8f8ffec4f483bc3531b2245eb505ae81c3",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/lib/__tests__/briefDeliverySharingPage.test.tsx",
+      "beforeSha256": null,
+      "afterSha256": "25418afbdf22fd226007b4b06d7b23f4e06983b5fcd7f14f9a448eb48fef2bee",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/lib/__tests__/briefDeliverySharingRoute.test.ts",
+      "beforeSha256": null,
+      "afterSha256": "4acbceb77ef8b95be5a7c14cbbce138956908a6e45c21eda5ce19e72f3c96cb7",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/lib/__tests__/helpers/lexEvidenceProjection.ts",
+      "beforeSha256": "58ed8af428b79461f53ca7d68e63cc978c5f720f2093eb116d7a054291543ea2",
+      "afterSha256": "387f151bc4ce654b263a05f73c2a6ccdb96ab37cd754bedce7f865834e152919",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/lib/__tests__/lexEvidenceProjection.test.ts",
+      "beforeSha256": "d3a93285211f362fe1208a56ad80e3193d6382ff9a5d10c9eb6a6bb7758f4674",
+      "afterSha256": "2d73d3befa37ed505e631676ef3be0a486efadae2afa7fa16ba935a237970ff0",
+      "rule": "three-way-text-composition"
+    },
+    {
+      "path": "terminal/lib/__tests__/researchReportedGamma.test.ts",
+      "beforeSha256": null,
+      "afterSha256": "7698b47ceb9cd150f6c4a6ca2740702ab22676e03ac339b7cf587ff639e60d4d",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/lib/__tests__/researchReportedGammaMounted.test.tsx",
+      "beforeSha256": null,
+      "afterSha256": "3b589be6b5b2fa774628c7172887f24aa04dea63b03ec4c4bee4e4b1b42f8560",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/lib/__tests__/sharedBriefPage.test.tsx",
+      "beforeSha256": null,
+      "afterSha256": "24ccaefaa5a0faa1204df66c74cabc95d1a38dfed662c83fcb73509742e3fe8e",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/lib/briefDeliverySharing.ts",
+      "beforeSha256": null,
+      "afterSha256": "505f86e65c5de872cb318cec16413d6f1cf68a940c336ad204af05749eed58ed",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/lib/briefDeliverySharingServer.ts",
+      "beforeSha256": null,
+      "afterSha256": "93a435c40513b74d4583bc86ff0ed0b6d3e6658d240f21d91ba1abf409ae736f",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "terminal/lib/briefs.ts",
+      "beforeSha256": "45e085b000b79481d5a7ad0b73ab9f76300d21efde8e64bc0d9ef36f0a9159cb",
+      "afterSha256": "fc218f0b93e06c78698f0da10b73b816e698b08f288e5a8432b38f27fa29d28c",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "tests/test_brief_delivery_team_sharing_postgres.py",
+      "beforeSha256": null,
+      "afterSha256": "c048772631585053c77d06c514ba2a7d03448ad0aa174646b40296dc4815dcd1",
+      "rule": "exact-protected-delta"
+    },
+    {
+      "path": "tests/test_macro_ohlc_leg.py",
+      "beforeSha256": "1bb5aa9161002c5e5893287fd258706336f74ac4563e610a89abd027d2e21920",
+      "afterSha256": "0024d0e94d5a98a688142e8c0b16c72ec2992a63e6c4a2c59c72d56655fe5b24",
+      "rule": "exact-protected-delta"
+    }
+  ],
+  "deferredPixels": [
+    {
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-1440-zh.png",
+      "rule": "Keep qualified cd2 preview pixels until next native capture; protected pixels retained separately"
+    },
+    {
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-1440.png",
+      "rule": "Keep qualified cd2 preview pixels until next native capture; protected pixels retained separately"
+    },
+    {
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-390-zh.png",
+      "rule": "Keep qualified cd2 preview pixels until next native capture; protected pixels retained separately"
+    },
+    {
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-390.png",
+      "rule": "Keep qualified cd2 preview pixels until next native capture; protected pixels retained separately"
+    },
+    {
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-820-zh.png",
+      "rule": "Keep qualified cd2 preview pixels until next native capture; protected pixels retained separately"
+    },
+    {
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-refresh-failed-820.png",
+      "rule": "Keep qualified cd2 preview pixels until next native capture; protected pixels retained separately"
+    },
+    {
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-1440-zh.png",
+      "rule": "Keep qualified cd2 preview pixels until next native capture; protected pixels retained separately"
+    },
+    {
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-1440.png",
+      "rule": "Keep qualified cd2 preview pixels until next native capture; protected pixels retained separately"
+    },
+    {
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-390-zh.png",
+      "rule": "Keep qualified cd2 preview pixels until next native capture; protected pixels retained separately"
+    },
+    {
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-390.png",
+      "rule": "Keep qualified cd2 preview pixels until next native capture; protected pixels retained separately"
+    },
+    {
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-820-zh.png",
+      "rule": "Keep qualified cd2 preview pixels until next native capture; protected pixels retained separately"
+    },
+    {
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/gex-live-retried-820.png",
+      "rule": "Keep qualified cd2 preview pixels until next native capture; protected pixels retained separately"
+    }
+  ],
+  "conflicts": [],
+  "sourceLaw": "700eef54bca4a2dc4e30d94a6b30dcfa733ad57c",
+  "noGitRefOrIndexMutation": true
+}
