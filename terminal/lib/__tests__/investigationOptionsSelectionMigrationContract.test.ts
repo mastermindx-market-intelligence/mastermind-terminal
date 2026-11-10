@@ -166,11 +166,18 @@ describe("0047 investigation options selection evidence admission contract", () 
     expect(downBody(sql).toLowerCase()).toContain("drop function if exists public.investigation_evidence_admitted_v2(text,text);");
   });
 
-  it("keeps the SQL allow-list and the Terminal registry exactly equal", () => {
+  it("keeps every SQL-admitted pair admitted by the Terminal registry (0047 pairs never regress)", () => {
+    // 0047 pinned strict SQL≡registry equality; migration 0052 (Sector Intelligence,
+    // investigationSectorAdmissionMigrationContract.test.ts) later widened BOTH sides, so
+    // strict equality is now owned by the 0052 contract. The 0047-era invariant that must
+    // hold forever is the subset direction: nothing the 0047 SQL admits may vanish from
+    // the Terminal registry.
     const fromSql = allowList(liveBody(sql));
     const fromRegistry = registry();
-    expect(Object.keys(fromSql).sort()).toEqual(Object.keys(fromRegistry).sort());
-    expect(fromSql).toEqual(fromRegistry);
+    for (const [owner, types] of Object.entries(fromSql)) {
+      expect(fromRegistry[owner], `owner ${owner} still registered`).toBeDefined();
+      for (const type of types) expect(fromRegistry[owner]).toContain(type);
+    }
     expect(fromSql["terminal.options_exposure"]).toEqual(["exposure_chart_request", "options_matrix_selection", "rotation_measurement", "sector_origin"]);
     expect(fromSql["earnings.workspace_generation"]).toEqual(["event_workspace"]);
   });

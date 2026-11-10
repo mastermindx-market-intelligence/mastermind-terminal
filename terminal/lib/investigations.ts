@@ -3,17 +3,60 @@ import {
   type InvestigationAdmission, type InvestigationManifest,
 } from "./investigationContracts";
 
-/** These adapters describe the G1 owners actually integrated by this service. */
+/** These adapters describe the G1 owners actually integrated by this service.
+ *  The Sector Intelligence additions (packet §3.2) admit the macro.sector native cohort
+ *  and the theme_graph owner-resolved identities as v2-only kinds; every existing pair,
+ *  including data_os.security_master security/issuer, is preserved byte-for-byte. */
 export const INVESTIGATION_ADMISSION: InvestigationAdmission = {
   subjects: [
     { owner: "terminal.analysis_symbol", kinds: ["security"] },
     { owner: "data_os.security_master", kinds: ["security", "issuer"] },
+    { owner: "macro.sector", kinds: ["sector"] },
+    { owner: "theme_graph.identity", kinds: ["theme", "basket", "company"] },
   ],
   evidence: [
     { owner: "earnings.workspace_generation", object_types: ["event_workspace"] },
     { owner: "terminal.options_exposure", object_types: ["exposure_chart_request", "sector_origin", "rotation_measurement", "options_matrix_selection"] },
+    { owner: "macro.sector", object_types: ["sector_observation", "basket_observation"] },
+    { owner: "theme_graph.curation_assertion", object_types: ["curation_assertion"] },
   ],
 };
+
+/** Owner stores whose use makes a command or probe Sector/GMI use for the
+ *  x-mm-investigation-owner concurrency fence (packet §3.3). */
+export const INVESTIGATION_FENCE_OWNERS: readonly string[] = [
+  "macro.sector", "theme_graph.identity", "theme_graph.curation_assertion",
+];
+
+/** True when a v2 manifest touches any Sector/GMI owner store in its subjects,
+ *  evidence references or review baseline. Pure: the route owns auth, never this.
+ *  The structural types carry index signatures so full manifests (and literal
+ *  manifests in tests) are accepted without narrowing away their other fields. */
+export function investigationFenceRequired(manifest: {
+  intent?: { subjects?: readonly { owner?: unknown; [key: string]: unknown }[]; [key: string]: unknown };
+  evidence_refs?: readonly { owner?: unknown; [key: string]: unknown }[];
+  review_baseline_ref?: { owner?: unknown; [key: string]: unknown };
+  [key: string]: unknown;
+}): boolean {
+  const owners = new Set<string>();
+  for (const subject of manifest.intent?.subjects ?? []) if (typeof subject?.owner === "string") owners.add(subject.owner);
+  for (const ref of manifest.evidence_refs ?? []) if (typeof ref?.owner === "string") owners.add(ref.owner);
+  if (typeof manifest.review_baseline_ref?.owner === "string") owners.add(manifest.review_baseline_ref.owner);
+  return INVESTIGATION_FENCE_OWNERS.some(owner => owners.has(owner));
+}
+
+/**
+ * x-mm-investigation-owner is an EXPECTED-ACTOR CONCURRENCY FENCE, not authentication:
+ * the authenticated session stays the sole owner authority. A present header must name
+ * the authenticated UUID; Sector/GMI use requires the header outright. Legacy first-party
+ * clients that never send it keep their compatible behavior. `owner_mismatch` performs no
+ * database I/O and never joins the definitive-save-failure set.
+ */
+export type InvestigationFenceDecision = { status: "ok" } | { status: "owner_mismatch" };
+export function investigationOwnerFence(claimedOwner: string | null, authenticatedUserId: string, sectorUse: boolean): InvestigationFenceDecision {
+  if (claimedOwner === null) return sectorUse ? { status: "owner_mismatch" } : { status: "ok" };
+  return claimedOwner.trim() === authenticatedUserId ? { status: "ok" } : { status: "owner_mismatch" };
+}
 export type InvestigationCommand = {
   id: string;
   operation_id: string;

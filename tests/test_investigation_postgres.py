@@ -173,15 +173,70 @@ def test_lifecycle_actions_preserve_content_and_have_their_own_receipts(pg):
     assert json.loads(pg("select read_investigation_v2('"+ID+"',5)",A))["lifecycle"]=="removed"
 
 
-def test_full_paired_manifest_corpus_at_the_sql_admission_boundary(pg):
+@pytest.fixture(scope="module")
+def sector_pg(tmp_path_factory):
+    import test_pinned_research_handoff_postgres as handoff
+
+    run, data, socket_root = handoff._spawn_postgres(
+        tmp_path_factory, "sector-admission-pg", 55491
+    )
+    try:
+        handoff._bootstrap_base_schema(run)
+        # This disposable cluster exercises the complete prerequisite chain.
+        # The original pg fixture remains on the historical 0028 contract.
+        migrations = handoff.PREVIOUS + (
+            ROOT / "supabase/migrations/0040_investigation_review.sql",
+            handoff.SQL,
+            ROOT / "supabase/migrations/0042_investigation_scenario_reference.sql",
+            ROOT / "supabase/migrations/0047_investigation_options_selection_evidence.sql",
+            ROOT / "supabase/migrations/0052_sector_intelligence_investigation_admission.sql",
+        )
+        for sql_file in migrations:
+            assert sql_file.exists(), f"{sql_file.name} is not implemented"
+            run(sql_file.read_text())
+        yield run
+    finally:
+        subprocess.run(
+            ["pg_ctl", "-D", str(data), "-m", "fast", "-w", "stop"],
+            check=True,
+            capture_output=True,
+        )
+        socket_root.cleanup()
+
+
+def _assert_paired_manifest_corpus(pg, *, g1_only):
     bundle = json.loads((ROOT / "terminal/lib/__tests__/fixtures/investigation_manifest_vectors.json").read_text())
     for vector in bundle["vectors"]:
         content = vector["manifest"]
-        expected = vector["valid"] and content.get("schema") == "investigation_manifest.v2" and not content.get("thesis_refs")
-        # This private SQL boundary has the fixed G1 adapter admission, while
-        # the language contract also tests the caller's empty admission.
-        if vector["name"] == "owner not implicitly admitted":
-            expected = True
+        # SQL has fixed adapter admission; the language corpus also tests a
+        # caller supplying an empty admission registry.
+        expected = (
+            vector["valid"] or vector["name"] == "owner not implicitly admitted"
+        ) and content.get("schema") == "investigation_manifest.v2"
+        if expected and g1_only:
+            # 0028 predates Thesis, review/scenario, and Sector admission.
+            # Later valid vectors remain executed here and must be rejected.
+            refs = content["evidence_refs"]
+            if "review_baseline_ref" in content:
+                refs = refs + [content["review_baseline_ref"]]
+            expected = (
+                not content.get("thesis_refs")
+                and "review" not in content
+                and "scenario_capture" not in content
+                and all(
+                    (subject["owner"], subject["kind"]) in {
+                        ("terminal.analysis_symbol", "security"),
+                        ("data_os.security_master", "security"),
+                        ("data_os.security_master", "issuer"),
+                    }
+                    for subject in content["intent"]["subjects"]
+                )
+                and all(
+                    (ref["owner"], ref["object_type"])
+                    == ("earnings.workspace_generation", "event_workspace")
+                    for ref in refs
+                )
+            )
         body = json.dumps(content, ensure_ascii=True)
         # PostgreSQL JSONB itself refuses NUL and unpaired surrogate escapes.
         response = pg("select public.valid_investigation_manifest_v2(" + quote(body) + "::jsonb);", check=False)
@@ -190,6 +245,34 @@ def test_full_paired_manifest_corpus_at_the_sql_admission_boundary(pg):
             assert "Unicode" in response.stderr or "unicode" in response.stderr, response.stderr
         else:
             assert (response.stdout.strip() == "t") is bool(expected), vector["name"]
+
+
+def test_full_paired_manifest_corpus_at_the_sql_admission_boundary(pg):
+    _assert_paired_manifest_corpus(pg, g1_only=True)
+
+
+def test_full_paired_manifest_corpus_after_sector_admission(sector_pg):
+    _assert_paired_manifest_corpus(sector_pg, g1_only=False)
+
+
+@pytest.mark.parametrize(
+    ("owner", "object_type", "expected"),
+    [
+        ("macro.sector", "sector_observation", "t"),
+        ("macro.sector", "basket_observation", "t"),
+        ("theme_graph.curation_assertion", "curation_assertion", "t"),
+        ("earnings.workspace_generation", "event_workspace", "t"),
+        ("terminal.options_exposure", "options_matrix_selection", "t"),
+        ("macro.sector", "event_workspace", "f"),
+        ("unadmitted.owner", "sector_observation", "f"),
+    ],
+)
+def test_sector_evidence_admission_probe_executes(sector_pg, owner, object_type, expected):
+    assert sector_pg(
+        "select public.investigation_evidence_admitted_v2("
+        + quote(owner) + "," + quote(object_type) + ");",
+        role="authenticated",
+    ) == expected
 
 
 def test_backup_restore_preserves_owner_rows_receipts_and_read_only_rollback(pg):
