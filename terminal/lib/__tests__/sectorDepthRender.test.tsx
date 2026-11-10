@@ -494,15 +494,42 @@ describe("rows increment — universes board from carried blocks (static renders
     expect(text(markup)).toContain("2026-11-06");
   });
 
-  it("ZH: the real board localizes identity, roll-up and envelope; no raw English state leaks", () => {
+  it("ZH: identity, roll-up, envelope, tier, reliability and regime words are Chinese; no English state word leaks", () => {
     G.__SD_LANG = "zh";
     try {
       const markup = html(<SectorConfluenceUniverses universeBlocks={realUniverseBlocks()} />);
       const zh = text(markup);
       expect(zh).toContain("板块汇总"); // siUniverseSectorRollup[1]
       expect(zh).toContain("标普500 样本域"); // identity line stays localized
-      expect(zh).toContain("买入"); // regime label_zh from the real payload
       expect(zh).toContain("截至 2026-11-06"); // carried-date envelope line, ZH
+      // Tier words: the real payload carries entry_now/tailwind/neutral/late/
+      // headwind tonight, all localized through the lexicon.
+      expect(zh).toContain("现可入场"); // siUniverseClassEntry[1]
+      expect(zh).toContain("逆风"); // siUniverseClassHeadwind[1]
+      // Reliability words (groupReliability and the coverage chips share them).
+      expect(zh).toContain("高置信——覆盖充分"); // siUniverseReliabilityHigh[1]
+      expect(zh).toContain("数据稀疏——请谨慎解读"); // siUniverseReliabilityLow[1]
+      // Regime label_zh AND action_zh are carried by the real payload
+      // (BUY/买入 ×4, BELOW TREND/趋势下方 ×27, …) — removing label_zh from
+      // the rendering (mutation M13) fails the negatives below.
+      expect(zh).toContain("买入");
+      expect(zh).toContain("趋势下方");
+      expect(zh).toContain("等待收复"); // action_zh fragment (the BELOW TREND action)
+      // No English state word survives on the ZH surface. Freshness is not
+      // carried by any group tonight (freshness null on all 65), so its EN
+      // templates have nothing to collide with — every other category does.
+      expect(zh).not.toContain("High confidence");
+      expect(zh).not.toContain("Medium confidence");
+      expect(zh).not.toContain("Thin data");
+      expect(zh).not.toMatch(/\b(Entry now|Forming|Tailwind|Neutral|Late|Headwind|unclassified)\b/);
+      expect(zh).not.toMatch(/\b(BUY|EXTENDED|BELOW TREND|SETUP|NEUTRAL|RIDING|TOPPING)\b/);
+      expect(zh).not.toContain("knives"); // EN action sentence
+      expect(zh).not.toContain("distribution risk"); // EN action sentence
+      expect(zh).not.toContain("no edge either way"); // EN action sentence
+      // The DOCUMENTED fallback (S2): label_zh is null on every real row
+      // tonight, so the English group label legitimately stays — translations
+      // are never authored consumer-side.
+      expect(zh).toContain("Software - Application");
     } finally {
       G.__SD_LANG = "en";
     }

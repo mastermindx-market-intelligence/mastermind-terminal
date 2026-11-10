@@ -645,6 +645,10 @@ function GroupCard({
 }) {
   const t = useSectorDepthT();
   const { lang } = useLang();
+  // ZH fallback law (review r1 S2): label_zh is null on every real row
+  // tonight (all four universes) and sector_zh likewise — the English label
+  // stays under this documented fallback; translations are never authored
+  // consumer-side. Regime label_zh/action_zh ARE carried and localize.
   const label = (lang === "zh" ? group.label_zh : undefined) || group.label || "–";
   const sector = (lang === "zh" ? group.sector_zh : undefined) || group.sector;
   const fresh = freshnessOf(group);
@@ -704,6 +708,8 @@ function RotationRow({
 }) {
   const t = useSectorDepthT();
   const { lang } = useLang();
+  // Same ZH fallback law as GroupCard (review r1 S2): label_zh/sector_zh are
+  // null on every real row tonight — English stays, nothing is authored here.
   const label = (lang === "zh" ? group.label_zh : undefined) || group.label || "–";
   const sector = (lang === "zh" ? group.sector_zh : undefined) || group.sector;
   const fresh = freshnessOf(group);
