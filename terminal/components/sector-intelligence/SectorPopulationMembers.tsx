@@ -143,14 +143,13 @@ export default function SectorPopulationMembers() {
 
   const head = pages[0] ?? null;
   const counts = head?.counts ?? null;
-  // Item 5 (COO 19:15Z): the roster clock gates the completeness figures on the
-  // CONSUMER side too — a carried clock that is not `agree` (mismatch,
-  // unavailable or unreadable) makes the configured roster not stated, even if
-  // the wire still states numbers beside it. An absent clock is today's wire:
-  // counts render exactly as before.
+  // Item 5 (COO 19:15Z) + B-1/N-4 (third review): the ONE stated rule lives in
+  // the decoder — counts are stated only beside an agreeing roster clock with
+  // equal clocks and an integer unaccounted (the pre-#10965 no-clock wire keeps
+  // today's behaviour). Here we only obey it; the clock note below still names
+  // a carried clock that is not agree.
   const rosterClock = head?.rosterClock ?? null;
-  const clockAgrees = rosterClock === null || rosterClock.status === "agree";
-  const configuredCurrent = counts ? (clockAgrees ? counts.configuredCurrent : null) : null;
+  const configuredCurrent = counts?.countsStated ? counts.configuredCurrent : null;
   // The stored-snapshot fact renders for the SELECTED group only; a carried
   // fact without an entry for that group (or unavailable whole) is the generic
   // unavailable line — never an invented count.
@@ -208,7 +207,8 @@ export default function SectorPopulationMembers() {
         ? nativeFill(t("siPopulationCountsNotStated"), { served: String(counts.served) })
         : nativeFill(t("siPopulationCounts"), { served: String(counts.served), configured: String(configuredCurrent) })}
       {" · "}{nativeFill(t("siPopulationCountsUnserved"), { n: String(counts.accountedUnserved) })}
-      {counts.unaccounted > 0 ? ` · ${nativeFill(t("siPopulationCountsUnaccounted"), { n: String(counts.unaccounted) })}` : ""}
+      {counts.unaccounted !== null && counts.countsStated && counts.unaccounted > 0
+        ? ` · ${nativeFill(t("siPopulationCountsUnaccounted"), { n: String(counts.unaccounted) })}` : ""}
       {" · "}{nativeFill(t("siPopulationGroups"), { n: String(counts.groups) })}
       {head ? ` · ${nativeFill(t("siPopulationAsOf"), { session: head.sourceSession })}` : ""}
     </p> : null}

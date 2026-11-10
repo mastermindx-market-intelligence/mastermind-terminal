@@ -151,9 +151,14 @@ export type PopulationRosterClock = { status: "agree" } | { status: "not_agree" 
 export type PopulationTaxonomyRevision = { currentNotPointInTime: boolean };
 /** Counts only — never a completeness claim. `configuredCurrent`/`complete` are
  * null when the capture has no readable roster (F1): null means UNKNOWN — render
- * "not stated", never zero and never complete. */
+ * "not stated", never zero and never complete. `unaccounted` is null when the
+ * #10965 producer withholds it beside a non-agree clock (B-1). `countsStated`
+ * is the one stated rule (B-1/N-4, third review): counts are stated only when
+ * the roster clock agrees with equal clocks AND `unaccounted` is an integer —
+ * or on the pre-#10965 wire that carries no clock at all, unchanged. */
 export type PopulationCounts = {
-  configuredCurrent: number | null; served: number; accountedUnserved: number; unaccounted: number;
+  configuredCurrent: number | null; served: number; accountedUnserved: number; unaccounted: number | null;
+  countsStated: boolean;
   complete: boolean | null; groups: number; unservedMembers: PopulationUnservedEntry[];
   removedMembers: PopulationRemovedMembers | null;
 };
@@ -323,12 +328,15 @@ function readFirstKnown(value: unknown): PopulationFirstKnown {
 
 /** `capture.population.roster_clock` — null when not carried; agree only on the
  * owner's exact agree shape; every mismatch/unavailable/malformed reads
- * not_agree (item 5: the completeness figures are then not stated). */
+ * not_agree (item 5: the completeness figures are then not stated). N-4 (third
+ * review): `agree` MEANS exact string equality of the two clocks — an agree
+ * label over differing clocks is not an agreement and reads not_agree. */
 function readRosterClock(value: unknown): PopulationRosterClock | null {
   if (value === undefined || value === null) return null;
   if (record(value) && value.status === "agree"
     && typeof value.roster_as_of === "string" && str(value.roster_as_of, 32)
-    && typeof value.capture_effective_as_of === "string" && str(value.capture_effective_as_of, 32)) {
+    && typeof value.capture_effective_as_of === "string" && str(value.capture_effective_as_of, 32)
+    && value.roster_as_of === value.capture_effective_as_of) {
     return { status: "agree" };
   }
   return { status: "not_agree" };
@@ -380,12 +388,19 @@ export function sectorPopulationPage(value: unknown): PopulationPage | null {
     || (ownerRefRaw.retained_resolver_ref_durability !== "durable" && ownerRefRaw.retained_resolver_ref_durability !== "process_lifetime_only")) return null;
 
   const population = capture.population;
+  // B-1 (third review): the #10965 producer sends `unaccounted: null` beside
+  // every non-agree roster clock. A carried clock admits null; the pre-#10965
+  // wire (no clock key at all) keeps today's exact rule — an integer.
+  const clockCarried = Object.hasOwn(population, "roster_clock");
   if (!closed(population, ["configured_current", "served", "accounted_unserved", "unaccounted", "complete", "complete_rule", "unserved_reason_note", "unserved_reasons", "groups", "unserved_members", "removed_members", "eligible", "measured", "entitled_visibility_scope"], ["roster_clock"])
     // F1: configured_current/complete are NULL when the capture has no readable
     // roster — null is unknown, never zero, never complete.
     || !(population.configured_current === null || int(population.configured_current, 0, 1_000_000))
     || !int(population.served, 0, 1_000_000)
-    || !int(population.accounted_unserved, 0, 1_000_000) || !int(population.unaccounted, 0, 1_000_000)
+    || !int(population.accounted_unserved, 0, 1_000_000)
+    || (clockCarried
+      ? !(population.unaccounted === null || int(population.unaccounted, 0, 1_000_000))
+      : !int(population.unaccounted, 0, 1_000_000))
     || !(population.complete === null || bool(population.complete)) || !str(population.complete_rule, 400)
     || !str(population.unserved_reason_note, 1000) || !int(population.groups, 0, 10_000)
     || !Array.isArray(population.unserved_reasons) || population.unserved_reasons.length > 16
@@ -523,8 +538,15 @@ export function sectorPopulationPage(value: unknown): PopulationPage | null {
   // than the filter's own total_matching.
   if ((page.complete === true) !== (page.next_cursor === null)) return null;
   if (population.configured_current !== null && population.served > population.configured_current) return null;
-  if (population.complete === true && population.unaccounted > 0) return null;
+  if (population.complete === true && (population.unaccounted ?? 0) > 0) return null;
   if (rows.length > page.total_matching) return null;
+
+  // B-1/N-4 one stated rule (third review): the configured count and the
+  // unaccounted segment are STATED only beside an agreeing roster clock with
+  // equal clocks and an integer unaccounted. The pre-#10965 wire carries no
+  // clock key and keeps today's behaviour — counts stated as decoded.
+  const countsStated = !clockCarried
+    || (rosterClock !== null && rosterClock.status === "agree" && typeof population.unaccounted === "number");
 
   return {
     sourceSession: value.source_session, publishedAt: value.published_at,
@@ -538,6 +560,7 @@ export function sectorPopulationPage(value: unknown): PopulationPage | null {
       retainedResolverRefDurability: ownerRefRaw.retained_resolver_ref_durability as PopulationOwnerRef["retainedResolverRefDurability"] },
     counts: { configuredCurrent: population.configured_current, served: population.served,
       accountedUnserved: population.accounted_unserved, unaccounted: population.unaccounted,
+      countsStated,
       complete: population.complete, groups: population.groups,
       unservedMembers: (population.unserved_members as unknown[]).map(entry => unservedEntry(entry)!),
       removedMembers },

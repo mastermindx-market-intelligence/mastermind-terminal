@@ -442,6 +442,57 @@ describe("sectorPopulationPage — lane 1 point-in-time facts (COO 19:15Z item 5
     }
   });
 
+  // B-1 (third review): lane 1's producer sends unaccounted/configured_current/
+  // complete ALL null whenever roster_clock is not agree (Macro #10965,
+  // lib/sector_population.py:613). That page must decode and render its member
+  // list — the clock-gated not-stated path is for exactly these bytes.
+  it("B-1: the producer's own non-agree page — clock beside null counts — decodes, never refuses", () => {
+    for (const clock of [
+      { status: "mismatch", reason: "roster_as_of_mismatch", roster_as_of: "2026-11-07", capture_effective_as_of: "2026-11-06" },
+      { status: "unavailable", reason: "roster_block_absent", roster_as_of: "2026-11-06" },
+    ]) {
+      const mutated = clone();
+      const pop = population(mutated);
+      pop.roster_clock = clock;
+      pop.configured_current = null; pop.complete = null; pop.unaccounted = null;
+      const read = sectorPopulationPage(mutated);
+      expect(read, `producer non-agree ${JSON.stringify(clock)}`).not.toBeNull();
+      expect(read!.rosterClock).toEqual({ status: "not_agree" });
+      expect(read!.counts.countsStated).toBe(false);
+      expect(read!.counts.unaccounted).toBeNull();
+      expect(read!.counts.configuredCurrent).toBeNull();
+    }
+  });
+
+  it("N-4: an agree label over differing clocks is not an agreement — the stated rule withholds the counts", () => {
+    const mutated = clone();
+    const pop = population(mutated);
+    pop.roster_clock = { status: "agree", roster_as_of: "2026-11-06", capture_effective_as_of: "2026-11-07" };
+    const read = sectorPopulationPage(mutated)!;
+    expect(read.rosterClock).toEqual({ status: "not_agree" });
+    expect(read.counts.countsStated).toBe(false);
+  });
+
+  it("agree with a null unaccounted decodes; the stated rule fails closed without a clock note", () => {
+    const mutated = clone();
+    const pop = population(mutated);
+    pop.roster_clock = { status: "agree", roster_as_of: "2026-11-06", capture_effective_as_of: "2026-11-06" };
+    pop.unaccounted = null;
+    const read = sectorPopulationPage(mutated)!;
+    expect(read.rosterClock).toEqual({ status: "agree" });
+    expect(read.counts.unaccounted).toBeNull();
+    expect(read.counts.countsStated).toBe(false);
+  });
+
+  it("the pre-#10965 wire — no roster_clock — decodes exactly as at this head: stated counts, null unaccounted still refused", () => {
+    const read = sectorPopulationPage(clone())!;
+    expect(read.counts.countsStated).toBe(true);
+    expect(read.counts.unaccounted).toBe(0);
+    const legacy = clone();
+    population(legacy).unaccounted = null;
+    expect(sectorPopulationPage(legacy)).toBeNull();
+  });
+
   it("a members_sha outside null|64-hex degrades the WHOLE snapshot fact (S3 mirror)", () => {
     for (const sha of ["zz", 42, true, { digest: "a".repeat(64) }]) {
       const mutated = clone();

@@ -385,12 +385,41 @@ describe("SectorPopulationMembers — item 5 (COO 19:15Z): lane 1 point-in-time 
   const populationOf = (page: Record<string, unknown>) =>
     ((page as { capture: { population: Record<string, unknown> } }).capture).population;
 
-  it("a non-agree roster clock forces the not-stated counts and names the clock (en)", async () => {
-    // The wire still states configured_current 1020 — the CONSUMER enforces the
-    // clock law, never trusting completeness beside a disagreeing clock.
+  // B-1 (third review): the producer's own non-agree bytes — the clock beside
+  // configured_current/complete/unaccounted ALL null — must render the member
+  // list with not-stated counts. The earlier version of these tests paired a
+  // mismatched clock with unaccounted:0 and configured_current:1020, a shape
+  // the producer never emits.
+  const producerNonAgree = (clock: unknown) => (page: Record<string, unknown>) => {
+    const pop = populationOf(page);
+    pop.roster_clock = clock;
+    pop.configured_current = null; pop.complete = null; pop.unaccounted = null;
+  };
+
+  it("B-1: the producer's non-agree mismatch page renders the list with not-stated counts (en)", async () => {
+    pageMutate = producerNonAgree({ status: "mismatch", reason: "roster_as_of_mismatch",
+      roster_as_of: "2026-11-07", capture_effective_as_of: "2026-11-06" });
+    const { container, root } = await mount();
+    expect(countsLine(container)).toContain("configured roster not stated by the owner");
+    expect(countsLine(container)).not.toContain("1020");
+    expect(countsLine(container)).not.toContain("unaccounted"); // null prints nothing
+    expect(clockNote(container)).toContain("roster clock does not agree with the capture session");
+    expect(cell(container, 0, 0)).toBeTruthy(); // the member list itself still renders
+    act(() => root.unmount());
+  });
+
+  it("B-1: the producer's non-agree roster_block_absent page renders the same honest states (zh)", async () => {
+    pageMutate = producerNonAgree({ status: "unavailable", reason: "roster_block_absent", roster_as_of: "2026-11-06" });
+    await withZh(async ({ container }) => {
+      expect(countsLine(container)).toContain("所有者未给出配置名单");
+      expect(countsLine(container)).not.toContain("1020");
+      expect(clockNote(container)).toContain("名册时钟与采集会话不一致");
+    });
+  });
+
+  it("N-4: an agree label over differing clocks keeps the counts not stated beside a clock note (en)", async () => {
     pageMutate = page => {
-      populationOf(page).roster_clock = { status: "mismatch", reason: "roster_as_of_mismatch",
-        roster_as_of: "2026-11-07", capture_effective_as_of: "2026-11-06" };
+      populationOf(page).roster_clock = { status: "agree", roster_as_of: "2026-11-06", capture_effective_as_of: "2026-11-07" };
     };
     const { container, root } = await mount();
     expect(countsLine(container)).toContain("configured roster not stated by the owner");
@@ -399,14 +428,17 @@ describe("SectorPopulationMembers — item 5 (COO 19:15Z): lane 1 point-in-time 
     act(() => root.unmount());
   });
 
-  it("the same page in zh renders the zh clock wording (zh)", async () => {
+  it("agree with a null unaccounted states no counts and shows no clock note (en)", async () => {
     pageMutate = page => {
-      populationOf(page).roster_clock = { status: "unavailable", reason: "roster_block_malformed", roster_as_of: "2026-11-06" };
+      const pop = populationOf(page);
+      pop.roster_clock = { status: "agree", roster_as_of: "2026-11-06", capture_effective_as_of: "2026-11-06" };
+      pop.unaccounted = null;
     };
-    await withZh(async ({ container }) => {
-      expect(countsLine(container)).not.toContain("1020");
-      expect(clockNote(container)).toContain("名册时钟与采集会话不一致");
-    });
+    const { container, root } = await mount();
+    expect(countsLine(container)).toContain("configured roster not stated by the owner");
+    expect(countsLine(container)).not.toContain("1020");
+    expect(clockNote(container)).toBeNull();
+    act(() => root.unmount());
   });
 
   it("an agreeing clock keeps the stated counts and renders no clock note", async () => {
