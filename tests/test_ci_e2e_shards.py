@@ -996,6 +996,14 @@ def test_prod_shards_run_only_this_runs_build_through_the_prodbuild_config():
     assert upload["with"]["name"] == download["with"]["name"] == "e2e-prodbuild-${{ github.run_id }}"
     assert set(download["with"]) == {"name", "path"}
     assert upload["with"]["retention-days"] == 1
+    # An expired or missing build (a prod shard re-run more than a day later)
+    # must say what to do, in the step straight after the failed download.
+    guard = steps[steps.index(download) + 1]
+    assert guard["if"] == f"failure() && steps.{download['id']}.outcome == 'failure'"
+    assert "::error" in guard["run"] and "Re-run all jobs" in guard["run"]
+    assert re.search(r"missing or expired.*1 day", guard["run"])
+    assert guard["run"].rstrip().endswith("exit 1")
+    assert not guard.get("continue-on-error", False)
     runs = [str(step.get("run", "")) for step in steps if "test:e2e:responsive" in str(step.get("run", ""))]
     assert len(runs) == 1
     assert runs[0].split() == (

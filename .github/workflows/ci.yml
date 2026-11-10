@@ -4,8 +4,11 @@ on:
   pull_request:
   merge_group:
     types: [checks_requested]
-  # Scheduled default-branch runs retain the complete responsive matrix even
-  # when most routine localized pull requests qualify for the narrow lane.
+  # Scheduled default-branch runs keep full e2e scope even when most routine
+  # localized pull requests qualify for the narrow lane. Scheduled and
+  # dispatch runs use the same two-lane split as a full pull request, so
+  # every spec runs exactly once per event: allowlisted specs against the
+  # production build, every other spec on the dev-server matrix.
   schedule:
     - cron: '17 9 * * *'
   # merge-on-green refreshes stale branches with GITHUB_TOKEN. GitHub records
@@ -855,6 +858,9 @@ jobs:
         with:
           name: e2e-prodbuild-${{ github.run_id }}
           path: dot-next.tar.gz
+          # After one day the build is gone. A prod shard re-run later than
+          # that fails at its download and says so: use "Re-run all jobs",
+          # which rebuilds, not "Re-run failed jobs".
           retention-days: 1
 
   terminal-e2e-prodbuild:
@@ -911,10 +917,16 @@ jobs:
         timeout-minutes: 6
         run: timeout --signal=TERM --kill-after=15s 240s npx playwright install --with-deps chromium
       - name: Download production build artifact (this run only)
+        id: prodbuild_artifact
         uses: actions/download-artifact@v4
         with:
           name: e2e-prodbuild-${{ github.run_id }}
           path: terminal
+      - name: Explain a missing production build artifact
+        if: failure() && steps.prodbuild_artifact.outcome == 'failure'
+        run: |
+          echo "::error title=terminal-e2e-prodbuild::The production build artifact e2e-prodbuild-${GITHUB_RUN_ID} is missing or expired. It is kept for 1 day and only the build job of this run creates it. For a stale re-run use 'Re-run all jobs' so the build runs again; 'Re-run failed jobs' cannot recreate it."
+          exit 1
       - name: Unpack production build
         run: |
           rm -rf .next
