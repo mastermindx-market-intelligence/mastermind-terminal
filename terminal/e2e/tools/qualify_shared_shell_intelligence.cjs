@@ -70,6 +70,12 @@ function diagnostic(kind,value){
 }
 const diagnosticText=(value,limit=512)=>typeof value==='string'?value.slice(0,limit):undefined;
 const diagnosticPath=value=>{try{return new URL(value).pathname;}catch{return diagnosticText(value);}};
+const diagnosticUpdate=value=>value&&typeof value==='object'?{
+ type:diagnosticText(value.type),path:diagnosticText(value.path),
+ resourcePath:diagnosticText(value.resource?.path),
+ resourceHeaderNames:value.resource?.headers&&typeof value.resource.headers==='object'?Object.keys(value.resource.headers).slice(0,12):undefined,
+ instructionType:diagnosticText(value.instruction?.type),reason:diagnosticText(value.reason,2048)
+}:undefined;
 async function observeReloads(ctx,page){
  page.on('console',message=>{
   const text=message.text();
@@ -90,7 +96,9 @@ async function observeReloads(ctx,page){
     diagnostic(direction,{path:pathname,bytes,type:diagnosticText(value.type),event:diagnosticText(value.event),action:diagnosticText(value.action),
      hmrVersion:value.hmrVersion,dataHmrVersion:value.data?.hmrVersion,sessionId:value.data?.sessionId,
      resource:diagnosticText(value.resource)||diagnosticText(value.resource?.path),resourcePath:diagnosticText(value.path),
+     resourceHeaderNames:value.headers&&typeof value.headers==='object'?Object.keys(value.headers).slice(0,12):undefined,
      dataType:diagnosticText(value.data?.type),hadRuntimeError:value.hadRuntimeError,
+     updates:Array.isArray(value.data)?value.data.slice(0,8).map(diagnosticUpdate):diagnosticUpdate(value.data),
      reason:typeof value.reason==='string'?value.reason.slice(0,2048):undefined,
      stackTrace:typeof value.stackTrace==='string'?value.stackTrace.slice(0,4096):undefined,
      dependencyChain:Array.isArray(value.dependencyChain)?value.dependencyChain.slice(0,8).map(item=>diagnosticText(item)):undefined});
