@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- This standalone Node qualifier is intentionally CommonJS. */
 /* Local fixture-only qualification of the actual native routes. No real account,
  * credential, service, or external writer is used. Both HTTP servers are loopback
  * children owned and stopped by this process. Never production acceptance. */
