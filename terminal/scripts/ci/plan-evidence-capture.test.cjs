@@ -6,7 +6,7 @@ const os = require("node:os");
 const path = require("node:path");
 const crypto = require("node:crypto");
 const {MANIFESTS, planEvidenceCapture, driftedTouchedSources} = require("./plan-evidence-capture.cjs");
-const { EOD_PACKET, EOD_PRODUCER, EOD_LAYOUT_FILES, EOD_CROPS } = require("../../e2e/tools/capture_ci_evidence.cjs");
+const { EOD_PACKET, EOD_PRODUCER, EOD_LAYOUT_FILES, EOD_CROPS, nativeDefinition } = require("../../e2e/tools/capture_ci_evidence.cjs");
 
 function fixture(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "mmx-evidence-scope-"));
@@ -27,24 +27,27 @@ function fixture(t) {
     fs.mkdirSync(path.dirname(file), {recursive: true});
     fs.writeFileSync(file, render());
   }
+  const definitions = ["eod", "gex"].map(nativeDefinition);
+  for (const rel of new Set(definitions.flatMap(def => [...def.producer.LAYOUT_FILES, def.script]))) {
+    const file = path.join(root, rel); fs.mkdirSync(path.dirname(file), {recursive: true});
+    fs.writeFileSync(file, "immutable native source " + rel + "\n");
+  }
+  const sourceHashes = names => Object.fromEntries(names.map(rel => [rel,
+    crypto.createHash("sha256").update(fs.readFileSync(path.join(root, rel))).digest("hex")]));
   const eodManifest = path.join(root, EOD_PACKET, "EVIDENCE.yml");
-  const eodHashes = EOD_LAYOUT_FILES.map(rel => {
-    const file = path.join(root, rel);
-    fs.mkdirSync(path.dirname(file), {recursive: true});
-    fs.writeFileSync(file, "immutable EOD source " + rel + "\n");
-    return crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex");
-  });
+  const eodHashes = sourceHashes(EOD_LAYOUT_FILES);
   const eodText = "# capturedAtHead: " + "a".repeat(40) + "\nlayoutFiles:\n" +
-    EOD_LAYOUT_FILES.map((rel, i) => "  " + rel + ': "' + eodHashes[i] + '"').join("\n") +
+    EOD_LAYOUT_FILES.map(rel => "  " + rel + ': "' + eodHashes[rel] + '"').join("\n") +
     "\nfiles:\n" + EOD_CROPS.map(file => "  - " + file).join("\n") + "\n";
-  fs.mkdirSync(path.dirname(eodManifest), {recursive: true});
-  fs.writeFileSync(eodManifest, eodText);
-  const producer = path.join(root, EOD_PRODUCER);
-  fs.mkdirSync(path.dirname(producer), {recursive: true});
-  fs.writeFileSync(producer, "// synthetic producer fixture\n");
+  fs.mkdirSync(path.dirname(eodManifest), {recursive: true}); fs.writeFileSync(eodManifest, eodText);
+  const gex = definitions[1], gexManifest = path.join(root, gex.directory, "EVIDENCE.yml");
+  fs.mkdirSync(path.dirname(gexManifest), {recursive: true});
+  const gexText = gex.producer.renderEvidence({ files: gex.files,
+    layoutFiles: sourceHashes(gex.producer.LAYOUT_FILES), capturedAtHead: "a".repeat(40) });
+  fs.writeFileSync(gexManifest, gexText);
   const image = Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), Buffer.from("synthetic PNG body")]);
-  for (const file of EOD_CROPS) fs.writeFileSync(path.join(root, EOD_PACKET, file), image);
-  return {root, paths, hashes, render, manifest: path.join(root, MANIFESTS[1]), eodManifest, eodText};
+  for (const def of definitions) for (const file of def.files) fs.writeFileSync(path.join(root, def.directory, file), image);
+  return {root, paths, hashes, render, manifest: path.join(root, MANIFESTS[1]), eodManifest, eodText, gex, gexManifest, gexText};
 }
 
 test("exact hash-locked integrated source may omit redundant evidence captures", t => {
@@ -164,6 +167,43 @@ test("historical EOD checkout identity remains reusable when its complete inputs
   assert.deepEqual(planEvidenceCapture(f.root), {capture: false, reason: "locked-source-match", stale: []});
 });
 
+test("GEX-only source drift cannot hide behind matching PL6/VI/EOD locks", t => {
+  const f = fixture(t), source = f.gex.producer.LAYOUT_FILES.find(file => !EOD_LAYOUT_FILES.includes(file));
+  assert.ok(source); fs.appendFileSync(path.join(f.root, source), "changed GEX source\n");
+  assert.deepEqual(planEvidenceCapture(f.root), {capture: true, reason: "source-drift", stale: [source]});
+});
+test("a missing GEX manifest or source cannot authorize capture skip", t => {
+  const f = fixture(t); fs.unlinkSync(f.gexManifest);
+  assert.equal(planEvidenceCapture(f.root).reason, "fail-closed");
+  fs.writeFileSync(f.gexManifest, f.gexText); fs.unlinkSync(path.join(f.root, f.gex.producer.LAYOUT_FILES[0]));
+  assert.equal(planEvidenceCapture(f.root).reason, "fail-closed");
+});
+for (const malformed of ["missing-source", "extra-source", "duplicate-source", "missing-crop", "extra-crop", "duplicate-crop"])
+test("GEX " + malformed + " inventory cannot authorize capture skip", t => {
+  const f = fixture(t); let text = f.gexText;
+  const sourceRow = text.split("\n").find(row => row.startsWith("  " + f.gex.producer.LAYOUT_FILES[0] + ":"));
+  const cropRow = "  - " + f.gex.files[0];
+  if (malformed === "missing-source") text = text.replace(sourceRow + "\n", "");
+  if (malformed === "extra-source") text = text.replace(sourceRow, sourceRow + '\n  terminal/unrelated.ts: "' + "a".repeat(64) + '"');
+  if (malformed === "duplicate-source") text = text.replace(sourceRow, sourceRow + "\n" + sourceRow);
+  if (malformed === "missing-crop") text = text.replace(cropRow + "\n", "");
+  if (malformed === "extra-crop") text = text.replace("\nfiles:\n", "\nfiles:\n  - unexpected-390.png\n");
+  if (malformed === "duplicate-crop") text = text.replace("\nfiles:\n", "\nfiles:\n" + cropRow + "\n");
+  fs.writeFileSync(f.gexManifest, text);
+  assert.equal(planEvidenceCapture(f.root).capture, true); assert.equal(planEvidenceCapture(f.root).reason, "fail-closed");
+});
+for (const invalid of ["missing", "empty", "signature"])
+test("GEX " + invalid + " PNG cannot authorize capture skip", t => {
+  const f = fixture(t), image = path.join(f.root, f.gex.directory, f.gex.files[0]);
+  if (invalid === "missing") fs.unlinkSync(image); else fs.writeFileSync(image, invalid === "empty" ? "" : "not a PNG");
+  assert.equal(planEvidenceCapture(f.root).capture, true); assert.equal(planEvidenceCapture(f.root).reason, "fail-closed");
+});
+test("a missing or empty GEX producer cannot authorize capture skip", t => {
+  const f = fixture(t), producer = path.join(f.root, f.gex.script);
+  fs.unlinkSync(producer); assert.equal(planEvidenceCapture(f.root).reason, "fail-closed");
+  fs.writeFileSync(producer, ""); assert.equal(planEvidenceCapture(f.root).reason, "fail-closed");
+});
+
 test("batch3-only producer or fixture drift cannot skip the existing capture owner", t => {
   const f = fixture(t);
   const batch3 = MANIFESTS.find(manifest => manifest.includes("b-pl-6-batch-3"));
@@ -243,4 +283,17 @@ test("an empty touched list never attributes drift to a pull request", t => {
   const gate = driftedTouchedSources(f.root, "");
   assert.equal(gate.plan.reason, "source-drift");
   assert.deepEqual(gate.drifted, []);
+});
+
+test("GEX drift is attributed only when the pull request touched that source", t => {
+  const f = fixture(t);
+  const source = f.gex.producer.LAYOUT_FILES.find(file => !EOD_LAYOUT_FILES.includes(file));
+  assert.ok(source);
+  fs.appendFileSync(path.join(f.root, source), "changed GEX source\n");
+  const own = driftedTouchedSources(f.root, source + "\n");
+  assert.equal(own.plan.reason, "source-drift");
+  assert.deepEqual(own.drifted, [source]);
+  const inherited = driftedTouchedSources(f.root, "docs/guide.md\n");
+  assert.equal(inherited.plan.reason, "source-drift");
+  assert.deepEqual(inherited.drifted, []);
 });

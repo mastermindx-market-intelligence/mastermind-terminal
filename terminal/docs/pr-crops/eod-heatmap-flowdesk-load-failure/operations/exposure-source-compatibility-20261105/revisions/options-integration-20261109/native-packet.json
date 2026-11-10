@@ -1,0 +1,20 @@
+{
+  "branchHead": "90f275f15b4d174f003fb5b1087823dce6ec865a",
+  "captureRevision": "options-integration-20261109",
+  "files": {
+    "EVIDENCE.before.yml": "df03e27c95b9d376c8bfbb0e667910fab2ae284cba14dc586ce3f29560eee07a",
+    "capture-execution.json": "5b53434b3a4663354829106e297f1958add213f7c0dbad4cda92a1148db37579",
+    "capture-sources-after.json": "1b9a01978e2180a6cd2d27a20c7d934a99c46c580d13131000dcae26f7e2f8e2",
+    "capture-sources-before.json": "1b9a01978e2180a6cd2d27a20c7d934a99c46c580d13131000dcae26f7e2f8e2",
+    "capture.log": "b2f6e812056bbc3f4835ae82446e786ff53ab6e09e3f3ae3d3ed27ff58e952d8",
+    "history.json": "68472d4c568baad791099c3a04ecdd6308ce8cca13780e5f63551fbbf4d91b06",
+    "qualified-root/EVIDENCE.yml": "44496380c94609f0d1257f13b1e2800f7dce22d822dad3107f49400decf6ed1a",
+    "source-contract.json": "b943f33ea5faf6e8403de1614d6dd47c33e9a2b80cd794be37cdca1567775cdc"
+  },
+  "integratedDependency": "d3bd6b2d98c6c23398be0bed6c7450caa47bd665",
+  "kind": "eod",
+  "operation": "exposure-source-compatibility-20261105",
+  "profile": "exposure",
+  "protectedMaster": "03af393ce05c12282003a3919cc473c032264922",
+  "schema": "options_exposure_master_packet.v1"
+}

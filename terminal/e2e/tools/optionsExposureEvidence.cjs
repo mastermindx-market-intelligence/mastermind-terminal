@@ -419,6 +419,8 @@ function qualifiedOptionsExposurePacket(repo, kind, crops) {
         crops.every(name => /^[a-z0-9-]+\.png$/.test(name)), "EXPECTED_CROP_SET");
     const root = join(repo, "terminal/docs/pr-crops", PACKETS[kind]);
     const text = readFileSync(join(root, "EVIDENCE.yml"), "utf8");
+    if (text.includes(OPTIONS_INTEGRATION_REVISION))
+        return readOptionsIntegration(repo, root, kind, crops, text);
     if (text.includes("exposureMasterIntegration20261109"))
         return readExposureMasterIntegration(repo, root, kind, crops, text);
     const exposure = text.includes("\nexposureSourceCompatibility20261105:\n");
@@ -491,6 +493,17 @@ const UI_COPY_PROTECTED = "b387616013f38cce9e467cc7da7b87fd2672718c";
 const UI_COPY_PACKET = "ecad16da1beda4bd3a1dbb5354ce92c2181d985b8f1644bb1f5371071d401910";
 const UI_COPY_BROWSER = "cdee804f8bd131e850fb045bf328fb2e5939b6ab11dddc2e72357d8707782279";
 const UI_COPY_650_ARCHIVE = "16c19dfdbdf40c78660be968782fd85919550185a5c0490a273458cde2300404";
+const OPTIONS_INTEGRATION_REVISION = "options-integration-20261109";
+const OPTIONS_INTEGRATION_PRIOR = "90f275f15b4d174f003fb5b1087823dce6ec865a";
+const OPTIONS_INTEGRATION_PROTECTED = "03af393ce05c12282003a3919cc473c032264922";
+const OPTIONS_INTEGRATION_DEPENDENCY = "d3bd6b2d98c6c23398be0bed6c7450caa47bd665";
+// Pending values fail closed until filled from the actual complete successor executions.
+const OPTIONS_INTEGRATION_PACKET = { gex: "fd7c4364bcfb3f8b44773792c4f5d16fbc654eb47cf58a142eb169b3bac24ad7", eod: "77b3b7f07746290cad33262a3d95c221e947a5acd5e940ae95b9d9458f510a18" };
+const OPTIONS_INTEGRATION_BROWSER = "48f4d579a9c661e35f51e5070424a53f509ac1a480430ee9fda9afab8bb6df90";
+const OPTIONS_INTEGRATION_PRODUCERS = {
+    gex: "dbb92e88972bd39984427d054f431159401fcb16bd49b4479cc1c83456f7777d",
+    eod: "671062f250f16c812ffdebfb1714d5c62a8c54be0f439fa34dc1e70452c086e9",
+};
 const INDICATOR_REVISION = "indicator-guard-20261109";
 const INDICATOR_PRIOR = "483554457f302a90305f03c360636ca97ed75fb3";
 const INDICATOR_PACKET = { gex: "c0d9dc8fff216b73afc8dbc3490ca9bd84fbeecde6fe14eeac1452af5e0c0f1b", eod: "eb5a4aac927a5bf8f308f1b6536e7992306df2a78e110cc8012099a4dc185ba9" };
@@ -550,20 +563,39 @@ const UI_COPY_DESK_INPUTS = [
 ];
 const uiCopyIntegrationInputs = (kind) => [...new Set([...masterIntegrationInputs(kind), ...(kind === "eod" ? UI_COPY_DESK_INPUTS : [])])].sort();
 const uiCopyIntegrationBrowserInputs = () => [...new Set([...masterIntegrationBrowserInputs(), ...UI_COPY_DESK_INPUTS])].sort();
+const OPTIONS_INTEGRATION_INPUTS = ["terminal/components/gexdesk/GexSummaryBar.tsx", "terminal/lib/dte.ts"];
+const optionsIntegrationInputs = kind => [...new Set([...uiCopyIntegrationInputs(kind), ...OPTIONS_INTEGRATION_INPUTS])].sort();
+const OPTIONS_INTEGRATION_BROWSER_SPECS = [...MASTER_BROWSER_SPECS, "terminal/e2e/exposure-partial-totals.spec.ts"];
+const optionsIntegrationBrowserInputs = () => [...new Set([...uiCopyIntegrationBrowserInputs(), ...OPTIONS_INTEGRATION_INPUTS,
+    "terminal/e2e/exposure-partial-totals.spec.ts", "terminal/public/data/gex_fixture.json"])].sort();
 /** A failed full GEX run may still emit a manifest; its actual result is decisive. */
 function requireIntegrationExecution(value, kind, crops, identity = "indicator-guard") {
-    const historical = identity === "master-integration", successor = identity === "ui-copy-integration";
+    check(["master-integration", "indicator-guard", "ui-copy-integration", "options-integration"].includes(identity), "INTEGRATION_CAPTURE_IDENTITY_KIND");
+    const historical = identity === "master-integration", successor = identity === "ui-copy-integration", options = identity === "options-integration";
+    const producerPins = options ? OPTIONS_INTEGRATION_PRODUCERS : INDICATOR_PRODUCERS;
     check(value.schema === "exposure_master_integration_capture.v1" && value.operation === OP.exposure &&
-        value.revision === (historical ? MASTER_REVISION : successor ? UI_COPY_REVISION : INDICATOR_REVISION) &&
+        value.revision === (options ? OPTIONS_INTEGRATION_REVISION : historical ? MASTER_REVISION : successor ? UI_COPY_REVISION : INDICATOR_REVISION) &&
         value.kind === kind && value.packet === PACKETS[kind] &&
-        value.branchHead === (historical ? MASTER_PRIOR : successor ? UI_COPY_PRIOR : INDICATOR_PRIOR) &&
-        value.protectedMaster === (successor ? UI_COPY_PROTECTED : MASTER_PROTECTED) &&
+        value.branchHead === (options ? OPTIONS_INTEGRATION_PRIOR : historical ? MASTER_PRIOR : successor ? UI_COPY_PRIOR : INDICATOR_PRIOR) &&
+        value.protectedMaster === (options ? OPTIONS_INTEGRATION_PROTECTED : successor ? UI_COPY_PROTECTED : MASTER_PROTECTED) &&
+        (!options || value.integratedDependency === OPTIONS_INTEGRATION_DEPENDENCY) &&
         (!successor || (kind === "eod" && value.integratedDependency === UI_COPY_DEPENDENCY)), "INTEGRATION_CAPTURE_IDENTITY");
     if (!historical) {
         check(value.portClosed === true && value.nextLockAbsent === true, "INTEGRATION_CAPTURE_LIFECYCLE");
         requireSourceKeys(value.producerPins ?? {}, [harness("gex"), harness("eod")]);
         for (const producer of ["gex", "eod"])
-            check(value.producerPins[harness(producer)] === INDICATOR_PRODUCERS[producer], "INTEGRATION_CAPTURE_PRODUCER:" + producer);
+            check(value.producerPins[harness(producer)] === producerPins[producer], "INTEGRATION_CAPTURE_PRODUCER:" + producer);
+    }
+    if (options) {
+        const supervisor = value.nativeSupervisor, receipt = value.nativeReceipt;
+        check(typeof value.captureId === "string" && value.captureId.length > 0 && value.ownedServerStopped === true &&
+            supervisor?.closed === true && supervisor.status === 0 && supervisor.signal === null && supervisor.timedOut === false &&
+            Number.isInteger(supervisor.serverPid) && supervisor.serverPid > 1 && supervisor.serverReportedStopped === true &&
+            supervisor.serverSettled === true && supervisor.serverRefused === null && supervisor.error === null, "INTEGRATION_NATIVE_SETTLEMENT");
+        check(receipt?.family === kind && receipt.captureId === value.captureId && receipt.capturedAtHead === value.branchHead &&
+            receipt.manifestSha256 === value.manifestSha256 && Array.isArray(receipt.files) &&
+            sameKeys(receipt.files.map(file => file.file), crops) && new Set(receipt.files.map(file => file.file)).size === crops.length &&
+            receipt.files.every(file => file.sha256 === value.images[file.file]?.sha256), "INTEGRATION_NATIVE_RECEIPT");
     }
     check(JSON.stringify(value.command) === JSON.stringify(["node", harness(kind).replace(/^terminal\//, "")]), "INTEGRATION_CAPTURE_COMMAND");
     check(value.exit === 0 && value.expected === crops.length && value.successfulFiles === crops.length &&
@@ -609,33 +641,35 @@ function exposurePrefix(dir) {
             qualifiedPacket: folder + "/native-packet.json", qualifiedPacketSha256: sha(join(dir, "native-packet.json")),
         }) + "\n";
 }
-function verifyIntegrationBrowserRecord(repo, revision) {
-    const successor = revision === "ui-copy";
-    const dir = join(repo, "terminal/docs/verification/exposure-workspace-20261103", successor ? UI_COPY_REVISION : MASTER_REVISION);
-    check(sha(join(dir, "qualification.json")) === (successor ? UI_COPY_BROWSER : MASTER_BROWSER), "INTEGRATION_BROWSER_QUALIFICATION");
+function verifyIntegrationBrowserRecord(repo, revision, requireCurrent = true) {
+    check(["master", "ui-copy", "options-integration"].includes(revision), "INTEGRATION_BROWSER_REVISION");
+    const successor = revision === "ui-copy", options = revision === "options-integration";
+    const dir = join(repo, "terminal/docs/verification/exposure-workspace-20261103", options ? OPTIONS_INTEGRATION_REVISION : successor ? UI_COPY_REVISION : MASTER_REVISION);
+    check(sha(join(dir, "qualification.json")) === (options ? OPTIONS_INTEGRATION_BROWSER : successor ? UI_COPY_BROWSER : MASTER_BROWSER), "INTEGRATION_BROWSER_QUALIFICATION");
     const proof = json(join(dir, "qualification.json"));
     check(proof.schema === "exposure_master_integration_browser.v1" &&
-        proof.branchHead === (successor ? UI_COPY_PRIOR : MASTER_PRIOR) &&
-        proof.protectedMaster === (successor ? UI_COPY_PROTECTED : MASTER_PROTECTED) &&
+        proof.branchHead === (options ? OPTIONS_INTEGRATION_PRIOR : successor ? UI_COPY_PRIOR : MASTER_PRIOR) &&
+        proof.protectedMaster === (options ? OPTIONS_INTEGRATION_PROTECTED : successor ? UI_COPY_PROTECTED : MASTER_PROTECTED) &&
+        (!options || proof.integratedDependency === OPTIONS_INTEGRATION_DEPENDENCY) &&
         (!successor || proof.integratedDependency === UI_COPY_DEPENDENCY), "INTEGRATION_BROWSER_IDENTITY");
     requireSourceKeys(proof.files, ["browser-report.json", "browser-execution.json", "source-before.json", "source-after.json",
-        ...(successor ? ["browser.log"] : [])]);
+        ...((successor || options) ? ["browser.log"] : [])]);
     for (const [name, digest] of Object.entries(proof.files))
         check(sha(join(dir, name)) === digest, "INTEGRATION_BROWSER_FILE:" + name);
     const before = json(join(dir, "source-before.json")), after = json(join(dir, "source-after.json"));
     check(proof.files["source-before.json"] === proof.files["source-after.json"], "INTEGRATION_BROWSER_SOURCE_STABILITY");
-    const currentInputs = successor ? uiCopyIntegrationBrowserInputs() : masterIntegrationBrowserInputs();
+    const currentInputs = options ? optionsIntegrationBrowserInputs() : successor ? uiCopyIntegrationBrowserInputs() : masterIntegrationBrowserInputs();
     requireSourceKeys(proof.currentSources, currentInputs);
     for (const [path, digest] of Object.entries(proof.currentSources))
         check(before[path] === digest && after[path] === digest, "INTEGRATION_BROWSER_RECORDED_SOURCE:" + path);
-    if (successor) {
+    if (requireCurrent && (successor || options)) {
         const current = Object.fromEntries(currentInputs.map(path => [path, sha(join(repo, path))]));
         selectWholeFingerprint([{ sources: proof.currentSources }], current);
     }
     const execution = json(join(dir, "browser-execution.json"));
     check(execution.schema === "exposure_master_integration_browser_execution.v1" &&
         execution.branchHead === proof.branchHead && execution.protectedMaster === proof.protectedMaster &&
-        (!successor || (execution.integratedDependency === UI_COPY_DEPENDENCY &&
+        (!(successor || options) || (execution.integratedDependency === (options ? OPTIONS_INTEGRATION_DEPENDENCY : UI_COPY_DEPENDENCY) &&
             execution.logSha256 === proof.files["browser.log"])), "INTEGRATION_BROWSER_EXECUTION_IDENTITY");
     const overrideKeys = ["EXPOSURE_P09_CURRENT_WITNESS", "EXPOSURE_P09_PREVIOUS_WITNESS", "EXPOSURE_NATIVE_WITNESS",
         "TERMINAL_EXPOSURE_LIGHT_ACCEPTANCE", "TERMINAL_EXPOSURE_ACCESS_ACCEPTANCE", "TERMINAL_EXPOSURE_PAINT_PROBE"];
@@ -644,7 +678,10 @@ function verifyIntegrationBrowserRecord(repo, revision) {
     check(execution.exit === 0 && execution.retries === 0 && execution.sourceStable && execution.ownedServerStopped &&
         execution.failed === 0 && execution.flaky === 0 && execution.passed === proof.expectedPassed.length &&
         execution.skipped === proof.expectedSkipped.length &&
-        MASTER_BROWSER_SPECS.every(path => execution.command.includes(path.replace(/^terminal\//, ""))), "INTEGRATION_BROWSER_RESULT");
+        (options ? OPTIONS_INTEGRATION_BROWSER_SPECS : MASTER_BROWSER_SPECS).every(path => execution.command.includes(path.replace(/^terminal\//, ""))), "INTEGRATION_BROWSER_RESULT");
+    if (options) check(execution.passed === 144 && execution.skipped === 0 &&
+        sameKeys(execution.command.filter(arg => arg.endsWith(".spec.ts")),
+            OPTIONS_INTEGRATION_BROWSER_SPECS.map(path => path.replace(/^terminal\//, ""))), "OPTIONS_INTEGRATION_BROWSER_COMMAND");
     check(Object.keys(execution.artifactFiles).length > 0, "INTEGRATION_BROWSER_ARTIFACTS");
     for (const [path, digest] of Object.entries(execution.artifactFiles))
         check(path.startsWith("browser-artifacts/") && !path.split("/").includes("..") &&
@@ -688,18 +725,20 @@ function verifyIntegrationBrowserRecord(repo, revision) {
     check(sameKeys(chartCases, ["desktop", "tablet", "mobile"].flatMap(project => ["en", "zh"].map(lang => project + "|Connected exposure workspace " + lang + ": chart, comparison scopes, scanner and return"))), "INTEGRATION_CHART_CASE_SET");
     return proof;
 }
-function verifyIntegrationBrowser(repo) {
+function verifyIntegrationBrowser(repo, requireCurrent = true) {
     const historical = verifyIntegrationBrowserRecord(repo, "master");
-    const current = verifyIntegrationBrowserRecord(repo, "ui-copy");
+    const current = verifyIntegrationBrowserRecord(repo, "ui-copy", requireCurrent);
     check(current.expectedPassed.length === 123 && sameKeys(current.expectedPassed, historical.expectedPassed) &&
         sameKeys(current.expectedSkipped, historical.expectedSkipped), "INTEGRATION_BROWSER_ORIGINAL_CASE_SET");
+    return current;
 }
 function readIntegrationNativePayload(repo, dir, kind, crops, descriptor, identity, requireCurrent) {
     const execution = json(join(dir, "capture-execution.json"));
     requireIntegrationExecution(execution, kind, crops, identity);
     check(execution.logSha256 === descriptor.files["capture.log"], "INTEGRATION_CAPTURE_LOG");
     const contract = json(join(dir, "source-contract.json"));
-    const paths = identity === "ui-copy-integration" ? uiCopyIntegrationInputs(kind) : masterIntegrationInputs(kind);
+    const options = identity === "options-integration", pins = options ? OPTIONS_INTEGRATION_PRODUCERS : INDICATOR_PRODUCERS;
+    const paths = options ? optionsIntegrationInputs(kind) : identity === "ui-copy-integration" ? uiCopyIntegrationInputs(kind) : masterIntegrationInputs(kind);
     check(contract.schema === "exposure_master_capture_sources.v1" && contract.kind === kind &&
         sameKeys(contract.currentInputs, paths) && new Set(contract.currentInputs).size === paths.length, "INTEGRATION_SOURCE_CONTRACT");
     const before = json(join(dir, "capture-sources-before.json")), after = json(join(dir, "capture-sources-after.json"));
@@ -707,7 +746,7 @@ function readIntegrationNativePayload(repo, dir, kind, crops, descriptor, identi
     requireSourceKeys(after, contract.observedInputs);
     for (const producer of ["gex", "eod"]) {
         const path = harness(producer);
-        check(before[path] === INDICATOR_PRODUCERS[producer] && after[path] === INDICATOR_PRODUCERS[producer] &&
+        check(before[path] === pins[producer] && after[path] === pins[producer] &&
             execution.producerPins[path] === before[path], "INTEGRATION_OBSERVED_PRODUCER:" + producer);
     }
     check(execution.sourceBeforeSha256 === descriptor.files["capture-sources-before.json"] &&
@@ -719,9 +758,9 @@ function readIntegrationNativePayload(repo, dir, kind, crops, descriptor, identi
         const current = Object.fromEntries(paths.map(path => [path, sha(join(repo, path))]));
         selectWholeFingerprint([{ sources }], current);
         for (const producer of ["gex", "eod"])
-            check(sha(join(repo, harness(producer))) === INDICATOR_PRODUCERS[producer], "INTEGRATION_CURRENT_PRODUCER:" + producer);
+            check(sha(join(repo, harness(producer))) === pins[producer], "INTEGRATION_CURRENT_PRODUCER:" + producer);
     }
-    check(sources[harness(kind)] === INDICATOR_PRODUCERS[kind], "INTEGRATION_NATIVE_PRODUCER");
+    check(sources[harness(kind)] === pins[kind], "INTEGRATION_NATIVE_PRODUCER");
     const cropDir = join(dir, "qualified-root"), evidence = join(cropDir, "EVIDENCE.yml");
     check(execution.manifestSha256 === sha(evidence), "INTEGRATION_NATIVE_MANIFEST");
     verifyIntegrationImages(cropDir, execution, crops);
@@ -751,7 +790,7 @@ function readIntegrationNativePayload(repo, dir, kind, crops, descriptor, identi
         native_manifest_sha256: execution.manifestSha256, log_sha256: execution.logSha256 };
     return { sources, native, cropDir, evidence, layout, execution };
 }
-function readExposureMasterIntegration(repo, root, kind, crops, text) {
+function readExposureMasterIntegration(repo, root, kind, crops, text, requireCurrent = true) {
     const successor = kind === "eod";
     const revision = successor ? UI_COPY_REVISION : INDICATOR_REVISION;
     const branchHead = successor ? UI_COPY_PRIOR : INDICATOR_PRIOR;
@@ -844,20 +883,87 @@ function readExposureMasterIntegration(repo, root, kind, crops, text) {
     check(sameKeys(readdirSync(root).filter(name => name.endsWith(".png")), crops), "INTEGRATION_PROTECTED_ROOT_SET");
     for (const name of crops)
         check(sha(join(root, name)) === sha(join(protectedRoot, name)), "INTEGRATION_PROTECTED_ROOT_IMAGE:" + name);
-    const selected = readIntegrationNativePayload(repo, dir, kind, crops, descriptor, successor ? "ui-copy-integration" : "indicator-guard", true);
-    verifyIntegrationBrowser(repo);
+    const selected = readIntegrationNativePayload(repo, dir, kind, crops, descriptor, successor ? "ui-copy-integration" : "indicator-guard", requireCurrent);
+    verifyIntegrationBrowser(repo, requireCurrent);
     return { profile: "exposure", captureRevision: revision, descriptorSha256: packetPin, ...selected,
         protectedManifest: join(protectedRoot, "EVIDENCE.yml"), optionsHistorySources: {},
         hasExposureHistory: true, hasOptionsHistory: false,
         exposureHistorical: { ...historical, root: priorRoot, boundarySources } };
 }
+
+function optionsIntegrationDeclaration(kind) {
+    return "# Current source proof is the complete Options integration revision.\n" +
+        yamlBlock("exposureMasterIntegration20261109", {
+            revision: "operations/" + OP.exposure + "/revisions/" + OPTIONS_INTEGRATION_REVISION,
+            descriptorSha256: OPTIONS_INTEGRATION_PACKET[kind], branchHead: OPTIONS_INTEGRATION_PRIOR,
+            protectedMaster: OPTIONS_INTEGRATION_PROTECTED, integratedDependency: OPTIONS_INTEGRATION_DEPENDENCY,
+        }) + "\n";
+}
+function readOptionsIntegrationDescriptor(repo, kind) {
+    const root = join(repo, "terminal/docs/pr-crops", PACKETS[kind]);
+    const dir = join(root, "operations", OP.exposure, "revisions", OPTIONS_INTEGRATION_REVISION);
+    const file = join(dir, "native-packet.json");
+    check(sha(file) === OPTIONS_INTEGRATION_PACKET[kind], "OPTIONS_INTEGRATION_PACKET_DIGEST:" + kind);
+    const descriptor = json(file);
+    check(descriptor.schema === "options_exposure_master_packet.v1" && descriptor.kind === kind && descriptor.profile === "exposure" &&
+        descriptor.operation === OP.exposure && descriptor.captureRevision === OPTIONS_INTEGRATION_REVISION &&
+        descriptor.branchHead === OPTIONS_INTEGRATION_PRIOR && descriptor.protectedMaster === OPTIONS_INTEGRATION_PROTECTED &&
+        descriptor.integratedDependency === OPTIONS_INTEGRATION_DEPENDENCY, "OPTIONS_INTEGRATION_PACKET_IDENTITY:" + kind);
+    requireSourceKeys(descriptor.files, ["capture-execution.json", "capture-sources-before.json", "capture-sources-after.json", "source-contract.json",
+        "qualified-root/EVIDENCE.yml", "history.json", "EVIDENCE.before.yml", "capture.log"]);
+    for (const [name, digest] of Object.entries(descriptor.files))
+        check(sha(join(dir, name)) === digest, "OPTIONS_INTEGRATION_PAYLOAD:" + kind + ":" + name);
+    const history = json(join(dir, "history.json")), predecessor = kind === "eod" ? UI_COPY_REVISION : INDICATOR_REVISION;
+    check(history.schema === "exposure_options_integration_history.v1" && history.operation === OP.exposure &&
+        history.revision === OPTIONS_INTEGRATION_REVISION && history.kind === kind && history.packet === PACKETS[kind] &&
+        history.branchHead === OPTIONS_INTEGRATION_PRIOR && history.protectedMaster === OPTIONS_INTEGRATION_PROTECTED &&
+        history.integratedDependency === OPTIONS_INTEGRATION_DEPENDENCY &&
+        history.predecessor?.revision === predecessor &&
+        history.predecessor.descriptorSha256 === (kind === "eod" ? UI_COPY_PACKET : INDICATOR_PACKET[kind]), "OPTIONS_INTEGRATION_HISTORY:" + kind);
+    return { root, dir, descriptor };
+}
+function requireOptionsIntegrationBrowserCases(current, historical) {
+    const titles = [
+        "Exposure 0DTE unknown cell withholds the total", "Exposure 0DTE complete grid shows its total",
+        "Exposure All except 0DTE withholds the total when a chain expiration is outside the snapshot",
+        "[en] Exposure known subtotal keeps its date-only source session", "[en] Exposure complete grid keeps its date-only source session",
+        "[zh] Exposure known subtotal keeps its date-only source session", "[zh] Exposure complete grid keeps its date-only source session",
+    ];
+    const expected = [...historical.expectedPassed, ...["desktop", "tablet", "mobile"].flatMap(project => titles.map(title => project + "|" + title))];
+    check(historical.expectedPassed.length === 123 && new Set(current.expectedPassed).size === 144 &&
+        current.expectedPassed.length === 144 && sameKeys(current.expectedPassed, expected) &&
+        current.expectedSkipped.length === 0 && historical.expectedSkipped.length === 0, "OPTIONS_INTEGRATION_BROWSER_CASE_SET");
+}
+function verifyOptionsIntegrationBrowser(repo) {
+    requireOptionsIntegrationBrowserCases(verifyIntegrationBrowserRecord(repo, "options-integration"), verifyIntegrationBrowser(repo, false));
+}
+function readOptionsIntegration(repo, root, kind, crops, text) {
+    const packets = Object.fromEntries(["gex", "eod"].map(family => [family, readOptionsIntegrationDescriptor(repo, family)]));
+    let historical, selected;
+    for (const family of ["gex", "eod"]) {
+        const packet = packets[family];
+        const expected = family === kind ? crops : require("./" + harness(family).split("/").at(-1)).expectedFiles();
+        const prior = readExposureMasterIntegration(repo, packet.root, family, expected,
+            readFileSync(join(packet.dir, "EVIDENCE.before.yml"), "utf8"), false);
+        const current = readIntegrationNativePayload(repo, packet.dir, family, expected, packet.descriptor, "options-integration", true);
+        const actual = family === kind ? text : readFileSync(join(packet.root, "EVIDENCE.yml"), "utf8");
+        check(actual === optionsIntegrationDeclaration(family) + readFileSync(prior.protectedManifest, "utf8"), "OPTIONS_INTEGRATION_ROOT:" + family);
+        if (family === kind) { historical = prior; selected = current; }
+    }
+    verifyOptionsIntegrationBrowser(repo);
+    return { ...historical, ...selected, captureRevision: OPTIONS_INTEGRATION_REVISION,
+        descriptorSha256: OPTIONS_INTEGRATION_PACKET[kind] };
+}
+
 /** Legacy is eligible only when neither a declaration nor any qualified operation history exists. */
 function optionalQualifiedOptionsExposurePacket(repo, kind, crops) {
     const root = join(repo, "terminal/docs/pr-crops", PACKETS[kind]);
-    const text = readFileSync(join(root, "EVIDENCE.yml"), "utf8");
-    const declared = /exposureMasterIntegration20261109|exposureSourceCompatibility20261105|optionsSourceCompatibility20261105/.test(text);
     const history = Object.values(OP).some(operation => existsSync(join(root, "operations", operation)));
+    let text;
+    try { text = readFileSync(join(root, "EVIDENCE.yml"), "utf8"); }
+    catch (error) { if (error.code === "ENOENT" && !history) return null; throw error; }
+    const declared = /exposureMasterIntegration20261109|exposureSourceCompatibility20261105|optionsSourceCompatibility20261105/.test(text);
     return declared || history ? qualifiedOptionsExposurePacket(repo, kind, crops) : null;
 }
 
-module.exports = { requireSourceKeys, selectWholeFingerprint, projectR4CaptureHarness, projectIndicatorGuardBrowserSources, layoutSources, requireR4ChartIdentity, qualifiedOptionsExposurePacket, masterIntegrationInputs, MASTER_BROWSER_SPECS, masterIntegrationBrowserInputs, uiCopyIntegrationInputs, uiCopyIntegrationBrowserInputs, requireIntegrationExecution, optionalQualifiedOptionsExposurePacket };
+module.exports = { requireSourceKeys, selectWholeFingerprint, projectR4CaptureHarness, projectIndicatorGuardBrowserSources, layoutSources, requireR4ChartIdentity, qualifiedOptionsExposurePacket, masterIntegrationInputs, MASTER_BROWSER_SPECS, masterIntegrationBrowserInputs, uiCopyIntegrationInputs, uiCopyIntegrationBrowserInputs, requireIntegrationExecution, optionalQualifiedOptionsExposurePacket, optionsIntegrationInputs, OPTIONS_INTEGRATION_BROWSER_SPECS, optionsIntegrationBrowserInputs, requireOptionsIntegrationBrowserCases };

@@ -3,7 +3,7 @@ import { createRequire } from "node:module";
 import { mkdtempSync, mkdirSync, lstatSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
-import { qualifiedOptionsExposurePacket } from "./helpers/optionsExposureEvidence";
+import { qualifiedOptionsExposurePacket, requireIntegrationExecution, requireOptionsIntegrationBrowserCases } from "./helpers/optionsExposureEvidence";
 
 const REPO = join(__dirname, "../../..");
 const owner = createRequire(import.meta.url)("../../e2e/tools/capture_ci_evidence.cjs") as {
@@ -69,10 +69,15 @@ describe("current EOD owner and native reader", () => {
     expect(packet.layoutFiles).toEqual(Object.fromEntries(selected.layout.map(file => [file, selected.sources[file]])));
     expect(packet.sourceFiles).toEqual(selected.sources);
     expect(packet.plan).toEqual({ required: false, changed: [] });
-    expect(packet.capturedAtHead).toBe("282ea2c40d839fecbe5ae5dc53de9c29a02850f6");
+    expect(packet.capturedAtHead).toBe("90f275f15b4d174f003fb5b1087823dce6ec865a");
+    expect(packet.captureRevision).toBe("options-integration-20261109");
+    const historical = JSON.parse(readFileSync(join(REPO, "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-source-compatibility-20261105/revisions/ui-copy-integration-20261109/capture-execution.json"), "utf8"));
+    expect(historical.branchHead).toBe("282ea2c40d839fecbe5ae5dc53de9c29a02850f6");
   });
 
-  for (const file of ["terminal/components/flowdesk/FlowFreshnessReceipt.tsx", "terminal/components/flowdesk/InspectorPane.tsx"]) {
+  for (const file of ["terminal/components/flowdesk/FlowFreshnessReceipt.tsx", "terminal/components/flowdesk/InspectorPane.tsx",
+    "terminal/components/gexdesk/GexSummaryBar.tsx", "terminal/lib/dte.ts",
+    "terminal/e2e/exposure-partial-totals.spec.ts", "terminal/public/data/gex_fixture.json"]) {
     it("refuses reuse after mounted desk source drift: " + file, () => {
       const root = shadowRepo({ [file]: readFileSync(join(REPO, file), "utf8") + "\n// isolated source drift\n" });
       expect(() => owner.eodPacket(root)).toThrow(/NO_QUALIFIED_CAPTURE/);
@@ -100,5 +105,36 @@ describe("current EOD owner and native reader", () => {
     const text = readFileSync(join(REPO, file), "utf8");
     const root = shadowRepo({ [file]: text.slice(text.indexOf("\n\n") + 2) });
     expect(() => owner.eodPacket(root)).toThrow(/MISSING_PACKET_DECLARATION/);
+  });
+});
+
+describe("paired Options integration proof", () => {
+  it("refuses a mixed current family declaration", () => {
+    const file = "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml";
+    const root = shadowRepo({ [file]: readFileSync(join(REPO, file), "utf8").replace("options-integration-20261109", "ui-copy-integration-20261109") });
+    expect(() => owner.eodPacket(root)).toThrow(/OPTIONS_INTEGRATION_ROOT/);
+  });
+  it("refuses a complete-image receipt with an incomplete frame matrix", () => {
+    const selected = qualifiedOptionsExposurePacket(REPO, "eod", owner.EOD_CROPS);
+    const execution = structuredClone(selected.execution!);
+    execution.frames.pop();
+    expect(() => requireIntegrationExecution(execution, "eod", owner.EOD_CROPS, "options-integration")).toThrow(/INTEGRATION_FRAME_SET/);
+  });
+  it("refuses a current receipt without settled native-server proof", () => {
+    const selected = qualifiedOptionsExposurePacket(REPO, "eod", owner.EOD_CROPS);
+    const execution = structuredClone(selected.execution!);
+    execution.nativeSupervisor!.serverReportedStopped = false;
+    expect(() => requireIntegrationExecution(execution, "eod", owner.EOD_CROPS, "options-integration")).toThrow(/INTEGRATION_NATIVE_SETTLEMENT/);
+  });
+  for (const change of ["missing", "duplicate", "unrelated", "skipped"]) it("refuses a wrong complete browser identity set: " + change, () => {
+    const base = join(REPO, "terminal/docs/verification/exposure-workspace-20261103");
+    const historical = JSON.parse(readFileSync(join(base, "ui-copy-integration-20261109/qualification.json"), "utf8"));
+    const current = JSON.parse(readFileSync(join(base, "options-integration-20261109/qualification.json"), "utf8"));
+    requireOptionsIntegrationBrowserCases(current, historical);
+    if (change === "missing") current.expectedPassed.pop();
+    if (change === "duplicate") current.expectedPassed[1] = current.expectedPassed[0];
+    if (change === "unrelated") current.expectedPassed[0] = "mobile|unrelated passing test";
+    if (change === "skipped") current.expectedSkipped.push(current.expectedPassed.pop());
+    expect(() => requireOptionsIntegrationBrowserCases(current, historical)).toThrow(/OPTIONS_INTEGRATION_BROWSER_CASE_SET/);
   });
 });

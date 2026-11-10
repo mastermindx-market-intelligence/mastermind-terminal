@@ -1,7 +1,7 @@
 "use strict";
 // Fail-closed source-lock planner for the expensive immutable browser evidence
 // capture. Native merge_group may reuse checked-in legacy evidence only when
-// all registered screenshot-packet locks and the exact EOD packet match the integrated tree.
+// all registered screenshot-packet locks and both exact native packets match the integrated tree.
 // A missing/altered manifest, file, conflicting lock, or hash mismatch orders
 // fresh, fully validated captures. No false-green source hash overrides.
 //
@@ -14,7 +14,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
-const { eodPacket } = require("../../e2e/tools/capture_ci_evidence.cjs");
+const { eodPacket, gexPacket } = require("../../e2e/tools/capture_ci_evidence.cjs");
 
 const ROOT = path.resolve(__dirname, "../../..");
 const MANIFESTS = [
@@ -53,13 +53,13 @@ function planEvidenceCapture(root = ROOT) {
         locks.set(rel, expected);
       }
     }
-    // Reuse the native owner's complete current-source and126-case qualification.
-    // Its malformed/missing packet cannot authorize a merge-group capture skip.
-    const eod = eodPacket(root);
-    for (const [rel, expected] of Object.entries(eod.layoutFiles)) {
-      if (locks.has(rel) && locks.get(rel) !== expected)
-        throw new Error("conflicting evidence source locks");
-      locks.set(rel, expected);
+    // The shared owner checks declared histories; corruption cannot authorize reuse.
+    for (const packet of [eodPacket(root), gexPacket(root)]) {
+      for (const [rel, expected] of Object.entries(packet.sourceFiles || packet.layoutFiles)) {
+        if (locks.has(rel) && locks.get(rel) !== expected)
+          throw new Error("conflicting evidence source locks");
+        locks.set(rel, expected);
+      }
     }
     const stale = [];
     for (const [rel, expected] of locks) {
