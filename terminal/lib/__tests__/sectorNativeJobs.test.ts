@@ -115,8 +115,9 @@ describe("native slot context: source ordinal and binding discipline", () => {
     delete group.current.rank;
     delete group.current.rs_21d;
     delete group.current.rs_63d;
-    const synthetic = { receipt: generation.receipt, core,
-      sectors: generation.sectors, history: generation.history, key: generation.key };
+    // Full generation spread + the mutated core: only the withheld group changes,
+    // every other admitted companion (actionBoard/typedBlocks/historyWire) rides along.
+    const synthetic = { ...generation, core };
     const rows = sectorNativeRankedRows(synthetic);
     expect(rows).toHaveLength(11);
     const unmeasured = rows.filter(row => !row.measured);

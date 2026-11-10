@@ -330,15 +330,15 @@ export function sectorPopulationPage(value: unknown): PopulationPage | null {
   }
 
   return {
-    sourceSession: value.source_session, publishedAt: value.published_at, qualification: value.qualification,
+    sourceSession: value.source_session, publishedAt: value.published_at,
+    qualification: value.qualification as PopulationPage["qualification"],
     ownerRef: { owner: ownerRefRaw.owner, contract: ownerRefRaw.contract, populationSchema: ownerRefRaw.population_schema,
       basisVersion: ownerRefRaw.basis_version, domain: ownerRefRaw.domain, generationId: ownerRefRaw.generation_id,
       contentId: ownerRefRaw.content_id, consumerContentSha256: ownerRefRaw.consumer_content_sha256,
       memberSha256: ownerRefRaw.member_sha256 as Record<string, string>,
       retainedResolverRef: ownerRefRaw.retained_resolver_ref,
       // The guard above proved the literal; the cast only re-states it for TS.
-      retainedResolverRefDurability: ownerRefRaw.retained_resolver_ref_durability
-        as PopulationOwnerRef["retainedResolverRefDurability"] },
+      retainedResolverRefDurability: ownerRefRaw.retained_resolver_ref_durability as PopulationOwnerRef["retainedResolverRefDurability"] },
     counts: { configuredCurrent: population.configured_current, served: population.served,
       accountedUnserved: population.accounted_unserved, unaccounted: population.unaccounted,
       complete: population.complete, groups: population.groups,

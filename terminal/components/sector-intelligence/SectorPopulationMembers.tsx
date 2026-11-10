@@ -64,7 +64,8 @@ export default function SectorPopulationMembers() {
     abort.current?.abort();
     const controller = new AbortController();
     abort.current = controller;
-    setPhase(opts.cursor ? "ready" : "loading");
+    // Phase transitions are the CALLERS' (handlers own the synchronous "loading"
+    // set; cursor continuations keep "ready" so the list stays visible).
     const read = await fetchSectorPopulation({
       group: group || undefined, q: applied ?? undefined,
       cursor: opts.cursor, signal: controller.signal,
@@ -120,6 +121,7 @@ export default function SectorPopulationMembers() {
     const next = query.trim();
     if (next !== "" && !POPULATION_QUERY.test(next)) return; // inline guard below renders the reason
     setApplied(next === "" ? null : next);
+    setPhase("loading");
   };
 
   const searchInvalid = query.trim() !== "" && !POPULATION_QUERY.test(query.trim());
@@ -140,7 +142,7 @@ export default function SectorPopulationMembers() {
     <div className={styles.populationControls}>
       <label className={styles.populationLabel} htmlFor="sector-population-group">{t("siPopulationGroupLabel")}</label>
       <select id="sector-population-group" className={shell.button} value={group}
-        onChange={event => setGroup(event.target.value)} disabled={!groupIndex}>
+        onChange={event => { setGroup(event.target.value); setPhase("loading"); }} disabled={!groupIndex}>
         <option value="">{t("siPopulationGroupAll")}</option>
         {groupIndex?.map(entry => <option key={entry.groupId} value={entry.groupId}>
           {entry.refusedByOwner
@@ -155,7 +157,7 @@ export default function SectorPopulationMembers() {
           aria-invalid={searchInvalid} placeholder={t("siPopulationSearchLabel")} />
         <button type="submit" className={shell.button} disabled={searchInvalid}>{t("siPopulationSearchSubmit")}</button>
         {applied !== null && <button type="button" className={shell.button}
-          onClick={() => { setQuery(""); setApplied(null); }}>{t("siPopulationSearchClear")}</button>}
+          onClick={() => { setQuery(""); setApplied(null); setPhase("loading"); }}>{t("siPopulationSearchClear")}</button>}
       </form>
     </div>
     {searchInvalid ? <p className={styles.stateCopy} role="alert">{t("siPopulationSearchInvalid")}</p> : null}
@@ -169,7 +171,7 @@ export default function SectorPopulationMembers() {
         <p>{t("siPopulationRetry")}</p>
         <div className={styles.heroActions}>
           <button type="button" className={styles.secondaryButton}
-            onClick={() => void run({})}>{t("siPopulationRetryAction")}</button>
+            onClick={() => { setPhase("loading"); void run({}); }}>{t("siPopulationRetryAction")}</button>
         </div>
       </div>
       : phase === "ready" && head ? <div className={styles.populationTableWrap}>

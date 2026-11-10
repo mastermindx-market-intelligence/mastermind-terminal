@@ -167,7 +167,7 @@ export function sectorNativeGeneration(value: unknown): NativeSectorGeneration |
     if (sectorDossiers(core).state === "invalid" || sectorWindowMeasurements(core).state === "invalid") return null;
   }
   return { receipt: receipt as unknown as NativeSectorReceipt, core, sectors, history,
-    historyWire: data.history, actionBoard: data.action_board as Row, typedBlocks: sectorTypedBlocks(data),
+    historyWire: data.history as Row, actionBoard: data.action_board as Row, typedBlocks: sectorTypedBlocks(data),
     key: `${receipt.generation_id}|${receipt.content_sha256}` };
 }
 
