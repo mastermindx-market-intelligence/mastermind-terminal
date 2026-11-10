@@ -94,8 +94,8 @@ const CSP = [
 ].join("; ");
 
 // Applied to every app response (Caddy reverse_proxies to `next start` and passes these through).
-// NOTE: /data/* is served DIRECTLY by Caddy file_server in production, so it is NOT covered here —
-// its CORP/nosniff headers live in the Caddyfile (app/deploy/Caddyfile, macro repo).
+// Caddy serves public /data files in production and owns their success cache policy.
+// Leave Next's missing-data responses to the route handler's no-store policy.
 const securityHeaders = [
   { key: "Content-Security-Policy", value: CSP },
   // No X-Frame-Options: the legacy header cannot express an exact cross-origin
@@ -299,16 +299,6 @@ const nextConfig: NextConfig = {
       {
         source: "/embed/chart",
         headers: embedChartHeaders,
-      },
-      // Cache static market-data JSON served from /data/* for 5 min, stale for 1 hour.
-      {
-        source: "/data/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=300, stale-while-revalidate=3600",
-          },
-        ],
       },
       // Statically-prerendered HTML would otherwise ship Next's s-maxage=31536000, which the
       // EdgeOne CDN pins for a year (a deploy then can't refresh these shells without a manual
