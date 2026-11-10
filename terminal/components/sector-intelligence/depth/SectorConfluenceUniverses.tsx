@@ -95,6 +95,17 @@ function detailHref(id: UniverseId, group: UniverseGroup): string | undefined {
   return sameSiteHref(`/${dir}${key}.html`) ?? undefined;
 }
 
+/** S1 (review r1): the roll-up detail link renders only where a published
+ * sector-level detail page exists for that universe. The S&P tab's sector rows
+ * carry `sec-*` chart keys and NO `/subsector/sec-*.html` route exists (the
+ * route registry has none), so those labels render without a link; the Nasdaq
+ * tab's `amalg-*` sector rows have published `/subsector_nasdaq/` routes and
+ * keep theirs. Russell publishes no sector rows tonight and its keys would
+ * follow the S&P pattern, so its roll-up is linkless too. The render test
+ * keeps this honest: every href composed from the committed real fixtures
+ * must exist in sharedShellRoutes.generated.json. */
+const ROLLUP_HAS_DETAIL_ROUTES: ReadonlySet<UniverseId> = new Set(["nasdaq"]);
+
 /** Count cell: null (not stated) renders the dash, never a coerced 0. */
 function fmtCount(v: number | null | undefined): string {
   return v == null ? "–" : String(v);
@@ -449,6 +460,9 @@ function SectorRollup({
             allShown={!!expanded[g.key]}
             onToggleAll={() => setExpanded((s) => ({ ...s, [g.key]: !s[g.key] }))}
             onNavigate={onNavigate}
+            // S1: roll-up cards link only where a published sector-level route
+            // exists for this universe (see ROLLUP_HAS_DETAIL_ROUTES).
+            detailLink={ROLLUP_HAS_DETAIL_ROUTES.has(id)}
           />
         ))}
       </div>
@@ -618,12 +632,16 @@ function GroupCard({
   allShown,
   onToggleAll,
   onNavigate,
+  detailLink = true,
 }: {
   id: UniverseId;
   group: UniverseGroup;
   allShown: boolean;
   onToggleAll: () => void;
   onNavigate?: (href: string) => void;
+  /** S1: the roll-up suppresses the detail control where no published
+   * sector-level route exists (the subsector card view keeps its links). */
+  detailLink?: boolean;
 }) {
   const t = useSectorDepthT();
   const { lang } = useLang();
@@ -660,7 +678,7 @@ function GroupCard({
         onToggleMore={onToggleAll}
         onNavigate={onNavigate}
       />
-      <DetailLink href={detailHref(id, group)} name={label} onNavigate={onNavigate} />
+      {detailLink && <DetailLink href={detailHref(id, group)} name={label} onNavigate={onNavigate} />}
     </article>
   );
 }

@@ -47,6 +47,7 @@ import capturedFx from "./fixtures/sector_generation.captured.preview.v1.json";
 import servedRowsFx from "./fixtures/typed_blocks_entitled.json";
 import sp500ValueFx from "./fixtures/confluence_universe_sp500.json";
 import themeRowsValueFx from "./fixtures/theme_rows.json";
+import shellRoutesJson from "@/lib/sharedShellRoutes.generated.json";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -551,21 +552,6 @@ describe("rows increment — universes board from carried blocks (static renders
       G.__SD_LANG = "en";
     }
   });
-
-  it("hostile chart_keys never compose an href; conforming keys still link", () => {
-    const doc = structuredClone(sp500ValueFx) as { data: { subsectors: Record<string, unknown>[] } };
-    doc.data.subsectors[0]!.chart_key = "javascript:alert(1)";
-    doc.data.subsectors[1]!.chart_key = "..";
-    doc.data.subsectors[2]!.chart_key = null;
-    const blocks: Partial<Record<UniverseId, UniverseBlockRead>> = {
-      subsectors: confluenceSp500FromCarriedBlock({ status: "available", value: doc }),
-    };
-    const markup = html(<SectorConfluenceUniverses universeBlocks={blocks} />);
-    expect(markup).not.toContain("javascript:");
-    expect(markup).not.toContain("/..html");
-    expect(markup).not.toContain("undefined.html");
-    expect(markup).toContain('href="/subsector/'); // conforming rows still link
-  });
 });
 
 describe("rows increment — universes board from carried blocks (interactive)", () => {
@@ -663,6 +649,38 @@ describe("rows increment — universes board from carried blocks (interactive)",
     // absent — an honest zero, not an empty labelled container.
     expect(host.querySelector('[data-rollup="sectors"]')).toBeNull();
     expect(host.textContent).toContain("This universe carries no groups tonight.");
+  });
+
+  it("hostile chart_keys never compose an href; conforming keys still link once their row opens", async () => {
+    // Moved from the static describe by S1: a collapsed table row renders no
+    // link, so the only static "/subsector/" hrefs used to be the dead sec-*
+    // roll-up links the S1 rule removed. Here every row is OPENED, so the
+    // conforming-key proof is stronger: every composed href is a real
+    // published b-* route and none of the hostile keys ever links.
+    const doc = structuredClone(sp500ValueFx) as { data: { subsectors: Record<string, unknown>[] } };
+    doc.data.subsectors[0]!.chart_key = "javascript:alert(1)";
+    doc.data.subsectors[1]!.chart_key = "..";
+    doc.data.subsectors[2]!.chart_key = null;
+    const blocks: Partial<Record<UniverseId, UniverseBlockRead>> = {
+      subsectors: confluenceSp500FromCarriedBlock({ status: "available", value: doc }),
+    };
+    await mount(<SectorConfluenceUniverses universeBlocks={blocks} />);
+    const expands = host.querySelectorAll<HTMLButtonElement>("button[aria-expanded][aria-controls]");
+    for (const b of expands) {
+      await act(async () => {
+        b.click();
+      });
+    }
+    const hrefs = Array.from(host.querySelectorAll("a[href]")).map((a) => a.getAttribute("href")!);
+    expect(hrefs.length).toBeGreaterThan(0); // conforming rows still link
+    expect(hrefs.join(" ")).not.toContain("javascript:");
+    expect(hrefs.join(" ")).not.toContain("..");
+    expect(hrefs.join(" ")).not.toContain("undefined");
+    for (const h of hrefs) {
+      // Conforming shape (the real keys are mixed b-* and bare slugs; the
+      // registry membership of every one is pinned by the S1 invariant test).
+      expect(h).toMatch(/^\/subsector\/[a-z0-9][a-z0-9-]*\.html$/);
+    }
   });
 });
 
@@ -915,5 +933,101 @@ describe("B2 — the theme table carries its own date, not the history's", () =>
     expect(markup).toContain('data-rows-asof="2026-11-06"');
     expect(markup).not.toContain("data-history-asof");
     expect(markup.split("</header>")[0] ?? "").not.toContain("2026-11-");
+  });
+});
+
+/* ── S1 (review r1): no link to a page that does not exist. Every href the
+ * surfaces render from the committed real fixtures must be a published shared
+ * shell route; the S&P sector roll-up rows (sec-* chart keys — no
+ * /subsector/sec-*.html route exists) render their label with NO link, while
+ * the Nasdaq roll-up's amalg-* rows keep theirs. The registry import lives in
+ * this test only — never in a component. */
+
+describe("S1 — rendered hrefs are published routes; the S&P sector roll-up does not link", () => {
+  const mql = {
+    matches: false,
+    media: "",
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  };
+
+  let host: HTMLDivElement;
+  let root: Root;
+
+  const mount = async (el: React.ReactElement) =>
+    act(async () => {
+      root.render(el);
+    });
+
+  beforeEach(() => {
+    vi.stubGlobal("matchMedia", () => mql);
+    host = document.createElement("div");
+    document.body.append(host);
+    root = createRoot(host);
+  });
+  afterEach(async () => {
+    await act(async () => {
+      root.unmount();
+    });
+    host.remove();
+    vi.unstubAllGlobals();
+  });
+
+  it("every href rendered from the real fixtures (four universes + theme table) is a published route", async () => {
+    const shellRoutes = shellRoutesJson as { legacyPaths: string[]; nativePaths: string[] };
+    const registry = new Set<string>([...shellRoutes.legacyPaths, ...shellRoutes.nativePaths]);
+    await mount(<SectorConfluenceUniverses universeBlocks={realUniverseBlocks()} />);
+    const hrefs: string[] = [];
+    for (const id of ["subsectors", "nasdaq", "russell", "baskets"] as UniverseId[]) {
+      const tab = host.querySelector<HTMLButtonElement>(`[data-universe="${id}"]`);
+      expect(tab).not.toBeNull();
+      await act(async () => {
+        tab!.click();
+      });
+      // Expand the first table row so its detail link renders too (rows are
+      // collapsed by default; the roll-up cards link unconditionally).
+      const expand = host.querySelector<HTMLButtonElement>("button[aria-expanded][aria-controls]");
+      if (expand) {
+        await act(async () => {
+          expand.click();
+        });
+      }
+      for (const a of host.querySelectorAll("a[href]")) hrefs.push(a.getAttribute("href")!);
+    }
+    const themeMarkup = html(
+      <SectorThemeCompare history={capturedHistory} labels={{}} themeRows={themeRowsFromCarriedBlock(servedRows.theme_rows)} />,
+    );
+    for (const m of themeMarkup.matchAll(/href="([^"]+)"/g)) hrefs.push(m[1]!);
+    expect(hrefs.length).toBeGreaterThan(50); // 65 subsectors + 6 nasdaq + 49 theme after the fix
+    const missing = hrefs.filter((h) => !registry.has(h));
+    expect(missing).toEqual([]);
+  });
+
+  it("the S&P sector roll-up rows render labels with no link; the Nasdaq roll-up keeps its published links", async () => {
+    await mount(<SectorConfluenceUniverses universeBlocks={realUniverseBlocks()} />);
+    const rollup = host.querySelector('[data-rollup="sectors"]');
+    expect(rollup).not.toBeNull();
+    expect(rollup!.querySelectorAll("article")).toHaveLength(11);
+    // No dead sec-* destination is composed: no anchor, no "Open …" control.
+    expect(rollup!.querySelectorAll("a[href]")).toHaveLength(0);
+    expect(rollup!.textContent).not.toMatch(/Open [A-Z]/);
+    // The sector labels themselves still render.
+    expect(rollup!.textContent).toContain("Basic Materials");
+    const tab = host.querySelector<HTMLButtonElement>('[data-universe="nasdaq"]');
+    await act(async () => {
+      tab!.click();
+    });
+    const nasdaqRollup = host.querySelector('[data-rollup="sectors"]');
+    const links = Array.from(nasdaqRollup!.querySelectorAll("a[href]")).map((a) =>
+      a.getAttribute("href"),
+    );
+    expect(links).toHaveLength(6);
+    for (const href of links) {
+      expect(href).toMatch(/^\/subsector_nasdaq\/amalg-[a-z0-9-]+\.html$/);
+    }
   });
 });
