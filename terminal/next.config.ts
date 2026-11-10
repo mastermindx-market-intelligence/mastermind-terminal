@@ -4,9 +4,10 @@ import { readFileSync, readdirSync } from "node:fs";
 import path from "path";
 
 const isProd = process.env.NODE_ENV === "production";
+const isFixtureDevelopment = process.env.NODE_ENV === "development"
+  && process.env.TERMINAL_E2E_FIXTURE === "1";
 // Only the closed canonical fixture transport denies the optional debug WebSocket.
-const isClosedCanonicalTransport = process.env.NODE_ENV === "development"
-  && process.env.TERMINAL_E2E_FIXTURE === "1"
+const isClosedCanonicalTransport = isFixtureDevelopment
   && process.env.TERMINAL_E2E_CLOSED_CANONICAL_TRANSPORT === "intl-fixture-v1";
 
 // ── Deployment id (version-skew protection / stale-chunk self-heal) ───────────
@@ -170,7 +171,16 @@ const embedChartHeaders = embedHeaders.map((header) =>
 );
 
 const nextConfig: NextConfig = {
-  ...(isClosedCanonicalTransport ? { experimental: { reactDebugChannel: false } } : {}),
+  ...(isFixtureDevelopment ? {
+    experimental: {
+      // Sequential fixture servers change public environment values. Next 16.4's
+      // persistent dev-cache restoration can restart the shared client entry forever:
+      // https://github.com/vercel/next.js/issues/100251 and /issues/100267.
+      // Keep Turbopack/HMR; each fixture server computes its own development state.
+      turbopackFileSystemCacheForDev: false,
+      ...(isClosedCanonicalTransport ? { reactDebugChannel: false } : {}),
+    },
+  } : {}),
   // Internal public-sample diagnostics must never be copied into a deploy artifact.
   // Turbopack globs are project-relative; parent-traversal excludes panic at build time.
   // The pinned terminal root already excludes its parent; cover any nested diagnostic copy too.
