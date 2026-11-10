@@ -1,0 +1,14 @@
+{
+  "branchHead": "90f275f15b4d174f003fb5b1087823dce6ec865a",
+  "integratedDependency": "d3bd6b2d98c6c23398be0bed6c7450caa47bd665",
+  "kind": "eod",
+  "operation": "exposure-source-compatibility-20261105",
+  "packet": "eod-heatmap-flowdesk-load-failure",
+  "predecessor": {
+    "descriptorSha256": "ecad16da1beda4bd3a1dbb5354ce92c2181d985b8f1644bb1f5371071d401910",
+    "revision": "ui-copy-integration-20261109"
+  },
+  "protectedMaster": "03af393ce05c12282003a3919cc473c032264922",
+  "revision": "options-integration-20261109",
+  "schema": "exposure_options_integration_history.v1"
+}

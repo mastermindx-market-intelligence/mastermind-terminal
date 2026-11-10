@@ -1,0 +1,132 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /workspace/scratch/a2c76c60e583/terminal-polish2/terminal
+
+ ❯ components/settings/__tests__/SectionPreferencesContinuity.test.tsx (8 tests | 5 failed) 307ms
+   × Preference trade edits survive section navigation > queues immediately and completes after the section leaves before the former debounce 109ms
+     → expected [] to deeply equal [ { trade_types: [ 'stocks', …(2) ] } ]
+   × Preference trade edits survive section navigation > shows Saving until the actual response acknowledges the edit 29ms
+     → expected '' to contain 'Saving'
+   × Preference trade edits survive section navigation > uses the existing single in-flight pump and coalesces to the latest complete choice 27ms
+     → expected [] to deeply equal [ { trade_types: [ 'stocks', …(2) ] } ]
+   × Preference trade edits survive section navigation > rejects a stale rendered click after same-owner new generation 36ms
+     → expected [ { trade_types: [ 'stocks', …(2) ] } ] to have a length of +0 but got 1
+   × Preference trade edits survive section navigation > retains failure feedback and uses the real manual retry before reporting Saved 14ms
+     → expected '' to contain 'Retry'
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  components/settings/__tests__/SectionPreferencesContinuity.test.tsx > Preference trade edits survive section navigation > queues immediately and completes after the section leaves before the former debounce
+AssertionError: expected [] to deeply equal [ { trade_types: [ 'stocks', …(2) ] } ]
+
+- Expected
++ Received
+
+- Array [
+-   Object {
+-     "trade_types": Array [
+-       "stocks",
+-       "options",
+-       "crypto",
+-     ],
+-   },
+- ]
++ Array []
+
+ ❯ components/settings/__tests__/SectionPreferencesContinuity.test.tsx:55:21
+     53|     const release = heldWrite(); await render(); await click("Crypto");
+     54|     act(() => root.render(null)); act(() => vi.advanceTimersByTime(600…
+     55|     expect(updates).toEqual([{ trade_types: ["stocks", "options", "cry…
+       |                     ^
+     56|     expect(patch).toHaveBeenCalledWith({ trade_types: ["stocks", "opti…
+     57|     expect(__marketPrefsSnapshot().sync.phase).toBe("syncing");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  components/settings/__tests__/SectionPreferencesContinuity.test.tsx > Preference trade edits survive section navigation > shows Saving until the actual response acknowledges the edit
+AssertionError: expected '' to contain 'Saving'
+
+- Expected
++ Received
+
+- Saving
+
+ ❯ components/settings/__tests__/SectionPreferencesContinuity.test.tsx:63:32
+     61|     const release = heldWrite(); await render(); await click("Crypto");
+     62|     expect(chip("Crypto").getAttribute("aria-pressed")).toBe("true");
+     63|     expect(note().textContent).toContain("Saving"); expect(note().text…
+       |                                ^
+     64|     release(); await flush(); expect(note().textContent).toContain("Sa…
+     65|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  components/settings/__tests__/SectionPreferencesContinuity.test.tsx > Preference trade edits survive section navigation > uses the existing single in-flight pump and coalesces to the latest complete choice
+AssertionError: expected [] to deeply equal [ { trade_types: [ 'stocks', …(2) ] } ]
+
+- Expected
++ Received
+
+- Array [
+-   Object {
+-     "trade_types": Array [
+-       "stocks",
+-       "options",
+-       "crypto",
+-     ],
+-   },
+- ]
++ Array []
+
+ ❯ components/settings/__tests__/SectionPreferencesContinuity.test.tsx:68:21
+     66|   it("uses the existing single in-flight pump and coalesces to the lat…
+     67|     const releaseFirst = heldWrite(); await render(); await click("Cry…
+     68|     expect(updates).toEqual([{ trade_types: ["stocks", "options", "cry…
+       |                     ^
+     69|     updateResult = async () => ({ error: null }); releaseFirst(); awai…
+     70|     expect(updates).toEqual([{ trade_types: ["stocks", "options", "cry…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  components/settings/__tests__/SectionPreferencesContinuity.test.tsx > Preference trade edits survive section navigation > rejects a stale rendered click after same-owner new generation
+AssertionError: expected [ { trade_types: [ 'stocks', …(2) ] } ] to have a length of +0 but got 1
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ components/settings/__tests__/SectionPreferencesContinuity.test.tsx:80:21
+     78|     }, { capture: true, once: true });
+     79|     await click("Crypto"); act(() => vi.advanceTimersByTime(600)); awa…
+     80|     expect(updates).toHaveLength(0); expect(patch).not.toHaveBeenCalle…
+       |                     ^
+     81|   });
+     82|   it("rejects an identity/store mismatch before the incoming owner's l…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  components/settings/__tests__/SectionPreferencesContinuity.test.tsx > Preference trade edits survive section navigation > retains failure feedback and uses the real manual retry before reporting Saved
+AssertionError: expected '' to contain 'Retry'
+
+- Expected
++ Received
+
+- Retry
+
+ ❯ components/settings/__tests__/SectionPreferencesContinuity.test.tsx:100:32
+     98|   it("retains failure feedback and uses the real manual retry before r…
+     99|     updateResult = async () => ({ error: { message: "unavailable" } })…
+    100|     expect(note().textContent).toContain("Retry");
+       |                                ^
+    101|     const release = heldWrite(); await act(async () => host.querySelec…
+    102|     expect(note().textContent).toContain("Saving"); expect(updates).to…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 3 passed (8)
+   Start at  09:11:57
+   Duration  1.80s (transform 517ms, setup 0ms, collect 647ms, tests 307ms, environment 388ms, prepare 96ms)
+

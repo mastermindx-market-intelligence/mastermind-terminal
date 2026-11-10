@@ -1,0 +1,25 @@
+{
+  "files": {
+    "docs/verification/pr768-evidence-shadow-links-20261109/current-consumers-r1/legacy-boundary.log": {
+      "bytes": 716,
+      "sha256": "837436a261208f648554b6fd9288dfa34a9296a0d1baf801dea13b500867c19e"
+    },
+    "docs/verification/pr768-evidence-shadow-links-20261109/current-consumers-r1/lint.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/pr768-evidence-shadow-links-20261109/current-consumers-r1/readers.log": {
+      "bytes": 370,
+      "sha256": "95fc42fd272576c899fce2eb10d83f1d43b6239f7d150e9c07fba5dba3fbb53e"
+    },
+    "docs/verification/pr768-evidence-shadow-links-20261109/current-consumers-r1/typecheck.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/verification/pr768-evidence-shadow-links-20261109/current-consumers-r1/typegen.log": {
+      "bytes": 59,
+      "sha256": "adba4af9194e10e47dda75ff0fd0f8c2b756474896d0eba5612799c527ff372a"
+    }
+  },
+  "schema": "terminal_evidence_shadow_excluded_raw_logs.v1"
+}
