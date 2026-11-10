@@ -91,7 +91,7 @@ describe("heatmap capitalization cohort binding", () => {
 
 describe("Options R1 W2 owner envelopes", () => {
   it("lists the two W2 feeds then the intraday feed, in fetch order", () => {
-    expect(SECTOR_FEEDS).toEqual(["sector", "confluence", "themes", "heatmap", "risk", "history", "events", "relative_trend", "holdings", "intraday"]);
+    expect(SECTOR_FEEDS).toEqual(["sector", "generation", "confluence", "themes", "heatmap", "risk", "history", "events", "relative_trend", "holdings", "intraday"]);
   });
   it("admits the frozen relative trend feed only through its strict parser", () => {
     expect(readableOwnerEnvelope("relative_trend", relativeTrendFixture)).toBe(true);

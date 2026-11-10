@@ -39,10 +39,14 @@
 // fence covers OBSERVED transitions; the server precondition covers the rest.
 
 import { useCallback, useLayoutEffect, useRef } from "react";
+import dynamic from "next/dynamic";
 import { isAccountOwner, ownerKeyFor } from "@/lib/accountIdentity";
 import { decodePositionRead } from "@/lib/portfolioWorkspace";
 import { mutationPostcondition, positionMutationFailure, type MutationReceipt } from "@/lib/portfolioMutation";
-import PositionModal, { type PositionDraft } from "@/components/PositionModal";
+import type { PositionDraft } from "@/components/PositionModal";
+
+// Keep this controller mounted to observe every account transition while the form chunk loads.
+const PositionModal = dynamic(() => import("@/components/PositionModal"), { ssr: false });
 
 /**
  * What the chart opens: the symbol, and the immutable owner that opened it.

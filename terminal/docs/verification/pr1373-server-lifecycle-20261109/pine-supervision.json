@@ -1,0 +1,17 @@
+{
+  "schema": "terminal_pr1373_pine_supervision.v1",
+  "captureId": "pr1373-server-lifecycle-20261109-pine",
+  "state": "CLOSED",
+  "startedAt": "2026-11-09T13:43:19.155Z",
+  "pid": 3024,
+  "serverPid": 3068,
+  "serverReportedStopped": true,
+  "serverRefused": null,
+  "serverSettled": true,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "timedOut": false,
+  "closed": true,
+  "completedAt": "2026-11-09T13:47:42.911Z"
+}

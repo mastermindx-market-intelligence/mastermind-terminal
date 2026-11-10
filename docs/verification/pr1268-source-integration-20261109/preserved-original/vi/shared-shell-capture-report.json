@@ -1,0 +1,527 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/26.5.0/bin/node",
+      "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/node_modules/.bin/playwright",
+      "test",
+      "e2e/visual-intelligence.spec.ts",
+      "--project=desktop",
+      "--project=tablet",
+      "--project=mobile",
+      "--workers=1",
+      "--retries=0",
+      "--max-failures=1",
+      "--grep",
+      "default context explains|Chinese context uses",
+      "--reporter=list,json"
+    ],
+    "configFile": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/playwright.config.ts",
+    "rootDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/globalSetup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 1,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "tablet",
+        "name": "tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e",
+        "testIgnore": [
+          "/company-intelligence\\.spec\\.ts/",
+          "/terminal-chrome-responsive\\.spec\\.ts/",
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-desktop",
+        "name": "company-intelligence-desktop",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-tablet",
+        "name": "company-intelligence-tablet",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "company-intelligence-mobile",
+        "name": "company-intelligence-mobile",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/company-intelligence\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terminal-chrome-intermediate",
+        "name": "terminal-chrome-intermediate",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/terminal-chrome-responsive\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "w2a-workspaces",
+        "name": "w2a-workspaces",
+        "testDir": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/w2a-workspaces\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 37167",
+      "url": "http://127.0.0.1:37167/terminal?symbol=NVDA",
+      "reuseExistingServer": true,
+      "timeout": 120000,
+      "env": {
+        "ANALYSIS_LOCAL_PREVIEW": "1",
+        "ADMIN_DEV": "1",
+        "TERMINAL_E2E_FIXTURE": "1",
+        "TERMINAL_E2E_EMAIL": "responsive@example.com",
+        "TERMINAL_E2E_ENTITLEMENT": "unlimited",
+        "RATE_LIMIT_MAX": "100000",
+        "HUB_REALTIME_QUOTES": "1",
+        "TICKER_NEWS_RAIL": "1",
+        "FLOW_FIXTURE": "1",
+        "NEXT_PUBLIC_SUPABASE_URL": "http://127.0.0.1:54321",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY": "fixture-anon-key"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "visual-intelligence.spec.ts",
+      "file": "visual-intelligence.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "default context explains plotted bars, toggles original overlays, and persists choices",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "slow",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/visual-intelligence.spec.ts",
+                    "line": 63,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 29985,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T15:46:24.086Z",
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/visual-intelligence.spec.ts",
+                        "line": 63,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "chart-context-en",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-desktop/attachments/chart-context-en-6f96bedec0912538646f79b8f4a212e28a4b1c86.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-5057187179cfcef63a04",
+          "file": "visual-intelligence.spec.ts",
+          "line": 62,
+          "column": 5
+        },
+        {
+          "title": "Chinese context uses text alongside regional colors and remains keyboard dismissible",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9044,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T15:46:54.697Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "chart-context-zh",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-desktop/attachments/chart-context-zh-9145df304dd245dc1f6cb456b7bc942972c2ebc3.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-b2e082b412032f4ed98d",
+          "file": "visual-intelligence.spec.ts",
+          "line": 305,
+          "column": 5
+        },
+        {
+          "title": "default context explains plotted bars, toggles original overlays, and persists choices",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "slow",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/visual-intelligence.spec.ts",
+                    "line": 63,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 35488,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T15:47:05.054Z",
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/visual-intelligence.spec.ts",
+                        "line": 63,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "chart-context-en",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-tablet/attachments/chart-context-en-d068ce63195aa0f297764e1b0e280596ad33fb03.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-5ba9d9099c0f12c5d90c",
+          "file": "visual-intelligence.spec.ts",
+          "line": 62,
+          "column": 5
+        },
+        {
+          "title": "Chinese context uses text alongside regional colors and remains keyboard dismissible",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "tablet",
+              "projectName": "tablet",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 12693,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T15:47:41.065Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "chart-context-zh",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-tablet/attachments/chart-context-zh-593f3cefa934c84d9df2bc38a570edcb325e993d.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-aa95f822f9c7c096d131",
+          "file": "visual-intelligence.spec.ts",
+          "line": 305,
+          "column": 5
+        },
+        {
+          "title": "default context explains plotted bars, toggles original overlays, and persists choices",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "slow",
+                  "location": {
+                    "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/visual-intelligence.spec.ts",
+                    "line": 63,
+                    "column": 8
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 29306,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T15:47:54.993Z",
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/e2e/visual-intelligence.spec.ts",
+                        "line": 63,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "attachments": [
+                    {
+                      "name": "chart-context-en",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results/visual-intelligence-defaul-aa21e-erlays-and-persists-choices-mobile/attachments/chart-context-en-a4de0098035fc1c9ab0273a416de102519c7b93a.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-7669bd44df2bdf856f26",
+          "file": "visual-intelligence.spec.ts",
+          "line": 62,
+          "column": 5
+        },
+        {
+          "title": "Chinese context uses text alongside regional colors and remains keyboard dismissible",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6868,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-21T15:48:24.781Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "chart-context-zh",
+                      "contentType": "image/png",
+                      "path": "/Volumes/Mastermind 2/agent-workspaces/claude/5600d31ffa29643a/shared-shell-evidence-recapture-20261021-790ce9ebc9789694/terminal/test-results/visual-intelligence-Chines-75b9f-emains-keyboard-dismissible-mobile/attachments/chart-context-zh-5cc6820e5fadec967da8d16af09b4ac2ca3c26e3.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1ebbf33cd31219b530a-028de8143b6315105e7a",
+          "file": "visual-intelligence.spec.ts",
+          "line": 305,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-21T15:45:50.359Z",
+    "duration": 161476.171,
+    "expected": 6,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

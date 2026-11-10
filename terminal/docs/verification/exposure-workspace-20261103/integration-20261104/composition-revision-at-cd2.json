@@ -1,0 +1,986 @@
+{
+  "schema": "options.integration_preview_revision.v1",
+  "before": {
+    "protected": "f528a219cc5d73e94e058575e3df83d689632bf9",
+    "exposure": "07616901eb3a33127bd5f2699d604c5b0dd1a2e5",
+    "suite": "98ffa891116ccc9e6be58a64148dbe45591e6ce8"
+  },
+  "after": {
+    "protected": "cd2a335f8f8fcf4fa947aa8a47f7dbf5748b2fdc",
+    "exposure": "6d6cdc727b9e8d0d70af23d8b0caa239c6304b5b",
+    "suite": "98ffa891116ccc9e6be58a64148dbe45591e6ce8"
+  },
+  "status": "APPLIED_PREVIEW_ONLY_UNQUALIFIED",
+  "source_pin": "7aefe3fa3917faecf9b074a3033d37f6a4e7838a",
+  "files": [
+    {
+      "role": "protected",
+      "path": "AGENTS.md",
+      "before_sha256": "e7fd88d42e65db1d3ebe056e6417df2a3401f5973b586119ce886e4a9b84d866",
+      "proposed_sha256": "c1586a93cfffb3c30618026628aadf57137d2d9b993a3c878f0fdb63d06dddd0",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "protected",
+      "path": "docs/OPTIONS_SUPERINTELLIGENCE_MASTERPLAN_2026-07-31.md",
+      "before_sha256": "fbb08f27bf92c395452101524dc76d3a230fd624d0f51d6fccb9d32a425a1d59",
+      "proposed_sha256": "cbef53c388d2093896fa5e5bc8d2fe11aa3463a5cee4fbeddb603167748187b3",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "protected",
+      "path": "terminal/AGENTS.md",
+      "before_sha256": "e417e55e7521a5d52da9424497e8a8751bceb561dcb2d4c53b8cbf3bbc3ff1bb",
+      "proposed_sha256": "4948b22748c2b2b6575dff14cf45ea8db991dd4bff390ac6a533ec014d8a57ea",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "protected",
+      "path": "terminal/components/workspaces/TodayWorkspace.tsx",
+      "before_sha256": "68740dc8ced56772a70455ec441f6012a616bb80ce36b1273dde013fe65286dc",
+      "proposed_sha256": "cca85ea09e60f1f8f39b24890fd1387db9fc070d958ae8ed0d955e29b434ac00",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "protected",
+      "path": "terminal/e2e/thesis-workspace.spec.ts",
+      "before_sha256": "16c4dfc626ddde440a8a6ca12f24f169a2b6434a2414c00833fe3c69b65b94a1",
+      "proposed_sha256": "f457a2c8838d054191c9649e9ef560631cca5446b5c81a14dcf7c393012bd44b",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "protected",
+      "path": "terminal/lib/__tests__/indicatorMathFixes.test.ts",
+      "before_sha256": "1b42a6ae360e93a8aae14a33a3afff6809864c208b5ecc4cc95de80618f3a520",
+      "proposed_sha256": "e71db584eed0ae9108f4c7bfbbb6790f30c71859f79328bbdce2016bd2784055",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "protected",
+      "path": "terminal/lib/__tests__/readingWorkspaces.test.tsx",
+      "before_sha256": "c8955c5c09d76d96c2bbdf7774591640a52f6bad49cf29fe906ecfd3ca6f5cc0",
+      "proposed_sha256": "ea969a9225d20ea8730dc7d29196ebc1a5ac2c13b956f2583c0528f37769dbdc",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "protected",
+      "path": "terminal/lib/__tests__/volTradingDaysRange.test.ts",
+      "before_sha256": null,
+      "proposed_sha256": "213796fb22c2e09d8f8ecea66db3a92b06f170d54a06f2e44eca39743699ae6e",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "protected",
+      "path": "terminal/lib/shared-shell/readingPayloads.ts",
+      "before_sha256": "426f8a740ac9cbd3616238d9a5c38f4b15d99d59556925a878f8f8c9fd6dc670",
+      "proposed_sha256": "2b9c03c4eb7ff784551d7b65edc87eadcef01199b11ce93f16bae6118d9a716b",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "protected",
+      "path": "terminal/lib/techRating.ts",
+      "before_sha256": "a4df45888d86b517387f67617d53fde0e00206e7f3c7e1395086d0545c672c6c",
+      "proposed_sha256": "b17e9dd8ac2f01d05b1b6eb9c4a78267e26df29ebe268a30c7b6fadc8edbc793",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "protected",
+      "path": "terminal/lib/volTenorComparison.ts",
+      "before_sha256": "ba5e924630df32cf91c5e8c64880e91a2e5e4a241f19a0451f514283c180c3ac",
+      "proposed_sha256": "f17d28146e1ac70f735d8c56d865780ea719300290c25a56612c45c56facc68a",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "protected",
+      "path": "tests/test_terminal_investigation_install_admission.py",
+      "before_sha256": "2102ead98e387b54ad655df6616d858c94085efec1c22226b7217b596f87e01e",
+      "proposed_sha256": "f42ccc8a1945584d2f4da55fc3e732e293a3f6c50bcb18f313cd93c015c244c2",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "protected",
+      "path": "tests/test_terminal_web_review_waiver.py",
+      "before_sha256": null,
+      "proposed_sha256": "ec567fdad26831ee49966144ea53052dc0f3df90ebd9061046e6850d701687a3",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/components/gexdesk/ExposureWorkspace.module.css",
+      "before_sha256": "e51bc7085cec2c51d2dc351f1fb3d7bb320b13c664ae2e395a0acdcb8c1eee44",
+      "proposed_sha256": "bf8a7d85fc594d9666e97445fde47e36cd64c4f6fc6883a75102d25115666158",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/components/gexdesk/GexDeskView.tsx",
+      "before_sha256": "d9b4c0ef9cf72dacc8f30554000a61e48fa2fb43a7a46c65ecf80c88a0f3b864",
+      "proposed_sha256": "09b47b889c7d2f463a6fdca8572f92bd1c77218bc4800b93ffbd45aec1f0b509",
+      "rule": "use-existing-refreshing-helper-with-request-fences"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/components/gexdesk/MarketStateCard.tsx",
+      "before_sha256": "f18b78fd4ca997741e65d122eea0844722761a0d8e34380b9b8bd7d9cc41054b",
+      "proposed_sha256": "d197f5d243c3c998d6550717ddf18fa4f74658ec877ac0178139b0a6b894f09f",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/components/gexdesk/gexStrings.ts",
+      "before_sha256": "a15e524c4f81248b031187d1e05ee07ceba863c11cc0b7e20b1f1383a4a34bc6",
+      "proposed_sha256": "76ae4a42bdd91378006315e4c1b972d8548aa771843aae1fcc4aa5ca069b3637",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/EVIDENCE.yml",
+      "before_sha256": "6c8970e121b7780c1d5abf9bebb040b52b3c674b8d648765ab7e920479a4147a",
+      "proposed_sha256": "a188532dcee49ff325ecd95ea129b847e1c8431938a51f7aafaab2b7b5a2144f",
+      "rule": "append-original-receipt-preserve-preview-history"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-darkpool-absent-1440-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "30edc57e84aa0651dd787d9af5626467e3b7af6c1df1ced5d96a5add570577f3",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-darkpool-absent-1440.png",
+      "before_sha256": null,
+      "proposed_sha256": "ab63bebd01f08eccf365b07440cf84dd306ac90adf76a6b1c59d165643fb337b",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-darkpool-absent-390-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "222f799793e6d1689a7e69d9253aacf600357ae6662e6914aa81ed978295e028",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-darkpool-absent-390.png",
+      "before_sha256": null,
+      "proposed_sha256": "8e21d0e8b3c00a5e9b43cabb82e9b58764971f6c70aed4cb1745d500e0ac622e",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-darkpool-absent-820-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "abc3e863fc8fcd3445c00c0d32aed5fd5d0e363d8d8027a2e0544963ca802898",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-darkpool-absent-820.png",
+      "before_sha256": null,
+      "proposed_sha256": "7647402830951d6f16b9e226f256bc048fedd0b99b40905b1e1082b5992ab873",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-darkpool-retried-1440-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "a64a10ccfaa3bcc12a8e6d9da2dc59d407253dbefda2c946d98606924326d4de",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-darkpool-retried-1440.png",
+      "before_sha256": null,
+      "proposed_sha256": "e7b4a4dc5dda135431ae85655134be4151a2838104319343a7b62bb6771df2d4",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-darkpool-retried-390-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "52df8cda77b88b3ea3d8e61a1a9eb1a6e93ffffc28104a54337eac8bc5ed0ef0",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-darkpool-retried-390.png",
+      "before_sha256": null,
+      "proposed_sha256": "a79f1417330def7632a86ce7eb9120a328af4d3aff398dd3c90a1052a7ed3202",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-darkpool-retried-820-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "ed4e688b98c0139b8bc07a239122c7d1decbcbad0bada90ad9d822bbd252cd7d",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-darkpool-retried-820.png",
+      "before_sha256": null,
+      "proposed_sha256": "ab192ed9df31fd84ca617e37f2306e6257b5dd0670db55eb161fa405dd1495b4",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-darkpool-unavailable-1440-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "a2692a79a883506cbe18a4fc16782ceda2af1f664faae13e0daf378c0a6f6ee7",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-darkpool-unavailable-1440.png",
+      "before_sha256": null,
+      "proposed_sha256": "04385280d04ce1a30cfee7fddf39bb7cde07e76dd72a81ed628d4bad796b63f9",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-darkpool-unavailable-390-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "91d7a03d369ce99fe5001f6f666e509f8d08e37108295c893520707fbca67a0e",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-darkpool-unavailable-390.png",
+      "before_sha256": null,
+      "proposed_sha256": "270e2be2ec611b1006fb3683f17280e53ea15f341b9b550cda182c3c1bcbea6a",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-darkpool-unavailable-820-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "07f391c6babe9740ee83f062cc7eddf110a9d650687cf697db0525983b260f7a",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-darkpool-unavailable-820.png",
+      "before_sha256": null,
+      "proposed_sha256": "639162ad244761bae6c67880e290c0d093925450ebf0a13b33ba957d40e2f0c6",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-structure-absent-1440-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "ec36e52987da389baef8cd0204e78c714a8c33433b370f1b8cea2c56fcf9c37d",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-structure-absent-1440.png",
+      "before_sha256": null,
+      "proposed_sha256": "0936590b9d144fcc73a8cfe2910d6daaadffe68e5ce2c9836a1ca4b979870262",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-structure-absent-390-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "5cced195fcda1153d2589d306192b548ba3e954d53ad4a7fd63401d7c74db7df",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-structure-absent-390.png",
+      "before_sha256": null,
+      "proposed_sha256": "282d709329dad0745839f89a4b980eeff31bacac4bda8fe107ce551044cc3df5",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-structure-absent-820-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "5e5ec0970f31ef7f403e2fba8bd517871fca1123d105d9cb01af04c4b21896ef",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-structure-absent-820.png",
+      "before_sha256": null,
+      "proposed_sha256": "caeb8f5df9929b870d3b489d726847c9edfe2f01a33dbade185bf288a0ad254a",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-structure-partial-1440-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "c84e9d52a9917eaad7bb63ee02e6cae8dc06641654f3631250767a494cf6c630",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-structure-partial-1440.png",
+      "before_sha256": null,
+      "proposed_sha256": "a6d6d80e0cebff9f3dee7a11c836ca30ce6274bb304263eba29872354f0a7d69",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-structure-partial-390-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "40f91d2077b77672a2579fb5d7edb6e5c866fe23f2c072a232bafd293d83f8dd",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-structure-partial-390.png",
+      "before_sha256": null,
+      "proposed_sha256": "30ed958d65acef1e77bdfead17858e36d0ad8b5b41d416277ac6b480d8fc6655",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-structure-partial-820-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "2cad935a39b05328a8278ff5c8ee8167ce6b717186da31586f7c385ed9f428ce",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-structure-partial-820.png",
+      "before_sha256": null,
+      "proposed_sha256": "b887f8a81b2ddfd9b1834a716dcdfa3d84e847a24d697be4f97d357a3ff55370",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-structure-retried-1440-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "61dad42bed7e1b1d9482c841efd4b75033913232e2e01548a2538251cc41d510",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-structure-retried-1440.png",
+      "before_sha256": null,
+      "proposed_sha256": "42fe18b045af6837840beb7f9eb1b7754f204fec1f8b590a99697bb124a4b951",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-structure-retried-390-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "a900fef2c16c4207fa18753b259d34c0074ba4ac968ea31ae85f184c0cb2a507",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-structure-retried-390.png",
+      "before_sha256": null,
+      "proposed_sha256": "5fe025d2c6b423937a382ef6e37118ae8d50a150079c9d9063df7424e4ed2590",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-structure-retried-820-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "7bb86f2b57805c5a5e9b4364a967e371a8e81538db1b7aa8370006c62ca12bb8",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-structure-retried-820.png",
+      "before_sha256": null,
+      "proposed_sha256": "97c846836d8db2b13d94f8f78dfb55858f12f65cb6858cc6c4bdce5d2a2ce71a",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-structure-unavailable-1440-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "8b240d9bfcb52b32365f780eae3147a9c1844e81d231adcf6f9f4fc1c98291d8",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-structure-unavailable-1440.png",
+      "before_sha256": null,
+      "proposed_sha256": "0f2c556d1346308bd63dcaa9a3278fe1ad23ff1edfb7b349909551311fe6b0ed",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-structure-unavailable-390-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "375b61004290b6731e479a1660542b3f3cb79a7374ff871491151a125437ccfc",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-structure-unavailable-390.png",
+      "before_sha256": null,
+      "proposed_sha256": "3e8539105d04a7c1862f24d0e3cadb9f6f38a4eedf10cd41c9cd262aab979711",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-structure-unavailable-820-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "60cfee266f10a428a7ca29dbdf94f445cf405b1bf3f6f814578469ca848aabd3",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/eod-structure-unavailable-820.png",
+      "before_sha256": null,
+      "proposed_sha256": "a51368cb74db622b5b3af42aa27dbdd222a5bbab84c414319d1533ab9e022186",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/failed-attempts/FAIL-eod-darkpool-absent-1440.png",
+      "before_sha256": null,
+      "proposed_sha256": "7d589068d6de022febe400ac28946b6bdb94cb6b5136d5635d9c2d1239ddc24a",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/eod-heatmap-flowdesk-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/failed-attempts/FAIL-eod-structure-absent-390.png",
+      "before_sha256": null,
+      "proposed_sha256": "154ad26e49eb907cbb173beeccba592ff8a82923a06b375fccdbbf216742eb9d",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/EVIDENCE.yml",
+      "before_sha256": "89692b876e060b8c38acc46fb2a222b9355ca15396acb98911fed60aa2441571",
+      "proposed_sha256": "c3f3f45d1483b1cdb0b4e43b699ef23db53677a2c3d5eb5705adaca4192e0779",
+      "rule": "append-original-receipt-preserve-preview-history"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-ladder-absent-1440-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "f53e442854ef440848a64d6141302704894442f19ddc714a7aa4cb2b5ab15e17",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-ladder-absent-1440.png",
+      "before_sha256": null,
+      "proposed_sha256": "18944490520bd18ee86451c408b2ff5e794dd65e3ff51359944626593b24e9da",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-ladder-absent-390-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "c1fe8a6ac30724f92dc1f1123da6e721e7ce2a31bce4f7409faaae510650339b",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-ladder-absent-390.png",
+      "before_sha256": null,
+      "proposed_sha256": "1b5790b455377dca467ebf368d8c1b116462891db351eb630f4c33af9463bce1",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-ladder-absent-820-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "2d20e5b7e7db5e7dfc9426b17dbf796ddb777a268266bda21701610fc3e61858",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-ladder-absent-820.png",
+      "before_sha256": null,
+      "proposed_sha256": "6710d12d9c06a4223340c9edee525f2f9cd171ba05239d9f20788b064eedf236",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-ladder-retried-1440-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "ebaa7b4a639f5932d45a2c5d6222ed9d4e75e14f38bf0b827fc3a76bc417e1cf",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-ladder-retried-1440.png",
+      "before_sha256": null,
+      "proposed_sha256": "ba77f4fb7f4073be02f3847043a3f2f9ce60ad35bb33f70e65ffe95db7cc4762",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-ladder-retried-390-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "54e04d7234849494101699a4ed5b49b88ff3365a4c32336836c3e0c3c2ce00a2",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-ladder-retried-390.png",
+      "before_sha256": null,
+      "proposed_sha256": "85ff6307658d1deffd3c9b2869852a6026952312fa58407caa9c22427349c949",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-ladder-retried-820-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "38e64b5a498a6d3a62e0ac1685fe6e13de73f1059a6f4005660439cd879b3480",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-ladder-retried-820.png",
+      "before_sha256": null,
+      "proposed_sha256": "c231ea75720550d73eb23ee8c30a8dbaebd077f6f2b0de223322362d2826d38b",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-ladder-unavailable-1440-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "a5664fb748a1bc49a83fd3f471894e75a0cd4f6c06fed51163367736988778be",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-ladder-unavailable-1440.png",
+      "before_sha256": null,
+      "proposed_sha256": "ee946ba908ba2738d261f26fdb23e0b0b37f286e13338a3f2728cc800e79bf33",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-ladder-unavailable-390-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "9478e50211437330330f29fa65e0d86a2df138b3a09558872241a9b037ded796",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-ladder-unavailable-390.png",
+      "before_sha256": null,
+      "proposed_sha256": "67d59983df7d030e6b1957291a8ef69b7f032ba06d57acf838f4359eba8a3f96",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-ladder-unavailable-820-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "375814568db967558c1f2d6ac9c13e061a5383298511624e568abe5a3166fbc6",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-ladder-unavailable-820.png",
+      "before_sha256": null,
+      "proposed_sha256": "31d560861a6d6e4b72c26cb5fbe24801954c236b199b3a792bcca92eba0b6a84",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-live-refresh-failed-1440-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "f0cc95389823c0cd46b0642cec4c115c1601f053c72ff98761aa1924ea8a510d",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-live-refresh-failed-1440.png",
+      "before_sha256": null,
+      "proposed_sha256": "5e1b5120e55fc6af1c8bf1c0d1ba684eb74eb574f209b6cce39020d238e1b4fb",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-live-refresh-failed-390-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "d3ff932c9a8457db3b0156b12b1695c2e1ce9641f267815a91b083a3d306e346",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-live-refresh-failed-390.png",
+      "before_sha256": null,
+      "proposed_sha256": "f41a26ab91dfeb9e4a33f2d84f5055bf8514f7025d31dd17a19fe0ace2406d7b",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-live-refresh-failed-820-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "2f02cc7f32f9e1e19f290cf09b9c12bcdbaa8f338038c6a5931ec03c531e40f0",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-live-refresh-failed-820.png",
+      "before_sha256": null,
+      "proposed_sha256": "67b611b8d88dd38ccde51fc222d08cc36b3072dc34ad1c0dd36b32f36811584a",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-live-retried-1440-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "8a567ce1c4ba4f7686deaea589b4126f4a43b6f806322d0fb5aa50da52712e7c",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-live-retried-1440.png",
+      "before_sha256": null,
+      "proposed_sha256": "98fbc3df246814674b7c16a0d6956e3964a16ba0b4602d73630db2d71f9c0978",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-live-retried-390-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "2f49174d7ec552e20fee32dce71364430ea23066288c7f2abfd3d12ad87e4f3a",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-live-retried-390.png",
+      "before_sha256": null,
+      "proposed_sha256": "bbb3ea7ef11d1181ab6070ddb7c245ad3bd416217754e3e9e7a6916327d11ef0",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-live-retried-820-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "e324ef1ee548e4e5df88010b62c6d60234fee8b369ded77615a7bd20cf36a79d",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-live-retried-820.png",
+      "before_sha256": null,
+      "proposed_sha256": "4e3a47ca51b1ba786af3d62d1bb39df374d8e66c347f7fb33c18e98686b49100",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-pick-absent-1440-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "e2ee5b57ffd06adbe0c6ea5211dc0afadf15fed03ae68cb171c1d1414617cde1",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-pick-absent-1440.png",
+      "before_sha256": null,
+      "proposed_sha256": "5f3defdf862eadb98a43470e24b94ca2f147754f9f4e1495ef63f55743091d31",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-pick-absent-390-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "60a89d2515535a82bb98e139ef58ebe98e30d54b6e67f4580873c6388b21f669",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-pick-absent-390.png",
+      "before_sha256": null,
+      "proposed_sha256": "b0bded6e45649739227cf78713edc8a63ef3f21d2d9e3650f4d27248ce2428f6",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-pick-absent-820-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "ff2b670fe50c2b41eb01e9f7faa8eabe3248b428ee24c06f58fde178118a849d",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-pick-absent-820.png",
+      "before_sha256": null,
+      "proposed_sha256": "22c942410566d2c787f94ce3314b39003541fd55722a6602f7afcc2888586c16",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-rail-retried-1440-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "b66d18b87827834848b1d67a2a7fe9053f9c62fae24593f5477bbadfc3ced223",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-rail-retried-1440.png",
+      "before_sha256": null,
+      "proposed_sha256": "090b673e4a69a886bc00870e9517f08c0207935f577966458f748727897902c4",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-rail-retried-390-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "202d6345ba2334160c765e41d32f03b24628d22ed93e1f2f80cc60a83d655a3a",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-rail-retried-390.png",
+      "before_sha256": null,
+      "proposed_sha256": "f8c5a4f9605703f7b7621b7ea0836459e198c4b98e412a3de71c9ae841c335d7",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-rail-retried-820-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "f3b1b12309a4bad0e6dd151c653ddca9d35aa1c50cdaaaa43c1f23fc591edf21",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-rail-retried-820.png",
+      "before_sha256": null,
+      "proposed_sha256": "4db6291e1d44327226977a07fc609e9ceebea5b9e57cb82a2998f8f6b2f40c83",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-rail-unavailable-1440-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "2bb9942b36a49559421a8f50b5925dc3ee2fe8daf36d9322355298f2dd4bc5ad",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-rail-unavailable-1440.png",
+      "before_sha256": null,
+      "proposed_sha256": "e804bb5cd8b2557037cdf1749d4a11dd361b2253326477b0e8c825b67a343b30",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-rail-unavailable-390-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "bda0b542942d1048a987f6da6df22c291761d93d5e6005b92567bb0cf9ce4035",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-rail-unavailable-390.png",
+      "before_sha256": null,
+      "proposed_sha256": "71d2574c5effc1e78d99809d74926e2f75914dbc3770255697f2999422e3e7e6",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-rail-unavailable-820-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "32f2bfcdf90f852c4e2a17756ef4d7af9bdf5acc2672b31f9e99efdddeab2994",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-rail-unavailable-820.png",
+      "before_sha256": null,
+      "proposed_sha256": "87433fff648068df6b503a7be7e59ce5efe1e4be2c608290dc891ec99c9933e1",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-state-refresh-failed-1440-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "a63b56844a0894ec3adacee55f01e52757a4f752360ee1e737fb5529f1d6773c",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-state-refresh-failed-1440.png",
+      "before_sha256": null,
+      "proposed_sha256": "f2664b8c50fb1f44944452c7f01256c339e1e8d948a7b59a2e4712a6c6fa9aba",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-state-refresh-failed-390-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "49f180f2da10c6b47e54adbab8c4710d642b7037853cbe1bccd2c0bd1921dfd6",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-state-refresh-failed-390.png",
+      "before_sha256": null,
+      "proposed_sha256": "05d849e8112010ce41601c6f561dbb9b275d8c05842a01490413eb8aec595aff",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-state-refresh-failed-820-zh.png",
+      "before_sha256": null,
+      "proposed_sha256": "f004af7fb41ead64616fe7a473bfea887f7725ff3bbf91de1b462dbbab2cf4d3",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/pr-crops/gex-levels-heatmap-load-failure/operations/exposure-1243-paper-hierarchy-fit-20261104/gex-state-refresh-failed-820.png",
+      "before_sha256": null,
+      "proposed_sha256": "d691ed84c34eb5212f228130d9561275a211b7cf03b56e31d65ef71d6852cf8a",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/paper-20261104/README.md",
+      "before_sha256": null,
+      "proposed_sha256": "cf9d31242e7bf74e4fdb82a46eed7c977ac26dcfa4a0350ea684d12e9e1f6152",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/paper-20261104/desktop-dark-en.jpg",
+      "before_sha256": null,
+      "proposed_sha256": "66c132e5f0048215d0cce67d9d771bf6d4af4d42ec1edba24d6429618b98072a",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/paper-20261104/desktop-dark-en.jsx.txt",
+      "before_sha256": null,
+      "proposed_sha256": "fbe08399a25e4c90220c150965bf6d7fe5716b3d1e54afce66988ec30065e87b",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/paper-20261104/desktop-light-en.jpg",
+      "before_sha256": null,
+      "proposed_sha256": "1964dd9905192f2ff448e14b7bb819e5ec21f10ef3b4ab17577b6c598df5f609",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/paper-20261104/desktop-light-en.jsx.txt",
+      "before_sha256": null,
+      "proposed_sha256": "e2579a2f9f23f9e9195d884567274bb703a9c20702227665fd8c65c31ca2b317",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/paper-20261104/paper-manifest.json",
+      "before_sha256": null,
+      "proposed_sha256": "e255a4de0be9cc9fe60e1341d9d29e99d01653641e4bcd5e3d1c84872f4f65aa",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/paper-20261104/phone-dark-en.jpg",
+      "before_sha256": null,
+      "proposed_sha256": "42a959e26c6525ac760fcb23c3e724b8697228a75cb9d69328cbc58bbfbeba5f",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/paper-20261104/phone-dark-en.jsx.txt",
+      "before_sha256": null,
+      "proposed_sha256": "f5561343c3f1b55c702f9f2bb48c3bc9e7459d873cf2c314da7c83e908870db0",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/paper-20261104/phone-light-zh.jpg",
+      "before_sha256": null,
+      "proposed_sha256": "c42dad638a9eef5f597594d45b527270338ab9cd4efb388fba58daceab74e431",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/paper-20261104/phone-light-zh.jsx.txt",
+      "before_sha256": null,
+      "proposed_sha256": "82be0df720f2c337523d88631f0e3b705daf05c3a0a5f7c41b686fedd6ccbca7",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/paper-20261104/states.jpg",
+      "before_sha256": null,
+      "proposed_sha256": "d30f8e164f3e43fa689c33edf9a07a46c7b7fa9da906f3657a809d3032013377",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/paper-20261104/states.jsx.txt",
+      "before_sha256": null,
+      "proposed_sha256": "b53d044348db93762d92c6b580403ca855af188375c1729cc8eec0fcdd88f346",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/paper-20261104/tablet-dark-en.jpg",
+      "before_sha256": null,
+      "proposed_sha256": "6493164cac4f6343181fb6025c18ebcd0f7315f5ce354741ac0d1ac997797ced",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/docs/verification/exposure-workspace-20261103/paper-20261104/tablet-dark-en.jsx.txt",
+      "before_sha256": null,
+      "proposed_sha256": "bfd6c7f75699f86866dd484d512397ebd3650da8da0a0ee419d52f04079bab0b",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/e2e/exposure-partial-totals.spec.ts",
+      "before_sha256": "bbd82a1759413dcbf874b21d5011b30dcb67d1f343339b9a5e5bd9415d0fcc1f",
+      "proposed_sha256": "c4fd340f63a2de532ff75c1f9b1c3cb7c723b0a116649b6083c4ba330e0251b7",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/e2e/exposure-workspace.spec.ts",
+      "before_sha256": "9880af96cac705f4a6e43e18d94c4aec17229c8d7b2e11d4124d836b02f5c094",
+      "proposed_sha256": "b97552c974dcfcb63129083397f83156dd09c2fc012212aaaff84805cd17a630",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/e2e/options-exposure-workspace.spec.ts",
+      "before_sha256": "e9b1c075ae5eff93ee54330e3402f77ed9317dd1036facae5916d9000fdc5829",
+      "proposed_sha256": "bbd1a61d63193d281fe0758051fe625ff230799c3e28459c7a857b6a417d61e4",
+      "rule": "exact-incoming"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs",
+      "before_sha256": "c436bcecca9dabcf7575d440e950df8ff25aa2935cc598343cb02c013ffe24ee",
+      "proposed_sha256": "53aa8d13b25e9d2a6051a4ec79ef23ffb79ba5673b4bfdba4407b15b075cb094",
+      "rule": "three-way-composition"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/e2e/tools/capture_gex_levels_heatmap_load_failure.cjs",
+      "before_sha256": "b02aff36566d2eeb3744df02c2927edbf741d3821654656446831af8acb3db6c",
+      "proposed_sha256": "f6c52d0666cee5a497d0836ec8e9c8eb05a9ba51fad63ba9f443d623ad99bc28",
+      "rule": "preserve-optional-webpack-capture-mode"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/lib/__tests__/eodHeatmapFlowdeskLoadFailureEvidence.test.ts",
+      "before_sha256": "89b567f91310489c70c6b1e543a5364bbbef612c1a30efbc399037979085cccc",
+      "proposed_sha256": "4a36758926903e54aa87ee7d226d9357fbab7895a202ed5b2d7de6cc4f85ce86",
+      "rule": "retain-both-historical-evidence-tests"
+    },
+    {
+      "role": "exposure",
+      "path": "terminal/lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts",
+      "before_sha256": "17ed323b8ce25d3e853649ba6c0973e76bba5951a0bf6baf1f804a80ceaa329f",
+      "proposed_sha256": "95ea26e514a8af561c1fe74a61d820055aef98c0ebeb541a8ec9ffc68bada3b7",
+      "rule": "exact-incoming"
+    }
+  ],
+  "conflicts": [],
+  "no_git_ref_or_index_mutation": true,
+  "applied_files": 138
+}

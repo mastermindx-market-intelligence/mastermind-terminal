@@ -1,0 +1,32 @@
+[
+  {
+    "command": [
+      "npx",
+      "vitest",
+      "run",
+      "lib/__tests__/b_pl_6Batch2Evidence.test.ts",
+      "lib/__tests__/pineBootPendingEvidence.test.ts",
+      "--reporter=json",
+      "--outputFile=/Volumes/Mastermind/agent-workspaces/terminal/review/terminal-pr1373-lifecycle-validation-20261109/terminal/test-results/pr1373-lifecycle-20261109/native-reader-tests.json"
+    ],
+    "exit": 0,
+    "seconds": 5.16,
+    "log": "post-check-0.log",
+    "sha256": "893a7df39e74886dc59a736c9b41148f8d851f59571a8fe81829ef47de916d54"
+  },
+  {
+    "command": [
+      "npx",
+      "tsc",
+      "--noEmit",
+      "--pretty",
+      "false",
+      "--incremental",
+      "false"
+    ],
+    "exit": 0,
+    "seconds": 101.26,
+    "log": "post-check-1.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

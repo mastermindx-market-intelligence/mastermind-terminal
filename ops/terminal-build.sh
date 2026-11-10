@@ -4498,6 +4498,13 @@ LAUNCH_OVERRIDE_KEYS = frozenset({
     "NODE_OPTIONS", "NODE_PATH", "BASH_ENV", "ENV", "LD_PRELOAD", "LD_LIBRARY_PATH",
     "NPM_CONFIG_SCRIPT_SHELL", "NPM_CONFIG_NODE_OPTIONS", "NPM_CONFIG_USERCONFIG",
     "NPM_CONFIG_GLOBALCONFIG", "NPM_CONFIG_PREFIX"})
+# npm 10 injects its built-in config values (lower-case) into every lifecycle
+# child it spawns; the npm launcher process itself never carries them. Only
+# these three collide with LAUNCH_OVERRIDE_KEYS after upper-casing, and they
+# are admitted solely as exact derived npm defaults on verified descendants
+# of a verified npm launcher (see refuse_serving_launch_overrides).
+NPM_INJECTED_CONFIG_KEYS = frozenset({
+    "npm_config_prefix", "npm_config_globalconfig", "npm_config_userconfig"})
 DOTENV_NAMES = (".env.local", ".env.production.local", ".env.production", ".env")
 REGULAR_TREE_MODES = frozenset({"100644", "100755"})
 MAX_TREE_LIST_BYTES = 16 * 1024 * 1024
@@ -4662,6 +4669,12 @@ def proc_cmdline(pid):
             for item in payload.split(b"\0") if item]
 
 
+def proc_environ_tokens(pid):
+    payload = proc_bytes(pid, "environ", MAX_PROC_ENVIRONMENT_BYTES)
+    return [item.decode("utf-8", "replace")
+            for item in payload.split(b"\0") if item]
+
+
 def proc_comm(pid):
     payload = proc_bytes(pid, "comm", 256)
     return payload.decode("utf-8", "replace").strip("\n")
@@ -4729,6 +4742,54 @@ def refuse_selected_launch_overrides(tokens):
                 or key.startswith("NPM_CONFIG_")):
             raise Refused("unsupported-launch-environment-override")
     refuse_launch_overrides(tokens)
+
+
+def npm_injected_config_defaults(npm_path, launcher_tokens):
+    """Derive npm's built-in lifecycle config values from verified facts.
+
+    npm derives its prefix-family defaults from the installation prefix and
+    the launching user's HOME. Both are bound here to verified launch facts:
+    the exact ExecStart npm path verified by classify_launch_wrapper and the
+    verified launcher's own initial environment. The launcher environment is
+    the unit/manager projection (systemd-set HOME); npm puts none of these
+    keys there itself. Descendant values must equal these derived defaults;
+    any mismatch refuses, and no value is ever emitted.
+    """
+    prefix = os.path.dirname(os.path.dirname(npm_path))
+    home = "/root"
+    for token in launcher_tokens:
+        key, separator, value = token.partition("=")
+        if separator and key == "HOME" and value.startswith("/"):
+            home = value
+    return {
+        "npm_config_prefix": prefix,
+        "npm_config_globalconfig": prefix + "/etc/npmrc",
+        "npm_config_userconfig": home + "/.npmrc",
+    }
+
+
+def refuse_serving_launch_overrides(tokens, npm_injected_defaults=None):
+    """Serving-process variant of refuse_launch_overrides; never used for
+    unit, manager, env-file or dotenv classification.
+
+    The single widening over refuse_launch_overrides: a verified
+    /usr/bin/npm launcher injects npm's three built-in config defaults into
+    each lifecycle child, so a descendant may carry exactly those keys at
+    exactly the derived default values. Every other override key — alternate
+    shells, Node preload and node-options channels, library preloading, or
+    any upper-case spelling — still refuses unconditionally, and a deviating
+    value on an admitted key refuses with its own bounded reason.
+    """
+    for token in tokens:
+        key, separator, value = token.partition("=")
+        if not separator or not value or key.upper() not in LAUNCH_OVERRIDE_KEYS:
+            continue
+        if (npm_injected_defaults is not None
+                and key in npm_injected_defaults):
+            if value != npm_injected_defaults[key]:
+                raise Refused("npm-injected-config-unexpected-value")
+            continue
+        raise Refused("unsupported-launch-environment-override")
 
 
 def normalize_env_export_line(line):
@@ -5490,12 +5551,15 @@ def classify_start_scripts(package):
 
 
 def classify_launch_wrapper(profile, unit, repository, revision, app_root_for_launch):
+    # Returns the verified npm executable path for the production launch
+    # shape (None for beta); callers may bind that verified fact further.
     start = unit_property(unit, "ExecStart")
     if (not start.strip().startswith("{") or not start.strip().endswith("}")
             or start.count("{") != 1 or start.count("}") != 1):
         raise Refused("unsupported-launch-wrapper")
     if profile == "production":
-        if (re.findall(r"path=([^ ;]+) ;", start) != ["/usr/bin/npm"]
+        paths = re.findall(r"path=([^ ;]+) ;", start)
+        if (paths != ["/usr/bin/npm"]
                 or start.count("argv[]=") != 1
                 or "argv[]=/usr/bin/npm run start ;" not in start):
             raise Refused("unsupported-launch-wrapper")
@@ -5507,7 +5571,7 @@ def classify_launch_wrapper(profile, unit, repository, revision, app_root_for_la
         # the installed package before step8 source reflection. Bind that actual
         # npm command too; the candidate Git package alone is insufficient.
         classify_start_scripts(installed_package_json(app_root_for_launch))
-        return
+        return paths[0]
     # systemctl renders ONE argv[]= vector in an ExecStart record, not one
     # repeated field per argument. Accept the source-owned beta unit shape.
     if (not start.strip().startswith("{") or not start.strip().endswith("}")
@@ -5567,7 +5631,7 @@ def classify_project_npm_config(repository, revision, listing, app_root):
             path, MAX_ENV_FILE_BYTES, "project-npm-configuration"))
 
 
-def classify_serving_processes(unit, app_root):
+def classify_serving_processes(unit, app_root, npm_launcher_path=None):
     if unit_property(unit, "ActiveState") != "active":
         raise Refused("service-not-active")
     main_text = unit_property(unit, "MainPID")
@@ -5615,6 +5679,21 @@ def classify_serving_processes(unit, app_root):
             raise Refused("process-identity-changed-during-verification")
         if proc_cgroup_path(pid) != main_cgroup:
             raise Refused("serving-process-outside-target-cgroup")
+    # npm lifecycle-injection baseline, bound to the verified npm launch:
+    # npm 10 injects its built-in config defaults into every lifecycle child,
+    # never into its own launcher environ. If the verified launcher carries
+    # any of those keys, the unit/manager (not npm) supplied them — that is
+    # inheritance, and every descendant keeps the strict refusal. Only a
+    # launcher whose environ proves absence derives the exact defaults its
+    # descendants may carry. Values are compared, never emitted.
+    npm_injected_defaults = None
+    if npm_launcher_path is not None:
+        launcher_tokens = proc_environ_tokens(main_pid)
+        for token in launcher_tokens:
+            if token.partition("=")[0] in NPM_INJECTED_CONFIG_KEYS:
+                raise Refused("npm-injected-config-on-launcher")
+        npm_injected_defaults = npm_injected_config_defaults(
+            npm_launcher_path, launcher_tokens)
     for pid in collected:
         walker, hops = pid, 0
         while walker != main_pid and walker > 1 and hops < MAX_ANCESTRY_DEPTH:
@@ -5626,8 +5705,14 @@ def classify_serving_processes(unit, app_root):
         if (cwd.st_dev, cwd.st_ino) != app_identity:
             raise Refused("serving-process-foreign-working-directory")
         initial_env = proc_bytes(pid, "environ", MAX_PROC_ENVIRONMENT_BYTES)
-        refuse_launch_overrides(item.decode("utf-8", "replace")
-                                for item in initial_env.split(b"\0") if item)
+        environ_tokens = [item.decode("utf-8", "replace")
+                          for item in initial_env.split(b"\0") if item]
+        if pid == main_pid or npm_injected_defaults is None:
+            # The launcher itself, and every process under a non-npm launch
+            # shape (beta's direct next start), keep the strict refusal.
+            refuse_launch_overrides(environ_tokens)
+        else:
+            refuse_serving_launch_overrides(environ_tokens, npm_injected_defaults)
         values = admission_values_in_proc_environ(initial_env)
         if len(values) > 1:
             raise Refused("serving-process-admission-conflict")
@@ -5681,10 +5766,11 @@ def main(argv):
             or primitive[0] not in REGULAR_TREE_MODES):
         raise Refused("primitive-not-a-regular-blob")
     classify_environment_topology(profile, unit, app_root, env_source_dir)
-    classify_launch_wrapper(profile, unit, repository, revision, app_root)
+    npm_launcher_path = classify_launch_wrapper(
+        profile, unit, repository, revision, app_root)
     classify_project_npm_config(repository, revision, listing, app_root)
     if phase == "poststart":
-        classify_serving_processes(unit, app_root)
+        classify_serving_processes(unit, app_root, npm_launcher_path)
         classify_environment_topology(profile, unit, app_root, env_source_dir)
         classify_launch_wrapper(profile, unit, repository, revision, app_root)
         classify_project_npm_config(repository, revision, listing, app_root)

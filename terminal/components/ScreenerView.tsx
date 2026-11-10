@@ -1,7 +1,9 @@
 "use client";
-import { useEffect, useMemo, useRef, useState, startTransition, useDeferredValue, useCallback } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, startTransition, useDeferredValue, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import dynamic from "next/dynamic";
+import interactionStyles from "./ScreenerInteractions.module.css";
 import { useT, useLang } from "@/lib/i18n";
 import { displayName, marketOf, isSymbolVisible, ALL_MARKETS, type MarketId } from "@/lib/markets";
 import { useMarketPrefs } from "@/lib/useMarketPrefs";
@@ -280,6 +282,7 @@ const PRESET_COPY = {
   save: ["Preset not saved. Your name and filters are kept for Retry.", "预设未保存。名称和筛选条件已保留，可重试。"],
   delete: ["Preset not deleted. Your saved list is unchanged.", "预设未删除。已存列表保持不变。"],
   retry: ["Retry", "重试"],
+  saveAction: ["Save", "保存"],
   cancel: ["Cancel", "取消"],
   retrySave: ["Retry saving", "重试保存"],
   retryDelete: ["Retry deleting", "重试删除"],
@@ -382,8 +385,25 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
   const [presetName, setPresetName] = useState("");
+  const presetSaveRef = useRef<HTMLButtonElement>(null);
+  const presetInputRef = useRef<HTMLInputElement>(null);
+  const restorePresetFocus = useRef(false);
   const presetSequence = useRef(0);
   const [density, setDensity] = useState<Density>("c");
+  const densityAnchor = useRef<{ row: number; atEnd: boolean } | null>(null);
+  useLayoutEffect(() => {
+    if (!restorePresetFocus.current) return;
+    if (saving) {
+      if (pendingPresets.some((p) => p.kind === "save") && document.activeElement === document.body) {
+        presetInputRef.current?.focus({ preventScroll: true });
+      }
+      return;
+    }
+    restorePresetFocus.current = false;
+    // An intentional Save/Cancel returns to its restored launcher, while another
+    // control already holding focus keeps ownership.
+    if (document.activeElement === document.body) presetSaveRef.current?.focus({ preventScroll: true });
+  }, [saving, pendingPresets]);
   const presetCopy = (key: keyof typeof PRESET_COPY) => PRESET_COPY[key][lang === "zh" ? 1 : 0];
 
   const loadPresetBaseline = useCallback(() => {
@@ -406,9 +426,15 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   }, [loadPresetBaseline]);
 
   const pickDensity = useCallback((d: Density) => {
+    if (d === density) return;
+    const el = tableRef.current;
+    if (el) densityAnchor.current = {
+      row: el.scrollTop / (density === "k" ? ROW_H_COMPACT : ROW_H_COMFORT),
+      atEnd: el.scrollHeight - el.clientHeight - el.scrollTop <= 1,
+    };
     setDensity(d);
     try { localStorage.setItem(DENSITY_LS, d); } catch { /* storage blocked */ }
-  }, []);
+  }, [density]);
 
   // ── sort state ─────────────────────────────────────────────────────────
   // null = "no explicit pick yet", so each view lands on ITS default ($ Vol in the universe
@@ -859,12 +885,33 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const rowH = density === "k" ? ROW_H_COMPACT : ROW_H_COMFORT;
   const skelH = density === "k" ? 14 : 20;
   const totalH = view.length * rowH;
-  const startIdx = Math.max(0, Math.floor(scrollTop / rowH) - OVERSCAN);
   const visibleCount = Math.ceil(viewportH / rowH) + OVERSCAN * 2;
+  const startIdx = Math.max(0, Math.min(Math.floor(scrollTop / rowH) - OVERSCAN, Math.max(0, view.length - visibleCount)));
   const endIdx = Math.min(view.length, startIdx + visibleCount);
   const paddingTop = startIdx * rowH;
   const paddingBottom = Math.max(0, totalH - endIdx * rowH);
   const windowedRows = view.slice(startIdx, endIdx);
+
+  // Only an intentional change of the requested view starts at its first result.
+  // Quote/classification revalidation changes rows, not this key, and keeps place.
+  const viewIntent = JSON.stringify([search, f, effSort, showAllMarkets, techOpen, techScreen, fundPreds]);
+  useLayoutEffect(() => {
+    const el = tableRef.current;
+    densityAnchor.current = null;
+    if (el && el.scrollTop !== 0) { el.scrollTo({ top: 0, behavior: "instant" }); onScroll(); }
+  }, [viewIntent, onScroll]);
+
+  useLayoutEffect(() => {
+    const el = tableRef.current;
+    if (!el || !tableReady) return;
+    const anchor = densityAnchor.current;
+    densityAnchor.current = null;
+    const max = Math.max(0, el.scrollHeight - el.clientHeight);
+    // Capture the row BEFORE changing density: the browser may already have clamped
+    // scrollTop by this layout phase. A reader at the end remains at the end.
+    const next = anchor ? (anchor.atEnd ? max : Math.min(anchor.row * rowH, max)) : Math.min(el.scrollTop, max);
+    if (el.scrollTop !== next) { el.scrollTo({ top: next, behavior: "instant" }); onScroll(); }
+  }, [rowH, view.length, viewportH, tableReady, onScroll]);
 
   // ── filter mutation (any manual change drops the active-preset highlight) ──
   const patchF = useCallback((p: Partial<FilterState>) => {
@@ -939,6 +986,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   }, [updatePendingPresets]);
 
   const cancelPresetDraft = useCallback(() => {
+    restorePresetFocus.current = true;
     const operation = pendingPresetsRef.current.find((p) => p.kind === "save");
     if (operation) cancelPresetOperation(operation);
     else { savingRef.current = false; setSaving(false); setPresetName(""); }
@@ -984,6 +1032,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
 
   const commitPreset = useCallback(() => {
     if (!savingRef.current) return;
+    restorePresetFocus.current = true;
     const pending = pendingPresetsRef.current.find((p) => p.kind === "save");
     if (pending) { retryPresetOperation(pending); return; }
     const name = presetName.trim().slice(0, 40);
@@ -1151,7 +1200,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             onChange={(e) => { const v = e.target.value; startTransition(() => setSearchRaw(v)); }}
           />
 
-          <div className="scr2-presetbar">
+          <div className={`scr2-presetbar ${saving ? interactionStyles.editing : ""}`}>
             <div className="scr2-presets">
               {BUILTIN_PRESETS.map((p) => (
                 <button
@@ -1182,7 +1231,14 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                 not scroll (or wrap) out of reach once the strip overflows. */}
             <div className="scr2-presets-tail">
               {saving ? (
+                <div className={interactionStyles.presetEditor} role="group" aria-label={t("scr2PresetName")}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape" && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
+                      e.preventDefault(); e.stopPropagation(); cancelPresetDraft();
+                    }
+                  }}>
                 <input
+                  ref={presetInputRef}
                   className="scr2-preset-name"
                   autoFocus
                   placeholder={t("scr2PresetName")}
@@ -1191,15 +1247,17 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                   readOnly={pendingPresets.some((p) => p.kind === "save")}
                   onChange={(e) => setPresetName(e.target.value)}
                   onKeyDown={(e) => {
+                    if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) return;
                     if (e.key === "Enter") { e.preventDefault(); commitPreset(); }
-                    else if (e.key === "Escape") { e.stopPropagation(); cancelPresetDraft(); }
-                  }}
-                  onBlur={() => {
-                    if (!pendingPresetsRef.current.some((p) => p.kind === "save")) cancelPresetDraft();
                   }}
                 />
+                {!pendingPresets.some((p) => p.kind === "save") && <>
+                  <button type="button" className="fin-tab" disabled={!presetName.trim()} onClick={commitPreset}>{presetCopy("saveAction")}</button>
+                  <button type="button" className="fin-tab" onClick={cancelPresetDraft}>{presetCopy("cancel")}</button>
+                </>}
+                </div>
               ) : (
-                <button type="button" className="fin-tab" onClick={() => { savingRef.current = true; setSaving(true); }}>{t("scr2Save")}</button>
+                <button ref={presetSaveRef} type="button" className="fin-tab" onClick={() => { savingRef.current = true; setSaving(true); }}>{t("scr2Save")}</button>
               )}
             </div>
           </div>
@@ -1461,13 +1519,15 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                 return (
                   <th
                     key={c.k}
-                    className={[on ? "sorted" : "", c.fund ? fundamentalThClass : ""].filter(Boolean).join(" ")}
+                    className={[interactionStyles.sortHeader, on ? "sorted" : "", c.fund ? fundamentalThClass : ""].filter(Boolean).join(" ")}
                     aria-sort={on ? (effSort.dir === -1 ? "descending" : "ascending") : "none"}
                     title={c.fund ? fieldName(ft, c.fund) : c.title}
                     data-fund-col={c.fund}
-                    onClick={() => setSort({ k: c.k, dir: on && effSort.dir === -1 ? 1 : -1 })}
                   >
-                    {c.label}{on ? (effSort.dir === -1 ? " ↓" : " ↑") : ""}
+                    <button type="button" className={interactionStyles.sortButton}
+                      onClick={() => setSort({ k: c.k, dir: on && effSort.dir === -1 ? 1 : -1 })}>
+                      {c.label}<span aria-hidden="true">{on ? (effSort.dir === -1 ? " ↓" : " ↑") : ""}</span>
+                    </button>
                   </th>
                 );
               })}
@@ -1536,22 +1596,20 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
               const buy = isBuy(r.verdict);
               const a = annot.get(r.sym);
               const cur: MoneyCurrency = a?.cur ?? { kind: "unknown", reason: "not_in_scan" };
+              const handover = techOnScreen ? technicalChartHandover(r.sym, techControls.tf, DAILY_FUNCTIONAL_TIMEFRAMES) : null;
+              const href = handover ? handover.href : listingHref(r.sym);
+              const recordPick = () => { if (searchRaw.trim()) trackSearch(r.sym, "screener", searchRaw.trim()); };
+              const symbolIdentity = <>
+                <AssetLogo className="ic" symbol={r.sym} name={r.name} market={r.mkt || r.sec} color={r.col} size={density === "k" ? 20 : 24} />
+                <div>
+                  <div className="tk">{r.sym}<CurrencyBadge cur={cur} /></div>
+                  <div className="nm">{displayName(r, lang)}</div>
+                </div>
+              </>;
               const symCell = (
                 <td>
-                  <div className="sym-cell">
-                    <AssetLogo
-                      className="ic"
-                      symbol={r.sym}
-                      name={r.name}
-                      market={r.mkt || r.sec}
-                      color={r.col}
-                      size={density === "k" ? 20 : 24}
-                    />
-                    <div>
-                      <div className="tk">{r.sym}<CurrencyBadge cur={cur} /></div>
-                      <div className="nm">{displayName(r, lang)}</div>
-                    </div>
-                  </div>
+                  {href ? <Link href={href} prefetch={false} className={`sym-cell ${interactionStyles.symbolLink}`} onClick={recordPick}>{symbolIdentity}</Link>
+                    : <div className="sym-cell">{symbolIdentity}</div>}
                 </td>
               );
               const lastCell = <td>{r.last == null ? "—" : fmt(r.last, r.last < 10 ? 4 : 2)}</td>;
@@ -1574,14 +1632,10 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                 </td>
               );
               return (
-                <tr key={r.sym} onClick={() => {
-                  if (searchRaw.trim()) trackSearch(r.sym, "screener", searchRaw.trim());
-                  // With the technical screen on, the row opens the chart AT the screened
-                  // timeframe when the chart can honour it (AC-E01-05); the strip discloses when not.
-                  // Otherwise the listing href (canonical symbol, URL-encoded — E03).
-                  const h = techOnScreen ? technicalChartHandover(r.sym, techControls.tf, DAILY_FUNCTIONAL_TIMEFRAMES) : null;
-                  const href = h ? h.href : listingHref(r.sym);
-                  if (href) router.push(href);
+                <tr key={r.sym} onClick={(event) => {
+                  if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
+                  if (event.target instanceof Element && event.target.closest('a,button,input,select,textarea,[role="button"],[role="link"]')) return;
+                  if (href) { recordPick(); router.push(href); }
                 }}>
                   {symCell}
                   {lastCell}

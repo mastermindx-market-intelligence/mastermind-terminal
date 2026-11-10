@@ -1,0 +1,29 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/exposure-strike-workspace-ux-20261103-c3/terminal
+
+ ✓ lib/__tests__/researchReportedGamma.test.ts (27 tests) 18ms
+ ✓ lib/__tests__/researchLabAdapter.test.ts (32 tests) 109ms
+ ✓ lib/__tests__/sectorDepthReturn.test.ts (22 tests) 22ms
+ ✓ lib/__tests__/exposureOrigin.test.ts (14 tests) 26ms
+ ✓ lib/__tests__/exposureChartLink.test.ts (31 tests) 53ms
+ ✓ lib/__tests__/exposureReplayFrames.test.ts (14 tests) 36ms
+ ✓ lib/__tests__/useExposureOriginRoster.test.tsx (3 tests) 35ms
+ ✓ lib/__tests__/ExposureOriginStrip.test.tsx (5 tests) 42ms
+ ✓ lib/__tests__/exposureChartReference.test.tsx (18 tests) 264ms
+ ✓ lib/__tests__/exposureReplay.test.tsx (8 tests) 574ms
+ ✓ lib/__tests__/researchLabAdmission.test.tsx (11 tests) 571ms
+ ✓ lib/__tests__/optionsMarketMemory.test.tsx (28 tests) 742ms
+ ✓ lib/__tests__/researchLabView.test.tsx (11 tests) 939ms
+   ✓ preserves comparison insertion order through removal, re-addition and source withdrawal 432ms
+ ✓ lib/__tests__/researchReportedGammaMounted.test.tsx (8 tests) 977ms
+   ✓ pins the selected row by its own side and expiry in zh 346ms
+ ✓ lib/__tests__/gexDeskStateRace.test.tsx (12 tests) 388ms
+ ✓ lib/__tests__/gexDeskPartialData.test.tsx (12 tests) 597ms
+ ✓ lib/__tests__/gexDeskLoadFailureState.test.tsx (48 tests) 4903ms
+
+ Test Files  17 passed (17)
+      Tests  304 passed (304)
+   Start at  12:02:41
+   Duration  10.01s (transform 4.91s, setup 0ms, collect 15.51s, tests 10.30s, environment 14.55s, prepare 2.77s)
+

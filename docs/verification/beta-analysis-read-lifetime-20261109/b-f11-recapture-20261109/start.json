@@ -1,0 +1,11 @@
+{
+  "sourceHead": "0dced0433f66d1c461f518060d30652a1f34deb7",
+  "sourceSha256": {
+    "terminal/components/workspaces/AnalysisWorkspace.tsx": "5a368f1161a4a8653d94af2ad26b6577976bc7a74b6ea9c4c534cb63f4745189",
+    "terminal/app/company-intelligence.css": "8b43f2046891837f6572fa2a59b7594547def9602b0454e1f14edba322da2a34",
+    "terminal/lib/i18n.tsx": "92557cf19cadda435ff253cde1040a3a4aa5d7fd6101bf44e0d233f46ecd6435",
+    "terminal/e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs": "f9dbddc41f49cdfe940c1a9f8f1c8db52245f1bf365b8272c3c7aec15daed798"
+  },
+  "startedAt": "2026-11-09T11:05:37.114228+00:00",
+  "method": "Existing native six-case producer; historical appendix saved and restored byte-exact after fresh capture; product source unchanged"
+}

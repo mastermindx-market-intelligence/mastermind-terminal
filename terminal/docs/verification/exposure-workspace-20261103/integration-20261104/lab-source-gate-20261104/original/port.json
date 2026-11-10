@@ -1,0 +1,66 @@
+{
+  "schema": "terminal.options_lab_port.v1",
+  "originalHead": "04afd94cb11649820688912cf23df2f3b0a5b2c3",
+  "protected": "4df7aad16ea775ad8112858a5095210c076efe08",
+  "state": "UNQUALIFIED_SOURCE_PORT_FOR_FALSIFICATION",
+  "changes": [
+    {
+      "path": "terminal/components/researchlab/OptionsResearchLab.tsx",
+      "beforeSha256": "7f1a0b3f630410273fbf3f58db716a61f80a78de8859541fc9cb44889717c078",
+      "afterSha256": "365223a8182effc04fa956a8004062aa86c1426de8fc24eccebf6952e1571820",
+      "source": "composed protected4df"
+    },
+    {
+      "path": "terminal/components/options-companion/GexMarketMemory.tsx",
+      "beforeSha256": "912b4570620d9bc9675e851ae58e8cad8bd6bf700e4ad2bb1d33ac835287aa71",
+      "afterSha256": "6d166c952ad9ea732c1917b9984eb4d5bd14b12298c247f4524197d6998310cb",
+      "source": "composed protected4df"
+    },
+    {
+      "path": "terminal/components/researchlab/ResearchReportedGammaPanel.tsx",
+      "beforeSha256": null,
+      "afterSha256": "8a4fd4e87d3342845b244a5bc2f7ce4e980851617805770ddfb1f328f5e01e15",
+      "source": "composed protected4df"
+    },
+    {
+      "path": "terminal/components/researchlab/researchReportedGamma.ts",
+      "beforeSha256": null,
+      "afterSha256": "21d9d9f10d810a07bd9ae6acb28696d818dbe47e1b30c346c0bb0f7cdc1319f2",
+      "source": "composed protected4df"
+    },
+    {
+      "path": "terminal/lib/__tests__/researchReportedGamma.test.ts",
+      "beforeSha256": null,
+      "afterSha256": "7698b47ceb9cd150f6c4a6ca2740702ab22676e03ac339b7cf587ff639e60d4d",
+      "source": "composed protected4df"
+    },
+    {
+      "path": "terminal/lib/__tests__/researchReportedGammaMounted.test.tsx",
+      "beforeSha256": null,
+      "afterSha256": "3b589be6b5b2fa774628c7172887f24aa04dea63b03ec4c4bee4e4b1b42f8560",
+      "source": "composed protected4df"
+    },
+    {
+      "path": "terminal/e2e/options-lab-reported-gamma.spec.ts",
+      "beforeSha256": null,
+      "afterSha256": "46ee6b1a961944f154851af8a33275b7de861f4463e0e1f2f26f3b85ef34f73a",
+      "source": "composed protected4df"
+    },
+    {
+      "path": "terminal/components/gexdesk/GexDeskView.tsx",
+      "beforeSha256": "cefc542a6fdfb76f2ac0f8df0d79b3e09085ee91b82ce4113dd2b29ff0cccf50",
+      "afterSha256": "c4a9c3a8f58d9a0cc67fbf228c009dcb2106d6acdd610012107a27371fdb842d",
+      "source": "bounded host prop; sector comment preserved"
+    }
+  ],
+  "dependencies": {
+    "lib/optionsCompanion.ts": "01dbffcf6a832df7efd06502e008efc7932a6999f7c01f1ad8a347d5af146cf8",
+    "lib/exposureReportedChange.ts": "33b2cc49276e438828e1b467bcd08683c1efbe2e85ea52141102d22a559df768",
+    "components/researchlab/researchLabAdapter.ts": "e6c6ba14cf21fbff98ab31f7bca8e9bde3eda2dec5c696921c1198d0af587988",
+    "components/options-companion/optionsStrings.ts": "91bec03bdb1cdfec2be674da5562cf7e1a16e9154f1d7c4390bd49a474f30b3a",
+    "components/options-companion/OptionsCompanion.module.css": "56fa1b120238409ee3089696414a07b9296f43e7071d5996218697d89f981091",
+    "lib/__tests__/fixtures/reportedGammaBooks.ts": "0ef56f1813455bd798015dec42947498253ee7fc5116fde94543a883cc87c103",
+    "components/researchlab/AdmittedOptionsResearchLab.tsx": "77f3b6dda5d70f96d2e87652b6a66b8207db888278014ada199ddd12d08023ad"
+  },
+  "knownGap": "Retained unavailable/absent data still reaches Lab; reproduce before narrow source-gate repair."
+}

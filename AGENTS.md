@@ -282,3 +282,9 @@ uncommitted changes when lawful publication is available.
 When an operating standard changes, update the repository's `AGENTS.md`,
 `CLAUDE.md`, and any nested agent guide together so Codex and every Claude account
 inherit the same rule.
+
+## Graph engineering for substantial missions
+
+Load [.agents/skills/mastermind-graph-engineering/SKILL.md](.agents/skills/mastermind-graph-engineering/SKILL.md) for multi-domain or long-horizon work. It resolves the shared Mastermind skill and its T3, Hermes and Paperclip guidance.
+
+Keep product direction, long-horizon planning and acceptance with the principal. Give admitted suborchestrators complete domain outcomes, let them coordinate admitted children and integrate evidence locally, and send compact decisions and proof upward. Preserve original root, actual parentage, scope, budget, writer custody and result return. Discover runtime depth limits before spawning; use the shallowest useful hierarchy and continue after accepted milestones.

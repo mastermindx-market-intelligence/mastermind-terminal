@@ -7,7 +7,7 @@ import { sectorRotationRelativeTrend } from "./rotationRelativeTrend";
 import { sectorHoldingsCoverage } from "./sectorHoldingsCoverage";
 import { readIntradaySourceStamp, sectorIntradayEnvelope } from "./sectorIntradayComparison";
 
-export const SECTOR_FEEDS = ["sector", "confluence", "themes", "heatmap", "risk", "history", "events", "relative_trend", "holdings", "intraday"] as const;
+export const SECTOR_FEEDS = ["sector", "generation", "confluence", "themes", "heatmap", "risk", "history", "events", "relative_trend", "holdings", "intraday"] as const;
 export const FINVIZ_FEEDS = ["finviz"] as const;
 export type SectorFeed = typeof SECTOR_FEEDS[number] | typeof FINVIZ_FEEDS[number];
 export type FeedStatus = "loading" | "ready" | "access" | "unavailable" | "invalid" | "error";
@@ -30,6 +30,11 @@ export type MemberSort = "source" | "return" | "relative" | "ticker";
 export type SectorWorkspace = "rotation" | "discover" | "breadth" | "detail";
 export type SectorBreadthSort = "strong" | "weak" | "expand" | "contract";
 export type SectorBreadthWindow = 1 | 5;
+/** Native Sector Intelligence jobs on the canonical /sectors surface. A null
+ * job keeps every legacy URL's original Explore/detail meaning; only the clean
+ * canonical /sectors entry (no sector keys at all) defaults to the Brief job. */
+export const SECTOR_JOBS = ["brief", "explore", "research", "watches"] as const;
+export type SectorJob = typeof SECTOR_JOBS[number];
 export type SectorDiscoverySort = "source" | "return" | "participation";
 export type SectorCompanyTableSort = "source" | "performance" | "marketcap" | "ticker";
 export type SectorDiscoveryMode = "summary" | "table" | "heatmap" | "matrix";
@@ -48,6 +53,7 @@ export type SectorState = {
   workspace: SectorWorkspace; discoveryQuery: string; discoverySort: SectorDiscoverySort; companyTableQuery: string; companyTableSort: SectorCompanyTableSort;
   discoveryMode: SectorDiscoveryMode; matrixTimeframe: SectorMatrixTimeframe; matrixIndustry: string; matrixBand: SectorCapBand | "";
   rotationMode: SectorRotationMode; rotationQuery: string; rotationMethod: SectorRotationMethod;
+  sectorJob: SectorJob | null;
 };
 export const DEFAULT_SECTOR_STATE: SectorState = {
   sourceFamily: "sectors", finvizMode: "heatmap", finvizTheme: "", finvizSubtheme: "", bubbleX: "1W", bubbleY: "1M", bubbleSize: "members",
@@ -55,6 +61,7 @@ export const DEFAULT_SECTOR_STATE: SectorState = {
   breadthSort: "strong", breadthWindow: 5,
   workspace: "discover", discoveryQuery: "", discoverySort: "source", companyTableQuery: "", companyTableSort: "source", discoveryMode: "summary", matrixTimeframe: "1D", matrixIndustry: "", matrixBand: "",
   rotationMode: "map", rotationQuery: "", rotationMethod: "incumbent",
+  sectorJob: null,
 };
 export function object(value: unknown): Row {
   return value !== null && typeof value === "object" && !Array.isArray(value) ? value as Row : {};
@@ -245,6 +252,7 @@ export function sourceDate(data: unknown): string | null {
  */
 export function feedSourceStamp(source: SectorFeed, data: unknown): string | null {
   if (source === "intraday") return readIntradaySourceStamp(data);
+  if (source === "generation") return strictDay(object(data).source_session);
   return sourceDate(data);
 }
 /** Exact read-only owner envelopes, qualified against Macro's published source files.
@@ -252,6 +260,9 @@ export function feedSourceStamp(source: SectorFeed, data: unknown): string | nul
  * This is a consumer boundary, not a dossier/schema producer or authority manifest.
  */
 export function readableOwnerEnvelope(source: SectorFeed, data: unknown): boolean {
+  // The native generation has a separate closed receipt/core/history reader at
+  // the gateway and component boundary; never admit it as a static envelope.
+  if (source === "generation") return false;
   if (source === "finviz") { try { normalizeFinviz(data); return true; } catch { return false; } }
   const root = object(data);
   const bounded = (value: unknown) => Array.isArray(value) && value.length <= 10_000;
@@ -357,7 +368,16 @@ export function concentration(data: unknown, sectorName: string): {
   return { share: top.reduce((sum, row) => sum + number(row.size)!, 0) / total,
     count: tiles.length, names: top.map(row => text(row.t)) };
 }
-export function parseSectorState(params: URLSearchParams): SectorState {
+/** Every sector-state key this codec reads. A canonical /sectors entry that
+ * carries none of them (and no sectorJob) is the clean Brief entry; any key at
+ * all keeps that URL's legacy Explore/detail meaning. */
+const SECTOR_STATE_KEYS = ["sectorJob", "sectorSource", "finvizMode", "finvizTheme", "finvizSubtheme", "bubbleX", "bubbleY", "bubbleSize",
+  "sectorWorkspace", "sectorBreadthSort", "sectorBreadthWindow", "sectorDiscoverySort", "sectorCompanyTableSort", "sectorDiscoveryQuery", "sectorCompanyTableQuery",
+  "sectorDiscoveryMode", "sectorMatrixTimeframe", "sectorMatrixIndustry", "sectorMatrixBand", "sectorRotationMode",
+  "sectorRotationQuery", "sectorRotationMethod", "sectorView", "sectorSources", "sectorTheme", "sectorCompany",
+  "sectorExpanded", "sector", "group", "sectorSort", "sectorQuery"] as const;
+
+export function parseSectorState(params: URLSearchParams, path?: string | null): SectorState {
   const axis = (key: string, fallback: FinvizAxis): FinvizAxis => ["1D","1W","MTD","1M","3M","6M","YTD","1Y","members"].includes(params.get(key) || "") ? params.get(key) as FinvizAxis : fallback;
   const view = params.get("sectorView") || "", sector = params.get("sector") || "", group = params.get("group") || "";
   const sort = params.get("sectorSort") || "";
@@ -367,7 +387,12 @@ export function parseSectorState(params: URLSearchParams): SectorState {
   const discoveryMode = params.get("sectorDiscoveryMode"), matrixTimeframe = params.get("sectorMatrixTimeframe");
   const matrixBand = params.get("sectorMatrixBand"), rotationMode = params.get("sectorRotationMode");
   const rotationMethod = params.get("sectorRotationMethod");
+  const job = params.get("sectorJob");
   const legacyDetail = ["sectorView", "sector", "group", "sectorCompany", "sectorQuery"].some(key => params.has(key));
+  // Clean canonical /sectors opens Brief. Every other job absence keeps the
+  // URL's legacy meaning byte-identically, including /discover?tab=sectors.
+  const canonicalBriefEntry = path === "/sectors" && !job
+    && SECTOR_STATE_KEYS.every(key => !params.has(key));
   return {
     sourceFamily: params.get("sectorSource") === "finviz" ? "finviz" : "sectors",
     finvizMode: ["heatmap","bubbles","clusters","matrix","table"].includes(params.get("finvizMode") || "") ? params.get("finvizMode") as FinvizMode : "heatmap",
@@ -387,6 +412,8 @@ export function parseSectorState(params: URLSearchParams): SectorState {
     rotationMode: rotationMode === "list" ? "list" : "map",
     rotationQuery: (params.get("sectorRotationQuery") || "").slice(0, 60),
     rotationMethod: rotationMethod === "relative_trend_ema" ? "relative_trend_ema" : "incumbent",
+    sectorJob: job === "brief" || job === "explore" || job === "research" || job === "watches" ? job
+      : canonicalBriefEntry ? "brief" : null,
     // Preserve old study URLs without keeping competing customer destinations.
     view: view === "dossier" ? "signals" : view === "themes" ? "drivers" :
       SECTOR_VIEWS.includes(view as SectorView) ? view as SectorView : "intelligence",
@@ -425,6 +452,8 @@ export function writeSectorState(url: URL, state: SectorState): string {
   if (state.rotationQuery) url.searchParams.set("sectorRotationQuery", state.rotationQuery); else url.searchParams.delete("sectorRotationQuery");
   // The incumbent method is the default and stays out of the address so shared links keep their width budget.
   if (state.rotationMethod !== "incumbent") url.searchParams.set("sectorRotationMethod", state.rotationMethod); else url.searchParams.delete("sectorRotationMethod");
+  // Legacy URLs never carried a job; a null job stays out of their address.
+  if (state.sectorJob) url.searchParams.set("sectorJob", state.sectorJob); else url.searchParams.delete("sectorJob");
   url.searchParams.set("sectorView", state.view);
   if (state.sourcesOpen) url.searchParams.set("sectorSources", "1"); else url.searchParams.delete("sectorSources");
   url.searchParams.set("sectorTheme", state.theme);
