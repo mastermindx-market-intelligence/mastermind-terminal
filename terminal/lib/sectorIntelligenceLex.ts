@@ -103,6 +103,8 @@ export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siSourcesFor: ["Evidence for this view", "当前视图的证据"],
   siCloseSources: ["Back to research", "返回研究"],
   siSectorSignals: ["Sector signals", "板块信号"], siGroupSignals: ["Group signals", "分组信号"],
+  siCycleLens: ["Sector cycles", "板块周期"], siCycleLoading: ["Loading cycle history…", "正在加载周期历史…"],
+  siCycleAccess: ["Cycle history requires access", "查看周期历史需要访问权限"],
   siHistoryEmpty: ["Historical observations are not connected", "尚未连接历史观察记录"],
   siHistoryContext: ["Your selected group and company stay in place while you inspect the available evidence.", "查看现有证据时，所选分组与公司保持不变。"],
   siThemesDisclosure: ["Related source universe · not verified company exposure", "相关来源全集 · 非已验证的公司敞口"],
