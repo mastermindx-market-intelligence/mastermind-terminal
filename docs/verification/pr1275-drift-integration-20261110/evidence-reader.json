@@ -1,0 +1,27 @@
+{
+  "state": "PASSED",
+  "head": "8d3a375e6d7cba8f03afc65594d3937857230442",
+  "tree": "f94078ea88979ee1aed630b013f303c6d20bbe0f",
+  "command": [
+    "/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-drift-integration-web4/.pr1275-routing-runtime/node-v22.23.4-darwin-arm64/bin/node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts",
+    "--pool=forks",
+    "--maxWorkers=1",
+    "--minWorkers=1",
+    "--reporter=json",
+    "--outputFile=/Volumes/Mastermind 2/agent-workspaces/terminal/web/terminal-pr-duty-20261110-1275-drift-integration-web4/docs/verification/pr1275-drift-integration-20261110/evidence-reader-report.json"
+  ],
+  "startedAt": "2026-11-10T14:21:05.321791+00:00",
+  "exitCode": 0,
+  "seconds": 3.013,
+  "finishedAt": "2026-11-10T14:21:08.335010+00:00",
+  "logSha256": "89a17b8c8fb982e8906cdf493ac0fc035ef66002c28d471bf68272b1e628435f",
+  "reportSha256": "6a58fb08b4b8fcdf66410d1490ee90f8ff426a90b0c9159cb527a1b4a23bb28c",
+  "tests": 5,
+  "passed": 5,
+  "failed": 0,
+  "skipped": 0,
+  "sourceInputsUnchanged": true
+}

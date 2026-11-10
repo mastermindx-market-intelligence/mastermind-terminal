@@ -1,0 +1,95 @@
+{
+  "findings": [
+    "All six actual frames were displayed and inspected by the duty principal.",
+    "Dark EN/ZH layout, headings and unavailable-state text are readable and unclipped at all three sizes.",
+    "Desktop and tablet show the localized thesis control inline without overlap.",
+    "Phone captures show the localized compact toolbar after its Research-actions disclosure was exercised and closed; the capture alone is not an image of the open menu.",
+    "No Next dev-indicator overlay appears in the six PNGs.",
+    "All six fresh captures happen to be byte-identical to the prior images; the new workflow binding is established by the fresh producer and fixture, not by restamping old evidence."
+  ],
+  "images": [
+    {
+      "bytes": 72928,
+      "captureDisclosure": null,
+      "file": "desktop-en.png",
+      "gitBlob": "dc4b4972fcbb16132ddd06b304910faa2f6c57f7",
+      "height": 900,
+      "lang": "en",
+      "presentation": "inline",
+      "priorImageByteIdentical": true,
+      "sha256": "5d4665ced5778a21f3da8a8b2c9cf064b85084efd79576470a6b0e0f75eb6de3",
+      "visuallyInspected": true,
+      "width": 1440
+    },
+    {
+      "bytes": 72865,
+      "captureDisclosure": null,
+      "file": "desktop-zh.png",
+      "gitBlob": "e33505e525d33207a8c8f9af05876a02d23e788c",
+      "height": 900,
+      "lang": "zh",
+      "presentation": "inline",
+      "priorImageByteIdentical": true,
+      "sha256": "3db4fb349405caac79ae4fd205ca766f9efcf17e1e747d1059623147adf6bf0d",
+      "visuallyInspected": true,
+      "width": 1440
+    },
+    {
+      "bytes": 35568,
+      "captureDisclosure": null,
+      "file": "tablet-en.png",
+      "gitBlob": "71d1e677afaaa7b14afe71c61a927cabc93d1580",
+      "height": 1180,
+      "lang": "en",
+      "presentation": "inline",
+      "priorImageByteIdentical": true,
+      "sha256": "185a3840432d2288822bbc8d56f6ac89a1f82cb32a22b9ae9ce49ca62a8bfd13",
+      "visuallyInspected": true,
+      "width": 820
+    },
+    {
+      "bytes": 34375,
+      "captureDisclosure": null,
+      "file": "tablet-zh.png",
+      "gitBlob": "06b076e3edd05cdf949202efb3aa3809c95df6a4",
+      "height": 1180,
+      "lang": "zh",
+      "presentation": "inline",
+      "priorImageByteIdentical": true,
+      "sha256": "d4181e4a91d04d028b22f234ebc2d2d337e71af28364f193f9308fa974c1a833",
+      "visuallyInspected": true,
+      "width": 820
+    },
+    {
+      "bytes": 21970,
+      "captureDisclosure": "closed",
+      "file": "mobile-en.png",
+      "gitBlob": "b2cfe3686a8483fa138be62c277a1b360e927e17",
+      "height": 844,
+      "lang": "en",
+      "presentation": "compact-research-actions",
+      "priorImageByteIdentical": true,
+      "sha256": "f48d6b1bedb2fa5bb808e3ab6dcdb2b128f108c863859f7a3b6a9fb044394b7c",
+      "visuallyInspected": true,
+      "width": 390
+    },
+    {
+      "bytes": 22687,
+      "captureDisclosure": "closed",
+      "file": "mobile-zh.png",
+      "gitBlob": "19e07a3dc9fce6d780c1e48fef20ef13b6d42456",
+      "height": 844,
+      "lang": "zh",
+      "presentation": "compact-research-actions",
+      "priorImageByteIdentical": true,
+      "sha256": "51e70e33bb4eb0a7775c8b79086de33a440f918deaf1ddf15321b27370641b9c",
+      "visuallyInspected": true,
+      "width": 390
+    }
+  ],
+  "reviewedAt": "2026-11-10T12:04:23.268587+00:00",
+  "schema": "terminal.pr1275.visual-review.v1",
+  "scope": "Provider-closed source-component fixture with synthetic identity and unavailable market data; no production/authenticated/installed acceptance.",
+  "sourceHead": "b690928594010d042bfdb69867e2ffdf1d0d47a2",
+  "sourceTree": "f6b2202bea775cebbd867deccc05bb9c69034412"
+}

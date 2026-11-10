@@ -29,7 +29,12 @@ FULL_MATRIX = [
     "projects": (
         "--project=company-intelligence-desktop "
         "--project=company-intelligence-tablet "
-        "--project=company-intelligence-mobile "
+        "--project=company-intelligence-mobile"
+    ),
+    "specs": "",
+}, {
+    "shard": "serial-standalone",
+    "projects": (
         "--project=terminal-chrome-intermediate "
         "--project=w2a-workspaces"
     ),
