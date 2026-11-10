@@ -5,9 +5,30 @@ import {
   rhythmPlacement,
   rhythmReading,
   rhythmWindowFromTurns,
+  strictDay,
   type RhythmPivot,
   type RhythmSpacing,
 } from "../sectorCycleRhythm";
+
+describe("strictDay discards malformed values without a throw (PR #1431 duty finding)", () => {
+  // Every wire date in the Cycles readers funnels through strictDay
+  // (turnKnowledge meta.asOf/date/confirmed_at, rhythm as_of/pivot/placement,
+  // phaseAge observed_from, record asOf/expires_asof) — this table is the
+  // discard guarantee for all of them, never a RangeError.
+  it("impossible calendars, malformed strings and non-strings all read null", () => {
+    for (const bad of [
+      "2026-13-01", "2026-00-10", "2026-02-30", "2026-11-31",
+      "0000-00-00", "9999-99-99", "", "not-a-date", 42, null, {}, ["2026-01-01"],
+    ]) {
+      expect(strictDay(bad), String(bad)).toBeNull();
+    }
+  });
+  it("valid days pass through verbatim, leap day included", () => {
+    expect(strictDay("2026-10-23")).toBe("2026-10-23");
+    expect(strictDay("2024-02-29")).toBe("2024-02-29");
+    expect(strictDay("2026-12-31")).toBe("2026-12-31");
+  });
+});
 
 describe("rhythm window edges are fixed to the turns, not to today", () => {
   const pivot: RhythmPivot = { date: "2026-03-31", kind: "trough", provisional: false };

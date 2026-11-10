@@ -162,6 +162,47 @@ describe("turn first-known dates (SP11, FIXTURE feeds)", () => {
     expect(seriesFirstKnown(index, "xlk")).toEqual({ "2026-07-05#peak": "2026-07-08" });
   });
 
+  it("invalid calendar dates are discarded, never thrown (PR #1431 duty finding)", () => {
+    // The duty counterexample: an ISO-shaped impossible calendar value in
+    // confirmed_at (or date, or meta.asOf) must be DROPPED — `toISOString()`
+    // on the invalid Date must never throw out of the reader.
+    for (const bad of [
+      "2026-13-01", "2026-00-10", "2026-02-30", "2026-11-31",
+      "0000-00-00", "9999-99-99", "", 42, null, {},
+    ]) {
+      // The exact duty shape: valid asOf + valid event date + bad confirmed_at.
+      const index = turnFirstKnownIndex({
+        meta: { asOf: "2026-11-05" },
+        sectors: [
+          row([{ date: "2026-10-23", k: "trough", provisional: false, confirmed_at: bad }]),
+        ],
+      });
+      expect(seriesFirstKnown(index, "xlk"), String(bad)).toEqual({});
+      // The same bad value as the event date and as the feed's asOf.
+      const badDate = turnFirstKnownIndex({
+        meta: { asOf: "2026-11-05" },
+        sectors: [row([{ date: bad, k: "trough", provisional: false, confirmed_at: "2026-10-25" }])],
+      });
+      expect(seriesFirstKnown(badDate, "xlk"), String(bad)).toEqual({});
+      const badAsOf = turnFirstKnownIndex({
+        meta: { asOf: bad },
+        sectors: [row([{ date: "2026-10-23", k: "trough", provisional: false, confirmed_at: "2026-10-25" }])],
+      });
+      expect(seriesFirstKnown(badAsOf, "xlk"), String(bad)).toEqual({});
+    }
+    // A valid sibling turn in the same feed still dates normally.
+    const index = turnFirstKnownIndex({
+      meta: { asOf: "2026-11-05" },
+      sectors: [
+        row([
+          { date: "2026-10-23", k: "trough", provisional: false, confirmed_at: "2026-13-01" },
+          { date: "2026-10-24", k: "peak", provisional: false, confirmed_at: "2026-10-27" },
+        ]),
+      ],
+    });
+    expect(seriesFirstKnown(index, "xlk")).toEqual({ "2026-10-24#peak": "2026-10-27" });
+  });
+
   it("NEW-3: a `__proto__` series id is an ordinary series on the null-prototype index", () => {
     const index = turnFirstKnownIndex({
       meta: { asOf: "2026-10-30" },
