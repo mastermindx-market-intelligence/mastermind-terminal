@@ -544,6 +544,8 @@ SHIMS = {
         + OLD_SHA + '|*' + NEW_SHA + ') echo commit ;; *) exit 1 ;; esac ;;\n'
         '  *rev-parse*) echo "$FAKE_SHA" ;;\n'
         # Optional tracked public/data tree for the production staging tests.
+        # Without FAKE_TRACKED_ROOT the commit has NO tracked public/data.
+        '  *"cat-file -e HEAD:terminal/public/data") [ -n "${FAKE_TRACKED_ROOT:-}" ] || exit 128 ;;\n'
         '  *"archive HEAD -- terminal/public/data") [ -n "${FAKE_TRACKED_ROOT:-}" ] && '
         'exec tar -c -f - -C "$FAKE_TRACKED_ROOT" terminal/public/data ;;\n'
         'esac\n'
@@ -1057,14 +1059,18 @@ def test_production_build_sees_tracked_fixtures_not_live_runtime_data(tmp_path):
 
 
 def test_production_stage_without_tracked_fixtures_builds_with_empty_data(tmp_path):
-    """A commit with no tracked public/data (or the stub git) still builds, from an
-    empty public/data, and still never stages the live tree."""
+    """A commit with no tracked public/data (`git cat-file -e` fails) still builds,
+    from an empty public/data, never asks git for the archive, and still never stages
+    the live tree."""
     _seed_live_and_tracked_data(tmp_path)
     record = tmp_path / "stage-data.txt"
 
     proc, _ = run_deploy(tmp_path, RECORD_STAGE_DATA=record)
 
     assert "new build OK" in proc.stdout, proc.stdout + proc.stderr
+    effects = _effect_lines(tmp_path)
+    assert any("cat-file -e HEAD:terminal/public/data" in line for line in effects), effects
+    assert not any("archive HEAD -- terminal/public/data" in line for line in effects), effects
     assert record.read_text().splitlines()[1:] == []
     assert "production stage runtime data: 0 git-tracked" in proc.stdout
 

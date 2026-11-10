@@ -6231,7 +6231,7 @@ else
     tar -x -f "$DATA_TAR" -C "$STAGE_ROOT/"
   fi
   rm -f "$DATA_TAR"
-  log "production stage runtime data: $(find "$STAGE/public/data" -type f | wc -l | tr -d ' ') git-tracked public/data fixture file(s) from origin/$BRANCH; live $APP/public/data is not staged"
+  log "production stage runtime data: $(find "$STAGE/public/data" -type f | wc -l | tr -d ' ') git-tracked public/data fixture file(s) from $FULL_SHA; live $APP/public/data is not staged"
 fi
 
 # 3) build into the staging tree — the slow part; live site stays up throughout.
