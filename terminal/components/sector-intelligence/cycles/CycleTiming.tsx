@@ -62,6 +62,8 @@ export default function CycleTiming(props: CycleTimingProps) {
           <span className={s.ladderChip}>{zh ? ladder[1] : ladder[0]}</span>
         )}
       </p>
+      {/* v1.1: the measured age is a historical fact, never remaining upside. */}
+      <p className={s.note}>{t("scDurationNotUpside")}</p>
 
       <div className={s.rhythmBlock} data-state={props.rhythm.state}>
         <div className={s.rhythmRow}>

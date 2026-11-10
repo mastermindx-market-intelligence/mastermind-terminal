@@ -45,6 +45,21 @@ const T = (lang: "en" | "zh") => ({
   aiInfra: lang === "zh" ? "AI 基础设施" : "AI Infrastructure",
   story: lang === "zh" ? "趋成熟" : "matured",
   mismatch: lang === "zh" ? "快照版本不一致" : "Snapshots do not match",
+  /* v1.1 per-head forecast capabilities + SP11 dates + honest windows */
+  range21: lang === "zh" ? "21个交易日" : "21 sessions",
+  range252: lang === "zh" ? "252个交易日" : "252 sessions",
+  range1mWord: lang === "zh" ? "1个月" : "1 month",
+  durationWord: lang === "zh" ? "并非剩余上行空间" : "not remaining upside",
+  firstKnown: lang === "zh" ? "最早可知" : "first known",
+  pivotNote: lang === "zh" ? "转折日期为拐点日期" : "Turn dates are pivot dates",
+  headWithheld: lang === "zh" ? "暂缓显示" : "Withheld",
+  headWithdrawn: lang === "zh" ? "已撤回" : "Withdrawn",
+  headWithdrawnDate: lang === "zh" ? "已于 2026-10-30 撤回" : "Withdrawn 2026-10-30",
+  reasonFailed: lang === "zh" ? "研究检验未通过" : "research test failed",
+  reasonEpoch: lang === "zh" ? "与研究协议的转折口径不一致" : "does not match the research protocol",
+  horizon20: lang === "zh" ? "20 个已完结交易日" : "20 completed sessions",
+  directional: lang === "zh" ? "周期段方向事实" : "Leg-direction fact",
+  headsAbsent: lang === "zh" ? "未附带预测能力分块" : "No forecast capability block",
 });
 
 for (const [lang, theme] of cases) {
@@ -203,6 +218,81 @@ for (const [lang, theme] of cases) {
       path: info.outputPath(`cycles-core-${lang}-${info.project.name}.png`),
       animations: "disabled",
     });
+  });
+
+  /* ── v1.1: per-head forecast capabilities (lane 8 wire), withdrawal with
+   * date, first-known vs pivot dates, and session-count windows. All states
+   * ride the labelled fixture harness; no live record exists today. ── */
+  test(`cycles forecast heads and first-known dates ${lang} ${theme}`, async ({ page }, info) => {
+    test.skip(info.project.name === "tablet", "new-state proof is the 1440/390 contract");
+    await page.goto("/dev/sector-cycles");
+    await page.getByRole("radio", { name: lang === "zh" ? "ZH" : "EN", exact: true }).check();
+    await page.getByRole("radio", { name: theme === "light" ? "Light" : "Dark" }).check();
+    const lens = page.getByTestId("sector-cycle-lens");
+    await expect(lens).toBeVisible();
+
+    /* Honest windows: the native ranges are session counts, never months,
+     * and never Prophet's separate 20-session horizon. */
+    const rangeSel = page.getByTestId("cycle-chart-panel").getByLabel(L.range);
+    await expect(rangeSel.locator("option").nth(0)).toHaveText(L.range21);
+    await expect(rangeSel.locator("option").nth(1)).toHaveText(L.rs63);
+    await expect(rangeSel.locator("option").nth(2)).toHaveText(L.range252);
+    await expect(rangeSel.locator("option", { hasText: L.range1mWord })).toHaveCount(0);
+
+    /* The default 63-session window hides the confirmed turns that carry
+     * first-known dates; widen to All so both date facts are on screen. */
+    await rangeSel.selectOption("0");
+
+    /* SP11: the turns card keeps pivot and first-known dates distinct. */
+    const turns = page.getByTestId("cycle-turns");
+    await expect(turns).toContainText(L.pivotNote);
+    await expect(turns).toContainText(L.firstKnown);
+
+    /* Today's fixture wire: four heads, each withheld on its OWN published
+     * reason; no number is shown for any of them. */
+    const heads = page.getByTestId("cycle-forecast-heads");
+    await expect(heads.locator("[data-head]")).toHaveCount(4);
+    await expect(heads.getByText(L.headWithheld, { exact: true })).toHaveCount(4);
+    await expect(heads).toContainText(L.reasonFailed);
+    await expect(heads).toContainText(L.reasonEpoch);
+    await expect(heads).toContainText(L.horizon20);
+    // H3/H4 are leg-direction facts, not cycle-timing edges (lane 8 wording).
+    await expect(heads).toContainText(L.directional);
+
+    /* Withdrawal is a first-class state: the withdrawn head carries its date
+     * and never a stale pass; its siblings and the observed facts remain. */
+    await page.getByRole("radio", { name: "One head withdrawn", exact: true }).check();
+    await expect(heads.locator('[data-status="withdrawn"]')).toHaveCount(1);
+    await expect(heads.locator('[data-status="withheld"]')).toHaveCount(3);
+    await expect(heads).toContainText(L.headWithdrawnDate);
+    await expect(page.getByTestId("cycle-hero")).toBeVisible();
+    await expect(page.getByTestId("cycle-leg-timeline")).toBeVisible();
+    await expect(turns).toContainText(L.firstKnown);
+    await expect(page.getByTestId("cycle-timing")).toContainText(L.durationWord);
+    await heads.screenshot({
+      path: info.outputPath(`cycles-heads-${lang}-${theme}-${info.project.name}.png`),
+      animations: "disabled",
+    });
+
+    /* The v1.1 screenshot contract is EN/ZH × light/dark at 390 + 1440: the
+     * case loop carries two of the four combos, so capture the opposite theme
+     * from the same withdrawn-head state before moving on. */
+    const otherTheme = theme === "light" ? "dark" : "light";
+    await page.getByRole("radio", { name: otherTheme === "light" ? "Light" : "Dark" }).check();
+    await expect(heads.locator('[data-status="withdrawn"]')).toHaveCount(1);
+    await heads.screenshot({
+      path: info.outputPath(`cycles-heads-${lang}-${otherTheme}-${info.project.name}.png`),
+      animations: "disabled",
+    });
+    await page.getByRole("radio", { name: theme === "light" ? "Light" : "Dark" }).check();
+
+    /* A record without the block is stated honestly; nothing is inferred. */
+    await page.getByRole("radio", { name: "Heads absent", exact: true }).check();
+    await expect(heads).toContainText(L.headsAbsent);
+    await expect(heads.locator("[data-head]")).toHaveCount(0);
+    // The observed Cycles experience is untouched by any heads state.
+    await expect(page.getByTestId("cycle-leg-timeline")).toBeVisible();
+    expect(await lens.evaluate((e) => e.scrollWidth - e.clientWidth)).toBeLessThanOrEqual(1);
   });
 
   test(`cycles replaced generation withholds ${lang}`, async ({ page }, info) => {

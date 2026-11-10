@@ -420,3 +420,251 @@ test("Ownership family defaults to Institutional and preserves Insider as its si
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 });
+
+
+function marketBarsFixture() {
+  const bars: [string, number, number, number, number, number][] = [];
+  let close = 100;
+  for (let year = 2020; year <= 2026; year++) {
+    const monthCount = year === 2026 ? 6 : 12;
+    for (let month = 1; month <= monthCount; month++) {
+      for (const day of [5, 12, 19, 26]) {
+        const seasonal = Math.sin((month / 12) * Math.PI * 2) * 0.004;
+        const drift = 0.0045 + seasonal + ((year - 2020) * 0.00008);
+        const open = close;
+        close = close * (1 + drift);
+        const high = Math.max(open, close) * 1.012;
+        const low = Math.min(open, close) * 0.988;
+        const date = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        bars.push([date, open, high, low, close, 1_000_000 + bars.length * 2_500]);
+      }
+    }
+  }
+  return { bars };
+}
+
+async function installMarketBars(page: Page) {
+  const fixture = marketBarsFixture();
+  await page.route("**/data/NVDA.json**", async (route) => route.fulfill({ json: fixture }));
+}
+
+
+test("Market vNext projects canonical technicals, pivots and five-year seasonality", async ({ page }) => {
+  await installMarketBars(page);
+  await page.goto("/analysis?symbol=NVDA&page=technicals");
+  await expect(page.locator(".sym-pick strong")).toHaveText("NVDA", { timeout: 45_000 });
+
+  const market = page.locator("[data-market-vnext]");
+  await expect(market).toBeVisible({ timeout: 45_000 });
+
+  const state = market.locator("[data-market-vnext-state]");
+  await expect(state).toContainText("MARKET TECHNICALS");
+  await expect(state).toContainText("Deterministic indicator state");
+  await expect(state).toContainText("RSI (14)");
+  await expect(state).toContainText("MACD (12, 26, 9)");
+  await expect(state).toContainText("vs SMA 20");
+  await expect(state).toContainText("vs SMA 50");
+  await expect(state).toContainText("vs SMA 200");
+
+  const rating = market.locator("[data-market-vnext-rating]");
+  await expect(rating).toContainText("TECHNICAL RATING");
+  await expect(rating).toContainText("Oscillators");
+  await expect(rating).toContainText("Moving Averages");
+  await expect(rating).toContainText("not a trade signal");
+
+  const pivots = market.locator("[data-market-vnext-pivots]");
+  await expect(pivots).toContainText("PIVOT MAP");
+  await expect(pivots).toContainText("R1");
+  await expect(pivots).toContainText("S1");
+  await expect(pivots).toContainText("Nearest support");
+  await expect(pivots).toContainText("Nearest resistance");
+  await expect(pivots).toContainText("not forecasts");
+
+  const seasonality = market.locator("[data-market-vnext-seasonality]");
+  await expect(seasonality).toContainText("SEASONALITY SNAPSHOT");
+  await expect(seasonality).toContainText("5 completed yearly observations");
+  await expect(seasonality).toContainText("Jan");
+  await expect(seasonality).toContainText("Dec");
+  await expect(seasonality).toContainText("Historical recurrence only");
+
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+});
+
+test("Market vNext remains bilingual and overflow-safe on mobile", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "one mobile bilingual Market contract is sufficient");
+  await page.addInitScript(() => window.localStorage.setItem("mm.lang", "zh"));
+  await installMarketBars(page);
+  await page.goto("/analysis?symbol=NVDA&page=technicals");
+
+  const market = page.locator("[data-market-vnext]");
+  await expect(market).toBeVisible({ timeout: 45_000 });
+  await expect(market).toContainText("市场技术面");
+  await expect(market).toContainText("技术评级");
+  await expect(market).toContainText("枢轴图");
+  await expect(market).toContainText("季节性快照");
+  await expect(market).toContainText("5 个完整年度观测");
+  await expect(market).toContainText("并非交易信号");
+  await expect(market).toContainText("而非预测");
+  await expect(market).toContainText("小样本不能预测下一步走势");
+
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+});
+
+
+test("Market summary keeps seasonality ahead of deep indicator tables", async ({ page }, testInfo) => {
+  await installMarketBars(page);
+  await page.goto("/analysis?symbol=NVDA&page=technicals");
+  const market = page.locator("[data-market-vnext]");
+  const seasonality = market.locator("[data-market-vnext-seasonality]");
+  await expect(seasonality).toContainText("5 completed yearly observations", { timeout: 45_000 });
+  const summaryBox = await seasonality.boundingBox();
+  const detailsBox = await market.locator(":scope > .fin-grid2").boundingBox();
+  expect(summaryBox).not.toBeNull();
+  expect(detailsBox).not.toBeNull();
+  // The overview must be discoverable before scrolling through the full metric tables.
+  expect(summaryBox!.y).toBeLessThan(page.viewportSize()!.height - 72);
+  expect(summaryBox!.y + summaryBox!.height).toBeLessThanOrEqual(detailsBox!.y);
+  if (page.viewportSize()!.width <= 760) {
+    const pivotsBox = await market.locator("[data-market-vnext-pivots]").boundingBox();
+    expect(pivotsBox!.y).toBeGreaterThanOrEqual(summaryBox!.y + summaryBox!.height);
+  }
+  await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-market-full-history-en.png`) });
+});
+
+
+type MarketBasis = "D" | "W" | "1M";
+
+function marketAvailabilityBars(n: number, basis: MarketBasis, measuredZero = false) {
+  const bars: [string, number, number, number, number, number][] = [];
+  let dailyMs = Date.UTC(2000, 0, 3);
+  for (let i = 0; i < n; i++) {
+    const close = measuredZero ? 128 : 100 + i;
+    const high = measuredZero ? (i % 2 === 0 ? 130 : 129) : close + 1;
+    const low = measuredZero ? (i % 2 === 0 ? 127 : 126) : close - 1;
+    for (const offset of basis === "D" ? [0] : [0, 1]) {
+      let ms: number;
+      if (basis === "D") {
+        while ([0, 6].includes(new Date(dailyMs).getUTCDay())) dailyMs += 86_400_000;
+        ms = dailyMs;
+        dailyMs += 86_400_000;
+      } else {
+        ms = basis === "W" ? Date.UTC(2000, 0, 3 + 7 * i + offset) : Date.UTC(2000, i, 1 + offset);
+      }
+      bars.push([new Date(ms).toISOString().slice(0, 10), close, high, low, close, 100]);
+    }
+  }
+  return { bars };
+}
+
+for (const zh of [false, true]) {
+  // Each fixed input owns an isolated browser context; persistent OHLC caching remains real.
+  for (const n of [29, 30, 49, 50, 199, 200, 220]) {
+    test(`Market numeric availability thresholds and measured Neutral ${zh ? "zh" : "en"} at ${n} active observations`, async ({ page }, testInfo) => {
+      const basis: MarketBasis = testInfo.project.name === "mobile" ? "1M" : testInfo.project.name === "tablet" ? "W" : "D";
+      const basisLabel = basis === "D" ? (zh ? "1天" : "1 day") : basis === "W" ? (zh ? "1周" : "1 week") : (zh ? "1月" : "1 month");
+      await page.addInitScript((lang) => window.localStorage.setItem("mm.lang", lang), zh ? "zh" : "en");
+      const neutral = n === 220;
+      const fixture = marketAvailabilityBars(n, basis, neutral);
+      await page.route("**/data/NVDA.json**", async (route) => route.fulfill({ json: fixture }));
+      const market = page.locator("[data-market-vnext]");
+      const rating = market.locator("[data-market-vnext-rating]");
+      const group = (moving: boolean) => rating.getByRole("group", {
+        name: moving ? (zh ? "移动平均" : "Moving Averages") : (zh ? "震荡指标" : "Oscillators"), exact: true,
+      });
+      const table = (moving: boolean) => market.locator(".fin-card.fin-tech-tbl").filter({
+        has: page.locator(".fin-sec-h", { hasText: moving ? (zh ? "移动平均" : "Moving Averages") : (zh ? "震荡指标" : "Oscillators") }),
+      });
+      const row = (moving: boolean, name: string) => table(moving).getByRole("row").filter({
+        has: page.getByRole("rowheader", { name, exact: true }),
+      });
+      const expectUnavailable = async (moving: boolean, name: string) => {
+        const target = row(moving, name);
+        await expect(target.locator("td").nth(0)).toHaveText("—");
+        await expect(target.locator(".fin-tech-act")).toHaveText(zh ? "不可用" : "Unavailable");
+        await expect(target.locator(".fin-tech-act")).toHaveClass(/\bmut\b/);
+      };
+      const checkGroup = async (moving: boolean, total: number, missing: number) => {
+        const target = group(moving);
+        if (missing > 0) {
+          await expect(target.locator(".arcg")).toHaveCount(0);
+          await expect(target.locator(".fin-gauge-counts")).toHaveCount(0);
+          await expect(target.getByRole("status")).toContainText(zh
+            ? `${total} 项数值读数中 ${total - missing} 项可用 · ${missing} 项不可用`
+            : `${total - missing} of ${total} numeric readings available · ${missing} unavailable`);
+        } else {
+          await expect(target.getByRole("status")).toHaveCount(0);
+          await expect(target.locator(".arcg")).toHaveCount(1);
+          await expect(target.locator(".arcg .num")).toHaveCount(total === 0 ? 0 : 1);
+          await expect(target.locator(".fin-gauge-counts")).toHaveCount(total === 0 ? 0 : 1);
+        }
+      };
+
+      await page.goto("/analysis?symbol=NVDA&page=technicals");
+      await expect(market).toBeVisible({ timeout: 45_000 });
+      await market.locator(".fin-tf-row").getByRole("button", { name: basisLabel, exact: true }).click();
+      const provenance = market.locator("[data-market-vnext-state] > header > div > p");
+      await expect(provenance).toContainText(zh ? `${n} 个观测` : `${n} observations`);
+      await expect(provenance).toContainText(basisLabel);
+      await expect(rating).toContainText(zh ? "中性也可能表示历史不足。" : "Neutral may reflect limited history.");
+      if (n < 30) {
+        await checkGroup(true, 0, 0); await checkGroup(false, 0, 0);
+        await expect(table(true).locator("tbody th")).toHaveCount(0);
+        await expect(table(false).locator("tbody th")).toHaveCount(0);
+        return;
+      }
+      await expect(table(true).locator('tbody th[scope="row"]')).toHaveCount(15);
+      await expect(table(false).locator('tbody th[scope="row"]')).toHaveCount(11);
+      await checkGroup(true, 15, n < 50 ? 6 : n < 100 ? 4 : n < 200 ? 2 : 0);
+      if (!neutral) await checkGroup(false, 11, n < 34 ? 1 : 0);
+      if (n < 50) await expectUnavailable(true, "EMA (50)");
+      else await expect(row(true, "EMA (50)").locator(".fin-tech-act")).toHaveText(neutral ? (zh ? "中性" : "Neutral") : (zh ? "买入" : "Buy"));
+      if (n < 200) await expectUnavailable(true, "SMA (200)");
+      else await expect(row(true, "SMA (200)").locator("td").nth(0)).toHaveText(neutral ? "128.00" : "199.50");
+      if (n === 30) {
+        await expectUnavailable(false, "Awesome Oscillator");
+        await expect(row(true, "SMA (30)").locator("td").nth(0)).toHaveText("114.50");
+        await expect(row(false, "MACD (12, 26, 9)").locator(".fin-tech-act")).toHaveText(zh ? "中性" : "Neutral");
+      }
+      if (neutral) {
+        await expect(group(true).locator(".arcg .num")).toHaveText("50");
+        await expect(group(true).locator(".fin-gauge-counts")).toContainText(zh ? "中性 15" : "Neutral 15");
+        await expect(row(false, "Momentum (10)").locator("td").nth(0)).toHaveText("0.00");
+        await expect(row(false, "Momentum (10)").locator(".fin-tech-act")).toHaveText(zh ? "中性" : "Neutral");
+      }
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+      if (n === 30 || neutral) {
+        await rating.scrollIntoViewIfNeeded();
+        await expect(group(true)).toBeInViewport({ ratio: 1 });
+        await expect(group(false)).toBeInViewport({ ratio: 1 });
+        await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-market-${neutral ? "neutral" : "partial"}-${zh ? "zh" : "en"}.png`) });
+        // Prove the changed row is reachable through the existing scrollport too.
+        const target = row(neutral ? false : true, neutral ? "Momentum (10)" : "SMA (200)");
+        await target.scrollIntoViewIfNeeded();
+        await expect(target).toBeInViewport({ ratio: 1 });
+        await expect(target.locator(".fin-tech-act")).toHaveText(neutral ? (zh ? "中性" : "Neutral") : (zh ? "不可用" : "Unavailable"));
+      }
+    });
+  }
+}
+
+test("Market full-history hierarchy remains readable in Chinese", async ({ page }, testInfo) => {
+  await page.addInitScript(() => window.localStorage.setItem("mm.lang", "zh"));
+  await installMarketBars(page);
+  await page.goto("/analysis?symbol=NVDA&page=technicals");
+  const market = page.locator("[data-market-vnext]");
+  const seasonality = market.locator("[data-market-vnext-seasonality]");
+  await expect(seasonality).toContainText("5 个完整年度观测", { timeout: 45_000 });
+  const summary = await seasonality.boundingBox();
+  const details = await market.locator(":scope > .fin-grid2").boundingBox();
+  expect(summary).not.toBeNull(); expect(details).not.toBeNull();
+  expect(summary!.y).toBeLessThan(page.viewportSize()!.height - 72);
+  expect(summary!.y + summary!.height).toBeLessThanOrEqual(details!.y);
+  if (page.viewportSize()!.width <= 1100) {
+    const pivots = await market.locator("[data-market-vnext-pivots]").boundingBox();
+    expect(pivots!.y).toBeGreaterThanOrEqual(summary!.y + summary!.height);
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+  await page.screenshot({ path: testInfo.outputPath(`${testInfo.project.name}-market-full-history-zh.png`) });
+});

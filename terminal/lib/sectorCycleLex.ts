@@ -91,9 +91,12 @@ export const SECTOR_CYCLE_LEX: Record<string, [string, string]> = {
   scTable: ["Data table", "数据表"],
   scObservationDate: ["Observation date", "观测日期"],
   scChartRange: ["Chart range", "图表范围"],
-  scRange1m: ["1 month", "1个月"],
-  scRange3m: ["3 months", "3个月"],
-  scRange1y: ["1 year", "1年"],
+  /* v1.1: fixed historical windows. These are SESSION counts (the feed's own
+   * 21/63/252-session horizons) — never relabelled as calendar months, and
+   * never confused with Prophet's separate 20-completed-session horizon. */
+  scRange21: ["21 sessions", "21个交易日"],
+  scRange63: ["63 sessions", "63个交易日"],
+  scRange252: ["252 sessions", "252个交易日"],
   scRangeAll: ["All", "全部"],
   scScale: ["Scale", "刻度"],
   scScaleLinear: ["Linear", "线性"],
@@ -167,6 +170,47 @@ export const SECTOR_CYCLE_LEX: Record<string, [string, string]> = {
 
   /* Qualification strip */
   scParityFailed: ["Model reading is not current: live parity not met", "模型读数不代表当前状态：实时一致性核验未通过"],
+
+  /* v1.1 per-head forecast capabilities (lane 8 R3 wording, replaces the
+   * generic "model not qualified today" line). Each head is judged ALONE:
+   * one withheld head never hides its siblings or the observed Cycles facts
+   * (SP10), and no withheld head ever shows a number. */
+  scForecastHeads: ["Remaining-opportunity forecasts", "剩余机会预测"],
+  scForecastHeadsFoot: ["Each forecast is withheld on its own; the observed cycle facts above are unaffected.", "每项预测单独判断是否暂缓显示；上方已观测的周期事实不受影响。"],
+  scForecastHeadsAbsent: ["No forecast capability block is attached to this record; nothing is inferred.", "该记录未附带预测能力分块；不作任何推断。"],
+  scForecastHeadsInvalid: ["This record's forecast block did not match its published contract; nothing is drawn from it.", "该记录的预测分块与已发布契约不符；不从中绘制任何内容。"],
+  /* The four head names (lane 8 wire contract, canonical order). */
+  scHeadRemainingReturn: ["Remaining return", "剩余回报"],
+  scHeadAdverseTail: ["Adverse tail", "不利尾部"],
+  scHeadTargetBeforeInvalidation: ["Target before invalidation", "先达目标还是先失效"],
+  scHeadTransitionTime: ["Transition time", "转折确认时间"],
+  scHeadStatusWithheld: ["Withheld", "暂缓显示"],
+  scHeadStatusWithdrawn: ["Withdrawn", "已撤回"],
+  scHeadStatusQualified: ["Qualified", "已获资格"],
+  scHeadWithdrawn: ["Withdrawn {date} — previously qualified, no longer", "已于 {date} 撤回 — 此前已获资格，现不再满足"],
+  scHeadWithheldNoNumber: ["No estimate is shown for a withheld forecast.", "暂缓显示的预测不展示任何数值。"],
+  scHeadEvidence: ["Evidence", "证据"],
+  scHeadHorizon: ["Horizon: {n} completed sessions", "时间跨度：{n} 个已完结交易日"],
+  scHeadDirectional: ["Leg-direction fact: what the current up/down leg tends to reach, not a cycle-timing edge.", "周期段方向事实：描述当前上行/下行段的倾向，并非周期择时边界。"],
+  /* The five lane-8 reason codes, EN + ZH, exactly as published. */
+  scReasonResearchWithheldFailed: ["Withheld: the research test failed this forecast on current data", "暂缓：该预测在当前数据上的研究检验未通过"],
+  scReasonLiveStateNotProtocolEpoch: ["Withheld: live cycle state does not match the research protocol's turn epoch", "暂缓：实时周期状态与研究协议的转折口径不一致"],
+  scReasonMembershipNotPointInTime: ["Withheld: membership is not point-in-time for this record", "暂缓：该记录的成分并非时点口径"],
+  scReasonRecordKindNotEvaluated: ["Withheld: this record kind was not part of the research evaluation", "暂缓：该记录类型未纳入研究评估范围"],
+  scReasonMarketNotEvaluated: ["Withheld: this market was not part of the research evaluation", "暂缓：该市场未纳入研究评估范围"],
+  /* Fallbacks for codes the producer may add later — never a bare code dump. */
+  scReasonResearchWithheldUnderpowered: ["Withheld: not enough data to judge this forecast", "暂缓：数据不足以判断该预测"],
+  scReasonResearchNotEvaluated: ["Withheld: this forecast was not evaluated in the research", "暂缓：该预测未经研究评估"],
+  scReasonLiveEstimatorNotWired: ["Withheld: no live estimator produces this forecast yet", "暂缓：尚无实时估计器输出该预测"],
+  scReasonUnknown: ["Withheld for an unstated reason", "因未说明的原因暂缓显示"],
+  scReasonPayloadInvalid: ["Withheld: this forecast block did not match its published contract", "暂缓：该预测分块与已发布契约不符"],
+
+  /* v1.1 SP11: the two dates are distinct facts and never conflated. */
+  scTurnKnownSince: ["first known {date}", "最早可知 {date}"],
+  scTurnDateNote: ["Turn dates are pivot dates. A turn becomes known only at confirmation — the two dates are kept distinct.", "转折日期为拐点日期。拐点仅在确认后才可知 — 两种日期严格区分。"],
+
+  /* v1.1: historical duration is a measured fact, never remaining upside. */
+  scDurationNotUpside: ["Time in phase is a measured historical fact — not remaining upside, and not a time limit.", "阶段时长是已测量的历史事实 — 并非剩余上行空间，也不是时间限制。"],
   scParityNotEstablished: ["Current model qualification unavailable", "当前模型资格尚未确认"],
   scParityHolds: ["Source parity holds; model qualifications remain separate", "源数据一致性核验通过，模型资格仍需单独判断"],
   scModelBody: ["No probability is promoted here. Historical MODEL and PRIOR evidence remains in the full Cycles view.", "此处不提升任何概率主张。完整周期视图保留历史模型与先验证据。"],

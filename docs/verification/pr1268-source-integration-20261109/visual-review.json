@@ -1,0 +1,15 @@
+{
+  "findings": [
+    "Mobile Chinese light: current-night history timestamp, BOATS-only vendor volume/gaps, explicit non-NBBO qualifier and last trade205.73 remain readable within390px.",
+    "Desktop English dark: current-night history and single-venue BOATS trade remain distinct from the historical regular-market521.58 header; chart and watchlist status fit without visible overlap.",
+    "The UI is fixture-backed proof. These images make no live provider, deployment or trading-acceptance claim."
+  ],
+  "images": {
+    "terminal/docs/pr-crops/tiingo-24h-status-20261103/desktop-en-dark.png": "f08572683bc8d00b621b1ed77c9faa7a4b8e655a83fb22a0f45e0c59c24b8239",
+    "terminal/docs/pr-crops/tiingo-24h-status-20261103/mobile-zh-light.png": "f70f8535a5346db165567fb90b54ba328016920696ef402e6ddf188c93e8b3e9"
+  },
+  "method": "Actual image content inspected by the assigned root session",
+  "reviewedAt": "2026-11-09T17:09:54.485260+00:00",
+  "schema": "terminal_pr1268_visual_review.v1",
+  "state": "REVIEWED"
+}
