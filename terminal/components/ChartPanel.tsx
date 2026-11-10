@@ -7030,6 +7030,8 @@ export default function ChartPanel({ symbol, contextDock, optionsLevel = null, o
     };
     // right-click context menu (D1 — TV-style, rebuilt on every open to reflect current state)
     const ctxm = document.createElement("div"); ctxm.className = "ctx-menu"; ctxm.style.display = "none"; wrap.appendChild(ctxm); ctxRef.current = ctxm;
+    // Keep this chart-owned menu above the engine's pane-resize hit targets (z-index: 50).
+    ctxm.style.zIndex = "51";
     let ctxPt: { t: string; p: number } = { t: "", p: 0 };
     const hideCtx = () => { if (ctxRef.current) ctxRef.current.style.display = "none"; };
     // submenu state for Chart template
