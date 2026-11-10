@@ -1,0 +1,27 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+__________ test_every_migration_on_disk_passes_the_guard_or_is_legacy __________
+
+    def test_every_migration_on_disk_passes_the_guard_or_is_legacy():
+        seen_versions = []
+        for fp in sorted(glob.glob("supabase/migrations/*.sql")):
+            version = migration_version(fp)
+            seen_versions.append(version)
+            if version is None:
+                continue
+            text = Path(fp).read_text()
+            stmts = split_statements(text)
+            findings = idempotency_findings(text, stmts)
+            if version in LEGACY_VERSIONS:
+                continue
+>           assert findings == [], f"{fp} is not idempotent without --allow-legacy: {findings}"
+E           AssertionError: supabase/migrations/0053_investigation_v3_prophet_decision_admission.sql is not idempotent without --allow-legacy: ['-- readback:/-- down: block line terminates with \';\' but does not open a recognized SQL statement: "(iii) the evidence probe as authenticated (expected t for each prophet.research type and the 0052/0047 pairs; f for a stranger type): begin; set local role authenticated; select public.investigation_evidence_admitted_v2(\'prophet.research\',\'today_selection\'), public.investigation_evidence_admitted_v2(\'prophet.research\',\'evaluation\'), public.investigation_evidence_admitted_v2(\'macro.sector\',\'sector_observation\'), public.investigation_evidence_admitted_v2(\'prophet.research\',\'order_ticket\'); rollback"']
+E           assert ['-- readback...); rollback"'] == []
+E             
+E             Left contains one more item: '-- readback:/-- down: block line terminates with \';\' but does not open a recognized SQL statement: "(iii) the evide...',\'sector_observation\'), public.investigation_evidence_admitted_v2(\'prophet.research\',\'order_ticket\'); rollback"'
+E             Use -v to get more diff
+
+tests/test_supabase_apply.py:624: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_supabase_apply.py::test_every_migration_on_disk_passes_the_guard_or_is_legacy
+1 failed in 0.84s

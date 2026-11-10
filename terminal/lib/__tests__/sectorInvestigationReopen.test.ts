@@ -1,7 +1,9 @@
 /**
  * SP14 — saved-investigation reopen against the transport seam. FIXTURE results: the transport is a
- * stand-in classified from lane 1's wire table; the capture bytes are the REAL SHA-pinned lane-1 sample
- * (LANE1_WIRE_V11_SAMPLE_page1.json, 5bf9a3bc…). No served-route, entitlement or deployment proof.
+ * stand-in classified from lane 1's wire table. The committed current lane-1 sample is SHA-256
+ * dbb09959b4feaaf849ea369f667c34b2e390f3b12e5c509b1e86daedf8a49d80, produced by Macro
+ * badb9ae1cfe458f98cef41fe8b988b627db36a07 with injected identity/clock and a throwaway signing key.
+ * No served-route, entitlement or deployment proof.
  */
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
@@ -12,7 +14,7 @@ import {
 import { validateInvestigationManifest } from "../investigationContracts";
 import { INVESTIGATION_ADMISSION } from "../investigations";
 
-const sample = JSON.parse(readFileSync("/tmp/si_plan/v11/LANE1_WIRE_V11_SAMPLE_page1.json", "utf8")) as SectorPopulationRead;
+const sample = JSON.parse(readFileSync(new URL("./fixtures/sector_generation_v11_page1.json", import.meta.url), "utf8")) as SectorPopulationRead;
 const latestOther: SectorPopulationRead = JSON.parse(JSON.stringify(sample));
 (latestOther.page!.capture!.owner_ref as Record<string, unknown>).generation_id = "real-g2";
 (latestOther.page!.capture!.owner_ref as Record<string, unknown>).content_id = "c".repeat(64);
