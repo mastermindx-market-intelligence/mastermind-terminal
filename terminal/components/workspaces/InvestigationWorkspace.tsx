@@ -57,10 +57,15 @@ const SCENARIO_COPY={
 // names; it never falls back to the latest, and the current read is a separate
 // labelled action. All words here claim no more than the state machine proves.
 const SECTOR_CONTEXT_COPY={
- en:{title:"Sector context",original:"Original sector context",unavailable:"Original sector context unavailable",durable:"The saved reference reopens this exact capture after a restart.",processOnly:"The saved reference opens this capture only while its generation process is retained; after a restart it is unavailable.",counts:"Measured {served} of {configured} configured members · {unserved} owner-explained unserved",currentLabel:"Current",openCurrent:"Open current sector context",openOriginal:"Back to the original sector context",reopening:"Reopening the saved sector context…",signedOut:"Sign in to reopen the saved sector context.",retry:"The saved sector context could not be reopened. Try again.",retryAction:"Retry",generation:"Generation {id}"},
- zh:{title:"行业上下文",original:"原始行业上下文",unavailable:"原始行业上下文不可用",durable:"保存的引用可在重启后重新打开此确切捕获。",processOnly:"保存的引用仅在其生成进程仍保留期间可打开此捕获；重启后不可用。",counts:"已测量 {served} / {configured} 名配置成员 · {unserved} 名未测量（所有者已说明）",currentLabel:"当前",openCurrent:"打开当前行业上下文",openOriginal:"返回原始行业上下文",reopening:"正在重新打开已保存的行业上下文…",signedOut:"登录后重新打开已保存的行业上下文。",retry:"暂时无法重新打开已保存的行业上下文，请重试。",retryAction:"重试",generation:"生成 {id}"},
+ en:{title:"Sector context",original:"Original sector context",unavailable:"Original sector context unavailable",durable:"The saved reference reopens this exact capture after a restart.",processOnly:"The saved reference opens this capture only while its generation process is retained; after a restart it is unavailable.",counts:"Measured {served} of {configured} configured members · {unserved} owner-explained unserved",countsNotStated:"Measured {served} members · configured roster not stated · {unserved} owner-explained unserved",currentLabel:"Current",openCurrent:"Open current sector context",openOriginal:"Back to the original sector context",reopening:"Reopening the saved sector context…",signedOut:"Sign in to reopen the saved sector context.",retry:"The saved sector context could not be reopened. Try again.",retryAction:"Retry",generation:"Generation {id}"},
+ zh:{title:"行业上下文",original:"原始行业上下文",unavailable:"原始行业上下文不可用",durable:"保存的引用可在重启后重新打开此确切捕获。",processOnly:"保存的引用仅在其生成进程仍保留期间可打开此捕获；重启后不可用。",counts:"已测量 {served} / {configured} 名配置成员 · {unserved} 名未测量（所有者已说明）",countsNotStated:"已测量 {served} 名成员 · 未给出配置名单 · {unserved} 名未测量（所有者已说明）",currentLabel:"当前",openCurrent:"打开当前行业上下文",openOriginal:"返回原始行业上下文",reopening:"正在重新打开已保存的行业上下文…",signedOut:"登录后重新打开已保存的行业上下文。",retry:"暂时无法重新打开已保存的行业上下文，请重试。",retryAction:"重试",generation:"生成 {id}"},
 } as const;
 const fillCopy=(text:string,values:Record<string,string>)=>text.replace(/\{(\w+)\}/g,(_,key:string)=>values[key]??`{${key}}`);
+/** F1 counts line: a null configured roster is "not stated" — never zero, never complete. */
+const sectorCountsLine=(copy:{counts:string;countsNotStated:string},counts:{served:number;configuredCurrent:number|null;accountedUnserved:number})=>
+ counts.configuredCurrent===null
+  ?fillCopy(copy.countsNotStated,{served:String(counts.served),unserved:String(counts.accountedUnserved)})
+  :fillCopy(copy.counts,{served:String(counts.served),configured:String(counts.configuredCurrent),unserved:String(counts.accountedUnserved)});
 function contextLabel(value:string,lang:"en"|"zh") {
  const pair=CONTEXT_LABELS[value]??["Not classified","未分类"];
  return pair[lang==="zh"?1:0];
@@ -410,7 +415,7 @@ function SectorContextCard({state,copy,onRetry,onOpenCurrent}:{state:SectorReope
    <h3>{copy.original}</h3>
    <p className={styles.eyebrow}>{fillCopy(copy.generation,{id:state.identity.generation_id})}</p>
    <p>{state.contextRefDurable?copy.durable:copy.processOnly}</p>
-   {page&&<p className={styles.eyebrow}>{fillCopy(copy.counts,{served:String(page.counts.served),configured:String(page.counts.configuredCurrent),unserved:String(page.counts.accountedUnserved)})}</p>}
+   {page&&<p className={styles.eyebrow}>{sectorCountsLine(copy,page.counts)}</p>}
    <div className={styles.actions}><button type="button" onClick={onOpenCurrent}>{copy.openCurrent}</button></div>
   </section>;
  }
@@ -418,7 +423,7 @@ function SectorContextCard({state,copy,onRetry,onOpenCurrent}:{state:SectorReope
   const page=sectorPopulationPage(state.body);
   return <section className={styles.card} data-testid="sector-context-card" data-sector-reopen="current">
    <h3>{copy.currentLabel}</h3>
-   {page&&<p className={styles.eyebrow}>{fillCopy(copy.counts,{served:String(page.counts.served),configured:String(page.counts.configuredCurrent),unserved:String(page.counts.accountedUnserved)})}</p>}
+   {page&&<p className={styles.eyebrow}>{sectorCountsLine(copy,page.counts)}</p>}
    <div className={styles.actions}><button type="button" onClick={onRetry}>{copy.openOriginal}</button></div>
   </section>;
  }

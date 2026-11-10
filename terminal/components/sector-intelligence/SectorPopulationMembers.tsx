@@ -132,7 +132,10 @@ export default function SectorPopulationMembers() {
     <h2 className={styles.cardTitle}>{t("siPopulationTitle")}</h2>
     <p className={styles.stateCopy}>{t("siPopulationIntro")}</p>
     {counts ? <p className={styles.chartNote} data-testid="sector-population-counts">
-      {nativeFill(t("siPopulationCounts"), { served: String(counts.served), configured: String(counts.configuredCurrent) })}
+      {counts.configuredCurrent === null
+        // F1: no readable roster — unknown is "not stated", never zero, never complete.
+        ? nativeFill(t("siPopulationCountsNotStated"), { served: String(counts.served) })
+        : nativeFill(t("siPopulationCounts"), { served: String(counts.served), configured: String(counts.configuredCurrent) })}
       {" · "}{nativeFill(t("siPopulationCountsUnserved"), { n: String(counts.accountedUnserved) })}
       {counts.unaccounted > 0 ? ` · ${nativeFill(t("siPopulationCountsUnaccounted"), { n: String(counts.unaccounted) })}` : ""}
       {" · "}{nativeFill(t("siPopulationGroups"), { n: String(counts.groups) })}

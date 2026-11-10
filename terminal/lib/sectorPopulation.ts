@@ -85,23 +85,26 @@ export type PopulationTaxonomy =
 export type PopulationMembership = { status: "listed"; effectiveOn: string | null };
 export type PopulationRow = {
   ordinal: number; groupId: string; symbol: string; name: string;
-  membership: PopulationMembership; alsoInGroups: number; inHandoffMemberSet: boolean;
+  membership: PopulationMembership; alsoInGroups: number; inHandoffMemberSet: boolean | null;
   industry: PopulationTaxonomy; subIndustry: PopulationTaxonomy;
   prophetEligibility: { status: string; reason?: string };
   visibilityScope: string;
 };
+/** Capture-level unserved entry: `{group_id,symbol,reason}` (§2 population). */
 export type PopulationUnservedEntry = { groupId: string; symbol: string; reason: PopulationUnservedReason };
+/** GROUP-descriptor unserved entry: `{symbol,reason}` — the group is implicit (§1). */
+export type PopulationGroupUnservedEntry = { symbol: string; reason: PopulationUnservedReason };
 export type PopulationAction =
   | { status: "available"; lane: string; reco: string; label: string; score: number }
   | { status: "unavailable"; reason: string };
 export type PopulationGroupDescriptor = {
-  groupId: string; kind: string; name: string | null; nameZh: string | null;
+  groupId: string; kind: "basket"; name: string | null; nameZh: string | null;
   category: string | null; weighting: string | null;
   configuredCurrent: number | null; membersListed: number; unserved: number;
   refusedByOwner: boolean; ownerObservationRefusal: Record<string, unknown> | null;
   membershipCoverage: Record<string, unknown>;
   action: PopulationAction; nativeSectorRef: Record<string, unknown>;
-  unservedMembers: PopulationUnservedEntry[];
+  unservedMembers: PopulationGroupUnservedEntry[];
 };
 export type PopulationGroupIndexEntry = {
   groupId: string; name: string | null; membersListed: number;
@@ -113,9 +116,11 @@ export type PopulationRemovedMembers = {
   status: "available"; n: number; source: string; version: string; asOf: string;
   members: { groupId: string; symbol: string; removedOn: string }[];
 } | { status: "unavailable"; reason: string };
-/** Counts only — never a completeness claim. `complete` is carried, never rendered as "all". */
+/** Counts only — never a completeness claim. `configuredCurrent`/`complete` are
+ * null when the capture has no readable roster (F1): null means UNKNOWN — render
+ * "not stated", never zero and never complete. */
 export type PopulationCounts = {
-  configuredCurrent: number; served: number; accountedUnserved: number; unaccounted: number;
+  configuredCurrent: number | null; served: number; accountedUnserved: number; unaccounted: number;
   complete: boolean | null; groups: number; unservedMembers: PopulationUnservedEntry[];
   removedMembers: PopulationRemovedMembers | null;
 };
@@ -129,7 +134,7 @@ export type PopulationPage = {
   sourceSession: string; publishedAt: string; qualification: string;
   ownerRef: PopulationOwnerRef; counts: PopulationCounts;
   filter: { group: string | null; q: string | null };
-  limit: number; offset: number; totalMatching: number; complete: boolean | null;
+  limit: number; offset: number; totalMatching: number; complete: boolean;
   rows: PopulationRow[]; groups: PopulationGroupDescriptor[];
   groupIndex: PopulationGroupIndexEntry[] | null;
   unservedMatching: PopulationUnservedEntry[] | null;
@@ -160,6 +165,32 @@ function unservedEntry(value: unknown): PopulationUnservedEntry | null {
   return { groupId: value.group_id, symbol: value.symbol, reason: value.reason };
 }
 
+/** GROUP-descriptor unserved (§1): `{symbol,reason}` — the group is implicit.
+ * The capture-level 3-key entry is NOT this shape; admitting it here would let a
+ * refused basket's page read as invalid. */
+function groupUnservedEntry(value: unknown): PopulationGroupUnservedEntry | null {
+  if (!closed(value, ["symbol", "reason"])) return null;
+  if (typeof value.symbol !== "string" || !POPULATION_SYMBOL.test(value.symbol)) return null;
+  if (typeof value.reason !== "string" || !isPopulationUnservedReason(value.reason)) return null;
+  return { symbol: value.symbol, reason: value.reason };
+}
+
+/** Lane 1's `_text` rule (R3-N1): every string inside an owner refusal is
+ * 1..160 chars — a huge or empty string is dropped producer-side, never
+ * shortened. A consumer admits only what the producer would have carried. */
+const OWNER_REFUSAL_KEYS = ["status", "coverage", "observed_n", "configured_n", "min_members",
+  "min_coverage", "effective_as_of"] as const;
+function ownerObservationRefusal(value: unknown): Record<string, unknown> | null {
+  if (!closed(value, [...OWNER_REFUSAL_KEYS])) return null;
+  for (const field of OWNER_REFUSAL_KEYS) {
+    const entry: unknown = value[field];
+    if (typeof entry === "string") { if (entry.length < 1 || entry.length > 160) return null; }
+    else if (typeof entry === "number") { if (!Number.isFinite(entry)) return null; }
+    else if (typeof entry !== "boolean") return null;
+  }
+  return value;
+}
+
 function statusField(value: unknown, unavailableReason = true): { status: string; reason?: string } | null {
   if (!record(value) || typeof value.status !== "string") return null;
   if (value.status === "unavailable" && unavailableReason && typeof value.reason !== "string") return null;
@@ -171,7 +202,8 @@ function actionField(value: unknown): PopulationAction | null {
     && str(value.lane, 64) && str(value.reco, 64) && str(value.label, 64) && int(value.score, 0, 1000)) {
     return { status: "available", lane: value.lane, reco: value.reco, label: value.label, score: value.score };
   }
-  if (closed(value, ["status", "reason"]) && value.status === "unavailable" && str(value.reason, 200)) {
+  // §1 lists exactly one unavailable action reason: no row exists for the group.
+  if (closed(value, ["status", "reason"]) && value.status === "unavailable" && value.reason === "no_action_row") {
     return { status: "unavailable", reason: value.reason };
   }
   return null;
@@ -201,7 +233,7 @@ export function sectorPopulationPage(value: unknown): PopulationPage | null {
   if (!closed(page, ["capture", "filter", "limit", "offset", "total_matching", "complete", "rows", "groups", "next_cursor", "context_ref"], ["group_index", "unserved_matching"])
     || !int(page.limit, POPULATION_MIN_LIMIT, POPULATION_MAX_LIMIT)
     || !int(page.offset, 0, 1_000_000) || !int(page.total_matching, 0, 1_000_000)
-    || !(typeof page.complete === "boolean" || page.complete === null)
+    || !bool(page.complete)  // page-end fact (§1): bool, never null
     || !Array.isArray(page.rows) || page.rows.length > page.limit
     || !Array.isArray(page.groups) || page.groups.length > 64
     || !(page.next_cursor === null || (typeof page.next_cursor === "string" && POPULATION_TOKEN.test(page.next_cursor)))
@@ -227,9 +259,12 @@ export function sectorPopulationPage(value: unknown): PopulationPage | null {
 
   const population = capture.population;
   if (!closed(population, ["configured_current", "served", "accounted_unserved", "unaccounted", "complete", "complete_rule", "unserved_reason_note", "unserved_reasons", "groups", "unserved_members", "removed_members", "eligible", "measured", "entitled_visibility_scope"])
-    || !int(population.configured_current, 0, 1_000_000) || !int(population.served, 0, 1_000_000)
+    // F1: configured_current/complete are NULL when the capture has no readable
+    // roster — null is unknown, never zero, never complete.
+    || !(population.configured_current === null || int(population.configured_current, 0, 1_000_000))
+    || !int(population.served, 0, 1_000_000)
     || !int(population.accounted_unserved, 0, 1_000_000) || !int(population.unaccounted, 0, 1_000_000)
-    || typeof population.complete !== "boolean" || !str(population.complete_rule, 400)
+    || !(population.complete === null || bool(population.complete)) || !str(population.complete_rule, 400)
     || !str(population.unserved_reason_note, 1000) || !int(population.groups, 0, 10_000)
     || !Array.isArray(population.unserved_reasons) || population.unserved_reasons.length > 16
     || !population.unserved_reasons.every(reason => typeof reason === "string" && isPopulationUnservedReason(reason))
@@ -240,7 +275,8 @@ export function sectorPopulationPage(value: unknown): PopulationPage | null {
 
   let removedMembers: PopulationRemovedMembers | null;
   const removed = population.removed_members;
-  if (closed(removed, ["status", "reason"]) && removed.status === "unavailable" && str(removed.reason, 200)) {
+  // §2: no producer emits removals ⇒ exactly unavailable/not_produced.
+  if (closed(removed, ["status", "reason"]) && removed.status === "unavailable" && removed.reason === "not_produced") {
     removedMembers = { status: "unavailable", reason: removed.reason };
   } else if (closed(removed, ["status", "n", "source", "version", "as_of", "members"]) && removed.status === "available"
     && int(removed.n, 0, 1_000_000) && str(removed.source, 200) && str(removed.version, 128) && day(removed.as_of)
@@ -262,7 +298,7 @@ export function sectorPopulationPage(value: unknown): PopulationPage | null {
       || !closed(row.membership, ["status", "effective_on"]) || row.membership.status !== "listed"
       || !(row.membership.effective_on === null || day(row.membership.effective_on))
       || !int(row.also_in_groups, 0, 64)  // the wire carries a COUNT of other baskets, never a member list
-      || !bool(row.in_handoff_member_set)
+      || !(row.in_handoff_member_set === null || bool(row.in_handoff_member_set))
       || !statusField(row.prophet_eligibility) || !record(row.visibility) || row.visibility.scope !== "entitled_full") return null;
     const industry = taxonomy(row.industry, false), subIndustry = taxonomy(row.sub_industry, true);
     if (!industry || !subIndustry) return null;
@@ -276,25 +312,37 @@ export function sectorPopulationPage(value: unknown): PopulationPage | null {
   const groups: PopulationGroupDescriptor[] = [];
   for (const group of page.groups) {
     if (!closed(group, ["group_id", "kind", "name", "name_zh", "category", "weighting", "n_configured_current", "n_members_listed", "n_unserved", "refused_by_owner", "owner_observation_refusal", "membership_coverage", "action", "native_sector_ref", "unserved"])
-      || typeof group.group_id !== "string" || !POPULATION_GROUP_ID.test(group.group_id) || !str(group.kind, 32)
-      || !strOrNull(group.name, 200) || !strOrNull(group.name_zh, 200)
-      || !strOrNull(group.category, 200) || !strOrNull(group.weighting, 64)
+      || typeof group.group_id !== "string" || !POPULATION_GROUP_ID.test(group.group_id)
+      || group.kind !== "basket"  // §1: the only listed kind
+      || !strOrNull(group.name, 160) || !strOrNull(group.name_zh, 160)   // live-group `_text` rule
+      || !strOrNull(group.category, 160) || !strOrNull(group.weighting, 160)
       || !(group.n_configured_current === null || int(group.n_configured_current, 0, 1_000_000))
       || !int(group.n_members_listed, 0, 1_000_000) || !int(group.n_unserved, 0, 1_000_000)
       || !bool(group.refused_by_owner)
-      || !(group.owner_observation_refusal === null || record(group.owner_observation_refusal))
-      || !record(group.membership_coverage) || typeof group.membership_coverage.status !== "string"
-      || !record(group.native_sector_ref) || typeof group.native_sector_ref.status !== "string"
+      || !(group.owner_observation_refusal === null || ownerObservationRefusal(group.owner_observation_refusal) !== null)
+      // §1 lists two forms: {status,n_listed,n_effective,source_version} | unavailable
+      || !(closed(group.membership_coverage, ["status", "n_listed", "n_effective", "source_version"])
+        && str(group.membership_coverage.status, 160)
+        && int(group.membership_coverage.n_listed, 0, 1_000_000)
+        && int(group.membership_coverage.n_effective, 0, 1_000_000)
+        && str(group.membership_coverage.source_version, 160)
+        || (closed(group.membership_coverage, ["status", "reason"])
+          && group.membership_coverage.status === "unavailable" && str(group.membership_coverage.reason, 160)))
+      // §1: no crosswalk exists — this ref is only ever unavailable/not_produced.
+      || !(closed(group.native_sector_ref, ["status", "reason"])
+        && group.native_sector_ref.status === "unavailable" && group.native_sector_ref.reason === "not_produced")
       || !Array.isArray(group.unserved) || group.unserved.length > 100_000
-      || !group.unserved.every(entry => unservedEntry(entry) !== null)) return null;
+      || !group.unserved.every(entry => groupUnservedEntry(entry) !== null)) return null;
     const action = actionField(group.action);
     if (!action) return null;
     groups.push({ groupId: group.group_id, kind: group.kind, name: group.name, nameZh: group.name_zh,
       category: group.category, weighting: group.weighting, configuredCurrent: group.n_configured_current,
       membersListed: group.n_members_listed, unserved: group.n_unserved, refusedByOwner: group.refused_by_owner,
-      ownerObservationRefusal: group.owner_observation_refusal, membershipCoverage: group.membership_coverage,
+      ownerObservationRefusal: group.owner_observation_refusal === null ? null
+        : ownerObservationRefusal(group.owner_observation_refusal),
+      membershipCoverage: group.membership_coverage,
       action, nativeSectorRef: group.native_sector_ref,
-      unservedMembers: (group.unserved as unknown[]).map(entry => unservedEntry(entry)!) });
+      unservedMembers: (group.unserved as unknown[]).map(entry => groupUnservedEntry(entry)!) });
   }
 
   let groupIndex: PopulationGroupIndexEntry[] | null = null;

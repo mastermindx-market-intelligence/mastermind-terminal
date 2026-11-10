@@ -168,6 +168,107 @@ describe("classifyPopulationResponse — the refusal table", () => {
   });
 });
 
+describe("sectorPopulationPage — wire v1.1 follow-up (COO 14:10Z, LANE1_WIRE_V11)", () => {
+  const page = (value: Record<string, unknown>) => value.page as Record<string, unknown>;
+  const pop = (value: Record<string, unknown>) =>
+    (page(value).capture as Record<string, unknown>).population as Record<string, unknown>;
+  const gi = (value: Record<string, unknown>) =>
+    page(value).group_index as Array<Record<string, unknown>>;
+  const groups = (value: Record<string, unknown>) =>
+    page(value).groups as Array<Record<string, unknown>>;
+  const rows = (value: Record<string, unknown>) =>
+    page(value).rows as Array<Record<string, unknown>>;
+  const legalRefusal = () => ({ status: "refused", coverage: "below_floor", observed_n: 3,
+    configured_n: 18, min_members: 5, min_coverage: 0.8, effective_as_of: "2026-11-06" });
+  const refuseHousing = (value: Record<string, unknown>) => {
+    const group = groups(value)[0];
+    group.refused_by_owner = true; group.n_members_listed = 0;
+    group.unserved = [{ symbol: "MHK", reason: "group_refused_by_owner_observation" }];
+    group.owner_observation_refusal = legalRefusal();
+  };
+
+  it("group_index carries refused_by_owner explicitly; the flag wins both ways", () => {
+    const explicitTrue = clone();
+    gi(explicitTrue)[0].refused_by_owner = true;
+    const readTrue = sectorPopulationPage(explicitTrue)!;
+    expect(readTrue.groupIndex![0].refusedByOwner).toBe(true);
+    expect(readTrue.groupIndex![0].refusedExplicit).toBe(true);
+    // Explicit false beats the three-part test on a refusal-looking entry.
+    const explicitFalse = clone();
+    const entry = gi(explicitFalse)[0];
+    entry.name = null; entry.n_members_listed = 0; entry.n_unserved = entry.n_configured_current;
+    entry.refused_by_owner = false;
+    const readFalse = sectorPopulationPage(explicitFalse)!;
+    expect(readFalse.groupIndex![0].refusedByOwner).toBe(false);
+    expect(readFalse.groupIndex![0].refusedExplicit).toBe(true);
+  });
+
+  it("null configured_current and complete mean UNKNOWN — carried as null, never zero/true", () => {
+    const mutated = clone();
+    pop(mutated).configured_current = null;
+    pop(mutated).complete = null;
+    const read = sectorPopulationPage(mutated)!;
+    expect(read).not.toBeNull();
+    expect(read.counts.configuredCurrent).toBeNull();
+    expect(read.counts.complete).toBeNull();
+  });
+
+  it("admits unaccounted_by_owner unserved entries (an owner-dropped basket)", () => {
+    const mutated = clone();
+    (pop(mutated).unserved_members as Array<Record<string, unknown>>)
+      .push({ group_id: "silver_miners", symbol: "GATO", reason: "unaccounted_by_owner" });
+    const read = sectorPopulationPage(mutated)!;
+    expect(read.counts.unservedMembers.at(-1))
+      .toEqual({ groupId: "silver_miners", symbol: "GATO", reason: "unaccounted_by_owner" });
+  });
+
+  it("a refused group descriptor carries 2-key unserved and the 7-key owner refusal", () => {
+    const mutated = clone();
+    refuseHousing(mutated);
+    const read = sectorPopulationPage(mutated)!;
+    expect(read).not.toBeNull();
+    expect(read.groups[0].refusedByOwner).toBe(true);
+    expect(read.groups[0].unservedMembers)
+      .toEqual([{ symbol: "MHK", reason: "group_refused_by_owner_observation" }]);
+    // The capture-level 3-key shape is NOT the group shape (the group is implicit).
+    const wrongShape = clone();
+    groups(wrongShape)[0].unserved = [{ group_id: "housing", symbol: "MHK", reason: "group_refused_by_owner_observation" }];
+    expect(sectorPopulationPage(wrongShape)).toBeNull();
+  });
+
+  it("refusal strings are bounded to 160 chars — over-long is absent, never shortened", () => {
+    const atLimit = clone();
+    refuseHousing(atLimit);
+    (groups(atLimit)[0].owner_observation_refusal as Record<string, unknown>).status = "x".repeat(160);
+    expect(sectorPopulationPage(atLimit)).not.toBeNull();
+    const overLong = clone();
+    refuseHousing(overLong);
+    (groups(overLong)[0].owner_observation_refusal as Record<string, unknown>).status = "x".repeat(161);
+    expect(sectorPopulationPage(overLong)).toBeNull();
+    const empty = clone();
+    refuseHousing(empty);
+    (groups(empty)[0].owner_observation_refusal as Record<string, unknown>).status = "";
+    expect(sectorPopulationPage(empty)).toBeNull();
+    const extraKey = clone();
+    refuseHousing(extraKey);
+    (groups(extraKey)[0].owner_observation_refusal as Record<string, unknown>).extra = true;
+    expect(sectorPopulationPage(extraKey)).toBeNull();
+  });
+
+  it("in_handoff_member_set may be null (not stated)", () => {
+    const mutated = clone();
+    rows(mutated)[0].in_handoff_member_set = null;
+    const read = sectorPopulationPage(mutated)!;
+    expect(read.rows[0].inHandoffMemberSet).toBeNull();
+  });
+
+  it("page.complete is the page-end fact — a bool, never null", () => {
+    const mutated = clone();
+    page(mutated).complete = null;
+    expect(sectorPopulationPage(mutated)).toBeNull();
+  });
+});
+
 describe("fetchSectorPopulation — client transport", () => {
   afterEach(() => { vi.unstubAllGlobals(); });
   it("never sends audience; forwards the closed set only", async () => {
